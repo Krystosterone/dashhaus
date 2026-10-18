@@ -25,6 +25,7 @@ const meta = {
     },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
     density: { control: "inline-radio", options: ["regular", "thin"], description: "Regular card or one-row thin variant" },
+    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
     name: { control: "text" },
     area: { control: "text" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },

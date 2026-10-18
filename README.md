@@ -30,8 +30,11 @@ src/
     light/                 Brightness bar and warmth ruler (classes lw-), types, Kelvin colors, demo, stories
     climate/               Setpoint stepper and heat/cool range (classes cw-), HVAC mode tones, types, demo, stories
     sensor/                Read-only temperature and humidity readings (classes sw-), comfort and trend, demo, stories
+    alarm/                 Security panel: mode switch, countdowns, keypad (classes al-), demo (code 1234), stories
+    cover/                 Curtains, blinds, shades and garage doors (classes cv-), demo with travel, stories
     toggle/                Modes switched on and off (classes tw-), tones and icons, demo, stories
     home/                  Outdoor conditions beside the house model (classes hw-, sc-), conditions, demo, stories
+  bundles/                 JoinedBundle and LeadBundle: several widgets in one card (classes hb-), demo, stories
   dashboards/              DashboardPage (with the header widget), Section, Columns, Cell, and the phone, tablet and wall-panel dashboards
   stories/                 Foundations: color temperature, worst-case data
   index.ts                 Public exports
@@ -43,7 +46,13 @@ src/
 - **Height never changes with state.** A card's height depends only on its container width. Different states swap what fills a fixed-size area; they never add or remove rows.
 - **Size from the container, not the viewport.** Use container queries. The light widget uses S under 260 px, M 260 to 439 px, L 440 px and up.
 - **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a circle arrow button or a press and hold on the main control.
-- **Tone is energy, charcoal is selection, hatching is absence** (unlit, off, unreachable). Lights take their tone from color temperature; climate from the mode: apricot for heat, blue for cool, butter for heat/cool and auto. The corner glow shows energy flowing: a lit light, a unit actively heating or cooling.
+- **One palette.** Colour is the exception, not the state:
+  - **Neutrals** for everything by default.
+  - **The accent** (one token, `--brand-c` / `--brand-h` in `tokens.css`, Crextio yellow by default) means energy: a lit light, heating or cooling running, daylight through an open cover, sunshine. It's the only fill colour, the glow, the "now" stick and the page wash. To re-colour the whole dashboard, change those two numbers; Storybook's Accent toolbar tries a few.
+  - **Charcoal** means on or chosen when it isn't energy: a mode switched on, a thermostat on but idle, a door left open, a selected chip.
+  - **Hatching** means absence: off, closed, unavailable, the resting band of a heat/cool range.
+  - **Warn orange**, text only, for problems. The one exception is an alarm that has gone off, which fills.
+  - **The colour slot** is the one standard place a widget can carry its own colour, and it's the orb only, never a fill or a glow. It's on by default only where the colour is the data: a lamp's colour temperature, and apricot or blue for a thermostat heating or cooling. Everywhere else it's off. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
 - **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a color literal in a widget's CSS.
 
 ## Motion and touch rules
@@ -74,6 +83,9 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
 - **Worst-case data:** **Foundations / Worst case** runs every widget at S, M, L and thin against realistic bad values.
   - The values: long and compound names, missing areas, raw floats, readings near zero or far past comfort, no reading yet, handles that meet, and every mode, preset and fan option.
   - A Demo / Worst case toggle switches the data. Check it after any change.
+- **Thin rows without a control.** Every widget with a thin density takes `showControl={false}` (default true). The row then has no pill, bar, stepper or switch: the value shows as plain text where the control was, and tapping anywhere on the row opens the details sheet, where every control is. The orb keeps its tap (switch) and hold (details). It works in bundles too: pass it on a row tile. **Foundations / Thin rows** shows every widget both ways.
+  - The value is short where the status line already says the rest: the thermostat shows its setpoint ("Set 21.5°"), a mode "On", the home row its temperature.
+  - Under 320 px a thin row already gives up its control for the value under the name, so the two look the same there; only the row tap differs.
 
 ## Adding a widget
 
@@ -160,6 +172,80 @@ Outdoor conditions for the home, beside a drawing of the house:
   - The sheet: every reading as a chip-shaped tile (feels like, humidity, wind, air quality, UV, pressure), the hours, and the next five days.
 - **Units.** Tones and comfort bands are in Celsius; Fahrenheit readings are converted first. This applies to the sensor widget too.
 
+## Using the alarm widget
+
+A security alarm: one `alarm_control_panel.*`.
+
+```tsx
+<AlarmTile entity={panel} history={today} onArm={(mode, code) => arm(mode, code)} onDisarm={(code) => disarm(code)} />
+```
+
+With Home Assistant, `./widgets/alarm/hass.ts` does the mapping both ways:
+
+```tsx
+import { AlarmTile, alarmFromHass, alarmHandlers } from "./src";
+
+const id = "alarm_control_panel.house";
+<AlarmTile
+  entity={alarmFromHass(hass.states[id], id, { area: "Whole home", exitDelay: 30, entryDelay: 30 })}
+  {...alarmHandlers(hass, id)}
+/>
+```
+
+- **The slot is the mode switch:** Off, then each supported mode (Home, Away, Night, Vacation, Custom).
+  - The current mode sits on a thumb that slides between segments.
+  - Armed is charcoal (on, not energy); Off sits on hatching, because nothing is guarded.
+  - Labels from M up; icons only at S and in thin rows.
+  - With all five modes (six segments), M shows icons only, and L and the sheet put a small label under each icon.
+  - Armed in a mode the switch doesn't list (custom bypass set from the panel itself) still shows that mode, not Off.
+- **Codes.** When the code is needed, the sheet opens on a keypad.
+  - Disarming needs it whenever `codeFormat` is set. Arming needs it too unless `codeArmRequired` is `false`; like Home Assistant, it defaults to required.
+  - A physical keyboard works too: digits, Backspace, Enter.
+  - `onArm` and `onDisarm` may return a promise. The keypad waits ("Checking…", the dots breathe), then closes when the call is accepted.
+  - Resolving `false` means a wrong code: the dots shake and clear. Rejecting means the call didn't go through: the keypad says so and keeps the code, so Enter tries again.
+  - The badge only shows status, so a stray tap never arms or disarms.
+- **Delays.** Exit delay (arming) and entry delay (pending) count down in the slot, with Cancel or Disarm.
+  - The widget works out the time left from `delay` (the delay's length in seconds) and `changedAt` (when the state started), and ticks each second itself. Time running out fills the pill linearly; the entry delay is tinted with the warn colour.
+  - Without a length, there's no timer: the slot says "Arming…" or "Entry delay · disarm now" over a soft sweep, still with Cancel or Disarm.
+  - Disarming (HA's `disarming` state) shows "Disarming…" with nothing to press.
+- **Triggered** is the one place the warn colour fills a pill (it pulses gently, not under reduced motion). The status line says what set it off.
+- **Open doors and windows** (`openSensors`) lead the status line in warn when disarmed, and the sheet says arming will leave them unguarded.
+
+What Home Assistant gives you, and what `alarmFromHass` does with it:
+
+| Widget | Home Assistant |
+| --- | --- |
+| `state` | The entity state, all 11 of them. Anything else reads as unavailable. |
+| `modes` | `supported_features` bits (home 1, away 2, night 4, custom bypass 16, vacation 32), optionally narrowed with `modes`. |
+| `codeFormat`, `codeArmRequired` | `code_format`, `code_arm_required` (default true). |
+| `armingTo` | `next_state` (manual alarm, Alarmo) or Alarmo's `arm_mode`. The core entity doesn't say, so the slot reads plain "Arming". |
+| `delay` | Alarmo's `delay` attribute; otherwise the `exitDelay` / `entryDelay` you pass (the manual alarm's `arming_time` and `delay_time`). |
+| `changedAt`, `lastChanged`, `changedBy` | `last_changed`, `changed_by`. |
+| `openSensors` | Alarmo's `open_sensors` (ids, named with `nameOf`), or your own list. |
+| `triggeredBy` | Not in HA; pass it if an automation tracks it. |
+
+`callAlarm` turns a `ServiceValidationError` about the code (the manual alarm raises one) into `false`, and rethrows anything else. Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
+
+## Using the cover widget
+
+Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and gates: one `cover.*` each. Position follows Home Assistant: 0 is closed, 100 is open.
+
+```tsx
+<CoverTile entity={curtains} history={today} onOpenCover={open} onCloseCover={close} onStopCover={stop} onSetPosition={setPosition} onSetTilt={setTilt} />
+```
+
+- **The slot is the window.** Daylight is the tone and the fabric is hatching (hatching is absence, here of light).
+  - Curtains: two panels close in from both ends; drag away from the middle to pull them apart.
+  - Blinds and shades: one panel covers from the right.
+  - Taps jump, drags follow the finger, and the ends are magnetic (within 3% means fully open or closed).
+  - While the cover travels, the fabric glides linearly between Home Assistant's position updates.
+- **Covers without a position** (most garage doors) get Close and Open buttons at the ends of the pill, with the state in the middle. It becomes a Stop button while the cover moves.
+- **The orb** opens or closes, and becomes Stop while the cover moves (when the cover supports stop). Press and hold, or tap the arrow, for the sheet.
+- **Tone and glow:**
+  - Covers that let in light take the butter tone, and their glow follows how open they are.
+  - Garage doors, doors and gates take apricot with no glow. Left open, they lead the status line in the warn colour ("Open since 10:20").
+- **Sheet:** quick positions (Closed, 25%, Half, Open), slat tilt for blinds that support it, and today's openness by hour.
+
 ## Using the toggle widget
 
 A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It shows one `input_boolean` or `switch`:
@@ -173,6 +259,9 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
   - `calm` lavender for quiet and night, `sage` for people, `apricot` for away, `blue` or the house `butter`.
   - Icons: `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`.
 - **Status line:** shows where the mode applies; at S and in thin rows the end time takes its place.
+- **Mini** (`density="mini"`): a 64px tile that is itself the switch, for grids of modes, two to four across.
+  - Tap anywhere to switch. On, the whole tile turns charcoal; a colour slot, if set, shows on its disc.
+  - Press and hold for the sheet. The arrow appears once the tile is at least 220px wide; from the keyboard, Shift+F10 or the context-menu key opens the sheet.
 - **Sheet:** press and hold the orb, or tap the arrow. It has the description and "Turn on for" chips: 30 min, 1 hour, until morning, until off. While the mode is on they read "Keep on" and the active choice is selected.
   - `onTurnOnFor(value)` receives the option's value. Wire it to a timer or an automation that turns the mode off.
   - Pass your own `durations` to change the options.
@@ -196,10 +285,42 @@ The top of a dashboard: its name, today's date under it, and an optional clock o
   - `locale` sets the language.
   - `now` freezes it for stories.
 
+## Bundles
+
+Several widgets that belong together, sharing one card. The members are ordinary tiles: each keeps its own tap, long-press and sheet. The bundle only takes away their card and draws one around them.
+
+**Joined** — equal members side by side, no header. Made for mini toggles.
+
+```tsx
+<JoinedBundle label="Sleep">
+  <ToggleTile {...novaSleepMode} density="mini" />
+  <ToggleTile {...doNotDisturb} density="mini" />
+</JoinedBundle>
+```
+
+- One 64px strip, a hairline between members (hidden next to a member that's on, since the charcoal already separates them).
+- Members stack once each would get less than about 170px (two under 340px wide; three under 450px; four go two by two under 600px). Stacked, it's 64px per member.
+
+**Lead and rows** — one widget stays fully itself; the others sit below it as thin rows.
+
+```tsx
+<LeadBundle lead={<LightTile {...nightLight} />}>
+  <ToggleTile {...whiteNoise} />
+</LeadBundle>
+```
+
+- Rows are shown thin whatever density they're given. Their badges and arrows line up with the lead's.
+- The lead's history strip moves to its sheet; the rows take that zone. Height is the lead's card plus 56px per row, the same in every state: at M, 139 + 56 for one row.
+- At S, rows show name and value (the thin row's narrow form) and drop their arrow to make room; hold a row, or open the lead's sheet, for its details.
+- The lead's sheet lists the rows under "Also in this bundle", live. Opening a row's sheet from there stacks it on top; Escape and dragging down close only the top one.
+- Keep state above the bundle (as with Home Assistant, where it lives in `hass`): the rows appear twice, in the card and in the lead's sheet, and both copies must show the same entity. `src/bundles/demo/DemoBundle.tsx` shows how with the demo hooks.
+
+`SheetExtra` (in `shared/ui.tsx`) is how the lead's sheet gets its rows: any tile rendered inside it shows that content under its sheet.
+
 ## Dashboards
 
 Build a dashboard from `DashboardPage`, `Section` (a titled grid), `Columns` (sections side by side) and `Cell` (a grid cell that spans columns). Widgets size themselves from their cell, so the same widget is a small tile in a 2-column phone grid, a card in a single column and a large card with history on a tablet.
 
-- **Phone:** room sensors as small tiles in pairs, the main thermostat as a card, everything else as thin rows.
-- **Tablet, landscape:** a row of room sensors, then climate and lights side by side, with today's history on the first card of each.
-- **Wall panel:** one column per place, readable from across the room. Thin rows narrower than 320 px show their value under the name; the control moves into the details sheet.
+- **Phone:** room sensors as small tiles in pairs, the main thermostat as a card, everything else as thin rows. Sleep Mode and Do Not Disturb joined across the Modes grid; a Nursery section with the night light and upstairs heating bundles.
+- **Tablet, landscape:** a row of room sensors, then climate and lights side by side, with today's history on the first card of each. The sleep bundle spans two of the four Modes columns; the two Nursery bundles sit side by side.
+- **Wall panel:** one column per place, readable from across the room. The sleep bundle (stacked, at 300px) in Bedroom; both lead bundles in Nursery and office. Thin rows narrower than 320 px show their value under the name; the control moves into the details sheet.

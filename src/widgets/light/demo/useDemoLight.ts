@@ -27,6 +27,10 @@ export const SEEDS = {
     entity: { entityId: "light.shelf_strip", name: "Shelf strip", area: "Living room", state: "unavailable", supportsBrightness: true, brightness: 30, lastSeen: "10:42" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.3, 0.3, 0.3, "unavailable"],
   },
+  nightLight: {
+    entity: { entityId: "light.nova_night_light", name: "Night light", area: "Nursery", state: "on", supportsBrightness: true, brightness: 15, supportsColorTemp: true, kelvin: 2200, minKelvin: 2000, maxKelvin: 6500, lastChanged: "10:58" },
+    past: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0, 0, 0, 0.15],
+  },
   dimmableNoWarmth: {
     entity: { entityId: "light.bedside", name: "Bedside", area: "Bedroom", state: "on", supportsBrightness: true, brightness: 25, lastChanged: "07:02" },
     past: [0, 0, 0, 0, 0, 0, 0.2, 0.25, 0, 0, 0],

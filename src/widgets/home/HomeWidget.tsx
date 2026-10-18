@@ -4,9 +4,8 @@ import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Cond
 import { CONDITION_LABEL, SKY, ConditionIcon, nextChange, compass, toKmh, aqiBand, uvBand } from "./conditions";
 import type { Sky } from "./conditions";
 import { Scene } from "./Scene";
-import { temperatureTone, toCelsius } from "../sensor/readings";
-import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1 } from "../../shared/ui";
-import type { Vars, HourSample } from "../../shared/ui";
+import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
+import type { Vars, HourSample, ColorProp } from "../../shared/ui";
 import "./HomeWidget.css";
 
 export interface HomeWidgetProps {
@@ -16,23 +15,30 @@ export interface HomeWidgetProps {
   daily?: DailyForecast[];
   variant?: "card" | "sheet";
   density?: "regular" | "thin";
+  /**
+   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
+   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
+   * and holds as usual. Default true.
+   */
+  showControl?: boolean;
   /** Card only: the house, the today bar and the arrow open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
+  /** The orb's colour, if any. Default: none (a neutral badge). */
+  color?: ColorProp;
 }
 
 /** How much sun reaches the house: the card's glow, in the house rule "glow is energy flowing". */
 const SUN: Record<Sky, number> = { clear: 0.9, partly: 0.55, wind: 0.45, cloudy: 0.15, fog: 0.1, rain: 0.05, snow: 0.08, storm: 0 };
 
-const tint = (t: number, unit: "°C" | "°F") => { const x = temperatureTone(toCelsius(t, unit), true); return `oklch(var(--accent-l) ${x.c} ${x.h})`; };
 const deg = (t: number) => `${fmt1(t).replace(/\.0$/, "")}°`;
 
-/** Today's low to high on one bar, cold to warm, with now on the knob. */
-function TodayRange({ low, high, now, unit, label, onOpen }: { low: number; high: number; now: number; unit: "°C" | "°F"; label: string; onOpen?: () => void }) {
+/** Today's low to high on one bar, with now on the knob. */
+function TodayRange({ low, high, now, label, onOpen }: { low: number; high: number; now: number; label: string; onOpen?: () => void }) {
   // No spread yet (no history, no forecast): just now, centred.
   const flat = high - low < 0.05;
   const p = flat ? 0.5 : Math.min(1, Math.max(0, (now - low) / (high - low)));
-  const style = { "--p": p.toFixed(4), "--lo-c": tint(low, unit), "--hi-c": tint(high, unit), "--now-c": tint(now, unit) } as Vars;
+  const style = { "--p": p.toFixed(4) } as Vars;
   // Hide an end label while the knob covers it. Measured, since it depends on the bar's width.
   const ref = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
@@ -80,17 +86,17 @@ function Stat({ label, value, sub, warn }: { label: string; value: ReactNode; su
  * S and thin: condition badge, status, today bar. M: the house on the left. L: adds the big temperature
  * and today's hours (forecast hours lighter). Glow = sunshine; windows lit = night.
  */
-export function HomeWidget({ entity: e, history, hourly, daily, variant = "card", density = "regular", onOpenDetails, onClose }: HomeWidgetProps) {
+export function HomeWidget({ entity: e, history, hourly, daily, variant = "card", density = "regular", showControl = true, onOpenDetails, onClose, color }: HomeWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
   const thin = !sheet && density === "thin";
+  const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const cond = unav ? null : (e.state as Condition);
   const night = cond === "clear-night" || e.isDay === false;
   const t = unav ? undefined : e.temperature;
-  const tone = temperatureTone(t != null ? toCelsius(t, e.temperatureUnit) : undefined, true);
   const glow = !cond || night ? 0 : SUN[SKY[cond]];
-  const style = { "--accent-c": tone.c, "--accent-h": tone.h, "--hd-glow": glow, "--glow-c": 0.13, "--glow-h": 88 } as Vars;
+  const colors = paint("reading", glow, null, color);
 
   // Today's range: what happened so far, what's forecast for the rest of today, and now.
   const hour = history?.currentHour ?? 0;
@@ -127,7 +133,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
   else if (t == null || low == null || high == null) slot = <div className="hd-unav"><span>No temperature yet</span></div>;
-  else slot = <TodayRange low={low} high={high} now={t} unit={e.temperatureUnit} label={rangeLabel} onOpen={sheet ? undefined : onOpenDetails} />;
+  else slot = <TodayRange low={low} high={high} now={t} label={rangeLabel} onOpen={sheet ? undefined : onOpenDetails} />;
 
   // Today's hours: the day so far, then the forecast for the rest of it (drawn lighter).
   let strip: { samples: HourSample[]; summary: string } | null = null;
@@ -147,11 +153,15 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
 
   const scene = <Scene night={night} off={unav} />;
 
+  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  const subText = unav ? "Unavailable" : [t != null ? `${fmt1(t)}°` : null, change ?? label].filter(Boolean).join(" · ");
+  // In place of the control the status line already says the condition or the coming change: just the temperature.
+  const valText = unav ? "Unavailable" : t != null ? `${fmt1(t)}°` : label;
   return (
     <article
-      className={`hd hw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`}
+      className={`hd hw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined}
       data-state={unav ? "unavailable" : "ok"} data-change={change ? "" : undefined}
-      style={style} aria-labelledby={`${uid}-n`}
+      {...colors} aria-labelledby={`${uid}-n`}
     >
       {!sheet && (onOpenDetails
         ? <button type="button" className="hw-scene" tabIndex={-1} aria-hidden="true" onClick={onOpenDetails}>{scene}</button>
@@ -164,7 +174,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area hw-st">{status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{unav ? "Unavailable" : [t != null ? `${fmt1(t)}°` : null, change ?? label].filter(Boolean).join(" · ")}</p>}
+          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
         {sheet
@@ -174,7 +184,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
 
       {sheet && <div className="hw-scene">{scene}</div>}
 
-      <div className="hd-slot">{slot}</div>
+      <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>
 
       {sheet && !unav && (
         <div className="hd-extra">

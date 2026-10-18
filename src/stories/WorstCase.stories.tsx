@@ -17,6 +17,12 @@ import type { HomeSeed } from "../widgets/home/demo/home";
 import { ToggleTile } from "../widgets/toggle/ToggleTile";
 import { TOGGLE_SEEDS, useDemoToggle } from "../widgets/toggle/demo/useDemoToggle";
 import type { ToggleSeed } from "../widgets/toggle/demo/useDemoToggle";
+import { CoverTile } from "../widgets/cover/CoverTile";
+import { COVER_SEEDS, useDemoCover } from "../widgets/cover/demo/useDemoCover";
+import type { CoverSeed } from "../widgets/cover/demo/useDemoCover";
+import { AlarmTile } from "../widgets/alarm/AlarmTile";
+import { ALARM_SEEDS, useDemoAlarm } from "../widgets/alarm/demo/useDemoAlarm";
+import type { AlarmSeed } from "../widgets/alarm/demo/useDemoAlarm";
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings.
@@ -110,7 +116,7 @@ const TOGGLES: Record<"demo" | "worst", ToggleSeed[]> = {
   demo: [TOGGLE_SEEDS.dnd],
   worst: [
     { // A long French name, no area, on until a time tomorrow, no description
-      entity: { entityId: "input_boolean.ne_pas_deranger", name: "Ne pas déranger – chambre principale", state: "on", icon: "bell-off", tone: "calm", until: "Sun 07:00", duration: "morning", lastChanged: "23:58" },
+      entity: { entityId: "input_boolean.ne_pas_deranger", name: "Ne pas déranger – chambre principale", state: "on", icon: "bell-off", until: "Sun 07:00", duration: "morning", lastChanged: "23:58" },
       past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     },
     { // No icon, no tone, never changed
@@ -119,6 +125,52 @@ const TOGGLES: Record<"demo" | "worst", ToggleSeed[]> = {
     },
   ],
 };
+
+const COVERS: Record<"demo" | "worst", CoverSeed[]> = {
+  demo: [COVER_SEEDS.curtains, COVER_SEEDS.garage],
+  worst: [
+    { // A long name, curtains a hair from closed, moving, with no stop
+      entity: { entityId: "cover.salon", name: "Rideaux du grand salon (côté jardin)", area: "Salon", state: "closing", deviceClass: "curtain", position: 1, supportsPosition: true, supportsStop: false, lastChanged: "21:59" },
+      past: [],
+    },
+    { // A gate with no area and no history, left open, never reported when it changed
+      entity: { entityId: "cover.gate", name: "Gate", state: "open", deviceClass: "gate", supportsPosition: false, supportsStop: false },
+      past: [],
+    },
+  ],
+};
+
+const ALARMS: Record<"demo" | "worst", AlarmSeed[]> = {
+  demo: [ALARM_SEEDS.away],
+  worst: [
+    { // Every arm mode, a long name, three open sensors, a text code, nobody recorded as changing it
+      entity: { entityId: "alarm_control_panel.chalet", name: "Système d'alarme du chalet", area: "Chalet", state: "disarmed", modes: ["home", "away", "night", "vacation"], codeFormat: "text", codeArmRequired: true, openSensors: ["Porte-fenêtre du salon", "Garage side door", "Bathroom window"] },
+      past: [],
+    },
+    { // Triggered by a long-named sensor, at the end of a long night
+      entity: { entityId: "alarm_control_panel.home", name: "Alarm", state: "triggered", modes: ["home", "away", "night"], codeFormat: "number", triggeredBy: "Basement egress window (north)", lastChanged: "03:12" },
+      past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    },
+    { // All five arm modes, armed in custom bypass
+      entity: { entityId: "alarm_control_panel.villa", name: "Villa", state: "armed_custom_bypass", modes: ["home", "away", "night", "vacation", "custom_bypass"], codeFormat: "number", changedBy: "Installer account (remote)", lastChanged: "Mon 09:40" },
+      past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    },
+    { // HA's core entity mid-arming: no target mode, no delay length, so no timer
+      entity: { entityId: "alarm_control_panel.shop", name: "Shop", state: "arming", modes: ["away"], codeFormat: "number" },
+      past: [],
+    },
+  ],
+};
+
+function Alarm({ seed, thin }: { seed: AlarmSeed; thin?: boolean }) {
+  const demo = useDemoAlarm(seed);
+  return <AlarmTile {...demo} density={thin ? "thin" : "regular"} />;
+}
+
+function Cover({ seed, thin }: { seed: CoverSeed; thin?: boolean }) {
+  const demo = useDemoCover(seed);
+  return <CoverTile {...demo} density={thin ? "thin" : "regular"} />;
+}
 
 function Toggle({ seed, thin }: { seed: ToggleSeed; thin?: boolean }) {
   const demo = useDemoToggle(seed);
@@ -166,6 +218,8 @@ function WorstCasePage() {
       {LIGHTS[data].map((s, i) => <Row key={`l${i}`}>{(_, thin) => <Light seed={s} thin={thin} />}</Row>)}
       {CLIMATES[data].map((s, i) => <Row key={`c${i}`}>{(_, thin) => <Climate seed={s} thin={thin} />}</Row>)}
       {HOMES[data].map((s, i) => <Row key={`h${i}`}>{(_, thin) => <HomeTile entity={s.entity} history={s.history} hourly={s.hourly} daily={s.daily} density={thin ? "thin" : "regular"} />}</Row>)}
+      {ALARMS[data].map((s, i) => <Row key={`a${i}`}>{(_, thin) => <Alarm seed={s} thin={thin} />}</Row>)}
+      {COVERS[data].map((s, i) => <Row key={`v${i}`}>{(_, thin) => <Cover seed={s} thin={thin} />}</Row>)}
       {TOGGLES[data].map((s, i) => <Row key={`t${i}`}>{(_, thin) => <Toggle seed={s} thin={thin} />}</Row>)}
       {SENSORS[data].map((s, i) => <Row key={`s${i}`}>{(_, thin) => <SensorTile entity={s.entity} history={s.history} density={thin ? "thin" : "regular"} />}</Row>)}
       <DataToggle value={data} onChange={setData} />

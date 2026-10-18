@@ -1,8 +1,8 @@
 import "./styles/tokens.css";
 
 // Shared
-export { Orb, CircleButton, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1 } from "./shared/ui";
-export type { HourSample, ChoiceOption } from "./shared/ui";
+export { Orb, CircleButton, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./shared/ui";
+export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role } from "./shared/ui";
 export { useLongPress } from "./shared/useLongPress";
 export { useTrack, trackPos } from "./shared/useTrack";
 export { useNow } from "./shared/useNow";
@@ -45,7 +45,26 @@ export { ToggleWidget, ToggleSheet, DEFAULT_DURATIONS } from "./widgets/toggle/T
 export type { ToggleWidgetProps, ToggleSheetProps } from "./widgets/toggle/ToggleWidget";
 export { ToggleTile } from "./widgets/toggle/ToggleTile";
 export type { ToggleTileProps } from "./widgets/toggle/ToggleTile";
-export type { ToggleEntity, ToggleHistory, ToggleIcon, ToggleTone, DurationOption } from "./widgets/toggle/types";
+export type { ToggleEntity, ToggleHistory, ToggleIcon, DurationOption } from "./widgets/toggle/types";
+
+// Cover (curtains, blinds, shades, garage doors)
+export { CoverWidget, CoverSheet } from "./widgets/cover/CoverWidget";
+export type { CoverWidgetProps, CoverSheetProps } from "./widgets/cover/CoverWidget";
+export { CoverTile } from "./widgets/cover/CoverTile";
+export type { CoverTileProps } from "./widgets/cover/CoverTile";
+export type { CoverEntity, CoverHistory, CoverClass } from "./widgets/cover/types";
+
+// Alarm (security panel)
+export { AlarmWidget, AlarmSheet } from "./widgets/alarm/AlarmWidget";
+export type { AlarmWidgetProps, AlarmSheetProps } from "./widgets/alarm/AlarmWidget";
+export { AlarmTile } from "./widgets/alarm/AlarmTile";
+export type { AlarmTileProps } from "./widgets/alarm/AlarmTile";
+export type { AlarmEntity, AlarmHistory, AlarmMode, AlarmState, AlarmAction } from "./widgets/alarm/types";
+export type { AlarmResult } from "./widgets/alarm/AlarmWidget";
+export { alarmFromHass, callAlarm, alarmHandlers } from "./widgets/alarm/hass";
+export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
+export { SheetExtra } from "./shared/ui";
+export type { HassAlarmState, HassLike, AlarmFromHassOptions } from "./widgets/alarm/hass";
 
 // Dashboard layout
 export { DashboardPage, Section, Columns, Cell } from "./dashboards/layout";

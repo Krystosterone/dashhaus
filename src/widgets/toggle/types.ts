@@ -1,8 +1,6 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample, ColorName } from "../../shared/ui";
 
-export type ToggleIcon = "bell-off" | "moon" | "volume-off" | "guest" | "away" | "power";
-/** A tone per kind of mode: calm for quiet and night, sage for people, apricot for away, blue, or the house butter. */
-export type ToggleTone = "calm" | "sage" | "apricot" | "blue" | "butter";
+export type ToggleIcon = "bell-off" | "moon" | "volume-off" | "guest" | "away" | "power" | "waves";
 
 /** Mirrors a Home Assistant `input_boolean.*` or `switch.*` used as a mode: Do Not Disturb, Quiet, Guest. */
 export interface ToggleEntity {
@@ -12,7 +10,8 @@ export interface ToggleEntity {
   area?: string;
   state: "on" | "off" | "unavailable";
   icon?: ToggleIcon;
-  tone?: ToggleTone;
+  /** Optional colour for the orb (the colour slot). Most modes need none: on is charcoal. */
+  color?: ColorName;
   /** Local time it switches itself off, when it was turned on for a while ("07:00"). */
   until?: string;
   /** Which duration option it was turned on with; shown as selected in the sheet. */

@@ -21,7 +21,8 @@ const meta = {
   argTypes: {
     mode: { control: "select", options: MODES, description: "Example mode" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"] },
+    density: { control: "inline-radio", options: ["regular", "thin", "mini"] },
+    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
   args: { mode: "dnd", width: SIZES.M, density: "regular" },
@@ -67,6 +68,23 @@ export const ThinAllStates: Story = {
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
       {MODES.map((m) => <DemoTile key={m} mode={m} density="thin" />)}
+    </div>
+  ),
+};
+
+/** Mini: 64px tiles that are themselves the switch, for grids of modes. Two, three or four across. */
+export const Mini: Story = {
+  parameters: { layout: "padded", controls: { include: [] } },
+  render: () => (
+    <div style={{ display: "grid", gap: 28 }}>
+      {[{ cols: 2, w: 358, label: "Phone, 2 across" }, { cols: 4, w: 760, label: "Tablet, 4 across" }].map(({ cols, w, label }) => (
+        <figure key={cols} style={{ margin: 0, display: "grid", gap: 8, width: w, maxWidth: "100%" }}>
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label}</figcaption>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: 10 }}>
+            {MODES.map((m) => <DemoTile key={m} mode={m} density="mini" />)}
+          </div>
+        </figure>
+      ))}
     </div>
   ),
 };

@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
-import { MODE_META, ACTION_LABEL, ModeIcon, fmtTarget, fmtCurrent, titleCase, toneColor } from "./modes";
-import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration } from "../../shared/ui";
-import type { Vars } from "../../shared/ui";
+import { MODE_META, ACTION_LABEL, ModeIcon, fmtTarget, fmtCurrent, titleCase } from "./modes";
+import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
+import type { ColorProp } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateWidget.css";
 
@@ -13,6 +13,12 @@ export interface ClimateWidgetProps {
   variant?: "card" | "sheet";
   /** Card only. "thin" puts everything in one 56px row. */
   density?: "regular" | "thin";
+  /**
+   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
+   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
+   * and holds as usual. Default true.
+   */
+  showControl?: boolean;
   /** Orb and Off pill: turn off, or back on to the last mode. */
   onToggle: () => void;
   onTargetChange: (t: number) => void;
@@ -22,16 +28,18 @@ export interface ClimateWidgetProps {
   onFanChange?: (f: string) => void;
   onOpenDetails?: () => void;
   onClose?: () => void;
+  /** The orb's colour. Default: apricot when heating, blue when cooling. "none" keeps it the accent. */
+  color?: ColorProp;
 }
 
 const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
 const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
 
-function Stepper({ label, kicker, value, min, max, step, tone, onChange }: { label: string; kicker?: string; value: number; min: number; max: number; step: number; tone?: string; onChange: (v: number) => void }) {
+function Stepper({ label, kicker, value, min, max, step, onChange }: { label: string; kicker?: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
   const down = Math.max(min, +(value - step).toFixed(2));
   const up = Math.min(max, +(value + step).toFixed(2));
   return (
-    <div className="cw-step" role="group" aria-label={label} style={tone ? ({ "--accent": tone } as Vars) : undefined}>
+    <div className="cw-step" role="group" aria-label={label}>
       <button type="button" className="cw-step-b" aria-label={`Lower to ${fmtTarget(down)}°`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
       <span className="cw-step-v" aria-live="polite">
         {kicker && <span className="cw-step-k">{kicker}</span>}
@@ -46,18 +54,20 @@ function Stepper({ label, kicker, value, min, max, step, tone, onChange }: { lab
  * One climate entity. Same sizes and fixed heights as the light widget, so they share a grid.
  * The orb switches it off and back on; the slot sets the target; the sheet holds modes, presets and fan.
  */
-export function ClimateWidget({ entity: e, history, variant = "card", density = "regular", onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose }: ClimateWidgetProps) {
+export function ClimateWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
   const thin = !sheet && density === "thin";
+  const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const mode: HvacMode = unav ? "off" : (e.state as HvacMode);
   const on = !unav && mode !== "off";
   const action = e.hvacAction ?? (on ? "idle" : "off");
   const active = on && action !== "idle" && action !== "off";
-  const tone = MODE_META[mode];
-  const glow = active ? 0.9 : on ? 0.3 : 0;
-  const style = { "--accent-c": tone.c, "--accent-h": tone.h, "--hd-glow": glow } as Vars;
+  // Running is energy: the control fills with the accent and the card glows. On but idle stays neutral.
+  // Which way it works (heat or cool) is the orb's colour.
+  const direction = on && (mode === "heat" || mode === "cool") ? MODE_META[mode] : null;
+  const colors = paint(active ? "energy" : "state", active ? 0.9 : 0, direction, color);
 
   const cur = e.currentTemperature;
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;
@@ -82,8 +92,12 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
 
   const summary = !history ? "" : unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
 
+  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  const subText = cur != null && !unav ? `${fmtCurrent(cur)}° · ${setText}` : setText;
+  // In place of the control the status line already gives the room temperature: just the setpoint.
+  const valText = setText;
   return (
-    <article className={`hd cw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} style={style} aria-labelledby={`${uid}-n`}>
+    <article className={`hd cw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={`${e.name}, ${on ? MODE_META[mode].label : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />
@@ -91,7 +105,7 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{sheet && e.area ? `${e.area} · ${status}` : status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{cur != null && !unav ? `${fmtCurrent(cur)}° · ${setText}` : setText}</p>}
+          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
         {sheet
@@ -99,7 +113,7 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
           : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
       </header>
 
-      <div className="hd-slot">{slot}</div>
+      <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>
 
       {sheet && !unav && (
         <div className="hd-extra">

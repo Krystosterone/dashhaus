@@ -1,10 +1,45 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useLongPress } from "./useLongPress";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
 export type Vars = CSSProperties & Record<`--${string}`, string | number>;
+
+/* ---------- Colour ----------
+   One accent (tokens.css --brand-c/--brand-h) for energy, charcoal for on-but-not-energy, neutrals for the rest.
+   A widget's own colour is the "colour slot": it is painted on the orb and nowhere else. */
+
+/** A colour for the orb, as OKLCH chroma and hue (lightness comes from the theme). */
+export interface SlotColor { c: number; h: number }
+/** Named colours for the slot. Use sparingly: one per widget, and only where it means something. */
+export const COLORS = {
+  yellow: { c: 0.145, h: 92 },
+  apricot: { c: 0.13, h: 52 },
+  rose: { c: 0.1, h: 15 },
+  lavender: { c: 0.07, h: 290 },
+  blue: { c: 0.09, h: 235 },
+  teal: { c: 0.07, h: 200 },
+  sage: { c: 0.08, h: 150 },
+} satisfies Record<string, SlotColor>;
+export type ColorName = keyof typeof COLORS;
+/** A widget's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
+export type ColorProp = ColorName | SlotColor | "none";
+
+export type Role = "energy" | "state" | "reading";
+
+/**
+ * The colour attributes for a widget's article: its role, its glow, and its colour slot.
+ * `own` is what the widget would show by default (a lamp's colour, heat or cool); `prop` overrides it.
+ */
+export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: ColorProp) {
+  const c = prop === "none" ? null : typeof prop === "string" ? COLORS[prop] : prop ?? own ?? null;
+  return {
+    "data-role": role,
+    "data-color": c ? "" : undefined,
+    style: { "--hd-glow": +glow.toFixed(3), ...(c ? { "--color-c": c.c, "--color-h": c.h } : {}) } as Vars,
+  };
+}
 
 /** One sample per hour: 0 = nothing, 0-1 = intensity, "unavailable", or null for hours still ahead. */
 export type HourSample = number | "unavailable" | null;
@@ -141,7 +176,14 @@ const CLOSE_MS = 250;
 const FLICK = 0.4;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/**
+ * What a sheet shows under its widget, set by whoever renders the tile. A bundle's lead uses it to list
+ * the bundle's other members in its sheet. Sheets inside that list get none, so it never nests.
+ */
+export const SheetExtra = createContext<{ title: string; content: ReactNode } | null>(null);
+
 export function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () => void; label: string; children: ReactNode }) {
+  const extra = useContext(SheetExtra);
   const ref = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(open);
   const drag = useRef<{ id: number; y0: number; dy: number; trail: { t: number; y: number }[] } | null>(null);
@@ -186,6 +228,8 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
     if (drag.current) return;
     const t = e.target as Element;
     if (e.button > 0 || !window.matchMedia(PHONE).matches) return;
+    // A sheet opened from inside this one (a bundle row's) handles its own drags.
+    if (t.closest("dialog") !== e.currentTarget) return;
     if (!t.closest(".hd--sheet > .hd-head") || t.closest("button, a, input")) return;
     drag.current = { id: e.pointerId, y0: e.clientY, dy: 0, trail: [{ t: e.timeStamp, y: e.clientY }] };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -226,7 +270,12 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
       ref={ref}
       className="hd-sheet"
       aria-label={label}
-      onCancel={(e) => { e.preventDefault(); onClose(); }}
+      onCancel={(e) => {
+        // Escape belongs to the top sheet only, not to a sheet it was opened from.
+        if (e.target !== e.currentTarget) return;
+        e.preventDefault();
+        onClose();
+      }}
       onClick={(e) => {
         // Only a click on the backdrop closes: the dialog itself receives the click that ends a drag.
         const d = ref.current;
@@ -240,7 +289,19 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      {mounted && <div className="hd-c">{children}</div>}
+      {mounted && (
+        <div className={`hd-c${extra ? " hd-c--more" : ""}`}>
+          {children}
+          {extra && (
+            <SheetExtra.Provider value={null}>
+              <section className="hd-more" aria-label={extra.title}>
+                <h3 className="hd-blk-h">{extra.title}</h3>
+                {extra.content}
+              </section>
+            </SheetExtra.Provider>
+          )}
+        </div>
+      )}
     </dialog>
   );
 }

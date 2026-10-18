@@ -16,27 +16,37 @@ export interface ToggleSeed {
 
 export const TOGGLE_SEEDS = {
   dnd: {
-    entity: { entityId: "input_boolean.do_not_disturb", name: "Do Not Disturb", area: "Whole home", state: "on", icon: "bell-off", tone: "calm", until: "12:54", duration: "60",
+    entity: { entityId: "input_boolean.do_not_disturb", name: "Do Not Disturb", area: "Whole home", state: "on", icon: "bell-off", color: "lavender", until: "12:54", duration: "60",
       description: "Silences phone notifications, the doorbell chime and speaker announcements.", lastChanged: "11:02" },
     past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
   },
   quiet: {
-    entity: { entityId: "input_boolean.quiet_mode", name: "Quiet mode", area: "Kids' rooms", state: "off", icon: "volume-off", tone: "blue",
+    entity: { entityId: "input_boolean.quiet_mode", name: "Quiet mode", area: "Kids' rooms", state: "off", icon: "volume-off",
       description: "Lowers speakers to 20% and mutes the dishwasher and washer chimes.", lastChanged: "07:15" },
     past: [1, 1, 1, 1, 1, 1, 1, 0.25, 0, 0, 0],
   },
   guest: {
-    entity: { entityId: "input_boolean.guest_mode", name: "Guest mode", area: "Whole home", state: "on", icon: "guest", tone: "sage", duration: "manual",
+    entity: { entityId: "input_boolean.guest_mode", name: "Guest mode", area: "Whole home", state: "on", icon: "guest", duration: "manual",
       description: "Turns on the guest Wi-Fi and keeps the hallway lights low at night.", lastChanged: "Fri 18:30" },
     past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   },
   away: {
-    entity: { entityId: "input_boolean.away", name: "Away", area: "Whole home", state: "off", icon: "away", tone: "apricot",
+    entity: { entityId: "input_boolean.away", name: "Away", area: "Whole home", state: "off", icon: "away",
       description: "Sets back the heating, turns off lights and arms the cameras.", lastChanged: "Sun 20:10" },
     past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
+  novaSleep: {
+    entity: { entityId: "input_boolean.nova_sleep_mode", name: "Nova Sleep Mode", area: "Nursery", state: "off", icon: "moon",
+      description: "Dims the upstairs hallway, mutes speakers near Nursery and holds the doorbell chime.", lastChanged: "07:05" },
+    past: [1, 1, 1, 1, 1, 1, 1, 0.1, 0, 0, 0],
+  },
+  whiteNoise: {
+    entity: { entityId: "switch.white_noise", name: "White noise", area: "Nursery", state: "on", icon: "waves", duration: "manual",
+      description: "The sound machine by the crib.", lastChanged: "10:58" },
+    past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0.1],
+  },
   unavailable: {
-    entity: { entityId: "switch.night_mode", name: "Night mode", area: "Bedroom", state: "unavailable", icon: "moon", tone: "calm", lastSeen: "08:20" },
+    entity: { entityId: "switch.night_mode", name: "Night mode", area: "Bedroom", state: "unavailable", icon: "moon", lastSeen: "08:20" },
     past: [1, 1, 1, 1, 1, 1, 1, 0, "unavailable", "unavailable", "unavailable"],
   },
 } satisfies Record<string, ToggleSeed>;

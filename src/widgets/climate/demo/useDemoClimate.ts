@@ -48,6 +48,24 @@ export const CLIMATE_SEEDS = {
     past: [0.5, 0.6, 0.6, 0.5, 0.5, 0.7, 0.8, 0.4, 0, 0, 0],
     activity: "heating",
   },
+  secondFloor: {
+    entity: {
+      entityId: "climate.second_floor", name: "2nd floor", area: "Upstairs", state: "heat", hvacAction: "heating",
+      hvacModes: ["off", "heat", "cool", "heat_cool"], currentTemperature: 20.5, currentHumidity: 38, targetTemperature: 21,
+      minTemp: 7, maxTemp: 30, step: 0.5, unit: "°C", presetMode: "home", presetModes: ["home", "away", "sleep", "eco"], lastChanged: "06:30",
+    },
+    past: [0.3, 0.3, 0.3, 0.3, 0.4, 0.5, 0.8, 0.7, 0.4, 0.3, 0.4],
+    activity: "heating",
+  },
+  nurseryDyson: {
+    entity: {
+      entityId: "climate.nursery_dyson", name: "Dyson heater", area: "Nursery", state: "heat", hvacAction: "heating",
+      hvacModes: ["off", "heat", "cool"], currentTemperature: 21.6, targetTemperature: 23,
+      minTemp: 1, maxTemp: 37, step: 1, unit: "°C", fanMode: "auto", fanModes: ["auto", "quiet"], lastChanged: "10:58",
+    },
+    past: [0.6, 0.6, 0.5, 0.5, 0.6, 0.6, 0.4, 0, 0, 0, 0.3],
+    activity: "heating",
+  },
   unavailable: {
     entity: {
       entityId: "climate.garage", name: "Garage heater", area: "Garage", state: "unavailable",

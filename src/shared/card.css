@@ -1,7 +1,9 @@
 /* Shared card system. Every widget is an .hd card inside an .hd-c size container.
    Size comes from the container width: S < 260px, M 260-439px, L >= 440px.
-   A widget sets --accent-c and --accent-h (its tone) and --hd-glow (0-1, how much energy is flowing);
-   --glow-c and --glow-h optionally give the glow its own colour (the home widget's sunshine).
+   Colour: --accent is the one brand accent (tokens.css), for energy. A widget declares its role with
+   data-role: "energy" (on = accent), "state" (on = charcoal) or "reading" (neutral). Its own colour,
+   if any, goes in --color-c/--color-h with data-color, and is painted on the orb only. --hd-glow (0-1)
+   is how much energy is flowing; the glow is always the accent.
    Rules: yellow/tone = active, charcoal = selection, hatching = absence. Heights never change with state.
    Motion: only transform, opacity and clip-path animate; presses answer in 160ms; nothing animates
    on keyboard input or while a finger drags (the value follows the finger directly). */
@@ -9,8 +11,12 @@
 .hd-c { container: hd / inline-size; min-width: 0; }
 
 .hd {
-  --accent: oklch(var(--accent-l) var(--accent-c, 0.14) var(--accent-h, 90));
-  --accent-strong: oklch(var(--accent-strong-l) var(--accent-c, 0.14) var(--accent-h, 90));
+  --accent: oklch(var(--accent-l) var(--brand-c) var(--brand-h));
+  --accent-strong: oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h));
+  /* The colour slot: the widget's own colour, or the accent when it has none */
+  --o-c: var(--brand-c);
+  --o-h: var(--brand-h);
+  --color: oklch(var(--accent-l) var(--o-c) var(--o-h));
   --pad: clamp(14px, 4.8cqi, 22px);
   --slot-h: 42px;
   --hatching: repeating-linear-gradient(-45deg, var(--hatch) 0 1.2px, transparent 1.2px 6px);
@@ -35,7 +41,7 @@
 .hd::before {
   content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
   background: radial-gradient(circle at calc(var(--pad) + 22px) calc(var(--pad) + 22px),
-    oklch(var(--accent-l) var(--glow-c, var(--accent-c, 0.14)) var(--glow-h, var(--accent-h, 90)) / var(--glow-a)), transparent min(90cqi, 360px));
+    oklch(var(--accent-l) var(--brand-c) var(--brand-h) / var(--glow-a)), transparent min(90cqi, 360px));
   opacity: var(--hd-glow, 0);
   transition: opacity 300ms var(--ease-out);
 }
@@ -86,18 +92,24 @@
 .hd-orb svg { width: 52%; height: 52%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
 .hd-orb[aria-pressed="true"] .hd-orb-i {
-  background: var(--accent);
-  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--accent-c, 0.14) var(--accent-h, 90) / 0.5),
-              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--accent-c, 0.14) var(--accent-h, 90) / calc(0.25 + 0.35 * var(--b)));
+  background: var(--color);
+  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / 0.5),
+              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / calc(0.25 + 0.35 * var(--b)));
 }
+/* The colour slot: a widget's own colour, on its orb and nowhere else */
+.hd[data-color] { --o-c: var(--color-c); --o-h: var(--color-h); }
+/* On, but not energy (a mode, a door left open): charcoal, no bloom. Unless the widget has its own colour. */
+.hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
+.hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
 .hd-orb[aria-disabled="true"] { cursor: default; color: var(--ink-3); }
 .hd-orb[aria-disabled="true"] .hd-orb-i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; }
 .hd-orb:focus-visible { outline: none; }
 .hd-orb:focus-visible .hd-orb-i { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-orb--sm { --sz: 34px; }
-/* Static orb for read-only widgets: tinted with the tone, never "on" */
+/* Static orb for read-only widgets: neutral, or tinted with the widget's own colour when it has one */
 .hd-orb--static { cursor: default; color: var(--ink); }
-.hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--accent) var(--tint-mix), var(--card-solid)); box-shadow: inset 0 0 0 1px var(--line); }
+.hd-orb--static .hd-orb-i { background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); }
+.hd[data-color] .hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--color) var(--tint-mix), var(--card-solid)); }
 .hd-warn { color: var(--warn); font-weight: 600; }
 
 /* Control slot: one fixed height for every state */
@@ -112,6 +124,7 @@
 }
 .hd-pill:active { scale: 0.98; }
 .hd-pill[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.hd[data-role="state"] .hd-pill[aria-pressed="true"] { background: var(--inv-bg); color: var(--inv-fg); }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
@@ -185,6 +198,19 @@
 .hd--thin .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
 .hd--thin .hd-pill, .hd--thin .hd-unav { padding-inline: 14px; font-size: 13px; }
 .hd--thin .hd-unav-t, .hd--thin .hd-pill-x, .hd--thin .hd-num, .hd--thin .hd-tl { display: none; }
+/* Thin with the control hidden (showControl={false}): the value as text where the control was, and the
+   whole row opens the details sheet. The arrow's hit area stretches over the row; the orb sits above it,
+   so it still switches on tap and opens on hold. Pressing the row presses the arrow. */
+.hd-val {
+  margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;
+  font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.hd--thin[data-control="off"] .hd-slot { width: auto; max-width: 48cqi; justify-items: end; }
+.hd--thin[data-control="off"]:is([data-state="off"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
+.hd--thin[data-control="off"] .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
+.hd--thin[data-control="off"] { cursor: pointer; }
+.hd--thin[data-control="off"] .hd-head > .hd-orb { position: relative; z-index: 1; }
+@media (hover: hover) and (pointer: fine) { .hd--thin[data-control="off"]:has(> .hd-head > .hd-circ:hover) .hd-circ-i { background: var(--card-solid); } }
 @container hd (max-width: 319px) {
   .hd--thin { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "orb title open"; column-gap: 8px; }
   .hd--thin .hd-slot, .hd--thin .hd-area { display: none; }

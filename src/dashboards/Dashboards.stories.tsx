@@ -6,6 +6,9 @@ import { DemoClimateTile as Climate } from "../widgets/climate/demo/DemoClimateT
 import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile";
 import { DemoHomeTile as Home } from "../widgets/home/demo/DemoHomeTile";
 import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
+import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
+import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
+import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
 /** A device-sized frame so each dashboard is seen at its real width. The content scrolls inside. */
 function Device({ label, width, height, children }: { label: string; width: number; height: number; children: ReactNode }) {
@@ -24,7 +27,7 @@ const meta = {
   title: "Dashboards",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Home weather, modes, lights, climate and sensors composed per device. Example data; the time is fixed at 11:54." } },
+    docs: { description: { component: "Home weather, security, modes, bundles, lights, covers, climate and sensors composed per device. Example data; the time is fixed at 11:54." } },
   },
 } satisfies Meta;
 
@@ -39,9 +42,17 @@ export const Phone: Story = {
         <Section title="Outside">
           <Home weather="partly" />
         </Section>
+        <Section title="Security">
+          <Alarm alarm="away" />
+        </Section>
         <Section title="Modes" columns={2}>
-          <Toggle mode="dnd" />
-          <Toggle mode="guest" />
+          <Cell span={2}><Bundle bundle="sleep" /></Cell>
+          <Toggle mode="guest" density="mini" />
+          <Toggle mode="quiet" density="mini" />
+        </Section>
+        <Section title="Nursery">
+          <Bundle bundle="nightLight" />
+          <Bundle bundle="upstairs" />
         </Section>
         <Section title="Rooms" columns={2}>
           <Sensor sensor="living" />
@@ -53,6 +64,11 @@ export const Phone: Story = {
           <Climate unit="heating" />
           <Climate unit="cooling" density="thin" />
           <Climate unit="range" density="thin" />
+        </Section>
+        <Section title="Covers">
+          <Cover cover="curtains" />
+          <Cover cover="shade" density="thin" />
+          <Cover cover="garage" density="thin" />
         </Section>
         <Section title="Lights">
           <Light light="dimmable" density="thin" />
@@ -85,10 +101,13 @@ export const Tablet: Story = {
           </Section>
         </Columns>
         <Section title="Modes" columns={4}>
-          <Toggle mode="dnd" />
-          <Toggle mode="quiet" />
-          <Toggle mode="guest" />
-          <Toggle mode="away" />
+          <Cell span={2}><Bundle bundle="sleep" /></Cell>
+          <Toggle mode="quiet" density="mini" />
+          <Toggle mode="guest" density="mini" />
+        </Section>
+        <Section title="Nursery" columns={2}>
+          <Bundle bundle="nightLight" />
+          <Bundle bundle="upstairs" />
         </Section>
         <Columns columns={2}>
           <Section title="Climate">
@@ -96,6 +115,14 @@ export const Tablet: Story = {
             <Climate unit="cooling" density="thin" />
             <Climate unit="range" density="thin" />
             <Climate unit="off" density="thin" />
+          </Section>
+          <Section title="Security">
+            <Alarm alarm="disarmed" />
+          </Section>
+          <Section title="Covers">
+            <Cover cover="curtains" density="thin" />
+            <Cover cover="blind" density="thin" />
+            <Cover cover="garage" density="thin" />
           </Section>
           <Section title="Lights">
             <Light light="dimmable" />
@@ -120,6 +147,7 @@ export const WallPanel: Story = {
             <Sensor sensor="living" name="Air" />
             <Climate unit="heating" />
             <Light light="dimmable" />
+            <Cover cover="curtains" density="thin" />
             <Light light="dimmableOff" density="thin" />
             <Light light="unavailable" density="thin" />
           </Section>
@@ -127,17 +155,19 @@ export const WallPanel: Story = {
             <Sensor sensor="bedroom" name="Air" />
             <Climate unit="cooling" />
             <Light light="dimmableNoWarmth" />
-            <Toggle mode="dnd" density="thin" />
+            <Bundle bundle="sleep" />
           </Section>
-          <Section title="Office and basement">
-            <Climate unit="range" />
+          <Section title="Nursery and office">
+            <Bundle bundle="nightLight" />
+            <Bundle bundle="upstairs" />
             <Sensor sensor="office" density="thin" />
-            <Sensor sensor="basement" density="thin" />
-            <Climate unit="off" density="thin" />
+            <Climate unit="range" density="thin" />
           </Section>
           <Section title="Outside">
+            <Alarm alarm="away" density="thin" />
             <Home weather="partly" />
             <Light light="onOff" />
+            <Cover cover="garage" density="thin" />
             <Sensor sensor="garage" density="thin" />
           </Section>
         </Columns>

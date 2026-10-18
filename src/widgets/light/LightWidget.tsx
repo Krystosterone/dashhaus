@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { LightEntity, LightHistory } from "./types";
-import { kelvinToLch, K_DEFAULT, K_MIN, K_MAX } from "./kelvin";
-import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration } from "../../shared/ui";
-import type { Vars } from "../../shared/ui";
+import { kelvinToLch, K_MIN, K_MAX } from "./kelvin";
+import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
+import type { ColorProp } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, QUICK_LEVELS } from "./parts";
 import "./LightWidget.css";
 
@@ -18,6 +18,12 @@ export interface LightWidgetProps {
    * gives way to a text readout and the bulb and details sheet remain.
    */
   density?: "regular" | "thin";
+  /**
+   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
+   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
+   * and holds as usual. Default true.
+   */
+  showControl?: boolean;
   onToggle: () => void;
   onBrightnessChange: (percent: number) => void;
   onKelvinChange?: (kelvin: number) => void;
@@ -25,30 +31,35 @@ export interface LightWidgetProps {
   onOpenDetails?: () => void;
   /** Sheet only: the close button calls this. */
   onClose?: () => void;
+  /** The orb's colour. Default: the lamp's colour temperature, when it has one. "none" keeps it the accent. */
+  color?: ColorProp;
 }
 
 /**
  * One light entity. Its height depends only on the container width, never on state or entity type:
  * S under 260px, M 260-439px, L 440px and up (adds a large readout and today's history).
  */
-export function LightWidget({ entity: e, history, variant = "card", density = "regular", onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose }: LightWidgetProps) {
+export function LightWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose, color }: LightWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
   const thin = !sheet && density === "thin";
+  const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  const { c, h } = kelvinToLch(e.supportsColorTemp && e.kelvin ? e.kelvin : K_DEFAULT);
   // HA reports brightness 0-255; integrations can hand over a raw float. Show whole percent, 1-100.
   const pct = Math.min(100, Math.max(1, Math.round(e.brightness)));
   const glow = on ? (e.supportsBrightness ? pct / 100 : 0.85) : 0;
   const intensity = e.supportsBrightness ? pct / 100 : 0.85;
-  const style = { "--accent-c": c, "--accent-h": h, "--hd-glow": glow.toFixed(3) } as Vars;
+  // Lit is energy: the bar fills with the accent. The lamp's own colour goes in the orb.
+  const colors = paint("energy", glow, e.supportsColorTemp && e.kelvin ? kelvinToLch(e.kelvin) : null, color);
 
   const readout = unav ? null : !on ? "Off" : e.supportsBrightness ? <>{pct}<span>%</span></> : "On";
   const valueText = unav ? "Unavailable" : !on ? "Off" : e.supportsBrightness ? `${pct}%` : "On";
 
+  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  const subText = valueText;
   return (
-    <article className={`hd lw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-state={e.state} style={style} aria-labelledby={`${uid}-n`}>
+    <article className={`hd lw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={e.name} pressed={on} unavailable={unav} intensity={intensity} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           {unav ? <IconBulbOff /> : <IconBulb />}
@@ -56,7 +67,7 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area" title={e.area}>{e.area}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{valueText}</p>}
+          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{readout}</p>
         {sheet
@@ -65,7 +76,7 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
       </header>
 
       <div className="hd-slot">
-        {unav ? <UnavailableSlot lastSeen={e.lastSeen} />
+        {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
           : e.supportsBrightness ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={e.brightness} on={on} onChange={onBrightnessChange} />
           : <TogglePill label={e.name} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
       </div>

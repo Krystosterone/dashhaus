@@ -1,9 +1,9 @@
 import { Fragment, useId } from "react";
 import type React from "react";
 import type { SensorEntity, SensorHistory } from "./types";
-import { temperatureTone, toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, HUMIDITY_TONE, IconThermo, IconThermoOff, IconDrop, TrendIcon } from "./readings";
-import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet } from "../../shared/ui";
-import type { Vars } from "../../shared/ui";
+import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff, IconDrop, TrendIcon } from "./readings";
+import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
+import type { ColorProp } from "../../shared/ui";
 import "./SensorWidget.css";
 
 export interface SensorWidgetProps {
@@ -12,9 +12,17 @@ export interface SensorWidgetProps {
   history?: SensorHistory;
   variant?: "card" | "sheet";
   density?: "regular" | "thin";
+  /**
+   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
+   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
+   * and holds as usual. Default true.
+   */
+  showControl?: boolean;
   /** Card only: the arrow and the readings open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
+  /** The orb's colour, if any. Default: none (a neutral badge). */
+  color?: ColorProp;
 }
 
 const TREND_WORD = { rising: "Rising", falling: "Falling", steady: "Steady" } as const;
@@ -24,17 +32,18 @@ const LOW_BATTERY = 15;
  * A read-only temperature and humidity sensor. Same sizes and heights as the other widgets.
  * Its tone follows the temperature; it has no glow because nothing is running.
  */
-export function SensorWidget({ entity: e, history, variant = "card", density = "regular", onOpenDetails, onClose }: SensorWidgetProps) {
+export function SensorWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onOpenDetails, onClose, color }: SensorWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
   const thin = !sheet && density === "thin";
+  const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const t = unav ? undefined : e.temperature;
   const h = unav ? undefined : e.humidity;
   const empty = !unav && t == null && h == null;
   const tC = t != null ? toCelsius(t, e.unit) : undefined;
-  const tone = temperatureTone(tC, e.outdoor);
-  const style = { "--accent-c": tone.c, "--accent-h": tone.h, "--hd-glow": 0 } as Vars;
+  // A reading: neutral. "Cool" or "Warm" is said in words; a colour only if the dashboard asks for one.
+  const colors = paint("reading", 0, null, color);
 
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
   const lowBattery = e.battery != null && e.battery <= LOW_BATTERY;
@@ -62,8 +71,10 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
   const tempSeries = history ? normalize(history.temperature) : null;
   const humSeries = history?.humidity ? normalize(history.humidity) : null;
 
+  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  const subText = unav ? "Unavailable" : empty ? "No reading yet" : readout;
   return (
-    <article className={`hd sw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-state={unav ? "unavailable" : "ok"} style={style} aria-labelledby={`${uid}-n`}>
+    <article className={`hd sw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : "ok"} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i">{unav ? <IconThermoOff /> : <IconThermo />}</span>
@@ -71,7 +82,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{unav ? "Unavailable" : empty ? "No reading yet" : readout}</p>}
+          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
         {sheet
@@ -80,7 +91,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
       </header>
 
       <div className="hd-slot">
-        {unav ? <UnavailableSlot lastSeen={e.lastSeen} />
+        {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
           : sheet || !onOpenDetails
             ? <div className="sw-read" role="img" aria-label={spoken}>{bar}</div>
             : <button type="button" className="sw-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}>{bar}</button>}
@@ -97,7 +108,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
 
       {sheet && humSeries && (
         <div className="hd-extra">
-          <TodayStrip title="Humidity today" tone={HUMIDITY_TONE} samples={humSeries.samples} currentHour={history!.currentHour} summary={humSeries.min == null || humSeries.max == null ? "No readings yet today" : `Low ${fmtHum(humSeries.min)}% · High ${fmtHum(humSeries.max)}%`} />
+          <TodayStrip title="Humidity today" samples={humSeries.samples} currentHour={history!.currentHour} summary={humSeries.min == null || humSeries.max == null ? "No readings yet today" : `Low ${fmtHum(humSeries.min)}% · High ${fmtHum(humSeries.max)}%`} />
         </div>
       )}
 

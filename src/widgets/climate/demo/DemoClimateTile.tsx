@@ -8,15 +8,17 @@ export interface DemoClimateTileProps {
   /** Container width in px. The widget picks its size from this. */
   width?: number;
   density?: "regular" | "thin";
+  /** Thin only: false hides the control; the row opens the details sheet. */
+  showControl?: boolean;
   defaultOpen?: boolean;
 }
 
 /** A ClimateTile wired to local demo state. */
-export function DemoClimateTile({ unit, width, density, defaultOpen }: DemoClimateTileProps) {
+export function DemoClimateTile({ unit, width, density, showControl, defaultOpen }: DemoClimateTileProps) {
   const demo = useDemoClimate(CLIMATE_SEEDS[unit]);
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <ClimateTile {...demo} density={density} defaultOpen={defaultOpen} />
+      <ClimateTile {...demo} density={density} showControl={showControl} defaultOpen={defaultOpen} />
     </div>
   );
 }

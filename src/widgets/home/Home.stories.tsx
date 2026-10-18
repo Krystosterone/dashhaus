@@ -23,6 +23,7 @@ const meta = {
     weather: { control: "select", options: WEATHER, description: "Example weather" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
     density: { control: "inline-radio", options: ["regular", "thin"] },
+    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
   args: { weather: "partly", width: SIZES.L, density: "regular" },

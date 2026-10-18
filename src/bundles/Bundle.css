@@ -1,0 +1,65 @@
+/* Bundles: several widgets sharing one card. The members are ordinary tiles; here they lose their own
+   card (background, edge, shadow, corners) and the bundle draws one around them. Selectors stop at
+   "> .hd-c > .hd", so the members' sheets (dialogs rendered inside the same DOM) are never touched. */
+.hb-c { container: hb / inline-size; min-width: 0; }
+.hb {
+  position: relative; display: grid; isolation: isolate; overflow: hidden;
+  border-radius: clamp(22px, 7cqi, 30px);
+  background: var(--card);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
+  box-shadow: inset 0 0 0 1px var(--card-edge), var(--shadow);
+}
+.hb-part { position: relative; min-width: 0; }
+.hb-part > .hd-c > .hd {
+  background: none; box-shadow: none; border-radius: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+/* Hairlines between members, drawn above them so a filled member can't hide them */
+.hb-part::before { content: none; position: absolute; z-index: 1; background: var(--line); pointer-events: none; }
+
+/* ---------- Joined: equal members side by side ---------- */
+.hb--joined { grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); border-radius: 22px; }
+.hb--joined > .hb-part + .hb-part::before { content: ""; left: 0; top: 14px; bottom: 14px; width: 1px; }
+/* Next to a member that's on (filled charcoal), the line has nothing to separate */
+.hb--joined > .hb-part:has(> .hd-c > .hd--mini[data-state="on"]) + .hb-part::before,
+.hb--joined > .hb-part:has(> .hd-c > .hd--mini[data-state="on"])::before { opacity: 0; }
+/* A filled member keeps its fill; an unavailable one keeps its hatching */
+.hb--joined > .hb-part > .hd-c > .hd--mini[data-state="on"] { background: var(--inv-bg); }
+.hb--joined > .hb-part > .hd-c > .hd--mini[data-state="unavailable"] { background: var(--hatching); }
+/* Stack once a member would get less than about 170px: 2 under 340, 3 under 450 (narrower types), 4 under 600 */
+@container hb (max-width: 339px) {
+  .hb--joined { grid-template-columns: minmax(0, 1fr); }
+  .hb--joined > .hb-part + .hb-part::before { left: 14px; right: 14px; top: 0; bottom: auto; width: auto; height: 1px; }
+}
+@container hb (max-width: 449px) {
+  .hb--joined:is([data-n="3"], [data-n="4"]) { grid-template-columns: minmax(0, 1fr); }
+  .hb--joined:is([data-n="3"], [data-n="4"]) > .hb-part + .hb-part::before { left: 14px; right: 14px; top: 0; bottom: auto; width: auto; height: 1px; }
+}
+@container hb (min-width: 450px) and (max-width: 599px) {
+  .hb--joined[data-n="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------- Lead and rows ---------- */
+.hb--lead { --lp: clamp(14px, 4.8cqi, 22px); }
+/* The lead's history strip lives in its sheet; the rows take that zone */
+.hb-lead > .hd-c > .hd > .hd-tl { display: none; }
+/* Rows line up with the lead: orbs on one vertical, arrows on another */
+.hb-row > .hd-c > .hd--thin { padding: 6px calc(var(--lp) - 2px) 6px var(--lp); }
+.hb-row::before { content: ""; top: 0; left: var(--lp); right: var(--lp); height: 1px; }
+/* At S a row's name needs the arrow's room. Hold the row, or open the lead's sheet, which lists every row. */
+@container hb (max-width: 259px) {
+  .hb-row > .hd-c > .hd--thin > .hd-head > .hd-circ { display: none; }
+}
+
+/* ---------- In the lead's sheet: the rows, live, under the lead ----------
+   One panel holds both, so there's no seam: the panel takes the sheet's surface and the widget gives its up. */
+.hd-c--more { background: var(--card-solid); border-radius: clamp(22px, 7cqi, 30px); box-shadow: inset 0 0 0 1px var(--card-edge), var(--shadow); }
+.hd-c--more > .hd--sheet { background: none; box-shadow: none; padding-bottom: 14px; }
+.hd-more { --pad: clamp(14px, 4.8cqi, 22px); display: grid; gap: 8px; padding: 4px var(--pad) var(--pad); }
+.hd-more > .hb-part > .hd-c > .hd { border-radius: 999px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); }
+@media (max-width: 600px) {
+  .hd-sheet .hd-c--more { border-radius: 28px 28px 0 0; box-shadow: inset 0 1px 0 var(--card-edge), 0 -12px 40px -20px oklch(0.2 0.02 80 / 0.4); }
+  .hd-sheet .hd-c--more > .hd--sheet { box-shadow: none; padding-bottom: 14px; }
+  .hd-more { padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px)); }
+}

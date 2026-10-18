@@ -1,0 +1,145 @@
+/* Security alarm. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
+
+/* Badge: charcoal when armed (on, not energy); warn when it needs you now */
+.al[data-armed] .hd-orb--static .hd-orb-i { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.al[data-alert] .hd-orb--static .hd-orb-i { background: var(--warn); color: var(--on-warn); box-shadow: none; }
+.al .hd-num { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; }
+.hd--sheet.al .hd-num { font-size: 30px; }
+
+/* ---------- Mode switch: Off and each arm mode; the current one on a sliding thumb ---------- */
+.al-sw {
+  position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  height: var(--slot-h); min-width: 0; padding: 4px; border-radius: 99px;
+  background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
+}
+.al-sw[data-armed] { background: var(--fill); }
+.al-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n)); border-radius: 99px;
+  background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.18);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform 240ms var(--ease-out), background-color 200ms ease;
+}
+.al-sw[data-armed] .al-thumb { background: var(--inv-bg); box-shadow: none; }
+.al-seg {
+  position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 0 6px;
+  border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 13.5px var(--font); cursor: pointer;
+  transition: color 200ms ease, scale var(--press) var(--ease-out);
+}
+.al-seg:active { scale: 0.95; }
+.al-seg[aria-pressed="true"] { color: var(--ink); cursor: default; }
+.al-sw[data-armed] .al-seg[aria-pressed="true"] { color: var(--inv-fg); }
+.al-seg:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.al-seg svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.al-seg-l { display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container hd (min-width: 260px) {
+  .al:not(.hd--thin) .al-seg-l { display: inline; }
+  /* Five modes at M: words only, so "Vacation" fits */
+  .al:not(.hd--thin) .al-sw[data-many] .al-seg svg { display: none; }
+}
+@container hd (min-width: 440px) { .al:not(.hd--thin) .al-sw[data-many] .al-seg svg { display: block; } }
+/* Six segments. Below L: icons only (labels would truncate to nothing).
+   At L and in the sheet: the icon with a small label under it, so "Vacation" fits a sixth of the width. */
+@container hd (max-width: 439px) {
+  .al:not(.hd--thin):not(.hd--sheet) .al-sw[data-crowd] .al-seg svg { display: block; }
+  .al:not(.hd--thin):not(.hd--sheet) .al-sw[data-crowd] .al-seg-l { display: none; }
+}
+@container hd (min-width: 440px) {
+  .al:not(.hd--thin) .al-sw[data-crowd] .al-seg { flex-direction: column; gap: 1px; padding: 0 2px; font-size: 11px; line-height: 1.1; }
+  .al:not(.hd--thin) .al-sw[data-crowd] .al-seg svg { display: block; width: 15px; height: 15px; }
+  .al:not(.hd--thin) .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
+}
+.hd--sheet .al-sw[data-crowd] .al-seg { flex-direction: column; gap: 1px; padding: 0 2px; font-size: 11px; line-height: 1.1; }
+.hd--sheet .al-sw[data-crowd] .al-seg svg { display: block; width: 15px; height: 15px; }
+.hd--sheet .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
+.hd--sheet .al-seg-l { display: inline; }
+.hd--thin .al-seg svg { width: 15px; height: 15px; }
+
+/* ---------- Countdown: exit delay (arming) or entry delay (pending) ---------- */
+.al-cd, .al-alarm {
+  position: relative; display: flex; align-items: center; gap: 10px; height: var(--slot-h); min-width: 0;
+  padding: 0 5px 0 16px; border-radius: 99px; overflow: hidden; font-variant-numeric: tabular-nums;
+}
+.al-cd { background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
+/* Time running out fills the pill, linearly: constant motion, so linear */
+.al-cd-fill { position: absolute; inset: 0; background: color-mix(in oklab, var(--ink) 9%, transparent); transform-origin: left; transform: scaleX(var(--f)); transition: transform 1s linear; }
+.al-cd-l { position: relative; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
+.al-cd-t { position: relative; flex: none; font-size: 15px; font-weight: 700; }
+.al-cd-b {
+  position: relative; flex: none; height: calc(var(--slot-h) - 10px); padding: 0 14px; border: 0; border-radius: 99px;
+  background: var(--inv-bg); color: var(--inv-fg); font: 600 13.5px var(--font); cursor: pointer;
+  transition: scale var(--press) var(--ease-out);
+}
+.al-cd-b:active { scale: 0.95; }
+.al-cd-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Entry delay: someone came in and the alarm is about to go off. Warn, tinted. */
+.al-cd[data-kind="pending"] { background: color-mix(in oklab, var(--warn) 14%, var(--card-solid)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 45%, transparent); }
+.al-cd[data-kind="pending"] .al-cd-fill { background: color-mix(in oklab, var(--warn) 20%, transparent); }
+.al-cd[data-kind="pending"] :is(.al-cd-l, .al-cd-t) { color: var(--warn); }
+/* No timer (the delay's length isn't known): a soft band sweeps instead of the fill.
+   Where the label won't fit (S, thin) the status line already says it; the action keeps its place on the right. */
+.al-cd-wait {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink) 8%, transparent), transparent);
+  animation: al-sweep 1.8s var(--ease-in-out) infinite;
+}
+@keyframes al-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+.al-cd[data-kind="pending"] .al-cd-wait { background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--warn) 22%, transparent), transparent); }
+.al .al-cd:not([data-timed]) { justify-content: flex-end; }
+.al-cd:not([data-timed]) .al-cd-l { margin-right: auto; }
+/* Nothing to press (disarming): the words, centred, at every size */
+.al .al-cd:not([data-timed]):not(:has(.al-cd-b)) { justify-content: center; padding: 0 16px; }
+.al-cd:not([data-timed]):not(:has(.al-cd-b)) .al-cd-l { display: block !important; flex: none; margin: 0; }
+/* Narrow: the time and the button; the words are in the status line */
+@container hd (max-width: 259px) { .al-cd-l { display: none; } .al-cd, .al-alarm { justify-content: space-between; padding-left: 14px; } }
+.hd--thin .al-cd-l { display: none; }
+.hd--thin .al-cd { justify-content: space-between; padding-left: 12px; }
+.hd--thin .al-cd-b { padding: 0 10px; font-size: 12.5px; }
+
+/* ---------- Triggered: the one place warn fills ---------- */
+.al-alarm { background: var(--warn); color: var(--on-warn); animation: al-pulse 1.4s ease-in-out infinite alternate; }
+@keyframes al-pulse { to { opacity: 0.82; } }
+.al-alarm-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.al-alarm-l b { font-weight: 700; }
+.al-alarm-b { background: var(--card-solid); color: var(--ink); }
+@container hd (max-width: 259px) { .al-alarm-c { display: none; } }
+.hd--thin .al-alarm-l { display: none; }
+.hd--thin .al-alarm { justify-content: flex-end; }
+
+/* ---------- Sheet: open doors and windows, and the keypad ---------- */
+.al-open { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
+.al-kp { display: grid; justify-items: center; gap: 16px; padding: 6px 0 2px; border-radius: 20px; }
+.al-kp:focus { outline: none; }
+.al-kp:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.al-kp-p { margin: 0; font-size: 15px; font-weight: 600; text-align: center; }
+.al-kp-dots { display: flex; align-items: center; gap: 12px; height: 14px; }
+.al-kp-dots i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); transition: background-color 120ms ease; }
+.al-kp-dots i[data-on] { background: var(--ink); box-shadow: none; }
+/* A wrong code shakes the dots: feedback the eye catches without reading */
+.al-kp-dots[data-error] { animation: al-shake 360ms var(--ease-out); }
+/* Waiting for the alarm to answer: the entered dots breathe */
+.al-kp-dots[data-busy] i[data-on] { animation: al-wait 700ms ease-in-out infinite alternate; }
+@keyframes al-wait { to { opacity: 0.35; } }
+@keyframes al-shake { 20% { translate: -7px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 2px 0; } }
+.al-kp-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 20px; }
+.al-key {
+  display: grid; place-items: center; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink);
+  font: 400 28px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color 120ms ease, scale var(--press) var(--ease-out);
+}
+.al-key:active:not(:disabled) { scale: 0.93; background: var(--fill); }
+.al-key:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.al-key svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.al-key--fn { background: none; box-shadow: none; }
+.al-key--ok { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.al-key:disabled { opacity: 0.35; cursor: default; }
+.al-kp-x { padding: 8px 16px; border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 14px var(--font); cursor: pointer; }
+.al-kp-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .al-alarm, .al-kp-dots[data-error] { animation: none; }
+  /* Gentler, not gone: the sweep becomes a slow fade in place */
+  .al-cd-wait { left: 30%; animation: al-wait 1.4s ease-in-out infinite alternate; }
+  .al-thumb { transition: background-color 200ms ease; }
+  .al-seg, .al-cd-b, .al-key { scale: none !important; }
+}

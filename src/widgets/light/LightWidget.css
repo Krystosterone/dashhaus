@@ -29,7 +29,7 @@
 .lw-ruler-at--tip { transform: translateX(clamp(28px, calc(var(--v, 0.5) * 100%), calc(100% - 28px))); }
 .lw-ruler[data-anim] .lw-ruler-at { transition: transform 160ms var(--ease-out); }
 .lw-ruler-mark { position: absolute; bottom: 8px; left: 100%; width: 4px; height: 34px; translate: -50% 0; border-radius: 2px; background: var(--ink); }
-.lw-ruler-tip { position: absolute; top: 0; left: 100%; translate: -50% 0; padding: 4px 11px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lw-ruler-tip { position: absolute; top: 0; left: 100%; translate: -50% 0; padding: 4px 11px; border-radius: 99px; background: var(--color); color: var(--on-accent); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .lw-ruler:has(.lw-in:focus-visible) .lw-ruler-mark { outline: 2px solid var(--ink); outline-offset: 3px; }
 .lw-ruler[data-disabled="true"] .lw-hit { cursor: default; }
 .lw-ruler[data-disabled="true"] { opacity: 0.4; }

@@ -9,6 +9,8 @@ export interface DemoLightTileProps {
   width?: number;
   /** Regular card or one-row thin variant. */
   density?: "regular" | "thin";
+  /** Thin only: false hides the control; the row opens the details sheet. */
+  showControl?: boolean;
   /** Override the light's name. */
   name?: string;
   /** Override the area. */
@@ -17,12 +19,12 @@ export interface DemoLightTileProps {
 }
 
 /** A LightTile wired to local demo state. */
-export function DemoLightTile({ light, width, density, name, area, defaultOpen }: DemoLightTileProps) {
+export function DemoLightTile({ light, width, density, showControl, name, area, defaultOpen }: DemoLightTileProps) {
   const seed = SEEDS[light];
   const demo = useDemoLight(seed, { ...(name ? { name } : {}), ...(area ? { area } : {}) });
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <LightTile {...demo} density={density} defaultOpen={defaultOpen} />
+      <LightTile {...demo} density={density} showControl={showControl} defaultOpen={defaultOpen} />
     </div>
   );
 }

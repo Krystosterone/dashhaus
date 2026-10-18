@@ -7,16 +7,18 @@ export interface DemoToggleTileProps {
   mode: ToggleSeedName;
   /** Container width in px. The widget picks its size from this. */
   width?: number;
-  density?: "regular" | "thin";
+  density?: "regular" | "thin" | "mini";
+  /** Thin only: false hides the control; the row opens the details sheet. */
+  showControl?: boolean;
   defaultOpen?: boolean;
 }
 
 /** A ToggleTile wired to local demo state. */
-export function DemoToggleTile({ mode, width, density, defaultOpen }: DemoToggleTileProps) {
+export function DemoToggleTile({ mode, width, density, showControl, defaultOpen }: DemoToggleTileProps) {
   const demo = useDemoToggle(TOGGLE_SEEDS[mode]);
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <ToggleTile {...demo} density={density} defaultOpen={defaultOpen} />
+      <ToggleTile {...demo} density={density} showControl={showControl} defaultOpen={defaultOpen} />
     </div>
   );
 }
