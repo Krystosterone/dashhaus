@@ -23,7 +23,13 @@ Our React widget library composes Home Assistant dashboards three ways: phone an
 
 Original prompt: Our dashboard widgets use a "glow budget": in a one-column section the first glowing card glows full and later ones render at half strength, and thin/mini rows never glow. Is there established precedent for capping simultaneous attention signals in glanceable UIs — watchOS complications, Dynamic Island / Live Activities, HomeKit tile states? Specifically: how do those surfaces rank alert > activity > static, and how many simultaneous color/glow/motion signals do they permit per screen? Decision: keep, retune, or redesign our glow damping mechanism. Shape: verdict with per-surface evidence, quoted, plus the specific numbers or limits any of them state.
 
-## 3. Dense list identity
+## 3. Dense list identity — DONE
+
+**Status:** Complete (2026-10-18)
+
+**Decision:** Keep the common thin-row geometry, but fix per-row identity content with semantic icons, concise primary/secondary text, explicit state/action cues, and stable domain grouping. Do not rely on role-tone color alone.
+
+**Research note:** [Dense list identity research](RESEARCH-3-dense-list-identity.md)
 
 Our dashboard has a controls section: 8 thin rows (climate, covers, lights) that are visually near-identical — same shape, same pill, on-state reduced to role tone. How do Apple HIG lists and Home Assistant Mushroom-card dashboards keep dense, same-shaped control rows distinguishable at a glance — icon language, color, typography, grouping? Decision: fix the Controls column's per-row identity or accept it as-is. Shape: verdict, 2–3 concrete patterns each with source quoted, no template.
 
