@@ -44,12 +44,30 @@ export function Countdown({ kind, label, left, total, action, onAction }: { kind
   );
 }
 
-/** Triggered: the one place the warn colour fills. What set it off, and Disarm. */
-export function AlarmPill({ cause, onDisarm }: { cause?: string; onDisarm: () => void }) {
+/** Triggered: the one place the warn colour fills. What set it off, and Disarm (not in view-only mode). */
+export function AlarmPill({ cause, onDisarm }: { cause?: string; onDisarm?: () => void }) {
   return (
     <div className="al-alarm" role="alert">
       <span className="al-alarm-l"><b>Alarm</b>{cause ? <span className="al-alarm-c"> · {cause}</span> : null}</span>
-      <button type="button" className="al-cd-b al-alarm-b" onClick={onDisarm}>Disarm</button>
+      {onDisarm && <button type="button" className="al-cd-b al-alarm-b" onClick={onDisarm}>Disarm</button>}
+    </div>
+  );
+}
+
+const ARMED_AS: Record<AlarmMode, string> = { home: "Armed home", away: "Armed away", night: "Armed night", vacation: "Armed vacation", custom_bypass: "Armed, custom bypass" };
+
+/**
+ * View-only mode's slot, in place of the mode switch: what the alarm is doing, nothing to press.
+ * Armed is charcoal (on, not energy), disarmed sits on hatching, as on the switch. Who changed it, from M up.
+ */
+export function AlarmStatus({ mode, by }: { mode: AlarmMode | "off"; by?: string }) {
+  const armed = mode !== "off";
+  return (
+    <div className="al-st" data-armed={armed || undefined}>
+      <ModeIcon mode={mode} />
+      <span className="al-st-l">{armed ? ARMED_AS[mode] : "Disarmed"}</span>
+      <span className="al-st-s">{armed ? MODE_LABEL[mode] : "Off"}</span>
+      {by && <span className="al-st-x">by {by}</span>}
     </div>
   );
 }

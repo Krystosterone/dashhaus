@@ -211,6 +211,16 @@ const id = "alarm_control_panel.house";
 - **Triggered** is the one place the warn colour fills a pill (it pulses gently, not under reduced motion). The status line says what set it off.
 - **Open doors and windows** (`openSensors`) lead the status line in warn when disarmed, and the sheet says arming will leave them unguarded.
 
+**View only.** For a panel Home Assistant can read but not control (a Ring Alarm without a subscription, say), pass `readOnly`, or leave out `onArm` and `onDisarm`, which turns it on by itself:
+
+```tsx
+<AlarmTile entity={alarmFromHass(hass.states[id], id)} history={today} readOnly />
+```
+
+- The mode switch becomes a status pill: "Armed home" in charcoal, or "Disarmed" on hatching, with who changed it from M up ("by Keypad"). In thin rows, the mode in one word.
+- Exit and entry delays still count down, without Cancel or Disarm; the entry delay reads "Entry delay". Triggered keeps its warn pill, without Disarm.
+- Nothing opens the keypad. The sheet has the status, today's history and "View only" in its info row; open doors and windows are still listed.
+
 What Home Assistant gives you, and what `alarmFromHass` does with it:
 
 | Widget | Home Assistant |

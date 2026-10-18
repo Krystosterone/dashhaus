@@ -3,7 +3,7 @@ import { DemoAlarmTile as DemoTile } from "./demo/DemoAlarmTile";
 import { DemoHassAlarm } from "./demo/DemoHassAlarm";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const ALARMS = ["disarmed", "openDoor", "away", "custom", "arming", "armingUnknown", "pending", "disarming", "triggered", "armFree", "noCode", "unavailable"] as const;
+const ALARMS = ["disarmed", "openDoor", "away", "custom", "arming", "armingUnknown", "pending", "disarming", "triggered", "armFree", "noCode", "ring", "unavailable"] as const;
 
 const meta = {
   title: "Widgets/Alarm",
@@ -27,6 +27,7 @@ const meta = {
     density: { control: "inline-radio", options: ["regular", "thin"] },
     showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
+    readOnly: { control: "boolean", description: "View only: show the state, with nothing to arm, disarm or type a code into" },
   },
   args: { alarm: "disarmed", width: SIZES.M, density: "regular" },
   render: (args) => <DemoTile key={`${args.alarm}-${args.defaultOpen}`} {...args} />,
@@ -62,22 +63,22 @@ export const Unavailable: Story = { args: { alarm: "unavailable" } };
 
 export const AllStates: Story = {
   name: "All states",
-  parameters: { layout: "padded", controls: { include: ["width", "density"] } },
-  render: ({ width, density }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "density", "readOnly"] } },
+  render: ({ width, density, readOnly }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {ALARMS.map((a) => <DemoTile key={a} alarm={a} width={width} density={density} />)}
+      {ALARMS.map((a) => <DemoTile key={a} alarm={a} width={width} density={density} readOnly={readOnly} />)}
     </div>
   ),
 };
 
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["alarm", "density"] } },
-  render: ({ alarm, density }) => (
+  parameters: { layout: "padded", controls: { include: ["alarm", "density", "readOnly"] } },
+  render: ({ alarm, density, readOnly }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
       {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
           <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={`${alarm}-${density}`} alarm={alarm} width={w} density={density} />
+          <DemoTile key={`${alarm}-${density}`} alarm={alarm} width={w} density={density} readOnly={readOnly} />
         </figure>
       ))}
     </div>
@@ -86,14 +87,20 @@ export const Sizes: Story = {
 
 export const ThinAllStates: Story = {
   name: "Thin, all states",
-  parameters: { layout: "padded", controls: { include: ["width"] } },
+  parameters: { layout: "padded", controls: { include: ["width", "readOnly"] } },
   args: { width: 380 },
-  render: ({ width }) => (
+  render: ({ width, readOnly }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {ALARMS.map((a) => <DemoTile key={a} alarm={a} density="thin" />)}
+      {ALARMS.map((a) => <DemoTile key={a} alarm={a} density="thin" readOnly={readOnly} />)}
     </div>
   ),
 };
+
+/** For panels Home Assistant can read but not control, like a Ring Alarm without a subscription. */
+export const ViewOnly: Story = { name: "View only (Ring)", args: { alarm: "ring", readOnly: true } };
+export const ViewOnlyAllStates: Story = { ...AllStates, name: "View only, all states", args: { readOnly: true } };
+export const ViewOnlyThin: Story = { ...ThinAllStates, name: "View only, thin", args: { width: 380, readOnly: true } };
+export const ViewOnlySheet: Story = { name: "View only, details sheet", args: { alarm: "ring", readOnly: true, defaultOpen: true } };
 
 export const DetailsSheet: Story = { name: "Details sheet", args: { alarm: "openDoor", defaultOpen: true } };
 export const DetailsSheetPhone: Story = {

@@ -54,6 +54,23 @@
 .hd--sheet .al-seg-l { display: inline; }
 .hd--thin .al-seg svg { width: 15px; height: 15px; }
 
+/* ---------- View only: the state, nothing to press ---------- */
+.al-st {
+  display: flex; align-items: center; gap: 8px; height: var(--slot-h); min-width: 0; padding: 0 16px;
+  border-radius: 99px; background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-2); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden;
+}
+.al-st[data-armed] { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.al-st svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.al-st-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.al-st-s { display: none; }
+.al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
+@container hd (max-width: 259px) { .al-st-x { display: none; } }
+.hd--thin .al-st { gap: 6px; padding: 0 12px; font-size: 13px; }
+.hd--thin .al-st svg { width: 15px; height: 15px; }
+.hd--thin :is(.al-st-l, .al-st-x) { display: none; }
+.hd--thin .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
+
 /* ---------- Countdown: exit delay (arming) or entry delay (pending) ---------- */
 .al-cd, .al-alarm {
   position: relative; display: flex; align-items: center; gap: 10px; height: var(--slot-h); min-width: 0;
@@ -103,6 +120,13 @@
 .al-alarm-b { background: var(--card-solid); color: var(--ink); }
 @container hd (max-width: 259px) { .al-alarm-c { display: none; } }
 .hd--thin .al-alarm-l { display: none; }
+/* View only: a countdown with nothing to press keeps its right padding; where the label hides (S, thin), the time centres */
+.al-cd[data-timed]:not(:has(.al-cd-b)) { padding-right: 16px; }
+.hd--thin .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 12px; }
+@container hd (max-width: 259px) { .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 14px; } }
+/* With no Disarm to show (view only), the pill says Alarm at every size */
+.hd--thin .al-alarm:not(:has(.al-alarm-b)) .al-alarm-l { display: inline; }
+.al-alarm:not(:has(.al-alarm-b)) { padding-right: 16px; }
 .hd--thin .al-alarm { justify-content: flex-end; }
 
 /* ---------- Sheet: open doors and windows, and the keypad ---------- */

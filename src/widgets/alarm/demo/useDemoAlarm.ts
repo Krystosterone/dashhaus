@@ -32,6 +32,8 @@ export const ALARM_SEEDS = {
   /** code_arm_required: false. Arming needs no code; disarming does. */
   armFree: { entity: { ...base, name: "Studio alarm", area: "Studio", codeArmRequired: false, state: "disarmed", changedBy: "Alex", lastChanged: "07:02" }, past: nightThenOff },
   triggered: { entity: { ...base, state: "triggered", triggeredBy: "Back door", lastChanged: "11:51" }, past: [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1] },
+  /** A Ring Alarm read through Home Assistant: its state is known, but it can't be armed or disarmed from here. */
+  ring: { entity: { entityId: "alarm_control_panel.ring_alarm", name: "Ring Alarm", area: "Whole home", modes: ["home", "away"], state: "armed_home", codeFormat: null, changedBy: "Keypad", lastChanged: "22:41" }, past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0] },
   noCode: { entity: { entityId: "alarm_control_panel.garage", name: "Garage alarm", area: "Garage", modes: ["away"], state: "disarmed", codeFormat: null, lastChanged: "Fri 18:02" }, past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
   unavailable: { entity: { ...base, entityId: "alarm_control_panel.cabin", name: "Cabin alarm", area: "Cabin", state: "unavailable", lastSeen: "08:20" }, past: [1, 1, 1, 1, 1, 1, 1, 1, "unavailable", "unavailable", "unavailable"] },
 } satisfies Record<string, AlarmSeed>;

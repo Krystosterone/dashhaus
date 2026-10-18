@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from "react";
 import type { ReactNode } from "react";
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types";
 import { ShieldIcon, MODE_LABEL } from "./icons";
-import { ModeSwitch, Countdown, AlarmPill, Keypad } from "./parts";
+import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
 import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
 import "./AlarmWidget.css";
 
@@ -24,9 +24,15 @@ export interface AlarmWidgetProps {
    * Arm in a mode. Resolve (or return) false when the code was wrong; reject when the call didn't go through.
    * May answer later: the keypad waits. With Home Assistant, `callAlarm` from ./hass does all of this.
    */
-  onArm: (mode: AlarmMode, code?: string) => AlarmResult;
+  onArm?: (mode: AlarmMode, code?: string) => AlarmResult;
   /** Disarm (also cancels arming and silences a triggered alarm). Same contract as onArm. */
-  onDisarm: (code?: string) => AlarmResult;
+  onDisarm?: (code?: string) => AlarmResult;
+  /**
+   * View only: show the alarm's state, countdowns and history, with nothing to arm, disarm or type a code into.
+   * For panels Home Assistant can read but not control (a Ring Alarm without a subscription, say).
+   * Default: on when neither onArm nor onDisarm is given.
+   */
+  readOnly?: boolean;
   /** Card only: the arrow opens the sheet; with an action when it needs the code. */
   onOpenDetails?: (action?: AlarmAction) => void;
   onClose?: () => void;
@@ -58,7 +64,7 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
  * keypad in the sheet; the badge only shows status, so a stray tap never arms or disarms.
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */
-export function AlarmWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onArm, onDisarm, onOpenDetails, onClose, action }: AlarmWidgetProps) {
+export function AlarmWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
   const thin = !sheet && density === "thin";
@@ -68,18 +74,21 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
   const alert = e.state === "pending" || e.state === "triggered";
   const moving = e.state === "arming" || e.state === "pending" || e.state === "disarming";
   const colors = paint("state", 0, null, "none");
+  // View only: everything that arms, disarms or asks for the code is left out.
+  const ro = readOnly ?? (!onArm && !onDisarm);
   // Home Assistant asks for the code to arm too unless the integration says otherwise.
   const codeToArm = !!e.codeFormat && (e.codeArmRequired ?? true);
   const left = useDelayLeft(e.delay, e.changedAt, moving);
 
   // The keypad (sheet only), for an action that needs the code.
-  const [pending, setPending] = useState<AlarmAction | null>(action ?? null);
-  useEffect(() => { setPending(action ?? null); }, [action]);
+  const [pending, setPending] = useState<AlarmAction | null>(ro ? null : action ?? null);
+  useEffect(() => { setPending(ro ? null : action ?? null); }, [action, ro]);
   useEffect(() => { if (!sheet) return; if (e.state === "disarmed" && pending?.kind === "disarm") setPending(null); }, [e.state, sheet, pending]);
 
   const needsCode = (a: AlarmAction) => (a.kind === "disarm" ? !!e.codeFormat : codeToArm);
-  const run = async (a: AlarmAction, code?: string) => (await (a.kind === "disarm" ? onDisarm(code) : onArm(a.mode, code))) !== false;
+  const run = async (a: AlarmAction, code?: string) => (await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) !== false;
   const act = (a: AlarmAction) => {
+    if (ro) return;
     // No code: nothing to wait for on screen; the state change is the answer.
     if (!needsCode(a)) { run(a).catch(() => undefined); return; }
     if (sheet) setPending(a);
@@ -99,15 +108,19 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
     : armedMode ? `${MODE_LABEL[armedMode]}${e.lastChanged ? ` since ${e.lastChanged}` : ""}`
     : openText ? <span className="hd-warn">{openText}</span>
     : e.area ?? "Disarmed";
-  const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? "Disarm now" : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Off";
+  const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Off";
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (e.state === "triggered") slot = <AlarmPill cause={e.triggeredBy} onDisarm={() => act({ kind: "disarm" })} />;
-  else if (e.state === "pending") slot = <Countdown kind="pending" label={left == null ? "Entry delay · disarm now" : "Disarm now"} left={left} total={e.delay} action="Disarm" onAction={() => act({ kind: "disarm" })} />;
-  else if (e.state === "arming") slot = <Countdown kind="arming" label={left == null ? `Arming${to}…` : `Arming${to}`} left={left} total={e.delay} action="Cancel" onAction={() => act({ kind: "disarm" })} />;
+  else if (e.state === "triggered") slot = <AlarmPill cause={e.triggeredBy} onDisarm={ro ? undefined : () => act({ kind: "disarm" })} />;
+  else if (e.state === "pending") slot = ro
+    ? <Countdown kind="pending" label={left == null ? "Entry delay…" : "Entry delay"} left={left} total={e.delay} />
+    : <Countdown kind="pending" label={left == null ? "Entry delay · disarm now" : "Disarm now"} left={left} total={e.delay} action="Disarm" onAction={() => act({ kind: "disarm" })} />;
+  else if (e.state === "arming") slot = <Countdown kind="arming" label={left == null ? `Arming${to}…` : `Arming${to}`} left={left} total={e.delay} action={ro ? undefined : "Cancel"} onAction={ro ? undefined : () => act({ kind: "disarm" })} />;
   else if (e.state === "disarming") slot = <Countdown kind="disarming" label="Disarming…" left={left} total={e.delay} />;
-  else slot = <ModeSwitch name={e.name} modes={e.modes} current={armedMode ?? "off"} onPick={pick} />;
+  else slot = ro
+    ? <AlarmStatus mode={armedMode ?? "off"} by={e.changedBy} />
+    : <ModeSwitch name={e.name} modes={e.modes} current={armedMode ?? "off"} onPick={pick} />;
 
   const promptFor = (a: AlarmAction) => (a.kind === "disarm" ? `Enter the code to ${e.state === "arming" ? "cancel arming" : "disarm"}` : `Enter the code to arm ${MODE_LABEL[a.mode].toLowerCase()}`);
 
@@ -139,7 +152,7 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
       {sheet && !unav && (pending || open.length > 0) && (
         <div className="hd-extra">
           {open.length > 0 && !pending && (
-            <p className="al-open"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</p>
+            <p className="al-open"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (
             <Keypad key={JSON.stringify(pending)} prompt={promptFor(pending)} text={e.codeFormat === "text"}
@@ -160,7 +173,7 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
       {sheet && (
         <p className="hd-info">
           <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `${e.changedBy ? `${e.changedBy}, ` : ""}${e.lastChanged}` : ""}</span>
-          <span>{!e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"}</span>
+          <span>{ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"}</span>
         </p>
       )}
     </article>
