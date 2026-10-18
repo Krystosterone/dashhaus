@@ -1,8 +1,8 @@
 # Research prompts
 
-Four deep-web-research prompts for open decisions in the dashboard composition and
-attention budget. Completed prompts link to their research notes below; keep this
-file as the decision index while the remaining prompts are open.
+Four deep-web-research prompts for dashboard composition and attention-budget decisions.
+Completed prompts link to their research notes below; keep this file as the decision
+index.
 
 ## 1. Composition model — DONE
 
@@ -33,6 +33,12 @@ Original prompt: Our dashboard widgets use a "glow budget": in a one-column sect
 
 Our dashboard has a controls section: 8 thin rows (climate, covers, lights) that are visually near-identical — same shape, same pill, on-state reduced to role tone. How do Apple HIG lists and Home Assistant Mushroom-card dashboards keep dense, same-shaped control rows distinguishable at a glance — icon language, color, typography, grouping? Decision: fix the Controls column's per-row identity or accept it as-is. Shape: verdict, 2–3 concrete patterns each with source quoted, no template.
 
-## 4. Color restraint in status dashboards
+## 4. Color restraint in status dashboards — DONE
 
-Our widget system restricts color to one "slot" element per tile (a small orb) and uses one accent hue for all energy states; everything else is neutrals. Is "one colored element per tile" a recognized pattern in data-dense status dashboards, and at what tile count does per-tile color become noise — Tufte's data-ink/small multiples, dashboard design guides, status-board postmortems? Decision: whether our color-slot rules need further tightening (muting at more densities, fewer hues). Shape: verdict, the load-bearing studies or guides quoted, any published thresholds on hue count or tile count.
+**Status:** Complete (2026-10-18)
+
+**Decision:** Keep one colour slot per tile and one accent hue family for energy states. Tighten through subtraction at higher density; do not introduce an unsupported hue-count or tile-density cutoff.
+
+**Research note:** [Color restraint in status dashboards](RESEARCH-4-color-restraint.md)
+
+Our widget system restricts color to one "slot" element per tile (a small orb) and uses one accent hue for all energy states; everything else is neutrals. The research found no universal tile-count or hue-count threshold. Keep the restrained palette, mute decorative colour before adding hues, and require non-colour cues for meaningful states.
