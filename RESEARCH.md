@@ -14,9 +14,14 @@ file as the decision index while the remaining prompts are open.
 
 Our React widget library composes Home Assistant dashboards three ways: phone and tablet group sections by importance (alert row → hero card → glance strip → controls), a wall panel groups by room/place. Which composition model do Apple Home, Google Home, and Home Assistant's Mushroom cards actually use — room/place-first or function/importance-first — and what sits at the top of their screens? Decision: keep our importance-based phone/tablet grouping or switch to place-based. Shape: verdict on the model, 2–3 load-bearing facts per app with the page quoted, no template.
 
-## 2. Attention budget precedent
+## 2. Attention budget precedent — DONE
 
-Our dashboard widgets use a "glow budget": in a one-column section the first glowing card glows full and later ones render at half strength, and thin/mini rows never glow. Is there established precedent for capping simultaneous attention signals in glanceable UIs — watchOS complications, Dynamic Island / Live Activities, HomeKit tile states? Specifically: how do those surfaces rank alert > activity > static, and how many simultaneous color/glow/motion signals do they permit per screen? Decision: keep, retune, or redesign our glow damping mechanism. Shape: verdict with per-surface evidence, quoted, plus the specific numbers or limits any of them state.
+- **Status:** complete; documented in [`research/attention-budget-precedent.md`](research/attention-budget-precedent.md).
+- **Decision:** retune the glow treatment; do not redesign the semantic attention hierarchy.
+- **Finding:** Apple and independent smart-home guidance support urgency-matched prominence, bounded attention, restrained updates, and quiet static states. They do not establish the exact `100% / 50% / 0%` values or a universal simultaneous-signal cap.
+- **Next action:** run a local scan-task comparison of current damping versus semantic-urgency retuning.
+
+Original prompt: Our dashboard widgets use a "glow budget": in a one-column section the first glowing card glows full and later ones render at half strength, and thin/mini rows never glow. Is there established precedent for capping simultaneous attention signals in glanceable UIs — watchOS complications, Dynamic Island / Live Activities, HomeKit tile states? Specifically: how do those surfaces rank alert > activity > static, and how many simultaneous color/glow/motion signals do they permit per screen? Decision: keep, retune, or redesign our glow damping mechanism. Shape: verdict with per-surface evidence, quoted, plus the specific numbers or limits any of them state.
 
 ## 3. Dense list identity
 
