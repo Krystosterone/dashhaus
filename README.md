@@ -90,7 +90,7 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
 ## Adding a widget
 
 1. Create `src/widgets/<name>/` with the component, its CSS (prefix classes with a short widget code), its entity type, a `demo/` folder and a `<Name>.stories.tsx` titled `Widgets/<Name>`.
-2. Build it from the shared card system: an `hd` article inside an `hd-c` container, an `hd-head` with an `Orb`, title and `CircleButton`, one `hd-slot`, and the sheet blocks. Set `--accent-c`, `--accent-h` and `--hd-glow` for its tone and energy. Then sizes, thin density, the sheet and the heights come for free.
+2. Build it from the shared card system: an `hd` article inside an `hd-c` container, an `hd-head` with an `Orb`, title and `CircleButton`, one `hd-slot`, and the sheet blocks. Spread `paint(role, glow, own, color)` from `shared/ui.tsx` onto the article for its colour: the role (`energy`, `state` or `reading`), how much energy is flowing (0 to 1, for the glow), and its own colour for the orb, if any. Then sizes, thin density, the sheet and the heights come for free.
 3. Export it from `src/index.ts`.
 4. Add it to the dashboards in `src/dashboards/Dashboards.stories.tsx`.
 
