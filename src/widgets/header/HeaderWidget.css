@@ -1,0 +1,22 @@
+/* Dashboard header. Not a card: type on the page surface. Sizes come from its own width,
+   from a phone (about 360px) to a wall panel (about 1250px). */
+.hh-c { container: hh / inline-size; min-width: 0; }
+.hh {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+  padding-inline: 4px; color: var(--ink); font-family: var(--font);
+}
+.hh-t { min-width: 0; }
+.hh-title {
+  margin: 0; font-size: clamp(30px, 4.2cqi, 48px); font-weight: 300; letter-spacing: -0.03em; line-height: 1.05;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hh-sub {
+  margin: 6px 0 0; font-size: clamp(14px, 1.3cqi, 16px); font-weight: 500; color: var(--ink-2); line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* The clock's baseline sits on the date line; digits are tabular so the minute never nudges the layout. */
+.hh-time {
+  flex: none; margin: 0; font-size: clamp(32px, 5.4cqi, 68px); font-weight: 300; letter-spacing: -0.04em; line-height: 0.82;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hh-time small { margin-left: 0.2em; font-size: max(13px, 0.27em); font-weight: 600; letter-spacing: 0; color: var(--ink-2); }

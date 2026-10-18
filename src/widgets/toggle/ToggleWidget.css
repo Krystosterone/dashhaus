@@ -1,0 +1,12 @@
+/* Toggle widget. Everything else (orb, pill, chips, today strip, sheet) comes from src/shared/card.css. */
+.tw-desc { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
+/* At L the readout says On or Off in words, a little smaller than a number */
+.tw .hd-num { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
+.hd--sheet.tw .hd-num { font-size: 34px; }
+
+/* Status line: the end time at S and thin, the area once the pill can show the end time itself */
+.tw-st-a { display: none; }
+@container hd (min-width: 260px) {
+  .tw:not(.hd--thin) .tw-st-u { display: none; }
+  .tw:not(.hd--thin) .tw-st-a { display: inline; }
+}

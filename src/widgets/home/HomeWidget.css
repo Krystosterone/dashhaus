@@ -1,0 +1,127 @@
+/* Home weather widget. Shell, header, badge, today strip and sheet come from src/shared/card.css.
+   From M up the house sits on the left, outside the grid, so the right column keeps the same rows
+   (and the same fixed heights) as every other widget. */
+
+/* ---------- The house ---------- */
+.hw-scene { display: none; padding: 0; border: 0; background: none; color: inherit; font: inherit; }
+button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hw-scene .sc { display: block; width: 100%; height: 100%; }
+
+@container hd (min-width: 260px) {
+  .hw:not(.hd--thin):not(.hd--sheet) {
+    --scene-w: clamp(104px, 34cqi, 150px);
+    padding-left: calc(var(--scene-w) + 14px);
+  }
+  .hw:not(.hd--thin):not(.hd--sheet) .hw-scene {
+    display: block; position: absolute; left: 6px; top: 8px; bottom: 8px; width: var(--scene-w);
+    transition: scale var(--press) var(--ease-out);
+  }
+  .hw:not(.hd--thin):not(.hd--sheet) button.hw-scene:active { scale: 0.98; }
+  /* The house is the identity: no badge beside it. The condition icon moves into the status line. */
+  .hw:not(.hd--thin):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title open"; min-height: 44px; }
+  .hw:not(.hd--thin):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
+  .hw:not(.hd--thin):not(.hd--sheet) .hw-st-i { display: inline-block; }
+}
+@container hd (min-width: 440px) {
+  .hw:not(.hd--thin):not(.hd--sheet) { --scene-w: clamp(150px, 34cqi, 210px); padding-left: calc(var(--scene-w) + 18px); }
+  .hw:not(.hd--thin):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "title num open"; }
+}
+.hd--sheet.hw .hw-scene { display: block; height: 170px; }
+.hd--sheet.hw .hd-head > .hd-orb { display: none; }
+.hd--sheet.hw .hd-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "title num open"; }
+.hd--sheet.hw .hw-st-i { display: inline-block; }
+
+/* The model: neutral materials with fine edges; only the lit windows take a tone */
+.sc :is(.sc-plinth polygon, .sc-house polygon) { stroke: var(--scene-edge); stroke-width: 0.6; stroke-linejoin: round; }
+.sc .sc-top { fill: var(--scene-top); }
+.sc .sc-side-a { fill: var(--scene-side-a); }
+.sc .sc-side-b { fill: var(--scene-side-b); }
+.sc .sc-path { fill: var(--scene-path); stroke: none !important; }
+.sc .sc-shadow { fill: var(--scene-shadow); stroke: none !important; }
+.sc .sc-wall-a { fill: var(--scene-wall-a); }
+.sc .sc-wall-b { fill: var(--scene-wall-b); }
+.sc .sc-roof-a { fill: var(--scene-roof-a); }
+.sc .sc-roof-b { fill: var(--scene-roof-b); }
+.sc .sc-roof-c { fill: var(--scene-roof-c); }
+.sc .sc-door { fill: var(--scene-door); }
+.sc .sc-win polygon { fill: var(--scene-glass); }
+.sc .sc-stem { stroke: var(--scene-stem); stroke-width: 1.6; stroke-linecap: round; fill: none; }
+.sc .sc-tree-a { fill: var(--scene-tree-a); stroke: var(--scene-edge); stroke-width: 0.6; }
+.sc .sc-tree-b { fill: var(--scene-tree-b); }
+/* Night: the house dims and the windows glow like the lamps inside */
+.sc[data-night] :is(.sc-plinth, .sc-house, .sc-tree) { filter: brightness(0.82); }
+.sc[data-night] .sc-win polygon { fill: var(--scene-lamp); }
+/* Not responding: the house stays, faded */
+.sc[data-off] { opacity: 0.45; }
+
+/* ---------- Status line: warnings, then the condition or the next change ---------- */
+.hw-st-i { display: none; width: 15px; height: 15px; margin-right: 5px; vertical-align: -3px; }
+.hw-st-i svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.hw-st-n { display: none; }
+/* S, M and thin: a coming change replaces the condition (the icon still tells it at M). */
+.hw[data-change] .hw-st-l { display: none; }
+.hw[data-change] .hw-st-n { display: inline; }
+/* L and the sheet: the condition stays; the change moves to the today strip, beside its hours. */
+@container hd (min-width: 440px) {
+  .hw[data-change]:not(.hd--thin) .hw-st-l { display: inline; }
+  .hw[data-change]:not(.hd--thin) .hw-st-n { display: none; }
+}
+.hd--sheet.hw[data-change] .hw-st-l { display: inline; }
+.hd--sheet.hw[data-change] .hw-st-n { display: none; }
+
+/* ---------- Today: low to high, cold to warm, now on the knob ---------- */
+.hw-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
+button.hw-read { cursor: pointer; }
+button.hw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hw-tr {
+  --kn: 56px;
+  position: relative; display: flex; align-items: center; justify-content: space-between; min-width: 0;
+  height: var(--slot-h); padding: 0 14px; border-radius: 99px;
+  /* Mixed in oklab: in oklch a cool blue drifts through green on its way to the cream card */
+  background: linear-gradient(in oklab 90deg,
+    color-mix(in oklab, var(--lo-c) var(--tint-mix), var(--card-solid)),
+    color-mix(in oklab, var(--hi-c) var(--tint-mix), var(--card-solid)));
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 13px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap;
+  transition: scale var(--press) var(--ease-out);
+}
+button.hw-read:active .hw-tr { scale: 0.98; }
+/* An end label the knob would cover steps aside (the strip and the sheet still have both) */
+.hw-tr-end { transition: opacity 150ms ease; }
+.hw-tr-end[data-hidden] { opacity: 0; }
+.hw-tr-rail { position: absolute; inset: 0 calc(var(--kn) / 2); pointer-events: none; }
+/* Parked left of the rail, slid with transform: its right edge is the knob centre */
+.hw-tr-at { position: absolute; top: 0; bottom: 0; right: 100%; width: 100%; transform: translateX(calc(var(--p) * 100%)); }
+.hw-tr-k {
+  position: absolute; top: 50%; left: 100%; display: grid; place-items: center;
+  width: var(--kn); height: calc(var(--slot-h) - 10px); translate: -50% -50%; border-radius: 99px;
+  background: var(--card-solid); box-shadow: inset 0 0 0 2.5px var(--now-c), 0 1px 3px oklch(0.2 0.02 80 / 0.25);
+  color: var(--ink); font-size: 14px; font-weight: 700;
+}
+.hd--thin .hw-tr { --kn: 50px; padding: 0 10px; font-size: 12px; }
+.hd--thin .hw-tr-k { font-size: 12.5px; }
+.hd--sheet .hw-tr { --kn: 64px; font-size: 14px; padding: 0 18px; }
+.hd--sheet .hw-tr-k { font-size: 16px; }
+
+/* ---------- Sheet: readings as chip-shaped tiles, and the next days ---------- */
+.hw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hw-stat {
+  display: grid; align-content: center; gap: 1px; min-width: 0; min-height: 68px; padding: 8px 12px;
+  border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line);
+}
+.hw-stat-l { font-size: 12px; font-weight: 500; color: var(--ink-2); }
+.hw-stat-v { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hw-stat-v small { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.hw-stat-v.hd-warn, .hw-stat-v.hd-warn small { color: var(--warn); }
+.hw-stat-s { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.hw-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.hw-day { display: grid; justify-items: center; gap: 4px; padding: 10px 4px; border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; min-width: 0; }
+.hw-day-n { font-weight: 600; color: var(--ink); }
+.hw-day-i svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; color: var(--ink); }
+.hw-day-t b { color: var(--ink); font-weight: 700; }
+.hw-day-p { font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-scene, .hw-tr { scale: none !important; }
+}

@@ -1,0 +1,170 @@
+/* Design tokens. Light values on :root, dark values for system dark mode and for an explicit
+   data-theme="dark" on <html>. data-theme="light" forces light. Yellow is light, charcoal is
+   selection, hatching is absence. */
+:root {
+  --bg-a: oklch(0.915 0.004 250);
+  --bg-b: oklch(0.948 0.01 95);
+  --bg-c: oklch(0.925 0.075 96);
+  --card: oklch(1 0 0 / 0.56);
+  --card-solid: oklch(0.982 0.006 95);
+  --card-edge: oklch(1 0 0 / 0.85);
+  --ink: oklch(0.22 0.006 80);
+  --ink-2: oklch(0.44 0.006 80);
+  --ink-3: oklch(0.55 0.006 80);
+  --line: oklch(0.22 0.006 80 / 0.1);
+  --track: oklch(1 0 0 / 0.5);
+  --hatch: oklch(0.22 0.006 80 / 0.15);
+  --chip: oklch(1 0 0 / 0.72);
+  --tick: oklch(0.22 0.006 80 / 0.28);
+  --inv-bg: oklch(0.235 0.004 80);
+  --inv-fg: oklch(0.97 0.004 95);
+  --on-accent: oklch(0.23 0.02 85);
+  --warn: oklch(0.55 0.16 40);
+  --tint-mix: 50%;
+  --accent-l: 0.89;
+  --accent-strong-l: 0.76;
+  --glow-a: 0.3;
+  --shadow: 0 1px 2px oklch(0.3 0.02 80 / 0.05), 0 18px 40px -24px oklch(0.3 0.03 80 / 0.25);
+  --knob-shadow: 0 0 0 1px oklch(0.2 0.01 80 / 0.08), 0 1px 3px oklch(0.2 0.01 80 / 0.2);
+
+  /* Home scene: the house as a white architectural model */
+  --scene-wall-a: oklch(0.985 0.004 95);
+  --scene-wall-b: oklch(0.935 0.006 90);
+  --scene-roof-a: oklch(0.87 0.006 85);
+  --scene-roof-b: oklch(0.8 0.006 85);
+  --scene-roof-c: oklch(0.75 0.006 85);
+  --scene-door: oklch(0.86 0.01 85);
+  --scene-glass: oklch(0.82 0.012 240);
+  --scene-top: oklch(0.955 0.005 90);
+  --scene-side-a: oklch(0.9 0.006 90);
+  --scene-side-b: oklch(0.84 0.006 90);
+  --scene-path: oklch(0.985 0.004 95);
+  --scene-tree-a: oklch(0.95 0.006 95);
+  --scene-tree-b: oklch(0.885 0.008 95);
+  --scene-stem: oklch(0.7 0.01 80);
+  --scene-shadow: oklch(0.3 0.02 80 / 0.1);
+  --scene-edge: oklch(0.22 0.006 80 / 0.16);
+  --scene-lamp: oklch(0.87 0.13 82);
+
+  --font: "Urbanist", "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Motion. Strong custom curves: built-in CSS easings are too weak. Never ease-in on UI.
+     ease-out: anything entering, exiting or answering a press. ease-in-out: things moving on screen.
+     drawer: the phone bottom sheet (iOS-like). Durations stay under 300ms, sheets excepted. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease: var(--ease-out);
+  --press: 160ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-a: oklch(0.155 0.004 250);
+    --bg-b: oklch(0.175 0.008 90);
+    --bg-c: oklch(0.235 0.045 92);
+    --card: oklch(0.27 0.006 85 / 0.5);
+    --card-solid: oklch(0.225 0.006 85);
+    --card-edge: oklch(1 0 0 / 0.08);
+    --ink: oklch(0.96 0.004 95);
+    --ink-2: oklch(0.77 0.006 90);
+    --ink-3: oklch(0.67 0.006 90);
+    --line: oklch(1 0 0 / 0.1);
+    --track: oklch(1 0 0 / 0.06);
+    --hatch: oklch(1 0 0 / 0.12);
+    --chip: oklch(1 0 0 / 0.08);
+    --tick: oklch(1 0 0 / 0.3);
+    --inv-bg: oklch(0.95 0.004 95);
+    --inv-fg: oklch(0.2 0.005 85);
+    --on-accent: oklch(0.23 0.02 85);
+    --warn: oklch(0.8 0.13 62);
+    --tint-mix: 24%;
+    --accent-l: 0.87;
+    --accent-strong-l: 0.84;
+    --glow-a: 0.18;
+    --shadow: 0 18px 44px -24px oklch(0 0 0 / 0.7);
+    --knob-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
+    --scene-wall-a: oklch(0.56 0.006 85);
+    --scene-wall-b: oklch(0.47 0.006 85);
+    --scene-roof-a: oklch(0.4 0.006 85);
+    --scene-roof-b: oklch(0.34 0.006 85);
+    --scene-roof-c: oklch(0.3 0.006 85);
+    --scene-door: oklch(0.42 0.008 85);
+    --scene-glass: oklch(0.33 0.015 250);
+    --scene-top: oklch(0.43 0.005 85);
+    --scene-side-a: oklch(0.36 0.005 85);
+    --scene-side-b: oklch(0.31 0.005 85);
+    --scene-path: oklch(0.5 0.005 85);
+    --scene-tree-a: oklch(0.5 0.006 85);
+    --scene-tree-b: oklch(0.42 0.006 85);
+    --scene-stem: oklch(0.4 0.008 80);
+    --scene-shadow: oklch(0 0 0 / 0.3);
+    --scene-edge: oklch(1 0 0 / 0.09);
+    --scene-lamp: oklch(0.85 0.13 82);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg-a: oklch(0.155 0.004 250);
+  --bg-b: oklch(0.175 0.008 90);
+  --bg-c: oklch(0.235 0.045 92);
+  --card: oklch(0.27 0.006 85 / 0.5);
+  --card-solid: oklch(0.225 0.006 85);
+  --card-edge: oklch(1 0 0 / 0.08);
+  --ink: oklch(0.96 0.004 95);
+  --ink-2: oklch(0.77 0.006 90);
+  --ink-3: oklch(0.67 0.006 90);
+  --line: oklch(1 0 0 / 0.1);
+  --track: oklch(1 0 0 / 0.06);
+  --hatch: oklch(1 0 0 / 0.12);
+  --chip: oklch(1 0 0 / 0.08);
+  --tick: oklch(1 0 0 / 0.3);
+  --inv-bg: oklch(0.95 0.004 95);
+  --inv-fg: oklch(0.2 0.005 85);
+  --on-accent: oklch(0.23 0.02 85);
+  --warn: oklch(0.8 0.13 62);
+  --tint-mix: 24%;
+  --accent-l: 0.87;
+  --accent-strong-l: 0.84;
+  --glow-a: 0.18;
+  --shadow: 0 18px 44px -24px oklch(0 0 0 / 0.7);
+  --knob-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
+  --scene-wall-a: oklch(0.56 0.006 85);
+  --scene-wall-b: oklch(0.47 0.006 85);
+  --scene-roof-a: oklch(0.4 0.006 85);
+  --scene-roof-b: oklch(0.34 0.006 85);
+  --scene-roof-c: oklch(0.3 0.006 85);
+  --scene-door: oklch(0.42 0.008 85);
+  --scene-glass: oklch(0.33 0.015 250);
+  --scene-top: oklch(0.43 0.005 85);
+  --scene-side-a: oklch(0.36 0.005 85);
+  --scene-side-b: oklch(0.31 0.005 85);
+  --scene-path: oklch(0.5 0.005 85);
+  --scene-tree-a: oklch(0.5 0.006 85);
+  --scene-tree-b: oklch(0.42 0.006 85);
+  --scene-stem: oklch(0.4 0.008 80);
+  --scene-shadow: oklch(0 0 0 / 0.3);
+  --scene-edge: oklch(1 0 0 / 0.09);
+  --scene-lamp: oklch(0.85 0.13 82);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+/* Dashboard surface. A dashboard page applies this to its body.
+   App-level phone baseline: no tap flash, no font inflation in landscape, and no pull-to-refresh
+   or rubber band on the page itself (the sheet keeps its own contained scroll). */
+html:has(> body.ha-surface) {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+.ha-surface {
+  min-height: 100%;
+  background: linear-gradient(140deg, var(--bg-a) 0%, var(--bg-b) 48%, var(--bg-c) 100%) fixed, var(--bg-b);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}

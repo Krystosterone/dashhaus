@@ -1,0 +1,43 @@
+/* Sensor-specific parts. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
+
+/* One bar per sensor: tinted by the temperature, reading and trend on the left,
+   humidity in an inset capsule at the right end (the same inset as the stepper's buttons).
+   Read-only; tapping it opens details. */
+.sw-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
+button.sw-read { cursor: pointer; }
+button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.sw-bar {
+  display: flex; align-items: center; gap: 8px; min-width: 0; height: var(--slot-h); padding: 0 4px 0 14px;
+  border-radius: 99px; background: color-mix(in oklab, var(--accent) var(--tint-mix), var(--card-solid)); box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.sw-t { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; font-size: 15px; font-weight: 700; }
+.sw-t:only-child { padding-right: 10px; }
+.sw-h {
+  flex: none; display: flex; align-items: center; gap: 5px; height: calc(var(--slot-h) - 8px); padding: 0 12px;
+  border-radius: 99px; background: var(--card-solid); box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 14px; font-weight: 700;
+}
+.sw-bar small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
+.sw-bar svg { flex: none; width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.7; display: none; }
+.sw-t .sw-trend { margin-left: auto; }
+
+@container hd (min-width: 260px) {
+  .sw-bar svg { display: block; }
+}
+.hd--thin .sw-bar { gap: 6px; padding-left: 12px; }
+.hd--thin .sw-bar svg { display: none; }
+.hd--thin .sw-t { font-size: 13.5px; }
+.hd--thin .sw-h { padding: 0 9px; font-size: 12.5px; }
+.hd--sheet .sw-t { font-size: 20px; }
+.hd--sheet .sw-h { font-size: 17px; padding: 0 16px; }
+.hd--sheet .sw-bar svg { display: block; width: 17px; height: 17px; }
+
+/* Press feedback on the tappable reading */
+.sw-bar { transition: scale var(--press) var(--ease-out); }
+button.sw-read:active .sw-bar { scale: 0.98; }
+@media (prefers-reduced-motion: reduce) { .sw-bar { scale: none !important; } }
+/* No reading yet: hatched like any absence, with plain words */
+.sw-read:has(.sw-none) .sw-bar { background: var(--hatching), var(--track); }
+.sw-none { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-weight: 600; color: var(--ink-3); }
+.hd--thin .sw-none { font-size: 12.5px; }

@@ -1,0 +1,248 @@
+/* Shared card system. Every widget is an .hd card inside an .hd-c size container.
+   Size comes from the container width: S < 260px, M 260-439px, L >= 440px.
+   A widget sets --accent-c and --accent-h (its tone) and --hd-glow (0-1, how much energy is flowing);
+   --glow-c and --glow-h optionally give the glow its own colour (the home widget's sunshine).
+   Rules: yellow/tone = active, charcoal = selection, hatching = absence. Heights never change with state.
+   Motion: only transform, opacity and clip-path animate; presses answer in 160ms; nothing animates
+   on keyboard input or while a finger drags (the value follows the finger directly). */
+
+.hd-c { container: hd / inline-size; min-width: 0; }
+
+.hd {
+  --accent: oklch(var(--accent-l) var(--accent-c, 0.14) var(--accent-h, 90));
+  --accent-strong: oklch(var(--accent-strong-l) var(--accent-c, 0.14) var(--accent-h, 90));
+  --pad: clamp(14px, 4.8cqi, 22px);
+  --slot-h: 42px;
+  --hatching: repeating-linear-gradient(-45deg, var(--hatch) 0 1.2px, transparent 1.2px 6px);
+  box-sizing: border-box;
+  display: grid;
+  gap: 14px;
+  padding: var(--pad);
+  position: relative;
+  isolation: isolate;
+  border-radius: clamp(22px, 7cqi, 30px);
+  background: var(--card);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
+  box-shadow: inset 0 0 0 1px var(--card-edge), var(--shadow);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The glow sits on its own layer and fades with opacity, so turning a light up never repaints the card. */
+.hd::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(circle at calc(var(--pad) + 22px) calc(var(--pad) + 22px),
+    oklch(var(--accent-l) var(--glow-c, var(--accent-c, 0.14)) var(--glow-h, var(--accent-h, 90)) / var(--glow-a)), transparent min(90cqi, 360px));
+  opacity: var(--hd-glow, 0);
+  transition: opacity 300ms var(--ease-out);
+}
+.hd *, .hd *::before, .hd *::after { box-sizing: border-box; }
+/* Controls are not text: no selection or callout on long-press, no double-tap-zoom delay. */
+.hd :is(button, [role="button"], input), .hd-sheet :is(button, input) {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+.hd button, .hd-sheet button { touch-action: manipulation; }
+.hd p { margin: 0; }
+
+/* Header */
+.hd-head {
+  display: grid; align-items: center;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "orb . open" "title title title";
+  column-gap: 12px; row-gap: 10px;
+}
+.hd-head > .hd-orb { grid-area: orb; }
+.hd-title { grid-area: title; min-width: 0; }
+.hd-head > .hd-circ { grid-area: open; }
+.hd-num { grid-area: num; display: none; font-size: clamp(32px, 7cqi, 44px); font-weight: 300; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hd-num span { font-size: 0.48em; letter-spacing: 0; color: var(--ink-2); margin-left: 2px; }
+.hd[data-state="off"] .hd-num { color: var(--ink-3); }
+.hd-name { margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hd-area { margin-top: 3px !important; font-size: 13.5px; font-weight: 500; color: var(--ink-2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hd-sub { display: none; }
+/* A missing area keeps its line, so cards with and without one stay the same height. */
+.hd-area:empty::before { content: "\00a0"; }
+.hd--thin .hd-area:empty { display: none; }
+
+/* Circle button (details, close) */
+.hd-circ { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -3px -4px -3px 0; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 50%; }
+.hd-circ-i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 150ms ease, scale var(--press) var(--ease-out); }
+.hd-circ:active .hd-circ-i { scale: 0.92; }
+.hd-circ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.hd-circ:focus-visible { outline: none; }
+.hd-circ:focus-visible .hd-circ-i { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .hd-circ:hover .hd-circ-i { background: var(--card-solid); } }
+
+/* Orb: the round main toggle. Tap toggles, press and hold opens details. */
+.hd-orb { --sz: 40px; --b: 1; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink-2); cursor: pointer; -webkit-touch-callout: none; user-select: none; touch-action: manipulation; }
+.hd-orb-i { display: grid; place-items: center; width: var(--sz); height: var(--sz); border-radius: 50%; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 200ms ease, box-shadow 200ms ease, scale var(--press) var(--ease-out); }
+/* Press answers at once; holding keeps shrinking, slowly and linearly, until the sheet opens at 450ms. Release snaps back. */
+.hd-orb:active .hd-orb-i { scale: 0.94; }
+.hd-orb[data-holding] .hd-orb-i { scale: 0.88; transition: scale 450ms linear, background-color 200ms ease, box-shadow 200ms ease; }
+.hd-orb[aria-disabled="true"]:active .hd-orb-i { scale: 1; }
+.hd-orb svg { width: 52%; height: 52%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.hd-orb[aria-pressed="true"] { color: var(--on-accent); }
+.hd-orb[aria-pressed="true"] .hd-orb-i {
+  background: var(--accent);
+  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--accent-c, 0.14) var(--accent-h, 90) / 0.5),
+              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--accent-c, 0.14) var(--accent-h, 90) / calc(0.25 + 0.35 * var(--b)));
+}
+.hd-orb[aria-disabled="true"] { cursor: default; color: var(--ink-3); }
+.hd-orb[aria-disabled="true"] .hd-orb-i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; }
+.hd-orb:focus-visible { outline: none; }
+.hd-orb:focus-visible .hd-orb-i { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd-orb--sm { --sz: 34px; }
+/* Static orb for read-only widgets: tinted with the tone, never "on" */
+.hd-orb--static { cursor: default; color: var(--ink); }
+.hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--accent) var(--tint-mix), var(--card-solid)); box-shadow: inset 0 0 0 1px var(--line); }
+.hd-warn { color: var(--warn); font-weight: 600; }
+
+/* Control slot: one fixed height for every state */
+.hd-slot { display: grid; min-width: 0; }
+.hd-pill, .hd-unav { height: var(--slot-h); border-radius: 99px; }
+.hd-pill {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; min-width: 0; padding: 0 16px; border: 0; cursor: pointer; text-align: left;
+  background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-2); font: 600 14px var(--font); white-space: nowrap; overflow: hidden;
+  transition: background-color 200ms ease, color 200ms ease, scale var(--press) var(--ease-out);
+}
+.hd-pill:active { scale: 0.98; }
+.hd-pill[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
+.hd-unav-t { display: none; font-weight: 500; }
+
+/* Today: 24 hourly sticks. Height = intensity that hour; the current hour uses the tone. */
+.hd-tl { display: none; gap: 8px; }
+.hd-tl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }
+.hd-tl-v { font-size: 13.5px; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
+.hd-tl-bars { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); align-items: end; height: 46px; }
+.hd-tl-bars i { justify-self: center; width: 4px; border-radius: 2px; height: calc(8px + 38px * var(--h, 0)); background: var(--ink); opacity: 0.8; }
+.hd-tl-bars i[data-s="off"] { height: 4px; background: var(--tick); opacity: 1; }
+.hd-tl-bars i[data-s="future"] { height: 4px; background: var(--line); opacity: 1; }
+.hd-tl-bars i[data-s="fc"] { background: var(--tick); opacity: 1; }
+.hd-tl-bars i[data-s="now"] { width: 6px; border-radius: 3px; background: var(--accent-strong); opacity: 1; }
+.hd-tl-bars i[data-s="now-off"] { width: 6px; height: 6px; border-radius: 3px; background: var(--ink-3); opacity: 1; }
+.hd-tl-bars i[data-s="unav"] { height: 18px; background: transparent; outline: 1.2px dashed var(--ink-3); outline-offset: -1.2px; opacity: 1; }
+.hd-tl-axis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); font-size: 11.5px; font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+/* Sheet-only blocks */
+.hd-extra { display: none; gap: 18px; }
+.hd-blk { display: grid; gap: 10px; min-width: 0; }
+.hd-blk-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }
+.hd-blk-v { font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
+.hd-chips { display: grid; grid-template-columns: repeat(min(var(--n, 4), 4), minmax(0, 1fr)); gap: 8px; }
+.hd-chip {
+  display: grid; justify-items: start; align-content: center; gap: 1px; min-height: 52px; padding: 6px 12px; min-width: 0;
+  border: 0; border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink); font: 600 14px/1.2 var(--font); text-align: left; cursor: pointer; transition: background-color 200ms ease, color 200ms ease, scale var(--press) var(--ease-out);
+}
+.hd-chip:active { scale: 0.97; }
+.hd-chip > span { max-width: 100%; overflow-wrap: break-word; }
+.hd-chip small { font-size: 12px; font-weight: 500; color: var(--ink-2); }
+.hd-chip[aria-pressed="true"] { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.hd-chip[aria-pressed="true"] small { color: inherit; opacity: 0.75; }
+.hd-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hd-info { padding-top: 12px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+
+/* Sizes */
+@container hd (min-width: 260px) {
+  .hd { --slot-h: 46px; }
+  .hd-head { grid-template-areas: "orb title open"; row-gap: 0; }
+  .hd-unav-t, .hd-pill-x { display: inline; }
+}
+@container hd (min-width: 440px) {
+  .hd-head { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "orb title num open"; }
+  .hd-num { display: block; }
+  .hd-tl { display: grid; }
+}
+
+/* Thin density: one 56px pill row. The header's children and the slot share one grid row,
+   so slots line up in a column when thin rows are stacked. */
+.hd--thin {
+  --pad: 6px;
+  --slot-h: 36px;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  grid-template-areas: "orb title slot open";
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 0;
+  min-height: 56px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 999px;
+}
+.hd--thin .hd-head { display: contents; }
+.hd--thin .hd-head > .hd-orb { grid-area: orb; }
+.hd--thin .hd-title { grid-area: title; }
+.hd--thin .hd-head > .hd-circ { grid-area: open; margin: 0; width: 40px; height: 44px; }
+.hd--thin .hd-name { font-size: 15px; }
+.hd--thin .hd-area, .hd--thin .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
+.hd--thin .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
+.hd--thin .hd-pill, .hd--thin .hd-unav { padding-inline: 14px; font-size: 13px; }
+.hd--thin .hd-unav-t, .hd--thin .hd-pill-x, .hd--thin .hd-num, .hd--thin .hd-tl { display: none; }
+@container hd (max-width: 319px) {
+  .hd--thin { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "orb title open"; column-gap: 8px; }
+  .hd--thin .hd-slot, .hd--thin .hd-area { display: none; }
+  .hd--thin .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hd--thin[data-state="unavailable"] .hd-sub, .hd--thin[data-state="off"] .hd-sub { color: var(--ink-3); }
+}
+
+/* Sheet variant: everything, one column */
+.hd--sheet { --slot-h: 52px; background: var(--card-solid); backdrop-filter: none; -webkit-backdrop-filter: none; gap: 20px; }
+.hd--sheet .hd-head { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "orb title num open"; row-gap: 0; }
+.hd--sheet .hd-num { display: block; font-size: 40px; }
+.hd--sheet .hd-area { white-space: normal; }
+/* The sheet is where a truncated name can be read in full. */
+.hd--sheet .hd-name { white-space: normal; overflow-wrap: anywhere; }
+.hd--sheet .hd-unav-t, .hd--sheet .hd-pill-x { display: inline; }
+.hd--sheet .hd-tl, .hd--sheet .hd-extra { display: grid; }
+
+/* Sheet dialog: centered panel on wider screens, bottom sheet on phones */
+.hd-sheet {
+  padding: 0; border: 0; background: transparent; color: var(--ink); width: min(440px, calc(100vw - 24px)); max-width: none;
+  max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; -webkit-tap-highlight-color: transparent;
+  /* Transitions, not keyframes: closing mid-open reverses from where the sheet is instead of jumping. */
+  transition: opacity 200ms var(--ease-out), scale 200ms var(--ease-out), translate 200ms var(--ease-out);
+}
+.hd-sheet::backdrop { background: oklch(0.2 0.01 80 / 0.38); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+/* Centered panel: a modal, so it grows from the center. Exit is faster than entry. */
+@starting-style { .hd-sheet[open] { opacity: 0; scale: 0.96; } }
+@starting-style { .hd-sheet[open]::backdrop { opacity: 0; } }
+.hd-sheet[data-closing] { opacity: 0; scale: 0.97; transition-duration: 150ms; pointer-events: none; }
+.hd-sheet[data-closing]::backdrop { opacity: 0; transition-duration: 180ms; }
+
+@media (max-width: 600px) {
+  /* Bottom sheet: slides from the edge it lives on, with the iOS drawer curve. */
+  .hd-sheet { margin: auto 0 0; width: 100%; max-height: 92dvh; border-radius: 28px 28px 0 0; transition: translate 380ms var(--ease-drawer); }
+  @starting-style { .hd-sheet[open] { opacity: 1; scale: 1; translate: 0 100%; } }
+  .hd-sheet[data-closing] { opacity: 1; scale: 1; translate: 0 100%; transition-duration: 240ms; }
+  .hd-sheet .hd--sheet {
+    border-radius: 28px 28px 0 0;
+    padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px));
+    box-shadow: inset 0 1px 0 var(--card-edge), 0 -12px 40px -20px oklch(0.2 0.02 80 / 0.4);
+  }
+  /* Pinned header with a grab handle; dragging it down dismisses the sheet */
+  .hd-sheet .hd--sheet > .hd-head {
+    position: sticky; top: 0; z-index: 2;
+    margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) -6px;
+    padding: calc(var(--pad) + 14px) var(--pad) 12px;
+    background: var(--card-solid);
+    border-radius: 28px 28px 0 0;
+    touch-action: none;
+    cursor: grab;
+  }
+  .hd-sheet .hd--sheet > .hd-head::before { content: ""; position: absolute; top: 8px; left: 50%; translate: -50% 0; width: 38px; height: 5px; border-radius: 3px; background: var(--tick); }
+}
+
+/* Reduced motion: fewer, gentler animations, not none. Colour and opacity fades stay; movement and scaling go. */
+@media (prefers-reduced-motion: reduce) {
+  .hd :is(.hd-orb-i, .hd-circ-i, .hd-pill, .hd-chip) { scale: none !important; }
+  .hd-sheet { transition: opacity 200ms ease; }
+  @starting-style { .hd-sheet[open] { opacity: 0; scale: none; translate: none; } }
+  .hd-sheet[data-closing] { opacity: 0; scale: none; translate: none; transition-duration: 150ms; }
+}

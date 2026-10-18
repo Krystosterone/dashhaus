@@ -1,0 +1,35 @@
+/* Light-specific parts. The card shell, header, orb, pills, today strip, chips and sheet come from src/shared/card.css. */
+
+/* Brightness bar: the light fills it, and the label inverts where it passes */
+.lw-bar { position: relative; height: var(--slot-h); border-radius: 99px; background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line); }
+.lw-bar-lab { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 16px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); pointer-events: none; }
+.lw-bar-lit { position: absolute; inset: 0; border-radius: inherit; background: var(--accent); clip-path: inset(0 calc((100% - 30px) * (1 - var(--v, 0.5))) 0 0 round 99px); transition: opacity 200ms ease; }
+/* Only a tap that jumps the value animates. Dragging follows the finger; arrow keys are instant. */
+.lw-bar[data-anim] .lw-bar-lit { transition: clip-path 160ms var(--ease-out), opacity 200ms ease; }
+.lw-bar-lit .lw-bar-lab { color: var(--on-accent); }
+.lw-bar[data-lit="false"] .lw-bar-lit { opacity: 0; }
+.lw-bar:has(.lw-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd--thin .lw-bar-lab { padding-inline: 14px; font-size: 13px; }
+
+/* Pointer input: a hit layer that takes taps and sideways drags anywhere on the track, and leaves
+   vertical swipes to the page. (A native range input on iOS only moves when you grab its thumb.) */
+.lw-hit { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; touch-action: pan-y; }
+/* The slider stays for keyboard and screen readers, out of the pointer's way. */
+.lw-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+
+/* Warmth ruler: ticks every 100 K, a charcoal stick and a tone tag mark the value */
+.lw-ruler { --tw: 24px; position: relative; height: 70px; }
+.lw-ruler-ticks { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 14px; }
+.lw-ruler-line { position: absolute; left: 12px; right: 12px; bottom: 0; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--warm-grad)); }
+/* The rail spans the usable track. Each marker rides a rail-wide layer parked just left of it, whose
+   right edge is the marker; transform slides it, so a change never re-lays out the ruler and never adds
+   scrollable overflow. The tag stays 28px clear of either end. */
+.lw-ruler-rail { position: absolute; inset: 0 12px; pointer-events: none; }
+.lw-ruler-at { position: absolute; top: 0; bottom: 0; right: 100%; width: 100%; transform: translateX(calc(var(--v, 0.5) * 100%)); }
+.lw-ruler-at--tip { transform: translateX(clamp(28px, calc(var(--v, 0.5) * 100%), calc(100% - 28px))); }
+.lw-ruler[data-anim] .lw-ruler-at { transition: transform 160ms var(--ease-out); }
+.lw-ruler-mark { position: absolute; bottom: 8px; left: 100%; width: 4px; height: 34px; translate: -50% 0; border-radius: 2px; background: var(--ink); }
+.lw-ruler-tip { position: absolute; top: 0; left: 100%; translate: -50% 0; padding: 4px 11px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lw-ruler:has(.lw-in:focus-visible) .lw-ruler-mark { outline: 2px solid var(--ink); outline-offset: 3px; }
+.lw-ruler[data-disabled="true"] .lw-hit { cursor: default; }
+.lw-ruler[data-disabled="true"] { opacity: 0.4; }
