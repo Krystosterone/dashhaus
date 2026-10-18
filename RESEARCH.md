@@ -1,10 +1,16 @@
 # Research prompts
 
 Four deep-web-research prompts for open decisions in the dashboard composition and
-attention budget. Spawn each through the `deep-web-research` skill; delete this file
-once the research lands.
+attention budget. Completed prompts link to their research notes below; keep this
+file as the decision index while the remaining prompts are open.
 
-## 1. Composition model
+## 1. Composition model — DONE
+
+**Status:** Complete (2026-10-18)
+
+**Decision:** Keep a hybrid composition: function/importance-oriented quick access on phone/tablet, room/place context on the wall panel, with both room inventory and quick access available on every surface.
+
+**Research note:** [Composition model research](RESEARCH-1-composition-model.md)
 
 Our React widget library composes Home Assistant dashboards three ways: phone and tablet group sections by importance (alert row → hero card → glance strip → controls), a wall panel groups by room/place. Which composition model do Apple Home, Google Home, and Home Assistant's Mushroom cards actually use — room/place-first or function/importance-first — and what sits at the top of their screens? Decision: keep our importance-based phone/tablet grouping or switch to place-based. Shape: verdict on the model, 2–3 load-bearing facts per app with the page quoted, no template.
 
