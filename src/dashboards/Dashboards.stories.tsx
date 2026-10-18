@@ -43,7 +43,7 @@ export const Phone: Story = {
           <Home weather="partly" />
         </Section>
         <Section title="Security">
-          <Alarm alarm="away" />
+          <Alarm alarm="ring" readOnly />
         </Section>
         <Section title="Modes" columns={2}>
           <Cell span={2}><Bundle bundle="sleep" /></Cell>
@@ -117,7 +117,7 @@ export const Tablet: Story = {
             <Climate unit="off" density="thin" />
           </Section>
           <Section title="Security">
-            <Alarm alarm="disarmed" />
+            <Alarm alarm="ring" readOnly />
           </Section>
           <Section title="Covers">
             <Cover cover="curtains" density="thin" />
@@ -164,7 +164,7 @@ export const WallPanel: Story = {
             <Climate unit="range" density="thin" />
           </Section>
           <Section title="Outside">
-            <Alarm alarm="away" density="thin" />
+            <Alarm alarm="ring" readOnly density="thin" />
             <Home weather="partly" />
             <Light light="onOff" />
             <Cover cover="garage" density="thin" />
