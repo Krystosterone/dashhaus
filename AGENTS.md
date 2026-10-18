@@ -1,0 +1,55 @@
+# AGENTS.md
+
+React + TypeScript widgets for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app: there is no test suite and no linter. `README.md` is the full spec — consult it before changing widget behavior.
+
+## Commands
+
+- `npm install`
+- `npm run storybook` — dev server at http://localhost:6006
+- `npm run build-storybook` — static build in `storybook-static/`
+- `npm run typecheck` — `tsc --noEmit`. The only automated check; it must pass before any change is finished.
+
+## Verifying changes
+
+1. `npm run typecheck`
+2. `npm run storybook` — open the affected widget's story, check each size and density, and the Demo / Worst case toggle under Foundations.
+
+There are no unit tests; stories are the documentation and the visual check. Do not add a test runner or linter without being asked.
+
+## Layout
+
+- `src/widgets/<name>/` — one widget per folder: component, CSS, entity type, `demo/`, and `<Name>.stories.tsx` titled `Widgets/<Name>`.
+- `src/shared/` — the card system and shared hooks (`card.css`, `ui.tsx`, `useTrack`, `useLongPress`, `useNow`).
+- `src/styles/tokens.css` — the only source of color and design tokens.
+- `src/bundles/` — `JoinedBundle` and `LeadBundle`.
+- `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
+- `src/index.ts` — public exports. Every new widget must be exported here.
+
+## Hard rules
+
+- One widget, one entity.
+- Never use a color literal in widget CSS. Colors come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
+- A card's height never changes with state. Size comes from the container via container queries, never the viewport.
+- No expanding cards: more detail opens in a sheet, from the circle arrow button or a press and hold.
+- Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `hw-` home, `hb-` bundles; `hd-` is the shared card system.
+- Animate only `transform`, `opacity`, and `clip-path`; easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
+- Controls are not selectable: no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`.
+
+## Design review
+
+When design or visual quality is at stake, use these authorities, all committed under `.agents/` (Claude Code sees the skills through the `.claude/skills/` symlinks):
+
+- **Design phase:** run design decisions through the UX Researcher and UI Designer roles in `.agents/design/`.
+- **After building:** run Impeccable's `critique`, `audit`, and `polish` on the widget's story (`/impeccable …`; skill at `.agents/skills/impeccable/`).
+- **Motion and worst-case data:** apply Emil Kowalski's skills in `.agents/skills/` — `review-animations`, `animation-performance`, `mobile-native`, `break-ui`. They are the source of the motion rules in README.md.
+- **Not used:** taste-skill and third-party DESIGN.md files. If a DESIGN.md is ever needed, generate it from this codebase (Impeccable `document`), never import one.
+- **Updating:** `npx skills update` for Emil's skills, `npx impeccable update` for Impeccable; review the diff before committing.
+
+## Adding a widget
+
+1. Create `src/widgets/<name>/`: component, CSS with the widget's class prefix, entity type, `demo/` folder, stories titled `Widgets/<Name>`.
+2. Build it from the shared card system (`hd` article, `hd-head`, `Orb`, `CircleButton`, sheet blocks); spread `paint(role, glow, own, color)` from `src/shared/ui.tsx` onto the article for its colour role, glow and colour slot. Sizes, thin density, and the sheet come for free.
+3. Export it from `src/index.ts`.
+4. Add it to `src/dashboards/Dashboards.stories.tsx`.
+
+Then verify per the section above.

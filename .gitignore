@@ -22,3 +22,9 @@ coverage/
 # Editors
 .vscode/
 .idea/
+
+# Impeccable engine binaries (per-machine, downloaded on first run)
+.agents/skills/impeccable/scripts/bin/
+
+# Claude local settings (personal hook wiring)
+.claude/settings.local.json
