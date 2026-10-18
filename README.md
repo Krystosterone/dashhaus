@@ -331,6 +331,11 @@ Several widgets that belong together, sharing one card. The members are ordinary
 
 Build a dashboard from `DashboardPage`, `Section` (a titled grid), `Columns` (sections side by side) and `Cell` (a grid cell that spans columns). Widgets size themselves from their cell, so the same widget is a small tile in a 2-column phone grid, a card in a single column and a large card with history on a tablet.
 
+- **One hero per screen.** The most important card alone at the top; everything else follows it. In a one-column section the first glowing card is the primary attention claim and later ones are subordinate (`--glow-damp` in `layout.css`), so the glow budget scales with composition, not just entity state.
+- **Glow follows urgency, not position.** Subordinate treatment follows semantic urgency rather than a fixed ratio: a later card with a genuinely urgent state can outrank a routine first glow. The `100% / 50% / 0%` damping is a local heuristic, not an external standard.
+- **Alerts first, then glance, then controls.** The alarm is one thin row above the hero; room sensors are a glance strip; modes and bundles follow; the rest are thin rows. Urgent and problem states (low battery, an open door, an alarm) get a distinct warn marker rather than a brighter glow.
+- **Never glow alone.** Every important state has a non-colour cue: text, icon, position, or meaningful state motion. Colour and glow are never the only channel.
+
 - **Phone:** room sensors as small tiles in pairs, the main thermostat as a card, everything else as thin rows. Sleep Mode and Do Not Disturb joined across the Modes grid; a Nursery section with the night light and upstairs heating bundles.
 - **Tablet, landscape:** a row of room sensors, then climate and lights side by side, with today's history on the first card of each. The sleep bundle spans two of the four Modes columns; the two Nursery bundles sit side by side.
 - **Wall panel:** one column per place, readable from across the room. The sleep bundle (stacked, at 300px) in Bedroom; both lead bundles in Nursery and office. Thin rows narrower than 320 px show their value under the name; the control moves into the details sheet.

@@ -33,6 +33,7 @@ There are no unit tests; stories are the documentation and the visual check. Do 
 - No expanding cards: more detail opens in a sheet, from the circle arrow button or a press and hold.
 - Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `hw-` home, `hb-` bundles; `hd-` is the shared card system.
 - Animate only `transform`, `opacity`, and `clip-path`; easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
+- Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
 - Controls are not selectable: no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`.
 
 ## Design review
@@ -42,6 +43,7 @@ When design or visual quality is at stake, use these authorities, all committed 
 - **Design phase:** run design decisions through the UX Researcher and UI Designer roles in `.agents/design/`.
 - **After building:** run Impeccable's `critique`, `audit`, and `polish` on the widget's story (`/impeccable …`; skill at `.agents/skills/impeccable/`).
 - **Motion and worst-case data:** apply Emil Kowalski's skills in `.agents/skills/` — `review-animations`, `animation-performance`, `mobile-native`, `break-ui`. They are the source of the motion rules in README.md.
+- **Attention and glow:** follow the repo's own `attention-budget` skill (`.agents/skills/attention-budget/`); it carries the README glow contract and the evidence in `research/attention-budget-precedent.md`.
 - **Not used:** taste-skill and third-party DESIGN.md files. If a DESIGN.md is ever needed, generate it from this codebase (Impeccable `document`), never import one.
 - **Updating:** `npx skills update` for Emil's skills, `npx impeccable update` for Impeccable; review the diff before committing.
 
