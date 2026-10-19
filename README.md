@@ -53,6 +53,7 @@ src/
   - **Hatching** means absence: off, closed, unavailable, the resting band of a heat/cool range.
   - **Warn orange**, text only, for problems. The one exception is an alarm that has gone off, which fills.
   - **The colour slot** is the one standard place a widget can carry its own colour, and it's the orb only, never a fill or a glow. It's on by default only where the colour is the data: a lamp's colour temperature, and apricot or blue for a thermostat heating or cooling. Everywhere else it's off. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
+- **Thin rows carry their own identity.** Every thin row shows a stable domain icon (thermostat, window, bulb), a concise primary identity, and meaningful secondary state text — climate: mode and setpoint; covers: position or travel; lights: on/off and brightness — plus one explicit state or action cue. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across rows, and the Controls column groups by domain.
 - **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a color literal in a widget's CSS.
 
 ## Motion and touch rules
@@ -333,8 +334,10 @@ Build a dashboard from `DashboardPage`, `Section` (a titled grid), `Columns` (se
 
 - **One hero per screen.** The most important card alone at the top; everything else follows it. In a one-column section the first glowing card is the primary attention claim and later ones are subordinate (`--glow-damp` in `layout.css`), so the glow budget scales with composition, not just entity state.
 - **Glow follows urgency, not position.** Subordinate treatment follows semantic urgency rather than a fixed ratio: a later card with a genuinely urgent state can outrank a routine first glow. The `100% / 50% / 0%` damping is a local heuristic, not an external standard.
-- **Alerts first, then glance, then controls.** The alarm is one thin row above the hero; room sensors are a glance strip; modes and bundles follow; the rest are thin rows. Urgent and problem states (low battery, an open door, an alarm) get a distinct warn marker rather than a brighter glow.
+- **Alerts first, then glance, then controls.** The alarm is one thin row above the hero; room sensors are a glance strip; modes and bundles follow; the rest are thin rows. Urgent and problem states (low battery, an open door, an alarm) get a distinct warn marker rather than a brighter glow. No vendor standard puts alerts first; the conditional alert row is our own call, and the placement stays testable.
 - **Never glow alone.** Every important state has a non-colour cue: text, icon, position, or meaningful state motion. Colour and glow are never the only channel.
+- **Two layers, not one model.** Quick access and spatial inventory coexist — Apple's Categories, Favorites and Rooms, Google's Favorites and All-devices-by-room. No vendor fixes their relative order; hero-first is our call, not Apple's or Google's. Mushroom cards are vocabulary only: ordering and hierarchy belong to this composition layer.
+- **One wall, one column per place.** The wall panel groups each room's widgets together; the phone and tablet group by importance instead. Room access on phone and tablet stays one step away — our acceptance criterion, not a vendor tap-count.
 
 - **Phone:** room sensors as small tiles in pairs, the main thermostat as a card, everything else as thin rows. Sleep Mode and Do Not Disturb joined across the Modes grid; a Nursery section with the night light and upstairs heating bundles.
 - **Tablet, landscape:** a row of room sensors, then climate and lights side by side, with today's history on the first card of each. The sleep bundle spans two of the four Modes columns; the two Nursery bundles sit side by side.

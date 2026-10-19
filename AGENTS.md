@@ -34,6 +34,7 @@ There are no unit tests; stories are the documentation and the visual check. Do 
 - Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `hw-` home, `hb-` bundles; `hd-` is the shared card system.
 - Animate only `transform`, `opacity`, and `clip-path`; easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
 - Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
+- Every thin row carries a domain icon, primary identity and one state/action cue; colour never defines a row.
 - Controls are not selectable: no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`.
 
 ## Design review
@@ -44,6 +45,7 @@ When design or visual quality is at stake, use these authorities, all committed 
 - **After building:** run Impeccable's `critique`, `audit`, and `polish` on the widget's story (`/impeccable …`; skill at `.agents/skills/impeccable/`).
 - **Motion and worst-case data:** apply Emil Kowalski's skills in `.agents/skills/` — `review-animations`, `animation-performance`, `mobile-native`, `break-ui`. They are the source of the motion rules in README.md.
 - **Attention and glow:** follow the repo's own `attention-budget` skill (`.agents/skills/attention-budget/`); it carries the README glow contract and the evidence in `research/attention-budget-precedent.md`.
+- **Row identity:** apply the repo's own `row-identity` skill when building or editing thin-row widgets or reviewing the Controls column; evidence in `RESEARCH-3-dense-list-identity.md`.
 - **Not used:** taste-skill and third-party DESIGN.md files. If a DESIGN.md is ever needed, generate it from this codebase (Impeccable `document`), never import one.
 - **Updating:** `npx skills update` for Emil's skills, `npx impeccable update` for Impeccable; review the diff before committing.
 
