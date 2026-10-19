@@ -5,15 +5,15 @@ description: Give dense same-shaped control rows their own identity — domain i
 
 # Row Identity
 
-Eight thin rows of the same shape in one column fail when they look the same: if the shell carries all the meaning, no row is scannable. This skill is the contract for per-row identity.
+A column of thin rows all in one shape is unreadable: the shell ends up carrying the meaning that each row's content should. This skill is the contract for per-row identity.
 
 Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every widget follows.
 
 ## The Contract
 
-1. **The shell is shared; the content is not.** One geometry for every row — icon slot, text grid, state/action slot in the same positions. Never invent a new outer shape per domain.
-2. **Every row has a domain icon.** One fixed icon slot, consistent size, stroke weight and perspective. The icon names the domain: thermostat, window/curtain, bulb.
-3. **Every row has primary + secondary text.** Primary: the short identity (room/control name). Secondary: meaningful state or value. Both concise.
+1. **The shell is shared; the content is not.** One geometry for every row — orb with the domain icon, text grid, control slot in the same positions. Never invent a new outer shape per domain.
+2. **Every row has a domain icon.** The orb carries it, at consistent size, stroke weight and perspective. The icon names the domain: thermostat, window/curtain, bulb.
+3. **Every row has primary + secondary text.** Primary: the short identity (room/control name). Secondary: the area line — the room for lights and covers, the current temperature and action for climate. Both concise.
 4. **One explicit state/action cue per row.** A switch state, compact state word, active mark, or meaningful badge — never a decorative badge that repeats the row's colour.
 5. **Colour reinforces, never defines.** A row must stay distinguishable with colour removed: icon, text and cue carry identity and state.
 
@@ -21,9 +21,9 @@ Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 
 
 | Domain | Icon | Primary | Secondary | State/action cue |
 | --- | --- | --- | --- | --- |
-| Climate | thermostat | room/control name | mode + setpoint | active heating/cooling mark or mode control |
-| Cover | window/curtain | room/cover name | position or travel state | open / closed / travelling |
-| Light | bulb | room/light name | on/off + brightness | switch on-off state |
+| Climate | thermostat | room/control name | current temperature + action ("21.5° · Heating") | mode + setpoint in the stepper or range slot |
+| Cover | window/curtain | room/cover name | room or cover class | position/travel in the slot; open / closed / travelling |
+| Light | bulb | room/light name | room | on/off + brightness in the bar slot |
 
 Group or order rows by domain (Climate, Covers, Lights) without changing row height.
 
@@ -31,7 +31,7 @@ Group or order rows by domain (Climate, Covers, Lights) without changing row hei
 
 - Badges exist for meaningful conditions only: unavailable, active, travelling, alert. A badge that restates the row's colour is decoration — remove it.
 - Row height, alignment and action placement stay stable across all rows (the `hd--thin` grid in `card.css`).
-- The thin row's orb is the control, not the identity icon; identity comes from the icon slot and the text.
+- The thin row's orb is both control and domain icon; the text carries the identity too. There is no separate icon slot today; a shared one is a proposal in `research/mechanism-backlog.md`, not a promise of the current grid.
 - No source requires a unique outer shape per row or a numeric row-count threshold — do not invent one.
 
 ## Verify

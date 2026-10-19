@@ -14,7 +14,7 @@ export interface LightWidgetProps {
   variant?: "card" | "sheet";
   /**
    * Card only. "regular" stacks the header over the control strip.
-   * "thin" puts everything in one 56px pill-shaped row; below 240px the control strip
+   * "thin" puts everything in one 56px pill-shaped row; below 320px the control strip
    * gives way to a text readout and the bulb and details sheet remain.
    */
   density?: "regular" | "thin";

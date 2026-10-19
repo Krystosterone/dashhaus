@@ -15,7 +15,7 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 2. **Glow follows semantic urgency, not position.** Later active cards are subordinate by default, but how subordinate is an urgency decision, not a fixed ratio. `layout.css` damps later glowing cards to 0.5 via `--glow-damp`; that is a local heuristic, not a law and not an Apple standard.
 3. **Quiet densities stay quiet.** Thin rows and mini tiles never glow; their on-state is the role tone, never the colour slot.
 4. **Urgent and problem states get a marker, not more brightness.** Low battery, a door left open, an alarm: a distinct warn treatment. Never make every active state brighter to express importance.
-5. **Never glow alone.** Every important state has a non-color cue: text, icon, position, or meaningful state motion. Colour and glow are never the only channel.
+5. **Never glow alone.** Every important state has a non-colour cue: text, icon, position, or meaningful state motion. Colour and glow are never the only channel.
 
 ## Decision Table
 
@@ -29,8 +29,8 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 
 ## Rules
 
-- `paint(role, glow, own, color)` is the only way a widget asks for glow. `--glow-damp` is set by the dashboard (`layout.css`), never by a widget.
-- The damping values (100 / 50 / 0) are a product heuristic. Change them only after a scan-task comparison shows missed urgent states or slower target finding; never justify them by citing Apple numbers.
+- `paint(role, glow, own, prop)` is the only way a widget asks for glow. `--glow-damp` is set by the dashboard (`layout.css`), never by a widget.
+- The damping values (100% / 50% / 0%) are a product heuristic. Change them only after a scan-task comparison shows missed urgent states or slower target finding; never justify them by citing Apple numbers.
 - Apple's `relevanceScore`, "up to three" Live Activities, and the 2-second animation cap are ordering and presentation precedents — not opacity, glow, or percentage formulas. Do not cite them as such.
 - Warn treatments use tokens from `src/styles/tokens.css`, never colour literals.
 - An important state change must read with colour removed: text, icon, position, or state motion must carry it.

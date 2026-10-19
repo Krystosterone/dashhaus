@@ -84,7 +84,7 @@ button.hw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 }
 button.hw-read:active .hw-tr { scale: 0.98; }
 /* An end label the knob would cover steps aside (the strip and the sheet still have both) */
-.hw-tr-end { transition: opacity 150ms ease; }
+.hw-tr-end { transition: opacity 150ms var(--ease-out); }
 .hw-tr-end[data-hidden] { opacity: 0; }
 .hw-tr-rail { position: absolute; inset: 0 calc(var(--kn) / 2); pointer-events: none; }
 /* Parked left of the rail, slid with transform: its right edge is the knob centre */

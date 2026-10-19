@@ -8,10 +8,11 @@
 
 - **Apple HIG lists.** "Keep item text succinct so row content is comfortable to read"; a row leads with "a small image in the leading end of a row, followed by a brief explanatory label." [Lists and tables](https://developer.apple.com/design/human-interface-guidelines/lists-and-tables)
 - **Apple HIG icons.** Icons use "familiar visual metaphors that are directly related to the actions they initiate or content they represent", with consistent size, detail, stroke weight and perspective. [Icons](https://developer.apple.com/design/human-interface-guidelines/icons)
+- **Apple HIG labels.** "Within many lists, a label can describe each item, often accompanied by a symbol or an image." [Labels](https://developer.apple.com/design/human-interface-guidelines/components/layout-and-organization/labels)
 - **Material 3 lists.** "A clear visual hierarchy makes lists easy to scan and read"; "Place supporting visuals and primary text in the same position in each list item"; use switches when toggling an item. [List guidelines](https://m3.material.io/components/lists/guidelines)
 - **Mushroom Template Card** exposes independent channels: `icon`, `color`, `primary`, `secondary`, `badge_icon`, `badge_text`, `badge_color`, plus card- and icon-level tap/hold actions. The Climate Card keeps a shared state-item shell with domain-specific identity (formatted state, HVAC-mode icon, action badge, temperature and mode control). [Template Card](https://raw.githubusercontent.com/piitaya/lovelace-mushroom/main/docs/cards/template.md), [Climate Card source](https://raw.githubusercontent.com/piitaya/lovelace-mushroom/main/src/cards/climate-card/climate-card.ts)
 
-## Patterns to apply
+## Design contract
 
 1. **Stable semantic identity.** One fixed icon slot, one fixed text grid. Climate: thermostat icon, room/control name, mode + setpoint. Covers: window icon, name, position or travel. Lights: bulb, name, on/off + brightness.
 2. **State and action separate from colour.** A switch state, compact state word, active mark, or meaningful badge; no decorative badges that repeat the row's colour.
@@ -46,4 +47,4 @@ Run one visual QA pass on the Controls story at real thin widths: does each row 
 - [Mushroom Template Card](https://raw.githubusercontent.com/piitaya/lovelace-mushroom/main/docs/cards/template.md)
 - [Mushroom Climate Card source](https://raw.githubusercontent.com/piitaya/lovelace-mushroom/main/src/cards/climate-card/climate-card.ts)
 
-**Provenance:** 8 cited URLs parent-reread; reviewer concerns corrected; final state verified with limits.
+**Provenance:** 8 URLs parent-verified; reviewer: concerns, corrected.

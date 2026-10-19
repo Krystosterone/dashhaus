@@ -2,7 +2,7 @@
 
 Widgets for a custom Home Assistant dashboard, in React and TypeScript, with Storybook. Each widget shows one entity (the sensor widget shows one device's temperature and humidity together). So far: lights, climate and temperature/humidity sensors, composed into phone, tablet and wall-panel dashboards.
 
-This file is the rules: what every widget must do, how motion behaves, and how dashboards compose. Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); commands, layout and the adding-a-widget steps are in AGENTS.md. Use the Theme menu in the Storybook toolbar to switch between Auto (system), Light and Dark.
+This file is the rules: what every widget must do, how motion behaves, and how dashboards compose. Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); commands, layout and the adding-a-widget steps are in AGENTS.md. Use the Theme menu in the Storybook toolbar to switch between Auto (system), Light and Dark. The attention and row rules below have operational forms in the `attention-budget` and `row-identity` skills (`.agents/skills/`); where wording differs, the skills win.
 
 ## Design rules every widget follows
 
@@ -19,8 +19,8 @@ This file is the rules: what every widget must do, how motion behaves, and how d
   - **Subtraction first.** At the densest layouts, mute decorative colour, fills, glows and unnecessary markers before adding a hue. No source establishes a hue-count or tile-count limit; do not invent one.
   - **Contrast, both themes.** Semantic colour — the orb and warn states — must clear the applicable WCAG thresholds (4.5:1 text, 3:1 large text and graphics) against adjacent backgrounds in light and dark themes.
   - **The colour slot** is the one standard place a widget can carry its own colour, and it's the orb only, never a fill or a glow. Thin rows and mini tiles never take it: there the on-state is the role tone (accent for energy, charcoal for state), and the glow never shows. It's on by default only where the colour is the data: a lamp's colour temperature, and apricot or blue for a thermostat heating or cooling. Everywhere else it's off. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
-- **Thin rows carry their own identity.** Every thin row shows a stable domain icon (thermostat, window, bulb), a concise primary identity, and meaningful secondary state text — climate: mode and setpoint; covers: position or travel; lights: on/off and brightness — plus one explicit state or action cue. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across rows, and the Controls column groups by domain.
-- **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a color literal in a widget's CSS.
+- **Thin rows carry their own identity.** Every thin row shows a stable domain icon in its orb (thermostat, window, bulb), a concise primary identity, and its state and value in the control slot — climate: mode and setpoint on the stepper; covers: position or travel; lights: on/off and brightness — as the explicit state cue. The area line carries the room, or the climate's current temperature and action. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across rows, and the Controls column groups by domain.
+- **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a colour literal in a widget's CSS.
 
 ## Motion and touch rules
 
@@ -28,10 +28,10 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
 
 - **Easing tokens only:** `--ease-out` for anything entering, exiting or answering a press, `--ease-in-out` for movement on screen, `--ease-drawer` for the phone sheet. Never `ease-in`, never `transition: all`.
 - **Durations:** presses take `--press` (160 ms). Fades and jumps take 160 to 300 ms. The phone sheet takes 380 ms in and 240 ms out. Exits are always faster than entries.
-- **Only `transform`, `opacity` and `clip-path` animate.** The glow is its own layer that fades with opacity. Bar fills use clip-path. Knobs and markers ride layers moved with transform.
+- **Only `transform`, `opacity`, `clip-path` and colour changes animate.** Never layout properties: `width`, `height`, `padding`, `margin`, `top`, `left`. The glow is its own layer that fades with opacity. Bar fills use clip-path. Knobs and markers ride layers moved with transform. State colours fade on `background-color`, `color` and `box-shadow`.
 - **Not everything animates.** Keyboard steps and drags never animate: the value follows the finger. Only a tap that jumps a track animates; `useTrack` sets `data-anim` for that.
 - **Sheet motion uses CSS transitions plus `@starting-style`**, so closing mid-open reverses smoothly.
-  - A flick (0.4 px/ms over the last 100 ms) or a drag past 30% dismisses it.
+  - A flick (0.4 px/ms over the last 100 ms) or a drag past 30% of its height (capped at 140 px) dismisses it.
   - Dragging up meets growing friction.
   - Only one pointer at a time.
 - **Every control gives press feedback on `:active`.** Scales are 0.92 to 0.98: small buttons go lower, wide pills stay near 1.

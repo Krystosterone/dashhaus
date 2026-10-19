@@ -1,13 +1,13 @@
 # Composition model
 
-**Status:** complete · 2026-10-18 · **Codified:** README → "Composing for a glance" (commit `9849aa4`).
+**Status:** complete · 2026-10-18 · **Codified:** README → Dashboards → "Composing for a glance" (commit `9849aa4`).
 
 **Decision:** Keep the hybrid composition. Do not switch the whole dashboard to room-first.
 
 ## Evidence
 
-- **Apple Home** documents Home-tab sections: Categories, Cameras, Scenes, Favorites, Rooms. Categories show "all related accessories on one screen, organized by room"; "Add to Favorites the accessories you use most often"; "Accessories are organized by room." Sections are reorderable, so this is not a fixed hierarchy to copy. [Intro to Home on iPhone](https://support.apple.com/en-ca/guide/iphone/iph22d98bbca/ios)
-- **Google Home** lists "Device dashboards: At the top" with Favorites, All devices, Cameras, Lighting, Climate, Smoke & CO, Wifi. Favorites gives "quick access to devices, automations, and more"; "All devices" is "organized by room." No source establishes that Favorites comes before room inventory. [Meet the Google Home app](https://support.google.com/googlehome/answer/7071794?co=GENIE.Platform%3DAndroid&hl=en#zippy=%2Chome)
+- **Apple Home** documents Home-tab sections: Categories, Cameras, Scenes, Favorites, Rooms. Categories show "all related accessories on one screen, organized by room"; "Add to Favorites the accessories you use most often"; "Accessories are organized by room." The same page documents "Reorder Sections", so this is not a fixed hierarchy to copy. [Intro to Home on iPhone](https://support.apple.com/en-ca/guide/iphone/iph22d98bbca/ios)
+- **Google Home** lists "Device dashboards: At the top" with Favorites, All devices, Cameras, Lighting, Climate, Smoke & CO, Wifi. Favorites gives "quick access to devices, automations, and more"; "All devices" is "organized by room." No source establishes that Favorites comes before room inventory; users can also create a set of Favorites specific to their Pixel Tablet. [Meet the Google Home app](https://support.google.com/googlehome/answer/7071794?co=GENIE.Platform%3DAndroid&hl=en#zippy=%2Chome)
 - **Home Assistant** calls the dashboard "an at-a-glance view of your home" and supports "a focused dashboard for the kitchen tablet." Its built-in Home dashboard is "an entry point to open other built-in dashboards based on areas or topics"; views and sections are authored and can be shown or hidden by condition. It does not say alerts must lead. [Dashboards](https://www.home-assistant.io/dashboards/), [views](https://www.home-assistant.io/dashboards/views/), [sections](https://www.home-assistant.io/dashboards/sections/)
 - **Mushroom** defines itself as "a collection of cards for Home Assistant Dashboard UI" — card/editor scope, no top-level ordering model. Cards are vocabulary; hierarchy belongs to the dashboard composition layer. [Mushroom README](https://raw.githubusercontent.com/piitaya/lovelace-mushroom/main/README.md)
 
@@ -25,6 +25,7 @@
 - No source gives a tap-count threshold for cross-room versus room-first tasks.
 - No first-party Apple or Mushroom wall-panel UI was established.
 - No source shows Home Assistant's System Alerts example as conditionally rendered or that alerts must lead.
+- The Mushroom README does not justify the stronger claim that Mushroom has no hierarchy feature anywhere in its project.
 
 ## Next action
 
@@ -37,4 +38,4 @@ Test the hybrid rule against three task paths — cross-room quick control, sing
 - [HA: Dashboards](https://www.home-assistant.io/dashboards/), [Multiple dashboards](https://www.home-assistant.io/dashboards/dashboards/), [Views](https://www.home-assistant.io/dashboards/views/), [Sections](https://www.home-assistant.io/dashboards/sections/)
 - [Mushroom README](https://raw.githubusercontent.com/piitaya/lovelace-mushroom/main/README.md)
 
-**Provenance:** 7 load-bearing URLs parent-verified; fresh review passed with no findings.
+**Provenance:** 7 URLs parent-verified; reviewer: no findings.

@@ -18,7 +18,7 @@ import { LightTile } from "./src";
 </div>
 ```
 
-Pass `density="thin"` for a single 56 px row: bulb, name, control strip and details arrow side by side. Under 240 px wide, the control strip gives way to a readout under the name.
+Pass `density="thin"` for a single 56 px row: bulb, name, control strip and details arrow side by side. Under 320 px wide, the control strip gives way to a readout under the name.
 
 Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an off light turns it on), and press and hold the bulb or tap the arrow for quick levels, warmth, today's history and when it last changed.
 
@@ -88,7 +88,7 @@ A security alarm: one `alarm_control_panel.*`.
 <AlarmTile entity={panel} history={today} onArm={(mode, code) => arm(mode, code)} onDisarm={(code) => disarm(code)} />
 ```
 
-With Home Assistant, `./widgets/alarm/hass.ts` does the mapping both ways:
+With Home Assistant, `src/widgets/alarm/hass.ts` does the mapping both ways:
 
 ```tsx
 import { AlarmTile, alarmFromHass, alarmHandlers } from "./src";

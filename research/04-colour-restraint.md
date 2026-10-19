@@ -10,7 +10,8 @@
 - **W3C 1.4.11.** A change of hue alone to convey a value or state is likely to fail; meaningful graphics need contrast, aesthetic graphics do not carry the requirement. [Non-text Contrast](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html)
 - **Contrast thresholds.** 4.5:1 for ordinary text, 3:1 for large text — accessibility thresholds, not hue-count or tile-density limits. [Contrast (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
 - **Restrained palettes.** Carbon ships a "1-Color group" for monochromatic charts; Datawrapper recommends shades of a single hue in most charts and reducing colour count by grouping. [Carbon](https://carbondesignsystem.com/data-visualization/color-palettes/), [Datawrapper](https://www.datawrapper.de/blog/colors-for-data-vis-style-guides)
-- **Colour overload.** ACM eye-tracking: dashboards with misused and overused colours do not lead to poorer decisions but make decision makers take longer. A usability risk, not a universal tile-count rule. [Communications of the ACM](https://cacm.acm.org/research/how-colors-in-business-dashboards-affect-users-decision-making/)
+- **Power BI accessibility guidance** warns that labels can become jumbled and enabling all labels and markers is distracting; avoid colour as the only means of conveying information and supplement it with text or icons. [Microsoft Learn](https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-accessibility-creating-reports)
+- **Colour overload.** ACM eye-tracking: "This research shows dashboards with misuse and overuse of colors do not lead to poorer decision performance but rather decision makers using such dashboards taking longer to make a decision." A usability risk, not a universal tile-count rule. [Communications of the ACM](https://cacm.acm.org/research/how-colors-in-business-dashboards-affect-users-decision-making/)
 - **What not to import.** ColourBrewer scheme sets range from 3 to 12 classes — map-legend semantics, not evidence for a dashboard hue or tile cutoff. [Harrower & Brewer](https://www.cs.rpi.edu/~cutler/classes/visualization/S18/papers/colorbrewer.pdf)
 
 ## Design contract
@@ -45,4 +46,4 @@ Run one bounded usability comparison on the maximum-density layout: current one-
 - [PMC: Building color palettes in your data visualization style guides](https://pmc.ncbi.nlm.nih.gov/articles/PMC10797256/)
 - [Datawrapper: A detailed guide to colors in data vis style guides](https://www.datawrapper.de/blog/colors-for-data-vis-style-guides)
 
-**Provenance:** 14 URLs registered; 9 parent-verified and cited; reviewer concerns resolved.
+**Provenance:** 14 URLs registered; 9 parent-verified and cited; reviewer: concerns, resolved.

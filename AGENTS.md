@@ -20,19 +20,20 @@ There are no unit tests; stories are the documentation and the visual check. Do 
 
 - `src/widgets/<name>/` — one widget per folder: component, CSS, entity type, `demo/`, and `<Name>.stories.tsx` titled `Widgets/<Name>`.
 - `src/shared/` — the card system and shared hooks (`card.css`, `ui.tsx`, `useTrack`, `useLongPress`, `useNow`).
-- `src/styles/tokens.css` — the only source of color and design tokens.
+- `src/styles/tokens.css` — the only source of colour and design tokens.
 - `src/bundles/` — `JoinedBundle` and `LeadBundle`.
 - `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
 - `src/index.ts` — public exports. Every new widget must be exported here.
+- `src/stories/` — Foundations stories: colour temperature, worst-case data, thin rows.
 
 ## Hard rules
 
 - One widget, one entity.
-- Never use a color literal in widget CSS. Colors come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
+- Never use a colour literal in widget CSS. Colours come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
 - A card's height never changes with state. Size comes from the container via container queries, never the viewport.
 - No expanding cards: more detail opens in a sheet, from the circle arrow button or a press and hold.
 - Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `hw-` home, `hb-` bundles; `hd-` is the shared card system.
-- Animate only `transform`, `opacity`, and `clip-path`; easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
+- Animate only `transform`, `opacity`, `clip-path` and colour changes; never layout properties. Easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
 - Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
 - Every thin row carries a domain icon, primary identity and one state/action cue; colour never defines a row.
 - Controls are not selectable: no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`.
@@ -52,7 +53,7 @@ When design or visual quality is at stake, use these authorities, all committed 
 ## Adding a widget
 
 1. Create `src/widgets/<name>/`: component, CSS with the widget's class prefix, entity type, `demo/` folder, stories titled `Widgets/<Name>`.
-2. Build it from the shared card system (`hd` article, `hd-head`, `Orb`, `CircleButton`, sheet blocks); spread `paint(role, glow, own, color)` from `src/shared/ui.tsx` onto the article for its colour role, glow and colour slot. Sizes, thin density, and the sheet come for free.
+2. Build it from the shared card system: an `hd` article inside an `hd-c` container, an `hd-head` with an `Orb`, title and `CircleButton`, one `hd-slot`, and the sheet blocks. Spread `paint(role, glow, own, prop)` from `src/shared/ui.tsx` onto the article for its colour role, glow and colour slot. Sizes, thin density, and the sheet come for free.
 3. Export it from `src/index.ts`.
 4. Add it to `src/dashboards/Dashboards.stories.tsx`.
 

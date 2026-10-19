@@ -8,7 +8,7 @@ codified; strike items when implemented.
 
 ## 1. Attention channel — urgency input to damping
 
-**Contract:** attention-budget rules 1–2; README "Glow follows urgency, not position".
+**Contract:** attention-budget contract items 1–2; README "Glow follows urgency, not position".
 
 - **Today:** `layout.css` damps later glowing cards to 0.5 by sibling position only (`--glow-damp`). Widgets have no input.
 - **Gap:** urgency cannot influence damping — the retune the research recommends has no mechanism to stand on.
@@ -17,7 +17,7 @@ codified; strike items when implemented.
 
 ## 2. Card-level warn state
 
-**Contract:** attention-budget rules 4–5; README "Alerts first…" warn marker.
+**Contract:** attention-budget contract items 4–5; README "Alerts first…" warn marker.
 
 - **Today:** `.hd-warn` colours text; each widget decides what and when to mark. No uniform urgent marker.
 - **Gap:** urgent treatment is ad-hoc per widget; "warn marker, not more glow" can't be enforced centrally, and markers drift across widgets.
@@ -26,7 +26,7 @@ codified; strike items when implemented.
 
 ## 3. Thin-row identity slots
 
-**Contract:** point 3, dense list identity — codified in README + `row-identity` skill.
+**Contract:** research note 03, dense list identity — codified in README + `row-identity` skill.
 
 - **Today:** thin rows = orb (the control), title, control slot. On-state identity is role tone only.
 - **Gap:** research requires a stable domain icon, concise primary/secondary text, and one explicit state/action cue per row; colour must not define the row.
@@ -35,7 +35,7 @@ codified; strike items when implemented.
 
 ## 4. Conditional dashboard sections
 
-**Contract:** point 1 composition — the conditional alert row is our inference, "keep it testable".
+**Contract:** research note 01, composition — the conditional alert row is our inference, "keep it testable".
 
 - **Today:** the phone dashboard hardcodes the alarm row first; no conditional rendering.
 - **Gap:** the alert-row experiment cannot be run without a mechanism.
@@ -47,4 +47,4 @@ codified; strike items when implemented.
 - Density subtraction (thin/mini never glow, no colour slot): enforced by `.hd--thin` / `.hd--mini` in `card.css`.
 - One colour slot per tile (orb only): enforced by `--o-c` / `--o-h` + `data-color` scoping.
 - Non-colour-cue review: attention-budget skill Verify, a review step rather than a component mechanism.
-- Colour restraint (point 4): no component gap. Palette and slot are already enforced; the new requirements — accent no-recycling, subtraction-first, contrast check — are design and review rules, not mechanisms.
+- Colour restraint (research note 04): no component gap. Palette and slot are already enforced; the new requirements — accent no-recycling, subtraction-first, contrast check — are design and review rules, not mechanisms.

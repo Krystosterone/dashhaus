@@ -95,7 +95,7 @@ export const ThinAllTypes: Story = {
   ),
 };
 
-/** Thin at S, M and L. Under 240px the strip gives way to a readout under the name. */
+/** Thin at S, M and L. Under 320px the strip gives way to a readout under the name. */
 export const ThinSizes: Story = {
   name: "Thin, sizes",
   args: { density: "thin" },
