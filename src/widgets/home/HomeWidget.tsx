@@ -120,7 +120,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   ].filter((x): x is string => !!x);
   const warningText = warnings.join(" · ");
   const warningSummary = warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0] ?? null;
-  const alertLabel = warningText ? `Weather warning: ${warnings.join(", ")}` : null;
+  const alertLabel = warningText ? `Warning: ${e.name}: ${warnings.join(", ")}` : null;
 
   // Status: the condition, or the next dry/wet change when one is coming. At L and in the sheet the
   // change moves to the today strip, beside the hours it's about.

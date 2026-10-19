@@ -30,9 +30,13 @@
 - The ACM article's public page did not expose all sample details or effect sizes.
 - ColourBrewer's 3–12 range must not become a dashboard cutoff.
 
+## Validation status
+
+Blocked 2026-10-18. Time to find a requested state and time to identify an anomaly require participant behaviour, and no participant dataset or defined muted-colour comparison fixture exists. Inventing either would invalidate the comparison; no palette or density rule changes are authorized.
+
 ## Next action
 
-Run one bounded usability comparison on the maximum-density layout: current one-slot/one-accent rendering versus a muted-colour variant, measuring time to find a requested state and time to identify an anomaly.
+Define the bounded muted-colour fixture, then run it against the current maximum-density one-slot/one-accent rendering with participants and record both timing measures.
 
 ## Sources
 

@@ -53,7 +53,7 @@ import { SensorTile } from "./src";
 <SensorTile entity={{ entityId: "sensor.bedroom", name: "Bedroom", state: "ok", temperature: 20.1, humidity: 52, unit: "°C", battery: 64 }} history={history} />
 ```
 
-Read-only: no toggle and no glow. The readings sit on one bar: the temperature and its trend on the left, tinted by the temperature (blue under 18°, butter when comfortable, apricot over 25°), and the humidity in a neutral inset at the right end. Temperature-only sensors leave the inset out. The status line puts the most important thing first: a low battery (15% or less, in the warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Outdoor sensors show their location instead of comfort. Tap the readings or the arrow for today's temperature and humidity.
+Read-only: no toggle and no glow. The readings sit on one bar: the temperature and its trend on the left, tinted by the temperature (blue under 18°, butter when comfortable, apricot over 25°), and the humidity in a neutral inset at the right end. Temperature-only sensors leave the inset out. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the arrow for today's temperature and humidity.
 
 ## Using the home widget
 
@@ -71,7 +71,7 @@ Outdoor conditions for the home, beside a drawing of the house:
   - The icon is the condition.
   - At night the windows light up in lamp tone.
   - Nothing animates.
-- **Status line.** A coming dry or wet change ("Rain at 14:00") replaces the condition at S and M, and moves to the today strip at L and in the sheet. Poor air and strong gusts lead the status line in the warn colour, like a sensor's low battery.
+- **Status line.** A coming dry or wet change ("Rain at 14:00") replaces the condition at S and M, and moves to the today strip at L and in the sheet. Poor air and strong gusts lead the status line with the shared warning cue and warning colour, like a sensor's low battery; under 320 px, the warning takes priority over temperature and condition.
 - **Today bar.** It runs from today's low to today's high, cold to warm, with the current temperature on the knob. An end label steps aside while the knob covers it.
 - **Sizes.**
   - S and thin: a condition badge instead of the house.
@@ -116,8 +116,8 @@ const id = "alarm_control_panel.house";
   - The widget works out the time left from `delay` (the delay's length in seconds) and `changedAt` (when the state started), and ticks each second itself. Time running out fills the pill linearly; the entry delay is tinted with the warn colour.
   - Without a length, there's no timer: the slot says "Arming…" or "Entry delay · disarm now" over a soft sweep, still with Cancel or Disarm.
   - Disarming (HA's `disarming` state) shows "Disarming…" with nothing to press.
-- **Triggered** is the one place the warn colour fills a pill (it pulses gently, not under reduced motion). The status line says what set it off.
-- **Open doors and windows** (`openSensors`) lead the status line in warn when disarmed, and the sheet says arming will leave them unguarded.
+- **Triggered** keeps the exceptional warn fill (the pill pulses gently, not under reduced motion). Triggered, entry delay, and disarmed open-sensor states all declare `data-alert="warn"` and lead their status with the shared non-colour warning cue.
+- **Open doors and windows** (`openSensors`) lead the status line when disarmed, and the sheet says arming will leave them unguarded.
 
 **View only.** For a panel Home Assistant can read but not control (a Ring Alarm without a subscription, say), pass `readOnly`, or leave out `onArm` and `onDisarm`, which turns it on by itself:
 

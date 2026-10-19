@@ -27,9 +27,15 @@
 - No source shows Home Assistant's System Alerts example as conditionally rendered or that alerts must lead.
 - The Mushroom README does not justify the stronger claim that Mushroom has no hierarchy feature anywhere in its project.
 
-## Next action
+## Validation result
 
-Test the hybrid rule against three task paths — cross-room quick control, single-room lookup, actionable alert — recording tap depth and empty states.
+Run 2026-10-18 against the Phone, Tablet, and Wall panel stories:
+
+- **Cross-room quick control:** pass at one tap; Reading lamp toggled in Phone → Controls and restored.
+- **Single-room lookup:** fail on phone and tablet; neither exposes room inventory. Wall panel exposes Living room at depth 0.
+- **Actionable alert:** initially partial because the open Garage door was buried in Controls. The authorized `Section when={…}` mechanism and conditional-garage story now exercise a leading alert and its zero-alert state; Close removes the section in one tap.
+
+The conditional-section mechanism does not solve the remaining phone/tablet room path, so that gap stays explicit rather than being folded into unrelated layout work.
 
 ## Sources
 

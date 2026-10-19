@@ -20,7 +20,8 @@ export function Columns({ columns, gap, children }: { columns: number; gap?: num
 }
 
 /** A titled grid of widgets. Each widget sizes itself from its cell's width. */
-export function Section({ title, note, columns = 1, gap, children }: { title: string; note?: string; columns?: number; gap?: number; children: ReactNode }) {
+export function Section({ title, note, columns = 1, gap, when = true, children }: { title: string; note?: string; columns?: number; gap?: number; when?: boolean; children: ReactNode }) {
+  if (!when) return null;
   return (
     <section className="dash-sec" aria-label={title}>
       <h2 className="dash-sec-h">{title}{note && <small>{note}</small>}</h2>

@@ -29,9 +29,13 @@
 - The damping values still need product validation in this dashboard's scan context.
 - The local scan-task comparison was not run in this read-only research phase.
 
+## Validation status
+
+Blocked 2026-10-18. Missed-urgent rate and target-finding time are participant-behaviour metrics; no participant dataset exists, and browser automation cannot produce them without fabrication. The gate therefore does not authorize urgency-aware damping or changed default values.
+
 ## Next action
 
-Run a local scan-task comparison of the current damping versus semantic-urgency retuning: missed-urgent rate and target-finding time. Do not search for a universal percentage.
+When participants are available, run the bounded current-damping versus semantic-urgency scan comparison and record those two metrics. Do not search for or infer a universal percentage.
 
 ## Sources
 

@@ -14,15 +14,14 @@ codified; strike items when implemented.
 - **Gap:** urgency cannot influence damping — the retune the research recommends has no mechanism to stand on.
 - **Proposal:** widgets declare an attention level (e.g. `data-attention="routine | urgent"` on the `hd` article, surfaced through `paint()` or a dedicated prop); `layout.css` damps by level instead of raw position; urgent states keep their marker (item 2) and outrank routine glow.
 - **Gate:** the research's scan-task comparison (missed-urgent rate, target-finding time) before changing default damping values.
+- **Validation status (2026-10-18):** blocked on participant scan metrics; no urgency-aware damping implementation or value change is authorized.
 
-## 2. Card-level warn state
+## ~~2. Card-level warn state~~ — satisfied
 
 **Contract:** attention-budget contract items 4–5; README "Alerts first…" warn marker.
 
-- **Today:** `.hd-warn` colours text; each widget decides what and when to mark. No uniform urgent marker.
-- **Gap:** urgent treatment is ad-hoc per widget; "warn marker, not more glow" can't be enforced centrally, and markers drift across widgets.
-- **Proposal:** promote warn to a card state — `data-alert="warn"` on `.hd` plus one shared status-line slot styled by the card system (warn-colour text + a non-colour cue). Widgets declare; the system renders.
-- **Gate:** design review. The status slot must not change card height (hard rule).
+- **Outcome (2026-10-18):** urgent widgets declare `data-alert="warn"` and render one shared `AlertStatus` in the existing status channel. The primitive couples warn-colour text with an accessible outlined-exclamation cue; Cover, Sensor, Home, and Alarm use it, while only a triggered alarm keeps the exceptional warn fill.
+- **Gate result (2026-10-18):** UX and UI review rejected a new row or grid column because it would duplicate identity and reduce title space. Storybook checks at 360 px and 280 px confirmed one visible cue, exact 56 px row height, no horizontal overflow, warning-first narrow copy, and a distinct accessible warning label for every migrated state.
 
 ## ~~3. Thin-row identity slots~~ — satisfied
 
@@ -35,23 +34,21 @@ codified; strike items when implemented.
   - **Fail — Garage door:** the area/class line is replaced by `Open since 10:20`, duplicates the `Open` control state, and truncates at 358 px.
   - **Pass:** Curtains, Ceiling, Reading lamp, Porch light, and Shelf strip. At 278 px, all eight rows retain a readable primary name and value/state cue without colour.
 
-## 4. Conditional dashboard sections
+## ~~4. Conditional dashboard sections~~ — satisfied
 
 **Contract:** research note 01, composition — the conditional alert row is our inference, "keep it testable".
 
-- **Today:** the phone dashboard hardcodes the alarm row first; no conditional rendering.
-- **Gap:** the alert-row experiment cannot be run without a mechanism.
-- **Proposal:** small authoring helper (e.g. `Section when={…}`) so sections render conditionally; used by the alert-row test.
-- **Gate:** the three-task-path test (tap depth + empty states) if implementation is authorized. Low priority — authoring convenience, no visual change today.
+- **Outcome (2026-10-18):** `Section` accepts an optional `when` boolean, defaulting to true. False returns no section element, heading, grid, or layout gap.
+- **Experiment:** `Dashboards/Phone, conditional garage alert` exposes an `Active alert` control. True derives the Alerts section from the open Garage door state; false removes Garage and the complete Alerts section.
 - **Gate result (2026-10-18):**
   - **Cross-room quick control — pass, 1 tap:** Reading lamp toggled directly in Phone → Controls and restored in a second tap. Unavailable controls remain explicit rather than empty.
   - **Single-room lookup — fail on phone/tablet:** neither dashboard exposes a room-inventory link; the only Living room actions open that sensor's details. The wall panel exposes Living room at depth 0. No empty-room state is represented.
-  - **Actionable alert — partial, 1 tap after discovery:** the open garage can be closed directly, but the first Security row is unconditional non-alert alarm status. An alert-only placement and its zero-alert state cannot be exercised.
-  - **Decision:** authorize `Section when={…}` for the alert-row experiment only. It does not solve the missing phone/tablet room path.
+  - **Actionable alert — original partial; mechanism now verified:** the original open garage could be closed directly but was buried in Controls. In the experiment, Close removes the leading Alerts section in one tap; `Active alert: false` renders Security first with no empty section or gap.
+  - **Decision:** implemented only the authorized `Section when={…}` authoring mechanism and alert-row story. The missing phone/tablet room path remains outside this mechanism.
 
 ## Satisfied — do not re-add
 
 - Density subtraction (thin/mini never glow, no colour slot): enforced by `.hd--thin` / `.hd--mini` in `card.css`.
 - One colour slot per tile (orb only): enforced by `--o-c` / `--o-h` + `data-color` scoping.
 - Non-colour-cue review: attention-budget skill Verify, a review step rather than a component mechanism.
-- Colour restraint (research note 04): no component gap. Palette and slot are already enforced; the new requirements — accent no-recycling, subtraction-first, contrast check — are design and review rules, not mechanisms.
+- Colour restraint (research note 04): no component gap. Palette and slot are already enforced; accent no-recycling, subtraction-first, and contrast remain review rules. The maximum-density comparison is blocked on a defined muted fixture and participant timing data.

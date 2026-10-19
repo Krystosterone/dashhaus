@@ -105,12 +105,12 @@
 .hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
 .hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
 /* Thin rows are quiet: the colour slot stays on the regular card and the sheet. Their on-orb uses the
-   role tone as if there were no colour: accent for energy, charcoal for state. */
-.hd--thin[data-color][data-role="energy"] .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
-.hd--thin[data-color][data-role="energy"] .hd-orb[aria-pressed="true"] .hd-orb-i {
+   role tone as if there were no colour: accent for energy, charcoal for state, with no bloom. */
+.hd--thin .hd-orb-i { transition: background-color 200ms var(--ease-out), scale var(--press) var(--ease-out); }
+.hd--thin[data-role="energy"] .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
+.hd--thin[data-role="energy"] .hd-orb[aria-pressed="true"] .hd-orb-i {
   background: var(--accent);
-  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / 0.5),
-              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / calc(0.25 + 0.35 * var(--b)));
+  box-shadow: none;
 }
 .hd--thin[data-color][data-role="state"] .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
 .hd--thin[data-color][data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
@@ -124,7 +124,7 @@
 .hd-orb--static .hd-orb-i { background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); }
 .hd[data-color] .hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--color) var(--tint-mix), var(--card-solid)); }
 .hd-warn { color: var(--warn); font-weight: 600; }
-.hd-alert-cue { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-inline-end: 5px; vertical-align: -2px; }
+.hd-alert-cue { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-inline-end: 5px; color: var(--warn); vertical-align: -2px; }
 .hd-alert-cue svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Control slot: one fixed height for every state */
@@ -142,7 +142,7 @@
 .hd[data-role="state"] .hd-pill[aria-pressed="true"] { background: var(--inv-bg); color: var(--inv-fg); }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
-.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
+.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
 
 /* Today: 24 hourly sticks. Height = intensity that hour; the current hour uses the tone. */
@@ -207,7 +207,7 @@
 .hd--thin .hd-head { display: contents; }
 .hd--thin .hd-head > .hd-orb { grid-area: orb; }
 .hd--thin .hd-title { grid-area: title; }
-.hd--thin .hd-head > .hd-circ { grid-area: open; margin: 0; width: 40px; height: 44px; }
+.hd--thin .hd-head > .hd-circ { grid-area: open; margin: 0 -2px; width: 44px; height: 44px; }
 .hd--thin .hd-name { font-size: 15px; }
 .hd--thin .hd-area, .hd--thin .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
 .hd--thin .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
@@ -226,11 +226,15 @@
 .hd--thin[data-control="off"] { cursor: pointer; }
 .hd--thin[data-control="off"] .hd-head > .hd-orb { position: relative; z-index: 1; }
 @media (hover: hover) and (pointer: fine) { .hd--thin[data-control="off"]:has(> .hd-head > .hd-circ:hover) .hd-circ-i { background: var(--card-solid); } }
+/* Under 320px the inline control is hidden, so the row body shares the arrow's details action. */
 @container hd (max-width: 319px) {
   .hd--thin { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "orb title open"; column-gap: 8px; }
   .hd--thin .hd-slot, .hd--thin .hd-area { display: none; }
   .hd--thin .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hd--thin[data-state="unavailable"] .hd-sub, .hd--thin[data-state="off"] .hd-sub { color: var(--ink-3); }
+  .hd--thin .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
+  .hd--thin:has(> .hd-head > .hd-circ) { cursor: pointer; }
+  .hd--thin .hd-head > .hd-orb { position: relative; z-index: 1; }
 }
 
 /* Sheet variant: everything, one column */

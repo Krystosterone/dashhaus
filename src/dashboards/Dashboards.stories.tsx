@@ -7,6 +7,8 @@ import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile"
 import { DemoHomeTile as Home } from "../widgets/home/demo/DemoHomeTile";
 import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
 import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
+import { CoverTile } from "../widgets/cover/CoverTile";
+import { COVER_SEEDS, useDemoCover } from "../widgets/cover/demo/useDemoCover";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
@@ -33,14 +35,26 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+type AlertExperimentStory = StoryObj<{ activeAlert: boolean }>;
 
-/** Phone: hierarchy — the alarm as one quiet row first, the main thermostat as the hero card, room
-    sensors as a glance strip, then modes and bundles, and everything else as thin rows in one column
-    so their controls line up. */
-export const Phone: Story = {
-  render: () => (
+/** The alert experiment derives section visibility from the same cover state that renders the row. */
+function GarageAlertSection({ enabled }: { enabled: boolean }) {
+  const demo = useDemoCover(COVER_SEEDS.garage);
+  return (
+    <Section title="Alerts" when={enabled && demo.entity.state === "open"}>
+      <CoverTile {...demo} density="thin" />
+    </Section>
+  );
+}
+
+/** Phone: hierarchy — an active access alert first, then quiet security status and hero climate; room
+    sensors are a glance strip, then modes and bundles, and everything else is a thin row in one
+    Controls column so controls line up. */
+function PhoneDashboard({ alertExperiment = false, activeAlert = false }: { alertExperiment?: boolean; activeAlert?: boolean }) {
+  return (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Home" now={NOW}>
+        {alertExperiment && <GarageAlertSection key={activeAlert ? "active" : "clear"} enabled={activeAlert} />}
         <Section title="Security">
           <Alarm alarm="ring" readOnly density="thin" />
         </Section>
@@ -66,7 +80,7 @@ export const Phone: Story = {
           <Climate unit="cooling" density="thin" />
           <Climate unit="range" density="thin" />
           <Cover cover="curtains" density="thin" />
-          <Cover cover="garage" density="thin" />
+          {!alertExperiment && <Cover cover="garage" density="thin" />}
           <Light light="dimmable" density="thin" />
           <Light light="dimmableOff" density="thin" />
           <Light light="onOff" density="thin" />
@@ -74,7 +88,18 @@ export const Phone: Story = {
         </Section>
       </DashboardPage>
     </Device>
-  ),
+  );
+}
+
+export const Phone: Story = { render: () => <PhoneDashboard /> };
+
+export const PhoneAlertExperiment: AlertExperimentStory = {
+  name: "Phone, conditional garage alert",
+  args: { activeAlert: true },
+  argTypes: {
+    activeAlert: { control: "boolean", name: "Active alert", description: "Show or omit the conditional Alerts section." },
+  },
+  render: ({ activeAlert }) => <PhoneDashboard alertExperiment activeAlert={activeAlert} />,
 };
 
 /** Tablet, landscape: weather and room sensors at the top, then climate and security with covers and
