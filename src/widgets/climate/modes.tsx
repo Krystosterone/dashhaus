@@ -29,6 +29,10 @@ export const fmtCurrent = (t: number) => fmt1(t);
 export const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
 
 const P = { fill: "none", stroke: "currentColor" } as const;
+export function ThermostatIcon() {
+  return <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M8 11.6V4.5a2 2 0 1 1 4 0v7.1a3.5 3.5 0 1 1-4 0Z" /><path d="M10 9v5" /></svg>;
+}
+
 export function ModeIcon({ mode, unavailable }: { mode: HvacMode; unavailable?: boolean }) {
   if (unavailable) return <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M10 3v6M6.2 5.6a6 6 0 1 0 7.6 0" /><path d="M3.5 3.5l13 13" /></svg>;
   switch (mode) {

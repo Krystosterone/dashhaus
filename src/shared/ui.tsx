@@ -90,6 +90,18 @@ export function CircleButton({ label, onClick, autoFocus, children }: { label: s
   );
 }
 
+export function AlertCue({ label }: { label: string }) {
+  return (
+    <span className="hd-alert-cue" role="img" aria-label={label}>
+      <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" /><path d="M7 3.8v4.1M7 10.3h.01" /></svg>
+    </span>
+  );
+}
+
+export function AlertStatus({ label, children }: { label: string; children: ReactNode }) {
+  return <><AlertCue label={label} /><span className="hd-warn">{children}</span></>;
+}
+
 /** Full-width pill that toggles. Hatched when off, filled with the tone when on. */
 export function TogglePill({ label, on, onToggle, children, extra }: { label: string; on: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode }) {
   return (

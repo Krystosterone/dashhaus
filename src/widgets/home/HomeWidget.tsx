@@ -1,10 +1,10 @@
-import { Fragment, useId, useLayoutEffect, useRef } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./types";
 import { CONDITION_LABEL, SKY, ConditionIcon, nextChange, compass, toKmh, aqiBand, uvBand } from "./conditions";
 import type { Sky } from "./conditions";
 import { Scene } from "./Scene";
-import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
+import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
 import type { Vars, HourSample, ColorProp } from "../../shared/ui";
 import "./HomeWidget.css";
 
@@ -117,12 +117,15 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
     e.aqi != null && e.aqi > 100 ? (e.aqi > 300 ? "Hazardous air" : e.aqi > 200 ? "Very poor air" : "Poor air") : null,
     gustKmh >= 50 ? `Gusts ${Math.round(e.windGustSpeed!)} ${e.windSpeedUnit}` : null,
   ].filter((x): x is string => !!x);
+  const warningText = warnings.join(" · ");
+  const warningSummary = warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0] ?? null;
+  const alertLabel = warningText ? `Weather warning: ${warnings.join(", ")}` : null;
 
   // Status: the condition, or the next dry/wet change when one is coming. At L and in the sheet the
   // change moves to the today strip, beside the hours it's about.
   const status = (
     <>
-      {warnings.map((w) => <Fragment key={w}><span className="hd-warn">{w}</span>{" · "}</Fragment>)}
+      {alertLabel && <><AlertStatus label={alertLabel}>{warningText}</AlertStatus>{" · "}</>}
       {cond && <span className="hw-st-i" aria-hidden="true"><ConditionIcon condition={cond} night={night} /></span>}
       <span className="hw-st-l">{label}</span>
       {change && <span className="hw-st-n">{change}</span>}
@@ -154,13 +157,13 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   const scene = <Scene night={night} off={unav} />;
 
   // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
-  const subText = unav ? "Unavailable" : [t != null ? `${fmt1(t)}°` : null, change ?? label].filter(Boolean).join(" · ");
+  const subText = unav ? "Unavailable" : warningSummary ?? [t != null ? `${fmt1(t)}°` : null, change ?? label].filter(Boolean).join(" · ");
   // In place of the control the status line already says the condition or the coming change: just the temperature.
   const valText = unav ? "Unavailable" : t != null ? `${fmt1(t)}°` : label;
   return (
     <article
       className={`hd hw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined}
-      data-state={unav ? "unavailable" : "ok"} data-change={change ? "" : undefined}
+      data-state={unav ? "unavailable" : "ok"} data-change={change ? "" : undefined} data-alert={warnings.length ? "warn" : undefined}
       {...colors} aria-labelledby={`${uid}-n`}
     >
       {!sheet && (onOpenDetails
@@ -174,7 +177,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area hw-st">{status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
+          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
         {sheet

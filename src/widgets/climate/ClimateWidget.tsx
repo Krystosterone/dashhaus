@@ -1,6 +1,7 @@
 import { useId } from "react";
+import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
-import { MODE_META, ACTION_LABEL, ModeIcon, fmtTarget, fmtCurrent, titleCase } from "./modes";
+import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase } from "./modes";
 import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
 import type { ColorProp } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
@@ -35,7 +36,7 @@ export interface ClimateWidgetProps {
 const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
 const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
 
-function Stepper({ label, kicker, value, min, max, step, onChange }: { label: string; kicker?: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
+function Stepper({ label, kicker, modeCue, value, min, max, step, onChange }: { label: string; kicker?: string; modeCue?: ReactNode; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
   const down = Math.max(min, +(value - step).toFixed(2));
   const up = Math.min(max, +(value + step).toFixed(2));
   return (
@@ -43,6 +44,7 @@ function Stepper({ label, kicker, value, min, max, step, onChange }: { label: st
       <button type="button" className="cw-step-b" aria-label={`Lower to ${fmtTarget(down)}°`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
       <span className="cw-step-v" aria-live="polite">
         {kicker && <span className="cw-step-k">{kicker}</span>}
+        {modeCue && <span className="cw-control-mode">{modeCue}</span>}
         {fmtTarget(value)}<small>°</small>
       </span>
       <button type="button" className="cw-step-b" aria-label={`Raise to ${fmtTarget(up)}°`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
@@ -74,7 +76,8 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
   const single = !range && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
   const statusParts = [cur != null ? `${fmtCurrent(cur)}°${thin ? "" : " now"}` : null, unav ? "Not responding" : ACTION_LABEL[action]].filter(Boolean);
   const status = statusParts.join(" · ");
-  const setText = unav ? "Unavailable" : !on ? "Off" : range ? (e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`) : single ? `Set ${fmtTarget(e.targetTemperature!)}°` : MODE_META[mode].label;
+  const modePrefix = thin && on ? `${MODE_META[mode].label} · ` : "";
+  const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : MODE_META[mode].label;
   const kicker = mode === "heat" ? "Heat to" : mode === "cool" ? "Cool to" : "Keep at";
   // HA heat_cool requires target_temp_low <= target_temp_high.
   const setRange = (lo: number, hi: number) => onRangeChange?.(Math.min(lo, hi), Math.max(lo, hi));
@@ -83,9 +86,9 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
   else if (!on) slot = <TogglePill label={`Turn on ${e.name}`} on={false} onToggle={onToggle} extra="Turn on">Off</TogglePill>;
   else if (range) {
-    slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
+    slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={thin ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
   } else if (single) {
-    slot = <Stepper label={`${e.name} target temperature`} kicker={kicker} value={e.targetTemperature!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
+    slot = <Stepper label={`${e.name} target temperature`} kicker={thin ? undefined : kicker} modeCue={thin ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
   } else {
     slot = <TogglePill label={`${e.name} ${MODE_META[mode].label}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
   }
@@ -100,12 +103,14 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
     <article className={`hd cw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={`${e.name}, ${on ? MODE_META[mode].label : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />
+          {thin
+            ? <ThermostatIcon />
+            : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />}
         </Orb>
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{sheet && e.area ? `${e.area} · ${status}` : status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
+          {thin && <p className="hd-sub">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
         {sheet

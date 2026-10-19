@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { CoverEntity, CoverHistory, CoverClass } from "./types";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
-import { Orb, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, paint } from "../../shared/ui";
+import { Orb, CircleButton, IconOpen, IconClose, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, paint } from "../../shared/ui";
 import type { ColorProp } from "../../shared/ui";
 import "./CoverWidget.css";
 
@@ -72,11 +72,15 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
   const stopping = moving && e.supportsStop;
   const orbAction = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
   const orbLabel = stopping ? `Stop ${e.name}` : e.name;
+  const warnedOpen = access && open && !moving;
+  const identity = e.area ?? CLASS_LABEL[e.deviceClass];
+  const alertLabel = warnedOpen ? `Warning: ${e.name} has been open${e.lastChanged ? ` since ${e.lastChanged}` : ""}` : undefined;
 
   // A door left open leads the status line in the warn colour, like a sensor's low battery.
   const status = unav ? "Not responding"
-    : access && open && !moving ? <span className="hd-warn">Open{e.lastChanged ? ` since ${e.lastChanged}` : ""}</span>
-    : e.area ?? CLASS_LABEL[e.deviceClass];
+    : warnedOpen ? (thin ? identity : `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`)
+    : identity;
+  const areaText = sheet && e.area && !(access && open) ? `${e.area} · ${CLASS_LABEL[e.deviceClass]}` : status;
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
@@ -89,15 +93,15 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
   // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
   const subText = unav ? "Unavailable" : text;
   return (
-    <article className={`hd cv${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd cv${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} data-alert={warnedOpen ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={orbLabel} pressed={open && !unav} unavailable={unav} intensity={pos / 100} onToggle={orbAction} onLongPress={sheet ? undefined : onOpenDetails}>
           <CoverIcon kind={e.deviceClass} open={open} stop={stopping} />
         </Orb>
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
-          <p className="hd-area">{sheet && e.area && !(access && open) ? `${e.area} · ${CLASS_LABEL[e.deviceClass]}` : status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
+          <p className="hd-area">{alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}</p>
+          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
         {sheet

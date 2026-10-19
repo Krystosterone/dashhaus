@@ -41,7 +41,7 @@ import { ClimateTile } from "./src";
 </div>
 ```
 
-The control slot follows the mode: a minus/plus stepper for heat, cool and auto; one range bar for heat/cool; a hatched Off pill that turns the unit back on; and the Unavailable pill.
+The control slot follows the mode: a minus/plus stepper for heat, cool and auto; one range bar for heat/cool; a hatched Off pill that turns the unit back on; and the Unavailable pill. Thin rows keep a thermostat in the orb while the mode moves into the control; under 320 px the current temperature, mode and setpoint share the value line.
 
 **Heat/cool range bar.** In Home Assistant's `heat_cool` mode, `target_temp_low` is the heat threshold, `target_temp_high` the cool threshold, and `target_temp_low <= target_temp_high`. The bar spans the unit's `min_temp` to `max_temp`: apricot left of the low handle (heats below), blue right of the high handle (cools above), and a neutral band between where the unit rests, with a tick at the room temperature. Each handle shows its value. From M size up, press anywhere on the bar and the nearest handle follows; when the handles meet, the direction of the first move decides which one moves. The handles never cross, and `onRangeChange` always receives `low <= high`. Keyboard and screen readers get two sliders (heat below, cool above). At S and in thin rows the bar shows a single "19–24°" readout and opens the details sheet, which adds exact half-degree steps for each threshold. The round mode button turns the unit off and back to its last mode. Press and hold it, or tap the arrow, for mode, preset, fan speed, today's run time and humidity. The card shows the room temperature at L size and in the sheet.
 
@@ -161,7 +161,7 @@ Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and ga
 - **The orb** opens or closes, and becomes Stop while the cover moves (when the cover supports stop). Press and hold, or tap the arrow, for the sheet.
 - **Tone and glow:**
   - Covers that let in light take the butter tone, and their glow follows how open they are.
-  - Garage doors, doors and gates take apricot with no glow. Left open, they lead the status line in the warn colour ("Open since 10:20").
+  - Garage doors, doors and gates take apricot with no glow. Left open, regular cards and sheets lead the status line with a warning ("Open since 10:20"). Thin rows keep the area/class line and add the shared non-colour warning cue; under 320 px the cue sits beside the Open readout.
 - **Sheet:** quick positions (Closed, 25%, Half, Open), slat tilt for blinds that support it, and today's openness by hour.
 
 ## Using the toggle widget

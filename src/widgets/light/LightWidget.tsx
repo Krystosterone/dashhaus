@@ -67,7 +67,7 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area" title={e.area}>{e.area}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
+          {thin && <p className="hd-sub">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{readout}</p>
         {sheet

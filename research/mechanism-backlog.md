@@ -24,14 +24,16 @@ codified; strike items when implemented.
 - **Proposal:** promote warn to a card state — `data-alert="warn"` on `.hd` plus one shared status-line slot styled by the card system (warn-colour text + a non-colour cue). Widgets declare; the system renders.
 - **Gate:** design review. The status slot must not change card height (hard rule).
 
-## 3. Thin-row identity slots
+## ~~3. Thin-row identity slots~~ — satisfied
 
 **Contract:** research note 03, dense list identity — codified in README + `row-identity` skill.
 
-- **Today:** thin rows = orb (the control), title, control slot. On-state identity is role tone only.
-- **Gap:** research requires a stable domain icon, concise primary/secondary text, and one explicit state/action cue per row; colour must not define the row.
-- **Proposal:** shared icon slot and secondary-text slot in the `hd--thin` grid; one state/action cue per domain. Mushroom's model: shared geometry, domain-specific content.
-- **Gate:** the research's visual QA pass on the Controls story at thin widths (which rows fail) before implementing.
+- **Outcome (2026-10-18):** satisfied without new grid slots. The existing orb/title/control grid remains: thin climate orbs use a thermostat while mode moves to the control/value channel; open access covers keep area/class in the secondary line and declare `data-alert="warn"` with the shared non-colour cue. Narrow state lines are accessible; row height remains 56 px.
+- **Gate result (2026-10-18):** Visual QA at 358 px and 278 px row widths, repeated in grayscale:
+  - **Fail — Air conditioner:** the snowflake communicates cooling mode, not the required stable thermostat domain icon.
+  - **Fail — Heat pump:** the heat/cool arrows communicate mode, not the required stable thermostat domain icon.
+  - **Fail — Garage door:** the area/class line is replaced by `Open since 10:20`, duplicates the `Open` control state, and truncates at 358 px.
+  - **Pass:** Curtains, Ceiling, Reading lamp, Porch light, and Shelf strip. At 278 px, all eight rows retain a readable primary name and value/state cue without colour.
 
 ## 4. Conditional dashboard sections
 
@@ -41,6 +43,11 @@ codified; strike items when implemented.
 - **Gap:** the alert-row experiment cannot be run without a mechanism.
 - **Proposal:** small authoring helper (e.g. `Section when={…}`) so sections render conditionally; used by the alert-row test.
 - **Gate:** the three-task-path test (tap depth + empty states) if implementation is authorized. Low priority — authoring convenience, no visual change today.
+- **Gate result (2026-10-18):**
+  - **Cross-room quick control — pass, 1 tap:** Reading lamp toggled directly in Phone → Controls and restored in a second tap. Unavailable controls remain explicit rather than empty.
+  - **Single-room lookup — fail on phone/tablet:** neither dashboard exposes a room-inventory link; the only Living room actions open that sensor's details. The wall panel exposes Living room at depth 0. No empty-room state is represented.
+  - **Actionable alert — partial, 1 tap after discovery:** the open garage can be closed directly, but the first Security row is unconditional non-alert alarm status. An alert-only placement and its zero-alert state cannot be exercised.
+  - **Decision:** authorize `Section when={…}` for the alert-row experiment only. It does not solve the missing phone/tablet room path.
 
 ## Satisfied — do not re-add
 

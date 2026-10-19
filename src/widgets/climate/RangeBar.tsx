@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { PointerEvent } from "react";
+import type { PointerEvent, ReactNode } from "react";
 import type { Vars } from "../../shared/ui";
 import { useTrack, trackPos } from "../../shared/useTrack";
 import { fmtTarget } from "./modes";
@@ -13,8 +13,8 @@ import { fmtTarget } from "./modes";
  * From M size up you tap or drag anywhere on the bar: the nearest handle follows, and when the handles overlap
  * the first move (or the side tapped) decides which one. At S and in thin rows the bar opens the details sheet instead.
  */
-export function RangeBar({ id, name, low, high, current, min, max, step, onChange, onOpen }: {
-  id: string; name: string; low: number; high: number; current?: number;
+export function RangeBar({ id, name, low, high, current, modeCue, min, max, step, onChange, onOpen }: {
+  id: string; name: string; low: number; high: number; current?: number; modeCue?: ReactNode;
   min: number; max: number; step: number;
   onChange: (low: number, high: number) => void;
   onOpen?: () => void;
@@ -57,7 +57,7 @@ export function RangeBar({ id, name, low, high, current, min, max, step, onChang
       <div className="cw-rb-zone cw-rb-zone--cool" />
       {current != null && <i className="cw-rb-cur" aria-hidden="true" />}
       {/* S and thin: one readout. M and up: each handle carries its own value. */}
-      <span className="cw-rb-lab" aria-hidden="true"><span>{low === high ? fmtTarget(low) : `${fmtTarget(low)}–${fmtTarget(high)}`}°</span></span>
+      <span className="cw-rb-lab" aria-hidden="true"><span>{modeCue && <span className="cw-control-mode">{modeCue}</span>}{low === high ? fmtTarget(low) : `${fmtTarget(low)}–${fmtTarget(high)}`}°</span></span>
       <div className="cw-rb-rail" aria-hidden="true">
         <div className="cw-rb-at cw-rb-at--lo"><i className="cw-rb-k cw-rb-k--lo">{fmtTarget(low)}°</i></div>
         <div className="cw-rb-at cw-rb-at--hi"><i className="cw-rb-k cw-rb-k--hi">{fmtTarget(high)}°</i></div>

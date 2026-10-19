@@ -1,8 +1,8 @@
 import { Fragment, useId } from "react";
-import type React from "react";
+import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "./types";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff, IconDrop, TrendIcon } from "./readings";
-import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
+import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
 import type { ColorProp } from "../../shared/ui";
 import "./SensorWidget.css";
 
@@ -46,19 +46,21 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
   const colors = paint("reading", 0, null, color);
 
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
-  const lowBattery = e.battery != null && e.battery <= LOW_BATTERY;
+  const lowBattery = !unav && e.battery != null && e.battery <= LOW_BATTERY;
+  const batteryText = lowBattery ? `Battery ${e.battery}%` : null;
+  const alertLabel = batteryText ? `Warning: ${batteryText} on ${e.name}, replace soon` : null;
   const comfort = comfortLabel(tC, h, e.outdoor);
   const readout = [t != null ? `${fmtTemp(t)}°` : null, h != null ? `${fmtHum(h)}%` : null].filter(Boolean).join(" · ");
   const spoken = empty ? "no reading yet" : [t != null ? `${fmtTemp(t)} degrees` : null, h != null ? `humidity ${fmtHum(h)} percent` : null].filter(Boolean).join(", ");
 
   // Status line, most important first: a low battery, then comfort (or the location for outdoor sensors), then the trend.
-  const parts: React.ReactNode[] = unav ? ["Not responding"] : empty ? [lowBattery ? <span key="b" className="hd-warn">Battery {e.battery}%</span> : null, "No reading yet"].filter(Boolean) : [
-    lowBattery ? <span key="b" className="hd-warn">Battery {e.battery}%</span> : null,
+  const parts: ReactNode[] = unav ? ["Not responding"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
+    batteryText,
     sheet && e.area && !e.outdoor ? e.area : null,
     e.outdoor ? e.area ?? "Outside" : comfort,
     trend && !thin && !lowBattery ? TREND_WORD[trend] : null,
   ].filter(Boolean);
-  const status = parts.map((p, i) => <Fragment key={i}>{i > 0 && " · "}{p}</Fragment>);
+  const status = parts.map((part, i) => <Fragment key={i}>{i > 0 && " · "}{i === 0 && alertLabel ? <AlertStatus label={alertLabel}>{part}</AlertStatus> : part}</Fragment>);
 
   const bar = (
     <span className="sw-bar">
@@ -72,9 +74,9 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
   const humSeries = history?.humidity ? normalize(history.humidity) : null;
 
   // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
-  const subText = unav ? "Unavailable" : empty ? "No reading yet" : readout;
+  const subText = unav ? "Unavailable" : batteryText ?? (empty ? "No reading yet" : readout);
   return (
-    <article className={`hd sw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : "ok"} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd sw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : "ok"} data-alert={lowBattery ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i">{unav ? <IconThermoOff /> : <IconThermo />}</span>
@@ -82,7 +84,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{status}</p>
-          {thin && <p className="hd-sub" aria-hidden="true">{subText}</p>}
+          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
         {sheet
