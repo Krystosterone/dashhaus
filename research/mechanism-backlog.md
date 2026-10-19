@@ -47,3 +47,4 @@ codified; strike items when implemented.
 - Density subtraction (thin/mini never glow, no colour slot): enforced by `.hd--thin` / `.hd--mini` in `card.css`.
 - One colour slot per tile (orb only): enforced by `--o-c` / `--o-h` + `data-color` scoping.
 - Non-colour-cue review: attention-budget skill Verify, a review step rather than a component mechanism.
+- Colour restraint (point 4): no component gap. Palette and slot are already enforced; the new requirements — accent no-recycling, subtraction-first, contrast check — are design and review rules, not mechanisms.

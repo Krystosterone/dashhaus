@@ -47,6 +47,8 @@ Our dashboard has a controls section: 8 thin rows (climate, covers, lights) that
 
 **Research note:** [Color restraint in status dashboards](RESEARCH-4-color-restraint.md)
 
+**Codified:** README → "Design rules every widget follows" → "One palette" — accent no-recycling, subtraction-first, WCAG contrast check.
+
 Our widget system restricts color to one "slot" element per tile (a small orb) and uses one accent hue for all energy states; everything else is neutrals. The research found no universal tile-count or hue-count threshold. Keep the restrained palette, mute decorative colour before adding hues, and require non-colour cues for meaningful states.
 
 ## Mechanism backlog
