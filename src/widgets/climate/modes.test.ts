@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, titleCase, toneColor } from "./modes";
+import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase, toneColor } from "./modes";
 
 describe("titleCase", () => {
   it("capitalizes and un-snakes", () => {
@@ -34,5 +34,17 @@ describe("MODE_META", () => {
   });
   it("ACTION_LABEL covers every HvacAction", () => {
     expect(Object.keys(ACTION_LABEL).sort()).toEqual(["cooling", "drying", "fan", "heating", "idle", "off"]);
+  });
+});
+
+describe("orderedRange", () => {
+  it("keeps an ordered pair", () => {
+    expect(orderedRange(19, 24)).toEqual([19, 24]);
+  });
+  it("orders a crossed pair, as HA heat_cool requires", () => {
+    expect(orderedRange(24, 19)).toEqual([19, 24]);
+  });
+  it("keeps equal handles", () => {
+    expect(orderedRange(21, 21)).toEqual([21, 21]);
   });
 });

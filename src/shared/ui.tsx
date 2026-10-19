@@ -267,6 +267,8 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
   };
 
   return (
+    // The click only closes on backdrop; Escape is the keyboard path (onCancel below).
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       ref={ref}
       className="hd-sheet"

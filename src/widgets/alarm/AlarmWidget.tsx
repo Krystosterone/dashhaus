@@ -143,7 +143,13 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
         </div>
         <p className="hd-num" aria-hidden="true">{word}</p>
         {sheet
-          ? <CircleButton label={`Close ${e.name}`} onClick={onClose} autoFocus={!pending}><IconClose /></CircleButton>
+          ? <CircleButton
+            label={`Close ${e.name}`}
+            onClick={onClose}
+            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus={!pending}
+          ><IconClose /></CircleButton>
           : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={() => onOpenDetails()}><IconOpen /></CircleButton>}
       </header>
 

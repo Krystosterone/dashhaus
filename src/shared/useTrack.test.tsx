@@ -4,6 +4,7 @@ import { trackPos, useTrack } from "./useTrack";
 
 function Harness({ pick }: { pick: (clientX: number, root: HTMLDivElement, phase: "jump" | "drag", x0: number) => void }) {
   const { ref, handlers, onKeyDown } = useTrack<HTMLDivElement>(pick);
+  // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- test-only harness; production tracks carry a real range input for keyboard use.
   return <div data-testid="track" ref={ref} {...handlers} onKeyDown={onKeyDown} />;
 }
 

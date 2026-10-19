@@ -71,14 +71,20 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
         </div>
         <p className="hd-num" aria-hidden="true">{readout}</p>
         {sheet
-          ? <CircleButton label={`Close ${e.name}`} onClick={onClose} autoFocus><IconClose /></CircleButton>
+          ? <CircleButton
+            label={`Close ${e.name}`}
+            onClick={onClose}
+            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+          ><IconClose /></CircleButton>
           : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
       </header>
 
       <div className="hd-slot">
         {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
           : e.supportsBrightness ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={e.brightness} on={on} onChange={onBrightnessChange} />
-          : <TogglePill label={e.name} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
+          : <TogglePill label={`${e.name}: ${on ? "On" : "Off"}`} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
       </div>
 
       {sheet && !unav && (e.supportsBrightness || e.supportsColorTemp) && (

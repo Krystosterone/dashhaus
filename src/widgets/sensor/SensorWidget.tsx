@@ -86,15 +86,21 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
         {sheet
-          ? <CircleButton label={`Close ${e.name}`} onClick={onClose} autoFocus><IconClose /></CircleButton>
+          ? <CircleButton
+            label={`Close ${e.name}`}
+            onClick={onClose}
+            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+          ><IconClose /></CircleButton>
           : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
       </header>
 
       <div className="hd-slot">
         {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
           : sheet || !onOpenDetails
-            ? <div className="sw-read" role="img" aria-label={spoken}>{bar}</div>
-            : <button type="button" className="sw-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}>{bar}</button>}
+            ? <div className="sw-read" role="img" aria-label={spoken}><span aria-hidden="true">{bar}</span></div>
+            : <button type="button" className="sw-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
       </div>
 
       {tempSeries && (

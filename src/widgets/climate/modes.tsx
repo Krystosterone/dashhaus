@@ -28,6 +28,9 @@ export const fmtTarget = (t: number) => (Number.isInteger(t) ? String(t) : fmt1(
 export const fmtCurrent = (t: number) => fmt1(t);
 export const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
 
+/** HA heat_cool requires target_temp_low <= target_temp_high; order whatever the caller gives. */
+export const orderedRange = (lo: number, hi: number): [number, number] => [Math.min(lo, hi), Math.max(lo, hi)];
+
 const P = { fill: "none", stroke: "currentColor" } as const;
 export function ModeIcon({ mode, unavailable }: { mode: HvacMode; unavailable?: boolean }) {
   if (unavailable) return <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M10 3v6M6.2 5.6a6 6 0 1 0 7.6 0" /><path d="M3.5 3.5l13 13" /></svg>;
