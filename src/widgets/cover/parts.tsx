@@ -4,6 +4,9 @@ import { useTrack, trackPos } from "../../shared/useTrack";
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverWidget.css. */
 const STUB = 14;
 
+/** Magnetic ends: within 3% of either end means fully closed or fully open, never a stray 1%. */
+export const snapEnds = (raw: number) => (raw <= 3 ? 0 : raw >= 97 ? 100 : raw);
+
 /**
  * The window, on one bar: daylight is the tone, the fabric is hatching (hatching is absence, here of light).
  * Curtains: two panels close in from both ends, and dragging away from the middle pulls them apart.
@@ -19,9 +22,8 @@ export function PositionBar({ id, label, kind, position, moving, text, onChange 
     const t = kind === "curtain"
       ? Math.min(1, Math.max(0, Math.abs(x - (r.left + r.width / 2)) / Math.max(1, r.width / 2 - STUB)))
       : trackPos(x, r, 0);
-    // Magnetic ends: within 3% of either end means fully closed or fully open, never a stray 1%.
-    const raw = Math.round(t * 100);
-    const v = raw <= 3 ? 0 : raw >= 97 ? 100 : raw;
+    // Magnetic ends: snapEnds maps within-3% to the ends.
+    const v = snapEnds(Math.round(t * 100));
     if (v !== pos) onChange(v);
   });
   return (

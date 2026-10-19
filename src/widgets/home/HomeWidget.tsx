@@ -64,9 +64,10 @@ function TodayRange({ low, high, now, label, onOpen }: { low: number; high: numb
       <span className="hw-tr-rail"><span className="hw-tr-at"><span className="hw-tr-k">{fmt1(now)}°</span></span></span>
     </span>
   );
+  // The aria-label sentence already contains the numbers; the visual bar is its stylized rendering.
   return onOpen
-    ? <button type="button" className="hw-read" aria-label={`${label}. Open details`} onClick={onOpen}>{bar}</button>
-    : <div className="hw-read" role="img" aria-label={label}>{bar}</div>;
+    ? <button type="button" className="hw-read" aria-label={`${label}. Open details`} onClick={onOpen}><span aria-hidden="true">{bar}</span></button>
+    : <div className="hw-read" role="img" aria-label={label}><span aria-hidden="true">{bar}</span></div>;
 }
 
 /** A read-only reading in the sheet, shaped like a chip. */
@@ -181,7 +182,13 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
         {sheet
-          ? <CircleButton label={`Close ${e.name}`} onClick={onClose} autoFocus><IconClose /></CircleButton>
+          ? <CircleButton
+            label={`Close ${e.name}`}
+            onClick={onClose}
+            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+          ><IconClose /></CircleButton>
           : onOpenDetails && <CircleButton label={`${e.name} weather details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
       </header>
 

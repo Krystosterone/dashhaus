@@ -105,7 +105,13 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
         </div>
         <p className="hd-num" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
         {sheet
-          ? <CircleButton label={`Close ${e.name} details`} onClick={onClose} autoFocus><IconClose /></CircleButton>
+          ? <CircleButton
+            label={`Close ${e.name} details`}
+            onClick={onClose}
+            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+          ><IconClose /></CircleButton>
           : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
       </header>
 

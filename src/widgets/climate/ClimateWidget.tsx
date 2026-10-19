@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
-import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase } from "./modes";
+import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase, orderedRange } from "./modes";
 import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
 import type { ColorProp } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
@@ -80,17 +80,20 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
   const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : MODE_META[mode].label;
   const kicker = mode === "heat" ? "Heat to" : mode === "cool" ? "Cool to" : "Keep at";
   // HA heat_cool requires target_temp_low <= target_temp_high.
-  const setRange = (lo: number, hi: number) => onRangeChange?.(Math.min(lo, hi), Math.max(lo, hi));
+  const setRange = (lo: number, hi: number) => {
+    const [l, h] = orderedRange(lo, hi);
+    onRangeChange?.(l, h);
+  };
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (!on) slot = <TogglePill label={`Turn on ${e.name}`} on={false} onToggle={onToggle} extra="Turn on">Off</TogglePill>;
+  else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} extra="Turn on">Off</TogglePill>;
   else if (range) {
     slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={thin ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
   } else if (single) {
     slot = <Stepper label={`${e.name} target temperature`} kicker={thin ? undefined : kicker} modeCue={thin ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
   } else {
-    slot = <TogglePill label={`${e.name} ${MODE_META[mode].label}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
+    slot = <TogglePill label={`${e.name}: ${MODE_META[mode].label}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
   }
 
   const summary = !history ? "" : unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
@@ -114,7 +117,13 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
         </div>
         <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
         {sheet
-          ? <CircleButton label={`Close ${e.name}`} onClick={onClose} autoFocus><IconClose /></CircleButton>
+          ? <CircleButton
+            label={`Close ${e.name}`}
+            onClick={onClose}
+            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+          ><IconClose /></CircleButton>
           : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
       </header>
 

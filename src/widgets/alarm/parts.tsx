@@ -16,7 +16,7 @@ export function ModeSwitch({ name, modes, current, onPick }: { name: string; mod
     <div className="al-sw" role="group" aria-label={`${name} mode`} data-armed={current !== "off" || undefined} data-many={all.length >= 5 || undefined} data-crowd={all.length >= 6 || undefined} style={{ "--n": all.length, "--i": i } as Vars}>
       <span className="al-thumb" aria-hidden="true" />
       {all.map((m) => (
-        <button key={m} type="button" className="al-seg" aria-pressed={current === m} aria-label={m === "off" ? "Disarm" : `Arm ${MODE_LABEL[m].toLowerCase()}`} title={MODE_LABEL[m]} onClick={() => { if (current !== m) onPick(m); }}>
+        <button key={m} type="button" className="al-seg" aria-pressed={current === m} aria-label={m === "off" ? "Off: Disarm" : `Arm ${MODE_LABEL[m].toLowerCase()}`} title={MODE_LABEL[m]} onClick={() => { if (current !== m) onPick(m); }}>
           <ModeIcon mode={m} />
           <span className="al-seg-l">{MODE_LABEL[m]}</span>
         </button>
