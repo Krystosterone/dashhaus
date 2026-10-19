@@ -1,13 +1,13 @@
 ---
 name: row-identity
-description: Give dense same-shaped control rows their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a widget's thin density, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies RESEARCH-3-dense-list-identity.md.
+description: Give dense same-shaped control rows their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a widget's thin density, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies research/03-dense-list-identity.md.
 ---
 
 # Row Identity
 
 Eight thin rows of the same shape in one column fail when they look the same: if the shell carries all the meaning, no row is scannable. This skill is the contract for per-row identity.
 
-Evidence: `RESEARCH-3-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every widget follows.
+Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every widget follows.
 
 ## The Contract
 

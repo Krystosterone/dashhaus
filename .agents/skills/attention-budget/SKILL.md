@@ -1,13 +1,13 @@
 ---
 name: attention-budget
-description: Decide how much attention each widget and dashboard card may claim — who glows, who is subordinate, and how urgent states are marked. Use when building or editing a widget's glow/colour treatment, composing or reviewing a dashboard, or changing the damping rules in layout.css / card.css. Codifies research/attention-budget-precedent.md.
+description: Decide how much attention each widget and dashboard card may claim — who glows, who is subordinate, and how urgent states are marked. Use when building or editing a widget's glow/colour treatment, composing or reviewing a dashboard, or changing the damping rules in layout.css / card.css. Codifies research/02-attention-budget.md.
 ---
 
 # Attention Budget
 
 One dashboard screen, one attention budget. A glanceable dashboard fails when everything glows: if all states look the same, none is seen. This skill is the contract for spending that budget.
 
-Evidence and provenance for the contract live in `research/attention-budget-precedent.md` (2026-10-18, parent-verified Apple HIG and NN/G sources). Read it before changing the contract. The spec wording is README → Dashboards → "Composing for a glance".
+Evidence and provenance for the contract live in `research/02-attention-budget.md` (2026-10-18, parent-verified Apple HIG and NN/G sources). Read it before changing the contract. The spec wording is README → Dashboards → "Composing for a glance".
 
 ## The Contract
 

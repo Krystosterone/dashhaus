@@ -1,6 +1,6 @@
 # AGENTS.md
 
-React + TypeScript widgets for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app: there is no test suite and no linter. `README.md` is the full spec — consult it before changing widget behavior.
+React + TypeScript widgets for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app: there is no test suite and no linter. The spec is split: `README.md` (design and composition rules) and `docs/widgets.md` (per-widget behaviour) — consult both before changing widget behaviour. Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
 
 ## Commands
 
@@ -44,8 +44,8 @@ When design or visual quality is at stake, use these authorities, all committed 
 - **Design phase:** run design decisions through the UX Researcher and UI Designer roles in `.agents/design/`.
 - **After building:** run Impeccable's `critique`, `audit`, and `polish` on the widget's story (`/impeccable …`; skill at `.agents/skills/impeccable/`).
 - **Motion and worst-case data:** apply Emil Kowalski's skills in `.agents/skills/` — `review-animations`, `animation-performance`, `mobile-native`, `break-ui`. They are the source of the motion rules in README.md.
-- **Attention and glow:** follow the repo's own `attention-budget` skill (`.agents/skills/attention-budget/`); it carries the README glow contract and the evidence in `research/attention-budget-precedent.md`.
-- **Row identity:** apply the repo's own `row-identity` skill when building or editing thin-row widgets or reviewing the Controls column; evidence in `RESEARCH-3-dense-list-identity.md`.
+- **Attention and glow:** follow the repo's own `attention-budget` skill (`.agents/skills/attention-budget/`); it carries the README glow contract and the evidence in `research/02-attention-budget.md`.
+- **Row identity:** apply the repo's own `row-identity` skill when building or editing thin-row widgets or reviewing the Controls column; evidence in `research/03-dense-list-identity.md`.
 - **Not used:** taste-skill and third-party DESIGN.md files. If a DESIGN.md is ever needed, generate it from this codebase (Impeccable `document`), never import one.
 - **Updating:** `npx skills update` for Emil's skills, `npx impeccable update` for Impeccable; review the diff before committing.
 
