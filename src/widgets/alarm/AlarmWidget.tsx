@@ -1,9 +1,8 @@
 import { useEffect, useId, useState } from "react";
-import type { ReactNode } from "react";
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types";
 import { ShieldIcon, MODE_LABEL } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
-import { CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
+import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
 import "./AlarmWidget.css";
 
 /** What an arm or disarm call answers: false is a wrong code; anything else is accepted. */
@@ -71,7 +70,7 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
   const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const armedMode = ARMED[e.state];
-  const alert = e.state === "pending" || e.state === "triggered";
+  const urgentState = e.state === "pending" || e.state === "triggered";
   const moving = e.state === "arming" || e.state === "pending" || e.state === "disarming";
   const colors = paint("state", 0, null, "none");
   // View only: everything that arms, disarms or asks for the code is left out.
@@ -98,15 +97,19 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
 
   const open = e.openSensors ?? [];
   const openText = open.length ? `${open[0]} open${open.length > 1 ? ` +${open.length - 1}` : ""}` : null;
+  const warningText = unav ? null
+    : e.state === "triggered" ? `Triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}`
+    : e.state === "pending" ? (e.triggeredBy ? `${e.triggeredBy} opened` : "Entry delay")
+    : e.state === "disarmed" ? openText
+    : null;
+  const alertLabel = warningText ? `Warning: ${e.name}: ${warningText}` : null;
   // Arming to an unknown mode (HA's core entity doesn't say) reads as plain "Arming".
   const to = e.armingTo ? ` ${MODE_LABEL[e.armingTo].toLowerCase()}` : "";
-  const status: ReactNode = unav ? "Not responding"
-    : e.state === "triggered" ? <span className="hd-warn">Triggered{e.triggeredBy ? ` by ${e.triggeredBy}` : ""}</span>
-    : e.state === "pending" ? <span className="hd-warn">{e.triggeredBy ? `${e.triggeredBy} opened` : "Entry delay"}</span>
+  const status = alertLabel ? <AlertStatus label={alertLabel}>{warningText}</AlertStatus>
+    : unav ? "Not responding"
     : e.state === "arming" ? `Arming${to} · leave now`
     : e.state === "disarming" ? "Disarming…"
     : armedMode ? `${MODE_LABEL[armedMode]}${e.lastChanged ? ` since ${e.lastChanged}` : ""}`
-    : openText ? <span className="hd-warn">{openText}</span>
     : e.area ?? "Disarmed";
   const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Off";
 
@@ -125,21 +128,21 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
   const promptFor = (a: AlarmAction) => (a.kind === "disarm" ? `Enter the code to ${e.state === "arming" ? "cancel arming" : "disarm"}` : `Enter the code to arm ${MODE_LABEL[a.mode].toLowerCase()}`);
 
   // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
-  const subText = word;
+  const subText = warningText ?? word;
   return (
     <article
       className={`hd al${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined}
-      data-state={e.state} data-armed={armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined} data-alert={alert || undefined}
+      data-state={e.state} data-armed={armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined} data-alert={alertLabel ? "warn" : undefined}
       {...colors} aria-labelledby={`${uid}-n`}
     >
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
-          <span className="hd-orb-i"><ShieldIcon kind={unav ? "unavailable" : alert ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} /></span>
+          <span className="hd-orb-i"><ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} /></span>
         </span>
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{status}</p>
-          {thin && <p className="hd-sub">{subText}</p>}
+          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{word}</p>
         {sheet

@@ -90,7 +90,7 @@ export function CircleButton({ label, onClick, autoFocus, children }: { label: s
   );
 }
 
-export function AlertCue({ label }: { label: string }) {
+function AlertCue({ label }: { label: string }) {
   return (
     <span className="hd-alert-cue" role="img" aria-label={label}>
       <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" /><path d="M7 3.8v4.1M7 10.3h.01" /></svg>

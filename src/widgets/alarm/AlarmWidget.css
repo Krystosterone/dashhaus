@@ -1,8 +1,8 @@
 /* Security alarm. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
 
-/* Badge: charcoal when armed (on, not energy); warn when it needs you now */
+/* Badge: charcoal when armed (on, not energy); a triggered alarm alone gets the exceptional warn fill. */
 .al[data-armed] .hd-orb--static .hd-orb-i { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
-.al[data-alert] .hd-orb--static .hd-orb-i { background: var(--warn); color: var(--on-warn); box-shadow: none; }
+.al[data-state="triggered"] .hd-orb--static .hd-orb-i { background: var(--warn); color: var(--on-warn); box-shadow: none; }
 .al .hd-num { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; }
 .hd--sheet.al .hd-num { font-size: 30px; }
 
