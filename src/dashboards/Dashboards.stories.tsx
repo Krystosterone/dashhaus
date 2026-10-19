@@ -34,25 +34,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Phone: room temperatures at a glance as small tiles, the main thermostat as a card, everything else as thin rows. */
+/** Phone: hierarchy — the alarm as one quiet row first, the main thermostat as the hero card, room
+    sensors as a glance strip, then modes and bundles, and everything else as thin rows in one column
+    so their controls line up. */
 export const Phone: Story = {
   render: () => (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Home" now={NOW}>
-        <Section title="Outside">
-          <Home weather="partly" />
-        </Section>
         <Section title="Security">
-          <Alarm alarm="ring" readOnly />
+          <Alarm alarm="ring" readOnly density="thin" />
         </Section>
-        <Section title="Modes" columns={2}>
-          <Cell span={2}><Bundle bundle="sleep" /></Cell>
-          <Toggle mode="guest" density="mini" />
-          <Toggle mode="quiet" density="mini" />
-        </Section>
-        <Section title="Nursery">
-          <Bundle bundle="nightLight" />
-          <Bundle bundle="upstairs" />
+        <Section title="Comfort">
+          <Climate unit="heating" />
         </Section>
         <Section title="Rooms" columns={2}>
           <Sensor sensor="living" />
@@ -60,20 +53,22 @@ export const Phone: Story = {
           <Sensor sensor="bathroom" />
           <Sensor sensor="basement" />
         </Section>
-        <Section title="Climate">
-          <Climate unit="heating" />
+        <Section title="Modes" columns={2}>
+          <Cell span={2}><Bundle bundle="sleep" /></Cell>
+          <Toggle mode="quiet" density="mini" />
+          <Toggle mode="guest" density="mini" />
+        </Section>
+        <Section title="Nursery">
+          <Bundle bundle="nightLight" />
+          <Climate unit="nurseryDyson" density="thin" />
+        </Section>
+        <Section title="Controls">
           <Climate unit="cooling" density="thin" />
           <Climate unit="range" density="thin" />
-        </Section>
-        <Section title="Covers">
-          <Cover cover="curtains" />
-          <Cover cover="shade" density="thin" />
+          <Cover cover="curtains" density="thin" />
           <Cover cover="garage" density="thin" />
-        </Section>
-        <Section title="Lights">
           <Light light="dimmable" density="thin" />
           <Light light="dimmableOff" density="thin" />
-          <Light light="dimmableNoWarmth" density="thin" />
           <Light light="onOff" density="thin" />
           <Light light="unavailable" density="thin" />
         </Section>
@@ -82,7 +77,8 @@ export const Phone: Story = {
   ),
 };
 
-/** Tablet, landscape: a row of room sensors, then climate and lights side by side with their history. */
+/** Tablet, landscape: weather and room sensors at the top, then climate and security with covers and
+    lights, and the modes and bundles last. */
 export const Tablet: Story = {
   render: () => (
     <Device label="Tablet, landscape" width={1180} height={820}>
@@ -100,21 +96,18 @@ export const Tablet: Story = {
             <Sensor sensor="basement" />
           </Section>
         </Columns>
-        <Section title="Modes" columns={4}>
-          <Cell span={2}><Bundle bundle="sleep" /></Cell>
-          <Toggle mode="quiet" density="mini" />
-          <Toggle mode="guest" density="mini" />
-        </Section>
-        <Section title="Nursery" columns={2}>
-          <Bundle bundle="nightLight" />
-          <Bundle bundle="upstairs" />
-        </Section>
         <Columns columns={2}>
           <Section title="Climate">
             <Climate unit="heating" />
             <Climate unit="cooling" density="thin" />
             <Climate unit="range" density="thin" />
             <Climate unit="off" density="thin" />
+          </Section>
+          <Section title="Lights">
+            <Light light="dimmable" />
+            <Light light="dimmableOff" density="thin" />
+            <Light light="dimmableNoWarmth" density="thin" />
+            <Light light="onOff" density="thin" />
           </Section>
           <Section title="Security">
             <Alarm alarm="ring" readOnly />
@@ -124,13 +117,16 @@ export const Tablet: Story = {
             <Cover cover="blind" density="thin" />
             <Cover cover="garage" density="thin" />
           </Section>
-          <Section title="Lights">
-            <Light light="dimmable" />
-            <Light light="dimmableOff" density="thin" />
-            <Light light="dimmableNoWarmth" density="thin" />
-            <Light light="onOff" density="thin" />
-          </Section>
         </Columns>
+        <Section title="Modes" columns={4}>
+          <Cell span={2}><Bundle bundle="sleep" /></Cell>
+          <Toggle mode="quiet" density="mini" />
+          <Toggle mode="guest" density="mini" />
+        </Section>
+        <Section title="Nursery" columns={2}>
+          <Bundle bundle="nightLight" />
+          <Bundle bundle="upstairs" />
+        </Section>
       </DashboardPage>
     </Device>
   ),

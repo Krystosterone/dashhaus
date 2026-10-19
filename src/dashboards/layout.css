@@ -7,3 +7,6 @@
 .dash-sec-h small { font-size: 13px; font-weight: 500; color: var(--ink-2); }
 .dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--gap, 10px); align-items: start; }
 .dash-cell { min-width: 0; }
+/* One column: a stacked section reads top-down, so the first glowing card glows full and later ones
+   are damped — the glow budget scales with composition, not just entity state. */
+.dash-grid--1 > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-damp: 0.5; }

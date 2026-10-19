@@ -37,6 +37,7 @@ export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: C
   return {
     "data-role": role,
     "data-color": c ? "" : undefined,
+    "data-glow": glow > 0 ? "" : undefined,
     style: { "--hd-glow": +glow.toFixed(3), ...(c ? { "--color-c": c.c, "--color-h": c.h } : {}) } as Vars,
   };
 }

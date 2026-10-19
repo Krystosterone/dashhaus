@@ -24,7 +24,7 @@ export function Section({ title, note, columns = 1, gap, children }: { title: st
   return (
     <section className="dash-sec" aria-label={title}>
       <h2 className="dash-sec-h">{title}{note && <small>{note}</small>}</h2>
-      <div className="dash-grid" style={{ "--cols": columns, ...(gap ? { "--gap": `${gap}px` } : {}) } as Vars}>{children}</div>
+      <div className={columns === 1 ? "dash-grid dash-grid--1" : "dash-grid"} style={{ "--cols": columns, ...(gap ? { "--gap": `${gap}px` } : {}) } as Vars}>{children}</div>
     </section>
   );
 }

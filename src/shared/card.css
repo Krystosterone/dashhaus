@@ -37,15 +37,18 @@
   line-height: 1.45;
   -webkit-tap-highlight-color: transparent;
 }
-/* The glow sits on its own layer and fades with opacity, so turning a light up never repaints the card. */
+/* The glow sits on its own layer and fades with opacity, so turning a light up never repaints the card.
+   --glow-damp (default 1) is set by the dashboard: stacked sections damp later energy cards. */
 .hd::before {
   content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
   background: radial-gradient(circle at calc(var(--pad) + 22px) calc(var(--pad) + 22px),
     oklch(var(--accent-l) var(--brand-c) var(--brand-h) / var(--glow-a)), transparent min(90cqi, 360px));
-  opacity: var(--hd-glow, 0);
+  opacity: calc(var(--hd-glow, 0) * var(--glow-damp, 1));
   transition: opacity 300ms var(--ease-out);
 }
 .hd *, .hd *::before, .hd *::after { box-sizing: border-box; }
+/* Quiet densities (thin, mini) show energy in their controls, not a glow. */
+.hd--thin::before, .hd--mini::before { opacity: 0; }
 /* Controls are not text: no selection or callout on long-press, no double-tap-zoom delay. */
 .hd :is(button, [role="button"], input), .hd-sheet :is(button, input) {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
@@ -101,6 +104,16 @@
 /* On, but not energy (a mode, a door left open): charcoal, no bloom. Unless the widget has its own colour. */
 .hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
 .hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
+/* Thin rows are quiet: the colour slot stays on the regular card and the sheet. Their on-orb uses the
+   role tone as if there were no colour: accent for energy, charcoal for state. */
+.hd--thin[data-color][data-role="energy"] .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
+.hd--thin[data-color][data-role="energy"] .hd-orb[aria-pressed="true"] .hd-orb-i {
+  background: var(--accent);
+  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / 0.5),
+              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / calc(0.25 + 0.35 * var(--b)));
+}
+.hd--thin[data-color][data-role="state"] .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
+.hd--thin[data-color][data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
 .hd-orb[aria-disabled="true"] { cursor: default; color: var(--ink-3); }
 .hd-orb[aria-disabled="true"] .hd-orb-i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; }
 .hd-orb:focus-visible { outline: none; }

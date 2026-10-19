@@ -34,11 +34,11 @@
 /* The arrow only once there is room for the name beside it; below that, press and hold */
 @container hd (max-width: 219px) { .hd--mini > .hd-circ { display: none; } .hd--mini { padding-right: 0; } }
 
-/* On: the whole tile turns charcoal; the disc takes the colour slot when one is set */
+/* On: the whole tile turns charcoal. The colour slot shows on regular cards and in the sheet;
+   mini tiles stay charcoal. */
 .hd--mini[data-state="on"] { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
 .hd--mini[data-state="on"] .tw-mini-s { color: color-mix(in oklab, var(--inv-fg) 72%, transparent); }
 .hd--mini[data-state="on"] .tw-mini-o { background: color-mix(in oklab, var(--inv-fg) 14%, transparent); box-shadow: none; color: var(--inv-fg); }
-.hd--mini[data-state="on"][data-color] .tw-mini-o { background: var(--color); color: var(--on-accent); }
 .hd--mini[data-state="on"] .hd-circ-i { background: color-mix(in oklab, var(--inv-fg) 12%, transparent); box-shadow: none; color: var(--inv-fg); }
 .hd--mini[data-state="on"] .tw-mini:focus-visible { outline-color: var(--inv-fg); }
 /* Unavailable: hatched, with a dashed disc, and the tile doesn't switch */
