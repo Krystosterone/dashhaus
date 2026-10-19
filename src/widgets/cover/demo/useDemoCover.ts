@@ -72,6 +72,8 @@ export function useDemoCover(seed: CoverSeed) {
       });
     }, 250);
     return () => window.clearInterval(t);
+    // The interval reads position through the functional setState, so it must NOT restart every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entity.state, entity.supportsPosition, entity.position == null]);
 
   const moveTo = (goal: number) => setEntity((e) => {

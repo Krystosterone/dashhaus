@@ -7,14 +7,17 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 - `npm install`
 - `npm run storybook` — dev server at http://localhost:6006
 - `npm run build-storybook` — static build in `storybook-static/`
-- `npm run typecheck` — `tsc --noEmit`. The only automated check; it must pass before any change is finished.
+- `npm run typecheck` — `tsc --noEmit`
+- `npm run lint` — `eslint .` (flat config in `eslint.config.js`)
+- `npm run test` — `vitest run`; unit tests live next to their module as `*.test.{ts,tsx}`
+- `npm run check` — typecheck + lint + test, the one-shot gate. Run it before every change is finished.
 
 ## Verifying changes
 
-1. `npm run typecheck`
+1. `npm run check` — typecheck, lint, and unit tests.
 2. `npm run storybook` — open the affected widget's story, check each size and density, and the Demo / Worst case toggle under Foundations.
 
-There are no unit tests; stories are the documentation and the visual check. Do not add a test runner or linter without being asked.
+Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. Do not add another test runner or linter.
 
 ## Layout
 
