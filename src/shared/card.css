@@ -18,6 +18,10 @@
   --o-h: var(--brand-h);
   --color: oklch(var(--accent-l) var(--o-c) var(--o-h));
   --pad: clamp(14px, 4.8cqi, 22px);
+  /* The spacing scale: inline padding inside pills, and the inset of round controls inside pills.
+     Widgets derive these, so S/M/L, thin, mini and the sheet stay in step. */
+  --pad-in: 16px;
+  --inset: 4px;
   --slot-h: 42px;
   --hatching: repeating-linear-gradient(-45deg, var(--hatch) 0 1.2px, transparent 1.2px 6px);
   box-sizing: border-box;
@@ -132,7 +136,7 @@
 .hd-pill, .hd-unav { height: var(--slot-h); border-radius: 99px; }
 .hd-pill {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  width: 100%; min-width: 0; padding: 0 16px; border: 0; cursor: pointer; text-align: left;
+  width: 100%; min-width: 0; padding: 0 var(--pad-in); border: 0; cursor: pointer; text-align: left;
   background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
   color: var(--ink-2); font: 600 14px var(--font); white-space: nowrap; overflow: hidden;
   transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), scale var(--press) var(--ease-out);
@@ -142,7 +146,7 @@
 .hd[data-role="state"] .hd-pill[aria-pressed="true"] { background: var(--inv-bg); color: var(--inv-fg); }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
-.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; }
+.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
 
 /* Today: 24 hourly sticks. Height = intensity that hour; the current hour uses the tone. */
@@ -194,6 +198,7 @@
    so slots line up in a column when thin rows are stacked. */
 .hd--thin {
   --pad: 6px;
+  --pad-in: 12px;
   --slot-h: 36px;
   grid-template-columns: 44px minmax(0, 1fr) auto auto;
   grid-template-areas: "orb title slot open";
@@ -211,7 +216,7 @@
 .hd--thin .hd-name { font-size: 15px; }
 .hd--thin .hd-area, .hd--thin .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
 .hd--thin .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
-.hd--thin .hd-pill, .hd--thin .hd-unav { padding-inline: 14px; font-size: 13px; }
+.hd--thin .hd-pill, .hd--thin .hd-unav { font-size: 13px; }
 .hd--thin .hd-unav-t, .hd--thin .hd-pill-x, .hd--thin .hd-num, .hd--thin .hd-tl { display: none; }
 /* Thin with the control hidden (showControl={false}): the value as text where the control was, and the
    whole row opens the details sheet. The arrow's hit area stretches over the row; the orb sits above it,

@@ -2,7 +2,7 @@
 
 /* Setpoint stepper: a pill with a minus and a plus at its ends. Neutral while idle; the accent while running. */
 .cw-step {
-  --btn: calc(var(--slot-h) - 8px);
+  --btn: calc(var(--slot-h) - 2 * var(--inset));
   display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
   height: var(--slot-h); min-width: 0; border-radius: 99px;
   background: var(--fill); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line);
@@ -36,7 +36,7 @@
 /* Heat/cool range on one bar */
 .cw-rb {
   --kn: 48px;
-  --kh: calc(var(--slot-h) - 10px);
+  --kh: calc(var(--slot-h) - 2 * var(--inset));
   position: relative; height: var(--slot-h); min-width: 0; border-radius: 99px;
   /* The band between the thresholds is where the unit rests: hatched, like any absence */
   background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
@@ -46,7 +46,7 @@
 .cw-rb-zone--heat { background: var(--fill); clip-path: inset(0 calc(100% - var(--kn) / 2 - (100% - var(--kn)) * var(--lo)) 0 0); }
 .cw-rb-zone--cool { background: var(--fill); clip-path: inset(0 0 0 calc(var(--kn) / 2 + (100% - var(--kn)) * var(--hi))); }
 .cw-rb-lab { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
-.cw-rb-lab > span { display: flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.2); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+.cw-rb-lab > span { display: flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 99px; background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.2); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
 .cw-rb-cur { position: absolute; top: 24%; bottom: 24%; left: calc(var(--kn) / 2 + (100% - var(--kn)) * var(--cur)); width: 2px; translate: -1px 0; border-radius: 1px; background: var(--ink); opacity: 0.45; pointer-events: none; }
 .cw-rb-rail { position: absolute; inset: 0 calc(var(--kn) / 2); pointer-events: none; }
 /* Each handle rides a rail-wide layer parked just left of the rail, its right edge is the handle.
@@ -83,14 +83,14 @@
 .hd--thin .cw-rb-in, .hd--thin .cw-rb-hit, .hd--thin .cw-rb-k { display: none; }
 .hd--thin .cw-rb-open { display: block; }
 .hd--thin .cw-rb-lab { display: flex; }
-.hd--thin .cw-rb-lab > span { font-size: 12px; padding: 2px 8px; }
+.hd--thin .cw-rb-lab > span { font-size: 12px; padding: 3px 9px; }
 .hd--sheet .cw-rb { --kn: 56px; }
 .hd--sheet .cw-rb-k { font-size: 15px; }
 
 /* Sheet: exact steps for each threshold */
 /* Side by side when there is room, stacked on a phone so the label never runs under its buttons. */
 .cw-fine { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 8px; }
-.cw-fine-g { display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 56px; padding: 6px 6px 6px 14px; border-radius: 20px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); }
+.cw-fine-g { display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 56px; padding: 6px 6px 6px 12px; border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); }
 .cw-fine-l { flex: 1; min-width: 0; display: grid; line-height: 1.2; font-size: 12px; font-weight: 500; color: var(--ink-2); }
 .cw-fine-l span { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

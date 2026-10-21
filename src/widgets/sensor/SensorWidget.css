@@ -7,14 +7,14 @@
 button.sw-read { cursor: pointer; }
 button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .sw-bar {
-  display: flex; align-items: center; gap: 8px; min-width: 0; height: var(--slot-h); padding: 0 4px 0 14px;
+  display: flex; align-items: center; gap: 8px; min-width: 0; height: var(--slot-h); padding: 0 var(--inset) 0 var(--pad-in);
   border-radius: 99px; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line);
   color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .sw-t { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; font-size: 15px; font-weight: 700; }
 .sw-t:only-child { padding-right: 10px; }
 .sw-h {
-  flex: none; display: flex; align-items: center; gap: 5px; height: calc(var(--slot-h) - 8px); padding: 0 12px;
+  flex: none; display: flex; align-items: center; gap: 5px; height: calc(var(--slot-h) - 2 * var(--inset)); padding: 0 12px;
   border-radius: 99px; background: var(--card-solid); box-shadow: inset 0 0 0 1px var(--line);
   font-size: 14px; font-weight: 700;
 }
@@ -25,10 +25,10 @@ button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 @container hd (min-width: 260px) {
   .sw-bar svg { display: block; }
 }
-.hd--thin .sw-bar { gap: 6px; padding-left: 12px; }
+.hd--thin .sw-bar { gap: 6px; }
 .hd--thin .sw-bar svg { display: none; }
 .hd--thin .sw-t { font-size: 13.5px; }
-.hd--thin .sw-h { padding: 0 9px; font-size: 12.5px; }
+.hd--thin .sw-h { padding: 0 12px; font-size: 12.5px; }
 .hd--sheet .sw-t { font-size: 20px; }
 .hd--sheet .sw-h { font-size: 17px; padding: 0 16px; }
 .hd--sheet .sw-bar svg { display: block; width: 17px; height: 17px; }

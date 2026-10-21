@@ -10,7 +10,7 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 @container hd (min-width: 260px) {
   .hw:not(.hd--thin):not(.hd--sheet) {
     --scene-w: clamp(104px, 34cqi, 150px);
-    padding-left: calc(var(--scene-w) + 14px);
+    padding-left: calc(var(--scene-w) + var(--pad));
   }
   .hw:not(.hd--thin):not(.hd--sheet) .hw-scene {
     display: block; position: absolute; left: 6px; top: 8px; bottom: 8px; width: var(--scene-w);
@@ -23,7 +23,7 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .hw:not(.hd--thin):not(.hd--sheet) .hw-st-i { display: inline-block; }
 }
 @container hd (min-width: 440px) {
-  .hw:not(.hd--thin):not(.hd--sheet) { --scene-w: clamp(150px, 34cqi, 210px); padding-left: calc(var(--scene-w) + 18px); }
+  .hw:not(.hd--thin):not(.hd--sheet) { --scene-w: clamp(150px, 34cqi, 210px); }
   .hw:not(.hd--thin):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "title num open"; }
 }
 .hd--sheet.hw .hw-scene { display: block; height: 170px; }
@@ -78,7 +78,7 @@ button.hw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 .hw-tr {
   --kn: 56px;
   position: relative; display: flex; align-items: center; justify-content: space-between; min-width: 0;
-  height: var(--slot-h); padding: 0 14px; border-radius: 99px;
+  height: var(--slot-h); padding: 0 var(--pad-in); border-radius: 99px;
   background: var(--fill);
   box-shadow: inset 0 0 0 1px var(--line);
   font-size: 13px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap;
@@ -93,13 +93,13 @@ button.hw-read:active .hw-tr { scale: 0.98; }
 .hw-tr-at { position: absolute; top: 0; bottom: 0; right: 100%; width: 100%; transform: translateX(calc(var(--p) * 100%)); }
 .hw-tr-k {
   position: absolute; top: 50%; left: 100%; display: grid; place-items: center;
-  width: var(--kn); height: calc(var(--slot-h) - 10px); translate: -50% -50%; border-radius: 99px;
+  width: var(--kn); height: calc(var(--slot-h) - 2 * var(--inset)); translate: -50% -50%; border-radius: 99px;
   background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--tick), 0 1px 3px oklch(0.2 0.02 80 / 0.25);
   color: var(--ink); font-size: 14px; font-weight: 700;
 }
-.hd--thin .hw-tr { --kn: 50px; padding: 0 10px; font-size: 12px; }
+.hd--thin .hw-tr { --kn: 50px; font-size: 12px; }
 .hd--thin .hw-tr-k { font-size: 12.5px; }
-.hd--sheet .hw-tr { --kn: 64px; font-size: 14px; padding: 0 18px; }
+.hd--sheet .hw-tr { --kn: 64px; font-size: 14px; }
 .hd--sheet .hw-tr-k { font-size: 16px; }
 
 /* ---------- Sheet: readings as chip-shaped tiles, and the next days ---------- */
@@ -114,7 +114,7 @@ button.hw-read:active .hw-tr { scale: 0.98; }
 .hw-stat-v.hd-warn, .hw-stat-v.hd-warn small { color: var(--warn); }
 .hw-stat-s { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.hw-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.hw-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
 .hw-day { display: grid; justify-items: center; gap: 4px; padding: 10px 4px; border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; min-width: 0; }
 .hw-day-n { font-weight: 600; color: var(--ink); }
 .hw-day-i svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; color: var(--ink); }

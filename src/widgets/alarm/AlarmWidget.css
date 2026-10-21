@@ -9,12 +9,12 @@
 /* ---------- Mode switch: Off and each arm mode; the current one on a sliding thumb ---------- */
 .al-sw {
   position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
-  height: var(--slot-h); min-width: 0; padding: 4px; border-radius: 99px;
+  height: var(--slot-h); min-width: 0; padding: var(--inset); border-radius: 99px;
   background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
 }
 .al-sw[data-armed] { background: var(--fill); }
 .al-thumb {
-  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n)); border-radius: 99px;
+  position: absolute; top: var(--inset); bottom: var(--inset); left: var(--inset); width: calc((100% - 2 * var(--inset)) / var(--n)); border-radius: 99px;
   background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.18);
   transform: translateX(calc(var(--i) * 100%));
   transition: transform 240ms var(--ease-out), background-color 200ms var(--ease-out);
@@ -56,7 +56,7 @@
 
 /* ---------- View only: the state, nothing to press ---------- */
 .al-st {
-  display: flex; align-items: center; gap: 8px; height: var(--slot-h); min-width: 0; padding: 0 16px;
+  display: flex; align-items: center; gap: 8px; height: var(--slot-h); min-width: 0; padding: 0 var(--pad-in);
   border-radius: 99px; background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
   color: var(--ink-2); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden;
 }
@@ -66,7 +66,7 @@
 .al-st-s { display: none; }
 .al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
 @container hd (max-width: 259px) { .al-st-x { display: none; } }
-.hd--thin .al-st { gap: 6px; padding: 0 12px; font-size: 13px; }
+.hd--thin .al-st { gap: 6px; font-size: 13px; }
 .hd--thin .al-st svg { width: 15px; height: 15px; }
 .hd--thin :is(.al-st-l, .al-st-x) { display: none; }
 .hd--thin .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
@@ -74,7 +74,7 @@
 /* ---------- Countdown: exit delay (arming) or entry delay (pending) ---------- */
 .al-cd, .al-alarm {
   position: relative; display: flex; align-items: center; gap: 10px; height: var(--slot-h); min-width: 0;
-  padding: 0 5px 0 16px; border-radius: 99px; overflow: hidden; font-variant-numeric: tabular-nums;
+  padding: 0 var(--inset) 0 var(--pad-in); border-radius: 99px; overflow: hidden; font-variant-numeric: tabular-nums;
 }
 .al-cd { background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
 /* Time running out fills the pill, linearly: constant motion, so linear */
@@ -82,7 +82,7 @@
 .al-cd-l { position: relative; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
 .al-cd-t { position: relative; flex: none; font-size: 15px; font-weight: 700; }
 .al-cd-b {
-  position: relative; flex: none; height: calc(var(--slot-h) - 10px); padding: 0 14px; border: 0; border-radius: 99px;
+  position: relative; flex: none; height: calc(var(--slot-h) - 2 * var(--inset)); padding: 0 var(--pad-in); border: 0; border-radius: 99px;
   background: var(--inv-bg); color: var(--inv-fg); font: 600 13.5px var(--font); cursor: pointer;
   transition: scale var(--press) var(--ease-out);
 }
@@ -104,13 +104,13 @@
 .al .al-cd:not([data-timed]) { justify-content: flex-end; }
 .al-cd:not([data-timed]) .al-cd-l { margin-right: auto; }
 /* Nothing to press (disarming): the words, centred, at every size */
-.al .al-cd:not([data-timed]):not(:has(.al-cd-b)) { justify-content: center; padding: 0 16px; }
+.al .al-cd:not([data-timed]):not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); }
 .al-cd:not([data-timed]):not(:has(.al-cd-b)) .al-cd-l { display: block !important; flex: none; margin: 0; }
 /* Narrow: the time and the button; the words are in the status line */
-@container hd (max-width: 259px) { .al-cd-l { display: none; } .al-cd, .al-alarm { justify-content: space-between; padding-left: 14px; } }
+@container hd (max-width: 259px) { .al-cd-l { display: none; } .al-cd, .al-alarm { justify-content: space-between; padding-left: var(--pad-in); } }
 .hd--thin .al-cd-l { display: none; }
-.hd--thin .al-cd { justify-content: space-between; padding-left: 12px; }
-.hd--thin .al-cd-b { padding: 0 10px; font-size: 12.5px; }
+.hd--thin .al-cd { justify-content: space-between; padding-left: var(--pad-in); }
+.hd--thin .al-cd-b { font-size: 12.5px; }
 
 /* ---------- Triggered: the one place warn fills ---------- */
 .al-alarm { background: var(--warn); color: var(--on-warn); animation: al-pulse 1.4s var(--ease-in-out) infinite alternate; }
@@ -122,8 +122,8 @@
 .hd--thin .al-alarm-l { display: none; }
 /* View only: a countdown with nothing to press keeps its right padding; where the label hides (S, thin), the time centres */
 .al-cd[data-timed]:not(:has(.al-cd-b)) { padding-right: 16px; }
-.hd--thin .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 12px; }
-@container hd (max-width: 259px) { .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 14px; } }
+.hd--thin .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); }
+@container hd (max-width: 259px) { .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); } }
 /* With no Disarm to show (view only), the pill says Alarm at every size */
 .hd--thin .al-alarm:not(:has(.al-alarm-b)) .al-alarm-l { display: inline; }
 .al-alarm:not(:has(.al-alarm-b)) { padding-right: 16px; }
@@ -131,7 +131,7 @@
 
 /* ---------- Sheet: open doors and windows, and the keypad ---------- */
 .al-open { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
-.al-kp { display: grid; justify-items: center; gap: 16px; padding: 6px 0 2px; border-radius: 20px; }
+.al-kp { display: grid; justify-items: center; gap: 16px; padding: 6px 0 2px; border-radius: 18px; }
 .al-kp:focus { outline: none; }
 .al-kp:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 .al-kp-p { margin: 0; font-size: 15px; font-weight: 600; text-align: center; }
