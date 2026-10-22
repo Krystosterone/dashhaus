@@ -13,7 +13,7 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 
 1. **One primary claim per screen.** The hero card owns the full glow. In a one-column section the first glowing card is the primary attention claim — not merely the first card rendered.
 2. **Glow follows semantic urgency, not position.** Later active cards are subordinate by default, but how subordinate is an urgency decision, not a fixed ratio. `layout.css` damps later glowing cards to 0.5 via `--glow-damp`; that is a local heuristic, not a law and not an Apple standard.
-3. **Quiet densities stay quiet.** Thin rows and mini tiles never glow; their on-state is the role tone, never the colour slot.
+3. **Compact stays quiet.** Compact cards never glow; their on-state is the role tone, never the colour slot.
 4. **Urgent and problem states get a marker, not more brightness.** Low battery, a door left open, an alarm: a distinct warn treatment. Never make every active state brighter to express importance.
 5. **Never glow alone.** Every important state has a non-colour cue: text, icon, position, or meaningful state motion. Colour and glow are never the only channel.
 
@@ -24,7 +24,7 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 | Hero, one column | Full glow (`--hd-glow`, set by `paint()` in `src/shared/ui.tsx`), undamped |
 | Later active card, routine | Damped glow (0.5 via `--glow-damp` in `layout.css`) |
 | Later active card, urgent or problem | Warn marker (status line first, warn colour) — not a brighter glow |
-| Thin row / mini tile, any state | No glow, role tone only |
+| Compact card, any state | No glow, role tone only |
 | Important state change | Non-colour cue required: text, icon, position, or state motion |
 
 ## Rules
@@ -38,5 +38,5 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 ## Verify
 
 - `npm run typecheck`.
-- Storybook: affected widget's story at each size and density, and Foundations → Demo / Worst case.
+- Storybook: affected widget's story at every width and footprint, and Foundations → Demo / Worst case.
 - Dashboard stories: exactly one card reads as the primary claim per screen, urgent states read urgent, and no state is communicated by glow alone. Skim the screen with colour ignored — does every state still read?

@@ -2,7 +2,7 @@
 
 **Status:** complete · 2026-10-18 · **Codified:** README → "Design rules every widget follows", `row-identity` skill, AGENTS.md hard rule (commit `9849aa4`).
 
-**Decision:** Keep the common thin-row geometry, but fix the per-row identity content. Do not rely on role-tone colour as the only distinction between climate, cover, and light rows.
+**Decision:** Keep the common compact-row geometry, but fix the per-row identity content. Do not rely on role-tone colour as the only distinction between climate, cover, and light rows.
 
 ## Evidence
 
@@ -37,7 +37,7 @@
 
 Run 2026-10-18 on Phone → Controls at 358 px and 278 px, including grayscale. Air conditioner and Heat pump initially failed because their orb showed mode instead of the stable thermostat domain; Garage door failed because `Open since 10:20` replaced area identity, duplicated the control, and truncated. Curtains and all four lights passed.
 
-After correction, climate keeps the thermostat in the orb and moves mode into the control/value channel; Garage keeps area/class and adds the shared accessible warning cue. All Controls rows remain 56 px with readable non-colour state cues. Foundations → Thin rows at 280 px exposes all 28 visible narrow status lines to assistive technology.
+After correction, climate keeps the thermostat in the orb and moves mode into the control/value channel; Garage keeps area/class and adds the shared accessible warning cue. The later footprint normalization moved all compact rows to 60 px without changing those identity channels. Foundations → Compact rows at 280 px exposes all narrow status lines to assistive technology.
 
 ## Sources
 

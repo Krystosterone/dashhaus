@@ -67,7 +67,7 @@ const store = createHaStore(transport);
 
 root.render(
   <HaProvider store={store}>
-    <HaLightTile entityId="light.living_room" density="regular" />
+    <HaLightTile entityId="light.living_room" footprint="standard" />
   </HaProvider>,
 );
 ```
@@ -75,7 +75,7 @@ root.render(
 The same store can feed a climate tile without changing the widget contract:
 
 ```tsx
-<HaClimateTile entityId="climate.living_room" density="regular" />
+<HaClimateTile entityId="climate.living_room" footprint="standard" />
 ```
 
 A sensor tile can compose one primary temperature entity with linked humidity and battery entities:
@@ -85,7 +85,7 @@ A sensor tile can compose one primary temperature entity with linked humidity an
   entityId="sensor.living_room_temperature"
   humidityEntityId="sensor.living_room_humidity"
   batteryEntityId="sensor.living_room_battery"
-  density="regular"
+  footprint="standard"
 />
 ```
 
@@ -97,7 +97,7 @@ The home weather tile selects its optional companions explicitly. It requests bo
   aqiEntityId="sensor.home_aqi"
   aqiScale="US"
   sunEntityId="sun.sun"
-  density="regular"
+  footprint="standard"
   onForecastError={(error) => reportDashboardError(error)}
 />
 ```
@@ -124,7 +124,7 @@ To surface a rejected action, read `useHaSnapshot()` or pass `onActionError` to 
 - Cover mappers gate position, stop, and tilt on the entity's `supported_features` bits, map `unknown` to unavailable rather than closed, and never send the widget's presentation fallback position back as measured state.
 - Toggle integration retains the domain (`input_boolean` or `switch`) beside the entity because `ToggleEntity` cannot carry it; the widget's timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
 - Alarm mappers default `codeArmRequired` to true, map unrecognized states including `unknown` to unavailable, and take delay/open-sensor metadata from host options rather than inventing it. Alarm actions resolve false only for a recognized wrong code (the sanitized `invalid_code` translation-key scalar); any other rejection, including a bare service-validation scalar, means the call did not go through, and codes are never logged or persisted.
-- When a thin home row hides its control (`showControl={false}`), preserve the normalized details interaction: the value row remains keyboard and pointer activatable and opens the existing details sheet.
+- When a compact home card hides its control (`footprint="compact" showControl={false}`), preserve the normalized details interaction: the value row remains keyboard and pointer activatable and opens the existing details sheet.
 - Keep optimistic interaction state separate from the current-state mapper. Histories and registry metadata are their own read-only slices: pure per-domain parsers over `history/history_during_period` rows plus a registry lookup, fetched through `store.callApi`, never a current reading and never action state.
 
 ### History slice

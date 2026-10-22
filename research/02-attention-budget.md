@@ -16,7 +16,7 @@
 
 1. The first glow is the primary attention claim, not merely the first card rendered.
 2. Later active cards are subordinate by default, but treatment follows semantic urgency rather than a fixed 50% promise.
-3. Thin and mini rows stay glow-free for ordinary states.
+3. Compact cards stay glow-free for ordinary states.
 4. Urgent or problem states receive a distinct semantic marker rather than more brightness.
 5. Every important state has a non-colour cue: text, icon, position, or meaningful state motion.
 6. `100% / 50% / 0%` may remain an initial local tuning heuristic; it must not be documented as an external standard.

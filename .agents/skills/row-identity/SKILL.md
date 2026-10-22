@@ -1,11 +1,11 @@
 ---
 name: row-identity
-description: Give dense same-shaped control rows their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a widget's thin density, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies research/03-dense-list-identity.md.
+description: Give dense same-shaped compact controls their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a widget's compact footprint, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies research/03-dense-list-identity.md.
 ---
 
 # Row Identity
 
-A column of thin rows all in one shape is unreadable: the shell ends up carrying the meaning that each row's content should. This skill is the contract for per-row identity.
+A column of compact cards all in one shape is unreadable when the shell carries meaning that each row's content should. This skill is the contract for per-row identity.
 
 Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every widget follows.
 
@@ -30,12 +30,12 @@ Group or order rows by domain (Climate, Covers, Lights) without changing row hei
 ## Rules
 
 - Badges exist for meaningful conditions only: unavailable, active, travelling, alert. A badge that restates the row's colour is decoration — remove it.
-- Row height, alignment and action placement stay stable across all rows (the `hd--thin` grid in `card.css`).
-- The thin row's orb is both control and domain icon; the text carries the identity too. There is no separate icon slot today; a shared one is a proposal in `research/mechanism-backlog.md`, not a promise of the current grid.
+- Row height, alignment and action placement stay stable across all rows (the 60 px `hd--compact` grid in `card.css`).
+- The compact card's orb is both control and domain icon; the text carries the identity too. There is no separate icon slot.
 - No source requires a unique outer shape per row or a numeric row-count threshold — do not invent one.
 
 ## Verify
 
 - `npm run typecheck`.
-- Storybook: affected widget at thin density at every width, including under 320 px; Foundations → Thin rows, control on and off.
-- Visual QA gate: on the Controls story at real thin widths, every row must show a distinct icon, concise primary/secondary text, and a visible state/action cue with colour ignored. Record which rows fail before any implementation pass.
+- Storybook: affected widget at the compact footprint at every width, including under 320 px; Foundations → Compact rows, control on and off.
+- Visual QA gate: on the Controls story at real compact widths, every row must show a distinct icon, concise primary/secondary text, and a visible state/action cue with colour ignored. Record which rows fail before any implementation pass.
