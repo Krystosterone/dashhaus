@@ -51,6 +51,8 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Night: the house dims and the windows glow like the lamps inside */
 .sc[data-night] :is(.sc-plinth, .sc-house, .sc-tree) { filter: brightness(0.82); }
 .sc[data-night] .sc-win polygon { fill: var(--scene-lamp); }
+/* Daylight unknown: keep the scene neutral instead of assuming daytime */
+.sc[data-daylight="unknown"] { opacity: 0.72; }
 /* Not responding: the house stays, faded */
 .sc[data-off] { opacity: 0.45; }
 

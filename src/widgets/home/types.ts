@@ -7,7 +7,8 @@ export type Condition =
 /**
  * The home's outdoor conditions: the parts of a Home Assistant `weather.*` entity the widget needs.
  * Two values usually live in other entities and are passed in alongside: `aqi` (a sensor with
- * device_class aqi) and `isDay` (from `sun.sun`). Both are optional.
+ * device_class aqi) and `isDay` (from `sun.sun`). Both are optional; missing or unavailable `isDay`
+ * remains unknown so the widget does not infer a daylight presentation.
  */
 export interface WeatherEntity {
   entityId: string;
@@ -30,7 +31,7 @@ export interface WeatherEntity {
   pressureUnit: "hPa" | "kPa" | "inHg";
   /** US AQI, 0-500, from an air-quality sensor. */
   aqi?: number;
-  /** From sun.sun; defaults to day unless the condition is clear-night. */
+  /** From sun.sun; omitted or unavailable means daylight is unknown, not day. */
   isDay?: boolean;
   lastUpdated?: string;
   lastSeen?: string;

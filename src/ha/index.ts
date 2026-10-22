@@ -27,6 +27,8 @@ export { climateFromHass } from "./mappers/climate";
 export type { ClimateMapOptions } from "./mappers/climate";
 export { sensorFromHass } from "./mappers/sensor";
 export type { SensorMapOptions } from "./mappers/sensor";
+export { weatherFromHass, forecastFromHass } from "./mappers/weather";
+export type { WeatherMapOptions } from "./mappers/weather";
 export { createLightHandlers } from "./actions/light";
 export type { LightHandlers, LightHandlerOptions } from "./actions/light";
 export { createClimateHandlers } from "./actions/climate";
@@ -35,6 +37,8 @@ export { HaLightTile } from "./HaLightTile";
 export type { HaLightTileProps } from "./HaLightTile";
 export { HaClimateTile } from "./HaClimateTile";
 export type { HaClimateTileProps } from "./HaClimateTile";
+export { HaHomeTile } from "./HaHomeTile";
+export type { HaHomeTileProps } from "./HaHomeTile";
 export { HaSensorTile } from "./HaSensorTile";
 export type { HaSensorTileProps } from "./HaSensorTile";
 export {

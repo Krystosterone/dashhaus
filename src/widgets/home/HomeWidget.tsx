@@ -94,9 +94,11 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const cond = unav ? null : (e.state as Condition);
-  const night = cond === "clear-night" || e.isDay === false;
+  const daylight = cond === "clear-night" || e.isDay === false ? "night" : e.isDay === true ? "day" : "unknown";
+  const night = daylight === "night";
+  const daylightUnknown = daylight === "unknown";
   const t = unav ? undefined : e.temperature;
-  const glow = !cond || night ? 0 : SUN[SKY[cond]];
+  const glow = !cond || daylight !== "day" ? 0 : SUN[SKY[cond]];
   const colors = paint("reading", glow, null, color);
 
   // Today's range: what happened so far, what's forecast for the rest of today, and now.
@@ -155,7 +157,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
     };
   }
 
-  const scene = <Scene night={night} off={unav} />;
+  const scene = <Scene night={night} daylightUnknown={daylightUnknown} off={unav} />;
 
   // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
   const subText = unav ? "Unavailable" : warningSummary ?? [t != null ? `${fmt1(t)}°` : null, change ?? label].filter(Boolean).join(" · ");
@@ -164,7 +166,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   return (
     <article
       className={`hd hw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined}
-      data-state={unav ? "unavailable" : "ok"} data-change={change ? "" : undefined} data-alert={warnings.length ? "warn" : undefined}
+      data-state={unav ? "unavailable" : "ok"} data-daylight={daylight} data-change={change ? "" : undefined} data-alert={warnings.length ? "warn" : undefined}
       {...colors} aria-labelledby={`${uid}-n`}
     >
       {!sheet && (onOpenDetails
@@ -194,7 +196,19 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
 
       {sheet && <div className="hw-scene">{scene}</div>}
 
-      <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>
+      <div
+        className="hd-slot"
+        onClick={bare ? onOpenDetails : undefined}
+        onKeyDown={bare && onOpenDetails ? (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onOpenDetails();
+          }
+        } : undefined}
+        role={bare && onOpenDetails ? "button" : undefined}
+        tabIndex={bare && onOpenDetails ? 0 : undefined}
+        aria-label={bare && onOpenDetails ? `${e.name} weather details` : undefined}
+      >{bare ? <p className="hd-val">{valText}</p> : slot}</div>
 
       {sheet && !unav && (
         <div className="hd-extra">

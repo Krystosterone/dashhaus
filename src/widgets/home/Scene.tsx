@@ -32,9 +32,9 @@ function Tree({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   );
 }
 
-export function Scene({ night, off }: { night: boolean; off?: boolean }) {
+export function Scene({ night, daylightUnknown, off }: { night: boolean; daylightUnknown?: boolean; off?: boolean }) {
   return (
-    <svg className="sc" viewBox="24 54 152 128" preserveAspectRatio="xMidYMid meet" aria-hidden="true" data-night={night || undefined} data-off={off || undefined}>
+    <svg className="sc" viewBox="24 54 152 128" preserveAspectRatio="xMidYMid meet" aria-hidden="true" data-daylight={daylightUnknown ? "unknown" : night ? "night" : "day"} data-night={night || undefined} data-off={off || undefined}>
       <g className="sc-plinth">
         <polygon className="sc-side-a" points={poly([0, 10, 0], [10, 10, 0], [10, 10, D], [0, 10, D])} />
         <polygon className="sc-side-b" points={poly([10, 0, 0], [10, 10, 0], [10, 10, D], [10, 0, D])} />

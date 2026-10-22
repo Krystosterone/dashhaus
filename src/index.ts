@@ -12,7 +12,7 @@ export { useNow } from "./shared/useNow";
 export { HaActionError } from "./ha";
 export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
 export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaStatus, useHaGeneration } from "./ha";
-export { HaLightTile, HaClimateTile, HaSensorTile } from "./ha";
+export { HaLightTile, HaClimateTile, HaSensorTile, HaHomeTile } from "./ha";
 export type {
   HassEntity,
   HassEntities,
@@ -27,6 +27,7 @@ export type {
   HaLightTileProps,
   HaClimateTileProps,
   HaSensorTileProps,
+  HaHomeTileProps,
 } from "./ha";
 
 // Header
