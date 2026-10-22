@@ -26,6 +26,9 @@ export type ColorName = keyof typeof COLORS;
 /** A widget's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
 export type ColorProp = ColorName | SlotColor | "none";
 
+/** Dashboard footprint. Every step uses one 60px unit; adjacent units are separated by the shared 8px gap. */
+export type WidgetFootprint = "compact" | "standard" | "featured";
+
 export type Role = "energy" | "state" | "reading";
 
 /**

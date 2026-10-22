@@ -7,12 +7,12 @@ export interface SensorTileProps extends Omit<SensorWidgetProps, "variant" | "on
 }
 
 /** A dashboard-ready sensor: the card in its size container, plus its detail sheet. */
-export function SensorTile({ defaultOpen = false, density, ...props }: SensorTileProps) {
+export function SensorTile({ defaultOpen = false, footprint, ...props }: SensorTileProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <>
       <div className="hd-c">
-        <SensorWidget {...props} density={density} onOpenDetails={() => setOpen(true)} />
+        <SensorWidget {...props} footprint={footprint} onOpenDetails={() => setOpen(true)} />
       </div>
       <SensorSheet {...props} open={open} onClose={() => setOpen(false)} />
     </>

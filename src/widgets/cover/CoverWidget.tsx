@@ -3,7 +3,7 @@ import type { CoverEntity, CoverHistory, CoverClass } from "./types";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
 import { Orb, CircleButton, IconOpen, IconClose, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, paint } from "../../shared/ui";
-import type { ColorProp } from "../../shared/ui";
+import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./CoverWidget.css";
 
 const CLASS_LABEL: Record<CoverClass, string> = {
@@ -26,13 +26,14 @@ const SLATS = [
 
 export interface CoverWidgetProps {
   entity: CoverEntity;
+  /** Shown in the featured footprint and in the sheet. */
   history?: CoverHistory;
   variant?: "card" | "sheet";
-  density?: "regular" | "thin";
+  /** Shared card footprint. */
+  footprint?: WidgetFootprint;
   /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
+   * the detail sheet. The orb keeps its tap and hold actions. Default true.
    */
   showControl?: boolean;
   onOpenCover: () => void;
@@ -49,14 +50,14 @@ export interface CoverWidgetProps {
 
 /**
  * One cover: curtains, blinds, shades, garage doors. Position follows Home Assistant: 0 closed, 100 open.
- * The orb opens, closes, or stops it while it moves. The slot is the window: tone for daylight, hatching for fabric.
- * Covers without a position get Close and Open at the ends of the pill instead. Same sizes and fixed heights.
+ * It shares the modular footprint matrix with every dashboard widget.
  */
-export function CoverWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverWidgetProps) {
+export function CoverWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const moving = e.state === "opening" || e.state === "closing";
   const pos = e.position ?? (e.state === "open" || e.state === "opening" ? 100 : 0);
@@ -78,7 +79,7 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
 
   // A door left open leads the status line in the warn colour, like a sensor's low battery.
   const status = unav ? "Not responding"
-    : warnedOpen ? (thin ? identity : `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`)
+    : warnedOpen ? (compact ? identity : `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`)
     : identity;
   const areaText = sheet && e.area && !(access && open) ? `${e.area} · ${CLASS_LABEL[e.deviceClass]}` : status;
 
@@ -90,10 +91,10 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
     slot = <OpenCloseControl name={e.name} open={open} moving={moving} text={text} canStop={e.supportsStop} onOpen={onOpenCover} onClose={onCloseCover} onStop={onStopCover} />;
   }
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden control.
   const subText = unav ? "Unavailable" : text;
   return (
-    <article className={`hd cv${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} data-alert={warnedOpen ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd cv${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} data-alert={warnedOpen ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={orbLabel} pressed={open && !unav} unavailable={unav} intensity={pos / 100} onToggle={orbAction} onLongPress={sheet ? undefined : onOpenDetails}>
           <CoverIcon kind={e.deviceClass} open={open} stop={stopping} />
@@ -101,7 +102,7 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}</p>
-          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
+          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
         {sheet
@@ -142,7 +143,7 @@ export function CoverWidget({ entity: e, history, variant = "card", density = "r
   );
 }
 
-export interface CoverSheetProps extends Omit<CoverWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface CoverSheetProps extends Omit<CoverWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

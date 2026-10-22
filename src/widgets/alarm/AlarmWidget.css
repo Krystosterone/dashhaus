@@ -32,27 +32,43 @@
 .al-seg svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .al-seg-l { display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @container hd (min-width: 260px) {
-  .al:not(.hd--thin) .al-seg-l { display: inline; }
+  .al:not(.hd--compact) .al-seg-l { display: inline; }
   /* Five modes at M: words only, so "Vacation" fits */
-  .al:not(.hd--thin) .al-sw[data-many] .al-seg svg { display: none; }
+  .al:not(.hd--compact) .al-sw[data-many] .al-seg svg { display: none; }
 }
-@container hd (min-width: 440px) { .al:not(.hd--thin) .al-sw[data-many] .al-seg svg { display: block; } }
+@container hd (min-width: 440px) { .al:not(.hd--compact) .al-sw[data-many] .al-seg svg { display: block; } }
 /* Six segments. Below L: icons only (labels would truncate to nothing).
    At L and in the sheet: the icon with a small label under it, so "Vacation" fits a sixth of the width. */
 @container hd (max-width: 439px) {
-  .al:not(.hd--thin):not(.hd--sheet) .al-sw[data-crowd] .al-seg svg { display: block; }
-  .al:not(.hd--thin):not(.hd--sheet) .al-sw[data-crowd] .al-seg-l { display: none; }
+  .al:not(.hd--compact):not(.hd--sheet) .al-sw[data-crowd] .al-seg svg { display: block; }
+  .al:not(.hd--compact):not(.hd--sheet) .al-sw[data-crowd] .al-seg-l { display: none; }
 }
 @container hd (min-width: 440px) {
-  .al:not(.hd--thin) .al-sw[data-crowd] .al-seg { flex-direction: column; gap: 1px; padding: 0 2px; font-size: 11px; line-height: 1.1; }
-  .al:not(.hd--thin) .al-sw[data-crowd] .al-seg svg { display: block; width: 15px; height: 15px; }
-  .al:not(.hd--thin) .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
+  .al:not(.hd--compact) .al-sw[data-crowd] .al-seg { flex-direction: column; gap: 1px; padding: 0 2px; font-size: 11px; line-height: 1.1; }
+  .al:not(.hd--compact) .al-sw[data-crowd] .al-seg svg { display: block; width: 15px; height: 15px; }
+  .al:not(.hd--compact) .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
 }
 .hd--sheet .al-sw[data-crowd] .al-seg { flex-direction: column; gap: 1px; padding: 0 2px; font-size: 11px; line-height: 1.1; }
 .hd--sheet .al-sw[data-crowd] .al-seg svg { display: block; width: 15px; height: 15px; }
 .hd--sheet .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
 .hd--sheet .al-seg-l { display: inline; }
-.hd--thin .al-seg svg { width: 15px; height: 15px; }
+.hd--compact .al-seg svg { width: 15px; height: 15px; }
+/* Compact mode controls keep real 44px targets. Five or more choices move to the sheet instead of
+   shrinking below a reliable touch size; any mode switch also yields below 360px. */
+.hd--compact .al-sw { padding: 0; }
+.hd--compact.al:has(.al-sw:not([data-many])) .hd-slot { width: 176px; }
+.hd--compact.al:has(.al-sw[data-many]) :is(.hd-slot, .hd-area) { display: none; }
+.hd--compact.al:has(.al-sw[data-many]) .hd-sub {
+  display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+@container hd (max-width: 359px) {
+  .hd--compact.al:has(.al-sw) :is(.hd-slot, .hd-area) { display: none; }
+  .hd--compact.al:has(.al-sw) .hd-sub {
+    display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
 
 /* ---------- View only: the state, nothing to press ---------- */
 .al-st {
@@ -66,10 +82,10 @@
 .al-st-s { display: none; }
 .al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
 @container hd (max-width: 259px) { .al-st-x { display: none; } }
-.hd--thin .al-st { gap: 6px; font-size: 13px; }
-.hd--thin .al-st svg { width: 15px; height: 15px; }
-.hd--thin :is(.al-st-l, .al-st-x) { display: none; }
-.hd--thin .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
+.hd--compact .al-st { gap: 6px; font-size: 13px; }
+.hd--compact .al-st svg { width: 15px; height: 15px; }
+.hd--compact :is(.al-st-l, .al-st-x) { display: none; }
+.hd--compact .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- Countdown: exit delay (arming) or entry delay (pending) ---------- */
 .al-cd, .al-alarm {
@@ -93,7 +109,7 @@
 .al-cd[data-kind="pending"] .al-cd-fill { background: color-mix(in oklab, var(--warn) 20%, transparent); }
 .al-cd[data-kind="pending"] :is(.al-cd-l, .al-cd-t) { color: var(--warn); }
 /* No timer (the delay's length isn't known): a soft band sweeps instead of the fill.
-   Where the label won't fit (S, thin) the status line already says it; the action keeps its place on the right. */
+   Where the label won't fit (S or compact), the status line already says it; the action keeps its place on the right. */
 .al-cd-wait {
   position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
   background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink) 8%, transparent), transparent);
@@ -108,9 +124,9 @@
 .al-cd:not([data-timed]):not(:has(.al-cd-b)) .al-cd-l { display: block !important; flex: none; margin: 0; }
 /* Narrow: the time and the button; the words are in the status line */
 @container hd (max-width: 259px) { .al-cd-l { display: none; } .al-cd, .al-alarm { justify-content: space-between; padding-left: var(--pad-in); } }
-.hd--thin .al-cd-l { display: none; }
-.hd--thin .al-cd { justify-content: space-between; padding-left: var(--pad-in); }
-.hd--thin .al-cd-b { font-size: 12.5px; }
+.hd--compact .al-cd-l { display: none; }
+.hd--compact .al-cd { justify-content: space-between; padding-left: var(--pad-in); }
+.hd--compact .al-cd-b { height: var(--slot-h); font-size: 12.5px; }
 
 /* ---------- Triggered: the one place warn fills ---------- */
 .al-alarm { background: var(--warn); color: var(--on-warn); animation: al-pulse 1.4s var(--ease-in-out) infinite alternate; }
@@ -119,15 +135,15 @@
 .al-alarm-l b { font-weight: 700; }
 .al-alarm-b { background: var(--card-solid); color: var(--ink); }
 @container hd (max-width: 259px) { .al-alarm-c { display: none; } }
-.hd--thin .al-alarm-l { display: none; }
-/* View only: a countdown with nothing to press keeps its right padding; where the label hides (S, thin), the time centres */
+.hd--compact .al-alarm-l { display: none; }
+/* View only: a countdown with nothing to press keeps its right padding; where the label hides, the time centres */
 .al-cd[data-timed]:not(:has(.al-cd-b)) { padding-right: 16px; }
-.hd--thin .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); }
+.hd--compact .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); }
 @container hd (max-width: 259px) { .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); } }
 /* With no Disarm to show (view only), the pill says Alarm at every size */
-.hd--thin .al-alarm:not(:has(.al-alarm-b)) .al-alarm-l { display: inline; }
+.hd--compact .al-alarm:not(:has(.al-alarm-b)) .al-alarm-l { display: inline; }
 .al-alarm:not(:has(.al-alarm-b)) { padding-right: 16px; }
-.hd--thin .al-alarm { justify-content: flex-end; }
+.hd--compact .al-alarm { justify-content: flex-end; }
 
 /* ---------- Sheet: open doors and windows, and the keypad ---------- */
 .al-open { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }

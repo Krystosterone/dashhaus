@@ -12,8 +12,7 @@ const meta = {
       description: {
         component:
           "One light entity per widget. Tap the bulb to switch it, drag the bar to dim, press and hold the bulb or tap the arrow for details. " +
-          "Height depends only on container width: S under 260px, M 260-439px, L 440px and up. " +
-          "The thin density fits everything in one 56px row.",
+          "Every widget uses the same modular footprints at every width: compact 60px, standard 128px, and featured 264px.",
       },
     },
   },
@@ -24,13 +23,13 @@ const meta = {
       description: "Example light",
     },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"], description: "Regular card or one-row thin variant" },
-    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
+    footprint: { control: "inline-radio", options: ["compact", "standard", "featured"], description: "Shared dashboard footprint" },
+    showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
     name: { control: "text" },
     area: { control: "text" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
-  args: { light: "dimmable", width: SIZES.M, density: "regular" },
+  args: { light: "dimmable", width: SIZES.M, footprint: "standard" },
   render: (args) => <DemoTile key={`${args.light}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
@@ -47,25 +46,25 @@ export const Unavailable: Story = { args: { light: "unavailable" } };
 export const AllTypes: Story = {
   name: "All types",
   args: { width: SIZES.M },
-  parameters: { layout: "padded", controls: { include: ["width", "density"] } },
-  render: ({ width, density }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {(["dimmable", "dimmableOff", "onOff", "unavailable"] as const).map((l) => (
-        <DemoTile key={l} light={l} width={width} density={density} />
+      {(["dimmable", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
+        <DemoTile key={light} light={light} width={width} footprint={footprint} />
       ))}
     </div>
   ),
 };
 
-/** The same light at S, M and L. */
+/** The same light at S, M and L container widths. */
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["light", "density"] } },
-  render: ({ light, density }) => (
+  parameters: { layout: "padded", controls: { include: ["light", "footprint"] } },
+  render: ({ light, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={light} light={light} width={w} density={density} />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={light} light={light} width={width} footprint={footprint} />
         </figure>
       ))}
     </div>
@@ -78,34 +77,34 @@ export const DetailsSheet: Story = {
   args: { defaultOpen: true },
 };
 
-/** One 56px row. The control strip keeps one width, so stacked rows line up. */
-export const Thin: Story = { args: { density: "thin" } };
+/** One 60px row. The control strip keeps one width, so stacked rows line up. */
+export const Compact: Story = { args: { footprint: "compact" } };
 
-/** Every light type as a thin row, stacked the way a phone dashboard would. */
-export const ThinAllTypes: Story = {
-  name: "Thin, all types",
-  args: { width: SIZES.M, density: "thin" },
+/** Every light type as a compact row, stacked the way a phone dashboard would. */
+export const CompactAllTypes: Story = {
+  name: "Compact, all types",
+  args: { width: SIZES.M, footprint: "compact" },
   parameters: { layout: "padded", controls: { include: ["width"] } },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {(["dimmable", "dimmableOff", "onOff", "unavailable"] as const).map((l) => (
-        <DemoTile key={l} light={l} density="thin" />
+      {(["dimmable", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
+        <DemoTile key={light} light={light} footprint="compact" />
       ))}
     </div>
   ),
 };
 
-/** Thin at S, M and L. Under 320px the strip gives way to a readout under the name. */
-export const ThinSizes: Story = {
-  name: "Thin, sizes",
-  args: { density: "thin" },
+/** Compact at S, M and L widths. Under 320px the strip yields to a readout under the name. */
+export const CompactSizes: Story = {
+  name: "Compact, sizes",
+  args: { footprint: "compact" },
   parameters: { layout: "padded", controls: { include: ["light"] } },
   render: ({ light }) => (
     <div style={{ display: "grid", gap: 20 }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={light} light={light} width={w} density="thin" />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={light} light={light} width={width} footprint="compact" />
         </figure>
       ))}
     </div>

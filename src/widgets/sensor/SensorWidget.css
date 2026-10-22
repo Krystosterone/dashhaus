@@ -25,10 +25,10 @@ button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 @container hd (min-width: 260px) {
   .sw-bar svg { display: block; }
 }
-.hd--thin .sw-bar { gap: 6px; }
-.hd--thin .sw-bar svg { display: none; }
-.hd--thin .sw-t { font-size: 13.5px; }
-.hd--thin .sw-h { padding: 0 12px; font-size: 12.5px; }
+.hd--compact .sw-bar { gap: 6px; }
+.hd--compact .sw-bar svg { display: none; }
+.hd--compact .sw-t { font-size: 13.5px; }
+.hd--compact .sw-h { padding: 0 12px; font-size: 12.5px; }
 .hd--sheet .sw-t { font-size: 20px; }
 .hd--sheet .sw-h { font-size: 17px; padding: 0 16px; }
 .hd--sheet .sw-bar svg { display: block; width: 17px; height: 17px; }
@@ -40,4 +40,4 @@ button.sw-read:active .sw-bar { scale: 0.98; }
 /* No reading yet: hatched like any absence, with plain words */
 .sw-read:has(.sw-none) .sw-bar { background: var(--hatching), var(--track); }
 .sw-none { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-weight: 600; color: var(--ink-3); }
-.hd--thin .sw-none { font-size: 12.5px; }
+.hd--compact .sw-none { font-size: 12.5px; }

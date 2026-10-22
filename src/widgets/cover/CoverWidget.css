@@ -23,7 +23,7 @@
 .cv-hit { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; touch-action: pan-y; }
 .cv-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 .cv-bar:has(.cv-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
-.hd--thin .cv-lab { left: 4px; padding: 3px 9px; font-size: 12px; }
+.hd--compact .cv-lab { left: 4px; padding: 3px 9px; font-size: 12px; }
 .hd--sheet .cv-lab { left: 6px; padding: 6px 14px; font-size: 14px; }
 
 /* ---------- Open / close control: for covers without a position ---------- */
@@ -53,8 +53,8 @@
 .cv-oc-stop i { width: 9px; height: 9px; border-radius: 2px; background: currentColor; }
 .cv-oc-stop:active { scale: 0.96; }
 .cv-oc-stop:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.hd--thin .cv-oc-v { font-size: 12.5px; }
-.hd--thin .cv-oc-stop { font-size: 12px; }
+.hd--compact .cv-oc-v { font-size: 12.5px; }
+.hd--compact .cv-oc-stop { height: var(--slot-h); font-size: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
   .cv-bar[data-moving] .cv-fab { transition: none; }

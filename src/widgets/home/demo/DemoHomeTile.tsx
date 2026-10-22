@@ -5,19 +5,19 @@ import type { HomeSeedName } from "./home";
 export interface DemoHomeTileProps {
   /** Which example weather to show. */
   weather: HomeSeedName;
-  /** Container width in px. The widget picks its size from this. */
+  /** Container width in px. Width changes anatomy; the selected footprint keeps its height. */
   width?: number;
-  density?: "regular" | "thin";
-  /** Thin only: false hides the control; the row opens the details sheet. */
+  footprint?: "compact" | "standard" | "featured";
+  /** Compact only: false hides the reading; the row opens the detail sheet. */
   showControl?: boolean;
   defaultOpen?: boolean;
 }
 
-export function DemoHomeTile({ weather, width, density, showControl, defaultOpen }: DemoHomeTileProps) {
+export function DemoHomeTile({ weather, width, footprint, showControl, defaultOpen }: DemoHomeTileProps) {
   const s = HOME_SEEDS[weather];
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <HomeTile entity={s.entity} history={s.history} hourly={s.hourly} daily={s.daily} density={density} showControl={showControl} defaultOpen={defaultOpen} />
+      <HomeTile entity={s.entity} history={s.history} hourly={s.hourly} daily={s.daily} footprint={footprint} showControl={showControl} defaultOpen={defaultOpen} />
     </div>
   );
 }

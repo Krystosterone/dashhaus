@@ -23,12 +23,12 @@ const meta = {
   argTypes: {
     alarm: { control: "select", options: ALARMS, description: "Example panel" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"] },
-    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
+    footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
+    showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
     readOnly: { control: "boolean", description: "View only: show the state, with nothing to arm, disarm or type a code into" },
   },
-  args: { alarm: "disarmed", width: SIZES.M, density: "regular" },
+  args: { alarm: "disarmed", width: SIZES.M, footprint: "standard" },
   render: (args) => <DemoTile key={`${args.alarm}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
@@ -50,35 +50,35 @@ export const Unavailable: Story = { args: { alarm: "unavailable" } };
 
 export const AllStates: Story = {
   name: "All states",
-  parameters: { layout: "padded", controls: { include: ["width", "density", "readOnly"] } },
-  render: ({ width, density, readOnly }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "footprint", "readOnly"] } },
+  render: ({ width, footprint, readOnly }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {ALARMS.map((a) => <DemoTile key={a} alarm={a} width={width} density={density} readOnly={readOnly} />)}
+      {ALARMS.map((alarm) => <DemoTile key={alarm} alarm={alarm} width={width} footprint={footprint} readOnly={readOnly} />)}
     </div>
   ),
 };
 
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["alarm", "density", "readOnly"] } },
-  render: ({ alarm, density, readOnly }) => (
+  parameters: { layout: "padded", controls: { include: ["alarm", "footprint", "readOnly"] } },
+  render: ({ alarm, footprint, readOnly }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={`${alarm}-${density}`} alarm={alarm} width={w} density={density} readOnly={readOnly} />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={`${alarm}-${footprint}`} alarm={alarm} width={width} footprint={footprint} readOnly={readOnly} />
         </figure>
       ))}
     </div>
   ),
 };
 
-export const ThinAllStates: Story = {
-  name: "Thin, all states",
+export const CompactAllStates: Story = {
+  name: "Compact, all states",
   parameters: { layout: "padded", controls: { include: ["width", "readOnly"] } },
   args: { width: 380 },
   render: ({ width, readOnly }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {ALARMS.map((a) => <DemoTile key={a} alarm={a} density="thin" readOnly={readOnly} />)}
+      {ALARMS.map((alarm) => <DemoTile key={alarm} alarm={alarm} footprint="compact" readOnly={readOnly} />)}
     </div>
   ),
 };
@@ -86,7 +86,7 @@ export const ThinAllStates: Story = {
 /** For panels Home Assistant can read but not control, like a Ring Alarm without a subscription. */
 export const ViewOnly: Story = { name: "View only (Ring)", args: { alarm: "ring", readOnly: true } };
 export const ViewOnlyAllStates: Story = { ...AllStates, name: "View only, all states", args: { readOnly: true } };
-export const ViewOnlyThin: Story = { ...ThinAllStates, name: "View only, thin", args: { width: 380, readOnly: true } };
+export const ViewOnlyCompact: Story = { ...CompactAllStates, name: "View only, compact", args: { width: 380, readOnly: true } };
 export const ViewOnlySheet: Story = { name: "View only, details sheet", args: { alarm: "ring", readOnly: true, defaultOpen: true } };
 
 export const DetailsSheet: Story = { name: "Details sheet", args: { alarm: "openDoor", defaultOpen: true } };

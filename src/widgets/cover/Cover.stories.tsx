@@ -22,11 +22,11 @@ const meta = {
   argTypes: {
     cover: { control: "select", options: COVERS, description: "Example cover" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"] },
-    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
+    footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
+    showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
-  args: { cover: "curtains", width: SIZES.M, density: "regular" },
+  args: { cover: "curtains", width: SIZES.M, footprint: "standard" },
   render: (args) => <DemoTile key={`${args.cover}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
@@ -42,35 +42,35 @@ export const Unavailable: Story = { args: { cover: "unavailable" } };
 
 export const AllStates: Story = {
   name: "All states",
-  parameters: { layout: "padded", controls: { include: ["width", "density"] } },
-  render: ({ width, density }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {COVERS.map((c) => <DemoTile key={c} cover={c} width={width} density={density} />)}
+      {COVERS.map((cover) => <DemoTile key={cover} cover={cover} width={width} footprint={footprint} />)}
     </div>
   ),
 };
 
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["cover", "density"] } },
-  render: ({ cover, density }) => (
+  parameters: { layout: "padded", controls: { include: ["cover", "footprint"] } },
+  render: ({ cover, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={`${cover}-${density}`} cover={cover} width={w} density={density} />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={`${cover}-${footprint}`} cover={cover} width={width} footprint={footprint} />
         </figure>
       ))}
     </div>
   ),
 };
 
-export const ThinAllStates: Story = {
-  name: "Thin, all states",
+export const CompactAllStates: Story = {
+  name: "Compact, all states",
   parameters: { layout: "padded", controls: { include: ["width"] } },
   args: { width: 360 },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {COVERS.map((c) => <DemoTile key={c} cover={c} density="thin" />)}
+      {COVERS.map((cover) => <DemoTile key={cover} cover={cover} footprint="compact" />)}
     </div>
   ),
 };

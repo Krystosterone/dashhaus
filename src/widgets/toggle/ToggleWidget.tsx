@@ -1,10 +1,8 @@
 import { useId } from "react";
-import type { KeyboardEvent } from "react";
-import { useLongPress } from "../../shared/useLongPress";
 import type { ToggleEntity, ToggleHistory, DurationOption } from "./types";
 import { ToggleIconSvg } from "./icons";
 import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { ColorProp } from "../../shared/ui";
+import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./ToggleWidget.css";
 
 /** Default ways to turn a mode on: for a while, until morning, or until turned off. */
@@ -17,15 +15,14 @@ export const DEFAULT_DURATIONS: DurationOption[] = [
 
 export interface ToggleWidgetProps {
   entity: ToggleEntity;
-  /** Shown at L size and in the sheet. */
+  /** Shown in the featured footprint and in the sheet. */
   history?: ToggleHistory;
   variant?: "card" | "sheet";
-  /** "mini": a 64px tile that is itself the switch, for grids of modes. */
-  density?: "regular" | "thin" | "mini";
+  /** Shared card footprint. */
+  footprint?: WidgetFootprint;
   /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
+   * the detail sheet. The orb keeps its tap and hold actions. Default true.
    */
   showControl?: boolean;
   /** Sheet: ways to turn it on. Omit `onTurnOnFor` to hide them. */
@@ -42,72 +39,32 @@ export interface ToggleWidgetProps {
 
 /**
  * A mode you switch on and off: Do Not Disturb, Quiet, Guest. One input_boolean or switch.
- * The orb and the pill both toggle; the pill is hatched when off and filled with the mode's tone when on,
- * and says when it ends. The sheet turns it on for a while. Same sizes and fixed heights as every widget.
+ * It uses the same card anatomy and footprint matrix as every other widget.
  */
-export function ToggleWidget(props: ToggleWidgetProps) {
-  if (props.density === "mini" && props.variant !== "sheet") return <MiniToggle {...props} />;
-  return <ToggleCard {...props} />;
-}
-
-/**
- * Mini: a 64px tile that is itself the switch, like a control-centre tile. Tap anywhere to switch;
- * on is charcoal (the house colour for "on" that isn't energy), with the colour slot on the disc if one is set.
- * Press and hold, the arrow (from 220px wide), or Shift+F10 / the context-menu key open the details sheet.
- */
-function MiniToggle({ entity: e, onToggle, onOpenDetails, color }: ToggleWidgetProps) {
-  const uid = useId();
-  const unav = e.state === "unavailable";
-  const on = e.state === "on";
-  const colors = paint("state", 0, null, color ?? e.color);
-  const lp = useLongPress(onOpenDetails);
-  const state = unav ? "Unavailable" : on ? (e.until ? `On · until ${e.until}` : "On") : "Off";
-  const onKeyDown = (ev: KeyboardEvent) => {
-    if (onOpenDetails && (ev.key === "ContextMenu" || (ev.shiftKey && ev.key === "F10"))) { ev.preventDefault(); onOpenDetails(); }
-  };
-  return (
-    <article className="hd tw hd--mini" data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
-      <button
-        type="button" className="tw-mini" aria-pressed={on} aria-disabled={unav || undefined} aria-describedby={`${uid}-s`}
-        data-holding={lp.holding || undefined}
-        {...lp.handlers}
-        onKeyDown={onKeyDown}
-        onClick={() => { if (lp.consumeLongPress()) return; if (!unav) onToggle(); }}
-      >
-        <span className="tw-mini-o" aria-hidden="true"><ToggleIconSvg icon={e.icon} /></span>
-        <span className="tw-mini-t">
-          <span className="tw-mini-n" id={`${uid}-n`} title={e.name}>{e.name}</span>
-          <span className="tw-mini-s" id={`${uid}-s`}>{state}</span>
-        </span>
-      </button>
-      {onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
-    </article>
-  );
-}
-
-function ToggleCard({ entity: e, history, variant = "card", density = "regular", showControl = true, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleWidgetProps) {
+export function ToggleWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A mode is a state, not energy: on is charcoal and there is no glow. A colour only if one was chosen.
   const colors = paint("state", 0, null, color ?? e.color);
 
   const ends = on ? (e.until ? `Until ${e.until}` : e.lastChanged ? `Since ${e.lastChanged}` : "On") : null;
-  // Where it applies; when it ends takes its place at S and in thin rows, where the pill has no room to say so.
+  // Where it applies; when it ends takes its place in compact cards, where the pill has no room to say so.
   const status = unav ? "Not responding" : on && e.until
     ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{e.area ?? "On"}</span></>
     : e.area ?? (on ? "On" : "Off");
   const valueText = unav ? "Unavailable" : on ? (e.until ? `On until ${e.until}` : "On") : "Off";
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
-  // In place of the control the status line already says until when: just on or off.
+  // The status line already says until when: the replacement value can stay short.
   const valText = unav ? "Unavailable" : on ? "On" : "Off";
   return (
-    <article className={`hd tw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd tw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={e.name} pressed={on} unavailable={unav} intensity={0.7} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           <ToggleIconSvg icon={e.icon} />
@@ -115,7 +72,7 @@ function ToggleCard({ entity: e, history, variant = "card", density = "regular",
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{sheet && e.area ? `${e.area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
-          {thin && <p className="hd-sub">{subText}</p>}
+          {compact && <p className="hd-sub">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>
         {sheet
@@ -162,7 +119,7 @@ function ToggleCard({ entity: e, history, variant = "card", density = "regular",
   );
 }
 
-export interface ToggleSheetProps extends Omit<ToggleWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface ToggleSheetProps extends Omit<ToggleWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

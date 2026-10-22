@@ -8,23 +8,26 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hw-scene .sc { display: block; width: 100%; height: 100%; }
 
 @container hd (min-width: 260px) {
-  .hw:not(.hd--thin):not(.hd--sheet) {
+  .hw:not(.hd--compact):not(.hd--sheet) {
     --scene-w: clamp(104px, 34cqi, 150px);
     padding-left: calc(var(--scene-w) + var(--pad));
   }
-  .hw:not(.hd--thin):not(.hd--sheet) .hw-scene {
+  .hw:not(.hd--compact):not(.hd--sheet) .hw-scene {
     display: block; position: absolute; left: 6px; top: 8px; bottom: 8px; width: var(--scene-w);
     transition: scale var(--press) var(--ease-out);
   }
-  .hw:not(.hd--thin):not(.hd--sheet) button.hw-scene:active { scale: 0.98; }
+  .hw:not(.hd--compact):not(.hd--sheet) button.hw-scene:active { scale: 0.98; }
   /* The house is the identity: no badge beside it. The condition icon moves into the status line. */
-  .hw:not(.hd--thin):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title open"; min-height: 44px; }
-  .hw:not(.hd--thin):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
-  .hw:not(.hd--thin):not(.hd--sheet) .hw-st-i { display: inline-block; }
+  .hw:not(.hd--compact):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title open"; min-height: 44px; }
+  .hw:not(.hd--compact):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
+  .hw:not(.hd--compact):not(.hd--sheet) .hw-st-i { display: inline-block; }
+}
+.hw.hd--featured:not(.hd--sheet) .hd-head {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "title num open";
 }
 @container hd (min-width: 440px) {
-  .hw:not(.hd--thin):not(.hd--sheet) { --scene-w: clamp(150px, 34cqi, 210px); }
-  .hw:not(.hd--thin):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "title num open"; }
+  .hw.hd--featured { --scene-w: clamp(150px, 34cqi, 210px); }
 }
 .hd--sheet.hw .hw-scene { display: block; height: 170px; }
 .hd--sheet.hw .hd-head > .hd-orb { display: none; }
@@ -60,14 +63,12 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hw-st-i { display: none; width: 15px; height: 15px; margin-right: 5px; vertical-align: -3px; }
 .hw-st-i svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .hw-st-n { display: none; }
-/* S, M and thin: a coming change replaces the condition (the icon still tells it at M). */
+/* Standard and compact: a coming change replaces the condition. */
 .hw[data-change] .hw-st-l { display: none; }
 .hw[data-change] .hw-st-n { display: inline; }
-/* L and the sheet: the condition stays; the change moves to the today strip, beside its hours. */
-@container hd (min-width: 440px) {
-  .hw[data-change]:not(.hd--thin) .hw-st-l { display: inline; }
-  .hw[data-change]:not(.hd--thin) .hw-st-n { display: none; }
-}
+/* Featured and sheet: condition stays; the change moves to the Today strip. */
+.hw.hd--featured[data-change] .hw-st-l { display: inline; }
+.hw.hd--featured[data-change] .hw-st-n { display: none; }
 .hd--sheet.hw[data-change] .hw-st-l { display: inline; }
 .hd--sheet.hw[data-change] .hw-st-n { display: none; }
 
@@ -97,8 +98,8 @@ button.hw-read:active .hw-tr { scale: 0.98; }
   background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--tick), 0 1px 3px oklch(0.2 0.02 80 / 0.25);
   color: var(--ink); font-size: 14px; font-weight: 700;
 }
-.hd--thin .hw-tr { --kn: 50px; font-size: 12px; }
-.hd--thin .hw-tr-k { font-size: 12.5px; }
+.hd--compact .hw-tr { --kn: 50px; font-size: 12px; }
+.hd--compact .hw-tr-k { font-size: 12.5px; }
 .hd--sheet .hw-tr { --kn: 64px; font-size: 14px; }
 .hd--sheet .hw-tr-k { font-size: 16px; }
 

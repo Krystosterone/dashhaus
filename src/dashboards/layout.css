@@ -1,11 +1,11 @@
-/* Dashboard layout: a page of sections, each a grid of widgets. Widgets size themselves from their cell. */
+/* Dashboard layout: an optional page header, section/column helpers, and a standalone widget grid. */
 .dash { box-sizing: border-box; display: grid; gap: 22px; align-content: start; padding: 22px 16px 32px; color: var(--ink); font-family: var(--font); }
 .dash *, .dash *::before, .dash *::after { box-sizing: border-box; }
 .dash-cols { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--gap, 20px); align-items: start; }
 .dash-sec { display: grid; gap: 10px; align-content: start; min-width: 0; }
 .dash-sec-h { margin: 0; padding-inline: 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 15px; font-weight: 600; }
 .dash-sec-h small { font-size: 13px; font-weight: 500; color: var(--ink-2); }
-.dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--gap, 10px); align-items: start; }
+.dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--gap, 8px); align-items: start; }
 .dash-cell { min-width: 0; }
 /* One column: a stacked section reads top-down, so the first glowing card glows full and later ones
    are damped — the glow budget scales with composition, not just entity state. */

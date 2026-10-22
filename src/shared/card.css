@@ -1,5 +1,7 @@
 /* Shared card system. Every widget is an .hd card inside an .hd-c size container.
-   Size comes from the container width: S < 260px, M 260-439px, L >= 440px.
+   All dashboard items share one spacing system and a modular footprint: compact = 60px, standard = 128px,
+   and featured = 264px. The 8px rhythm also separates bundle members, so every standalone card and bundle
+   lands on the same vertical grid.
    Colour: --accent is the one brand accent (tokens.css), for energy. A widget declares its role with
    data-role: "energy" (on = accent), "state" (on = charcoal) or "reading" (neutral). Its own colour,
    if any, goes in --color-c/--color-h with data-color, and is painted on the orb only. --hd-glow (0-1)
@@ -8,7 +10,14 @@
    Motion: only transform, opacity and clip-path animate; presses answer in 160ms; nothing animates
    on keyboard input or while a finger drags (the value follows the finger directly). */
 
-.hd-c { container: hd / inline-size; min-width: 0; }
+.hd-c {
+  --hd-unit: 60px;
+  --hd-gap: 8px;
+  --hd-standard: 128px;
+  --hd-featured: 264px;
+  container: hd / inline-size;
+  min-width: 0;
+}
 
 .hd {
   --accent: oklch(var(--accent-l) var(--brand-c) var(--brand-h));
@@ -17,20 +26,21 @@
   --o-c: var(--brand-c);
   --o-h: var(--brand-h);
   --color: oklch(var(--accent-l) var(--o-c) var(--o-h));
-  --pad: clamp(14px, 4.8cqi, 22px);
-  /* The spacing scale: inline padding inside pills, and the inset of round controls inside pills.
-     Widgets derive these, so S/M/L, thin, mini and the sheet stay in step. */
+  --pad: 16px;
+  /* Every footprint derives controls from one spacing scale. */
   --pad-in: 16px;
   --inset: 4px;
-  --slot-h: 42px;
+  --slot-h: 44px;
   --hatching: repeating-linear-gradient(-45deg, var(--hatch) 0 1.2px, transparent 1.2px 6px);
   box-sizing: border-box;
   display: grid;
-  gap: 14px;
+  grid-template-rows: minmax(0, 1fr) var(--slot-h);
+  gap: var(--hd-gap);
+  height: var(--hd-standard);
   padding: var(--pad);
   position: relative;
   isolation: isolate;
-  border-radius: clamp(22px, 7cqi, 30px);
+  border-radius: 24px;
   background: var(--card);
   backdrop-filter: blur(22px) saturate(1.15);
   -webkit-backdrop-filter: blur(22px) saturate(1.15);
@@ -51,8 +61,8 @@
   transition: opacity 300ms var(--ease-out);
 }
 .hd *, .hd *::before, .hd *::after { box-sizing: border-box; }
-/* Quiet densities (thin, mini) show energy in their controls, not a glow. */
-.hd--thin::before, .hd--mini::before { opacity: 0; }
+/* Compact cards are quiet: energy stays in their controls instead of adding glow. */
+.hd--compact::before { opacity: 0; }
 /* Controls are not text: no selection or callout on long-press, no double-tap-zoom delay. */
 .hd :is(button, [role="button"], input), .hd-sheet :is(button, input) {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
@@ -62,10 +72,13 @@
 
 /* Header */
 .hd-head {
-  display: grid; align-items: center;
+  display: grid;
+  align-items: center;
+  align-content: center;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas: "orb . open" "title title title";
-  column-gap: 12px; row-gap: 10px;
+  column-gap: 12px;
+  row-gap: 8px;
 }
 .hd-head > .hd-orb { grid-area: orb; }
 .hd-title { grid-area: title; min-width: 0; }
@@ -78,7 +91,7 @@
 .hd-sub { display: none; }
 /* A missing area keeps its line, so cards with and without one stay the same height. */
 .hd-area:empty::before { content: "\00a0"; }
-.hd--thin .hd-area:empty { display: none; }
+.hd--compact .hd-area:empty { display: none; }
 
 /* Circle button (details, close) */
 .hd-circ { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -3px -4px -3px 0; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 50%; }
@@ -108,16 +121,15 @@
 /* On, but not energy (a mode, a door left open): charcoal, no bloom. Unless the widget has its own colour. */
 .hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
 .hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
-/* Thin rows are quiet: the colour slot stays on the regular card and the sheet. Their on-orb uses the
-   role tone as if there were no colour: accent for energy, charcoal for state, with no bloom. */
-.hd--thin .hd-orb-i { transition: background-color 200ms var(--ease-out), scale var(--press) var(--ease-out); }
-.hd--thin[data-role="energy"] .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
-.hd--thin[data-role="energy"] .hd-orb[aria-pressed="true"] .hd-orb-i {
+/* Compact cards stay quiet: the colour slot remains on standard/featured cards and sheets. */
+.hd--compact .hd-orb-i { transition: background-color 200ms var(--ease-out), scale var(--press) var(--ease-out); }
+.hd--compact[data-role="energy"] .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
+.hd--compact[data-role="energy"] .hd-orb[aria-pressed="true"] .hd-orb-i {
   background: var(--accent);
   box-shadow: none;
 }
-.hd--thin[data-color][data-role="state"] .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
-.hd--thin[data-color][data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
+.hd--compact[data-color][data-role="state"] .hd-orb[aria-pressed="true"] { color: var(--inv-fg); }
+.hd--compact[data-color][data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--inv-bg); box-shadow: none; }
 .hd-orb[aria-disabled="true"] { cursor: default; color: var(--ink-3); }
 .hd-orb[aria-disabled="true"] .hd-orb-i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; }
 .hd-orb:focus-visible { outline: none; }
@@ -182,68 +194,92 @@
 .hd-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .hd-info { padding-top: 12px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
 
-/* Sizes */
+/* Footprints. Width adapts anatomy, never height or semantic prominence:
+   compact = one unit; standard = two units; featured = four units. */
+@container hd (max-width: 259px) {
+  /* A narrow standard card keeps its full control and details action. The duplicate orb yields so the
+     title remains identifiable inside the same two-unit height. */
+  .hd:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hd-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "title open";
+    column-gap: 8px;
+    row-gap: 0;
+  }
+  .hd:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
+}
 @container hd (min-width: 260px) {
-  .hd { --slot-h: 46px; }
   .hd-head { grid-template-areas: "orb title open"; row-gap: 0; }
   .hd-unav-t, .hd-pill-x { display: inline; }
 }
-@container hd (min-width: 440px) {
-  .hd-head { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "orb title num open"; }
-  .hd-num { display: block; }
-  .hd-tl { display: grid; }
-}
 
-/* Thin density: one 56px pill row. The header's children and the slot share one grid row,
-   so slots line up in a column when thin rows are stacked. */
-.hd--thin {
-  --pad: 6px;
+.hd--featured {
+  height: var(--hd-featured);
+  grid-template-rows: var(--slot-h) var(--slot-h) minmax(0, 1fr);
+}
+.hd--featured .hd-head {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "orb title num open";
+  row-gap: 0;
+}
+.hd--featured .hd-num { display: block; }
+.hd--featured .hd-tl { display: grid; }
+
+/* Compact footprint: one 60px row. Header children and the slot share the row, so mixed widgets align. */
+.hd--compact {
+  --pad: 8px;
   --pad-in: 12px;
-  --slot-h: 36px;
+  --slot-h: 44px;
   grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  grid-template-rows: none;
   grid-template-areas: "orb title slot open";
   align-items: center;
   column-gap: 10px;
   row-gap: 0;
-  min-height: 56px;
-  padding: 6px 8px 6px 6px;
+  height: var(--hd-unit);
+  padding: 8px 10px 8px 8px;
   border-radius: 999px;
 }
-.hd--thin .hd-head { display: contents; }
-.hd--thin .hd-head > .hd-orb { grid-area: orb; }
-.hd--thin .hd-title { grid-area: title; }
-.hd--thin .hd-head > .hd-circ { grid-area: open; margin: 0 -2px; width: 44px; height: 44px; }
-.hd--thin .hd-name { font-size: 15px; }
-.hd--thin .hd-area, .hd--thin .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
-.hd--thin .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
-.hd--thin .hd-pill, .hd--thin .hd-unav { font-size: 13px; }
-.hd--thin .hd-unav-t, .hd--thin .hd-pill-x, .hd--thin .hd-num, .hd--thin .hd-tl { display: none; }
-/* Thin with the control hidden (showControl={false}): the value as text where the control was, and the
-   whole row opens the details sheet. The arrow's hit area stretches over the row; the orb sits above it,
-   so it still switches on tap and opens on hold. Pressing the row presses the arrow. */
+.hd--compact .hd-head { display: contents; }
+.hd--compact .hd-head > .hd-orb { grid-area: orb; }
+.hd--compact .hd-title { grid-area: title; }
+.hd--compact .hd-head > .hd-circ { grid-area: open; margin: 0 -2px; width: 44px; height: 44px; }
+.hd--compact .hd-name { font-size: 15px; }
+.hd--compact .hd-area, .hd--compact .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
+.hd--compact .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
+.hd--compact .hd-pill, .hd--compact .hd-unav { font-size: 13px; }
+.hd--compact .hd-unav-t, .hd--compact .hd-pill-x, .hd--compact .hd-num, .hd--compact .hd-tl { display: none; }
+/* With the control hidden, the value replaces it and the details action covers the row. */
 .hd-val {
   margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;
   font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums;
 }
-.hd--thin[data-control="off"] .hd-slot { width: auto; max-width: 48cqi; justify-items: end; }
-.hd--thin[data-control="off"]:is([data-state="off"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
-.hd--thin[data-control="off"] .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
-.hd--thin[data-control="off"] { cursor: pointer; }
-.hd--thin[data-control="off"] .hd-head > .hd-orb { position: relative; z-index: 1; }
-@media (hover: hover) and (pointer: fine) { .hd--thin[data-control="off"]:has(> .hd-head > .hd-circ:hover) .hd-circ-i { background: var(--card-solid); } }
-/* Under 320px the inline control is hidden, so the row body shares the arrow's details action. */
+.hd--compact[data-control="off"] .hd-slot { width: auto; max-width: 48cqi; justify-items: end; }
+.hd--compact[data-control="off"]:is([data-state="off"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
+.hd--compact[data-control="off"] .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
+.hd--compact[data-control="off"] { cursor: pointer; }
+.hd--compact[data-control="off"] .hd-head > .hd-orb { position: relative; z-index: 1; }
+@media (hover: hover) and (pointer: fine) { .hd--compact[data-control="off"]:has(> .hd-head > .hd-circ:hover) .hd-circ-i { background: var(--card-solid); } }
+/* Under 320px the inline control yields to the compact value line. */
 @container hd (max-width: 319px) {
-  .hd--thin { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "orb title open"; column-gap: 8px; }
-  .hd--thin .hd-slot, .hd--thin .hd-area { display: none; }
-  .hd--thin .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .hd--thin[data-state="unavailable"] .hd-sub, .hd--thin[data-state="off"] .hd-sub { color: var(--ink-3); }
-  .hd--thin .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
-  .hd--thin:has(> .hd-head > .hd-circ) { cursor: pointer; }
-  .hd--thin .hd-head > .hd-orb { position: relative; z-index: 1; }
+  .hd--compact { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "orb title open"; column-gap: 8px; }
+  .hd--compact .hd-slot, .hd--compact .hd-area { display: none; }
+  .hd--compact .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hd--compact[data-state="unavailable"] .hd-sub, .hd--compact[data-state="off"] .hd-sub { color: var(--ink-3); }
+  .hd--compact .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
+  .hd--compact:has(> .hd-head > .hd-circ) { cursor: pointer; }
+  .hd--compact .hd-head > .hd-orb { position: relative; z-index: 1; }
 }
 
-/* Sheet variant: everything, one column */
-.hd--sheet { --slot-h: 52px; background: var(--card-solid); backdrop-filter: none; -webkit-backdrop-filter: none; gap: 20px; }
+/* Sheet variant: unconstrained height, everything in one column. */
+.hd--sheet {
+  --slot-h: 52px;
+  height: auto;
+  grid-template-rows: none;
+  background: var(--card-solid);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  gap: 20px;
+}
 .hd--sheet .hd-head { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "orb title num open"; row-gap: 0; }
 .hd--sheet .hd-num { display: block; font-size: 40px; }
 .hd--sheet .hd-area { white-space: normal; }

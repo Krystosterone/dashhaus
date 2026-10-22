@@ -2,7 +2,7 @@ import "./styles/tokens.css";
 
 // Shared
 export { Orb, CircleButton, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./shared/ui";
-export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role } from "./shared/ui";
+export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, WidgetFootprint } from "./shared/ui";
 export { useLongPress } from "./shared/useLongPress";
 export { useTrack, trackPos } from "./shared/useTrack";
 export { useNow } from "./shared/useNow";
@@ -91,4 +91,5 @@ export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
 
 // Dashboard layout
-export { DashboardPage, Section, Columns, Cell } from "./dashboards/layout";
+export { DashboardPage, Section, Columns, WidgetGrid, Cell } from "./dashboards/layout";
+export type { DashboardPageProps } from "./dashboards/layout";

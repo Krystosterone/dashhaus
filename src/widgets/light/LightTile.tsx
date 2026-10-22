@@ -8,12 +8,12 @@ export interface LightTileProps extends Omit<LightWidgetProps, "variant" | "onOp
 }
 
 /** A dashboard-ready light: the card in its size container, plus its detail sheet. */
-export function LightTile({ defaultOpen = false, density, ...props }: LightTileProps) {
+export function LightTile({ defaultOpen = false, footprint, ...props }: LightTileProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <>
       <div className="hd-c">
-        <LightWidget {...props} density={density} onOpenDetails={() => setOpen(true)} />
+        <LightWidget {...props} footprint={footprint} onOpenDetails={() => setOpen(true)} />
       </div>
       <LightSheet {...props} open={open} onClose={() => setOpen(false)} />
     </>

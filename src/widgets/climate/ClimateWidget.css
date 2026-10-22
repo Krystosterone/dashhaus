@@ -28,8 +28,8 @@
 @container hd (min-width: 260px) {
   .cw-step-k { display: inline; }
 }
-.hd--thin .cw-step-k { display: none; }
-.hd--thin .cw-step-v { gap: 4px; font-size: 13.5px; }
+.hd--compact .cw-step-k { display: none; }
+.hd--compact .cw-step-v { gap: 4px; font-size: 13.5px; }
 .hd--sheet .cw-step-v { font-size: 18px; }
 .hd--sheet .cw-step-k { display: inline; }
 
@@ -72,7 +72,7 @@
 .cw-rb:has(> .cw-rb-open:active) { scale: 0.98; }
 .cw-rb-open:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-/* Handles drag from M up; at S and in thin rows the bar shows one readout and opens details */
+/* Handles drag from M up; at S and in compact cards the bar shows one readout and opens details */
 .cw-rb-in, .cw-rb-hit, .cw-rb-k { display: none; }
 .cw-rb-lab { display: flex; }
 @container hd (min-width: 260px) {
@@ -80,10 +80,10 @@
   .cw-rb-k { display: grid; }
   .cw-rb-open, .cw-rb-lab { display: none; }
 }
-.hd--thin .cw-rb-in, .hd--thin .cw-rb-hit, .hd--thin .cw-rb-k { display: none; }
-.hd--thin .cw-rb-open { display: block; }
-.hd--thin .cw-rb-lab { display: flex; }
-.hd--thin .cw-rb-lab > span { font-size: 12px; padding: 3px 9px; }
+.hd--compact .cw-rb-in, .hd--compact .cw-rb-hit, .hd--compact .cw-rb-k { display: none; }
+.hd--compact .cw-rb-open { display: block; }
+.hd--compact .cw-rb-lab { display: flex; }
+.hd--compact .cw-rb-lab > span { font-size: 12px; padding: 3px 9px; }
 .hd--sheet .cw-rb { --kn: 56px; }
 .hd--sheet .cw-rb-k { font-size: 15px; }
 

@@ -20,12 +20,12 @@ const meta = {
   argTypes: {
     sensor: { control: "select", options: [...SENSORS, "bedroom"], description: "Example sensor" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"] },
-    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
+    footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
+    showControl: { control: "boolean", description: "Compact only: show the reading in the row (off: the row opens details)" },
     name: { control: "text" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
-  args: { sensor: "living", width: SIZES.M, density: "regular" },
+  args: { sensor: "living", width: SIZES.M, footprint: "standard" },
   render: (args) => <DemoTile key={`${args.sensor}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
@@ -41,34 +41,34 @@ export const Unavailable: Story = { args: { sensor: "garage" } };
 
 export const AllStates: Story = {
   name: "All states",
-  parameters: { layout: "padded", controls: { include: ["width", "density"] } },
-  render: ({ width, density }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {SENSORS.map((s) => <DemoTile key={s} sensor={s} width={width} density={density} />)}
+      {SENSORS.map((sensor) => <DemoTile key={sensor} sensor={sensor} width={width} footprint={footprint} />)}
     </div>
   ),
 };
 
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["sensor", "density"] } },
-  render: ({ sensor, density }) => (
+  parameters: { layout: "padded", controls: { include: ["sensor", "footprint"] } },
+  render: ({ sensor, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={`${sensor}-${density}`} sensor={sensor} width={w} density={density} />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={`${sensor}-${footprint}`} sensor={sensor} width={width} footprint={footprint} />
         </figure>
       ))}
     </div>
   ),
 };
 
-export const ThinAllStates: Story = {
-  name: "Thin, all states",
+export const CompactAllStates: Story = {
+  name: "Compact, all states",
   parameters: { layout: "padded", controls: { include: ["width"] } },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {SENSORS.map((s) => <DemoTile key={s} sensor={s} density="thin" />)}
+      {SENSORS.map((sensor) => <DemoTile key={sensor} sensor={sensor} footprint="compact" />)}
     </div>
   ),
 };

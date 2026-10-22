@@ -8,23 +8,23 @@ import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile"
 import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
 
-/** Every widget's thin row, with its control and without. */
+/** Every widget's compact row, with its control and without. */
 function Rows({ showControl, width }: { showControl: boolean; width: number }) {
   const rows: ReactNode[] = [
-    <Light key="l1" light="dimmable" density="thin" showControl={showControl} />,
-    <Light key="l2" light="dimmableOff" density="thin" showControl={showControl} />,
-    <Light key="l3" light="onOff" density="thin" showControl={showControl} />,
-    <Climate key="c1" unit="heating" density="thin" showControl={showControl} />,
-    <Climate key="c2" unit="range" density="thin" showControl={showControl} />,
-    <Cover key="v1" cover="curtains" density="thin" showControl={showControl} />,
-    <Cover key="v2" cover="garage" density="thin" showControl={showControl} />,
-    <Toggle key="t1" mode="dnd" density="thin" showControl={showControl} />,
-    <Toggle key="t2" mode="quiet" density="thin" showControl={showControl} />,
-    <Alarm key="a1" alarm="away" density="thin" showControl={showControl} />,
-    <Alarm key="a2" alarm="triggered" density="thin" showControl={showControl} />,
-    <Sensor key="s1" sensor="living" density="thin" showControl={showControl} />,
-    <Home key="h1" weather="partly" density="thin" showControl={showControl} />,
-    <Light key="l4" light="unavailable" density="thin" showControl={showControl} />,
+    <Light key="l1" light="dimmable" footprint="compact" showControl={showControl} />,
+    <Light key="l2" light="dimmableOff" footprint="compact" showControl={showControl} />,
+    <Light key="l3" light="onOff" footprint="compact" showControl={showControl} />,
+    <Climate key="c1" unit="heating" footprint="compact" showControl={showControl} />,
+    <Climate key="c2" unit="range" footprint="compact" showControl={showControl} />,
+    <Cover key="v1" cover="curtains" footprint="compact" showControl={showControl} />,
+    <Cover key="v2" cover="garage" footprint="compact" showControl={showControl} />,
+    <Toggle key="t1" mode="dnd" footprint="compact" showControl={showControl} />,
+    <Toggle key="t2" mode="quiet" footprint="compact" showControl={showControl} />,
+    <Alarm key="a1" alarm="away" footprint="compact" showControl={showControl} />,
+    <Alarm key="a2" alarm="triggered" footprint="compact" showControl={showControl} />,
+    <Sensor key="s1" sensor="living" footprint="compact" showControl={showControl} />,
+    <Home key="h1" weather="partly" footprint="compact" showControl={showControl} />,
+    <Light key="l4" light="unavailable" footprint="compact" showControl={showControl} />,
   ];
   return <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>{rows}</div>;
 }
@@ -43,11 +43,11 @@ function Compare({ width }: { width: number }) {
 }
 
 const meta = {
-  title: "Foundations/Thin rows",
+  title: "Foundations/Compact rows",
   component: Compare,
   parameters: {
     layout: "padded",
-    docs: { description: { component: "Every thin row can hide its control (showControl={false}): the value shows as text in its place, and the whole row opens the details sheet. The orb still switches on tap and opens on hold." } },
+    docs: { description: { component: "Every 60px compact card can hide its control (showControl={false}): the value replaces it and the row opens details. All widget types keep the same anatomy and rhythm." } },
   },
   argTypes: { width: { control: { type: "range", min: 240, max: 560, step: 2 } } },
   args: { width: 380 },

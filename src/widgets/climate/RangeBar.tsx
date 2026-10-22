@@ -10,8 +10,8 @@ import { fmtTarget } from "./modes";
  * Left of the low handle (apricot): heats below. Right of the high handle (blue): cools above.
  * The neutral band between is where the unit rests. A tick marks the room temperature.
  * Each handle shows its own value.
- * From M size up you tap or drag anywhere on the bar: the nearest handle follows, and when the handles overlap
- * the first move (or the side tapped) decides which one. At S and in thin rows the bar opens the details sheet instead.
+ * At widths of 260px and up you tap or drag anywhere on the bar: the nearest handle follows. When handles
+ * overlap, the first move (or tapped side) decides which one. Below 260px and in compact cards it opens details.
  */
 export function RangeBar({ id, name, low, high, current, modeCue, min, max, step, onChange, onOpen }: {
   id: string; name: string; low: number; high: number; current?: number; modeCue?: ReactNode;
@@ -56,7 +56,7 @@ export function RangeBar({ id, name, low, high, current, modeCue, min, max, step
       <div className="cw-rb-zone cw-rb-zone--heat" />
       <div className="cw-rb-zone cw-rb-zone--cool" />
       {current != null && <i className="cw-rb-cur" aria-hidden="true" />}
-      {/* S and thin: one readout. M and up: each handle carries its own value. */}
+      {/* Narrow and compact: one readout. Wider standard/featured cards: values ride the handles. */}
       <span className="cw-rb-lab" aria-hidden="true"><span>{modeCue && <span className="cw-control-mode">{modeCue}</span>}{low === high ? fmtTarget(low) : `${fmtTarget(low)}–${fmtTarget(high)}`}°</span></span>
       <div className="cw-rb-rail" aria-hidden="true">
         <div className="cw-rb-at cw-rb-at--lo"><i className="cw-rb-k cw-rb-k--lo">{fmtTarget(low)}°</i></div>

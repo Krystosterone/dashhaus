@@ -13,9 +13,8 @@ const meta = {
     docs: {
       description: {
         component:
-          "Several widgets sharing one card. Joined: equal members side by side, no header (two modes that belong together). " +
-          "Lead and rows: one widget stays fully itself and the others sit below it as thin rows; its sheet lists them too. " +
-          "Members are ordinary tiles and behave exactly as on their own: tap, hold for their sheet.",
+          "Several widgets sharing one modular card. Joined forces equal compact members; lead bundles force one standard lead and compact rows. " +
+          "Members can be any widget type and retain their own tap, hold and detail-sheet behavior.",
       },
     },
   },

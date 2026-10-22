@@ -20,11 +20,11 @@ const meta = {
   argTypes: {
     unit: { control: "select", options: [...UNITS], description: "Example climate entity" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"] },
-    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
+    footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
+    showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
-  args: { unit: "heating", width: SIZES.M, density: "regular" },
+  args: { unit: "heating", width: SIZES.M, footprint: "standard" },
   render: (args) => <DemoTile key={`${args.unit}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
@@ -40,34 +40,34 @@ export const Unavailable: Story = { args: { unit: "unavailable" } };
 /** Every state at one size. Heights match the light widget's. */
 export const AllStates: Story = {
   name: "All states",
-  parameters: { layout: "padded", controls: { include: ["width", "density"] } },
-  render: ({ width, density }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {UNITS.map((u) => <DemoTile key={u} unit={u} width={width} density={density} />)}
+      {UNITS.map((unit) => <DemoTile key={unit} unit={unit} width={width} footprint={footprint} />)}
     </div>
   ),
 };
 
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["unit", "density"] } },
-  render: ({ unit, density }) => (
+  parameters: { layout: "padded", controls: { include: ["unit", "footprint"] } },
+  render: ({ unit, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={`${unit}-${density}`} unit={unit} width={w} density={density} />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={`${unit}-${footprint}`} unit={unit} width={width} footprint={footprint} />
         </figure>
       ))}
     </div>
   ),
 };
 
-export const ThinAllStates: Story = {
-  name: "Thin, all states",
+export const CompactAllStates: Story = {
+  name: "Compact, all states",
   parameters: { layout: "padded", controls: { include: ["width"] } },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {UNITS.map((u) => <DemoTile key={u} unit={u} density="thin" />)}
+      {UNITS.map((unit) => <DemoTile key={unit} unit={unit} footprint="compact" />)}
     </div>
   ),
 };

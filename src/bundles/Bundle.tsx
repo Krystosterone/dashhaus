@@ -1,19 +1,18 @@
 import { Children, cloneElement, isValidElement } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { SheetExtra } from "../shared/ui";
-import type { Vars } from "../shared/ui";
+import type { Vars, WidgetFootprint } from "../shared/ui";
 import "./Bundle.css";
 
-type Tile = ReactElement<{ density?: string }>;
+type Tile = ReactElement<{ footprint?: WidgetFootprint }>;
 const tiles = (children: ReactNode) => Children.toArray(children).filter(isValidElement) as Tile[];
 
 /**
- * Joined: equal members sharing one card, side by side, with no header. Made for mini toggles
- * (Sleep Mode and Do Not Disturb). Each half works exactly as on its own: tap to switch, hold for its sheet.
- * Where the halves would be too narrow (a bundle under 300px), they stack.
+ * Joined: equal compact members sharing one card. Members can be any widget type; the bundle owns
+ * their footprint so a horizontal bundle is 60px and a stacked bundle follows the 60px + 8px rhythm.
  */
 export function JoinedBundle({ label, children }: { label?: string; children: ReactNode }) {
-  const parts = tiles(children);
+  const parts = tiles(children).map((tile) => cloneElement(tile, { footprint: "compact" }));
   return (
     <div className="hb-c">
       <div className="hb hb--joined" role={label ? "group" : undefined} aria-label={label} data-n={parts.length} style={{ "--n": parts.length } as Vars}>
@@ -24,19 +23,18 @@ export function JoinedBundle({ label, children }: { label?: string; children: Re
 }
 
 /**
- * Lead and rows: one widget stays fully itself (header, name, control); the others sit below it as
- * thin rows in the same card. The lead's history strip moves to its sheet, and its sheet lists the rows
- * too, live. Height: the lead's card plus 56px per row, whatever the state.
- * Rows are any tiles; they're shown thin whatever density they were given.
+ * Lead and rows: a standard widget followed by compact widgets in one card.
+ * The bundle owns every member's footprint, so its total height stays on the shared modular grid.
  */
-export function LeadBundle({ lead, label, sheetTitle = "Also in this bundle", children }: { lead: ReactElement; label?: string; sheetTitle?: string; children: ReactNode }) {
-  const rows = tiles(children).map((t) => cloneElement(t, { density: "thin" }));
+export function LeadBundle({ lead, label, sheetTitle = "Also in this bundle", children }: { lead: Tile; label?: string; sheetTitle?: string; children: ReactNode }) {
+  const leadTile = cloneElement(lead, { footprint: "standard" });
+  const rows = tiles(children).map((tile) => cloneElement(tile, { footprint: "compact" }));
   return (
     <div className="hb-c">
       <div className="hb hb--lead" role={label ? "group" : undefined} aria-label={label}>
         <div className="hb-part hb-lead">
           <SheetExtra.Provider value={{ title: sheetTitle, content: rows.map((r, i) => <div className="hb-part" key={r.key ?? i}>{r}</div>) }}>
-            {lead}
+            {leadTile}
           </SheetExtra.Provider>
         </div>
         {rows.map((r, i) => <div className="hb-part hb-row" key={r.key ?? i}>{r}</div>)}

@@ -7,12 +7,12 @@ export interface CoverTileProps extends Omit<CoverWidgetProps, "variant" | "onOp
 }
 
 /** A dashboard-ready cover: the card in its size container, plus its detail sheet. */
-export function CoverTile({ defaultOpen = false, density, ...props }: CoverTileProps) {
+export function CoverTile({ defaultOpen = false, footprint, ...props }: CoverTileProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <>
       <div className="hd-c">
-        <CoverWidget {...props} density={density} onOpenDetails={() => setOpen(true)} />
+        <CoverWidget {...props} footprint={footprint} onOpenDetails={() => setOpen(true)} />
       </div>
       <CoverSheet {...props} open={open} onClose={() => setOpen(false)} />
     </>

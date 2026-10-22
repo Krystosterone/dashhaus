@@ -3,19 +3,19 @@ import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "./types";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff, IconDrop, TrendIcon } from "./readings";
 import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
-import type { ColorProp } from "../../shared/ui";
+import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./SensorWidget.css";
 
 export interface SensorWidgetProps {
   entity: SensorEntity;
-  /** Shown at L size and in the sheet. */
+  /** Shown in the featured footprint and in the sheet. */
   history?: SensorHistory;
   variant?: "card" | "sheet";
-  density?: "regular" | "thin";
+  /** Shared card footprint. */
+  footprint?: WidgetFootprint;
   /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline reading, shows its value in its place, and makes the row open
+   * the detail sheet. Default true.
    */
   showControl?: boolean;
   /** Card only: the arrow and the readings open the details sheet. */
@@ -29,14 +29,15 @@ const TREND_WORD = { rising: "Rising", falling: "Falling", steady: "Steady" } as
 const LOW_BATTERY = 15;
 
 /**
- * A read-only temperature and humidity sensor. Same sizes and heights as the other widgets.
+ * A read-only temperature and humidity sensor using the shared modular footprint matrix.
  * Its tone follows the temperature; it has no glow because nothing is running.
  */
-export function SensorWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onOpenDetails, onClose, color }: SensorWidgetProps) {
+export function SensorWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onOpenDetails, onClose, color }: SensorWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const t = unav ? undefined : e.temperature;
   const h = unav ? undefined : e.humidity;
@@ -58,7 +59,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
     batteryText,
     sheet && e.area && !e.outdoor ? e.area : null,
     e.outdoor ? e.area ?? "Outside" : comfort,
-    trend && !thin && !lowBattery ? TREND_WORD[trend] : null,
+    trend && !compact && !lowBattery ? TREND_WORD[trend] : null,
   ].filter(Boolean);
   const status = parts.map((part, i) => <Fragment key={i}>{i > 0 && " · "}{i === 0 && alertLabel ? <AlertStatus label={alertLabel}>{part}</AlertStatus> : part}</Fragment>);
 
@@ -73,10 +74,10 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
   const tempSeries = history ? normalize(history.temperature) : null;
   const humSeries = history?.humidity ? normalize(history.humidity) : null;
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden reading.
   const subText = unav ? "Unavailable" : batteryText ?? (empty ? "No reading yet" : readout);
   return (
-    <article className={`hd sw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : "ok"} data-alert={lowBattery ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd sw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : "ok"} data-alert={lowBattery ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i">{unav ? <IconThermoOff /> : <IconThermo />}</span>
@@ -84,7 +85,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{status}</p>
-          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
+          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
         {sheet
@@ -130,7 +131,7 @@ export function SensorWidget({ entity: e, history, variant = "card", density = "
   );
 }
 
-export interface SensorSheetProps extends Omit<SensorWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface SensorSheetProps extends Omit<SensorWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

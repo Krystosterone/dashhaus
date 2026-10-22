@@ -1,13 +1,19 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Vars } from "../shared/ui";
 import { HeaderWidget } from "../widgets/header/HeaderWidget";
 import type { HeaderWidgetProps } from "../widgets/header/HeaderWidget";
 import "./layout.css";
 
-/** A dashboard page: the header widget (title, date, optional clock), then sections. */
-export function DashboardPage({ children, ...header }: HeaderWidgetProps & { children: ReactNode }) {
+export interface DashboardPageProps extends HeaderWidgetProps {
+  children: ReactNode;
+  /** Optional host-level layout override, such as removing scroll padding on a fixed wall panel. */
+  style?: CSSProperties;
+}
+
+/** A dashboard page: the header widget (title, date, optional clock), then any composition. */
+export function DashboardPage({ children, style, ...header }: DashboardPageProps) {
   return (
-    <div className="dash">
+    <div className="dash" style={style}>
       <HeaderWidget {...header} />
       {children}
     </div>
@@ -18,6 +24,17 @@ export function DashboardPage({ children, ...header }: HeaderWidgetProps & { chi
 export function Columns({ columns, gap, children }: { columns: number; gap?: number; children: ReactNode }) {
   return <div className="dash-cols" style={{ "--cols": columns, ...(gap ? { "--gap": `${gap}px` } : {}) } as Vars}>{children}</div>;
 }
+/** An ungrouped grid of widgets. Sections use the same primitive, but semantic grouping is optional. */
+export function WidgetGrid({ columns = 1, gap, children }: { columns?: number; gap?: number; children: ReactNode }) {
+  return (
+    <div
+      className={columns === 1 ? "dash-grid dash-grid--1" : "dash-grid"}
+      style={{ "--cols": columns, ...(gap !== undefined ? { "--gap": `${gap}px` } : {}) } as Vars}
+    >
+      {children}
+    </div>
+  );
+}
 
 /** A titled grid of widgets. Each widget sizes itself from its cell's width. */
 export function Section({ title, note, columns = 1, gap, when = true, children }: { title: string; note?: string; columns?: number; gap?: number; when?: boolean; children: ReactNode }) {
@@ -25,7 +42,7 @@ export function Section({ title, note, columns = 1, gap, when = true, children }
   return (
     <section className="dash-sec" aria-label={title}>
       <h2 className="dash-sec-h">{title}{note && <small>{note}</small>}</h2>
-      <div className={columns === 1 ? "dash-grid dash-grid--1" : "dash-grid"} style={{ "--cols": columns, ...(gap ? { "--gap": `${gap}px` } : {}) } as Vars}>{children}</div>
+      <WidgetGrid columns={columns} gap={gap}>{children}</WidgetGrid>
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { TOGGLE_SEEDS, useDemoToggle } from "../../widgets/toggle/demo/useDemoTo
 import { SEEDS as LIGHT_SEEDS, useDemoLight } from "../../widgets/light/demo/useDemoLight";
 import { CLIMATE_SEEDS, useDemoClimate } from "../../widgets/climate/demo/useDemoClimate";
 import type { ToggleSeedName } from "../../widgets/toggle/demo/useDemoToggle";
+import type { WidgetFootprint } from "../../shared/ui";
 
 export type BundleName = "sleep" | "nightLight" | "upstairs" | "stressJoined" | "stressLead";
 
@@ -28,15 +29,17 @@ export function DemoBundle({ bundle, width, defaultOpen }: DemoBundleProps) {
 
 type Open = { defaultOpen?: boolean };
 
-const T = ({ seed, density, defaultOpen }: { seed: ToggleSeedName; density: "mini" | "thin" | "regular" } & Open) =>
-  <ToggleTile {...useDemoToggle(TOGGLE_SEEDS[seed])} density={density} defaultOpen={defaultOpen} />;
+type TProps = { seed: ToggleSeedName; footprint?: WidgetFootprint } & Open;
+
+const T = ({ seed, footprint, defaultOpen }: TProps) =>
+  <ToggleTile {...useDemoToggle(TOGGLE_SEEDS[seed])} footprint={footprint} defaultOpen={defaultOpen} />;
 
 /** Nova Sleep Mode and Do Not Disturb: two modes that belong together, no header. */
 function Sleep() {
   return (
     <JoinedBundle label="Sleep">
-      <T key="a" seed="novaSleep" density="mini" />
-      <T key="b" seed="dnd" density="mini" />
+      <T key="a" seed="novaSleep" />
+      <T key="b" seed="dnd" />
     </JoinedBundle>
   );
 }
@@ -66,7 +69,7 @@ function StressJoined() {
   const names: ToggleSeedName[] = ["novaSleep", "unavailable", "guest"];
   return (
     <JoinedBundle label="Stress">
-      {names.map((n) => <T key={n} seed={n} density="mini" />)}
+      {names.map((name) => <T key={name} seed={name} />)}
     </JoinedBundle>
   );
 }

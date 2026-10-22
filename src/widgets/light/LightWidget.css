@@ -9,7 +9,7 @@
 .lw-bar-lit .lw-bar-lab { color: var(--on-accent); }
 .lw-bar[data-lit="false"] .lw-bar-lit { opacity: 0; }
 .lw-bar:has(.lw-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
-.hd--thin .lw-bar-lab { font-size: 13px; }
+.hd--compact .lw-bar-lab { font-size: 13px; }
 
 /* Pointer input: a hit layer that takes taps and sideways drags anywhere on the track, and leaves
    vertical swipes to the page. (A native range input on iOS only moves when you grab its thumb.) */

@@ -5,20 +5,21 @@ import { CONDITION_LABEL, SKY, ConditionIcon, nextChange, compass, toKmh, aqiBan
 import type { Sky } from "./conditions";
 import { Scene } from "./Scene";
 import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
-import type { Vars, HourSample, ColorProp } from "../../shared/ui";
+import type { Vars, HourSample, ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./HomeWidget.css";
 
 export interface HomeWidgetProps {
   entity: WeatherEntity;
+  /** Shown in the featured footprint and in the sheet. */
   history?: WeatherHistory;
   hourly?: HourlyForecast[];
   daily?: DailyForecast[];
   variant?: "card" | "sheet";
-  density?: "regular" | "thin";
+  /** Shared card footprint. */
+  footprint?: WidgetFootprint;
   /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline reading, shows its value in its place, and makes the row open
+   * the detail sheet. Default true.
    */
   showControl?: boolean;
   /** Card only: the house, the today bar and the arrow open the details sheet. */
@@ -82,16 +83,15 @@ function Stat({ label, value, sub, warn }: { label: string; value: ReactNode; su
 }
 
 /**
- * The home's outdoor conditions, beside the house. Read-only, like the sensor widget, and built from the
- * same parts: a status line, one bar, the today strip, a sheet of chip-shaped readings.
- * S and thin: condition badge, status, today bar. M: the house on the left. L: adds the big temperature
- * and today's hours (forecast hours lighter). Glow = sunshine; windows lit = night.
+ * The home's outdoor conditions. Standard adds the house scene; featured also adds the large temperature
+ * and Today strip. Compact uses the same one-row anatomy as every other widget.
  */
-export function HomeWidget({ entity: e, history, hourly, daily, variant = "card", density = "regular", showControl = true, onOpenDetails, onClose, color }: HomeWidgetProps) {
+export function HomeWidget({ entity: e, history, hourly, daily, variant = "card", footprint = "standard", showControl = true, onOpenDetails, onClose, color }: HomeWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const cond = unav ? null : (e.state as Condition);
   const daylight = cond === "clear-night" || e.isDay === false ? "night" : e.isDay === true ? "day" : "unknown";
@@ -124,8 +124,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   const warningSummary = warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0] ?? null;
   const alertLabel = warningText ? `Warning: ${e.name}: ${warnings.join(", ")}` : null;
 
-  // Status: the condition, or the next dry/wet change when one is coming. At L and in the sheet the
-  // change moves to the today strip, beside the hours it's about.
+  // In the featured footprint and sheet, the change moves to the Today strip beside its hours.
   const status = (
     <>
       {alertLabel && <><AlertStatus label={alertLabel}>{warningText}</AlertStatus>{" · "}</>}
@@ -159,13 +158,13 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
 
   const scene = <Scene night={night} daylightUnknown={daylightUnknown} off={unav} />;
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden reading.
   const subText = unav ? "Unavailable" : warningSummary ?? [t != null ? `${fmt1(t)}°` : null, change ?? label].filter(Boolean).join(" · ");
-  // In place of the control the status line already says the condition or the coming change: just the temperature.
+  // The status line already says the condition or coming change: the replacement value is just temperature.
   const valText = unav ? "Unavailable" : t != null ? `${fmt1(t)}°` : label;
   return (
     <article
-      className={`hd hw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined}
+      className={`hd hw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined}
       data-state={unav ? "unavailable" : "ok"} data-daylight={daylight} data-change={change ? "" : undefined} data-alert={warnings.length ? "warn" : undefined}
       {...colors} aria-labelledby={`${uid}-n`}
     >
@@ -180,7 +179,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area hw-st">{status}</p>
-          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
+          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
         {sheet
@@ -196,19 +195,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
 
       {sheet && <div className="hw-scene">{scene}</div>}
 
-      <div
-        className="hd-slot"
-        onClick={bare ? onOpenDetails : undefined}
-        onKeyDown={bare && onOpenDetails ? (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onOpenDetails();
-          }
-        } : undefined}
-        role={bare && onOpenDetails ? "button" : undefined}
-        tabIndex={bare && onOpenDetails ? 0 : undefined}
-        aria-label={bare && onOpenDetails ? `${e.name} weather details` : undefined}
-      >{bare ? <p className="hd-val">{valText}</p> : slot}</div>
+      <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>
 
       {sheet && !unav && (
         <div className="hd-extra">
@@ -254,7 +241,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   );
 }
 
-export interface HomeSheetProps extends Omit<HomeWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface HomeSheetProps extends Omit<HomeWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

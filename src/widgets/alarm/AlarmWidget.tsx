@@ -3,6 +3,7 @@ import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types"
 import { ShieldIcon, MODE_LABEL } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
 import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
+import type { WidgetFootprint } from "../../shared/ui";
 import "./AlarmWidget.css";
 
 /** What an arm or disarm call answers: false is a wrong code; anything else is accepted. */
@@ -10,13 +11,14 @@ export type AlarmResult = boolean | void | Promise<boolean | void>;
 
 export interface AlarmWidgetProps {
   entity: AlarmEntity;
+  /** Shown in the featured footprint and in the sheet. */
   history?: AlarmHistory;
   variant?: "card" | "sheet";
-  density?: "regular" | "thin";
+  /** Shared card footprint. */
+  footprint?: WidgetFootprint;
   /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
+   * the detail sheet. Default true.
    */
   showControl?: boolean;
   /**
@@ -63,11 +65,12 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
  * keypad in the sheet; the badge only shows status, so a stray tap never arms or disarms.
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */
-export function AlarmWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmWidgetProps) {
+export function AlarmWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const armedMode = ARMED[e.state];
   const urgentState = e.state === "pending" || e.state === "triggered";
@@ -127,11 +130,11 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
 
   const promptFor = (a: AlarmAction) => (a.kind === "disarm" ? `Enter the code to ${e.state === "arming" ? "cancel arming" : "disarm"}` : `Enter the code to arm ${MODE_LABEL[a.mode].toLowerCase()}`);
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden control.
   const subText = warningText ?? word;
   return (
     <article
-      className={`hd al${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined}
+      className={`hd al${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined}
       data-state={e.state} data-armed={armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined} data-alert={alertLabel ? "warn" : undefined}
       {...colors} aria-labelledby={`${uid}-n`}
     >
@@ -142,7 +145,7 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{status}</p>
-          {thin && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
+          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{word}</p>
         {sheet
@@ -191,7 +194,7 @@ export function AlarmWidget({ entity: e, history, variant = "card", density = "r
 
 const listOf = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
-export interface AlarmSheetProps extends Omit<AlarmWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface AlarmSheetProps extends Omit<AlarmWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

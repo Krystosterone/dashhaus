@@ -3,21 +3,20 @@ import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
 import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase, orderedRange } from "./modes";
 import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { ColorProp } from "../../shared/ui";
+import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateWidget.css";
 
 export interface ClimateWidgetProps {
   entity: ClimateEntity;
-  /** Shown at L size and in the sheet. Omit to hide the Today strip. */
+  /** Shown in the featured footprint and in the sheet. Omit to hide the Today strip. */
   history?: ClimateHistory;
   variant?: "card" | "sheet";
-  /** Card only. "thin" puts everything in one 56px row. */
-  density?: "regular" | "thin";
+  /** Shared card footprint. */
+  footprint?: WidgetFootprint;
   /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
+   * the detail sheet. The orb keeps its tap and hold actions. Default true.
    */
   showControl?: boolean;
   /** Orb and Off pill: turn off, or back on to the last mode. */
@@ -53,14 +52,15 @@ function Stepper({ label, kicker, modeCue, value, min, max, step, onChange }: { 
 }
 
 /**
- * One climate entity. Same sizes and fixed heights as the light widget, so they share a grid.
+ * One climate entity. It shares the modular footprint matrix with every dashboard widget.
  * The orb switches it off and back on; the slot sets the target; the sheet holds modes, presets and fan.
  */
-export function ClimateWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateWidgetProps) {
+export function ClimateWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const mode: HvacMode = unav ? "off" : (e.state as HvacMode);
   const on = !unav && mode !== "off";
@@ -74,9 +74,9 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
   const cur = e.currentTemperature;
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;
   const single = !range && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
-  const statusParts = [cur != null ? `${fmtCurrent(cur)}°${thin ? "" : " now"}` : null, unav ? "Not responding" : ACTION_LABEL[action]].filter(Boolean);
+  const statusParts = [cur != null ? `${fmtCurrent(cur)}°${compact ? "" : " now"}` : null, unav ? "Not responding" : ACTION_LABEL[action]].filter(Boolean);
   const status = statusParts.join(" · ");
-  const modePrefix = thin && on ? `${MODE_META[mode].label} · ` : "";
+  const modePrefix = compact && on ? `${MODE_META[mode].label} · ` : "";
   const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : MODE_META[mode].label;
   const kicker = mode === "heat" ? "Heat to" : mode === "cool" ? "Cool to" : "Keep at";
   // HA heat_cool requires target_temp_low <= target_temp_high.
@@ -89,31 +89,31 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
   else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} extra="Turn on">Off</TogglePill>;
   else if (range) {
-    slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={thin ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
+    slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={compact ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
   } else if (single) {
-    slot = <Stepper label={`${e.name} target temperature`} kicker={thin ? undefined : kicker} modeCue={thin ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
+    slot = <Stepper label={`${e.name} target temperature`} kicker={compact ? undefined : kicker} modeCue={compact ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
   } else {
     slot = <TogglePill label={`${e.name}: ${MODE_META[mode].label}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
   }
 
   const summary = !history ? "" : unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden control.
   const subText = cur != null && !unav ? `${fmtCurrent(cur)}° · ${setText}` : setText;
-  // In place of the control the status line already gives the room temperature: just the setpoint.
+  // The status line already gives the room temperature: the replacement value is just the setpoint.
   const valText = setText;
   return (
-    <article className={`hd cw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd cw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={`${e.name}, ${on ? MODE_META[mode].label : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          {thin
+          {compact
             ? <ThermostatIcon />
             : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />}
         </Orb>
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area">{sheet && e.area ? `${e.area} · ${status}` : status}</p>
-          {thin && <p className="hd-sub">{subText}</p>}
+          {compact && <p className="hd-sub">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
         {sheet
@@ -156,7 +156,7 @@ export function ClimateWidget({ entity: e, history, variant = "card", density = 
   );
 }
 
-export interface ClimateSheetProps extends Omit<ClimateWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface ClimateSheetProps extends Omit<ClimateWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

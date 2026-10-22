@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { LightEntity, LightHistory } from "./types";
 import { kelvinToLch, K_MIN, K_MAX } from "./kelvin";
 import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { ColorProp } from "../../shared/ui";
+import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, QUICK_LEVELS } from "./parts";
 import "./LightWidget.css";
 
@@ -12,16 +12,11 @@ export interface LightWidgetProps {
   history?: LightHistory;
   /** "card" sits on the dashboard; "sheet" is the detail view with everything visible. */
   variant?: "card" | "sheet";
+  /** Card footprint. Standard is 128px; compact is 60px; featured is 264px at every width. */
+  footprint?: WidgetFootprint;
   /**
-   * Card only. "regular" stacks the header over the control strip.
-   * "thin" puts everything in one 56px pill-shaped row; below 320px the control strip
-   * gives way to a text readout and the bulb and details sheet remain.
-   */
-  density?: "regular" | "thin";
-  /**
-   * Thin only. false: no control in the row (no pill, bar, stepper or switch); the value shows as text in
-   * its place and tapping the row opens the details sheet, where every control is. The orb still switches
-   * and holds as usual. Default true.
+   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
+   * the detail sheet. The orb keeps its tap and hold actions. Default true.
    */
   showControl?: boolean;
   onToggle: () => void;
@@ -36,14 +31,14 @@ export interface LightWidgetProps {
 }
 
 /**
- * One light entity. Its height depends only on the container width, never on state or entity type:
- * S under 260px, M 260-439px, L 440px and up (adds a large readout and today's history).
+ * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
-export function LightWidget({ entity: e, history, variant = "card", density = "regular", showControl = true, onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose, color }: LightWidgetProps) {
+export function LightWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose, color }: LightWidgetProps) {
   const uid = useId();
   const sheet = variant === "sheet";
-  const thin = !sheet && density === "thin";
-  const bare = thin && !showControl;
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const hasBrightness = e.supportsBrightness && e.brightness != null;
@@ -57,10 +52,10 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
   const readout = unav ? null : !on ? "Off" : hasBrightness ? <>{pct}<span>%</span></> : "On";
   const valueText = unav ? "Unavailable" : !on ? "Off" : hasBrightness ? `${pct}%` : "On";
 
-  // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
+  // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
   return (
-    <article className={`hd lw${sheet ? " hd--sheet" : ""}${thin ? " hd--thin" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
+    <article className={`hd lw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
       <header className="hd-head">
         <Orb label={e.name} pressed={on} unavailable={unav} intensity={intensity} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           {unav ? <IconBulbOff /> : <IconBulb />}
@@ -68,7 +63,7 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
         <div className="hd-title">
           <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
           <p className="hd-area" title={e.area}>{e.area}</p>
-          {thin && <p className="hd-sub">{subText}</p>}
+          {compact && <p className="hd-sub">{subText}</p>}
         </div>
         <p className="hd-num" aria-hidden="true">{readout}</p>
         {sheet
@@ -117,7 +112,7 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
   );
 }
 
-export interface LightSheetProps extends Omit<LightWidgetProps, "variant" | "density" | "onOpenDetails" | "onClose"> {
+export interface LightSheetProps extends Omit<LightWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
   open: boolean;
   onClose: () => void;
 }

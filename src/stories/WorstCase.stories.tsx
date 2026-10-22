@@ -1,3 +1,4 @@
+import type { WidgetFootprint } from "../shared/ui";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
@@ -162,39 +163,45 @@ const ALARMS: Record<"demo" | "worst", AlarmSeed[]> = {
   ],
 };
 
-function Alarm({ seed, thin }: { seed: AlarmSeed; thin?: boolean }) {
+function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: WidgetFootprint }) {
   const demo = useDemoAlarm(seed);
-  return <AlarmTile {...demo} density={thin ? "thin" : "regular"} />;
+  return <AlarmTile {...demo} footprint={footprint} />;
 }
 
-function Cover({ seed, thin }: { seed: CoverSeed; thin?: boolean }) {
+function Cover({ seed, footprint }: { seed: CoverSeed; footprint: WidgetFootprint }) {
   const demo = useDemoCover(seed);
-  return <CoverTile {...demo} density={thin ? "thin" : "regular"} />;
+  return <CoverTile {...demo} footprint={footprint} />;
 }
 
-function Toggle({ seed, thin }: { seed: ToggleSeed; thin?: boolean }) {
+function Toggle({ seed, footprint }: { seed: ToggleSeed; footprint: WidgetFootprint }) {
   const demo = useDemoToggle(seed);
-  return <ToggleTile {...demo} density={thin ? "thin" : "regular"} />;
+  return <ToggleTile {...demo} footprint={footprint} />;
 }
 
-/** The widths a widget really meets: S in a phone grid, M, L, and a thin row in a narrow column. */
-const WIDTHS: { w: number; thin?: boolean }[] = [{ w: 170 }, { w: 320 }, { w: 480 }, { w: 300, thin: true }];
+/** Width and footprint are independent: wide standard stays standard; featured is always explicit. */
+const CASES: { width: number; footprint: WidgetFootprint }[] = [
+  { width: 170, footprint: "standard" },
+  { width: 320, footprint: "standard" },
+  { width: 480, footprint: "standard" },
+  { width: 320, footprint: "featured" },
+  { width: 300, footprint: "compact" },
+];
 
-function Row({ children }: { children: (w: number, thin?: boolean) => ReactNode }) {
+function Row({ children }: { children: (footprint: WidgetFootprint) => ReactNode }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 12 }}>
-      {WIDTHS.map(({ w, thin }, i) => <div key={i} style={{ width: w, maxWidth: "100%" }}>{children(w, thin)}</div>)}
+      {CASES.map(({ width, footprint }) => <div key={`${width}-${footprint}`} style={{ width, maxWidth: "100%" }}>{children(footprint)}</div>)}
     </div>
   );
 }
 
-function Light({ seed, thin }: { seed: DemoSeed; thin?: boolean }) {
+function Light({ seed, footprint }: { seed: DemoSeed; footprint: WidgetFootprint }) {
   const demo = useDemoLight(seed);
-  return <LightTile {...demo} density={thin ? "thin" : "regular"} />;
+  return <LightTile {...demo} footprint={footprint} />;
 }
-function Climate({ seed, thin }: { seed: ClimateSeed; thin?: boolean }) {
+function Climate({ seed, footprint }: { seed: ClimateSeed; footprint: WidgetFootprint }) {
   const demo = useDemoClimate(seed);
-  return <ClimateTile {...demo} density={thin ? "thin" : "regular"} />;
+  return <ClimateTile {...demo} footprint={footprint} />;
 }
 
 /** Dev-only chrome: plain, out of the way, switching is instant. */
@@ -215,13 +222,13 @@ function WorstCasePage() {
   const [data, setData] = useState<"demo" | "worst">("worst");
   return (
     <div key={data} style={{ display: "grid", gap: 12, paddingBottom: 72 }}>
-      {LIGHTS[data].map((s, i) => <Row key={`l${i}`}>{(_, thin) => <Light seed={s} thin={thin} />}</Row>)}
-      {CLIMATES[data].map((s, i) => <Row key={`c${i}`}>{(_, thin) => <Climate seed={s} thin={thin} />}</Row>)}
-      {HOMES[data].map((s, i) => <Row key={`h${i}`}>{(_, thin) => <HomeTile entity={s.entity} history={s.history} hourly={s.hourly} daily={s.daily} density={thin ? "thin" : "regular"} />}</Row>)}
-      {ALARMS[data].map((s, i) => <Row key={`a${i}`}>{(_, thin) => <Alarm seed={s} thin={thin} />}</Row>)}
-      {COVERS[data].map((s, i) => <Row key={`v${i}`}>{(_, thin) => <Cover seed={s} thin={thin} />}</Row>)}
-      {TOGGLES[data].map((s, i) => <Row key={`t${i}`}>{(_, thin) => <Toggle seed={s} thin={thin} />}</Row>)}
-      {SENSORS[data].map((s, i) => <Row key={`s${i}`}>{(_, thin) => <SensorTile entity={s.entity} history={s.history} density={thin ? "thin" : "regular"} />}</Row>)}
+      {LIGHTS[data].map((seed, index) => <Row key={`l${index}`}>{(footprint) => <Light seed={seed} footprint={footprint} />}</Row>)}
+      {CLIMATES[data].map((seed, index) => <Row key={`c${index}`}>{(footprint) => <Climate seed={seed} footprint={footprint} />}</Row>)}
+      {HOMES[data].map((seed, index) => <Row key={`h${index}`}>{(footprint) => <HomeTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />}</Row>)}
+      {ALARMS[data].map((seed, index) => <Row key={`a${index}`}>{(footprint) => <Alarm seed={seed} footprint={footprint} />}</Row>)}
+      {COVERS[data].map((seed, index) => <Row key={`v${index}`}>{(footprint) => <Cover seed={seed} footprint={footprint} />}</Row>)}
+      {TOGGLES[data].map((seed, index) => <Row key={`t${index}`}>{(footprint) => <Toggle seed={seed} footprint={footprint} />}</Row>)}
+      {SENSORS[data].map((seed, index) => <Row key={`s${index}`}>{(footprint) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} />}</Row>)}
       <DataToggle value={data} onChange={setData} />
     </div>
   );
@@ -234,5 +241,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every widget against realistic worst-case data at S, M, L and thin. Flip to Demo data to compare. */
+/** Every widget against realistic worst-case data at narrow/wide standard, featured, and compact footprints. */
 export const AllWidgets: Story = { render: () => <WorstCasePage /> };

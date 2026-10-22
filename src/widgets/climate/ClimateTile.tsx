@@ -7,12 +7,12 @@ export interface ClimateTileProps extends Omit<ClimateWidgetProps, "variant" | "
 }
 
 /** A dashboard-ready climate entity: the card in its size container, plus its detail sheet. */
-export function ClimateTile({ defaultOpen = false, density, ...props }: ClimateTileProps) {
+export function ClimateTile({ defaultOpen = false, footprint, ...props }: ClimateTileProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <>
       <div className="hd-c">
-        <ClimateWidget {...props} density={density} onOpenDetails={() => setOpen(true)} />
+        <ClimateWidget {...props} footprint={footprint} onOpenDetails={() => setOpen(true)} />
       </div>
       <ClimateSheet {...props} open={open} onClose={() => setOpen(false)} />
     </>

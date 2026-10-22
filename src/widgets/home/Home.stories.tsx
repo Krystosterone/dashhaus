@@ -14,19 +14,19 @@ const meta = {
         component:
           "The home's outdoor conditions, beside the house drawn as a white architectural model. Built from the same parts as the other widgets: " +
           "the glow is the sunshine, the icon is the condition, the bar runs from today's low to today's high (cold to warm) with now on the knob. " +
-          "A coming dry/wet change replaces the condition in the status line; poor air and strong gusts show as warnings. " +
-          "L adds the big temperature and today's hours, forecast hours lighter. The sheet has every reading as tiles and the next days.",
+          "A coming dry/wet change replaces the condition in standard and compact cards; poor air and strong gusts show as warnings. " +
+          "Featured adds the big temperature and today's hours, forecast hours lighter. The sheet has every reading and the next days.",
       },
     },
   },
   argTypes: {
     weather: { control: "select", options: WEATHER, description: "Example weather" },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
-    density: { control: "inline-radio", options: ["regular", "thin"] },
-    showControl: { control: "boolean", description: "Thin only: show the control in the row (off: the row opens the details sheet)" },
+    footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
+    showControl: { control: "boolean", description: "Compact only: show the reading in the row (off: the row opens details)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
-  args: { weather: "partly", width: SIZES.L, density: "regular" },
+  args: { weather: "partly", width: SIZES.L, footprint: "featured" },
   render: (args) => <DemoTile key={`${args.weather}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
@@ -42,35 +42,35 @@ export const Unavailable: Story = { args: { weather: "unavailable" } };
 
 export const AllStates: Story = {
   name: "All states",
-  parameters: { layout: "padded", controls: { include: ["width", "density"] } },
-  render: ({ width, density }) => (
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {WEATHER.map((w) => <DemoTile key={w} weather={w} width={width} density={density} />)}
+      {WEATHER.map((weather) => <DemoTile key={weather} weather={weather} width={width} footprint={footprint} />)}
     </div>
   ),
 };
 
 export const Sizes: Story = {
-  parameters: { layout: "padded", controls: { include: ["weather", "density"] } },
-  render: ({ weather, density }) => (
+  parameters: { layout: "padded", controls: { include: ["weather", "footprint"] } },
+  render: ({ weather, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
+      {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
-          <DemoTile key={`${weather}-${density}`} weather={weather} width={w} density={density} />
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <DemoTile key={`${weather}-${footprint}`} weather={weather} width={width} footprint={footprint} />
         </figure>
       ))}
     </div>
   ),
 };
 
-export const ThinAllStates: Story = {
-  name: "Thin, all states",
+export const CompactAllStates: Story = {
+  name: "Compact, all states",
   parameters: { layout: "padded", controls: { include: ["width"] } },
   args: { width: 360 },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {WEATHER.map((w) => <DemoTile key={w} weather={w} density="thin" />)}
+      {WEATHER.map((weather) => <DemoTile key={weather} weather={weather} footprint="compact" />)}
     </div>
   ),
 };

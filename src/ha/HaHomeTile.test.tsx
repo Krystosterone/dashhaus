@@ -67,7 +67,7 @@ describe("HaHomeTile", () => {
           aqiEntityId="sensor.home_aqi"
           aqiScale="US"
           sunEntityId="sun.sun"
-          density="thin"
+          footprint="compact"
           showControl={false}
         />
       </HaProvider>,

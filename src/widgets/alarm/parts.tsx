@@ -6,7 +6,7 @@ import { ModeIcon, MODE_LABEL } from "./icons";
 /**
  * The mode switch: Off and each arm mode, one segment each. The current one sits on a thumb that slides
  * between segments: charcoal when armed (on or chosen), a plain raised chip when off, on a hatched track
- * (absence: nothing is guarded). Labels from M up; icons only at S and in thin rows.
+ * (absence: nothing is guarded). Labels from 260px up; icons only below 260px and in compact cards.
  */
 export function ModeSwitch({ name, modes, current, onPick }: { name: string; modes: AlarmMode[]; current: AlarmMode | "off"; onPick: (m: AlarmMode | "off") => void }) {
   // Armed in a mode the list leaves out (custom bypass, set from the panel itself): show it rather than "Off".

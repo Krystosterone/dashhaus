@@ -4,48 +4,9 @@
 .tw .hd-num { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
 .hd--sheet.tw .hd-num { font-size: 34px; }
 
-/* Status line: the end time at S and thin, the area once the pill can show the end time itself */
+/* Status line: the end time in compact cards, the area once the pill can show the end time itself. */
 .tw-st-a { display: none; }
 @container hd (min-width: 260px) {
-  .tw:not(.hd--thin) .tw-st-u { display: none; }
-  .tw:not(.hd--thin) .tw-st-a { display: inline; }
+  .tw:not(.hd--compact) .tw-st-u { display: none; }
+  .tw:not(.hd--compact) .tw-st-a { display: inline; }
 }
-
-/* ---------- Mini: a 64px tile that is itself the switch ---------- */
-.hd--mini {
-  grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 4px;
-  height: 64px; padding: 0 8px 0 0; border-radius: 22px;
-  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
-}
-.tw-mini {
-  display: flex; align-items: center; gap: 10px; min-width: 0; height: 100%; padding: 0 4px 0 12px;
-  border: 0; border-radius: inherit; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
-  transition: scale var(--press) var(--ease-out);
-}
-.tw-mini:active { scale: 0.97; }
-.tw-mini[data-holding] { scale: 0.95; transition: scale 450ms linear; }
-.tw-mini:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
-.tw-mini-o { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out); }
-.tw-mini-o svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.tw-mini-t { display: grid; min-width: 0; line-height: 1.25; }
-.tw-mini-n { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tw-mini-s { font-size: 12.5px; font-weight: 500; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-.hd--mini > .hd-circ { margin: 0; width: 40px; }
-/* The arrow only once there is room for the name beside it; below that, press and hold */
-@container hd (max-width: 219px) { .hd--mini > .hd-circ { display: none; } .hd--mini { padding-right: 0; } }
-
-/* On: the whole tile turns charcoal. The colour slot shows on regular cards and in the sheet;
-   mini tiles stay charcoal. */
-.hd--mini[data-state="on"] { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
-.hd--mini[data-state="on"] .tw-mini-s { color: color-mix(in oklab, var(--inv-fg) 72%, transparent); }
-.hd--mini[data-state="on"] .tw-mini-o { background: color-mix(in oklab, var(--inv-fg) 14%, transparent); box-shadow: none; color: var(--inv-fg); }
-.hd--mini[data-state="on"] .hd-circ-i { background: color-mix(in oklab, var(--inv-fg) 12%, transparent); box-shadow: none; color: var(--inv-fg); }
-.hd--mini[data-state="on"] .tw-mini:focus-visible { outline-color: var(--inv-fg); }
-/* Unavailable: hatched, with a dashed disc, and the tile doesn't switch */
-.hd--mini[data-state="unavailable"] { background: var(--hatching), var(--card); }
-.hd--mini[data-state="unavailable"] .tw-mini { cursor: default; }
-.hd--mini[data-state="unavailable"] .tw-mini-o { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; color: var(--ink-3); }
-.hd--mini[data-state="unavailable"] .tw-mini-s { color: var(--ink-3); }
-@media (prefers-reduced-motion: reduce) { .tw-mini { scale: none !important; } }
-/* Two across on a phone: a touch smaller so names like "Do Not Disturb" fit */
-@container hd (max-width: 189px) { .tw-mini { gap: 8px; padding-left: 10px; } .tw-mini-n { font-size: 14px; letter-spacing: -0.015em; } }
