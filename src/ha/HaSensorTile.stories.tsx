@@ -1,0 +1,31 @@
+import { useMemo } from "react";
+import type { Meta, StoryObj } from "@storybook/react";
+import { HaSensorTile } from "./HaSensorTile";
+import { HaProvider } from "./provider";
+import { createHaStore } from "./store";
+import { createDemoSensorHaTransport } from "./demo";
+
+const meta = {
+  title: "Home Assistant/Sensor tile",
+  parameters: { layout: "centered" },
+} satisfies Meta;
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+function DemoConnectedSensor() {
+  const store = useMemo(() => createHaStore(createDemoSensorHaTransport()), []);
+  return (
+    <HaProvider store={store}>
+      <div style={{ width: 420, maxWidth: "90vw" }}>
+        <HaSensorTile
+          entityId="sensor.living_room_temperature"
+          humidityEntityId="sensor.living_room_humidity"
+          batteryEntityId="sensor.living_room_battery"
+        />
+      </div>
+    </HaProvider>
+  );
+}
+
+export const InjectedTransport: Story = { render: () => <DemoConnectedSensor /> };

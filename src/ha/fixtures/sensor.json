@@ -1,0 +1,57 @@
+{
+  "sensor.living_room_temperature": {
+    "entity_id": "sensor.living_room_temperature",
+    "state": "21.4",
+    "attributes": {
+      "friendly_name": "Living room temperature",
+      "device_class": "temperature",
+      "unit_of_measurement": "°C"
+    },
+    "last_changed": "2026-10-19T10:00:00Z",
+    "last_updated": "2026-10-19T10:00:02Z"
+  },
+  "sensor.living_room_humidity": {
+    "entity_id": "sensor.living_room_humidity",
+    "state": "44",
+    "attributes": {
+      "friendly_name": "Living room humidity",
+      "device_class": "humidity",
+      "unit_of_measurement": "%"
+    },
+    "last_changed": "2026-10-19T10:00:00Z",
+    "last_updated": "2026-10-19T10:00:02Z"
+  },
+  "sensor.living_room_battery": {
+    "entity_id": "sensor.living_room_battery",
+    "state": "82",
+    "attributes": {
+      "friendly_name": "Living room battery",
+      "device_class": "battery",
+      "unit_of_measurement": "%"
+    },
+    "last_changed": "2026-10-19T10:00:00Z",
+    "last_updated": "2026-10-19T10:00:02Z"
+  },
+  "sensor.office_temperature": {
+    "entity_id": "sensor.office_temperature",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Office temperature",
+      "device_class": "temperature",
+      "unit_of_measurement": "°C"
+    },
+    "last_changed": "2026-10-19T10:00:00Z",
+    "last_updated": "2026-10-19T10:00:02Z"
+  },
+  "sensor.garage_temperature": {
+    "entity_id": "sensor.garage_temperature",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage temperature",
+      "device_class": "temperature",
+      "unit_of_measurement": "°C"
+    },
+    "last_changed": "2026-10-19T10:00:00Z",
+    "last_updated": "2026-10-19T10:00:02Z"
+  }
+}
