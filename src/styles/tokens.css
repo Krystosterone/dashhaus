@@ -1,8 +1,9 @@
 /* Design tokens. Light values on :root, dark values for system dark mode and for an explicit
    data-theme="dark" on <html>. data-theme="light" forces light.
-   Palette: neutrals everywhere; ONE accent hue for on: solid for energy (lit, running, daylight),
-   soft for on but not energy (a mode, armed, idle, chosen); hatching for absence; warn as text;
-   inverse (--inv-*) for action buttons only, never a state. A widget's own colour only ever goes in its orb. */
+   Palette: neutrals everywhere; ONE accent hue, solid, means on (lit, running, armed, a mode, chosen);
+   a dashed outline means unavailable; warn as text; inverse (--inv-*) for the one urgent action, never a
+   state. Surfaces say what a control does: --btn is raised (tap it), --groove is recessed (slide or set
+   along it). A widget's own colour is opt-in and only ever goes in its orb. */
 :root {
   /* The accent. Swap these two numbers (chroma, hue) to re-colour the whole dashboard;
      lightness comes from the theme. Default: Crextio yellow. */
@@ -19,8 +20,6 @@
   --ink-2: oklch(0.44 0.006 80);
   --ink-3: oklch(0.55 0.006 80);
   --line: oklch(0.22 0.006 80 / 0.1);
-  --track: oklch(1 0 0 / 0.5);
-  --hatch: oklch(0.22 0.006 80 / 0.15);
   --chip: oklch(1 0 0 / 0.72);
   --fill: oklch(0.925 0.008 88);
   --tick: oklch(0.22 0.006 80 / 0.28);
@@ -32,12 +31,13 @@
   --tint-mix: 50%;
   --accent-l: 0.89;
   --accent-strong-l: 0.76;
-  /* Soft on: how much accent mixes into the card, and the strength of its accent ring */
-  --on-mix: 42%;
-  --on-ring-a: 0.85;
   --glow-a: 0.22;
   --shadow: 0 1px 2px oklch(0.3 0.02 80 / 0.05), 0 18px 40px -24px oklch(0.3 0.03 80 / 0.25);
-  --knob-shadow: 0 0 0 1px oklch(0.2 0.01 80 / 0.08), 0 1px 3px oklch(0.2 0.01 80 / 0.2);
+  /* UI language: a button is raised (tap it), a groove is recessed (slide or set along it). */
+  --btn: oklch(0.995 0.003 95);
+  --btn-shadow: inset 0 0 0 1px oklch(0.22 0.006 80 / 0.1), 0 1px 2px oklch(0.3 0.02 80 / 0.12), 0 3px 8px -3px oklch(0.3 0.02 80 / 0.16);
+  --groove: oklch(0.22 0.006 80 / 0.065);
+  --groove-shadow: inset 0 1px 2px oklch(0.22 0.006 80 / 0.1), inset 0 0 0 1px oklch(0.22 0.006 80 / 0.05);
 
   /* Home scene: the house as a white architectural model */
   --scene-wall-a: oklch(0.985 0.004 95);
@@ -82,8 +82,6 @@
     --ink-2: oklch(0.77 0.006 90);
     --ink-3: oklch(0.67 0.006 90);
     --line: oklch(1 0 0 / 0.1);
-    --track: oklch(1 0 0 / 0.06);
-    --hatch: oklch(1 0 0 / 0.12);
     --chip: oklch(1 0 0 / 0.08);
     --fill: oklch(0.32 0.006 85);
     --tick: oklch(1 0 0 / 0.3);
@@ -95,11 +93,12 @@
     --tint-mix: 24%;
     --accent-l: 0.87;
     --accent-strong-l: 0.84;
-    --on-mix: 26%;
-    --on-ring-a: 0.7;
     --glow-a: 0.14;
     --shadow: 0 18px 44px -24px oklch(0 0 0 / 0.7);
-    --knob-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
+    --btn: oklch(0.36 0.006 85);
+    --btn-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08), inset 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px -3px oklch(0 0 0 / 0.5);
+    --groove: oklch(0 0 0 / 0.18);
+    --groove-shadow: inset 0 1px 2px oklch(0 0 0 / 0.3), inset 0 0 0 1px oklch(1 0 0 / 0.08);
     --scene-wall-a: oklch(0.56 0.006 85);
     --scene-wall-b: oklch(0.47 0.006 85);
     --scene-roof-a: oklch(0.4 0.006 85);
@@ -131,8 +130,6 @@
   --ink-2: oklch(0.77 0.006 90);
   --ink-3: oklch(0.67 0.006 90);
   --line: oklch(1 0 0 / 0.1);
-  --track: oklch(1 0 0 / 0.06);
-  --hatch: oklch(1 0 0 / 0.12);
   --chip: oklch(1 0 0 / 0.08);
   --fill: oklch(0.32 0.006 85);
   --tick: oklch(1 0 0 / 0.3);
@@ -144,11 +141,12 @@
   --tint-mix: 24%;
   --accent-l: 0.87;
   --accent-strong-l: 0.84;
-  --on-mix: 26%;
-  --on-ring-a: 0.7;
   --glow-a: 0.14;
   --shadow: 0 18px 44px -24px oklch(0 0 0 / 0.7);
-  --knob-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
+  --btn: oklch(0.36 0.006 85);
+  --btn-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08), inset 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px -3px oklch(0 0 0 / 0.5);
+  --groove: oklch(0 0 0 / 0.18);
+  --groove-shadow: inset 0 1px 2px oklch(0 0 0 / 0.3), inset 0 0 0 1px oklch(1 0 0 / 0.08);
   --scene-wall-a: oklch(0.56 0.006 85);
   --scene-wall-b: oklch(0.47 0.006 85);
   --scene-roof-a: oklch(0.4 0.006 85);

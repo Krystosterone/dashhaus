@@ -1,24 +1,23 @@
 /* Climate-specific parts. Shell, header, orb, pills, today strip, chips and sheet come from src/shared/card.css. */
 
-/* Setpoint stepper: a pill with a minus and a plus at its ends. It only shows while the unit is on:
-   soft accent while idle, the solid accent while running. */
+/* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a
+   state: the orb says the unit is on, the status line whether it is heating, cooling or idle. */
 .cw-step {
   --btn: calc(var(--slot-h) - 2 * var(--inset));
   display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
   height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--on); color: var(--ink); box-shadow: var(--on-ring);
-  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  background: var(--groove); color: var(--ink); box-shadow: var(--groove-shadow);
 }
-.cw[data-state="active"] .cw-step { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .cw-step-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; touch-action: manipulation; }
-.cw-step-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--card-solid); color: var(--ink); box-shadow: 0 1px 2px oklch(0.3 0.03 80 / 0.14); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
+.cw-step-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
 .cw-step-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .cw-step-b:active > span { scale: 0.9; }
 .cw-step-b:disabled { cursor: default; }
-.cw-step-b:disabled > span { opacity: 0.35; }
+/* A disabled button lies flat. */
+.cw-step-b:disabled > span { background: transparent; box-shadow: none; color: var(--ink-3); }
 .cw-step-b:focus-visible { outline: none; }
 .cw-step-b:focus-visible > span { outline: 2px solid var(--ink); outline-offset: 1px; }
-@media (hover: hover) and (pointer: fine) { .cw-step-b:not(:disabled):hover > span { box-shadow: inset 0 0 0 1px var(--line), 0 1px 3px oklch(0.3 0.03 80 / 0.2); } }
+@media (hover: hover) and (pointer: fine) { .cw-step-b:not(:disabled):hover > span { background: color-mix(in oklab, var(--btn) 94%, var(--ink)); } }
 
 .cw-step-v { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .cw-step-v small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
@@ -39,15 +38,14 @@
   --kn: 48px;
   --kh: calc(var(--slot-h) - 2 * var(--inset));
   position: relative; height: var(--slot-h); min-width: 0; border-radius: 99px;
-  /* The band between the thresholds is where the unit rests: hatched, like any absence */
-  background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--groove); box-shadow: var(--groove-shadow);
 }
 /* Zones and handles move with clip-path and transform only, and only animate after a tap-jump. */
 .cw-rb-zone { position: absolute; inset: 0; border-radius: inherit; }
-.cw-rb-zone--heat { background: var(--on); clip-path: inset(0 calc(100% - var(--kn) / 2 - (100% - var(--kn)) * var(--lo)) 0 0); }
-.cw-rb-zone--cool { background: var(--on); clip-path: inset(0 0 0 calc(var(--kn) / 2 + (100% - var(--kn)) * var(--hi))); }
+.cw-rb-zone--heat { clip-path: inset(0 calc(100% - var(--kn) / 2 - (100% - var(--kn)) * var(--lo)) 0 0); }
+.cw-rb-zone--cool { clip-path: inset(0 0 0 calc(var(--kn) / 2 + (100% - var(--kn)) * var(--hi))); }
 .cw-rb-lab { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
-.cw-rb-lab > span { display: flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 99px; background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.2); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+.cw-rb-lab > span { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
 .cw-rb-cur { position: absolute; top: 24%; bottom: 24%; left: calc(var(--kn) / 2 + (100% - var(--kn)) * var(--cur)); width: 2px; translate: -1px 0; border-radius: 1px; background: var(--ink); opacity: 0.45; pointer-events: none; }
 .cw-rb-rail { position: absolute; inset: 0 calc(var(--kn) / 2); pointer-events: none; }
 /* Each handle rides a rail-wide layer parked just left of the rail, its right edge is the handle.
@@ -59,7 +57,7 @@
 .cw-rb-k {
   position: absolute; top: 50%; left: 100%;
   display: grid; place-items: center; width: var(--kn); height: var(--kh); translate: -50% -50%; border-radius: 99px; pointer-events: none;
-  background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--tick), 0 1px 3px oklch(0.2 0.02 80 / 0.25);
+  background: var(--btn); box-shadow: var(--btn-shadow);
   color: var(--ink); font-size: 13.5px; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 
@@ -73,18 +71,23 @@
 .cw-rb:has(> .cw-rb-open:active) { scale: 0.98; }
 .cw-rb-open:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-/* Handles drag from M up; at S and in compact cards the bar shows one readout and opens details */
+/* Handles drag from M up; at S and in compact cards the bar is a button: it shows the range and opens details */
 .cw-rb-in, .cw-rb-hit, .cw-rb-k { display: none; }
 .cw-rb-lab { display: flex; }
+.cw-rb { background: var(--btn); box-shadow: var(--btn-shadow); }
+.cw-rb-zone, .cw-rb-cur { display: none; }
 @container hd (min-width: 260px) {
+  .cw-rb { background: var(--groove); box-shadow: var(--groove-shadow); }
+  .cw-rb-zone, .cw-rb-cur { display: block; }
   .cw-rb-in, .cw-rb-hit { display: block; }
   .cw-rb-k { display: grid; }
   .cw-rb-open, .cw-rb-lab { display: none; }
 }
-.hd--compact .cw-rb-in, .hd--compact .cw-rb-hit, .hd--compact .cw-rb-k { display: none; }
+.hd--compact .cw-rb { background: var(--btn); box-shadow: var(--btn-shadow); }
+.hd--compact .cw-rb-zone, .hd--compact .cw-rb-cur, .hd--compact .cw-rb-in, .hd--compact .cw-rb-hit, .hd--compact .cw-rb-k { display: none; }
 .hd--compact .cw-rb-open { display: block; }
 .hd--compact .cw-rb-lab { display: flex; }
-.hd--compact .cw-rb-lab > span { font-size: 12px; padding: 3px 9px; }
+.hd--compact .cw-rb-lab > span { font-size: 12.5px; }
 .hd--sheet .cw-rb { --kn: 56px; }
 .hd--sheet .cw-rb-k { font-size: 15px; }
 
@@ -96,9 +99,9 @@
 .cw-fine-l span { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .cw-fine-l b { font-size: 17px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-.cw-fine-b { flex: none; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--card-solid); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); cursor: pointer; }
+.cw-fine-b { flex: none; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink); cursor: pointer; }
 .cw-fine-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-.cw-fine-b:disabled { opacity: 0.35; cursor: default; }
+.cw-fine-b:disabled { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default; }
 .cw-fine-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .cw-fine-b { transition: scale var(--press) var(--ease-out); }
@@ -109,7 +112,5 @@
   .cw-rb, .cw-step-b > span, .cw-fine-b { scale: none !important; }
 }
 
-/* Range: both zones are on (soft accent); the one the unit is working in fills with the solid accent (energy)
-   and its handle takes a strong ring */
+/* Range: the zone the unit is working in fills with the accent; the rest is groove. */
 .cw[data-action="heating"] .cw-rb-zone--heat, .cw[data-action="cooling"] .cw-rb-zone--cool { background: var(--accent); }
-.cw[data-action="heating"] .cw-rb-k--lo, .cw[data-action="cooling"] .cw-rb-k--hi { box-shadow: inset 0 0 0 2px var(--accent-strong), 0 1px 3px oklch(0.2 0.02 80 / 0.25); }

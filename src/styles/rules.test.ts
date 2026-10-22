@@ -50,6 +50,23 @@ describe("colour: tokens only", () => {
   });
 });
 
+describe("UI language: one meaning per signal", () => {
+  it("no hatching and no soft accent: off is the plain surface, on is the solid accent", () => {
+    const bad: string[] = [];
+    for (const f of cssFiles) {
+      const body = css(f);
+      if (/repeating-linear-gradient/.test(body)) bad.push(`${f}: hatching (repeating-linear-gradient)`);
+      if (/var\(--(on|on-ring|hatching|hatch|on-mix|on-ring-a)\)/.test(body)) bad.push(`${f}: retired soft-accent or hatching token`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("buttons and grooves come from the shared surface tokens", () => {
+    const t = css("src/styles/tokens.css");
+    for (const name of ["--btn", "--btn-shadow", "--groove", "--groove-shadow"]) expect(t, name).toContain(`${name}:`);
+  });
+});
+
 describe("motion: composite-only, token easing, no viewport sizing", () => {
   const ANIMATABLE: Record<string, true> = { transform: true, translate: true, scale: true, rotate: true, opacity: true, "clip-path": true, "background-color": true, color: true, "box-shadow": true, none: true };
 

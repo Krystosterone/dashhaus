@@ -72,36 +72,22 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hd--sheet.hw[data-change] .hw-st-l { display: inline; }
 .hd--sheet.hw[data-change] .hw-st-n { display: none; }
 
-/* ---------- Today: low to high, now on the knob ---------- */
+/* ---------- Today: now first, then today's range in the muted ink. A readout: no container ---------- */
 .hw-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
 button.hw-read { cursor: pointer; }
 button.hw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hw-tr {
-  --kn: 56px;
-  position: relative; display: flex; align-items: center; justify-content: space-between; min-width: 0;
-  height: var(--slot-h); padding: 0 var(--pad-in); border-radius: 99px;
-  background: var(--fill);
-  box-shadow: inset 0 0 0 1px var(--line);
-  font-size: 13px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap;
+  position: relative; display: flex; align-items: center; min-width: 0; height: var(--slot-h);
+  font-size: 13.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap;
   transition: scale var(--press) var(--ease-out);
 }
 button.hw-read:active .hw-tr { scale: 0.98; }
-/* An end label the knob would cover steps aside (the strip and the sheet still have both) */
-.hw-tr-end { transition: opacity 150ms var(--ease-out); }
-.hw-tr-end[data-hidden] { opacity: 0; }
-.hw-tr-rail { position: absolute; inset: 0 calc(var(--kn) / 2); pointer-events: none; }
-/* Parked left of the rail, slid with transform: its right edge is the knob centre */
-.hw-tr-at { position: absolute; top: 0; bottom: 0; right: 100%; width: 100%; transform: translateX(calc(var(--p) * 100%)); }
-.hw-tr-k {
-  position: absolute; top: 50%; left: 100%; display: grid; place-items: center;
-  width: var(--kn); height: calc(var(--slot-h) - 2 * var(--inset)); translate: -50% -50%; border-radius: 99px;
-  background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--tick), 0 1px 3px oklch(0.2 0.02 80 / 0.25);
-  color: var(--ink); font-size: 14px; font-weight: 700;
-}
-.hd--compact .hw-tr { --kn: 50px; font-size: 12px; }
-.hd--compact .hw-tr-k { font-size: 12.5px; }
-.hd--sheet .hw-tr { --kn: 64px; font-size: 14px; }
-.hd--sheet .hw-tr-k { font-size: 16px; }
+.hw-tr-end + .hw-tr-end::before { content: "\2013"; }
+.hw-tr-k { margin-right: 10px; color: var(--ink); font-size: 20px; font-weight: 700; }
+.hd--compact .hw-tr { justify-content: flex-end; font-size: 12.5px; }
+.hd--compact .hw-tr-k { font-size: 13.5px; }
+.hd--sheet .hw-tr { font-size: 14px; }
+.hd--sheet .hw-tr-k { font-size: 20px; }
 
 /* ---------- Sheet: readings as chip-shaped tiles, and the next days ---------- */
 .hw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }

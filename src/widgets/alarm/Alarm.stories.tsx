@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A security alarm (Home Assistant alarm_control_panel). The slot is the mode switch: Off, Home, Away, Night; armed is the soft accent, off sits on hatching. " +
+          "A security alarm (Home Assistant alarm_control_panel). The slot is the mode switch: Off, Home, Away, Night; the current mode's thumb is the accent when armed and a raised button when off. " +
           "When the code is needed, the sheet opens on a keypad and waits for the panel's answer (demo code: 1234; a physical keyboard works too). Exit and entry delays count down in the slot, " +
           "worked out from the delay length and when the state changed; without a length the slot says what's happening with no timer, " +
           "with Cancel or Disarm; a triggered alarm is the one warn-filled pill. Open doors and windows show as a warning before you arm. " +

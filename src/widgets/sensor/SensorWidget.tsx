@@ -30,7 +30,7 @@ const LOW_BATTERY = 15;
 
 /**
  * A read-only temperature and humidity sensor using the shared modular footprint matrix.
- * Its tone follows the temperature; it has no glow because nothing is running.
+ * A reading: neutral, a bare icon in place of an orb, and no glow because nothing is running.
  */
 export function SensorWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onOpenDetails, onClose, color }: SensorWidgetProps) {
   const uid = useId();

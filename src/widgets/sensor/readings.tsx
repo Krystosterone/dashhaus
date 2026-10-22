@@ -5,15 +5,6 @@ import type { Reading } from "./types";
 /** Tones and comfort bands are in Celsius; convert Fahrenheit readings first. */
 export const toCelsius = (t: number, unit: "°C" | "°F") => (unit === "°F" ? ((t - 32) * 5) / 9 : t);
 
-/** Tone from temperature (°C): blue when cool, the house butter when comfortable, apricot when warm. */
-export function temperatureTone(t: number | undefined, outdoor?: boolean): { c: number; h: number } {
-  if (t == null) return { c: 0.02, h: 80 };
-  if (t < (outdoor ? 10 : 18)) return { c: 0.09, h: 235 };
-  if (t > (outdoor ? 27 : 25)) return { c: 0.13, h: 52 };
-  return { c: 0.11, h: 92 };
-}
-export const HUMIDITY_TONE = "oklch(var(--accent-strong-l) 0.07 215)";
-
 /** Plain-language comfort for indoor sensors, for example "Comfortable" or "Cool, dry". */
 export function comfortLabel(t?: number, h?: number, outdoor?: boolean): string {
   if (outdoor || (t == null && h == null)) return "";

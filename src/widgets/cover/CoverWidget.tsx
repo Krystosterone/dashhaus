@@ -9,7 +9,7 @@ import "./CoverWidget.css";
 const CLASS_LABEL: Record<CoverClass, string> = {
   curtain: "Curtain", blind: "Blind", shade: "Shade", shutter: "Shutter", awning: "Awning", window: "Window", garage: "Garage door", door: "Door", gate: "Gate",
 };
-/** Covers that let a person in, rather than light: open is a state (soft accent), and reads as a warning. */
+/** Covers that let a person in, rather than light: open is a state (the accent orb, no glow), and reads as a warning. */
 const ACCESS = new Set<CoverClass>(["garage", "door", "gate"]);
 
 const QUICK = [

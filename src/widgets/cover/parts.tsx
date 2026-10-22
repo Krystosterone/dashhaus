@@ -8,7 +8,7 @@ const STUB = 14;
 export const snapEnds = (raw: number) => (raw <= 3 ? 0 : raw >= 97 ? 100 : raw);
 
 /**
- * The window, on one bar: daylight is the tone, the fabric is hatching (hatching is absence, here of light).
+ * The window, on one bar: the groove is the fabric, the accent is the daylight let through.
  * Curtains: two panels close in from both ends, and dragging away from the middle pulls them apart.
  * Blinds and shades: one panel covers from the right; drag right to open.
  * Tap jumps (animated); drags follow the finger; the ends are magnetic; while the cover moves, the fabric glides linearly.
@@ -28,9 +28,9 @@ export function PositionBar({ id, label, kind, position, moving, text, onChange 
   });
   return (
     <div className="cv-bar" ref={track.ref} data-kind={kind} data-moving={moving || undefined} style={{ "--p": (pos / 100).toFixed(3) } as Vars}>
-      <span className="cv-fab cv-fab--a" aria-hidden="true" />
-      {kind === "curtain" && <span className="cv-fab cv-fab--b" aria-hidden="true" />}
       <span className="cv-lab" aria-hidden="true">{text}</span>
+      {/* The daylight with its own copy of the label, so the text flips where daylight passes under it. */}
+      <span className="cv-day" aria-hidden="true"><span className="cv-lab">{text}</span></span>
       <div className="cv-hit" aria-hidden="true" {...track.handlers} />
       <input
         id={id} className="cv-in" type="range" min={0} max={100} step={1} value={pos}

@@ -7,11 +7,11 @@ import { fmtTarget } from "./modes";
 /**
  * Heat/cool range on one bar. HA heat_cool: target_temp_low is the heat threshold,
  * target_temp_high the cool threshold, and low <= high always.
- * Left of the low handle (apricot): heats below. Right of the high handle (blue): cools above.
- * The neutral band between is where the unit rests. A tick marks the room temperature.
+ * Left of the low handle: heats below. Right of the high handle: cools above. The zone the unit is
+ * working in fills with the accent; the rest is groove. A tick marks the room temperature.
  * Each handle shows its own value.
  * At widths of 260px and up you tap or drag anywhere on the bar: the nearest handle follows. When handles
- * overlap, the first move (or tapped side) decides which one. Below 260px and in compact cards it opens details.
+ * overlap, the first move (or tapped side) decides which one. Below 260px and in compact cards it is a button that opens details.
  */
 export function RangeBar({ id, name, low, high, current, modeCue, min, max, step, onChange, onOpen }: {
   id: string; name: string; low: number; high: number; current?: number; modeCue?: ReactNode;

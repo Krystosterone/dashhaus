@@ -61,7 +61,7 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
 
 /**
  * A security alarm (one alarm_control_panel). The slot is the mode switch: Off, Home, Away, Night.
- * Armed is the soft accent (on, not energy); off sits on hatching. Anything that needs the code opens the
+ * Armed is the accent, on the badge and the switch's thumb. Anything that needs the code opens the
  * keypad in the sheet; the badge only shows status, so a stray tap never arms or disarms.
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */

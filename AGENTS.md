@@ -19,7 +19,7 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 2. `npm run test-storybook` — every story renders and passes axe; failures name the rule, impact, and elements.
 3. `npm run storybook` — open the affected widget's story, check every width and footprint, and the Demo / Worst case toggle under Foundations.
 
-Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/styles/rules.test.ts` encodes the CSS design rules — colour tokens, compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
+Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
 
 ## Layout
 
@@ -34,6 +34,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 ## Hard rules
 
 - One widget, one entity.
+- One UI language (README → One UI language): a raised `--btn` is tapped, a recessed `--groove` is slid or set, a readout has no container; solid accent is on for every role; a dashed outline is unavailable and nothing else. No hatching, no second strength of accent, no default orb colour.
 - Never use a colour literal in widget CSS. Colours come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
 - A card's height never changes with state or widget type. Height comes from the shared `footprint` matrix plus container width, never the viewport.
 - No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.

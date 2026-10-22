@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { LightEntity, LightHistory } from "./types";
-import { kelvinToLch, K_MIN, K_MAX } from "./kelvin";
+import { kelvinName, K_MIN, K_MAX } from "./kelvin";
 import { Orb, CardTitle, CircleButton, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
 import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, QUICK_LEVELS } from "./parts";
@@ -26,7 +26,7 @@ export interface LightWidgetProps {
   onOpenDetails?: () => void;
   /** Sheet only: the close button calls this. */
   onClose?: () => void;
-  /** The orb's colour. Default: the lamp's colour temperature, when it has one. "none" keeps it the accent. */
+  /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent; warmth is named on the status line. */
   color?: ColorProp;
 }
 
@@ -46,11 +46,14 @@ export function LightWidget({ entity: e, history, variant = "card", footprint = 
   const pct = e.brightness == null ? 100 : Math.min(100, Math.max(1, Math.round(e.brightness)));
   const glow = on ? (hasBrightness ? pct / 100 : 0.85) : 0;
   const intensity = hasBrightness ? pct / 100 : 0.85;
-  // Lit is energy: the bar fills with the accent. The lamp's own colour goes in the orb.
-  const colors = paint("energy", glow, e.supportsColorTemp && e.kelvin ? kelvinToLch(e.kelvin) : null, color);
+  // Lit is energy: the orb and the bar fill with the accent. Warmth is told in words, not by colouring the orb.
+  const colors = paint("energy", glow, null, color);
 
   const readout = unav ? null : !on ? "Off" : hasBrightness ? <>{pct}<span>%</span></> : "On";
   const valueText = unav ? "Unavailable" : !on ? "Off" : hasBrightness ? `${pct}%` : "On";
+
+  // The warmth in words, for the status line of a lit lamp.
+  const warmth = on && e.supportsColorTemp && e.kelvin != null ? kelvinName(e.kelvin) : null;
 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
@@ -61,7 +64,7 @@ export function LightWidget({ entity: e, history, variant = "card", footprint = 
           {unav ? <IconBulbOff /> : <IconBulb />}
         </Orb>
         <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={e.area}>{e.area}</p>
+          <p className="hd-area" title={e.area}>{e.area}{warmth && <span className="lw-k">{e.area ? " · " : ""}{warmth}</span>}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{readout}</p>

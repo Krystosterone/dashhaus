@@ -13,8 +13,8 @@ const meta = {
       description: {
         component:
           "Curtains, blinds, shades and garage doors (Home Assistant covers; position 0 is closed, 100 open). The slot is the window: " +
-          "daylight is the tone, fabric is hatching. Curtains close in from both ends; drag away from the middle to pull them apart. " +
-          "Blinds and shades cover from one side. Covers without a position get Close and Open at the ends of the pill. " +
+          "the groove is the fabric, the accent is the daylight let through. Curtains close in from both ends; drag away from the middle to pull them apart. " +
+          "Blinds and shades cover from one side. Covers without a position get Close and Open buttons at the ends of a groove. " +
           "The orb opens or closes, and becomes Stop while the cover moves. A garage door left open shows as a warning. Same sizes and heights as every widget.",
       },
     },

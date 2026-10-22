@@ -33,7 +33,7 @@ export interface ToggleWidgetProps {
   /** Card only: the name, and press and hold on the orb, open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** The orb's colour. Default: the entity's `color`, else none (on is the soft accent). */
+  /** Opt-in colour for the orb. Default: the entity's `color`, else none (on is the accent). */
   color?: ColorProp;
 }
 
@@ -49,7 +49,7 @@ export function ToggleWidget({ entity: e, history, variant = "card", footprint =
   const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  // A mode is a state, not energy: on is the soft accent and there is no glow. A colour only if one was chosen.
+  // A mode is a state, not energy: on is the accent, with no bloom and no glow. A colour only if one was chosen.
   const colors = paint("state", 0, null, color ?? e.color);
 
   const ends = on ? (e.until ? `Until ${e.until}` : e.lastChanged ? `Since ${e.lastChanged}` : "On") : null;

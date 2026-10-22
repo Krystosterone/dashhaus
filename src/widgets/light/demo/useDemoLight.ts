@@ -31,6 +31,10 @@ export const SEEDS = {
     entity: { entityId: "light.nova_night_light", name: "Night light", area: "Nursery", state: "on", supportsBrightness: true, brightness: 15, supportsColorTemp: true, kelvin: 2200, minKelvin: 2000, maxKelvin: 6500, lastChanged: "10:58" },
     past: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0, 0, 0, 0.15],
   },
+  coolDaylight: {
+    entity: { entityId: "light.office_desk", name: "Desk lamp", area: "Office", state: "on", supportsBrightness: true, brightness: 60, supportsColorTemp: true, kelvin: 6500, lastChanged: "09:05" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0.6],
+  },
   dimmableNoWarmth: {
     entity: { entityId: "light.bedside", name: "Bedside", area: "Bedroom", state: "on", supportsBrightness: true, brightness: 25, lastChanged: "07:02" },
     past: [0, 0, 0, 0, 0, 0, 0.2, 0.25, 0, 0, 0],

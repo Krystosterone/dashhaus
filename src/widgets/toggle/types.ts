@@ -10,7 +10,7 @@ export interface ToggleEntity {
   area?: string;
   state: "on" | "off" | "unavailable";
   icon?: ToggleIcon;
-  /** Optional colour for the orb (the colour slot). Most modes need none: on is the soft accent. */
+  /** Optional colour for the orb (the colour slot). Most modes need none: on is the accent. */
   color?: ColorName;
   /** Local time it switches itself off, when it was turned on for a while ("07:00"). */
   until?: string;

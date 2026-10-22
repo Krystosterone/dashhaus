@@ -5,8 +5,8 @@ import { ModeIcon, MODE_LABEL } from "./icons";
 
 /**
  * The mode switch: Off and each arm mode, one segment each. The current one sits on a thumb that slides
- * between segments: soft accent when armed (on or chosen), a plain raised chip when off, on a hatched track
- * (absence: nothing is guarded). Labels from 260px up; icons only below 260px and in compact cards.
+ * along a groove: the accent when armed (on), a raised button when off.
+ * Labels from 260px up; icons only below 260px and in compact cards.
  */
 export function ModeSwitch({ name, modes, current, onPick }: { name: string; modes: AlarmMode[]; current: AlarmMode | "off"; onPick: (m: AlarmMode | "off") => void }) {
   // Armed in a mode the list leaves out (custom bypass, set from the panel itself): show it rather than "Off".
@@ -58,7 +58,7 @@ const ARMED_AS: Record<AlarmMode, string> = { home: "Armed home", away: "Armed a
 
 /**
  * View-only mode's slot, in place of the mode switch: what the alarm is doing, nothing to press.
- * Armed is the soft accent (on, not energy), disarmed sits on hatching, as on the switch. Who changed it, from M up.
+ * A readout, with no container: the badge says armed. Who changed it, from M up.
  */
 export function AlarmStatus({ mode, by }: { mode: AlarmMode | "off"; by?: string }) {
   const armed = mode !== "off";

@@ -28,6 +28,8 @@ Pass `footprint="compact"` for a single 60 px row: bulb, name and control strip 
 
 Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an off light turns it on), and press and hold the bulb or tap the name for quick levels, warmth, today's history and when it last changed.
 
+The bulb is the accent when lit, whatever its colour temperature; the bar is a groove the light fills. A lit lamp with colour temperature names its warmth on the status line ("Office · Cool daylight") on standard and featured cards; compact rows keep the room alone, and the sheet names it over the warmth ruler, whose warm-to-cool scale is the one place the lamp's colour is drawn.
+
 The connected integration paths are available through `HaProvider` and the `Ha*Tile` containers for every domain (light, climate, sensor, home weather, cover, toggle, alarm); the remaining normalized callback examples below show the parent-side wiring each container replaces.
 
 ```tsx
@@ -57,9 +59,9 @@ import { ClimateTile } from "./src";
 </div>
 ```
 
-The control slot follows the mode: a minus/plus stepper for heat, cool and auto; one range bar for heat/cool; a hatched Off pill that turns the unit back on; and the Unavailable pill. Compact cards keep a thermostat in the orb while the mode moves into the control; under 320 px the current temperature, mode and setpoint share the value line.
+The control slot follows the mode: a minus/plus stepper (a groove holding two buttons) for heat, cool and auto; one range bar for heat/cool; a raised Off button that turns the unit back on; and the dashed Unavailable slot. The orb is the accent while the unit is on; running adds its bloom and the card's glow. Heat or cool is told by the mode icon and the words Heating / Cooling / Idle, never by a colour. Compact cards keep a thermostat in the orb while the mode moves into the control; under 320 px the current temperature, mode and setpoint share the value line.
 
-**Heat/cool range bar.** In Home Assistant's `heat_cool` mode, `target_temp_low` is the heat threshold, `target_temp_high` the cool threshold, and `target_temp_low <= target_temp_high`. The bar spans the unit's `min_temp` to `max_temp`: apricot left of the low handle (heats below), blue right of the high handle (cools above), and a neutral band between where the unit rests, with a tick at the room temperature. Each handle shows its value. At widths of 260 px and up, press anywhere on the bar and the nearest handle follows; when the handles meet, the direction of the first move decides which one moves. The handles never cross, and `onRangeChange` always receives `low <= high`. Keyboard and screen readers get two sliders. Below 260 px and in compact cards the bar shows a single "19–24°" readout and opens the detail sheet, which adds exact half-degree steps for each threshold. The round mode button turns the unit off and back to its last mode. Press and hold it, or tap the name, for mode, preset, fan speed, today's run time and humidity. Featured and sheet views show the room temperature as the large readout.
+**Heat/cool range bar.** In Home Assistant's `heat_cool` mode, `target_temp_low` is the heat threshold, `target_temp_high` the cool threshold, and `target_temp_low <= target_temp_high`. The bar is a groove spanning the unit's `min_temp` to `max_temp`: left of the low handle it heats, right of the high handle it cools, and between them the unit rests. The zone it is working in fills with the accent, and a tick marks the room temperature. Each handle shows its value. At widths of 260 px and up, press anywhere on the bar and the nearest handle follows; when the handles meet, the direction of the first move decides which one moves. The handles never cross, and `onRangeChange` always receives `low <= high`. Keyboard and screen readers get two sliders. Below 260 px and in compact cards the bar is a button showing the range ("19–24°") that opens the detail sheet, which adds exact half-degree steps for each threshold. The round mode button turns the unit off and back to its last mode. Press and hold it, or tap the name, for mode, preset, fan speed, today's run time and humidity. Featured and sheet views show the room temperature as the large readout.
 
 ## Using the sensor widget
 
@@ -79,7 +81,7 @@ For the connected Home Assistant path, keep the primary sensor and optional comp
 />
 ```
 
-Read-only: no toggle and no glow. The readings sit on one bar: the temperature and its trend on the left, tinted by the temperature (blue under 18°, butter when comfortable, apricot over 25°), and the humidity in a neutral inset at the right end. Temperature-only sensors leave the inset out. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the name for today's temperature and humidity.
+Read-only: no toggle and no glow. The readings are a readout with no container: the temperature and its trend first, then the humidity in the secondary ink (right-aligned in compact rows). Temperature-only sensors leave the humidity out. Comfort is said in words, not colour. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the name for today's temperature and humidity.
 
 ## Using the home widget
 
@@ -114,13 +116,13 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
   - At night the windows light up in lamp tone.
   - Nothing animates.
 - **Status line.** A coming dry or wet change ("Rain at 14:00") replaces the condition in standard and compact cards, and moves to the Today strip in featured and sheet views. Poor air and strong gusts lead with the shared warning cue and warning colour; under 320 px, the warning takes priority over temperature and condition.
-- **Today bar.** It runs from today's low to today's high, cold to warm, with the current temperature on the knob. An end label steps aside while the knob covers it.
+- **Today readout.** The current temperature, then today's low to high in the muted ink ("6.2°  1.9°–7.6°"). A readout, with no container; tap it for the sheet.
 - **Footprints.**
   - Compact and standard below 260 px: a condition badge instead of the house.
   - Standard at 260 px and up: the house on the left.
   - Featured: the house, large temperature and today's hours; forecast hours are lighter.
   - The sheet: every reading as a chip-shaped tile, the hours, and the next five days.
-- **Units.** Tones and comfort bands are in Celsius; Fahrenheit readings are converted first. This applies to the sensor widget too.
+- **Units.** Comfort bands are in Celsius; Fahrenheit readings are converted first. This applies to the sensor widget too.
 
 ## Using the alarm widget
 
@@ -139,8 +141,8 @@ import { HaAlarmTile } from "./src";
 ```
 
 - **The slot is the mode switch:** Off, then each supported mode (Home, Away, Night, Vacation, Custom).
-  - The current mode sits on a thumb that slides between segments.
-  - Armed is the soft accent (on, not energy); Off sits on hatching, because nothing is guarded. The switch position is "Off"; the state word is "Disarmed".
+  - The switch is a groove; the current mode sits on a thumb that slides between segments.
+  - Armed is the accent, on the thumb and the badge; disarmed, the thumb is a raised button on Off. The switch position is "Off"; the state word is "Disarmed".
   - Labels from 260 px up; icons only below 260 px.
   - Compact cards show up to four 44 px mode targets from 360 px up. Narrower cards and alarms with five or more choices show the current state and move arming to the detail sheet.
   - Armed in a mode the switch doesn't list (custom bypass set from the panel itself) still shows that mode, not Off.
@@ -163,7 +165,7 @@ import { HaAlarmTile } from "./src";
 <AlarmTile entity={alarmFromHass(hass.states[id], id)} history={today} readOnly />
 ```
 
-- The mode switch becomes a status pill: "Armed home" in the soft accent, or "Disarmed" on hatching, with who changed it at 260 px and up ("by Keypad"). In compact cards, the mode is one word ("Home", "Disarmed").
+- The mode switch becomes a readout with no container: "Armed home" or "Disarmed" beside the mode's icon, with who changed it at 260 px and up ("by Keypad"). The badge is the accent while armed. In compact cards, the mode is one word ("Home", "Disarmed").
 - Exit and entry delays still count down, without Cancel or Disarm; the entry delay reads "Entry delay". Triggered keeps its warn pill, without Disarm.
 - Nothing opens the keypad. The sheet has the status, today's history and "View only" in its info row; open doors and windows are still listed.
 
@@ -190,16 +192,16 @@ Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and ga
 <CoverTile entity={curtains} history={today} onOpenCover={open} onCloseCover={close} onStopCover={stop} onSetPosition={setPosition} onSetTilt={setTilt} />
 ```
 
-- **The slot is the window.** Daylight is the tone and the fabric is hatching (hatching is absence, here of light).
+- **The slot is the window.** The groove is the fabric and the accent is the daylight let through; the label flips colour where daylight passes under it.
   - Curtains: two panels close in from both ends; drag away from the middle to pull them apart.
   - Blinds and shades: one panel covers from the right.
   - Taps jump, drags follow the finger, and the ends are magnetic (within 3% means fully open or closed).
   - While the cover travels, the fabric glides linearly between Home Assistant's position updates.
-- **Covers without a position** (most garage doors) get Close and Open buttons at the ends of the pill, with the state in the middle. It becomes a Stop button while the cover moves.
+- **Covers without a position** (most garage doors) get Close and Open buttons at the ends of a groove, with the state in the middle; the one that can't act lies flat. The middle becomes a Stop button while the cover moves.
 - **The orb** opens or closes, and becomes Stop while the cover moves (when the cover supports stop). Press and hold, or tap the name, for the sheet.
-- **Tone and glow:**
-  - Covers that let in light take the butter tone, and their glow follows how open they are.
-  - Garage doors, doors and gates take apricot with no glow. Left open, standard/featured cards and sheets lead with a warning ("Open since 10:20"). Compact cards keep the area/class line and add the shared non-colour warning cue; under 320 px the cue sits beside the Open readout.
+- **Orb and glow:** the orb is the accent while the cover is open.
+  - Covers that let in light are energy (daylight): their glow follows how open they are.
+  - Garage doors, doors and gates are a state, with no glow, and the control never fills. Left open, standard/featured cards and sheets lead with a warning ("Open since 10:20"). Compact cards keep the area/class line and add the shared non-colour warning cue; under 320 px the cue sits beside the Open readout.
 - **Sheet:** quick positions (Closed, 25%, Half, Open), slat tilt for blinds that support it, and today's openness by hour.
 
 ## Using the toggle widget
@@ -210,10 +212,10 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 <ToggleTile entity={dnd} history={today} onToggle={toggle} onTurnOnFor={(v) => turnOnFor(v)} />
 ```
 
-- **Switching:** the orb and the pill both toggle. The pill is hatched when off and the soft accent when on (a mode is on, not energy). It says when the mode ends ("Until 12:54") or how long it has been on ("Since Fri 18:30").
-- **Tone and icon per mode:**
-  - `calm` lavender for quiet and night, `sage` for people, `apricot` for away, `blue` or the house `butter`.
+- **Switching:** the orb and the pill both toggle. Both are raised buttons when off and the accent when on (a mode is on, not energy: no bloom, no glow). It says when the mode ends ("Until 12:54") or how long it has been on ("Since Fri 18:30").
+- **Icon and optional colour per mode:**
   - Icons: `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`.
+  - The entity's optional `color` (for example `lavender` for quiet and night) tints the orb on standard cards and sheets. Most modes need none.
 - **Status line:** shows where the mode applies; in compact cards the end time takes its place. It never says On or Off; that's the pill's word.
 - **Compact:** the toggle uses the same 60 px orb/title/control anatomy as every other widget. Use a CSS grid or `JoinedBundle` for mode grids; there is no toggle-only mini variant.
 - **Sheet:** press and hold the orb, or tap the name. It has the description and "Turn on for" chips: 30 min, 1 hour, until morning, until off. While the mode is on they read "Keep on" and the active choice is selected.

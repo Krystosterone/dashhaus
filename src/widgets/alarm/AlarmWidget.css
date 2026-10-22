@@ -1,25 +1,26 @@
 /* Security alarm. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
 
-/* Badge: soft accent when armed (on, not energy); a triggered alarm alone gets the exceptional warn fill. */
-.al[data-armed] .hd-orb--static .hd-orb-i { background: var(--on); box-shadow: var(--on-ring); }
+/* Badge: the accent when armed (on); a triggered alarm alone gets the exceptional warn fill. */
+.al[data-armed] .hd-orb--static { color: var(--on-accent); }
+.al[data-armed] .hd-orb--static .hd-orb-i { background: var(--accent); }
 .al[data-state="triggered"] .hd-orb--static .hd-orb-i { background: var(--warn); color: var(--on-warn); box-shadow: none; }
 .al .hd-num { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; }
 .hd--sheet.al .hd-num { font-size: 30px; }
 
-/* ---------- Mode switch: Off and each arm mode; the current one on a sliding thumb ---------- */
+/* ---------- Mode switch: a groove with Off and each arm mode; the current one on a sliding thumb ----------
+   The thumb is raised while disarmed and the accent while armed. */
 .al-sw {
   position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
   height: var(--slot-h); min-width: 0; padding: var(--inset); border-radius: 99px;
-  background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--groove); box-shadow: var(--groove-shadow);
 }
-.al-sw[data-armed] { background: var(--fill); }
 .al-thumb {
   position: absolute; top: var(--inset); bottom: var(--inset); left: var(--inset); width: calc((100% - 2 * var(--inset)) / var(--n)); border-radius: 99px;
-  background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.18);
+  background: var(--btn); box-shadow: var(--btn-shadow);
   transform: translateX(calc(var(--i) * 100%));
   transition: transform 240ms var(--ease-out), background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
-.al-sw[data-armed] .al-thumb { background: var(--on); box-shadow: var(--on-ring); }
+.al-sw[data-armed] .al-thumb { background: var(--accent); box-shadow: none; }
 .al-seg {
   position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 0 6px;
   border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 13.5px var(--font); cursor: pointer;
@@ -27,6 +28,7 @@
 }
 .al-seg:active { scale: 0.95; }
 .al-seg[aria-pressed="true"] { color: var(--ink); cursor: default; }
+.al-sw[data-armed] .al-seg[aria-pressed="true"] { color: var(--on-accent); }
 .al-seg:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .al-seg svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .al-seg-l { display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -69,19 +71,17 @@
   }
 }
 
-/* ---------- View only: the state, nothing to press ---------- */
+/* ---------- View only: the state as a readout, nothing to press. The badge says armed. ---------- */
 .al-st {
-  display: flex; align-items: center; gap: 8px; height: var(--slot-h); min-width: 0; padding: 0 var(--pad-in);
-  border-radius: 99px; background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--ink-2); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden;
+  display: flex; align-items: center; gap: 8px; height: var(--slot-h); min-width: 0;
+  color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden;
 }
-.al-st[data-armed] { background: var(--on); color: var(--ink); box-shadow: var(--on-ring); }
 .al-st svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .al-st-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .al-st-s { display: none; }
 .al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
 @container hd (max-width: 259px) { .al-st-x { display: none; } }
-.hd--compact .al-st { gap: 6px; font-size: 13px; }
+.hd--compact .al-st { justify-content: flex-end; gap: 6px; font-size: 13px; }
 .hd--compact .al-st svg { width: 15px; height: 15px; }
 .hd--compact :is(.al-st-l, .al-st-x) { display: none; }
 .hd--compact .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
@@ -91,7 +91,7 @@
   position: relative; display: flex; align-items: center; gap: 10px; height: var(--slot-h); min-width: 0;
   padding: 0 var(--inset) 0 var(--pad-in); border-radius: 99px; overflow: hidden; font-variant-numeric: tabular-nums;
 }
-.al-cd { background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
+.al-cd { background: var(--groove); box-shadow: var(--groove-shadow); }
 /* Time running out fills the pill, linearly: constant motion, so linear */
 .al-cd-fill { position: absolute; inset: 0; background: color-mix(in oklab, var(--ink) 9%, transparent); transform-origin: left; transform: scaleX(var(--f)); transition: transform 1s linear; }
 .al-cd-l { position: relative; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
@@ -162,7 +162,7 @@
 .al-kp-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 20px; }
 .al-key {
   display: grid; place-items: center; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 50%;
-  background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink);
+  background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink);
   font: 400 28px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
   transition: background-color 120ms var(--ease-out), scale var(--press) var(--ease-out);
 }

@@ -1,15 +1,15 @@
 import { fmt1 } from "../../shared/ui";
 import type { HvacAction, HvacMode } from "./types";
 
-/** Tone per mode: warm apricot for heat, cool blue for cool, the house butter for auto modes. */
-export const MODE_META: Record<HvacMode, { label: string; c: number; h: number }> = {
-  off: { label: "Off", c: 0.02, h: 80 },
-  heat: { label: "Heat", c: 0.13, h: 52 },
-  cool: { label: "Cool", c: 0.09, h: 235 },
-  heat_cool: { label: "Heat/\u200bCool", c: 0.13, h: 92 },
-  auto: { label: "Auto", c: 0.13, h: 92 },
-  dry: { label: "Dry", c: 0.07, h: 205 },
-  fan_only: { label: "Fan only", c: 0.06, h: 170 },
+/** Label per mode. Heat or cool is told by the mode icon and the action words, never by a colour. */
+export const MODE_META: Record<HvacMode, { label: string }> = {
+  off: { label: "Off" },
+  heat: { label: "Heat" },
+  cool: { label: "Cool" },
+  heat_cool: { label: "Heat/\u200bCool" },
+  auto: { label: "Auto" },
+  dry: { label: "Dry" },
+  fan_only: { label: "Fan only" },
 };
 
 export const ACTION_LABEL: Record<HvacAction, string> = {
@@ -20,9 +20,6 @@ export const ACTION_LABEL: Record<HvacAction, string> = {
   drying: "Drying",
   fan: "Fan",
 };
-
-/** CSS color in a mode's tone, at the theme's accent lightness. */
-export const toneColor = (m: HvacMode) => `oklch(var(--accent-l) ${MODE_META[m].c} ${MODE_META[m].h})`;
 
 export const fmtTarget = (t: number) => (Number.isInteger(t) ? String(t) : fmt1(t));
 export const fmtCurrent = (t: number) => fmt1(t);

@@ -28,7 +28,7 @@ export interface ClimateWidgetProps {
   onFanChange?: (f: string) => void;
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** The orb's colour. Default: apricot when heating, blue when cooling. "none" keeps it the accent. */
+  /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent. */
   color?: ColorProp;
 }
 
@@ -66,10 +66,9 @@ export function ClimateWidget({ entity: e, history, variant = "card", footprint 
   const on = !unav && mode !== "off";
   const action = e.hvacAction ?? (on ? "idle" : "off");
   const active = on && action !== "idle" && action !== "off";
-  // Running is energy: the control fills with the accent and the card glows. On but idle stays neutral.
-  // Which way it works (heat or cool) is the orb's colour.
-  const direction = on && (mode === "heat" || mode === "cool") ? MODE_META[mode] : null;
-  const colors = paint(active ? "energy" : "state", active ? 0.9 : 0, direction, color);
+  // On is the accent orb. Running is energy: the orb blooms and the card glows. Which way it works
+  // (heat or cool) is the mode icon and the action words, not a colour.
+  const colors = paint(active ? "energy" : "state", active ? 0.9 : 0, null, color);
 
   const cur = e.currentTemperature;
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;

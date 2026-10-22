@@ -56,7 +56,7 @@ export const QUICK_LEVELS = [
   { value: 100, label: "Full", sub: "100%" },
 ];
 
-/** Warmth ruler: ticks every 100 K, an ink stick and a tone tag mark the value. */
+/** Warmth ruler: ticks every 100 K over the warm-to-cool scale; an ink stick and a tag mark the value. */
 export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, onChange }: { id: string; kelvin: number; min?: number; max?: number; disabled?: boolean; onChange: (k: number) => void }) {
   const span = Math.max(100, max - min);
   const k = Math.min(max, Math.max(min, kelvin));

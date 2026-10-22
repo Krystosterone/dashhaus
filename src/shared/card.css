@@ -2,12 +2,17 @@
    All dashboard items share one spacing system and a modular footprint: compact = 60px, standard = 128px,
    and featured = 264px. The 8px rhythm also separates bundle members, so every standalone card and bundle
    lands on the same vertical grid.
-   Colour: one accent hue (tokens.css) means on. A widget declares its role with data-role: "energy"
-   (on = solid --accent), "state" (on = soft --on: the accent mixed into the card, with an accent ring)
-   or "reading" (no on/off: its orb is a bare icon, never a disc that could pass for off). Its own colour,
-   if any, goes in --color-c/--color-h with data-color, and is painted on the orb only. --hd-glow (0-1)
-   is how much energy is flowing; the glow is always the accent.
-   Rules: solid accent = energy, soft accent = on or chosen, hatching = absence, inverse = an action button.
+   UI language: three channels, one meaning each.
+   - Shape says what you can do. A button is raised (--btn, --btn-shadow): tap it. A groove is recessed
+     (--groove, --groove-shadow): slide or set along it. A readout has no container: look at it.
+   - Fill says state. Solid --accent is on, for every role; off is the plain surface.
+   - A dashed outline with muted text is unavailable, and nothing else.
+   Values sit on their control; where a fill passes under a label, the label flips to --on-accent.
+   Inverse (--inv-*) is the one urgent action (Stop, Disarm, Enter), never a state.
+   A widget declares its role with data-role: "energy" (its orb blooms and its card glows), "state"
+   (on without energy: no bloom, no glow) or "reading" (no on/off: its orb is a bare icon). A colour of
+   its own is opt-in (data-color, --color-c/--color-h) and is painted on the orb only, never in compact
+   cards. --hd-glow (0-1) is how much energy is flowing; the glow is always the accent.
    Heights never change with state.
    Motion: only transform, opacity and clip-path animate; presses answer in 160ms; nothing animates
    on keyboard input or while a finger drags (the value follows the finger directly). */
@@ -24,9 +29,6 @@
 .hd {
   --accent: oklch(var(--accent-l) var(--brand-c) var(--brand-h));
   --accent-strong: oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h));
-  /* On, but not energy: the same hue, softened, with a ring so it never reads as a neutral */
-  --on: color-mix(in oklab, var(--accent) var(--on-mix), var(--card-solid));
-  --on-ring: inset 0 0 0 1.5px oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / var(--on-ring-a));
   /* The colour slot: the widget's own colour, or the accent when it has none */
   --o-c: var(--brand-c);
   --o-h: var(--brand-h);
@@ -36,7 +38,6 @@
   --pad-in: 16px;
   --inset: 4px;
   --slot-h: 44px;
-  --hatching: repeating-linear-gradient(-45deg, var(--hatch) 0 1.2px, transparent 1.2px 6px);
   box-sizing: border-box;
   display: grid;
   grid-template-rows: minmax(0, 1fr) var(--slot-h);
@@ -121,16 +122,16 @@
 
 /* Circle button (close) */
 .hd-circ { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -3px -4px -3px 0; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 50%; }
-.hd-circ-i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
+.hd-circ-i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--btn); box-shadow: var(--btn-shadow); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
 .hd-circ:active .hd-circ-i { scale: 0.92; }
 .hd-circ svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .hd-circ:focus-visible { outline: none; }
 .hd-circ:focus-visible .hd-circ-i { outline: 2px solid var(--ink); outline-offset: 2px; }
-@media (hover: hover) and (pointer: fine) { .hd-circ:hover .hd-circ-i { background: var(--card-solid); } }
+@media (hover: hover) and (pointer: fine) { .hd-circ:hover .hd-circ-i { background: color-mix(in oklab, var(--btn) 94%, var(--ink)); } }
 
-/* Orb: the round main toggle. Tap toggles, press and hold opens details. */
-.hd-orb { --sz: 40px; --b: 1; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink-2); cursor: pointer; -webkit-touch-callout: none; user-select: none; touch-action: manipulation; }
-.hd-orb-i { display: grid; place-items: center; width: var(--sz); height: var(--sz); border-radius: 50%; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), scale var(--press) var(--ease-out); }
+/* Orb: the round main toggle, a raised button. Tap toggles, press and hold opens details. */
+.hd-orb { --sz: 40px; --b: 1; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink); cursor: pointer; -webkit-touch-callout: none; user-select: none; touch-action: manipulation; }
+.hd-orb-i { display: grid; place-items: center; width: var(--sz); height: var(--sz); border-radius: 50%; background: var(--btn); box-shadow: var(--btn-shadow); transition: background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), scale var(--press) var(--ease-out); }
 /* Press answers at once; holding keeps shrinking, slowly and linearly, until the sheet opens at 450ms. Release snaps back. */
 .hd-orb:active .hd-orb-i { scale: 0.94; }
 .hd-orb[data-holding] .hd-orb-i { scale: 0.88; transition: scale 450ms linear, background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out); }
@@ -142,20 +143,12 @@
   box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / 0.5),
               0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / calc(0.25 + 0.35 * var(--b)));
 }
-/* The colour slot: a widget's own colour, on its orb and nowhere else */
+/* The colour slot: a widget's own colour, opted in, on its orb and nowhere else */
 .hd[data-color] { --o-c: var(--color-c); --o-h: var(--color-h); }
-/* On, but not energy (a mode, a door left open, a thermostat idling): soft accent, no bloom. Unless the widget has its own colour. */
-.hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] { color: var(--ink); }
-.hd[data-role="state"]:not([data-color]) .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--on); box-shadow: var(--on-ring); }
-/* Compact cards stay quiet: the colour slot remains on standard/featured cards and sheets. */
-.hd--compact .hd-orb-i { transition: background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), scale var(--press) var(--ease-out); }
-.hd--compact[data-role="energy"] .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
-.hd--compact[data-role="energy"] .hd-orb[aria-pressed="true"] .hd-orb-i {
-  background: var(--accent);
-  box-shadow: none;
-}
-.hd--compact[data-color][data-role="state"] .hd-orb[aria-pressed="true"] { color: var(--ink); }
-.hd--compact[data-color][data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--on); box-shadow: var(--on-ring); }
+/* On, but not energy (a mode, an armed alarm, a door left open): the same accent, without the bloom. */
+.hd[data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { box-shadow: none; }
+/* Compact cards stay quiet: the accent, no bloom, no colour slot. */
+.hd--compact .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--accent); box-shadow: none; }
 .hd-orb[aria-disabled="true"] { cursor: default; color: var(--ink-3); }
 .hd-orb[aria-disabled="true"] .hd-orb-i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; }
 .hd-orb:focus-visible { outline: none; }
@@ -170,25 +163,25 @@
 .hd-alert-cue { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-inline-end: 5px; color: var(--warn); vertical-align: -2px; }
 .hd-alert-cue svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Control slot: one fixed height for every state */
+/* Control slot: one fixed height for every state. The pill is a toggle button: raised when off, the accent when on. */
 .hd-slot { display: grid; min-width: 0; }
 .hd-pill, .hd-unav { height: var(--slot-h); border-radius: 99px; }
 .hd-pill {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   width: 100%; min-width: 0; padding: 0 var(--pad-in); border: 0; cursor: pointer; text-align: left;
-  background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--ink-2); font: 600 14px var(--font); white-space: nowrap; overflow: hidden;
+  background: var(--btn); box-shadow: var(--btn-shadow);
+  color: var(--ink); font: 600 14px var(--font); white-space: nowrap; overflow: hidden;
   transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), scale var(--press) var(--ease-out);
 }
 .hd-pill:active { scale: 0.98; }
 .hd-pill[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
-.hd[data-role="state"] .hd-pill[aria-pressed="true"] { background: var(--on); color: var(--ink); box-shadow: var(--on-ring); }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
-.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); background: var(--hatching); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; }
+/* Unavailable: dashed, empty, muted, like the orb beside it. */
+.hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
 
-/* Today: 24 hourly sticks. Height = intensity that hour; the current hour uses the tone. */
+/* Today: 24 hourly sticks. Height = intensity that hour; the current hour is the accent. */
 .hd-tl { display: none; gap: 8px; }
 .hd-tl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }
 .hd-tl-v { font-size: 13.5px; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
@@ -210,13 +203,14 @@
 .hd-chips { display: grid; grid-template-columns: repeat(min(var(--n, 4), 4), minmax(0, 1fr)); gap: 8px; }
 .hd-chip {
   display: grid; justify-items: start; align-content: center; gap: 1px; min-height: 52px; padding: 6px 12px; min-width: 0;
-  border: 0; border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line);
+  border: 0; border-radius: 18px; background: var(--btn); box-shadow: var(--btn-shadow);
   color: var(--ink); font: 600 14px/1.2 var(--font); text-align: left; cursor: pointer; transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), scale var(--press) var(--ease-out);
 }
 .hd-chip:active { scale: 0.97; }
 .hd-chip > span { max-width: 100%; overflow-wrap: break-word; }
 .hd-chip small { font-size: 12px; font-weight: 500; color: var(--ink-2); }
-.hd-chip[aria-pressed="true"] { background: var(--on); box-shadow: var(--on-ring); }
+.hd-chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.hd-chip[aria-pressed="true"] small { color: var(--on-accent); }
 .hd-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .hd-info { padding-top: 12px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
 
@@ -277,6 +271,7 @@
 /* The control and the name split the row; no column goes to a details button. */
 .hd--compact .hd-slot { grid-area: slot; width: clamp(112px, 40cqi, 232px); }
 .hd--compact .hd-pill, .hd--compact .hd-unav { font-size: 13px; }
+.hd--compact .hd-pill { justify-content: center; }
 .hd--compact .hd-unav-t, .hd--compact .hd-pill-x, .hd--compact .hd-num, .hd--compact .hd-tl { display: none; }
 /* With the control hidden, the value replaces it and the name's details button covers the row. */
 .hd-val {

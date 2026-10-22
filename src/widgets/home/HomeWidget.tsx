@@ -1,11 +1,11 @@
-import { useId, useLayoutEffect, useRef } from "react";
+import { useId } from "react";
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./types";
 import { CONDITION_LABEL, SKY, ConditionIcon, nextChange, compass, toKmh, aqiBand, uvBand } from "./conditions";
 import type { Sky } from "./conditions";
 import { Scene } from "./Scene";
 import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
-import type { Vars, HourSample, ColorProp, WidgetFootprint } from "../../shared/ui";
+import type { HourSample, ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./HomeWidget.css";
 
 export interface HomeWidgetProps {
@@ -34,35 +34,14 @@ const SUN: Record<Sky, number> = { clear: 0.9, partly: 0.55, wind: 0.45, cloudy:
 
 const deg = (t: number) => `${fmt1(t).replace(/\.0$/, "")}°`;
 
-/** Today's low to high on one bar, with now on the knob. */
+/** Today's temperatures as a readout: now, then today's low to high. */
 function TodayRange({ low, high, now, label, onOpen }: { low: number; high: number; now: number; label: string; onOpen?: () => void }) {
-  // No spread yet (no history, no forecast): just now, centred.
+  // No spread yet (no history, no forecast): just now.
   const flat = high - low < 0.05;
-  const p = flat ? 0.5 : Math.min(1, Math.max(0, (now - low) / (high - low)));
-  const style = { "--p": p.toFixed(4) } as Vars;
-  // Hide an end label while the knob covers it. Measured, since it depends on the bar's width.
-  const ref = useRef<HTMLSpanElement>(null);
-  useLayoutEffect(() => {
-    const bar = ref.current;
-    if (!bar) return;
-    const check = () => {
-      const k = bar.querySelector(".hw-tr-k")!.getBoundingClientRect();
-      bar.querySelectorAll<HTMLElement>(".hw-tr-end").forEach((el) => {
-        el.removeAttribute("data-hidden");
-        const r = el.getBoundingClientRect();
-        if (r.right + 4 > k.left && r.left - 4 < k.right) el.setAttribute("data-hidden", "");
-      });
-    };
-    check();
-    const ro = new ResizeObserver(check);
-    ro.observe(bar);
-    return () => ro.disconnect();
-  }, [low, high, now]);
   const bar = (
-    <span className="hw-tr" style={style} ref={ref}>
-      {!flat && <span className="hw-tr-end">{deg(low)}</span>}
-      {!flat && <span className="hw-tr-end">{deg(high)}</span>}
-      <span className="hw-tr-rail"><span className="hw-tr-at"><span className="hw-tr-k">{fmt1(now)}°</span></span></span>
+    <span className="hw-tr">
+      <span className="hw-tr-k">{fmt1(now)}°</span>
+      {!flat && <><span className="hw-tr-end">{deg(low)}</span><span className="hw-tr-end">{deg(high)}</span></>}
     </span>
   );
   // The aria-label sentence already contains the numbers; the visual bar is its stylized rendering.

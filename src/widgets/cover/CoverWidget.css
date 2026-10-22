@@ -1,47 +1,47 @@
 /* Cover widget. Shell, header, orb, chips, today strip and sheet come from src/shared/card.css. */
 
-/* ---------- Position bar: the window. Tone = daylight, hatching = fabric ---------- */
+/* ---------- Position bar: the window. The groove is the fabric, the accent is the daylight let through ---------- */
 .cv-bar {
   --stub: 14px;
   position: relative; height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--accent); box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--groove); box-shadow: var(--groove-shadow);
 }
-/* Fabric panels sit over the daylight and are clipped to how far they're drawn (clip-path only: no layout per frame) */
-.cv-fab { position: absolute; inset: 0; border-radius: inherit; background: var(--hatching), var(--card-solid); box-shadow: inset 0 0 0 1px var(--line); pointer-events: none; }
+/* The daylight is clipped to the gap the fabric leaves (clip-path only: no layout per frame). It carries its own
+   copy of the label, so the text flips where daylight passes under it. */
+.cv-day { position: absolute; inset: 0; border-radius: inherit; background: var(--accent); pointer-events: none; }
 .cv-bar[data-kind="curtain"] { --fw: calc(var(--stub) + (50% - var(--stub)) * (1 - var(--p))); }
-.cv-bar[data-kind="curtain"] .cv-fab--a { clip-path: inset(0 calc(100% - var(--fw)) 0 0); }
-.cv-bar[data-kind="curtain"] .cv-fab--b { clip-path: inset(0 0 0 calc(100% - var(--fw))); }
-.cv-bar[data-kind="shade"] .cv-fab--a { clip-path: inset(0 0 0 calc(var(--p) * 100%)); }
+.cv-bar[data-kind="curtain"] .cv-day { clip-path: inset(0 var(--fw) 0 var(--fw) round 99px); }
+.cv-bar[data-kind="shade"] .cv-day { clip-path: inset(0 calc(100% - var(--p) * 100%) 0 0 round 99px); }
 /* A tap glides there; a moving cover glides linearly (Home Assistant reports position about once a second) */
-.cv-bar[data-anim] .cv-fab { transition: clip-path 160ms var(--ease-out); }
-.cv-bar[data-moving] .cv-fab { transition: clip-path 1000ms linear; }
+.cv-bar[data-anim] .cv-day { transition: clip-path 160ms var(--ease-out); }
+.cv-bar[data-moving] .cv-day { transition: clip-path 1000ms linear; }
 .cv-lab {
-  position: absolute; left: 5px; top: 50%; translate: 0 -50%; padding: 4px 11px; border-radius: 99px;
-  background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.18);
-  font-size: 13px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none;
+  position: absolute; left: var(--pad-in); top: 50%; translate: 0 -50%;
+  font-size: 13px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none;
 }
+.cv-day .cv-lab { color: var(--on-accent); }
 .cv-hit { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; touch-action: pan-y; }
 .cv-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 .cv-bar:has(.cv-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
-.hd--compact .cv-lab { left: 4px; padding: 3px 9px; font-size: 12px; }
-.hd--sheet .cv-lab { left: 6px; padding: 6px 14px; font-size: 14px; }
+.hd--compact .cv-lab { font-size: 12.5px; }
+.hd--sheet .cv-lab { font-size: 14px; }
 
-/* ---------- Open / close control: for covers without a position ---------- */
+/* ---------- Open / close control: for covers without a position ----------
+   A groove holding two buttons, the state between them. Open isn't a fill: the orb says it,
+   and a door left open carries the warn cue. */
 .cv-oc {
   --btn: calc(var(--slot-h) - 2 * var(--inset));
   display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
   height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2);
-  transition: background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  background: var(--groove); box-shadow: var(--groove-shadow); color: var(--ink);
 }
-.cv-oc[data-open] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
-.hd[data-role="state"] .cv-oc[data-open] { background: var(--on); color: var(--ink); box-shadow: var(--on-ring); }
 .cv-oc-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
-.cv-oc-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--card-solid); color: var(--ink); box-shadow: 0 1px 2px oklch(0.3 0.03 80 / 0.14); transition: scale var(--press) var(--ease-out), opacity 150ms var(--ease-out); }
+.cv-oc-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: scale var(--press) var(--ease-out), background-color 150ms var(--ease-out); }
 .cv-oc-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .cv-oc-b:not(:disabled):active > span { scale: 0.9; }
 .cv-oc-b:disabled { cursor: default; }
-.cv-oc-b:disabled > span { opacity: 0.35; }
+/* A disabled button lies flat. */
+.cv-oc-b:disabled > span { background: transparent; box-shadow: none; color: var(--ink-3); }
 .cv-oc-b:focus-visible { outline: none; }
 .cv-oc-b:focus-visible > span { outline: 2px solid var(--ink); outline-offset: 1px; }
 .cv-oc-v { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 14px; font-weight: 600; }
@@ -57,7 +57,7 @@
 .hd--compact .cv-oc-stop { height: var(--slot-h); font-size: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cv-bar[data-moving] .cv-fab { transition: none; }
+  .cv-bar[data-moving] .cv-day { transition: none; }
   .cv-oc-b > span, .cv-oc-stop { scale: none !important; }
 }
 

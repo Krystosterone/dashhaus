@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A read-only temperature and humidity sensor. The tone follows the temperature (blue when cool, butter when comfortable, apricot when warm). " +
+          "A read-only temperature and humidity sensor. The readings are a readout, with no container; comfort is said in words. " +
           "Tap the readings or the name for today's temperature and humidity. Same sizes and heights as the other widgets.",
       },
     },

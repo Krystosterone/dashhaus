@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase, toneColor } from "./modes";
+import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "./modes";
 
 describe("titleCase", () => {
   it("capitalizes and un-snakes", () => {
@@ -19,12 +19,6 @@ describe("fmtTarget", () => {
 describe("fmtCurrent", () => {
   it("always shows one decimal", () => {
     expect(fmtCurrent(21)).toBe("21.0");
-  });
-});
-
-describe("toneColor", () => {
-  it("uses the mode's chroma and hue", () => {
-    expect(toneColor("cool")).toBe("oklch(var(--accent-l) 0.09 235)");
   });
 });
 

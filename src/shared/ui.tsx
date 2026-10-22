@@ -9,7 +9,7 @@ export type Vars = CSSProperties & Record<`--${string}`, string | number>;
 /* ---------- Colour ----------
    One accent hue (tokens.css --brand-c/--brand-h) means on: solid for energy, soft for on-but-not-energy.
    Neutrals for the rest.
-   A widget's own colour is the "colour slot": it is painted on the orb and nowhere else. */
+   A widget's own colour is the "colour slot": opt-in, painted on the orb and nowhere else. */
 
 /** A colour for the orb, as OKLCH chroma and hue (lightness comes from the theme). */
 export interface SlotColor { c: number; h: number }
@@ -128,7 +128,7 @@ export function AlertStatus({ label, children }: { label: string; children: Reac
   return <><AlertCue label={label} /><span className="hd-warn">{children}</span></>;
 }
 
-/** Full-width pill that toggles. Hatched when off, filled with the tone when on. */
+/** Full-width toggle button: raised when off, the accent when on. */
 export function TogglePill({ label, on, onToggle, children, extra }: { label: string; on: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode }) {
   return (
     <button type="button" className="hd-pill" aria-label={label} aria-pressed={on} onClick={onToggle}>
@@ -184,7 +184,7 @@ export const fmt1 = (n: number) => {
   return (r === 0 ? 0 : r).toFixed(1);
 };
 
-/* ---------- Choice chips: one of several, the selected one in the soft accent ---------- */
+/* ---------- Choice chips: one of several, the selected one in the accent ---------- */
 export interface ChoiceOption<T extends string | number> { value: T; label: string; sub?: string }
 export function ChoiceChips<T extends string | number>({ id, label, options, value, onChange }: { id: string; label: string; options: ChoiceOption<T>[]; value: T | null | undefined; onChange: (v: T) => void }) {
   return (
