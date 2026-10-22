@@ -22,6 +22,16 @@ Pass `density="thin"` for a single 56 px row: bulb, name, control strip and deta
 
 Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an off light turns it on), and press and hold the bulb or tap the arrow for quick levels, warmth, today's history and when it last changed.
 
+The connected integration paths are available through `HaProvider` and the `Ha*Tile` containers for every domain (light, climate, sensor, home weather, cover, toggle, alarm); the remaining normalized callback examples below show the parent-side wiring each container replaces.
+
+```tsx
+import { HaLightTile } from "./src";
+
+<HaLightTile entityId="light.living_room" density="thin" />
+```
+
+The connected container must be rendered below `HaProvider`; see [docs/home-assistant.md](home-assistant.md) for the transport/store setup.
+
 ## Using the climate widget
 
 ```tsx
@@ -48,9 +58,19 @@ The control slot follows the mode: a minus/plus stepper for heat, cool and auto;
 ## Using the sensor widget
 
 ```tsx
-import { SensorTile } from "./src";
+import { SensorTile, HaSensorTile } from "./src";
 
 <SensorTile entity={{ entityId: "sensor.bedroom", name: "Bedroom", state: "ok", temperature: 20.1, humidity: 52, unit: "°C", battery: 64 }} history={history} />
+```
+
+For the connected Home Assistant path, keep the primary sensor and optional companions explicit:
+
+```tsx
+<HaSensorTile
+  entityId="sensor.bedroom_temperature"
+  humidityEntityId="sensor.bedroom_humidity"
+  batteryEntityId="sensor.bedroom_battery"
+/>
 ```
 
 Read-only: no toggle and no glow. The readings sit on one bar: the temperature and its trend on the left, tinted by the temperature (blue under 18°, butter when comfortable, apricot over 25°), and the humidity in a neutral inset at the right end. Temperature-only sensors leave the inset out. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the arrow for today's temperature and humidity.
@@ -62,6 +82,22 @@ Outdoor conditions for the home, beside a drawing of the house:
 ```tsx
 <HomeTile entity={weather} history={todaySoFar} hourly={hourlyForecast} daily={dailyForecast} />
 ```
+
+The connected Home Assistant path keeps the same normalized widget contract while selecting companions and fetching forecasts behind the boundary:
+
+```tsx
+import { HaHomeTile } from "./src";
+
+<HaHomeTile
+  entityId="weather.home"
+  aqiEntityId="sensor.home_aqi"
+  aqiScale="US"
+  sunEntityId="sun.sun"
+  onForecastError={(error) => reportDashboardError(error)}
+/>
+```
+
+Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays through another query boundary. A rejected forecast request is not treated as a current-weather failure; handle it through `onForecastError`.
 
 - **Entity.** `entity` mirrors a `weather.*` entity. Two values usually come from elsewhere and are optional:
   - `aqi`, from an air-quality sensor.
@@ -88,16 +124,12 @@ A security alarm: one `alarm_control_panel.*`.
 <AlarmTile entity={panel} history={today} onArm={(mode, code) => arm(mode, code)} onDisarm={(code) => disarm(code)} />
 ```
 
-With Home Assistant, `src/widgets/alarm/hass.ts` does the mapping both ways:
+With Home Assistant, the connected slice in `src/ha/` does the mapping both ways — `alarmFromHass` and `createAlarmHandlers`, or the ready-made `HaAlarmTile`:
 
 ```tsx
-import { AlarmTile, alarmFromHass, alarmHandlers } from "./src";
+import { HaAlarmTile } from "./src";
 
-const id = "alarm_control_panel.house";
-<AlarmTile
-  entity={alarmFromHass(hass.states[id], id, { area: "Whole home", exitDelay: 30, entryDelay: 30 })}
-  {...alarmHandlers(hass, id)}
-/>
+<HaAlarmTile entityId="alarm_control_panel.house" area="Whole home" exitDelay={30} entryDelay={30} />
 ```
 
 - **The slot is the mode switch:** Off, then each supported mode (Home, Away, Night, Vacation, Custom).
@@ -134,15 +166,15 @@ What Home Assistant gives you, and what `alarmFromHass` does with it:
 | Widget | Home Assistant |
 | --- | --- |
 | `state` | The entity state, all 11 of them. Anything else reads as unavailable. |
-| `modes` | `supported_features` bits (home 1, away 2, night 4, custom bypass 16, vacation 32), optionally narrowed with `modes`. |
+| `modes` | `supported_features` bits (home 1, away 2, night 4, custom bypass 16, vacation 32); an empty set stays empty rather than inventing a mode. |
 | `codeFormat`, `codeArmRequired` | `code_format`, `code_arm_required` (default true). |
 | `armingTo` | `next_state` (manual alarm, Alarmo) or Alarmo's `arm_mode`. The core entity doesn't say, so the slot reads plain "Arming". |
 | `delay` | Alarmo's `delay` attribute; otherwise the `exitDelay` / `entryDelay` you pass (the manual alarm's `arming_time` and `delay_time`). |
 | `changedAt`, `lastChanged`, `changedBy` | `last_changed`, `changed_by`. |
-| `openSensors` | Alarmo's `open_sensors` (ids, named with `nameOf`), or your own list. |
+| `openSensors` | Host-composed from your own binary sensors; pass the names in. |
 | `triggeredBy` | Not in HA; pass it if an automation tracks it. |
 
-`callAlarm` turns a `ServiceValidationError` about the code (the manual alarm raises one) into `false`, and rethrows anything else. Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
+`createAlarmHandlers` resolves `false` when Home Assistant rejects the call with the `invalid_code` translation key (the manual alarm's wrong code), so the keypad shakes; any other rejection — including a bare `service_validation_error`, whose message the transport sanitizes away — means the call did not go through. Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
 
 ## Using the cover widget
 

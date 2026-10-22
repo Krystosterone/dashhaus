@@ -1,8 +1,14 @@
 # Home Dashboard
 
-Widgets for a custom Home Assistant dashboard, in React and TypeScript, with Storybook. Each widget shows one entity (the sensor widget shows one device's temperature and humidity together). So far: lights, climate and temperature/humidity sensors, composed into phone, tablet and wall-panel dashboards.
+Widgets for a custom Home Assistant dashboard, in React and TypeScript, with Storybook. Each widget shows one entity (the sensor widget shows one device's temperature and humidity together). Lights, climate, covers, alarms, toggles and temperature/humidity sensors are composed into phone, tablet and wall-panel dashboards.
 
-This file is the rules: what every widget must do, how motion behaves, and how dashboards compose. Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); commands, layout and the adding-a-widget steps are in AGENTS.md. Use the Theme menu in the Storybook toolbar to switch between Auto (system), Light and Dark. The attention and row rules below have operational forms in the `attention-budget` and `row-identity` skills (`.agents/skills/`); where wording differs, the skills win.
+This file is the rules: what every widget must do, how motion behaves, and how dashboards compose. Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); the Home Assistant data boundary is in [docs/home-assistant.md](docs/home-assistant.md); commands, layout and the adding-a-widget steps are in AGENTS.md. Use the Theme menu in the Storybook toolbar to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
+
+## Running with Home Assistant
+
+The presentational widgets stay provider-agnostic. The connected Home Assistant slices currently include a shared injected transport/store, a loss-preserving raw entity snapshot, pure light, climate, sensor, and weather/home mappers, typed light/climate actions, forecast response queries, and `HaLightTile`/`HaClimateTile`/`HaSensorTile`/`HaHomeTile` containers. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the boundary.
+
+The host supplies authentication and an implementation of the transport (the repository includes an adapter for the official `home-assistant-js-websocket` client). Fake transports power unit tests and Storybook; passing them is not evidence of a live Home Assistant connection.
 
 ## Design rules every widget follows
 
