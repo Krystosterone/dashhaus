@@ -36,7 +36,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - One widget, one entity.
 - Never use a colour literal in widget CSS. Colours come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
 - A card's height never changes with state or widget type. Height comes from the shared `footprint` matrix plus container width, never the viewport.
-- No expanding cards: more detail opens in a sheet, from the circle arrow button or a press and hold.
+- No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.
 - Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `hw-` home, `hb-` bundles; `hd-` is the shared card system.
 - Animate only `transform`, `opacity`, `clip-path` and colour changes; never layout properties. Easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
 - Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
@@ -58,7 +58,7 @@ When design or visual quality is at stake, use these authorities, all committed 
 ## Adding a widget
 
 1. Create `src/widgets/<name>/`: component, CSS with the widget's class prefix, entity type, `demo/` folder, stories titled `Widgets/<Name>`.
-2. Build it from the shared card system: an `hd` article inside an `hd-c` container, an `hd-head` with an `Orb`, title and `CircleButton`, one `hd-slot`, and the sheet blocks. Spread `paint(role, glow, own, prop)` from `src/shared/ui.tsx` onto the article for its colour role, glow and colour slot. Compact, standard and featured footprints plus the sheet come for free.
+2. Build it from the shared card system: an `hd` article inside an `hd-c` container, an `hd-head` with an `Orb`, a `CardTitle` (given `onOpen` outside the sheet) and, in the sheet only, a close `CircleButton`, one `hd-slot`, and the sheet blocks. Spread `paint(role, glow, own, prop)` from `src/shared/ui.tsx` onto the article for its colour role, glow and colour slot. Compact, standard and featured footprints plus the sheet come for free.
 3. Export it from `src/index.ts`.
 4. Add it to `src/dashboards/Dashboards.stories.tsx`.
 

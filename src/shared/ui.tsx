@@ -49,7 +49,6 @@ export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: C
 /** One sample per hour: 0 = nothing, 0-1 = intensity, "unavailable", or null for hours still ahead. */
 export type HourSample = number | "unavailable" | null;
 
-export const IconOpen = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11l6-6M6 5h5v5" /></svg>;
 export const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" /></svg>;
 
 /* ---------- Orb: the round main toggle. Tap toggles, press and hold opens details. ---------- */
@@ -86,6 +85,29 @@ export function Orb({ label, pressed, unavailable, intensity = 1, small, onToggl
   );
 }
 
+/* ---------- Card title. With onOpen, the name is the details button: tap the name for the sheet. ----------
+   The button's hit area is stretched by CSS (.hd-open::after) over the header, or the whole compact row.
+   `id` labels the card and the heading, so it sits on the name alone; the hint ("details") only joins the button's name. */
+export function CardTitle({ id, name, onOpen, openHint = "details", children }: { id: string; name: string; onOpen?: () => void; openHint?: string; children?: ReactNode }) {
+  return (
+    <div className="hd-title">
+      {/* Labelled by the name alone, so the heading stays "Kitchen" while the button inside reads "Kitchen details". */}
+      <h2 className="hd-name" aria-labelledby={onOpen ? id : undefined}>
+        {onOpen
+          ? (
+            <button type="button" className="hd-open" title={name} aria-label={`${name} ${openHint}`} aria-haspopup="dialog" onClick={onOpen}>
+              <span id={id}>{name}</span>
+              <svg className="hd-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5l4.5 4.5L6 12.5" /></svg>
+            </button>
+          )
+          : <span id={id} title={name}>{name}</span>}
+      </h2>
+      {children}
+    </div>
+  );
+}
+
+/** Round icon button. On cards it only closes the sheet; details open from the title or a press and hold. */
 export function CircleButton({ label, onClick, autoFocus, children }: { label: string; onClick?: () => void; autoFocus?: boolean; children: ReactNode }) {
   return (
     <button type="button" className="hd-circ" aria-label={label} onClick={onClick} data-autofocus={autoFocus || undefined}>

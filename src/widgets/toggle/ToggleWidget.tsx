@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ToggleEntity, ToggleHistory, DurationOption } from "./types";
 import { ToggleIconSvg } from "./icons";
-import { Orb, CircleButton, IconOpen, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
+import { Orb, CardTitle, CircleButton, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
 import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./ToggleWidget.css";
 
@@ -30,7 +30,7 @@ export interface ToggleWidgetProps {
   onToggle: () => void;
   /** Sheet: turn on (or keep on) with one of `durations`. */
   onTurnOnFor?: (value: string) => void;
-  /** Card only: the arrow, and press and hold on the orb, open the details sheet. */
+  /** Card only: the name, and press and hold on the orb, open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
   /** The orb's colour. Default: the entity's `color`, else none (on is the soft accent). */
@@ -70,21 +70,18 @@ export function ToggleWidget({ entity: e, history, variant = "card", footprint =
         <Orb label={e.name} pressed={on} unavailable={unav} intensity={0.7} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           <ToggleIconSvg icon={e.icon} />
         </Orb>
-        <div className="hd-title">
-          <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
+        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{sheet && e.area ? `${e.area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
           {compact && <p className="hd-sub">{subText}</p>}
-        </div>
+        </CardTitle>
         <p className="hd-num" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>
-        {sheet
-          ? <CircleButton
-            label={`Close ${e.name}`}
-            onClick={onClose}
-            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-          ><IconClose /></CircleButton>
-          : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
+        {sheet && <CircleButton
+          label={`Close ${e.name}`}
+          onClick={onClose}
+          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+        ><IconClose /></CircleButton>}
       </header>
 
       <div className="hd-slot">

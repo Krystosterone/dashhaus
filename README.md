@@ -15,8 +15,8 @@ The host supplies authentication and an implementation of the transport (the rep
 - **One widget, one entity.**
 - **One modular footprint system.** Every widget type and both bundle types use the same 60 px unit and 8 px gap: `compact` is 60 px, `standard` is 128 px, and `featured` is 264 px. In general, $n$ units occupy $n \times 60 + (n - 1) \times 8$ pixels.
 - **Height never changes with state, entity type or width.** Set `footprint="compact" | "standard" | "featured"` on any tile; the default is `standard`. Width may simplify the internal arrangement, but it never changes the footprint or promotes a standard card to featured.
-- **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its control and details action while its duplicate orb yields to the title. `featured` explicitly adds the large readout and Today strip; history remains in the sheet for smaller footprints.
-- **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a circle arrow button or a press and hold on the main control.
+- **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its control and tappable name while its duplicate orb yields to the title. `featured` explicitly adds the large readout and Today strip; history remains in the sheet for smaller footprints.
+- **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a tap on the card's name (marked by a small chevron after it) or a press and hold on the main control. The tap area spans the header (name and readout) under the orb; in compact rows it spans the title column, stopping 8 px short of the control, or the whole row when there is no control. No card spends a column on an open button; the only circle button is the sheet's close.
 - **One palette.** Colour is the exception, not the state. The one question colour answers is "is it on?": the accent hue means on, its absence means off.
   - **Neutrals** for everything by default.
   - **The accent** (one token, `--brand-c` / `--brand-h` in `tokens.css`, Crextio yellow by default) means on, at two strengths:
@@ -93,7 +93,7 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 
 - The bundle forces the lead to `standard` and every row to `compact`, regardless of caller props.
 - The same 8 px gap separates members. A lead plus one row is always 196 px.
-- Row orbs and arrows line up with the lead. At narrow widths, a row drops its arrow to protect the name; hold the row or open the lead's sheet for details.
+- Row orbs line up with the lead. Tap a row's name, or hold its orb, for its details.
 - The lead's history remains in its sheet. The sheet lists rows under "Also in this bundle", live; opening a row's sheet stacks it above the lead sheet.
 - Keep state above the bundle (as with Home Assistant, where it lives in `hass`): rows appear in the card and the lead's sheet, and both copies must show the same entity. `src/bundles/demo/DemoBundle.tsx` shows the demo-hook version.
 

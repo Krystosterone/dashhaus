@@ -2,7 +2,7 @@ import { Fragment, useId } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "./types";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff, IconDrop, TrendIcon } from "./readings";
-import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
+import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
 import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./SensorWidget.css";
 
@@ -18,7 +18,7 @@ export interface SensorWidgetProps {
    * the detail sheet. Default true.
    */
   showControl?: boolean;
-  /** Card only: the arrow and the readings open the details sheet. */
+  /** Card only: the name and the readings open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
   /** The orb's colour, if any. Default: none (a neutral badge). */
@@ -82,21 +82,18 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i">{unav ? <IconThermoOff /> : <IconThermo />}</span>
         </span>
-        <div className="hd-title">
-          <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
+        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </div>
+        </CardTitle>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
-        {sheet
-          ? <CircleButton
-            label={`Close ${e.name}`}
-            onClick={onClose}
-            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-          ><IconClose /></CircleButton>
-          : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
+        {sheet && <CircleButton
+          label={`Close ${e.name}`}
+          onClick={onClose}
+          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+        ><IconClose /></CircleButton>}
       </header>
 
       <div className="hd-slot">

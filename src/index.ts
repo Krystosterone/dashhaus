@@ -1,7 +1,7 @@
 import "./styles/tokens.css";
 
 // Shared
-export { Orb, CircleButton, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./shared/ui";
+export { Orb, CardTitle, CircleButton, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./shared/ui";
 export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, WidgetFootprint } from "./shared/ui";
 export { useLongPress } from "./shared/useLongPress";
 export { useTrack, trackPos } from "./shared/useTrack";

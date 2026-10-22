@@ -18,13 +18,13 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   }
   .hw:not(.hd--compact):not(.hd--sheet) button.hw-scene:active { scale: 0.98; }
   /* The house is the identity: no badge beside it. The condition icon moves into the status line. */
-  .hw:not(.hd--compact):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title open"; min-height: 44px; }
+  .hw:not(.hd--compact):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title"; min-height: 44px; }
   .hw:not(.hd--compact):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
   .hw:not(.hd--compact):not(.hd--sheet) .hw-st-i { display: inline-block; }
 }
 .hw.hd--featured:not(.hd--sheet) .hd-head {
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: "title num open";
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title num";
 }
 @container hd (min-width: 440px) {
   .hw.hd--featured { --scene-w: clamp(150px, 34cqi, 210px); }

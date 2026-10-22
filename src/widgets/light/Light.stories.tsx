@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "One light entity per widget. Tap the bulb to switch it, drag the bar to dim, press and hold the bulb or tap the arrow for details. " +
+          "One light entity per widget. Tap the bulb to switch it, drag the bar to dim, press and hold the bulb or tap the name for details. " +
           "Every widget uses the same modular footprints at every width: compact 60px, standard 128px, and featured 264px.",
       },
     },

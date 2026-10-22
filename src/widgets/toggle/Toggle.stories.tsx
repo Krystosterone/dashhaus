@@ -13,7 +13,7 @@ const meta = {
       description: {
         component:
           "A mode you switch on and off: Do Not Disturb, Quiet, Guest, Away. One input_boolean or switch. Tap the orb or the pill to switch it; " +
-          "the pill is hatched when off and filled with the mode's tone when on, and says when it ends. Press and hold the orb, or tap the arrow, " +
+          "the pill is hatched when off and filled with the mode's tone when on, and says when it ends. Press and hold the orb, or tap the name, " +
           "to turn it on for a while (30 min, 1 hour, until morning, until off). Same sizes and heights as the other widgets.",
       },
     },

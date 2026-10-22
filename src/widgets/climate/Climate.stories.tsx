@@ -13,7 +13,7 @@ const meta = {
       description: {
         component:
           "One climate entity per widget. Tap the round mode button to switch it off or back to its last mode, use − and + to set the target, " +
-          "press and hold the mode button or tap the arrow for modes, presets, fan and today's history. Same sizes and heights as the light widget.",
+          "press and hold the mode button or tap the name for modes, presets, fan and today's history. Same sizes and heights as the light widget.",
       },
     },
   },

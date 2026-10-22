@@ -4,7 +4,7 @@ import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Cond
 import { CONDITION_LABEL, SKY, ConditionIcon, nextChange, compass, toKmh, aqiBand, uvBand } from "./conditions";
 import type { Sky } from "./conditions";
 import { Scene } from "./Scene";
-import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
+import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, fmt1, paint } from "../../shared/ui";
 import type { Vars, HourSample, ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./HomeWidget.css";
 
@@ -22,7 +22,7 @@ export interface HomeWidgetProps {
    * the detail sheet. Default true.
    */
   showControl?: boolean;
-  /** Card only: the house, the today bar and the arrow open the details sheet. */
+  /** Card only: the house, the today bar and the name open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
   /** The orb's colour, if any. Default: none (a neutral badge). */
@@ -176,21 +176,18 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i"><ConditionIcon condition={cond ?? "unavailable"} night={night} /></span>
         </span>
-        <div className="hd-title">
-          <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
+        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails} openHint="weather details">
           <p className="hd-area hw-st">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </div>
+        </CardTitle>
         <p className="hd-num" aria-hidden="true">{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
-        {sheet
-          ? <CircleButton
-            label={`Close ${e.name}`}
-            onClick={onClose}
-            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-          ><IconClose /></CircleButton>
-          : onOpenDetails && <CircleButton label={`${e.name} weather details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
+        {sheet && <CircleButton
+          label={`Close ${e.name}`}
+          onClick={onClose}
+          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+        ><IconClose /></CircleButton>}
       </header>
 
       {sheet && <div className="hw-scene">{scene}</div>}

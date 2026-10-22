@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { CoverEntity, CoverHistory, CoverClass } from "./types";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
-import { Orb, CircleButton, IconOpen, IconClose, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, paint } from "../../shared/ui";
+import { Orb, CardTitle, CircleButton, IconClose, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, paint } from "../../shared/ui";
 import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./CoverWidget.css";
 
@@ -41,7 +41,7 @@ export interface CoverWidgetProps {
   onStopCover: () => void;
   onSetPosition?: (position: number) => void;
   onSetTilt?: (tilt: number) => void;
-  /** Card only: the arrow, and press and hold on the orb, open the details sheet. */
+  /** Card only: the name, and press and hold on the orb, open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
   /** The orb's colour, if any. Default: none (a neutral badge). */
@@ -99,21 +99,18 @@ export function CoverWidget({ entity: e, history, variant = "card", footprint = 
         <Orb label={orbLabel} pressed={open && !unav} unavailable={unav} intensity={pos / 100} onToggle={orbAction} onLongPress={sheet ? undefined : onOpenDetails}>
           <CoverIcon kind={e.deviceClass} open={open} stop={stopping} />
         </Orb>
-        <div className="hd-title">
-          <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
+        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </div>
+        </CardTitle>
         <p className="hd-num" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
-        {sheet
-          ? <CircleButton
-            label={`Close ${e.name} details`}
-            onClick={onClose}
-            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus
-          ><IconClose /></CircleButton>
-          : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={onOpenDetails}><IconOpen /></CircleButton>}
+        {sheet && <CircleButton
+          label={`Close ${e.name} details`}
+          onClick={onClose}
+          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+        ><IconClose /></CircleButton>}
       </header>
 
       <div className="hd-slot">{bare ? <p className="hd-val">{subText}</p> : slot}</div>

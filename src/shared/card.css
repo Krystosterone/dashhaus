@@ -80,25 +80,46 @@
   display: grid;
   align-items: center;
   align-content: center;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "orb . open" "title title title";
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "orb ." "title title";
   column-gap: 12px;
   row-gap: 8px;
+  position: relative;
 }
 .hd-head > .hd-orb { grid-area: orb; }
+/* An actionable orb stays above the stretched details target; a static (read-only) orb sits under it. */
+.hd-head > .hd-orb:not(.hd-orb--static) { position: relative; z-index: 1; }
 .hd-title { grid-area: title; min-width: 0; }
+/* Only the sheet's close button sits in the head's last column. */
 .hd-head > .hd-circ { grid-area: open; }
 .hd-num { grid-area: num; display: none; font-size: clamp(32px, 7cqi, 44px); font-weight: 300; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hd-num span { font-size: 0.48em; letter-spacing: 0; color: var(--ink-2); margin-left: 2px; }
 .hd[data-state="off"] .hd-num { color: var(--ink-3); }
-.hd-name { margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-area { margin-top: 3px !important; font-size: 13.5px; font-weight: 500; color: var(--ink-2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .hd-sub { display: none; }
 /* A missing area keeps its line, so cards with and without one stay the same height. */
 .hd-area:empty::before { content: "\00a0"; }
 .hd--compact .hd-area:empty { display: none; }
 
-/* Circle button (details, close) */
+/* Details: the name is the button, marked by a chevron, so no column is spent on an open control.
+   Its hit area (::after) stretches over the whole header, under an actionable orb, at least 44px tall.
+   In compact rows it covers the title column, stopping 8px short of the control, or the whole row when
+   the row has no control. Nothing on the way to the containing block may transform, or the area shrinks
+   mid-press and the tap is lost: press feedback dims the name instead. */
+.hd-open {
+  display: flex; align-items: center; gap: 2px; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 6px;
+  background: none; color: inherit; font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer;
+  transition: opacity var(--press) var(--ease-out);
+}
+.hd-open::after { content: ""; position: absolute; inset-inline: 0; inset-block: min(0px, calc(50% - 22px)); }
+.hd-open:active { opacity: 0.6; }
+.hd-open:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd-chev { flex: none; width: 0.8em; height: 0.8em; color: var(--ink-3); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: color 150ms var(--ease-out), translate 160ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .hd-open:hover .hd-chev { color: var(--ink); translate: 2px 0; } }
+
+/* Circle button (close) */
 .hd-circ { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -3px -4px -3px 0; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 50%; }
 .hd-circ-i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
 .hd-circ:active .hd-circ-i { scale: 0.92; }
@@ -202,18 +223,20 @@
 /* Footprints. Width adapts anatomy, never height or semantic prominence:
    compact = one unit; standard = two units; featured = four units. */
 @container hd (max-width: 259px) {
-  /* A narrow standard card keeps its full control and details action. The duplicate orb yields so the
+  /* A narrow standard card keeps its full control and its tappable name. The duplicate orb yields so the
      title remains identifiable inside the same two-unit height. */
   .hd:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hd-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "title open";
-    column-gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title";
     row-gap: 0;
   }
   .hd:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
+  /* A narrow featured card does the same, so its name and large readout share the row. */
+  .hd--featured:not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title num"; }
+  .hd--featured:not(.hd--sheet) .hd-head > .hd-orb { display: none; }
 }
 @container hd (min-width: 260px) {
-  .hd-head { grid-template-areas: "orb title open"; row-gap: 0; }
+  .hd-head { grid-template-areas: "orb title"; row-gap: 0; }
   .hd-unav-t, .hd-pill-x { display: inline; }
 }
 
@@ -222,8 +245,8 @@
   grid-template-rows: var(--slot-h) var(--slot-h) minmax(0, 1fr);
 }
 .hd--featured .hd-head {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  grid-template-areas: "orb title num open";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "orb title num";
   row-gap: 0;
 }
 .hd--featured .hd-num { display: block; }
@@ -234,45 +257,52 @@
   --pad: 8px;
   --pad-in: 12px;
   --slot-h: 44px;
-  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   grid-template-rows: none;
-  grid-template-areas: "orb title slot open";
+  grid-template-areas: "orb title slot";
   align-items: center;
   column-gap: 10px;
   row-gap: 0;
   height: var(--hd-unit);
-  padding: 8px 10px 8px 8px;
+  padding: 8px;
   border-radius: 999px;
 }
 .hd--compact .hd-head { display: contents; }
 .hd--compact .hd-head > .hd-orb { grid-area: orb; }
-.hd--compact .hd-title { grid-area: title; }
-.hd--compact .hd-head > .hd-circ { grid-area: open; margin: 0 -2px; width: 44px; height: 44px; }
+.hd--compact .hd-title { grid-area: title; position: relative; }
+/* Reach back over the gap to the orb; stop 8px short of the control so a short tap on it never opens the sheet. */
+.hd--compact .hd-open::after { inset-inline: -10px 8px; }
 .hd--compact .hd-name { font-size: 15px; }
 .hd--compact .hd-area, .hd--compact .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
-.hd--compact .hd-slot { grid-area: slot; width: clamp(96px, 34cqi, 200px); }
+/* The control and the name split the row; no column goes to a details button. */
+.hd--compact .hd-slot { grid-area: slot; width: clamp(112px, 40cqi, 232px); }
 .hd--compact .hd-pill, .hd--compact .hd-unav { font-size: 13px; }
 .hd--compact .hd-unav-t, .hd--compact .hd-pill-x, .hd--compact .hd-num, .hd--compact .hd-tl { display: none; }
-/* With the control hidden, the value replaces it and the details action covers the row. */
+/* With the control hidden, the value replaces it and the name's details button covers the row. */
 .hd-val {
   margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;
   font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums;
 }
 .hd--compact[data-control="off"] .hd-slot { width: auto; max-width: 48cqi; justify-items: end; }
 .hd--compact[data-control="off"]:is([data-state="off"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
-.hd--compact[data-control="off"] .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
-.hd--compact[data-control="off"] { cursor: pointer; }
-.hd--compact[data-control="off"] .hd-head > .hd-orb { position: relative; z-index: 1; }
-@media (hover: hover) and (pointer: fine) { .hd--compact[data-control="off"]:has(> .hd-head > .hd-circ:hover) .hd-circ-i { background: var(--card-solid); } }
+.hd--compact[data-control="off"] .hd-title { position: static; }
+.hd--compact[data-control="off"] .hd-open::after { inset: 0; border-radius: 999px; }
+.hd--compact[data-control="off"] .hd-open:focus-visible { outline: none; }
+.hd--compact[data-control="off"] .hd-open:focus-visible::after { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hd--compact[data-control="off"]:has(.hd-open) { cursor: pointer; transition: scale var(--press) var(--ease-out); }
+.hd--compact[data-control="off"]:has(.hd-open:active) { scale: 0.985; }
 /* Under 320px the inline control yields to the compact value line. */
 @container hd (max-width: 319px) {
-  .hd--compact { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "orb title open"; column-gap: 8px; }
+  .hd--compact { grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "orb title"; column-gap: 8px; }
   .hd--compact .hd-slot, .hd--compact .hd-area { display: none; }
   .hd--compact .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hd--compact[data-state="unavailable"] .hd-sub, .hd--compact[data-state="off"] .hd-sub { color: var(--ink-3); }
-  .hd--compact .hd-head > .hd-circ::after { content: ""; position: absolute; inset: 0; }
-  .hd--compact:has(> .hd-head > .hd-circ) { cursor: pointer; }
-  .hd--compact .hd-head > .hd-orb { position: relative; z-index: 1; }
+  .hd--compact .hd-title { position: static; }
+  .hd--compact .hd-open::after { inset: 0; border-radius: 999px; }
+  .hd--compact .hd-open:focus-visible { outline: none; }
+  .hd--compact .hd-open:focus-visible::after { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .hd--compact:has(.hd-open) { cursor: pointer; transition: scale var(--press) var(--ease-out); }
+  .hd--compact:has(.hd-open:active) { scale: 0.985; }
 }
 
 /* Sheet variant: unconstrained height, everything in one column. */
@@ -289,7 +319,7 @@
 .hd--sheet .hd-num { display: block; font-size: 40px; }
 .hd--sheet .hd-area { white-space: normal; }
 /* The sheet is where a truncated name can be read in full. */
-.hd--sheet .hd-name { white-space: normal; overflow-wrap: anywhere; }
+.hd--sheet .hd-name > span { white-space: normal; overflow-wrap: anywhere; }
 .hd--sheet .hd-unav-t, .hd--sheet .hd-pill-x { display: inline; }
 .hd--sheet .hd-tl, .hd--sheet .hd-extra { display: grid; }
 
@@ -333,6 +363,8 @@
 /* Reduced motion: fewer, gentler animations, not none. Colour and opacity fades stay; movement and scaling go. */
 @media (prefers-reduced-motion: reduce) {
   .hd :is(.hd-orb-i, .hd-circ-i, .hd-pill, .hd-chip) { scale: none !important; }
+  .hd--compact { scale: none !important; }
+  .hd-chev { translate: none !important; }
   .hd-sheet { transition: opacity 200ms var(--ease-out); }
   @starting-style { .hd-sheet[open] { opacity: 0; scale: none; translate: none; } }
   .hd-sheet[data-closing] { opacity: 0; scale: none; translate: none; transition-duration: 150ms; }

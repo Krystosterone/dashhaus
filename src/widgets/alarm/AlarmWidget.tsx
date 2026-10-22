@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from "react";
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types";
 import { ShieldIcon, MODE_LABEL } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
-import { AlertStatus, CircleButton, IconOpen, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
+import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
 import type { WidgetFootprint } from "../../shared/ui";
 import "./AlarmWidget.css";
 
@@ -34,7 +34,7 @@ export interface AlarmWidgetProps {
    * Default: on when neither onArm nor onDisarm is given.
    */
   readOnly?: boolean;
-  /** Card only: the arrow opens the sheet; with an action when it needs the code. */
+  /** Card only: the name opens the sheet; with an action when it needs the code. */
   onOpenDetails?: (action?: AlarmAction) => void;
   onClose?: () => void;
   /** Sheet only: start with the keypad for this action. */
@@ -142,21 +142,18 @@ export function AlarmWidget({ entity: e, history, variant = "card", footprint = 
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i"><ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} /></span>
         </span>
-        <div className="hd-title">
-          <h2 className="hd-name" id={`${uid}-n`} title={e.name}>{e.name}</h2>
+        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet || !onOpenDetails ? undefined : () => onOpenDetails()}>
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </div>
+        </CardTitle>
         <p className="hd-num" aria-hidden="true">{word}</p>
-        {sheet
-          ? <CircleButton
-            label={`Close ${e.name}`}
-            onClick={onClose}
-            // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-            // eslint-disable-next-line jsx-a11y/no-autofocus
-            autoFocus={!pending}
-          ><IconClose /></CircleButton>
-          : onOpenDetails && <CircleButton label={`${e.name} details`} onClick={() => onOpenDetails()}><IconOpen /></CircleButton>}
+        {sheet && <CircleButton
+          label={`Close ${e.name}`}
+          onClick={onClose}
+          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus={!pending}
+        ><IconClose /></CircleButton>}
       </header>
 
       <div className="hd-slot">{bare ? <p className="hd-val">{subText}</p> : slot}</div>
