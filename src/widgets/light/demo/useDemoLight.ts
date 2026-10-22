@@ -47,7 +47,9 @@ export function useDemoLight(seed: DemoSeed, overrides?: Partial<LightEntity>) {
 
   const history = useMemo<LightHistory>(() => {
     const on = entity.state === "on";
-    const nowSample: HourSample = entity.state === "unavailable" ? "unavailable" : on ? (entity.supportsBrightness ? entity.brightness / 100 : 1) : 0;
+    const nowSample: HourSample = entity.state === "unavailable" ? "unavailable" : on
+      ? (entity.supportsBrightness ? (entity.brightness == null ? null : entity.brightness / 100) : 1)
+      : 0;
     const samples: HourSample[] = [...seed.past, nowSample, ...Array(24 - seed.past.length - 1).fill(null)];
     const onMinutes = seed.past.filter((x) => typeof x === "number" && x > 0).length * 60 + (on ? NOW.minute : 0);
     return { samples, currentHour: NOW.hour, onMinutes };

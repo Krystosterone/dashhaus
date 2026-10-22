@@ -46,15 +46,16 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
   const bare = thin && !showControl;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  // HA reports brightness 0-255; integrations can hand over a raw float. Show whole percent, 1-100.
-  const pct = Math.min(100, Math.max(1, Math.round(e.brightness)));
-  const glow = on ? (e.supportsBrightness ? pct / 100 : 0.85) : 0;
-  const intensity = e.supportsBrightness ? pct / 100 : 0.85;
+  const hasBrightness = e.supportsBrightness && e.brightness != null;
+  // Adapters hand over normalized percent; keep an absent reading out of controls and readouts.
+  const pct = e.brightness == null ? 100 : Math.min(100, Math.max(1, Math.round(e.brightness)));
+  const glow = on ? (hasBrightness ? pct / 100 : 0.85) : 0;
+  const intensity = hasBrightness ? pct / 100 : 0.85;
   // Lit is energy: the bar fills with the accent. The lamp's own colour goes in the orb.
   const colors = paint("energy", glow, e.supportsColorTemp && e.kelvin ? kelvinToLch(e.kelvin) : null, color);
 
-  const readout = unav ? null : !on ? "Off" : e.supportsBrightness ? <>{pct}<span>%</span></> : "On";
-  const valueText = unav ? "Unavailable" : !on ? "Off" : e.supportsBrightness ? `${pct}%` : "On";
+  const readout = unav ? null : !on ? "Off" : hasBrightness ? <>{pct}<span>%</span></> : "On";
+  const valueText = unav ? "Unavailable" : !on ? "Off" : hasBrightness ? `${pct}%` : "On";
 
   // The value in words: under the name in narrow thin rows, and in place of the control when it's hidden.
   const subText = valueText;
@@ -83,13 +84,13 @@ export function LightWidget({ entity: e, history, variant = "card", density = "r
 
       <div className="hd-slot">
         {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : e.supportsBrightness ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={e.brightness} on={on} onChange={onBrightnessChange} />
+          : hasBrightness ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={pct} on={on} onChange={onBrightnessChange} />
           : <TogglePill label={`${e.name}: ${on ? "On" : "Off"}`} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
       </div>
 
-      {sheet && !unav && (e.supportsBrightness || e.supportsColorTemp) && (
+      {sheet && !unav && (hasBrightness || (e.supportsColorTemp && e.kelvin != null && onKelvinChange)) && (
         <div className="hd-extra">
-          {e.supportsBrightness && (
+          {hasBrightness && (
             <ChoiceChips id={`${uid}-lv`} label="Quick levels" options={QUICK_LEVELS} value={on ? pct : null} onChange={onBrightnessChange} />
           )}
           {e.supportsColorTemp && e.kelvin != null && onKelvinChange && (

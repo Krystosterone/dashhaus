@@ -20,7 +20,13 @@ export { HaProvider, useHaEntity, useHaGeneration, useHaSelector, useHaSnapshot,
 export type { HaProviderProps } from "./provider";
 export { connectHomeAssistant, createHomeAssistantTransport } from "./home-assistant";
 export type { HomeAssistantTransport } from "./home-assistant";
+export { lightFromHass } from "./mappers/light";
 export { formatHaTime } from "./time";
+export type { LightMapOptions } from "./mappers/light";
+export { createLightHandlers } from "./actions/light";
+export type { LightHandlers, LightHandlerOptions } from "./actions/light";
+export { HaLightTile } from "./HaLightTile";
+export type { HaLightTileProps } from "./HaLightTile";
 export {
   historyRecords,
   lightHistoryFromHass,

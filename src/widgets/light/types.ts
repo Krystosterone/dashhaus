@@ -12,8 +12,8 @@ export interface LightEntity {
   state: LightState;
   /** True when the light supports brightness (HA color mode other than `onoff`). */
   supportsBrightness: boolean;
-  /** Brightness in percent, 1-100 (HA `brightness` / 2.55). Kept while the light is off. */
-  brightness: number;
+  /** Brightness in percent, 1-100 (HA `brightness` / 2.55). Absent when HA has not reported a reading. */
+  brightness?: number;
   supportsColorTemp?: boolean;
   /** Color temperature in Kelvin (HA `color_temp_kelvin`). */
   kelvin?: number;

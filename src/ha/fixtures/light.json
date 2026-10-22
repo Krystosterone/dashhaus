@@ -1,0 +1,45 @@
+{
+  "light.living_room": {
+    "entity_id": "light.living_room",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Living room",
+      "supported_color_modes": ["color_temp", "brightness"],
+      "brightness": 196,
+      "color_mode": "color_temp",
+      "color_temp_kelvin": 3000,
+      "min_color_temp_kelvin": 2000,
+      "max_color_temp_kelvin": 5000
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "light.hall": {
+    "entity_id": "light.hall",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Hall",
+      "supported_color_modes": ["onoff"]
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "light.startup": {
+    "entity_id": "light.startup",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Starting light"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "light.garage": {
+    "entity_id": "light.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}
