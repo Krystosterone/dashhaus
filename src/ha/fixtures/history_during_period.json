@@ -1,0 +1,12 @@
+{
+  "light.living_room": [
+    { "s": "off", "a": { "friendly_name": "Living room", "supported_color_modes": ["color_temp"], "color_mode": null, "brightness": null }, "lu": 1792468800.0, "lc": 1792440000.5 },
+    { "s": "on", "a": { "friendly_name": "Living room", "supported_color_modes": ["color_temp"], "color_mode": "color_temp", "brightness": 128, "color_temp_kelvin": 3000 }, "lu": 1792494000.25 },
+    { "s": "on", "a": { "friendly_name": "Living room", "supported_color_modes": ["color_temp"], "color_mode": "color_temp", "brightness": 255, "color_temp_kelvin": 3000 }, "lu": 1792501200.75, "lc": 1792494000.25 }
+  ],
+  "sensor.living_room_temperature": [
+    { "s": "20.9", "a": { "device_class": "temperature", "unit_of_measurement": "°C", "friendly_name": "Living room temperature", "state_class": "measurement" }, "lu": 1792468800.0, "lc": 1792465000.0 },
+    { "s": "21.4", "a": { "device_class": "temperature", "unit_of_measurement": "°C", "friendly_name": "Living room temperature", "state_class": "measurement" }, "lu": 1792497600.0 },
+    { "s": "unavailable", "a": { "friendly_name": "Living room temperature" }, "lu": 1792504800.0 }
+  ]
+}

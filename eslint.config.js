@@ -24,4 +24,19 @@ export default tseslint.config(
       ...jsxA11y.flatConfigs.recommended.rules,
     },
   },
+  {
+    // The Home Assistant boundary: widgets, layout and stories never see the transport or raw
+    // entities. Only src/ha/ and the public barrel may import the integration.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/ha/**", "src/index.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Keep the websocket client under src/ha/." },
+          { group: ["**/ha", "**/ha/*"], message: "Widgets stay provider-agnostic; connect them in a src/ha/ container." },
+          { group: ["**/index"], message: "Import the module directly, not the public barrel." },
+        ],
+      }],
+    },
+  },
 );

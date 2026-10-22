@@ -7,6 +7,24 @@ export { useLongPress } from "./shared/useLongPress";
 export { useTrack, trackPos } from "./shared/useTrack";
 export { useNow } from "./shared/useNow";
 
+// Home Assistant integration: what a host needs to connect tiles. Mappers, handler factories and
+// history parsers for custom containers live in ./ha.
+export { HaActionError } from "./ha";
+export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
+export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaStatus, useHaGeneration } from "./ha";
+export type {
+  HassEntity,
+  HassEntities,
+  HaTransport,
+  HaStore,
+  HaSnapshot,
+  HaConnectionStatus,
+  HaActionErrorCode,
+  HaServiceCallOptions,
+  HomeAssistantTransport,
+  HaProviderProps,
+} from "./ha";
+
 // Header
 export { HeaderWidget } from "./widgets/header/HeaderWidget";
 export type { HeaderWidgetProps } from "./widgets/header/HeaderWidget";
