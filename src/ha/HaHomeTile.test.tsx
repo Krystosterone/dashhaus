@@ -78,9 +78,10 @@ describe("HaHomeTile", () => {
     expect(document.querySelector("article[data-control='off']")).toBeTruthy();
     await waitFor(() => expect(fake.callService).toHaveBeenCalledTimes(2));
     expect(document.querySelector(".hd-c > article")).toBeTruthy();
-    const slot = document.querySelector(".hd-slot");
-    expect(slot).toBeTruthy();
-    fireEvent.click(slot!);
+    expect(document.querySelector(".hd-slot .hd-val")).toBeTruthy();
+    // A bare compact row opens details through the details button's full-row overlay (CSS), which jsdom
+    // doesn't lay out: click the button the row tap lands on.
+    fireEvent.click(screen.getByRole("button", { name: "Home weather details" }));
     await waitFor(() => expect(document.querySelector("dialog[open]")).toBeTruthy());
     expect(screen.getByText("Next days")).toBeTruthy();
     expect(fake.callService).toHaveBeenCalledWith(
