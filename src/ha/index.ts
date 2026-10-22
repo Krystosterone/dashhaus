@@ -23,10 +23,16 @@ export type { HomeAssistantTransport } from "./home-assistant";
 export { lightFromHass } from "./mappers/light";
 export { formatHaTime } from "./time";
 export type { LightMapOptions } from "./mappers/light";
+export { climateFromHass } from "./mappers/climate";
+export type { ClimateMapOptions } from "./mappers/climate";
 export { createLightHandlers } from "./actions/light";
 export type { LightHandlers, LightHandlerOptions } from "./actions/light";
+export { createClimateHandlers } from "./actions/climate";
+export type { ClimateHandlers, ClimateHandlerOptions } from "./actions/climate";
 export { HaLightTile } from "./HaLightTile";
 export type { HaLightTileProps } from "./HaLightTile";
+export { HaClimateTile } from "./HaClimateTile";
+export type { HaClimateTileProps } from "./HaClimateTile";
 export {
   historyRecords,
   lightHistoryFromHass,
