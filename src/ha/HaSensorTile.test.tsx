@@ -63,6 +63,6 @@ describe("HaSensorTile", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room" })).toBeTruthy());
     expect(screen.getByRole("button", { name: /21\.4 degrees, humidity 44 percent/ })).toBeTruthy();
     act(() => fake.emit({ ...raw, "sensor.living_room_temperature": { ...raw["sensor.living_room_temperature"], state: "unavailable" } }));
-    await waitFor(() => expect(screen.getByText("Not responding")).toBeTruthy());
+    await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));
   });
 });

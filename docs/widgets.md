@@ -140,7 +140,7 @@ import { HaAlarmTile } from "./src";
 
 - **The slot is the mode switch:** Off, then each supported mode (Home, Away, Night, Vacation, Custom).
   - The current mode sits on a thumb that slides between segments.
-  - Armed is charcoal (on, not energy); Off sits on hatching, because nothing is guarded.
+  - Armed is the soft accent (on, not energy); Off sits on hatching, because nothing is guarded. The switch position is "Off"; the state word is "Disarmed".
   - Labels from 260 px up; icons only below 260 px.
   - Compact cards show up to four 44 px mode targets from 360 px up. Narrower cards and alarms with five or more choices show the current state and move arming to the detail sheet.
   - Armed in a mode the switch doesn't list (custom bypass set from the panel itself) still shows that mode, not Off.
@@ -163,7 +163,7 @@ import { HaAlarmTile } from "./src";
 <AlarmTile entity={alarmFromHass(hass.states[id], id)} history={today} readOnly />
 ```
 
-- The mode switch becomes a status pill: "Armed home" in charcoal, or "Disarmed" on hatching, with who changed it at 260 px and up ("by Keypad"). In compact cards, the mode is one word.
+- The mode switch becomes a status pill: "Armed home" in the soft accent, or "Disarmed" on hatching, with who changed it at 260 px and up ("by Keypad"). In compact cards, the mode is one word ("Home", "Disarmed").
 - Exit and entry delays still count down, without Cancel or Disarm; the entry delay reads "Entry delay". Triggered keeps its warn pill, without Disarm.
 - Nothing opens the keypad. The sheet has the status, today's history and "View only" in its info row; open doors and windows are still listed.
 
@@ -210,11 +210,11 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 <ToggleTile entity={dnd} history={today} onToggle={toggle} onTurnOnFor={(v) => turnOnFor(v)} />
 ```
 
-- **Switching:** the orb and the pill both toggle. The pill is hatched when off and filled with the mode's tone when on. It says when the mode ends ("Until 12:54") or how long it has been on ("Since Fri 18:30").
+- **Switching:** the orb and the pill both toggle. The pill is hatched when off and the soft accent when on (a mode is on, not energy). It says when the mode ends ("Until 12:54") or how long it has been on ("Since Fri 18:30").
 - **Tone and icon per mode:**
   - `calm` lavender for quiet and night, `sage` for people, `apricot` for away, `blue` or the house `butter`.
   - Icons: `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`.
-- **Status line:** shows where the mode applies; in compact cards the end time takes its place.
+- **Status line:** shows where the mode applies; in compact cards the end time takes its place. It never says On or Off; that's the pill's word.
 - **Compact:** the toggle uses the same 60 px orb/title/control/arrow anatomy as every other widget. Use a CSS grid or `JoinedBundle` for mode grids; there is no toggle-only mini variant.
 - **Sheet:** press and hold the orb, or tap the arrow. It has the description and "Turn on for" chips: 30 min, 1 hour, until morning, until off. While the mode is on they read "Keep on" and the active choice is selected.
   - `onTurnOnFor(value)` receives the option's value. Wire it to a timer or an automation that turns the mode off.

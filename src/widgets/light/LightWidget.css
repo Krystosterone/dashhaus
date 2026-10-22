@@ -17,7 +17,7 @@
 /* The slider stays for keyboard and screen readers, out of the pointer's way. */
 .lw-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 
-/* Warmth ruler: ticks every 100 K, a charcoal stick and a tone tag mark the value */
+/* Warmth ruler: ticks every 100 K, an ink stick and a tone tag mark the value */
 .lw-ruler { --tw: 24px; position: relative; height: 70px; }
 .lw-ruler-ticks { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 14px; }
 .lw-ruler-line { position: absolute; left: 12px; right: 12px; bottom: 0; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--warm-grad)); }

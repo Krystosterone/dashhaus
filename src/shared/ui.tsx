@@ -7,7 +7,8 @@ import "./card.css";
 export type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
 /* ---------- Colour ----------
-   One accent (tokens.css --brand-c/--brand-h) for energy, charcoal for on-but-not-energy, neutrals for the rest.
+   One accent hue (tokens.css --brand-c/--brand-h) means on: solid for energy, soft for on-but-not-energy.
+   Neutrals for the rest.
    A widget's own colour is the "colour slot": it is painted on the orb and nowhere else. */
 
 /** A colour for the orb, as OKLCH chroma and hue (lightness comes from the theme). */
@@ -161,7 +162,7 @@ export const fmt1 = (n: number) => {
   return (r === 0 ? 0 : r).toFixed(1);
 };
 
-/* ---------- Choice chips: one of several, the selected one in charcoal ---------- */
+/* ---------- Choice chips: one of several, the selected one in the soft accent ---------- */
 export interface ChoiceOption<T extends string | number> { value: T; label: string; sub?: string }
 export function ChoiceChips<T extends string | number>({ id, label, options, value, onChange }: { id: string; label: string; options: ChoiceOption<T>[]; value: T | null | undefined; onChange: (v: T) => void }) {
   return (

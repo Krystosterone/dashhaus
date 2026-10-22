@@ -98,7 +98,7 @@ export function LightWidget({ entity: e, history, variant = "card", footprint = 
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
         />
       )}
 

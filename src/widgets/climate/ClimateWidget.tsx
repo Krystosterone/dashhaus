@@ -74,7 +74,7 @@ export function ClimateWidget({ entity: e, history, variant = "card", footprint 
   const cur = e.currentTemperature;
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;
   const single = !range && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
-  const statusParts = [cur != null ? `${fmtCurrent(cur)}°${compact ? "" : " now"}` : null, unav ? "Not responding" : ACTION_LABEL[action]].filter(Boolean);
+  const statusParts = [cur != null ? `${fmtCurrent(cur)}°${compact ? "" : " now"}` : null, unav ? "Unavailable" : ACTION_LABEL[action]].filter(Boolean);
   const status = statusParts.join(" · ");
   const modePrefix = compact && on ? `${MODE_META[mode].label} · ` : "";
   const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : MODE_META[mode].label;
@@ -96,7 +96,7 @@ export function ClimateWidget({ entity: e, history, variant = "card", footprint 
     slot = <TogglePill label={`${e.name}: ${MODE_META[mode].label}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
   }
 
-  const summary = !history ? "" : unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
+  const summary = !history ? "" : unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = cur != null && !unav ? `${fmtCurrent(cur)}° · ${setText}` : setText;

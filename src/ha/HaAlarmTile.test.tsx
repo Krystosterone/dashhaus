@@ -70,6 +70,6 @@ describe("HaAlarmTile", () => {
       ...raw,
       "alarm_control_panel.house": { ...raw["alarm_control_panel.house"], state: "unavailable" },
     }));
-    await waitFor(() => expect(screen.getByText("Not responding")).toBeTruthy());
+    await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));
   });
 });

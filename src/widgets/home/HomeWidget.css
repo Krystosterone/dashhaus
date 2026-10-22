@@ -56,7 +56,7 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .sc[data-night] .sc-win polygon { fill: var(--scene-lamp); }
 /* Daylight unknown: keep the scene neutral instead of assuming daytime */
 .sc[data-daylight="unknown"] { opacity: 0.72; }
-/* Not responding: the house stays, faded */
+/* Unavailable: the house stays, faded */
 .sc[data-off] { opacity: 0.45; }
 
 /* ---------- Status line: warnings, then the condition or the next change ---------- */

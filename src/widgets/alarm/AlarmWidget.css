@@ -1,7 +1,7 @@
 /* Security alarm. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
 
-/* Badge: charcoal when armed (on, not energy); a triggered alarm alone gets the exceptional warn fill. */
-.al[data-armed] .hd-orb--static .hd-orb-i { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+/* Badge: soft accent when armed (on, not energy); a triggered alarm alone gets the exceptional warn fill. */
+.al[data-armed] .hd-orb--static .hd-orb-i { background: var(--on); box-shadow: var(--on-ring); }
 .al[data-state="triggered"] .hd-orb--static .hd-orb-i { background: var(--warn); color: var(--on-warn); box-shadow: none; }
 .al .hd-num { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; }
 .hd--sheet.al .hd-num { font-size: 30px; }
@@ -17,9 +17,9 @@
   position: absolute; top: var(--inset); bottom: var(--inset); left: var(--inset); width: calc((100% - 2 * var(--inset)) / var(--n)); border-radius: 99px;
   background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.18);
   transform: translateX(calc(var(--i) * 100%));
-  transition: transform 240ms var(--ease-out), background-color 200ms var(--ease-out);
+  transition: transform 240ms var(--ease-out), background-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
-.al-sw[data-armed] .al-thumb { background: var(--inv-bg); box-shadow: none; }
+.al-sw[data-armed] .al-thumb { background: var(--on); box-shadow: var(--on-ring); }
 .al-seg {
   position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 0 6px;
   border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 13.5px var(--font); cursor: pointer;
@@ -27,7 +27,6 @@
 }
 .al-seg:active { scale: 0.95; }
 .al-seg[aria-pressed="true"] { color: var(--ink); cursor: default; }
-.al-sw[data-armed] .al-seg[aria-pressed="true"] { color: var(--inv-fg); }
 .al-seg:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 .al-seg svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .al-seg-l { display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -76,7 +75,7 @@
   border-radius: 99px; background: var(--hatching), var(--track); box-shadow: inset 0 0 0 1px var(--line);
   color: var(--ink-2); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden;
 }
-.al-st[data-armed] { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.al-st[data-armed] { background: var(--on); color: var(--ink); box-shadow: var(--on-ring); }
 .al-st svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .al-st-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .al-st-s { display: none; }

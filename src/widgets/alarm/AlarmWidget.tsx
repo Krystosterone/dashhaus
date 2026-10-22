@@ -61,7 +61,7 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
 
 /**
  * A security alarm (one alarm_control_panel). The slot is the mode switch: Off, Home, Away, Night.
- * Armed is charcoal (on, not energy); off sits on hatching. Anything that needs the code opens the
+ * Armed is the soft accent (on, not energy); off sits on hatching. Anything that needs the code opens the
  * keypad in the sheet; the badge only shows status, so a stray tap never arms or disarms.
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */
@@ -109,12 +109,12 @@ export function AlarmWidget({ entity: e, history, variant = "card", footprint = 
   // Arming to an unknown mode (HA's core entity doesn't say) reads as plain "Arming".
   const to = e.armingTo ? ` ${MODE_LABEL[e.armingTo].toLowerCase()}` : "";
   const status = alertLabel ? <AlertStatus label={alertLabel}>{warningText}</AlertStatus>
-    : unav ? "Not responding"
+    : unav ? e.area ?? "Unavailable"
     : e.state === "arming" ? `Arming${to} · leave now`
     : e.state === "disarming" ? "Disarming…"
     : armedMode ? `${MODE_LABEL[armedMode]}${e.lastChanged ? ` since ${e.lastChanged}` : ""}`
     : e.area ?? "Disarmed";
-  const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Off";
+  const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Disarmed";
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
@@ -178,7 +178,7 @@ export function AlarmWidget({ entity: e, history, variant = "card", footprint = 
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today"}
+          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today"}
         />
       )}
 

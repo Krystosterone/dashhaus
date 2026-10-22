@@ -31,14 +31,17 @@ export const Roles: Story = {
       <Role title="Neutrals" rule="Everything, by default: cards, readings, idle controls.">
         <div style={{ display: "flex", gap: 6 }}>{["var(--card-solid)", "var(--fill)", "var(--chip)"].map((c) => <div key={c} style={{ ...chip, flex: 1, background: c }} />)}</div>
       </Role>
-      <Role title="Accent: energy" rule="Lit, running, daylight, sunshine. The only fill colour, the glow, the now stick and the page wash. One token.">
+      <Role title="Solid accent: on, energy" rule="Lit, running, daylight, sunshine. The only solid fill, the glow, the now stick and the page wash. One token.">
         <div style={{ ...chip, background: "oklch(var(--accent-l) var(--brand-c) var(--brand-h))", boxShadow: "none" }} />
       </Role>
-      <Role title="Charcoal: on or chosen" rule="A mode switched on, a thermostat on but idle, a door left open, a selected chip.">
-        <div style={{ ...chip, background: "var(--inv-bg)", boxShadow: "none" }} />
+      <Role title="Soft accent: on, not energy" rule="A mode switched on, an armed alarm, a thermostat on but idle, a door left open, a selected chip. Same hue, so on always reads as on.">
+        <div style={{ ...chip, background: "color-mix(in oklab, oklch(var(--accent-l) var(--brand-c) var(--brand-h)) var(--on-mix), var(--card-solid))", boxShadow: "inset 0 0 0 1.5px oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / var(--on-ring-a))" }} />
       </Role>
-      <Role title="Hatching: absence" rule="Off, closed, unavailable, resting.">
+      <Role title="Hatching: off" rule="Off, closed, disarmed, unavailable, resting.">
         <div style={{ ...chip, background: "repeating-linear-gradient(-45deg, var(--hatch) 0 1.2px, transparent 1.2px 6px), var(--track)" }} />
+      </Role>
+      <Role title="Inverse: actions only" rule="Stop, Disarm, Cancel, Enter. A button to press, never a state.">
+        <div style={{ ...chip, width: 96, background: "var(--inv-bg)", color: "var(--inv-fg)", boxShadow: "none", display: "grid", placeItems: "center", fontWeight: 600, fontSize: 13.5 }}>Stop</div>
       </Role>
       <Role title="Warn: text only" rule="Low battery, a door left open, poor air, strong gusts.">
         <span style={{ color: "var(--warn)", fontWeight: 600, fontSize: 15 }}>Battery 8%</span>

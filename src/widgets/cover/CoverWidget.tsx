@@ -9,7 +9,7 @@ import "./CoverWidget.css";
 const CLASS_LABEL: Record<CoverClass, string> = {
   curtain: "Curtain", blind: "Blind", shade: "Shade", shutter: "Shutter", awning: "Awning", window: "Window", garage: "Garage door", door: "Door", gate: "Gate",
 };
-/** Covers that let a person in, rather than light: open is a state (charcoal), and reads as a warning. */
+/** Covers that let a person in, rather than light: open is a state (soft accent), and reads as a warning. */
 const ACCESS = new Set<CoverClass>(["garage", "door", "gate"]);
 
 const QUICK = [
@@ -78,7 +78,7 @@ export function CoverWidget({ entity: e, history, variant = "card", footprint = 
   const alertLabel = warnedOpen ? `Warning: ${e.name} has been open${e.lastChanged ? ` since ${e.lastChanged}` : ""}` : undefined;
 
   // A door left open leads the status line in the warn colour, like a sensor's low battery.
-  const status = unav ? "Not responding"
+  const status = unav ? identity
     : warnedOpen ? (compact ? identity : `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`)
     : identity;
   const areaText = sheet && e.area && !(access && open) ? `${e.area} · ${CLASS_LABEL[e.deviceClass]}` : status;
@@ -129,7 +129,7 @@ export function CoverWidget({ entity: e, history, variant = "card", footprint = 
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""}
+          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""}
         />
       )}
 

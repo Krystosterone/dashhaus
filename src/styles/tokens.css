@@ -1,7 +1,8 @@
 /* Design tokens. Light values on :root, dark values for system dark mode and for an explicit
    data-theme="dark" on <html>. data-theme="light" forces light.
-   Palette: neutrals everywhere; ONE accent for energy (lit, running, daylight); charcoal for
-   on or chosen; hatching for absence; warn as text. A widget's own colour only ever goes in its orb. */
+   Palette: neutrals everywhere; ONE accent hue for on: solid for energy (lit, running, daylight),
+   soft for on but not energy (a mode, armed, idle, chosen); hatching for absence; warn as text;
+   inverse (--inv-*) for action buttons only, never a state. A widget's own colour only ever goes in its orb. */
 :root {
   /* The accent. Swap these two numbers (chroma, hue) to re-colour the whole dashboard;
      lightness comes from the theme. Default: Crextio yellow. */
@@ -31,6 +32,9 @@
   --tint-mix: 50%;
   --accent-l: 0.89;
   --accent-strong-l: 0.76;
+  /* Soft on: how much accent mixes into the card, and the strength of its accent ring */
+  --on-mix: 42%;
+  --on-ring-a: 0.85;
   --glow-a: 0.22;
   --shadow: 0 1px 2px oklch(0.3 0.02 80 / 0.05), 0 18px 40px -24px oklch(0.3 0.03 80 / 0.25);
   --knob-shadow: 0 0 0 1px oklch(0.2 0.01 80 / 0.08), 0 1px 3px oklch(0.2 0.01 80 / 0.2);
@@ -91,6 +95,8 @@
     --tint-mix: 24%;
     --accent-l: 0.87;
     --accent-strong-l: 0.84;
+    --on-mix: 26%;
+    --on-ring-a: 0.7;
     --glow-a: 0.14;
     --shadow: 0 18px 44px -24px oklch(0 0 0 / 0.7);
     --knob-shadow: 0 1px 3px oklch(0 0 0 / 0.45);
@@ -138,6 +144,8 @@
   --tint-mix: 24%;
   --accent-l: 0.87;
   --accent-strong-l: 0.84;
+  --on-mix: 26%;
+  --on-ring-a: 0.7;
   --glow-a: 0.14;
   --shadow: 0 18px 44px -24px oklch(0 0 0 / 0.7);
   --knob-shadow: 0 1px 3px oklch(0 0 0 / 0.45);

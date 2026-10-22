@@ -1,12 +1,13 @@
 /* Climate-specific parts. Shell, header, orb, pills, today strip, chips and sheet come from src/shared/card.css. */
 
-/* Setpoint stepper: a pill with a minus and a plus at its ends. Neutral while idle; the accent while running. */
+/* Setpoint stepper: a pill with a minus and a plus at its ends. It only shows while the unit is on:
+   soft accent while idle, the solid accent while running. */
 .cw-step {
   --btn: calc(var(--slot-h) - 2 * var(--inset));
   display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
   height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--fill); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line);
-  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+  background: var(--on); color: var(--ink); box-shadow: var(--on-ring);
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
 .cw[data-state="active"] .cw-step { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .cw-step-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; touch-action: manipulation; }
@@ -43,8 +44,8 @@
 }
 /* Zones and handles move with clip-path and transform only, and only animate after a tap-jump. */
 .cw-rb-zone { position: absolute; inset: 0; border-radius: inherit; }
-.cw-rb-zone--heat { background: var(--fill); clip-path: inset(0 calc(100% - var(--kn) / 2 - (100% - var(--kn)) * var(--lo)) 0 0); }
-.cw-rb-zone--cool { background: var(--fill); clip-path: inset(0 0 0 calc(var(--kn) / 2 + (100% - var(--kn)) * var(--hi))); }
+.cw-rb-zone--heat { background: var(--on); clip-path: inset(0 calc(100% - var(--kn) / 2 - (100% - var(--kn)) * var(--lo)) 0 0); }
+.cw-rb-zone--cool { background: var(--on); clip-path: inset(0 0 0 calc(var(--kn) / 2 + (100% - var(--kn)) * var(--hi))); }
 .cw-rb-lab { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: none; }
 .cw-rb-lab > span { display: flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 99px; background: var(--card-solid); box-shadow: 0 1px 3px oklch(0.2 0.02 80 / 0.2); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
 .cw-rb-cur { position: absolute; top: 24%; bottom: 24%; left: calc(var(--kn) / 2 + (100% - var(--kn)) * var(--cur)); width: 2px; translate: -1px 0; border-radius: 1px; background: var(--ink); opacity: 0.45; pointer-events: none; }
@@ -108,6 +109,7 @@
   .cw-rb, .cw-step-b > span, .cw-fine-b { scale: none !important; }
 }
 
-/* Range: the zone the unit is working in fills with the accent (energy); its handle takes a strong ring */
+/* Range: both zones are on (soft accent); the one the unit is working in fills with the solid accent (energy)
+   and its handle takes a strong ring */
 .cw[data-action="heating"] .cw-rb-zone--heat, .cw[data-action="cooling"] .cw-rb-zone--cool { background: var(--accent); }
 .cw[data-action="heating"] .cw-rb-k--lo, .cw[data-action="cooling"] .cw-rb-k--hi { box-shadow: inset 0 0 0 2px var(--accent-strong), 0 1px 3px oklch(0.2 0.02 80 / 0.25); }

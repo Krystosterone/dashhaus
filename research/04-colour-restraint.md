@@ -16,7 +16,7 @@
 
 ## Design contract
 
-1. Keep the current palette: neutrals by default, one documented accent family for energy, charcoal for non-energy on/selected, hatching for absence, one optional colour orb.
+1. Keep the current palette: neutrals by default, one documented accent family for on (solid for energy, soft for non-energy on/selected), hatching for absence, one optional colour orb. *Amended 2026-10-21 at the owner's direction:* charcoal (`--inv-bg`) for non-energy on was replaced by the soft accent, because in dark mode it inverts to near-white and read as more "on" than the accent; inverse is now for action buttons only. This adds no hue.
 2. At the densest layout, suppress decorative colour, fills, glows and unnecessary markers before introducing another hue.
 3. Reserve the accent family for explicit energy/status meaning; do not recycle it for unrelated categories on the same surface.
 4. Every meaningful state must read through a non-colour cue: text, icon, shape, hatching, or status label.

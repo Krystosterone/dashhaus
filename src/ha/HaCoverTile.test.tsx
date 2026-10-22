@@ -46,6 +46,6 @@ describe("HaCoverTile", () => {
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room blinds" })).toBeTruthy());
     act(() => fake.emit({ ...raw, "cover.living_room": { ...raw["cover.living_room"], state: "unavailable" } }));
-    await waitFor(() => expect(screen.getByText("Not responding")).toBeTruthy());
+    await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));
   });
 });

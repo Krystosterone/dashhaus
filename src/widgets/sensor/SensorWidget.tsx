@@ -55,7 +55,7 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
   const spoken = empty ? "no reading yet" : [t != null ? `${fmtTemp(t)} degrees` : null, h != null ? `humidity ${fmtHum(h)} percent` : null].filter(Boolean).join(", ");
 
   // Status line, most important first: a low battery, then comfort (or the location for outdoor sensors), then the trend.
-  const parts: ReactNode[] = unav ? ["Not responding"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
+  const parts: ReactNode[] = unav ? ["Unavailable"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
     batteryText,
     sheet && e.area && !e.outdoor ? e.area : null,
     e.outdoor ? e.area ?? "Outside" : comfort,
@@ -111,7 +111,7 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
           title={sheet ? "Temperature today" : "Today"}
           samples={tempSeries.samples}
           currentHour={history!.currentHour}
-          summary={unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
+          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
         />
       )}
 

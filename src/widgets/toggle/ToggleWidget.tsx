@@ -33,7 +33,7 @@ export interface ToggleWidgetProps {
   /** Card only: the arrow, and press and hold on the orb, open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** The orb's colour. Default: the entity's `color`, else none (on is charcoal). */
+  /** The orb's colour. Default: the entity's `color`, else none (on is the soft accent). */
   color?: ColorProp;
 }
 
@@ -49,14 +49,15 @@ export function ToggleWidget({ entity: e, history, variant = "card", footprint =
   const bare = compact && !showControl;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  // A mode is a state, not energy: on is charcoal and there is no glow. A colour only if one was chosen.
+  // A mode is a state, not energy: on is the soft accent and there is no glow. A colour only if one was chosen.
   const colors = paint("state", 0, null, color ?? e.color);
 
   const ends = on ? (e.until ? `Until ${e.until}` : e.lastChanged ? `Since ${e.lastChanged}` : "On") : null;
   // Where it applies; when it ends takes its place in compact cards, where the pill has no room to say so.
-  const status = unav ? "Not responding" : on && e.until
-    ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{e.area ?? "On"}</span></>
-    : e.area ?? (on ? "On" : "Off");
+  // On and Off are the control's words: the status line never repeats them.
+  const status = on && e.until && !unav
+    ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{e.area}</span></>
+    : e.area;
   const valueText = unav ? "Unavailable" : on ? (e.until ? `On until ${e.until}` : "On") : "Off";
 
   // The compact value appears under the name, or in place of a hidden control.
@@ -105,7 +106,7 @@ export function ToggleWidget({ entity: e, history, variant = "card", footprint =
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
         />
       )}
 

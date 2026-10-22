@@ -109,7 +109,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
   const low = today.length ? Math.min(...today) : undefined;
   const high = today.length ? Math.max(...today) : undefined;
 
-  const label = cond ? (night && cond === "sunny" ? "Clear" : CONDITION_LABEL[cond]) : "Not responding";
+  const label = cond ? (night && cond === "sunny" ? "Clear" : CONDITION_LABEL[cond]) : "Unavailable";
   const change = cond ? nextChange(cond, hourly, hour) : null;
   const feels = e.apparentTemperature != null && t != null && Math.abs(e.apparentTemperature - t) >= 1 ? `Feels ${deg(e.apparentTemperature)}` : null;
 
@@ -152,7 +152,7 @@ export function HomeWidget({ entity: e, history, hourly, daily, variant = "card"
     const mn = nums.length ? Math.min(...nums) : 0, span = nums.length ? Math.max(Math.max(...nums) - mn, 1) : 1;
     strip = {
       samples: temps.map((x) => (typeof x === "number" ? 0.12 + (0.88 * (x - mn)) / span : x)),
-      summary: unav ? `Unreachable since ${e.lastSeen ?? "earlier"}` : change ?? feels ?? (nums.length ? `Low ${deg(mn)} · High ${deg(Math.max(...nums))}` : "No readings yet"),
+      summary: unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : change ?? feels ?? (nums.length ? `Low ${deg(mn)} · High ${deg(Math.max(...nums))}` : "No readings yet"),
     };
   }
 
