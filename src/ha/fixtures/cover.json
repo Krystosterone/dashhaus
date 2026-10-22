@@ -1,0 +1,73 @@
+{
+  "cover.living_room": {
+    "entity_id": "cover.living_room",
+    "state": "open",
+    "attributes": {
+      "friendly_name": "Living room blinds",
+      "device_class": "blind",
+      "current_position": 100,
+      "current_tilt_position": 50,
+      "supported_features": 140
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:00+00:00"
+  },
+  "cover.bedroom": {
+    "entity_id": "cover.bedroom",
+    "state": "opening",
+    "attributes": {
+      "friendly_name": "Bedroom shade",
+      "device_class": "shade",
+      "current_position": 45,
+      "supported_features": 140
+    },
+    "last_changed": "2026-10-19T11:18:00+00:00",
+    "last_updated": "2026-10-19T11:18:00+00:00"
+  },
+  "cover.kitchen": {
+    "entity_id": "cover.kitchen",
+    "state": "closed",
+    "attributes": {
+      "friendly_name": "Kitchen shutter",
+      "device_class": "shutter",
+      "current_position": 0,
+      "supported_features": 12
+    },
+    "last_changed": "2026-10-19T11:00:00+00:00",
+    "last_updated": "2026-10-19T11:00:00+00:00"
+  },
+  "cover.garage_door": {
+    "entity_id": "cover.garage_door",
+    "state": "closing",
+    "attributes": {
+      "friendly_name": "Garage door",
+      "device_class": "garage",
+      "current_position": 60,
+      "supported_features": 12
+    },
+    "last_changed": "2026-10-19T10:45:00+00:00",
+    "last_updated": "2026-10-19T10:45:00+00:00"
+  },
+  "cover.front_window": {
+    "entity_id": "cover.front_window",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Front window",
+      "device_class": "window",
+      "supported_features": 140
+    },
+    "last_changed": "2026-10-19T09:30:00+00:00",
+    "last_updated": "2026-10-19T09:30:00+00:00"
+  },
+  "cover.patio": {
+    "entity_id": "cover.patio",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Patio awning",
+      "device_class": "awning",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

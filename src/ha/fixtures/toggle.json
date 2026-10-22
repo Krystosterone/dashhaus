@@ -1,0 +1,48 @@
+{
+  "input_boolean.guest_mode": {
+    "entity_id": "input_boolean.guest_mode",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Guest"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "input_boolean.dnd": {
+    "entity_id": "input_boolean.dnd",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Quiet"
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "switch.porch": {
+    "entity_id": "switch.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "switch.office": {
+    "entity_id": "switch.office",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Office",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  },
+  "switch.lamp": {
+    "entity_id": "switch.lamp",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Lamp"
+    },
+    "last_changed": "2026-10-19T07:00:00+00:00",
+    "last_updated": "2026-10-19T07:00:00+00:00"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "alarm_control_panel.disarmed": {
+    "entity_id": "alarm_control_panel.disarmed",
+    "state": "disarmed",
+    "attributes": {
+      "friendly_name": "Main alarm",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 7,
+      "changed_by": "Alex"
+    },
+    "last_changed": "2026-10-19T08:00:00+00:00",
+    "last_updated": "2026-10-19T08:00:00+00:00"
+  },
+  "alarm_control_panel.armed_home": {
+    "entity_id": "alarm_control_panel.armed_home",
+    "state": "armed_home",
+    "attributes": {
+      "friendly_name": "Home mode",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 3,
+      "changed_by": "Sam"
+    },
+    "last_changed": "2026-10-19T09:12:00+00:00",
+    "last_updated": "2026-10-19T09:12:00+00:00"
+  },
+  "alarm_control_panel.armed_away": {
+    "entity_id": "alarm_control_panel.armed_away",
+    "state": "armed_away",
+    "attributes": {
+      "friendly_name": "Away mode",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 55,
+      "changed_by": "Sam"
+    },
+    "last_changed": "2026-10-19T10:30:00+00:00",
+    "last_updated": "2026-10-19T10:30:00+00:00"
+  },
+  "alarm_control_panel.armed_night": {
+    "entity_id": "alarm_control_panel.armed_night",
+    "state": "armed_night",
+    "attributes": {
+      "friendly_name": "Night mode",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 4,
+      "changed_by": "Alex"
+    },
+    "last_changed": "2026-10-19T22:05:00+00:00",
+    "last_updated": "2026-10-19T22:05:00+00:00"
+  },
+  "alarm_control_panel.armed_vacation": {
+    "entity_id": "alarm_control_panel.armed_vacation",
+    "state": "armed_vacation",
+    "attributes": {
+      "friendly_name": "Vacation mode",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 55,
+      "changed_by": "Sam"
+    },
+    "last_changed": "2026-10-19T18:40:00+00:00",
+    "last_updated": "2026-10-19T18:40:00+00:00"
+  },
+  "alarm_control_panel.armed_custom_bypass": {
+    "entity_id": "alarm_control_panel.armed_custom_bypass",
+    "state": "armed_custom_bypass",
+    "attributes": {
+      "friendly_name": "Custom bypass",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 55,
+      "changed_by": "Alex"
+    },
+    "last_changed": "2026-10-19T14:20:00+00:00",
+    "last_updated": "2026-10-19T14:20:00+00:00"
+  },
+  "alarm_control_panel.pending": {
+    "entity_id": "alarm_control_panel.pending",
+    "state": "pending",
+    "attributes": {
+      "friendly_name": "Entry delay",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 3,
+      "changed_by": "Front door",
+      "delay": 30
+    },
+    "last_changed": "2026-10-19T20:15:00+00:00",
+    "last_updated": "2026-10-19T20:15:00+00:00"
+  },
+  "alarm_control_panel.triggered": {
+    "entity_id": "alarm_control_panel.triggered",
+    "state": "triggered",
+    "attributes": {
+      "friendly_name": "Triggered",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 3,
+      "changed_by": "Back door"
+    },
+    "last_changed": "2026-10-19T20:16:00+00:00",
+    "last_updated": "2026-10-19T20:16:00+00:00"
+  },
+  "alarm_control_panel.arming": {
+    "entity_id": "alarm_control_panel.arming",
+    "state": "arming",
+    "attributes": {
+      "friendly_name": "Arming",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 3,
+      "changed_by": null,
+      "next_state": "armed_away",
+      "delay": 30
+    },
+    "last_changed": "2026-10-19T20:20:00+00:00",
+    "last_updated": "2026-10-19T20:20:00+00:00"
+  },
+  "alarm_control_panel.disarming": {
+    "entity_id": "alarm_control_panel.disarming",
+    "state": "disarming",
+    "attributes": {
+      "friendly_name": "Disarming",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 3,
+      "changed_by": "Sam"
+    },
+    "last_changed": "2026-10-19T20:25:00+00:00",
+    "last_updated": "2026-10-19T20:25:00+00:00"
+  },
+  "alarm_control_panel.unknown": {
+    "entity_id": "alarm_control_panel.unknown",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Starting alarm",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 7
+    },
+    "last_changed": "2026-10-19T07:45:00+00:00",
+    "last_updated": "2026-10-19T07:45:00+00:00"
+  },
+  "alarm_control_panel.unavailable": {
+    "entity_id": "alarm_control_panel.unavailable",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Cabin alarm",
+      "code_format": "number",
+      "code_arm_required": true,
+      "supported_features": 3
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

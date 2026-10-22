@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoAlarmTile as DemoTile } from "./demo/DemoAlarmTile";
-import { DemoHassAlarm } from "./demo/DemoHassAlarm";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const ALARMS = ["disarmed", "openDoor", "away", "custom", "arming", "armingUnknown", "pending", "disarming", "triggered", "armFree", "noCode", "ring", "unavailable"] as const;
@@ -47,18 +46,6 @@ export const ArmingUnknown: Story = { name: "Arming, delay unknown", args: { ala
 export const Disarming: Story = { args: { alarm: "disarming" } };
 export const CustomBypass: Story = { name: "Armed custom bypass", args: { alarm: "custom" } };
 export const ArmWithoutCode: Story = { name: "Code to disarm only", args: { alarm: "armFree" } };
-
-/** Fed through alarmFromHass and alarmHandlers, against a fake hass that behaves like the manual alarm. */
-export const FromHomeAssistant: Story = {
-  name: "From Home Assistant",
-  parameters: { controls: { include: ["width"] } },
-  render: ({ width }) => <DemoHassAlarm width={width} />,
-};
-export const ConnectionLost: Story = {
-  name: "From Home Assistant, call fails",
-  parameters: { controls: { include: ["width"] } },
-  render: ({ width }) => <DemoHassAlarm width={width} fail />,
-};
 export const Unavailable: Story = { args: { alarm: "unavailable" } };
 
 export const AllStates: Story = {

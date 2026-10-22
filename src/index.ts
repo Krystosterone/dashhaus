@@ -12,7 +12,7 @@ export { useNow } from "./shared/useNow";
 export { HaActionError } from "./ha";
 export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
 export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaStatus, useHaGeneration } from "./ha";
-export { HaLightTile, HaClimateTile, HaSensorTile, HaHomeTile } from "./ha";
+export { HaLightTile, HaClimateTile, HaSensorTile, HaHomeTile, HaCoverTile, HaToggleTile, HaAlarmTile } from "./ha";
 export type {
   HassEntity,
   HassEntities,
@@ -28,6 +28,9 @@ export type {
   HaClimateTileProps,
   HaSensorTileProps,
   HaHomeTileProps,
+  HaCoverTileProps,
+  HaToggleTileProps,
+  HaAlarmTileProps,
 } from "./ha";
 
 // Header
@@ -84,10 +87,8 @@ export { AlarmTile } from "./widgets/alarm/AlarmTile";
 export type { AlarmTileProps } from "./widgets/alarm/AlarmTile";
 export type { AlarmEntity, AlarmHistory, AlarmMode, AlarmState, AlarmAction } from "./widgets/alarm/types";
 export type { AlarmResult } from "./widgets/alarm/AlarmWidget";
-export { alarmFromHass, callAlarm, alarmHandlers } from "./widgets/alarm/hass";
 export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
-export type { HassAlarmState, HassLike, AlarmFromHassOptions } from "./widgets/alarm/hass";
 
 // Dashboard layout
 export { DashboardPage, Section, Columns, Cell } from "./dashboards/layout";

@@ -21,7 +21,7 @@ export interface AlarmWidgetProps {
   showControl?: boolean;
   /**
    * Arm in a mode. Resolve (or return) false when the code was wrong; reject when the call didn't go through.
-   * May answer later: the keypad waits. With Home Assistant, `callAlarm` from ./hass does all of this.
+   * May answer later: the keypad waits. With Home Assistant, `createAlarmHandlers` from src/ha/actions/alarm does all of this.
    */
   onArm?: (mode: AlarmMode, code?: string) => AlarmResult;
   /** Disarm (also cancels arming and silences a triggered alarm). Same contract as onArm. */

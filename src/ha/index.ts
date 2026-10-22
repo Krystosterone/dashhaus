@@ -41,6 +41,24 @@ export { HaHomeTile } from "./HaHomeTile";
 export type { HaHomeTileProps } from "./HaHomeTile";
 export { HaSensorTile } from "./HaSensorTile";
 export type { HaSensorTileProps } from "./HaSensorTile";
+export { coverFromHass } from "./mappers/cover";
+export type { CoverMapOptions } from "./mappers/cover";
+export { createCoverHandlers } from "./actions/cover";
+export type { CoverHandlers, CoverHandlerOptions } from "./actions/cover";
+export { HaCoverTile } from "./HaCoverTile";
+export type { HaCoverTileProps } from "./HaCoverTile";
+export { toggleFromHass } from "./mappers/toggle";
+export type { ToggleMapOptions } from "./mappers/toggle";
+export { createToggleHandlers } from "./actions/toggle";
+export type { ToggleHandlers, ToggleHandlerOptions, ToggleDomain } from "./actions/toggle";
+export { HaToggleTile } from "./HaToggleTile";
+export type { HaToggleTileProps } from "./HaToggleTile";
+export { alarmFromHass } from "./mappers/alarm";
+export type { AlarmMapOptions } from "./mappers/alarm";
+export { createAlarmHandlers } from "./actions/alarm";
+export type { AlarmHandlers, AlarmHandlerOptions } from "./actions/alarm";
+export { HaAlarmTile } from "./HaAlarmTile";
+export type { HaAlarmTileProps } from "./HaAlarmTile";
 export {
   historyRecords,
   lightHistoryFromHass,
