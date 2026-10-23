@@ -21,7 +21,7 @@ The host supplies authentication and an implementation of the transport (the rep
   - **Shape says what you can do.**
     - **Button** (`--btn`, raised): tap it. Orbs, toggle pills, the stepper's and open/close buttons, chips, keypad keys. A disabled button lies flat.
     - **Groove** (`--groove`, recessed): slide or set along it. Brightness, curtains and shades, the heat/cool range, the setpoint stepper, the alarm's mode switch, a countdown.
-    - **Readout** (no container): look at it. Sensor readings, today's temperatures, a view-only alarm. Nothing that can't be pressed looks pressable; tapping a readout still opens details.
+    - **Readout** (no container): look at it. Sensor readings, today's temperatures, a view-only alarm. Nothing that can't be pressed looks pressable; tapping a readout still opens details. Having no edge of its own, a readout keeps the inset a pill gives its label, so it never meets a compact row's curved end; on a standard card its main figure takes the large-readout voice and fills the control row.
   - **Values sit on their control.** Where a fill passes under a label, the label flips to `--on-accent`. No floating capsules.
 - **One palette.** Colour is the exception, not the state. The one question colour answers is "is it on?".
   - **Neutrals** for everything by default. Off is the plain surface: a raised button, or a groove with nothing in it.

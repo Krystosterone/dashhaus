@@ -92,6 +92,10 @@ const SENSORS: Record<"demo" | "worst", SensorSeed[]> = {
       entity: { entityId: "sensor.crawlspace", name: "Crawlspace", area: "Basement", state: "ok", unit: "°C", battery: 100 },
       history: { temperature: day(Array<Reading>(H).fill("unavailable"), null), humidity: day(Array<Reading>(H).fill("unavailable"), null), currentHour: H },
     },
+    { // A Fahrenheit winter night: the widest temperature beside the widest humidity
+      entity: { entityId: "sensor.shed", name: "Shed", area: "Garden", state: "ok", temperature: -13.7, humidity: 100, unit: "°F", outdoor: true, battery: 40, lastUpdated: "11:50" },
+      history: { temperature: day([-4, -6, -8, -10, -11, -12, -13, -13.5, -13.6, -13.7, -13.7], -13.7), humidity: day(Array<Reading>(H).fill(100), 100), currentHour: H },
+    },
     { // Long compound name, bone dry
       entity: { entityId: "sensor.arbeitszimmer", name: "Arbeitszimmer-Fensterbank", area: "Arbeitszimmer", state: "ok", temperature: 12.25, humidity: 0, unit: "°C", battery: 15, lastUpdated: "11:41" },
       history: { temperature: day([13, 13, 12.9, 12.8, 12.6, 12.5, 12.4, 12.3, 12.3, 12.3, 12.3], 12.25), humidity: day(zeros(H), 0), currentHour: H },

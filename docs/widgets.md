@@ -81,7 +81,7 @@ For the connected Home Assistant path, keep the primary sensor and optional comp
 />
 ```
 
-Read-only: no toggle and no glow. The readings are a readout with no container: the temperature and its trend first, then the humidity in the secondary ink (right-aligned in compact rows). Temperature-only sensors leave the humidity out. Comfort is said in words, not colour. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the name for today's temperature and humidity.
+Read-only: no toggle and no glow. The readings are a readout with no container: the temperature and its trend first, then the humidity in the secondary ink on its baseline (right-aligned in compact rows). On standard cards the temperature is the card's large figure; the header's thermometer names it, so the inline one is dropped. Temperature-only sensors leave the humidity out. Comfort is said in words, not colour. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the name for today's temperature and humidity.
 
 ## Using the home widget
 
@@ -116,7 +116,7 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
   - At night the windows light up in lamp tone.
   - Nothing animates.
 - **Status line.** A coming dry or wet change ("Rain at 14:00") replaces the condition in standard and compact cards, and moves to the Today strip in featured and sheet views. Poor air and strong gusts lead with the shared warning cue and warning colour; under 320 px, the warning takes priority over temperature and condition.
-- **Today readout.** The current temperature, then today's low to high in the muted ink ("6.2°  1.9°–7.6°"). A readout, with no container; tap it for the sheet.
+- **Today readout.** The current temperature, then today's low to high in the muted ink ("6.2°  1.9°–7.6°"). A readout, with no container; tap it for the sheet. On standard cards the current temperature is the large figure.
 - **Footprints.**
   - Compact and standard below 260 px: a condition badge instead of the house.
   - Standard at 260 px and up: the house on the left.

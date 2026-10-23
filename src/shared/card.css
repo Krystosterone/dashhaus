@@ -276,6 +276,8 @@
   font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums;
 }
 .hd--compact[data-control="off"] .hd-slot { width: auto; max-width: 48cqi; justify-items: end; }
+/* A readout has no container, so it keeps the inset a pill gives its label instead of meeting the row's curve. */
+.hd--compact .hd-val { padding-inline-end: var(--pad-in); }
 .hd--compact[data-control="off"]:is([data-state="off"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
 .hd--compact[data-control="off"] .hd-title { position: static; }
 .hd--compact[data-control="off"] .hd-open::after { inset: 0; border-radius: 999px; }

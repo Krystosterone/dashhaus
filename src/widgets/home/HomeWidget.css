@@ -84,7 +84,10 @@ button.hw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 button.hw-read:active .hw-tr { scale: 0.98; }
 .hw-tr-end + .hw-tr-end::before { content: "\2013"; }
 .hw-tr-k { margin-right: 10px; color: var(--ink); font-size: 20px; font-weight: 700; }
-.hd--compact .hw-tr { justify-content: flex-end; font-size: 12.5px; }
+/* Standard: now is the card's figure, in the large-readout voice; the range sits on its baseline. */
+.hw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hw-tr { align-items: baseline; }
+.hw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hw-tr-k { margin-right: 12px; font-size: 34px; font-weight: 300; letter-spacing: -0.035em; line-height: var(--slot-h); }
+.hd--compact .hw-tr { justify-content: flex-end; padding-inline-end: var(--pad-in); font-size: 12.5px; }
 .hd--compact .hw-tr-k { font-size: 13.5px; }
 .hd--sheet .hw-tr { font-size: 14px; }
 .hd--sheet .hw-tr-k { font-size: 20px; }

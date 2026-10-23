@@ -81,7 +81,7 @@
 .al-st-s { display: none; }
 .al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
 @container hd (max-width: 259px) { .al-st-x { display: none; } }
-.hd--compact .al-st { justify-content: flex-end; gap: 6px; font-size: 13px; }
+.hd--compact .al-st { justify-content: flex-end; gap: 6px; padding-inline-end: var(--pad-in); font-size: 13px; }
 .hd--compact .al-st svg { width: 15px; height: 15px; }
 .hd--compact :is(.al-st-l, .al-st-x) { display: none; }
 .hd--compact .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
