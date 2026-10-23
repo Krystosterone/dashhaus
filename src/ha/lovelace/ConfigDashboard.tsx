@@ -22,7 +22,7 @@ function tile(card: CardConfig, key?: string): ReactElement {
     case "weather": return <HaWeatherTile key={key} {...common} aqiEntityId={card.aqi} aqiScale={card.aqiScale} sunEntityId={card.sun} loadForecasts={card.forecasts} />;
     case "toggle": return <HaToggleTile key={key} {...common} area={card.area} domain={card.domain} icon={card.icon} color={card.color} description={card.description} />;
     case "alarm": return <HaAlarmTile key={key} {...common} area={card.area} readOnly={card.readOnly} exitDelay={card.exitDelay} entryDelay={card.entryDelay} openSensors={card.openSensors} />;
-    case "owlet": return <HaOwletTile key={key} {...common} area={card.area} heartRateEntityId={card.heartRate} oxygenEntityId={card.oxygen} chargingEntityId={card.charging} staleAfterMinutes={card.staleAfter} color={card.color} />;
+    case "owlet": return <HaOwletTile key={key} {...common} area={card.area} heartRateEntityId={card.heartRate} oxygenEntityId={card.oxygen} chargingEntityId={card.charging} alertEntityIds={card.alerts} staleAfterMinutes={card.staleAfter} color={card.color} />;
   }
 }
 

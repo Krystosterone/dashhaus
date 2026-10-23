@@ -108,7 +108,7 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | weather | `aqi`, `aqi_scale`, `sun`, `forecasts` | AQI sensor plus `aqi_scale: US` to band it; `sun` defaults to `sun.sun`; `forecasts: false` skips the forecast read. |
 | toggle | `icon`, `description` | `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`; one line for the sheet. |
 | alarm | `read_only`, `exit_delay`, `entry_delay`, `open_sensors` | Show without arming controls; delays in seconds; names of open sensors. |
-| owlet | `heart_rate`, `oxygen`, `charging`, `stale_after` | The sock's `sensor.*` and `binary_sensor.*` companions, when they aren't named after the sleep state sensor; minutes without a new reading before the card warns (default 3). The alert sensors are only found beside a `…_sleep_state` sensor. |
+| owlet | `heart_rate`, `oxygen`, `charging`, `alerts`, `stale_after` | The sock's `sensor.*` and `binary_sensor.*` companions, when they aren't named after the sleep state sensor. `alerts` maps any of `critical_oxygen`, `low_oxygen`, `high_oxygen`, `low_heart_rate`, `high_heart_rate`, `sock_off`, `sock_disconnected`, `lost_power`, `critical_battery`, `low_battery` to its `binary_sensor.*`; an alert left out is found by name, or stays silent. `stale_after`: minutes without a new reading before the card warns (default 3). |
 | bundle | `joined: [...]`, `label`, `span` | Compact members sharing one card. |
 | bundle | `lead: ...`, `rows: [...]`, `label`, `sheet_title`, `span` | One standard card followed by compact rows. |
 

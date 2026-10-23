@@ -2,6 +2,8 @@ import { COLORS } from "../../shared/ui";
 import type { ColorName, WidgetFootprint } from "../../shared/ui";
 import type { ToggleIcon } from "../../widgets/toggle/types";
 import type { AlarmTileProps } from "../../widgets/alarm/AlarmTile";
+import type { OwletAlert } from "../../widgets/owlet/types";
+import { OWLET_ALERT_SUFFIX } from "../mappers/owlet";
 
 /*
  * The card's YAML, as Lovelace hands it over (already parsed), checked and normalized. Every mistake is
@@ -50,7 +52,7 @@ export type CardConfig = CardBase & (
   | { kind: "cover"; color?: ColorName | "none" }
   | { kind: "toggle"; domain: "input_boolean" | "switch"; icon?: ToggleIcon; color?: ColorName; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
-  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; staleAfter?: number; color?: ColorName | "none" }
+  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
 );
 
 export type ItemConfig =
@@ -85,6 +87,7 @@ export const ACCENTS: Record<string, Accent> = {
   lilac: { chroma: 0.08, hue: 300 },
 };
 
+const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 const FOOTPRINTS: readonly WidgetFootprint[] = ["compact", "standard", "featured"];
 const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
@@ -98,7 +101,7 @@ const KIND_KEYS: Record<Kind, string[]> = {
   cover: ["color"],
   toggle: ["icon", "color", "description"],
   alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
-  owlet: ["heart_rate", "oxygen", "charging", "stale_after", "color"],
+  owlet: ["heart_rate", "oxygen", "charging", "alerts", "stale_after", "color"],
 };
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "theme", "accent", "sections", "view_layout", "grid_options", "visibility"];
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
@@ -288,15 +291,26 @@ class Reader {
           openSensors: Array.isArray(sensors) ? sensors.filter((s): s is string => typeof s === "string") : undefined,
         };
       }
-      case "owlet": return {
-        ...base,
-        kind,
-        heartRate: this.optionalEntity(raw, "heart_rate", at, ["sensor"]),
-        oxygen: this.optionalEntity(raw, "oxygen", at, ["sensor"]),
-        charging: this.optionalEntity(raw, "charging", at, ["binary_sensor"]),
-        staleAfter: this.number(raw, "stale_after", at, 1, 60),
-        color: color(),
-      };
+      case "owlet": {
+        const alerts = raw.alerts;
+        if (alerts != null && !isRaw(alerts)) this.problem(at, "\"alerts\" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen");
+        if (isRaw(alerts)) this.keys(alerts, `${at}.alerts`, OWLET_ALERTS);
+        return {
+          ...base,
+          kind,
+          heartRate: this.optionalEntity(raw, "heart_rate", at, ["sensor"]),
+          oxygen: this.optionalEntity(raw, "oxygen", at, ["sensor"]),
+          charging: this.optionalEntity(raw, "charging", at, ["binary_sensor"]),
+          alerts: isRaw(alerts)
+            ? Object.fromEntries(OWLET_ALERTS.flatMap((alert) => {
+              const id = this.optionalEntity(alerts, alert, `${at}.alerts`, ["binary_sensor"]);
+              return id ? [[alert, id]] : [];
+            }))
+            : undefined,
+          staleAfter: this.number(raw, "stale_after", at, 1, 60),
+          color: color(),
+        };
+      }
     }
   }
 

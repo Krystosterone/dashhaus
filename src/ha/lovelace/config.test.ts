@@ -35,6 +35,7 @@ describe("parseDashboardConfig", () => {
         "sensor.owlet_sock_ac0_sleep_state",
         { entity: "sensor.nova", widget: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", stale_after: 5 },
         { entity: "sensor.odd_sleep_state", widget: "sensor" },
+        { entity: "sensor.ben", widget: "owlet", alerts: { low_oxygen: "binary_sensor.ben_spo2_low", sock_off: "binary_sensor.ben_off" } },
       ] }],
     });
     expect(config.blocks?.[0]).toMatchObject({
@@ -42,8 +43,20 @@ describe("parseDashboardConfig", () => {
         { kind: "owlet", entity: "sensor.owlet_sock_ac0_sleep_state" },
         { kind: "owlet", entity: "sensor.nova", heartRate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", staleAfter: 5 },
         { kind: "sensor", entity: "sensor.odd_sleep_state" },
+        { kind: "owlet", alerts: { low_oxygen: "binary_sensor.ben_spo2_low", sock_off: "binary_sensor.ben_off" } },
       ],
     });
+  });
+
+  it("checks an owlet's alert sensors by alert name and domain", () => {
+    expect(problems({ sections: [{ cards: [
+      { entity: "sensor.a_sleep_state", alerts: { low_oxygn: "binary_sensor.a", sock_off: "sensor.a_off" } },
+      { entity: "sensor.b_sleep_state", alerts: ["binary_sensor.b"] },
+    ] }] })).toEqual([
+      'sections[0].cards[0] (sensor.a_sleep_state).alerts: unknown key "low_oxygn" — did you mean "low_oxygen"?',
+      "sections[0].cards[0] (sensor.a_sleep_state).alerts.sock_off: sensor.a_off must be a binary_sensor.* entity",
+      'sections[0].cards[1] (sensor.b_sleep_state): "alerts" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen',
+    ]);
   });
 
   it("only offers widget: the widgets of the entity's domain", () => {
