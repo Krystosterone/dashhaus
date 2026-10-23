@@ -1,6 +1,6 @@
 import type { OwletEntity, OwletHistory } from "./types";
 import { HeartIcon, OwletIcon } from "./icons";
-import { SLEEP_WORD, fmtBpm, fmtOxygen, normalize } from "./readings";
+import { ALERT_WORD, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
 import { AlertStatus, CardTitle, SheetClose, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletWidget.css";
@@ -19,7 +19,8 @@ export interface OwletWidgetProps extends CardProps {
  * An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. A reading: neutral,
  * a bare icon in place of an orb, and no glow. It reports nothing while the sock charges.
  * While readings arrive, the heart beside the heart rate beats; once they stop, it stands still, the figures
- * dim, and the status line warns since when.
+ * dim, and the status line warns since when. The base station's alerts show too: a vitals alert fills the slot
+ * in warn, a problem with the sock or base leads the status line.
  */
 export function OwletWidget({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: OwletWidgetProps) {
   const { nameId, sheet, compact, bare, article } = useCard("ow", { variant, footprint, showControl });
@@ -28,21 +29,38 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
   // Off the network or charging: nothing to show. A sleep state or a reading alone still shows.
   const offline = sleep == null && hr == null && o2 == null;
   const colors = paint("reading", 0, null, color);
-  // Old figures on a baby monitor are a problem state: a warn marker that leads the status line, never a glow.
+
+  // A vitals alert is the alarm going off: the slot fills with warn, like a triggered security alarm, whatever
+  // else the card would show. A device problem, or readings that stopped, leads the status line with the warn
+  // marker. Never a glow, and always in words.
+  const { vitals, problems } = rankAlerts(e.alerts);
+  const vital = vitals[0];
+  const problem = problems[0];
   const stale = !offline && e.live === false;
   const staleText = `No new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}`;
   // Where the sentence would lose its time to the ellipsis, the short form keeps it.
   const staleWords = <><span className="ow-st-l">{staleText}</span><span className="ow-st-s">{e.lastUpdated ? `Stopped ${e.lastUpdated}` : "Stopped"}</span></>;
-  const alertLabel = stale ? `Warning: ${e.name}'s sock has sent no new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}` : null;
+  const problemLabel = problem ? `Warning: ${ALERT_WORD[problem]} on ${e.name}'s sock` : stale ? `Warning: ${e.name}'s sock has sent no new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}` : null;
+  const vitalFigure = !vital ? null : vital.endsWith("oxygen") ? (o2 != null ? `${fmtOxygen(o2)}% O₂` : null) : hr != null ? `${fmtBpm(hr)} bpm` : null;
+  // The most urgent alert and its figure first, so an ellipsis only ever takes the others.
+  const vitalText = vital ? [ALERT_WORD[vital], vitalFigure, ...vitals.slice(1).map((a) => ALERT_WORD[a])].filter(Boolean).join(" · ") : null;
 
   const sleepWord = sleep ? SLEEP_WORD[sleep] : "Sleep state unknown";
   const readings = [hr != null ? `${fmtBpm(hr)} bpm` : null, o2 != null ? `${fmtOxygen(o2)}% O₂` : null].filter(Boolean).join(" · ");
   const figures = [hr != null ? `heart rate ${fmtBpm(hr)} beats per minute` : null, o2 != null ? `oxygen ${fmtOxygen(o2)} percent` : null].filter(Boolean).join(", ");
   const spoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleText.toLowerCase()}` : figures;
   const where = sheet && e.area ? `${e.area} · ${sleepWord}` : sleepWord;
-  const status = offline ? "Unavailable" : stale ? <><AlertStatus label={alertLabel!}>{staleWords}</AlertStatus><span className="ow-st-l"> · {sleepWord}</span></> : where;
-  // Under 320px a compact row keeps only this line, so it carries the sleep state and the readings.
-  const subText = offline ? "Unavailable" : [sleep ? SLEEP_WORD[sleep] : null, readings || "No reading yet"].filter(Boolean).join(" · ");
+  const status = problem ? <><AlertStatus label={problemLabel!}>{ALERT_WORD[problem]}</AlertStatus>{!offline && <span className="ow-st-l"> · {sleepWord}</span>}</>
+    // A compact row's alarm pill only has room for the alert's name, so the figures move up here.
+    : vital && compact && readings ? readings
+    : stale ? <><AlertStatus label={problemLabel!}>{staleWords}</AlertStatus><span className="ow-st-l"> · {sleepWord}</span></>
+    : offline ? (e.charging ? "Charging" : "Unavailable")
+    : where;
+  // Under 320px a compact row keeps only this line, so it carries the alert, the sleep state and the readings.
+  const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? "Charging" : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "No reading yet"].filter(Boolean).join(" · ");
+  const sub = vitalText ? <AlertStatus label={`Alert: ${vitalText} on ${e.name}'s sock`}>{vitalText}</AlertStatus>
+    : problemLabel ? <AlertStatus label={problemLabel}>{subText}</AlertStatus>
+    : subText;
 
   const bar = (
     <span className="ow-bar">
@@ -56,27 +74,40 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
   const o2Series = history?.oxygen ? normalize(history.oxygen) : null;
   const lowHigh = (s: { min: number | null; max: number | null }, unit: string) =>
     s.min == null || s.max == null ? "No readings yet today" : `Low ${Math.round(s.min)}${unit} · High ${Math.round(s.max)}${unit}`;
+  const alerts = [...vitals, ...problems];
 
   // "unknown" while the sock reads but has no sleep state: live readings, never dimmed like an unavailable card.
   return (
-    <article {...article} data-state={offline ? "unavailable" : sleep ?? "unknown"} data-alert={stale ? "warn" : undefined} data-stale={stale || undefined} {...colors}>
+    <article {...article} data-state={offline ? "unavailable" : sleep ?? "unknown"} data-alert={vital ? "alarm" : problemLabel ? "warn" : undefined} data-stale={stale || undefined} {...colors}>
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={offline || undefined}>
           <span className="hd-orb-i"><OwletIcon off={offline} /></span>
         </span>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
+          {compact && <p className="hd-sub">{sub}</p>}
         </CardTitle>
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
       <div className="hd-slot">
-        {bare ? <p className="hd-val">{offline ? "Unavailable" : readings || "No reading yet"}</p> : offline ? <UnavailableSlot lastSeen={e.lastSeen} />
+        {vital ? (
+          <div className="ow-alarm" role="alert">
+            <span className="ow-alarm-l"><b>{ALERT_WORD[vital]}</b>{vitals.length > 1 && <span className="ow-alarm-c"> · {vitals.slice(1).map((a) => ALERT_WORD[a]).join(" · ")}</span>}</span>
+            {vitalFigure && <span className="ow-alarm-v">{vitalFigure}</span>}
+          </div>
+        ) : bare ? <p className="hd-val">{offline ? subText : readings || "No reading yet"}</p> : offline ? <UnavailableSlot lastSeen={e.lastSeen} />
           : sheet || !onOpenDetails
             ? <div className="ow-read" role="img" aria-label={spoken}><span aria-hidden="true">{bar}</span></div>
             : <button type="button" className="ow-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
       </div>
+
+      {sheet && alerts.length > 0 && (
+        <section className="ow-alerts" aria-labelledby={`${nameId}-a`}>
+          <h3 className="hd-blk-h" id={`${nameId}-a`}>Alerts</h3>
+          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={VITAL_ALERTS.has(a) ? "Alert" : "Warning"}>{ALERT_WORD[a]}</AlertStatus></li>)}</ul>
+        </section>
+      )}
 
       {history && (
         <TodayStrip
@@ -97,7 +128,7 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
       {sheet && (
         <p className="hd-info">
           <span>{offline ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `${e.live ? "Live · u" : "U"}pdated ${e.lastUpdated}` : ""}</span>
-          <span>{offline && e.area ? e.area : ""}</span>
+          <span>{offline ? [e.charging ? "Charging" : null, e.area].filter(Boolean).join(" · ") : ""}</span>
         </p>
       )}
     </article>

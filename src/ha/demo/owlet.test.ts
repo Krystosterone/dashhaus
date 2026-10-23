@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createDemoOwletHaTransport } from "./owlet";
+import { createDemoOwletHaTransport, owletDemoEntities } from "./owlet";
 import type { HassEntities } from "../types";
 
 const BASE = "sensor.owlet_sock_ac000w0123";
@@ -34,6 +34,19 @@ describe("createDemoOwletHaTransport", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("publishes the charging and alert sensors, quiet unless a story turns one on", async () => {
+    const quiet = createDemoOwletHaTransport(undefined, 0);
+    const alarm = createDemoOwletHaTransport(owletDemoEntities({ "binary_sensor.owlet_sock_ac000w0123_low_oxygen_alert": "on" }), 0);
+    const seen: HassEntities[] = [];
+    quiet.subscribeEntities((entities) => { seen[0] = entities; });
+    alarm.subscribeEntities((entities) => { seen[1] = entities; });
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
+    const binaries = Object.values(seen[0]).filter((e) => e.entity_id.startsWith("binary_sensor."));
+    expect(binaries).toHaveLength(11);
+    expect(binaries.every((e) => e.state === "off")).toBe(true);
+    expect(seen[1]["binary_sensor.owlet_sock_ac000w0123_low_oxygen_alert"].state).toBe("on");
   });
 
   it("refuses every service: the sock is read-only", async () => {

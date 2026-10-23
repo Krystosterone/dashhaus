@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fmtBpm, fmtOxygen, normalize } from "./readings";
+import { fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
 
 describe("normalize", () => {
   it("scales readings between 0.12 and 1, keeping gaps and hours ahead", () => {
@@ -19,5 +19,17 @@ describe("formatting", () => {
   it("rounds to whole beats and whole percent", () => {
     expect(fmtBpm(127.6)).toBe("128");
     expect(fmtOxygen(97.4)).toBe("97");
+  });
+});
+
+describe("rankAlerts", () => {
+  it("splits vitals from device problems, most urgent first", () => {
+    expect(rankAlerts(["low_battery", "low_heart_rate", "sock_off", "critical_oxygen"])).toEqual({
+      vitals: ["critical_oxygen", "low_heart_rate"],
+      problems: ["sock_off", "low_battery"],
+    });
+  });
+  it("is empty without alerts", () => {
+    expect(rankAlerts()).toEqual({ vitals: [], problems: [] });
   });
 });

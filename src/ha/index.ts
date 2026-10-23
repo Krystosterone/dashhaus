@@ -16,7 +16,7 @@ export type {
 } from "./types";
 export { HaActionError } from "./types";
 export { createHaStore } from "./store";
-export { HaProvider, useHaEntity, useHaGeneration, useHaSelector, useHaSnapshot, useHaStatus, useHaStore } from "./provider";
+export { HaProvider, useHaEntities, useHaEntity, useHaGeneration, useHaSelector, useHaSnapshot, useHaStatus, useHaStore } from "./provider";
 export type { HaProviderProps } from "./provider";
 export { connectHomeAssistant, createHomeAssistantTransport } from "./home-assistant";
 export type { HomeAssistantTransport } from "./home-assistant";

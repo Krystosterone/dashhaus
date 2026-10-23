@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DemoOwletTile as DemoTile } from "./demo/DemoOwletTile";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["deep", "light", "awake", "unknown", "stale", "charging", "long"] as const;
+const SEEDS = ["deep", "light", "awake", "unknown", "stale", "lowOxygen", "critical", "sockOff", "lowBattery", "charging", "long"] as const;
 
 const meta = {
   title: "Widgets/Owlet",
@@ -15,7 +15,8 @@ const meta = {
           "An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. A reading: a bare sock icon, " +
           "the figures as a readout, no glow. Tap the readings or the name for today's sleep, heart rate and oxygen. " +
           "While readings arrive, the heart beside the heart rate beats; once none has changed for 3 minutes it stands still, " +
-          "the figures dim and the status line warns since when. While the sock charges it reports nothing, and the card says Unavailable. " +
+          "the figures dim and the status line warns since when. The base station's alerts show too: a vitals alert (oxygen, heart rate) fills the slot in warn " +
+          "like a triggered alarm; a sock or base problem leads the status line with the warn marker. While the sock charges it says Charging. " +
           "Same sizes and heights as the other widgets.",
       },
     },
@@ -40,7 +41,12 @@ export const LightSleep: Story = { name: "Light sleep", args: { seed: "light" } 
 export const Awake: Story = { args: { seed: "awake" } };
 export const SleepStateUnknown: Story = { name: "Reading, sleep state unknown", args: { seed: "unknown" } };
 export const Stale: Story = { name: "Readings stopped", args: { seed: "stale" } };
-export const Charging: Story = { name: "Charging, unavailable", args: { seed: "charging" } };
+export const LowOxygen: Story = { name: "Alert: low oxygen", args: { seed: "lowOxygen" } };
+export const CriticalAlerts: Story = { name: "Alert: critical oxygen and low heart rate", args: { seed: "critical" } };
+export const SockOff: Story = { name: "Problem: sock off", args: { seed: "sockOff" } };
+export const LowBattery: Story = { name: "Problem: battery low", args: { seed: "lowBattery" } };
+export const AlertSheet: Story = { name: "Alerts in the sheet", args: { seed: "critical", defaultOpen: true } };
+export const Charging: Story = { args: { seed: "charging" } };
 export const Featured: Story = { args: { footprint: "featured" } };
 export const WorstCase: Story = { name: "Worst case, long names", args: { seed: "long" } };
 

@@ -38,8 +38,16 @@ export const OWLET_SEEDS = {
   unknown: { entity: sock({ name: "Nova", area: "Nursery", state: "unavailable", heartRate: 138, oxygen: 98, live: true, lastUpdated: "11:54" }), history: day("unavailable", 138, 98) },
   /** Readings stopped arriving at 11:49: the figures are old. */
   stale: { entity: sock({ name: "Nova", area: "Nursery", state: "deep_sleep", heartRate: 119, oxygen: 98, live: false, lastUpdated: "11:49" }), history: day("deep_sleep", 119, 98) },
-  /** Charging: the sock reports nothing. */
-  charging: { entity: sock({ name: "Nova", area: "Nursery", state: "unavailable", lastSeen: "07:12" }), history: day("unavailable") },
+  /** The base station is sounding: oxygen dropped. */
+  lowOxygen: { entity: sock({ name: "Nova", area: "Nursery", state: "light_sleep", heartRate: 131, oxygen: 84, live: true, lastUpdated: "11:54", alerts: ["low_oxygen"] }), history: day("light_sleep", 131, 84) },
+  /** Two vitals alerts at once, and a device problem besides. */
+  critical: { entity: sock({ name: "Nova", area: "Nursery", state: "light_sleep", heartRate: 72, oxygen: 79, live: true, lastUpdated: "11:54", alerts: ["low_heart_rate", "critical_oxygen", "low_battery"] }), history: day("light_sleep", 72, 79) },
+  /** The sock slipped: no readings, and the base says so. */
+  sockOff: { entity: sock({ name: "Nova", area: "Nursery", state: "unavailable", lastSeen: "11:41", alerts: ["sock_off"] }), history: day("unavailable") },
+  /** Reading fine, but the battery needs a charge soon. */
+  lowBattery: { entity: sock({ name: "Nova", area: "Nursery", state: "deep_sleep", heartRate: 118, oxygen: 98, live: true, lastUpdated: "11:54", alerts: ["low_battery"] }), history: day("deep_sleep", 118, 98) },
+  /** On its charger: the sock reports nothing, and says why. */
+  charging: { entity: sock({ name: "Nova", area: "Nursery", state: "unavailable", lastSeen: "07:12", charging: true }), history: day("unavailable") },
   /** Worst case: a long name and area, and three-digit figures everywhere (break-ui skill). */
   long: {
     entity: sock({ name: "Anastasia-Josephine Wolfeschlegel", area: "Upstairs nursery and playroom", state: "light_sleep", heartRate: 188, oxygen: 100, live: false, lastUpdated: "Fri 18:30" }),

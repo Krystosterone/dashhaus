@@ -88,6 +88,25 @@ export function useHaEntity(entityId: string): HassEntity | undefined {
   return useHaSelector((snapshot) => snapshot.entities[entityId]);
 }
 
+/**
+ * Several raw entities, in the order asked. The list keeps its identity until one of these entities changes,
+ * so a tile composed of many entities re-renders for its own, never for the rest of the house.
+ */
+export function useHaEntities(entityIds: readonly string[]): ReadonlyArray<HassEntity | undefined> {
+  const store = useHaStore();
+  const key = entityIds.join("\n");
+  const last = useRef<{ key: string; entities: ReadonlyArray<HassEntity | undefined> } | null>(null);
+  const select = () => {
+    const all = store.getSnapshot().entities;
+    const next = key === "" ? [] : key.split("\n").map((id) => all[id]);
+    const prev = last.current;
+    if (prev && prev.key === key && prev.entities.every((entity, i) => entity === next[i])) return prev.entities;
+    last.current = { key, entities: next };
+    return next;
+  };
+  return useSyncExternalStore(store.subscribe, select, select);
+}
+
 export function useHaStatus(): HaConnectionStatus {
   return useHaSelector((snapshot) => snapshot.status);
 }

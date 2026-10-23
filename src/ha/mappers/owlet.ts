@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
 import { stringValue } from "../util";
-import type { OwletEntity, SleepState } from "../../widgets/owlet/types";
+import type { OwletAlert, OwletEntity, SleepState } from "../../widgets/owlet/types";
 
 export interface OwletMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
@@ -14,9 +14,27 @@ export interface OwletMapOptions {
   heartRateEntity?: HassEntity;
   /** The sock's oxygen saturation sensor (`sensor.*_o2_saturation`, %). */
   oxygenEntity?: HassEntity;
+  /** The base station's alert binary sensors; an alert sounds while its sensor is `on`. */
+  alertEntities?: Partial<Record<OwletAlert, HassEntity>>;
+  /** The sock's `binary_sensor.*_charging`. */
+  chargingEntity?: HassEntity;
   /** Minutes without a changed reading before the sock counts as stale. Default 3. */
   staleAfterMinutes?: number;
 }
+
+/** The `binary_sensor` the integration names after each alert (its English entity name, slugged). */
+export const OWLET_ALERT_SUFFIX: Record<OwletAlert, string> = {
+  critical_oxygen: "critical_oxygen_alert",
+  low_oxygen: "low_oxygen_alert",
+  high_oxygen: "high_oxygen_alert",
+  low_heart_rate: "low_heart_rate_alert",
+  high_heart_rate: "high_heart_rate_alert",
+  sock_off: "sock_off",
+  sock_disconnected: "sock_disconnected_alert",
+  lost_power: "lost_power_alert",
+  critical_battery: "critical_battery_alert",
+  low_battery: "low_battery_alert",
+};
 
 /**
  * Home Assistant pushes a state only when it changes, so "live" can only mean "a reading changed recently".
@@ -27,15 +45,24 @@ export const OWLET_STALE_AFTER_MINUTES = 3;
 
 const SLEEP: Record<string, SleepState> = { deep_sleep: "deep_sleep", light_sleep: "light_sleep", awake: "awake" };
 
+export interface OwletCompanionIds {
+  heartRate: string;
+  oxygen: string;
+  charging: string;
+  alerts: Record<OwletAlert, string>;
+}
+
 /**
- * The companion sensor ids the `owlet` integration gives a sock, from its sleep state sensor's id:
- * `sensor.owlet_sock_<serial>_sleep_state` → `…_heart_rate` and `…_o2_saturation`. Undefined for an id
- * that doesn't follow that naming; pass the ids explicitly then.
+ * The companion entity ids the `owlet` integration gives a sock, from its sleep state sensor's id:
+ * `sensor.owlet_sock_<serial>_sleep_state` → `sensor.…_heart_rate`, `sensor.…_o2_saturation`,
+ * `binary_sensor.…_charging` and one `binary_sensor.…` per alert. Undefined for an id that doesn't follow
+ * that naming; pass the ids explicitly then.
  */
-export function owletCompanionIds(sleepEntityId: string): { heartRate: string; oxygen: string } | undefined {
+export function owletCompanionIds(sleepEntityId: string): OwletCompanionIds | undefined {
   if (!/^sensor\.\w+_sleep_state$/.test(sleepEntityId)) return undefined;
-  const base = sleepEntityId.slice(0, -"_sleep_state".length);
-  return { heartRate: `${base}_heart_rate`, oxygen: `${base}_o2_saturation` };
+  const device = sleepEntityId.slice("sensor.".length, -"_sleep_state".length);
+  const alerts = Object.fromEntries(Object.entries(OWLET_ALERT_SUFFIX).map(([alert, suffix]) => [alert, `binary_sensor.${device}_${suffix}`])) as Record<OwletAlert, string>;
+  return { heartRate: `sensor.${device}_heart_rate`, oxygen: `sensor.${device}_o2_saturation`, charging: `binary_sensor.${device}_charging`, alerts };
 }
 
 /**
@@ -80,6 +107,9 @@ export function owletFromHass(raw: HassEntity | undefined, entityId: string, opt
     state,
     heartRate,
     oxygen,
+    // Only an `on` alert sounds: off, unknown, unavailable and a missing sensor are silent, never assumed.
+    alerts: (Object.keys(options.alertEntities ?? {}) as OwletAlert[]).filter((alert) => options.alertEntities?.[alert]?.state === "on"),
+    charging: options.chargingEntity?.state === "on",
     live: latest ? now.getTime() - latest.at.getTime() <= staleAfter : undefined,
     lastUpdated: latest ? formatHaTime(latest.raw, options.now) : undefined,
     lastSeen: offline ? options.lastSeen : undefined,

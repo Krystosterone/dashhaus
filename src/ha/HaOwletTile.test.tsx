@@ -19,12 +19,15 @@ const raw: HassEntities = {
   [`${BASE}_heart_rate`]: sensor(`${BASE}_heart_rate`, "133", "Owlet Sock AC0 Heart rate"),
   [`${BASE}_o2_saturation`]: sensor(`${BASE}_o2_saturation`, "97", "Owlet Sock AC0 O2 saturation"),
   "sensor.nursery_bpm": sensor("sensor.nursery_bpm", "140", "Nursery bpm"),
+  "binary_sensor.owlet_sock_ac0_low_oxygen_alert": sensor("binary_sensor.owlet_sock_ac0_low_oxygen_alert", "off", "Owlet Sock AC0 Low oxygen alert"),
+  "binary_sensor.owlet_sock_ac0_sock_off": sensor("binary_sensor.owlet_sock_ac0_sock_off", "off", "Owlet Sock AC0 Sock off"),
+  "binary_sensor.nursery_panic": sensor("binary_sensor.nursery_panic", "on", "Nursery panic"),
 };
 
-function store() {
+function store(overrides: HassEntities = {}) {
   const transport: HaTransport = {
     subscribeEntities(next) {
-      queueMicrotask(() => next(raw));
+      queueMicrotask(() => next({ ...raw, ...overrides }));
       return () => {};
     },
     callService: async () => undefined,
@@ -47,6 +50,28 @@ describe("HaOwletTile", () => {
     // A negative stale window: even a reading from this instant counts as old.
     const stale = render(<HaProvider store={store()}><HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" staleAfterMinutes={-1} /></HaProvider>);
     await waitFor(() => expect(stale.container.querySelector("article")?.getAttribute("data-alert")).toBe("warn"));
+  });
+
+  it("sounds the integration's alerts beside the sleep sensor", async () => {
+    const on = { ...raw["binary_sensor.owlet_sock_ac0_low_oxygen_alert"], state: "on" };
+    render(<HaProvider store={store({ [on.entity_id]: on })}><HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" /></HaProvider>);
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("Low oxygen97% O₂"));
+  });
+
+  it("uses an explicit alert sensor, and stays silent while every alert is off", async () => {
+    const view = render(<HaProvider store={store()}><HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" /></HaProvider>);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Nova" })).toBeTruthy());
+    expect(screen.queryByRole("alert")).toBeNull();
+    view.unmount();
+    render(<HaProvider store={store()}><HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" alertEntityIds={{ high_heart_rate: "binary_sensor.nursery_panic" }} /></HaProvider>);
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("High heart rate133 bpm"));
+  });
+
+  it("says Charging from the charging sensor", async () => {
+    const charging = { [`binary_sensor.owlet_sock_ac0_charging`]: sensor("binary_sensor.owlet_sock_ac0_charging", "on", "Charging") };
+    const offline = Object.fromEntries([`${BASE}_sleep_state`, `${BASE}_heart_rate`, `${BASE}_o2_saturation`].map((id) => [id, { ...raw[id], state: "unavailable" }]));
+    render(<HaProvider store={store({ ...offline, ...charging })}><HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" /></HaProvider>);
+    await waitFor(() => expect(screen.getByText("Charging")).toBeTruthy());
   });
 
   it("names the sock after its device by default", async () => {

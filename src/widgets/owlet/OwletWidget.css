@@ -51,3 +51,25 @@ button.ow-read:active .ow-bar { scale: 0.98; }
   .ow-heart[data-live] .ow-heart-i { animation: ow-fade 2.4s var(--ease-in-out) infinite alternate; }
   @keyframes ow-fade { to { opacity: 0.4; } }
 }
+
+/* ---------- A vitals alert: the alarm going off, the one place warn fills (as a triggered security alarm) ---------- */
+.ow-alarm {
+  display: flex; align-items: center; gap: 12px; min-width: 0; height: var(--slot-h); padding: 0 16px; border-radius: 99px;
+  background: var(--warn); color: var(--on-warn); font-variant-numeric: tabular-nums; white-space: nowrap;
+  animation: ow-alarm 1.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes ow-alarm { to { opacity: 0.82; } }
+.ow-alarm-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.ow-alarm-l b { font-weight: 700; }
+.ow-alarm-v { flex: none; font-size: 14px; font-weight: 700; }
+@container hd (max-width: 259px) { .ow-alarm-c { display: none; } }
+.hd--compact .ow-alarm { padding: 0 var(--pad-in); }
+.hd--compact .ow-alarm-l, .hd--compact .ow-alarm-v { font-size: 12.5px; }
+.hd--compact .ow-alarm-c { display: none; }
+/* Beside a compact row's title the pill has a control's width: the alert's name only; the figures go to the status line. */
+.hd--compact:not([data-control="off"]) .ow-alarm-v { display: none; }
+
+/* The sheet's list of what is sounding now */
+.ow-alerts { display: grid; gap: 8px; }
+.ow-alerts .hd-blk-h { margin: 0; }
+.ow-alerts ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 600; }

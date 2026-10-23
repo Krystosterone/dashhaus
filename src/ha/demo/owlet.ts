@@ -5,12 +5,34 @@ import type { DemoHistoryRow } from "../demo";
 const stamp = new Date().toISOString();
 const sensor = (entity_id: string, state: string, attributes: Record<string, unknown>): HassEntity => ({ entity_id, state, attributes, last_changed: stamp, last_updated: stamp });
 
-const BASE = "sensor.owlet_sock_ac000w0123";
-const initial: HassEntities = {
+const DEVICE = "owlet_sock_ac000w0123";
+const BASE = `sensor.${DEVICE}`;
+const binary = (suffix: string, name: string): [string, HassEntity] => [`binary_sensor.${DEVICE}_${suffix}`, { entity_id: `binary_sensor.${DEVICE}_${suffix}`, state: "off", attributes: { friendly_name: `Owlet Sock AC000W0123 ${name}` }, last_changed: stamp, last_updated: stamp }];
+
+/** The demo sock: its three sensors, its charging sensor and its ten alert sensors, all quiet. */
+export const OWLET_DEMO_ENTITIES: HassEntities = {
   [`${BASE}_sleep_state`]: sensor(`${BASE}_sleep_state`, "deep_sleep", { friendly_name: "Owlet Sock AC000W0123 Sleep state", device_class: "enum", options: ["unknown", "awake", "light_sleep", "deep_sleep"] }),
   [`${BASE}_heart_rate`]: sensor(`${BASE}_heart_rate`, "121", { friendly_name: "Owlet Sock AC000W0123 Heart rate", unit_of_measurement: "bpm", state_class: "measurement" }),
   [`${BASE}_o2_saturation`]: sensor(`${BASE}_o2_saturation`, "98", { friendly_name: "Owlet Sock AC000W0123 O2 saturation", unit_of_measurement: "%", state_class: "measurement" }),
+  ...Object.fromEntries([
+    binary("charging", "Charging"),
+    binary("critical_oxygen_alert", "Critical oxygen alert"),
+    binary("low_oxygen_alert", "Low oxygen alert"),
+    binary("high_oxygen_alert", "High oxygen alert"),
+    binary("low_heart_rate_alert", "Low heart rate alert"),
+    binary("high_heart_rate_alert", "High heart rate alert"),
+    binary("sock_off", "Sock off"),
+    binary("sock_disconnected_alert", "Sock disconnected alert"),
+    binary("lost_power_alert", "Lost power alert"),
+    binary("critical_battery_alert", "Critical battery alert"),
+    binary("low_battery_alert", "Low battery alert"),
+  ]),
 };
+
+/** The demo sock with some entities' states changed: `{ "binary_sensor.…_low_oxygen_alert": "on" }`. */
+export function owletDemoEntities(states: Record<string, string>): HassEntities {
+  return Object.fromEntries(Object.entries(OWLET_DEMO_ENTITIES).map(([id, e]) => [id, states[id] != null ? { ...e, state: states[id] } : e]));
+}
 
 /** Today at a local time, in epoch seconds, like the recorder's compressed rows. */
 const at = (hour: number, minute = 0) => {
@@ -43,7 +65,7 @@ const nextHeartRate = (bpm: number) => Math.min(136, Math.max(112, bpm + Math.ro
  * Like the integration, it sends a new heart rate every 5 s (`tickMs`; 0 to freeze), so the tile shows live.
  * The sock is read-only, so every service call is refused.
  */
-export function createDemoOwletHaTransport(seed: HassEntities = initial, tickMs = 5000): HaTransport {
+export function createDemoOwletHaTransport(seed: HassEntities = OWLET_DEMO_ENTITIES, tickMs = 5000): HaTransport {
   let entities: HassEntities = Object.fromEntries(Object.entries(seed).map(([id, e]) => [id, { ...e, attributes: { ...e.attributes } }]));
   const listeners = new Set<(next: HassEntities) => void>();
   let timer: ReturnType<typeof setInterval> | undefined;

@@ -12,7 +12,7 @@ export { useNow } from "./shared/useNow";
 // history parsers for custom containers live in ./ha.
 export { HaActionError } from "./ha";
 export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
-export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaStatus, useHaGeneration } from "./ha";
+export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaEntities, useHaStatus, useHaGeneration } from "./ha";
 export { HaLightTile, HaClimateTile, HaSensorTile, HaWeatherTile, HaCoverTile, HaToggleTile, HaAlarmTile } from "./ha";
 export type {
   HassEntity,
@@ -93,7 +93,7 @@ export { OwletWidget, OwletSheet } from "./widgets/owlet/OwletWidget";
 export type { OwletWidgetProps, OwletSheetProps } from "./widgets/owlet/OwletWidget";
 export { OwletTile } from "./widgets/owlet/OwletTile";
 export type { OwletTileProps } from "./widgets/owlet/OwletTile";
-export type { OwletEntity, OwletHistory, SleepState } from "./widgets/owlet/types";
+export type { OwletEntity, OwletHistory, OwletAlert, SleepState } from "./widgets/owlet/types";
 export { HaOwletTile } from "./ha";
 export type { HaOwletTileProps } from "./ha";
 

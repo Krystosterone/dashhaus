@@ -65,6 +65,51 @@ describe("OwletWidget", () => {
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBeNull();
   });
 
+  it("fills the slot with the vitals alert and its figure, like a triggered alarm", () => {
+    const { container } = render(<OwletWidget entity={{ ...sock, oxygen: 86, alerts: ["low_battery", "low_oxygen"] }} />);
+    const alarm = screen.getByRole("alert");
+    expect(alarm.textContent).toBe("Low oxygen86% O₂");
+    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("alarm");
+    expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
+    // The device problem still leads the status line.
+    expect(screen.getByRole("img", { name: "Warning: Battery low on Nova's sock" })).toBeTruthy();
+  });
+
+  it("names every vitals alert, the most urgent first, with the matching figure", () => {
+    const { container } = render(<OwletWidget entity={{ ...sock, heartRate: 71, alerts: ["low_heart_rate", "critical_oxygen"] }} footprint="compact" showControl={false} />);
+    expect(screen.getByRole("alert").textContent).toBe("Critical oxygen · Low heart rate98% O₂");
+    expect(container.querySelector(".hd-sub")?.textContent).toBe("Critical oxygen · 98% O₂ · Low heart rate");
+  });
+
+  it("sounds the alarm even when the readings are gone, and in a compact row without its control", () => {
+    render(<OwletWidget entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, alerts: ["low_heart_rate"] }} footprint="compact" showControl={false} />);
+    expect(screen.getByRole("alert").textContent).toBe("Low heart rate");
+  });
+
+  it("leads the status line with a device problem in words, over a stale warning", () => {
+    render(<OwletWidget entity={{ ...sock, live: false, lastUpdated: "11:49", alerts: ["sock_off"] }} />);
+    expect(screen.getByText("Sock off")).toBeTruthy();
+    expect(screen.queryByText("No new reading since 11:49")).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("says Charging, not Unavailable, while the sock is on its charger", () => {
+    render(<OwletWidget entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, charging: true }} />);
+    expect(screen.getByText("Charging")).toBeTruthy();
+  });
+
+  it("lists every alert in the sheet", () => {
+    render(<OwletWidget entity={{ ...sock, alerts: ["low_battery", "high_heart_rate"] }} variant="sheet" />);
+    expect(screen.getByRole("heading", { name: "Alerts" })).toBeTruthy();
+    expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(["High heart rate", "Battery low"]);
+  });
+
+  it("puts the vitals alert on the compact value line, and the figures on the status line beside the pill", () => {
+    const { container } = render(<OwletWidget entity={{ ...sock, oxygen: 86, alerts: ["low_oxygen"] }} footprint="compact" />);
+    expect(container.querySelector(".hd-sub")?.textContent).toBe("Low oxygen · 86% O₂");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("121 bpm · 86% O₂");
+  });
+
   it("puts the sleep state and the readings on the compact value line", () => {
     const { container } = render(<OwletWidget entity={sock} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Deep sleep · 121 bpm · 98% O₂");

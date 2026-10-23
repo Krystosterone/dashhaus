@@ -1,13 +1,16 @@
 import { useMemo } from "react";
-import { useHaEntity } from "./provider";
-import { owletCompanionIds, owletFromHass } from "./mappers/owlet";
+import { useHaEntities, useHaEntity } from "./provider";
+import { OWLET_ALERT_SUFFIX, owletCompanionIds, owletFromHass } from "./mappers/owlet";
 import { owletHistoryFromHass } from "./history";
 import { useHaArea } from "./registry";
 import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { OwletTile } from "../widgets/owlet/OwletTile";
 import type { OwletTileProps } from "../widgets/owlet/OwletTile";
-import type { OwletHistory } from "../widgets/owlet/types";
+import type { HassEntity } from "./types";
+import type { OwletAlert, OwletHistory } from "../widgets/owlet/types";
+
+const ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 
 export interface HaOwletTileProps extends Omit<OwletTileProps, "entity"> {
   /** The sock's sleep state sensor, `sensor.owlet_sock_<serial>_sleep_state` (custom `owlet` integration). */
@@ -16,6 +19,10 @@ export interface HaOwletTileProps extends Omit<OwletTileProps, "entity"> {
   heartRateEntityId?: string;
   /** Default: the integration's `…_o2_saturation` beside `entityId`. */
   oxygenEntityId?: string;
+  /** Default: the integration's `binary_sensor.…_charging`. */
+  chargingEntityId?: string;
+  /** Per alert, the binary sensor to read. Default: the integration's (`binary_sensor.…_low_oxygen_alert` …). */
+  alertEntityIds?: Partial<Record<OwletAlert, string>>;
   /** Usually the baby's name. Default: the sock's device name. */
   name?: string;
   area?: string;
@@ -28,14 +35,22 @@ export interface HaOwletTileProps extends Omit<OwletTileProps, "entity"> {
   staleAfterMinutes?: number;
 }
 
-/** A live, read-only Owlet sock tile: composes the sleep state, heart rate and oxygen sensors above the tile. */
-export function HaOwletTile({ entityId, heartRateEntityId, oxygenEntityId, name, area, lastSeen, history, loadHistory = true, staleAfterMinutes, ...props }: HaOwletTileProps) {
+/** A live, read-only Owlet sock tile: composes the sleep state, readings, charging and alert sensors above the tile. */
+export function HaOwletTile({ entityId, heartRateEntityId, oxygenEntityId, chargingEntityId, alertEntityIds, name, area, lastSeen, history, loadHistory = true, staleAfterMinutes, ...props }: HaOwletTileProps) {
   const derived = owletCompanionIds(entityId);
   const heartRateId = heartRateEntityId ?? derived?.heartRate;
   const oxygenId = oxygenEntityId ?? derived?.oxygen;
   const raw = useHaEntity(entityId);
   const heartRateEntity = useHaEntity(heartRateId ?? "");
   const oxygenEntity = useHaEntity(oxygenId ?? "");
+  // The charging sensor first, then one per alert; an alert without a sensor reads as silent.
+  const chargingId = chargingEntityId ?? derived?.charging;
+  const binaryIds = [chargingId, ...ALERTS.map((alert) => alertEntityIds?.[alert] ?? derived?.alerts[alert])].map((id) => id ?? "");
+  const binaries = useHaEntities(binaryIds);
+  const [chargingEntity, alertEntities] = useMemo(
+    () => [binaries[0], Object.fromEntries(ALERTS.map((alert, i) => [alert, binaries[i + 1]])) as Partial<Record<OwletAlert, HassEntity>>] as const,
+    [binaries],
+  );
   const registryArea = useHaArea(entityId);
   const now = useNow();
   const ids = [entityId, heartRateId, oxygenId].filter((id): id is string => id != null);
@@ -45,8 +60,8 @@ export function HaOwletTile({ entityId, heartRateEntityId, oxygenEntityId, name,
     [records, entityId, heartRateId, oxygenId, now],
   );
   const entity = useMemo(
-    () => owletFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, heartRateEntity, oxygenEntity, staleAfterMinutes, now }),
-    [raw, entityId, name, area, registryArea, lastSeen, heartRateEntity, oxygenEntity, staleAfterMinutes, now],
+    () => owletFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, heartRateEntity, oxygenEntity, chargingEntity, alertEntities, staleAfterMinutes, now }),
+    [raw, entityId, name, area, registryArea, lastSeen, heartRateEntity, oxygenEntity, chargingEntity, alertEntities, staleAfterMinutes, now],
   );
   return <OwletTile {...props} entity={entity} history={history ?? parsedHistory} />;
 }

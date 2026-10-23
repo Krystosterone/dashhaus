@@ -78,12 +78,52 @@ describe("owletFromHass", () => {
   });
 });
 
+describe("owletFromHass alerts", () => {
+  const binary = (id: string, state: string) => sensor(`binary_sensor.owlet_sock_ac0_${id}`, state);
+
+  it("sounds only the alerts whose sensor is on", () => {
+    const mapped = owletFromHass(sleep, sleep.entity_id, {
+      alertEntities: {
+        low_oxygen: binary("low_oxygen_alert", "on"),
+        low_heart_rate: binary("low_heart_rate_alert", "off"),
+        sock_off: binary("sock_off", "unavailable"),
+        low_battery: binary("low_battery_alert", "unknown"),
+      },
+    });
+    expect(mapped.alerts).toEqual(["low_oxygen"]);
+  });
+
+  it("has no alerts without alert sensors", () => {
+    expect(owletFromHass(sleep, sleep.entity_id).alerts).toEqual([]);
+  });
+
+  it("keeps alerts while the sock is offline: the base station still raises them", () => {
+    const mapped = owletFromHass({ ...sleep, state: "unavailable" }, sleep.entity_id, { alertEntities: { sock_off: binary("sock_off", "on") } });
+    expect(mapped).toMatchObject({ state: "unavailable", alerts: ["sock_off"] });
+  });
+
+  it("says charging only while the charging sensor is on", () => {
+    expect(owletFromHass(sleep, sleep.entity_id, { chargingEntity: binary("charging", "on") }).charging).toBe(true);
+    expect(owletFromHass(sleep, sleep.entity_id, { chargingEntity: binary("charging", "unavailable") }).charging).toBe(false);
+  });
+});
+
 describe("owletCompanionIds", () => {
-  it("derives the integration's heart rate and oxygen ids", () => {
-    expect(owletCompanionIds("sensor.owlet_sock_ac0_sleep_state")).toEqual({
+  it("derives the integration's readings, charging and alert ids", () => {
+    const ids = owletCompanionIds("sensor.owlet_sock_ac0_sleep_state");
+    expect(ids).toMatchObject({
       heartRate: "sensor.owlet_sock_ac0_heart_rate",
       oxygen: "sensor.owlet_sock_ac0_o2_saturation",
+      charging: "binary_sensor.owlet_sock_ac0_charging",
     });
+    expect(ids?.alerts).toMatchObject({
+      low_oxygen: "binary_sensor.owlet_sock_ac0_low_oxygen_alert",
+      critical_oxygen: "binary_sensor.owlet_sock_ac0_critical_oxygen_alert",
+      sock_off: "binary_sensor.owlet_sock_ac0_sock_off",
+      sock_disconnected: "binary_sensor.owlet_sock_ac0_sock_disconnected_alert",
+      lost_power: "binary_sensor.owlet_sock_ac0_lost_power_alert",
+    });
+    expect(Object.keys(ids!.alerts)).toHaveLength(10);
   });
   it("gives up on ids that don't follow the integration's naming", () => {
     expect(owletCompanionIds("sensor.nova_sleep")).toBeUndefined();

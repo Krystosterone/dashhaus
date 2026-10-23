@@ -235,11 +235,16 @@ An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. I
 - **Sleep state:** Deep sleep, Light sleep or Awake, on the status line. While the sock is reading but hasn't settled on a sleep state (`unknown`), it says "Sleep state unknown" and keeps the readings.
 - **Readings:** heart rate in bpm and oxygen saturation in %, each shown or left out on its own. A 0, a non-number or an out-of-range value is no reading, never a measurement.
 - **Live or stale:** while readings arrive, the heart beside the heart rate beats, once every 2.4 s (a liveness cue, not the measured rate; with reduced motion it fades instead). Home Assistant pushes a state only when it changes, so live means a reading changed in the last 3 minutes (`staleAfterMinutes` on `HaOwletTile`). After that the heart stands still, the figures dim, and the status line leads with the warn marker: "No new reading since 11:49", or "Stopped 11:49" in compact rows and narrow cards. The sheet says "Live · updated 11:54". A device clock far off Home Assistant's can make fresh readings look stale.
-- **Unavailable:** while the sock charges, or is out of reach, it reports nothing; the card says Unavailable and when it was last seen, if the host passes `lastSeen`.
+- **Alerts:** read from the base station's own alert sensors, never worked out from the figures here.
+  - **Vitals alerts** (critical, low or high oxygen; low or high heart rate) are the alarm going off. The slot fills with warn and pulses, like a triggered security alarm, and names every vitals alert sounding, the most urgent first, with its figure: "Low oxygen · 84% O₂". It shows whatever else the card would: with no readings, in a compact row without its control, in the sheet. Beside a compact row's title the pill names the alert and the status line takes the figures; under 320 px, where compact rows keep only their value line, the alert leads that line in warn: "Critical oxygen · 79% O₂ · Low heart rate".
+  - **Device problems** (sock off, sock disconnected, base lost power, battery critical or low) lead the status line with the warn marker, ahead of a stale warning.
+  - The sheet lists every alert sounding. A sensor that is off, unknown, unavailable or missing is silent.
+- **Charging:** while the sock is on its charger it reports nothing, and the card says Charging instead of Unavailable.
+- **Unavailable:** while the sock is out of reach it reports nothing; the card says Unavailable and when it was last seen, if the host passes `lastSeen`.
 - **Compact:** the status line says the sleep state and the slot the two figures. Under 320 px the value line carries both: "Deep sleep · 121 bpm · 98% O₂".
 - **Featured and sheet:** today's sleep by hour (deep sleep full, light sleep half, awake on the baseline) and the minutes asleep. The sheet adds today's heart rate and oxygen, low and high.
-- **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds `…_heart_rate` and `…_o2_saturation` beside it; pass `heartRateEntityId` or `oxygenEntityId` when yours are named differently. It sends no services.
-- **Not a medical alarm:** the card shows what Home Assistant last received, every few seconds at best. Owlet's own app and base station are the alarm.
+- **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds the rest beside it: `sensor.…_heart_rate`, `sensor.…_o2_saturation`, `binary_sensor.…_charging` and the ten alert sensors (`binary_sensor.…_low_oxygen_alert`, `…_sock_off` …). Pass `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId` or `alertEntityIds` when yours are named differently. It sends no services.
+- **Not a medical alarm:** the card shows what Home Assistant last received, every few seconds at best, and an alert reaches it only after the base station has raised it. Owlet's own app and base station are the alarm; this card repeats it.
 
 ## Using the header widget
 
