@@ -39,25 +39,6 @@
   --groove: oklch(0.22 0.006 80 / 0.065);
   --groove-shadow: inset 0 1px 2px oklch(0.22 0.006 80 / 0.1), inset 0 0 0 1px oklch(0.22 0.006 80 / 0.05);
 
-  /* Home scene: the house as a white architectural model */
-  --scene-wall-a: oklch(0.985 0.004 95);
-  --scene-wall-b: oklch(0.935 0.006 90);
-  --scene-roof-a: oklch(0.87 0.006 85);
-  --scene-roof-b: oklch(0.8 0.006 85);
-  --scene-roof-c: oklch(0.75 0.006 85);
-  --scene-door: oklch(0.86 0.01 85);
-  --scene-glass: oklch(0.82 0.012 240);
-  --scene-top: oklch(0.955 0.005 90);
-  --scene-side-a: oklch(0.9 0.006 90);
-  --scene-side-b: oklch(0.84 0.006 90);
-  --scene-path: oklch(0.985 0.004 95);
-  --scene-tree-a: oklch(0.95 0.006 95);
-  --scene-tree-b: oklch(0.885 0.008 95);
-  --scene-stem: oklch(0.7 0.01 80);
-  --scene-shadow: oklch(0.3 0.02 80 / 0.1);
-  --scene-edge: oklch(0.22 0.006 80 / 0.16);
-  --scene-lamp: oklch(0.87 0.13 82);
-
   --font: "Urbanist", "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Motion. Strong custom curves: built-in CSS easings are too weak. Never ease-in on UI.
@@ -99,23 +80,6 @@
     --btn-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08), inset 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px -3px oklch(0 0 0 / 0.5);
     --groove: oklch(0 0 0 / 0.18);
     --groove-shadow: inset 0 1px 2px oklch(0 0 0 / 0.3), inset 0 0 0 1px oklch(1 0 0 / 0.08);
-    --scene-wall-a: oklch(0.56 0.006 85);
-    --scene-wall-b: oklch(0.47 0.006 85);
-    --scene-roof-a: oklch(0.4 0.006 85);
-    --scene-roof-b: oklch(0.34 0.006 85);
-    --scene-roof-c: oklch(0.3 0.006 85);
-    --scene-door: oklch(0.42 0.008 85);
-    --scene-glass: oklch(0.33 0.015 250);
-    --scene-top: oklch(0.43 0.005 85);
-    --scene-side-a: oklch(0.36 0.005 85);
-    --scene-side-b: oklch(0.31 0.005 85);
-    --scene-path: oklch(0.5 0.005 85);
-    --scene-tree-a: oklch(0.5 0.006 85);
-    --scene-tree-b: oklch(0.42 0.006 85);
-    --scene-stem: oklch(0.4 0.008 80);
-    --scene-shadow: oklch(0 0 0 / 0.3);
-    --scene-edge: oklch(1 0 0 / 0.09);
-    --scene-lamp: oklch(0.85 0.13 82);
     color-scheme: dark;
   }
 }
@@ -147,23 +111,6 @@
   --btn-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08), inset 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px -3px oklch(0 0 0 / 0.5);
   --groove: oklch(0 0 0 / 0.18);
   --groove-shadow: inset 0 1px 2px oklch(0 0 0 / 0.3), inset 0 0 0 1px oklch(1 0 0 / 0.08);
-  --scene-wall-a: oklch(0.56 0.006 85);
-  --scene-wall-b: oklch(0.47 0.006 85);
-  --scene-roof-a: oklch(0.4 0.006 85);
-  --scene-roof-b: oklch(0.34 0.006 85);
-  --scene-roof-c: oklch(0.3 0.006 85);
-  --scene-door: oklch(0.42 0.008 85);
-  --scene-glass: oklch(0.33 0.015 250);
-  --scene-top: oklch(0.43 0.005 85);
-  --scene-side-a: oklch(0.36 0.005 85);
-  --scene-side-b: oklch(0.31 0.005 85);
-  --scene-path: oklch(0.5 0.005 85);
-  --scene-tree-a: oklch(0.5 0.006 85);
-  --scene-tree-b: oklch(0.42 0.006 85);
-  --scene-stem: oklch(0.4 0.008 80);
-  --scene-shadow: oklch(0 0 0 / 0.3);
-  --scene-edge: oklch(1 0 0 / 0.09);
-  --scene-lamp: oklch(0.85 0.13 82);
   color-scheme: dark;
 }
 :root[data-theme="light"] { color-scheme: light; }

@@ -4,7 +4,7 @@ Per-widget behaviour: what each widget shows, how it interacts, and its props. T
 
 ## Shared footprints
 
-Every dashboard tile accepts `footprint="compact" | "standard" | "featured"`; the default is `standard`. Compact is 60 px, standard is 128 px, and featured is 264 px at every width. Width changes anatomy, not height or semantic prominence: below 260 px a standard tile keeps its orb, control and details action, and a bare reading icon (sensor, weather) narrows to the glyph so the name keeps its room. Use `featured` explicitly for the large readout and Today strip; below 260 px that readout repeats what the control or status line already says, so it yields and the orb stays. All widget types and both bundle types follow this matrix.
+Every dashboard tile accepts `footprint="compact" | "standard" | "featured"`; the default is `standard`. Compact is 60 px, standard is 128 px, and featured is 264 px at every width. Width changes anatomy, not height or semantic prominence: below 260 px a standard tile keeps its orb, control and details action, and a bare reading icon (sensor, weather) narrows to the glyph so the name keeps its room. Use `featured` explicitly for the large readout and Today strip (the next hours, on Weather); below 260 px that readout repeats what the control or status line already says, so it yields and the orb stays. All widget types and both bundle types follow this matrix.
 
 `showControl={false}` applies to compact tiles. It replaces the inline control with the short value and makes the row open details; actionable orbs keep their independent tap and hold behavior.
 
@@ -30,7 +30,7 @@ Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an 
 
 The bulb is the accent when lit, whatever its colour temperature; the bar is a groove the light fills. A lit lamp with colour temperature names its warmth on the status line ("Office · Cool daylight") on standard and featured cards; compact rows keep the room alone, and the sheet names it over the warmth ruler, whose warm-to-cool scale is the one place the lamp's colour is drawn.
 
-The connected integration paths are available through `HaProvider` and the `Ha*Tile` containers for every domain (light, climate, sensor, home weather, cover, toggle, alarm); the remaining normalized callback examples below show the parent-side wiring each container replaces.
+The connected integration paths are available through `HaProvider` and the `Ha*Tile` containers for every domain (light, climate, sensor, weather, cover, toggle, alarm); the remaining normalized callback examples below show the parent-side wiring each container replaces.
 
 ```tsx
 import { HaLightTile } from "./src";
@@ -83,20 +83,20 @@ For the connected Home Assistant path, keep the primary sensor and optional comp
 
 Read-only: no toggle and no glow. The readings are a readout with no container: the temperature and its trend first, then the humidity in the secondary ink on its baseline (right-aligned in compact rows). On standard cards the temperature is the card's large figure; the header's thermometer names it, so the inline one is dropped. Temperature-only sensors leave the humidity out. Comfort is said in words, not colour. The status line puts the most important thing first: a low battery (15% or less, with the shared warning cue and warning color), then comfort ("Comfortable", "Humid", "Cool, dry"), then whether it's rising or falling. Under 320 px, the battery warning replaces the readings in the summary line. Outdoor sensors show their location instead of comfort. Tap the readings or the name for today's temperature and humidity.
 
-## Using the home widget
+## Using the weather widget
 
-Outdoor conditions for the home, beside a drawing of the house:
+Outdoor conditions now: the temperature, how it feels, and anything about the weather worth acting on.
 
 ```tsx
-<HomeTile entity={weather} history={todaySoFar} hourly={hourlyForecast} daily={dailyForecast} />
+<WeatherTile entity={weather} history={todaySoFar} hourly={hourlyForecast} daily={dailyForecast} />
 ```
 
 The connected Home Assistant path keeps the same normalized widget contract while selecting companions and fetching forecasts behind the boundary:
 
 ```tsx
-import { HaHomeTile } from "./src";
+import { HaWeatherTile } from "./src";
 
-<HaHomeTile
+<HaWeatherTile
   entityId="weather.home"
   aqiEntityId="sensor.home_aqi"
   aqiScale="US"
@@ -109,19 +109,19 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
 
 - **Entity.** `entity` mirrors a `weather.*` entity. Two values usually come from elsewhere and are optional:
   - `aqi`, from an air-quality sensor.
-  - `isDay`, from `sun.sun`.
-- **The house** is a white architectural model in neutral `--scene-*` materials, with no sky drawn. The weather is told with the system's own parts:
-  - The glow is the sunshine: strong when clear, faint when overcast, none at night.
-  - The icon is the condition.
-  - At night the windows light up in lamp tone.
-  - Nothing animates.
-- **Status line.** A coming dry or wet change ("Rain at 14:00") replaces the condition in standard and compact cards, and moves to the Today strip in featured and sheet views. Poor air and strong gusts lead with the shared warning cue and warning colour; under 320 px, the warning takes priority over temperature and condition.
-- **Today readout.** The current temperature, then today's low to high in the muted ink ("6.2°  1.9°–7.6°"). A readout, with no container; tap it for the sheet. On standard cards the current temperature is the large figure.
+  - `isDay`, from `sun.sun`; it picks night icons. Unknown daylight keeps the day icons.
+- **A reading.** Neutral and without glow, like the sensor: glow stays with things that use energy. The condition icon is the badge at every size, bare (no disc); there is no illustration.
+- **Title.** The place name (the entity's name, "Home").
+- **Status line, most urgent first.**
+  - Warnings, with the shared warning cue and warning colour: poor air (US AQI over 100), gusts of 50 km/h or more, UV from very high (8) up.
+  - Rain or snow in the next 12 hours: when it starts, with its chance if the forecast gives one ("70% rain at 14:00"), or when falling rain stops ("Rain until 16:00", which then stands in for the condition).
+  - The condition ("Partly cloudy"), then today's low–high in whole degrees ("2°–8°"; "-3° to -1°" below zero, so a dash never meets a minus). Today's range combines the readings so far (`history`), the rest of today's hourly forecast, and the daily forecast.
+- **The reading.** The temperature, with feels-like always beside it on its baseline ("6.2°  Feels 4°"). A readout, with no container; tap it for the sheet. On standard cards the temperature is the large figure. Only a reading too wide for its card (an extreme value at the narrowest widths) hides feels-like rather than overflow; it is still spoken.
 - **Footprints.**
-  - Compact and standard below 260 px: a condition badge instead of the house.
-  - Standard at 260 px and up: the house on the left.
-  - Featured: the house, large temperature and today's hours; forecast hours are lighter.
-  - The sheet: every reading as a chip-shaped tile, the hours, and the next five days.
+  - Compact: icon, place, status line, and the reading on the right. Under 320 px the value line leads with any warning, else the temperature, feels-like and the rain or condition.
+  - Standard: icon, place and status line, then the reading.
+  - Featured: the standard card with the large temperature, and the next hours below: time, icon, temperature, and rain chance from 20%. It shows as many of the next 12 hours as its width fits.
+  - The sheet: every reading as a chip-shaped tile (feels-like and dew point, humidity, wind, air quality, UV, pressure), the next hours, and the next five days. The large temperature and the Feels like tile replace the card's reading.
 - **Units.** Comfort bands are in Celsius; Fahrenheit readings are converted first. This applies to the sensor widget too.
 
 ## Using the alarm widget

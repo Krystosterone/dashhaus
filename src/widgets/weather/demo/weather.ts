@@ -1,7 +1,7 @@
 import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../types";
 
 /** Example data for stories. The clock is fixed at 11:54 (the night example at 22:54). */
-export interface HomeSeed { entity: WeatherEntity; history: WeatherHistory; hourly: HourlyForecast[]; daily: DailyForecast[] }
+export interface WeatherSeed { entity: WeatherEntity; history: WeatherHistory; hourly: HourlyForecast[]; daily: DailyForecast[] }
 
 const base = { entityId: "weather.home", name: "Home", temperatureUnit: "°C", windSpeedUnit: "km/h", pressureUnit: "hPa" } as const;
 
@@ -12,7 +12,7 @@ const history = (past: number[], now: number, currentHour: number): WeatherHisto
   temperature: [...past, now, ...Array(24 - past.length - 1).fill(null)], currentHour,
 });
 
-export const HOME_SEEDS = {
+export const WEATHER_SEEDS = {
   partly: {
     entity: { ...base, state: "partlycloudy", isDay: true, temperature: 6.2, apparentTemperature: 3.8, dewPoint: 2.6, humidity: 78, pressure: 1016, windSpeed: 18, windGustSpeed: 32, windBearing: 315, uvIndex: 2, aqi: 42, lastUpdated: "11:50" },
     history: history([3.1, 2.8, 2.5, 2.2, 2.0, 1.9, 2.1, 2.8, 3.6, 4.5, 5.4], 6.2, 11),
@@ -79,6 +79,6 @@ export const HOME_SEEDS = {
     hourly: [],
     daily: [],
   },
-} satisfies Record<string, HomeSeed>;
+} satisfies Record<string, WeatherSeed>;
 
-export type HomeSeedName = keyof typeof HOME_SEEDS;
+export type WeatherSeedName = keyof typeof WEATHER_SEEDS;

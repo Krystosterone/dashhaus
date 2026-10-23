@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HaHomeTile } from "./HaHomeTile";
+import { HaWeatherTile } from "./HaWeatherTile";
 import { HaProvider } from "./provider";
 import { createHaStore } from "./store";
 import type { HaTransport, HassEntities } from "./types";
@@ -51,7 +51,7 @@ function transport() {
   return { value, callService };
 }
 
-describe("HaHomeTile", () => {
+describe("HaWeatherTile", () => {
   it("maps weather companions and loads daily and hourly forecasts through the shared store", async () => {
     vi.stubGlobal("ResizeObserver", class {
       observe() {}
@@ -62,7 +62,7 @@ describe("HaHomeTile", () => {
 
     render(
       <HaProvider store={store}>
-        <HaHomeTile
+        <HaWeatherTile
           entityId="weather.home"
           aqiEntityId="sensor.home_aqi"
           aqiScale="US"
@@ -74,7 +74,7 @@ describe("HaHomeTile", () => {
     );
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Home" })).toBeTruthy());
-    expect(screen.getByText("Partly cloudy")).toBeTruthy();
+    expect(document.querySelector(".hd-area")?.textContent).toMatch(/^Partly cloudy/);
     expect(document.querySelector("article[data-control='off']")).toBeTruthy();
     await waitFor(() => expect(fake.callService).toHaveBeenCalledTimes(2));
     expect(document.querySelector(".hd-c > article")).toBeTruthy();
@@ -105,7 +105,7 @@ describe("HaHomeTile", () => {
     render(
       <StrictMode>
         <HaProvider store={store}>
-          <HaHomeTile entityId="weather.home" />
+          <HaWeatherTile entityId="weather.home" />
         </HaProvider>
       </StrictMode>,
     );
@@ -123,14 +123,14 @@ describe("HaHomeTile", () => {
     const store = createHaStore(fake.value);
     const view = render(
       <HaProvider store={store}>
-        <HaHomeTile entityId="weather.home" onForecastError={() => undefined} />
+        <HaWeatherTile entityId="weather.home" onForecastError={() => undefined} />
       </HaProvider>,
     );
 
     await waitFor(() => expect(fake.callService).toHaveBeenCalledTimes(2));
     view.rerender(
       <HaProvider store={store}>
-        <HaHomeTile entityId="weather.home" onForecastError={() => undefined} />
+        <HaWeatherTile entityId="weather.home" onForecastError={() => undefined} />
       </HaProvider>,
     );
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -162,7 +162,7 @@ describe("HaHomeTile", () => {
     const store = createHaStore(value);
     render(
       <HaProvider store={store}>
-        <HaHomeTile entityId="weather.home" />
+        <HaWeatherTile entityId="weather.home" />
       </HaProvider>,
     );
 
@@ -199,7 +199,7 @@ describe("HaHomeTile", () => {
 
     render(
       <HaProvider store={store}>
-        <HaHomeTile entityId="weather.home" onForecastError={onForecastError} />
+        <HaWeatherTile entityId="weather.home" onForecastError={onForecastError} />
       </HaProvider>,
     );
 
@@ -227,16 +227,18 @@ describe("HaHomeTile", () => {
 
     render(
       <HaProvider store={store}>
-        <HaHomeTile
+        <HaWeatherTile
           entityId="weather.home"
-          history={{ temperature: [], currentHour: 0 }}
+          footprint="featured"
+          // The forecast hour is local time: start the day one hour before it, whatever the timezone.
+          history={{ temperature: [], currentHour: new Date("2026-10-20T01:00:00Z").getHours() - 1 }}
           onForecastError={onForecastError}
         />
       </HaProvider>,
     );
 
     await waitFor(() => expect(onForecastError).toHaveBeenCalledOnce());
-    expect(document.querySelector(".hd-tl i[data-s='fc']")).toBeTruthy();
+    await waitFor(() => expect(document.querySelector(".wx-hr")).toBeTruthy());
     vi.unstubAllGlobals();
   });
 
@@ -262,7 +264,7 @@ describe("HaHomeTile", () => {
 
     render(
       <HaProvider store={store}>
-        <HaHomeTile entityId="weather.home" defaultOpen onForecastError={onForecastError} />
+        <HaWeatherTile entityId="weather.home" defaultOpen onForecastError={onForecastError} />
       </HaProvider>,
     );
 

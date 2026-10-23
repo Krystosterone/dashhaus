@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { DemoLightTile as Light } from "../widgets/light/demo/DemoLightTile";
 import { DemoClimateTile as Climate } from "../widgets/climate/demo/DemoClimateTile";
 import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile";
-import { DemoHomeTile as Home } from "../widgets/home/demo/DemoHomeTile";
+import { DemoWeatherTile as Weather } from "../widgets/weather/demo/DemoWeatherTile";
 import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
 import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
@@ -23,7 +23,7 @@ function Rows({ showControl, width }: { showControl: boolean; width: number }) {
     <Alarm key="a1" alarm="away" footprint="compact" showControl={showControl} />,
     <Alarm key="a2" alarm="triggered" footprint="compact" showControl={showControl} />,
     <Sensor key="s1" sensor="living" footprint="compact" showControl={showControl} />,
-    <Home key="h1" weather="partly" footprint="compact" showControl={showControl} />,
+    <Weather key="h1" weather="partly" footprint="compact" showControl={showControl} />,
     <Light key="l4" light="unavailable" footprint="compact" showControl={showControl} />,
   ];
   return <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>{rows}</div>;

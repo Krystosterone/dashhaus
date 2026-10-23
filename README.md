@@ -6,7 +6,7 @@ This file is the rules: what every widget must do, how motion behaves, and how d
 
 ## Running with Home Assistant
 
-The presentational widgets stay provider-agnostic. The connected Home Assistant slices currently include a shared injected transport/store, a loss-preserving raw entity snapshot, pure light, climate, sensor, and weather/home mappers, typed light/climate actions, forecast response queries, and `HaLightTile`/`HaClimateTile`/`HaSensorTile`/`HaHomeTile` containers. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the boundary.
+The presentational widgets stay provider-agnostic. The connected Home Assistant slices currently include a shared injected transport/store, a loss-preserving raw entity snapshot, pure light, climate, sensor, and weather mappers, typed light/climate actions, forecast response queries, and `HaLightTile`/`HaClimateTile`/`HaSensorTile`/`HaWeatherTile` containers. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the boundary.
 
 The host supplies authentication and an implementation of the transport (the repository includes an adapter for the official `home-assistant-js-websocket` client). Fake transports power unit tests and Storybook; passing them is not evidence of a live Home Assistant connection.
 
@@ -26,7 +26,7 @@ The host supplies authentication and an implementation of the transport (the rep
 - **One palette.** Colour is the exception, not the state. The one question colour answers is "is it on?".
   - **Neutrals** for everything by default. Off is the plain surface: a raised button, or a groove with nothing in it.
   - **The accent** (one token, `--brand-c` / `--brand-h` in `tokens.css`, Crextio yellow by default) is solid and means on, whatever the role: a lit light, a mode switched on, an armed alarm, an open cover, a thermostat that's on, a chosen chip or mode. It's the only solid fill, the glow, the "now" stick and the page wash.
-    - Energy (`data-role="energy"`: lit, heating or cooling running, daylight, sunshine) adds the orb's bloom and, on standard and larger cards, the glow. It never changes the fill, so on always looks the same.
+    - Energy (`data-role="energy"`: lit, heating or cooling running, daylight let in by a cover) adds the orb's bloom and, on standard and larger cards, the glow. It never changes the fill, so on always looks the same.
     - To re-colour the whole dashboard, change those two numbers; Storybook's Accent toolbar tries a few. Never recycle the accent for an unrelated meaning on the same surface.
   - **Dashed** means unavailable: a dashed outline and muted text, on the orb and the control alike. Nothing else is dashed, so off and unavailable never look alike.
   - **No disc** means a reading: read-only widgets (sensors, weather) show a bare icon where controls have an orb, so a reading never looks like a control switched off.

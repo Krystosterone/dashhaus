@@ -28,16 +28,23 @@ export const SKY: Record<Condition, Sky> = {
 const WET = new Set<Sky>(["rain", "snow", "storm"]);
 export const isWet = (c: Condition) => WET.has(SKY[c]);
 
-/** The next time the sky changes between dry and wet, from the hourly forecast. */
-export function nextChange(now: Condition, hourly: HourlyForecast[] | undefined, currentHour: number): string | null {
+/** An hour of the day as "14:00"; hours past midnight wrap. */
+export const clock = (hour: number) => `${String(hour % 24).padStart(2, "0")}:00`;
+
+/**
+ * Rain or snow over the next 12 hours, from the hourly forecast: when it stops if it's falling now
+ * ("Rain until 15:00"), or when it starts, with its chance if known ("70% rain at 14:00").
+ * Null when the sky stays as it is.
+ */
+export function precipitation(now: Condition, hourly: HourlyForecast[] | undefined, currentHour: number): string | null {
   if (!hourly) return null;
   const wet = isWet(now);
   const next = hourly.find((h) => h.hour > currentHour && h.hour <= currentHour + 12 && isWet(h.condition) !== wet);
   if (!next) return null;
-  const at = String(next.hour % 24).padStart(2, "0") + ":00";
-  if (wet) return `Dry by ${at}`;
-  const kind = SKY[next.condition] === "snow" ? "Snow" : SKY[next.condition] === "storm" ? "Storms" : "Rain";
-  return `${kind} at ${at}`;
+  if (wet) return `${CONDITION_LABEL[now]} until ${clock(next.hour)}`;
+  const kind = SKY[next.condition] === "snow" ? "snow" : SKY[next.condition] === "storm" ? "storms" : "rain";
+  const p = next.precipitationProbability;
+  return p != null ? `${Math.round(p)}% ${kind} at ${clock(next.hour)}` : `${kind[0].toUpperCase()}${kind.slice(1)} at ${clock(next.hour)}`;
 }
 
 const DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];

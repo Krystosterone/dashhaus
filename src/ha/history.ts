@@ -5,7 +5,7 @@ import type { CoverHistory } from "../widgets/cover/types";
 import type { ToggleHistory } from "../widgets/toggle/types";
 import type { AlarmHistory } from "../widgets/alarm/types";
 import type { SensorHistory, Reading } from "../widgets/sensor/types";
-import type { WeatherHistory } from "../widgets/home/types";
+import type { WeatherHistory } from "../widgets/weather/types";
 import { finiteNumber, isRecord, stringList } from "./util";
 
 /* ------------------------------------------------------------------ *

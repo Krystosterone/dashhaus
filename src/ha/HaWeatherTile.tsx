@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
-import type { HomeWidgetProps } from "../widgets/home/HomeWidget";
-import { HomeTile } from "../widgets/home/HomeTile";
-import type { HomeTileProps } from "../widgets/home/HomeTile";
-import type { DailyForecast, HourlyForecast, WeatherHistory } from "../widgets/home/types";
+import type { WeatherWidgetProps } from "../widgets/weather/WeatherWidget";
+import { WeatherTile } from "../widgets/weather/WeatherTile";
+import type { WeatherTileProps } from "../widgets/weather/WeatherTile";
+import type { DailyForecast, HourlyForecast, WeatherHistory } from "../widgets/weather/types";
 import { forecastFromHass, weatherFromHass } from "./mappers/weather";
 import { weatherHistoryFromHass } from "./history";
 import { useHaHistory } from "./useHaHistory";
@@ -37,7 +37,7 @@ function useForecast<K extends ForecastType>(entityId: string, type: K, load: bo
   }, [value, entityId, type]);
 }
 
-export interface HaHomeTileProps extends Omit<HomeTileProps, "entity" | "hourly" | "daily"> {
+export interface HaWeatherTileProps extends Omit<WeatherTileProps, "entity" | "hourly" | "daily"> {
   entityId: string;
   aqiEntityId?: string;
   /** Explicit host-owned assertion that the companion uses the US AQI scale. */
@@ -45,9 +45,9 @@ export interface HaHomeTileProps extends Omit<HomeTileProps, "entity" | "hourly"
   sunEntityId?: string;
   name?: string;
   lastSeen?: string;
-  temperatureUnit?: HomeWidgetProps["entity"]["temperatureUnit"];
-  windSpeedUnit?: HomeWidgetProps["entity"]["windSpeedUnit"];
-  pressureUnit?: HomeWidgetProps["entity"]["pressureUnit"];
+  temperatureUnit?: WeatherWidgetProps["entity"]["temperatureUnit"];
+  windSpeedUnit?: WeatherWidgetProps["entity"]["windSpeedUnit"];
+  pressureUnit?: WeatherWidgetProps["entity"]["pressureUnit"];
   hourly?: HourlyForecast[];
   daily?: DailyForecast[];
   /** Host-owned history override; when omitted, today's history is read from Home Assistant. */
@@ -59,8 +59,8 @@ export interface HaHomeTileProps extends Omit<HomeTileProps, "entity" | "hourly"
   onForecastError?: (error: unknown) => void;
 }
 
-/** Connect the provider-agnostic home weather widget to one shared Home Assistant store. */
-export function HaHomeTile({
+/** Connect the provider-agnostic weather widget to one shared Home Assistant store. */
+export function HaWeatherTile({
   entityId,
   aqiEntityId,
   aqiScale,
@@ -77,7 +77,7 @@ export function HaHomeTile({
   loadForecasts = true,
   onForecastError,
   ...props
-}: HaHomeTileProps) {
+}: HaWeatherTileProps) {
   const raw = useHaEntity(entityId);
   const aqiEntity = useHaEntity(aqiEntityId ?? "");
   const sunEntity = useHaEntity(sunEntityId ?? "");
@@ -105,5 +105,5 @@ export function HaHomeTile({
     now,
   }), [raw, entityId, aqiEntity, aqiScale, sunEntity, name, lastSeen, temperatureUnit, windSpeedUnit, pressureUnit, now]);
 
-  return <HomeTile {...props} entity={entity} history={history ?? parsedHistory} hourly={providedHourly ?? hourly} daily={providedDaily ?? daily} />;
+  return <WeatherTile {...props} entity={entity} history={history ?? parsedHistory} hourly={providedHourly ?? hourly} daily={providedDaily ?? daily} />;
 }

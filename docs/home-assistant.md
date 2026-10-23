@@ -15,7 +15,7 @@ Home Assistant auth + connection
 
 The store is the source for current state. A successful service call means Home Assistant accepted the command; it is not proof that the entity reached the requested state. The next entity snapshot is the readback boundary.
 
-## Connected entity slices: lights, climate, sensors, home weather, covers, toggles, and alarms
+## Connected entity slices: lights, climate, sensors, weather, covers, toggles, and alarms
 
 The integration now covers one `light.*` entity, one `climate.*` entity, one composed `sensor.*` view, one composed `weather.*` home view, one `cover.*` entity, one `input_boolean.*`/`switch.*` toggle, and one `alarm_control_panel.*` entity:
 
@@ -32,7 +32,7 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/mappers/sensor.ts` composes a primary temperature or humidity sensor with optional humidity and battery companions, preserving numeric readings, units, availability, outdoor metadata, and timestamps.
 - `src/ha/HaSensorTile.tsx` connects the shared store to the existing read-only `SensorTile`; it has no service actions.
 - `src/ha/mappers/weather.ts` maps `weather.*` conditions and numeric readings, composes explicit `sensor.*` AQI and `sun.sun` companions, and parses response-shaped hourly/daily forecast data without treating forecasts as current state.
-- `src/ha/HaHomeTile.tsx` connects the shared store to the existing `HomeTile`/`HomeWidget`, requests hourly and daily forecasts through `weather.get_forecasts` with a response request, and leaves forecast failures observable through `onForecastError`.
+- `src/ha/HaWeatherTile.tsx` connects the shared store to the existing `WeatherTile`/`WeatherWidget`, requests hourly and daily forecasts through `weather.get_forecasts` with a response request, and leaves forecast failures observable through `onForecastError`.
 - `src/ha/mappers/cover.ts` maps raw cover state, device class, position/tilt readings, and `supported_features` bits (set-position, stop, tilt) into the existing `CoverEntity` model; unknown is never presented as closed.
 - `src/ha/actions/cover.ts` builds `cover.open_cover`, `close_cover`, `stop_cover`, `set_cover_position`, and `set_cover_tilt_position` payloads, gated by the entity's feature flags, and never sends a presentation fallback position as measured state.
 - `src/ha/HaCoverTile.tsx` connects the store to the existing `CoverTile`.
@@ -56,7 +56,7 @@ import {
   HaLightTile,
   HaClimateTile,
   HaSensorTile,
-  HaHomeTile,
+  HaWeatherTile,
   HaProvider,
   createHaStore,
   connectHomeAssistant,
@@ -89,10 +89,10 @@ A sensor tile can compose one primary temperature entity with linked humidity an
 />
 ```
 
-The home weather tile selects its optional companions explicitly. It requests both forecast scopes through the same store; pass `loadForecasts={false}` when the host supplies forecast arrays through another query boundary:
+The weather tile selects its optional companions explicitly. It requests both forecast scopes through the same store; pass `loadForecasts={false}` when the host supplies forecast arrays through another query boundary:
 
 ```tsx
-<HaHomeTile
+<HaWeatherTile
   entityId="weather.home"
   aqiEntityId="sensor.home_aqi"
   aqiScale="US"

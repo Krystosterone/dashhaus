@@ -1,21 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { DemoHomeTile as DemoTile } from "./demo/DemoHomeTile";
+import { DemoWeatherTile as DemoTile } from "./demo/DemoWeatherTile";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const WEATHER = ["partly", "rain", "night", "snow", "summer", "unavailable"] as const;
 
 const meta = {
-  title: "Widgets/Home",
+  title: "Widgets/Weather",
   component: DemoTile,
   parameters: {
     layout: "centered",
     docs: {
       description: {
         component:
-          "The home's outdoor conditions, beside the house drawn as a white architectural model. Built from the same parts as the other widgets: " +
-          "the glow is the sunshine, the icon is the condition, the bar runs from today's low to today's high (cold to warm) with now on the knob. " +
-          "A coming dry/wet change replaces the condition in standard and compact cards; poor air and strong gusts show as warnings. " +
-          "Featured adds the big temperature and today's hours, forecast hours lighter. The sheet has every reading and the next days.",
+          "Outdoor conditions now. A reading: neutral, no glow, the condition icon as its badge at every size. " +
+          "The status line puts warnings (poor air, strong gusts, very high UV) and rain or snow first, then the condition and today's low–high. " +
+          "The reading is the temperature with feels-like beside it. Featured adds the next hours; the sheet has every reading, the next hours and the next days.",
       },
     },
   },

@@ -4,7 +4,7 @@ import { DashboardPage, Section, Columns, WidgetGrid, Cell } from "./layout";
 import { DemoLightTile as Light } from "../widgets/light/demo/DemoLightTile";
 import { DemoClimateTile as Climate } from "../widgets/climate/demo/DemoClimateTile";
 import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile";
-import { DemoHomeTile as Home } from "../widgets/home/demo/DemoHomeTile";
+import { DemoWeatherTile as Weather } from "../widgets/weather/demo/DemoWeatherTile";
 import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
 import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
 import { CoverTile } from "../widgets/cover/CoverTile";
@@ -29,7 +29,7 @@ const meta = {
   title: "Dashboards",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Home weather, security, modes, bundles, lights, covers, climate and sensors composed per device. Example data; the time is fixed at 11:54." } },
+    docs: { description: { component: "Weather, security, modes, bundles, lights, covers, climate and sensors composed per device. Example data; the time is fixed at 11:54." } },
   },
 } satisfies Meta;
 
@@ -109,7 +109,7 @@ export const Tablet: Story = {
       <DashboardPage title="Home" now={NOW} showTime>
         <Columns columns={2}>
           <Section title="Outside">
-            <Home weather="partly" footprint="featured" />
+            <Weather weather="partly" footprint="featured" />
             <Light light="onOff" footprint="compact" />
             <Sensor sensor="garage" footprint="compact" />
           </Section>
@@ -185,7 +185,7 @@ export const WallPanel: Story = {
           </Section>
           <Section title="Outside">
             <Alarm alarm="ring" readOnly footprint="compact" />
-            <Home weather="partly" />
+            <Weather weather="partly" />
             <Light light="onOff" />
             <Cover cover="garage" footprint="compact" />
             <Sensor sensor="garage" footprint="compact" />
@@ -203,7 +203,7 @@ export const PhoneUngrouped: Story = {
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Mixed dashboard" subtitle="No sections or groups" now={NOW}>
         <WidgetGrid columns={2}>
-          <Cell span={2}><Home weather="partly" footprint="featured" /></Cell>
+          <Cell span={2}><Weather weather="partly" footprint="featured" /></Cell>
           <Sensor sensor="living" name="Air" />
           <Light light="dimmable" />
           <Climate unit="heating" footprint="compact" />

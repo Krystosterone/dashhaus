@@ -12,9 +12,9 @@ import { SensorTile } from "../widgets/sensor/SensorTile";
 import { SENSOR_SEEDS } from "../widgets/sensor/demo/sensors";
 import type { SensorSeed } from "../widgets/sensor/demo/sensors";
 import type { Reading } from "../widgets/sensor/types";
-import { HomeTile } from "../widgets/home/HomeTile";
-import { HOME_SEEDS } from "../widgets/home/demo/home";
-import type { HomeSeed } from "../widgets/home/demo/home";
+import { WeatherTile } from "../widgets/weather/WeatherTile";
+import { WEATHER_SEEDS } from "../widgets/weather/demo/weather";
+import type { WeatherSeed } from "../widgets/weather/demo/weather";
 import { ToggleTile } from "../widgets/toggle/ToggleTile";
 import { TOGGLE_SEEDS, useDemoToggle } from "../widgets/toggle/demo/useDemoToggle";
 import type { ToggleSeed } from "../widgets/toggle/demo/useDemoToggle";
@@ -103,8 +103,8 @@ const SENSORS: Record<"demo" | "worst", SensorSeed[]> = {
   ],
 };
 
-const HOMES: Record<"demo" | "worst", HomeSeed[]> = {
-  demo: [HOME_SEEDS.partly],
+const WEATHERS: Record<"demo" | "worst", WeatherSeed[]> = {
+  demo: [WEATHER_SEEDS.partly],
   worst: [
     { // Fahrenheit and mph, a long place name, hazardous air, a gale, no forecast and no history
       entity: { entityId: "weather.farm", name: "Ferme Sainte-Anne-des-Plaines", state: "exceptional", temperature: 104.3, apparentTemperature: 112.8, humidity: 9, pressure: 29.71, windSpeed: 61, windGustSpeed: 84, windBearing: 200, uvIndex: 12, aqi: 312, temperatureUnit: "°F", windSpeedUnit: "mph", pressureUnit: "inHg", lastUpdated: "11:54" },
@@ -228,7 +228,7 @@ function WorstCasePage() {
     <div key={data} style={{ display: "grid", gap: 12, paddingBottom: 72 }}>
       {LIGHTS[data].map((seed, index) => <Row key={`l${index}`}>{(footprint) => <Light seed={seed} footprint={footprint} />}</Row>)}
       {CLIMATES[data].map((seed, index) => <Row key={`c${index}`}>{(footprint) => <Climate seed={seed} footprint={footprint} />}</Row>)}
-      {HOMES[data].map((seed, index) => <Row key={`h${index}`}>{(footprint) => <HomeTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />}</Row>)}
+      {WEATHERS[data].map((seed, index) => <Row key={`w${index}`}>{(footprint) => <WeatherTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />}</Row>)}
       {ALARMS[data].map((seed, index) => <Row key={`a${index}`}>{(footprint) => <Alarm seed={seed} footprint={footprint} />}</Row>)}
       {COVERS[data].map((seed, index) => <Row key={`v${index}`}>{(footprint) => <Cover seed={seed} footprint={footprint} />}</Row>)}
       {TOGGLES[data].map((seed, index) => <Row key={`t${index}`}>{(footprint) => <Toggle seed={seed} footprint={footprint} />}</Row>)}

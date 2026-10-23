@@ -12,7 +12,7 @@ export { useNow } from "./shared/useNow";
 export { HaActionError } from "./ha";
 export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
 export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaStatus, useHaGeneration } from "./ha";
-export { HaLightTile, HaClimateTile, HaSensorTile, HaHomeTile, HaCoverTile, HaToggleTile, HaAlarmTile } from "./ha";
+export { HaLightTile, HaClimateTile, HaSensorTile, HaWeatherTile, HaCoverTile, HaToggleTile, HaAlarmTile } from "./ha";
 export type {
   HassEntity,
   HassEntities,
@@ -27,7 +27,7 @@ export type {
   HaLightTileProps,
   HaClimateTileProps,
   HaSensorTileProps,
-  HaHomeTileProps,
+  HaWeatherTileProps,
   HaCoverTileProps,
   HaToggleTileProps,
   HaAlarmTileProps,
@@ -59,12 +59,12 @@ export { SensorTile } from "./widgets/sensor/SensorTile";
 export type { SensorTileProps } from "./widgets/sensor/SensorTile";
 export type { SensorEntity, SensorHistory } from "./widgets/sensor/types";
 
-// Home (outdoor conditions)
-export { HomeWidget, HomeSheet } from "./widgets/home/HomeWidget";
-export type { HomeWidgetProps, HomeSheetProps } from "./widgets/home/HomeWidget";
-export { HomeTile } from "./widgets/home/HomeTile";
-export type { HomeTileProps } from "./widgets/home/HomeTile";
-export type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./widgets/home/types";
+// Weather (outdoor conditions)
+export { WeatherWidget, WeatherSheet } from "./widgets/weather/WeatherWidget";
+export type { WeatherWidgetProps, WeatherSheetProps } from "./widgets/weather/WeatherWidget";
+export { WeatherTile } from "./widgets/weather/WeatherTile";
+export type { WeatherTileProps } from "./widgets/weather/WeatherTile";
+export type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./widgets/weather/types";
 
 // Toggle (modes)
 export { ToggleWidget, ToggleSheet, DEFAULT_DURATIONS } from "./widgets/toggle/ToggleWidget";
