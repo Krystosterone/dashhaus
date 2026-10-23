@@ -82,9 +82,8 @@
   align-items: center;
   align-content: center;
   grid-template-columns: auto minmax(0, 1fr);
-  grid-template-areas: "orb ." "title title";
+  grid-template-areas: "orb title";
   column-gap: 12px;
-  row-gap: 8px;
   position: relative;
 }
 .hd-head > .hd-orb { grid-area: orb; }
@@ -217,20 +216,18 @@
 /* Footprints. Width adapts anatomy, never height or semantic prominence:
    compact = one unit; standard = two units; featured = four units. */
 @container hd (max-width: 259px) {
-  /* A narrow standard card keeps its full control and its tappable name. The duplicate orb yields so the
-     title remains identifiable inside the same two-unit height. */
-  .hd:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hd-head {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "title";
-    row-gap: 0;
-  }
-  .hd:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
-  /* A narrow featured card does the same, so its name and large readout share the row. */
-  .hd--featured:not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title num"; }
-  .hd--featured:not(.hd--sheet) .hd-head > .hd-orb { display: none; }
+  /* A narrow card keeps its icon, like every other footprint, and gives the name what room it can:
+     the compact rows' gap, and a bare reading icon drops the empty 44px box it would share with an orb. */
+  .hd:not(.hd--compact):not(.hd--sheet) .hd-head { column-gap: 10px; }
+  .hd[data-role="reading"]:not([data-color]):not(.hd--compact):not(.hd--sheet) .hd-orb--static:not([aria-disabled="true"]) { width: 22px; }
+  .hd[data-role="reading"]:not([data-color]):not(.hd--compact):not(.hd--sheet) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: 22px; }
+  .hd[data-role="reading"]:not([data-color]):not(.hd--compact):not(.hd--sheet) .hd-orb--static:not([aria-disabled="true"]) svg { width: 100%; }
+  /* A narrow featured card can't fit orb, name and large readout in one row. The readout yields: it repeats
+     what the control, readings or status line already say, which is why it is aria-hidden. */
+  .hd--featured:not(.hd--sheet) .hd-head { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "orb title"; }
+  .hd--featured:not(.hd--sheet) .hd-num { display: none; }
 }
 @container hd (min-width: 260px) {
-  .hd-head { grid-template-areas: "orb title"; row-gap: 0; }
   .hd-unav-t, .hd-pill-x { display: inline; }
 }
 

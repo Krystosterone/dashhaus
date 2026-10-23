@@ -21,10 +21,10 @@ button.hw-scene { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .hw:not(.hd--compact):not(.hd--sheet) .hd-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title"; min-height: 44px; }
   .hw:not(.hd--compact):not(.hd--sheet) .hd-head > .hd-orb { display: none; }
   .hw:not(.hd--compact):not(.hd--sheet) .hw-st-i { display: inline-block; }
-}
-.hw.hd--featured:not(.hd--sheet) .hd-head {
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "title num";
+  .hw.hd--featured:not(.hd--sheet) .hd-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "title num";
+  }
 }
 @container hd (min-width: 440px) {
   .hw.hd--featured { --scene-w: clamp(150px, 34cqi, 210px); }
