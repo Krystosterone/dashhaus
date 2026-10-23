@@ -1,7 +1,7 @@
 import { Fragment, useId } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "./types";
-import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff, IconDrop, TrendIcon } from "./readings";
+import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff } from "./readings";
 import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
 import type { ColorProp, WidgetFootprint } from "../../shared/ui";
 import "./SensorWidget.css";
@@ -67,8 +67,8 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
 
   const bar = (
     <span className="sw-bar">
-      {t != null && <span className="sw-t"><IconThermo />{fmtTemp(t)}<small>°</small>{trend && <TrendIcon trend={trend} />}</span>}
-      {h != null && <span className="sw-h"><IconDrop />{fmtHum(h)}<small>%</small></span>}
+      {t != null && <span className="sw-t">{fmtTemp(t)}<small>°</small></span>}
+      {h != null && <span className="sw-h"><span className="sw-h-l">Humidity </span>{fmtHum(h)}%</span>}
       {empty && <span className="sw-none">Waiting…</span>}
     </span>
   );

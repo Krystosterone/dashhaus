@@ -41,8 +41,3 @@ export const fmtHum = (h: number) => String(Math.round(h));
 const P = { fill: "none", stroke: "currentColor" } as const;
 export const IconThermo = () => <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M8 11.6V4.5a2 2 0 1 1 4 0v7.1a3.5 3.5 0 1 1-4 0Z" /><path d="M10 9v5" /></svg>;
 export const IconThermoOff = () => <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M8 11.6V4.5a2 2 0 1 1 4 0v7.1a3.5 3.5 0 1 1-4 0Z" /><path d="M3.5 3.5l13 13" /></svg>;
-export const IconDrop = () => <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d="M10 3.2s5 5.3 5 8.6a5 5 0 0 1-10 0c0-3.3 5-8.6 5-8.6Z" /></svg>;
-export function TrendIcon({ trend }: { trend: Trend }) {
-  const d = trend === "rising" ? "M4 13l5-5 3 3 4-4M12 7h4v4" : trend === "falling" ? "M4 7l5 5 3-3 4 4M12 13h4V9" : "M3.5 10h13M13 7l3 3-3 3";
-  return <svg className="sw-trend" viewBox="0 0 20 20" aria-hidden="true" {...P}><path d={d} /></svg>;
-}

@@ -218,7 +218,7 @@ export function WeatherWidget({ entity: e, history, hourly, daily, variant = "ca
                   <span className="wx-day-n">{i === 0 ? "Today" : d.day}</span>
                   <span className="wx-day-i" title={CONDITION_LABEL[d.condition]}><ConditionIcon condition={d.condition} /></span>
                   <span className="wx-day-t"><b>{Math.round(d.high)}°</b> {Math.round(d.low)}°</span>
-                  <span className="wx-day-p">{d.precipitationProbability != null && d.precipitationProbability >= 20 ? `${d.precipitationProbability}%` : " "}</span>
+                  <span className="wx-day-p">{d.precipitationProbability != null && d.precipitationProbability >= 20 ? `${d.precipitationProbability}%` : ""}</span>
                 </li>
               ))}
             </ol>

@@ -1,35 +1,32 @@
 /* Sensor-specific parts. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
 
 /* The readings, as a readout: no container, so nothing that can't be pressed looks pressable.
-   Temperature and its trend first, humidity after it in the secondary ink. Tapping opens details. */
+   The temperature first, then the humidity on its baseline, captioned in words like the weather card's
+   feels-like. The header's thermometer names the reading and the status line says its trend, so neither
+   repeats here. Tapping opens details. */
 .sw-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
 button.sw-read { cursor: pointer; }
 button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .sw-bar {
-  display: flex; align-items: center; gap: 16px; min-width: 0; height: var(--slot-h);
+  display: flex; align-items: baseline; column-gap: 12px; min-width: 0; height: var(--slot-h); line-height: var(--slot-h);
   color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.sw-t { flex: none; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; font-size: 20px; font-weight: 700; }
-.sw-h { flex: none; display: flex; align-items: center; gap: 5px; color: var(--ink-2); font-size: 16px; font-weight: 700; }
-.sw-bar small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
-.sw-bar svg { flex: none; width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.7; display: none; }
-
+.sw-t { flex: none; font-size: 20px; font-weight: 700; }
+.sw-t small { margin-left: 1px; font-size: 0.8em; font-weight: 600; }
+.sw-h { flex: none; color: var(--ink-2); font-size: 14px; font-weight: 600; }
+/* The word comes in once the card has room for it; narrower, the percent stands alone. */
+.sw-h-l { display: none; }
 @container hd (min-width: 260px) {
-  .sw-bar svg { display: block; }
+  .sw-h-l { display: inline; }
 }
-/* Standard and featured: the temperature is the card's figure, in the large-readout voice, and the humidity
-   sits on its baseline. The header's thermometer names the reading and the status line says its trend, so
-   neither repeats inline. */
-.sw:not(.hd--compact):not(.hd--sheet) .sw-bar { align-items: baseline; gap: 14px; }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-t { align-items: baseline; gap: 4px; font-size: 34px; font-weight: 300; letter-spacing: -0.035em; line-height: var(--slot-h); }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-t small { margin-left: -4px; font-size: 1em; font-weight: inherit; }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-t > svg { display: none; }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-h { align-items: baseline; font-size: 17px; font-weight: 600; }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-h > svg { align-self: center; }
-.hd--compact .sw-bar { justify-content: flex-end; gap: 10px; padding-inline-end: var(--pad-in); }
-.hd--compact .sw-bar svg { display: none; }
+/* Standard and featured: the temperature is the card's figure, in the large-readout voice. */
+.sw:not(.hd--compact):not(.hd--sheet) .sw-t { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-t small { margin-left: 0; font-size: 1em; font-weight: inherit; }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-h { font-size: 15px; }
+.hd--compact .sw-bar { justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in); }
 .hd--compact .sw-t { font-size: 13.5px; }
 .hd--compact .sw-h { font-size: 12.5px; }
+.hd--compact .sw-h-l { display: none; }
 .hd--sheet .sw-h { font-size: 17px; }
 /* The sheet's large figure is the temperature: its readings keep only the humidity. */
 .hd--sheet .sw-t { display: none; }
