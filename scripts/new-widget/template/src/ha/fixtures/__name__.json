@@ -1,0 +1,39 @@
+{
+  "__domain__.bedroom": {
+    "entity_id": "__domain__.bedroom",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Bedroom"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "__domain__.office": {
+    "entity_id": "__domain__.office",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Office"
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "__domain__.porch": {
+    "entity_id": "__domain__.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "__domain__.garage": {
+    "entity_id": "__domain__.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

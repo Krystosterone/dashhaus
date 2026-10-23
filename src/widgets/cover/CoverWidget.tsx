@@ -1,9 +1,8 @@
-import { useId } from "react";
 import type { CoverEntity, CoverHistory, CoverClass } from "./types";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
-import { Orb, CardTitle, CircleButton, IconClose, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, paint } from "../../shared/ui";
-import type { ColorProp, WidgetFootprint } from "../../shared/ui";
+import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./CoverWidget.css";
 
 const CLASS_LABEL: Record<CoverClass, string> = {
@@ -24,13 +23,10 @@ const SLATS = [
   { value: 100, label: "Open" },
 ];
 
-export interface CoverWidgetProps {
+export interface CoverWidgetProps extends CardProps {
   entity: CoverEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: CoverHistory;
-  variant?: "card" | "sheet";
-  /** Shared card footprint. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline control, shows the value in its place, and makes the row open
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
@@ -52,12 +48,8 @@ export interface CoverWidgetProps {
  * One cover: curtains, blinds, shades, garage doors. Position follows Home Assistant: 0 closed, 100 open.
  * It shares the modular footprint matrix with every dashboard widget.
  */
-export function CoverWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function CoverWidget({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverWidgetProps) {
+  const { uid, nameId, sheet, compact, bare, article } = useCard("cv", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const moving = e.state === "opening" || e.state === "closing";
   const pos = e.position ?? (e.state === "open" || e.state === "opening" ? 100 : 0);
@@ -94,23 +86,17 @@ export function CoverWidget({ entity: e, history, variant = "card", footprint = 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = unav ? "Unavailable" : text;
   return (
-    <article className={`hd cv${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} data-alert={warnedOpen ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
+    <article {...article} data-state={e.state} data-alert={warnedOpen ? "warn" : undefined} {...colors}>
       <header className="hd-head">
         <Orb label={orbLabel} pressed={open && !unav} unavailable={unav} intensity={pos / 100} onToggle={orbAction} onLongPress={sheet ? undefined : onOpenDetails}>
           <CoverIcon kind={e.deviceClass} open={open} stop={stopping} />
         </Orb>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
+        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name} details`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name} details`} onClick={onClose} />}
       </header>
 
       <div className="hd-slot">{bare ? <p className="hd-val">{subText}</p> : slot}</div>
@@ -140,15 +126,6 @@ export function CoverWidget({ entity: e, history, variant = "card", footprint = 
   );
 }
 
-export interface CoverSheetProps extends Omit<CoverWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type CoverSheetProps = SheetProps<CoverWidgetProps>;
 
-export function CoverSheet({ open, onClose, ...props }: CoverSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} details`}>
-      <CoverWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const CoverSheet = detailsSheet(CoverWidget);

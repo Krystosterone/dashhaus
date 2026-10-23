@@ -1,21 +1,18 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types";
 import { ShieldIcon, MODE_LABEL } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
-import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { WidgetFootprint } from "../../shared/ui";
+import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./AlarmWidget.css";
 
 /** What an arm or disarm call answers: false is a wrong code; anything else is accepted. */
 export type AlarmResult = boolean | void | Promise<boolean | void>;
 
-export interface AlarmWidgetProps {
+export interface AlarmWidgetProps extends CardProps {
   entity: AlarmEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: AlarmHistory;
-  variant?: "card" | "sheet";
-  /** Shared card footprint. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline control, shows the value in its place, and makes the row open
    * the detail sheet. Default true.
@@ -65,12 +62,8 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
  * keypad in the sheet; the badge only shows status, so a stray tap never arms or disarms.
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */
-export function AlarmWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function AlarmWidget({ entity: e, history, variant, footprint, showControl, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmWidgetProps) {
+  const { nameId, sheet, compact, bare, article } = useCard("al", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const armedMode = ARMED[e.state];
   const urgentState = e.state === "pending" || e.state === "triggered";
@@ -134,26 +127,20 @@ export function AlarmWidget({ entity: e, history, variant = "card", footprint = 
   const subText = warningText ?? word;
   return (
     <article
-      className={`hd al${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined}
+      {...article}
       data-state={e.state} data-armed={armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined} data-alert={alertLabel ? "warn" : undefined}
-      {...colors} aria-labelledby={`${uid}-n`}
+      {...colors}
     >
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i"><ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} /></span>
         </span>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet || !onOpenDetails ? undefined : () => onOpenDetails()}>
+        <CardTitle id={nameId} name={e.name} onOpen={sheet || !onOpenDetails ? undefined : () => onOpenDetails()}>
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{word}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name}`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus={!pending}
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} focusOnOpen={!pending} />}
       </header>
 
       <div className="hd-slot">{bare ? <p className="hd-val">{subText}</p> : slot}</div>
@@ -191,15 +178,6 @@ export function AlarmWidget({ entity: e, history, variant = "card", footprint = 
 
 const listOf = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
-export interface AlarmSheetProps extends Omit<AlarmWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type AlarmSheetProps = SheetProps<AlarmWidgetProps>;
 
-export function AlarmSheet({ open, onClose, ...props }: AlarmSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} details`}>
-      <AlarmWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const AlarmSheet = detailsSheet(AlarmWidget);

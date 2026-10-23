@@ -1,19 +1,14 @@
-import { useId } from "react";
 import type { LightEntity, LightHistory } from "./types";
 import { kelvinName, K_MIN, K_MAX } from "./kelvin";
-import { Orb, CardTitle, CircleButton, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { ColorProp, WidgetFootprint } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, QUICK_LEVELS } from "./parts";
 import "./LightWidget.css";
 
-export interface LightWidgetProps {
+export interface LightWidgetProps extends CardProps {
   entity: LightEntity;
   /** Shown at L size and in the sheet. Omit to hide the Today strip. */
   history?: LightHistory;
-  /** "card" sits on the dashboard; "sheet" is the detail view with everything visible. */
-  variant?: "card" | "sheet";
-  /** Card footprint. Standard is 128px; compact is 60px; featured is 264px at every width. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline control, shows the value in its place, and makes the row open
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
@@ -33,12 +28,8 @@ export interface LightWidgetProps {
 /**
  * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
-export function LightWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose, color }: LightWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function LightWidget({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose, color }: LightWidgetProps) {
+  const { uid, nameId, sheet, compact, bare, article } = useCard("lw", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const hasBrightness = e.supportsBrightness && e.brightness != null;
@@ -58,23 +49,17 @@ export function LightWidget({ entity: e, history, variant = "card", footprint = 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
   return (
-    <article className={`hd lw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
+    <article {...article} data-state={e.state} {...colors}>
       <header className="hd-head">
         <Orb label={e.name} pressed={on} unavailable={unav} intensity={intensity} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           {unav ? <IconBulbOff /> : <IconBulb />}
         </Orb>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
+        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area" title={e.area}>{e.area}{warmth && <span className="lw-k">{e.area ? " · " : ""}{warmth}</span>}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{readout}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name}`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
       <div className="hd-slot">
@@ -112,16 +97,7 @@ export function LightWidget({ entity: e, history, variant = "card", footprint = 
   );
 }
 
-export interface LightSheetProps extends Omit<LightWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type LightSheetProps = SheetProps<LightWidgetProps>;
 
 /** The light's detail view in a modal sheet. */
-export function LightSheet({ open, onClose, ...props }: LightSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} details`}>
-      <LightWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const LightSheet = detailsSheet(LightWidget);

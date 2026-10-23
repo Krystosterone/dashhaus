@@ -1,20 +1,9 @@
-import { useState } from "react";
+import { detailsTile } from "../../shared/ui";
+import type { TileProps } from "../../shared/ui";
 import { ClimateWidget, ClimateSheet } from "./ClimateWidget";
 import type { ClimateWidgetProps } from "./ClimateWidget";
 
-export interface ClimateTileProps extends Omit<ClimateWidgetProps, "variant" | "onOpenDetails" | "onClose"> {
-  defaultOpen?: boolean;
-}
+export type ClimateTileProps = TileProps<ClimateWidgetProps>;
 
 /** A dashboard-ready climate entity: the card in its size container, plus its detail sheet. */
-export function ClimateTile({ defaultOpen = false, footprint, ...props }: ClimateTileProps) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <>
-      <div className="hd-c">
-        <ClimateWidget {...props} footprint={footprint} onOpenDetails={() => setOpen(true)} />
-      </div>
-      <ClimateSheet {...props} open={open} onClose={() => setOpen(false)} />
-    </>
-  );
-}
+export const ClimateTile = detailsTile(ClimateWidget, ClimateSheet);

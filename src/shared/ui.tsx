@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import { createContext, createElement, useContext, useEffect, useId, useRef, useState } from "react";
+import type { ComponentType, CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useLongPress } from "./useLongPress";
 import "./card.css";
 
@@ -31,6 +31,50 @@ export type ColorProp = ColorName | SlotColor | "none";
 export type WidgetFootprint = "compact" | "standard" | "featured";
 
 export type Role = "energy" | "state" | "reading";
+
+/** The props every card widget takes, whatever its entity. A widget's props extend this. */
+export interface CardProps {
+  /** "card" sits on the dashboard; "sheet" is the detail view with everything visible. */
+  variant?: "card" | "sheet";
+  /** Card footprint. Standard is 128px; compact is 60px; featured is 264px at every width. */
+  footprint?: WidgetFootprint;
+  /**
+   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
+   * the detail sheet. The orb keeps its tap and hold actions. Default true.
+   */
+  showControl?: boolean;
+  /** Card only: the name, and press and hold on the orb, open the details sheet. */
+  onOpenDetails?: () => void;
+  onClose?: () => void;
+  /** Opt-in colour for the orb. */
+  color?: ColorProp;
+}
+
+/**
+ * What a card widget derives from its variant and footprint. `code` is the widget's class prefix ("lw").
+ * Spread `article` onto the `<article>`, give `nameId` to the `CardTitle`, and build other ids from `uid`.
+ */
+export function useCard(code: string, { variant = "card", footprint = "standard", showControl = true }: Pick<CardProps, "variant" | "footprint" | "showControl">) {
+  const uid = useId();
+  const sheet = variant === "sheet";
+  const compact = !sheet && footprint === "compact";
+  const featured = !sheet && footprint === "featured";
+  const bare = compact && !showControl;
+  const nameId = `${uid}-n`;
+  return {
+    uid,
+    nameId,
+    sheet,
+    compact,
+    featured,
+    bare,
+    article: {
+      className: `hd ${code}${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`,
+      "data-control": bare ? "off" : undefined,
+      "aria-labelledby": nameId,
+    },
+  };
+}
 
 /**
  * The colour attributes for a widget's article: its role, its glow, and its colour slot.
@@ -113,6 +157,19 @@ export function CircleButton({ label, onClick, autoFocus, children }: { label: s
     <button type="button" className="hd-circ" aria-label={label} onClick={onClick} data-autofocus={autoFocus || undefined}>
       <span className="hd-circ-i">{children}</span>
     </button>
+  );
+}
+
+/** The sheet's close button. Focus lands on it when the sheet opens, unless something in the sheet needs it more. */
+export function SheetClose({ label, onClick, focusOnOpen = true }: { label: string; onClick?: () => void; focusOnOpen?: boolean }) {
+  return (
+    <CircleButton
+      label={label}
+      onClick={onClick}
+      // Dialog focus management, not page-load focus theft.
+      // eslint-disable-next-line jsx-a11y/no-autofocus
+      autoFocus={focusOnOpen}
+    ><IconClose /></CircleButton>
   );
 }
 
@@ -345,4 +402,39 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
       )}
     </dialog>
   );
+}
+
+/* ---------- Sheet and tile for a widget ----------
+   Every card widget renders twice: as the card, and as itself in its details sheet (`variant="sheet"`).
+   These two build the wrappers so a widget only writes the card. */
+
+/** A widget's sheet props: everything but the card-only ones, plus whether it is open. */
+export type SheetProps<P> = Omit<P, "variant" | "footprint" | "onOpenDetails" | "onClose"> & { open: boolean; onClose: () => void };
+/** A widget's tile props: the card's, with the sheet wired in. */
+export type TileProps<P> = Omit<P, "variant" | "onOpenDetails" | "onClose"> & { defaultOpen?: boolean };
+
+/** The details sheet for a widget: the widget itself as `variant="sheet"`, in a `Sheet`. */
+export function detailsSheet<P extends CardProps & { entity: { name: string } }>(Widget: ComponentType<P>, label = (name: string) => `${name} details`) {
+  function DetailsSheet({ open, onClose, ...props }: SheetProps<P>) {
+    const p = { ...props, variant: "sheet", onClose } as unknown as P;
+    return <Sheet open={open} onClose={onClose} label={label(p.entity.name)}>{createElement(Widget, p)}</Sheet>;
+  }
+  DetailsSheet.displayName = `${(Widget.displayName ?? Widget.name).replace(/Widget$/, "")}Sheet`;
+  return DetailsSheet;
+}
+
+/** A dashboard-ready tile for a widget: the card in its size container, plus its details sheet. */
+export function detailsTile<P extends CardProps>(Widget: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>) {
+  function Tile({ defaultOpen = false, ...props }: TileProps<P>) {
+    const [open, setOpen] = useState(defaultOpen);
+    // The sheet gets the card's props too: a sheet ignores footprint.
+    return (
+      <>
+        <div className="hd-c">{createElement(Widget, { ...props, onOpenDetails: () => setOpen(true) } as unknown as P)}</div>
+        {createElement(DetailsSheet, { ...props, open, onClose: () => setOpen(false) } as unknown as SheetProps<P>)}
+      </>
+    );
+  }
+  Tile.displayName = `${(Widget.displayName ?? Widget.name).replace(/Widget$/, "")}Tile`;
+  return Tile;
 }

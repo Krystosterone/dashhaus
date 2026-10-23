@@ -1,19 +1,15 @@
-import { useId } from "react";
 import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
 import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase, orderedRange } from "./modes";
-import { Orb, CardTitle, CircleButton, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { ColorProp, WidgetFootprint } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateWidget.css";
 
-export interface ClimateWidgetProps {
+export interface ClimateWidgetProps extends CardProps {
   entity: ClimateEntity;
   /** Shown in the featured footprint and in the sheet. Omit to hide the Today strip. */
   history?: ClimateHistory;
-  variant?: "card" | "sheet";
-  /** Shared card footprint. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline control, shows the value in its place, and makes the row open
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
@@ -55,12 +51,8 @@ function Stepper({ label, kicker, modeCue, value, min, max, step, onChange }: { 
  * One climate entity. It shares the modular footprint matrix with every dashboard widget.
  * The orb switches it off and back on; the slot sets the target; the sheet holds modes, presets and fan.
  */
-export function ClimateWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function ClimateWidget({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateWidgetProps) {
+  const { uid, nameId, sheet, compact, bare, article } = useCard("cw", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const mode: HvacMode = unav ? "off" : (e.state as HvacMode);
   const on = !unav && mode !== "off";
@@ -102,25 +94,19 @@ export function ClimateWidget({ entity: e, history, variant = "card", footprint 
   // The status line already gives the room temperature: the replacement value is just the setpoint.
   const valText = setText;
   return (
-    <article className={`hd cw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors} aria-labelledby={`${uid}-n`}>
+    <article {...article} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors}>
       <header className="hd-head">
         <Orb label={`${e.name}, ${on ? MODE_META[mode].label : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           {compact
             ? <ThermostatIcon />
             : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />}
         </Orb>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
+        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{sheet && e.area ? `${e.area} · ${status}` : status}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name}`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
       <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>
@@ -152,15 +138,6 @@ export function ClimateWidget({ entity: e, history, variant = "card", footprint 
   );
 }
 
-export interface ClimateSheetProps extends Omit<ClimateWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type ClimateSheetProps = SheetProps<ClimateWidgetProps>;
 
-export function ClimateSheet({ open, onClose, ...props }: ClimateSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} details`}>
-      <ClimateWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const ClimateSheet = detailsSheet(ClimateWidget);

@@ -1,12 +1,11 @@
-import { useId } from "react";
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./types";
 import { CONDITION_LABEL, ConditionIcon, precipitation, isWet, clock, compass, toKmh, aqiBand, uvBand } from "./conditions";
-import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, Sheet, fmt1, paint } from "../../shared/ui";
-import type { ColorProp, WidgetFootprint } from "../../shared/ui";
+import { AlertStatus, CardTitle, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherWidget.css";
 
-export interface WeatherWidgetProps {
+export interface WeatherWidgetProps extends CardProps {
   entity: WeatherEntity;
   /** Today's readings so far. With the forecast, they make today's low–high. */
   history?: WeatherHistory;
@@ -14,9 +13,6 @@ export interface WeatherWidgetProps {
   hourly?: HourlyForecast[];
   /** Shown in the sheet. */
   daily?: DailyForecast[];
-  variant?: "card" | "sheet";
-  /** Shared card footprint. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline reading, shows its value in its place, and makes the row open
    * the detail sheet. Default true.
@@ -101,12 +97,8 @@ function Stat({ label, value, sub, warn }: { label: string; value: ReactNode; su
  * is the temperature with feels-like beside it. Featured adds the next hours; the sheet has every reading,
  * the next hours and the next days.
  */
-export function WeatherWidget({ entity: e, history, hourly, daily, variant = "card", footprint = "standard", showControl = true, onOpenDetails, onClose, color }: WeatherWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function WeatherWidget({ entity: e, history, hourly, daily, variant, footprint, showControl, onOpenDetails, onClose, color }: WeatherWidgetProps) {
+  const { nameId, sheet, compact, featured, bare, article } = useCard("wx", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const cond = unav ? null : (e.state as Condition);
   // Unknown daylight keeps the day icons rather than guessing night.
@@ -166,27 +158,21 @@ export function WeatherWidget({ entity: e, history, hourly, daily, variant = "ca
   const valText = unav ? "Unavailable" : now ? [now, feelsText].filter(Boolean).join(" · ") : label;
   return (
     <article
-      className={`hd wx${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined}
+      {...article}
       data-state={unav ? "unavailable" : "ok"} data-alert={warnings.length ? "warn" : undefined}
-      {...colors} aria-labelledby={`${uid}-n`}
+      {...colors}
     >
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i"><ConditionIcon condition={cond ?? "unavailable"} night={night} /></span>
         </span>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails} openHint="weather details">
+        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails} openHint="weather details">
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
         {/* In the sheet the large figure stands in for the reading, so it is spoken there. */}
         <p className="hd-num" {...(sheet && t != null ? { role: "img", "aria-label": readLabel } : { "aria-hidden": true })}>{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name}`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
       {/* The sheet already says now (the large figure) and feels-like (its tile); its slot only reports a missing reading. */}
@@ -236,15 +222,6 @@ export function WeatherWidget({ entity: e, history, hourly, daily, variant = "ca
   );
 }
 
-export interface WeatherSheetProps extends Omit<WeatherWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type WeatherSheetProps = SheetProps<WeatherWidgetProps>;
 
-export function WeatherSheet({ open, onClose, ...props }: WeatherSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} weather details`}>
-      <WeatherWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const WeatherSheet = detailsSheet(WeatherWidget, (name) => `${name} weather details`);

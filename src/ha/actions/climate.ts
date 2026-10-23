@@ -1,6 +1,6 @@
 import type { ClimateEntity, HvacMode } from "../../widgets/climate/types";
-import { HaActionError } from "../types";
-import type { HaStore } from "../types";
+import type { HaActionError, HaStore } from "../types";
+import { serviceRunner } from "./run";
 
  type ClimateServiceCaller = Pick<HaStore, "callService">;
 
@@ -21,23 +21,7 @@ const inRange = (value: number, entity: ClimateEntity) => value >= entity.minTem
 
 /** Create safe callback handlers for the existing ClimateTile contract. */
 export function createClimateHandlers(caller: ClimateServiceCaller, entity: ClimateEntity, options: ClimateHandlerOptions = {}): ClimateHandlers {
-  const run = (service: string, data: Record<string, unknown> = {}) => {
-    void caller.callService("climate", service, { entity_id: entity.entityId, ...data }).catch((cause) => {
-      const error = cause instanceof HaActionError ? cause : new HaActionError("service_failed", `Home Assistant rejected climate.${service}`, {
-        domain: "climate",
-        service,
-        entityId: entity.entityId,
-      });
-      options.onError?.(error);
-    });
-  };
-  const unsupported = (message: string) => options.onError?.(new HaActionError("unsupported", message, { domain: "climate", entityId: entity.entityId }));
-  const invalidInput = (message: string) => options.onError?.(new HaActionError("invalid_input", message, { domain: "climate", entityId: entity.entityId }));
-  const actionable = () => {
-    if (entity.state !== "unavailable") return true;
-    unsupported(`${entity.entityId} is unavailable`);
-    return false;
-  };
+  const { run, unsupported, invalidInput, actionable } = serviceRunner(caller, "climate", entity, options.onError);
   const validTemperature = (value: number) => {
     if (!Number.isFinite(value)) {
       invalidInput(`${entity.entityId} temperature must be finite`);

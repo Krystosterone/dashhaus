@@ -152,24 +152,34 @@ export function lightHistoryFromHass(records: Records, entityId: string, now?: D
 }
 
 /* ------------------------------------------------------------------ *
- * Toggle                                                              *
+ * On/off: toggles, and any entity whose state is "on" or "off"        *
  * ------------------------------------------------------------------ */
 
-function toggleSample(state: string): HourSample {
+/** Today for an on/off entity: 1 for hours on, 0 off, and minutes on. Any other state is unavailable. */
+export interface OnOffHistory {
+  samples: HourSample[];
+  currentHour: number;
+  onMinutes: number;
+}
+
+function onOffSample(state: string): HourSample {
   if (state === "on") return 1;
   if (state === "off") return 0;
   return "unavailable";
 }
 
-/** Replicates the binary 1/0 + onMinutes computation of `useDemoToggle`. */
-export function toggleHistoryFromHass(records: Records, entityId: string, now?: Date): ToggleHistory {
+/** Today's on/off history for any domain whose state is "on" or "off" (switch, fan, input_boolean…). */
+export function onOffHistoryFromHass(records: Records, entityId: string, now?: Date): OnOffHistory {
   const when = safeNow(now);
   const { samples, currentHour, minutes } = build(only(records, entityId), when, {
-    value: toggleSample,
+    value: onOffSample,
     on: (state) => state === "on",
   });
   return { samples, currentHour, onMinutes: minutes };
 }
+
+/** Replicates the binary 1/0 + onMinutes computation of `useDemoToggle`. */
+export const toggleHistoryFromHass: (records: Records, entityId: string, now?: Date) => ToggleHistory = onOffHistoryFromHass;
 
 /* ------------------------------------------------------------------ *
  * Cover                                                               *

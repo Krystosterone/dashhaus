@@ -1,20 +1,9 @@
-import { useState } from "react";
+import { detailsTile } from "../../shared/ui";
+import type { TileProps } from "../../shared/ui";
 import { ToggleWidget, ToggleSheet } from "./ToggleWidget";
 import type { ToggleWidgetProps } from "./ToggleWidget";
 
-export interface ToggleTileProps extends Omit<ToggleWidgetProps, "variant" | "onOpenDetails" | "onClose"> {
-  defaultOpen?: boolean;
-}
+export type ToggleTileProps = TileProps<ToggleWidgetProps>;
 
 /** A dashboard-ready toggle: the card in its size container, plus its detail sheet. */
-export function ToggleTile({ defaultOpen = false, footprint, ...props }: ToggleTileProps) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <>
-      <div className="hd-c">
-        <ToggleWidget {...props} footprint={footprint} onOpenDetails={() => setOpen(true)} />
-      </div>
-      <ToggleSheet {...props} open={open} onClose={() => setOpen(false)} />
-    </>
-  );
-}
+export const ToggleTile = detailsTile(ToggleWidget, ToggleSheet);

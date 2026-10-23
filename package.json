@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test-storybook": "storybook build && node scripts/test-storybook.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "new-widget": "node scripts/new-widget/index.mjs"
   },
   "dependencies": {
     "home-assistant-js-websocket": "9.7.1",

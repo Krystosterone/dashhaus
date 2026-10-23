@@ -284,7 +284,7 @@ function synthesizeHistory(entity: HassEntity): DemoHistoryRow[] {
       historyRecord(entity, entity.state, morningEpoch(9, 45), { temperature: entity.attributes.temperature }),
     ];
   }
-  if (domain === "input_boolean" || domain === "switch") {
+  if (domain === "input_boolean" || domain === "switch" || entity.state === "on" || entity.state === "off") {
     return [
       historyRecord(entity, "off", morningEpoch(6, 30)),
       historyRecord(entity, "on", morningEpoch(8)),

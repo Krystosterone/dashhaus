@@ -1,8 +1,7 @@
-import { useId } from "react";
 import type { ToggleEntity, ToggleHistory, DurationOption } from "./types";
 import { ToggleIconSvg } from "./icons";
-import { Orb, CardTitle, CircleButton, IconClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Sheet, fmtDuration, paint } from "../../shared/ui";
-import type { ColorProp, WidgetFootprint } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleWidget.css";
 
 /** Default ways to turn a mode on: for a while, until morning, or until turned off. */
@@ -13,13 +12,10 @@ export const DEFAULT_DURATIONS: DurationOption[] = [
   { value: "manual", label: "Until off", sub: "No end" },
 ];
 
-export interface ToggleWidgetProps {
+export interface ToggleWidgetProps extends CardProps {
   entity: ToggleEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: ToggleHistory;
-  variant?: "card" | "sheet";
-  /** Shared card footprint. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline control, shows the value in its place, and makes the row open
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
@@ -41,12 +37,8 @@ export interface ToggleWidgetProps {
  * A mode you switch on and off: Do Not Disturb, Quiet, Guest. One input_boolean or switch.
  * It uses the same card anatomy and footprint matrix as every other widget.
  */
-export function ToggleWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function ToggleWidget({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleWidgetProps) {
+  const { uid, nameId, sheet, compact, bare, article } = useCard("tw", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A mode is a state, not energy: on is the accent, with no bloom and no glow. A colour only if one was chosen.
@@ -65,23 +57,17 @@ export function ToggleWidget({ entity: e, history, variant = "card", footprint =
   // The status line already says until when: the replacement value can stay short.
   const valText = unav ? "Unavailable" : on ? "On" : "Off";
   return (
-    <article className={`hd tw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={e.state} {...colors} aria-labelledby={`${uid}-n`}>
+    <article {...article} data-state={e.state} {...colors}>
       <header className="hd-head">
         <Orb label={e.name} pressed={on} unavailable={unav} intensity={0.7} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           <ToggleIconSvg icon={e.icon} />
         </Orb>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
+        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{sheet && e.area ? `${e.area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name}`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
       <div className="hd-slot">
@@ -117,15 +103,6 @@ export function ToggleWidget({ entity: e, history, variant = "card", footprint =
   );
 }
 
-export interface ToggleSheetProps extends Omit<ToggleWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type ToggleSheetProps = SheetProps<ToggleWidgetProps>;
 
-export function ToggleSheet({ open, onClose, ...props }: ToggleSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} details`}>
-      <ToggleWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const ToggleSheet = detailsSheet(ToggleWidget);

@@ -63,7 +63,7 @@ The weather/home container owns hourly/daily `weather.get_forecasts` request/res
 
 ### Adding a domain
 
-When a domain joins the connected boundary:
+When a domain joins the connected boundary, start from `npm run new-widget -- <name> --code <xx> --domain <domain>`: it writes the mapper, actions, fixture, connected tile, demo transport, their tests and story, and registers them. Then:
 
 - Add its canonical raw fixture to `src/ha/fixtures/` and register it in `src/ha/mappers/fixtures.test.ts`, which runs every fixture entity through the real mapper. Include representative states plus `unknown`/`unavailable`; toggle fixtures span both `input_boolean` and `switch` ID prefixes. Forecast and history response fixtures stay in their parser tests because they are request/response data rather than entity snapshots.
 - Ship a Storybook demo transport that exercises the real store, mapper, action, and history path, and a story for the connected tile. The demo transport answers `history/history_during_period` in the compressed wire shape and the three registry lists, so the story shows the Today strip and a registry-resolved area.

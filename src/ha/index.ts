@@ -65,11 +65,14 @@ export {
   climateHistoryFromHass,
   coverHistoryFromHass,
   toggleHistoryFromHass,
+  onOffHistoryFromHass,
   alarmHistoryFromHass,
   sensorHistoryFromHass,
   weatherHistoryFromHass,
 } from "./history";
-export type { HaHistoryRecord } from "./history";
+export type { HaHistoryRecord, OnOffHistory } from "./history";
+export { serviceRunner } from "./actions/run";
+export type { ServiceCaller } from "./actions/run";
 export { useHaHistory } from "./useHaHistory";
 export { areaNamesFromRegistries, useHaArea } from "./registry";
 export { useHaRequest } from "./useHaRequest";

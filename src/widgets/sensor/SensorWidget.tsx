@@ -1,18 +1,15 @@
-import { Fragment, useId } from "react";
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "./types";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff } from "./readings";
-import { AlertStatus, CardTitle, CircleButton, IconClose, UnavailableSlot, TodayStrip, Sheet, paint } from "../../shared/ui";
-import type { ColorProp, WidgetFootprint } from "../../shared/ui";
+import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./SensorWidget.css";
 
-export interface SensorWidgetProps {
+export interface SensorWidgetProps extends CardProps {
   entity: SensorEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: SensorHistory;
-  variant?: "card" | "sheet";
-  /** Shared card footprint. */
-  footprint?: WidgetFootprint;
   /**
    * Compact only. false removes the inline reading, shows its value in its place, and makes the row open
    * the detail sheet. Default true.
@@ -32,12 +29,8 @@ const LOW_BATTERY = 15;
  * A read-only temperature and humidity sensor using the shared modular footprint matrix.
  * A reading: neutral, a bare icon in place of an orb, and no glow because nothing is running.
  */
-export function SensorWidget({ entity: e, history, variant = "card", footprint = "standard", showControl = true, onOpenDetails, onClose, color }: SensorWidgetProps) {
-  const uid = useId();
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
+export function SensorWidget({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: SensorWidgetProps) {
+  const { nameId, sheet, compact, bare, article } = useCard("sw", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const t = unav ? undefined : e.temperature;
   const h = unav ? undefined : e.humidity;
@@ -79,23 +72,17 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
   // The compact value appears under the name, or in place of a hidden reading.
   const subText = unav ? "Unavailable" : batteryText ?? (empty ? "No reading yet" : readout);
   return (
-    <article className={`hd sw${sheet ? " hd--sheet" : ""}${compact ? " hd--compact" : ""}${featured ? " hd--featured" : ""}`} data-control={bare ? "off" : undefined} data-state={unav ? "unavailable" : "ok"} data-alert={lowBattery ? "warn" : undefined} {...colors} aria-labelledby={`${uid}-n`}>
+    <article {...article} data-state={unav ? "unavailable" : "ok"} data-alert={lowBattery ? "warn" : undefined} {...colors}>
       <header className="hd-head">
         <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
           <span className="hd-orb-i">{unav ? <IconThermoOff /> : <IconThermo />}</span>
         </span>
-        <CardTitle id={`${uid}-n`} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
+        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
         <p className="hd-num" {...(sheetFigure ? { role: "img", "aria-label": `${fmtTemp(t)} degrees` } : { "aria-hidden": true })}>{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
-        {sheet && <CircleButton
-          label={`Close ${e.name}`}
-          onClick={onClose}
-          // Focus lands on the sheet's close button when it opens: dialog focus management, not page-load focus theft.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-        ><IconClose /></CircleButton>}
+        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
       {!(sheetFigure && h == null) && (
@@ -132,15 +119,6 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
   );
 }
 
-export interface SensorSheetProps extends Omit<SensorWidgetProps, "variant" | "footprint" | "onOpenDetails" | "onClose"> {
-  open: boolean;
-  onClose: () => void;
-}
+export type SensorSheetProps = SheetProps<SensorWidgetProps>;
 
-export function SensorSheet({ open, onClose, ...props }: SensorSheetProps) {
-  return (
-    <Sheet open={open} onClose={onClose} label={`${props.entity.name} details`}>
-      <SensorWidget {...props} variant="sheet" onClose={onClose} />
-    </Sheet>
-  );
-}
+export const SensorSheet = detailsSheet(SensorWidget);

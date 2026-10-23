@@ -5,7 +5,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["storybook-static/**", "node_modules/**", ".agents/**"] },
+  { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -23,6 +23,12 @@ export default tseslint.config(
       eqeqeq: ["error", "smart"],
       ...jsxA11y.flatConfigs.recommended.rules,
     },
+  },
+  {
+    // Template placeholders (`__Name__Widget`) don't start upper-case, so the hooks rule can't tell they're
+    // components. What the generator writes from them is linted in src/ like any other file.
+    files: ["scripts/new-widget/template/**"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
     // The Home Assistant boundary: widgets, layout and stories never see the transport or raw
