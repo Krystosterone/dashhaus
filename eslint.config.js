@@ -27,7 +27,7 @@ export default tseslint.config(
   {
     // Template placeholders (`__Name__Widget`) don't start upper-case, so the hooks rule can't tell they're
     // components. What the generator writes from them is linted in src/ like any other file.
-    files: ["scripts/new-widget/template/**"],
+    files: ["scripts/new-widget/templates/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {

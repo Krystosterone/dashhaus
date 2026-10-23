@@ -1,5 +1,4 @@
-import { fmt1 } from "../../shared/ui";
-import type { HourSample } from "../../shared/ui";
+import { fmt1, normalizeReadings } from "../../shared/ui";
 import type { Reading } from "./types";
 
 /** Tones and comfort bands are in Celsius; convert Fahrenheit readings first. */
@@ -25,15 +24,8 @@ export function trendOf(series: Reading[] | undefined, hour: number, threshold =
   return d > threshold ? "rising" : d < -threshold ? "falling" : "steady";
 }
 
-/** Scale readings to 0.12-1 for the Today strip, keeping gaps and hours ahead. */
-/** min and max are null when there is no reading yet today. */
-export function normalize(series: Reading[]): { samples: HourSample[]; min: number | null; max: number | null } {
-  const nums = series.filter((x): x is number => typeof x === "number");
-  if (!nums.length) return { samples: series.map((x) => (typeof x === "number" ? 0 : x)), min: null, max: null };
-  const min = Math.min(...nums), max = Math.max(...nums);
-  const span = Math.max(max - min, 0.5);
-  return { samples: series.map((x) => (typeof x === "number" ? 0.12 + (0.88 * (x - min)) / span : x)), min, max };
-}
+/** Scale readings for the Today strip; a temperature day spans at least half a degree. */
+export const normalize = (series: Reading[]) => normalizeReadings(series, 0.5);
 
 export const fmtTemp = (t: number) => fmt1(t);
 export const fmtHum = (h: number) => String(Math.round(h));

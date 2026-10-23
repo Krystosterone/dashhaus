@@ -1,3 +1,5 @@
+import type { Reading } from "../../shared/ui";
+
 /**
  * A temperature and humidity sensor. In Home Assistant these are usually two sensor entities
  * (device_class temperature and humidity) on one device; the widget shows them together, read-only.
@@ -20,7 +22,7 @@ export interface SensorEntity {
   lastSeen?: string;
 }
 
-export type Reading = number | "unavailable" | null;
+export type { Reading };
 
 export interface SensorHistory {
   /** Hourly readings for today: a value, "unavailable", or null for hours still ahead. */

@@ -1,0 +1,46 @@
+{
+  "__domain__.living_room": {
+    "entity_id": "__domain__.living_room",
+    "state": "42",
+    "attributes": {
+      "friendly_name": "Living room",
+      "unit_of_measurement": "__unit__",
+      "state_class": "measurement"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "__domain__.office": {
+    "entity_id": "__domain__.office",
+    "state": "7.5",
+    "attributes": {
+      "friendly_name": "Office",
+      "unit_of_measurement": "__unit__",
+      "state_class": "measurement"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "__domain__.porch": {
+    "entity_id": "__domain__.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch",
+      "unit_of_measurement": "__unit__",
+      "state_class": "measurement"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "__domain__.garage": {
+    "entity_id": "__domain__.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "unit_of_measurement": "__unit__",
+      "state_class": "measurement"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  }
+}

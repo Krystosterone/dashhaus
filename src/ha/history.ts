@@ -305,6 +305,12 @@ export function sensorHistoryFromHass(
   return { temperature, humidity, currentHour: when.getHours() };
 }
 
+/** Today's numeric readings for any one sensor, carried forward hour by hour. */
+export function readingHistoryFromHass(records: Records, entityId: string, now?: Date): { readings: Reading[]; currentHour: number } {
+  const when = safeNow(now);
+  return { readings: buildReadings(only(records, entityId), when, numericState), currentHour: when.getHours() };
+}
+
 /** Carry the weather entity's `temperature` attribute forward; its state is a condition, not a reading. */
 export function weatherHistoryFromHass(records: Records, entityId: string, now?: Date): WeatherHistory {
   const when = safeNow(now);

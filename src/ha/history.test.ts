@@ -8,6 +8,7 @@ import {
   historyRecords,
   lightHistoryFromHass,
   owletHistoryFromHass,
+  readingHistoryFromHass,
   sensorHistoryFromHass,
   toggleHistoryFromHass,
   weatherHistoryFromHass,
@@ -368,6 +369,14 @@ describe("owletHistoryFromHass", () => {
     expect(result.heartRate).toBeUndefined();
     expect(result.oxygen).toBeUndefined();
     expect(result.asleepMinutes).toBe(0);
+  });
+});
+
+describe("readingHistoryFromHass", () => {
+  it("carries one sensor's numeric state forward", () => {
+    const result = readingHistoryFromHass(single([record("sensor.co2", "410", iso(1)), record("sensor.co2", "unknown", iso(3)), record("sensor.co2", "650.5", iso(4))]), "sensor.co2", now());
+    expect(result.readings.slice(0, 6)).toEqual([null, 410, 410, "unavailable", 650.5, 650.5]);
+    expect(result.currentHour).toBe(12);
   });
 });
 

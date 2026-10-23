@@ -1,19 +1,22 @@
 /**
  * Scaffolds a widget that already follows the framework, Home Assistant side included:
  *
- *   npm run new-widget -- <name> --code <xx> --domain <ha_domain> [--dry-run]
+ *   npm run new-widget -- <name> --code <xx> --domain <ha_domain> [--kind control|reading] [--unit <unit>] [--dry-run]
  *   npm run new-widget -- fan --code fn --domain fan
+ *   npm run new-widget -- co2 --code co --domain sensor --kind reading --unit ppm
  *
- * It copies ./template (an on/off entity over `<domain>.toggle`) with the names filled in, then registers
- * the widget everywhere the conformance test (src/widgets/conformance.test.ts) looks. Nothing is written
- * unless every file and every registration can be made.
+ * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the widget
+ * everywhere the conformance test (src/widgets/conformance.test.ts) looks:
+ *   - control (default): an on/off entity with an orb and a pill, over `<domain>.toggle`.
+ *   - reading: a read-only number with a bare icon and a readout, no services.
+ * Nothing is written unless every file and every registration can be made.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const templateRoot = fileURLToPath(new URL("./template/", import.meta.url));
+const templates = fileURLToPath(new URL("./templates/", import.meta.url));
 const read = (path) => readFileSync(join(root, path), "utf8");
 
 const fail = (message) => {
@@ -34,9 +37,16 @@ const dryRun = args.includes("--dry-run");
 if (dryRun) args.splice(args.indexOf("--dry-run"), 1);
 const code = flag("code");
 const domain = flag("domain");
+const kind = flag("kind") ?? "control";
+const unit = flag("unit");
 const [name, ...extra] = args;
-const usage = "usage: npm run new-widget -- <name> --code <xx> --domain <ha_domain> [--dry-run]\n       e.g. npm run new-widget -- fan --code fn --domain fan";
+const usage = "usage: npm run new-widget -- <name> --code <xx> --domain <ha_domain> [--kind control|reading] [--unit <unit>] [--dry-run]\n" +
+  "       e.g. npm run new-widget -- fan --code fn --domain fan\n" +
+  "            npm run new-widget -- co2 --code co --domain sensor --kind reading --unit ppm";
 if (!name || !code || !domain || extra.length) fail(usage);
+if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" (on/off, with services) or "reading" (read-only number)`);
+if (unit != null && kind !== "reading") fail("--unit is for --kind reading");
+const reading = kind === "reading";
 
 // ---------- Validation ----------
 if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like "fan" or "airPurifier"`);
@@ -67,6 +77,7 @@ const tokens = {
   __label__: words,
   __code__: code,
   __domain__: domain,
+  __unit__: unit ?? "%",
 };
 const fill = (text) => Object.entries(tokens).reduce((s, [token, value]) => s.replaceAll(token, value), text);
 
@@ -79,16 +90,18 @@ const walk = (dir, out = []) => {
   }
   return out;
 };
-/** path (relative to the repo) → content */
+/** path (relative to the repo) → content. The kind's own files win over common ones. */
 const writes = new Map();
-for (const source of walk(templateRoot)) {
-  const target = fill(relative(templateRoot, source));
-  if (existsSync(join(root, target))) fail(`${target} already exists`);
-  writes.set(target, fill(readFileSync(source, "utf8")));
+for (const base of ["common", kind].map((dir) => join(templates, dir))) {
+  for (const source of walk(base)) {
+    const target = fill(relative(base, source));
+    if (existsSync(join(root, target))) fail(`${target} already exists`);
+    writes.set(target, fill(readFileSync(source, "utf8")));
+  }
 }
 
 // ---------- Registrations ----------
-/** Insert `text` before the first match of `anchor`, or after the last match with `after`. */
+/** Change one file in place, failing loudly when the change finds nothing to anchor on. */
 const edit = (path, change) => {
   const current = writes.get(path) ?? read(path);
   const next = change(current);
@@ -121,9 +134,9 @@ export type { Ha__Name__TileProps } from "./ha";
 
 edit("src/ha/index.ts", (s) => s + fill(`export { __name__FromHass } from "./mappers/__name__";
 export type { __Name__MapOptions } from "./mappers/__name__";
-export { create__Name__Handlers } from "./actions/__name__";
+${reading ? "" : `export { create__Name__Handlers } from "./actions/__name__";
 export type { __Name__Handlers, __Name__HandlerOptions } from "./actions/__name__";
-export { Ha__Name__Tile } from "./Ha__Name__Tile";
+`}export { Ha__Name__Tile } from "./Ha__Name__Tile";
 export type { Ha__Name__TileProps } from "./Ha__Name__Tile";
 `));
 
@@ -131,21 +144,36 @@ export type { Ha__Name__TileProps } from "./Ha__Name__Tile";
 const fixtures = "src/ha/mappers/fixtures.test.ts";
 edit(fixtures, afterLast(/^import \w+ from "\.\.\/fixtures\/.*$/gm, fill(`import __name__ from "../fixtures/__name__.json";\n`)));
 edit(fixtures, afterLast(/^import \{ \w+FromHass \} from "\.\/.*$/gm, fill(`import { __name__FromHass } from "./__name__";\n`)));
-edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__domain__", fixture: __name__, map: __name__FromHass, keepsState: true },`)));
+edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__label__", fixture: __name__, map: __name__FromHass, keepsState: ${!reading} },`)));
 
-// On a dashboard: a compact row in the phone's Controls section.
+// On a dashboard: a control as a compact row in the phone's Controls section, a reading beside the room sensors.
+// Move it where it belongs; this only puts it on screen.
 const dashboards = "src/dashboards/Dashboards.stories.tsx";
 edit(dashboards, afterLast(/^import \{ Demo\w+Tile as \w+ \} from "\.\.\/widgets\/.*$/gm, fill(`import { Demo__Name__Tile as __Name__ } from "../widgets/__name__/demo/Demo__Name__Tile";\n`)));
 edit(dashboards, (s) => {
-  const start = s.indexOf('<Section title="Controls">');
+  const start = s.indexOf(reading ? '<Section title="Rooms" columns={2}>' : '<Section title="Controls">');
   const end = start === -1 ? -1 : s.indexOf("</Section>", start);
   if (end === -1) return s;
   const indent = s.slice(s.lastIndexOf("\n", end) + 1, end);
-  return s.slice(0, end) + fill(`  <__Name__ seed="on" footprint="compact" />\n`) + indent + s.slice(end);
+  return s.slice(0, end) + fill(reading ? `  <__Name__ seed="normal" />\n` : `  <__Name__ seed="on" footprint="compact" />\n`) + indent + s.slice(end);
 });
 
 // The per-widget spec, for the author to finish.
-edit("docs/widgets.md", before("## Using the header widget", fill(`## Using the __label__ widget
+edit("docs/widgets.md", before("## Using the header widget", fill(reading ? `## Using the __label__ widget
+
+One \`__domain__.*\` reading:
+
+\`\`\`tsx
+<__Name__Tile entity={entity} history={today} />
+<Ha__Name__Tile entityId="__domain__.living_room" />
+\`\`\`
+
+- **A reading:** a bare icon, the figure as a readout with no container, and no glow. Tap the reading or the name for the sheet.
+- **Status line:** the area.
+- **Unavailable:** \`unknown\`, \`unavailable\` and a missing entity say Unavailable and hide the last value; a state that isn't a number is "No reading yet".
+- **Featured and sheet:** today's readings by hour, with the low and the high.
+
+` : `## Using the __label__ widget
 
 One \`__domain__.*\` entity, switched on and off:
 
@@ -174,12 +202,12 @@ for (const [path, content] of writes) {
 }
 
 const created = [...writes.keys()].filter((p) => p.includes(`/${name}`) || p.includes(`${Name}`));
-console.log(`Created the ${words} widget (${code}-, ${domain}.*): ${created.length} files, registered in ${writes.size - created.length} more.
+console.log(`Created the ${words} ${kind} widget (${code}-, ${domain}.*): ${created.length} files, registered in ${writes.size - created.length} more.
 
 Next:
   1. npm run storybook  →  Widgets/${Name} and Home Assistant/${tokens.__Label__} tile
   2. Make it the ${words}: fields in src/widgets/${name}/types.ts, the card in ${Name}Widget.tsx,
-     attributes in src/ha/mappers/${name}.ts, services in src/ha/actions/${name}.ts
-  3. Draw its icon in src/widgets/${name}/icons.tsx
+     attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
+  3. Draw its icon in src/widgets/${name}/icons.tsx; move it to the right section in src/dashboards/Dashboards.stories.tsx
   4. Finish "Using the ${words} widget" in docs/widgets.md
   5. npm run check && npm run test-storybook`);

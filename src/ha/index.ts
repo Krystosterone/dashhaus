@@ -70,6 +70,7 @@ export {
   sensorHistoryFromHass,
   weatherHistoryFromHass,
   owletHistoryFromHass,
+  readingHistoryFromHass,
 } from "./history";
 export type { HaHistoryRecord, OnOffHistory } from "./history";
 export { serviceRunner } from "./actions/run";

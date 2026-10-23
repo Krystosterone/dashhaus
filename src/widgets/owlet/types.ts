@@ -1,10 +1,9 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample, Reading } from "../../shared/ui";
 
 /** The sleep states an Owlet Dream Sock reports. */
 export type SleepState = "deep_sleep" | "light_sleep" | "awake";
 
-/** One reading per hour: a number, "unavailable", or null for hours ahead and before the first reading. */
-export type Reading = number | "unavailable" | null;
+export type { Reading };
 
 /**
  * Mirrors one Owlet Smart Sock in Home Assistant (the `owlet` custom integration): its sleep state sensor,

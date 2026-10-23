@@ -12,7 +12,7 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 - `npm run test` — `vitest run`; unit tests live next to their module as `*.test.{ts,tsx}`
 - `npm run test-storybook` — every story must render (smoke) and pass axe (a11y) in Chromium; failures print the rule, impact, and target elements
 - `npm run check` — typecheck + lint + test, the one-shot gate. Run it before every change is finished.
-- `npm run new-widget -- <name> --code <xx> --domain <ha_domain>` — scaffold and register a new widget (see Adding a widget)
+- `npm run new-widget -- <name> --code <xx> --domain <ha_domain> [--kind control|reading]` — scaffold and register a new widget (see Adding a widget)
 
 ## Verifying changes
 
@@ -30,7 +30,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - `src/bundles/` — `JoinedBundle` and `LeadBundle`.
 - `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
 - `src/index.ts` — public exports. Every new widget must be exported here.
-- `scripts/new-widget/` — the widget generator; `template/` mirrors the repo with `__Name__`, `__name__`, `__code__` and `__domain__` placeholders. Change the template when the framework changes, so new widgets start from the current rules.
+- `scripts/new-widget/` — the widget generator. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new widgets start from the current rules.
 - `src/stories/` — Foundations stories: colour temperature, worst-case data, compact rows.
 
 ## Hard rules
@@ -61,14 +61,17 @@ When design or visual quality is at stake, use these authorities, all committed 
 ## Adding a widget
 
 ```sh
-npm run new-widget -- <name> --code <xx> --domain <ha_domain>   # e.g. fan --code fn --domain fan; add --dry-run to preview
+npm run new-widget -- fan --code fn --domain fan                                  # a control: on/off, over fan.toggle
+npm run new-widget -- co2 --code co --domain sensor --kind reading --unit ppm     # a reading: read-only number
+# add --dry-run to preview
 ```
 
-This writes a working on/off widget over `<domain>.toggle`, Home Assistant side included, and registers it everywhere: `src/index.ts`, `src/ha/index.ts`, the fixture test, the phone dashboard, `docs/widgets.md` and the prefix list above. It passes `npm run check` and `npm run test-storybook` before you touch it. Then make it the real thing:
+Pick the kind by what the card does: a **control** (default) is an orb and a pill that switch the entity; a **reading** is a bare icon and a readout that only show it, with no services. Either way it writes a working widget, Home Assistant side included, and registers it everywhere: `src/index.ts`, `src/ha/index.ts`, the fixture test, the phone dashboard, `docs/widgets.md` and the prefix list above. It passes `npm run check` and `npm run test-storybook` before you touch it. Then make it the real thing:
 
 1. `src/widgets/<name>/types.ts`: the fields the card shows. `icons.tsx`: its domain icon.
 2. `<Name>Widget.tsx`: the card. It is built from the shared card system in `src/shared/ui.tsx`: `useCard(code, …)` gives the `article` attributes, footprint flags and ids; an `hd-head` holds the `Orb`, the `CardTitle` (given `onOpen` outside the sheet) and, in the sheet only, `SheetClose`; then one `hd-slot` and the sheet blocks. Spread `paint(role, glow, own, prop)` onto the article for its colour role, glow and colour slot. `detailsSheet()` and `detailsTile()` build the sheet and the tile, so compact, standard and featured footprints plus the sheet come for free.
-3. `src/ha/mappers/<name>.ts` and `src/ha/actions/<name>.ts`: the raw attributes and the native services, through `serviceRunner()` (`home-assistant-integration` skill). Keep the fixture's `unknown` and `unavailable` entities.
-4. Finish its section in `docs/widgets.md`, and add it to `docs/home-assistant.md`'s slice list.
+3. `src/ha/mappers/<name>.ts` and, for a control, `src/ha/actions/<name>.ts`: the raw attributes and the native services, through `serviceRunner()` (`home-assistant-integration` skill). Keep the fixture's `unknown` and `unavailable` entities.
+4. Move it to the right section in `src/dashboards/Dashboards.stories.tsx`: the generator only puts it on screen (a control in the phone's Controls, a reading beside the room sensors).
+5. Finish its section in `docs/widgets.md`, and add it to `docs/home-assistant.md`'s slice list.
 
 `src/widgets/conformance.test.ts` holds every widget, generated or hand-built, to the files, card system, class prefix, exports, dashboard, docs and Home Assistant connection above, and says which step is missing. Then verify per the section above.
