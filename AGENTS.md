@@ -7,6 +7,8 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 - `npm install`
 - `npm run storybook` — dev server at http://localhost:6006
 - `npm run build-storybook` — static build in `storybook-static/`
+- `npm run build:ha` — the Lovelace card as one file, `dist/home-dashboard.js`
+- `npm run deploy` — build, copy into Home Assistant, register the resource, create the dashboard the first time (settings in `.env`, see `docs/deploy.md`)
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run lint` — `eslint .` (flat config in `eslint.config.js`)
 - `npm run test` — `vitest run`; unit tests live next to their module as `*.test.{ts,tsx}`
@@ -29,6 +31,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - `src/styles/tokens.css` — the only source of colour and design tokens.
 - `src/bundles/` — `JoinedBundle` and `LeadBundle`.
 - `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
+- `src/ha/` — the Home Assistant boundary (`docs/home-assistant.md`). `src/ha/lovelace/` is the deployed card: the YAML parser (`config.ts`), the generated layout (`auto.ts`, also imported by `scripts/deploy.mjs`, so it may only use `import type`), the renderer and the custom element.
 - `src/index.ts` — public exports. Every new widget must be exported here.
 - `scripts/new-widget/` — the widget generator. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new widgets start from the current rules.
 - `src/stories/` — Foundations stories: colour temperature, worst-case data, compact rows.
@@ -73,5 +76,6 @@ Pick the kind by what the card does: a **control** (default) is an orb and a pil
 3. `src/ha/mappers/<name>.ts` and, for a control, `src/ha/actions/<name>.ts`: the raw attributes and the native services, through `serviceRunner()` (`home-assistant-integration` skill). Keep the fixture's `unknown` and `unavailable` entities.
 4. Move it to the right section in `src/dashboards/Dashboards.stories.tsx`: the generator only puts it on screen (a control in the phone's Controls, a reading beside the room sensors).
 5. Finish its section in `docs/widgets.md`, and add it to `docs/home-assistant.md`'s slice list.
+6. Once it has an `Ha*Tile`, give its domain a card in `src/ha/lovelace/` (`DOMAIN_KIND` and `KIND_KEYS` in `config.ts`, `tile()` in `ConfigDashboard.tsx`, its place in `auto.ts`) and its keys in `docs/deploy.md`.
 
 `src/widgets/conformance.test.ts` holds every widget, generated or hand-built, to the files, card system, class prefix, exports, dashboard, docs and Home Assistant connection above, and says which step is missing. Then verify per the section above.

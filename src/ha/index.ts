@@ -83,3 +83,7 @@ export { owletFromHass, owletCompanionIds } from "./mappers/owlet";
 export type { OwletMapOptions } from "./mappers/owlet";
 export { HaOwletTile } from "./HaOwletTile";
 export type { HaOwletTileProps } from "./HaOwletTile";
+export { parseDashboardConfig, DashboardConfigError } from "./lovelace/config";
+export type { DashboardConfig } from "./lovelace/config";
+export { ConfigDashboard } from "./lovelace/ConfigDashboard";
+export { autoDashboard } from "./lovelace/auto";

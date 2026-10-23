@@ -6,6 +6,8 @@
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "build:ha": "vite build -c vite.lovelace.config.ts",
+    "deploy": "node scripts/deploy.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

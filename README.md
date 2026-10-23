@@ -6,6 +6,8 @@ This file is the rules: what every widget must do, how motion behaves, and how d
 
 ## Running with Home Assistant
 
+To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs the `custom:home-dashboard` card and creates a dashboard laid out from your areas. You then edit its YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
+
 The presentational widgets stay provider-agnostic. The connected Home Assistant slices currently include a shared injected transport/store, a loss-preserving raw entity snapshot, pure light, climate, sensor, and weather mappers, typed light/climate actions, forecast response queries, and `HaLightTile`/`HaClimateTile`/`HaSensorTile`/`HaWeatherTile` containers. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the boundary.
 
 The host supplies authentication and an implementation of the transport (the repository includes an adapter for the official `home-assistant-js-websocket` client). Fake transports power unit tests and Storybook; passing them is not evidence of a live Home Assistant connection.

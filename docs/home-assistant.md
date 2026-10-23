@@ -50,6 +50,10 @@ The store routes action service calls through `callService` and background reads
 
 The official adapter is optional at the host boundary. `connectHomeAssistant(auth)` opens a connection and the host closes it with `transport.close()`; tests and Storybook use injected transports, so the component library does not require a live instance to build or verify.
 
+## The Lovelace card
+
+`src/ha/lovelace/` is the deployed host: the `custom:home-dashboard` custom element (`card.tsx`) that Home Assistant's frontend loads as a dashboard resource. Lovelace hands it the YAML config and a live `hass`. The card builds the transport from `hass.connection` with `createHomeAssistantTransport`, so it shares the frontend's authenticated socket and never closes it. It re-renders only for config, connection and dark-mode changes, because entity states reach the tiles through the store. `config.ts` checks the YAML and normalizes it, `ConfigDashboard.tsx` maps each card onto its `Ha*Tile` inside the dashboard layout helpers, and `auto.ts` generates a layout from states plus the entity, device and area registries. The card renders into a shadow root: the build (`vite.lovelace.config.ts`) inlines every stylesheet and `styles.ts` moves tokens.css's `:root` rules onto `:host`. Deployment and the YAML format are in [deploy.md](deploy.md).
+
 ## Usage with an injected transport
 
 ```tsx

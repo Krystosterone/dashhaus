@@ -54,6 +54,7 @@ Use one shared store per connection. Keep it small: the transport owns the socke
 - Route background reads through `useHaRequest` over `store.query` (forecasts) or `store.callApi` (history, registries); both stay out of action ordering and `lastActionError`.
 - Only the latest action owns `lastActionError`, and only within its generation. Keep provider string scalars (`translation_key`, `code`), never messages.
 - Shared React providers need reference-counted ownership so replacing/unmounting one provider cannot tear down a store still used by another.
+- The Lovelace card (`src/ha/lovelace/card.tsx`) builds its transport from the frontend's `hass.connection`: one store per connection, never closed by the card, and no re-render on every `hass` set; entity states reach tiles through the store.
 
 ### Containers
 

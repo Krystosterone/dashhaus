@@ -1,0 +1,102 @@
+# Deploying to Home Assistant
+
+The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+
+## First deploy
+
+1. Copy `.env.example` to `.env` and fill in three values:
+   - `HA_URL`: the address you open Home Assistant at.
+   - `HA_TOKEN`: a long-lived access token from an admin user (Profile → Security → Long-lived access tokens). Only the deploy script uses it; it never goes into the bundle.
+   - `HA_WWW`: where Home Assistant's `/config/www` folder is. Over SSH, `root@homeassistant.local:/config/www` (Terminal & SSH add-on, with your public key in its `authorized_keys`), with `HA_SSH_PORT` if it isn't 22. A folder on this machine also works: the Samba add-on's share mounted at `/Volumes/config/www`, or a Docker volume.
+2. Run `npm run deploy`.
+3. Open the **Home** dashboard in the sidebar.
+
+`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates the `home-dashboard` dashboard with one panel view and a layout generated from your house. Run it again after every code change. It updates the resource and never touches a dashboard that already exists, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
+
+If your dashboards are in YAML mode, the script can't manage resources and prints the lines to add to `configuration.yaml` instead.
+
+## Authoring
+
+Edit the layout in Home Assistant: open the dashboard → ⋮ → **Edit dashboard** → the card's pencil → **Show code editor**. The preview redraws as you type. Every mistake is listed at once, with its path and the probable fix:
+
+```text
+Home Dashboard config has 2 problems:
+• sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
+• sections[2].cards[3]: media_player.tv: media_player.* entities have no widget yet
+```
+
+To start a new dashboard somewhere else, add the **Home Dashboard** card from the card picker. It pre-fills the generated layout for your house, ready to edit. Put it in a **Panel** view so it gets the full width.
+
+### The format
+
+```yaml
+type: custom:home-dashboard
+title: Home
+show_time: true                 # a clock in the header
+sections:
+  - title: Security
+    cards:
+      - entity: alarm_control_panel.house
+        footprint: compact
+  - title: Outside
+    cards:
+      - entity: weather.home
+        aqi: sensor.home_aqi
+        aqi_scale: US
+  - title: Living room
+    columns: 2
+    cards:
+      - entity: sensor.living_room_temperature
+        humidity: sensor.living_room_humidity
+        battery: sensor.living_room_battery
+      - climate.living_room                 # no options: the entity id alone
+      - entity: light.living_room
+        span: 2                             # across both columns
+      - entity: cover.living_room
+        footprint: compact
+        span: 2
+  - title: Modes
+    columns: 2
+    cards:
+      - joined: [input_boolean.guest_mode, input_boolean.dnd]
+        label: Modes
+        span: 2
+      - entity: switch.porch
+        footprint: compact
+```
+
+**Storybook → Home Assistant / Config dashboard** shows this exact config on the demo data.
+
+The entity's domain picks the widget: `light`, `climate`, `sensor` (temperature or humidity), `weather`, `cover`, `input_boolean`/`switch` (toggle) and `alarm_control_panel`. One card shows one entity. A sensor card also takes its device's humidity and battery entities, and a weather card takes its AQI and sun entities.
+
+| Where | Key | Meaning |
+| --- | --- | --- |
+| card | `title`, `subtitle` | The page header. `title` defaults to "Home". |
+| card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`. |
+| card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
+| card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
+| card | `sections` | The layout, top to bottom. Leave it out and the house is laid out automatically, kept up to date as you add devices. |
+| section | `title`, `note` | A heading. Without a title, the cards form a plain grid. |
+| section | `columns`, `gap` | Grid columns (default 1) and gap in px. |
+| section | `cards` | Cards, bundles, or entity ids. |
+| side by side | `sections`, `columns`, `gap` | A list item with its own `sections` puts them in columns: a tablet or wall-panel layout. |
+| any card | `entity` | Required. |
+| any card | `footprint` | `compact` (60 px row), `standard` (default), `featured` (the one hero). |
+| any card | `name`, `area` | Override the friendly name and the registry area. |
+| any card | `span` | Grid columns the card spans. |
+| any card | `show_control` | `false` on a compact card: the value replaces the control and a tap opens details. |
+| any card | `history` | `false` skips today's history read. |
+| light, climate, sensor, cover, toggle | `color` | The orb's own colour: `yellow`, `apricot`, `rose`, `lavender`, `blue`, `teal`, `sage`, or `none` (not on toggles). |
+| climate, sensor | `unit` | `°C` or `°F`, when the entity doesn't say. |
+| sensor | `humidity`, `battery`, `outdoor` | Companion `sensor.*` entities; `outdoor: true`. |
+| weather | `aqi`, `aqi_scale`, `sun`, `forecasts` | AQI sensor plus `aqi_scale: US` to band it; `sun` defaults to `sun.sun`; `forecasts: false` skips the forecast read. |
+| toggle | `icon`, `description` | `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`; one line for the sheet. |
+| alarm | `read_only`, `exit_delay`, `entry_delay`, `open_sensors` | Show without arming controls; delays in seconds; names of open sensors. |
+| bundle | `joined: [...]`, `label`, `span` | Compact members sharing one card. |
+| bundle | `lead: ...`, `rows: [...]`, `label`, `sheet_title`, `span` | One standard card followed by compact rows. |
+
+README.md's Dashboards section has the composition rules: one hero per screen, alerts first, compact rows where alignment matters.
+
+## What has and hasn't been verified
+
+Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API. None of that is a live Home Assistant instance. The first real deploy is the first live check of SSH upload, resource registration, dashboard creation and the card inside the real frontend.
