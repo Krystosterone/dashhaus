@@ -14,17 +14,17 @@ button.wx-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 button.wx-read:active .wx-rd { scale: 0.98; }
 .wx-rd-t { color: var(--ink); font-size: 20px; font-weight: 700; }
 .wx-rd-f { color: var(--ink-2); font-size: 14px; font-weight: 600; }
-/* Standard: now is the card's figure, in the large-readout voice. */
-.wx:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
-.wx:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .wx-rd-f { font-size: 15px; }
+/* Standard and featured: now is the card's figure, in the large-readout voice. */
+.wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
+.wx:not(.hd--compact):not(.hd--sheet) .wx-rd-f { font-size: 15px; }
 .hd--compact .wx-rd { justify-content: flex-end; column-gap: 8px; padding-inline-end: var(--pad-in); }
 .hd--compact .wx-rd-t { font-size: 13.5px; }
 .hd--compact .wx-rd-f { color: var(--ink-3); font-size: 12.5px; }
 
-/* ---------- Next hours: one column per hour, as many as fit; the rest wrap into a row of no height ---------- */
+/* ---------- Next hours: one column per hour across the full width, as many as fit; the rest wrap into a row of no height ---------- */
 .wx-hrs { grid-template-rows: auto minmax(0, 1fr); align-content: start; min-height: 0; }
 .wx-hr-l {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); grid-template-rows: auto; grid-auto-rows: 0; row-gap: 0; overflow: hidden;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); grid-template-rows: auto; grid-auto-rows: 0; row-gap: 0; overflow: hidden;
   margin: 0; padding: 0; list-style: none;
 }
 .wx-hr { display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; font-variant-numeric: tabular-nums; }

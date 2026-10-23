@@ -50,4 +50,10 @@ describe("WeatherWidget", () => {
 
     expect(screen.getByRole("img", { name: "6.2 degrees now, feels like 4" })).toBeTruthy();
   });
+
+  it("speaks the sheet's large figure, which stands in for the reading", () => {
+    render(<WeatherWidget entity={weather} variant="sheet" />);
+
+    expect(screen.getByRole("img", { name: "6.2 degrees now, feels like 4" }).className).toBe("hd-num");
+  });
 });

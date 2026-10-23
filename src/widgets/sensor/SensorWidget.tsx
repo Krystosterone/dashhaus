@@ -52,6 +52,8 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
   const alertLabel = batteryText ? `Warning: ${batteryText} on ${e.name}, replace soon` : null;
   const comfort = comfortLabel(tC, h, e.outdoor);
   const readout = [t != null ? `${fmtTemp(t)}°` : null, h != null ? `${fmtHum(h)}%` : null].filter(Boolean).join(" · ");
+  // In the sheet the large figure says the temperature, so it is spoken there and the readings below keep the humidity.
+  const sheetFigure = sheet && t != null;
   const spoken = empty ? "no reading yet" : [t != null ? `${fmtTemp(t)} degrees` : null, h != null ? `humidity ${fmtHum(h)} percent` : null].filter(Boolean).join(", ");
 
   // Status line, most important first: a low battery, then comfort (or the location for outdoor sensors), then the trend.
@@ -86,7 +88,7 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
-        <p className="hd-num" aria-hidden="true">{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
+        <p className="hd-num" {...(sheetFigure ? { role: "img", "aria-label": `${fmtTemp(t)} degrees` } : { "aria-hidden": true })}>{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
         {sheet && <CircleButton
           label={`Close ${e.name}`}
           onClick={onClose}
@@ -96,12 +98,14 @@ export function SensorWidget({ entity: e, history, variant = "card", footprint =
         ><IconClose /></CircleButton>}
       </header>
 
-      <div className="hd-slot">
-        {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : sheet || !onOpenDetails
-            ? <div className="sw-read" role="img" aria-label={spoken}><span aria-hidden="true">{bar}</span></div>
-            : <button type="button" className="sw-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
-      </div>
+      {!(sheetFigure && h == null) && (
+        <div className="hd-slot">
+          {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
+            : sheet || !onOpenDetails
+              ? <div className="sw-read" role="img" aria-label={sheetFigure ? `humidity ${fmtHum(h!)} percent` : spoken}><span aria-hidden="true">{bar}</span></div>
+              : <button type="button" className="sw-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
+        </div>
+      )}
 
       {tempSeries && (
         <TodayStrip

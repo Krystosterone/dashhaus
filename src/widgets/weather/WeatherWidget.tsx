@@ -178,7 +178,8 @@ export function WeatherWidget({ entity: e, history, hourly, daily, variant = "ca
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
-        <p className="hd-num" aria-hidden="true">{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
+        {/* In the sheet the large figure stands in for the reading, so it is spoken there. */}
+        <p className="hd-num" {...(sheet && t != null ? { role: "img", "aria-label": readLabel } : { "aria-hidden": true })}>{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
         {sheet && <CircleButton
           label={`Close ${e.name}`}
           onClick={onClose}

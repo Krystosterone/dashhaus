@@ -158,6 +158,16 @@
 .hd-orb--static { cursor: default; color: var(--ink); }
 .hd-orb--static .hd-orb-i { background: transparent; box-shadow: none; }
 .hd[data-color] .hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--color) var(--tint-mix), var(--card-solid)); }
+/* A bare reading icon has no disc to fill an orb's box: on cards and sheets it takes its glyph's width, so
+   its edge meets the content edge as a disc's does and it sits beside its name. Compact rows keep the box,
+   so every row's icon shares one column. */
+.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) { width: 22px; }
+.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: 22px; }
+.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) svg { width: 100%; }
+/* A reading's figure is its slot, so a featured reading keeps it there at full size instead of repeating
+   it as the header's large readout. */
+.hd--featured[data-role="reading"]:not(.hd--sheet) .hd-head { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "orb title"; }
+.hd--featured[data-role="reading"]:not(.hd--sheet) .hd-num { display: none; }
 .hd-warn { color: var(--warn); font-weight: 600; }
 .hd-alert-cue { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-inline-end: 5px; color: var(--warn); vertical-align: -2px; }
 .hd-alert-cue svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -216,12 +226,8 @@
 /* Footprints. Width adapts anatomy, never height or semantic prominence:
    compact = one unit; standard = two units; featured = four units. */
 @container hd (max-width: 259px) {
-  /* A narrow card keeps its icon, like every other footprint, and gives the name what room it can:
-     the compact rows' gap, and a bare reading icon drops the empty 44px box it would share with an orb. */
+  /* A narrow card keeps its icon, like every other footprint, and gives the name the compact rows' gap. */
   .hd:not(.hd--compact):not(.hd--sheet) .hd-head { column-gap: 10px; }
-  .hd[data-role="reading"]:not([data-color]):not(.hd--compact):not(.hd--sheet) .hd-orb--static:not([aria-disabled="true"]) { width: 22px; }
-  .hd[data-role="reading"]:not([data-color]):not(.hd--compact):not(.hd--sheet) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: 22px; }
-  .hd[data-role="reading"]:not([data-color]):not(.hd--compact):not(.hd--sheet) .hd-orb--static:not([aria-disabled="true"]) svg { width: 100%; }
   /* A narrow featured card can't fit orb, name and large readout in one row. The readout yields: it repeats
      what the control, readings or status line already say, which is why it is aria-hidden. */
   .hd--featured:not(.hd--sheet) .hd-head { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "orb title"; }

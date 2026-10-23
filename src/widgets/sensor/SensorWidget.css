@@ -17,20 +17,22 @@ button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 @container hd (min-width: 260px) {
   .sw-bar svg { display: block; }
 }
-/* Standard: the temperature is the card's figure, in the large-readout voice, and the humidity sits on its
-   baseline. The header's thermometer already names the reading, so the inline one goes. */
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-bar { align-items: baseline; gap: 14px; }
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-t { align-items: baseline; gap: 4px; font-size: 34px; font-weight: 300; letter-spacing: -0.035em; line-height: var(--slot-h); }
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-t small { margin-left: -4px; font-size: 1em; font-weight: inherit; }
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-t > svg:first-child { display: none; }
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-t > svg { align-self: center; }
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-h { align-items: baseline; font-size: 17px; font-weight: 600; }
-.sw:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .sw-h > svg { align-self: center; }
+/* Standard and featured: the temperature is the card's figure, in the large-readout voice, and the humidity
+   sits on its baseline. The header's thermometer names the reading and the status line says its trend, so
+   neither repeats inline. */
+.sw:not(.hd--compact):not(.hd--sheet) .sw-bar { align-items: baseline; gap: 14px; }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-t { align-items: baseline; gap: 4px; font-size: 34px; font-weight: 300; letter-spacing: -0.035em; line-height: var(--slot-h); }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-t small { margin-left: -4px; font-size: 1em; font-weight: inherit; }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-t > svg { display: none; }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-h { align-items: baseline; font-size: 17px; font-weight: 600; }
+.sw:not(.hd--compact):not(.hd--sheet) .sw-h > svg { align-self: center; }
 .hd--compact .sw-bar { justify-content: flex-end; gap: 10px; padding-inline-end: var(--pad-in); }
 .hd--compact .sw-bar svg { display: none; }
 .hd--compact .sw-t { font-size: 13.5px; }
 .hd--compact .sw-h { font-size: 12.5px; }
 .hd--sheet .sw-h { font-size: 17px; }
+/* The sheet's large figure is the temperature: its readings keep only the humidity. */
+.hd--sheet .sw-t { display: none; }
 .hd--sheet .sw-bar svg { display: block; width: 17px; height: 17px; }
 
 /* Press feedback on the tappable reading */
