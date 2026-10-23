@@ -1,0 +1,53 @@
+/* Owlet sock widget. Shell, header, bare icon, today strip and sheet come from src/shared/card.css.
+   Classes here start with ow-; colours only from tokens.css. */
+
+/* The readings, as a readout: no container, so nothing that can't be pressed looks pressable.
+   Heart rate, then oxygen, each figure captioned by its unit. Tapping opens details. */
+.ow-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
+button.ow-read { cursor: pointer; }
+button.ow-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.ow-bar {
+  display: flex; align-items: baseline; column-gap: 16px; min-width: 0; height: var(--slot-h); line-height: var(--slot-h);
+  color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.ow-f { flex: none; font-size: 20px; font-weight: 700; }
+.ow-f small { margin-left: 4px; color: var(--ink-2); font-size: 13px; font-weight: 600; letter-spacing: 0; }
+/* Standard and featured: both figures in the large-readout voice, sized to the card so two fit at S. */
+.ow:not(.hd--compact):not(.hd--sheet) .ow-f { font-size: clamp(24px, 7.5cqi, 34px); font-weight: 300; letter-spacing: -0.035em; }
+.ow:not(.hd--compact):not(.hd--sheet) .ow-f small { font-size: 14px; }
+.hd--compact .ow-bar { justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in); }
+.hd--compact .ow-f { font-size: 13.5px; }
+.hd--compact .ow-f small { margin-left: 2px; font-size: 12.5px; }
+.hd--sheet .ow-f { font-size: 28px; font-weight: 300; letter-spacing: -0.03em; }
+/* The percent sign stays on its figure, like a degree sign, at every size; the O₂ caption follows it. */
+.ow .ow-f small.ow-pct { margin-left: 1px; }
+
+/* Press feedback on the tappable reading */
+.ow-bar { transition: scale var(--press) var(--ease-out); }
+button.ow-read:active .ow-bar { scale: 0.98; }
+@media (prefers-reduced-motion: reduce) { .ow-bar { scale: none !important; } }
+/* No reading yet: plain words */
+.ow-none { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-weight: 600; color: var(--ink-3); }
+.hd--compact .ow-none { font-size: 12.5px; }
+
+/* Live: the heart beside the heart rate beats, once every 2.4 s, while readings keep arriving. It is a
+   liveness cue, not the measured rate. Stale: it stands still and the figures dim; the status line warns. */
+.ow-heart { display: inline-grid; place-items: center; width: 0.5em; margin-right: 0.18em; vertical-align: 0.06em; color: var(--ink-2); }
+.ow-heart-i { display: block; width: 100%; height: auto; fill: currentColor; }
+.hd--compact .ow-heart { width: 10px; margin-right: 3px; vertical-align: 0; }
+.ow-heart[data-live] .ow-heart-i { animation: ow-beat 2.4s var(--ease-out) infinite; transform-origin: 50% 60%; }
+@keyframes ow-beat { 0%, 12%, 100% { scale: 1; } 5% { scale: 1.24; } 9% { scale: 0.96; } }
+.ow[data-stale] .ow-f, .ow[data-stale] .ow-f small, .ow[data-stale] .ow-heart, .ow[data-stale] .hd-val { color: var(--ink-3); }
+/* The stale warning: the sentence where it fits, "Stopped 11:49" in compact rows and narrow cards. */
+.ow-st-s { display: none; }
+.hd--compact .ow-st-l { display: none; }
+.hd--compact .ow-st-s { display: inline; }
+@container hd (max-width: 259px) {
+  .ow-st-l { display: none; }
+  .ow-st-s { display: inline; }
+}
+/* Reduced motion: gentler, not none. The beat becomes a fade. */
+@media (prefers-reduced-motion: reduce) {
+  .ow-heart[data-live] .ow-heart-i { animation: ow-fade 2.4s var(--ease-in-out) infinite alternate; }
+  @keyframes ow-fade { to { opacity: 0.4; } }
+}

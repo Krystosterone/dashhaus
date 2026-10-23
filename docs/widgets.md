@@ -222,6 +222,25 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
   - `onTurnOnFor(value)` receives the option's value. Wire it to a timer or an automation that turns the mode off.
   - Pass your own `durations` to change the options.
 
+## Using the owlet widget
+
+An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. It composes three sensors of the custom [`owlet` integration](https://github.com/ryanbdclark/owlet) (the sleep state needs a Dream Sock):
+
+```tsx
+<OwletTile entity={sock} history={today} />
+<HaOwletTile entityId="sensor.owlet_sock_ac000w0123_sleep_state" name="Nova" />
+```
+
+- **A reading:** a bare sock icon, the figures as a readout with no container, and no glow. Tap the readings or the name for the sheet.
+- **Sleep state:** Deep sleep, Light sleep or Awake, on the status line. While the sock is reading but hasn't settled on a sleep state (`unknown`), it says "Sleep state unknown" and keeps the readings.
+- **Readings:** heart rate in bpm and oxygen saturation in %, each shown or left out on its own. A 0, a non-number or an out-of-range value is no reading, never a measurement.
+- **Live or stale:** while readings arrive, the heart beside the heart rate beats, once every 2.4 s (a liveness cue, not the measured rate; with reduced motion it fades instead). Home Assistant pushes a state only when it changes, so live means a reading changed in the last 3 minutes (`staleAfterMinutes` on `HaOwletTile`). After that the heart stands still, the figures dim, and the status line leads with the warn marker: "No new reading since 11:49", or "Stopped 11:49" in compact rows and narrow cards. The sheet says "Live · updated 11:54". A device clock far off Home Assistant's can make fresh readings look stale.
+- **Unavailable:** while the sock charges, or is out of reach, it reports nothing; the card says Unavailable and when it was last seen, if the host passes `lastSeen`.
+- **Compact:** the status line says the sleep state and the slot the two figures. Under 320 px the value line carries both: "Deep sleep · 121 bpm · 98% O₂".
+- **Featured and sheet:** today's sleep by hour (deep sleep full, light sleep half, awake on the baseline) and the minutes asleep. The sheet adds today's heart rate and oxygen, low and high.
+- **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds `…_heart_rate` and `…_o2_saturation` beside it; pass `heartRateEntityId` or `oxygenEntityId` when yours are named differently. It sends no services.
+- **Not a medical alarm:** the card shows what Home Assistant last received, every few seconds at best. Owlet's own app and base station are the alarm.
+
 ## Using the header widget
 
 The top of a dashboard: its name, today's date under it, and an optional clock on the right. `DashboardPage` renders it for you; pass its props to the page:

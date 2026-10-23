@@ -88,6 +88,15 @@ export { AlarmTile } from "./widgets/alarm/AlarmTile";
 export type { AlarmTileProps } from "./widgets/alarm/AlarmTile";
 export type { AlarmEntity, AlarmHistory, AlarmMode, AlarmState, AlarmAction } from "./widgets/alarm/types";
 export type { AlarmResult } from "./widgets/alarm/AlarmWidget";
+// Owlet
+export { OwletWidget, OwletSheet } from "./widgets/owlet/OwletWidget";
+export type { OwletWidgetProps, OwletSheetProps } from "./widgets/owlet/OwletWidget";
+export { OwletTile } from "./widgets/owlet/OwletTile";
+export type { OwletTileProps } from "./widgets/owlet/OwletTile";
+export type { OwletEntity, OwletHistory, SleepState } from "./widgets/owlet/types";
+export { HaOwletTile } from "./ha";
+export type { HaOwletTileProps } from "./ha";
+
 export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
 

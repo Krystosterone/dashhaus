@@ -6,6 +6,8 @@ import type { ToggleHistory } from "../widgets/toggle/types";
 import type { AlarmHistory } from "../widgets/alarm/types";
 import type { SensorHistory, Reading } from "../widgets/sensor/types";
 import type { WeatherHistory } from "../widgets/weather/types";
+import type { OwletHistory, SleepState } from "../widgets/owlet/types";
+import { SLEEP_SAMPLE } from "../widgets/owlet/readings";
 import { finiteNumber, isRecord, stringList } from "./util";
 
 /* ------------------------------------------------------------------ *
@@ -307,4 +309,27 @@ export function sensorHistoryFromHass(
 export function weatherHistoryFromHass(records: Records, entityId: string, now?: Date): WeatherHistory {
   const when = safeNow(now);
   return { temperature: buildReadings(only(records, entityId), when, temperatureAttribute), currentHour: when.getHours() };
+}
+
+/* ------------------------------------------------------------------ *
+ * Owlet sock: sleep state by hour, heart rate and oxygen carried      *
+ * forward                                                             *
+ * ------------------------------------------------------------------ */
+
+const isSleepState = (state: string): state is SleepState => Object.hasOwn(SLEEP_SAMPLE, state);
+
+/** Today for an Owlet sock; `unknown` (no sleep state yet) and charging hours are unavailable. */
+export function owletHistoryFromHass(records: Records, ids: { sleep: string; heartRate?: string; oxygen?: string }, now?: Date): OwletHistory {
+  const when = safeNow(now);
+  const { samples, currentHour, minutes } = build(only(records, ids.sleep), when, {
+    value: (state) => (isSleepState(state) ? SLEEP_SAMPLE[state] : "unavailable"),
+    on: (state) => state === "deep_sleep" || state === "light_sleep",
+  });
+  return {
+    sleep: samples,
+    heartRate: ids.heartRate != null ? buildReadings(only(records, ids.heartRate), when, numericState) : undefined,
+    oxygen: ids.oxygen != null ? buildReadings(only(records, ids.oxygen), when, numericState) : undefined,
+    currentHour,
+    asleepMinutes: minutes,
+  };
 }

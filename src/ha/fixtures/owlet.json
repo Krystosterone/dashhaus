@@ -1,0 +1,82 @@
+{
+  "sensor.owlet_sock_ac000w0123_sleep_state": {
+    "entity_id": "sensor.owlet_sock_ac000w0123_sleep_state",
+    "state": "deep_sleep",
+    "attributes": {
+      "friendly_name": "Owlet Sock AC000W0123 Sleep state",
+      "device_class": "enum",
+      "options": [
+        "unknown",
+        "awake",
+        "light_sleep",
+        "deep_sleep"
+      ]
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:00+00:00"
+  },
+  "sensor.owlet_sock_ac000w0456_sleep_state": {
+    "entity_id": "sensor.owlet_sock_ac000w0456_sleep_state",
+    "state": "light_sleep",
+    "attributes": {
+      "friendly_name": "Owlet Sock AC000W0456 Sleep state",
+      "device_class": "enum",
+      "options": [
+        "unknown",
+        "awake",
+        "light_sleep",
+        "deep_sleep"
+      ]
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:00+00:00"
+  },
+  "sensor.nova_sleep_state": {
+    "entity_id": "sensor.nova_sleep_state",
+    "state": "awake",
+    "attributes": {
+      "friendly_name": "Nova Sleep state",
+      "device_class": "enum",
+      "options": [
+        "unknown",
+        "awake",
+        "light_sleep",
+        "deep_sleep"
+      ]
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:00+00:00"
+  },
+  "sensor.owlet_sock_ac000w0789_sleep_state": {
+    "entity_id": "sensor.owlet_sock_ac000w0789_sleep_state",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Owlet Sock AC000W0789 Sleep state",
+      "device_class": "enum",
+      "options": [
+        "unknown",
+        "awake",
+        "light_sleep",
+        "deep_sleep"
+      ]
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:00+00:00"
+  },
+  "sensor.owlet_sock_ac000w0999_sleep_state": {
+    "entity_id": "sensor.owlet_sock_ac000w0999_sleep_state",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Owlet Sock AC000W0999 Sleep state",
+      "device_class": "enum",
+      "options": [
+        "unknown",
+        "awake",
+        "light_sleep",
+        "deep_sleep"
+      ]
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:00+00:00"
+  }
+}

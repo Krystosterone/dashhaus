@@ -69,6 +69,7 @@ export {
   alarmHistoryFromHass,
   sensorHistoryFromHass,
   weatherHistoryFromHass,
+  owletHistoryFromHass,
 } from "./history";
 export type { HaHistoryRecord, OnOffHistory } from "./history";
 export { serviceRunner } from "./actions/run";
@@ -77,3 +78,7 @@ export { useHaHistory } from "./useHaHistory";
 export { areaNamesFromRegistries, useHaArea } from "./registry";
 export { useHaRequest } from "./useHaRequest";
 export type { HaRequestOptions, HaRequestState } from "./useHaRequest";
+export { owletFromHass, owletCompanionIds } from "./mappers/owlet";
+export type { OwletMapOptions } from "./mappers/owlet";
+export { HaOwletTile } from "./HaOwletTile";
+export type { HaOwletTileProps } from "./HaOwletTile";

@@ -7,6 +7,7 @@ import {
   coverHistoryFromHass,
   historyRecords,
   lightHistoryFromHass,
+  owletHistoryFromHass,
   sensorHistoryFromHass,
   toggleHistoryFromHass,
   weatherHistoryFromHass,
@@ -322,6 +323,51 @@ describe("sensorHistoryFromHass", () => {
     expect(result.temperature.slice(0, 5)).toEqual([null, null, null, null, null]);
     expect(result.temperature[5]).toBe(19.5);
     expect(result.humidity).toBeUndefined();
+  });
+});
+
+describe("owletHistoryFromHass", () => {
+  const ids = { sleep: "sensor.sock_sleep_state", heartRate: "sensor.sock_heart_rate", oxygen: "sensor.sock_o2_saturation" };
+
+  it("draws deep sleep full, light sleep half and awake on the baseline, and counts minutes asleep", () => {
+    const result = owletHistoryFromHass(
+      single([
+        record(ids.sleep, "deep_sleep", iso(0)),
+        record(ids.sleep, "light_sleep", iso(3)),
+        record(ids.sleep, "awake", iso(6)),
+        record(ids.sleep, "unknown", iso(8)),
+        record(ids.sleep, "deep_sleep", iso(10)),
+      ]),
+      ids,
+      now(),
+    );
+    expect(result.sleep.slice(0, 13)).toEqual([1, 1, 1, 0.5, 0.5, 0.5, 0, 0, "unavailable", "unavailable", 1, 1, 1]);
+    expect(result.sleep.slice(13)).toEqual(Array(11).fill(null));
+    // 00-06 asleep, 10-12 asleep, plus 34 minutes of the current hour.
+    expect(result.asleepMinutes).toBe(6 * 60 + 2 * 60 + 34);
+  });
+
+  it("carries heart rate and oxygen forward, and marks charging hours unavailable", () => {
+    const result = owletHistoryFromHass(
+      [
+        record(ids.sleep, "deep_sleep", iso(0)),
+        record(ids.heartRate, "118", iso(0)),
+        record(ids.heartRate, "unavailable", iso(2)),
+        record(ids.heartRate, "131", iso(3)),
+        record(ids.oxygen, "98", iso(1)),
+      ],
+      ids,
+      now(),
+    );
+    expect(result.heartRate?.slice(0, 5)).toEqual([118, 118, "unavailable", 131, 131]);
+    expect(result.oxygen?.slice(0, 3)).toEqual([null, 98, 98]);
+  });
+
+  it("omits the readings without their ids", () => {
+    const result = owletHistoryFromHass(single([record(ids.sleep, "awake", iso(9))]), { sleep: ids.sleep }, now());
+    expect(result.heartRate).toBeUndefined();
+    expect(result.oxygen).toBeUndefined();
+    expect(result.asleepMinutes).toBe(0);
   });
 });
 

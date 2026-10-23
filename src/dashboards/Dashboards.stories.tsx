@@ -10,6 +10,7 @@ import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
 import { CoverTile } from "../widgets/cover/CoverTile";
 import { COVER_SEEDS, useDemoCover } from "../widgets/cover/demo/useDemoCover";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
+import { DemoOwletTile as Owlet } from "../widgets/owlet/demo/DemoOwletTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
 /** A device-sized frame so each dashboard is seen at its real width. The content scrolls inside. */
@@ -29,7 +30,7 @@ const meta = {
   title: "Dashboards",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Weather, security, modes, bundles, lights, covers, climate and sensors composed per device. Example data; the time is fixed at 11:54." } },
+    docs: { description: { component: "Weather, security, modes, bundles, lights, covers, climate, sensors and the baby's sock composed per device. Example data; the time is fixed at 11:54." } },
   },
 } satisfies Meta;
 
@@ -72,6 +73,7 @@ function PhoneDashboard({ alertExperiment = false, activeAlert = false }: { aler
           <Toggle mode="guest" footprint="compact" />
         </Section>
         <Section title="Nursery">
+          <Owlet seed="deep" />
           <Bundle bundle="nightLight" />
           <Climate unit="nurseryDyson" footprint="compact" />
         </Section>
@@ -148,6 +150,7 @@ export const Tablet: Story = {
           <Toggle mode="guest" footprint="compact" />
         </Section>
         <Section title="Nursery" columns={2}>
+          <Owlet seed="deep" />
           <Bundle bundle="nightLight" />
           <Bundle bundle="upstairs" />
         </Section>
@@ -178,6 +181,7 @@ export const WallPanel: Story = {
             <Bundle bundle="sleep" />
           </Section>
           <Section title="Nursery and office">
+            <Owlet seed="deep" />
             <Bundle bundle="nightLight" />
             <Bundle bundle="upstairs" />
             <Sensor sensor="office" footprint="compact" />
