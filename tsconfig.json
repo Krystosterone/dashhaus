@@ -12,5 +12,5 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": false
   },
-  "include": ["src", ".storybook"]
+  "include": ["src", ".storybook", "scripts/*/*.test.ts"]
 }

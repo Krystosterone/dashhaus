@@ -33,7 +33,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
 - `src/ha/` — the Home Assistant boundary (`docs/home-assistant.md`). `src/ha/lovelace/` is the deployed card: the YAML parser (`config.ts`), the generated layout (`auto.ts`, also imported by `scripts/deploy.mjs`, so it may only use `import type`), the renderer and the custom element.
 - `src/index.ts` — public exports. Every new widget must be exported here.
-- `scripts/new-widget/` — the widget generator. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new widgets start from the current rules.
+- `scripts/new-widget/` — the widget generator. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new widgets start from the current rules. `index.test.ts` runs the generator: a dry run against the repo for every anchor it edits, and a real run in a temporary copy that must typecheck and pass the conformance test.
 - `src/stories/` — Foundations stories: colour temperature, worst-case data, compact rows.
 
 ## Hard rules
