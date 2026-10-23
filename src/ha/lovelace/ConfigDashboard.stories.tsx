@@ -47,6 +47,7 @@ const YAML = {
         { entity: "switch.office", footprint: "compact" },
       ],
     },
+    { title: "Nursery", cards: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }] },
   ],
 };
 

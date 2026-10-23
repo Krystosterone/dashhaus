@@ -29,6 +29,30 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
+  it("picks a shared widget from the entity id or from widget:", () => {
+    const config = parseDashboardConfig({
+      sections: [{ cards: [
+        "sensor.owlet_sock_ac0_sleep_state",
+        { entity: "sensor.nova", widget: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", stale_after: 5 },
+        { entity: "sensor.odd_sleep_state", widget: "sensor" },
+      ] }],
+    });
+    expect(config.blocks?.[0]).toMatchObject({
+      items: [
+        { kind: "owlet", entity: "sensor.owlet_sock_ac0_sleep_state" },
+        { kind: "owlet", entity: "sensor.nova", heartRate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", staleAfter: 5 },
+        { kind: "sensor", entity: "sensor.odd_sleep_state" },
+      ],
+    });
+  });
+
+  it("only offers widget: the widgets of the entity's domain", () => {
+    expect(problems({ sections: [{ cards: [{ entity: "light.a", widget: "owlet" }, { entity: "sensor.a", widget: "owlett" }] }] })).toEqual([
+      'sections[0].cards[0] (light.a): "widget" must be one of "light"',
+      expect.stringMatching(/^sections\[0\]\.cards\[1\] \(sensor\.a\): "widget" must be one of "sensor", "owlet"(, .*)? — did you mean "owlet"\?$/),
+    ]);
+  });
+
   it("maps snake_case options onto the tile's settings", () => {
     const config = parseDashboardConfig({
       title: "Flat",

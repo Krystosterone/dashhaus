@@ -1,6 +1,7 @@
 import { createDemoClimateHaTransport, createDemoHaTransport, createDemoSensorHaTransport, createDemoWeatherHaTransport, demoSendMessage } from "../demo";
 import { createDemoAlarmHaTransport } from "../demo/alarm";
 import { createDemoCoverHaTransport } from "../demo/cover";
+import { createDemoOwletHaTransport } from "../demo/owlet";
 import { createDemoToggleHaTransport } from "../demo/toggle";
 import type { HaTransport, HassEntities } from "../types";
 
@@ -17,6 +18,7 @@ export function createDemoHouseTransport(): HaTransport {
     createDemoCoverHaTransport(),
     createDemoToggleHaTransport(),
     createDemoAlarmHaTransport(),
+    createDemoOwletHaTransport(),
   ];
   const latest: HassEntities[] = parts.map(() => ({}));
   const owner = new Map<string, HaTransport>();

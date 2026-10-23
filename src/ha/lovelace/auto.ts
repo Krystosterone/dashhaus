@@ -34,9 +34,12 @@ const byName = (states: Record<string, AutoState>) => (a: string, b: string) => 
   return name(a).localeCompare(name(b));
 };
 
+/** An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet widget. */
+const OWLET = /^sensor\.\w+_sleep_state$/;
+
 /**
  * A starting dashboard config for a house: alerts first, then the glance (weather, comfort, room air),
- * then modes, then one section of compact controls per area. It follows the README's composition rules
+ * then modes, the nursery, then one section of compact controls per area. It follows the README's composition rules
  * (no featured hero is chosen for you; compact rows for controls) and produces plain YAML-shaped data
  * that the person then edits.
  */
@@ -91,6 +94,9 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
 
   const modes = ofDomain("input_boolean");
   if (modes.length) sections.push({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });
+
+  const socks = sorted(visible.filter((id) => OWLET.test(id)));
+  if (socks.length) sections.push({ title: "Nursery", cards: socks });
 
   // Controls, one section per area, then whatever has no area.
   const controls = ofDomain("cover", "light", "switch");

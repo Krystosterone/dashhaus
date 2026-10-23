@@ -9,9 +9,9 @@ import type { AlarmTileProps } from "../../widgets/alarm/AlarmTile";
  * all of them at once instead of the first.
  */
 
-export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm";
+export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet";
 
-/** Each supported domain has exactly one widget, so the entity id picks it. */
+/** Each supported domain's widget: the entity id picks it. */
 export const DOMAIN_KIND: Record<string, Kind> = {
   light: "light",
   climate: "climate",
@@ -21,6 +21,14 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   input_boolean: "toggle",
   switch: "toggle",
   alarm_control_panel: "alarm",
+};
+
+/**
+ * Widgets that share a domain with that domain's own widget. A card picks one with `widget:`; an entity id
+ * matching `id` picks it without.
+ */
+export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp }>> = {
+  owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
 };
 
 interface CardBase {
@@ -42,6 +50,7 @@ export type CardConfig = CardBase & (
   | { kind: "cover"; color?: ColorName | "none" }
   | { kind: "toggle"; domain: "input_boolean" | "switch"; icon?: ToggleIcon; color?: ColorName; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
+  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; staleAfter?: number; color?: ColorName | "none" }
 );
 
 export type ItemConfig =
@@ -80,7 +89,7 @@ const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "
 const FOOTPRINTS: readonly WidgetFootprint[] = ["compact", "standard", "featured"];
 const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
 
-const COMMON_KEYS = ["entity", "name", "area", "footprint", "span", "show_control", "history"];
+const COMMON_KEYS = ["entity", "widget", "name", "area", "footprint", "span", "show_control", "history"];
 const KIND_KEYS: Record<Kind, string[]> = {
   light: ["color"],
   climate: ["unit", "color"],
@@ -89,6 +98,7 @@ const KIND_KEYS: Record<Kind, string[]> = {
   cover: ["color"],
   toggle: ["icon", "color", "description"],
   alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
+  owlet: ["heart_rate", "oxygen", "charging", "stale_after", "color"],
 };
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "theme", "accent", "sections", "view_layout", "grid_options", "visibility"];
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
@@ -189,6 +199,21 @@ class Reader {
     return value;
   }
 
+  /** The widget for an entity: `widget:` when given, else a shared widget its id names, else its domain's. */
+  kind(raw: Raw, entity: string, path: string): Kind | undefined {
+    const domain = entity.slice(0, entity.indexOf("."));
+    const shared = (Object.keys(SHARED_KINDS) as Kind[]).filter((k) => SHARED_KINDS[k]?.domains.includes(domain));
+    const kinds = [...(DOMAIN_KIND[domain] ? [DOMAIN_KIND[domain]] : []), ...shared];
+    if (!kinds.length) {
+      this.problem(path, `${entity}: ${domain}.* entities have no widget yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`);
+      return undefined;
+    }
+    if (raw.widget != null) return this.choice(raw, "widget", `${path} (${entity})`, kinds);
+    const kind = shared.find((k) => SHARED_KINDS[k]?.id?.test(entity)) ?? DOMAIN_KIND[domain];
+    if (!kind) this.problem(path, `${entity}: pick its widget with "widget": one of ${oneOf(kinds)}`);
+    return kind;
+  }
+
   optionalEntity(raw: Raw, key: string, path: string, domains: readonly string[]): string | undefined {
     if (raw[key] == null) return undefined;
     return this.entityId(raw[key], `${path}.${key}`, domains);
@@ -207,11 +232,8 @@ class Reader {
     const entity = this.entityId(raw.entity, path);
     if (!entity) return undefined;
     const domain = entity.slice(0, entity.indexOf("."));
-    const kind = DOMAIN_KIND[domain];
-    if (!kind) {
-      this.problem(path, `${entity}: ${domain}.* entities have no widget yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`);
-      return undefined;
-    }
+    const kind = this.kind(raw, entity, path);
+    if (!kind) return undefined;
     const at = `${path} (${entity})`;
     this.keys(raw, at, [...COMMON_KEYS, ...KIND_KEYS[kind]]);
     const base: CardBase = {
@@ -266,6 +288,15 @@ class Reader {
           openSensors: Array.isArray(sensors) ? sensors.filter((s): s is string => typeof s === "string") : undefined,
         };
       }
+      case "owlet": return {
+        ...base,
+        kind,
+        heartRate: this.optionalEntity(raw, "heart_rate", at, ["sensor"]),
+        oxygen: this.optionalEntity(raw, "oxygen", at, ["sensor"]),
+        charging: this.optionalEntity(raw, "charging", at, ["binary_sensor"]),
+        staleAfter: this.number(raw, "stale_after", at, 1, 60),
+        color: color(),
+      };
     }
   }
 

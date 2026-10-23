@@ -15,6 +15,8 @@ const states = Object.fromEntries([
   state("sensor.bath_h", { device_class: "humidity" }),
   state("sensor.power", { device_class: "power" }),
   state("input_boolean.guest"),
+  state("sensor.owlet_sock_b_sleep_state", { friendly_name: "B" }),
+  state("sensor.owlet_sock_a_sleep_state", { friendly_name: "A" }),
   state("light.bed", { friendly_name: "Bed" }),
   state("cover.bed", { friendly_name: "Blind" }),
   state("switch.plug_child_lock"),
@@ -39,7 +41,7 @@ const input = {
 };
 
 describe("autoDashboard", () => {
-  it("lays out alerts, the glance, modes, then compact controls per area", () => {
+  it("lays out alerts, the glance, modes, the nursery, then compact controls per area", () => {
     expect(autoDashboard(input)).toEqual({
       type: "custom:home-dashboard",
       title: "Home",
@@ -49,6 +51,7 @@ describe("autoDashboard", () => {
         { title: "Comfort", cards: ["climate.attic", { entity: "climate.hall", footprint: "compact" }] },
         { title: "Rooms", columns: 2, cards: [{ entity: "sensor.bed_t", humidity: "sensor.bed_h", battery: "sensor.bed_b" }, "sensor.bath_h"] },
         { title: "Modes", columns: 2, cards: [{ entity: "input_boolean.guest", footprint: "compact" }] },
+        { title: "Nursery", cards: ["sensor.owlet_sock_a_sleep_state", "sensor.owlet_sock_b_sleep_state"] },
         { title: "Bedroom", cards: [{ entity: "cover.bed", footprint: "compact" }, { entity: "light.bed", footprint: "compact" }] },
         { title: "Other", cards: [{ entity: "light.porch", footprint: "compact" }] },
       ],

@@ -10,6 +10,8 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const exists = (path: string) => existsSync(join(process.cwd(), path));
 const uncomment = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "");
+/** The body of a top-level `const <name> … = { … };` object in a source file. */
+const object = (source: string, name: string) => source.match(new RegExp(`const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\};`))?.[1] ?? "";
 
 /** Folders in src/widgets that are not entity cards, and why. */
 const NOT_CARDS: Record<string, string> = { header: "the dashboard's title row: type on the page, not a card" };
@@ -75,6 +77,15 @@ describe.each(widgets)("$name widget", ({ name, Name, dir, widgetFile, source, c
     const missing = [`src/ha/Ha${Name}Tile.tsx`, `src/ha/Ha${Name}Tile.test.tsx`, `src/ha/Ha${Name}Tile.stories.tsx`, `src/ha/mappers/${name}.ts`, `src/ha/mappers/${name}.test.ts`, `src/ha/fixtures/${name}.json`].filter((p) => !exists(p));
     expect(missing, "home-assistant-integration skill → Adding a domain").toEqual([]);
     expect(read("src/ha/mappers/fixtures.test.ts"), "register the fixture in src/ha/mappers/fixtures.test.ts").toContain(`"../fixtures/${name}.json"`);
+  });
+
+  it("is a card on the Lovelace dashboard", () => {
+    const step = "AGENTS.md → Adding a widget, step 6";
+    const config = read("src/ha/lovelace/config.ts");
+    const picked = object(config, "DOMAIN_KIND").includes(`: "${name}",`) || new RegExp(`^\\s*${name}:`, "m").test(object(config, "SHARED_KINDS"));
+    expect(picked, `${step}: give it its domain in DOMAIN_KIND, or list it in SHARED_KINDS (src/ha/lovelace/config.ts)`).toBe(true);
+    expect(read("src/ha/lovelace/ConfigDashboard.tsx"), `${step}: render it in tile() (src/ha/lovelace/ConfigDashboard.tsx)`).toMatch(new RegExp(`<Ha${Name}Tile\\b`));
+    expect(read("docs/deploy.md"), `${step}: list its domain in docs/deploy.md`).toMatch(new RegExp(`^- \`.*\`: ${words}\\b`, "m"));
   });
 });
 

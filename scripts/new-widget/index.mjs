@@ -6,7 +6,7 @@
  *   npm run new-widget -- co2 --code co --domain sensor --kind reading --unit ppm
  *
  * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the widget
- * everywhere the conformance test (src/widgets/conformance.test.ts) looks:
+ * everywhere the conformance test (src/widgets/conformance.test.ts) looks, the Lovelace card included:
  *   - control (default): an on/off entity with an orb and a pill, over `<domain>.toggle`.
  *   - reading: a read-only number with a bare icon and a readout, no services.
  * Nothing is written unless every file and every registration can be made.
@@ -191,6 +191,33 @@ One \`__domain__.*\` entity, switched on and off:
 // The class prefix joins the hard rules.
 edit("AGENTS.md", before("`hb-` bundles", `\`${code}-\` ${words}, `));
 
+// A card on the Lovelace dashboard. The domain picks it; when the domain already has a widget, `widget:` does.
+const lovelace = "src/ha/lovelace/config.ts";
+/** Add a line at the end of a top-level `const <name> … = { … };` object. */
+const intoObject = (constName, line) => (s) => s.replace(new RegExp(`(const ${constName}\\b[^{]*\\{[\\s\\S]*?)(\\n\\};)`), `$1\n${line}$2`);
+const domainKinds = read(lovelace).match(/const DOMAIN_KIND\b[^{]*\{([\s\S]*?)\n\};/)?.[1];
+if (domainKinds == null) fail(`could not find DOMAIN_KIND in ${lovelace}. Update scripts/new-widget/index.mjs`);
+const sharesDomain = new RegExp(`^\\s*${domain}:`, "m").test(domainKinds);
+edit(lovelace, (s) => s.replace(/^(export type Kind = .*);$/m, `$1 | "${name}";`));
+edit(lovelace, sharesDomain ? intoObject("SHARED_KINDS", `  ${name}: { domains: ["${domain}"] },`) : intoObject("DOMAIN_KIND", `  ${domain}: "${name}",`));
+edit(lovelace, before("\n);\n\nexport type ItemConfig", `\n  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));
+edit(lovelace, intoObject("KIND_KEYS", `  ${name}: [${reading ? '"unit", ' : ""}"color"],`));
+edit(lovelace, before("    }\n  }\n\n  cards(", `      case "${name}": return { ...base, kind,${reading ? ' unit: this.string(raw, "unit", at),' : ""} color: color() };\n`));
+const renderer = "src/ha/lovelace/ConfigDashboard.tsx";
+edit(renderer, afterLast(/^import \{ Ha\w+Tile \} from "\.\.\/Ha\w+Tile";$/gm, fill(`import { Ha__Name__Tile } from "../Ha__Name__Tile";\n`)));
+edit(renderer, before("  }\n}\n\nfunction item(", fill(`    case "__name__": return <Ha__Name__Tile key={key} {...common} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />;\n`)));
+// The automatic layout: a control on a domain of its own joins the compact controls per area.
+const placed = !reading && !sharesDomain;
+if (placed) {
+  edit("src/ha/lovelace/auto.ts", (s) => s
+    .replace(/const controls = ofDomain\(([^)]*)\);/, `const controls = ofDomain($1, "${domain}");`)
+    .replace(/const order = \[([^\]]*)\];/, `const order = [$1, "${domain}"];`));
+}
+const deploy = "docs/deploy.md";
+edit(deploy, afterLast(/^- `.*`: .*$/gm, `- \`${domain}\`${sharesDomain ? ` with \`widget: ${name}\`` : ""}: ${words}\n`));
+edit(deploy, (s) => s.replace(/^\| ([a-z, ]+) \| `color` \|/m, `| $1, ${words} | \`color\` |`));
+if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | The unit, when the entity doesn't say. |\n`));
+
 // ---------- Write ----------
 if (dryRun) {
   for (const path of [...writes.keys()].sort()) console.log(`${existsSync(join(root, path)) ? "edit  " : "create"} ${path}`);
@@ -210,4 +237,7 @@ Next:
      attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
   3. Draw its icon in src/widgets/${name}/icons.tsx; move it to the right section in src/dashboards/Dashboards.stories.tsx
   4. Finish "Using the ${words} widget" in docs/widgets.md
-  5. npm run check && npm run test-storybook`);
+  5. Its Lovelace card: its YAML keys in src/ha/lovelace/config.ts and docs/deploy.md${placed ? "" : `,
+     and its place in the automatic layout, src/ha/lovelace/auto.ts`}${sharesDomain ? `
+     (${domain}.* already has a widget, so a card picks this one with \`widget: ${name}\`)` : ""}
+  6. npm run check && npm run test-storybook`);
