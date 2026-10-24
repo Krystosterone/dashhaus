@@ -97,6 +97,15 @@ export type { OwletEntity, OwletHistory, OwletAlert, SleepState } from "./widget
 export { HaOwletTile } from "./ha";
 export type { HaOwletTileProps } from "./ha";
 
+// Humidifier
+export { HumidifierWidget, HumidifierSheet } from "./widgets/humidifier/HumidifierWidget";
+export type { HumidifierWidgetProps, HumidifierSheetProps } from "./widgets/humidifier/HumidifierWidget";
+export { HumidifierTile } from "./widgets/humidifier/HumidifierTile";
+export type { HumidifierTileProps } from "./widgets/humidifier/HumidifierTile";
+export type { HumidifierEntity, HumidifierHistory } from "./widgets/humidifier/types";
+export { HaHumidifierTile } from "./ha";
+export type { HaHumidifierTileProps } from "./ha";
+
 export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
 

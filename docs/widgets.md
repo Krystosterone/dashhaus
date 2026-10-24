@@ -246,6 +246,31 @@ An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. I
 - **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds the rest beside it: `sensor.…_heart_rate`, `sensor.…_o2_saturation`, `binary_sensor.…_charging` and the ten alert sensors (`binary_sensor.…_low_oxygen_alert`, `…_sock_off` …). Pass `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId` or `alertEntityIds` when yours are named differently. It sends no services.
 - **Not a medical alarm:** the card shows what Home Assistant last received, every few seconds at best, and an alert reaches it only after the base station has raised it. Owlet's own app and base station are the alarm; this card repeats it.
 
+## Using the humidifier widget
+
+One `humidifier.*` entity: a humidifier, or a dehumidifier by its `device_class`.
+
+```tsx
+<HumidifierTile
+  entity={entity}
+  history={today}
+  onToggle={() => callService("humidifier", "toggle", { entity_id: entity.entityId })}
+  onTargetChange={(h) => callService("humidifier", "set_humidity", { entity_id: entity.entityId, humidity: h })}
+  onModeChange={(m) => callService("humidifier", "set_mode", { entity_id: entity.entityId, mode: m })}
+/>
+<HaHumidifierTile entityId="humidifier.bedroom" />
+```
+
+- **A state, not energy.** The orb is the accent while it is on, with no bloom and no glow: moving water is not light or heat (attention-budget skill). Whether it is working is the status line's words, never a colour.
+- **Status line:** the room's humidity and what the unit is doing: "38% now · Humidifying", "Drying" or "Idle". A device that reports no `action` gives the humidity alone; one that reports neither gives the area.
+- **The slot follows the state:**
+  - On with a target: the setpoint stepper, the same groove as the climate widget's, in whole percent between the entity's `minHumidity` and `maxHumidity`. From 260 px it says what the target does: "Humidify to" or "Dry to".
+  - On without a target (or without `onTargetChange`): the accent pill, with the mode beside it from 260 px.
+  - Off: a raised Off pill that turns it back on. Unavailable: the dashed slot.
+- **The readout** on featured cards and in the sheet is the room's humidity.
+- **Compact:** the domain icon (mist over the unit, or a dehumidifier's tank), name, status line, and the stepper; under 320 px the humidity and setpoint share the value line ("38% · Set 45%").
+- **Sheet:** press and hold the orb, or tap the name: the stepper, the mode chips when it lists more than one mode, today's on/off history, and the settable range.
+
 ## Using the header widget
 
 The top of a dashboard: its name, today's date under it, and an optional clock on the right. `DashboardPage` renders it for you; pass its props to the page:

@@ -15,9 +15,9 @@ Home Assistant auth + connection
 
 The store is the source for current state. A successful service call means Home Assistant accepted the command; it is not proof that the entity reached the requested state. The next entity snapshot is the readback boundary.
 
-## Connected entity slices: lights, climate, sensors, weather, covers, toggles, and alarms
+## Connected entity slices: lights, climate, sensors, weather, covers, toggles, alarms, and humidifiers
 
-The integration now covers one `light.*` entity, one `climate.*` entity, one composed `sensor.*` view, one composed `weather.*` home view, one `cover.*` entity, one `input_boolean.*`/`switch.*` toggle, and one `alarm_control_panel.*` entity:
+The integration now covers one `light.*` entity, one `climate.*` entity, one composed `sensor.*` view, one composed `weather.*` home view, one `cover.*` entity, one `input_boolean.*`/`switch.*` toggle, one `alarm_control_panel.*` entity, and one `humidifier.*` entity:
 
 - `src/ha/types.ts` defines the raw snapshot, transport, connection status, and action-error contracts.
 - `src/ha/store.ts` turns one transport into a snapshot store: status, raw entities, a `generation`, and the latest action error. The transport keeps the entity subscription alive across its own reconnects; the store clears entities while the connection is down and advances `generation` on every loss, recovery, failure, connect and disconnect, so a read or action that settles under a newer generation is reported as an unknown outcome. Concurrent callers share one `connect()`; a terminal transport error or a throwing subscription fails closed with a sanitized error; `disconnect()` unsubscribes and clears state but leaves closing the connection to the host that opened it. Subscriber callback failures are isolated, and service input is validated before it reaches the transport.
@@ -43,6 +43,8 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/actions/alarm.ts` builds the arm/disarm services with an optional code, resolves false for a recognized wrong code (sanitized `translation_key`/service-validation scalar) and rejects for anything else; codes are never logged or persisted.
 - `src/ha/mappers/owlet.ts` composes an Owlet sock (custom `owlet` integration) from its sleep state sensor and its heart rate and oxygen companions, found beside it by `owletCompanionIds` with its charging and ten alert binary sensors; `unknown` and charging are unavailable, each reading is dropped on its own when it is 0, not a number or out of range, and only an `on` alert sensor sounds. `src/ha/HaOwletTile.tsx` reads the binary sensors through `useHaEntities`, which re-renders only when one of them changes, and is read-only: it sends no services.
 - `src/ha/HaAlarmTile.tsx` connects the store to the existing `AlarmTile`.
+- `src/ha/mappers/humidifier.ts` maps raw `humidifier.*` state, `device_class` (humidifier or dehumidifier), `action`, current and target humidity, `min_humidity`/`max_humidity` (Home Assistant's 0–100 when absent), and `mode`/`available_modes` into `HumidifierEntity`; `unknown` is unavailable, readings are dropped while unavailable, and a target outside the bounds is left out rather than clamped.
+- `src/ha/actions/humidifier.ts` builds `humidifier.toggle`, `set_humidity` (whole percent, validated against the bounds, offered only when the entity reports a target) and `set_mode` (only listed modes). `src/ha/HaHumidifierTile.tsx` connects the store to `HumidifierTile`, with today's on/off history.
 
 The store routes action service calls through `callService` and background reads through `query` (forecasts) or `callApi` (generic websocket commands such as `history/history_during_period`), the last two never mutating action ordering or `lastActionError`. A rejection is classified as `transport_unknown` when the connection changed during the call or the library reports `ERR_CONNECTION_LOST` (code `3`), otherwise `service_failed`; only the provider's `translation_key` and `code` string scalars are kept, never its message, which can echo an alarm code.
 

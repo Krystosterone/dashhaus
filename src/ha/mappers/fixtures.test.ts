@@ -8,6 +8,7 @@ import sensor from "../fixtures/sensor.json";
 import toggle from "../fixtures/toggle.json";
 import weather from "../fixtures/weather.json";
 import owlet from "../fixtures/owlet.json";
+import humidifier from "../fixtures/humidifier.json";
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
 import { coverFromHass } from "./cover";
@@ -16,6 +17,7 @@ import { sensorFromHass } from "./sensor";
 import { toggleFromHass } from "./toggle";
 import { weatherFromHass } from "./weather";
 import { owletFromHass } from "./owlet";
+import { humidifierFromHass } from "./humidifier";
 
 type Mapper = (raw: HassEntity, entityId: string) => { entityId: string; name: string; state: string };
 
@@ -29,6 +31,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "toggle", fixture: toggle, map: toggleFromHass, keepsState: true },
   { domain: "alarm_control_panel", fixture: alarm, map: alarmFromHass, keepsState: true },
   { domain: "owlet sleep state", fixture: owlet, map: owletFromHass, keepsState: true },
+  { domain: "humidifier", fixture: humidifier, map: humidifierFromHass, keepsState: true },
 ];
 
 describe.each(domains)("$domain fixture", ({ fixture, map, keepsState }) => {

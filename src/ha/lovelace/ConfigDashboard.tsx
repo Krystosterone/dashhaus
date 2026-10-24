@@ -9,6 +9,7 @@ import { HaCoverTile } from "../HaCoverTile";
 import { HaToggleTile } from "../HaToggleTile";
 import { HaAlarmTile } from "../HaAlarmTile";
 import { HaOwletTile } from "../HaOwletTile";
+import { HaHumidifierTile } from "../HaHumidifierTile";
 import type { BlockConfig, CardConfig, DashboardConfig, ItemConfig, SectionConfig } from "./config";
 
 /** One configured card as its connected tile. */
@@ -23,6 +24,7 @@ function tile(card: CardConfig, key?: string): ReactElement {
     case "toggle": return <HaToggleTile key={key} {...common} area={card.area} domain={card.domain} icon={card.icon} color={card.color} description={card.description} />;
     case "alarm": return <HaAlarmTile key={key} {...common} area={card.area} readOnly={card.readOnly} exitDelay={card.exitDelay} entryDelay={card.entryDelay} openSensors={card.openSensors} />;
     case "owlet": return <HaOwletTile key={key} {...common} area={card.area} heartRateEntityId={card.heartRate} oxygenEntityId={card.oxygen} chargingEntityId={card.charging} alertEntityIds={card.alerts} staleAfterMinutes={card.staleAfter} color={card.color} />;
+    case "humidifier": return <HaHumidifierTile key={key} {...common} area={card.area} color={card.color} />;
   }
 }
 

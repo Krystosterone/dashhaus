@@ -102,13 +102,13 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
   if (socks.length) sections.push({ title: "Nursery", cards: socks });
 
   // Controls, one section per area, then whatever has no area.
-  const controls = ofDomain("cover", "light", "switch");
+  const controls = ofDomain("cover", "light", "switch", "humidifier");
   const groups = new Map<string, string[]>();
   for (const id of controls) {
     const key = areaOf(id) ?? "";
     groups.set(key, [...(groups.get(key) ?? []), id]);
   }
-  const order = ["cover", "light", "switch"];
+  const order = ["cover", "light", "switch", "humidifier"];
   const areaIds = [...groups.keys()].filter(Boolean).sort((a, b) => areas[a].name.localeCompare(areas[b].name));
   for (const key of [...areaIds, ""]) {
     const ids = groups.get(key);

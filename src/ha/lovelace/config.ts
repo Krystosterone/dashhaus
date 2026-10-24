@@ -11,7 +11,7 @@ import { OWLET_ALERT_SUFFIX } from "../mappers/owlet";
  * all of them at once instead of the first.
  */
 
-export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet";
+export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet" | "humidifier";
 
 /** Each supported domain's widget: the entity id picks it. */
 export const DOMAIN_KIND: Record<string, Kind> = {
@@ -23,6 +23,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   input_boolean: "toggle",
   switch: "toggle",
   alarm_control_panel: "alarm",
+  humidifier: "humidifier",
 };
 
 /**
@@ -53,6 +54,7 @@ export type CardConfig = CardBase & (
   | { kind: "toggle"; domain: "input_boolean" | "switch"; icon?: ToggleIcon; color?: ColorName; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
   | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
+  | { kind: "humidifier"; color?: ColorName | "none" }
 );
 
 export type ItemConfig =
@@ -102,6 +104,7 @@ const KIND_KEYS: Record<Kind, string[]> = {
   toggle: ["icon", "color", "description"],
   alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
   owlet: ["heart_rate", "oxygen", "charging", "alerts", "stale_after", "color"],
+  humidifier: ["color"],
 };
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "theme", "accent", "sections", "view_layout", "grid_options", "visibility"];
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
@@ -311,6 +314,7 @@ class Reader {
           color: color(),
         };
       }
+      case "humidifier": return { ...base, kind, color: color() };
     }
   }
 

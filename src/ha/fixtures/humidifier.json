@@ -1,0 +1,60 @@
+{
+  "humidifier.bedroom": {
+    "entity_id": "humidifier.bedroom",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Bedroom",
+      "device_class": "humidifier",
+      "action": "humidifying",
+      "current_humidity": 38,
+      "humidity": 45,
+      "min_humidity": 30,
+      "max_humidity": 80,
+      "mode": "normal",
+      "available_modes": [
+        "normal",
+        "eco",
+        "sleep",
+        "boost"
+      ],
+      "supported_features": 1
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "humidifier.office": {
+    "entity_id": "humidifier.office",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Office",
+      "device_class": "dehumidifier",
+      "action": "off",
+      "current_humidity": 58,
+      "humidity": 50,
+      "min_humidity": 35,
+      "max_humidity": 70,
+      "supported_features": 0
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "humidifier.porch": {
+    "entity_id": "humidifier.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "humidifier.garage": {
+    "entity_id": "humidifier.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

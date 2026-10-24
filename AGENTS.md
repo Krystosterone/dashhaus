@@ -43,7 +43,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - Never use a colour literal in widget CSS. Colours come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
 - A card's height never changes with state or widget type. Height comes from the shared `footprint` matrix plus container width, never the viewport.
 - No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.
-- Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hb-` bundles; `hd-` is the shared card system.
+- Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hu-` humidifier, `hb-` bundles; `hd-` is the shared card system.
 - Animate only `transform`, `opacity`, `clip-path` and colour changes; never layout properties. Easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
 - Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
 - Every compact row carries a domain icon, primary identity and one state/action cue; colour never defines a row.

@@ -11,6 +11,7 @@ import { CoverTile } from "../widgets/cover/CoverTile";
 import { COVER_SEEDS, useDemoCover } from "../widgets/cover/demo/useDemoCover";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
 import { DemoOwletTile as Owlet } from "../widgets/owlet/demo/DemoOwletTile";
+import { DemoHumidifierTile as Humidifier } from "../widgets/humidifier/demo/DemoHumidifierTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
 /** A device-sized frame so each dashboard is seen at its real width. The content scrolls inside. */
@@ -86,6 +87,7 @@ function PhoneDashboard({ alertExperiment = false, activeAlert = false }: { aler
           <Light light="dimmableOff" footprint="compact" />
           <Light light="onOff" footprint="compact" />
           <Light light="unavailable" footprint="compact" />
+          <Humidifier seed="on" footprint="compact" />
         </Section>
       </DashboardPage>
     </Device>
