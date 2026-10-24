@@ -5,14 +5,14 @@
    state. Surfaces say what a control does: --btn is raised (tap it), --groove is recessed (slide or set
    along it). A widget's own colour is opt-in and only ever goes in its orb. */
 :root {
-  /* The accent. Swap these two numbers (chroma, hue) to re-colour the whole dashboard;
+  /* The accent. Swap these two numbers (chroma, hue) to re-colour active state;
      lightness comes from the theme. Default: Crextio yellow. */
   --brand-c: 0.145;
   --brand-h: 92;
 
   --bg-a: oklch(0.915 0.004 250);
   --bg-b: oklch(0.948 0.01 95);
-  --bg-c: oklch(0.925 calc(var(--brand-c) * 0.52) var(--brand-h));
+  --bg-c: oklch(0.925 0.018 95);
   --card: oklch(1 0 0 / 0.56);
   --card-solid: oklch(0.982 0.006 95);
   --card-edge: oklch(1 0 0 / 0.85);
@@ -55,7 +55,7 @@
   :root:not([data-theme="light"]) {
     --bg-a: oklch(0.155 0.004 250);
     --bg-b: oklch(0.175 0.008 90);
-    --bg-c: oklch(0.235 calc(var(--brand-c) * 0.31) var(--brand-h));
+    --bg-c: oklch(0.235 0.012 85);
     --card: oklch(0.27 0.006 85 / 0.5);
     --card-solid: oklch(0.225 0.006 85);
     --card-edge: oklch(1 0 0 / 0.08);
@@ -86,7 +86,7 @@
 :root[data-theme="dark"] {
   --bg-a: oklch(0.155 0.004 250);
   --bg-b: oklch(0.175 0.008 90);
-  --bg-c: oklch(0.235 calc(var(--brand-c) * 0.31) var(--brand-h));
+  --bg-c: oklch(0.235 0.012 85);
   --card: oklch(0.27 0.006 85 / 0.5);
   --card-solid: oklch(0.225 0.006 85);
   --card-edge: oklch(1 0 0 / 0.08);
