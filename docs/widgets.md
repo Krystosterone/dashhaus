@@ -143,8 +143,8 @@ import { HaAlarmTile } from "./src";
 - **The slot is the mode switch:** Off, then each supported mode (Home, Away, Night, Vacation, Custom).
   - The switch is a groove; the current mode sits on a thumb that slides between segments.
   - Armed is the accent, on the thumb and the badge; disarmed, the thumb is a raised button on Off. The switch position is "Off"; the state word is "Disarmed".
-  - Labels from 260 px up; icons only below 260 px.
-  - A mode switch only stays on the card while every choice keeps a 44 px target: five choices need at least 260 px, and six need 304 px. Below that, the card shows the current state and opens the detail sheet for arming.
+  - Every choice on a card is labelled: words from 260 px, and with six choices the icon with a small label under it. Compact cards show icons.
+  - A mode switch only stays on the card while every choice keeps a 44 px target and its label: five choices need at least 260 px, and six need 340 px. Below that, the card shows the current state and opens the detail sheet for arming.
   - Compact cards show up to four 44 px mode targets from 360 px up. Narrower cards and alarms with five or more choices show the current state and move arming to the detail sheet.
   - Armed in a mode the switch doesn't list (custom bypass set from the panel itself) still shows that mode, not Off.
 - **Codes.** When the code is needed, the sheet opens on a keypad.

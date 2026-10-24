@@ -10,7 +10,7 @@ export const modeChoices = (modes: AlarmMode[], current: AlarmMode | "off"): (Al
 /**
  * The mode switch: Off and each arm mode, one segment each. The current one sits on a thumb that slides
  * along a groove: the accent when armed (on), a raised button when off.
- * Labels from 260px up; icons only below 260px and in compact cards.
+ * Labels from 260px up (six choices: from 340px, under their icons); icons only in compact cards.
  */
 export function ModeSwitch({ name, modes, current, onPick }: { name: string; modes: AlarmMode[]; current: AlarmMode | "off"; onPick: (m: AlarmMode | "off") => void }) {
   const all = modeChoices(modes, current);

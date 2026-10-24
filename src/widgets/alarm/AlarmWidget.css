@@ -38,13 +38,10 @@
   .al:not(.hd--compact) .al-sw[data-many] .al-seg svg { display: none; }
 }
 @container hd (min-width: 440px) { .al:not(.hd--compact) .al-sw[data-many] .al-seg svg { display: block; } }
-/* Six segments. Below L: icons only (labels would truncate to nothing).
-   At L and in the sheet: the icon with a small label under it, so "Vacation" fits a sixth of the width. */
-@container hd (max-width: 439px) {
-  .al:not(.hd--compact):not(.hd--sheet) .al-sw[data-crowd] .al-seg svg { display: block; }
-  .al:not(.hd--compact):not(.hd--sheet) .al-sw[data-crowd] .al-seg-l { display: none; }
-}
-@container hd (min-width: 440px) {
+/* Six segments: the icon with a small label under it, so "Vacation" (44px at 11px) fits a sixth of the
+   width. Every label first fits at 328px; from 340px there is room to spare. Narrower, the six choices
+   move to the sheet rather than lose their words. */
+@container hd (min-width: 340px) {
   .al:not(.hd--compact) .al-sw[data-crowd] .al-seg { flex-direction: column; gap: 1px; padding: 0 2px; font-size: 11px; line-height: 1.1; }
   .al:not(.hd--compact) .al-sw[data-crowd] .al-seg svg { display: block; width: 15px; height: 15px; }
   .al:not(.hd--compact) .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
@@ -101,13 +98,13 @@
 .hd--compact .al-st svg { width: 15px; height: 15px; }
 .hd--compact :is(.al-st-l, .al-st-x) { display: none; }
 .hd--compact .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
-/* Five choices first fit at 260px; six first fit at 304px. Until then, preserve the same
-   current-state cue and move mode selection into the sheet instead of shrinking its targets. */
+/* Five choices first fit, labelled, at 260px; six at 340px. Until then, preserve the same current-state
+   cue and move mode selection into the sheet instead of shrinking its targets or dropping its labels. */
 @container hd (max-width: 259px) {
   .al:not(.hd--compact) .hd-slot:has(.al-st--open) .al-sw[data-many] { display: none; }
   .al:not(.hd--compact) .hd-slot:has(.al-sw[data-many]) .al-st--open { display: flex; }
 }
-@container hd (max-width: 303px) {
+@container hd (max-width: 339px) {
   .al:not(.hd--compact) .hd-slot:has(.al-st--open) .al-sw[data-crowd] { display: none; }
   .al:not(.hd--compact) .hd-slot:has(.al-sw[data-crowd]) .al-st--open { display: flex; }
 }
