@@ -13,6 +13,12 @@ button.wx-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 }
 button.wx-read:active .wx-rd { scale: 0.98; }
 .wx-rd-t { color: var(--ink); font-size: 20px; font-weight: 700; }
+/* Several warnings: "Hazardous air +2" where it fits, "3 warnings" where even that would clip. */
+.wx-warn-s { display: none; }
+@container hd (max-width: 259px) {
+  .wx-warn-l { display: none; }
+  .wx-warn-s { display: inline; }
+}
 .wx-rd-f { color: var(--ink-2); font-size: 14px; font-weight: 600; }
 /* Standard and featured: now is the card's figure, in the large-readout voice. */
 .wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }

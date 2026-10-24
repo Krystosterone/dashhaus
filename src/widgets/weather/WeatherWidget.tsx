@@ -131,9 +131,14 @@ export function WeatherWidget({ entity: e, history, hourly, daily, variant, foot
     gustKmh >= GUST_WARN_KMH ? `Gusts ${Math.round(e.windGustSpeed!)} ${e.windSpeedUnit}` : null,
     e.uvIndex != null && e.uvIndex >= UV_WARN ? `${uvBand(e.uvIndex).label} UV` : null,
   ].filter((x): x is string => !!x);
-  const warningText = warnings.join(" · ");
-  const warningSummary = warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0] ?? null;
-  const alertLabel = warningText ? `Warning: ${e.name}: ${warnings.join(", ")}` : null;
+  // On a card the most urgent warning leads with a count of the rest ("Hazardous air +2"), so an ellipsis
+  // never hides that more exist; under 260 px, where even that clips, the count alone ("3 warnings"). The
+  // sheet names them all, and the alert label always speaks all of them.
+  const warningSummary = warnings.length > 1
+    ? <><span className="wx-warn-l">{`${warnings[0]} +${warnings.length - 1}`}</span><span className="wx-warn-s">{`${warnings.length} warnings`}</span></>
+    : warnings[0] ?? null;
+  const warningText = sheet ? warnings.join(" · ") : warningSummary;
+  const alertLabel = warnings.length ? `Warning: ${e.name}: ${warnings.join(", ")}` : null;
 
   // Most urgent first: warnings, rain or snow, then the condition and today's low–high.
   const rest = [precip, condition, range].filter(Boolean).join(" · ");
@@ -153,7 +158,7 @@ export function WeatherWidget({ entity: e, history, hourly, daily, variant, foot
   const now = t != null ? `${fmt1(t)}°` : null;
   const feelsText = feels != null ? `Feels ${deg0(feels)}` : null;
   // The compact value appears under the name, or in place of a hidden reading.
-  const subText = unav ? "Unavailable" : warningSummary ?? [now, feelsText, precip ?? label].filter(Boolean).join(" · ");
+  const subText: ReactNode = unav ? "Unavailable" : warningSummary ?? [now, feelsText, precip ?? label].filter(Boolean).join(" · ");
   // The status line already says the condition: the replacement value is the reading.
   const valText = unav ? "Unavailable" : now ? [now, feelsText].filter(Boolean).join(" · ") : label;
   return (

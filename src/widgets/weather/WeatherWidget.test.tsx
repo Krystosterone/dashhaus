@@ -38,6 +38,16 @@ describe("WeatherWidget", () => {
     expect(container.querySelector(".hd-area")?.textContent).toBe("Gusts 62 km/h · 70% rain at 03:00 · Partly cloudy · 2°–6°");
   });
 
+  it("leads a card with the most urgent warning and counts the rest; the sheet and the spoken label name them all", () => {
+    const stormy = { ...weather, windGustSpeed: 84, aqi: 320, uvIndex: 11 };
+    const { container, rerender } = render(<WeatherWidget entity={stormy} history={history} />);
+    expect(container.querySelector(".hd-area .wx-warn-l")?.textContent).toBe("Hazardous air +2");
+    expect(container.querySelector(".hd-area .wx-warn-s")?.textContent).toBe("3 warnings");
+    expect(screen.getByRole("img", { name: /^Warning: / }).getAttribute("aria-label")).toBe("Warning: Home: Hazardous air, Gusts 84 km/h, Extreme UV");
+    rerender(<WeatherWidget entity={stormy} history={history} variant="sheet" />);
+    expect(container.querySelector(".hd-area")?.textContent).toContain("Hazardous air · Gusts 84 km/h · Extreme UV");
+  });
+
   it("names falling rain once, by when it stops", () => {
     const hourly = [{ hour: 3, temperature: 6, condition: "cloudy" as const }];
     const { container } = render(<WeatherWidget entity={{ ...weather, state: "rainy" }} history={history} hourly={hourly} />);

@@ -113,7 +113,7 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
 - **A reading.** Neutral and without glow, like the sensor: glow stays with things that use energy. The condition icon is the badge at every size, bare (no disc); there is no illustration.
 - **Title.** The place name (the entity's name, "Home").
 - **Status line, most urgent first.**
-  - Warnings, with the shared warning cue and warning colour: poor air (US AQI over 100), gusts of 50 km/h or more, UV from very high (8) up.
+  - Warnings, with the shared warning cue and warning colour: poor air (US AQI over 100), gusts of 50 km/h or more, UV from very high (8) up. On a card the most urgent leads with a count of the others ("Hazardous air +2"), or under 260 px the count alone ("3 warnings"), so an ellipsis never hides that more exist; the sheet names every warning, and the spoken label always does.
   - Rain or snow in the next 12 hours: when it starts, with its chance if the forecast gives one ("70% rain at 14:00"), or when falling rain stops ("Rain until 16:00", which then stands in for the condition).
   - The condition ("Partly cloudy"), then today's low–high in whole degrees ("2°–8°"; "-3° to -1°" below zero, so a dash never meets a minus). Today's range combines the readings so far (`history`), the rest of today's hourly forecast, and the daily forecast.
 - **The reading.** The temperature, with feels-like always beside it on its baseline ("6.2°  Feels 4°"). A readout, with no container; tap it for the sheet. On standard and featured cards the temperature is the large figure. Only a reading too wide for its card (an extreme value at the narrowest widths) hides feels-like rather than overflow; it is still spoken.
