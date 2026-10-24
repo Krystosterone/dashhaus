@@ -34,7 +34,7 @@ type TProps = { seed: ToggleSeedName; footprint?: WidgetFootprint } & Open;
 const T = ({ seed, footprint, defaultOpen }: TProps) =>
   <ToggleTile {...useDemoToggle(TOGGLE_SEEDS[seed])} footprint={footprint} defaultOpen={defaultOpen} />;
 
-/** Nova Sleep Mode and Do Not Disturb: two modes that belong together, no header. */
+/** Nova Sleep and Do Not Disturb: two modes that belong together, no header. */
 function Sleep() {
   return (
     <JoinedBundle label="Sleep">

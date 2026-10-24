@@ -34,7 +34,21 @@ type: custom:home-dashboard
 title: Home
 show_time: true                 # a clock in the header
 sections:
-  - title: Security
+  - title: Quick actions
+    columns: 2
+    cards:
+      - entity: climate.living_room           # no options: the entity id alone
+        span: 2
+      - entity: light.living_room
+        footprint: compact
+      - entity: cover.living_room
+        footprint: compact
+      - joined: [input_boolean.guest_mode, input_boolean.dnd]
+        label: Modes
+        span: 2
+      - entity: switch.porch
+        footprint: compact
+  - title: Home status
     cards:
       - entity: alarm_control_panel.house
         footprint: compact
@@ -43,26 +57,13 @@ sections:
       - entity: weather.home
         aqi: sensor.home_aqi
         aqi_scale: US
-  - title: Living room
+  - title: Rooms
     columns: 2
     cards:
       - entity: sensor.living_room_temperature
         humidity: sensor.living_room_humidity
         battery: sensor.living_room_battery
-      - climate.living_room                 # no options: the entity id alone
-      - entity: light.living_room
-        span: 2                             # across both columns
-      - entity: cover.living_room
-        footprint: compact
         span: 2
-  - title: Modes
-    columns: 2
-    cards:
-      - joined: [input_boolean.guest_mode, input_boolean.dnd]
-        label: Modes
-        span: 2
-      - entity: switch.porch
-        footprint: compact
   - title: Nursery
     cards:
       - entity: sensor.owlet_sock_ac000w0123_sleep_state
@@ -113,7 +114,7 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | bundle | `joined: [...]`, `label`, `span` | Compact members sharing one card. |
 | bundle | `lead: ...`, `rows: [...]`, `label`, `sheet_title`, `span` | One standard card followed by compact rows. |
 
-README.md's Dashboards section has the composition rules: one hero per screen, alerts first, compact rows where alignment matters.
+README.md's Dashboards section has the composition rules: frequent actions first, then household status and the room/environment glance; one hero per screen; compact rows where alignment matters.
 
 ## What has and hasn't been verified
 

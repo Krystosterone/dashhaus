@@ -18,7 +18,7 @@ The host supplies authentication and an implementation of the transport (the rep
 - **One modular footprint system.** Every widget type and both bundle types use the same 60 px unit and 8 px gap: `compact` is 60 px, `standard` is 128 px, and `featured` is 264 px. In general, $n$ units occupy $n \times 60 + (n - 1) \times 8$ pixels.
 - **Height never changes with state, entity type or width.** Set `footprint="compact" | "standard" | "featured"` on any tile; the default is `standard`. Width may simplify the internal arrangement, but it never changes the footprint or promotes a standard card to featured.
 - **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its orb, control and tappable name in the same places; a bare reading icon drops its empty orb-sized box so the name keeps its room. `featured` explicitly adds the large readout and Today strip; below 260 px the readout, which only repeats the control or status line, yields to the orb. History remains in the sheet for smaller footprints.
-- **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a tap on the card's name (marked by a small chevron after it) or a press and hold on the main control. The tap area spans the header (name and readout) under the orb; in compact rows it spans the title column, stopping 8 px short of the control, or the whole row when there is no control. No card spends a column on an open button; the only circle button is the sheet's close.
+- **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a tap on the card's name (marked by a small chevron after it) or a press and hold on the main control. Below 186 px the chevron yields before the primary identity, but the name remains the same details button. The tap area spans the header (name and readout) under the orb; in compact rows it spans the title column, stopping 8 px short of the control, or the whole row when there is no control. No card spends a column on an open button; the only circle button is the sheet's close.
 - **One UI language.** Every signal has one meaning: shape says what you can do, fill says state, a dashed outline says unavailable. **Foundations / Palette** shows each one.
   - **Shape says what you can do.**
     - **Button** (`--btn`, raised): tap it. Orbs, toggle pills, the stepper's and open/close buttons, chips, keypad keys. A disabled button lies flat.
@@ -114,16 +114,16 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 
 - **One hero per screen.** Use `featured` only for a deliberate hero or history-bearing card. Width alone never upgrades a card.
 - **Glow follows urgency, not position.** In a one-column `Section`, later routine glows are damped, but a genuinely urgent state can outrank them. The `100% / 50% / 0%` damping is a local heuristic, not an external standard.
-- **Alerts first, then glance, then controls.** The example phone uses a compact alarm above the hero, room sensors as a glance grid, then modes, bundles and compact controls. Urgent and problem states get a warn marker rather than a brighter glow.
+- **Normal order: frequent actions, household status, then room/environment glance.** Phone and tablet pin actual frequent controls first; the automatic layout cannot infer frequency, so it puts all actionable sections first for the person to refine. There is no conditional alert region for now. Problems stay in their ordinary section with the shared warn marker rather than moving the layout or becoming brighter.
 - **Never glow alone.** Every important state has a non-colour cue: text, icon, position, or meaningful state motion.
-- **Use compact rows when alignment matters.** Stack them with the shared 8 px gap. Below 320 px, the inline control yields to name and value while the orb keeps its independent action.
+- **Use compact rows when alignment matters.** Stack them with the shared 8 px gap. Below 320 px of dashboard content, multi-column grids become one column so primary identity survives; inside a compact card below 320 px, the inline control yields to name and value while the orb keeps its independent action.
 - **Compact stays quiet.** Compact cards never glow and never take the colour slot. Colour and glow belong to standard, featured and sheet surfaces.
 - **Mixing concerns is valid.** Room-first, importance-first and task-first layouts use the same cards; no `Section` or bundle is needed to normalize them.
 - **One wall, one column per place** remains the example wall-panel composition, not a requirement of the card system.
 
 The Storybook dashboards demonstrate:
 
-- **Phone:** compact alarm and controls, standard hero and room cards, and both bundle types on the same grid.
-- **Tablet, landscape:** explicit featured weather/climate/light/security cards mixed with compact controls and standard room cards.
-- **Wall panel:** standard cards, compact cards and bundles in room columns.
+- **Phone:** quick actions first, then household status and room readings; compact controls and both bundle types share the same grid.
+- **Tablet, landscape:** one featured action with supporting controls, followed by household and nursery status, then outside and room readings.
+- **Wall panel:** one column per place, each ordered actions, status, then glance; the complete 1280 × 800 surface fits without scrolling.
 - **Phone, ungrouped footprints:** unrelated widget types, all three footprints and both bundle forms share one `WidgetGrid` without a section.

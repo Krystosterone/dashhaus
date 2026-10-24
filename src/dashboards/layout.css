@@ -1,12 +1,18 @@
 /* Dashboard layout: an optional page header, section/column helpers, and a standalone widget grid. */
-.dash { box-sizing: border-box; display: grid; gap: 22px; align-content: start; padding: 22px 16px 32px; color: var(--ink); font-family: var(--font); }
+.dash { container: dash / inline-size; box-sizing: border-box; display: grid; gap: 22px; align-content: start; padding: 22px 16px 32px; color: var(--ink); font-family: var(--font); }
 .dash *, .dash *::before, .dash *::after { box-sizing: border-box; }
-.dash-cols { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--gap, 20px); align-items: start; }
+.dash-cols { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--dash-cols-gap, 20px); align-items: start; }
 .dash-sec { display: grid; gap: 10px; align-content: start; min-width: 0; }
-.dash-sec-h { margin: 0; padding-inline: 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 15px; font-weight: 600; }
-.dash-sec-h small { font-size: 13px; font-weight: 500; color: var(--ink-2); }
-.dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--gap, 8px); align-items: start; }
-.dash-cell { min-width: 0; }
+.dash-sec-h { margin: 0; padding-inline: 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.dash-sec-h small { font-size: 13px; font-weight: 500; line-height: 1.3; color: var(--ink-2); }
+.dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--dash-grid-gap, 8px); align-items: start; }
+.dash-cell { min-width: 0; grid-column: span var(--span, 1); }
 /* One column: a stacked section reads top-down, so the first glowing card glows full and later ones
    are damped — the glow budget scales with composition, not just entity state. */
 .dash-grid--1 > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-damp: 0.5; }
+
+/* At the narrow phone boundary, identity wins over columns: footprints stay fixed while rows reflow. */
+@container dash (max-width: 319px) {
+  .dash-grid { grid-template-columns: minmax(0, 1fr); }
+  .dash-cell { grid-column: 1; }
+}

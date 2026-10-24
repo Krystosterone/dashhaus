@@ -30,7 +30,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const SleepAndDnd: Story = { name: "Joined: Sleep Mode and Do Not Disturb", args: { bundle: "sleep" } };
+export const SleepAndDnd: Story = { name: "Joined: Nova Sleep and Do Not Disturb", args: { bundle: "sleep" } };
 export const NightLight: Story = { name: "Lead: night light and white noise", args: { bundle: "nightLight" } };
 export const Upstairs: Story = { name: "Lead: 2nd floor and the Dyson heater", args: { bundle: "upstairs" } };
 

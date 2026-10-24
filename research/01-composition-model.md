@@ -2,7 +2,9 @@
 
 **Status:** complete · 2026-10-18 · **Codified:** README → Dashboards → "Composing for a glance" (commit `9849aa4`).
 
-**Decision:** Keep the hybrid composition. Do not switch the whole dashboard to room-first.
+**Decision:** Keep the hybrid composition. Normal order is frequent actions, household status, then the room/environment glance; do not switch the whole dashboard to room-first.
+
+The priority order is a product decision from the 2026-10-24 dashboard critique, not a universal order established by the sources below.
 
 ## Evidence
 
@@ -14,10 +16,12 @@
 ## Design contract
 
 1. Keep the hybrid: importance-first on phone/tablet, room/place-first on the wall panel.
-2. Room access on phone/tablet stays one step away — our acceptance criterion, not a vendor tap-count.
-3. Treat alert placement as an implementation inference, not vendor precedent or a shared authoring contract.
-4. The wall panel's room/place lead follows Home Assistant's area-oriented default; no first-party Apple or Google wall-panel surface was established.
-5. Keep hierarchy out of Mushroom: ordering belongs to the dashboard composition layer.
+2. In normal state, order frequent actions before household status, then room/environment glance.
+3. Automatic discovery cannot infer frequency; it orders all actionable sections first and leaves final pinning to the author.
+4. Do not add a conditional alert region yet. Problem states stay in place with the shared warn marker.
+5. Room access on phone/tablet stays one step away — our acceptance criterion, not a vendor tap-count.
+6. The wall panel's room/place lead follows Home Assistant's area-oriented default; no first-party Apple or Google wall-panel surface was established.
+7. Keep hierarchy out of Mushroom: ordering belongs to the dashboard composition layer.
 
 ## Limits
 
@@ -29,13 +33,15 @@
 
 ## Validation result
 
-Run 2026-10-18 against the Phone, Tablet, and Wall panel stories:
+Run 2026-10-24 against the Phone, Tablet, Wall panel, Ungrouped, and automatic-layout stories:
 
-- **Cross-room quick control:** pass at one tap; Reading lamp toggled in Phone → Controls and restored.
-- **Single-room lookup:** fail on phone and tablet; neither exposes room inventory. Wall panel exposes Living room at depth 0.
-- **Actionable alert:** partial because the open Garage door remains in Controls; no dedicated alert placement or zero-alert state is exercised.
+- **Cross-room quick control:** pass; phone and tablet lead with pinned quick actions, and automatic discovery puts every actionable section first.
+- **Household and room glance:** pass for the current scope; household status precedes room/environment readings. Full room inventory/navigation remains outside the demonstrated phone and tablet surfaces.
+- **Actionable alert:** deliberately remains in place. The open Garage door keeps its warning marker in Quick actions; no conditional alert region is reserved.
+- **Wall constraint:** pass at 1280 × 800 with no horizontal or vertical overflow.
+- **Identity and hierarchy:** pass at the target viewports; visible primary labels do not clip, section headings are `h2`, and cards inside sections are `h3`.
 
-Alert placement and the missing phone/tablet room path remain composition concerns rather than shared `Section` behavior.
+This refinement closes ordering and first-frame cohesion. Full room navigation remains a separate composition concern.
 
 ## Sources
 

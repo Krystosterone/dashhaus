@@ -41,10 +41,10 @@ const byName = (states: Record<string, AutoState>) => (a: string, b: string) => 
 const OWLET = /^sensor\.\w+_sleep_state$/;
 
 /**
- * A starting dashboard config for a house: alerts first, then the glance (weather, comfort, room air),
- * then modes, the nursery, then one section of compact controls per area. It follows the README's composition rules
- * (no featured hero is chosen for you; compact rows for controls) and produces plain YAML-shaped data
- * that the person then edits.
+ * A starting dashboard config for a house: actionable sections first, then household status, then
+ * the outside and room glance. Automatic discovery cannot know which controls a person uses most,
+ * so it keeps all discovered actions in deterministic domain/area order for the person to refine.
+ * No featured hero is chosen; compact rows carry secondary controls.
  */
 export function autoDashboard(input: AutoInput, title = "Home"): Record<string, unknown> {
   const { states, entities = {}, devices = {}, areas = {} } = input;
@@ -63,10 +63,8 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
 
   const sections: Section[] = [];
   const alarms = ofDomain("alarm_control_panel");
-  if (alarms.length) sections.push({ title: "Security", cards: alarms.map((entity) => ({ entity, footprint: "compact" })) });
 
   const weather = ofDomain("weather")[0];
-  if (weather) sections.push({ title: "Outside", cards: [weather] });
 
   const climate = ofDomain("climate");
   if (climate.length) {
@@ -93,13 +91,11 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
       air.push(humidity || battery ? { entity: id, ...(humidity && { humidity }), ...(battery && { battery }) } : id);
     }
   }
-  if (air.length) sections.push({ title: "Rooms", columns: 2, cards: air });
 
   const modes = ofDomain("input_boolean");
   if (modes.length) sections.push({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });
 
   const socks = sorted(visible.filter((id) => OWLET.test(id)));
-  if (socks.length) sections.push({ title: "Nursery", cards: socks });
 
   // Controls, one section per area, then whatever has no area.
   const controls = ofDomain("cover", "light", "switch", "humidifier");
@@ -116,6 +112,13 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
     ids.sort((a, b) => order.indexOf(domainOf(a)) - order.indexOf(domainOf(b)));
     sections.push({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact" })) });
   }
+
+  // Automatic discovery cannot infer true frequency. It puts every action first, then stable household
+  // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
+  if (alarms.length) sections.push({ title: "Security", cards: alarms.map((entity) => ({ entity, footprint: "compact" })) });
+  if (socks.length) sections.push({ title: "Nursery", cards: socks });
+  if (weather) sections.push({ title: "Outside", cards: [weather] });
+  if (air.length) sections.push({ title: "Rooms", cards: air });
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
   return sections.length ? { type: "custom:home-dashboard", title, sections } : { type: "custom:home-dashboard", title };

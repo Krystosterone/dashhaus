@@ -123,6 +123,15 @@
 .hd-chev { flex: none; width: 0.8em; height: 0.8em; color: var(--ink-3); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: color 150ms var(--ease-out), translate 160ms var(--ease-out); }
 @media (hover: hover) and (pointer: fine) { .hd-open:hover .hd-chev { color: var(--ink); translate: 2px 0; } }
 
+/* In very narrow cards, preserve the primary identity before the redundant details chevron. */
+@container hd (max-width: 185px) {
+  .hd-chev { display: none; }
+}
+/* In a narrow compact value line, keep actionable mode/setpoint copy before the repeated current reading. */
+@container hd (max-width: 219px) {
+  .hd-sub-optional { display: none; }
+}
+
 /* Circle button (close) */
 .hd-circ { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -3px -4px -3px 0; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 50%; }
 .hd-circ-i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--btn); box-shadow: var(--btn-shadow); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }

@@ -103,7 +103,6 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
   const summary = !history ? "" : unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
 
   // The compact value appears under the name, or in place of a hidden control.
-  const subText = cur != null && !unav ? `${fmtCurrent(cur)}° · ${setText}` : setText;
   // The status line already gives the room temperature: the replacement value is just the setpoint.
   const valText = setText;
   return (
@@ -116,7 +115,12 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
           <p className="hd-area">{sheet && e.area ? `${e.area} · ${status}` : status}</p>
-          {compact && <p className="hd-sub">{subText}</p>}
+          {compact && (
+            <p className="hd-sub">
+              {cur != null && !unav && <span className="hd-sub-optional">{fmtCurrent(cur)}° · </span>}
+              {setText}
+            </p>
+          )}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}

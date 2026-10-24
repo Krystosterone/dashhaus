@@ -42,19 +42,19 @@ const input = {
 };
 
 describe("autoDashboard", () => {
-  it("lays out alerts, the glance, modes, the nursery, then compact controls per area", () => {
+  it("lays out actions, household status, then the room and environment glance", () => {
     expect(autoDashboard(input)).toEqual({
       type: "custom:home-dashboard",
       title: "Home",
       sections: [
-        { title: "Security", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }] },
-        { title: "Outside", cards: ["weather.home"] },
         { title: "Comfort", cards: ["climate.attic", { entity: "climate.hall", footprint: "compact" }] },
-        { title: "Rooms", columns: 2, cards: [{ entity: "sensor.bed_t", humidity: "sensor.bed_h", battery: "sensor.bed_b" }, "sensor.bath_h"] },
         { title: "Modes", columns: 2, cards: [{ entity: "input_boolean.guest", footprint: "compact" }] },
-        { title: "Nursery", cards: ["sensor.owlet_sock_a_sleep_state", "sensor.owlet_sock_b_sleep_state"] },
         { title: "Bedroom", cards: [{ entity: "cover.bed", footprint: "compact" }, { entity: "light.bed", footprint: "compact" }] },
         { title: "Other", cards: [{ entity: "light.porch", footprint: "compact" }] },
+        { title: "Security", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }] },
+        { title: "Nursery", cards: ["sensor.owlet_sock_a_sleep_state", "sensor.owlet_sock_b_sleep_state"] },
+        { title: "Outside", cards: ["weather.home"] },
+        { title: "Rooms", cards: [{ entity: "sensor.bed_t", humidity: "sensor.bed_h", battery: "sensor.bed_b" }, "sensor.bath_h"] },
       ],
     });
   });

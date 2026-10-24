@@ -32,6 +32,9 @@ export type WidgetFootprint = "compact" | "standard" | "featured";
 
 export type Role = "energy" | "state" | "reading";
 
+/** Card titles are H2 outside a titled section and H3 inside one. Detail sheets reset to H2. */
+export const CardHeadingLevelContext = createContext<2 | 3>(2);
+
 /** The props every card widget takes, whatever its entity. A widget's props extend this. */
 export interface CardProps {
   /** "card" sits on the dashboard; "sheet" is the detail view with everything visible. */
@@ -148,10 +151,11 @@ export function Orb({ label, pressed, unavailable, intensity = 1, small, onToggl
    The button's hit area is stretched by CSS (.hd-open::after) over the header, or the whole compact row.
    `id` labels the card and the heading, so it sits on the name alone; the hint ("details") only joins the button's name. */
 export function CardTitle({ id, name, onOpen, openHint = "details", children }: { id: string; name: string; onOpen?: () => void; openHint?: string; children?: ReactNode }) {
+  const Heading = useContext(CardHeadingLevelContext) === 3 ? "h3" : "h2";
   return (
     <div className="hd-title">
       {/* Labelled by the name alone, so the heading stays "Kitchen" while the button inside reads "Kitchen details". */}
-      <h2 className="hd-name" aria-labelledby={onOpen ? id : undefined}>
+      <Heading className="hd-name" aria-labelledby={onOpen ? id : undefined}>
         {onOpen
           ? (
             <button type="button" className="hd-open" title={name} aria-label={`${name} ${openHint}`} aria-haspopup="dialog" onClick={onOpen}>
@@ -160,7 +164,7 @@ export function CardTitle({ id, name, onOpen, openHint = "details", children }: 
             </button>
           )
           : <span id={id} title={name}>{name}</span>}
-      </h2>
+      </Heading>
       {children}
     </div>
   );
@@ -427,17 +431,19 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
       onPointerCancel={endDrag}
     >
       {mounted && (
-        <div className={`hd-c${extra ? " hd-c--more" : ""}`}>
-          {children}
-          {extra && (
-            <SheetExtra.Provider value={null}>
-              <section className="hd-more" aria-label={extra.title}>
-                <h3 className="hd-blk-h">{extra.title}</h3>
-                {extra.content}
-              </section>
-            </SheetExtra.Provider>
-          )}
-        </div>
+        <CardHeadingLevelContext.Provider value={2}>
+          <div className={`hd-c${extra ? " hd-c--more" : ""}`}>
+            {children}
+            {extra && (
+              <SheetExtra.Provider value={null}>
+                <section className="hd-more" aria-label={extra.title}>
+                  <h3 className="hd-blk-h">{extra.title}</h3>
+                  {extra.content}
+                </section>
+              </SheetExtra.Provider>
+            )}
+          </div>
+        </CardHeadingLevelContext.Provider>
       )}
     </dialog>
   );

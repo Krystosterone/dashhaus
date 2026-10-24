@@ -36,7 +36,7 @@ export const TOGGLE_SEEDS = {
     past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
   novaSleep: {
-    entity: { entityId: "input_boolean.nova_sleep_mode", name: "Nova Sleep Mode", area: "Nursery", state: "off", icon: "moon",
+    entity: { entityId: "input_boolean.nova_sleep_mode", name: "Nova Sleep", area: "Nursery", state: "off", icon: "moon",
       description: "Dims the upstairs hallway, mutes speakers near Nursery and holds the doorbell chime.", lastChanged: "07:05" },
     past: [1, 1, 1, 1, 1, 1, 1, 0.1, 0, 0, 0],
   },

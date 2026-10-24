@@ -36,44 +36,33 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Phone: arbitrary semantic sections composed from the same footprint matrix. Standard cards adapt
-    their anatomy to cell width; compact cards and bundles stay on the shared 60px rhythm. */
+/** Phone: frequent actions first, then whole-home status and room readings. Compact controls and
+    bundles keep the shared 60px rhythm while secondary demo-only variants stay out of the overview. */
 function PhoneDashboard() {
   return (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Home" now={NOW}>
-        <Section title="Security">
-          <Alarm alarm="ring" readOnly footprint="compact" />
+        <Section title="Quick actions" columns={2}>
+          <Cell span={2}><Bundle bundle="nightLight" /></Cell>
+          <Cell span={2}><Bundle bundle="sleep" /></Cell>
+          <Toggle mode="quiet" footprint="compact" />
+          <Toggle mode="guest" footprint="compact" />
+          <Cover cover="curtains" footprint="compact" />
+          <Cover cover="garage" footprint="compact" />
+          <Light light="dimmable" footprint="compact" />
+          <Humidifier seed="on" footprint="compact" />
         </Section>
-        <Section title="Comfort">
-          <Climate unit="heating" />
+        <Section title="Home status">
+          <Alarm alarm="ring" readOnly footprint="compact" />
+          <Climate unit="heating" footprint="compact" />
+          <Owlet seed="deep" />
+          <Climate unit="nurseryDyson" footprint="compact" />
         </Section>
         <Section title="Rooms" columns={2}>
           <Sensor sensor="living" />
           <Sensor sensor="bedroom" />
           <Sensor sensor="bathroom" />
           <Sensor sensor="basement" />
-        </Section>
-        <Section title="Modes" columns={2}>
-          <Cell span={2}><Bundle bundle="sleep" /></Cell>
-          <Toggle mode="quiet" footprint="compact" />
-          <Toggle mode="guest" footprint="compact" />
-        </Section>
-        <Section title="Nursery">
-          <Owlet seed="deep" />
-          <Bundle bundle="nightLight" />
-          <Climate unit="nurseryDyson" footprint="compact" />
-        </Section>
-        <Section title="Controls">
-          <Climate unit="cooling" footprint="compact" />
-          <Climate unit="range" footprint="compact" />
-          <Cover cover="curtains" footprint="compact" />
-          <Cover cover="garage" footprint="compact" />
-          <Light light="dimmable" footprint="compact" />
-          <Light light="dimmableOff" footprint="compact" />
-          <Light light="onOff" footprint="compact" />
-          <Light light="unavailable" footprint="compact" />
-          <Humidifier seed="on" footprint="compact" />
         </Section>
       </DashboardPage>
     </Device>
@@ -82,15 +71,41 @@ function PhoneDashboard() {
 
 export const Phone: Story = { render: () => <PhoneDashboard /> };
 
-/** Tablet, landscape: weather and room sensors at the top, then climate and security with covers and
-    lights, and the modes and bundles last. */
+/** Tablet, landscape: a single action hero and its supporting controls lead, followed by household
+    status and nursery state, then the outside and room glance. */
 export const Tablet: Story = {
   render: () => (
     <Device label="Tablet, landscape" width={1180} height={820}>
       <DashboardPage title="Home" now={NOW} showTime>
+        <Section title="Quick actions" columns={2}>
+          <Light light="dimmable" footprint="featured" />
+          <WidgetGrid columns={2}>
+            <Cell span={2}><Bundle bundle="sleep" /></Cell>
+            <Toggle mode="quiet" footprint="compact" />
+            <Toggle mode="guest" footprint="compact" />
+            <Light light="dimmableOff" footprint="compact" />
+            <Light light="dimmableNoWarmth" footprint="compact" />
+            <Cover cover="curtains" footprint="compact" />
+            <Cover cover="garage" footprint="compact" />
+          </WidgetGrid>
+        </Section>
+        <Columns columns={2}>
+          <Section title="Home status">
+            <Alarm alarm="ring" readOnly footprint="compact" />
+            <Climate unit="heating" />
+            <Climate unit="cooling" footprint="compact" />
+            <Climate unit="range" footprint="compact" />
+            <Climate unit="off" footprint="compact" />
+          </Section>
+          <Section title="Nursery" columns={2}>
+            <Owlet seed="deep" />
+            <Bundle bundle="nightLight" />
+            <Bundle bundle="upstairs" />
+          </Section>
+        </Columns>
         <Columns columns={2}>
           <Section title="Outside">
-            <Weather weather="partly" footprint="featured" />
+            <Weather weather="partly" />
             <Light light="onOff" footprint="compact" />
             <Sensor sensor="garage" footprint="compact" />
           </Section>
@@ -101,44 +116,12 @@ export const Tablet: Story = {
             <Sensor sensor="basement" />
           </Section>
         </Columns>
-        <Columns columns={2}>
-          <Section title="Climate">
-            <Climate unit="heating" footprint="featured" />
-            <Climate unit="cooling" footprint="compact" />
-            <Climate unit="range" footprint="compact" />
-            <Climate unit="off" footprint="compact" />
-          </Section>
-          <Section title="Lights">
-            <Light light="dimmable" footprint="featured" />
-            <Light light="dimmableOff" footprint="compact" />
-            <Light light="dimmableNoWarmth" footprint="compact" />
-            <Light light="onOff" footprint="compact" />
-          </Section>
-          <Section title="Security">
-            <Alarm alarm="ring" readOnly footprint="featured" />
-          </Section>
-          <Section title="Covers">
-            <Cover cover="curtains" footprint="compact" />
-            <Cover cover="blind" footprint="compact" />
-            <Cover cover="garage" footprint="compact" />
-          </Section>
-        </Columns>
-        <Section title="Modes" columns={4}>
-          <Cell span={2}><Bundle bundle="sleep" /></Cell>
-          <Toggle mode="quiet" footprint="compact" />
-          <Toggle mode="guest" footprint="compact" />
-        </Section>
-        <Section title="Nursery" columns={2}>
-          <Owlet seed="deep" />
-          <Bundle bundle="nightLight" />
-          <Bundle bundle="upstairs" />
-        </Section>
       </DashboardPage>
     </Device>
   ),
 };
 
-/** Wall panel, landscape: one column per place, readable from across the room. */
+/** Wall panel, landscape: one column per place, ordered actions, status, then glance. */
 export const WallPanel: Story = {
   name: "Wall panel",
   render: () => (
@@ -146,31 +129,29 @@ export const WallPanel: Story = {
       <DashboardPage title="Home" now={NOW} showTime style={{ paddingBottom: 0 }}>
         <Columns columns={4} gap={16}>
           <Section title="Living room">
-            <Sensor sensor="living" name="Air" />
-            <Climate unit="heating" />
-            <Light light="dimmable" />
+            <Light light="dimmable" footprint="featured" />
             <Cover cover="curtains" footprint="compact" />
             <Light light="dimmableOff" footprint="compact" />
-            <Light light="unavailable" footprint="compact" />
+            <Climate unit="heating" footprint="compact" />
+            <Sensor sensor="living" name="Air" />
           </Section>
           <Section title="Bedroom">
-            <Sensor sensor="bedroom" name="Air" />
-            <Climate unit="cooling" />
             <Light light="dimmableNoWarmth" />
             <Bundle bundle="sleep" />
+            <Climate unit="cooling" />
+            <Sensor sensor="bedroom" name="Air" />
           </Section>
           <Section title="Nursery and office">
-            <Owlet seed="deep" />
             <Bundle bundle="nightLight" />
             <Bundle bundle="upstairs" />
+            <Owlet seed="deep" />
             <Sensor sensor="office" footprint="compact" />
-            <Climate unit="range" footprint="compact" />
           </Section>
           <Section title="Outside">
-            <Alarm alarm="ring" readOnly footprint="compact" />
-            <Weather weather="partly" />
             <Light light="onOff" />
             <Cover cover="garage" footprint="compact" />
+            <Alarm alarm="ring" readOnly footprint="compact" />
+            <Weather weather="partly" />
             <Sensor sensor="garage" footprint="compact" />
           </Section>
         </Columns>
@@ -179,20 +160,20 @@ export const WallPanel: Story = {
   ),
 };
 
-/** One ungrouped grid freely mixes domains, bundles and every footprint without semantic sections. */
+/** One ungrouped grid keeps the same priority order while freely mixing every footprint and bundle form. */
 export const PhoneUngrouped: Story = {
   name: "Phone, ungrouped footprints",
   render: () => (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Mixed dashboard" subtitle="No sections or groups" now={NOW}>
         <WidgetGrid columns={2}>
-          <Cell span={2}><Weather weather="partly" footprint="featured" /></Cell>
-          <Sensor sensor="living" name="Air" />
-          <Light light="dimmable" />
+          <Cell span={2}><Light light="dimmable" footprint="featured" /></Cell>
+          <Bundle bundle="sleep" />
+          <Bundle bundle="nightLight" />
           <Climate unit="heating" footprint="compact" />
           <Cover cover="garage" footprint="compact" />
-          <Cell span={2}><Bundle bundle="sleep" /></Cell>
-          <Cell span={2}><Bundle bundle="nightLight" /></Cell>
+          <Sensor sensor="living" name="Air" />
+          <Weather weather="partly" />
         </WidgetGrid>
       </DashboardPage>
     </Device>

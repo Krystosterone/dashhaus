@@ -146,12 +146,12 @@ edit(fixtures, afterLast(/^import \w+ from "\.\.\/fixtures\/.*$/gm, fill(`import
 edit(fixtures, afterLast(/^import \{ \w+FromHass \} from "\.\/.*$/gm, fill(`import { __name__FromHass } from "./__name__";\n`)));
 edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__label__", fixture: __name__, map: __name__FromHass, keepsState: ${!reading} },`)));
 
-// On a dashboard: a control as a compact row in the phone's Controls section, a reading beside the room sensors.
+// On a dashboard: a control as a compact row in the phone's Quick actions section, a reading beside the room sensors.
 // Move it where it belongs; this only puts it on screen.
 const dashboards = "src/dashboards/Dashboards.stories.tsx";
 edit(dashboards, afterLast(/^import \{ Demo\w+Tile as \w+ \} from "\.\.\/widgets\/.*$/gm, fill(`import { Demo__Name__Tile as __Name__ } from "../widgets/__name__/demo/Demo__Name__Tile";\n`)));
 edit(dashboards, (s) => {
-  const start = s.indexOf(reading ? '<Section title="Rooms" columns={2}>' : '<Section title="Controls">');
+  const start = s.indexOf(reading ? '<Section title="Rooms" columns={2}>' : '<Section title="Quick actions" columns={2}>');
   const end = start === -1 ? -1 : s.indexOf("</Section>", start);
   if (end === -1) return s;
   const indent = s.slice(s.lastIndexOf("\n", end) + 1, end);
