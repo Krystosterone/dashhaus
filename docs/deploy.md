@@ -9,7 +9,7 @@ The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a 
    - `HA_TOKEN`: a long-lived access token from an admin user (Profile → Security → Long-lived access tokens). Only the deploy script uses it; it never goes into the bundle.
    - `HA_WWW`: where Home Assistant's `/config/www` folder is. Over SSH, `root@homeassistant.local:/config/www` (Terminal & SSH add-on, with your public key in its `authorized_keys`), with `HA_SSH_PORT` if it isn't 22. A folder on this machine also works: the Samba add-on's share mounted at `/Volumes/config/www`, or a Docker volume.
 2. Run `npm run deploy`.
-3. Open the **Home** dashboard in the sidebar.
+3. Reload any Home Assistant tab that was already open, then open the **Home** dashboard in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
 
 `npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates the `home-dashboard` dashboard with one panel view and a layout generated from your house. Run it again after every code change. It updates the resource and never touches a dashboard that already exists, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
 
@@ -118,4 +118,6 @@ README.md's Dashboards section has the composition rules: frequent actions first
 
 ## What has and hasn't been verified
 
-Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API. None of that is a live Home Assistant instance. The first real deploy is the first live check of SSH upload, resource registration, dashboard creation and the card inside the real frontend.
+Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API.
+
+Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port): the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live: service calls from the cards, the YAML-mode resource fallback, and a redeploy over an existing dashboard.
