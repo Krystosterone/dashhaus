@@ -1,37 +1,8 @@
-/* Climate-specific parts. Shell, header, orb, pills, today strip, chips and sheet come from src/shared/card.css. */
+/* Climate-specific parts. Shell, header, orb, pills, setpoint stepper, today strip, chips and sheet come from src/shared/card.css. */
 
-/* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a
-   state: the orb says the unit is on, the status line whether it is heating, cooling or idle. */
-.cw-step {
-  --btn: calc(var(--slot-h) - 2 * var(--inset));
-  display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
-  height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--groove); color: var(--ink); box-shadow: var(--groove-shadow);
-}
-.cw-step-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; touch-action: manipulation; }
-.cw-step-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
-.cw-step-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-.cw-step-b:active > span { scale: 0.9; }
-.cw-step-b:disabled { cursor: default; }
-/* A disabled button lies flat. */
-.cw-step-b:disabled > span { background: transparent; box-shadow: none; color: var(--ink-3); }
-.cw-step-b:focus-visible { outline: none; }
-.cw-step-b:focus-visible > span { outline: 2px solid var(--ink); outline-offset: 1px; }
-@media (hover: hover) and (pointer: fine) { .cw-step-b:not(:disabled):hover > span { background: color-mix(in oklab, var(--btn) 94%, var(--ink)); } }
-
-.cw-step-v { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.cw-step-v small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
-.cw-step-k { display: none; font-size: 12.5px; font-weight: 600; opacity: 0.72; }
+/* The mode icon before a compact setpoint (the range bar's label; the stepper has its own, hd-step-cue). */
 .cw-control-mode { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
 .cw-control-mode svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-
-@container hd (min-width: 260px) {
-  .cw-step-k { display: inline; }
-}
-.hd--compact .cw-step-k { display: none; }
-.hd--compact .cw-step-v { gap: 4px; font-size: 13.5px; }
-.hd--sheet .cw-step-v { font-size: 18px; }
-.hd--sheet .cw-step-k { display: inline; }
 
 /* Heat/cool range on one bar */
 .cw-rb {
@@ -106,10 +77,9 @@
 
 .cw-fine-b { transition: scale var(--press) var(--ease-out); }
 .cw-fine-b:not(:disabled):active { scale: 0.92; }
-.cw-step-b:disabled:active > span { scale: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cw-rb, .cw-step-b > span, .cw-fine-b { scale: none !important; }
+  .cw-rb, .cw-fine-b { scale: none !important; }
 }
 
 /* Range: the zone the unit is working in fills with the accent; the rest is groove. */

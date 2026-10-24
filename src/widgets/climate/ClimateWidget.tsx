@@ -1,7 +1,6 @@
-import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
 import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase, orderedRange } from "./modes";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateWidget.css";
@@ -26,25 +25,6 @@ export interface ClimateWidgetProps extends CardProps {
   onClose?: () => void;
   /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent. */
   color?: ColorProp;
-}
-
-const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
-const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
-
-function Stepper({ label, kicker, modeCue, value, min, max, step, onChange }: { label: string; kicker?: string; modeCue?: ReactNode; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
-  const down = Math.max(min, +(value - step).toFixed(2));
-  const up = Math.min(max, +(value + step).toFixed(2));
-  return (
-    <div className="cw-step" role="group" aria-label={label}>
-      <button type="button" className="cw-step-b" aria-label={`Lower to ${fmtTarget(down)}°`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
-      <span className="cw-step-v" aria-live="polite">
-        {kicker && <span className="cw-step-k">{kicker}</span>}
-        {modeCue && <span className="cw-control-mode">{modeCue}</span>}
-        {fmtTarget(value)}<small>°</small>
-      </span>
-      <button type="button" className="cw-step-b" aria-label={`Raise to ${fmtTarget(up)}°`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
-    </div>
-  );
 }
 
 /**
@@ -82,7 +62,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
   else if (range) {
     slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={compact ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
   } else if (single) {
-    slot = <Stepper label={`${e.name} target temperature`} kicker={compact ? undefined : kicker} modeCue={compact ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
+    slot = <Stepper label={`${e.name} target temperature`} kicker={compact ? undefined : kicker} cue={compact ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} unit="°" format={fmtTarget} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
   } else {
     slot = <TogglePill label={`${e.name}: ${MODE_META[mode].label}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
   }

@@ -190,6 +190,42 @@
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
 
+/* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a
+   state: the orb says the unit is on, the status line what it is doing. */
+.hd-step {
+  --btn: calc(var(--slot-h) - 2 * var(--inset));
+  display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
+  height: var(--slot-h); min-width: 0; border-radius: 99px;
+  background: var(--groove); color: var(--ink); box-shadow: var(--groove-shadow);
+}
+.hd-step-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; touch-action: manipulation; }
+.hd-step-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
+.hd-step-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.hd-step-b:active > span { scale: 0.9; }
+.hd-step-b:disabled { cursor: default; }
+/* A disabled button lies flat. */
+.hd-step-b:disabled > span { background: transparent; box-shadow: none; color: var(--ink-3); }
+.hd-step-b:disabled:active > span { scale: 1; }
+.hd-step-b:focus-visible { outline: none; }
+.hd-step-b:focus-visible > span { outline: 2px solid var(--ink); outline-offset: 1px; }
+@media (hover: hover) and (pointer: fine) { .hd-step-b:not(:disabled):hover > span { background: color-mix(in oklab, var(--btn) 94%, var(--ink)); } }
+
+.hd-step-v { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hd-step-v small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
+.hd-step-k { display: none; font-size: 12.5px; font-weight: 600; opacity: 0.72; }
+.hd-step-cue { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
+.hd-step-cue svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+@container hd (min-width: 260px) {
+  .hd-step-k { display: inline; }
+}
+.hd--compact .hd-step-k { display: none; }
+.hd--compact .hd-step-v { gap: 4px; font-size: 13.5px; }
+.hd--sheet .hd-step-v { font-size: 18px; }
+.hd--sheet .hd-step-k { display: inline; }
+@media (prefers-reduced-motion: reduce) {
+  .hd-step-b > span { scale: none !important; }
+}
+
 /* Today: 24 hourly sticks. Height = intensity that hour; the current hour is the accent. */
 .hd-tl { display: none; gap: 8px; }
 .hd-tl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }

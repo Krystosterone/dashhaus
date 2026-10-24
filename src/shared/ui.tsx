@@ -219,6 +219,30 @@ export function UnavailableSlot({ lastSeen }: { lastSeen?: string }) {
   );
 }
 
+const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
+const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
+
+/**
+ * Setpoint stepper: a groove with a minus and a plus button at its ends, the value between them.
+ * `kicker` says what the value does ("Heat to"); it shows from 260 px and in the sheet. `cue` is a small
+ * icon before the value, for compact rows that keep their mode there.
+ */
+export function Stepper({ label, kicker, cue, value, unit, format = String, min, max, step, onChange }: { label: string; kicker?: string; cue?: ReactNode; value: number; unit: string; format?: (v: number) => string; min: number; max: number; step: number; onChange: (v: number) => void }) {
+  const down = Math.max(min, +(value - step).toFixed(2));
+  const up = Math.min(max, +(value + step).toFixed(2));
+  return (
+    <div className="hd-step" role="group" aria-label={label}>
+      <button type="button" className="hd-step-b" aria-label={`Lower to ${format(down)}${unit}`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
+      <span className="hd-step-v" aria-live="polite">
+        {kicker && <span className="hd-step-k">{kicker}</span>}
+        {cue && <span className="hd-step-cue">{cue}</span>}
+        {format(value)}<small>{unit}</small>
+      </span>
+      <button type="button" className="hd-step-b" aria-label={`Raise to ${format(up)}${unit}`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
+    </div>
+  );
+}
+
 /* ---------- Today strip ---------- */
 /** `forecastFrom`: hours from this index on are forecasts, drawn as lighter sticks. */
 export function TodayStrip({ samples, currentHour, summary, title = "Today", tone, forecastFrom }: { samples: HourSample[]; currentHour: number; summary: string; title?: string; tone?: string; forecastFrom?: number }) {
