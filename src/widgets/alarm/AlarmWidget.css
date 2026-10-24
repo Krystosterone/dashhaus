@@ -57,6 +57,8 @@
 /* Compact mode controls keep real 44px targets. Five or more choices move to the sheet instead of
    shrinking below a reliable touch size; any mode switch also yields below 360px. */
 .hd--compact .al-sw { padding: 0; }
+/* No groove padding here, so each segment is a full 1/n: inset the thumb inside its own segment. */
+.hd--compact .al-thumb { width: calc(100% / var(--n) - 2 * var(--inset)); transform: translateX(calc(var(--i) * (100% + 2 * var(--inset)))); }
 .hd--compact.al:has(.al-sw:not([data-many])) .hd-slot { width: 176px; }
 .hd--compact.al:has(.al-sw[data-many]) :is(.hd-slot, .hd-area) { display: none; }
 .hd--compact.al:has(.al-sw[data-many]) .hd-sub {
