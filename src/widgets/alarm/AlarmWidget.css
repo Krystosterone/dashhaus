@@ -54,6 +54,9 @@
 .hd--sheet .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
 .hd--sheet .al-seg-l { display: inline; }
 .hd--compact .al-seg svg { width: 15px; height: 15px; }
+/* The groove's inset belongs to the target: on standard and featured cards a segment, and the delay's
+   button, reach the slot's full 44px height while their visible pills keep the inset. */
+.al:not(.hd--compact) :is(.al-seg, .al-cd-b)::after { content: ""; position: absolute; inset: calc(-1 * var(--inset)) 0; }
 /* Compact mode controls keep real 44px targets. Five or more choices move to the sheet instead of
    shrinking below a reliable touch size; any mode switch also yields below 360px. */
 .hd--compact .al-sw { padding: 0; }
