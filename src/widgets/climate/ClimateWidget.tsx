@@ -40,7 +40,8 @@ function useSlotTransition(kind: string) {
     if (!slot?.animate) return;
 
     const styles = getComputedStyle(slot);
-    const duration = Number.parseFloat(styles.getPropertyValue("--press"));
+    const press = styles.getPropertyValue("--press").trim();
+    const duration = Number.parseFloat(press) * (press.endsWith("ms") ? 1 : 1000);
     const easing = styles.getPropertyValue("--ease-out").trim();
     if (!duration || !easing) return;
 
