@@ -4,6 +4,12 @@
 .cw-control-mode { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
 .cw-control-mode svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
+/* Off stays actionable without letting one large neutral surface outweigh the whole card. */
+.cw[data-state="off"] .hd-pill {
+  justify-content: center;
+  background: color-mix(in oklab, var(--btn) 45%, var(--card-solid));
+}
+
 /* Heat/cool range on one bar */
 .cw-rb {
   --kn: 48px;

@@ -14,7 +14,7 @@ export interface ClimateWidgetProps extends CardProps {
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
    */
   showControl?: boolean;
-  /** Orb and Off pill: turn off, or back on to the last mode. */
+  /** Orb and Turn on pill: turn off, or back on to the last mode. */
   onToggle: () => void;
   onTargetChange: (t: number) => void;
   onRangeChange?: (low: number, high: number) => void;
@@ -58,7 +58,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} extra="Turn on">Off</TogglePill>;
+  else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle}>Turn on</TogglePill>;
   else if (range) {
     slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={compact ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
   } else if (single) {
