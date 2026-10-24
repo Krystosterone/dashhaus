@@ -22,7 +22,7 @@
 .cw-step-v { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .cw-step-v small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
 .cw-step-k { display: none; font-size: 12.5px; font-weight: 600; opacity: 0.72; }
-.cw-control-mode { display: inline-grid; flex: 0 0 13px; place-items: center; }
+.cw-control-mode { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
 .cw-control-mode svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
 @container hd (min-width: 260px) {
