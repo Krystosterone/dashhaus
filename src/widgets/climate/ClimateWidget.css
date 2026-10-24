@@ -10,6 +10,8 @@
   background: color-mix(in oklab, var(--btn) 45%, var(--card-solid));
 }
 
+.cw-slot { display: grid; min-width: 0; }
+
 /* Heat/cool range on one bar */
 .cw-rb {
   --kn: 48px;

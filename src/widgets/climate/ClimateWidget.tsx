@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "./types";
 import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase, orderedRange } from "./modes";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
@@ -25,6 +26,35 @@ export interface ClimateWidgetProps extends CardProps {
   onClose?: () => void;
   /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent. */
   color?: ColorProp;
+}
+
+function useSlotTransition(kind: string) {
+  const slotRef = useRef<HTMLDivElement>(null);
+  const previousKind = useRef(kind);
+
+  useLayoutEffect(() => {
+    if (previousKind.current === kind) return;
+    previousKind.current = kind;
+
+    const slot = slotRef.current;
+    if (!slot?.animate) return;
+
+    const styles = getComputedStyle(slot);
+    const duration = Number.parseFloat(styles.getPropertyValue("--press"));
+    const easing = styles.getPropertyValue("--ease-out").trim();
+    if (!duration || !easing) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const animation = slot.animate(
+      reduced
+        ? [{ opacity: 0 }, { opacity: 1 }]
+        : [{ opacity: 0, transform: "scale(0.97)" }, { opacity: 1, transform: "scale(1)" }],
+      { duration, easing },
+    );
+    return () => animation.cancel();
+  }, [kind]);
+
+  return slotRef;
 }
 
 /**
@@ -67,6 +97,9 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
     slot = <TogglePill label={`${e.name}: ${MODE_META[mode].label}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
   }
 
+  const slotKind = bare ? "bare" : unav ? "unavailable" : !on ? "off" : range ? "range" : single ? "setpoint" : "mode";
+  const slotRef = useSlotTransition(slotKind);
+
   const summary = !history ? "" : unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
 
   // The compact value appears under the name, or in place of a hidden control.
@@ -89,7 +122,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 
-      <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>
+      <div className="hd-slot"><div ref={slotRef} className="cw-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div></div>
 
       {sheet && !unav && (
         <div className="hd-extra">
