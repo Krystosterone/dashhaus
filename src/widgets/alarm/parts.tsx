@@ -63,13 +63,22 @@ const ARMED_AS: Record<AlarmMode, string> = { home: "Armed home", away: "Armed a
  * View-only mode's slot, in place of the mode switch: what the alarm is doing, nothing to press.
  * A readout, with no container: the badge says armed. Who changed it, from M up.
  */
-export function AlarmStatus({ mode, by, narrow }: { mode: AlarmMode | "off"; by?: string; narrow?: boolean }) {
+export function AlarmStatus({ mode, by, onOpen }: { mode: AlarmMode | "off"; by?: string; onOpen?: () => void }) {
   const armed = mode !== "off";
-  return (
-    <div className={narrow ? "al-st al-st--narrow" : "al-st"} data-armed={armed || undefined}>
+  const label = armed ? ARMED_AS[mode] : "Disarmed";
+  if (onOpen) return (
+    <button type="button" className="al-st al-st--open" data-armed={armed || undefined} aria-label={`${label}. Change mode`} onClick={onOpen}>
       <ModeIcon mode={mode} />
-      <span className="al-st-l">{armed ? ARMED_AS[mode] : "Disarmed"}</span>
-      <span className="al-st-s">{armed ? MODE_LABEL[mode] : "Disarmed"}</span>
+      <span className="al-st-l">{label}</span>
+      <span className="al-st-s">{armed ? MODE_LABEL[mode] : label}</span>
+      <span className="al-st-x">Change</span>
+    </button>
+  );
+  return (
+    <div className="al-st" data-armed={armed || undefined}>
+      <ModeIcon mode={mode} />
+      <span className="al-st-l">{label}</span>
+      <span className="al-st-s">{armed ? MODE_LABEL[mode] : label}</span>
       {by && <span className="al-st-x">by {by}</span>}
     </div>
   );

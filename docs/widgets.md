@@ -144,7 +144,7 @@ import { HaAlarmTile } from "./src";
   - The switch is a groove; the current mode sits on a thumb that slides between segments.
   - Armed is the accent, on the thumb and the badge; disarmed, the thumb is a raised button on Off. The switch position is "Off"; the state word is "Disarmed".
   - Labels from 260 px up; icons only below 260 px.
-  - Segments never drop under 24 px. With five choices below 170 px, or six below 200 px, the card shows the current state as a readout instead and arming moves to the detail sheet.
+  - A mode switch only stays on the card while every choice keeps a 44 px target: five choices need at least 260 px, and six need 304 px. Below that, the card shows the current state and opens the detail sheet for arming.
   - Compact cards show up to four 44 px mode targets from 360 px up. Narrower cards and alarms with five or more choices show the current state and move arming to the detail sheet.
   - Armed in a mode the switch doesn't list (custom bypass set from the panel itself) still shows that mode, not Off.
 - **Codes.** When the code is needed, the sheet opens on a keypad.

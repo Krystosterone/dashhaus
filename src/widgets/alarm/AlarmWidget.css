@@ -54,17 +54,6 @@
 .hd--sheet .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
 .hd--sheet .al-seg-l { display: inline; }
 .hd--compact .al-seg svg { width: 15px; height: 15px; }
-/* Five or six segments on a narrow card would fall under 24px (WCAG 2.5.8): the state shows instead and
-   arming moves to the sheet, as in compact cards. A segment is (card width - 40px) / n wide. */
-.al-st.al-st--narrow { display: none; }
-@container hd (max-width: 169px) {
-  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-many]) .al-sw { display: none; }
-  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-many]) .al-st--narrow { display: flex; }
-}
-@container hd (max-width: 199px) {
-  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-crowd]) .al-sw { display: none; }
-  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-crowd]) .al-st--narrow { display: flex; }
-}
 /* Compact mode controls keep real 44px targets. Five or more choices move to the sheet instead of
    shrinking below a reliable touch size; any mode switch also yields below 360px. */
 .hd--compact .al-sw { padding: 0; }
@@ -84,7 +73,8 @@
   }
 }
 
-/* ---------- View only: the state as a readout, nothing to press. The badge says armed. ---------- */
+/* ---------- State summary: view-only alarms, and the details entry when a mode switch cannot keep
+   44px targets. The badge says armed; the actionable form names its destination. ---------- */
 .al-st {
   display: flex; align-items: center; gap: 8px; height: var(--slot-h); min-width: 0;
   color: var(--ink); font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden;
@@ -93,12 +83,31 @@
 .al-st-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .al-st-s { display: none; }
 .al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
-@container hd (max-width: 259px) { .al-st-x { display: none; } }
+.al-st--open {
+  display: none; width: 100%; padding: 0 var(--pad-in); border: 0; border-radius: 99px;
+  background: var(--btn); box-shadow: var(--btn-shadow);
+  text-align: left; cursor: pointer; transition: opacity var(--press) var(--ease-out);
+}
+.al-st--open:active { opacity: 0.6; }
+.al-st--open:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.al-st--open .al-st-l { display: none; }
+.al-st--open .al-st-s { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@container hd (max-width: 199px) { .al-st--open .al-st-x { display: none; } }
+@container hd (max-width: 259px) { .al-st:not(.al-st--open) .al-st-x { display: none; } }
 .hd--compact .al-st { justify-content: flex-end; gap: 6px; padding-inline-end: var(--pad-in); font-size: 13px; }
 .hd--compact .al-st svg { width: 15px; height: 15px; }
 .hd--compact :is(.al-st-l, .al-st-x) { display: none; }
 .hd--compact .al-st-s { display: inline; overflow: hidden; text-overflow: ellipsis; }
-
+/* Five choices first fit at 260px; six first fit at 304px. Until then, preserve the same
+   current-state cue and move mode selection into the sheet instead of shrinking its targets. */
+@container hd (max-width: 259px) {
+  .al:not(.hd--compact) .hd-slot:has(.al-st--open) .al-sw[data-many] { display: none; }
+  .al:not(.hd--compact) .hd-slot:has(.al-sw[data-many]) .al-st--open { display: flex; }
+}
+@container hd (max-width: 303px) {
+  .al:not(.hd--compact) .hd-slot:has(.al-st--open) .al-sw[data-crowd] { display: none; }
+  .al:not(.hd--compact) .hd-slot:has(.al-sw[data-crowd]) .al-st--open { display: flex; }
+}
 /* ---------- Countdown: exit delay (arming) or entry delay (pending) ---------- */
 .al-cd, .al-alarm {
   position: relative; display: flex; align-items: center; gap: 10px; height: var(--slot-h); min-width: 0;
