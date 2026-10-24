@@ -36,29 +36,31 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Phone: frequent actions first, then whole-home status and room readings. Compact controls and
-    bundles keep the shared 60px rhythm while secondary demo-only variants stay out of the overview. */
+/** Phone: four frequent actions first (a bundle counts each member), then whole-home and nursery status,
+    then room readings. Compact controls and bundles keep the shared 60px rhythm. */
 function PhoneDashboard() {
   return (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Home" now={NOW}>
         <Section title="Quick actions" columns={2}>
           <Cell span={2}><Bundle bundle="nightLight" /></Cell>
-          <Cell span={2}><Bundle bundle="sleep" /></Cell>
-          <Toggle mode="quiet" footprint="compact" />
-          <Toggle mode="guest" footprint="compact" />
-          <Cover cover="curtains" footprint="compact" />
-          <Cover cover="garage" footprint="compact" />
           <Light light="dimmable" footprint="compact" />
-          <Humidifier seed="on" footprint="compact" />
+          <Cover cover="curtains" footprint="compact" />
         </Section>
         <Section title="Home status">
           <Alarm alarm="ring" readOnly footprint="compact" />
           <Climate unit="heating" footprint="compact" />
+          <Cover cover="garage" footprint="compact" />
+          <Toggle mode="quiet" footprint="compact" />
+          <Toggle mode="guest" footprint="compact" />
+        </Section>
+        <Section title="Nursery">
           <Owlet seed="deep" />
           <Climate unit="nurseryDyson" footprint="compact" />
+          <Bundle bundle="sleep" />
         </Section>
         <Section title="Rooms" columns={2}>
+          <Cell span={2}><Humidifier seed="on" footprint="compact" /></Cell>
           <Sensor sensor="living" />
           <Sensor sensor="bedroom" />
           <Sensor sensor="bathroom" />
@@ -71,22 +73,17 @@ function PhoneDashboard() {
 
 export const Phone: Story = { render: () => <PhoneDashboard /> };
 
-/** Tablet, landscape: a single action hero and its supporting controls lead, followed by household
-    status and nursery state, then the outside and room glance. */
+/** Tablet, landscape: the same four actions as the phone, one of them the hero, lead; household status and
+    nursery state follow, then the outside and room glance. */
 export const Tablet: Story = {
   render: () => (
     <Device label="Tablet, landscape" width={1180} height={820}>
       <DashboardPage title="Home" now={NOW} showTime>
         <Section title="Quick actions" columns={2}>
           <Light light="dimmable" footprint="featured" />
-          <WidgetGrid columns={2}>
-            <Cell span={2}><Bundle bundle="sleep" /></Cell>
-            <Toggle mode="quiet" footprint="compact" />
-            <Toggle mode="guest" footprint="compact" />
-            <Light light="dimmableOff" footprint="compact" />
-            <Light light="dimmableNoWarmth" footprint="compact" />
+          <WidgetGrid columns={1}>
+            <Bundle bundle="nightLight" />
             <Cover cover="curtains" footprint="compact" />
-            <Cover cover="garage" footprint="compact" />
           </WidgetGrid>
         </Section>
         <Columns columns={2}>
@@ -96,11 +93,13 @@ export const Tablet: Story = {
             <Climate unit="cooling" footprint="compact" />
             <Climate unit="range" footprint="compact" />
             <Climate unit="off" footprint="compact" />
+            <Toggle mode="quiet" footprint="compact" />
+            <Toggle mode="guest" footprint="compact" />
           </Section>
           <Section title="Nursery" columns={2}>
-            <Owlet seed="deep" />
-            <Bundle bundle="nightLight" />
-            <Bundle bundle="upstairs" />
+            <Cell span={2}><Owlet seed="deep" /></Cell>
+            <Cell span={2}><Bundle bundle="sleep" /></Cell>
+            <Cell span={2}><Bundle bundle="upstairs" /></Cell>
           </Section>
         </Columns>
         <Columns columns={2}>
@@ -108,6 +107,7 @@ export const Tablet: Story = {
             <Weather weather="partly" />
             <Light light="onOff" footprint="compact" />
             <Sensor sensor="garage" footprint="compact" />
+            <Cover cover="garage" footprint="compact" />
           </Section>
           <Section title="Rooms" columns={2}>
             <Sensor sensor="living" />

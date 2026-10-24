@@ -123,7 +123,7 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 
 The Storybook dashboards demonstrate:
 
-- **Phone:** quick actions first, then household status and room readings; compact controls and both bundle types share the same grid.
-- **Tablet, landscape:** one featured action with supporting controls, followed by household and nursery status, then outside and room readings.
+- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and both bundle types share the same grid.
+- **Tablet, landscape:** the same four actions, one of them featured, followed by household and nursery status, then outside and room readings.
 - **Wall panel:** one column per place, each ordered actions, status, then glance; the complete 1280 × 800 surface fits without scrolling.
 - **Phone, ungrouped footprints:** unrelated widget types, all three footprints and both bundle forms share one `WidgetGrid` without a section.

@@ -43,15 +43,14 @@ sections:
         footprint: compact
       - entity: cover.living_room
         footprint: compact
-      - joined: [input_boolean.guest_mode, input_boolean.dnd]
-        label: Modes
-        span: 2
       - entity: switch.porch
         footprint: compact
   - title: Home status
     cards:
       - entity: alarm_control_panel.house
         footprint: compact
+      - joined: [input_boolean.guest_mode, input_boolean.dnd]
+        label: Modes
   - title: Outside
     cards:
       - entity: weather.home

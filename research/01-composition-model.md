@@ -37,7 +37,7 @@ Run 2026-10-24 against the Phone, Tablet, Wall panel, Ungrouped, and automatic-l
 
 - **Cross-room quick control:** pass; phone and tablet lead with pinned quick actions, and automatic discovery puts every actionable section first.
 - **Household and room glance:** pass for the current scope; household status precedes room/environment readings. Full room inventory/navigation remains outside the demonstrated phone and tablet surfaces.
-- **Actionable alert:** deliberately remains in place. The open Garage door keeps its warning marker in Quick actions; no conditional alert region is reserved.
+- **Actionable alert:** deliberately remains in place. The open Garage door keeps its warning marker in Home status; no conditional alert region is reserved.
 - **Wall constraint:** pass at 1280 × 800 with no horizontal or vertical overflow.
 - **Identity and hierarchy:** pass at the target viewports; visible primary labels do not clip, section headings are `h2`, and cards inside sections are `h3`.
 
