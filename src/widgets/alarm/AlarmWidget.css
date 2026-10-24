@@ -108,7 +108,8 @@
 /* Entry delay: someone came in and the alarm is about to go off. Warn, tinted. */
 .al-cd[data-kind="pending"] { background: color-mix(in oklab, var(--warn) 14%, var(--card-solid)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 45%, transparent); }
 .al-cd[data-kind="pending"] .al-cd-fill { background: color-mix(in oklab, var(--warn) 20%, transparent); }
-.al-cd[data-kind="pending"] :is(.al-cd-l, .al-cd-t) { color: var(--warn); }
+/* Warn on its own warn tint (and the elapsed fill) falls under 4.5:1; pulled toward --ink it holds. */
+.al-cd[data-kind="pending"] :is(.al-cd-l, .al-cd-t) { color: color-mix(in oklab, var(--warn) 65%, var(--ink)); }
 /* No timer (the delay's length isn't known): a soft band sweeps instead of the fill.
    Where the label won't fit (S or compact), the status line already says it; the action keeps its place on the right. */
 .al-cd-wait {

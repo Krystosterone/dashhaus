@@ -53,7 +53,7 @@ export const Sizes: Story = {
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
       {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)" }}>{label} · {width} px</figcaption>
           <DemoTile key={`${mode}-${footprint}`} mode={mode} width={width} footprint={footprint} />
         </figure>
       ))}
@@ -79,7 +79,7 @@ export const CompactGrid: Story = {
     <div style={{ display: "grid", gap: 28 }}>
       {[{ cols: 2, w: 358, label: "Phone, 2 across" }, { cols: 4, w: 760, label: "Tablet, 4 across" }].map(({ cols, w, label }) => (
         <figure key={cols} style={{ margin: 0, display: "grid", gap: 8, width: w, maxWidth: "100%" }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label}</figcaption>
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)" }}>{label}</figcaption>
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: 8 }}>
             {MODES.map((mode) => <DemoTile key={mode} mode={mode} footprint="compact" />)}
           </div>

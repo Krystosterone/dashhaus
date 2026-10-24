@@ -54,7 +54,7 @@ export const Sizes: Story = {
     <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
       {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, width]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {width} px</figcaption>
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)" }}>{label} · {width} px</figcaption>
           <DemoTile key={`${unit}-${footprint}`} unit={unit} width={width} footprint={footprint} />
         </figure>
       ))}

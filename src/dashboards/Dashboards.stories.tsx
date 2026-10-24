@@ -16,7 +16,7 @@ import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 function Device({ label, width, height, children }: { label: string; width: number; height: number; children: ReactNode }) {
   return (
     <figure style={{ margin: "24px auto", width, maxWidth: "100%", display: "grid", gap: 8 }}>
-      <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)", paddingInline: 8 }}>{label} · {width} × {height}</figcaption>
+      <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)", paddingInline: 8 }}>{label} · {width} × {height}</figcaption>
       <div style={{ height, overflowY: "auto", borderRadius: 36, boxShadow: "inset 0 0 0 1px var(--line), var(--shadow)" }}>{children}</div>
     </figure>
   );

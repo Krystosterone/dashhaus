@@ -45,7 +45,7 @@ export const Sizes: Story = {
     <div style={{ display: "grid", gap: 28 }}>
       {Object.entries(WIDTHS).map(([label, w]) => (
         <figure key={label} style={{ margin: 0, display: "grid", gap: 10, width: w, maxWidth: "100%" }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)" }}>{label} · {w} px</figcaption>
           <HeaderWidget {...args} />
         </figure>
       ))}

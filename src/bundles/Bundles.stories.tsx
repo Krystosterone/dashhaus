@@ -42,7 +42,7 @@ export const Sizes: Story = {
         <div key={b} style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
           {(Object.entries(SIZES) as [keyof typeof SIZES, number][]).map(([label, w]) => (
             <figure key={label} style={{ margin: 0, display: "grid", gap: 8 }}>
-              <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{label} · {w} px</figcaption>
+              <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)" }}>{label} · {w} px</figcaption>
               <DemoBundle bundle={b} width={w} />
             </figure>
           ))}

@@ -34,7 +34,7 @@ function Compare({ width }: { width: number }) {
     <div style={{ display: "flex", flexWrap: "wrap", gap: 32, alignItems: "flex-start" }}>
       {[true, false].map((c) => (
         <figure key={String(c)} style={{ margin: 0, display: "grid", gap: 10 }}>
-          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-3)" }}>{c ? "showControl (default)" : "showControl={false}"}</figcaption>
+          <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)" }}>{c ? "showControl (default)" : "showControl={false}"}</figcaption>
           <Rows showControl={c} width={width} />
         </figure>
       ))}
