@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { autoDashboard, lovelaceDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
+import type { SectionConfig } from "./config";
 
 const state = (entity_id: string, attributes: Record<string, unknown> = {}): AutoState => ({ entity_id, state: "on", attributes });
 const states = Object.fromEntries([
@@ -62,6 +63,12 @@ describe("autoDashboard", () => {
     const card = autoDashboard(input, "Flat");
     expect(() => parseDashboardConfig(card)).not.toThrow();
     expect(lovelaceDashboard(card, "Flat")).toEqual({ views: [{ title: "Flat", path: "home", type: "panel", cards: [card] }] });
+  });
+
+  it("places sleep state sensors that the card draws as owlet socks", () => {
+    const blocks = parseDashboardConfig(autoDashboard(input)).blocks ?? [];
+    const nursery = blocks.find((b): b is SectionConfig => b.kind === "section" && b.title === "Nursery");
+    expect(nursery?.items.map((item) => item.kind)).toEqual(["owlet", "owlet"]);
   });
 
   it("stays automatic when there is nothing to place", () => {

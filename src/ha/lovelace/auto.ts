@@ -34,7 +34,10 @@ const byName = (states: Record<string, AutoState>) => (a: string, b: string) => 
   return name(a).localeCompare(name(b));
 };
 
-/** An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet widget. */
+/**
+ * An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet widget. This file may only
+ * `import type`, so the pattern is repeated; auto.test.ts fails when the two drift apart.
+ */
 const OWLET = /^sensor\.\w+_sleep_state$/;
 
 /**

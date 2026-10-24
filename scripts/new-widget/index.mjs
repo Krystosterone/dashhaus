@@ -239,5 +239,6 @@ Next:
   4. Finish "Using the ${words} widget" in docs/widgets.md
   5. Its Lovelace card: its YAML keys in src/ha/lovelace/config.ts and docs/deploy.md${placed ? "" : `,
      and its place in the automatic layout, src/ha/lovelace/auto.ts`}${sharesDomain ? `
-     (${domain}.* already has a widget, so a card picks this one with \`widget: ${name}\`)` : ""}
+     (${domain}.* already has a widget, so a card picks this one with \`widget: ${name}\`, or without it
+     once its SHARED_KINDS entry has an \`id\` pattern for its entity ids, as owlet's does)` : ""}
   6. npm run check && npm run test-storybook`);
