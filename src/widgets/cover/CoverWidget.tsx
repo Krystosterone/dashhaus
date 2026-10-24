@@ -95,7 +95,7 @@ export function CoverWidget({ entity: e, history, variant, footprint, showContro
           <p className="hd-area">{alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
-        <p className="hd-num" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
+        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
         {sheet && <SheetClose label={`Close ${e.name} details`} onClick={onClose} />}
       </header>
 

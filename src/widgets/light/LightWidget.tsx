@@ -58,7 +58,7 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
           <p className="hd-area" title={e.area}>{e.area}{warmth && <span className="lw-k">{e.area ? " · " : ""}{warmth}</span>}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
-        <p className="hd-num" aria-hidden="true">{readout}</p>
+        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{readout}</p>
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 

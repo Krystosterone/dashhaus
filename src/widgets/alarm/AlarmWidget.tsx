@@ -142,7 +142,7 @@ export function AlarmWidget({ entity: e, history, variant, footprint, showContro
           <p className="hd-area">{status}</p>
           {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
         </CardTitle>
-        <p className="hd-num" aria-hidden="true">{word}</p>
+        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{word}</p>
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} focusOnOpen={!pending} />}
       </header>
 

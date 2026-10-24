@@ -297,6 +297,8 @@
 }
 .hd--featured .hd-num { display: block; }
 .hd--featured .hd-tl { display: grid; }
+/* A featured header figure yields when the control below already prints the same value. */
+.hd--featured:not(.hd--sheet) .hd-num--control-duplicate { display: none; }
 
 /* Compact footprint: one 60px row. Header children and the slot share the row, so mixed widgets align. */
 .hd--compact {

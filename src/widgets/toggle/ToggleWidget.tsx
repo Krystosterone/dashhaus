@@ -66,7 +66,7 @@ export function ToggleWidget({ entity: e, history, variant, footprint, showContr
           <p className="hd-area">{sheet && e.area ? `${e.area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
-        <p className="hd-num" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>
+        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
       </header>
 

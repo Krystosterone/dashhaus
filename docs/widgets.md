@@ -4,7 +4,7 @@ Per-widget behaviour: what each widget shows, how it interacts, and its props. T
 
 ## Shared footprints
 
-Every dashboard tile accepts `footprint="compact" | "standard" | "featured"`; the default is `standard`. Compact is 60 px, standard is 128 px, and featured is 264 px at every width. Width changes anatomy, not height or semantic prominence: below 260 px a standard tile keeps its orb, control and details action, and a bare reading icon (sensor, weather) narrows to the glyph so the name keeps its room. Use `featured` explicitly for the large readout and Today strip (the next hours, on Weather); below 260 px that readout repeats what the control or status line already says, so it yields and the orb stays. All widget types and both bundle types follow this matrix.
+Every dashboard tile accepts `footprint="compact" | "standard" | "featured"`; the default is `standard`. Compact is 60 px, standard is 128 px, and featured is 264 px at every width. Width changes anatomy, not height or semantic prominence: below 260 px a standard tile keeps its orb, control and details action, and a bare reading icon (sensor, weather) narrows to the glyph so the name keeps its room. Use `featured` explicitly for the Today strip and for a large readout when that figure is not already printed on the control. Below 260 px that readout yields and the orb stays. All widget types and both bundle types follow this matrix.
 
 `showControl={false}` applies to compact tiles. It replaces the inline control with the short value and makes the row open details; actionable orbs keep their independent tap and hold behavior.
 
