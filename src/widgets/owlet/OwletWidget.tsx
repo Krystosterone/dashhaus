@@ -38,8 +38,9 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
   const problem = problems[0];
   const stale = !offline && e.live === false;
   const staleText = `No new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}`;
-  // Where the sentence would lose its time to the ellipsis, the short form keeps it.
-  const staleWords = <><span className="ow-st-l">{staleText}</span><span className="ow-st-s">{e.lastUpdated ? `Stopped ${e.lastUpdated}` : "Stopped"}</span></>;
+  const staleTime = e.lastUpdated?.trim().split(/\s+/).at(-1);
+  // Narrow cards keep the time, the part users need, rather than clipping a day plus time mid-phrase.
+  const staleWords = <><span className="ow-st-l">{staleText}</span><span className="ow-st-s">{staleTime ? `Stopped ${staleTime}` : "Stopped"}</span></>;
   const problemLabel = problem ? `Warning: ${ALERT_WORD[problem]} on ${e.name}'s sock` : stale ? `Warning: ${e.name}'s sock has sent no new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}` : null;
   const vitalFigure = !vital ? null : vital.endsWith("oxygen") ? (o2 != null ? `${fmtOxygen(o2)}% O₂` : null) : hr != null ? `${fmtBpm(hr)} bpm` : null;
   // The most urgent alert and its figure first, so an ellipsis only ever takes the others.
@@ -64,8 +65,19 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
 
   const bar = (
     <span className="ow-bar">
-      {hr != null && <span className="ow-f"><span className="ow-heart" data-live={e.live || undefined}><HeartIcon /></span>{fmtBpm(hr)}<small>bpm</small></span>}
-      {o2 != null && <span className="ow-f">{fmtOxygen(o2)}<small className="ow-pct">%</small><small>O₂</small></span>}
+      {hr != null && (
+        <span className="ow-metric ow-metric--heart">
+          <span className="ow-heart" data-live={e.live || undefined}><HeartIcon /></span>
+          <span className="ow-label"><span className="ow-label-long">Heart rate</span><span className="ow-label-short">Heart</span></span>
+          <span className="ow-value">{fmtBpm(hr)}<small>bpm</small></span>
+        </span>
+      )}
+      {o2 != null && (
+        <span className="ow-metric ow-metric--oxygen">
+          <span className="ow-label">Oxygen</span>
+          <span className="ow-value">{fmtOxygen(o2)}<small>%<span className="ow-compact-unit"> O₂</span></small></span>
+        </span>
+      )}
       {hr == null && o2 == null && <span className="ow-none">No reading yet</span>}
     </span>
   );

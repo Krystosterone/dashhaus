@@ -11,7 +11,7 @@ export function OwletIcon({ off }: { off?: boolean }) {
   );
 }
 
-/** The heart before the heart rate. It beats while readings are arriving (`.ow-heart[data-live]`). */
+/** The outlined heart beside the heart-rate label. It beats while readings are arriving. */
 export function HeartIcon() {
   return (
     <svg className="ow-heart-i" viewBox="0 0 16 16" aria-hidden="true">

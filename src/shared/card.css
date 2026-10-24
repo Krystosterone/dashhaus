@@ -34,6 +34,10 @@
   --o-h: var(--brand-h);
   --color: oklch(var(--accent-l) var(--o-c) var(--o-h));
   --pad: 16px;
+  /* Bare readout icons and their title gap define the shared text axis for measurement cards. */
+  --read-icon: 22px;
+  --head-gap: 12px;
+  --read-indent: calc(var(--read-icon) + var(--head-gap));
   /* Every footprint derives controls from one spacing scale. */
   --pad-in: 16px;
   --inset: 4px;
@@ -83,7 +87,7 @@
   align-content: center;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas: "orb title";
-  column-gap: 12px;
+  column-gap: var(--head-gap);
   position: relative;
 }
 .hd-head > .hd-orb { grid-area: orb; }
@@ -161,8 +165,8 @@
 /* A bare reading icon has no disc to fill an orb's box: on cards and sheets it takes its glyph's width, so
    its edge meets the content edge as a disc's does and it sits beside its name. Compact rows keep the box,
    so every row's icon shares one column. */
-.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) { width: 22px; }
-.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: 22px; }
+.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) { width: var(--read-icon); }
+.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: var(--read-icon); }
 .hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) svg { width: 100%; }
 /* A reading's figure is its slot, so a featured reading keeps it there at full size instead of repeating
    it as the header's large readout. */

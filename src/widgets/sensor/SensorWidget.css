@@ -1,41 +1,64 @@
 /* Sensor-specific parts. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
 
-/* The readings, as a readout: no container, so nothing that can't be pressed looks pressable.
-   The temperature first, then the humidity on its baseline, captioned in words like the weather card's
-   feels-like. The header's thermometer names the reading and the status line says its trend, so neither
-   repeats here. Tapping opens details. */
+/* The reading is one responsive metric grid. At useful widths it shares the title's text axis; at the
+   smallest standard width it uses the full slot so neither number is squeezed. */
 .sw-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
 button.sw-read { cursor: pointer; }
 button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .sw-bar {
-  display: flex; align-items: baseline; column-gap: 12px; min-width: 0; height: var(--slot-h); line-height: var(--slot-h);
-  color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); align-items: center;
+  column-gap: 12px; min-width: 0; height: var(--slot-h); color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap; transition: scale var(--press) var(--ease-out);
 }
-.sw-t { flex: none; font-size: 20px; font-weight: 700; }
-.sw-t small { margin-left: 1px; font-size: 0.8em; font-weight: 600; }
-.sw-h { flex: none; color: var(--ink-2); font-size: 14px; font-weight: 600; }
-/* The word comes in once the card has room for it; narrower, the percent stands alone. */
-.sw-h-l { display: none; }
-@container hd (min-width: 260px) {
-  .sw-h-l { display: inline; }
+.sw-metric { min-width: 0; }
+.sw-t { display: flex; align-items: baseline; }
+.sw-value { line-height: 1; }
+.sw-t .sw-value { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
+.sw-t .sw-value small {
+  margin-left: 1px; font-size: 0.62em; font-weight: 400; letter-spacing: 0; vertical-align: 0.34em;
 }
-/* Standard and featured: the temperature is the card's figure, in the large-readout voice. */
-.sw:not(.hd--compact):not(.hd--sheet) .sw-t { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-t small { margin-left: 0; font-size: 1em; font-weight: inherit; }
-.sw:not(.hd--compact):not(.hd--sheet) .sw-h { font-size: 15px; }
-.hd--compact .sw-bar { justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in); }
-.hd--compact .sw-t { font-size: 13.5px; }
-.hd--compact .sw-h { font-size: 12.5px; }
-.hd--compact .sw-h-l { display: none; }
-.hd--sheet .sw-h { font-size: 17px; }
-/* The sheet's large figure is the temperature: its readings keep only the humidity. */
-.hd--sheet .sw-t { display: none; }
-.hd--sheet .sw-bar svg { display: block; width: 17px; height: 17px; }
-
-/* Press feedback on the tappable reading */
-.sw-bar { transition: scale var(--press) var(--ease-out); }
+.sw-h { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
+.sw-label { color: var(--ink-3); font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
+.sw-label-short { display: none; }
+.sw-h .sw-value { font-size: 18px; font-weight: 600; }
+.sw-h .sw-value small { margin-left: 1px; font-size: 0.78em; font-weight: 600; }
+.sw-metric:only-child { grid-column: 1 / -1; }
+/* No reading yet: plain words. */
+.sw-none {
+  grid-column: 1 / -1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-3);
+}
 button.sw-read:active .sw-bar { scale: 0.98; }
+
+@container hd (min-width: 260px) {
+  .sw:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
+  .sw-label-long { display: inline; }
+}
+@container hd (max-width: 259px) {
+  .sw:not(.hd--compact):not(.hd--sheet) .sw-trend { display: none; }
+  .sw:not(.hd--compact):not(.hd--sheet) .sw-bar {
+    grid-template-columns: minmax(0, 1.45fr) minmax(38px, 0.55fr); column-gap: 8px;
+  }
+  .sw:not(.hd--compact):not(.hd--sheet) .sw-t .sw-value { font-size: 32px; }
+  .sw:not(.hd--compact):not(.hd--sheet) .sw-h .sw-value { font-size: 17px; }
+  .sw:not(.hd--compact):not(.hd--sheet) .sw-label-long { display: none; }
+  .sw:not(.hd--compact):not(.hd--sheet) .sw-label-short { display: inline; }
+}
+
+/* Compact rows keep the established one-line readout. */
+.hd--compact .sw-bar {
+  display: flex; align-items: baseline; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
+}
+.hd--compact .sw-metric { display: block; }
+.hd--compact .sw-label { display: none; }
+.hd--compact .sw-value { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
+.hd--compact .sw-t .sw-value small { font-size: 0.8em; font-weight: 600; vertical-align: 0.12em; }
+.hd--compact .sw-h .sw-value { font-size: 12.5px; color: var(--ink-2); }
+.hd--compact .sw-none { flex: none; font-size: 12.5px; }
+
+/* The sheet's header owns the temperature; its readout keeps a clearly captioned humidity value. */
+.hd--sheet .sw-bar { grid-template-columns: minmax(0, 1fr); }
+.hd--sheet .sw-t { display: none; }
+.hd--sheet .sw-h .sw-value { font-size: 20px; }
+
 @media (prefers-reduced-motion: reduce) { .sw-bar { scale: none !important; } }
-/* No reading yet: plain words */
-.sw-none { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-weight: 600; color: var(--ink-3); }
-.hd--compact .sw-none { font-size: 12.5px; }

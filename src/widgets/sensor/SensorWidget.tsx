@@ -49,19 +49,28 @@ export function SensorWidget({ entity: e, history, variant, footprint, showContr
   const sheetFigure = sheet && t != null;
   const spoken = empty ? "no reading yet" : [t != null ? `${fmtTemp(t)} degrees` : null, h != null ? `humidity ${fmtHum(h)} percent` : null].filter(Boolean).join(", ");
 
-  // Status line, most important first: a low battery, then comfort (or the location for outdoor sensors), then the trend.
-  const parts: ReactNode[] = unav ? ["Unavailable"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
+  // Status line, most important first: a low battery, then comfort (or the location for outdoor sensors).
+  // Trend is its own low-priority phrase so a narrow card can remove it cleanly instead of clipping a word.
+  const statusParts: ReactNode[] = unav ? ["Unavailable"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
     batteryText,
     sheet && e.area && !e.outdoor ? e.area : null,
-    e.outdoor ? e.area ?? "Outside" : comfort,
-    trend && !compact && !lowBattery ? TREND_WORD[trend] : null,
+    lowBattery ? null : e.outdoor ? e.area ?? "Outside" : comfort,
   ].filter(Boolean);
-  const status = parts.map((part, i) => <Fragment key={i}>{i > 0 && " · "}{i === 0 && alertLabel ? <AlertStatus label={alertLabel}>{part}</AlertStatus> : part}</Fragment>);
+  const trendWord = trend && !compact && !lowBattery ? TREND_WORD[trend] : null;
+  const status = <>
+    {statusParts.map((part, i) => <Fragment key={i}>{i > 0 && " · "}{i === 0 && alertLabel ? <AlertStatus label={alertLabel}>{part}</AlertStatus> : part}</Fragment>)}
+    {trendWord && <span className="sw-trend">{statusParts.length > 0 && " · "}{trendWord}</span>}
+  </>;
 
   const bar = (
     <span className="sw-bar">
-      {t != null && <span className="sw-t">{fmtTemp(t)}<small>°</small></span>}
-      {h != null && <span className="sw-h"><span className="sw-h-l">Humidity </span>{fmtHum(h)}%</span>}
+      {t != null && <span className="sw-metric sw-t"><span className="sw-value">{fmtTemp(t)}<small>°</small></span></span>}
+      {h != null && (
+        <span className="sw-metric sw-h">
+          <span className="sw-label"><span className="sw-label-long">Humidity</span><span className="sw-label-short">RH</span></span>
+          <span className="sw-value">{fmtHum(h)}<small>%</small></span>
+        </span>
+      )}
       {empty && <span className="sw-none">Waiting…</span>}
     </span>
   );
