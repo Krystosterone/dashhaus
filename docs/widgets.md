@@ -263,11 +263,11 @@ One `humidifier.*` entity: a humidifier, or a dehumidifier by its `device_class`
 ```
 
 - **A state, not energy.** The orb is the accent while it is on, with no bloom and no glow: moving water is not light or heat (attention-budget skill). Whether it is working is the status line's words, never a colour.
-- **Status line:** the room's humidity and what the unit is doing: "38% now · Humidifying", "Drying" or "Idle". A device that reports no `action` gives the humidity alone; one that reports neither gives the area.
+- **Status line:** the room's humidity and what the unit is doing: "38% now · Humidifying", "Drying", "Idle" or "Off". A device that reports no `action` gives the humidity alone; one that reports neither gives the area.
 - **The slot follows the state:**
   - On with a target: the setpoint stepper, the same groove as the climate widget's, in whole percent between the entity's `minHumidity` and `maxHumidity`. From 260 px it says what the target does: "Humidify to" or "Dry to".
   - On without a target (or without `onTargetChange`): the accent pill, with the mode beside it from 260 px.
-  - Off: a raised Off pill that turns it back on. Unavailable: the dashed slot.
+  - Off: a centered, quieter raised Turn on pill, as the climate widget's; the status line says Off. Unavailable: the dashed slot.
 - **The readout** on featured cards and in the sheet is the room's humidity.
 - **Compact:** the domain icon (mist over the unit, or a dehumidifier's tank), name, status line, and the stepper; under 320 px the humidity and setpoint share the value line ("38% · Set 45%").
 - **Sheet:** press and hold the orb, or tap the name: the stepper, the mode chips when it lists more than one mode, today's on/off history, and the settable range.

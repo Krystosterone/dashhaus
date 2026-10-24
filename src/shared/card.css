@@ -198,6 +198,9 @@
 .hd-pill:active { scale: 0.98; }
 .hd-pill[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* Turn on: a climate-like unit that is off. The status line says Off; the centred action says what a tap
+   does, on a quieter raised surface so one large neutral pill doesn't outweigh the card. */
+.hd-pill--turn-on { justify-content: center; background: color-mix(in oklab, var(--btn) 45%, var(--card-solid)); }
 .hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
 /* Unavailable: dashed, empty, muted, like the orb beside it. */
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }

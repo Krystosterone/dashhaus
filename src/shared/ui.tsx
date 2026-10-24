@@ -205,9 +205,10 @@ export function AlertStatus({ label, children }: { label: string; children: Reac
 }
 
 /** Full-width toggle button: raised when off, the accent when on. */
-export function TogglePill({ label, on, onToggle, children, extra }: { label: string; on: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode }) {
+/** `turnOn`: the off-state control of a unit whose status line already says Off (climate, humidifier). */
+export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { label: string; on: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean }) {
   return (
-    <button type="button" className="hd-pill" aria-label={label} aria-pressed={on} onClick={onToggle}>
+    <button type="button" className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} aria-pressed={on} onClick={onToggle}>
       <span>{children}</span>
       {extra && <span className="hd-pill-x">{extra}</span>}
     </button>

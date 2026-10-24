@@ -44,12 +44,19 @@ describe("HumidifierWidget", () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it("toggles from the orb and the Off pill", () => {
+  it("toggles from the orb and the Turn on pill", () => {
     const onToggle = vi.fn();
     render(<HumidifierWidget entity={{ ...entity, state: "off", action: "off" }} onToggle={onToggle} onTargetChange={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: "Bedroom" }));
     fireEvent.click(screen.getByRole("button", { name: "Bedroom: Off, turn on" }));
     expect(onToggle).toHaveBeenCalledTimes(2);
+  });
+
+  it("says Off on the status line and Turn on on the control, as climate does", () => {
+    const { container } = render(<HumidifierWidget entity={{ ...entity, state: "off", action: undefined }} onToggle={() => {}} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("38% now · Off");
+    expect(container.querySelector(".hd-pill")?.textContent).toBe("Turn on");
+    expect(container.querySelector(".hd-pill")?.classList.contains("hd-pill--turn-on")).toBe(true);
   });
 
   it("says Unavailable and ignores the orb while unavailable", () => {

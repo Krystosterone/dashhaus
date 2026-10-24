@@ -8,7 +8,7 @@ export interface HumidifierWidgetProps extends CardProps {
   entity: HumidifierEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: HumidifierHistory;
-  /** Orb, and the Off pill: switch it off, or back on. */
+  /** Orb, and the Turn on pill: switch it off, or back on. */
   onToggle: () => void;
   onTargetChange?: (humidity: number) => void;
   onModeChange?: (mode: string) => void;
@@ -38,14 +38,14 @@ export function HumidifierWidget({ entity: e, history, variant, footprint, showC
   const cur = unav ? undefined : e.currentHumidity;
   const target = on ? e.targetHumidity : undefined;
   const action = on ? e.action : undefined;
-  const statusParts = [cur != null ? `${fmtHumidity(cur)}%${compact ? "" : " now"}` : null, unav ? "Unavailable" : action ? ACTION_LABEL[action] : null].filter(Boolean);
+  const statusParts = [cur != null ? `${fmtHumidity(cur)}%${compact ? "" : " now"}` : null, unav ? "Unavailable" : action ? ACTION_LABEL[action] : !on ? ACTION_LABEL.off : null].filter(Boolean);
   // With nothing measured or reported, the status line names the room, as a toggle's does.
   const status = statusParts.length ? statusParts.join(" · ") : e.area;
   const setText = unav ? "Unavailable" : !on ? "Off" : target != null ? `Set ${fmtHumidity(target)}%` : e.mode ? modeLabel(e.mode) : "On";
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} extra="Turn on">Off</TogglePill>;
+  else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} turnOn>Turn on</TogglePill>;
   else if (target != null && onTargetChange) {
     slot = <Stepper label={`${e.name} target humidity`} kicker={compact ? undefined : dry ? "Dry to" : "Humidify to"} value={target} unit="%" format={fmtHumidity} min={e.minHumidity} max={e.maxHumidity} step={STEP} onChange={onTargetChange} />;
   } else {

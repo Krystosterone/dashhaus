@@ -15,7 +15,7 @@ export interface HumidifierSeed {
 
 export const HUMIDIFIER_SEEDS = {
   on: {
-    entity: { entityId: "humidifier.bedroom", name: "Bedroom", area: "Upstairs", state: "on", action: "humidifying", currentHumidity: 38, targetHumidity: 45, minHumidity: 30, maxHumidity: 80, mode: "normal", modes: MODES, lastChanged: "10:58" },
+    entity: { entityId: "humidifier.bedroom", name: "Bedroom humidifier", area: "Upstairs", state: "on", action: "humidifying", currentHumidity: 38, targetHumidity: 45, minHumidity: 30, maxHumidity: 80, mode: "normal", modes: MODES, lastChanged: "10:58" },
     past: [1, 1, 1, 1, 1, 1, 0.5, 0, 0, 0, 0.2],
   },
   off: {
