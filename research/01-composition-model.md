@@ -15,7 +15,7 @@
 
 1. Keep the hybrid: importance-first on phone/tablet, room/place-first on the wall panel.
 2. Room access on phone/tablet stays one step away — our acceptance criterion, not a vendor tap-count.
-3. Treat alert placement as an implementation inference; the conditional alert row is worth testing, not vendor precedent.
+3. Treat alert placement as an implementation inference, not vendor precedent or a shared authoring contract.
 4. The wall panel's room/place lead follows Home Assistant's area-oriented default; no first-party Apple or Google wall-panel surface was established.
 5. Keep hierarchy out of Mushroom: ordering belongs to the dashboard composition layer.
 
@@ -33,9 +33,9 @@ Run 2026-10-18 against the Phone, Tablet, and Wall panel stories:
 
 - **Cross-room quick control:** pass at one tap; Reading lamp toggled in Phone → Controls and restored.
 - **Single-room lookup:** fail on phone and tablet; neither exposes room inventory. Wall panel exposes Living room at depth 0.
-- **Actionable alert:** initially partial because the open Garage door was buried in Controls. The authorized `Section when={…}` mechanism and conditional-garage story now exercise a leading alert and its zero-alert state; Close removes the section in one tap.
+- **Actionable alert:** partial because the open Garage door remains in Controls; no dedicated alert placement or zero-alert state is exercised.
 
-The conditional-section mechanism does not solve the remaining phone/tablet room path, so that gap stays explicit rather than being folded into unrelated layout work.
+Alert placement and the missing phone/tablet room path remain composition concerns rather than shared `Section` behavior.
 
 ## Sources
 

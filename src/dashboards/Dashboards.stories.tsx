@@ -7,8 +7,6 @@ import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile"
 import { DemoWeatherTile as Weather } from "../widgets/weather/demo/DemoWeatherTile";
 import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
 import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
-import { CoverTile } from "../widgets/cover/CoverTile";
-import { COVER_SEEDS, useDemoCover } from "../widgets/cover/demo/useDemoCover";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
 import { DemoOwletTile as Owlet } from "../widgets/owlet/demo/DemoOwletTile";
 import { DemoHumidifierTile as Humidifier } from "../widgets/humidifier/demo/DemoHumidifierTile";
@@ -37,25 +35,13 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-type AlertExperimentStory = StoryObj<{ activeAlert: boolean }>;
-
-/** The alert experiment derives section visibility from the same cover state that renders the row. */
-function GarageAlertSection({ enabled }: { enabled: boolean }) {
-  const demo = useDemoCover(COVER_SEEDS.garage);
-  return (
-    <Section title="Alerts" when={enabled && demo.entity.state === "open"}>
-      <CoverTile {...demo} footprint="compact" />
-    </Section>
-  );
-}
 
 /** Phone: arbitrary semantic sections composed from the same footprint matrix. Standard cards adapt
     their anatomy to cell width; compact cards and bundles stay on the shared 60px rhythm. */
-function PhoneDashboard({ alertExperiment = false, activeAlert = false }: { alertExperiment?: boolean; activeAlert?: boolean }) {
+function PhoneDashboard() {
   return (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Home" now={NOW}>
-        {alertExperiment && <GarageAlertSection key={activeAlert ? "active" : "clear"} enabled={activeAlert} />}
         <Section title="Security">
           <Alarm alarm="ring" readOnly footprint="compact" />
         </Section>
@@ -82,7 +68,7 @@ function PhoneDashboard({ alertExperiment = false, activeAlert = false }: { aler
           <Climate unit="cooling" footprint="compact" />
           <Climate unit="range" footprint="compact" />
           <Cover cover="curtains" footprint="compact" />
-          {!alertExperiment && <Cover cover="garage" footprint="compact" />}
+          <Cover cover="garage" footprint="compact" />
           <Light light="dimmable" footprint="compact" />
           <Light light="dimmableOff" footprint="compact" />
           <Light light="onOff" footprint="compact" />
@@ -95,15 +81,6 @@ function PhoneDashboard({ alertExperiment = false, activeAlert = false }: { aler
 }
 
 export const Phone: Story = { render: () => <PhoneDashboard /> };
-
-export const PhoneAlertExperiment: AlertExperimentStory = {
-  name: "Phone, conditional garage alert",
-  args: { activeAlert: true },
-  argTypes: {
-    activeAlert: { control: "boolean", name: "Active alert", description: "Show or omit the conditional Alerts section." },
-  },
-  render: ({ activeAlert }) => <PhoneDashboard alertExperiment activeAlert={activeAlert} />,
-};
 
 /** Tablet, landscape: weather and room sensors at the top, then climate and security with covers and
     lights, and the modes and bundles last. */

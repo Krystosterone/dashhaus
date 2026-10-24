@@ -34,18 +34,6 @@ codified; strike items when implemented.
   - **Fail — Garage door:** the area/class line is replaced by `Open since 10:20`, duplicates the `Open` control state, and truncates at 358 px.
   - **Pass:** Curtains, Ceiling, Reading lamp, Porch light, and Shelf strip. At 278 px, all eight rows retain a readable primary name and value/state cue without colour.
 
-## ~~4. Conditional dashboard sections~~ — satisfied
-
-**Contract:** research note 01, composition — the conditional alert row is our inference, "keep it testable".
-
-- **Outcome (2026-10-18):** `Section` accepts an optional `when` boolean, defaulting to true. False returns no section element, heading, grid, or layout gap.
-- **Experiment:** `Dashboards/Phone, conditional garage alert` exposes an `Active alert` control. True derives the Alerts section from the open Garage door state; false removes Garage and the complete Alerts section.
-- **Gate result (2026-10-18):**
-  - **Cross-room quick control — pass, 1 tap:** Reading lamp toggled directly in Phone → Controls and restored in a second tap. Unavailable controls remain explicit rather than empty.
-  - **Single-room lookup — fail on phone/tablet:** neither dashboard exposes a room-inventory link; the only Living room actions open that sensor's details. The wall panel exposes Living room at depth 0. No empty-room state is represented.
-  - **Actionable alert — original partial; mechanism now verified:** the original open garage could be closed directly but was buried in Controls. In the experiment, Close removes the leading Alerts section in one tap; `Active alert: false` renders Security first with no empty section or gap.
-  - **Decision:** implemented only the authorized `Section when={…}` authoring mechanism and alert-row story. The missing phone/tablet room path remains outside this mechanism.
-
 ## Satisfied — do not re-add
 
 - Density subtraction (compact never glows or takes the colour slot): enforced by `.hd--compact` in `card.css`.
