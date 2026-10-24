@@ -30,6 +30,7 @@ export function createHaStore(transport: HaTransport): HaStore {
   const stops: Unsubscribe[] = [];
   let attempt: { promise: Promise<void>; resolve: () => void; reject: (error: unknown) => void } | undefined;
   let actionSequence = 0;
+  let failedAction: (() => Promise<unknown>) | undefined;
 
   const set = (patch: Partial<HaSnapshot>) => {
     snapshot = { ...snapshot, ...patch };
@@ -63,6 +64,7 @@ export function createHaStore(transport: HaTransport): HaStore {
 
   const fail = () => {
     teardown();
+    failedAction = undefined;
     set({ status: "error", entities: {}, error: lifecycleError(), lastActionError: undefined, generation: snapshot.generation + 1 });
     settle(lifecycleError());
   };
@@ -75,9 +77,9 @@ export function createHaStore(transport: HaTransport): HaStore {
     const promise = new Promise<void>((res, rej) => { resolve = res; reject = rej; });
     attempt = { promise, resolve, reject };
     teardown();
+    failedAction = undefined;
     const owner = session;
     set({ status: "connecting", entities: {}, error: undefined, lastActionError: undefined, generation: snapshot.generation + 1 });
-
     const onEntities = (entities: HassEntities) => {
       if (owner !== session) return;
       if (snapshot.status === "connected") {
@@ -93,6 +95,7 @@ export function createHaStore(transport: HaTransport): HaStore {
         fail();
       } else if (status === "disconnected") {
         if (snapshot.status === "disconnected") return;
+        failedAction = undefined;
         set({ status: "disconnected", entities: {}, lastActionError: undefined, generation: snapshot.generation + 1 });
       } else if (snapshot.status !== "connected") {
         // Ready again; the transport resubscribes and the next entity snapshot marks the store connected.
@@ -113,6 +116,7 @@ export function createHaStore(transport: HaTransport): HaStore {
     teardown();
     settle();
     if (snapshot.status === "disconnected" || snapshot.status === "idle") return;
+    failedAction = undefined;
     set({ status: "disconnected", entities: {}, error: undefined, lastActionError: undefined, generation: snapshot.generation + 1 });
   };
 
@@ -120,11 +124,20 @@ export function createHaStore(transport: HaTransport): HaStore {
    * Run one request against the connected transport. A request that fails or settles after the
    * connection changed has an unknown outcome; only service calls own `lastActionError`.
    */
-  const request = async (label: string, details: ErrorDetails, call: () => Promise<unknown>, action: boolean) => {
+  const request = async (
+    label: string,
+    details: ErrorDetails,
+    call: () => Promise<unknown>,
+    action: boolean,
+    retry?: () => Promise<unknown>,
+  ) => {
     const generation = snapshot.generation;
     const actionId = action ? ++actionSequence : 0;
     const report = (error: HaActionError) => {
-      if (action && actionId === actionSequence && generation === snapshot.generation) set({ lastActionError: error });
+      if (action && actionId === actionSequence && generation === snapshot.generation) {
+        failedAction = retry && (error.code === "service_failed" || error.code === "not_connected") ? retry : undefined;
+        set({ lastActionError: error });
+      }
       return error;
     };
     if (snapshot.status !== "connected") {
@@ -144,7 +157,10 @@ export function createHaStore(transport: HaTransport): HaStore {
     if (generation !== snapshot.generation) {
       throw report(new HaActionError("transport_unknown", `Home Assistant connection changed during ${label}; outcome is unknown`, details));
     }
-    if (action && actionId === actionSequence && snapshot.lastActionError) set({ lastActionError: undefined });
+    if (action && actionId === actionSequence) {
+      failedAction = undefined;
+      if (snapshot.lastActionError) set({ lastActionError: undefined });
+    }
     return result;
   };
 
@@ -156,14 +172,20 @@ export function createHaStore(transport: HaTransport): HaStore {
   ) => {
     if (!isRecord(serviceData) || !isServiceOptions(options)) {
       const error = new HaActionError("invalid_input", "Invalid Home Assistant service input", { domain, service: serviceName });
-      if (action) set({ lastActionError: error });
+      if (action) {
+        failedAction = undefined;
+        set({ lastActionError: error });
+      }
       return Promise.reject(error);
     }
     const details = { domain, service: serviceName, entityId: entityIdOf(serviceData, options) };
     const call = () => Object.keys(options).length > 0
       ? transport.callService(domain, serviceName, serviceData, options)
       : transport.callService(domain, serviceName, serviceData);
-    return request(`${domain}.${serviceName}`, details, call, action);
+    let retry: (() => Promise<unknown>) | undefined;
+    const execute = () => request(`${domain}.${serviceName}`, details, call, action, retry);
+    if (action && !Object.prototype.hasOwnProperty.call(serviceData, "code")) retry = execute;
+    return execute();
   };
 
   const callApi = (type: string, payload: Record<string, unknown> = {}) => {
@@ -186,6 +208,16 @@ export function createHaStore(transport: HaTransport): HaStore {
     connect,
     disconnect,
     callService: service(true),
+    clearActionError() {
+      failedAction = undefined;
+      if (snapshot.lastActionError) set({ lastActionError: undefined });
+    },
+    canRetryLastAction: () => snapshot.status === "connected" && failedAction !== undefined,
+    retryLastAction() {
+      return failedAction
+        ? failedAction()
+        : Promise.reject(new HaActionError("unsupported", "No Home Assistant action is available to retry"));
+    },
     query: service(false),
     callApi,
   };

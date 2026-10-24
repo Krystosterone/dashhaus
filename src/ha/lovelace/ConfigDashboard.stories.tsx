@@ -1,12 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { HaProvider, useHaSelector } from "../provider";
+import { HaProvider, useHaSelector, useHaStatus, useHaStore } from "../provider";
 import { createHaStore } from "../store";
 import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
 import { createDemoHouseTransport } from "./demo";
+import type { HaTransport } from "../types";
 
 const meta = {
   title: "Home Assistant/Config dashboard",
@@ -51,8 +52,8 @@ const YAML = {
   ],
 };
 
-function House({ children }: { children: ReactNode }) {
-  const store = useMemo(() => createHaStore(createDemoHouseTransport()), []);
+function House({ children, transport }: { children: ReactNode; transport?: HaTransport }) {
+  const store = useMemo(() => createHaStore(transport ?? createDemoHouseTransport()), [transport]);
   return (
     <HaProvider store={store}>
       <div style={{ maxWidth: 430, marginInline: "auto" }}>{children}</div>
@@ -72,5 +73,31 @@ function Automatic() {
   return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} />;
 }
 
+function FailedAction() {
+  const store = useHaStore();
+  const status = useHaStatus();
+  const attempted = useRef(false);
+  useEffect(() => {
+    if (status !== "connected" || attempted.current) return;
+    attempted.current = true;
+    void store.callService("light", "toggle", { entity_id: "light.living_room" }).catch(() => undefined);
+  }, [status, store]);
+  const config = parseDashboardConfig({
+    type: "custom:home-dashboard",
+    title: "Home",
+    sections: [{ title: "Living room", cards: [{ entity: "light.living_room" }] }],
+  });
+  return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} />;
+}
+
+function ActionFailureExample() {
+  const transport = useMemo<HaTransport>(() => {
+    const demo = createDemoHouseTransport();
+    return { ...demo, callService: async () => { throw new Error("Demo action rejected"); } };
+  }, []);
+  return <House transport={transport}><FailedAction /></House>;
+}
+
 export const FromYaml: Story = { name: "From YAML", render: () => <House><Configured /></House> };
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <House><Automatic /></House> };
+export const ActionFailure: Story = { name: "Action failure and retry", render: () => <ActionFailureExample /> };

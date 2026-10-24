@@ -106,6 +106,12 @@ export interface HaStore {
     serviceData?: Record<string, unknown>,
     options?: HaServiceCallOptions,
   ): Promise<unknown>;
+  /** Clear the latest action failure after the host has acknowledged it. */
+  clearActionError?(): void;
+  /** Whether the latest failed action is safe to repeat on the current connection. */
+  canRetryLastAction?(): boolean;
+  /** Repeat the latest safe failed action. Sensitive action data is never retained for retry. */
+  retryLastAction?(): Promise<unknown>;
   /** Background read-only request that stays out of action ordering and `lastActionError`. */
   query(
     domain: string,

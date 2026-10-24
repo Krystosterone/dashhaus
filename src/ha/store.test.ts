@@ -287,6 +287,48 @@ describe("createHaStore actions", () => {
     expect(store.getSnapshot().lastActionError).toBeUndefined();
   });
 
+  it("retries the latest safe failed action and clears the error after success", async () => {
+    let fail = true;
+    const callService = vi.fn(async () => {
+      if (fail) throw new Error("offline");
+      return { ok: true };
+    });
+    const { store } = await connected({ callService });
+
+    await store.callService("light", "toggle", { entity_id: "light.one" }).catch(() => undefined);
+    expect(store.canRetryLastAction?.()).toBe(true);
+
+    fail = false;
+    await expect(store.retryLastAction?.()).resolves.toEqual({ ok: true });
+    expect(callService).toHaveBeenCalledTimes(2);
+    expect(callService).toHaveBeenLastCalledWith("light", "toggle", { entity_id: "light.one" });
+    expect(store.getSnapshot().lastActionError).toBeUndefined();
+  });
+
+  it("never retains alarm codes or unknown-outcome actions for retry", async () => {
+    const coded = await connected({ callService: vi.fn(async () => { throw new Error("rejected"); }) });
+    await coded.store.callService("alarm_control_panel", "alarm_disarm", {
+      entity_id: "alarm_control_panel.home",
+      code: "1234",
+    }).catch(() => undefined);
+    expect(coded.store.canRetryLastAction?.()).toBe(false);
+    await expect(coded.store.retryLastAction?.()).rejects.toMatchObject({ code: "unsupported" });
+
+    const unknown = await connected({ callService: vi.fn(async () => { throw 3; }) });
+    await unknown.store.callService("cover", "open_cover", { entity_id: "cover.garage" }).catch(() => undefined);
+    expect(unknown.store.canRetryLastAction?.()).toBe(false);
+  });
+
+  it("dismisses the latest action failure and its retry", async () => {
+    const { store } = await connected({ callService: vi.fn(async () => { throw new Error("rejected"); }) });
+    await store.callService("light", "toggle", { entity_id: "light.one" }).catch(() => undefined);
+
+    store.clearActionError?.();
+
+    expect(store.getSnapshot().lastActionError).toBeUndefined();
+    expect(store.canRetryLastAction?.()).toBe(false);
+  });
+
   it("keeps background queries out of action state", async () => {
     const { store } = await connected({ callService: vi.fn(async () => { throw new Error("no forecast"); }) });
 

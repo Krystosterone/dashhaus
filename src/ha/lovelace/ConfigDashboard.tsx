@@ -11,6 +11,7 @@ import { HaAlarmTile } from "../HaAlarmTile";
 import { HaOwletTile } from "../HaOwletTile";
 import { HaHumidifierTile } from "../HaHumidifierTile";
 import type { BlockConfig, CardConfig, DashboardConfig, ItemConfig, SectionConfig } from "./config";
+import { ActionStatus } from "./ActionStatus";
 
 /** One configured card as its connected tile. */
 function tile(card: CardConfig, key?: string): ReactElement {
@@ -60,6 +61,7 @@ export function ConfigDashboard({ config, now }: ConfigDashboardProps) {
   return (
     <DashboardPage title={config.title} subtitle={config.subtitle} showTime={config.showTime} hourCycle={config.hourCycle} now={now}>
       {config.blocks.map(block)}
+      <ActionStatus />
     </DashboardPage>
   );
 }

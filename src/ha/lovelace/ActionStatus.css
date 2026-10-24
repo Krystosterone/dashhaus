@@ -1,0 +1,41 @@
+/* Dashboard-level Home Assistant action recovery. Warn remains a text/icon signal; actions use the shared raised surface.
+   The dock is the page's last block, sticky to the bottom of the view: on a long page the row floats over the
+   dashboard wherever the failed control was; on a short one it sits under the last card. Last, it moves no card. */
+.ha-action-dock { position: sticky; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 3; }
+.ha-action {
+  display: flex; align-items: center; gap: 12px; min-width: 0; padding: 10px 10px 10px 16px; border-radius: 24px;
+  background: var(--card-solid); box-shadow: var(--shadow);
+  color: var(--ink); font-family: var(--font);
+  animation: ha-action-in 240ms var(--ease-out);
+}
+@keyframes ha-action-in { from { opacity: 0; transform: translateY(8px); } }
+.ha-action-i { flex: none; display: grid; place-items: center; width: 18px; height: 18px; color: var(--warn); }
+.ha-action-i svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ha-action-copy { flex: 1; display: grid; gap: 2px; min-width: 0; font-size: 13.5px; line-height: 1.3; }
+.ha-action-copy strong { color: var(--warn); font-size: 14px; font-weight: 700; }
+.ha-action-copy > span { color: var(--ink-2); font-weight: 500; }
+.ha-action-buttons { flex: none; display: flex; gap: 8px; }
+.ha-action-b {
+  min-width: 72px; height: 44px; padding: 0 14px; border: 0; border-radius: 99px;
+  background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink);
+  font: 600 13.5px var(--font); cursor: pointer; touch-action: manipulation;
+  transition: background-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out), scale var(--press) var(--ease-out);
+}
+.ha-action-b:active { scale: 0.96; }
+.ha-action-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ha-action-b:disabled { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default; }
+.ha-action-b:disabled:active { scale: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .ha-action-b:not(:disabled):hover { background: color-mix(in oklab, var(--btn) 94%, var(--ink)); }
+}
+@container dash (max-width: 359px) {
+  .ha-action { align-items: flex-start; flex-wrap: wrap; padding: 12px; }
+  .ha-action-copy { min-width: calc(100% - 30px); }
+  .ha-action-buttons { width: 100%; padding-inline-start: 30px; }
+  .ha-action-b { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ha-action { animation-name: ha-action-fade; }
+  @keyframes ha-action-fade { from { opacity: 0; } }
+  .ha-action-b { scale: none !important; }
+}
