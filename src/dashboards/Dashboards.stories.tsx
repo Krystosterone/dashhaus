@@ -126,7 +126,7 @@ export const WallPanel: Story = {
   name: "Wall panel",
   render: () => (
     <Device label="Wall panel" width={1280} height={800}>
-      <DashboardPage title="Home" now={NOW} showTime style={{ paddingBottom: 0 }}>
+      <DashboardPage title="Home" now={NOW} showTime viewing="far" style={{ paddingBottom: 0 }}>
         <Columns columns={4} gap={16}>
           <Section title="Living room">
             <Light light="dimmable" footprint="featured" />

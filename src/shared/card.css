@@ -96,12 +96,12 @@
 .hd-title { grid-area: title; min-width: 0; }
 /* Only the sheet's close button sits in the head's last column. */
 .hd-head > .hd-circ { grid-area: open; }
-.hd-num { grid-area: num; display: none; font-size: clamp(32px, 7cqi, 44px); font-weight: 300; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hd-num { grid-area: num; display: none; font-size: clamp(32px, 7cqi, 44px); font-weight: var(--type-readout-weight); letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hd-num span { font-size: 0.48em; letter-spacing: 0; color: var(--ink-2); margin-left: 2px; }
 .hd[data-state="off"] .hd-num { color: var(--ink-3); }
 .hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
 .hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hd-area { margin-top: 3px !important; font-size: 13.5px; font-weight: 500; color: var(--ink-2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hd-area { margin-top: 3px !important; font-size: var(--type-status); font-weight: 500; color: var(--ink-2); line-height: var(--type-status-leading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .hd-sub { display: none; }
 /* A missing area keeps its line, so cards with and without one stay the same height. */
 .hd-area:empty::before { content: "\00a0"; }
@@ -182,7 +182,7 @@
 .hd--featured[data-role="reading"]:not(.hd--sheet) .hd-head { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "orb title"; }
 .hd--featured[data-role="reading"]:not(.hd--sheet) .hd-num { display: none; }
 .hd-warn { color: var(--warn); font-weight: 600; }
-.hd-alert-cue { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-inline-end: 5px; color: var(--warn); vertical-align: -2px; }
+.hd-alert-cue { display: inline-grid; place-items: center; width: var(--type-cue); height: var(--type-cue); margin-inline-end: 5px; color: var(--warn); vertical-align: -2px; }
 .hd-alert-cue svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Control slot: one fixed height for every state. The pill is a toggle button: raised when off, the accent when on. */
@@ -324,7 +324,7 @@
 /* Reach back over the gap to the orb; stop 8px short of the control so a short tap on it never opens the sheet. */
 .hd--compact .hd-open::after { inset-inline: -10px 8px; }
 .hd--compact .hd-name { font-size: 15px; }
-.hd--compact .hd-area, .hd--compact .hd-sub { margin-top: 1px !important; font-size: 12.5px; }
+.hd--compact .hd-area, .hd--compact .hd-sub { margin-top: 1px !important; font-size: var(--type-status-compact); }
 /* The control and the name split the row; no column goes to a details button. */
 .hd--compact .hd-slot { grid-area: slot; width: clamp(112px, 40cqi, 232px); }
 .hd--compact .hd-pill, .hd--compact .hd-unav { font-size: 13px; }

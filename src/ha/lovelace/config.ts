@@ -74,6 +74,8 @@ export interface DashboardConfig {
   subtitle?: string;
   showTime: boolean;
   hourCycle?: "h12" | "h23";
+  /** "far": a wall panel read from across the room. */
+  viewing?: "near" | "far";
   theme: ThemeSetting;
   accent?: Accent;
   /** Absent: lay the house out automatically. */
@@ -106,7 +108,7 @@ const KIND_KEYS: Record<Kind, string[]> = {
   owlet: ["heart_rate", "oxygen", "charging", "alerts", "stale_after", "color"],
   humidifier: ["color"],
 };
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "theme", "accent", "sections", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "sections", "view_layout", "grid_options", "visibility"];
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
 const GROUP_KEYS = ["columns", "gap", "sections"];
 
@@ -408,6 +410,7 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     subtitle: read.string(value, "subtitle", ""),
     showTime: read.boolean(value, "show_time", "") ?? false,
     hourCycle: read.choice(value, "hour_cycle", "", ["h12", "h23"] as const),
+    viewing: read.choice(value, "viewing", "", ["near", "far"] as const),
     theme: read.choice(value, "theme", "", ["home-assistant", "auto", "light", "dark"] as const) ?? "home-assistant",
     accent,
     blocks,

@@ -9,12 +9,14 @@ export interface DashboardPageProps extends HeaderWidgetProps {
   children: ReactNode;
   /** Optional host-level layout override, such as removing scroll padding on a fixed wall panel. */
   style?: CSSProperties;
+  /** "far": a wall panel read from across the room; status, captions and readouts are set for distance. */
+  viewing?: "near" | "far";
 }
 
 /** A dashboard page: the header widget (title, date, optional clock), then any composition. */
-export function DashboardPage({ children, style, ...header }: DashboardPageProps) {
+export function DashboardPage({ children, style, viewing, ...header }: DashboardPageProps) {
   return (
-    <div className="dash" style={style}>
+    <div className="dash" style={style} data-viewing={viewing === "far" ? "far" : undefined}>
       <HeaderWidget {...header} />
       {children}
     </div>

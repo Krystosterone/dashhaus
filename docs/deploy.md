@@ -89,6 +89,7 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | --- | --- | --- |
 | card | `title`, `subtitle` | The page header. `title` defaults to "Home". |
 | card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`. |
+| card | `viewing` | `near` (default: a phone or tablet in the hand) or `far`, for a wall panel read from across the room: larger status lines, captions and warn cues, and heavier figures. Card heights don't change. |
 | card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
 | card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
 | card | `sections` | The layout, top to bottom. Leave it out and the house is laid out automatically, kept up to date as you add devices. |

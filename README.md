@@ -120,6 +120,7 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 - **Compact stays quiet.** Compact cards never glow and never take the colour slot. Colour and glow belong to standard, featured and sheet surfaces.
 - **Mixing concerns is valid.** Room-first, importance-first and task-first layouts use the same cards; no `Section` or bundle is needed to normalize them.
 - **One wall, one column per place** remains the example wall-panel composition, not a requirement of the card system.
+- **Set type for the viewing distance, not the width.** A wall panel read from across the room takes `viewing="far"` (YAML `viewing: far`): status lines, captions and warn cues grow and readouts gain a weight step, through the `--type-*` role tokens in `tokens.css`. Width can't tell a wall panel from a tablet in the hand, so it is never inferred, and card heights don't move.
 
 The Storybook dashboards demonstrate:
 

@@ -71,6 +71,7 @@ describe("parseDashboardConfig", () => {
       title: "Flat",
       show_time: true,
       hour_cycle: "h23",
+      viewing: "far",
       theme: "dark",
       accent: "sage",
       sections: [{
@@ -84,7 +85,7 @@ describe("parseDashboardConfig", () => {
         ],
       }],
     });
-    expect(config).toMatchObject({ title: "Flat", showTime: true, hourCycle: "h23", theme: "dark", accent: { chroma: 0.08, hue: 150 } });
+    expect(config).toMatchObject({ title: "Flat", showTime: true, hourCycle: "h23", viewing: "far", theme: "dark", accent: { chroma: 0.08, hue: 150 } });
     expect(config.blocks?.[0]).toMatchObject({
       kind: "section",
       title: "Air",

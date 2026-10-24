@@ -13,12 +13,12 @@ button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
 .sw-metric { min-width: 0; }
 .sw-t { display: flex; align-items: baseline; }
 .sw-value { line-height: 1; }
-.sw-t .sw-value { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
+.sw-t .sw-value { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
 .sw-t .sw-value small {
   margin-left: 1px; font-size: 0.62em; font-weight: 400; letter-spacing: 0; vertical-align: 0.34em;
 }
 .sw-h { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
-.sw-label { color: var(--ink-3); font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
+.sw-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
 .sw-label-short { display: none; }
 .sw-h .sw-value { font-size: 18px; font-weight: 600; }
 .sw-h .sw-value small { margin-left: 1px; font-size: 0.78em; font-weight: 600; }

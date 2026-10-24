@@ -15,7 +15,7 @@ button.wx-read:active .wx-rd { scale: 0.98; }
 .wx-rd-t { color: var(--ink); font-size: 20px; font-weight: 700; }
 .wx-rd-f { color: var(--ink-2); font-size: 14px; font-weight: 600; }
 /* Standard and featured: now is the card's figure, in the large-readout voice. */
-.wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: 300; letter-spacing: -0.035em; }
+.wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
 .wx:not(.hd--compact):not(.hd--sheet) .wx-rd-f { font-size: 15px; }
 .hd--compact .wx-rd { justify-content: flex-end; column-gap: 8px; padding-inline-end: var(--pad-in); }
 .hd--compact .wx-rd-t { font-size: 13.5px; }

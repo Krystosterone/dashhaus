@@ -59,7 +59,7 @@ export interface ConfigDashboardProps {
 /** A whole dashboard page drawn from the card's YAML. It needs an `HaProvider` above it. */
 export function ConfigDashboard({ config, now }: ConfigDashboardProps) {
   return (
-    <DashboardPage title={config.title} subtitle={config.subtitle} showTime={config.showTime} hourCycle={config.hourCycle} now={now}>
+    <DashboardPage title={config.title} subtitle={config.subtitle} showTime={config.showTime} hourCycle={config.hourCycle} viewing={config.viewing} now={now}>
       {config.blocks.map(block)}
       <ActionStatus />
     </DashboardPage>

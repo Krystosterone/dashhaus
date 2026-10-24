@@ -49,6 +49,26 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease: var(--ease-out);
   --press: 160ms;
+
+  /* Type roles a dashboard tunes for viewing distance. Near: a phone or tablet in the hand. */
+  --type-status: 13.5px;
+  --type-status-compact: 12.5px;
+  --type-status-leading: 1.3;
+  --type-caption: 10.5px;
+  --type-readout-weight: 300;
+  --type-cue: 14px;
+}
+
+/* Far: a wall panel read from across the room (DashboardPage viewing="far", YAML `viewing: far`). Status,
+   captions and the warn cue grow, and readouts gain a weight step so thin figures survive distance. Card
+   heights don't move: the status line's leading tightens as it grows. */
+[data-viewing="far"] {
+  --type-status: 15px;
+  --type-status-compact: 14px;
+  --type-status-leading: 1.2;
+  --type-caption: 12px;
+  --type-readout-weight: 400;
+  --type-cue: 16px;
 }
 
 @media (prefers-color-scheme: dark) {
