@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types";
 import { ShieldIcon, MODE_LABEL } from "./icons";
-import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
+import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad, modeChoices } from "./parts";
 import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./AlarmWidget.css";
@@ -117,9 +117,14 @@ export function AlarmWidget({ entity: e, history, variant, footprint, showContro
     : <Countdown kind="pending" label={left == null ? "Entry delay · disarm now" : "Disarm now"} left={left} total={e.delay} action="Disarm" onAction={() => act({ kind: "disarm" })} />;
   else if (e.state === "arming") slot = <Countdown kind="arming" label={left == null ? `Arming${to}…` : `Arming${to}`} left={left} total={e.delay} action={ro ? undefined : "Cancel"} onAction={ro ? undefined : () => act({ kind: "disarm" })} />;
   else if (e.state === "disarming") slot = <Countdown kind="disarming" label="Disarming…" left={left} total={e.delay} />;
-  else slot = ro
-    ? <AlarmStatus mode={armedMode ?? "off"} by={e.changedBy} />
-    : <ModeSwitch name={e.name} modes={e.modes} current={armedMode ?? "off"} onPick={pick} />;
+  else if (ro) slot = <AlarmStatus mode={armedMode ?? "off"} by={e.changedBy} />;
+  else slot = (
+    <>
+      <ModeSwitch name={e.name} modes={e.modes} current={armedMode ?? "off"} onPick={pick} />
+      {/* Five or more segments on a narrow card fall under 24 px: CSS swaps in the state, and arming moves to the sheet. */}
+      {!sheet && modeChoices(e.modes, armedMode ?? "off").length >= 5 && <AlarmStatus mode={armedMode ?? "off"} by={e.changedBy} narrow />}
+    </>
+  );
 
   const promptFor = (a: AlarmAction) => (a.kind === "disarm" ? `Enter the code to ${e.state === "arming" ? "cancel arming" : "disarm"}` : `Enter the code to arm ${MODE_LABEL[a.mode].toLowerCase()}`);
 

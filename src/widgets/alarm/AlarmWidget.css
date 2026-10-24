@@ -54,6 +54,17 @@
 .hd--sheet .al-sw[data-crowd] .al-seg-l { max-width: 100%; }
 .hd--sheet .al-seg-l { display: inline; }
 .hd--compact .al-seg svg { width: 15px; height: 15px; }
+/* Five or six segments on a narrow card would fall under 24px (WCAG 2.5.8): the state shows instead and
+   arming moves to the sheet, as in compact cards. A segment is (card width - 40px) / n wide. */
+.al-st.al-st--narrow { display: none; }
+@container hd (max-width: 169px) {
+  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-many]) .al-sw { display: none; }
+  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-many]) .al-st--narrow { display: flex; }
+}
+@container hd (max-width: 199px) {
+  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-crowd]) .al-sw { display: none; }
+  .al:not(.hd--compact):not(.hd--sheet) .hd-slot:has(.al-sw[data-crowd]) .al-st--narrow { display: flex; }
+}
 /* Compact mode controls keep real 44px targets. Five or more choices move to the sheet instead of
    shrinking below a reliable touch size; any mode switch also yields below 360px. */
 .hd--compact .al-sw { padding: 0; }
@@ -131,8 +142,15 @@
 .hd--compact .al-cd-b { height: var(--slot-h); font-size: 12.5px; }
 
 /* ---------- Triggered: the one place warn fills ---------- */
-.al-alarm { background: var(--warn); color: var(--on-warn); animation: al-pulse 1.4s var(--ease-in-out) infinite alternate; }
-@keyframes al-pulse { to { opacity: 0.82; } }
+/* The pulse deepens the fill under the text instead of fading the pill: fading toward the card took
+   --on-warn under 4.5:1, while warn pulled toward --ink only moves away from it, in either theme. */
+.al-alarm { background: var(--warn); color: var(--on-warn); isolation: isolate; }
+.al-alarm::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: color-mix(in oklab, var(--warn) 78%, var(--ink)); opacity: 0;
+  animation: al-pulse 1.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes al-pulse { to { opacity: 1; } }
 .al-alarm-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
 .al-alarm-l b { font-weight: 700; }
 .al-alarm-b { background: var(--card-solid); color: var(--ink); }
@@ -179,7 +197,7 @@
 .al-kp-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .al-alarm, .al-kp-dots[data-error] { animation: none; }
+  .al-alarm::before, .al-kp-dots[data-error] { animation: none; }
   /* Gentler, not gone: the sweep becomes a slow fade in place */
   .al-cd-wait { left: 30%; animation: al-wait 1.4s var(--ease-in-out) infinite alternate; }
   .al-thumb { transition: background-color 200ms var(--ease-out); }

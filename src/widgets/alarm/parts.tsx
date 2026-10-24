@@ -3,14 +3,17 @@ import type { Vars } from "../../shared/ui";
 import type { AlarmMode } from "./types";
 import { ModeIcon, MODE_LABEL } from "./icons";
 
+/** The switch's segments. Armed in a mode the list leaves out (custom bypass, set from the panel itself): show it rather than "Off". */
+export const modeChoices = (modes: AlarmMode[], current: AlarmMode | "off"): (AlarmMode | "off")[] =>
+  ["off", ...modes, ...(current !== "off" && !modes.includes(current) ? [current] : [])];
+
 /**
  * The mode switch: Off and each arm mode, one segment each. The current one sits on a thumb that slides
  * along a groove: the accent when armed (on), a raised button when off.
  * Labels from 260px up; icons only below 260px and in compact cards.
  */
 export function ModeSwitch({ name, modes, current, onPick }: { name: string; modes: AlarmMode[]; current: AlarmMode | "off"; onPick: (m: AlarmMode | "off") => void }) {
-  // Armed in a mode the list leaves out (custom bypass, set from the panel itself): show it rather than "Off".
-  const all: (AlarmMode | "off")[] = ["off", ...modes, ...(current !== "off" && !modes.includes(current) ? [current] : [])];
+  const all = modeChoices(modes, current);
   const i = Math.max(0, all.indexOf(current));
   return (
     <div className="al-sw" role="group" aria-label={`${name} mode`} data-armed={current !== "off" || undefined} data-many={all.length >= 5 || undefined} data-crowd={all.length >= 6 || undefined} style={{ "--n": all.length, "--i": i } as Vars}>
@@ -60,10 +63,10 @@ const ARMED_AS: Record<AlarmMode, string> = { home: "Armed home", away: "Armed a
  * View-only mode's slot, in place of the mode switch: what the alarm is doing, nothing to press.
  * A readout, with no container: the badge says armed. Who changed it, from M up.
  */
-export function AlarmStatus({ mode, by }: { mode: AlarmMode | "off"; by?: string }) {
+export function AlarmStatus({ mode, by, narrow }: { mode: AlarmMode | "off"; by?: string; narrow?: boolean }) {
   const armed = mode !== "off";
   return (
-    <div className="al-st" data-armed={armed || undefined}>
+    <div className={narrow ? "al-st al-st--narrow" : "al-st"} data-armed={armed || undefined}>
       <ModeIcon mode={mode} />
       <span className="al-st-l">{armed ? ARMED_AS[mode] : "Disarmed"}</span>
       <span className="al-st-s">{armed ? MODE_LABEL[mode] : "Disarmed"}</span>
