@@ -2,7 +2,7 @@
 
 A second, completely different UI over the same entities: translucent panels on a dark gradient, a bento grid, a room bar at the bottom. It runs on phones and tablets and ships as its own Lovelace card in the same bundle. The look comes from a reference mock; the decisions below are where it departs from the mock, and why.
 
-It shares everything below the UI with the current dashboard: the entity models in `src/domains/`, and the live entities from `src/ha/` through the headless components (`<HaClimate entityId>{(climate) => …}</HaClimate>`). Glass cards in `src/glass/` are pure: they take an entity and its actions as props, so stories feed them demo and worst-case data. Only the glass Lovelace renderer in `src/ha/lovelace/` (step 6 of the plan, not built yet) will connect them to Home Assistant.
+It shares everything below the UI with the current dashboard: the entity models in `src/domains/`, and the live entities from `src/ha/` through the headless components (`<HaClimate entityId>{(climate) => …}</HaClimate>`). Glass cards in `src/glass/` are pure: they take an entity and its actions as props, so stories feed them demo and worst-case data. Only the glass Lovelace card in `src/ha/lovelace/glass/` connects them to Home Assistant: `custom:home-dashboard-glass` (YAML in [deploy.md](deploy.md#the-glass-dashboard)). It resolves each card's area from the frontend's registries, renders one headless component per card with no history read, and shows a rejected command as a notice above the room bar, worded by the same `actionMessage()` as the current card's.
 
 ## Research decisions
 

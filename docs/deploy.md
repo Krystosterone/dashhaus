@@ -1,6 +1,6 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle carries the glass UI's card, `custom:home-dashboard-glass` (see [The glass dashboard](#the-glass-dashboard)). It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
 
 ## First deploy
 
@@ -11,7 +11,7 @@ The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a 
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open the **Home** dashboard in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
 
-`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates the `home-dashboard` dashboard with one panel view and a layout generated from your house. Run it again after every code change. It updates the resource and never touches a dashboard that already exists, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates the `home-dashboard` dashboard with one panel view and a layout generated from your house, and the `home-glass` glass dashboard in automatic mode (`HA_GLASS_DASHBOARD=off` skips it). Run it again after every code change. It updates the resource and never touches a dashboard that already exists, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
 
 If your dashboards are in YAML mode, the script can't manage resources and prints the lines to add to `configuration.yaml` instead.
 
@@ -119,8 +119,38 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 
 README.md's Dashboards section has the composition rules: frequent actions first, then household status and the room/environment glance; one hero per screen; compact rows where alignment matters.
 
+## The glass dashboard
+
+`custom:home-dashboard-glass` draws the glass UI ([glass.md](glass.md)) as one page: a greeting, the cards, and a room bar of the areas the cards are in. Glass draws lights, climate, toggles (`input_boolean.*` and `switch.*`) and the weather so far. Without `cards` it shows every one of those entities, hidden, config and diagnostic entities left out, in Home's order (the weather, climate, modes, lights, switches) and filed by their Home Assistant area; it keeps up as entities and areas change. The greeting names the signed-in person.
+
+```yaml
+type: custom:home-dashboard-glass
+title: Laid-back home     # default "Home"
+name: Sam                 # the greeting's name; default the signed-in person's
+cards:                    # leave out to show every supported entity
+  - weather.home
+  - entity: climate.living_room
+    name: Air conditioner
+  - entity: light.living_room
+    size: l
+  - entity: switch.router
+    area: Office
+    icon: waves
+```
+
+| On | Keys | Meaning |
+| --- | --- | --- |
+| any card | `entity` | Required: a `light.*`, `climate.*`, `weather.*`, `input_boolean.*` or `switch.*` entity. |
+| any card | `name`, `area` | Override the friendly name and the registry area. The room bar files the card under its area; an area called Home stays in Home. |
+| any card | `size` | `s`, `m`, `l` or `xl` on the bento grid. Defaults: toggle `s`, light `m`, climate `l`, weather `xl`. |
+| toggle | `icon` | `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`. |
+
+Put it in a **Panel** view, as the deploy script does. Glass reads no Today history, so it costs Home Assistant nothing beyond entity updates and the weather's forecasts. A rejected command shows above the room bar with Retry, when repeating it is safe, and Dismiss.
+
 ## What has and hasn't been verified
 
 Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API.
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port): the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live: service calls from the cards, the YAML-mode resource fallback, and a redeploy over an existing dashboard.
+
+The glass card has unit tests for its config, its automatic cards, the page (room filter, rejected commands) and the element, and Storybook renders it on the demo transports. It has not been deployed or run against Home Assistant yet: its first live check is the next `npm run deploy`, including how its fixed background and room bar sit inside Home Assistant's panel view.

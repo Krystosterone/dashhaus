@@ -7,6 +7,7 @@ const P = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWi
 
 export const IconPower = () => <svg {...P} strokeWidth={2}><path d="M12 3.5v8" /><path d="M7.1 6.6a7 7 0 1 0 9.8 0" /></svg>;
 export const IconMinus = () => <svg {...P} strokeWidth={2}><path d="M6 12h12" /></svg>;
+export const IconWarn = () => <svg {...P}><path d="M12 3.5 21 19.5H3L12 3.5Z" /><path d="M12 9.5v4.5M12 16.8h.01" /></svg>;
 export const IconPlus = () => <svg {...P} strokeWidth={2}><path d="M6 12h12M12 6v12" /></svg>;
 
 /* ---------- Devices ---------- */

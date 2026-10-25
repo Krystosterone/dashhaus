@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHaSelector, useHaStore } from "../provider";
+import { actionMessage } from "./actionMessage";
 import "./ActionStatus.css";
 
 /** One dashboard-level recovery surface for the latest rejected Home Assistant action. */
@@ -9,26 +10,10 @@ export function ActionStatus() {
   const entity = useHaSelector((snapshot) => error?.entityId ? snapshot.entities[error.entityId] : undefined);
   const [retrying, setRetrying] = useState(false);
 
-  // A wrong alarm code already has specific, contextual recovery in the open keypad.
-  if (!error || error.translationKey === "invalid_code") return null;
-
-  const rawName = error.entityId?.split(".", 2)[1]?.replaceAll("_", " ") ?? "device";
-  const fallbackName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-  const friendlyName = typeof entity?.attributes.friendly_name === "string" ? entity.attributes.friendly_name : fallbackName;
   const canRetry = store.canRetryLastAction?.() === true;
-
-  let title = `${friendlyName} didn’t respond`;
-  let detail = canRetry ? "Retry the command, or check Home Assistant." : "Check Home Assistant, then try again from the control.";
-  if (error.code === "not_connected") {
-    title = "Home Assistant is not connected";
-    detail = "The command was not sent. Wait for the connection to return.";
-  } else if (error.code === "transport_unknown") {
-    title = `${friendlyName} may not have changed`;
-    detail = "Check its current state before sending another command.";
-  } else if (error.code === "unsupported" || error.code === "invalid_input") {
-    title = `${friendlyName} can’t do that`;
-    detail = "Open the device in Home Assistant for details.";
-  }
+  const message = actionMessage(error, entity, canRetry);
+  if (!message) return null;
+  const { title, detail } = message;
 
   return (
     <div className="ha-action-dock">

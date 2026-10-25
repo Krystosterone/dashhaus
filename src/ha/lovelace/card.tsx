@@ -22,6 +22,8 @@ export interface LovelaceHass {
   devices?: Record<string, { area_id?: string | null }>;
   areas?: Record<string, { name: string }>;
   themes?: { darkMode?: boolean };
+  /** The signed-in person; the glass card greets them by name. */
+  user?: { name?: string };
 }
 
 export const CARD_TYPE = "home-dashboard";
@@ -34,7 +36,8 @@ const HOST_CSS = `
 .hd-config-error { margin: 16px; padding: 16px; border-radius: 16px; background: var(--card-solid); color: var(--ink); font: 500 14px/1.5 var(--font); white-space: pre-wrap; }
 `;
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
+/** Shows what stopped the card instead of a blank page. */
+export class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
   state: { error?: Error } = {};
   static getDerivedStateFromError(error: Error) { return { error }; }
   render() {
@@ -44,7 +47,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }
   }
 }
 
-const autoInput = (hass: LovelaceHass) => ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas });
+export const autoInput = (hass: LovelaceHass) => ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas });
 
 /**
  * `type: custom:home-dashboard` — a whole dashboard page in one Lovelace card. Lovelace gives it the
@@ -156,7 +159,7 @@ export function createHomeDashboardCard(css: string) {
 }
 
 /** Fonts only load from the document, never from inside a shadow root. */
-function loadFont() {
+export function loadFont() {
   if (document.head.querySelector(`link[href="${FONT_HREF}"]`)) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";

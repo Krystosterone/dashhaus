@@ -95,7 +95,7 @@ export const ACCENTS: Record<string, Accent> = {
 };
 
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
-const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
+export const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 const FOOTPRINTS: readonly WidgetFootprint[] = ["compact", "standard", "featured"];
 const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
 
@@ -125,8 +125,8 @@ export class DashboardConfigError extends Error {
   }
 }
 
-type Raw = Record<string, unknown>;
-const isRaw = (value: unknown): value is Raw => typeof value === "object" && value !== null && !Array.isArray(value);
+export type Raw = Record<string, unknown>;
+export const isRaw = (value: unknown): value is Raw => typeof value === "object" && value !== null && !Array.isArray(value);
 const ENTITY_ID = /^[a-z0-9_]+\.[a-z0-9_]+$/;
 
 function distance(a: string, b: string) {
@@ -156,7 +156,8 @@ export function suggest(word: string, allowed: readonly string[]): string | unde
 
 const oneOf = (allowed: readonly string[]) => allowed.map((a) => `"${a}"`).join(", ");
 
-class Reader {
+/** Collects every problem with its path, so the YAML editor shows them all at once. */
+export class Reader {
   readonly problems: string[] = [];
 
   problem(path: string, message: string) { this.problems.push(path ? `${path}: ${message}` : message); }

@@ -21,7 +21,8 @@ if (args.has("--help") || args.has("-h")) {
 
 Builds dist/${FILE}, copies it to $HA_WWW/${FOLDER}/, registers ${RESOURCE_PATH} as a dashboard
 resource (with a version so browsers fetch the new file), and creates the "$HA_DASHBOARD" dashboard
-with a generated layout if it does not exist yet. Settings: .env, see .env.example.`);
+with a generated layout and the "$HA_GLASS_DASHBOARD" glass dashboard if they do not exist yet.
+Settings: .env, see .env.example.`);
   process.exit(0);
 }
 
@@ -41,6 +42,9 @@ const HA_WWW = process.env.HA_WWW;
 const HA_SSH_PORT = process.env.HA_SSH_PORT;
 const DASHBOARD = process.env.HA_DASHBOARD || "home-dashboard";
 const TITLE = process.env.HA_DASHBOARD_TITLE || "Home";
+// "off" skips the glass dashboard.
+const GLASS_DASHBOARD = process.env.HA_GLASS_DASHBOARD || "home-glass";
+const GLASS_TITLE = process.env.HA_GLASS_DASHBOARD_TITLE || "Glass";
 
 const missing = [
   !HA_URL && "HA_URL      your Home Assistant address, e.g. http://homeassistant.local:8123",
@@ -51,6 +55,7 @@ if (missing.length) {
   fail(`Missing settings. Copy .env.example to .env and fill in:\n    ${missing.join("\n    ")}`);
 }
 if (!DASHBOARD.includes("-")) fail(`HA_DASHBOARD must contain a hyphen (Home Assistant requires it): "${DASHBOARD}"`);
+if (GLASS_DASHBOARD !== "off" && !GLASS_DASHBOARD.includes("-")) fail(`HA_GLASS_DASHBOARD must contain a hyphen (Home Assistant requires it), or be "off": "${GLASS_DASHBOARD}"`);
 
 // ---------- Build ----------
 const bundle = join(root, "dist", FILE);
@@ -124,9 +129,21 @@ if (dashboards.some((d) => d.url_path === DASHBOARD)) {
   await ha.send("lovelace/config/save", { url_path: DASHBOARD, config: lovelaceDashboard(card, TITLE) });
   done(`created with ${card.sections?.length ?? 0} generated sections`);
 }
+
+if (GLASS_DASHBOARD !== "off") {
+  step(`Checking the "${GLASS_DASHBOARD}" glass dashboard`);
+  if (dashboards.some((d) => d.url_path === GLASS_DASHBOARD)) {
+    done("exists; its layout is yours and was left alone");
+  } else {
+    // Automatic: without `cards` the card draws every supported entity by area, and keeps up as the house changes.
+    await ha.send("lovelace/dashboards/create", { url_path: GLASS_DASHBOARD, title: GLASS_TITLE, icon: "mdi:view-dashboard-variant", mode: "storage", show_in_sidebar: true, require_admin: false });
+    await ha.send("lovelace/config/save", { url_path: GLASS_DASHBOARD, config: lovelaceDashboard({ type: "custom:home-dashboard-glass", title: TITLE }, GLASS_TITLE) });
+    done("created in automatic mode");
+  }
+}
 ha.close();
 
-console.log(`\nDone. Open ${HA_URL}/${DASHBOARD}/home and reload the page once to pick up version ${version}.
+console.log(`\nDone. Open ${HA_URL}/${DASHBOARD}/home${GLASS_DASHBOARD !== "off" ? ` or ${HA_URL}/${GLASS_DASHBOARD}/home` : ""} and reload the page once to pick up version ${version}.
 To edit it: ⋮ → Edit dashboard → the card's ✎ → Code editor. The format is in docs/deploy.md.`);
 process.exit(0);
 

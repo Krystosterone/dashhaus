@@ -307,3 +307,56 @@
   background: var(--gl-chip-on);
   color: var(--gl-ink);
 }
+
+/* ---------- Notice: fixed above the room bar ---------- */
+.gl-notice {
+  position: fixed;
+  z-index: 11;
+  inset-inline: 0;
+  bottom: calc(var(--gl-bar-h) + 2 * var(--gl-gutter) + 8px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: min(560px, calc(100% - 2 * var(--gl-gutter)));
+  margin-inline: auto;
+  padding: 10px 10px 10px 16px;
+  border-radius: 24px;
+  animation: gl-notice-in 240ms var(--ease-out);
+}
+@keyframes gl-notice-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+.gl-notice-icon { flex: none; display: grid; color: var(--gl-warn); }
+.gl-notice-icon > svg { width: 20px; height: 20px; }
+/* The copy keeps 200 px beside the icon; narrower, the buttons wrap under it. It sits outside the grid's
+   container, so it wraps by flex basis rather than a container query. */
+.gl-notice-copy {
+  flex: 1 1 200px;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--gl-ink-2);
+}
+.gl-notice-copy > strong { color: var(--gl-warn); font-size: 14px; font-weight: 600; }
+.gl-notice-actions { display: flex; gap: 6px; margin-inline-start: auto; }
+.gl-pill {
+  min-width: 72px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--gl-chip-on);
+  color: var(--gl-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.gl-pill:disabled { background: transparent; color: var(--gl-ink-3); }
+@media (hover: hover) and (pointer: fine) {
+  .gl-pill:not(:disabled):hover { background-color: var(--gl-chip-hover); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-notice { animation-name: gl-notice-fade; }
+  @keyframes gl-notice-fade { from { opacity: 0; } }
+}

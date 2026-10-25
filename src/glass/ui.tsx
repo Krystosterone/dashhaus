@@ -1,8 +1,8 @@
 import { useId } from "react";
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useNow } from "../hooks/useNow";
 import { greeting } from "./greeting";
-import { IconPower } from "./icons";
+import { IconPower, IconWarn } from "./icons";
 import "./tokens.css";
 import "./glass.css";
 
@@ -12,7 +12,7 @@ export type GlassState = "on" | "off" | "unavailable";
 
 const STATE_WORD: Record<GlassState, string> = { on: "On", off: "Off", unavailable: "Unavailable" };
 
-/** The glass page: tokens, the gradient, and the grid's container. `bar` is the room bar. */
+/** The glass page: tokens, the gradient, and the grid's container. `bar` stays fixed at the bottom: the room bar, and a notice above it. */
 export function GlassPage({ bar, children }: { bar?: ReactNode; children: ReactNode }) {
   return (
     <div className="gl-page">
@@ -98,4 +98,23 @@ export function RoomBar({ rooms, current, onPick }: { rooms: Room[]; current: st
       </ul>
     </nav>
   );
+}
+
+/**
+ * A problem the page has to tell, such as a command Home Assistant rejected: fixed above the room bar, the
+ * warn colour on the words and the icon, never on the panel. `children` are its buttons.
+ */
+export function GlassNotice({ label, title, detail, children }: { label: string; title: string; detail: string; children?: ReactNode }) {
+  return (
+    <div className="gl-notice gl-panel" role="alert" aria-label={label}>
+      <span className="gl-notice-icon"><IconWarn /></span>
+      <span className="gl-notice-copy"><strong>{title}</strong><span>{detail}</span></span>
+      {children && <span className="gl-notice-actions">{children}</span>}
+    </div>
+  );
+}
+
+/** A labelled pill button, for a notice's actions. */
+export function GlassButton({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button type="button" {...props} className={className ? `gl-btn gl-pill ${className}` : "gl-btn gl-pill"} />;
 }
