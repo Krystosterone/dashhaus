@@ -12,12 +12,12 @@ export type GlassState = "on" | "off" | "unavailable";
 
 const STATE_WORD: Record<GlassState, string> = { on: "On", off: "Off", unavailable: "Unavailable" };
 
-/** The glass page: tokens, the gradient, and the grid's container. `bar` stays fixed at the bottom: the room bar, and a notice above it. */
+/** The glass page: tokens, the gradient, and the grid's container. `bar` docks at the bottom: the room bar, and a notice above it. */
 export function GlassPage({ bar, children }: { bar?: ReactNode; children: ReactNode }) {
   return (
     <div className="gl-page">
       <div className="gl-main">{children}</div>
-      {bar}
+      {bar && <div className="gl-dock">{bar}</div>}
     </div>
   );
 }

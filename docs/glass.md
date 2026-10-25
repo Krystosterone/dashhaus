@@ -26,8 +26,8 @@ The research behind the current UI ([research/](../research/README.md)) is about
 ## Layout
 
 - **The grid is a bento on a fixed row unit.** A card's size is one of four, and its height comes from its size alone, never its state: `s` 1 × 2 rows, `m` 2 × 2, `l` 2 × 4, `xl` 2 × 4 that widens to 3 columns when there are 6. Columns follow the page's width through container queries: 2 on a phone, 4 from 600 px, 6 from 1000 px.
-- **The room bar** is fixed at the bottom inside the safe area, scrolls sideways when the rooms don't fit, and marks the current room as pressed and filled.
-- **The page** fills the dynamic viewport (`100dvh`), pads by the safe-area insets, and leaves room at the bottom for the bar.
+- **The room bar** docks at the bottom inside the safe area: sticky, so it centres on the page's own width even beside Home Assistant's sidebar. It scrolls sideways when the rooms don't fit, fading at its ends, and marks the current room as pressed and filled. A rejected command's notice docks above it.
+- **The page** fills the dynamic viewport (`100dvh`; in Home Assistant, the height under its header), pads by the safe-area insets, and pushes the dock to the bottom of a short page.
 - **Dropped from the mock:** the top navigation (search, calendar, automations, notifications, energy) and the members row's add button: neither has a job here yet. The TV, speaker and music cards wait for media player support, and the camera card for camera support.
 
 ## Touch and motion

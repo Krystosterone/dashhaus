@@ -15,9 +15,11 @@ import type { GlassItem } from "./GlassDashboard";
 
 export const GLASS_CARD_TYPE = "home-dashboard-glass";
 
-/** The card fills its view; the glass page paints its own gradient behind the cards. */
+/** The card fills its view; the glass page paints its own gradient behind the cards, and fills the height under
+    Home Assistant's header so the room bar rests at the bottom of a short page. */
 const HOST_CSS = `
 :host { display: block; height: 100%; }
+.gl-page { min-height: calc(100dvh - var(--header-height, 56px)); }
 .hd-config-error { margin: 16px; padding: 16px; border-radius: 16px; background: var(--card-solid); color: var(--ink); font: 500 14px/1.5 var(--font); white-space: pre-wrap; }
 `;
 

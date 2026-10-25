@@ -5,11 +5,13 @@
   color-scheme: dark;
   position: relative;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
   padding:
     calc(var(--gl-gutter) + env(safe-area-inset-top, 0px))
     calc(var(--gl-gutter) + env(safe-area-inset-right, 0px))
-    calc(var(--gl-bar-h) + 2 * var(--gl-gutter) + env(safe-area-inset-bottom, 0px))
+    calc(var(--gl-gutter) + env(safe-area-inset-bottom, 0px))
     calc(var(--gl-gutter) + env(safe-area-inset-left, 0px));
   background: var(--gl-bg);
   color: var(--gl-ink);
@@ -32,14 +34,32 @@
     radial-gradient(70% 45% at 50% 108%, var(--gl-glow-deep), transparent 70%),
     var(--gl-bg);
 }
-/* The grid's container. The room bar stays outside it: containment would make its fixed position relative to here. */
+/* The grid's container; it grows to push the dock to the bottom of a short page. */
 .gl-main {
   container: gl / inline-size;
+  flex: 1;
   display: grid;
+  align-content: start;
   gap: calc(var(--gl-gap) * 2);
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
 }
+/* The room bar and a notice above it. Sticky, not fixed: it centres on the page's own width, whatever a host such
+   as Home Assistant puts beside it (a sidebar) or around it (a transformed ancestor would re-anchor a fixed bar). */
+.gl-dock {
+  position: sticky;
+  bottom: calc(var(--gl-gutter) + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+  display: grid;
+  /* One column the page's width: a room bar wider than it scrolls inside, instead of widening the column. */
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 8px;
+  padding-top: var(--gl-gutter);
+  pointer-events: none;
+}
+.gl-dock > * { pointer-events: auto; }
 
 /* ---------- Header ---------- */
 .gl-header {
@@ -266,13 +286,9 @@
 
 /* ---------- Room bar ---------- */
 .gl-rooms {
-  position: fixed;
-  z-index: 10;
-  inset-inline: 0;
-  bottom: calc(var(--gl-gutter) + env(safe-area-inset-bottom, 0px));
   width: fit-content;
-  max-width: calc(100% - 2 * var(--gl-gutter));
-  margin-inline: auto;
+  min-width: 0;
+  max-width: 100%;
   padding: 6px 0;
   border-radius: 999px;
 }
@@ -308,18 +324,14 @@
   color: var(--gl-ink);
 }
 
-/* ---------- Notice: fixed above the room bar ---------- */
+/* ---------- Notice: in the dock, above the room bar ---------- */
 .gl-notice {
-  position: fixed;
-  z-index: 11;
-  inset-inline: 0;
-  bottom: calc(var(--gl-bar-h) + 2 * var(--gl-gutter) + 8px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  width: min(560px, calc(100% - 2 * var(--gl-gutter)));
-  margin-inline: auto;
+  box-sizing: border-box;
+  width: min(560px, 100%);
   padding: 10px 10px 10px 16px;
   border-radius: 24px;
   animation: gl-notice-in 240ms var(--ease-out);
