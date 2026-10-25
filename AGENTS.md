@@ -22,14 +22,14 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 2. `npm run test-storybook` — every story renders and passes axe; failures name the rule, impact, and elements.
 3. `npm run storybook` — open the affected widget's story, check every width and footprint, and the Demo / Worst case toggle under Foundations.
 
-Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action`, and for glass its `gl-` prefix and blur only under `[data-glass="blur"]` — so changing one of those rules means updating the test. Do not add another test runner or linter.
+Unit tests cover pure logic and shared hooks (kelvin, track position, dial geometry, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`, `useDial`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action`, and for glass its `gl-` prefix and `backdrop-filter` on `.gl-panel` only — so changing one of those rules means updating the test. Do not add another test runner or linter.
 
 ## Layout
 
-- `src/domains/` — what every UI shares: one folder per entity kind with its entity and history types (`types.ts`) and pure logic, plus `history.ts` (`HourSample`, `Reading`) and `color.ts` (`ColorName`). No React, no CSS, no UI imports; ESLint enforces it.
+- `src/domains/` — what every UI shares: one folder per entity kind with its entity and history types (`types.ts`) and pure logic (`light/kelvin.ts`, `climate/modes.ts`, `weather/conditions.ts`), plus `history.ts` (`HourSample`, `Reading`), `color.ts` (`ColorName`) and `format.ts` (`fmt1`). No React, no CSS, no UI imports; ESLint enforces it.
 - `src/widgets/<name>/` — one widget per folder: component, CSS, `demo/`, and `<Name>.stories.tsx` titled `Widgets/<Name>`.
-- `src/shared/` — the card system and shared hooks (`card.css`, `ui.tsx`, `useTrack`, `useLongPress`).
-- `src/hooks/` — React hooks with no UI of their own, for every UI and the Home Assistant hooks (`useNow`).
+- `src/shared/` — the card system and its hooks (`card.css`, `ui.tsx`, `useLongPress`).
+- `src/hooks/` — React hooks with no UI of their own, for both UIs and the Home Assistant hooks: `useNow`, and the interaction primitives each UI draws its own way, `useTrack` (horizontal tracks) and `useDial` (a circular setpoint).
 - `src/styles/tokens.css` — the current UI's only source of colour and design tokens.
 - `src/glass/` — the glass UI (`docs/glass.md`): `tokens.css` (its only source of colour, scoped to `.gl-page`), `glass.css`, the building blocks in `ui.tsx`, and stories titled `Glass/…`. Its cards are pure; a glass Lovelace renderer in `src/ha/lovelace/` (not built yet) will connect them through the headless components in `src/ha/headless.tsx`. The glass and current UIs never import each other (ESLint enforces it); what both need goes in `src/domains/` or `src/hooks/`.
 - `src/bundles/` — `JoinedBundle`, `LeadBundle` and `TitledBundle`.

@@ -87,19 +87,21 @@
 }
 
 /* ---------- Panels ---------- */
+/* The only blurred surface: a blur nested inside a panel would blur the panel again, at twice the cost. */
 .gl-panel {
-  background: var(--gl-panel-flat);
+  background: var(--gl-panel);
   border: 1px solid var(--gl-edge);
   box-shadow: inset 0 1px 0 var(--gl-highlight), var(--gl-shadow);
-}
-.gl-page[data-glass="blur"] .gl-panel {
-  background: var(--gl-panel);
   -webkit-backdrop-filter: blur(var(--gl-blur)) saturate(1.4);
   backdrop-filter: blur(var(--gl-blur)) saturate(1.4);
 }
 
+/* Selected text in the accent, not the browser's blue. */
+.gl-page ::selection { background: var(--gl-accent-halo); color: var(--gl-ink); }
+
 /* ---------- Card ---------- */
 .gl-card {
+  container: gl-card / inline-size;
   min-width: 0;
   overflow: hidden;
   display: flex;
@@ -108,6 +110,9 @@
   padding: 16px;
   border-radius: var(--gl-radius);
 }
+/* Unavailable is a dashed outline, the same meaning as in the current UI; the card keeps its place and size. */
+.gl-card[data-state="unavailable"] { border-style: dashed; border-color: var(--gl-ink-3); }
+
 .gl-head {
   display: grid;
   grid-template-areas: "mark text action";
@@ -170,13 +175,35 @@
 .gl-card[data-size="s"] .gl-mark { width: 40px; height: 40px; margin-top: 4px; }
 .gl-card[data-size="s"] .gl-mark > svg { width: 32px; height: 32px; }
 
+/* A card body's one quiet line: since when, unavailable since when. */
+.gl-quiet {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--gl-ink-2);
+}
+/* A small card has room for one line under its picture. */
+.gl-card[data-size="s"] .gl-quiet {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Read aloud, not drawn. */
+.gl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* ---------- Status dot: on is filled, off is a ring, unavailable is a dashed ring ---------- */
 .gl-dot {
   display: block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--gl-panel-flat);
+  background: var(--gl-bg);
   box-shadow: inset 0 0 0 2px var(--gl-ink-3);
 }
 .gl-dot[data-state="on"] {
@@ -246,14 +273,18 @@
   width: fit-content;
   max-width: calc(100% - 2 * var(--gl-gutter));
   margin-inline: auto;
-  padding: 6px;
+  padding: 6px 0;
   border-radius: 999px;
 }
+/* The ends fade, so a bar with more rooms than fit reads as scrollable; the padding keeps a bar that fits unfaded. */
 .gl-rooms-list {
   display: flex;
   gap: 4px;
   margin: 0;
-  padding: 0;
+  padding: 0 12px;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  scroll-padding-inline: 12px;
   list-style: none;
   overflow-x: auto;
   overscroll-behavior-x: contain;

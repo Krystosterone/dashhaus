@@ -1,73 +1,46 @@
-import { useState } from "react";
-import type { ReactNode } from "react";
+import { Fragment, useState } from "react";
+import type { ReactElement } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { GlassCard, GlassGrid, GlassHeader, GlassPage, PowerButton, RoomBar } from "./ui";
-import type { GlassMode, GlassSize, Room } from "./ui";
-import { IconAirConditioner, IconBulb, IconRouter, IconSpeaker, IconTv, IconWeather } from "./icons";
+import { GlassGrid, GlassHeader, GlassPage, RoomBar } from "./ui";
+import type { Room } from "./ui";
+import { GlassWeatherCard } from "./WeatherCard";
+import { CLIMATES, DAILY, DEMO_NOW, DemoClimate, DemoLight, DemoToggle, LIGHTS, TOGGLES, WEATHERS } from "./demo";
 
-/** A morning, so the greeting doesn't change with the clock the stories are opened at. */
-const NOW = new Date(2026, 9, 25, 9, 30);
+const HOME: Room = { id: "home", name: "Home" };
 
-const ROOMS: Room[] = [
-  { id: "home", name: "Home" },
-  { id: "living", name: "Living room" },
-  { id: "bedroom", name: "Bedroom" },
-  { id: "nursery", name: "Nursery" },
-  { id: "kitchen", name: "Kitchen" },
-  { id: "office", name: "Office" },
+interface Item { id: string; area?: string; card: ReactElement }
+
+const ITEMS: Item[] = [
+  { id: "weather", card: <GlassWeatherCard entity={WEATHERS.home} daily={DAILY} now={DEMO_NOW} /> },
+  { id: "ac", area: CLIMATES.cooling.area, card: <DemoClimate seed={CLIMATES.cooling} /> },
+  { id: "wifi", area: TOGGLES.wifi.area, card: <DemoToggle seed={TOGGLES.wifi} /> },
+  { id: "quiet", area: TOGGLES.quiet.area, card: <DemoToggle seed={TOGGLES.quiet} /> },
+  { id: "led", area: LIGHTS.colour.area, card: <DemoLight seed={LIGHTS.colour} /> },
+  { id: "lamp", area: LIGHTS.warm.area, card: <DemoLight seed={LIGHTS.warm} /> },
+  { id: "thermostat", area: CLIMATES.range.area, card: <DemoClimate seed={CLIMATES.range} /> },
+  { id: "pendant", area: LIGHTS.dimmable.area, card: <DemoLight seed={LIGHTS.dimmable} /> },
 ];
 
-interface Sample { id: string; size: GlassSize; name: string; subtitle: string; icon: ReactNode; state?: "on" | "off" | "unavailable" }
-
-const SAMPLES: Sample[] = [
-  { id: "weather", size: "xl", name: "Weather", subtitle: "Home", icon: <IconWeather /> },
-  { id: "ac", size: "l", name: "Air conditioner", subtitle: "Living room", icon: <IconAirConditioner />, state: "on" },
-  { id: "tv", size: "m", name: "TV", subtitle: "Living room", icon: <IconTv />, state: "off" },
-  { id: "speaker", size: "s", name: "Speaker", subtitle: "Kitchen", icon: <IconSpeaker />, state: "unavailable" },
-  { id: "wifi", size: "s", name: "WiFi", subtitle: "Office", icon: <IconRouter />, state: "on" },
-  { id: "led", size: "m", name: "Ambient LED", subtitle: "Living room", icon: <IconBulb />, state: "on" },
+const WORST: Item[] = [
+  { id: "weather", card: <GlassWeatherCard entity={WEATHERS.worst} daily={DAILY} now={DEMO_NOW} /> },
+  { id: "ac", area: CLIMATES.worst.area, card: <DemoClimate seed={CLIMATES.worst} /> },
+  { id: "toggle", area: TOGGLES.worst.area, card: <DemoToggle seed={TOGGLES.worst} /> },
+  { id: "unav", area: TOGGLES.unavailable.area, card: <DemoToggle seed={TOGGLES.unavailable} /> },
+  { id: "led", area: LIGHTS.worst.area, card: <DemoLight seed={LIGHTS.worst} /> },
+  { id: "night", area: LIGHTS.unavailable.area, card: <DemoLight seed={LIGHTS.unavailable} /> },
 ];
 
-const WORST: Sample[] = [
-  { id: "weather", size: "xl", name: "Weather station on the north-facing balcony railing", subtitle: "Outdoor · last updated a long while ago", icon: <IconWeather /> },
-  { id: "ac", size: "l", name: "Climatiseur de la chambre principale à l'étage", subtitle: "Chambre principale et salle de bain attenante", icon: <IconAirConditioner />, state: "on" },
-  { id: "tv", size: "m", name: "リビングルームのテレビ", subtitle: "リビングルーム", icon: <IconTv />, state: "off" },
-  { id: "speaker", size: "s", name: "Kitchen speaker beside the coffee machine", subtitle: "Kitchen", icon: <IconSpeaker />, state: "unavailable" },
-  { id: "wifi", size: "s", name: "W", subtitle: "", icon: <IconRouter />, state: "on" },
-  { id: "led", size: "m", name: "superlongunbrokenlightnamewithoutanyspaces_led_strip", subtitle: "Basement home theatre and games room", icon: <IconBulb />, state: "on" },
-];
-
-const MANY_ROOMS: Room[] = [
-  { id: "home", name: "Home" },
-  ...["Living room", "Primary bedroom", "Nursery", "Kitchen", "Office", "Guest bedroom", "Basement", "Garage", "Laundry", "Backyard", "Front porch"].map((name) => ({ id: name, name })),
-];
-
-const SIZE_NOTE: Record<GlassSize, string> = { s: "s · 1 × 2", m: "m · 2 × 2", l: "l · 2 × 4", xl: "xl · 2 × 4, 3 × 4 on 6 columns" };
-
-function Foundations({ glass, samples = SAMPLES, rooms = ROOMS, title = "Laid-back home", name = "Sam" }: { glass: GlassMode; samples?: Sample[]; rooms?: Room[]; title?: string; name?: string }) {
-  const [room, setRoom] = useState(rooms[0].id);
-  const [on, setOn] = useState<Record<string, boolean>>(() => Object.fromEntries(samples.map((s) => [s.id, s.state === "on"])));
+/** Home shows every card; a room shows the cards in it, the way the room bar filters. */
+function Page({ items, title, name, extraRooms = [] }: { items: Item[]; title: string; name?: string; extraRooms?: string[] }) {
+  const areas = [...new Set([...items.flatMap((i) => (i.area && i.area !== "Home" ? [i.area] : [])), ...extraRooms])];
+  const rooms: Room[] = [HOME, ...areas.map((a) => ({ id: a, name: a }))];
+  const [room, setRoom] = useState(HOME.id);
+  const shown = room === HOME.id ? items : items.filter((i) => i.area === room);
   return (
-    <GlassPage glass={glass} bar={<RoomBar rooms={rooms} current={room} onPick={setRoom} />}>
-      <GlassHeader title={title} name={name} now={NOW} />
-      <GlassGrid label="Devices">
-        {samples.map((s) => {
-          const unavailable = s.state === "unavailable";
-          const state = !s.state ? undefined : unavailable ? "unavailable" : on[s.id] ? "on" : "off";
-          return (
-            <GlassCard
-              key={s.id}
-              size={s.size}
-              name={s.name}
-              subtitle={s.subtitle || undefined}
-              icon={s.icon}
-              state={state}
-              action={s.state && <PowerButton label={s.name} on={on[s.id]} unavailable={unavailable} onToggle={() => setOn((prev) => ({ ...prev, [s.id]: !prev[s.id] }))} />}
-            >
-              <p className="gl-sub">{SIZE_NOTE[s.size]}</p>
-            </GlassCard>
-          );
-        })}
+    <GlassPage bar={<RoomBar rooms={rooms} current={room} onPick={setRoom} />}>
+      <GlassHeader title={title} name={name} now={DEMO_NOW} />
+      <GlassGrid label={rooms.find((r) => r.id === room)?.name ?? "Home"}>
+        {shown.map((i) => <Fragment key={i.id}>{i.card}</Fragment>)}
       </GlassGrid>
     </GlassPage>
   );
@@ -75,22 +48,22 @@ function Foundations({ glass, samples = SAMPLES, rooms = ROOMS, title = "Laid-ba
 
 const meta = {
   title: "Glass/Foundations",
-  component: Foundations,
+  component: Page,
   parameters: { layout: "fullscreen" },
-  args: { glass: "flat" },
-  argTypes: { glass: { control: "inline-radio", options: ["flat", "blur"] } },
-} satisfies Meta<typeof Foundations>;
+} satisfies Meta<typeof Page>;
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** The default: panels opaque enough to read with no backdrop filter. Compare with Blur on a mid-range phone. */
-export const Flat: Story = {};
+/** The page: greeting and title, the bento of live-shaped cards, and the room bar filtering them. */
+export const Home: Story = { args: { items: ITEMS, title: "Laid-back home", name: "Sam" } };
 
-/** The live backdrop blur. Over a smooth gradient it changes little you can see, and re-blurs every panel as the page scrolls. */
-export const Blur: Story = { args: { glass: "blur" } };
-
-/** Long, short, unbroken and non-Latin names, an empty subtitle, and more rooms than fit the bar. */
+/** Long, unbroken and non-Latin names, extreme readings, unavailable cards, and more rooms than fit the bar. */
 export const WorstCase: Story = {
-  args: { samples: WORST, rooms: MANY_ROOMS, title: "A very long dashboard title that has to wrap across several lines on a phone", name: "Maximiliana-Alexandrina" },
+  args: {
+    items: WORST,
+    title: "A very long dashboard title that has to wrap across several lines on a phone",
+    name: "Maximiliana-Alexandrina",
+    extraRooms: ["Primary bedroom", "Guest bedroom", "Garage", "Laundry", "Backyard", "Front porch"],
+  },
 };

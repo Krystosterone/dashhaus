@@ -6,18 +6,16 @@ import { IconPower } from "./icons";
 import "./tokens.css";
 import "./glass.css";
 
-/** Flat (default): opaque-enough panels, no filter. Blur: see-through panels with a live backdrop blur. */
-export type GlassMode = "flat" | "blur";
 /** A card's footprint on the bento grid; its height comes from this alone, never its state. */
 export type GlassSize = "s" | "m" | "l" | "xl";
 export type GlassState = "on" | "off" | "unavailable";
 
 const STATE_WORD: Record<GlassState, string> = { on: "On", off: "Off", unavailable: "Unavailable" };
 
-/** The glass page: tokens, the gradient, the glass mode, and the grid's container. `bar` is the room bar. */
-export function GlassPage({ glass = "flat", bar, children }: { glass?: GlassMode; bar?: ReactNode; children: ReactNode }) {
+/** The glass page: tokens, the gradient, and the grid's container. `bar` is the room bar. */
+export function GlassPage({ bar, children }: { bar?: ReactNode; children: ReactNode }) {
   return (
-    <div className="gl-page" data-glass={glass}>
+    <div className="gl-page">
       <div className="gl-main">{children}</div>
       {bar}
     </div>
@@ -71,7 +69,7 @@ export interface GlassCardProps {
 export function GlassCard({ size, name, subtitle, icon, state, action, children }: GlassCardProps) {
   const nameId = useId();
   return (
-    <article className="gl-card gl-panel" data-size={size} aria-labelledby={nameId}>
+    <article className="gl-card gl-panel" data-size={size} data-state={state} aria-labelledby={nameId}>
       <header className="gl-head">
         <span className="gl-mark">{icon}{state && <StatusDot state={state} />}</span>
         <div className="gl-text">

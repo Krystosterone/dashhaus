@@ -1,5 +1,5 @@
 import type { Vars } from "../../shared/ui";
-import { useTrack, trackPos } from "../../shared/useTrack";
+import { useTrack, trackPos } from "../../hooks/useTrack";
 
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverWidget.css. */
 const STUB = 14;

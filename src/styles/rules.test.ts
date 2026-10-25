@@ -157,7 +157,7 @@ describe("touch: controls answer presses, tracks let pages scroll", () => {
   });
 
   it("each track hit layer keeps vertical scrolling (pan-y)", () => {
-    for (const f of ["src/widgets/light/LightWidget.css", "src/widgets/climate/ClimateWidget.css", "src/widgets/cover/CoverWidget.css"]) {
+    for (const f of ["src/widgets/light/LightWidget.css", "src/widgets/climate/ClimateWidget.css", "src/widgets/cover/CoverWidget.css", "src/glass/controls.css"]) {
       expect(css(f), f).toContain("touch-action: pan-y");
     }
   });
@@ -169,7 +169,7 @@ describe("glow: attention is a multiplier on a dimmed baseline", () => {
   });
 });
 
-describe("glass: its own prefix, blur only on request", () => {
+describe("glass: its own prefix, one blurred surface", () => {
   const glass = cssFiles.filter((p) => p.startsWith("src/glass/"));
 
   it("prefixes every class with gl-", () => {
@@ -185,11 +185,11 @@ describe("glass: its own prefix, blur only on request", () => {
     expect(bad).toEqual([]);
   });
 
-  it("uses backdrop-filter only under [data-glass=\"blur\"], which re-blurs every panel on every scroll frame", () => {
+  it("blurs only .gl-panel: a blur inside a panel blurs it again, at twice the cost per scroll frame", () => {
     const bad: string[] = [];
     for (const f of glass) {
       for (const m of css(f).matchAll(/([^{}]*)\{([^}]*)\}/g)) {
-        if (/backdrop-filter/.test(m[2]) && !m[1].includes('[data-glass="blur"]')) bad.push(`${f}: ${m[1].trim()}`);
+        if (/backdrop-filter/.test(m[2]) && m[1].trim() !== ".gl-panel") bad.push(`${f}: ${m[1].trim()}`);
       }
     }
     expect(bad).toEqual([]);

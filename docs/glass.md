@@ -19,8 +19,8 @@ The research behind the current UI ([research/](../research/README.md)) is about
 - **Tokens.** `src/glass/tokens.css` is glass's only source of colour, scoped to `.gl-page` so it never touches the current UI's `:root` tokens. Motion reuses the shared `--ease-*` and `--press` tokens.
 - **Dark only.** The mock's look depends on light text over a dark field, so glass sets `color-scheme: dark` and has no light theme.
 - **The background is a gradient, not a photo**: warm lamp light from the top left, cool window light on the right, on a deep brown. It sits on a fixed layer behind the page, so scrolling never repaints it.
-- **Panels** are translucent white over the gradient with a hairline edge, a top highlight and a soft shadow, 28 px corners.
-- **Blur is opt-in.** Blurring a smooth gradient changes almost nothing you can see, and `backdrop-filter` re-blurs every panel on every scroll frame. `data-glass="flat"` (the default) draws more opaque panels with no filter; `data-glass="blur"` adds the live blur. The *Glass/Foundations → Blur* and *Flat* stories are the comparison to judge on a mid-range phone. Only rules under `[data-glass="blur"]` may use `backdrop-filter` (`src/styles/rules.test.ts`).
+- **Panels** are translucent white over the blurred gradient with a hairline edge, a top highlight and a soft shadow, 28 px corners.
+- **Panels blur what is behind them.** `backdrop-filter` lets the warm and cool light through each panel; it held up on a phone (2026-10-25). It re-blurs every panel on every scroll frame, so `.gl-panel` is the only blurred surface: a blur nested inside a panel would blur it twice (`src/styles/rules.test.ts`). Nothing animates a blurred panel's size.
 - **Type** is the dashboard's family. The header greets in a light, large title; card names are medium weight; readouts are light.
 
 ## Layout
@@ -28,7 +28,7 @@ The research behind the current UI ([research/](../research/README.md)) is about
 - **The grid is a bento on a fixed row unit.** A card's size is one of four, and its height comes from its size alone, never its state: `s` 1 × 2 rows, `m` 2 × 2, `l` 2 × 4, `xl` 2 × 4 that widens to 3 columns when there are 6. Columns follow the page's width through container queries: 2 on a phone, 4 from 600 px, 6 from 1000 px.
 - **The room bar** is fixed at the bottom inside the safe area, scrolls sideways when the rooms don't fit, and marks the current room as pressed and filled.
 - **The page** fills the dynamic viewport (`100dvh`), pads by the safe-area insets, and leaves room at the bottom for the bar.
-- **Dropped from the mock:** the top navigation (search, calendar, automations, notifications, energy) and the members row's add button: neither has a job here yet. Camera talk-back and recording wait for camera support.
+- **Dropped from the mock:** the top navigation (search, calendar, automations, notifications, energy) and the members row's add button: neither has a job here yet. The TV, speaker and music cards wait for media player support, and the camera card for camera support.
 
 ## Touch and motion
 
@@ -36,4 +36,15 @@ Every control is at least 44 px, answers on `:active` with a 0.97 scale over `--
 
 ## Building blocks
 
-`src/glass/ui.tsx`: `GlassPage` (tokens, gradient, glass mode), `GlassHeader` (greeting and title), `GlassGrid`, `GlassCard` (size, icon or status dot, name, subtitle, power button, body), `PowerButton`, `StatusDot` and `RoomBar`. Classes are prefixed `gl-`.
+`src/glass/ui.tsx`: `GlassPage` (tokens and gradient), `GlassHeader` (greeting and title), `GlassGrid`, `GlassCard` (size, icon with status dot, name, subtitle, power button, body; dashed when unavailable), `PowerButton`, `StatusDot` and `RoomBar`. `src/glass/controls.tsx`: `GlassTrack`, `GlassDial`, `GlassPick` and `GlassSegments`. Classes are prefixed `gl-`.
+
+The controls draw glass on behaviour both UIs share, from `src/hooks/`: `useTrack` (a horizontal track: a mouse jumps on press, a touch on a tap or the first sideways move, so a scroll that starts on it still scrolls) and `useDial` (a circular setpoint, below). Each control also carries a native input, a range or a select, for the keyboard and the screen reader.
+
+## Cards
+
+Each card takes an entity and the callbacks the `useHa<Kind>` hook's `actions` return, so a renderer spreads one into the other. Stories: *Glass/Cards*, and *Glass/Foundations* for a page of them.
+
+- **Climate** (`l`). The setpoint on a 240° dial with the unit's action and the room's temperature in its middle. Only the thumb takes a drag, so a scroll across the dial still scrolls; a drag shows its value and sends it once, on release, since a thermostat should not get a command, and often beep, for every degree passed. A tap on the ring jumps there; −/+ in the dial's opening step it. A heat/cool range shows both ends in the middle, and the one pressed is the one the dial edits. Mode, fan and preset are native pickers, a phone's own. Off keeps the room's temperature and drops the setpoint. No timer: Home Assistant's climate has no timer service.
+- **Light** (`m`). Brightness on a track; colour (Home Assistant's hue) and warmth (Kelvin, at the lamp's own hues) on their own tracks when the lamp has them, one at a time under segments. The level is on the subtitle beside the area. Moving a track turns an off light on, as `turn_on` does; an off light's track stays neutral.
+- **Toggle** (`s`). Its icon as the card's picture, and since when it is on or off, or until when.
+- **Weather** (`xl`). The temperature and sky, the date, humidity and wind, then up to four days (five when the card is 420 px wide). Today is the highlighted day. No dot and no button: weather is neither on nor off. Units are the entity's own.

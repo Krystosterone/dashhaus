@@ -1,5 +1,5 @@
 import type { Vars } from "../../shared/ui";
-import { useTrack, trackPos } from "../../shared/useTrack";
+import { useTrack, trackPos } from "../../hooks/useTrack";
 
 /** Width of the filled end cap, in px. Matches the clip-path in SoundWidget.css. */
 const THUMB = 30;

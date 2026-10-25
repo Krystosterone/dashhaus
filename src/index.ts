@@ -5,7 +5,7 @@ export { Orb, CardTitle, CircleButton, SheetClose, TogglePill, UnavailableSlot, 
 export { useCard, detailsSheet, detailsTile, normalizeReadings } from "./shared/ui";
 export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, WidgetFootprint, CardProps, SheetProps, TileProps, Reading } from "./shared/ui";
 export { useLongPress } from "./shared/useLongPress";
-export { useTrack, trackPos } from "./shared/useTrack";
+export { useTrack, trackPos } from "./hooks/useTrack";
 export { useNow } from "./hooks/useNow";
 
 // Home Assistant integration: what a host needs to connect tiles. Mappers, handler factories and
@@ -48,7 +48,8 @@ export type { LightWidgetProps, LightSheetProps } from "./widgets/light/LightWid
 export { LightTile } from "./widgets/light/LightTile";
 export type { LightTileProps } from "./widgets/light/LightTile";
 export type { LightEntity, LightHistory, LightState } from "./domains/light/types";
-export { kelvinToLch, kelvinName, lampColor } from "./widgets/light/kelvin";
+export { kelvinToLch, kelvinName } from "./domains/light/kelvin";
+export { lampColor } from "./widgets/light/kelvin";
 
 // Climate
 export { ClimateWidget, ClimateSheet } from "./widgets/climate/ClimateWidget";

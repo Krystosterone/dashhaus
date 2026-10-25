@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "../../domains/climate/types";
-import { MODE_META, ACTION_LABEL, ModeIcon, ThermostatIcon, fmtTarget, fmtCurrent, titleCase, orderedRange } from "./modes";
+import { MODE_META, ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "../../domains/climate/modes";
+import { ModeIcon, ThermostatIcon } from "./modes";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";

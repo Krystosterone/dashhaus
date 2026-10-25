@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import type { PointerEvent, ReactNode } from "react";
 import type { Vars } from "../../shared/ui";
-import { useTrack, trackPos } from "../../shared/useTrack";
-import { fmtTarget } from "./modes";
+import { useTrack, trackPos } from "../../hooks/useTrack";
+import { fmtTarget } from "../../domains/climate/modes";
 
 /**
  * Heat/cool range on one bar. HA heat_cool: target_temp_low is the heat threshold,

@@ -9,9 +9,8 @@
   --gl-glow-cool: oklch(0.44 0.06 245 / 0.5);
   --gl-glow-deep: oklch(0.27 0.05 310 / 0.55);
 
-  /* Panels. Flat (default) is opaque enough to read with no filter; blur is see-through behind a backdrop blur. */
+  /* Panels: see-through, behind a backdrop blur. */
   --gl-panel: oklch(1 0 0 / 0.08);
-  --gl-panel-flat: oklch(0.31 0.018 58 / 0.8);
   --gl-edge: oklch(1 0 0 / 0.13);
   --gl-highlight: oklch(1 0 0 / 0.09);
   --gl-shadow: 0 24px 48px -28px oklch(0 0 0 / 0.65);
@@ -24,6 +23,12 @@
   --gl-chip-hover: oklch(1 0 0 / 0.12);
   --gl-chip-on: oklch(1 0 0 / 0.2);
   --gl-focus: oklch(0.97 0.006 80);
+
+  /* Controls: a recessed groove, a light knob, and the hue range as Home Assistant counts it (HSV hue, red at 0). */
+  --gl-groove: oklch(0 0 0 / 0.3);
+  --gl-knob: oklch(0.98 0.004 80);
+  --gl-knob-shadow: 0 2px 8px oklch(0 0 0 / 0.45);
+  --gl-spectrum: linear-gradient(to right, hsl(0 95% 62%), hsl(60 95% 58%), hsl(120 80% 52%), hsl(180 85% 52%), hsl(240 90% 66%), hsl(300 85% 62%), hsl(360 95% 62%));
 
   --gl-accent: oklch(0.72 0.15 292);
   --gl-accent-halo: oklch(0.72 0.15 292 / 0.28);

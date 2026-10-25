@@ -1,6 +1,7 @@
 import type { Vars } from "../../shared/ui";
-import { useTrack, trackPos } from "../../shared/useTrack";
-import { kelvinName, warmGradient, K_MIN, K_MAX } from "./kelvin";
+import { useTrack, trackPos } from "../../hooks/useTrack";
+import { kelvinName, K_MIN, K_MAX } from "../../domains/light/kelvin";
+import { warmGradient } from "./kelvin";
 import { LAMP_COLORS, swatchColor } from "./color";
 import type { LampColor } from "./color";
 

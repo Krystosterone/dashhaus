@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { kelvinName, lampColor } from "../widgets/light/kelvin";
+import { kelvinName } from "../domains/light/kelvin";
+import { lampColor } from "../widgets/light/kelvin";
 
 const meta = {
   title: "Foundations/Color temperature",

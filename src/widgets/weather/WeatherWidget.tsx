@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "../../domains/weather/types";
-import { CONDITION_LABEL, ConditionIcon, precipitation, isWet, clock, compass, toKmh, aqiBand, uvBand } from "./conditions";
+import { CONDITION_LABEL, precipitation, isWet, clock, compass, toKmh } from "../../domains/weather/conditions";
+import { ConditionIcon, aqiBand, uvBand } from "./conditions";
 import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherWidget.css";

@@ -1,5 +1,5 @@
 import type { LightEntity, LightHistory } from "../../domains/light/types";
-import { kelvinName, K_MIN, K_MAX } from "./kelvin";
+import { kelvinName, K_MIN, K_MAX } from "../../domains/light/kelvin";
 import { lampColorOf } from "./color";
 import type { Hs } from "./color";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";

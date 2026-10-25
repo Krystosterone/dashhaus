@@ -3,6 +3,7 @@ import type { ComponentType, CSSProperties, PointerEvent as ReactPointerEvent, R
 import { useLongPress } from "./useLongPress";
 import type { ColorName } from "../domains/color";
 import type { HourSample, Reading } from "../domains/history";
+import { fmt1 } from "../domains/format";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -301,11 +302,7 @@ export const fmtDuration = (m: number) => {
   const h = Math.floor(mins / 60), r = mins % 60;
   return h === 0 ? `${r}m` : r === 0 ? `${h}h` : `${h}h ${r}m`;
 };
-/** One decimal, never "-0.0": a reading of -0.04 shows as 0.0. */
-export const fmt1 = (n: number) => {
-  const r = Math.round(n * 10) / 10;
-  return (r === 0 ? 0 : r).toFixed(1);
-};
+export { fmt1 };
 
 /* ---------- Choice chips: one of several, the selected one in the accent ---------- */
 export interface ChoiceOption<T extends string | number> { value: T; label: string; sub?: string }
