@@ -2,13 +2,15 @@ import { JoinedBundle, LeadBundle } from "../Bundle";
 import { ToggleTile } from "../../widgets/toggle/ToggleTile";
 import { LightTile } from "../../widgets/light/LightTile";
 import { ClimateTile } from "../../widgets/climate/ClimateTile";
+import { SoundTile } from "../../widgets/sound/SoundTile";
 import { TOGGLE_SEEDS, useDemoToggle } from "../../widgets/toggle/demo/useDemoToggle";
 import { SEEDS as LIGHT_SEEDS, useDemoLight } from "../../widgets/light/demo/useDemoLight";
 import { CLIMATE_SEEDS, useDemoClimate } from "../../widgets/climate/demo/useDemoClimate";
+import { SOUND_SEEDS, useDemoSound } from "../../widgets/sound/demo/useDemoSound";
 import type { ToggleSeedName } from "../../widgets/toggle/demo/useDemoToggle";
 import type { WidgetFootprint } from "../../shared/ui";
 
-export type BundleName = "sleep" | "nightLight" | "upstairs" | "stressJoined" | "stressLead";
+export type BundleName = "sleep" | "nursery" | "upstairs" | "stressJoined" | "stressLead";
 
 export interface DemoBundleProps {
   bundle: BundleName;
@@ -44,12 +46,16 @@ function Sleep() {
   );
 }
 
-function NightLight({ defaultOpen }: Open) {
+/** One sound machine, three entities: its power leads (it starts and ends every nap), then the night light
+ *  (switched on its own for feeds) and the sound, whose volume is in its sheet. */
+function Nursery({ defaultOpen }: Open) {
+  const power = useDemoToggle(TOGGLE_SEEDS.soundMachine);
   const light = useDemoLight(LIGHT_SEEDS.nightLight);
-  const noise = useDemoToggle(TOGGLE_SEEDS.whiteNoise);
+  const sound = useDemoSound(SOUND_SEEDS.on);
   return (
-    <LeadBundle lead={<LightTile {...light} defaultOpen={defaultOpen} />}>
-      <ToggleTile key="noise" {...noise} />
+    <LeadBundle lead={<ToggleTile {...power} defaultOpen={defaultOpen} />}>
+      <LightTile key="light" {...light} />
+      <SoundTile key="sound" {...sound} />
     </LeadBundle>
   );
 }
@@ -87,4 +93,4 @@ function StressLead({ defaultOpen }: Open) {
   );
 }
 
-const BUNDLES: Record<BundleName, (p: Open) => JSX.Element> = { sleep: Sleep, nightLight: NightLight, upstairs: Upstairs, stressJoined: StressJoined, stressLead: StressLead };
+const BUNDLES: Record<BundleName, (p: Open) => JSX.Element> = { sleep: Sleep, nursery: Nursery, upstairs: Upstairs, stressJoined: StressJoined, stressLead: StressLead };

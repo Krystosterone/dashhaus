@@ -7,7 +7,7 @@
 /* Only a tap that jumps the value animates. Dragging follows the finger; arrow keys are instant. */
 .lw-bar[data-anim] .lw-bar-lit { transition: clip-path 160ms var(--ease-out), opacity 200ms var(--ease-out); }
 .lw-bar-lit .lw-bar-lab { color: var(--on-accent); }
-/* The warmth's name on the status line. Compact rows keep the room alone; the sheet names it under its ruler. */
+/* The warmth or colour name on the status line. Compact rows keep the room alone; the sheet names it over its ruler or chips. */
 .hd--compact .lw-k, .hd--sheet .lw-k { display: none; }
 .lw-bar[data-lit="false"] .lw-bar-lit { opacity: 0; }
 .lw-bar:has(.lw-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
@@ -35,3 +35,7 @@
 .lw-ruler:has(.lw-in:focus-visible) .lw-ruler-mark { outline: 2px solid var(--ink); outline-offset: 3px; }
 .lw-ruler[data-disabled="true"] .lw-hit { cursor: default; }
 .lw-ruler[data-disabled="true"] { opacity: 0.4; }
+
+/* Colour chips: the swatch sits before the name. It is the lamp's hue, drawn only here, in the sheet. */
+.lw-chip { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; }
+.lw-sw { width: 14px; height: 14px; border-radius: 50%; background: var(--sw); box-shadow: inset 0 0 0 1px var(--line); }

@@ -14,6 +14,14 @@ export interface LightMapOptions {
 
 const percent = (value: number) => value >= 0 && value <= 255 ? Math.min(100, Math.max(1, Math.round((value / 255) * 100))) : undefined;
 const BRIGHTNESS_MODES = new Set(["brightness", "color_temp", "hs", "xy", "rgb", "rgbw", "rgbww", "white"]);
+const COLOR_MODES = new Set(["hs", "xy", "rgb", "rgbw", "rgbww"]);
+
+/** A reported `hs_color`, or undefined unless both channels are finite and in range. */
+function hsColor(value: unknown): [number, number] | undefined {
+  if (!Array.isArray(value) || value.length !== 2) return undefined;
+  const [h, s] = value.map(finiteNumber);
+  return h != null && s != null && h >= 0 && h <= 360 && s >= 0 && s <= 100 ? [h, s] : undefined;
+}
 
 /** Map one raw Home Assistant light state to the existing presentational model. */
 export function lightFromHass(raw: HassEntity | undefined, entityId: string, options: LightMapOptions = {}): LightEntity {
@@ -21,6 +29,7 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
   const supportedModes = stringList(attributes.supported_color_modes);
   const supportsBrightness = supportedModes.some((mode) => BRIGHTNESS_MODES.has(mode));
   const supportsColorTemp = supportedModes.includes("color_temp");
+  const supportsColor = supportedModes.some((mode) => COLOR_MODES.has(mode));
   const state = raw?.state === "on" ? "on" : raw?.state === "off" ? "off" : "unavailable";
   const hasMeasuredState = state !== "unavailable";
   const rawBrightness = finiteNumber(attributes.brightness);
@@ -39,6 +48,8 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
     && (maxKelvin == null || rawKelvin <= maxKelvin)
     ? rawKelvin
     : undefined;
+  // A lamp showing a colour temperature still reports the hs it converts to; only a colour mode has a colour.
+  const hs = hasMeasuredState && supportsColor && stringValue(attributes.color_mode) !== "color_temp" ? hsColor(attributes.hs_color) : undefined;
 
   return {
     entityId,
@@ -51,6 +62,8 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
     kelvin,
     minKelvin,
     maxKelvin,
+    supportsColor,
+    hs,
     lastChanged: changed,
     lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
   };

@@ -1,6 +1,8 @@
 import type { Vars } from "../../shared/ui";
 import { useTrack, trackPos } from "../../shared/useTrack";
 import { kelvinName, warmGradient, K_MIN, K_MAX } from "./kelvin";
+import { LAMP_COLORS, swatchColor } from "./color";
+import type { LampColor } from "./color";
 
 export const IconBulb = () => (
   <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -95,6 +97,24 @@ export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, on
           onKeyDown={track.onKeyDown}
           onChange={(e) => onChange(Number(e.target.value))}
         />
+      </div>
+    </div>
+  );
+}
+
+/** Colour chips: one per lamp colour, each with its swatch; the lamp's own is selected. Choosing one while
+ *  off turns the lamp on in it. The swatches are the one place on the card system a lamp's hue is drawn. */
+export function ColorChips({ id, value, onChange }: { id: string; value: LampColor | null; onChange: (c: LampColor) => void }) {
+  return (
+    <div className="hd-blk">
+      <p className="hd-blk-h"><span id={id}>Colour</span>{value && <span className="hd-blk-v">{value.name}</span>}</p>
+      <div className="hd-chips" role="group" aria-labelledby={id} style={{ "--n": LAMP_COLORS.length } as Vars}>
+        {LAMP_COLORS.map((c) => (
+          <button key={c.name} type="button" className="hd-chip lw-chip" aria-pressed={value?.name === c.name} onClick={() => onChange(c)}>
+            <span className="lw-sw" aria-hidden="true" style={{ "--sw": swatchColor(c.swatch) } as Vars} />
+            <span>{c.name}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -15,16 +15,16 @@ Home Assistant auth + connection
 
 The store is the source for current state. A successful service call means Home Assistant accepted the command; it is not proof that the entity reached the requested state. The next entity snapshot is the readback boundary.
 
-## Connected entity slices: lights, climate, sensors, weather, covers, toggles, alarms, and humidifiers
+## Connected entity slices: lights, climate, sensors, weather, covers, toggles, alarms, humidifiers, and sounds
 
-The integration now covers one `light.*` entity, one `climate.*` entity, one composed `sensor.*` view, one composed `weather.*` home view, one `cover.*` entity, one `input_boolean.*`/`switch.*` toggle, one `alarm_control_panel.*` entity, and one `humidifier.*` entity:
+The integration now covers one `light.*` entity, one `climate.*` entity, one composed `sensor.*` view, one composed `weather.*` home view, one `cover.*` entity, one `input_boolean.*`/`switch.*` toggle, one `alarm_control_panel.*` entity, one `humidifier.*` entity, and one sound `switch.*` with its volume `number.*`:
 
 - `src/ha/types.ts` defines the raw snapshot, transport, connection status, and action-error contracts.
 - `src/ha/store.ts` turns one transport into a snapshot store: status, raw entities, a `generation`, and the latest action error. The transport keeps the entity subscription alive across its own reconnects; the store clears entities while the connection is down and advances `generation` on every loss, recovery, failure, connect and disconnect, so a read or action that settles under a newer generation is reported as an unknown outcome. Concurrent callers share one `connect()`; a terminal transport error or a throwing subscription fails closed with a sanitized error; `disconnect()` unsubscribes and clears state but leaves closing the connection to the host that opened it. Subscriber callback failures are isolated, and service input is validated before it reaches the transport.
 - `src/ha/provider.tsx` exposes the store through React. `useHaEntity` (and `useHaSelector`, `useHaStatus`, `useHaGeneration`) re-render only when their slice changes; unchanged entities keep their identity across updates, so one sensor ticking does not re-render every tile. `useHaSnapshot` re-renders on every change and is meant for diagnostics.
 - `src/ha/useHaRequest.ts` runs background reads (history, registries, forecasts) through the store, shared across callers by store, generation and key, with results from an older generation dropped.
-- `src/ha/mappers/light.ts` maps raw light state and `supported_color_modes` into the existing `LightEntity` model.
-- `src/ha/actions/light.ts` builds `light.toggle` and `light.turn_on` payloads and reports rejected actions.
+- `src/ha/mappers/light.ts` maps raw light state and `supported_color_modes` into the existing `LightEntity` model, with `hs_color` for a colour lamp while its `color_mode` is a colour (not `color_temp`).
+- `src/ha/actions/light.ts` builds `light.toggle` and `light.turn_on` payloads (`brightness_pct`, `color_temp_kelvin`, `hs_color`) and reports rejected actions.
 - `src/ha/HaLightTile.tsx` connects the store to the existing `LightTile` without changing the widget's visual contract.
 - `src/ha/mappers/climate.ts` maps HVAC modes/actions, temperatures, setpoint ranges, limits, units, presets, fans, and timestamps into the existing `ClimateEntity` model.
 - `src/ha/actions/climate.ts` builds climate on/off, setpoint, range, mode, preset, and fan payloads, gates capability arrays, validates finite/ranged temperatures, and reports rejected actions.
@@ -45,6 +45,8 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/HaAlarmTile.tsx` connects the store to the existing `AlarmTile`.
 - `src/ha/mappers/humidifier.ts` maps raw `humidifier.*` state, `device_class` (humidifier or dehumidifier), `action`, current and target humidity, `min_humidity`/`max_humidity` (Home Assistant's 0–100 when absent), and `mode`/`available_modes` into `HumidifierEntity`; `unknown` is unavailable, readings are dropped while unavailable, and a target outside the bounds is left out rather than clamped.
 - `src/ha/actions/humidifier.ts` builds `humidifier.toggle`, `set_humidity` (whole percent, validated against the bounds, offered only when the entity reports a target) and `set_mode` (only listed modes). `src/ha/HaHumidifierTile.tsx` connects the store to `HumidifierTile`, with today's on/off history.
+- `src/ha/mappers/sound.ts` maps a sound machine's sound `switch.*` and its volume `number.*` into `SoundEntity`: the volume is a percent of the number's `min`/`max`, left out when it reports none, is out of range, or the switch is unavailable. `soundVolumeCandidates` finds the volume beside the switch (`switch.<device>_music` → `number.<device>_music_volume`, then `number.<device>_volume`, as the Tuya integration names them).
+- `src/ha/actions/sound.ts` builds `switch.toggle` and `number.set_value` (the percent turned back into the number's range and step); setting the volume never switches the sound. `src/ha/HaSoundTile.tsx` connects the store to `SoundTile`, with today's on/off history.
 
 The store routes action service calls through `callService` and background reads through `query` (forecasts) or `callApi` (generic websocket commands such as `history/history_during_period`), the last two never mutating action ordering or `lastActionError`. A rejection is classified as `transport_unknown` when the connection changed during the call or the library reports `ERR_CONNECTION_LOST` (code `3`), otherwise `service_failed`; only the provider's `translation_key` and `code` string scalars are kept, never its message, which can echo an alarm code. The latest failed non-sensitive action can be retried from the store; calls containing an alarm code and calls with an unknown outcome are never retained for retry.
 

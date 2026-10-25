@@ -19,6 +19,10 @@ export interface LightEntity {
   kelvin?: number;
   minKelvin?: number;
   maxKelvin?: number;
+  /** True when the light takes a colour (an HA `hs`, `xy`, `rgb`, `rgbw` or `rgbww` colour mode). */
+  supportsColor?: boolean;
+  /** Its colour as HA `hs_color`: hue 0-360, saturation 0-100. Absent while off or showing a colour temperature. */
+  hs?: [number, number];
   /** Local time of the last state change, e.g. "10:31". */
   lastChanged?: string;
   /** Local time the light was last reachable, shown while unavailable. */

@@ -82,6 +82,7 @@ The entity's domain picks the widget. One card shows one entity, though some wid
 - `input_boolean`, `switch`: toggle
 - `alarm_control_panel`: alarm
 - `humidifier`: humidifier (a dehumidifier too)
+- `switch` with `widget: sound`: sound, a sound machine's sound with its volume `number.*` found beside it
 
 When a domain has more than one widget, `widget:` picks one: `widget: owlet` for a sock whose sensor is named differently, or `widget: sensor` to override the default.
 
@@ -104,12 +105,13 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | any card | `span` | Grid columns the card spans. |
 | any card | `show_control` | `false` on a compact card: the value replaces the control and a tap opens details. |
 | any card | `history` | `false` skips today's history read. |
-| light, climate, sensor, cover, toggle, owlet, humidifier | `color` | The orb's or icon's own colour: `yellow`, `apricot`, `rose`, `lavender`, `blue`, `teal`, `sage`, or `none` (not on toggles). |
+| light, climate, sensor, cover, toggle, owlet, humidifier, sound | `color` | The orb's or icon's own colour: `yellow`, `apricot`, `rose`, `lavender`, `blue`, `teal`, `sage`, or `none` (not on toggles). |
 | climate, sensor | `unit` | `°C` or `°F`, when the entity doesn't say. |
 | sensor | `humidity`, `battery`, `outdoor` | Companion `sensor.*` entities; `outdoor: true`. |
 | weather | `aqi`, `aqi_scale`, `sun`, `forecasts` | AQI sensor plus `aqi_scale: US` to band it; `sun` defaults to `sun.sun`; `forecasts: false` skips the forecast read. |
 | toggle | `icon`, `description` | `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`; one line for the sheet. |
 | alarm | `read_only`, `exit_delay`, `entry_delay`, `open_sensors` | Show without arming controls; delays in seconds; names of open sensors. |
+| sound | `volume` | The volume `number.*`, when it isn't `number.<device>_volume` beside the switch. |
 | owlet | `heart_rate`, `oxygen`, `charging`, `alerts`, `stale_after` | The sock's `sensor.*` and `binary_sensor.*` companions, when they aren't named after the sleep state sensor. `alerts` maps any of `critical_oxygen`, `low_oxygen`, `high_oxygen`, `low_heart_rate`, `high_heart_rate`, `sock_off`, `sock_disconnected`, `lost_power`, `critical_battery`, `low_battery` to its `binary_sensor.*`; an alert left out is found by name, or stays silent. `stale_after`: minutes without a new reading before the card warns (default 3). |
 | bundle | `joined: [...]`, `label`, `span` | Compact members sharing one card. |
 | bundle | `lead: ...`, `rows: [...]`, `label`, `sheet_title`, `span` | One standard card followed by compact rows. |

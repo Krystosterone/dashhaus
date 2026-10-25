@@ -1,6 +1,6 @@
 # Home Dashboard
 
-Widgets for a custom Home Assistant dashboard, in React and TypeScript, with Storybook. Each widget shows one entity (the sensor widget shows one device's temperature and humidity together). Lights, climate, covers, alarms, toggles and temperature/humidity sensors are composed into phone, tablet and wall-panel dashboards.
+Widgets for a custom Home Assistant dashboard, in React and TypeScript, with Storybook. Each widget shows one entity (the sensor widget shows one device's temperature and humidity together, and the sound widget a sound machine's sound with its volume). Lights, climate, covers, alarms, toggles, sounds and temperature/humidity sensors are composed into phone, tablet and wall-panel dashboards.
 
 This file is the rules: what every widget must do, how motion behaves, and how dashboards compose. Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); the Home Assistant data boundary is in [docs/home-assistant.md](docs/home-assistant.md); commands, layout and the adding-a-widget steps are in AGENTS.md. Use the Theme menu in the Storybook toolbar to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
 
@@ -36,7 +36,7 @@ The host supplies authentication and an implementation of the transport (the rep
   - **Warn orange**, text only, for problems. The one exception is an alarm that has gone off, which fills: a triggered security alarm, or a baby monitor's vitals alert (low oxygen, heart rate).
   - **Subtraction first.** At the densest layouts, mute decorative colour, fills, glows and unnecessary markers before adding a hue. No source establishes a hue-count or tile-count limit; do not invent one.
   - **Contrast, both themes.** Semantic colour — the orb and warn states — must clear the applicable WCAG thresholds (4.5:1 text, 3:1 large text and graphics) against adjacent backgrounds in light and dark themes.
-  - **The colour slot** is opt-in: the one place a widget can carry its own colour, and it's the orb only, never a fill or a glow. No widget colours its orb by default. Heat or cool is told by the mode icon and the words Heating / Cooling; a lamp's warmth is named on its status line ("Office · Cool daylight"). Compact cards never take it. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
+  - **The colour slot** is opt-in: the one place a widget can carry its own colour, and it's the orb only, never a fill or a glow. No widget colours its orb by default. Heat or cool is told by the mode icon and the words Heating / Cooling; a lamp's warmth or colour is named on its status line ("Office · Cool daylight", "Nursery · Amber"), and its hue is drawn only in its sheet, on the warmth ruler or the colour chips' swatches. Compact cards never take it. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
 - **Compact cards carry their own identity.** Every compact card shows a stable domain icon in its orb (thermostat, window, bulb), a concise primary identity, and one state/action cue — climate: mode and setpoint; covers: position or travel; lights: on/off and brightness. The area line carries the room, or the climate's current temperature and action. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across widget types.
 - **One state vocabulary.** A state word appears once: simple toggles carry it on the control; climate and humidifiers carry their action on the status line and use **Turn on** as the off-state control. Each domain has one pair: On / Off (lights, modes), Open / Closed (covers), Armed home… / Disarmed (alarm), Heating · Cooling · Idle / Off (climate). Transitions use the verb: Opening, Closing, Arming, Disarming. A widget that can't be reached says **Unavailable** everywhere (slot, status line, "Unavailable since …" in the Today strip); controls keep their room on the status line, and readings show "Unavailable" in place of the reading.
 - **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a colour literal in a widget's CSS.
@@ -93,13 +93,14 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 **Lead and rows** — one standard widget followed by compact widgets.
 
 ```tsx
-<LeadBundle lead={<LightTile {...nightLight} />}>
-  <ToggleTile {...whiteNoise} />
+<LeadBundle lead={<ToggleTile {...soundMachine} />}>
+  <LightTile {...nightLight} />
+  <SoundTile {...whiteNoise} />
 </LeadBundle>
 ```
 
 - The bundle forces the lead to `standard` and every row to `compact`, regardless of caller props.
-- The same 8 px gap separates members. A lead plus one row is always 196 px.
+- The same 8 px gap separates members. A lead plus one row is always 196 px; a lead plus two, 264 px.
 - Row orbs line up with the lead. Tap a row's name, or hold its orb, for its details.
 - The lead's history remains in its sheet. The sheet lists rows under "Also in this bundle", live; opening a row's sheet stacks it above the lead sheet.
 - Keep state above the bundle (as with Home Assistant, where it lives in `hass`): rows appear in the card and the lead's sheet, and both copies must show the same entity. `src/bundles/demo/DemoBundle.tsx` shows the demo-hook version.

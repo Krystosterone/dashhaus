@@ -1,8 +1,10 @@
 import type { LightEntity, LightHistory } from "./types";
 import { kelvinName, K_MIN, K_MAX } from "./kelvin";
+import { lampColorOf } from "./color";
+import type { Hs } from "./color";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
-import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, QUICK_LEVELS } from "./parts";
+import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, ColorChips, QUICK_LEVELS } from "./parts";
 import "./LightWidget.css";
 
 export interface LightWidgetProps extends CardProps {
@@ -17,18 +19,20 @@ export interface LightWidgetProps extends CardProps {
   onToggle: () => void;
   onBrightnessChange: (percent: number) => void;
   onKelvinChange?: (kelvin: number) => void;
+  /** Sheet: set the colour, as HA `hs_color`. Omit to hide the colour chips. */
+  onColorChange?: (hs: Hs) => void;
   /** Card only: the name and press-and-hold on the bulb call this. */
   onOpenDetails?: () => void;
   /** Sheet only: the close button calls this. */
   onClose?: () => void;
-  /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent; warmth is named on the status line. */
+  /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent; warmth or colour is named on the status line. */
   color?: ColorProp;
 }
 
 /**
  * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
-export function LightWidget({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onOpenDetails, onClose, color }: LightWidgetProps) {
+export function LightWidget({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose, color }: LightWidgetProps) {
   const { uid, nameId, sheet, compact, bare, article } = useCard("lw", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
@@ -37,14 +41,17 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
   const pct = e.brightness == null ? 100 : Math.min(100, Math.max(1, Math.round(e.brightness)));
   const glow = on ? (hasBrightness ? pct / 100 : 0.85) : 0;
   const intensity = hasBrightness ? pct / 100 : 0.85;
-  // Lit is energy: the orb and the bar fill with the accent. Warmth is told in words, not by colouring the orb.
+  // Lit is energy: the orb and the bar fill with the accent. Warmth and colour are told in words, not by colouring the orb.
   const colors = paint("energy", glow, null, color);
 
   const readout = unav ? null : !on ? "Off" : hasBrightness ? <>{pct}<span>%</span></> : "On";
   const valueText = unav ? "Unavailable" : !on ? "Off" : hasBrightness ? `${pct}%` : "On";
 
-  // The warmth in words, for the status line of a lit lamp.
-  const warmth = on && e.supportsColorTemp && e.kelvin != null ? kelvinName(e.kelvin) : null;
+  // A lit lamp's colour, when it shows one rather than a colour temperature.
+  const lamp = on && e.supportsColor && e.hs ? lampColorOf(e.hs) : null;
+  // The warmth or colour in words, for the status line of a lit lamp.
+  const warmth = on && e.supportsColorTemp && e.kelvin != null ? kelvinName(e.kelvin) : lamp?.name ?? null;
+  const colorChips = !!(e.supportsColor && onColorChange);
 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
@@ -68,7 +75,7 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
           : <TogglePill label={`${e.name}: ${on ? "On" : "Off"}`} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
       </div>
 
-      {sheet && !unav && (hasBrightness || (e.supportsColorTemp && e.kelvin != null && onKelvinChange)) && (
+      {sheet && !unav && (hasBrightness || colorChips || (e.supportsColorTemp && e.kelvin != null && onKelvinChange)) && (
         <div className="hd-extra">
           {hasBrightness && (
             <ChoiceChips id={`${uid}-lv`} label="Quick levels" options={QUICK_LEVELS} value={on ? pct : null} onChange={onBrightnessChange} />
@@ -76,6 +83,7 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
           {e.supportsColorTemp && e.kelvin != null && onKelvinChange && (
             <WarmthRuler id={`${uid}-k`} kelvin={e.kelvin} min={e.minKelvin ?? K_MIN} max={e.maxKelvin ?? K_MAX} disabled={!on} onChange={onKelvinChange} />
           )}
+          {colorChips && <ColorChips id={`${uid}-c`} value={lamp} onChange={(c) => onColorChange?.(c.hs)} />}
         </div>
       )}
 
@@ -90,7 +98,7 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
       {sheet && (
         <p className="hd-info">
           <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{e.supportsBrightness ? (e.supportsColorTemp ? "Dimmable, warmth" : "Dimmable") : "On / off"}</span>
+          <span>{e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off"}</span>
         </p>
       )}
     </article>

@@ -1,0 +1,28 @@
+/* Sound widget. Everything else (orb, pill, today strip, sheet) comes from src/shared/card.css.
+   Classes here start with sn-; colours only from tokens.css. */
+
+/* Without a volume the readout says On or Off in words, a little smaller than a number */
+.sn .hd-num--control-duplicate { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
+.hd--sheet.sn .hd-num--control-duplicate { font-size: 34px; }
+
+/* The volume on the status line. Compact rows keep the room alone; the sheet shows it on its groove, and a
+   featured card in its large readout, until the readout yields to the orb under 260 px. */
+.hd--compact .sn-vol, .hd--sheet .sn-vol, .hd--featured .sn-vol { display: none; }
+@container hd (max-width: 259px) {
+  .hd--featured:not(.hd--sheet) .sn-vol { display: inline; }
+}
+
+/* Volume groove: the accent fills it while the sound plays; the label inverts where the fill passes */
+.sn-bar { position: relative; height: var(--slot-h); border-radius: 99px; background: var(--groove); box-shadow: var(--groove-shadow); }
+.sn-bar-lab { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 var(--pad-in); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); pointer-events: none; }
+.sn-bar-lit { position: absolute; inset: 0; border-radius: inherit; background: var(--accent); clip-path: inset(0 calc((100% - 30px) * (1 - var(--v, 0.5))) 0 0 round 99px); transition: opacity 200ms var(--ease-out); }
+/* Only a tap that jumps the value animates. Dragging follows the finger; arrow keys are instant. */
+.sn-bar[data-anim] .sn-bar-lit { transition: clip-path 160ms var(--ease-out), opacity 200ms var(--ease-out); }
+.sn-bar-lit .sn-bar-lab { color: var(--on-accent); }
+.sn-bar[data-lit="false"] .sn-bar-lit { opacity: 0; }
+.sn-bar:has(.sn-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* Pointer input: a hit layer that takes taps and sideways drags anywhere on the track, and leaves
+   vertical swipes to the page. The slider stays for keyboard and screen readers, out of the pointer's way. */
+.sn-hit { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; touch-action: pan-y; }
+.sn-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }

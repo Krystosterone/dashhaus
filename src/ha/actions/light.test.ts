@@ -15,6 +15,19 @@ const entity: LightEntity = {
 };
 
 describe("createLightHandlers", () => {
+  it("sets a colour as hs_color, and only on a lamp that takes one", async () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    createLightHandlers({ callService }, { ...entity, supportsColor: true }, { onError }).onColorChange?.([31, 94]);
+    createLightHandlers({ callService }, { ...entity, supportsColor: true }, { onError }).onColorChange?.([31, 140]);
+    await Promise.resolve();
+
+    expect(callService).toHaveBeenCalledTimes(1);
+    expect(callService).toHaveBeenCalledWith("light", "turn_on", { entity_id: "light.living_room", hs_color: [31, 94] });
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "invalid_input" }));
+    expect(createLightHandlers({ callService }, entity).onColorChange).toBeUndefined();
+  });
+
   it("builds native light service payloads and clamps brightness", async () => {
     const callService = vi.fn(async () => undefined);
     const handlers = createLightHandlers({ callService }, entity);

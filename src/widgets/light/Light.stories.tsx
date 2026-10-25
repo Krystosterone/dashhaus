@@ -38,6 +38,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Dimmable: Story = {};
 export const Off: Story = { args: { light: "dimmableOff" } };
+/** A colour lamp: the nursery night light, amber at 3%. The status line names the colour; the orb stays the accent. */
+export const Colour: Story = { args: { light: "nightLight" } };
 export const DimmableWithoutWarmth: Story = { name: "Dimmable, no warmth", args: { light: "dimmableNoWarmth" } };
 export const OnOffOnly: Story = { name: "On / off only", args: { light: "onOff" } };
 export const Unavailable: Story = { args: { light: "unavailable" } };
@@ -49,7 +51,7 @@ export const AllTypes: Story = {
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {(["dimmable", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
+      {(["dimmable", "nightLight", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
         <DemoTile key={light} light={light} width={width} footprint={footprint} />
       ))}
     </div>
@@ -77,6 +79,12 @@ export const DetailsSheet: Story = {
   args: { defaultOpen: true },
 };
 
+/** A colour lamp's sheet: quick levels, then a chip per colour with its swatch, the lamp's own selected. */
+export const ColourSheet: Story = {
+  name: "Details sheet, colour",
+  args: { light: "nightLight", defaultOpen: true },
+};
+
 /** One 60px row. The control strip keeps one width, so stacked rows line up. */
 export const Compact: Story = { args: { footprint: "compact" } };
 
@@ -87,7 +95,7 @@ export const CompactAllTypes: Story = {
   parameters: { layout: "padded", controls: { include: ["width"] } },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {(["dimmable", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
+      {(["dimmable", "nightLight", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
         <DemoTile key={light} light={light} footprint="compact" />
       ))}
     </div>

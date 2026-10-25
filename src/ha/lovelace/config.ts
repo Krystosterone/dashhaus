@@ -11,7 +11,7 @@ import { OWLET_ALERT_SUFFIX } from "../mappers/owlet";
  * all of them at once instead of the first.
  */
 
-export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet" | "humidifier";
+export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet" | "humidifier" | "sound";
 
 /** Each supported domain's widget: the entity id picks it. */
 export const DOMAIN_KIND: Record<string, Kind> = {
@@ -32,6 +32,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
  */
 export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp }>> = {
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
+  sound: { domains: ["switch"] },
 };
 
 interface CardBase {
@@ -55,6 +56,7 @@ export type CardConfig = CardBase & (
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
   | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
   | { kind: "humidifier"; color?: ColorName | "none" }
+  | { kind: "sound"; volume?: string; color?: ColorName | "none" }
 );
 
 export type ItemConfig =
@@ -107,6 +109,7 @@ const KIND_KEYS: Record<Kind, string[]> = {
   alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
   owlet: ["heart_rate", "oxygen", "charging", "alerts", "stale_after", "color"],
   humidifier: ["color"],
+  sound: ["volume", "color"],
 };
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "sections", "view_layout", "grid_options", "visibility"];
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
@@ -317,6 +320,7 @@ class Reader {
         };
       }
       case "humidifier": return { ...base, kind, color: color() };
+      case "sound": return { ...base, kind, volume: this.optionalEntity(raw, "volume", at, ["number"]), color: color() };
     }
   }
 

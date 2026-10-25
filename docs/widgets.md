@@ -20,15 +20,18 @@ import { LightTile } from "./src";
     onToggle={() => callService("light", "toggle", { entity_id: entity.entityId })}
     onBrightnessChange={(pct) => callService("light", "turn_on", { entity_id: entity.entityId, brightness_pct: pct })}
     onKelvinChange={(k) => callService("light", "turn_on", { entity_id: entity.entityId, color_temp_kelvin: k })}
+    onColorChange={(hs) => callService("light", "turn_on", { entity_id: entity.entityId, hs_color: hs })}
   />
 </div>
 ```
 
 Pass `footprint="compact"` for a single 60 px row: bulb, name and control strip side by side. Under 320 px wide, the control strip gives way to a readout under the name.
 
-Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an off light turns it on), and press and hold the bulb or tap the name for quick levels, warmth, today's history and when it last changed.
+Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an off light turns it on), and press and hold the bulb or tap the name for quick levels, warmth or colour, today's history and when it last changed.
 
-The bulb is the accent when lit, whatever its colour temperature; the bar is a groove the light fills. A lit lamp with colour temperature names its warmth on the status line ("Office · Cool daylight") on standard and featured cards; compact rows keep the room alone, and the sheet names it over the warmth ruler, whose warm-to-cool scale is the one place the lamp's colour is drawn.
+The bulb is the accent when lit, whatever its colour temperature or colour; the bar is a groove the light fills. A lit lamp with colour temperature names its warmth on the status line ("Office · Cool daylight") on standard and featured cards; compact rows keep the room alone, and the sheet names it over the warmth ruler, whose warm-to-cool scale is the one place the lamp's colour is drawn.
+
+A colour lamp (an `hs`, `xy` or RGB colour mode) names its colour the same way ("Nursery · Amber"). Its sheet has a chip per colour, warm to cool: Red, Amber, Yellow, Green, Blue, Purple, White. Each chip carries its swatch, the one place a colour lamp's hue is drawn; the lamp's own colour is selected, and choosing one while it is off turns it on in that colour. A colour set elsewhere, such as the device's own app, takes the name of the chip nearest its hue (any colour barely saturated is White), and choosing that chip sends the chip's own colour. Pass `onColorChange` to show the chips.
 
 The connected integration paths are available through `HaProvider` and the `Ha*Tile` containers for every domain (light, climate, sensor, weather, cover, toggle, alarm); the remaining normalized callback examples below show the parent-side wiring each container replaces.
 
@@ -271,6 +274,28 @@ One `humidifier.*` entity: a humidifier, or a dehumidifier by its `device_class`
 - **The readout** on featured cards and in the sheet is the room's humidity.
 - **Compact:** the domain icon (mist over the unit, or a dehumidifier's tank), name, status line, and the stepper; under 320 px the humidity and setpoint share the value line ("38% · Set 45%").
 - **Sheet:** press and hold the orb, or tap the name: the stepper, the mode chips when it lists more than one mode, today's on/off history, and the settable range.
+
+## Using the sound widget
+
+A sound machine's sound: one `switch.*` that plays it, and the `number.*` that sets its volume (one device, as the sensor widget reads one device's temperature and humidity):
+
+```tsx
+<SoundTile
+  entity={entity}
+  history={today}
+  onToggle={() => callService("switch", "toggle", { entity_id: entity.entityId })}
+  onVolumeChange={(pct) => callService("number", "set_value", { entity_id: "number.nursery_volume", value: pct })}
+/>
+<HaSoundTile entityId="switch.nursery_music" name="White noise" />
+```
+
+- **Switching:** the orb and the pill both toggle the sound. Both are raised buttons when off and the accent when on (a state: no bloom, no glow; the attention-budget skill keeps energy for light and heat).
+- **Status line:** the area and the volume ("Nursery · Volume 62%") on standard and featured cards; compact rows keep the room alone. It never says On or Off; that's the pill's word.
+- **Volume, in the sheet only:** press and hold the orb, or tap the name, for a volume groove the accent fills while the sound plays. It rarely changes, and a stray tap on a groove beside a sleeping baby would jump it, so no card carries it. Setting it never switches the sound: while the sound is off the groove stays empty and reads "Off · 62%". A sound without a volume entity has no groove.
+- **The readout** on featured cards and in the sheet is the volume; a sound without one repeats the pill's On or Off there.
+- **Sheet:** the volume and today's on/off history.
+- **Home Assistant:** `HaSoundTile` takes the sound's switch and finds its volume beside it: `number.<switch>_volume`, then `number.<device>_volume` (the Tuya integration's `switch.nursery_music` and `number.nursery_volume`). Pass `volumeEntityId` when it is named otherwise. The volume is a percent of the number's range, set back in its own range and step.
+- **With its machine:** a sound machine whose power, night light and sound are separate entities is a lead bundle: the power as a toggle (`icon: power`) leading, then the light and the sound as compact rows. Whether the device accepts the light or the sound while its power is off is the device's business; the rows show what it reports.
 
 ## Using the header widget
 

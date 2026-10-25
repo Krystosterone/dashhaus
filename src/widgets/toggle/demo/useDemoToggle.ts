@@ -40,6 +40,12 @@ export const TOGGLE_SEEDS = {
       description: "Dims the upstairs hallway, mutes speakers near Nursery and holds the doorbell chime.", lastChanged: "07:05" },
     past: [1, 1, 1, 1, 1, 1, 1, 0.1, 0, 0, 0],
   },
+  /** The nursery sound machine's own power: off ends a nap or the night, on brings its sound and light back. */
+  soundMachine: {
+    entity: { entityId: "switch.nova_sound_machine", name: "Sound machine", area: "Nursery", state: "on", icon: "power",
+      description: "The sound machine by the crib. Turning it off turns off its sound and night light; on brings both back.", lastChanged: "10:58" },
+    past: [1, 1, 1, 1, 1, 1, 1, 0.2, 0, 0, 0.1],
+  },
   whiteNoise: {
     entity: { entityId: "switch.white_noise", name: "White noise", area: "Nursery", state: "on", icon: "waves", duration: "manual",
       description: "The sound machine by the crib.", lastChanged: "10:58" },

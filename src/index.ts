@@ -106,6 +106,15 @@ export type { HumidifierEntity, HumidifierHistory } from "./widgets/humidifier/t
 export { HaHumidifierTile } from "./ha";
 export type { HaHumidifierTileProps } from "./ha";
 
+// Sound
+export { SoundWidget, SoundSheet } from "./widgets/sound/SoundWidget";
+export type { SoundWidgetProps, SoundSheetProps } from "./widgets/sound/SoundWidget";
+export { SoundTile } from "./widgets/sound/SoundTile";
+export type { SoundTileProps } from "./widgets/sound/SoundTile";
+export type { SoundEntity, SoundHistory } from "./widgets/sound/types";
+export { HaSoundTile } from "./ha";
+export type { HaSoundTileProps } from "./ha";
+
 export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
 

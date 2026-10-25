@@ -28,8 +28,8 @@ export const SEEDS = {
     past: [0, 0, 0, 0, 0, 0, 0, 0.3, 0.3, 0.3, "unavailable"],
   },
   nightLight: {
-    entity: { entityId: "light.nova_night_light", name: "Night light", area: "Nursery", state: "on", supportsBrightness: true, brightness: 15, supportsColorTemp: true, kelvin: 2200, minKelvin: 2000, maxKelvin: 6500, lastChanged: "10:58" },
-    past: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0, 0, 0, 0.15],
+    entity: { entityId: "light.nova_night_light", name: "Night light", area: "Nursery", state: "on", supportsBrightness: true, brightness: 3, supportsColor: true, hs: [31.086, 94.488], lastChanged: "10:58" },
+    past: [0, 0, 0.03, 0.03, 0, 0, 0.03, 0.03, 0, 0, 0.03],
   },
   coolDaylight: {
     entity: { entityId: "light.office_desk", name: "Desk lamp", area: "Office", state: "on", supportsBrightness: true, brightness: 60, supportsColorTemp: true, kelvin: 6500, lastChanged: "09:05" },
@@ -67,5 +67,6 @@ export function useDemoLight(seed: DemoSeed, overrides?: Partial<LightEntity>) {
     onToggle: () => update({ state: entity.state === "on" ? "off" : "on" }),
     onBrightnessChange: (v: number) => update({ brightness: v, state: "on" }),
     onKelvinChange: (k: number) => update({ kelvin: k }),
+    onColorChange: (hs: [number, number]) => update({ hs, state: "on" }),
   };
 }

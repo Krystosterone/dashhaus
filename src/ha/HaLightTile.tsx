@@ -11,7 +11,7 @@ import type { LightTileProps } from "../widgets/light/LightTile";
 import type { LightHistory } from "../widgets/light/types";
 import type { HaActionError } from "./types";
 
-export interface HaLightTileProps extends Omit<LightTileProps, "entity" | "onToggle" | "onBrightnessChange" | "onKelvinChange"> {
+export interface HaLightTileProps extends Omit<LightTileProps, "entity" | "onToggle" | "onBrightnessChange" | "onKelvinChange" | "onColorChange"> {
   entityId: string;
   name?: string;
   area?: string;

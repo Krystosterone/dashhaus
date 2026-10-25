@@ -3,7 +3,7 @@ import { DemoBundle } from "./demo/DemoBundle";
 import type { BundleName } from "./demo/DemoBundle";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const BUNDLES: BundleName[] = ["sleep", "nightLight", "upstairs"];
+const BUNDLES: BundleName[] = ["sleep", "nursery", "upstairs"];
 
 const meta = {
   title: "Bundles",
@@ -23,7 +23,7 @@ const meta = {
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
     defaultOpen: { control: "boolean", description: "Open the lead's sheet on load" },
   },
-  args: { bundle: "nightLight", width: SIZES.M },
+  args: { bundle: "nursery", width: SIZES.M },
   render: (args) => <DemoBundle key={`${args.bundle}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoBundle>;
 
@@ -31,7 +31,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const SleepAndDnd: Story = { name: "Joined: Nova Sleep and Do Not Disturb", args: { bundle: "sleep" } };
-export const NightLight: Story = { name: "Lead: night light and white noise", args: { bundle: "nightLight" } };
+export const Nursery: Story = { name: "Lead: sound machine, night light and white noise", args: { bundle: "nursery" } };
 export const Upstairs: Story = { name: "Lead: 2nd floor and the Dyson heater", args: { bundle: "upstairs" } };
 
 export const Sizes: Story = {
@@ -52,7 +52,7 @@ export const Sizes: Story = {
   ),
 };
 
-export const LeadSheet: Story = { name: "Lead's sheet", args: { bundle: "nightLight", defaultOpen: true } };
+export const LeadSheet: Story = { name: "Lead's sheet", args: { bundle: "nursery", defaultOpen: true } };
 export const LeadSheetPhone: Story = {
   name: "Lead's sheet, phone",
   args: { bundle: "upstairs", defaultOpen: true },

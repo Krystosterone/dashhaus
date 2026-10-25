@@ -10,6 +10,7 @@ import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
 import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
 import { DemoOwletTile as Owlet } from "../widgets/owlet/demo/DemoOwletTile";
 import { DemoHumidifierTile as Humidifier } from "../widgets/humidifier/demo/DemoHumidifierTile";
+import { DemoSoundTile as Sound } from "../widgets/sound/demo/DemoSoundTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
 /** A device-sized frame so each dashboard is seen at its real width. The content scrolls inside. */
@@ -43,9 +44,8 @@ function PhoneDashboard() {
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Home" now={NOW}>
         <Section title="Quick actions" columns={2}>
-          <Cell span={2}><Bundle bundle="nightLight" /></Cell>
-          <Light light="dimmable" footprint="compact" />
-          <Cover cover="curtains" footprint="compact" />
+          <Cell span={2}><Bundle bundle="nursery" /></Cell>
+          <Cell span={2}><Light light="dimmable" footprint="compact" /></Cell>
         </Section>
         <Section title="Home status">
           <Alarm alarm="ring" readOnly footprint="compact" />
@@ -81,10 +81,7 @@ export const Tablet: Story = {
       <DashboardPage title="Home" now={NOW} showTime>
         <Section title="Quick actions" columns={2}>
           <Light light="dimmable" footprint="featured" />
-          <WidgetGrid columns={1}>
-            <Bundle bundle="nightLight" />
-            <Cover cover="curtains" footprint="compact" />
-          </WidgetGrid>
+          <Bundle bundle="nursery" />
         </Section>
         <Columns columns={2}>
           <Section title="Home status">
@@ -135,17 +132,17 @@ export const WallPanel: Story = {
             <Climate unit="heating" footprint="compact" />
             <Sensor sensor="living" name="Air" />
           </Section>
-          <Section title="Bedroom">
+          <Section title="Bedroom and office">
             <Light light="dimmableNoWarmth" />
             <Bundle bundle="sleep" />
             <Climate unit="cooling" />
             <Sensor sensor="bedroom" name="Air" />
+            <Sensor sensor="office" footprint="compact" />
           </Section>
-          <Section title="Nursery and office">
-            <Bundle bundle="nightLight" />
+          <Section title="Nursery">
+            <Bundle bundle="nursery" />
             <Bundle bundle="upstairs" />
             <Owlet seed="deep" />
-            <Sensor sensor="office" footprint="compact" />
           </Section>
           <Section title="Outside">
             <Light light="onOff" />
@@ -169,8 +166,9 @@ export const PhoneUngrouped: Story = {
         <WidgetGrid columns={2}>
           <Cell span={2}><Light light="dimmable" footprint="featured" /></Cell>
           <Bundle bundle="sleep" />
-          <Bundle bundle="nightLight" />
+          <Bundle bundle="nursery" />
           <Climate unit="heating" footprint="compact" />
+          <Sound seed="noVolume" footprint="compact" />
           <Cover cover="garage" footprint="compact" />
           <Sensor sensor="living" name="Air" />
           <Weather weather="partly" />

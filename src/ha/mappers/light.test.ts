@@ -34,6 +34,25 @@ describe("lightFromHass", () => {
     expect(lightFromHass(raw, raw.entity_id).lastChanged).toBeDefined();
   });
 
+  it("maps an hs-only lamp's colour, and no colour temperature", () => {
+    // The nursery sound machine's night light, as the Tuya integration reports it.
+    const lamp = {
+      ...raw,
+      entity_id: "light.nursery",
+      attributes: { friendly_name: "Chambre Nova", supported_color_modes: ["hs"], color_mode: "hs", brightness: 8, hs_color: [31.086, 94.488], rgb_color: [255, 139, 14] },
+    };
+    expect(lightFromHass(lamp, lamp.entity_id)).toMatchObject({ supportsBrightness: true, brightness: 3, supportsColorTemp: false, kelvin: undefined, supportsColor: true, hs: [31.086, 94.488] });
+  });
+
+  it("leaves the colour out while the lamp shows a colour temperature, is off, or reports a bad hs", () => {
+    const both = { ...raw, attributes: { ...raw.attributes, supported_color_modes: ["color_temp", "hs"], color_mode: "color_temp", hs_color: [27, 50] } };
+    expect(lightFromHass(both, raw.entity_id)).toMatchObject({ supportsColor: true, hs: undefined, kelvin: 3000 });
+    expect(lightFromHass({ ...both, attributes: { ...both.attributes, color_mode: "hs" } }, raw.entity_id).hs).toEqual([27, 50]);
+    expect(lightFromHass({ ...both, state: "unavailable", attributes: { ...both.attributes, color_mode: "hs" } }, raw.entity_id).hs).toBeUndefined();
+    expect(lightFromHass({ ...both, attributes: { ...both.attributes, color_mode: "hs", hs_color: [400, 50] } }, raw.entity_id).hs).toBeUndefined();
+    expect(lightFromHass({ ...both, attributes: { ...both.attributes, color_mode: "hs", hs_color: ["red", 50] } }, raw.entity_id).hs).toBeUndefined();
+  });
+
   it("keeps unknown, unavailable, and missing entities unavailable", () => {
     const unknown = lightFromHass({ ...raw, state: "unknown" }, raw.entity_id);
     const unavailable = lightFromHass({ ...raw, state: "unavailable" }, raw.entity_id);

@@ -8,6 +8,7 @@ export interface LightHandlers {
   onToggle: () => void;
   onBrightnessChange: (percent: number) => void;
   onKelvinChange?: (kelvin: number) => void;
+  onColorChange?: (hs: [number, number]) => void;
 }
 
 export interface LightHandlerOptions {
@@ -44,6 +45,16 @@ export function createLightHandlers(caller: LightServiceCaller, entity: LightEnt
           return;
         }
         run("turn_on", { color_temp_kelvin: kelvin });
+      }
+      : undefined,
+    onColorChange: entity.supportsColor
+      ? ([h, s]) => {
+        if (!actionable()) return;
+        if (!Number.isFinite(h) || !Number.isFinite(s) || h < 0 || h > 360 || s < 0 || s > 100) {
+          invalidInput(`${entity.entityId} colour is outside hue 0-360 and saturation 0-100`);
+          return;
+        }
+        run("turn_on", { hs_color: [h, s] });
       }
       : undefined,
   };

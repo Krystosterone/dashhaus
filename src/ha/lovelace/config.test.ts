@@ -48,6 +48,26 @@ describe("parseDashboardConfig", () => {
     });
   });
 
+  it("draws a switch as a sound only with widget:, with its volume number", () => {
+    const config = parseDashboardConfig({
+      sections: [{ cards: [
+        "switch.nursery_music",
+        { entity: "switch.nursery_music", widget: "sound" },
+        { entity: "switch.noise", widget: "sound", volume: "number.noise_level" },
+      ] }],
+    });
+    expect(config.blocks?.[0]).toMatchObject({
+      items: [
+        { kind: "toggle", entity: "switch.nursery_music" },
+        { kind: "sound", entity: "switch.nursery_music", volume: undefined },
+        { kind: "sound", entity: "switch.noise", volume: "number.noise_level" },
+      ],
+    });
+    expect(problems({ sections: [{ cards: [{ entity: "switch.noise", widget: "sound", volume: "sensor.noise_level" }] }] })).toEqual([
+      "sections[0].cards[0] (switch.noise).volume: sensor.noise_level must be a number.* entity",
+    ]);
+  });
+
   it("checks an owlet's alert sensors by alert name and domain", () => {
     expect(problems({ sections: [{ cards: [
       { entity: "sensor.a_sleep_state", alerts: { low_oxygn: "binary_sensor.a", sock_off: "sensor.a_off" } },
