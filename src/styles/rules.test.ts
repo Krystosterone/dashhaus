@@ -17,7 +17,9 @@ const walk = (dir: string, out: string[] = []): string[] => {
 
 const cssFiles = walk("src").map((p) => relative(process.cwd(), p));
 const css = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const nonTokens = cssFiles.filter((p) => !p.endsWith("styles/tokens.css"));
+/** Each UI's one source of colour: the current UI's, and the glass UI's (docs/glass.md). */
+const TOKEN_FILES = ["src/styles/tokens.css", "src/glass/tokens.css"];
+const nonTokens = cssFiles.filter((p) => !TOKEN_FILES.includes(p));
 
 /** transition/animation declarations, values up to the first `}`. */
 const decls = (path: string) =>
@@ -27,7 +29,7 @@ const decls = (path: string) =>
   }));
 
 describe("colour: tokens only", () => {
-  it("no hex, named, or hsl/rgb colour anywhere outside tokens.css", () => {
+  it("no hex, named, or hsl/rgb colour anywhere outside a UI's token file", () => {
     const bad: string[] = [];
     const named = /\b(red|green|blue|yellow|orange|purple|pink|brown|grey|gray|gold|silver|teal|navy|maroon|olive|lime|aqua|cyan|magenta|fuchsia|crimson|tomato|indigo|violet|coral|ivory|beige|tan|wheat|salmon|khaki|plum|lavender|azure|mint)\b/i;
     for (const f of nonTokens) {
@@ -132,7 +134,8 @@ describe("motion: composite-only, token easing, no viewport sizing", () => {
 
   it("widget CSS only uses media queries for motion or pointer capability", () => {
     const bad: string[] = [];
-    for (const f of cssFiles.filter((p) => p.startsWith("src/widgets/"))) {
+    // Glass sizes by container queries too, never the viewport.
+    for (const f of cssFiles.filter((p) => p.startsWith("src/widgets/") || p.startsWith("src/glass/"))) {
       for (const m of css(f).matchAll(/@media\s+([^{]+)\{/g)) {
         const c = m[1];
         const reduced = /prefers-reduced-motion/.test(c);
@@ -163,5 +166,32 @@ describe("touch: controls answer presses, tracks let pages scroll", () => {
 describe("glow: attention is a multiplier on a dimmed baseline", () => {
   it("the glow layer is glow x damping, both defaulting off or full", () => {
     expect(css("src/shared/card.css")).toContain("opacity: calc(var(--hd-glow, 0) * var(--glow-damp, 1))");
+  });
+});
+
+describe("glass: its own prefix, blur only on request", () => {
+  const glass = cssFiles.filter((p) => p.startsWith("src/glass/"));
+
+  it("prefixes every class with gl-", () => {
+    const bad: string[] = [];
+    const sources = [...glass, ...readdirSync("src/glass").filter((f) => f.endsWith(".tsx")).map((f) => `src/glass/${f}`)];
+    for (const f of sources) {
+      const body = css(f);
+      const classes = f.endsWith(".css")
+        ? [...body.matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1])
+        : [...body.matchAll(/className="([^"]*)"/g)].flatMap((m) => m[1].split(/\s+/)).filter(Boolean);
+      for (const cls of classes) if (!cls.startsWith("gl-")) bad.push(`${f}: .${cls}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("uses backdrop-filter only under [data-glass=\"blur\"], which re-blurs every panel on every scroll frame", () => {
+    const bad: string[] = [];
+    for (const f of glass) {
+      for (const m of css(f).matchAll(/([^{}]*)\{([^}]*)\}/g)) {
+        if (/backdrop-filter/.test(m[2]) && !m[1].includes('[data-glass="blur"]')) bad.push(`${f}: ${m[1].trim()}`);
+      }
+    }
+    expect(bad).toEqual([]);
   });
 });

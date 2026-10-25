@@ -9,7 +9,8 @@ const haBoundary = [
   { group: ["**/ha", "**/ha/*"], message: "Widgets stay provider-agnostic; connect them in a src/ha/ container." },
   { group: ["**/index"], message: "Import the module directly, not the public barrel." },
 ];
-const uiFolders = (message) => [{ group: ["**/widgets/**", "**/shared/**", "**/bundles/**", "**/dashboards/**", "**/stories/**", "**/styles/**", "*.css", "**/*.css"], message }];
+const currentUi = ["**/widgets/**", "**/shared/**", "**/bundles/**", "**/dashboards/**", "**/stories/**", "**/styles/**"];
+const uiFolders = (message) => [{ group: [...currentUi, "**/glass/**", "*.css", "**/*.css"], message }];
 
 export default tseslint.config(
   { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**"] },
@@ -43,6 +44,16 @@ export default tseslint.config(
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/ha/**", "src/index.ts"],
     rules: { "no-restricted-imports": ["error", { patterns: haBoundary }] },
+  },
+  {
+    // Two UIs over the same logic, and neither borrows from the other: what both need moves to src/domains/
+    // or src/hooks/.
+    files: ["src/{widgets,shared,bundles,dashboards,stories,styles}/**/*.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, { group: ["**/glass/**"], message: "The current UI never imports the glass UI; share through src/domains/ or src/hooks/." }] }] },
+  },
+  {
+    files: ["src/glass/**/*.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, { group: currentUi, message: "The glass UI never imports the current UI; share through src/domains/ or src/hooks/." }] }] },
   },
   {
     // The domain boundary: entity models and their pure logic know no UI and no framework, so every UI

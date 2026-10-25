@@ -1,6 +1,6 @@
 # AGENTS.md
 
-React + TypeScript widgets for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app: there is no test suite and no linter. The spec is split: `README.md` (design and composition rules) and `docs/widgets.md` (per-widget behaviour) — consult both before changing widget behaviour. Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
+React + TypeScript widgets for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app: there is no test suite and no linter. The spec is split: `README.md` (design and composition rules) and `docs/widgets.md` (per-widget behaviour) — consult both before changing widget behaviour. A second UI, glass, sits on the same entities and Home Assistant logic; its spec is `docs/glass.md`. Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
 
 ## Commands
 
@@ -22,7 +22,7 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 2. `npm run test-storybook` — every story renders and passes axe; failures name the rule, impact, and elements.
 3. `npm run storybook` — open the affected widget's story, check every width and footprint, and the Demo / Worst case toggle under Foundations.
 
-Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
+Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, `useNow`, `useLongPress`, `useTrack`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action`, and for glass its `gl-` prefix and blur only under `[data-glass="blur"]` — so changing one of those rules means updating the test. Do not add another test runner or linter.
 
 ## Layout
 
@@ -30,7 +30,8 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - `src/widgets/<name>/` — one widget per folder: component, CSS, `demo/`, and `<Name>.stories.tsx` titled `Widgets/<Name>`.
 - `src/shared/` — the card system and shared hooks (`card.css`, `ui.tsx`, `useTrack`, `useLongPress`).
 - `src/hooks/` — React hooks with no UI of their own, for every UI and the Home Assistant hooks (`useNow`).
-- `src/styles/tokens.css` — the only source of colour and design tokens.
+- `src/styles/tokens.css` — the current UI's only source of colour and design tokens.
+- `src/glass/` — the glass UI (`docs/glass.md`): `tokens.css` (its only source of colour, scoped to `.gl-page`), `glass.css`, the building blocks in `ui.tsx`, and stories titled `Glass/…`. Its cards are pure; a glass Lovelace renderer in `src/ha/lovelace/` (not built yet) will connect them through the headless components in `src/ha/headless.tsx`. The glass and current UIs never import each other (ESLint enforces it); what both need goes in `src/domains/` or `src/hooks/`.
 - `src/bundles/` — `JoinedBundle`, `LeadBundle` and `TitledBundle`.
 - `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
 - `src/ha/` — the Home Assistant boundary (`docs/home-assistant.md`). Its mappers, actions, store and history parsing import entity models from `src/domains/`, never from a UI folder (ESLint enforces it). `src/ha/hooks/<name>.ts` gives any UI one live entity: `useHa<Name>(entityId, options)` returns the mapped `entity`, today's `history` and, for a control, its `actions`. Only the `Ha*Tile` containers (that hook plus a tile), `src/ha/index.ts` and `src/ha/lovelace/` pick a UI. `src/ha/lovelace/` is the deployed card: the YAML parser (`config.ts`), the generated layout (`auto.ts`, also imported by `scripts/deploy.mjs`, so it may only use `import type`), the renderer and the custom element.
@@ -40,15 +41,17 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 
 ## Hard rules
 
+They hold for both UIs, except those marked *(current UI)*: the glass UI's counterparts are in `docs/glass.md`.
+
 - One widget, one entity.
-- One UI language (README → One UI language): a raised `--btn` is tapped, a recessed `--groove` is slid or set, a readout has no container; solid accent is on for every role; a dashed outline is unavailable and nothing else. No hatching, no second strength of accent, no default orb colour.
-- Never use a colour literal in widget CSS. Colours come from tokens in `src/styles/tokens.css`; the accent is `--brand-c` / `--brand-h`.
-- A card's height never changes with state or widget type. Height comes from the shared `footprint` matrix plus container width, never the viewport.
-- No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.
-- Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hu-` humidifier, `sn-` sound, `hb-` bundles; `hd-` is the shared card system.
+- *(current UI)* One UI language (README → One UI language): a raised `--btn` is tapped, a recessed `--groove` is slid or set, a readout has no container; solid accent is on for every role; a dashed outline is unavailable and nothing else. No hatching, no second strength of accent, no default orb colour.
+- Never use a colour literal in widget CSS. Colours come from the UI's token file: `src/styles/tokens.css`, where the accent is `--brand-c` / `--brand-h`, or `src/glass/tokens.css`, where it is `--gl-accent`.
+- A card's height never changes with state. In the current UI it comes from the shared `footprint` matrix plus container width, in glass from the card's bento size; never from the viewport.
+- *(current UI)* No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.
+- Prefix each widget's CSS classes with its widget code: `hh-` header, `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hu-` humidifier, `sn-` sound, `hb-` bundles; `hd-` is the shared card system; `gl-` is the whole glass UI.
 - Animate only `transform`, `opacity`, `clip-path` and colour changes; never layout properties. Easing only from the `--ease-*` tokens; hover styles only under `@media (hover: hover) and (pointer: fine)`.
-- Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
-- Every compact row carries a domain icon, primary identity and one state/action cue; colour never defines a row.
+- *(current UI)* Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
+- *(current UI)* Every compact row carries a domain icon, primary identity and one state/action cue; colour never defines a row.
 - Controls are not selectable: no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`.
 
 ## Design review

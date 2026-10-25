@@ -1,0 +1,278 @@
+/* The glass UI's page, panels, grid and controls (docs/glass.md). Colours only from src/glass/tokens.css. */
+
+/* ---------- Page ---------- */
+.gl-page {
+  color-scheme: dark;
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  padding:
+    calc(var(--gl-gutter) + env(safe-area-inset-top, 0px))
+    calc(var(--gl-gutter) + env(safe-area-inset-right, 0px))
+    calc(var(--gl-bar-h) + 2 * var(--gl-gutter) + env(safe-area-inset-bottom, 0px))
+    calc(var(--gl-gutter) + env(safe-area-inset-left, 0px));
+  background: var(--gl-bg);
+  color: var(--gl-ink);
+  font-family: var(--gl-font);
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+/* On a fixed layer of its own, so scrolling moves the page over it without repainting it. */
+.gl-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 10% 6%, var(--gl-glow-warm), transparent 70%),
+    radial-gradient(55% 60% at 96% 34%, var(--gl-glow-cool), transparent 70%),
+    radial-gradient(70% 45% at 50% 108%, var(--gl-glow-deep), transparent 70%),
+    var(--gl-bg);
+}
+/* The grid's container. The room bar stays outside it: containment would make its fixed position relative to here. */
+.gl-main {
+  container: gl / inline-size;
+  display: grid;
+  gap: calc(var(--gl-gap) * 2);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+.gl-header {
+  display: grid;
+  gap: 4px;
+  padding: 8px 4px 0;
+}
+.gl-greeting {
+  margin: 0;
+  font-size: 17px;
+  color: var(--gl-ink-2);
+  overflow-wrap: anywhere;
+}
+.gl-title {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+@container gl (min-width: 600px) {
+  .gl-title { font-size: 48px; }
+}
+
+/* ---------- Grid: a bento on a fixed row unit; a card's height comes from its size alone ---------- */
+.gl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: var(--gl-row);
+  grid-auto-flow: dense;
+  gap: var(--gl-gap);
+}
+.gl-card[data-size="s"] { grid-column: span 1; grid-row: span 2; }
+.gl-card[data-size="m"] { grid-column: span 2; grid-row: span 2; }
+.gl-card[data-size="l"],
+.gl-card[data-size="xl"] { grid-column: span 2; grid-row: span 4; }
+@container gl (min-width: 600px) {
+  .gl-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container gl (min-width: 1000px) {
+  .gl-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .gl-card[data-size="xl"] { grid-column: span 3; }
+}
+
+/* ---------- Panels ---------- */
+.gl-panel {
+  background: var(--gl-panel-flat);
+  border: 1px solid var(--gl-edge);
+  box-shadow: inset 0 1px 0 var(--gl-highlight), var(--gl-shadow);
+}
+.gl-page[data-glass="blur"] .gl-panel {
+  background: var(--gl-panel);
+  -webkit-backdrop-filter: blur(var(--gl-blur)) saturate(1.4);
+  backdrop-filter: blur(var(--gl-blur)) saturate(1.4);
+}
+
+/* ---------- Card ---------- */
+.gl-card {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--gl-radius);
+}
+.gl-head {
+  display: grid;
+  grid-template-areas: "mark text action";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+.gl-mark {
+  grid-area: mark;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  color: var(--gl-ink-2);
+}
+.gl-mark > svg { width: 24px; height: 24px; }
+.gl-mark > .gl-dot { position: absolute; right: -3px; bottom: -3px; }
+.gl-text { grid-area: text; min-width: 0; }
+.gl-action { grid-area: action; margin: -6px -6px 0 0; }
+.gl-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gl-sub {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--gl-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gl-slot {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+/* A small card is too narrow for icon, name and button in a row: the name may take two lines and the icon
+   grows under it, where it becomes the card's picture. */
+.gl-card[data-size="s"] .gl-head {
+  grid-template-areas: "text action" "mark mark";
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.gl-card[data-size="s"] .gl-name {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+/* Sized so a two-line name, the subtitle, the icon and one line of body fit the card's 180 px. */
+.gl-card[data-size="s"] .gl-mark { width: 40px; height: 40px; margin-top: 4px; }
+.gl-card[data-size="s"] .gl-mark > svg { width: 32px; height: 32px; }
+
+/* ---------- Status dot: on is filled, off is a ring, unavailable is a dashed ring ---------- */
+.gl-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gl-panel-flat);
+  box-shadow: inset 0 0 0 2px var(--gl-ink-3);
+}
+.gl-dot[data-state="on"] {
+  background: var(--gl-accent);
+  box-shadow: 0 0 0 3px var(--gl-accent-halo);
+}
+.gl-dot[data-state="unavailable"] {
+  box-shadow: none;
+  border: 2px dashed var(--gl-ink-3);
+}
+
+/* ---------- Controls: tapped, not selected ---------- */
+.gl-btn {
+  appearance: none;
+  margin: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--press) var(--ease-out), background-color var(--press) var(--ease-out), color var(--press) var(--ease-out), box-shadow var(--press) var(--ease-out);
+}
+.gl-btn:active { transform: scale(0.97); }
+.gl-btn:focus-visible { outline: 2px solid var(--gl-focus); outline-offset: 2px; }
+.gl-btn:disabled { cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .gl-btn:active { transform: none; }
+}
+
+.gl-power {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gl-chip);
+  color: var(--gl-ink-2);
+  box-shadow: inset 0 0 0 1px var(--gl-edge);
+}
+.gl-power > svg { width: 20px; height: 20px; }
+.gl-power[aria-pressed="true"] {
+  color: var(--gl-accent);
+  box-shadow: inset 0 0 0 2px var(--gl-accent);
+}
+.gl-power:disabled {
+  background: transparent;
+  color: var(--gl-ink-3);
+  box-shadow: none;
+  outline: 2px dashed var(--gl-ink-3);
+  outline-offset: -2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .gl-power:not(:disabled):hover { background-color: var(--gl-chip-hover); }
+  .gl-room:not([aria-pressed="true"]):hover { background-color: var(--gl-chip-hover); }
+}
+
+/* ---------- Room bar ---------- */
+.gl-rooms {
+  position: fixed;
+  z-index: 10;
+  inset-inline: 0;
+  bottom: calc(var(--gl-gutter) + env(safe-area-inset-bottom, 0px));
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--gl-gutter));
+  margin-inline: auto;
+  padding: 6px;
+  border-radius: 999px;
+}
+.gl-rooms-list {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.gl-rooms-list::-webkit-scrollbar { display: none; }
+.gl-room {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gl-ink-2);
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+.gl-room[aria-pressed="true"] {
+  background: var(--gl-chip-on);
+  color: var(--gl-ink);
+}
