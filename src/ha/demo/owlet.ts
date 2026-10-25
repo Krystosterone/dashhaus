@@ -9,7 +9,7 @@ const DEVICE = "owlet_sock_ac000w0123";
 const BASE = `sensor.${DEVICE}`;
 const binary = (suffix: string, name: string): [string, HassEntity] => [`binary_sensor.${DEVICE}_${suffix}`, { entity_id: `binary_sensor.${DEVICE}_${suffix}`, state: "off", attributes: { friendly_name: `Owlet Sock AC000W0123 ${name}` }, last_changed: stamp, last_updated: stamp }];
 
-/** The demo sock: its three sensors, its charging sensor and its ten alert sensors, all quiet. */
+/** The demo sock: its three sensors, its charging sensor, its ten alert sensors, all quiet, and its base station, on. */
 export const OWLET_DEMO_ENTITIES: HassEntities = {
   [`${BASE}_sleep_state`]: sensor(`${BASE}_sleep_state`, "deep_sleep", { friendly_name: "Owlet Sock AC000W0123 Sleep state", device_class: "enum", options: ["unknown", "awake", "light_sleep", "deep_sleep"] }),
   [`${BASE}_heart_rate`]: sensor(`${BASE}_heart_rate`, "121", { friendly_name: "Owlet Sock AC000W0123 Heart rate", unit_of_measurement: "bpm", state_class: "measurement" }),
@@ -27,6 +27,7 @@ export const OWLET_DEMO_ENTITIES: HassEntities = {
     binary("critical_battery_alert", "Critical battery alert"),
     binary("low_battery_alert", "Low battery alert"),
   ]),
+  [`switch.${DEVICE}_base_station_on`]: sensor(`switch.${DEVICE}_base_station_on`, "on", { friendly_name: "Owlet Sock AC000W0123 Base station on" }),
 };
 
 /** The demo sock with some entities' states changed: `{ "binary_sensor.…_low_oxygen_alert": "on" }`. */
@@ -63,7 +64,7 @@ const nextHeartRate = (bpm: number) => Math.min(136, Math.max(112, bpm + Math.ro
 /**
  * Storybook-only Owlet transport: one sock's three sensors through the real store, mapper and history path.
  * Like the integration, it sends a new heart rate every 5 s (`tickMs`; 0 to freeze), so the tile shows live.
- * The sock is read-only, so every service call is refused.
+ * Its one switch is the base station's: `switch.turn_on` and `turn_off` on it apply, every other call is refused.
  */
 export function createDemoOwletHaTransport(seed: HassEntities = OWLET_DEMO_ENTITIES, tickMs = 5000): HaTransport {
   let entities: HassEntities = Object.fromEntries(Object.entries(seed).map(([id, e]) => [id, { ...e, attributes: { ...e.attributes } }]));
@@ -87,8 +88,15 @@ export function createDemoOwletHaTransport(seed: HassEntities = OWLET_DEMO_ENTIT
         if (!listeners.size && timer) { clearInterval(timer); timer = undefined; }
       };
     },
-    async callService(domain, service) {
-      throw new Error(`The Owlet sock is read-only: ${domain}.${service}`);
+    async callService(domain, service, data = {}) {
+      const id = data.entity_id;
+      const current = typeof id === "string" ? entities[id] : undefined;
+      if (domain !== "switch" || (service !== "turn_on" && service !== "turn_off") || !current || !String(id).endsWith("_base_station_on")) {
+        throw new Error(`The Owlet sock is read-only: ${domain}.${service}`);
+      }
+      const now = new Date().toISOString();
+      entities = { ...entities, [String(id)]: { ...current, state: service === "turn_on" ? "on" : "off", last_changed: now, last_updated: now } };
+      listeners.forEach((listener) => listener({ ...entities }));
     },
     sendMessage: async (type, payload = {}) => {
       if (type !== "history/history_during_period") return demoSendMessage(entities, type, payload);

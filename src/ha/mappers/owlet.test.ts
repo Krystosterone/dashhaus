@@ -106,15 +106,24 @@ describe("owletFromHass alerts", () => {
     expect(owletFromHass(sleep, sleep.entity_id, { chargingEntity: binary("charging", "on") }).charging).toBe(true);
     expect(owletFromHass(sleep, sleep.entity_id, { chargingEntity: binary("charging", "unavailable") }).charging).toBe(false);
   });
+
+  it("reads the base station switch only while it says on or off", () => {
+    const base = (state: string) => sensor("switch.owlet_sock_ac0_base_station_on", state);
+    expect(owletFromHass(sleep, sleep.entity_id, { baseEntity: base("on") }).baseOn).toBe(true);
+    expect(owletFromHass(sleep, sleep.entity_id, { baseEntity: base("off") }).baseOn).toBe(false);
+    expect(owletFromHass(sleep, sleep.entity_id, { baseEntity: base("unavailable") }).baseOn).toBeUndefined();
+    expect(owletFromHass(sleep, sleep.entity_id).baseOn).toBeUndefined();
+  });
 });
 
 describe("owletCompanionIds", () => {
-  it("derives the integration's readings, charging and alert ids", () => {
+  it("derives the integration's readings, charging, base station and alert ids", () => {
     const ids = owletCompanionIds("sensor.owlet_sock_ac0_sleep_state");
     expect(ids).toMatchObject({
       heartRate: "sensor.owlet_sock_ac0_heart_rate",
       oxygen: "sensor.owlet_sock_ac0_o2_saturation",
       charging: "binary_sensor.owlet_sock_ac0_charging",
+      base: "switch.owlet_sock_ac0_base_station_on",
     });
     expect(ids?.alerts).toMatchObject({
       low_oxygen: "binary_sensor.owlet_sock_ac0_low_oxygen_alert",

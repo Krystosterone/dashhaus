@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { OwletTile } from "../OwletTile";
 import { OWLET_SEEDS } from "./socks";
 import type { OwletSeedName } from "./socks";
@@ -16,13 +17,14 @@ export interface DemoOwletTileProps {
   defaultOpen?: boolean;
 }
 
-/** An OwletTile with example data. */
+/** An OwletTile with example data; its base station switches locally. */
 export function DemoOwletTile({ seed, width, footprint, showControl, name, defaultOpen }: DemoOwletTileProps) {
   const s = OWLET_SEEDS[seed];
-  const entity = name ? { ...s.entity, name } : s.entity;
+  const [baseOn, setBaseOn] = useState(("baseOn" in s.entity ? s.entity.baseOn : undefined) ?? true);
+  const entity = { ...s.entity, baseOn, ...(name ? { name } : {}) };
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <OwletTile entity={entity} history={s.history} footprint={footprint} showControl={showControl} defaultOpen={defaultOpen} />
+      <OwletTile entity={entity} history={s.history} footprint={footprint} showControl={showControl} defaultOpen={defaultOpen} onBaseToggle={() => setBaseOn((on) => !on)} />
     </div>
   );
 }

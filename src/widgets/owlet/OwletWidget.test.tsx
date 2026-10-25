@@ -114,4 +114,22 @@ describe("OwletWidget", () => {
     const { container } = render(<OwletWidget entity={sock} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Deep sleep · 121 bpm · 98% O₂");
   });
+
+  it("says when the base station is off, and switches it in the sheet only", () => {
+    let toggled = 0;
+    const onBaseToggle = () => { toggled++; };
+    const { container, rerender } = render(<OwletWidget entity={{ ...sock, baseOn: false }} onBaseToggle={onBaseToggle} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Base station off · Deep sleep");
+    expect(screen.queryByRole("button", { name: /Base station/ })).toBeNull();
+    rerender(<OwletWidget entity={{ ...sock, baseOn: false }} onBaseToggle={onBaseToggle} variant="sheet" />);
+    screen.getByRole("button", { name: "Base station: Off · Turn on" }).click();
+    rerender(<OwletWidget entity={{ ...sock, baseOn: true }} onBaseToggle={onBaseToggle} variant="sheet" />);
+    expect(screen.getByRole("button", { name: "Base station: On · Turn off" }).getAttribute("aria-pressed")).toBe("true");
+    expect(toggled).toBe(1);
+  });
+
+  it("hides the base station switch while its state is unknown", () => {
+    render(<OwletWidget entity={sock} onBaseToggle={() => {}} variant="sheet" />);
+    expect(screen.queryByRole("button", { name: /Base station/ })).toBeNull();
+  });
 });

@@ -33,7 +33,7 @@ describe("parseDashboardConfig", () => {
     const config = parseDashboardConfig({
       sections: [{ cards: [
         "sensor.owlet_sock_ac0_sleep_state",
-        { entity: "sensor.nova", widget: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", stale_after: 5 },
+        { entity: "sensor.nova", widget: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", base_station: "switch.nova_base", stale_after: 5 },
         { entity: "sensor.odd_sleep_state", widget: "sensor" },
         { entity: "sensor.ben", widget: "owlet", alerts: { low_oxygen: "binary_sensor.ben_spo2_low", sock_off: "binary_sensor.ben_off" } },
       ] }],
@@ -41,7 +41,7 @@ describe("parseDashboardConfig", () => {
     expect(config.blocks?.[0]).toMatchObject({
       items: [
         { kind: "owlet", entity: "sensor.owlet_sock_ac0_sleep_state" },
-        { kind: "owlet", entity: "sensor.nova", heartRate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", staleAfter: 5 },
+        { kind: "owlet", entity: "sensor.nova", heartRate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", baseStation: "switch.nova_base", staleAfter: 5 },
         { kind: "sensor", entity: "sensor.odd_sleep_state" },
         { kind: "owlet", alerts: { low_oxygen: "binary_sensor.ben_spo2_low", sock_off: "binary_sensor.ben_off" } },
       ],

@@ -76,7 +76,7 @@ The entity's domain picks the widget. One card shows one entity, though some wid
 - `light`: light
 - `climate`: climate
 - `sensor`: sensor (temperature or humidity), with its device's humidity and battery entities
-- `sensor.*_sleep_state`: owlet, an Owlet sock, with its heart rate, oxygen, charging and alert sensors found beside it
+- `sensor.*_sleep_state`: owlet, an Owlet sock, with its heart rate, oxygen, charging and alert sensors and its base station switch found beside it
 - `weather`: weather, with its AQI and sun entities
 - `cover`: cover
 - `input_boolean`, `switch`: toggle
@@ -112,7 +112,7 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | toggle | `icon`, `description` | `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`; one line for the sheet. |
 | alarm | `read_only`, `exit_delay`, `entry_delay`, `open_sensors` | Show without arming controls; delays in seconds; names of open sensors. |
 | sound | `volume` | The volume `number.*`, when it isn't `number.<device>_volume` beside the switch. |
-| owlet | `heart_rate`, `oxygen`, `charging`, `alerts`, `stale_after` | The sock's `sensor.*` and `binary_sensor.*` companions, when they aren't named after the sleep state sensor. `alerts` maps any of `critical_oxygen`, `low_oxygen`, `high_oxygen`, `low_heart_rate`, `high_heart_rate`, `sock_off`, `sock_disconnected`, `lost_power`, `critical_battery`, `low_battery` to its `binary_sensor.*`; an alert left out is found by name, or stays silent. `stale_after`: minutes without a new reading before the card warns (default 3). |
+| owlet | `heart_rate`, `oxygen`, `charging`, `base_station`, `alerts`, `stale_after` | The sock's `sensor.*` and `binary_sensor.*` companions and its base station's `switch.*`, when they aren't named after the sleep state sensor. `alerts` maps any of `critical_oxygen`, `low_oxygen`, `high_oxygen`, `low_heart_rate`, `high_heart_rate`, `sock_off`, `sock_disconnected`, `lost_power`, `critical_battery`, `low_battery` to its `binary_sensor.*`; an alert left out is found by name, or stays silent. `stale_after`: minutes without a new reading before the card warns (default 3). |
 | bundle | `joined: [...]`, `label`, `span` | Compact members sharing one card. |
 | bundle | `lead: ...`, `rows: [...]`, `label`, `sheet_title`, `span` | One standard card followed by compact rows. |
 | bundle | `title`, `area`, `rows: [...]`, `span` | The parts of one thing under a lid naming it and its room; parts in that room drop it. Spell `area` as Home Assistant names the room. |

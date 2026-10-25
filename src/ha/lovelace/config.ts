@@ -54,7 +54,7 @@ export type CardConfig = CardBase & (
   | { kind: "cover"; color?: ColorName | "none" }
   | { kind: "toggle"; domain: "input_boolean" | "switch"; icon?: ToggleIcon; color?: ColorName; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
-  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
+  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
   | { kind: "humidifier"; color?: ColorName | "none" }
   | { kind: "sound"; volume?: string; color?: ColorName | "none" }
 );
@@ -108,7 +108,7 @@ const KIND_KEYS: Record<Kind, string[]> = {
   cover: ["color"],
   toggle: ["icon", "color", "description"],
   alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
-  owlet: ["heart_rate", "oxygen", "charging", "alerts", "stale_after", "color"],
+  owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after", "color"],
   humidifier: ["color"],
   sound: ["volume", "color"],
 };
@@ -310,6 +310,7 @@ class Reader {
           heartRate: this.optionalEntity(raw, "heart_rate", at, ["sensor"]),
           oxygen: this.optionalEntity(raw, "oxygen", at, ["sensor"]),
           charging: this.optionalEntity(raw, "charging", at, ["binary_sensor"]),
+          baseStation: this.optionalEntity(raw, "base_station", at, ["switch"]),
           alerts: isRaw(alerts)
             ? Object.fromEntries(OWLET_ALERTS.flatMap((alert) => {
               const id = this.optionalEntity(alerts, alert, `${at}.alerts`, ["binary_sensor"]);

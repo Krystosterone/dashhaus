@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DemoOwletTile as DemoTile } from "./demo/DemoOwletTile";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["deep", "light", "awake", "unknown", "stale", "lowOxygen", "critical", "sockOff", "lowBattery", "charging", "long"] as const;
+const SEEDS = ["deep", "light", "awake", "unknown", "baseOff", "stale", "lowOxygen", "critical", "sockOff", "lowBattery", "charging", "long"] as const;
 
 const meta = {
   title: "Widgets/Owlet",
@@ -17,6 +17,7 @@ const meta = {
           "While readings arrive, the heart beside the heart rate beats; once none has changed for 3 minutes it stands still, " +
           "the figures dim and the status line warns since when. The base station's alerts show too: a vitals alert (oxygen, heart rate) fills the slot in warn " +
           "like a triggered alarm; a sock or base problem leads the status line with the warn marker. While the sock charges it says Charging. " +
+          "The base station is switched on and off in the sheet only, never on the card; while it is off the status line says so. " +
           "Same sizes and heights as the other widgets.",
       },
     },
@@ -40,6 +41,8 @@ export const DeepSleep: Story = { name: "Deep sleep" };
 export const LightSleep: Story = { name: "Light sleep", args: { seed: "light" } };
 export const Awake: Story = { args: { seed: "awake" } };
 export const SleepStateUnknown: Story = { name: "Reading, sleep state unknown", args: { seed: "unknown" } };
+export const BaseOff: Story = { name: "Base station off", args: { seed: "baseOff" } };
+export const BaseSheet: Story = { name: "Base station in the sheet", args: { seed: "baseOff", defaultOpen: true } };
 export const Stale: Story = { name: "Readings stopped", args: { seed: "stale" } };
 export const LowOxygen: Story = { name: "Alert: low oxygen", args: { seed: "lowOxygen" } };
 export const CriticalAlerts: Story = { name: "Alert: critical oxygen and low heart rate", args: { seed: "critical" } };

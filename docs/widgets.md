@@ -231,7 +231,7 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. It composes three sensors of the custom [`owlet` integration](https://github.com/ryanbdclark/owlet) (the sleep state needs a Dream Sock):
 
 ```tsx
-<OwletTile entity={sock} history={today} />
+<OwletTile entity={sock} history={today} onBaseToggle={() => callService("switch", sock.baseOn ? "turn_off" : "turn_on", { entity_id: "switch.owlet_sock_ac000w0123_base_station_on" })} />
 <HaOwletTile entityId="sensor.owlet_sock_ac000w0123_sleep_state" name="Nova" />
 ```
 
@@ -243,11 +243,12 @@ An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. I
   - **Vitals alerts** (critical, low or high oxygen; low or high heart rate) are the alarm going off. The slot fills with warn and pulses like a triggered security alarm (the fill deepens under the text; not under reduced motion), and names every vitals alert sounding, the most urgent first, with its figure: "Low oxygen · 84% O₂". It shows whatever else the card would: with no readings, in a compact row without its control, in the sheet. Beside a compact row's title the pill names the alert and the status line takes the figures; under 320 px, where compact rows keep only their value line, the alert leads that line in warn: "Critical oxygen · 79% O₂ · Low heart rate".
   - **Device problems** (sock off, sock disconnected, base lost power, battery critical or low) lead the status line with the warn marker, ahead of a stale warning.
   - The sheet lists every alert sounding. A sensor that is off, unknown, unavailable or missing is silent.
+- **Base station:** switched on and off in the sheet only, with the shared pill under a Base station heading: "On · Turn off" or "Off · Turn on". Never on the card: a stray tap on a dashboard must not silence a baby monitor. While it is off, the base sounds no alarm but the sock can still read, so the status line leads with "Base station off", after any warning and in plain words (switching it off is a choice, not a fault). A switch that is unknown, unavailable or missing hides the pill and says nothing.
 - **Charging:** while the sock is on its charger it reports nothing, and the card says Charging instead of Unavailable.
 - **Unavailable:** while the sock is out of reach it reports nothing; the card says Unavailable and when it was last seen, if the host passes `lastSeen`.
 - **Compact:** the status line says the sleep state and the slot the two figures. Under 320 px the value line carries both: "Deep sleep · 121 bpm · 98% O₂".
 - **Featured and sheet:** today's sleep by hour (deep sleep full, light sleep half, awake on the baseline) and the minutes asleep. The sheet adds today's heart rate and oxygen, low and high.
-- **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds the rest beside it: `sensor.…_heart_rate`, `sensor.…_o2_saturation`, `binary_sensor.…_charging` and the ten alert sensors (`binary_sensor.…_low_oxygen_alert`, `…_sock_off` …). Pass `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId` or `alertEntityIds` when yours are named differently. It sends no services.
+- **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds the rest beside it: `sensor.…_heart_rate`, `sensor.…_o2_saturation`, `binary_sensor.…_charging`, the ten alert sensors (`binary_sensor.…_low_oxygen_alert`, `…_sock_off` …) and the base station's `switch.…_base_station_on`. Pass `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId` or `alertEntityIds` when yours are named differently. Its one service is the base station's `switch.turn_on` or `switch.turn_off`, for the state the card shows (never `toggle`, so a repeated tap repeats the request instead of undoing it).
 - **Not a medical alarm:** the card shows what Home Assistant last received, every few seconds at best, and an alert reaches it only after the base station has raised it. Owlet's own app and base station are the alarm; this card repeats it.
 
 ## Using the humidifier widget

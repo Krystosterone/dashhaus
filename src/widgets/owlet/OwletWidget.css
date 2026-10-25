@@ -83,6 +83,9 @@
 /* Beside a compact row's title the pill has a control's width: the alert's name only; the figures go to the status line. */
 .hd--compact:not([data-control="off"]) .ow-alarm-v { display: none; }
 
+/* The sheet's base station switch: the shared pill, under its heading */
+.ow-base .hd-blk-h { margin: 0; }
+
 /* The sheet's list of what is sounding now */
 .ow-alerts { display: grid; gap: 8px; }
 .ow-alerts .hd-blk-h { margin: 0; }

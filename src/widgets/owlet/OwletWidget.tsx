@@ -1,7 +1,7 @@
 import type { OwletEntity, OwletHistory } from "./types";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
-import { AlertStatus, CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletWidget.css";
 
@@ -13,6 +13,8 @@ export interface OwletWidgetProps extends CardProps {
   onOpenDetails?: () => void;
   /** The icon's colour, if any. Default: none (a bare icon). */
   color?: ColorProp;
+  /** Sheet only: switch the base station on or off. Omit, or leave `baseOn` unset, to hide it. */
+  onBaseToggle?: () => void;
 }
 
 /**
@@ -20,9 +22,10 @@ export interface OwletWidgetProps extends CardProps {
  * a bare icon in place of an orb, and no glow. It reports nothing while the sock charges.
  * While readings arrive, the heart beside the heart rate beats; once they stop, it stands still, the figures
  * dim, and the status line warns since when. The base station's alerts show too: a vitals alert fills the slot
- * in warn, a problem with the sock or base leads the status line.
+ * in warn, a problem with the sock or base leads the status line. The base station is switched in the sheet only:
+ * a stray tap on a dashboard must never silence a baby monitor.
  */
-export function OwletWidget({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: OwletWidgetProps) {
+export function OwletWidget({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color, onBaseToggle }: OwletWidgetProps) {
   const { nameId, sheet, compact, bare, article, area } = useCard("ow", { variant, footprint, showControl, area: e.area });
   const sleep = e.state === "unavailable" ? undefined : e.state;
   const hr = e.heartRate, o2 = e.oxygen;
@@ -51,11 +54,14 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
   const figures = [hr != null ? `heart rate ${fmtBpm(hr)} beats per minute` : null, o2 != null ? `oxygen ${fmtOxygen(o2)} percent` : null].filter(Boolean).join(", ");
   const spoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleText.toLowerCase()}` : figures;
   const where = sheet && area ? `${area} · ${sleepWord}` : sleepWord;
+  // Off, the base sounds no alarm while the sock may still read: said in words, after any warning.
+  const baseOff = e.baseOn === false;
   const status = problem ? <><AlertStatus label={problemLabel!}>{ALERT_WORD[problem]}</AlertStatus>{!offline && <span className="ow-st-l"> · {sleepWord}</span>}</>
     // A compact row's alarm pill only has room for the alert's name, so the figures move up here.
     : vital && compact && readings ? readings
     : stale ? <><AlertStatus label={problemLabel!}>{staleWords}</AlertStatus><span className="ow-st-l"> · {sleepWord}</span></>
     : offline ? (e.charging ? "Charging" : "Unavailable")
+    : baseOff ? <>Base station off<span className="ow-st-l"> · {sleepWord}</span></>
     : where;
   // Under 320px a compact row keeps only this line, so it carries the alert, the sleep state and the readings.
   const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? "Charging" : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "No reading yet"].filter(Boolean).join(" · ");
@@ -117,6 +123,15 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
         <section className="ow-alerts" aria-labelledby={`${nameId}-a`}>
           <h3 className="hd-blk-h" id={`${nameId}-a`}>Alerts</h3>
           <ul>{alerts.map((a) => <li key={a}><AlertStatus label={VITAL_ALERTS.has(a) ? "Alert" : "Warning"}>{ALERT_WORD[a]}</AlertStatus></li>)}</ul>
+        </section>
+      )}
+
+      {sheet && e.baseOn != null && onBaseToggle && (
+        <section className="hd-blk ow-base" aria-labelledby={`${nameId}-b`}>
+          <h3 className="hd-blk-h" id={`${nameId}-b`}>Base station</h3>
+          <TogglePill label={`Base station: ${e.baseOn ? "On · Turn off" : "Off · Turn on"}`} on={e.baseOn} onToggle={onBaseToggle} extra={e.baseOn ? "Turn off" : "Turn on"}>
+            {e.baseOn ? "On" : "Off"}
+          </TogglePill>
         </section>
       )}
 

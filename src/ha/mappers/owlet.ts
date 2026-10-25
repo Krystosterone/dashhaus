@@ -18,6 +18,8 @@ export interface OwletMapOptions {
   alertEntities?: Partial<Record<OwletAlert, HassEntity>>;
   /** The sock's `binary_sensor.*_charging`. */
   chargingEntity?: HassEntity;
+  /** The base station's `switch.*_base_station_on`. */
+  baseEntity?: HassEntity;
   /** Minutes without a changed reading before the sock counts as stale. Default 3. */
   staleAfterMinutes?: number;
 }
@@ -49,20 +51,21 @@ export interface OwletCompanionIds {
   heartRate: string;
   oxygen: string;
   charging: string;
+  base: string;
   alerts: Record<OwletAlert, string>;
 }
 
 /**
  * The companion entity ids the `owlet` integration gives a sock, from its sleep state sensor's id:
  * `sensor.owlet_sock_<serial>_sleep_state` → `sensor.…_heart_rate`, `sensor.…_o2_saturation`,
- * `binary_sensor.…_charging` and one `binary_sensor.…` per alert. Undefined for an id that doesn't follow
+ * `binary_sensor.…_charging`, `switch.…_base_station_on` and one `binary_sensor.…` per alert. Undefined for an id that doesn't follow
  * that naming; pass the ids explicitly then.
  */
 export function owletCompanionIds(sleepEntityId: string): OwletCompanionIds | undefined {
   if (!/^sensor\.\w+_sleep_state$/.test(sleepEntityId)) return undefined;
   const device = sleepEntityId.slice("sensor.".length, -"_sleep_state".length);
   const alerts = Object.fromEntries(Object.entries(OWLET_ALERT_SUFFIX).map(([alert, suffix]) => [alert, `binary_sensor.${device}_${suffix}`])) as Record<OwletAlert, string>;
-  return { heartRate: `sensor.${device}_heart_rate`, oxygen: `sensor.${device}_o2_saturation`, charging: `binary_sensor.${device}_charging`, alerts };
+  return { heartRate: `sensor.${device}_heart_rate`, oxygen: `sensor.${device}_o2_saturation`, charging: `binary_sensor.${device}_charging`, base: `switch.${device}_base_station_on`, alerts };
 }
 
 /**
@@ -110,6 +113,8 @@ export function owletFromHass(raw: HassEntity | undefined, entityId: string, opt
     // Only an `on` alert sounds: off, unknown, unavailable and a missing sensor are silent, never assumed.
     alerts: (Object.keys(options.alertEntities ?? {}) as OwletAlert[]).filter((alert) => options.alertEntities?.[alert]?.state === "on"),
     charging: options.chargingEntity?.state === "on",
+    // Only a switch that says on or off: unknown, unavailable and a missing switch leave it out, never assumed.
+    baseOn: options.baseEntity?.state === "on" ? true : options.baseEntity?.state === "off" ? false : undefined,
     live: latest ? now.getTime() - latest.at.getTime() <= staleAfter : undefined,
     lastUpdated: latest ? formatHaTime(latest.raw, options.now) : undefined,
     lastSeen: offline ? options.lastSeen : undefined,

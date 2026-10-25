@@ -36,6 +36,8 @@ export const OWLET_SEEDS = {
   awake: { entity: sock({ name: "Nova", area: "Nursery", state: "awake", heartRate: 152, oxygen: 99, live: true, lastUpdated: "11:54" }), history: day("awake", 152, 99) },
   /** The sock is on and reading, but hasn't settled on a sleep state yet. */
   unknown: { entity: sock({ name: "Nova", area: "Nursery", state: "unavailable", heartRate: 138, oxygen: 98, live: true, lastUpdated: "11:54" }), history: day("unavailable", 138, 98) },
+  /** The base station is switched off: the sock still reads, but no alarm would sound. */
+  baseOff: { entity: sock({ name: "Nova", area: "Nursery", state: "light_sleep", heartRate: 129, oxygen: 98, live: true, lastUpdated: "11:54", baseOn: false }), history: day("light_sleep", 129, 98) },
   /** Readings stopped arriving at 11:49: the figures are old. */
   stale: { entity: sock({ name: "Nova", area: "Nursery", state: "deep_sleep", heartRate: 119, oxygen: 98, live: false, lastUpdated: "11:49" }), history: day("deep_sleep", 119, 98) },
   /** The base station is sounding: oxygen dropped. */

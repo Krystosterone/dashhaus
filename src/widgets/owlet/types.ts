@@ -38,6 +38,11 @@ export interface OwletEntity {
   alerts?: OwletAlert[];
   /** On its charger: the reason it reports nothing. */
   charging?: boolean;
+  /**
+   * The base station's switch: false while it is off and sounds no alarm (the sock may still send readings).
+   * Omitted when the host has no such switch or can't tell.
+   */
+  baseOn?: boolean;
   /** When the newest reading arrived ("11:54"). */
   lastUpdated?: string;
   lastSeen?: string;
