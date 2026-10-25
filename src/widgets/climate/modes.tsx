@@ -1,4 +1,8 @@
 import type { HvacMode } from "../../domains/climate/types";
+import { MODE_META } from "../../domains/climate/modes";
+
+/** A mode's label with a break opportunity after its slash, so a narrow chip wraps "Heat/" over "Cool". */
+export const modeLabel = (mode: HvacMode) => MODE_META[mode].label.replace("/", "/\u200b");
 
 const P = { fill: "none", stroke: "currentColor" } as const;
 export function ThermostatIcon() {

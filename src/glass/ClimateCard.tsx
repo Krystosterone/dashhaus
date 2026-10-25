@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import type { ClimateEntity, HvacMode } from "../domains/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "../domains/climate/modes";
-import { GlassCard, PowerButton } from "./ui";
+import { GlassCard, PowerButton, UnavailableLine } from "./ui";
 import type { GlassSize } from "./ui";
 import "./cards.css";
 import { GlassDial, GlassPick } from "./controls";
@@ -31,7 +31,7 @@ export function GlassClimateCard({ entity: e, onToggle, onTargetChange, onRangeC
   const range = e.state === "heat_cool" && e.targetLow != null && e.targetHigh != null && onRangeChange != null;
   const setpoint = range ? (end === "low" ? e.targetLow : e.targetHigh) : e.targetTemperature;
   const now = e.currentTemperature != null ? `${fmtCurrent(e.currentTemperature)}°` : null;
-  const doing = e.hvacAction ? ACTION_LABEL[e.hvacAction] : unav ? null : MODE_META[e.state as HvacMode].label.replace("​", "");
+  const doing = e.hvacAction ? ACTION_LABEL[e.hvacAction] : unav ? null : MODE_META[e.state as HvacMode].label;
   const endValue = (k: "low" | "high") => (k === "low" ? e.targetLow : e.targetHigh) ?? 0;
 
   const setRange = (v: number) => {
@@ -41,7 +41,7 @@ export function GlassClimateCard({ entity: e, onToggle, onTargetChange, onRangeC
 
   const picks = [
     onModeChange && e.hvacModes.length > 1 && (
-      <GlassPick key="mode" label="Mode" icon={<IconMode />} value={unav ? undefined : e.state as HvacMode} options={e.hvacModes.map((m) => ({ value: m, label: MODE_META[m].label.replace("​", "") }))} onChange={onModeChange} />
+      <GlassPick key="mode" label="Mode" icon={<IconMode />} value={unav ? undefined : e.state as HvacMode} options={e.hvacModes.map((m) => ({ value: m, label: MODE_META[m].label }))} onChange={onModeChange} />
     ),
     onFanChange && e.fanModes && e.fanModes.length > 0 && (
       <GlassPick key="fan" label="Fan" icon={<IconFan />} value={e.fanMode} options={e.fanModes.map((f) => ({ value: f, label: titleCase(f) }))} onChange={onFanChange} />
@@ -61,7 +61,7 @@ export function GlassClimateCard({ entity: e, onToggle, onTargetChange, onRangeC
       action={<PowerButton label={e.name} on={!off && !unav} unavailable={unav} onToggle={onToggle} />}
     >
       {unav ? (
-        <p className="gl-quiet">Unavailable{e.lastSeen ? ` · last seen ${e.lastSeen}` : ""}</p>
+        <UnavailableLine lastSeen={e.lastSeen} />
       ) : (
         <div className="gl-climate">
           <GlassDial

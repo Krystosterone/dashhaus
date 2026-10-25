@@ -58,7 +58,7 @@ export default tseslint.config(
   {
     // The domain boundary: entity models and their pure logic know no UI and no framework, so every UI
     // and the Home Assistant mappers can share them.
-    files: ["src/domains/**/*.ts"],
+    files: ["src/domains/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [...haBoundary, ...uiFolders("Domain models know no UI; move the shared part into src/domains/."), { group: ["react", "react-dom", "react/*"], message: "Domain models are framework-free." }],
@@ -73,8 +73,8 @@ export default tseslint.config(
   {
     // Mappers, actions, hooks, the store and history parsing feed every UI, so they stay out of the UI folders.
     // The connected tiles, the public barrel and the Lovelace card are where a UI is chosen.
-    files: ["src/ha/**/*.ts"],
-    ignores: ["src/ha/index.ts", "src/ha/lovelace/**"],
+    files: ["src/ha/**/*.{ts,tsx}"],
+    ignores: ["src/ha/index.ts", "src/ha/lovelace/**", "src/ha/Ha*Tile*.tsx"],
     rules: { "no-restricted-imports": ["error", { patterns: uiFolders("Keep Home Assistant logic UI-free; import entity models from src/domains/.") }] },
   },
 );

@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import type { LightEntity } from "../domains/light/types";
 import { K_MAX, K_MIN, kelvinName, kelvinToLch } from "../domains/light/kelvin";
-import { GlassCard, PowerButton } from "./ui";
+import { GlassCard, PowerButton, UnavailableLine } from "./ui";
 import type { GlassSize } from "./ui";
 import "./cards.css";
 import { GlassSegments, GlassTrack } from "./controls";
@@ -20,11 +20,11 @@ export interface GlassLightCardProps {
 type View = "brightness" | "color" | "warmth";
 const VIEW_LABEL: Record<View, string> = { brightness: "Brightness", color: "Colour", warmth: "Warmth" };
 
-/** Warmth stops from `min` to `max` Kelvin, each at the lamp's own hue. */
+/** Warmth stops from `min` to `max` Kelvin, each at the lamp's own hue; the lightness is the `--gl-warm-l` token. */
 const warmth = (min: number, max: number) =>
   `linear-gradient(to right, ${Array.from({ length: 9 }, (_, i) => {
     const { c, h } = kelvinToLch(min + ((max - min) * i) / 8);
-    return `oklch(0.84 ${c} ${h}) ${(i * 12.5).toFixed(1)}%`;
+    return `oklch(var(--gl-warm-l) ${c} ${h}) ${(i * 12.5).toFixed(1)}%`;
   }).join(", ")})`;
 
 /**
@@ -61,7 +61,7 @@ export function GlassLightCard({ entity: e, onToggle, onBrightnessChange, onKelv
       action={<PowerButton label={e.name} on={on} unavailable={unav} onToggle={onToggle} />}
     >
       {unav ? (
-        <p className="gl-quiet">Unavailable{e.lastSeen ? ` · last seen ${e.lastSeen}` : ""}</p>
+        <UnavailableLine lastSeen={e.lastSeen} />
       ) : !view ? (
         <p className="gl-quiet">{on ? "On" : "Off"}{e.lastChanged ? ` since ${e.lastChanged}` : ""}</p>
       ) : (

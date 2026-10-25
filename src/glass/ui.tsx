@@ -83,9 +83,14 @@ export function GlassCard({ size, name, subtitle, icon, state, action, children 
   );
 }
 
+/** An unavailable card's body: since when Home Assistant last saw it. The dashed edge already says unavailable. */
+export function UnavailableLine({ lastSeen }: { lastSeen?: string }) {
+  return <p className="gl-quiet">Unavailable{lastSeen ? ` · last seen ${lastSeen}` : ""}</p>;
+}
+
 export interface Room { id: string; name: string }
 
-/** The rooms as a filter: the first is usually Home, the cards that matter now. Fixed at the bottom of the page. */
+/** The rooms as a filter: the first is usually Home, every card. It sits in the page's dock, at the bottom. */
 export function RoomBar({ rooms, current, onPick }: { rooms: Room[]; current: string; onPick: (id: string) => void }) {
   return (
     <nav className="gl-rooms gl-panel" aria-label="Rooms">
@@ -101,7 +106,7 @@ export function RoomBar({ rooms, current, onPick }: { rooms: Room[]; current: st
 }
 
 /**
- * A problem the page has to tell, such as a command Home Assistant rejected: fixed above the room bar, the
+ * A problem the page has to tell, such as a command Home Assistant rejected: docked above the room bar, the
  * warn colour on the words and the icon, never on the panel. `children` are its buttons.
  */
 export function GlassNotice({ label, title, detail, children }: { label: string; title: string; detail: string; children?: ReactNode }) {

@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useTrack, trackPos } from "../hooks/useTrack";
-import { DIAL_SWEEP, dialAngle, dialPosition, stepValue, useDial } from "../hooks/useDial";
+import { DIAL_SWEEP, dialAngle, useDial } from "../hooks/useDial";
+import { rangePosition, stepValue } from "../hooks/range";
 import { IconMinus, IconPlus } from "./icons";
 import "./controls.css";
 
@@ -34,7 +35,7 @@ export function GlassTrack({ id, label, value, min, max, step = 1, valueText, to
     const next = stepValue(trackPos(x, el.getBoundingClientRect(), KNOB / 2), min, max, step);
     if (next !== v || off) onChange(next);
   });
-  const style: Vars = { "--v": dialPosition(v, min, max).toFixed(4), ...(gradient ? { "--gl-track-bg": gradient } : {}) };
+  const style: Vars = { "--v": rangePosition(v, min, max).toFixed(4), ...(gradient ? { "--gl-track-bg": gradient } : {}) };
   return (
     <div className="gl-track" ref={track.ref} data-tone={tone} data-off={off || undefined} style={style}>
       <div className="gl-track-bar" aria-hidden="true"><div className="gl-track-fill" /></div>
@@ -89,14 +90,13 @@ export function GlassDial({ id, label, value, min, max, step, valueText, disable
   children: ReactNode;
 }) {
   const dial = useDial<HTMLDivElement>({ value, min, max, step, disabled, onChange });
-  const a = dialAngle(dialPosition(dial.shown, min, max));
-  const m = marker == null ? null : dialAngle(dialPosition(marker, min, max));
+  const a = dialAngle(rangePosition(dial.shown, min, max));
+  const m = marker == null ? null : dialAngle(rangePosition(marker, min, max));
   const from = m == null ? -DIAL_SWEEP / 2 : Math.min(a, m);
   const to = m == null ? a : Math.max(a, m);
-  const thumb = point(a);
   const dot = m == null ? null : point(m);
   const nudge = (dir: 1 | -1) => {
-    const next = +Math.min(max, Math.max(min, value + dir * step)).toFixed(6);
+    const next = stepValue(rangePosition(value + dir * step, min, max), min, max, step);
     if (next !== value) onChange(next);
   };
   return (
@@ -108,7 +108,12 @@ export function GlassDial({ id, label, value, min, max, step, valueText, disable
           <path className="gl-dial-ring" d={FULL} {...dial.ring} />
           {!disabled && dot && <circle className="gl-dial-marker" cx={dot.x} cy={dot.y} r="5" />}
         </svg>
-        {!disabled && <span className="gl-dial-thumb" style={{ left: `${thumb.x / 2}%`, top: `${thumb.y / 2}%` }} aria-hidden="true" {...dial.thumb} />}
+        {/* The thumb rides an arm the size of the face, turned to the value: a transform, so a drag never lays out. */}
+        {!disabled && (
+          <div className="gl-dial-arm" style={{ "--a": `${a}deg` } as Vars}>
+            <span className="gl-dial-thumb" aria-hidden="true" {...dial.thumb} />
+          </div>
+        )}
         <div className="gl-dial-centre">{children}</div>
       </div>
       {!disabled && (

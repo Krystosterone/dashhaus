@@ -1,0 +1,140 @@
+import { Component } from "react";
+import type { ReactNode } from "react";
+import { createRoot } from "react-dom/client";
+import type { Root } from "react-dom/client";
+import type { Connection } from "home-assistant-js-websocket";
+import { HaProvider } from "../provider";
+import { createHaStore } from "../store";
+import { createHomeAssistantTransport } from "../home-assistant";
+import type { HaStore, HassEntities } from "../types";
+import type { AutoEntityEntry } from "./auto";
+
+/** The part of the frontend's `hass` object the cards read. Lovelace sets a new one on every change. */
+export interface LovelaceHass {
+  connection: Connection;
+  states: HassEntities;
+  entities?: Record<string, AutoEntityEntry>;
+  devices?: Record<string, { area_id?: string | null }>;
+  areas?: Record<string, { name: string }>;
+  themes?: { darkMode?: boolean };
+  /** The signed-in person; the glass card greets them by name. */
+  user?: { name?: string };
+}
+
+/** The states and registries an automatic layout reads, from `hass`. */
+export const autoInput = (hass: LovelaceHass) => ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas });
+
+const FONT_HREF = "https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap";
+
+/** Fonts only load from the document, never from inside a shadow root. */
+function loadFont() {
+  if (document.head.querySelector(`link[href="${FONT_HREF}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = FONT_HREF;
+  document.head.append(link);
+}
+
+/** Shows what stopped the card instead of a blank page. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
+  state: { error?: Error } = {};
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    return this.state.error
+      ? <div className="hd-config-error" role="alert">Home Dashboard stopped: {this.state.error.message}</div>
+      : this.props.children;
+  }
+}
+
+/**
+ * What every dashboard card shares, whichever UI it draws: a shadow root with the bundle's styles, one store per
+ * frontend connection (reused, never closed, so no token), and a React root that survives Lovelace moving the
+ * card between parents. A card parses its YAML, says which `hass` changes its page reads (entity states reach it
+ * through the store either way), and draws.
+ */
+export abstract class LovelaceDashboardElement<C> extends HTMLElement {
+  /** The bundle's stylesheet, scoped to the host, plus the card's own host rules. */
+  protected abstract readonly styles: string;
+  /** A class for the element React renders into. */
+  protected readonly mountClass: string = "";
+  protected config?: C;
+  #hass?: LovelaceHass;
+  #store?: HaStore;
+  #root?: Root;
+  #mount?: HTMLDivElement;
+
+  /** Check and normalize the YAML; a throw shows the problems in the editor. */
+  protected abstract parse(raw: unknown): C;
+  /** Whether a new `hass` changes what the page itself shows. */
+  protected abstract changed(previous: LovelaceHass, next: LovelaceHass): boolean;
+  protected abstract draw(config: C, hass: LovelaceHass): ReactNode;
+  /** Host attributes the page reads, set before each draw. */
+  protected paintHost(_config: C, _hass: LovelaceHass) {}
+
+  /** Lovelace calls this on every YAML edit. */
+  setConfig(raw: unknown) {
+    this.config = this.parse(raw);
+    this.render();
+  }
+
+  set hass(hass: LovelaceHass) {
+    const previous = this.#hass;
+    this.#hass = hass;
+    if (!this.#store || previous?.connection !== hass.connection) {
+      this.#store = createHaStore(createHomeAssistantTransport(hass.connection));
+    }
+    if (!previous || previous.connection !== hass.connection || this.changed(previous, hass)) this.render();
+  }
+
+  getCardSize() { return 12; }
+  getGridOptions() { return { columns: "full", rows: "auto" }; }
+
+  connectedCallback() {
+    if (!this.shadowRoot) {
+      const shadow = this.attachShadow({ mode: "open" });
+      const style = document.createElement("style");
+      style.textContent = this.styles;
+      this.#mount = document.createElement("div");
+      if (this.mountClass) this.#mount.className = this.mountClass;
+      shadow.append(style, this.#mount);
+      loadFont();
+    }
+    this.render();
+  }
+
+  disconnectedCallback() {
+    // Lovelace moves cards between parents; only tear down if it stays detached.
+    queueMicrotask(() => {
+      if (this.isConnected) return;
+      this.#root?.unmount();
+      this.#root = undefined;
+    });
+  }
+
+  protected render() {
+    const config = this.config;
+    const hass = this.#hass;
+    if (!config || !hass || !this.#store || !this.#mount || !this.isConnected) return;
+    this.paintHost(config, hass);
+    this.#root ??= createRoot(this.#mount);
+    this.#root.render(
+      <ErrorBoundary>
+        <HaProvider store={this.#store}>{this.draw(config, hass)}</HaProvider>
+      </ErrorBoundary>,
+    );
+  }
+}
+
+declare global {
+  interface Window {
+    customCards?: Array<{ type: string; name: string; description: string; preview?: boolean; documentationURL?: string }>;
+  }
+}
+
+/** Register a card's element and list it in the Lovelace card picker. Safe to call twice. */
+export function registerCard(type: string, element: CustomElementConstructor, name: string, description: string) {
+  if (customElements.get(type)) return;
+  customElements.define(type, element);
+  window.customCards ??= [];
+  window.customCards.push({ type, name, description, preview: false });
+}

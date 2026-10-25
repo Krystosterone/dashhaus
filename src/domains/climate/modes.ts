@@ -6,7 +6,7 @@ export const MODE_META: Record<HvacMode, { label: string }> = {
   off: { label: "Off" },
   heat: { label: "Heat" },
   cool: { label: "Cool" },
-  heat_cool: { label: "Heat/\u200bCool" },
+  heat_cool: { label: "Heat/Cool" },
   auto: { label: "Auto" },
   dry: { label: "Dry" },
   fan_only: { label: "Fan only" },

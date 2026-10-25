@@ -1,17 +1,10 @@
-import { createRoot } from "react-dom/client";
-import type { Root } from "react-dom/client";
-import { HaProvider } from "../../provider";
-import { createHaStore } from "../../store";
-import { createHomeAssistantTransport } from "../../home-assistant";
-import type { HaStore } from "../../types";
-import { ErrorBoundary, autoInput, loadFont } from "../card";
-import type { LovelaceHass } from "../card";
+import { LovelaceDashboardElement, autoInput, registerCard } from "../element";
+import type { LovelaceHass } from "../element";
 import { scopeToHost } from "../styles";
 import { parseGlassConfig } from "./config";
-import type { GlassConfig } from "./config";
+import type { GlassCardConfig, GlassConfig } from "./config";
 import { areaName, autoGlassCards } from "./auto";
 import { GlassDashboard } from "./GlassDashboard";
-import type { GlassItem } from "./GlassDashboard";
 
 export const GLASS_CARD_TYPE = "home-dashboard-glass";
 
@@ -31,63 +24,35 @@ const HOST_CSS = `
 export function createGlassCard(css: string) {
   const styles = scopeToHost(css) + HOST_CSS;
 
-  return class HomeDashboardGlassCard extends HTMLElement {
-    #config?: GlassConfig;
-    #hass?: LovelaceHass;
-    #store?: HaStore;
-    #root?: Root;
-    #mount?: HTMLDivElement;
-    #items?: { key: unknown[]; items: GlassItem[] };
+  return class HomeDashboardGlassCard extends LovelaceDashboardElement<GlassConfig> {
+    protected readonly styles = styles;
+    #items?: { key: unknown[]; items: GlassCardConfig[] };
 
-    /** Lovelace calls this on every YAML edit; a throw shows the problems in the editor. */
     setConfig(raw: unknown) {
-      this.#config = parseGlassConfig(raw);
       this.#items = undefined;
-      this.#render();
+      super.setConfig(raw);
     }
-
-    set hass(hass: LovelaceHass) {
-      const previous = this.#hass;
-      this.#hass = hass;
-      if (!this.#store || previous?.connection !== hass.connection) {
-        this.#store = createHaStore(createHomeAssistantTransport(hass.connection));
-      }
-      // Entity states reach the cards through the store; only re-render for what the page itself reads.
-      if (!previous || previous.connection !== hass.connection || previous.user?.name !== hass.user?.name || this.#itemsStale(hass)) this.#render();
-    }
-
-    getCardSize() { return 12; }
-    getGridOptions() { return { columns: "full", rows: "auto" }; }
 
     /** What the card picker pre-fills: automatic, every supported entity by area. */
     static getStubConfig() {
       return { type: `custom:${GLASS_CARD_TYPE}` };
     }
 
-    connectedCallback() {
-      if (!this.shadowRoot) {
-        const shadow = this.attachShadow({ mode: "open" });
-        const style = document.createElement("style");
-        style.textContent = styles;
-        this.#mount = document.createElement("div");
-        shadow.append(style, this.#mount);
-        loadFont();
-      }
-      this.#render();
+    protected parse(raw: unknown) {
+      return parseGlassConfig(raw);
     }
 
-    disconnectedCallback() {
-      // Lovelace moves cards between parents; only tear down if it stays detached.
-      queueMicrotask(() => {
-        if (this.isConnected) return;
-        this.#root?.unmount();
-        this.#root = undefined;
-      });
+    protected changed(previous: LovelaceHass, next: LovelaceHass) {
+      return previous.user?.name !== next.user?.name || this.#itemsStale(next);
+    }
+
+    protected draw(config: GlassConfig, hass: LovelaceHass) {
+      return <GlassDashboard title={config.title} name={config.name ?? hass.user?.name} items={this.#itemsFor(config, hass)} />;
     }
 
     /** The registries and the set of entities decide the cards and their rooms; a state change does not. */
     #key(hass: LovelaceHass): unknown[] {
-      return [this.#config, hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length];
+      return [this.config, hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length];
     }
 
     #itemsStale(hass: LovelaceHass) {
@@ -95,7 +60,7 @@ export function createGlassCard(css: string) {
       return !this.#items || this.#items.key.some((part, i) => part !== key[i]);
     }
 
-    #itemsFor(config: GlassConfig, hass: LovelaceHass): GlassItem[] {
+    #itemsFor(config: GlassConfig, hass: LovelaceHass): GlassCardConfig[] {
       if (this.#itemsStale(hass)) {
         const input = autoInput(hass);
         const cards = config.cards ?? autoGlassCards(input);
@@ -103,32 +68,10 @@ export function createGlassCard(css: string) {
       }
       return this.#items!.items;
     }
-
-    #render() {
-      const config = this.#config;
-      const hass = this.#hass;
-      if (!config || !hass || !this.#store || !this.#mount || !this.isConnected) return;
-      this.#root ??= createRoot(this.#mount);
-      this.#root.render(
-        <ErrorBoundary>
-          <HaProvider store={this.#store}>
-            <GlassDashboard title={config.title} name={config.name ?? hass.user?.name} items={this.#itemsFor(config, hass)} />
-          </HaProvider>
-        </ErrorBoundary>,
-      );
-    }
   };
 }
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineGlassCard(css: string) {
-  if (customElements.get(GLASS_CARD_TYPE)) return;
-  customElements.define(GLASS_CARD_TYPE, createGlassCard(css));
-  window.customCards ??= [];
-  window.customCards.push({
-    type: GLASS_CARD_TYPE,
-    name: "Home Dashboard Glass",
-    description: "The glass dashboard: translucent cards by room. Leave out `cards` to show every light, climate, toggle and weather entity.",
-    preview: false,
-  });
+  registerCard(GLASS_CARD_TYPE, createGlassCard(css), "Home Dashboard Glass", "The glass dashboard: translucent cards by room. Leave out `cards` to show every light, climate, toggle and weather entity.");
 }

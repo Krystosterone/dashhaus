@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "../../domains/climate/types";
-import { MODE_META, ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "../../domains/climate/modes";
-import { ModeIcon, ThermostatIcon } from "./modes";
+import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "../../domains/climate/modes";
+import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
@@ -79,8 +79,8 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
   const single = !range && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
   const statusParts = [cur != null ? `${fmtCurrent(cur)}°${compact ? "" : " now"}` : null, unav ? "Unavailable" : ACTION_LABEL[action]].filter(Boolean);
   const status = statusParts.join(" · ");
-  const modePrefix = compact && on ? `${MODE_META[mode].label} · ` : "";
-  const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : MODE_META[mode].label;
+  const modePrefix = compact && on ? `${modeLabel(mode)} · ` : "";
+  const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : modeLabel(mode);
   const kicker = mode === "heat" ? "Heat to" : mode === "cool" ? "Cool to" : "Keep at";
   // HA heat_cool requires target_temp_low <= target_temp_high.
   const setRange = (lo: number, hi: number) => {
@@ -96,7 +96,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
   } else if (single) {
     slot = <Stepper label={`${e.name} target temperature`} kicker={compact ? undefined : kicker} cue={compact ? <ModeIcon mode={mode} /> : undefined} value={e.targetTemperature!} unit="°" format={fmtTarget} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />;
   } else {
-    slot = <TogglePill label={`${e.name}: ${MODE_META[mode].label}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{MODE_META[mode].label}</TogglePill>;
+    slot = <TogglePill label={`${e.name}: ${modeLabel(mode)}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{modeLabel(mode)}</TogglePill>;
   }
 
   const slotKind = bare ? "bare" : unav ? "unavailable" : !on ? "off" : range ? "range" : single ? "setpoint" : "mode";
@@ -110,7 +110,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
   return (
     <article {...article} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors}>
       <header className="hd-head">
-        <Orb label={`${e.name}, ${on ? MODE_META[mode].label : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
+        <Orb label={`${e.name}, ${on ? modeLabel(mode) : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
           {compact
             ? <ThermostatIcon />
             : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />}
@@ -134,7 +134,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
         <div className="hd-extra">
           {range && onRangeChange && <RangeFine low={e.targetLow!} high={e.targetHigh!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} />}
           {onModeChange && e.hvacModes.length > 1 && (
-            <ChoiceChips id={`${uid}-m`} label="Mode" options={e.hvacModes.map((m) => ({ value: m, label: MODE_META[m].label }))} value={mode} onChange={onModeChange} />
+            <ChoiceChips id={`${uid}-m`} label="Mode" options={e.hvacModes.map((m) => ({ value: m, label: modeLabel(m) }))} value={mode} onChange={onModeChange} />
           )}
           {onPresetChange && e.presetModes && e.presetModes.length > 0 && (
             <ChoiceChips id={`${uid}-p`} label="Preset" options={e.presetModes.map((p) => ({ value: p, label: titleCase(p) }))} value={e.presetMode} onChange={onPresetChange} />

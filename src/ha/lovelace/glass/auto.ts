@@ -1,6 +1,7 @@
+import { domainOf } from "../auto";
 import type { AutoInput } from "../auto";
 import { GLASS_DOMAIN } from "./config";
-import type { GlassCardConfig, GlassKind } from "./config";
+import type { GlassCardConfig, GlassKind, ToggleDomain } from "./config";
 
 /** Home's order: the weather, then comfort, then modes, then the rooms' lights and switches. */
 const ORDER: readonly string[] = ["weather", "climate", "input_boolean", "light", "switch"];
@@ -22,11 +23,15 @@ export function autoGlassCards(input: AutoInput): GlassCardConfig[] {
   const ids = Object.keys(states)
     .filter((id) => {
       const entry = entities[id];
-      return !entry?.hidden && !entry?.entity_category && ORDER.includes(id.slice(0, id.indexOf(".")));
+      return !entry?.hidden && !entry?.entity_category && ORDER.includes(domainOf(id));
     })
-    .sort((a, b) => ORDER.indexOf(a.slice(0, a.indexOf("."))) - ORDER.indexOf(b.slice(0, b.indexOf("."))) || name(a).localeCompare(name(b)));
-  const weather = ids.find((id) => id.startsWith("weather."));
+    .sort((a, b) => ORDER.indexOf(domainOf(a)) - ORDER.indexOf(domainOf(b)) || name(a).localeCompare(name(b)));
+  const weather = ids.find((id) => domainOf(id) === "weather");
   return ids
-    .filter((id) => !id.startsWith("weather.") || id === weather)
-    .map((entity) => ({ entity, kind: GLASS_DOMAIN[entity.slice(0, entity.indexOf("."))] as GlassKind }));
+    .filter((id) => domainOf(id) !== "weather" || id === weather)
+    .map((entity) => {
+      const domain = domainOf(entity);
+      const kind = GLASS_DOMAIN[domain] as GlassKind;
+      return kind === "toggle" ? { entity, kind, domain: domain as ToggleDomain } : { entity, kind };
+    });
 }

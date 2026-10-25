@@ -1,5 +1,14 @@
 /* Glass controls: track, dial, pickers and segments (docs/glass.md). Colours only from src/glass/tokens.css. */
 
+/* Controls, not content: no selection, callout or tap flash when a finger rests on a track or the dial. */
+.gl-track,
+.gl-dial {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ---------- Track: a 12 px bar in a 44 px hit area ---------- */
 .gl-track {
   --gl-knob-size: 24px;
@@ -105,9 +114,19 @@
 }
 .gl-dial[data-disabled] .gl-dial-ring { pointer-events: none; cursor: default; }
 .gl-dial-marker { fill: var(--gl-ink); }
+/* The arm turns about the face's centre; the thumb sits at its top, on the arc (radius 84 of 200, so 8% down). */
+.gl-dial-arm {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--a));
+  pointer-events: none;
+}
 /* Only the thumb takes a touch drag; the rest of the dial lets the page scroll. */
 .gl-dial-thumb {
   position: absolute;
+  left: 50%;
+  top: 8%;
+  pointer-events: auto;
   display: grid;
   place-items: center;
   width: 44px;

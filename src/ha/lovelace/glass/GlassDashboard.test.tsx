@@ -4,7 +4,7 @@ import { HaProvider } from "../../provider";
 import { createHaStore } from "../../store";
 import type { HaTransport, HassEntities } from "../../types";
 import { GlassDashboard } from "./GlassDashboard";
-import type { GlassItem } from "./GlassDashboard";
+import type { GlassCardConfig } from "./config";
 
 const raw: HassEntities = {
   "light.desk": { entity_id: "light.desk", state: "on", attributes: { friendly_name: "Desk", supported_color_modes: ["onoff"] } },
@@ -12,10 +12,10 @@ const raw: HassEntities = {
   "input_boolean.guest": { entity_id: "input_boolean.guest", state: "off", attributes: { friendly_name: "Guest" } },
 };
 
-const items: GlassItem[] = [
+const items: GlassCardConfig[] = [
   { entity: "light.desk", kind: "light", area: "Office" },
-  { entity: "switch.router", kind: "toggle", name: "Router", area: "Hallway" },
-  { entity: "input_boolean.guest", kind: "toggle", area: "Home" },
+  { entity: "switch.router", kind: "toggle", domain: "switch", name: "Router", area: "Hallway" },
+  { entity: "input_boolean.guest", kind: "toggle", domain: "input_boolean", area: "Home" },
 ];
 
 function setup(callService: HaTransport["callService"] = vi.fn(async () => undefined)) {

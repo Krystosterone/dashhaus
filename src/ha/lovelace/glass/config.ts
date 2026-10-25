@@ -2,6 +2,7 @@ import type { ToggleIcon } from "../../../domains/toggle/types";
 import type { GlassSize } from "../../../glass/ui";
 import { DashboardConfigError, Reader, TOGGLE_ICONS, isRaw } from "../config";
 import type { Raw } from "../config";
+import { domainOf } from "../auto";
 
 /*
  * The glass card's YAML (docs/deploy.md → The glass dashboard), checked and normalized with the same reader as
@@ -19,16 +20,21 @@ export const GLASS_DOMAIN: Record<string, GlassKind> = {
   switch: "toggle",
 };
 
-export interface GlassCardConfig {
+export type ToggleDomain = "input_boolean" | "switch";
+
+interface GlassCardBase {
   entity: string;
-  kind: GlassKind;
   name?: string;
   /** Overrides the area Home Assistant's registries resolve; the room bar files the card under it. */
   area?: string;
   size?: GlassSize;
-  /** Toggles only. */
-  icon?: ToggleIcon;
 }
+
+/** A toggle carries the native domain its service goes to. */
+export type GlassCardConfig = GlassCardBase & (
+  | { kind: Exclude<GlassKind, "toggle"> }
+  | { kind: "toggle"; domain: ToggleDomain; icon?: ToggleIcon }
+);
 
 export interface GlassConfig {
   title: string;
@@ -54,7 +60,7 @@ function card(read: Reader, value: unknown, path: string): GlassCardConfig | und
   }
   const entity = read.entityId(raw.entity, path);
   if (!entity) return undefined;
-  const domain = entity.slice(0, entity.indexOf("."));
+  const domain = domainOf(entity);
   const kind = GLASS_DOMAIN[domain];
   if (!kind) {
     read.problem(path, `${entity}: ${domain}.* entities have no glass card yet (supported: ${Object.keys(GLASS_DOMAIN).join(", ")})`);
@@ -62,14 +68,10 @@ function card(read: Reader, value: unknown, path: string): GlassCardConfig | und
   }
   const at = `${path} (${entity})`;
   read.keys(raw, at, kind === "toggle" ? [...CARD_KEYS, "icon"] : CARD_KEYS);
-  return {
-    entity,
-    kind,
-    name: read.string(raw, "name", at),
-    area: read.string(raw, "area", at),
-    size: read.choice(raw, "size", at, SIZES),
-    ...(kind === "toggle" ? { icon: read.choice(raw, "icon", at, TOGGLE_ICONS) } : {}),
-  };
+  const base: GlassCardBase = { entity, name: read.string(raw, "name", at), area: read.string(raw, "area", at), size: read.choice(raw, "size", at, SIZES) };
+  return kind === "toggle"
+    ? { ...base, kind, domain: domain as ToggleDomain, icon: read.choice(raw, "icon", at, TOGGLE_ICONS) }
+    : { ...base, kind };
 }
 
 /** Check and normalize the card's YAML; throws a DashboardConfigError listing every problem. */

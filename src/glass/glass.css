@@ -192,7 +192,7 @@
   overflow-wrap: anywhere;
 }
 /* Sized so a two-line name, the subtitle, the icon and one line of body fit the card's 180 px. */
-.gl-card[data-size="s"] .gl-mark { width: 40px; height: 40px; margin-top: 4px; }
+.gl-card[data-size="s"] .gl-mark { width: 40px; height: 40px; margin-top: 0; }
 .gl-card[data-size="s"] .gl-mark > svg { width: 32px; height: 32px; }
 
 /* A card body's one quiet line: since when, unavailable since when. */
@@ -201,8 +201,10 @@
   font-size: 13.5px;
   color: var(--gl-ink-2);
 }
-/* A small card has room for one line under its picture. */
+/* A small card has room for one line under its picture. It must not shrink: an overflow-hidden flex item may, and
+   would clip its own descenders. */
 .gl-card[data-size="s"] .gl-quiet {
+  flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -298,8 +300,9 @@
   gap: 4px;
   margin: 0;
   padding: 0 12px;
-  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
-  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  /* A mask reads only alpha: any opaque token does. */
+  -webkit-mask-image: linear-gradient(to right, transparent, var(--gl-ink) 12px, var(--gl-ink) calc(100% - 12px), transparent);
+  mask-image: linear-gradient(to right, transparent, var(--gl-ink) 12px, var(--gl-ink) calc(100% - 12px), transparent);
   scroll-padding-inline: 12px;
   list-style: none;
   overflow-x: auto;

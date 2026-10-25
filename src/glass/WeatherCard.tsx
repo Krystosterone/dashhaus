@@ -1,7 +1,7 @@
 import type { DailyForecast, WeatherEntity } from "../domains/weather/types";
 import { CONDITION_LABEL, SKY } from "../domains/weather/conditions";
 import { useNow } from "../hooks/useNow";
-import { GlassCard } from "./ui";
+import { GlassCard, UnavailableLine } from "./ui";
 import type { GlassSize } from "./ui";
 import "./cards.css";
 import { IconDrop, IconWind, SkyIcon } from "./icons";
@@ -33,7 +33,7 @@ export function GlassWeatherCard({ entity: e, daily, now: fixed, size = "xl" }: 
       icon={condition ? <SkyIcon sky={SKY[condition]} night={night} /> : <SkyIcon sky="cloudy" />}
     >
       {unav ? (
-        <p className="gl-quiet">Unavailable{e.lastSeen ? ` · last seen ${e.lastSeen}` : ""}</p>
+        <UnavailableLine lastSeen={e.lastSeen} />
       ) : (
         <div className="gl-weather">
           <div className="gl-weather-now">

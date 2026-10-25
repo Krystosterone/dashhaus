@@ -121,7 +121,7 @@ README.md's Dashboards section has the composition rules: frequent actions first
 
 ## The glass dashboard
 
-`custom:home-dashboard-glass` draws the glass UI ([glass.md](glass.md)) as one page: a greeting, the cards, and a room bar of the areas the cards are in. Glass draws lights, climate, toggles (`input_boolean.*` and `switch.*`) and the weather so far. Without `cards` it shows every one of those entities, hidden, config and diagnostic entities left out, in Home's order (the weather, climate, modes, lights, switches) and filed by their Home Assistant area; it keeps up as entities and areas change. The greeting names the signed-in person.
+`custom:home-dashboard-glass` draws the glass UI ([glass.md](glass.md)) as one page: a greeting, the cards, and a room bar of the areas the cards are in. Glass draws lights, climate, toggles (`input_boolean.*` and `switch.*`) and the weather so far. Without `cards` it shows every one of those entities, hidden, config and diagnostic entities left out, in Home's order (the weather, climate, modes, lights, switches) and filed by their Home Assistant area; it keeps up as entities and areas change. Of several `weather.*` entities it shows the first by name, since they describe the same sky; list others under `cards` to show them. The greeting names the signed-in person.
 
 ```yaml
 type: custom:home-dashboard-glass
@@ -153,4 +153,4 @@ Unit tests cover the config parser, the generated layout and the card element. S
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port): the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live: service calls from the cards, the YAML-mode resource fallback, and a redeploy over an existing dashboard.
 
-The glass card has unit tests for its config, its automatic cards, the page (room filter, rejected commands) and the element, and Storybook renders it on the demo transports. It has not been deployed or run against Home Assistant yet: its first live check is the next `npm run deploy`, including how its fixed background and room bar sit inside Home Assistant's panel view.
+The glass card has unit tests for its config, its automatic cards, the page (room filter, rejected commands) and the element, and Storybook renders it on the demo transports. Live, against Home Assistant 2026.10.3 (2026-10-25): the deploy created the `home-glass` dashboard and the page rendered; the room bar first sat off-centre beside the sidebar while it was `position: fixed`, and centres since it moved into a sticky dock. Not yet checked live: the dial and slider gestures on a phone, and a rejected command's notice.

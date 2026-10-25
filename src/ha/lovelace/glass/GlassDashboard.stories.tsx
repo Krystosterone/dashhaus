@@ -64,7 +64,7 @@ function FailedAction() {
     attempted.current = true;
     void store.callService("light", "toggle", { entity_id: "light.living_room" }).catch(() => undefined);
   }, [status, store]);
-  return <GlassDashboard title="Home" items={[{ entity: "light.living_room", kind: "light", area: "Living room" }, { entity: "switch.office", kind: "toggle", area: "Office" }]} now={NOW} />;
+  return <GlassDashboard title="Home" items={[{ entity: "light.living_room", kind: "light", area: "Living room" }, { entity: "switch.office", kind: "toggle", domain: "switch", area: "Office" }]} now={NOW} />;
 }
 
 function ActionFailureExample() {

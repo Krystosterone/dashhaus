@@ -27,7 +27,8 @@ export interface AutoInput {
 type Card = string | Record<string, unknown>;
 interface Section { title: string; columns?: number; cards: Card[] }
 
-const domainOf = (id: string) => id.slice(0, id.indexOf("."));
+/** An entity id's domain: `light` for `light.kitchen`. */
+export const domainOf = (id: string) => id.slice(0, id.indexOf("."));
 const deviceClass = (s: AutoState) => (typeof s.attributes.device_class === "string" ? s.attributes.device_class : undefined);
 const byName = (states: Record<string, AutoState>) => (a: string, b: string) => {
   const name = (id: string) => String(states[id]?.attributes.friendly_name ?? id);

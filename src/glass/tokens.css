@@ -28,6 +28,8 @@
   --gl-groove: oklch(0 0 0 / 0.3);
   --gl-knob: oklch(0.98 0.004 80);
   --gl-knob-shadow: 0 2px 8px oklch(0 0 0 / 0.45);
+  /* The warmth track's lightness: each Kelvin stop keeps the lamp's own chroma and hue (LightCard.tsx). */
+  --gl-warm-l: 0.84;
   --gl-spectrum: linear-gradient(to right, hsl(0 95% 62%), hsl(60 95% 58%), hsl(120 80% 52%), hsl(180 85% 52%), hsl(240 90% 66%), hsl(300 85% 62%), hsl(360 95% 62%));
 
   --gl-accent: oklch(0.72 0.15 292);

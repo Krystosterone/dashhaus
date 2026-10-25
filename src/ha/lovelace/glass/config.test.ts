@@ -19,8 +19,8 @@ describe("parseGlassConfig", () => {
     expect(config.cards).toEqual([
       { entity: "weather.home", kind: "weather", name: undefined, area: undefined, size: undefined },
       { entity: "climate.living_room", kind: "climate", name: "AC", area: "Living room", size: "xl" },
-      { entity: "switch.router", kind: "toggle", name: undefined, area: undefined, size: undefined, icon: "waves" },
-      { entity: "input_boolean.guest", kind: "toggle", name: undefined, area: undefined, size: undefined, icon: undefined },
+      { entity: "switch.router", kind: "toggle", domain: "switch", name: undefined, area: undefined, size: undefined, icon: "waves" },
+      { entity: "input_boolean.guest", kind: "toggle", domain: "input_boolean", name: undefined, area: undefined, size: undefined, icon: undefined },
       { entity: "light.desk", kind: "light", name: undefined, area: undefined, size: undefined },
     ]);
   });

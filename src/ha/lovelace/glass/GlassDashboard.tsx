@@ -9,17 +9,17 @@ import { GlassToggleCard } from "../../../glass/ToggleCard";
 import { GlassWeatherCard } from "../../../glass/WeatherCard";
 import { actionMessage } from "../actionMessage";
 import type { GlassCardConfig } from "./config";
-
-/** A configured card with its area resolved, from the YAML or Home Assistant's registries. */
-export type GlassItem = GlassCardConfig;
+import type { HourlyForecast } from "../../../domains/weather/types";
 
 const HOME: Room = { id: "home", name: "Home" };
+/** Glass shows days, never hours: an hourly forecast of the page's own (none) skips the hourly read. */
+const NO_HOURS: HourlyForecast[] = [];
 
 /**
- * One card, live. Glass draws no Today history, so none is read; the weather still reads its forecasts.
+ * One card, live. Glass draws no Today history, so none is read; the weather reads only its daily forecast.
  * The entity's area comes from the item, so the subtitle and the room bar agree.
  */
-function LiveCard({ item }: { item: GlassItem }) {
+function LiveCard({ item }: { item: GlassCardConfig }) {
   const live = { entityId: item.entity, name: item.name, area: item.area, loadHistory: false };
   switch (item.kind) {
     case "light":
@@ -28,12 +28,12 @@ function LiveCard({ item }: { item: GlassItem }) {
       return <HaClimate {...live}>{(c) => <GlassClimateCard entity={c.entity} {...c.actions} size={item.size} />}</HaClimate>;
     case "toggle":
       return (
-        <HaToggle {...live} domain={item.entity.startsWith("switch.") ? "switch" : "input_boolean"} icon={item.icon}>
+        <HaToggle {...live} domain={item.domain} icon={item.icon}>
           {(t) => <GlassToggleCard entity={t.entity} {...t.actions} size={item.size} />}
         </HaToggle>
       );
     case "weather":
-      return <HaWeather entityId={item.entity} name={item.name} loadHistory={false}>{(w) => <GlassWeatherCard entity={w.entity} daily={w.daily} size={item.size} />}</HaWeather>;
+      return <HaWeather entityId={item.entity} name={item.name} loadHistory={false} hourly={NO_HOURS}>{(w) => <GlassWeatherCard entity={w.entity} daily={w.daily} size={item.size} />}</HaWeather>;
   }
 }
 
@@ -63,7 +63,8 @@ export interface GlassDashboardProps {
   title: string;
   /** The greeting's name. */
   name?: string;
-  items: GlassItem[];
+  /** The cards, each with its area from the YAML or, failing that, Home Assistant's registries. */
+  items: GlassCardConfig[];
   /** Fixed clock for screenshots; live otherwise. */
   now?: Date;
 }
