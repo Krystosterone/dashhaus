@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "./types";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff } from "./readings";
-import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./SensorWidget.css";
 
@@ -63,15 +63,15 @@ export function SensorWidget({ entity: e, history, variant, footprint, showContr
   </>;
 
   const bar = (
-    <span className="sw-bar">
-      {t != null && <span className="sw-metric sw-t"><span className="sw-value">{fmtTemp(t)}<small>°</small></span></span>}
+    <span className="hd-bar sw-bar">
+      {t != null && <span className="hd-metric sw-t"><span className="sw-value">{fmtTemp(t)}<small>°</small></span></span>}
       {h != null && (
-        <span className="sw-metric sw-h">
-          <span className="sw-label"><span className="sw-label-long">Humidity</span><span className="sw-label-short">RH</span></span>
+        <span className="hd-metric sw-h">
+          <span className="hd-label"><span className="hd-label-long">Humidity</span><span className="hd-label-short">RH</span></span>
           <span className="sw-value">{fmtHum(h)}<small>%</small></span>
         </span>
       )}
-      {empty && <span className="sw-none">Waiting…</span>}
+      {empty && <span className="hd-none">Waiting…</span>}
     </span>
   );
 
@@ -97,9 +97,8 @@ export function SensorWidget({ entity: e, history, variant, footprint, showContr
       {!(sheetFigure && h == null) && (
         <div className="hd-slot">
           {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-            : sheet || !onOpenDetails
-              ? <div className="sw-read" role="img" aria-label={sheetFigure ? `humidity ${fmtHum(h!)} percent` : spoken}><span aria-hidden="true">{bar}</span></div>
-              : <button type="button" className="sw-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
+            : sheet || !onOpenDetails ? <Readout label={sheetFigure ? `humidity ${fmtHum(h!)} percent` : spoken}>{bar}</Readout>
+            : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
         </div>
       )}
 

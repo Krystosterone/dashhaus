@@ -1,6 +1,6 @@
 import type { __Name__Entity, __Name__History } from "./types";
 import { __Name__Icon } from "./icons";
-import { CardTitle, SheetClose, UnavailableSlot, TodayStrip, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
+import { CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./__Name__Widget.css";
 
@@ -35,8 +35,8 @@ export function __Name__Widget({ entity: e, history, variant, footprint, showCon
   const series = history ? normalizeReadings(history.readings) : null;
 
   const bar = (
-    <span className="__code__-bar">
-      {value != null ? <span className="__code__-f">{fmt(value)}{e.unit && <small>{e.unit}</small>}</span> : <span className="__code__-none">No reading yet</span>}
+    <span className="hd-bar">
+      {value != null ? <span className="hd-metric __code__-f">{fmt(value)}{e.unit && <small>{e.unit}</small>}</span> : <span className="hd-none">No reading yet</span>}
     </span>
   );
 
@@ -55,9 +55,8 @@ export function __Name__Widget({ entity: e, history, variant, footprint, showCon
 
       <div className="hd-slot">
         {bare ? <p className="hd-val">{text}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : sheet || !onOpenDetails
-            ? <div className="__code__-read" role="img" aria-label={spoken}><span aria-hidden="true">{bar}</span></div>
-            : <button type="button" className="__code__-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
+          : sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
+          : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
       </div>
 
       {series && (

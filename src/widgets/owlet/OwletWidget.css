@@ -1,38 +1,21 @@
-/* Owlet sock widget. Shell, header, bare icon, today strip and sheet come from src/shared/card.css.
+/* Owlet sock widget. Shell, header, bare icon, readout, metrics, today strip and sheet come from src/shared/card.css.
    Classes here start with ow-; colours only from tokens.css. */
 
 /* The two vitals are balanced metric columns. At useful widths they share the title's text axis, while the
    smallest standard width keeps the whole slot. Labels use the same grammar; units stay subordinate. */
-.ow-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
-button.ow-read { cursor: pointer; }
-button.ow-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-.ow-bar {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center;
-  column-gap: 16px; min-width: 0; height: var(--slot-h); color: var(--ink);
-  font-variant-numeric: tabular-nums; white-space: nowrap; transition: scale var(--press) var(--ease-out);
-}
+.ow-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
 .ow-metric {
   display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "cue label" "value value";
-  align-content: center; column-gap: 4px; row-gap: 2px; min-width: 0;
+  align-content: center; column-gap: 4px; row-gap: 2px;
 }
 .ow-metric--oxygen { grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "value"; }
-.ow-label {
-  grid-area: label; min-width: 0; color: var(--ink-3); font-size: var(--type-caption); font-weight: 600;
-  letter-spacing: 0.01em; line-height: 1; overflow: hidden; text-overflow: ellipsis;
-}
-.ow-label-short { display: none; }
+.ow-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ow-value {
   grid-area: value; min-width: 0; font-size: clamp(26px, 6.8cqi, 30px); font-weight: var(--type-readout-weight);
   letter-spacing: -0.03em; line-height: 1; color: var(--ink);
 }
 .ow-value small { margin-left: 3px; color: var(--ink-2); font-size: 12.5px; font-weight: 600; letter-spacing: 0; }
 .ow-compact-unit { display: none; }
-.ow-metric:only-child { grid-column: 1 / -1; }
-.ow-none {
-  grid-column: 1 / -1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
-  font-size: 13.5px; font-weight: 600; color: var(--ink-3);
-}
-button.ow-read:active .ow-bar { scale: 0.98; }
 
 @container hd (min-width: 260px) {
   .ow:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
@@ -43,21 +26,14 @@ button.ow-read:active .ow-bar { scale: 0.98; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-value small { margin-left: 1px; font-size: 11px; }
   .ow[data-stale]:not(.hd--compact):not(.hd--sheet) .hd-area { font-size: 12px; }
   .ow[data-stale]:not(.hd--compact):not(.hd--sheet) .hd-alert-cue { width: 12px; height: 12px; margin-inline-end: 3px; }
-  .ow:not(.hd--compact):not(.hd--sheet) .ow-label-long { display: none; }
-  .ow:not(.hd--compact):not(.hd--sheet) .ow-label-short { display: inline; }
 }
 
 /* Compact rows retain the concise inline figures and put the liveness cue beside the heart rate. */
-.hd--compact .ow-bar {
-  display: flex; align-items: baseline; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
-}
 .hd--compact .ow-metric { display: flex; align-items: baseline; column-gap: 0; }
-.hd--compact .ow-label { display: none; }
 .hd--compact .ow-value { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .ow-value small { margin-left: 2px; font-size: 12.5px; }
 .hd--compact .ow-compact-unit { display: inline; }
 .hd--compact .ow-heart { margin-right: 3px; }
-.hd--compact .ow-none { flex: none; font-size: 12.5px; }
 .hd--sheet .ow-value { font-size: 30px; }
 
 /* Live: a small outlined heart is the liveness cue. Stale: it stands still and all metric text dims. */
@@ -68,7 +44,7 @@ button.ow-read:active .ow-bar { scale: 0.98; }
 }
 .ow-heart[data-live] .ow-heart-i { animation: ow-beat 2.4s var(--ease-out) infinite; transform-origin: 50% 60%; }
 @keyframes ow-beat { 0%, 12%, 100% { scale: 1; } 5% { scale: 1.24; } 9% { scale: 0.96; } }
-.ow[data-stale] :is(.ow-value, .ow-value small, .ow-label, .ow-heart, .hd-val) { color: var(--ink-3); }
+.ow[data-stale] :is(.ow-value, .ow-value small, .hd-label, .ow-heart, .hd-val) { color: var(--ink-3); }
 /* The stale warning: the sentence where it fits, "Stopped 11:49" in compact rows and narrow cards. */
 .ow-st-s { display: none; }
 .hd--compact .ow-st-l { display: none; }
@@ -79,7 +55,6 @@ button.ow-read:active .ow-bar { scale: 0.98; }
 }
 /* Reduced motion: gentler, not none. The beat becomes a fade. */
 @media (prefers-reduced-motion: reduce) {
-  .ow-bar { scale: none !important; }
   .ow-heart[data-live] .ow-heart-i { animation: ow-fade 2.4s var(--ease-in-out) infinite alternate; }
   @keyframes ow-fade { to { opacity: 0.4; } }
 }

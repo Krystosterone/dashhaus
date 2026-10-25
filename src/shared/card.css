@@ -206,6 +206,38 @@
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
 
+/* Readout: a reading's figures with no container, so nothing that can't be pressed looks pressable.
+   Tapping it still opens details. */
+.hd-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
+button.hd-read { cursor: pointer; }
+button.hd-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd-read-i { transition: scale var(--press) var(--ease-out); }
+button.hd-read:active .hd-read-i { scale: 0.98; }
+/* Metrics: figures in columns, each under its caption; units stay subordinate. A narrow card shortens a
+   caption ("Humidity" → "RH") rather than clip it. Compact rows keep the figures inline, right-aligned. */
+.hd-bar {
+  display: grid; align-items: center; min-width: 0; height: var(--slot-h);
+  color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hd-metric { min-width: 0; }
+.hd-metric:only-child { grid-column: 1 / -1; }
+.hd-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
+.hd-label-short { display: none; }
+/* No reading yet: plain words. */
+.hd-none {
+  grid-column: 1 / -1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-3);
+}
+@container hd (max-width: 259px) {
+  .hd:not(.hd--compact):not(.hd--sheet) .hd-label-long { display: none; }
+  .hd:not(.hd--compact):not(.hd--sheet) .hd-label-short { display: inline; }
+}
+.hd--compact .hd-bar {
+  display: flex; align-items: baseline; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
+}
+.hd--compact .hd-label { display: none; }
+.hd--compact .hd-none { flex: none; font-size: 12.5px; }
+
 /* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a
    state: the orb says the unit is on, the status line what it is doing. */
 .hd-step {
@@ -416,7 +448,7 @@
 
 /* Reduced motion: fewer, gentler animations, not none. Colour and opacity fades stay; movement and scaling go. */
 @media (prefers-reduced-motion: reduce) {
-  .hd :is(.hd-orb-i, .hd-circ-i, .hd-pill, .hd-chip) { scale: none !important; }
+  .hd :is(.hd-orb-i, .hd-circ-i, .hd-pill, .hd-chip, .hd-read-i) { scale: none !important; }
   .hd--compact { scale: none !important; }
   .hd-chev { translate: none !important; }
   .hd-sheet { transition: opacity 200ms var(--ease-out); }

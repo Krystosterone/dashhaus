@@ -1,7 +1,7 @@
 import type { OwletEntity, OwletHistory } from "./types";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
-import { AlertStatus, CardTitle, SheetClose, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletWidget.css";
 
@@ -64,21 +64,21 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
     : subText;
 
   const bar = (
-    <span className="ow-bar">
+    <span className="hd-bar ow-bar">
       {hr != null && (
-        <span className="ow-metric ow-metric--heart">
+        <span className="hd-metric ow-metric ow-metric--heart">
           <span className="ow-heart" data-live={e.live || undefined}><HeartIcon /></span>
-          <span className="ow-label"><span className="ow-label-long">Heart rate</span><span className="ow-label-short">Heart</span></span>
+          <span className="hd-label ow-label"><span className="hd-label-long">Heart rate</span><span className="hd-label-short">Heart</span></span>
           <span className="ow-value">{fmtBpm(hr)}<small>bpm</small></span>
         </span>
       )}
       {o2 != null && (
-        <span className="ow-metric ow-metric--oxygen">
-          <span className="ow-label">Oxygen</span>
+        <span className="hd-metric ow-metric ow-metric--oxygen">
+          <span className="hd-label ow-label">Oxygen</span>
           <span className="ow-value">{fmtOxygen(o2)}<small>%<span className="ow-compact-unit"> O₂</span></small></span>
         </span>
       )}
-      {hr == null && o2 == null && <span className="ow-none">No reading yet</span>}
+      {hr == null && o2 == null && <span className="hd-none">No reading yet</span>}
     </span>
   );
 
@@ -109,9 +109,8 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
             {vitalFigure && <span className="ow-alarm-v">{vitalFigure}</span>}
           </div>
         ) : bare ? <p className="hd-val">{offline ? subText : readings || "No reading yet"}</p> : offline ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : sheet || !onOpenDetails
-            ? <div className="ow-read" role="img" aria-label={spoken}><span aria-hidden="true">{bar}</span></div>
-            : <button type="button" className="ow-read" aria-label={`${e.name}: ${spoken}. Open details`} onClick={onOpenDetails}><span aria-hidden="true">{bar}</span></button>}
+          : sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
+          : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
       </div>
 
       {sheet && alerts.length > 0 && (

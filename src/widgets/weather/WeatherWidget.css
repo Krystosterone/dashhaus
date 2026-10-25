@@ -1,17 +1,12 @@
 /* Weather widget. Shell, header, badge and sheet come from src/shared/card.css.
    A reading: neutral and without glow. The condition icon is the badge at every size. */
 
-/* ---------- The reading: now, then feels-like on its baseline. A readout: no container ---------- */
-.wx-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
-button.wx-read { cursor: pointer; }
-button.wx-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* ---------- The reading: now, then feels-like on its baseline. The readout itself is shared (card.css) ---------- */
 /* Feels-like keeps its place; only a reading too wide for its card wraps it out of sight. */
 .wx-rd {
   display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; min-width: 0; height: var(--slot-h); overflow: hidden;
   line-height: var(--slot-h); white-space: nowrap; font-variant-numeric: tabular-nums;
-  transition: scale var(--press) var(--ease-out);
 }
-button.wx-read:active .wx-rd { scale: 0.98; }
 .wx-rd-t { color: var(--ink); font-size: 20px; font-weight: 700; }
 /* Several warnings: "Hazardous air +2" where it fits, "3 warnings" where even that would clip. */
 .wx-warn-s { display: none; }
@@ -58,7 +53,3 @@ button.wx-read:active .wx-rd { scale: 0.98; }
 .wx-day-i svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; color: var(--ink); }
 .wx-day-t b { color: var(--ink); font-weight: 700; }
 .wx-day-p { min-height: 1.3em; font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
-
-@media (prefers-reduced-motion: reduce) {
-  .wx-rd { scale: none !important; }
-}

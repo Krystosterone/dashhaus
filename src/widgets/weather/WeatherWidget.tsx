@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./types";
 import { CONDITION_LABEL, ConditionIcon, precipitation, isWet, clock, compass, toKmh, aqiBand, uvBand } from "./conditions";
-import { AlertStatus, CardTitle, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherWidget.css";
 
@@ -43,10 +43,7 @@ function Reading({ now, feels, label, onOpen }: { now: number; feels?: number; l
       {feels != null && <span className="wx-rd-f">Feels {deg0(feels)}</span>}
     </span>
   );
-  // The label already says the numbers; the visual line is its stylized rendering.
-  return onOpen
-    ? <button type="button" className="wx-read" aria-label={`${label}. Open details`} onClick={onOpen}><span aria-hidden="true">{read}</span></button>
-    : <div className="wx-read" role="img" aria-label={label}><span aria-hidden="true">{read}</span></div>;
+  return <Readout label={label} onOpen={onOpen}>{read}</Readout>;
 }
 
 /** The coming hours, one column each, as many as the width fits. */

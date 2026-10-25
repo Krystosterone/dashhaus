@@ -1,16 +1,9 @@
-/* Sensor-specific parts. Shell, header, badge, today strip and sheet come from src/shared/card.css. */
+/* Sensor-specific parts. Shell, header, badge, readout, metrics, today strip and sheet come from src/shared/card.css. */
 
-/* The reading is one responsive metric grid. At useful widths it shares the title's text axis; at the
-   smallest standard width it uses the full slot so neither number is squeezed. */
-.sw-read { display: grid; min-width: 0; padding: 0; border: 0; border-radius: 99px; background: none; color: inherit; font: inherit; text-align: left; }
-button.sw-read { cursor: pointer; }
-button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-.sw-bar {
-  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); align-items: center;
-  column-gap: 12px; min-width: 0; height: var(--slot-h); color: var(--ink);
-  font-variant-numeric: tabular-nums; white-space: nowrap; transition: scale var(--press) var(--ease-out);
-}
-.sw-metric { min-width: 0; }
+/* The reading is one responsive metric grid: a dominant temperature and a captioned humidity. At useful
+   widths it shares the title's text axis; at the smallest standard width it uses the full slot so neither
+   number is squeezed. */
+.sw-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
 .sw-t { display: flex; align-items: baseline; }
 .sw-value { line-height: 1; }
 .sw-t .sw-value { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
@@ -18,21 +11,11 @@ button.sw-read:focus-visible { outline: 2px solid var(--ink); outline-offset: 3p
   margin-left: 1px; font-size: 0.62em; font-weight: 400; letter-spacing: 0; vertical-align: 0.34em;
 }
 .sw-h { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
-.sw-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
-.sw-label-short { display: none; }
 .sw-h .sw-value { font-size: 18px; font-weight: 600; }
 .sw-h .sw-value small { margin-left: 1px; font-size: 0.78em; font-weight: 600; }
-.sw-metric:only-child { grid-column: 1 / -1; }
-/* No reading yet: plain words. */
-.sw-none {
-  grid-column: 1 / -1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
-  font-size: 13.5px; font-weight: 600; color: var(--ink-3);
-}
-button.sw-read:active .sw-bar { scale: 0.98; }
 
 @container hd (min-width: 260px) {
   .sw:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
-  .sw-label-long { display: inline; }
 }
 @container hd (max-width: 259px) {
   .sw:not(.hd--compact):not(.hd--sheet) .sw-trend { display: none; }
@@ -41,24 +24,15 @@ button.sw-read:active .sw-bar { scale: 0.98; }
   }
   .sw:not(.hd--compact):not(.hd--sheet) .sw-t .sw-value { font-size: 32px; }
   .sw:not(.hd--compact):not(.hd--sheet) .sw-h .sw-value { font-size: 17px; }
-  .sw:not(.hd--compact):not(.hd--sheet) .sw-label-long { display: none; }
-  .sw:not(.hd--compact):not(.hd--sheet) .sw-label-short { display: inline; }
 }
 
 /* Compact rows keep the established one-line readout. */
-.hd--compact .sw-bar {
-  display: flex; align-items: baseline; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
-}
-.hd--compact .sw-metric { display: block; }
-.hd--compact .sw-label { display: none; }
+.hd--compact :is(.sw-t, .sw-h) { display: block; }
 .hd--compact .sw-value { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .sw-t .sw-value small { font-size: 0.8em; font-weight: 600; vertical-align: 0.12em; }
 .hd--compact .sw-h .sw-value { font-size: 12.5px; color: var(--ink-2); }
-.hd--compact .sw-none { flex: none; font-size: 12.5px; }
 
 /* The sheet's header owns the temperature; its readout keeps a clearly captioned humidity value. */
 .hd--sheet .sw-bar { grid-template-columns: minmax(0, 1fr); }
 .hd--sheet .sw-t { display: none; }
 .hd--sheet .sw-h .sw-value { font-size: 20px; }
-
-@media (prefers-reduced-motion: reduce) { .sw-bar { scale: none !important; } }

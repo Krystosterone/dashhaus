@@ -237,6 +237,17 @@ export function UnavailableSlot({ lastSeen }: { lastSeen?: string }) {
   );
 }
 
+/**
+ * A reading's figures as a readout, with no container. `label` says them; what shows is their stylized
+ * rendering. With `onOpen` it is the button that opens details, otherwise an image of its label.
+ */
+export function Readout({ label, onOpen, children }: { label: string; onOpen?: () => void; children: ReactNode }) {
+  const inner = <span className="hd-read-i" aria-hidden="true">{children}</span>;
+  return onOpen
+    ? <button type="button" className="hd-read" aria-label={`${label}. Open details`} onClick={onOpen}>{inner}</button>
+    : <div className="hd-read" role="img" aria-label={label}>{inner}</div>;
+}
+
 const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
 const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
 
