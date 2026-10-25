@@ -26,14 +26,14 @@ export interface HaAlarmOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaAlarm {
+export interface HaAlarmResult {
   entity: AlarmEntity;
   history: AlarmHistory;
   actions: AlarmHandlers;
 }
 
 /** One live alarm panel for any UI: the mapped entity, today's history and its arm and disarm actions. */
-export function useHaAlarm(entityId: string, { name, area, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, history, loadHistory = true, onActionError }: HaAlarmOptions = {}): HaAlarm {
+export function useHaAlarm(entityId: string, { name, area, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, history, loadHistory = true, onActionError }: HaAlarmOptions = {}): HaAlarmResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

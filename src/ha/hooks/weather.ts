@@ -55,7 +55,7 @@ export interface HaWeatherOptions {
   onForecastError?: (error: unknown) => void;
 }
 
-export interface HaWeather {
+export interface HaWeatherResult {
   entity: WeatherEntity;
   history: WeatherHistory;
   /** Undefined until the first forecast read settles. */
@@ -79,7 +79,7 @@ export function useHaWeather(entityId: string, {
   loadHistory = true,
   loadForecasts = true,
   onForecastError,
-}: HaWeatherOptions = {}): HaWeather {
+}: HaWeatherOptions = {}): HaWeatherResult {
   const raw = useHaEntity(entityId);
   const aqiEntity = useHaEntity(aqiEntityId ?? "");
   const sunEntity = useHaEntity(sunEntityId ?? "");

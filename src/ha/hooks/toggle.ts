@@ -27,14 +27,14 @@ export interface HaToggleOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaToggle {
+export interface HaToggleResult {
   entity: ToggleEntity;
   history: ToggleHistory;
   actions: ToggleHandlers;
 }
 
 /** One live input_boolean or switch for any UI: the mapped entity, today's history and its toggle. */
-export function useHaToggle(entityId: string, { domain, name, area, lastSeen, icon, color, description, history, loadHistory = true, onActionError }: HaToggleOptions): HaToggle {
+export function useHaToggle(entityId: string, { domain, name, area, lastSeen, icon, color, description, history, loadHistory = true, onActionError }: HaToggleOptions): HaToggleResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

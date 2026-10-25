@@ -61,7 +61,7 @@ describe.each(widgets)("$name widget", ({ name, Name, dir, widgetFile, source, c
 
   it("is exported from src/index.ts", () => {
     const index = read("src/index.ts");
-    const missing = [`${Name}Widget`, `${Name}Sheet`, `${Name}Tile`, `useHa${Name}`, `Ha${Name}Tile`].filter((n) => !new RegExp(`\\b${n}\\b`).test(index));
+    const missing = [`${Name}Widget`, `${Name}Sheet`, `${Name}Tile`, `useHa${Name}`, `Ha${Name}`, `Ha${Name}Tile`].filter((n) => !new RegExp(`\\b${n}\\b`).test(index));
     expect(missing, "AGENTS.md → Adding a widget, step 3").toEqual([]);
   });
 
@@ -77,6 +77,7 @@ describe.each(widgets)("$name widget", ({ name, Name, dir, widgetFile, source, c
     const missing = [`src/ha/hooks/${name}.ts`, `src/ha/Ha${Name}Tile.tsx`, `src/ha/Ha${Name}Tile.test.tsx`, `src/ha/Ha${Name}Tile.stories.tsx`, `src/ha/mappers/${name}.ts`, `src/ha/mappers/${name}.test.ts`, `src/ha/fixtures/${name}.json`].filter((p) => !exists(p));
     expect(missing, "home-assistant-integration skill → Adding a domain").toEqual([]);
     expect(read("src/ha/mappers/fixtures.test.ts"), "register the fixture in src/ha/mappers/fixtures.test.ts").toContain(`"../fixtures/${name}.json"`);
+    expect(read("src/ha/headless.tsx"), "give it a headless component in src/ha/headless.tsx").toContain(`headless(useHa${Name}, "Ha${Name}")`);
   });
 
   it("is a card on the Lovelace dashboard", () => {

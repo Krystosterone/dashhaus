@@ -23,13 +23,13 @@ export interface HaSensorOptions {
   loadHistory?: boolean;
 }
 
-export interface HaSensor {
+export interface HaSensorResult {
   entity: SensorEntity;
   history: SensorHistory;
 }
 
 /** One live, read-only sensor for any UI: the primary sensor composed with its humidity and battery companions. */
-export function useHaSensor(entityId: string, { humidityEntityId, batteryEntityId, name, area, outdoor, lastSeen, unit, history, loadHistory = true }: HaSensorOptions = {}): HaSensor {
+export function useHaSensor(entityId: string, { humidityEntityId, batteryEntityId, name, area, outdoor, lastSeen, unit, history, loadHistory = true }: HaSensorOptions = {}): HaSensorResult {
   const raw = useHaEntity(entityId);
   const humidityEntity = useHaEntity(humidityEntityId ?? "");
   const batteryEntity = useHaEntity(batteryEntityId ?? "");

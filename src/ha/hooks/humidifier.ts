@@ -22,14 +22,14 @@ export interface HaHumidifierOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaHumidifier {
+export interface HaHumidifierResult {
   entity: HumidifierEntity;
   history: HumidifierHistory;
   actions: HumidifierHandlers;
 }
 
 /** One live humidifier for any UI: the mapped entity, today's history and its service actions. */
-export function useHaHumidifier(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaHumidifierOptions = {}): HaHumidifier {
+export function useHaHumidifier(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaHumidifierOptions = {}): HaHumidifierResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

@@ -21,14 +21,14 @@ export interface HaLightOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaLight {
+export interface HaLightResult {
   entity: LightEntity;
   history: LightHistory;
   actions: LightHandlers;
 }
 
 /** One live light for any UI: the mapped entity, today's history and its service actions. */
-export function useHaLight(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaLightOptions = {}): HaLight {
+export function useHaLight(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaLightOptions = {}): HaLightResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

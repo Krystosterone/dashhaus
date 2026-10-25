@@ -127,8 +127,8 @@ export type { __Name__WidgetProps, __Name__SheetProps } from "./widgets/__name__
 export { __Name__Tile } from "./widgets/__name__/__Name__Tile";
 export type { __Name__TileProps } from "./widgets/__name__/__Name__Tile";
 export type { __Name__Entity, __Name__History } from "./domains/__name__/types";
-export { useHa__Name__, Ha__Name__Tile } from "./ha";
-export type { Ha__Name__Options, Ha__Name__, Ha__Name__TileProps } from "./ha";
+export { useHa__Name__, Ha__Name__, Ha__Name__Tile } from "./ha";
+export type { Ha__Name__Options, Ha__Name__Result, Ha__Name__TileProps } from "./ha";
 
 `)));
 
@@ -137,10 +137,15 @@ export type { __Name__MapOptions } from "./mappers/__name__";
 ${reading ? "" : `export { create__Name__Handlers } from "./actions/__name__";
 export type { __Name__Handlers, __Name__HandlerOptions } from "./actions/__name__";
 `}export { useHa__Name__ } from "./hooks/__name__";
-export type { Ha__Name__Options, Ha__Name__ } from "./hooks/__name__";
+export type { Ha__Name__Options, Ha__Name__Result } from "./hooks/__name__";
+export { Ha__Name__ } from "./headless";
 export { Ha__Name__Tile } from "./Ha__Name__Tile";
 export type { Ha__Name__TileProps } from "./Ha__Name__Tile";
 `));
+
+// Its headless component: the hook as a component that draws nothing.
+edit("src/ha/headless.tsx", afterLast(/^import \{ useHa\w+ \} from "\.\/hooks\/.*$/gm, fill(`import { useHa__Name__ } from "./hooks/__name__";\n`)));
+edit("src/ha/headless.tsx", (s) => s + fill(`export const Ha__Name__ = headless(useHa__Name__, "Ha__Name__");\n`));
 
 // Every fixture runs through the real mapper.
 const fixtures = "src/ha/mappers/fixtures.test.ts";

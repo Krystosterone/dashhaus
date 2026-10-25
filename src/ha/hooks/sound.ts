@@ -24,14 +24,14 @@ export interface HaSoundOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaSound {
+export interface HaSoundResult {
   entity: SoundEntity;
   history: SoundHistory;
   actions: SoundHandlers;
 }
 
 /** One live sound machine for any UI: the switch and its volume mapped together, today's history and its actions. */
-export function useHaSound(entityId: string, { volumeEntityId, name, area, lastSeen, history, loadHistory = true, onActionError }: HaSoundOptions = {}): HaSound {
+export function useHaSound(entityId: string, { volumeEntityId, name, area, lastSeen, history, loadHistory = true, onActionError }: HaSoundOptions = {}): HaSoundResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const candidates = useHaEntities(volumeEntityId ? [volumeEntityId] : soundVolumeCandidates(entityId));

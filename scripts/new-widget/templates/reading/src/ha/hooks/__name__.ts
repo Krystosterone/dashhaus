@@ -20,13 +20,13 @@ export interface Ha__Name__Options {
   loadHistory?: boolean;
 }
 
-export interface Ha__Name__ {
+export interface Ha__Name__Result {
   entity: __Name__Entity;
   history: __Name__History;
 }
 
 /** One live, read-only __label__ for any UI: the mapped entity and today's history. It sends no services. */
-export function useHa__Name__(entityId: string, { name, area, unit, lastSeen, history, loadHistory = true }: Ha__Name__Options = {}): Ha__Name__ {
+export function useHa__Name__(entityId: string, { name, area, unit, lastSeen, history, loadHistory = true }: Ha__Name__Options = {}): Ha__Name__Result {
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();

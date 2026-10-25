@@ -22,14 +22,14 @@ export interface Ha__Name__Options {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface Ha__Name__ {
+export interface Ha__Name__Result {
   entity: __Name__Entity;
   history: __Name__History;
   actions: __Name__Handlers;
 }
 
 /** One live __label__ for any UI: the mapped entity, today's history and its service actions. */
-export function useHa__Name__(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: Ha__Name__Options = {}): Ha__Name__ {
+export function useHa__Name__(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: Ha__Name__Options = {}): Ha__Name__Result {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

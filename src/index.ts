@@ -14,7 +14,9 @@ export { HaActionError } from "./ha";
 export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
 export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaEntities, useHaStatus, useHaGeneration } from "./ha";
 export { useHaLight, useHaClimate, useHaWeather, useHaSensor, useHaCover, useHaToggle, useHaAlarm, useHaOwlet, useHaHumidifier, useHaSound } from "./ha";
-export type { HaLightOptions, HaLight, HaClimateOptions, HaClimate, HaWeatherOptions, HaWeather, HaSensorOptions, HaSensor, HaCoverOptions, HaCover, HaToggleOptions, HaToggle, HaAlarmOptions, HaAlarm, HaOwletOptions, HaOwlet, HaHumidifierOptions, HaHumidifier, HaSoundOptions, HaSound } from "./ha";
+export type { HaLightOptions, HaLightResult, HaClimateOptions, HaClimateResult, HaWeatherOptions, HaWeatherResult, HaSensorOptions, HaSensorResult, HaCoverOptions, HaCoverResult, HaToggleOptions, HaToggleResult, HaAlarmOptions, HaAlarmResult, HaOwletOptions, HaOwletResult, HaHumidifierOptions, HaHumidifierResult, HaSoundOptions, HaSoundResult } from "./ha";
+export { headless, HaLight, HaClimate, HaWeather, HaSensor, HaCover, HaToggle, HaAlarm, HaOwlet, HaHumidifier, HaSound } from "./ha";
+export type { HeadlessProps } from "./ha";
 export { HaLightTile, HaClimateTile, HaSensorTile, HaWeatherTile, HaCoverTile, HaToggleTile, HaAlarmTile } from "./ha";
 export type {
   HassEntity,

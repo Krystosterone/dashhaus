@@ -22,14 +22,14 @@ export interface HaClimateOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaClimate {
+export interface HaClimateResult {
   entity: ClimateEntity;
   history: ClimateHistory;
   actions: ClimateHandlers;
 }
 
 /** One live climate entity for any UI: the mapped entity, today's history and its service actions. */
-export function useHaClimate(entityId: string, { name, area, lastSeen, unit, history, loadHistory = true, onActionError }: HaClimateOptions = {}): HaClimate {
+export function useHaClimate(entityId: string, { name, area, lastSeen, unit, history, loadHistory = true, onActionError }: HaClimateOptions = {}): HaClimateResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

@@ -21,14 +21,14 @@ export interface HaCoverOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaCover {
+export interface HaCoverResult {
   entity: CoverEntity;
   history: CoverHistory;
   actions: CoverHandlers;
 }
 
 /** One live cover for any UI: the mapped entity, today's history and its service actions. */
-export function useHaCover(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaCoverOptions = {}): HaCover {
+export function useHaCover(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaCoverOptions = {}): HaCoverResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

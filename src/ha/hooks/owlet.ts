@@ -36,7 +36,7 @@ export interface HaOwletOptions {
   onActionError?: (error: HaActionError) => void;
 }
 
-export interface HaOwlet {
+export interface HaOwletResult {
   entity: OwletEntity;
   history: OwletHistory;
   actions: OwletHandlers;
@@ -46,7 +46,7 @@ export interface HaOwlet {
  * One live Owlet sock for any UI: composes the sleep state, readings, charging and alert sensors. Its one action is
  * the base station's switch; the readings are read-only.
  */
-export function useHaOwlet(entityId: string, { heartRateEntityId, oxygenEntityId, chargingEntityId, baseEntityId, alertEntityIds, name, area, lastSeen, history, loadHistory = true, staleAfterMinutes, onActionError }: HaOwletOptions = {}): HaOwlet {
+export function useHaOwlet(entityId: string, { heartRateEntityId, oxygenEntityId, chargingEntityId, baseEntityId, alertEntityIds, name, area, lastSeen, history, loadHistory = true, staleAfterMinutes, onActionError }: HaOwletOptions = {}): HaOwletResult {
   const store = useHaStore();
   const derived = owletCompanionIds(entityId);
   const heartRateId = heartRateEntityId ?? derived?.heartRate;
