@@ -63,7 +63,7 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */
 export function AlarmWidget({ entity: e, history, variant, footprint, showControl, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmWidgetProps) {
-  const { nameId, sheet, compact, bare, article } = useCard("al", { variant, footprint, showControl });
+  const { nameId, sheet, compact, bare, article, area } = useCard("al", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const armedMode = ARMED[e.state];
   const urgentState = e.state === "pending" || e.state === "triggered";
@@ -102,11 +102,11 @@ export function AlarmWidget({ entity: e, history, variant, footprint, showContro
   // Arming to an unknown mode (HA's core entity doesn't say) reads as plain "Arming".
   const to = e.armingTo ? ` ${MODE_LABEL[e.armingTo].toLowerCase()}` : "";
   const status = alertLabel ? <AlertStatus label={alertLabel}>{warningText}</AlertStatus>
-    : unav ? e.area ?? "Unavailable"
+    : unav ? area ?? "Unavailable"
     : e.state === "arming" ? `Arming${to} · leave now`
     : e.state === "disarming" ? "Disarming…"
     : armedMode ? `${MODE_LABEL[armedMode]}${e.lastChanged ? ` since ${e.lastChanged}` : ""}`
-    : e.area ?? "Disarmed";
+    : area ?? "Disarmed";
   const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Disarmed";
 
   let slot;

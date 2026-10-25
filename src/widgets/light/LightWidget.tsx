@@ -33,7 +33,7 @@ export interface LightWidgetProps extends CardProps {
  * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
 export function LightWidget({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose, color }: LightWidgetProps) {
-  const { uid, nameId, sheet, compact, bare, article } = useCard("lw", { variant, footprint, showControl });
+  const { uid, nameId, sheet, compact, bare, article, area } = useCard("lw", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const hasBrightness = e.supportsBrightness && e.brightness != null;
@@ -52,6 +52,10 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
   // The warmth or colour in words, for the status line of a lit lamp.
   const warmth = on && e.supportsColorTemp && e.kelvin != null ? kelvinName(e.kelvin) : lamp?.name ?? null;
   const colorChips = !!(e.supportsColor && onColorChange);
+  // With no room to name (a titled bundle's lid names it), the status line carries the light's own detail.
+  // Unavailable, since when it was last seen.
+  const since = unav ? e.lastSeen : e.lastChanged;
+  const detail = warmth ?? (since ? `Since ${since}` : null);
 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
@@ -62,7 +66,7 @@ export function LightWidget({ entity: e, history, variant, footprint, showContro
           {unav ? <IconBulbOff /> : <IconBulb />}
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={e.area}>{e.area}{warmth && <span className="lw-k">{e.area ? " · " : ""}{warmth}</span>}</p>
+          <p className="hd-area" title={area}>{area ? <>{area}{warmth && <span className="lw-k"> · {warmth}</span>}</> : !sheet && detail}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{readout}</p>

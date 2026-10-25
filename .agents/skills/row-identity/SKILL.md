@@ -13,7 +13,7 @@ Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 
 
 1. **The shell is shared; the content is not.** One geometry for every row — orb with the domain icon, text grid, control slot in the same positions. Never invent a new outer shape per domain.
 2. **Every row has a domain icon.** The orb carries it, at consistent size, stroke weight and perspective. The icon names the domain: thermostat, window/curtain, bulb.
-3. **Every row has primary + secondary text.** Primary: the short identity (room/control name). Secondary: the area line — the room for lights and covers, the current temperature and action for climate. Both concise.
+3. **Every row has primary + secondary text.** Primary: the short identity (room/control name). Secondary: the area line — the room for lights and covers, the current temperature and action for climate. Both concise. Under a titled bundle's lid, which names the room once for every part, a part in that room shows its own detail there instead (since when, warmth or colour, volume): the line stays, the repetition goes.
 4. **One explicit state/action cue per row.** A switch state, compact state word, active mark, or meaningful badge — never a decorative badge that repeats the row's colour.
 5. **Colour reinforces, never defines.** A row must stay distinguishable with colour removed: icon, text and cue carry identity and state.
 

@@ -121,7 +121,7 @@ const afterLast = (pattern, text) => (s) => {
 };
 
 // Public exports: the widget, its tile, its types and its connected tile.
-edit("src/index.ts", before('export { JoinedBundle, LeadBundle } from "./bundles/Bundle";', fill(`// __Label__
+edit("src/index.ts", before('export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";', fill(`// __Label__
 export { __Name__Widget, __Name__Sheet } from "./widgets/__name__/__Name__Widget";
 export type { __Name__WidgetProps, __Name__SheetProps } from "./widgets/__name__/__Name__Widget";
 export { __Name__Tile } from "./widgets/__name__/__Name__Tile";

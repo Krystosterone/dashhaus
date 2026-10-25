@@ -62,7 +62,8 @@ export type CardConfig = CardBase & (
 export type ItemConfig =
   | CardConfig
   | { kind: "joined"; label?: string; span: number; members: CardConfig[] }
-  | { kind: "lead"; label?: string; sheetTitle?: string; span: number; lead: CardConfig; rows: CardConfig[] };
+  | { kind: "lead"; label?: string; sheetTitle?: string; span: number; lead: CardConfig; rows: CardConfig[] }
+  | { kind: "titled"; title: string; area?: string; span: number; rows: CardConfig[] };
 
 export interface SectionConfig { kind: "section"; title?: string; note?: string; columns: number; gap?: number; items: ItemConfig[] }
 export interface ColumnsConfig { kind: "columns"; columns: number; gap?: number; sections: SectionConfig[] }
@@ -237,7 +238,7 @@ class Reader {
       return undefined;
     }
     if (raw.entity == null) {
-      this.problem(path, `a card needs an "entity"${raw.joined || raw.lead ? " (bundles use \"joined\" or \"lead\" at the section's card level)" : ""}`);
+      this.problem(path, `a card needs an "entity"${raw.joined || raw.lead ? " (bundles use \"joined\", \"lead\" or \"title\" with \"rows\" at the section's card level)" : ""}`);
       return undefined;
     }
     const entity = this.entityId(raw.entity, path);
@@ -343,6 +344,16 @@ class Reader {
       const rows = this.cards(value.rows, `${path}.rows`);
       if (!lead) return undefined;
       return { kind: "lead", label: this.string(value, "label", path), sheetTitle: this.string(value, "sheet_title", path), span: this.number(value, "span", path, 1, 12) ?? 1, lead, rows };
+    }
+    if (isRaw(value) && "rows" in value) {
+      this.keys(value, path, ["title", "area", "rows", "span"]);
+      const title = this.string(value, "title", path);
+      const rows = this.cards(value.rows, `${path}.rows`);
+      if (!title) {
+        this.problem(path, "a bundle with \"rows\" needs a \"lead\" card, or a \"title\" naming what its rows make up");
+        return undefined;
+      }
+      return { kind: "titled", title, area: this.string(value, "area", path), span: this.number(value, "span", path, 1, 12) ?? 1, rows };
     }
     return this.card(value, path);
   }

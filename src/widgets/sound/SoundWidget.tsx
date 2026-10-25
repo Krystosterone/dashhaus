@@ -21,7 +21,7 @@ export interface SoundWidgetProps extends CardProps {
  * beside a sleeping baby would jump it.
  */
 export function SoundWidget({ entity: e, history, variant, footprint, showControl, onToggle, onVolumeChange, onOpenDetails, onClose, color }: SoundWidgetProps) {
-  const { uid, nameId, sheet, compact, bare, article } = useCard("sn", { variant, footprint, showControl });
+  const { uid, nameId, sheet, compact, bare, article, area } = useCard("sn", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. "energy" (bloom and glow) is for light, heat or daylight; see the attention-budget skill.
@@ -30,6 +30,10 @@ export function SoundWidget({ entity: e, history, variant, footprint, showContro
   const word = unav ? "Unavailable" : on ? "On" : "Off";
   // The pill's second voice: what tapping does, or how long it has been on.
   const cue = on ? (e.lastChanged ? `Since ${e.lastChanged}` : undefined) : "Turn on";
+  // With no room to name (a titled bundle's lid names it), the status line carries the volume instead.
+  const volume = !unav && e.volume != null ? `Volume ${e.volume}%` : null;
+  // Unavailable, since when it was last seen.
+  const since = unav ? e.lastSeen : e.lastChanged;
 
   return (
     <article {...article} data-state={e.state} {...colors}>
@@ -38,7 +42,7 @@ export function SoundWidget({ entity: e, history, variant, footprint, showContro
           <SoundIcon />
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={e.area}>{e.area}{!unav && e.volume != null && <span className="sn-vol">{e.area ? " · " : ""}Volume {e.volume}%</span>}</p>
+          <p className="hd-area" title={area}>{area ? <>{area}{volume && <span className="sn-vol"> · {volume}</span>}</> : !sheet && (volume ?? (since ? `Since ${since}` : null))}</p>
           {compact && <p className="hd-sub">{word}</p>}
         </CardTitle>
         {/* The large readout is the volume, which no card control prints; without one it repeats the pill's word. */}

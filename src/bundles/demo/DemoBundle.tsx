@@ -1,4 +1,4 @@
-import { JoinedBundle, LeadBundle } from "../Bundle";
+import { JoinedBundle, LeadBundle, TitledBundle } from "../Bundle";
 import { ToggleTile } from "../../widgets/toggle/ToggleTile";
 import { LightTile } from "../../widgets/light/LightTile";
 import { ClimateTile } from "../../widgets/climate/ClimateTile";
@@ -10,7 +10,7 @@ import { SOUND_SEEDS, useDemoSound } from "../../widgets/sound/demo/useDemoSound
 import type { ToggleSeedName } from "../../widgets/toggle/demo/useDemoToggle";
 import type { WidgetFootprint } from "../../shared/ui";
 
-export type BundleName = "sleep" | "nursery" | "upstairs" | "stressJoined" | "stressLead";
+export type BundleName = "sleep" | "nursery" | "upstairs" | "stressJoined" | "stressLead" | "stressTitled";
 
 export interface DemoBundleProps {
   bundle: BundleName;
@@ -46,17 +46,19 @@ function Sleep() {
   );
 }
 
-/** One sound machine, three entities: its power leads (it starts and ends every nap), then the night light
- *  (switched on its own for feeds) and the sound, whose volume is in its sheet. */
-function Nursery({ defaultOpen }: Open) {
+/** One sound machine, three entities, under a lid that names the machine and its room once. Each part is
+ *  named for what it is on the machine: the power (it starts and ends every nap), the night light (switched
+ *  on its own for feeds) and the white noise, whose volume is in its sheet. */
+function Nursery() {
   const power = useDemoToggle(TOGGLE_SEEDS.soundMachine);
   const light = useDemoLight(LIGHT_SEEDS.nightLight);
   const sound = useDemoSound(SOUND_SEEDS.on);
   return (
-    <LeadBundle lead={<ToggleTile {...power} defaultOpen={defaultOpen} />}>
+    <TitledBundle title="Sound machine" area="Nursery">
+      <ToggleTile key="power" {...power} />
       <LightTile key="light" {...light} />
       <SoundTile key="sound" {...sound} />
-    </LeadBundle>
+    </TitledBundle>
   );
 }
 
@@ -93,4 +95,18 @@ function StressLead({ defaultOpen }: Open) {
   );
 }
 
-const BUNDLES: Record<BundleName, (p: Open) => JSX.Element> = { sleep: Sleep, nursery: Nursery, upstairs: Upstairs, stressJoined: StressJoined, stressLead: StressLead };
+/** A title and room long enough to truncate, an unavailable part, and a part in another room, which keeps its own. */
+function StressTitled() {
+  const power = useDemoToggle(TOGGLE_SEEDS.soundMachine);
+  const light = useDemoLight(LIGHT_SEEDS.unavailable, { name: "Kinderzimmer-Nachtlicht mit Sternenhimmel", area: "Nursery" });
+  const sound = useDemoSound(SOUND_SEEDS.long);
+  return (
+    <TitledBundle title="Kinderzimmer-Schlafgerät mit Nachtlicht und Geräuschen" area="Nursery">
+      <ToggleTile key="power" {...power} />
+      <LightTile key="light" {...light} />
+      <SoundTile key="sound" {...sound} />
+    </TitledBundle>
+  );
+}
+
+const BUNDLES: Record<BundleName, (p: Open) => JSX.Element> = { sleep: Sleep, nursery: Nursery, upstairs: Upstairs, stressJoined: StressJoined, stressLead: StressLead, stressTitled: StressTitled };

@@ -37,7 +37,7 @@ The host supplies authentication and an implementation of the transport (the rep
   - **Subtraction first.** At the densest layouts, mute decorative colour, fills, glows and unnecessary markers before adding a hue. No source establishes a hue-count or tile-count limit; do not invent one.
   - **Contrast, both themes.** Semantic colour — the orb and warn states — must clear the applicable WCAG thresholds (4.5:1 text, 3:1 large text and graphics) against adjacent backgrounds in light and dark themes.
   - **The colour slot** is opt-in: the one place a widget can carry its own colour, and it's the orb only, never a fill or a glow. No widget colours its orb by default. Heat or cool is told by the mode icon and the words Heating / Cooling; a lamp's warmth or colour is named on its status line ("Office · Cool daylight", "Nursery · Amber"), and its hue is drawn only in its sheet, on the warmth ruler or the colour chips' swatches. Compact cards never take it. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
-- **Compact cards carry their own identity.** Every compact card shows a stable domain icon in its orb (thermostat, window, bulb), a concise primary identity, and one state/action cue — climate: mode and setpoint; covers: position or travel; lights: on/off and brightness. The area line carries the room, or the climate's current temperature and action. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across widget types.
+- **Compact cards carry their own identity.** Every compact card shows a stable domain icon in its orb (thermostat, window, bulb), a concise primary identity, and one state/action cue — climate: mode and setpoint; covers: position or travel; lights: on/off and brightness. The area line carries the room, or the climate's current temperature and action; under a titled bundle's lid, which names the room once, a part's area line carries its own detail instead. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across widget types.
 - **One state vocabulary.** A state word appears once: simple toggles carry it on the control; climate and humidifiers carry their action on the status line and use **Turn on** as the off-state control. Each domain has one pair: On / Off (lights, modes), Open / Closed (covers), Armed home… / Disarmed (alarm), Heating · Cooling · Idle / Off (climate). Transitions use the verb: Opening, Closing, Arming, Disarming. A widget that can't be reached says **Unavailable** everywhere (slot, status line, "Unavailable since …" in the Today strip); controls keep their room on the status line, and readings show "Unavailable" in place of the reading.
 - **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a colour literal in a widget's CSS.
 
@@ -93,19 +93,34 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 **Lead and rows** — one standard widget followed by compact widgets.
 
 ```tsx
-<LeadBundle lead={<ToggleTile {...soundMachine} />}>
-  <LightTile {...nightLight} />
-  <SoundTile {...whiteNoise} />
+<LeadBundle lead={<ClimateTile {...secondFloor} />}>
+  <ClimateTile {...dysonHeater} />
 </LeadBundle>
 ```
 
 - The bundle forces the lead to `standard` and every row to `compact`, regardless of caller props.
-- The same 8 px gap separates members. A lead plus one row is always 196 px; a lead plus two, 264 px.
+- The same 8 px gap separates members. A lead plus one row is always 196 px.
 - Row orbs line up with the lead. Tap a row's name, or hold its orb, for its details.
 - The lead's history remains in its sheet. The sheet lists rows under "Also in this bundle", live; opening a row's sheet stacks it above the lead sheet.
 - Keep state above the bundle (as with Home Assistant, where it lives in `hass`): rows appear in the card and the lead's sheet, and both copies must show the same entity. `src/bundles/demo/DemoBundle.tsx` shows the demo-hook version.
 
 `SheetExtra` (in `shared/ui.tsx`) supplies the lead sheet's live rows.
+
+**Titled** — the parts of one thing, usually one device split into several entities, under a lid that names it and its room once.
+
+```tsx
+<TitledBundle title="Sound machine" area="Baby Room">
+  <ToggleTile {...power} />
+  <LightTile {...nightLight} />
+  <SoundTile {...whiteNoise} />
+</TitledBundle>
+```
+
+- The lid is one 60 px unit: the title, and the room on the line under it, the same two lines a card's name and status make. Every member is forced to `compact`, so a lid and three parts are 264 px, the featured height.
+- The lid sits above every part, so what it says covers them all. Name each part for what it is on the thing ("Power", "Night light", "White noise"), never "Sound machine power".
+- A part in the lid's room drops the room from its card (`useCard` resolves it through `BundleLid`) and its status line says its own detail instead: since when (a toggle), its warmth or colour (a light), its volume (a sound). A part somewhere else keeps its room.
+- The lid is a heading, not a card: it opens nothing, since a sheet of the same rows would only repeat the bundle. Each part opens its own sheet, which, seen without the lid, says whose part it is: "Sound machine · Baby Room".
+- Use it when the members make up one named thing. A lead bundle is for one member that matters most with related rows hanging off it.
 
 ## Dashboards
 
@@ -125,7 +140,7 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 
 The Storybook dashboards demonstrate:
 
-- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and both bundle types share the same grid.
+- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and every bundle type share the same grid.
 - **Tablet, landscape:** the same four actions, one of them featured, followed by household and nursery status, then outside and room readings.
 - **Wall panel:** one column per place, each ordered actions, status, then glance; the complete 1280 × 800 surface fits without scrolling.
 - **Phone, ungrouped footprints:** unrelated widget types, all three footprints and both bundle forms share one `WidgetGrid` without a section.

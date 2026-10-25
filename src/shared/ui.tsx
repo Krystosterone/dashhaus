@@ -53,20 +53,33 @@ export interface CardProps {
   color?: ColorProp;
 }
 
+/** A titled bundle's lid: what the members make up, and its room. Members don't repeat what it says. */
+export const BundleLid = createContext<{ title: string; area?: string } | null>(null);
+
+const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
 /**
  * What a card widget derives from its variant and footprint. `code` is the widget's class prefix ("lw").
  * Spread `article` onto the `<article>`, give `nameId` to the `CardTitle`, and build other ids from `uid`.
+ * Show `area`, not the entity's own: under a titled bundle's lid a member in the lid's room has none on its
+ * card (the lid says it once, for all of them), and its sheet, seen without the lid, says whose part it is.
  */
-export function useCard(code: string, { variant = "card", footprint = "standard", showControl = true }: Pick<CardProps, "variant" | "footprint" | "showControl">) {
+export function useCard(code: string, { variant = "card", footprint = "standard", showControl = true, area: own }: Pick<CardProps, "variant" | "footprint" | "showControl"> & { area?: string }) {
   const uid = useId();
+  const lid = useContext(BundleLid);
   const sheet = variant === "sheet";
   const compact = !sheet && footprint === "compact";
   const featured = !sheet && footprint === "featured";
   const bare = compact && !showControl;
   const nameId = `${uid}-n`;
+  const inLidRoom = lid != null && (own == null || (lid.area != null && sameArea(own, lid.area)));
+  const area = !lid ? own
+    : sheet ? [lid.title, inLidRoom ? lid.area : own].filter(Boolean).join(" · ")
+    : inLidRoom ? undefined : own;
   return {
     uid,
     nameId,
+    area,
     sheet,
     compact,
     featured,

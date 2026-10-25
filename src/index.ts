@@ -115,7 +115,7 @@ export type { SoundEntity, SoundHistory } from "./widgets/sound/types";
 export { HaSoundTile } from "./ha";
 export type { HaSoundTileProps } from "./ha";
 
-export { JoinedBundle, LeadBundle } from "./bundles/Bundle";
+export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
 
 // Dashboard layout

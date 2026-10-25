@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { DashboardPage, Section, Columns, WidgetGrid, Cell } from "../../dashboards/layout";
-import { JoinedBundle, LeadBundle } from "../../bundles/Bundle";
+import { JoinedBundle, LeadBundle, TitledBundle } from "../../bundles/Bundle";
 import { HaLightTile } from "../HaLightTile";
 import { HaClimateTile } from "../HaClimateTile";
 import { HaSensorTile } from "../HaSensorTile";
@@ -37,7 +37,9 @@ function item(entry: ItemConfig, index: number) {
     ? <JoinedBundle key={key} label={entry.label}>{entry.members.map((m, i) => tile(m, `${i}:${m.entity}`))}</JoinedBundle>
     : entry.kind === "lead"
       ? <LeadBundle key={key} lead={tile(entry.lead)} label={entry.label} sheetTitle={entry.sheetTitle}>{entry.rows.map((r, i) => tile(r, `${i}:${r.entity}`))}</LeadBundle>
-      : tile(entry, key);
+      : entry.kind === "titled"
+        ? <TitledBundle key={key} title={entry.title} area={entry.area}>{entry.rows.map((r, i) => tile(r, `${i}:${r.entity}`))}</TitledBundle>
+        : tile(entry, key);
   return entry.span > 1 ? <Cell key={index} span={entry.span}>{content}</Cell> : content;
 }
 

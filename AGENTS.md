@@ -29,7 +29,7 @@ Unit tests cover pure logic and shared hooks (kelvin, track position, formatting
 - `src/widgets/<name>/` — one widget per folder: component, CSS, entity type, `demo/`, and `<Name>.stories.tsx` titled `Widgets/<Name>`.
 - `src/shared/` — the card system and shared hooks (`card.css`, `ui.tsx`, `useTrack`, `useLongPress`, `useNow`).
 - `src/styles/tokens.css` — the only source of colour and design tokens.
-- `src/bundles/` — `JoinedBundle` and `LeadBundle`.
+- `src/bundles/` — `JoinedBundle`, `LeadBundle` and `TitledBundle`.
 - `src/dashboards/` — `DashboardPage`, `Section`, `Columns`, `Cell`, and the dashboard stories.
 - `src/ha/` — the Home Assistant boundary (`docs/home-assistant.md`). `src/ha/lovelace/` is the deployed card: the YAML parser (`config.ts`), the generated layout (`auto.ts`, also imported by `scripts/deploy.mjs`, so it may only use `import type`), the renderer and the custom element.
 - `src/index.ts` — public exports. Every new widget must be exported here.

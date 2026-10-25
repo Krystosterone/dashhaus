@@ -56,3 +56,11 @@
   .hd-sheet .hd-c--more > .hd--sheet { box-shadow: none; padding-bottom: 14px; }
   .hd-more { padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ---------- Titled: a lid naming the thing and its room, then its parts as compact rows ----------
+   The lid is one 60px unit, so a lid and three rows make 264px, the featured height. The first row's
+   hairline separates it from the lid. */
+.hb--titled { --lp: 16px; gap: 8px; }
+.hb-lid { position: relative; display: grid; align-content: center; height: 60px; padding: 8px var(--lp) 0; min-width: 0; }
+.hb-lid-name { min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hb-lid-area { margin: 3px 0 0; font-size: var(--type-status); font-weight: 500; line-height: var(--type-status-leading); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

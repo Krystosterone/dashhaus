@@ -13,13 +13,14 @@ const meta = {
     docs: {
       description: {
         component:
-          "Several widgets sharing one modular card. Joined forces equal compact members; lead bundles force one standard lead and compact rows. " +
+          "Several widgets sharing one modular card. Joined forces equal compact members; lead bundles force one standard lead and compact rows; " +
+          "titled bundles put compact rows, the parts of one thing, under a 60px lid that names it and its room once. " +
           "Members can be any widget type and retain their own tap, hold and detail-sheet behavior.",
       },
     },
   },
   argTypes: {
-    bundle: { control: "select", options: [...BUNDLES, "stressJoined", "stressLead"] },
+    bundle: { control: "select", options: [...BUNDLES, "stressJoined", "stressLead", "stressTitled"] },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
     defaultOpen: { control: "boolean", description: "Open the lead's sheet on load" },
   },
@@ -31,7 +32,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const SleepAndDnd: Story = { name: "Joined: Nova Sleep and Do Not Disturb", args: { bundle: "sleep" } };
-export const Nursery: Story = { name: "Lead: sound machine, night light and white noise", args: { bundle: "nursery" } };
+export const Nursery: Story = { name: "Titled: sound machine", args: { bundle: "nursery" } };
 export const Upstairs: Story = { name: "Lead: 2nd floor and the Dyson heater", args: { bundle: "upstairs" } };
 
 export const Sizes: Story = {
@@ -52,7 +53,7 @@ export const Sizes: Story = {
   ),
 };
 
-export const LeadSheet: Story = { name: "Lead's sheet", args: { bundle: "nursery", defaultOpen: true } };
+export const LeadSheet: Story = { name: "Lead's sheet", args: { bundle: "upstairs", defaultOpen: true } };
 export const LeadSheetPhone: Story = {
   name: "Lead's sheet, phone",
   args: { bundle: "upstairs", defaultOpen: true },
@@ -68,6 +69,7 @@ export const WorstCase: Story = {
         <div key={w} style={{ display: "grid", gap: 12, width: w }}>
           <DemoBundle bundle="stressJoined" width={w} />
           <DemoBundle bundle="stressLead" width={w} />
+          <DemoBundle bundle="stressTitled" width={w} />
         </div>
       ))}
     </div>

@@ -119,6 +119,21 @@ describe("parseDashboardConfig", () => {
     });
   });
 
+  it("reads a titled bundle: what its rows make up, its room, and the rows", () => {
+    const config = parseDashboardConfig({ sections: [{ title: "Quick", cards: [{
+      title: "Sound machine", area: "Baby Room", span: 2,
+      rows: [{ entity: "switch.nursery", name: "Power", icon: "power" }, "light.nursery", { entity: "switch.nursery_music", widget: "sound" }],
+    }] }] });
+    expect(config.blocks?.[0]).toMatchObject({ items: [{
+      kind: "titled", title: "Sound machine", area: "Baby Room", span: 2,
+      rows: [{ kind: "toggle", name: "Power", icon: "power" }, { kind: "light" }, { kind: "sound" }],
+    }] });
+    expect(problems({ sections: [{ cards: [{ rows: ["light.a"] }, { title: "T", rows: ["light.a"], lid: "x" }] }] })).toEqual([
+      'sections[0].cards[0]: a bundle with "rows" needs a "lead" card, or a "title" naming what its rows make up',
+      'sections[0].cards[1]: unknown key "lid"',
+    ]);
+  });
+
   it("reads bundles, untitled grids and side-by-side sections", () => {
     const config = parseDashboardConfig({
       sections: [

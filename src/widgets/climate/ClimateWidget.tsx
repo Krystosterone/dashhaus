@@ -63,7 +63,7 @@ function useSlotTransition(kind: string) {
  * The orb switches it off and back on; the slot sets the target; the sheet holds modes, presets and fan.
  */
 export function ClimateWidget({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateWidgetProps) {
-  const { uid, nameId, sheet, compact, bare, article } = useCard("cw", { variant, footprint, showControl });
+  const { uid, nameId, sheet, compact, bare, article, area } = useCard("cw", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const mode: HvacMode = unav ? "off" : (e.state as HvacMode);
   const on = !unav && mode !== "off";
@@ -115,7 +115,7 @@ export function ClimateWidget({ entity: e, history, variant, footprint, showCont
             : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />}
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{sheet && e.area ? `${e.area} · ${status}` : status}</p>
+          <p className="hd-area">{sheet && area ? `${area} · ${status}` : status}</p>
           {compact && (
             <p className="hd-sub">
               {cur != null && !unav && <span className="hd-sub-optional">{fmtCurrent(cur)}° · </span>}

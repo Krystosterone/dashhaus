@@ -23,7 +23,7 @@ export interface OwletWidgetProps extends CardProps {
  * in warn, a problem with the sock or base leads the status line.
  */
 export function OwletWidget({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: OwletWidgetProps) {
-  const { nameId, sheet, compact, bare, article } = useCard("ow", { variant, footprint, showControl });
+  const { nameId, sheet, compact, bare, article, area } = useCard("ow", { variant, footprint, showControl, area: e.area });
   const sleep = e.state === "unavailable" ? undefined : e.state;
   const hr = e.heartRate, o2 = e.oxygen;
   // Off the network or charging: nothing to show. A sleep state or a reading alone still shows.
@@ -50,7 +50,7 @@ export function OwletWidget({ entity: e, history, variant, footprint, showContro
   const readings = [hr != null ? `${fmtBpm(hr)} bpm` : null, o2 != null ? `${fmtOxygen(o2)}% O₂` : null].filter(Boolean).join(" · ");
   const figures = [hr != null ? `heart rate ${fmtBpm(hr)} beats per minute` : null, o2 != null ? `oxygen ${fmtOxygen(o2)} percent` : null].filter(Boolean).join(", ");
   const spoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleText.toLowerCase()}` : figures;
-  const where = sheet && e.area ? `${e.area} · ${sleepWord}` : sleepWord;
+  const where = sheet && area ? `${area} · ${sleepWord}` : sleepWord;
   const status = problem ? <><AlertStatus label={problemLabel!}>{ALERT_WORD[problem]}</AlertStatus>{!offline && <span className="ow-st-l"> · {sleepWord}</span>}</>
     // A compact row's alarm pill only has room for the alert's name, so the figures move up here.
     : vital && compact && readings ? readings

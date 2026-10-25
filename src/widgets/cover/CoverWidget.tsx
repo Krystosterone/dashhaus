@@ -49,7 +49,7 @@ export interface CoverWidgetProps extends CardProps {
  * It shares the modular footprint matrix with every dashboard widget.
  */
 export function CoverWidget({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverWidgetProps) {
-  const { uid, nameId, sheet, compact, bare, article } = useCard("cv", { variant, footprint, showControl });
+  const { uid, nameId, sheet, compact, bare, article, area } = useCard("cv", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const moving = e.state === "opening" || e.state === "closing";
   const pos = e.position ?? (e.state === "open" || e.state === "opening" ? 100 : 0);
@@ -66,14 +66,14 @@ export function CoverWidget({ entity: e, history, variant, footprint, showContro
   const orbAction = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
   const orbLabel = stopping ? `Stop ${e.name}` : e.name;
   const warnedOpen = access && open && !moving;
-  const identity = e.area ?? CLASS_LABEL[e.deviceClass];
+  const identity = area ?? CLASS_LABEL[e.deviceClass];
   const alertLabel = warnedOpen ? `Warning: ${e.name} has been open${e.lastChanged ? ` since ${e.lastChanged}` : ""}` : undefined;
 
   // A door left open leads the status line in the warn colour, like a sensor's low battery.
   const status = unav ? identity
     : warnedOpen ? (compact ? identity : `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`)
     : identity;
-  const areaText = sheet && e.area && !(access && open) ? `${e.area} · ${CLASS_LABEL[e.deviceClass]}` : status;
+  const areaText = sheet && area && !(access && open) ? `${area} · ${CLASS_LABEL[e.deviceClass]}` : status;
 
   let slot;
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;

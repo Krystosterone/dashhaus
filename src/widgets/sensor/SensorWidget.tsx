@@ -30,7 +30,7 @@ const LOW_BATTERY = 15;
  * A reading: neutral, a bare icon in place of an orb, and no glow because nothing is running.
  */
 export function SensorWidget({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: SensorWidgetProps) {
-  const { nameId, sheet, compact, bare, article } = useCard("sw", { variant, footprint, showControl });
+  const { nameId, sheet, compact, bare, article, area } = useCard("sw", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const t = unav ? undefined : e.temperature;
   const h = unav ? undefined : e.humidity;
@@ -53,8 +53,8 @@ export function SensorWidget({ entity: e, history, variant, footprint, showContr
   // Trend is its own low-priority phrase so a narrow card can remove it cleanly instead of clipping a word.
   const statusParts: ReactNode[] = unav ? ["Unavailable"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
     batteryText,
-    sheet && e.area && !e.outdoor ? e.area : null,
-    lowBattery ? null : e.outdoor ? e.area ?? "Outside" : comfort,
+    sheet && area && !e.outdoor ? area : null,
+    lowBattery ? null : e.outdoor ? area ?? "Outside" : comfort,
   ].filter(Boolean);
   const trendWord = trend && !compact && !lowBattery ? TREND_WORD[trend] : null;
   const status = <>

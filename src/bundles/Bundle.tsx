@@ -1,6 +1,6 @@
-import { Children, cloneElement, isValidElement } from "react";
+import { Children, cloneElement, isValidElement, useContext, useId } from "react";
 import type { ReactElement, ReactNode } from "react";
-import { SheetExtra } from "../shared/ui";
+import { BundleLid, CardHeadingLevelContext, SheetExtra } from "../shared/ui";
 import type { Vars, WidgetFootprint } from "../shared/ui";
 import "./Bundle.css";
 
@@ -39,6 +39,32 @@ export function LeadBundle({ lead, label, sheetTitle = "Also in this bundle", ch
         </div>
         {rows.map((r, i) => <div className="hb-part hb-row" key={r.key ?? i}>{r}</div>)}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Titled: the parts of one thing, usually one device, under a lid that names it and its room once.
+ * The lid is one 60px unit and every member is a compact row, so three parts make 264px, the featured height.
+ * Members name what they are on the thing ("Power", "Night light") and drop the lid's room from their cards;
+ * their own sheets say whose part it is. The lid is a heading, not a card: it opens nothing, since a sheet of
+ * the same rows would only repeat the bundle.
+ */
+export function TitledBundle({ title, area, children }: { title: string; area?: string; children: ReactNode }) {
+  const id = useId();
+  const Heading = useContext(CardHeadingLevelContext) === 3 ? "h3" : "h2";
+  const rows = tiles(children).map((tile) => cloneElement(tile, { footprint: "compact" }));
+  return (
+    <div className="hb-c">
+      <BundleLid.Provider value={{ title, area }}>
+        <div className="hb hb--titled" role="group" aria-labelledby={id}>
+          <div className="hb-lid">
+            <Heading className="hb-lid-name" id={id}>{title}</Heading>
+            {area && <p className="hb-lid-area">{area}</p>}
+          </div>
+          {rows.map((r, i) => <div className="hb-part hb-row" key={r.key ?? i}>{r}</div>)}
+        </div>
+      </BundleLid.Provider>
     </div>
   );
 }

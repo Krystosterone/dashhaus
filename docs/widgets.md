@@ -290,12 +290,12 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 ```
 
 - **Switching:** the orb and the pill both toggle the sound. Both are raised buttons when off and the accent when on (a state: no bloom, no glow; the attention-budget skill keeps energy for light and heat).
-- **Status line:** the area and the volume ("Nursery · Volume 62%") on standard and featured cards; compact rows keep the room alone. It never says On or Off; that's the pill's word.
+- **Status line:** the area and the volume ("Nursery · Volume 62%") on standard and featured cards; compact rows keep the room alone, except under a titled bundle's lid that already names it, where they say the volume. It never says On or Off; that's the pill's word.
 - **Volume, in the sheet only:** press and hold the orb, or tap the name, for a volume groove the accent fills while the sound plays. It rarely changes, and a stray tap on a groove beside a sleeping baby would jump it, so no card carries it. Setting it never switches the sound: while the sound is off the groove stays empty and reads "Off · 62%". A sound without a volume entity has no groove.
 - **The readout** on featured cards and in the sheet is the volume; a sound without one repeats the pill's On or Off there.
 - **Sheet:** the volume and today's on/off history.
 - **Home Assistant:** `HaSoundTile` takes the sound's switch and finds its volume beside it: `number.<switch>_volume`, then `number.<device>_volume` (the Tuya integration's `switch.nursery_music` and `number.nursery_volume`). Pass `volumeEntityId` when it is named otherwise. The volume is a percent of the number's range, set back in its own range and step.
-- **With its machine:** a sound machine whose power, night light and sound are separate entities is a lead bundle: the power as a toggle (`icon: power`) leading, then the light and the sound as compact rows. Whether the device accepts the light or the sound while its power is off is the device's business; the rows show what it reports.
+- **With its machine:** a sound machine whose power, night light and sound are separate entities is a titled bundle: "Sound machine" and its room on the lid, then Power (a toggle, `icon: power`), Night light and White noise as compact rows, which say since when, the colour and the volume where the room would be. Whether the device accepts the light or the sound while its power is off is the device's business; the rows show what it reports.
 
 ## Using the header widget
 

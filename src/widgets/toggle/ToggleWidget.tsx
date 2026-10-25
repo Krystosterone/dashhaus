@@ -38,7 +38,7 @@ export interface ToggleWidgetProps extends CardProps {
  * It uses the same card anatomy and footprint matrix as every other widget.
  */
 export function ToggleWidget({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleWidgetProps) {
-  const { uid, nameId, sheet, compact, bare, article } = useCard("tw", { variant, footprint, showControl });
+  const { uid, nameId, sheet, compact, bare, article, area } = useCard("tw", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A mode is a state, not energy: on is the accent, with no bloom and no glow. A colour only if one was chosen.
@@ -48,8 +48,9 @@ export function ToggleWidget({ entity: e, history, variant, footprint, showContr
   // Where it applies; when it ends takes its place in compact cards, where the pill has no room to say so.
   // On and Off are the control's words: the status line never repeats them.
   const status = on && e.until && !unav
-    ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{e.area}</span></>
-    : e.area;
+    ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{area}</span></>
+    // With no room to name (a titled bundle's lid names it), since when it has been as it is (last seen, unavailable).
+    : area ?? (!sheet && (unav ? e.lastSeen : e.lastChanged) ? `Since ${unav ? e.lastSeen : e.lastChanged}` : null);
   const valueText = unav ? "Unavailable" : on ? (e.until ? `On until ${e.until}` : "On") : "Off";
 
   // The compact value appears under the name, or in place of a hidden control.
@@ -63,7 +64,7 @@ export function ToggleWidget({ entity: e, history, variant, footprint, showContr
           <ToggleIconSvg icon={e.icon} />
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{sheet && e.area ? `${e.area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
+          <p className="hd-area">{sheet && area ? `${area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>

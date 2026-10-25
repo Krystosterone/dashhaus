@@ -27,7 +27,7 @@ export const modeLabel = (m: string) => m.charAt(0).toUpperCase() + m.slice(1).r
  * hold on the orb, opens the sheet with its modes and today's history.
  */
 export function HumidifierWidget({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onModeChange, onOpenDetails, onClose, color }: HumidifierWidgetProps) {
-  const { uid, nameId, sheet, compact, bare, article } = useCard("hu", { variant, footprint, showControl });
+  const { uid, nameId, sheet, compact, bare, article, area } = useCard("hu", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const dry = e.kind === "dehumidifier";
@@ -40,7 +40,7 @@ export function HumidifierWidget({ entity: e, history, variant, footprint, showC
   const action = on ? e.action : undefined;
   const statusParts = [cur != null ? `${fmtHumidity(cur)}%${compact ? "" : " now"}` : null, unav ? "Unavailable" : action ? ACTION_LABEL[action] : !on ? ACTION_LABEL.off : null].filter(Boolean);
   // With nothing measured or reported, the status line names the room, as a toggle's does.
-  const status = statusParts.length ? statusParts.join(" · ") : e.area;
+  const status = statusParts.length ? statusParts.join(" · ") : area;
   const setText = unav ? "Unavailable" : !on ? "Off" : target != null ? `Set ${fmtHumidity(target)}%` : e.mode ? modeLabel(e.mode) : "On";
 
   let slot;
@@ -65,7 +65,7 @@ export function HumidifierWidget({ entity: e, history, variant, footprint, showC
           <HumidifierIcon kind={e.kind} />
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{sheet && e.area && status !== e.area ? `${e.area} · ${status}` : status}</p>
+          <p className="hd-area">{sheet && area && status !== area ? `${area} · ${status}` : status}</p>
           {compact && <p className="hd-sub">{subText}</p>}
         </CardTitle>
         <p className="hd-num" aria-hidden="true">{cur == null ? null : <>{fmtHumidity(cur)}<span>%</span></>}</p>
