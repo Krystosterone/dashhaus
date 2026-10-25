@@ -6,13 +6,15 @@ export { useCard, detailsSheet, detailsTile, normalizeReadings } from "./shared/
 export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, WidgetFootprint, CardProps, SheetProps, TileProps, Reading } from "./shared/ui";
 export { useLongPress } from "./shared/useLongPress";
 export { useTrack, trackPos } from "./shared/useTrack";
-export { useNow } from "./shared/useNow";
+export { useNow } from "./hooks/useNow";
 
 // Home Assistant integration: what a host needs to connect tiles. Mappers, handler factories and
 // history parsers for custom containers live in ./ha.
 export { HaActionError } from "./ha";
 export { createHaStore, connectHomeAssistant, createHomeAssistantTransport } from "./ha";
 export { HaProvider, useHaStore, useHaSnapshot, useHaSelector, useHaEntity, useHaEntities, useHaStatus, useHaGeneration } from "./ha";
+export { useHaLight, useHaClimate, useHaWeather, useHaSensor, useHaCover, useHaToggle, useHaAlarm, useHaOwlet, useHaHumidifier, useHaSound } from "./ha";
+export type { HaLightOptions, HaLight, HaClimateOptions, HaClimate, HaWeatherOptions, HaWeather, HaSensorOptions, HaSensor, HaCoverOptions, HaCover, HaToggleOptions, HaToggle, HaAlarmOptions, HaAlarm, HaOwletOptions, HaOwlet, HaHumidifierOptions, HaHumidifier, HaSoundOptions, HaSound } from "./ha";
 export { HaLightTile, HaClimateTile, HaSensorTile, HaWeatherTile, HaCoverTile, HaToggleTile, HaAlarmTile } from "./ha";
 export type {
   HassEntity,

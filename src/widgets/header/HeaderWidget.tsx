@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useNow } from "../../shared/useNow";
+import { useNow } from "../../hooks/useNow";
 import "./HeaderWidget.css";
 
 export interface HeaderWidgetProps {

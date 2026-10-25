@@ -55,7 +55,12 @@ export default tseslint.config(
     },
   },
   {
-    // Mappers, actions, the store and history parsing feed every UI, so they stay out of the UI folders.
+    // React hooks with no UI of their own (the minute clock), shared by every UI and the Home Assistant hooks.
+    files: ["src/hooks/**/*.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, ...uiFolders("src/hooks/ holds UI-free hooks; keep UI in its own folder.")] }] },
+  },
+  {
+    // Mappers, actions, hooks, the store and history parsing feed every UI, so they stay out of the UI folders.
     // The connected tiles, the public barrel and the Lovelace card are where a UI is chosen.
     files: ["src/ha/**/*.ts"],
     ignores: ["src/ha/index.ts", "src/ha/lovelace/**"],

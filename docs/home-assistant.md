@@ -9,8 +9,8 @@ Home Assistant auth + connection
   -> injected transport / official websocket adapter
      -> shared entity store (raw snapshots + connection status)
         -> pure domain mapper + capability gate
-           -> connected container
-              -> existing Tile/Widget props
+           -> useHa<Kind>() hook: { entity, history, actions }
+              -> any UI; for this one, the Ha*Tile container -> Tile/Widget props
 ```
 
 The store is the source for current state. A successful service call means Home Assistant accepted the command; it is not proof that the entity reached the requested state. The next entity snapshot is the readback boundary.
@@ -25,7 +25,7 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/useHaRequest.ts` runs background reads (history, registries, forecasts) through the store, shared across callers by store, generation and key, with results from an older generation dropped.
 - `src/ha/mappers/light.ts` maps raw light state and `supported_color_modes` into the existing `LightEntity` model, with `hs_color` for a colour lamp while its `color_mode` is a colour (not `color_temp`).
 - `src/ha/actions/light.ts` builds `light.toggle` and `light.turn_on` payloads (`brightness_pct`, `color_temp_kelvin`, `hs_color`) and reports rejected actions.
-- `src/ha/HaLightTile.tsx` connects the store to the existing `LightTile` without changing the widget's visual contract.
+- `src/ha/hooks/light.ts` (`useHaLight`) selects the raw light, maps it, reads today's history and builds the handlers; `src/ha/HaLightTile.tsx` is that hook above the existing `LightTile`. Every kind has the same pair: a `useHa<Kind>` hook in `src/ha/hooks/` that any UI can call, and a `Ha<Kind>Tile` that hands its result to this UI's tile.
 - `src/ha/mappers/climate.ts` maps HVAC modes/actions, temperatures, setpoint ranges, limits, units, presets, fans, and timestamps into the existing `ClimateEntity` model.
 - `src/ha/actions/climate.ts` builds climate on/off, setpoint, range, mode, preset, and fan payloads, gates capability arrays, validates finite/ranged temperatures, and reports rejected actions.
 - `src/ha/HaClimateTile.tsx` connects the store to the existing `ClimateTile` without changing the widget's visual contract.

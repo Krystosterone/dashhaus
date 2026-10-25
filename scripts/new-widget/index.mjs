@@ -120,15 +120,15 @@ const afterLast = (pattern, text) => (s) => {
   return s.slice(0, end) + text + s.slice(end);
 };
 
-// Public exports: the widget, its tile, its types and its connected tile.
+// Public exports: the widget, its tile, its types, its hook and its connected tile.
 edit("src/index.ts", before('export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";', fill(`// __Label__
 export { __Name__Widget, __Name__Sheet } from "./widgets/__name__/__Name__Widget";
 export type { __Name__WidgetProps, __Name__SheetProps } from "./widgets/__name__/__Name__Widget";
 export { __Name__Tile } from "./widgets/__name__/__Name__Tile";
 export type { __Name__TileProps } from "./widgets/__name__/__Name__Tile";
 export type { __Name__Entity, __Name__History } from "./domains/__name__/types";
-export { Ha__Name__Tile } from "./ha";
-export type { Ha__Name__TileProps } from "./ha";
+export { useHa__Name__, Ha__Name__Tile } from "./ha";
+export type { Ha__Name__Options, Ha__Name__, Ha__Name__TileProps } from "./ha";
 
 `)));
 
@@ -136,7 +136,9 @@ edit("src/ha/index.ts", (s) => s + fill(`export { __name__FromHass } from "./map
 export type { __Name__MapOptions } from "./mappers/__name__";
 ${reading ? "" : `export { create__Name__Handlers } from "./actions/__name__";
 export type { __Name__Handlers, __Name__HandlerOptions } from "./actions/__name__";
-`}export { Ha__Name__Tile } from "./Ha__Name__Tile";
+`}export { useHa__Name__ } from "./hooks/__name__";
+export type { Ha__Name__Options, Ha__Name__ } from "./hooks/__name__";
+export { Ha__Name__Tile } from "./Ha__Name__Tile";
 export type { Ha__Name__TileProps } from "./Ha__Name__Tile";
 `));
 

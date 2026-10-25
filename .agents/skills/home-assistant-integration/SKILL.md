@@ -58,7 +58,7 @@ Use one shared store per connection. Keep it small: the transport owns the socke
 
 ### Containers
 
-Build one connected container around an existing tile before adding more domains. Select raw entities with `useHaEntity`, run the tile's minute clock (`useNow`) into the mapper and history parser, and memoize the mapped entity, parsed history and handlers. Keep optimistic interaction state out of the integration; histories and registry metadata are their own read-only slices, never a current reading and never action state.
+Each domain gets a UI-free hook, `src/ha/hooks/<domain>.ts` (`useHa<Kind>(entityId, options)` returning `{ entity, history, actions }`), and a connected container, `Ha<Kind>Tile`, that only passes that result to a tile. In the hook, select raw entities with `useHaEntity`, run the minute clock (`useNow` from `src/hooks/`) into the mapper and history parser, and memoize the mapped entity, parsed history and handlers. Companion entities and their defaults belong in the hook, so every UI gets them. Keep optimistic interaction state out of the integration; histories and registry metadata are their own read-only slices, never a current reading and never action state.
 
 The weather/home container owns hourly/daily `weather.get_forecasts` request/response parsing through `useHaRequest`, keyed by entity, scope and hour so forecasts refresh hourly while the previous hour's stays up; partial success is independent and failures reach `onForecastError`. Forecast arrays remain separate from the current-state mapper.
 
