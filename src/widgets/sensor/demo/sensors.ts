@@ -1,4 +1,4 @@
-import type { SensorEntity, SensorHistory, Reading } from "../types";
+import type { SensorEntity, SensorHistory, Reading } from "../../../domains/sensor/types";
 
 /** Example data for stories. Times are fixed so screenshots stay stable. */
 const HOUR = 11;

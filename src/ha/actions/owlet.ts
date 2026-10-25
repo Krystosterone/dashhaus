@@ -1,4 +1,4 @@
-import type { OwletEntity } from "../../widgets/owlet/types";
+import type { OwletEntity } from "../../domains/owlet/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

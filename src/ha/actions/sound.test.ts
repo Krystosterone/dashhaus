@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createSoundHandlers } from "./sound";
-import type { SoundEntity } from "../../widgets/sound/types";
+import type { SoundEntity } from "../../domains/sound/types";
 
 const entity: SoundEntity = { entityId: "switch.bedroom", name: "Bedroom", state: "on" };
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlarmWidget, AlarmSheet } from "./AlarmWidget";
 import type { AlarmWidgetProps } from "./AlarmWidget";
-import type { AlarmAction } from "./types";
+import type { AlarmAction } from "../../domains/alarm/types";
 
 export interface AlarmTileProps extends Omit<AlarmWidgetProps, "variant" | "onOpenDetails" | "onClose" | "action"> {
   defaultOpen?: boolean;

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { WeatherWidget } from "./WeatherWidget";
-import type { WeatherEntity } from "./types";
+import type { WeatherEntity } from "../../domains/weather/types";
 
 const weather: WeatherEntity = {
   entityId: "weather.home",

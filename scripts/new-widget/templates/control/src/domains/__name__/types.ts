@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 
 /** Mirrors one Home Assistant `__domain__.*` entity. Add the attributes the card shows; keep raw HA shapes out. */
 export interface __Name__Entity {

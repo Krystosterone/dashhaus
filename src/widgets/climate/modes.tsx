@@ -1,5 +1,5 @@
 import { fmt1 } from "../../shared/ui";
-import type { HvacAction, HvacMode } from "./types";
+import type { HvacAction, HvacMode } from "../../domains/climate/types";
 
 /** Label per mode. Heat or cool is told by the mode icon and the action words, never by a colour. */
 export const MODE_META: Record<HvacMode, { label: string }> = {

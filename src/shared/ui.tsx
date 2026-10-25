@@ -1,6 +1,8 @@
 import { createContext, createElement, useContext, useEffect, useId, useRef, useState } from "react";
 import type { ComponentType, CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useLongPress } from "./useLongPress";
+import type { ColorName } from "../domains/color";
+import type { HourSample, Reading } from "../domains/history";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -22,8 +24,8 @@ export const COLORS = {
   blue: { c: 0.09, h: 235 },
   teal: { c: 0.07, h: 200 },
   sage: { c: 0.08, h: 150 },
-} satisfies Record<string, SlotColor>;
-export type ColorName = keyof typeof COLORS;
+} satisfies Record<ColorName, SlotColor>;
+export type { ColorName };
 /** A widget's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
 export type ColorProp = ColorName | SlotColor | "none";
 
@@ -106,11 +108,7 @@ export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: C
   };
 }
 
-/** One sample per hour: 0 = nothing, 0-1 = intensity, "unavailable", or null for hours still ahead. */
-export type HourSample = number | "unavailable" | null;
-
-/** One measured reading per hour: a number, "unavailable", or null for hours ahead and before the first reading. */
-export type Reading = number | "unavailable" | null;
+export type { HourSample, Reading };
 
 /**
  * Scale readings to 0.12-1 for a Today strip, keeping gaps and hours ahead; min and max are null with no

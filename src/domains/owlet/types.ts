@@ -1,4 +1,4 @@
-import type { HourSample, Reading } from "../../shared/ui";
+import type { HourSample, Reading } from "../history";
 
 /** The sleep states an Owlet Dream Sock reports. */
 export type SleepState = "deep_sleep" | "light_sleep" | "awake";

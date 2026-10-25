@@ -1,4 +1,4 @@
-import type { Condition, DailyForecast, HourlyForecast, WeatherEntity } from "../../widgets/weather/types";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity } from "../../domains/weather/types";
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { finiteNumber, stringValue } from "../util";

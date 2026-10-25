@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { __Name__Widget } from "./__Name__Widget";
-import type { __Name__Entity } from "./types";
+import type { __Name__Entity } from "../../domains/__name__/types";
 
 const entity: __Name__Entity = { entityId: "__domain__.living_room", name: "Living room", area: "Ground floor", state: "ok", value: 42.25, unit: "ppm" };
 

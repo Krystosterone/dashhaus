@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 
 /** Home Assistant cover device classes the widget draws. */
 export type CoverClass = "curtain" | "blind" | "shade" | "shutter" | "awning" | "window" | "garage" | "door" | "gate";

@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 
 /** Home Assistant HVAC modes (the climate entity's state). */
 export type HvacMode = "off" | "heat" | "cool" | "heat_cool" | "auto" | "dry" | "fan_only";

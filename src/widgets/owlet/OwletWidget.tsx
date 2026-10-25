@@ -1,4 +1,4 @@
-import type { OwletEntity, OwletHistory } from "./types";
+import type { OwletEntity, OwletHistory } from "../../domains/owlet/types";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
 import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { LightEntity, LightHistory, HourSample } from "../types";
+import type { LightEntity, LightHistory, HourSample } from "../../../domains/light/types";
 
 /** Example data for stories. Times are fixed so screenshots stay stable. */
 export const NOW = { hour: 11, minute: 54 };

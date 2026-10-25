@@ -28,7 +28,7 @@ const widgets = readdirSync(join(process.cwd(), "src/widgets"), { withFileTypes:
 
 describe.each(widgets)("$name widget", ({ name, Name, dir, widgetFile, source, code, words }) => {
   it("has the standard files", () => {
-    const missing = [widgetFile, `${dir}/${Name}Widget.css`, `${dir}/${Name}Tile.tsx`, `${dir}/types.ts`, `${dir}/demo/Demo${Name}Tile.tsx`, `${dir}/${Name}.stories.tsx`].filter((p) => !exists(p));
+    const missing = [widgetFile, `${dir}/${Name}Widget.css`, `${dir}/${Name}Tile.tsx`, `src/domains/${name}/types.ts`, `${dir}/demo/Demo${Name}Tile.tsx`, `${dir}/${Name}.stories.tsx`].filter((p) => !exists(p));
     expect(missing, "AGENTS.md → Adding a widget, step 1").toEqual([]);
   });
 

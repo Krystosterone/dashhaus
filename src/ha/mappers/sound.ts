@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { finiteNumber, stringValue } from "../util";
-import type { SoundEntity } from "../../widgets/sound/types";
+import type { SoundEntity } from "../../domains/sound/types";
 
 export interface SoundMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */

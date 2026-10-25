@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 
 /** What the unit is doing right now (HA `action`). */
 export type HumidifierAction = "humidifying" | "drying" | "idle" | "off";

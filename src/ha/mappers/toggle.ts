@@ -1,8 +1,8 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { stringValue } from "../util";
-import type { ToggleEntity, ToggleIcon } from "../../widgets/toggle/types";
-import type { ColorName } from "../../shared/ui";
+import type { ToggleEntity, ToggleIcon } from "../../domains/toggle/types";
+import type { ColorName } from "../../domains/color";
 
 export interface ToggleMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */

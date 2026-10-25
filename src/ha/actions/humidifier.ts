@@ -1,4 +1,4 @@
-import type { HumidifierEntity } from "../../widgets/humidifier/types";
+import type { HumidifierEntity } from "../../domains/humidifier/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

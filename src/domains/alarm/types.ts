@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 
 export type AlarmMode = "home" | "away" | "night" | "vacation" | "custom_bypass";
 

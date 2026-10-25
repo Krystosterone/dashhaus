@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { create__Name__Handlers } from "./__name__";
-import type { __Name__Entity } from "../../widgets/__name__/types";
+import type { __Name__Entity } from "../../domains/__name__/types";
 
 const entity: __Name__Entity = { entityId: "__domain__.bedroom", name: "Bedroom", state: "on" };
 

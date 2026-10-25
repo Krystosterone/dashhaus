@@ -1,4 +1,4 @@
-import type { HumidifierAction, HumidifierEntity, HumidifierHistory } from "./types";
+import type { HumidifierAction, HumidifierEntity, HumidifierHistory } from "../../domains/humidifier/types";
 import { HumidifierIcon } from "./icons";
 import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";

@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { ClimateTile } from "../widgets/climate/ClimateTile";
 import type { ClimateTileProps } from "../widgets/climate/ClimateTile";
-import type { ClimateHistory } from "../widgets/climate/types";
+import type { ClimateHistory } from "../domains/climate/types";
 import type { HaActionError } from "./types";
 
 export interface HaClimateTileProps extends Omit<ClimateTileProps, "entity" | "onToggle" | "onTargetChange" | "onRangeChange" | "onModeChange" | "onPresetChange" | "onFanChange"> {

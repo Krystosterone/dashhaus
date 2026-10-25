@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import type { WeatherWidgetProps } from "../widgets/weather/WeatherWidget";
 import { WeatherTile } from "../widgets/weather/WeatherTile";
 import type { WeatherTileProps } from "../widgets/weather/WeatherTile";
-import type { DailyForecast, HourlyForecast, WeatherHistory } from "../widgets/weather/types";
+import type { DailyForecast, HourlyForecast, WeatherHistory } from "../domains/weather/types";
 import { forecastFromHass, weatherFromHass } from "./mappers/weather";
 import { weatherHistoryFromHass } from "./history";
 import { useHaHistory } from "./useHaHistory";

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCoverHandlers } from "./cover";
-import type { CoverEntity } from "../../widgets/cover/types";
+import type { CoverEntity } from "../../domains/cover/types";
 
 const entity: CoverEntity = {
   entityId: "cover.living_room",

@@ -1,4 +1,4 @@
-import type { ToggleEntity } from "../../widgets/toggle/types";
+import type { ToggleEntity } from "../../domains/toggle/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

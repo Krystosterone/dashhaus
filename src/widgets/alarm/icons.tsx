@@ -1,4 +1,4 @@
-import type { AlarmMode } from "./types";
+import type { AlarmMode } from "../../domains/alarm/types";
 
 const P = { fill: "none", stroke: "currentColor" } as const;
 const SHIELD = "M10 2.8 4.5 5v4.6c0 3.4 2.3 6.2 5.5 7.6 3.2-1.4 5.5-4.2 5.5-7.6V5Z";

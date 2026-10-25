@@ -1,5 +1,5 @@
 import { fmt1, normalizeReadings } from "../../shared/ui";
-import type { Reading } from "./types";
+import type { Reading } from "../../domains/sensor/types";
 
 /** Tones and comfort bands are in Celsius; convert Fahrenheit readings first. */
 export const toCelsius = (t: number, unit: "°C" | "°F") => (unit === "°F" ? ((t - 32) * 5) / 9 : t);

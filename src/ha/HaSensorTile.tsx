@@ -7,7 +7,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { SensorTile } from "../widgets/sensor/SensorTile";
 import type { SensorTileProps } from "../widgets/sensor/SensorTile";
-import type { SensorHistory } from "../widgets/sensor/types";
+import type { SensorHistory } from "../domains/sensor/types";
 
 export interface HaSensorTileProps extends Omit<SensorTileProps, "entity"> {
   /** Primary sensor, normally the temperature entity for this device. */

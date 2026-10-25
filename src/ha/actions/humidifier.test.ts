@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createHumidifierHandlers } from "./humidifier";
-import type { HumidifierEntity } from "../../widgets/humidifier/types";
+import type { HumidifierEntity } from "../../domains/humidifier/types";
 
 const entity: HumidifierEntity = { entityId: "humidifier.bedroom", name: "Bedroom", state: "on", targetHumidity: 45, minHumidity: 30, maxHumidity: 80, mode: "normal", modes: ["normal", "eco"] };
 

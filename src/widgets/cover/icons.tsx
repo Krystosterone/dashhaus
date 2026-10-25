@@ -1,4 +1,4 @@
-import type { CoverClass } from "./types";
+import type { CoverClass } from "../../domains/cover/types";
 
 const P = { fill: "none", stroke: "currentColor" } as const;
 

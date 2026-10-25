@@ -9,7 +9,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { ToggleTile } from "../widgets/toggle/ToggleTile";
 import type { ToggleTileProps } from "../widgets/toggle/ToggleTile";
-import type { ToggleIcon, ToggleHistory } from "../widgets/toggle/types";
+import type { ToggleIcon, ToggleHistory } from "../domains/toggle/types";
 import type { ColorName } from "../shared/ui";
 import type { HaActionError } from "./types";
 

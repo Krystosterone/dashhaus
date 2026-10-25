@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAlarmHandlers } from "./alarm";
 import { HaActionError } from "../types";
-import type { AlarmEntity } from "../../widgets/alarm/types";
+import type { AlarmEntity } from "../../domains/alarm/types";
 
 const entity: AlarmEntity = {
   entityId: "alarm_control_panel.main",

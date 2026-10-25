@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
 import { stringValue } from "../util";
-import type { OwletAlert, OwletEntity, SleepState } from "../../widgets/owlet/types";
+import type { OwletAlert, OwletEntity, SleepState } from "../../domains/owlet/types";
 
 export interface OwletMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */

@@ -1,8 +1,8 @@
 import { COLORS } from "../../shared/ui";
 import type { ColorName, WidgetFootprint } from "../../shared/ui";
-import type { ToggleIcon } from "../../widgets/toggle/types";
+import type { ToggleIcon } from "../../domains/toggle/types";
 import type { AlarmTileProps } from "../../widgets/alarm/AlarmTile";
-import type { OwletAlert } from "../../widgets/owlet/types";
+import type { OwletAlert } from "../../domains/owlet/types";
 import { OWLET_ALERT_SUFFIX } from "../mappers/owlet";
 
 /*

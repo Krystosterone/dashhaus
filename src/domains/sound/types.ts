@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 
 /** A sound machine's sound, switched by one Home Assistant `switch.*`; its volume is a companion `number.*`. */
 export interface SoundEntity {

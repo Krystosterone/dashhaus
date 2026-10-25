@@ -1,4 +1,4 @@
-import type { LightEntity } from "../../widgets/light/types";
+import type { LightEntity } from "../../domains/light/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

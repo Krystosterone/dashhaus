@@ -4,6 +4,13 @@ import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import globals from "globals";
 
+const haBoundary = [
+  { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Keep the websocket client under src/ha/." },
+  { group: ["**/ha", "**/ha/*"], message: "Widgets stay provider-agnostic; connect them in a src/ha/ container." },
+  { group: ["**/index"], message: "Import the module directly, not the public barrel." },
+];
+const uiFolders = (message) => [{ group: ["**/widgets/**", "**/shared/**", "**/bundles/**", "**/dashboards/**", "**/stories/**", "**/styles/**", "*.css", "**/*.css"], message }];
+
 export default tseslint.config(
   { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**"] },
   js.configs.recommended,
@@ -35,14 +42,23 @@ export default tseslint.config(
     // entities. Only src/ha/ and the public barrel may import the integration.
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/ha/**", "src/index.ts"],
+    rules: { "no-restricted-imports": ["error", { patterns: haBoundary }] },
+  },
+  {
+    // The domain boundary: entity models and their pure logic know no UI and no framework, so every UI
+    // and the Home Assistant mappers can share them.
+    files: ["src/domains/**/*.ts"],
     rules: {
       "no-restricted-imports": ["error", {
-        patterns: [
-          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Keep the websocket client under src/ha/." },
-          { group: ["**/ha", "**/ha/*"], message: "Widgets stay provider-agnostic; connect them in a src/ha/ container." },
-          { group: ["**/index"], message: "Import the module directly, not the public barrel." },
-        ],
+        patterns: [...haBoundary, ...uiFolders("Domain models know no UI; move the shared part into src/domains/."), { group: ["react", "react-dom", "react/*"], message: "Domain models are framework-free." }],
       }],
     },
+  },
+  {
+    // Mappers, actions, the store and history parsing feed every UI, so they stay out of the UI folders.
+    // The connected tiles, the public barrel and the Lovelace card are where a UI is chosen.
+    files: ["src/ha/**/*.ts"],
+    ignores: ["src/ha/index.ts", "src/ha/lovelace/**"],
+    rules: { "no-restricted-imports": ["error", { patterns: uiFolders("Keep Home Assistant logic UI-free; import entity models from src/domains/.") }] },
   },
 );

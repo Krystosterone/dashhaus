@@ -1,4 +1,4 @@
-import type { AlarmEntity, AlarmMode } from "../../widgets/alarm/types";
+import type { AlarmEntity, AlarmMode } from "../../domains/alarm/types";
 import { HaActionError } from "../types";
 import type { HaStore } from "../types";
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ClimateEntity, ClimateHistory, HvacAction, HvacMode } from "../types";
+import type { ClimateEntity, ClimateHistory, HvacAction, HvacMode } from "../../../domains/climate/types";
 import type { HourSample } from "../../../shared/ui";
 
 /** Example data for stories. Times are fixed so screenshots stay stable. */

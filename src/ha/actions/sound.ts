@@ -1,4 +1,4 @@
-import type { SoundEntity } from "../../widgets/sound/types";
+import type { SoundEntity } from "../../domains/sound/types";
 import type { SoundVolumeRange } from "../mappers/sound";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";

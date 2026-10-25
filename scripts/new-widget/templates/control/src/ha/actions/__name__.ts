@@ -1,4 +1,4 @@
-import type { __Name__Entity } from "../../widgets/__name__/types";
+import type { __Name__Entity } from "../../domains/__name__/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

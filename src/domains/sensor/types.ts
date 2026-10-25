@@ -1,4 +1,4 @@
-import type { Reading } from "../../shared/ui";
+import type { Reading } from "../history";
 
 /**
  * A temperature and humidity sensor. In Home Assistant these are usually two sensor entities

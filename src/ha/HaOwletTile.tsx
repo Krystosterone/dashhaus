@@ -9,7 +9,7 @@ import { useNow } from "../shared/useNow";
 import { OwletTile } from "../widgets/owlet/OwletTile";
 import type { OwletTileProps } from "../widgets/owlet/OwletTile";
 import type { HaActionError, HassEntity } from "./types";
-import type { OwletAlert, OwletHistory } from "../widgets/owlet/types";
+import type { OwletAlert, OwletHistory } from "../domains/owlet/types";
 
 const ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 

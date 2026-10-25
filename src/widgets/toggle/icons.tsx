@@ -1,4 +1,4 @@
-import type { ToggleIcon } from "./types";
+import type { ToggleIcon } from "../../domains/toggle/types";
 
 
 const P = { fill: "none", stroke: "currentColor" } as const;

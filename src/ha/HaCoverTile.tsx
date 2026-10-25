@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { CoverTile } from "../widgets/cover/CoverTile";
 import type { CoverTileProps } from "../widgets/cover/CoverTile";
-import type { CoverHistory } from "../widgets/cover/types";
+import type { CoverHistory } from "../domains/cover/types";
 import type { HaActionError } from "./types";
 
 export interface HaCoverTileProps extends Omit<CoverTileProps, "entity" | "onOpenCover" | "onCloseCover" | "onStopCover" | "onSetPosition" | "onSetTilt"> {

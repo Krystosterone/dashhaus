@@ -1,4 +1,4 @@
-import type { ClimateEntity, HvacMode } from "../../widgets/climate/types";
+import type { ClimateEntity, HvacMode } from "../../domains/climate/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

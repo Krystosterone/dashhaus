@@ -1,5 +1,5 @@
 import type { HassEntity } from "../types";
-import type { LightEntity } from "../../widgets/light/types";
+import type { LightEntity } from "../../domains/light/types";
 import { finiteNumber, stringList, stringValue } from "../util";
 import { formatHaTime } from "../time";
 

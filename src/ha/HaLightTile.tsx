@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { LightTile } from "../widgets/light/LightTile";
 import type { LightTileProps } from "../widgets/light/LightTile";
-import type { LightHistory } from "../widgets/light/types";
+import type { LightHistory } from "../domains/light/types";
 import type { HaActionError } from "./types";
 
 export interface HaLightTileProps extends Omit<LightTileProps, "entity" | "onToggle" | "onBrightnessChange" | "onKelvinChange" | "onColorChange"> {

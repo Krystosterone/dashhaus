@@ -1,4 +1,4 @@
-import type { SensorEntity } from "../../widgets/sensor/types";
+import type { SensorEntity } from "../../domains/sensor/types";
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { finiteNumber, stringValue } from "../util";

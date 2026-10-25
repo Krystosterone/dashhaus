@@ -1,4 +1,4 @@
-import type { HourSample } from "../../shared/ui";
+import type { HourSample } from "../history";
 export type { HourSample };
 
 /** Mirrors the parts of a Home Assistant `light.*` entity the widget needs. */

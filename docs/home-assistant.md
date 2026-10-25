@@ -1,6 +1,6 @@
 # Home Assistant integration
 
-The dashboard remains a React/TypeScript component library. Presentational widgets keep their normalized entity props and callback actions; Home Assistant wire data is owned by `src/ha/`.
+The dashboard remains a React/TypeScript component library. The normalized entity models (`LightEntity`, `ClimateEntity`, …) live in `src/domains/`, free of any UI, so more than one UI can sit on them; presentational widgets take those models and callback actions as props. Home Assistant wire data is owned by `src/ha/`, whose mappers and actions import only from `src/domains/`.
 
 ## Data flow
 

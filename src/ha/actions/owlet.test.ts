@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createOwletHandlers } from "./owlet";
-import type { OwletEntity } from "../../widgets/owlet/types";
+import type { OwletEntity } from "../../domains/owlet/types";
 
 const sock: OwletEntity = { entityId: "sensor.owlet_sock_1_sleep_state", name: "Nova", state: "deep_sleep", baseOn: true };
 const baseEntityId = "switch.owlet_sock_1_base_station_on";

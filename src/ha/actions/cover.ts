@@ -1,4 +1,4 @@
-import type { CoverEntity } from "../../widgets/cover/types";
+import type { CoverEntity } from "../../domains/cover/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
 

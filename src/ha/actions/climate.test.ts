@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createClimateHandlers } from "./climate";
-import type { ClimateEntity } from "../../widgets/climate/types";
+import type { ClimateEntity } from "../../domains/climate/types";
 
 const entity: ClimateEntity = {
   entityId: "climate.living_room",

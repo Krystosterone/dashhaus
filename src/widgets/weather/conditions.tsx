@@ -1,4 +1,4 @@
-import type { Condition, HourlyForecast, WeatherEntity } from "./types";
+import type { Condition, HourlyForecast, WeatherEntity } from "../../domains/weather/types";
 
 export const CONDITION_LABEL: Record<Condition, string> = {
   sunny: "Sunny",

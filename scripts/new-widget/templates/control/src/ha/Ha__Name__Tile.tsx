@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { __Name__Tile } from "../widgets/__name__/__Name__Tile";
 import type { __Name__TileProps } from "../widgets/__name__/__Name__Tile";
-import type { __Name__History } from "../widgets/__name__/types";
+import type { __Name__History } from "../domains/__name__/types";
 import type { HaActionError } from "./types";
 
 export interface Ha__Name__TileProps extends Omit<__Name__TileProps, "entity" | "onToggle"> {

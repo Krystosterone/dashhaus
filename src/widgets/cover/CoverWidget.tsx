@@ -1,4 +1,4 @@
-import type { CoverEntity, CoverHistory, CoverClass } from "./types";
+import type { CoverEntity, CoverHistory, CoverClass } from "../../domains/cover/types";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
 import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";

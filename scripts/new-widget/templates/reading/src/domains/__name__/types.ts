@@ -1,4 +1,4 @@
-import type { Reading } from "../../shared/ui";
+import type { Reading } from "../history";
 
 /** Mirrors one Home Assistant `__domain__.*` reading. Add the attributes the card shows; keep raw HA shapes out. */
 export interface __Name__Entity {

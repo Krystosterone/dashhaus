@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { finiteNumber, stringValue } from "../util";
-import type { HumidifierAction, HumidifierEntity } from "../../widgets/humidifier/types";
+import type { HumidifierAction, HumidifierEntity } from "../../domains/humidifier/types";
 
 export interface HumidifierMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */

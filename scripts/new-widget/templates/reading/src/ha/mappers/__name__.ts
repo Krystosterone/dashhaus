@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { stringValue } from "../util";
-import type { __Name__Entity } from "../../widgets/__name__/types";
+import type { __Name__Entity } from "../../domains/__name__/types";
 
 export interface __Name__MapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */

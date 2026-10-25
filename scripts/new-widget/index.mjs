@@ -50,7 +50,7 @@ const reading = kind === "reading";
 
 // ---------- Validation ----------
 if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like "fan" or "airPurifier"`);
-if (existsSync(join(root, "src/widgets", name))) fail(`src/widgets/${name} already exists`);
+for (const dir of ["src/widgets", "src/domains"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
 // Names the dashboard stories already use as identifiers.
 if (["cell", "columns", "section", "device", "bundle", "dashboardPage", "widgetGrid"].includes(name)) fail(`"${name}" is taken by the dashboard layout`);
 if (!/^[a-z]{2}$/.test(code)) fail(`code "${code}" must be two lower-case letters: the widget's CSS class prefix`);
@@ -126,7 +126,7 @@ export { __Name__Widget, __Name__Sheet } from "./widgets/__name__/__Name__Widget
 export type { __Name__WidgetProps, __Name__SheetProps } from "./widgets/__name__/__Name__Widget";
 export { __Name__Tile } from "./widgets/__name__/__Name__Tile";
 export type { __Name__TileProps } from "./widgets/__name__/__Name__Tile";
-export type { __Name__Entity, __Name__History } from "./widgets/__name__/types";
+export type { __Name__Entity, __Name__History } from "./domains/__name__/types";
 export { Ha__Name__Tile } from "./ha";
 export type { Ha__Name__TileProps } from "./ha";
 
@@ -233,7 +233,7 @@ console.log(`Created the ${words} ${kind} widget (${code}-, ${domain}.*): ${crea
 
 Next:
   1. npm run storybook  →  Widgets/${Name} and Home Assistant/${tokens.__Label__} tile
-  2. Make it the ${words}: fields in src/widgets/${name}/types.ts, the card in ${Name}Widget.tsx,
+  2. Make it the ${words}: fields in src/domains/${name}/types.ts, the card in ${Name}Widget.tsx,
      attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
   3. Draw its icon in src/widgets/${name}/icons.tsx; move it to the right section in src/dashboards/Dashboards.stories.tsx
   4. Finish "Using the ${words} widget" in docs/widgets.md

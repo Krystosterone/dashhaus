@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Vars } from "../../shared/ui";
-import type { AlarmMode } from "./types";
+import type { AlarmMode } from "../../domains/alarm/types";
 import { ModeIcon, MODE_LABEL } from "./icons";
 
 /** The switch's segments. Armed in a mode the list leaves out (custom bypass, set from the panel itself): show it rather than "Off". */

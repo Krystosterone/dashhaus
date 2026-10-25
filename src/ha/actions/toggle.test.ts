@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createToggleHandlers } from "./toggle";
-import type { ToggleEntity } from "../../widgets/toggle/types";
+import type { ToggleEntity } from "../../domains/toggle/types";
 
 const entity: ToggleEntity = {
   entityId: "input_boolean.guest_mode",

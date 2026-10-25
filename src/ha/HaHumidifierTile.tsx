@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { HumidifierTile } from "../widgets/humidifier/HumidifierTile";
 import type { HumidifierTileProps } from "../widgets/humidifier/HumidifierTile";
-import type { HumidifierHistory } from "../widgets/humidifier/types";
+import type { HumidifierHistory } from "../domains/humidifier/types";
 import type { HaActionError } from "./types";
 
 export interface HaHumidifierTileProps extends Omit<HumidifierTileProps, "entity" | "onToggle" | "onTargetChange" | "onModeChange"> {

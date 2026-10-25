@@ -43,7 +43,7 @@ export { LightWidget, LightSheet } from "./widgets/light/LightWidget";
 export type { LightWidgetProps, LightSheetProps } from "./widgets/light/LightWidget";
 export { LightTile } from "./widgets/light/LightTile";
 export type { LightTileProps } from "./widgets/light/LightTile";
-export type { LightEntity, LightHistory, LightState } from "./widgets/light/types";
+export type { LightEntity, LightHistory, LightState } from "./domains/light/types";
 export { kelvinToLch, kelvinName, lampColor } from "./widgets/light/kelvin";
 
 // Climate
@@ -51,49 +51,49 @@ export { ClimateWidget, ClimateSheet } from "./widgets/climate/ClimateWidget";
 export type { ClimateWidgetProps, ClimateSheetProps } from "./widgets/climate/ClimateWidget";
 export { ClimateTile } from "./widgets/climate/ClimateTile";
 export type { ClimateTileProps } from "./widgets/climate/ClimateTile";
-export type { ClimateEntity, ClimateHistory, HvacMode, HvacAction } from "./widgets/climate/types";
+export type { ClimateEntity, ClimateHistory, HvacMode, HvacAction } from "./domains/climate/types";
 
 // Sensor
 export { SensorWidget, SensorSheet } from "./widgets/sensor/SensorWidget";
 export type { SensorWidgetProps, SensorSheetProps } from "./widgets/sensor/SensorWidget";
 export { SensorTile } from "./widgets/sensor/SensorTile";
 export type { SensorTileProps } from "./widgets/sensor/SensorTile";
-export type { SensorEntity, SensorHistory } from "./widgets/sensor/types";
+export type { SensorEntity, SensorHistory } from "./domains/sensor/types";
 
 // Weather (outdoor conditions)
 export { WeatherWidget, WeatherSheet } from "./widgets/weather/WeatherWidget";
 export type { WeatherWidgetProps, WeatherSheetProps } from "./widgets/weather/WeatherWidget";
 export { WeatherTile } from "./widgets/weather/WeatherTile";
 export type { WeatherTileProps } from "./widgets/weather/WeatherTile";
-export type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./widgets/weather/types";
+export type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./domains/weather/types";
 
 // Toggle (modes)
 export { ToggleWidget, ToggleSheet, DEFAULT_DURATIONS } from "./widgets/toggle/ToggleWidget";
 export type { ToggleWidgetProps, ToggleSheetProps } from "./widgets/toggle/ToggleWidget";
 export { ToggleTile } from "./widgets/toggle/ToggleTile";
 export type { ToggleTileProps } from "./widgets/toggle/ToggleTile";
-export type { ToggleEntity, ToggleHistory, ToggleIcon, DurationOption } from "./widgets/toggle/types";
+export type { ToggleEntity, ToggleHistory, ToggleIcon, DurationOption } from "./domains/toggle/types";
 
 // Cover (curtains, blinds, shades, garage doors)
 export { CoverWidget, CoverSheet } from "./widgets/cover/CoverWidget";
 export type { CoverWidgetProps, CoverSheetProps } from "./widgets/cover/CoverWidget";
 export { CoverTile } from "./widgets/cover/CoverTile";
 export type { CoverTileProps } from "./widgets/cover/CoverTile";
-export type { CoverEntity, CoverHistory, CoverClass } from "./widgets/cover/types";
+export type { CoverEntity, CoverHistory, CoverClass } from "./domains/cover/types";
 
 // Alarm (security panel)
 export { AlarmWidget, AlarmSheet } from "./widgets/alarm/AlarmWidget";
 export type { AlarmWidgetProps, AlarmSheetProps } from "./widgets/alarm/AlarmWidget";
 export { AlarmTile } from "./widgets/alarm/AlarmTile";
 export type { AlarmTileProps } from "./widgets/alarm/AlarmTile";
-export type { AlarmEntity, AlarmHistory, AlarmMode, AlarmState, AlarmAction } from "./widgets/alarm/types";
+export type { AlarmEntity, AlarmHistory, AlarmMode, AlarmState, AlarmAction } from "./domains/alarm/types";
 export type { AlarmResult } from "./widgets/alarm/AlarmWidget";
 // Owlet
 export { OwletWidget, OwletSheet } from "./widgets/owlet/OwletWidget";
 export type { OwletWidgetProps, OwletSheetProps } from "./widgets/owlet/OwletWidget";
 export { OwletTile } from "./widgets/owlet/OwletTile";
 export type { OwletTileProps } from "./widgets/owlet/OwletTile";
-export type { OwletEntity, OwletHistory, OwletAlert, SleepState } from "./widgets/owlet/types";
+export type { OwletEntity, OwletHistory, OwletAlert, SleepState } from "./domains/owlet/types";
 export { HaOwletTile } from "./ha";
 export type { HaOwletTileProps } from "./ha";
 
@@ -102,7 +102,7 @@ export { HumidifierWidget, HumidifierSheet } from "./widgets/humidifier/Humidifi
 export type { HumidifierWidgetProps, HumidifierSheetProps } from "./widgets/humidifier/HumidifierWidget";
 export { HumidifierTile } from "./widgets/humidifier/HumidifierTile";
 export type { HumidifierTileProps } from "./widgets/humidifier/HumidifierTile";
-export type { HumidifierEntity, HumidifierHistory } from "./widgets/humidifier/types";
+export type { HumidifierEntity, HumidifierHistory } from "./domains/humidifier/types";
 export { HaHumidifierTile } from "./ha";
 export type { HaHumidifierTileProps } from "./ha";
 
@@ -111,7 +111,7 @@ export { SoundWidget, SoundSheet } from "./widgets/sound/SoundWidget";
 export type { SoundWidgetProps, SoundSheetProps } from "./widgets/sound/SoundWidget";
 export { SoundTile } from "./widgets/sound/SoundTile";
 export type { SoundTileProps } from "./widgets/sound/SoundTile";
-export type { SoundEntity, SoundHistory } from "./widgets/sound/types";
+export type { SoundEntity, SoundHistory } from "./domains/sound/types";
 export { HaSoundTile } from "./ha";
 export type { HaSoundTileProps } from "./ha";
 

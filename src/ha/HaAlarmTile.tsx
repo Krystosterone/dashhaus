@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { AlarmTile } from "../widgets/alarm/AlarmTile";
 import type { AlarmTileProps } from "../widgets/alarm/AlarmTile";
-import type { AlarmHistory } from "../widgets/alarm/types";
+import type { AlarmHistory } from "../domains/alarm/types";
 import type { HaActionError } from "./types";
 
 export interface HaAlarmTileProps extends Omit<AlarmTileProps, "entity" | "onArm" | "onDisarm"> {

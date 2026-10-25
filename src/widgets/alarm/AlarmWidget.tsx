@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "./types";
+import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "../../domains/alarm/types";
 import { ShieldIcon, MODE_LABEL } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
 import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";

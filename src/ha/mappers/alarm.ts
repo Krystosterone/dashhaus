@@ -1,6 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
-import type { AlarmEntity, AlarmMode, AlarmState } from "../../widgets/alarm/types";
+import type { AlarmEntity, AlarmMode, AlarmState } from "../../domains/alarm/types";
 import { finiteNumber, stringValue } from "../util";
 
 export interface AlarmMapOptions {

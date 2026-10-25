@@ -1,4 +1,4 @@
-import type { LightEntity, LightHistory } from "./types";
+import type { LightEntity, LightHistory } from "../../domains/light/types";
 import { kelvinName, K_MIN, K_MAX } from "./kelvin";
 import { lampColorOf } from "./color";
 import type { Hs } from "./color";

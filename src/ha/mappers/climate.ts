@@ -1,6 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
-import type { ClimateEntity, HvacAction, HvacMode } from "../../widgets/climate/types";
+import type { ClimateEntity, HvacAction, HvacMode } from "../../domains/climate/types";
 import { finiteNumber, stringValue } from "../util";
 
 export interface ClimateMapOptions {

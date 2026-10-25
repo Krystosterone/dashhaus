@@ -11,7 +11,7 @@ import type { ClimateSeed } from "../widgets/climate/demo/useDemoClimate";
 import { SensorTile } from "../widgets/sensor/SensorTile";
 import { SENSOR_SEEDS } from "../widgets/sensor/demo/sensors";
 import type { SensorSeed } from "../widgets/sensor/demo/sensors";
-import type { Reading } from "../widgets/sensor/types";
+import type { Reading } from "../domains/sensor/types";
 import { WeatherTile } from "../widgets/weather/WeatherTile";
 import { WEATHER_SEEDS } from "../widgets/weather/demo/weather";
 import type { WeatherSeed } from "../widgets/weather/demo/weather";

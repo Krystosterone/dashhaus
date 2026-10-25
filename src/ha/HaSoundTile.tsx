@@ -8,7 +8,7 @@ import { useHaHistory } from "./useHaHistory";
 import { useNow } from "../shared/useNow";
 import { SoundTile } from "../widgets/sound/SoundTile";
 import type { SoundTileProps } from "../widgets/sound/SoundTile";
-import type { SoundHistory } from "../widgets/sound/types";
+import type { SoundHistory } from "../domains/sound/types";
 import type { HaActionError } from "./types";
 
 export interface HaSoundTileProps extends Omit<SoundTileProps, "entity" | "onToggle" | "onVolumeChange"> {

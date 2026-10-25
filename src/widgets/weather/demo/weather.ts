@@ -1,4 +1,4 @@
-import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../types";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../../../domains/weather/types";
 
 /** Example data for stories. The clock is fixed at 11:54 (the night example at 22:54). */
 export interface WeatherSeed { entity: WeatherEntity; history: WeatherHistory; hourly: HourlyForecast[]; daily: DailyForecast[] }

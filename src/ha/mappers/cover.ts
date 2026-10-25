@@ -1,5 +1,5 @@
 import type { HassEntity } from "../types";
-import type { CoverEntity, CoverClass } from "../../widgets/cover/types";
+import type { CoverEntity, CoverClass } from "../../domains/cover/types";
 import { formatHaTime } from "../time";
 import { finiteNumber, stringValue } from "../util";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clock, precipitation } from "./conditions";
-import type { Condition, HourlyForecast } from "./types";
+import type { Condition, HourlyForecast } from "../../domains/weather/types";
 
 const hours = (from: number, list: [Condition, number?][]): HourlyForecast[] =>
   list.map(([condition, p], i) => ({ hour: from + 1 + i, temperature: 5, condition, precipitationProbability: p }));

@@ -1,13 +1,13 @@
-import type { HourSample } from "../shared/ui";
-import type { LightHistory } from "../widgets/light/types";
-import type { ClimateHistory } from "../widgets/climate/types";
-import type { CoverHistory } from "../widgets/cover/types";
-import type { ToggleHistory } from "../widgets/toggle/types";
-import type { AlarmHistory } from "../widgets/alarm/types";
-import type { SensorHistory, Reading } from "../widgets/sensor/types";
-import type { WeatherHistory } from "../widgets/weather/types";
-import type { OwletHistory, SleepState } from "../widgets/owlet/types";
-import { SLEEP_SAMPLE } from "../widgets/owlet/readings";
+import type { HourSample } from "../domains/history";
+import type { LightHistory } from "../domains/light/types";
+import type { ClimateHistory } from "../domains/climate/types";
+import type { CoverHistory } from "../domains/cover/types";
+import type { ToggleHistory } from "../domains/toggle/types";
+import type { AlarmHistory } from "../domains/alarm/types";
+import type { SensorHistory, Reading } from "../domains/sensor/types";
+import type { WeatherHistory } from "../domains/weather/types";
+import type { OwletHistory, SleepState } from "../domains/owlet/types";
+import { SLEEP_SAMPLE } from "../domains/owlet/sleep";
 import { finiteNumber, isRecord, stringList } from "./util";
 
 /* ------------------------------------------------------------------ *

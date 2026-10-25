@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createLightHandlers } from "./light";
-import type { LightEntity } from "../../widgets/light/types";
+import type { LightEntity } from "../../domains/light/types";
 
 const entity: LightEntity = {
   entityId: "light.living_room",

@@ -1,4 +1,4 @@
-import type { ToggleEntity, ToggleHistory, DurationOption } from "./types";
+import type { ToggleEntity, ToggleHistory, DurationOption } from "../../domains/toggle/types";
 import { ToggleIconSvg } from "./icons";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";

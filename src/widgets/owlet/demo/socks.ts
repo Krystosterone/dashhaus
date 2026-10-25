@@ -1,6 +1,6 @@
 import type { HourSample } from "../../../shared/ui";
-import type { OwletEntity, OwletHistory, Reading, SleepState } from "../types";
-import { SLEEP_SAMPLE } from "../readings";
+import type { OwletEntity, OwletHistory, Reading, SleepState } from "../../../domains/owlet/types";
+import { SLEEP_SAMPLE } from "../../../domains/owlet/sleep";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

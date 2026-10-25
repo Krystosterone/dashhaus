@@ -1,4 +1,5 @@
-import type { HourSample, ColorName } from "../../shared/ui";
+import type { HourSample } from "../history";
+import type { ColorName } from "../color";
 
 export type ToggleIcon = "bell-off" | "moon" | "volume-off" | "guest" | "away" | "power" | "waves";
 
