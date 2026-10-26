@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { useRef } from "react";
 import type { ReactNode } from "react";
 import { DashboardPage, Section, Columns, WidgetGrid, Cell } from "./layout";
+import { NavBar } from "./NavBar";
+import { useScrollSpy } from "../../../hooks/useScrollSpy";
 import { DemoLightTile as Light } from "../widgets/light/demo/DemoLightTile";
 import { DemoClimateTile as Climate } from "../widgets/climate/demo/DemoClimateTile";
 import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile";
@@ -37,29 +40,35 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const PHONE_SECTIONS = [["quick", "Quick actions"], ["status", "Home status"], ["nursery", "Nursery"], ["rooms", "Rooms"]] as const;
+
 /** Phone: four frequent actions first (a bundle counts each member), then whole-home and nursery status,
-    then room readings. Compact controls and bundles keep the shared 60px rhythm. */
+    then room readings. Compact controls and bundles keep the shared 60px rhythm. The nav docked at the bottom
+    jumps to each section and marks the one being read. */
 function PhoneDashboard() {
+  const page = useRef<HTMLDivElement>(null);
+  const [reading, jump] = useScrollSpy(page);
+  const nav = <NavBar items={PHONE_SECTIONS.map(([id, label]) => ({ key: id, label, kind: "section", current: reading === id, onSelect: () => jump(id) }))} />;
   return (
     <Device label="Phone" width={390} height={844}>
-      <DashboardPage title="Home" now={NOW}>
-        <Section title="Quick actions" columns={2}>
+      <DashboardPage title="Home" now={NOW} pageRef={page} nav={nav}>
+        <Section id="quick" title="Quick actions" columns={2}>
           <Cell span={2}><Bundle bundle="nursery" /></Cell>
           <Cell span={2}><Light light="dimmable" footprint="compact" /></Cell>
         </Section>
-        <Section title="Home status">
+        <Section id="status" title="Home status">
           <Alarm alarm="ring" readOnly footprint="compact" />
           <Climate unit="heating" footprint="compact" />
           <Cover cover="garage" footprint="compact" />
           <Toggle mode="quiet" footprint="compact" />
           <Toggle mode="guest" footprint="compact" />
         </Section>
-        <Section title="Nursery">
+        <Section id="nursery" title="Nursery">
           <Owlet seed="deep" />
           <Climate unit="nurseryDyson" footprint="compact" />
           <Bundle bundle="sleep" />
         </Section>
-        <Section title="Rooms" columns={2}>
+        <Section id="rooms" title="Rooms" columns={2}>
           <Cell span={2}><Humidifier seed="on" footprint="compact" /></Cell>
           <Sensor sensor="living" />
           <Sensor sensor="bedroom" />

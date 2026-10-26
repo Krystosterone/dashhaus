@@ -98,6 +98,28 @@ function ActionFailureExample() {
   return <House transport={transport}><FailedAction /></House>;
 }
 
+/** docs/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
+const NAV_YAML = {
+  type: "custom:home-dashboard",
+  title: "Home",
+  sections: [
+    { title: "Quick actions", cards: [{ entity: "light.living_room", footprint: "compact" }, { entity: "switch.office", footprint: "compact" }] },
+    { title: "Home status", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }, { entity: "climate.living_room", footprint: "compact" }] },
+  ],
+  pages: [
+    { id: "living", title: "Living room", sections: [{ title: "Comfort", cards: ["climate.living_room"] }, { title: "Lights and blinds", cards: ["light.living_room", { entity: "cover.living_room", footprint: "compact" }] }] },
+    { id: "nursery", title: "Nursery", sections: [{ title: "Baby", cards: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }] }] },
+  ],
+  nav: [{ page: "home" }, { page: "living" }, { page: "nursery" }, { navigate: "/baby-view/0", label: "Baby view" }],
+};
+
+/** In Home Assistant the Baby view pill would leave for that dashboard; here it stays put. */
+function WithNav() {
+  const config = parseDashboardConfig(NAV_YAML);
+  return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} navigate={() => undefined} />;
+}
+
 export const FromYaml: Story = { name: "From YAML", render: () => <House><Configured /></House> };
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <House><Automatic /></House> };
 export const ActionFailure: Story = { name: "Action failure and retry", render: () => <ActionFailureExample /> };
+export const NavAndPages: Story = { name: "Nav and pages", render: () => <House><WithNav /></House> };

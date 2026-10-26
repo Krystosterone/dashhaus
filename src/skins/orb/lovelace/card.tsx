@@ -12,6 +12,7 @@ export const CARD_TYPE = "home-dashboard";
 const HOST_CSS = `
 :host { display: block; height: 100%; }
 .ha-surface { min-height: 100%; }
+.dash[data-nav] { min-height: calc(100dvh - var(--header-height, 56px)); }
 .hd-config-error { margin: 16px; padding: 16px; border-radius: 16px; background: var(--card-solid); color: var(--ink); font: 500 14px/1.5 var(--font); white-space: pre-wrap; }
 `;
 
@@ -42,7 +43,7 @@ export function createHomeDashboardCard(css: string) {
     }
 
     protected changed(previous: LovelaceHass, next: LovelaceHass) {
-      return previous.themes?.darkMode !== next.themes?.darkMode || (!this.config?.blocks && this.#autoStale(next));
+      return previous.themes?.darkMode !== next.themes?.darkMode || previous.panels !== next.panels || (!this.config?.blocks && this.#autoStale(next));
     }
 
     protected paintHost(config: DashboardConfig, hass: LovelaceHass) {
@@ -59,7 +60,7 @@ export function createHomeDashboardCard(css: string) {
     }
 
     protected draw(config: DashboardConfig, hass: LovelaceHass) {
-      return <ConfigDashboard config={{ ...config, blocks: this.#blocks(config, hass) }} />;
+      return <ConfigDashboard config={{ ...config, blocks: this.#blocks(config, hass) }} panels={hass.panels} />;
     }
 
     #autoStale(hass: LovelaceHass) {

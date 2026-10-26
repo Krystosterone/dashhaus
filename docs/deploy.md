@@ -69,7 +69,7 @@ sections:
         name: Nova
 ```
 
-**Storybook → Home Assistant / Config dashboard** shows this exact config on the demo data.
+**Storybook → Orb / Home Assistant / Config dashboard** shows this exact config on the demo data.
 
 The entity's domain picks the widget. One card shows one entity, though some widgets also read the device's other entities:
 
@@ -93,6 +93,8 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | card | `viewing` | `near` (default: a phone or tablet in the hand) or `far`, for a wall panel read from across the room: larger status lines, captions and warn cues, and heavier figures. Card heights don't change. |
 | card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
 | card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
+| card | `nav` | The bottom nav's destinations (see [Navigation](#navigation)), or `false` for none. |
+| card | `pages` | More pages in the card, each `id`, `title` and `sections` (see [Navigation](#navigation)). |
 | card | `sections` | The layout, top to bottom. Leave it out and the house is laid out automatically, kept up to date as you add devices. |
 | section | `title`, `note` | A heading. Without a title, the cards form a plain grid. |
 | section | `columns`, `gap` | Grid columns (default 1) and gap in px. |
@@ -118,6 +120,45 @@ When a domain has more than one widget, `widget:` picks one: `widget: owlet` for
 | bundle | `title`, `area`, `rows: [...]`, `span` | The parts of one thing under a lid naming it and its room; parts in that room drop it. Spell `area` as Home Assistant names the room. |
 
 README.md's Dashboards section has the composition rules: frequent actions first, then household status and the room/environment glance; one hero per screen; compact rows where alignment matters.
+
+### Navigation
+
+A nav docks at the bottom of the screen: one pill per destination, the one you're on in the accent. Without `nav`, it lists the card's pages when it has some, or else its sections, so even the automatic layout gets one. A wall panel (`viewing: far`) has none unless `nav` lists it, and a nav with a single destination isn't drawn. `nav: false` turns it off.
+
+A destination is one of three kinds, each with an optional `label`:
+
+- `section:` a section of the main page, by its title. A tap scrolls there; the pill stays lit while you read that section. From another page it returns to the main page first.
+- `page:` one of the card's own `pages`, by `id`, or `home` for the main page (the top-level `sections`). The page's title heads it, and the URL keeps it (`#page=living`), so back returns and a link opens it.
+- `navigate:` another Home Assistant dashboard or view, by its path. It's named after that dashboard and carries a small arrow, since it leaves this one.
+
+```yaml
+type: custom:home-dashboard
+title: Home
+sections:                     # the main page, `home`
+  - title: Quick actions
+    cards: [...]
+  - title: Home status
+    cards: [...]
+pages:
+  - id: living
+    title: Living room
+    sections:
+      - title: Comfort
+        cards: [climate.living_room]
+  - id: nursery
+    title: Nursery
+    sections:
+      - title: Baby
+        cards: [sensor.owlet_sock_ac000w0123_sleep_state]
+nav:
+  - page: home
+  - page: living
+  - page: nursery
+  - navigate: /baby-view/0
+    label: Baby view
+```
+
+**Storybook → Orb / Home Assistant / Config dashboard → Nav and pages** shows this config on the demo data. Pages take the same `sections` as the main page, so a room, a floor or a task can each have its own. Home Assistant shows its own tabs when a dashboard has several views, and each view would need its own card and `nav`; `pages` keeps one card and one nav, and `navigate:` stays for the dashboards that really are separate.
 
 ## What has and hasn't been verified
 

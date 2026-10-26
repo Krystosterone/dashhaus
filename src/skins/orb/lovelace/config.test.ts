@@ -179,3 +179,56 @@ describe("suggest", () => {
     expect(suggest("banana", ["color", "unit"])).toBeUndefined();
   });
 });
+
+describe("nav and pages", () => {
+  const sections = [{ title: "Quick actions", cards: ["light.a"] }, { title: "Home status", cards: ["climate.a"] }];
+
+  it("reads pages and a nav of sections, pages and other dashboards", () => {
+    const config = parseDashboardConfig({
+      sections,
+      pages: [{ id: "living", title: "Living room", sections: [{ title: "Lights", cards: ["light.b"] }] }],
+      nav: [{ section: "Home status", label: "Status" }, { page: "living" }, { page: "home" }, { navigate: "/baby-view/0", label: "Baby" }],
+    });
+    expect(config.pages).toEqual([{ id: "living", title: "Living room", blocks: [expect.objectContaining({ kind: "section", title: "Lights" })] }]);
+    expect(config.nav).toEqual([
+      { kind: "section", title: "Home status", label: "Status" },
+      { kind: "page", id: "living", label: undefined },
+      { kind: "page", id: "home", label: undefined },
+      { kind: "navigate", path: "/baby-view/0", label: "Baby" },
+    ]);
+  });
+
+  it("takes nav: false for no nav, and leaves both out by default", () => {
+    expect(parseDashboardConfig({ nav: false }).nav).toBe(false);
+    expect(parseDashboardConfig({})).toMatchObject({ nav: undefined, pages: undefined });
+  });
+
+  it("names every nav and page mistake, with the probable fix", () => {
+    expect(problems({
+      sections,
+      pages: [
+        { id: "living", title: "Living room", sections: [{ title: "Lights", cards: ["light.b"] }] },
+        { id: "living", title: "Again", sections: [{ cards: ["light.c"] }] },
+        { id: "home", title: "Home", sections: [{ cards: ["light.c"] }] },
+        { id: "Bad Id", sections: [] },
+      ],
+      nav: [{ section: "home status" }, { page: "livng" }, { navigate: "baby-view" }, { section: "a", page: "b" }, { lable: "x", page: "living" }, "light.a"],
+    })).toEqual([
+      'pages[2]: "id" can\'t be "home": that is the top-level sections',
+      'pages[3]: "id" is required: lower-case letters, digits, - and _, like living-room',
+      'pages[3]: "title" is required',
+      'pages[3]: "sections" must be a list of at least one section',
+      'pages: two pages have the id "living"',
+      'nav[2]: "navigate" is a Home Assistant path like /baby-view/0',
+      'nav[3]: needs exactly one of "section", "page", "navigate"',
+      'nav[4]: unknown key "lable" — did you mean "label"?',
+      'nav[5]: a nav item is a map with one of "section", "page" or "navigate"',
+      'nav[0]: no section titled "home status" in the top-level sections — did you mean "Home status"?',
+      'nav[1]: no page "livng" — did you mean "living"?',
+    ]);
+  });
+
+  it("can't check a section name against the automatic layout, so leaves it to the nav", () => {
+    expect(problems({ nav: [{ section: "Comfort" }] })).toEqual([]);
+  });
+});

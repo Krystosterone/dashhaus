@@ -136,11 +136,12 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 - **Compact stays quiet.** Compact cards never glow and never take the colour slot. Colour and glow belong to standard, featured and sheet surfaces.
 - **Mixing concerns is valid.** Room-first, importance-first and task-first layouts use the same cards; no `Section` or bundle is needed to normalize them.
 - **One wall, one column per place** remains the example wall-panel composition, not a requirement of the card system.
+- **Navigate without hiding.** A page can dock a bottom nav (`DashboardPage`'s `nav`, drawn by `NavBar`, its own stories under **Orb / Nav bar**): one raised pill per section, page or other dashboard, the current one in the solid accent, as a chosen chip is. A section pill scrolls there and stays lit while that section is read, so the page keeps its importance-first order; rooms that deserve their own page get one rather than a filter. The Lovelace card's `nav` and `pages` are in `docs/deploy.md` → Navigation.
 - **Set type for the viewing distance, not the width.** A wall panel read from across the room takes `viewing="far"` (YAML `viewing: far`): status lines, captions and warn cues grow and readouts gain a weight step, through the `--type-*` role tokens in `tokens.css`. Width can't tell a wall panel from a tablet in the hand, so it is never inferred, and card heights don't move.
 
 The Storybook dashboards demonstrate:
 
-- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and every bundle type share the same grid.
+- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and every bundle type share the same grid, and a nav docked at the bottom jumps between the four sections.
 - **Tablet, landscape:** the same four actions, one of them featured, followed by household and nursery status, then outside and room readings.
 - **Wall panel:** one column per place, each ordered actions, status, then glance; the complete 1280 × 800 surface fits without scrolling.
 - **Phone, ungrouped footprints:** unrelated widget types, all three footprints and both bundle forms share one `WidgetGrid` without a section.

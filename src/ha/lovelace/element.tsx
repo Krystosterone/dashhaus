@@ -25,6 +25,8 @@ export interface LovelaceHass {
   devices?: Record<string, { area_id?: string | null }>;
   areas?: Record<string, { name: string }>;
   themes?: { darkMode?: boolean };
+  /** The frontend's panels by URL path; a nav names the dashboards it goes to from them. */
+  panels?: Record<string, { url_path?: string; title?: string | null }>;
 }
 
 /** The states and registries an automatic layout reads, from `hass`. */

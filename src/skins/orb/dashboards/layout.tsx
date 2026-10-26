@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { CardHeadingLevelContext } from "../shared/ui";
 import type { Vars } from "../shared/ui";
 import { HeaderWidget } from "../widgets/header/HeaderWidget";
@@ -11,14 +11,19 @@ export interface DashboardPageProps extends HeaderWidgetProps {
   style?: CSSProperties;
   /** "far": a wall panel read from across the room; status, captions and readouts are set for distance. */
   viewing?: "near" | "far";
+  /** What docks at the bottom of the screen as the page scrolls: a `NavBar`, and anything that rides above it. */
+  nav?: ReactNode;
+  /** The page's root element, for a nav that follows its sections. */
+  pageRef?: Ref<HTMLDivElement>;
 }
 
-/** A dashboard page: the header widget (title, date, optional clock), then any composition. */
-export function DashboardPage({ children, style, viewing, ...header }: DashboardPageProps) {
+/** A dashboard page: the header widget (title, date, optional clock), then any composition, then its nav. */
+export function DashboardPage({ children, style, viewing, nav, pageRef, ...header }: DashboardPageProps) {
   return (
-    <div className="dash" style={style} data-viewing={viewing === "far" ? "far" : undefined}>
+    <div ref={pageRef} className="dash" style={style} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
       <HeaderWidget {...header} />
       {children}
+      {nav && <div className="dash-dock">{nav}</div>}
     </div>
   );
 }
@@ -46,10 +51,10 @@ export function WidgetGrid({ columns = 1, gap, children }: { columns?: number; g
   );
 }
 
-/** A titled grid of widgets. Each widget sizes itself from its cell's width. */
-export function Section({ title, note, columns = 1, gap, children }: { title: string; note?: string; columns?: number; gap?: number; children: ReactNode }) {
+/** A titled grid of widgets. Each widget sizes itself from its cell's width. `id` lets a nav find and jump to it. */
+export function Section({ id, title, note, columns = 1, gap, children }: { id?: string; title: string; note?: string; columns?: number; gap?: number; children: ReactNode }) {
   return (
-    <section className="dash-sec" aria-label={title}>
+    <section id={id} data-section-id={id} className="dash-sec" aria-label={title}>
       <h2 className="dash-sec-h">{title}{note && <small>{note}</small>}</h2>
       <CardHeadingLevelContext.Provider value={3}>
         <WidgetGrid columns={columns} gap={gap}>{children}</WidgetGrid>

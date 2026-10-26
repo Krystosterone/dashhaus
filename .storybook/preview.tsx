@@ -23,7 +23,7 @@ const preview: Preview = {
     // Storybook reads this statically, so it must stay a literal: one section per skin, then its own order.
     options: {
       storySort: {
-        order: ["Orb", ["Widgets", ["Header", "Light", "Climate", "Sensor", "Home", "Toggle", "Cover", "Alarm"], "Dashboards", ["Phone", "Phone, mixed sizes", "Tablet", "Wall panel"], "Foundations", "Bundles", "Home Assistant"]],
+        order: ["Orb", ["Widgets", ["Header", "Light", "Climate", "Sensor", "Home", "Toggle", "Cover", "Alarm"], "Dashboards", ["Phone", "Phone, mixed sizes", "Tablet", "Wall panel"], "Foundations", "Bundles", "Nav bar", "Home Assistant"]],
       },
     },
   },
