@@ -13,7 +13,7 @@ Read `docs/home-assistant.md` before changing the boundary. The current contract
 
 ### Boundary
 
-- Put provider-facing code under `src/ha/`. Keep `src/widgets/` independent of Home Assistant wire objects and transport imports. A mapper may import a widget's normalized type; a widget must not import the mapper or transport.
+- Put provider-facing code under `src/ha/`. Keep `src/skins/orb/widgets/` independent of Home Assistant wire objects and transport imports. A mapper may import a widget's normalized type; a widget must not import the mapper or transport.
 - Preserve raw entity snapshots keyed by `entity_id`, including the raw state string, attributes, and timestamps.
 - Keep `unknown`, `unavailable`, missing entities, and capability absence explicit. Suppress stale measured readings in the normalized model while an entity is unavailable; never default them to a safe-looking active or closed state.
 
@@ -54,7 +54,7 @@ Use one shared store per connection. Keep it small: the transport owns the socke
 - Route background reads through `useHaRequest` over `store.query` (forecasts) or `store.callApi` (history, registries); both stay out of action ordering and `lastActionError`.
 - Only the latest action owns `lastActionError`, and only within its generation. Keep provider string scalars (`translation_key`, `code`), never messages.
 - Shared React providers need reference-counted ownership so replacing/unmounting one provider cannot tear down a store still used by another.
-- The Lovelace card (`src/ha/lovelace/card.tsx`) builds its transport from the frontend's `hass.connection`: one store per connection, never closed by the card, and no re-render on every `hass` set; entity states reach tiles through the store.
+- The Lovelace card (`src/skins/orb/lovelace/card.tsx`) builds its transport from the frontend's `hass.connection`: one store per connection, never closed by the card, and no re-render on every `hass` set; entity states reach tiles through the store.
 
 ### Containers
 

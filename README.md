@@ -19,7 +19,7 @@ The host supplies authentication and an implementation of the transport (the rep
 - **Height never changes with state, entity type or width.** Set `footprint="compact" | "standard" | "featured"` on any tile; the default is `standard`. Width may simplify the internal arrangement, but it never changes the footprint or promotes a standard card to featured.
 - **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its orb, control and tappable name in the same places; a bare reading icon drops its empty orb-sized box so the name keeps its room. `featured` explicitly adds the Today strip and a large readout when that figure is not already printed on the control; below 260 px the readout yields to the orb. History remains in the sheet for smaller footprints.
 - **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a tap on the card's name (marked by a small chevron after it) or a press and hold on the main control. Below 186 px the chevron yields before the primary identity, but the name remains the same details button. The tap area spans the header (name and readout) under the orb; in compact rows it spans the title column, stopping 8 px short of the control, or the whole row when there is no control. No card spends a column on an open button; the only circle button is the sheet's close.
-- **One UI language.** Every signal has one meaning: shape says what you can do, fill says state, a dashed outline says unavailable. **Foundations / Palette** shows each one.
+- **One UI language.** Every signal has one meaning: shape says what you can do, fill says state, a dashed outline says unavailable. **Orb / Foundations / Palette** shows each one.
   - **Shape says what you can do.**
     - **Button** (`--btn`, raised): tap it. Orbs, toggle pills, the stepper's and open/close buttons, chips, keypad keys. A disabled button lies flat.
     - **Groove** (`--groove`, recessed): slide or set along it. Brightness, curtains and shades, the heat/cool range, the setpoint stepper, the alarm's mode switch, a countdown.
@@ -39,7 +39,7 @@ The host supplies authentication and an implementation of the transport (the rep
   - **The colour slot** is opt-in: the one place a widget can carry its own colour, and it's the orb only, never a fill or a glow. No widget colours its orb by default. Heat or cool is told by the mode icon and the words Heating / Cooling; a lamp's warmth or colour is named on its status line ("Office · Cool daylight", "Nursery · Amber"), and its hue is drawn only in its sheet, on the warmth ruler or the colour chips' swatches. Compact cards never take it. Every widget takes `color` ("lavender", `{ c, h }`, or "none"); toggles also read the entity's `color`. Widgets declare `data-role` (energy, state or reading) through `paint()` in `shared/ui.tsx`.
 - **Compact cards carry their own identity.** Every compact card shows a stable domain icon in its orb (thermostat, window, bulb), a concise primary identity, and one state/action cue — climate: mode and setpoint; covers: position or travel; lights: on/off and brightness. The area line carries the room, or the climate's current temperature and action; under a titled bundle's lid, which names the room once, a part's area line carries its own detail instead. Colour reinforces the state; it never defines the row. Icon size, stroke weight, text slots and action placement stay stable across widget types.
 - **One state vocabulary.** A state word appears once: simple toggles carry it on the control; climate and humidifiers carry their action on the status line and use **Turn on** as the off-state control. Each domain has one pair: On / Off (lights, modes), Open / Closed (covers), Armed home… / Disarmed (alarm), Heating · Cooling · Idle / Off (climate). Transitions use the verb: Opening, Closing, Arming, Disarming. A widget that can't be reached says **Unavailable** everywhere (slot, status line, "Unavailable since …" in the Today strip); controls keep their room on the status line, and readings show "Unavailable" in place of the reading.
-- **Light and dark themes** come from the tokens in `src/styles/tokens.css`. Never use a colour literal in a widget's CSS.
+- **Light and dark themes** come from the tokens in `src/skins/orb/styles/tokens.css`. Never use a colour literal in a widget's CSS.
 
 ## Motion and touch rules
 
@@ -66,7 +66,7 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
   - Zoom left enabled.
   - `body.ha-surface`, which also stops pull-to-refresh on the page.
   - See `.storybook/preview-head.html`.
-- **Worst-case data:** **Foundations / Worst case** runs every widget at narrow, medium and wide standard widths plus featured and compact footprints against realistic bad values.
+- **Worst-case data:** **Orb / Foundations / Worst case** runs every widget at narrow, medium and wide standard widths plus featured and compact footprints against realistic bad values.
   - The values: long and compound names, missing areas, raw floats, readings near zero or far past comfort, no reading yet, handles that meet, and every mode, preset and fan option.
   - A Demo / Worst case toggle switches the data. Check it after any change.
 - **Compact cards without a control.** Every widget accepts `showControl={false}` when `footprint="compact"` (default true). The card then has no pill, bar, stepper or switch: the value replaces it, and tapping the row opens the detail sheet. An actionable orb keeps its tap (switch) and hold (details). This works in bundles because bundles use the same tile contract. **Foundations / Compact rows** shows every widget both ways.
@@ -102,7 +102,7 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 - The same 8 px gap separates members. A lead plus one row is always 196 px.
 - Row orbs line up with the lead. Tap a row's name, or hold its orb, for its details.
 - The lead's history remains in its sheet. The sheet lists rows under "Also in this bundle", live; opening a row's sheet stacks it above the lead sheet.
-- Keep state above the bundle (as with Home Assistant, where it lives in `hass`): rows appear in the card and the lead's sheet, and both copies must show the same entity. `src/bundles/demo/DemoBundle.tsx` shows the demo-hook version.
+- Keep state above the bundle (as with Home Assistant, where it lives in `hass`): rows appear in the card and the lead's sheet, and both copies must show the same entity. `src/skins/orb/bundles/demo/DemoBundle.tsx` shows the demo-hook version.
 
 `SheetExtra` (in `shared/ui.tsx`) supplies the lead sheet's live rows.
 

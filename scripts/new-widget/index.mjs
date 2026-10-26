@@ -6,7 +6,7 @@
  *   npm run new-widget -- co2 --code co --domain sensor --kind reading --unit ppm
  *
  * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the widget
- * everywhere the conformance test (src/widgets/conformance.test.ts) looks, the Lovelace card included:
+ * everywhere the conformance test (src/skins/orb/widgets/conformance.test.ts) looks, the Lovelace card included:
  *   - control (default): an on/off entity with an orb and a pill, over `<domain>.toggle`.
  *   - reading: a read-only number with a bare icon and a readout, no services.
  * Nothing is written unless every file and every registration can be made.
@@ -16,6 +16,8 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
+/** The skin a new widget is drawn in; its logic goes outside it, in src/domains/ and src/ha/. */
+const SKIN = "src/skins/orb";
 const templates = fileURLToPath(new URL("./templates/", import.meta.url));
 const read = (path) => readFileSync(join(root, path), "utf8");
 
@@ -50,7 +52,7 @@ const reading = kind === "reading";
 
 // ---------- Validation ----------
 if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like "fan" or "airPurifier"`);
-for (const dir of ["src/widgets", "src/domains"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
+for (const dir of [`${SKIN}/widgets`, "src/domains"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
 // Names the dashboard stories already use as identifiers.
 if (["cell", "columns", "section", "device", "bundle", "dashboardPage", "widgetGrid"].includes(name)) fail(`"${name}" is taken by the dashboard layout`);
 if (!/^[a-z]{2}$/.test(code)) fail(`code "${code}" must be two lower-case letters: the widget's CSS class prefix`);
@@ -58,9 +60,9 @@ if (!/^[a-z][a-z0-9_]*$/.test(domain)) fail(`domain "${domain}" must be a Home A
 
 const agents = read("AGENTS.md");
 const taken = new Set([...agents.matchAll(/`([a-z]{2})-`/g)].map((m) => m[1]));
-for (const dir of readdirSync(join(root, "src/widgets")).filter((d) => statSync(join(root, "src/widgets", d)).isDirectory())) {
-  for (const file of readdirSync(join(root, "src/widgets", dir)).filter((f) => f.endsWith("Widget.tsx"))) {
-    const used = read(`src/widgets/${dir}/${file}`).match(/useCard\("([a-z]+)"/)?.[1];
+for (const dir of readdirSync(join(root, SKIN, "widgets")).filter((d) => statSync(join(root, SKIN, "widgets", d)).isDirectory())) {
+  for (const file of readdirSync(join(root, SKIN, "widgets", dir)).filter((f) => f.endsWith("Widget.tsx"))) {
+    const used = read(`${SKIN}/widgets/${dir}/${file}`).match(/useCard\("([a-z]+)"/)?.[1];
     if (used) taken.add(used);
   }
 }
@@ -121,14 +123,16 @@ const afterLast = (pattern, text) => (s) => {
 };
 
 // Public exports: the widget, its tile, its types, its hook and its connected tile.
-edit("src/index.ts", before('export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";', fill(`// __Label__
-export { __Name__Widget, __Name__Sheet } from "./widgets/__name__/__Name__Widget";
-export type { __Name__WidgetProps, __Name__SheetProps } from "./widgets/__name__/__Name__Widget";
-export { __Name__Tile } from "./widgets/__name__/__Name__Tile";
-export type { __Name__TileProps } from "./widgets/__name__/__Name__Tile";
+edit("src/index.ts", before('export { JoinedBundle, LeadBundle, TitledBundle } from "./skins/orb/bundles/Bundle";', fill(`// __Label__
+export { __Name__Widget, __Name__Sheet } from "./skins/orb/widgets/__name__/__Name__Widget";
+export type { __Name__WidgetProps, __Name__SheetProps } from "./skins/orb/widgets/__name__/__Name__Widget";
+export { __Name__Tile } from "./skins/orb/widgets/__name__/__Name__Tile";
+export type { __Name__TileProps } from "./skins/orb/widgets/__name__/__Name__Tile";
 export type { __Name__Entity, __Name__History } from "./domains/__name__/types";
-export { useHa__Name__, Ha__Name__, Ha__Name__Tile } from "./ha";
-export type { Ha__Name__Options, Ha__Name__Result, Ha__Name__TileProps } from "./ha";
+export { useHa__Name__, Ha__Name__ } from "./ha";
+export type { Ha__Name__Options, Ha__Name__Result } from "./ha";
+export { Ha__Name__Tile } from "./skins/orb/ha/Ha__Name__Tile";
+export type { Ha__Name__TileProps } from "./skins/orb/ha/Ha__Name__Tile";
 
 `)));
 
@@ -139,8 +143,6 @@ export type { __Name__Handlers, __Name__HandlerOptions } from "./actions/__name_
 `}export { useHa__Name__ } from "./hooks/__name__";
 export type { Ha__Name__Options, Ha__Name__Result } from "./hooks/__name__";
 export { Ha__Name__ } from "./headless";
-export { Ha__Name__Tile } from "./Ha__Name__Tile";
-export type { Ha__Name__TileProps } from "./Ha__Name__Tile";
 `));
 
 // Its headless component: the hook as a component that draws nothing.
@@ -155,7 +157,7 @@ edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__label__", fixture: __nam
 
 // On a dashboard: a control as a compact row in the phone's Quick actions section, a reading beside the room sensors.
 // Move it where it belongs; this only puts it on screen.
-const dashboards = "src/dashboards/Dashboards.stories.tsx";
+const dashboards = `${SKIN}/dashboards/Dashboards.stories.tsx`;
 edit(dashboards, afterLast(/^import \{ Demo\w+Tile as \w+ \} from "\.\.\/widgets\/.*$/gm, fill(`import { Demo__Name__Tile as __Name__ } from "../widgets/__name__/demo/Demo__Name__Tile";\n`)));
 edit(dashboards, (s) => {
   const start = s.indexOf(reading ? '<Section title="Rooms" columns={2}>' : '<Section title="Quick actions" columns={2}>');
@@ -199,7 +201,7 @@ One \`__domain__.*\` entity, switched on and off:
 edit("AGENTS.md", before("`hb-` bundles", `\`${code}-\` ${words}, `));
 
 // A card on the Lovelace dashboard. The domain picks it; when the domain already has a widget, `widget:` does.
-const lovelace = "src/ha/lovelace/config.ts";
+const lovelace = `${SKIN}/lovelace/config.ts`;
 /** Add a line at the end of a top-level `const <name> … = { … };` object. */
 const intoObject = (constName, line) => (s) => s.replace(new RegExp(`(const ${constName}\\b[^{]*\\{[\\s\\S]*?)(\\n\\};)`), `$1\n${line}$2`);
 const domainKinds = read(lovelace).match(/const DOMAIN_KIND\b[^{]*\{([\s\S]*?)\n\};/)?.[1];
@@ -210,13 +212,13 @@ edit(lovelace, sharesDomain ? intoObject("SHARED_KINDS", `  ${name}: { domains: 
 edit(lovelace, before("\n);\n\nexport type ItemConfig", `\n  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));
 edit(lovelace, intoObject("KIND_KEYS", `  ${name}: [${reading ? '"unit", ' : ""}"color"],`));
 edit(lovelace, before("    }\n  }\n\n  cards(", `      case "${name}": return { ...base, kind,${reading ? ' unit: this.string(raw, "unit", at),' : ""} color: color() };\n`));
-const renderer = "src/ha/lovelace/ConfigDashboard.tsx";
-edit(renderer, afterLast(/^import \{ Ha\w+Tile \} from "\.\.\/Ha\w+Tile";$/gm, fill(`import { Ha__Name__Tile } from "../Ha__Name__Tile";\n`)));
+const renderer = `${SKIN}/lovelace/ConfigDashboard.tsx`;
+edit(renderer, afterLast(/^import \{ Ha\w+Tile \} from "\.\.\/ha\/Ha\w+Tile";$/gm, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";\n`)));
 edit(renderer, before("  }\n}\n\nfunction item(", fill(`    case "__name__": return <Ha__Name__Tile key={key} {...common} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />;\n`)));
 // The automatic layout: a control on a domain of its own joins the compact controls per area.
 const placed = !reading && !sharesDomain;
 if (placed) {
-  edit("src/ha/lovelace/auto.ts", (s) => s
+  edit(`${SKIN}/lovelace/auto.ts`, (s) => s
     .replace(/const controls = ofDomain\(([^)]*)\);/, `const controls = ofDomain($1, "${domain}");`)
     .replace(/const order = \[([^\]]*)\];/, `const order = [$1, "${domain}"];`));
 }
@@ -239,13 +241,13 @@ const created = [...writes.keys()].filter((p) => p.includes(`/${name}`) || p.inc
 console.log(`Created the ${words} ${kind} widget (${code}-, ${domain}.*): ${created.length} files, registered in ${writes.size - created.length} more.
 
 Next:
-  1. npm run storybook  →  Widgets/${Name} and Home Assistant/${tokens.__Label__} tile
+  1. npm run storybook  →  Orb/Widgets/${Name} and Orb/Home Assistant/${tokens.__Label__} tile
   2. Make it the ${words}: fields in src/domains/${name}/types.ts, the card in ${Name}Widget.tsx,
      attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
-  3. Draw its icon in src/widgets/${name}/icons.tsx; move it to the right section in src/dashboards/Dashboards.stories.tsx
+  3. Draw its icon in ${SKIN}/widgets/${name}/icons.tsx; move it to the right section in ${SKIN}/dashboards/Dashboards.stories.tsx
   4. Finish "Using the ${words} widget" in docs/widgets.md
-  5. Its Lovelace card: its YAML keys in src/ha/lovelace/config.ts and docs/deploy.md${placed ? "" : `,
-     and its place in the automatic layout, src/ha/lovelace/auto.ts`}${sharesDomain ? `
+  5. Its Lovelace card: its YAML keys in ${SKIN}/lovelace/config.ts and docs/deploy.md${placed ? "" : `,
+     and its place in the automatic layout, ${SKIN}/lovelace/auto.ts`}${sharesDomain ? `
      (${domain}.* already has a widget, so a card picks this one with \`widget: ${name}\`, or without it
      once its SHARED_KINDS entry has an \`id\` pattern for its entity ids, as owlet's does)` : ""}
   6. npm run check && npm run test-storybook`);

@@ -9,8 +9,8 @@ const haBoundary = [
   { group: ["**/ha", "**/ha/*"], message: "Widgets stay provider-agnostic; connect them in a src/ha/ container." },
   { group: ["**/index"], message: "Import the module directly, not the public barrel." },
 ];
-const currentUi = ["**/widgets/**", "**/shared/**", "**/bundles/**", "**/dashboards/**", "**/stories/**", "**/styles/**"];
-const uiFolders = (message) => [{ group: [...currentUi, "**/glass/**", "*.css", "**/*.css"], message }];
+/** A skin is a whole UI; what every skin shares never imports one. */
+const noSkin = (message) => [{ group: ["**/skins/**", "*.css", "**/*.css"], message }];
 
 export default tseslint.config(
   { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**"] },
@@ -39,42 +39,33 @@ export default tseslint.config(
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
-    // The Home Assistant boundary: widgets, layout and stories never see the transport or raw
-    // entities. Only src/ha/ and the public barrel may import the integration.
+    // The Home Assistant boundary: a skin's widgets, layout and stories never see the transport or raw entities.
+    // Only src/ha/, the public barrel, and a skin's own ha/ (connected tiles) and lovelace/ (its card) may import it.
+    // Skins never import each other either; src/skins/boundaries.test.ts checks that.
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/ha/**", "src/index.ts"],
+    ignores: ["src/ha/**", "src/index.ts", "src/skins/*/ha/**", "src/skins/*/lovelace/**"],
     rules: { "no-restricted-imports": ["error", { patterns: haBoundary }] },
   },
   {
-    // Two UIs over the same logic, and neither borrows from the other: what both need moves to src/domains/
-    // or src/hooks/.
-    files: ["src/{widgets,shared,bundles,dashboards,stories,styles}/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, { group: ["**/glass/**"], message: "The current UI never imports the glass UI; share through src/domains/ or src/hooks/." }] }] },
-  },
-  {
-    files: ["src/glass/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, { group: currentUi, message: "The glass UI never imports the current UI; share through src/domains/ or src/hooks/." }] }] },
-  },
-  {
-    // The domain boundary: entity models and their pure logic know no UI and no framework, so every UI
-    // and the Home Assistant mappers can share them.
+    // The domain boundary: entity models and their pure logic know no UI and no framework, so every skin and the
+    // Home Assistant mappers can share them.
     files: ["src/domains/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
-        patterns: [...haBoundary, ...uiFolders("Domain models know no UI; move the shared part into src/domains/."), { group: ["react", "react-dom", "react/*"], message: "Domain models are framework-free." }],
+        patterns: [...haBoundary, ...noSkin("Domain models know no UI; move the shared part into src/domains/."), { group: ["react", "react-dom", "react/*"], message: "Domain models are framework-free." }],
       }],
     },
   },
   {
-    // React hooks with no UI of their own (the minute clock), shared by every UI and the Home Assistant hooks.
+    // React hooks with no UI of their own (the minute clock, the track's pointer input), for every skin.
     files: ["src/hooks/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, ...uiFolders("src/hooks/ holds UI-free hooks; keep UI in its own folder.")] }] },
+    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, ...noSkin("src/hooks/ holds UI-free hooks; keep UI in its skin.")] }] },
   },
   {
-    // Mappers, actions, hooks, the store and history parsing feed every UI, so they stay out of the UI folders.
-    // The connected tiles, the public barrel and the Lovelace card are where a UI is chosen.
+    // Mappers, actions, hooks, headless components, the store and the Lovelace element base feed every skin, so
+    // they never import one. The bundle's entry is where the skins' cards are registered.
     files: ["src/ha/**/*.{ts,tsx}"],
-    ignores: ["src/ha/index.ts", "src/ha/lovelace/**", "src/ha/Ha*Tile*.tsx"],
-    rules: { "no-restricted-imports": ["error", { patterns: uiFolders("Keep Home Assistant logic UI-free; import entity models from src/domains/.") }] },
+    ignores: ["src/ha/lovelace/entry.ts"],
+    rules: { "no-restricted-imports": ["error", { patterns: noSkin("Keep Home Assistant logic skin-free; import entity models from src/domains/.") }] },
   },
 );

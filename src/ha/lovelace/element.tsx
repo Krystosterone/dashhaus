@@ -7,7 +7,15 @@ import { HaProvider } from "../provider";
 import { createHaStore } from "../store";
 import { createHomeAssistantTransport } from "../home-assistant";
 import type { HaStore, HassEntities } from "../types";
-import type { AutoEntityEntry } from "./auto";
+
+/** Registry facts per entity: the shape of the frontend's `hass.entities`. */
+export interface AutoEntityEntry {
+  device_id?: string | null;
+  area_id?: string | null;
+  hidden?: boolean;
+  /** "config" or "diagnostic" entities are plumbing, never dashboard content. */
+  entity_category?: string | null;
+}
 
 /** The part of the frontend's `hass` object the cards read. Lovelace sets a new one on every change. */
 export interface LovelaceHass {
@@ -17,8 +25,6 @@ export interface LovelaceHass {
   devices?: Record<string, { area_id?: string | null }>;
   areas?: Record<string, { name: string }>;
   themes?: { darkMode?: boolean };
-  /** The signed-in person; the glass card greets them by name. */
-  user?: { name?: string };
 }
 
 /** The states and registries an automatic layout reads, from `hass`. */

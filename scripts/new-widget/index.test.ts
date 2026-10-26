@@ -27,7 +27,7 @@ describe("new-widget", () => {
   it.each(WIDGETS)("finds every anchor for %s", (...args) => {
     const { status, output } = run(root, "node", [script, ...args, "--dry-run"]);
     expect(status, output).toBe(0);
-    for (const path of ["src/ha/lovelace/config.ts", "src/ha/lovelace/ConfigDashboard.tsx", "docs/deploy.md"]) {
+    for (const path of ["src/skins/orb/lovelace/config.ts", "src/skins/orb/lovelace/ConfigDashboard.tsx", "docs/deploy.md"]) {
       expect(output).toContain(`edit   ${path}`);
     }
   });
@@ -49,7 +49,7 @@ describe("new-widget", () => {
       }
       const typecheck = run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "src/widgets/conformance.test.ts", "src/ha/lovelace", "src/ha/mappers/fixtures.test.ts"]);
+      const tests = run(copy, "npx", ["vitest", "run", "src/skins/orb/widgets/conformance.test.ts", "src/skins/orb/lovelace", "src/ha/lovelace", "src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
     }, 120_000);
   });
