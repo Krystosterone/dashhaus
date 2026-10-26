@@ -8,11 +8,13 @@ import { scopeToHost } from "../../../ha/lovelace/styles";
 
 export const CARD_TYPE = "home-dashboard";
 
-/** The card fills its view; tokens.css's dashboard surface paints the page behind it. */
+/** The card fills its view; tokens.css's dashboard surface paints the page behind it. Home Assistant's toolbar
+    (`--header-height`, plus the notch) sits over the top of the view, so a nav jump stops below it. */
 const HOST_CSS = `
 :host { display: block; height: 100%; }
 .ha-surface { min-height: 100%; }
 .dash[data-nav] { min-height: calc(100dvh - var(--header-height, 56px)); }
+.dash { --dash-scroll-offset: calc(var(--header-height, 56px) + var(--safe-area-inset-top, 0px)); }
 .hd-config-error { margin: 16px; padding: 16px; border-radius: 16px; background: var(--card-solid); color: var(--ink); font: 500 14px/1.5 var(--font); white-space: pre-wrap; }
 `;
 

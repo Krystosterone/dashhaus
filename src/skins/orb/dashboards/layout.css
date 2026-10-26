@@ -17,6 +17,11 @@
   .dash-cell { grid-column: 1; }
 }
 
+/* A jump (the nav to a section, a page opening at its top) stops clear of whatever a host lays over the top of
+   the screen: --dash-scroll-offset, which the Lovelace card sets to Home Assistant's toolbar. */
+.dash { scroll-margin-top: var(--dash-scroll-offset, 0px); }
+.dash-sec { scroll-margin-top: calc(var(--dash-scroll-offset, 0px) + 12px); }
+
 /* The page's nav, docked: sticky to the bottom of the screen as the page scrolls. The page becomes a column, so in
    a host that gives it the screen's height (the Lovelace card) the dock rests at the bottom of a short page. */
 .dash[data-nav] { display: flex; flex-direction: column; }

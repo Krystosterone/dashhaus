@@ -51,6 +51,7 @@ describe("home-dashboard card", () => {
     const card = await mount({ title: "Flat", sections: [{ title: "Lights", cards: ["light.kitchen"] }] });
     const shadow = card.shadowRoot!;
     expect(shadow.querySelector("style")?.textContent).toContain(':host([data-theme="dark"])');
+    expect(shadow.querySelector("style")?.textContent).toContain("--dash-scroll-offset: calc(var(--header-height, 56px)");
     expect(shadow.querySelector(".dash-sec-h")?.textContent).toBe("Lights");
     expect(shadow.textContent).toContain("Kitchen");
   });
