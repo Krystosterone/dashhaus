@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useHaSelector, useHaStore } from "../../../ha/provider";
-import { HaLight } from "../../../ha/headless";
+import { HaClimate, HaLight } from "../../../ha/headless";
 import { actionMessage } from "../../../ha/lovelace/actionMessage";
+import { ClimateModule } from "../widgets/climate/ClimateModule";
 import { LightModule } from "../widgets/light/LightModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
@@ -9,11 +10,19 @@ import { groupByArea } from "./auto";
 import type { ModuleConfig } from "./config";
 import "./dashboard.css";
 
-/** One module, live: the useHaLight hook through its headless component, today's history for its panel. */
+/** One live module, routed by its validated entity domain to the skin-free hook and the matching Field drawing. */
 function LiveModule({ item, footprint }: { item: ModuleConfig; footprint: FieldFootprint }) {
+  const moduleFootprint = item.footprint ?? footprint;
+  if (item.entity.startsWith("climate.")) {
+    return (
+      <HaClimate entityId={item.entity} name={item.name} area={item.area}>
+        {(climate) => <ClimateModule entity={climate.entity} history={climate.history} footprint={moduleFootprint} {...climate.actions} />}
+      </HaClimate>
+    );
+  }
   return (
     <HaLight entityId={item.entity} name={item.name} area={item.area}>
-      {(l) => <LightModule entity={l.entity} history={l.history} footprint={item.footprint ?? footprint} {...l.actions} />}
+      {(light) => <LightModule entity={light.entity} history={light.history} footprint={moduleFootprint} {...light.actions} />}
     </HaLight>
   );
 }
@@ -67,7 +76,7 @@ export function FieldDashboard({ title, items, footprint }: FieldDashboardProps)
           </div>
         </section>
       ))}
-      {items.length === 0 && <p className="fd-dash-empty">No lights yet. Add <code>modules</code> to the card, or a light to Home Assistant.</p>}
+      {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light or climate entity to Home Assistant.</p>}
       <ActionNotice />
     </div>
   );

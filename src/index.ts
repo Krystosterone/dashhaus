@@ -65,6 +65,13 @@ export type { ClimateWidgetProps, ClimateSheetProps } from "./skins/orb/widgets/
 export { ClimateTile } from "./skins/orb/widgets/climate/ClimateTile";
 export type { ClimateTileProps } from "./skins/orb/widgets/climate/ClimateTile";
 export type { ClimateEntity, ClimateHistory, HvacMode, HvacAction } from "./domains/climate/types";
+// Field skin
+export { ClimateModule } from "./skins/field/widgets/climate/ClimateModule";
+export type { ClimateModuleProps } from "./skins/field/widgets/climate/ClimateModule";
+export { HaClimateModule } from "./skins/field/ha/HaClimateModule";
+export type { HaClimateModuleProps } from "./skins/field/ha/HaClimateModule";
+export type { FieldFootprint } from "./skins/field/shared/ui";
+
 
 // Sensor
 export { SensorWidget, SensorSheet } from "./skins/orb/widgets/sensor/SensorWidget";

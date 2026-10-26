@@ -29,7 +29,7 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/hooks/light.ts` (`useHaLight`) selects the raw light, maps it, reads today's history and builds the handlers; `src/skins/orb/ha/HaLightTile.tsx` is that hook above the existing `LightTile`. Every kind has the same pair: a `useHa<Kind>` hook in `src/ha/hooks/` that any UI can call, and a `Ha<Kind>Tile` that hands its result to this UI's tile.
 - `src/ha/mappers/climate.ts` maps HVAC modes/actions, temperatures, setpoint ranges, limits, units, presets, fans, and timestamps into the existing `ClimateEntity` model.
 - `src/ha/actions/climate.ts` builds climate on/off, setpoint, range, mode, preset, and fan payloads, gates capability arrays, validates finite/ranged temperatures, and reports rejected actions.
-- `src/skins/orb/ha/HaClimateTile.tsx` connects the store to the existing `ClimateTile` without changing the widget's visual contract.
+- `src/skins/orb/ha/HaClimateTile.tsx` and `src/skins/field/ha/HaClimateModule.tsx` connect the same hook to each skin without changing the normalized climate contract.
 - `src/ha/mappers/sensor.ts` composes a primary temperature or humidity sensor with optional humidity and battery companions, preserving numeric readings, units, availability, outdoor metadata, and timestamps.
 - `src/skins/orb/ha/HaSensorTile.tsx` connects the shared store to the existing read-only `SensorTile`; it has no service actions.
 - `src/ha/mappers/weather.ts` maps `weather.*` conditions and numeric readings, composes explicit `sensor.*` AQI and `sun.sun` companions, and parses response-shaped hourly/daily forecast data without treating forecasts as current state.

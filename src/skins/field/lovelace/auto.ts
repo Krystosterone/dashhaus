@@ -20,8 +20,8 @@ export function areaName(input: AutoInput, entityId: string): string | undefined
 }
 
 /**
- * Every entity field can draw, for a card without `modules`: hidden and config or diagnostic entities left out,
- * by name. The dashboard groups them by area.
+ * Every supported entity Field can draw, for a card without `modules`: hidden and config or diagnostic entities
+ * left out, sorted by name. The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states, entities = {} } = input;

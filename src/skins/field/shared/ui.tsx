@@ -1,5 +1,5 @@
-import { useId } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import { useId, useRef } from "react";
+import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useTrack, trackPos } from "../../../hooks/useTrack";
 import { useLongPress } from "../../../hooks/useLongPress";
 import { useSheet } from "../../../hooks/useSheet";
@@ -150,7 +150,8 @@ export interface FaderProps {
   label: string;
   /** The word printed over the slot, with a rule out to its end, e.g. "Brightness". */
   legend: string;
-  value: number;
+  /** Omit when no trustworthy value exists; the disabled fader keeps its scale but draws no thumb. */
+  value?: number;
   min: number;
   max: number;
   step?: number;
@@ -172,32 +173,139 @@ const THUMB_HALF = 9;
  * that leaves vertical swipes to the page; a hidden range input carries the keyboard and screen readers.
  */
 export function Fader({ id, label, legend, value, min, max, step = 1, lit, disabled, param = "a", valueText, onChange }: FaderProps) {
-  const v = Math.min(max, Math.max(min, value));
+  const known = value != null && Number.isFinite(value);
+  const v = known ? Math.min(max, Math.max(min, value)) : min;
+  const inactive = disabled || !known;
   const track = useTrack<HTMLDivElement>((x, el) => {
-    if (disabled) return;
+    if (inactive) return;
     const next = Math.min(max, Math.max(min, min + Math.round((trackPos(x, el.getBoundingClientRect(), THUMB_HALF) * (max - min)) / step) * step));
     if (next !== v || !lit) onChange(next);
   });
+  const style = (known ? { "--v": ((v - min) / Math.max(1, max - min)).toFixed(4) } : {}) as Vars;
   return (
-    <div className="fd-fader" ref={track.ref} data-lit={lit} data-param={param} data-disabled={disabled || undefined} style={{ "--v": ((v - min) / Math.max(1, max - min)).toFixed(4) } as Vars}>
+    <div className="fd-fader" ref={track.ref} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>
       <p className="fd-legend" aria-hidden="true">{legend}</p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
-      <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>
-      <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : track.handlers)} />
+      {known && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
+      {known && <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : track.handlers)} />}
+      {known && (
+        <input
+          id={id}
+          className="fd-in"
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={v}
+          disabled={disabled}
+          aria-label={label}
+          aria-valuetext={valueText}
+          onKeyDown={track.onKeyDown}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+      )}
+    </div>
+  );
+}
+
+export interface RangeFaderProps {
+  id: string;
+  name: string;
+  legend: string;
+  low: number;
+  high: number;
+  min: number;
+  max: number;
+  step?: number;
+  disabled?: boolean;
+  lowValueText: string;
+  highValueText: string;
+  onChange: (low: number, high: number) => void;
+}
+
+/**
+ * Two ordered values on Field's fader grammar. The lower thumb is parameter A and the upper is parameter B;
+ * text and two native sliders keep their meanings explicit. Tap/drag moves the nearest thumb, and overlapping
+ * thumbs choose from the tap side or the first drag direction.
+ */
+export function RangeFader({ id, name, legend, low, high, min, max, step = 1, disabled, lowValueText, highValueText, onChange }: RangeFaderProps) {
+  const lo = Math.min(max, Math.max(min, Math.min(low, high)));
+  const hi = Math.min(max, Math.max(min, Math.max(low, high)));
+  const span = Math.max(step, max - min);
+  const which = useRef<"low" | "high" | null>(null);
+
+  const apply = (thumb: "low" | "high", value: number) => {
+    const nextLow = thumb === "low" ? Math.min(value, hi) : lo;
+    const nextHigh = thumb === "high" ? Math.max(value, lo) : hi;
+    if (nextLow !== lo || nextHigh !== hi) onChange(nextLow, nextHigh);
+  };
+  const track = useTrack<HTMLDivElement>((x, el, phase, x0) => {
+    if (disabled) return;
+    const snapped = Math.round((min + trackPos(x, el.getBoundingClientRect(), THUMB_HALF) * span) / step) * step;
+    const at = Math.min(max, Math.max(min, Number(snapped.toFixed(4))));
+    if (phase === "jump") {
+      which.current = null;
+      apply(lo === hi ? (at > lo ? "high" : "low") : Math.abs(at - lo) <= Math.abs(at - hi) ? "low" : "high", at);
+      return;
+    }
+    if (!which.current) {
+      const start = Math.round((min + trackPos(x0, el.getBoundingClientRect(), THUMB_HALF) * span) / step) * step;
+      which.current = lo === hi ? (x > x0 ? "high" : "low") : Math.abs(start - lo) <= Math.abs(start - hi) ? "low" : "high";
+    }
+    apply(which.current, at);
+  });
+  const endGesture = {
+    onPointerUp: (event: PointerEvent<HTMLDivElement>) => {
+      track.handlers.onPointerUp(event);
+      which.current = null;
+    },
+    onPointerCancel: (event: PointerEvent<HTMLDivElement>) => {
+      track.handlers.onPointerCancel(event);
+      which.current = null;
+    },
+  };
+
+  return (
+    <div
+      className="fd-fader fd-range"
+      ref={track.ref}
+      data-disabled={disabled || undefined}
+      style={{ "--fd-lo": ((lo - min) / span).toFixed(4), "--fd-hi": ((hi - min) / span).toFixed(4) } as Vars}
+    >
+      <p className="fd-legend" aria-hidden="true">{legend}</p>
+      <div className="fd-slot" aria-hidden="true" />
+      <div className="fd-scale" aria-hidden="true" />
+      <div className="fd-rail fd-range-rail fd-range-rail--low" data-param="a" aria-hidden="true"><div className="fd-thumb" /></div>
+      <div className="fd-rail fd-range-rail fd-range-rail--high" data-param="b" aria-hidden="true"><div className="fd-thumb" /></div>
+      <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : track.handlers)} {...(disabled ? {} : endGesture)} />
       <input
-        id={id}
-        className="fd-in"
+        id={`${id}-low`}
+        className="fd-in fd-range-in fd-range-in--low"
         type="range"
         min={min}
         max={max}
         step={step}
-        value={v}
+        value={lo}
         disabled={disabled}
-        aria-label={label}
-        aria-valuetext={valueText}
+        aria-label={`${name}, heat below`}
+        aria-valuetext={lowValueText}
         onKeyDown={track.onKeyDown}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(event) => apply("low", Number(event.target.value))}
+      />
+      <input
+        id={`${id}-high`}
+        className="fd-in fd-range-in fd-range-in--high"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={hi}
+        disabled={disabled}
+        aria-label={`${name}, cool above`}
+        aria-valuetext={highValueText}
+        onKeyDown={track.onKeyDown}
+        onChange={(event) => apply("high", Number(event.target.value))}
       />
     </div>
   );
@@ -214,12 +322,12 @@ export function Legend({ id, children, value }: { id?: string; children: ReactNo
 }
 
 /**
- * Today on a strip of screen, one segment column per hour, lit in the parameter's colour to that hour's level.
- * Hours not yet come are dark; unavailable hours show a dash; the current hour has a tick under it.
+ * Today on a strip of screen, one segment column per hour. Parameter tones identify adjustable history; neutral
+ * is for activity such as climate runtime. Hours not yet come are dark; unavailable hours show a dash.
  */
-export function Meter({ label, samples, currentHour }: { label: string; samples: HourSample[]; currentHour: number }) {
+export function Meter({ label, samples, currentHour, tone = "a" }: { label: string; samples: HourSample[]; currentHour: number; tone?: Param | "neutral" }) {
   return (
-    <div className="fd-meter" role="img" aria-label={label}>
+    <div className="fd-meter" role="img" aria-label={label} data-tone={tone}>
       {Array.from({ length: 24 }, (_, i) => {
         const x = samples[i];
         const state = x === "unavailable" ? "unav" : x == null ? "none" : "lvl";

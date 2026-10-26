@@ -66,6 +66,12 @@ The control slot follows the mode: a minus/plus stepper (a groove holding two bu
 
 **Heat/cool range bar.** In Home Assistant's `heat_cool` mode, `target_temp_low` is the heat threshold, `target_temp_high` the cool threshold, and `target_temp_low <= target_temp_high`. The bar is a groove spanning the unit's `min_temp` to `max_temp`: left of the low handle it heats, right of the high handle it cools, and between them the unit rests. The zone it is working in fills with the accent, and a tick marks the room temperature. Each handle shows its value. At widths of 260 px and up, press anywhere on the bar and the nearest handle follows; when the handles meet, the direction of the first move decides which one moves. The handles never cross, and `onRangeChange` always receives `low <= high`. Keyboard and screen readers get two sliders. Below 260 px and in compact cards the bar is a button showing the range ("19–24°") that opens the detail sheet, which adds exact half-degree steps for each threshold. The round mode button turns the unit off and back to its last mode. Press and hold it, or tap the name, for mode, preset, fan speed, today's run time and humidity. Featured and sheet views show the room temperature as the large readout.
 
+### Field climate module
+
+`ClimateModule` is the same normalized climate entity and callbacks in the Field skin; `HaClimateModule` is its connected container. Its 160 px module keeps current temperature primary, target and HVAC action secondary, and uses the thermostat key as the one on/off signal. Heat, cool and auto use one orange target fader. `heat_cool` uses two ordered native sliders on one fader: orange means heat below, blue means cool above. Off, dry and fan-only replace the fader with one wide key rather than inventing a target.
+
+The 64 px compact footprint keeps only the thermostat key, identity and current-temperature screen. The detail panel adds exact range steps plus only the HVAC modes, presets and fan modes Home Assistant reports. The selected choice is printed and disabled; those choice keys never light a second on LED. Today’s activity meter is neutral. Unavailable climate entities show blank segments and expose no live temperature control.
+
 ## Using the sensor widget
 
 ```tsx

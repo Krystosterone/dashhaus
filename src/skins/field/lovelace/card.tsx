@@ -20,8 +20,8 @@ const HOST_CSS = `
 
 /**
  * `type: custom:home-dashboard-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
- * connection like `custom:home-dashboard`. Without `modules` it draws every light, grouped by Home Assistant's
- * areas.
+ * connection like `custom:home-dashboard`. Without `modules` it draws every supported light and climate entity,
+ * grouped by Home Assistant's areas.
  */
 export function createFieldCard(css: string) {
   const styles = scopeToHost(css) + HOST_CSS;
@@ -37,7 +37,7 @@ export function createFieldCard(css: string) {
       super.setConfig(raw);
     }
 
-    /** What the card picker pre-fills: automatic, every light by area. */
+    /** What the card picker pre-fills: automatic, every supported entity by area. */
     static getStubConfig() {
       return { type: `custom:${FIELD_CARD_TYPE}` };
     }
@@ -83,5 +83,5 @@ export function createFieldCard(css: string) {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineFieldCard(css: string) {
-  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Home Dashboard Field", "The field dashboard: hardware-style light modules by room. Leave out `modules` to show every light.");
+  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Home Dashboard Field", "The field dashboard: hardware-style light and climate modules by room. Leave out `modules` to show every supported entity.");
 }

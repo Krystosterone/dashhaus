@@ -50,7 +50,7 @@
   transition: opacity var(--fd-press) var(--fd-ease-out);
 }
 /* The button truncates the name itself, so the heading lets its padded hit area out. */
-.fd-name:has(.fd-open) { overflow: visible; }
+.fd-name:has(.fd-open) { width: 100%; min-width: 0; overflow: visible; }
 .fd-open-t { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .fd-open svg { flex: none; width: 10px; height: 10px; fill: none; stroke: var(--fd-ink-3); stroke-width: 1.5; }
 .fd-open:active { opacity: 0.6; }
@@ -159,7 +159,7 @@
 
 /* Fader: a printed legend with its rule, a thin dark slot, a dotted scale, and a round thumb on a rail moved
    with transform. */
-.fd-fader { position: relative; height: 44px; min-width: 0; }
+.fd-fader { position: relative; height: 44px; min-width: 0; overflow: clip; }
 .fd-legend {
   position: absolute;
   left: 0;
@@ -204,6 +204,16 @@
   box-shadow: var(--fd-thumb-shadow);
 }
 .fd-fader[data-param="b"] .fd-thumb { background: linear-gradient(90deg, transparent 8.25px, var(--fd-thumb-line) 8.25px 9.75px, transparent 9.75px), var(--fd-param-b); }
+.fd-range-rail--low { transform: translateX(calc(var(--fd-lo, 0) * 100%)); }
+.fd-range-rail--high { transform: translateX(calc(var(--fd-hi, 1) * 100%)); }
+.fd-range-rail[data-param="b"] .fd-thumb {
+  background: linear-gradient(90deg, transparent 8.25px, var(--fd-thumb-line) 8.25px 9.75px, transparent 9.75px), var(--fd-param-b);
+}
+.fd-range:has(.fd-range-in--low:focus-visible) .fd-range-rail--low .fd-thumb,
+.fd-range:has(.fd-range-in--high:focus-visible) .fd-range-rail--high .fd-thumb {
+  outline: 2px solid var(--fd-focus);
+  outline-offset: 2px;
+}
 .fd-fader:has(.fd-in:focus-visible) { outline: 2px solid var(--fd-focus); outline-offset: 3px; border-radius: 2px; }
 .fd-fader[data-disabled] .fd-thumb { background: linear-gradient(90deg, transparent 8.25px, var(--fd-thumb-line) 8.25px 9.75px, transparent 9.75px), var(--fd-off); box-shadow: none; }
 .fd-fader[data-disabled] .fd-slot, .fd-fader[data-disabled] .fd-scale { opacity: 0.4; }

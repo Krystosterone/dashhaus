@@ -2,7 +2,7 @@
 
 A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, with a **Finish** toolbar (Auto, Alloy, Black).
 
-Status: the light is the first and only widget, with its detail panel. Its Lovelace card, `custom:home-dashboard-field`, draws every light by area ([deploy.md](deploy.md#the-field-dashboard)); it hasn't been loaded in a live Home Assistant yet.
+Status: light and climate are implemented, each with a detail panel. The Lovelace card, `custom:home-dashboard-field`, draws every supported light and climate entity by area ([deploy.md](deploy.md#the-field-dashboard)); it hasn't been loaded in a live Home Assistant yet.
 
 ## Design rules
 
@@ -13,9 +13,9 @@ The every-skin hard rules in AGENTS.md apply. `src/skins/field/styles/rules.test
   - **Fader** (a printed legend with a rule out to its end, a thin dark slot, a dotted scale, a round thumb): slide or set along it. A tap jumps the thumb; a drag follows the finger (`useTrack`).
   - **Screen** (always dark, in both finishes): read it, never press it. A pictogram and a big thin figure on the left, up to two meta lines on the right.
 - **A lit LED says on.** The LED in a key's corner is the one sign that something is on (`--fd-led-lit`); the screen agrees, with a lit pictogram and a bright figure, or `OFF` in the dim screen ink.
-- **Colour names a parameter**, the way a knob's colour names what it sets on TE's devices. `--fd-param-a`, orange, is a module's first parameter (a light's brightness): its fader thumb, the lit part of its screen pictogram, and its history on the meter, and nothing else. `--fd-param-b`, blue, is the second (a light's warmth), on its own fader and its own pictogram, a sun.
+- **Colour names a parameter**, the way a knob's colour names what it sets on TE's devices. `--fd-param-a`, orange, is a module's first parameter (a light's brightness; climate's single target or lower heat threshold). `--fd-param-b`, blue, is its second (a light's warmth; climate's upper cool threshold). The parameter colour appears on its fader thumb and screen pictogram, not as a heat/cool signal; words and mode geometry carry that meaning.
 - **The screen speaks in fixed places**, like a segment display. Numbers keep their digit count, and the leading digits are unlit segments (`080%`), drawn by CSS so screen readers hear "80%". A pictogram is always there unlit, and lights up to its level from the bottom; a light's bulb keeps its base lit while on, so 3% still reads lit. No reading reads as blank segments (`---`).
-- **Details open in a panel**, never by growing the module: tap the name (it carries a small arrow) or press and hold the key. The panel is the module's plate grown into a dialog: a centred panel on wider screens, a bottom sheet on phones that its header drags down to close (`useSheet`, shared with orb). Its screen is taller and carries a second channel on its right. Under the controls come groups, each under a printed legend: quick-level keys with their names printed beneath, a second fader in its own parameter colour, today as a 24-hour meter on a strip of screen, then the facts in small print.
+- **Details open in a panel**, never by growing the module: tap the name (it carries a small arrow) or press and hold the key. The panel is the module's plate grown into a dialog: a centred panel on wider screens, a bottom sheet on phones that its header drags down to close (`useSheet`, shared with orb). Its screen is taller and carries a second channel on its right. Under the primary controls come capability-specific groups under printed legends, today as a 24-hour meter on a strip of screen, then facts in small print.
 - **Unavailable** blanks the screen, says `UNAVAILABLE` and when it was last seen on the meta line, and lays the key and fader flat and disabled (a grey thumb).
 - **Type** is Archivo, a geometric sans, set wide (`--fd-wide`), upper-case for printed labels and names, and light for the screen's figure. Names are upper-cased by CSS, so the accessible name keeps its case. Storybook loads Archivo in `.storybook/preview-head.html`; without it the stack falls back to the system sans.
 - **Keys** latch or act once. A latching key (power, a colour) has an LED; a key that acts once (a quick level) has none, so a lit LED only ever means on: the lamp, or the colour it is showing.
@@ -26,7 +26,7 @@ The every-skin hard rules in AGENTS.md apply. `src/skins/field/styles/rules.test
 
 ## From the exploration and the references
 
-Kept from the exploration (`ha_01_universal_home_assistant_field_console.html`): the alloy and black finishes, the module plate, keys with LEDs, the dark screen, orange.
+Kept selectively from the exploration (`ha_01_universal_home_assistant_field_console.html`): the alloy and black finishes, module plate, keys with LEDs, dark screen and orange parameter. Climate also keeps the useful current-temperature-first readout and compact mode key bank; its normalized entity capabilities, not the prototype's fixed console, decide what appears.
 
 Changed after looking at TE's own product photos (OP–1 field, OP–XY, TX–6, EP–133 K.O. II): monospace became a wide geometric sans; orange moved from "on" to naming a parameter; keys and plates lost most of their depth; the striped fader thumb became a round one in a thin slot; the screen gained a pictogram; the fader gained a printed legend; the perforated page became plain.
 
@@ -36,3 +36,10 @@ Left out: screws, scanlines, speaker grilles, entity ids as labels, blur crossfa
 
 - **Module:** the power key (bulb glyph, LED), the screen (a bulb pictogram filled with the brightness, its base lit whenever the lamp is on so 3% still reads lit; the figure; its warmth, or its colour's name; since when), and the brightness fader. On/off lamps: one wide key with its state word, no fader. Compact: key, name and area, screen.
 - **Panel:** the screen with a second channel: the lamp's colour while it shows one (a lens in that colour and its name, "Amber"), otherwise its warmth (sun pictogram, kelvin, its name: "Warm white"). Then the power key and brightness fader; quick levels 5, 25, 50, 100 (Night, Dim, Half, Full); the warmth fader in blue, flat while the lamp is off; a colour lamp's seven colour keys (Red, Amber, Yellow, Green, Blue, Purple, White), the one it shows latched, and choosing one turns it on; today; last changed (or last seen) and what the lamp can do. A lamp with both shows a warmth or a colour, never both, as Home Assistant reports it.
+
+## Climate
+
+- **Module:** the thermostat key switches the entity and its LED is the on signal. The screen leads with room temperature, with target and HVAC action secondary. Heat, cool and the other modes use distinct geometry and words, never colour. Heat, cool and auto put their target on one orange fader. `heat_cool` uses an ordered two-thumb fader: orange is “heat below”, blue is “cool above”, and its native sliders never cross. Off becomes one wide **Turn on** key; dry and fan-only keep one wide mode key because they have no temperature target. Compact is the same 64 px key/name/screen row as light.
+- **Panel:** the second screen channel holds the target while on, or the last room reading while off. It repeats the primary control, adds exact plus/minus steps for a heat/cool range, and draws only the entity's supported HVAC modes, presets and fan modes as keys. The current choice is printed in the legend and its key lies flat; no choice key gets a second “on” LED. Today uses the neutral screen ink because runtime is status, not a parameter. Humidity, last change or last seen, and the supported temperature range finish the panel.
+- **Unavailable:** blank segments and “Unavailable”, one flat disabled key, no fabricated temperature or target, and a neutral unavailable history meter when history exists.
+

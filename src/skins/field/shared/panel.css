@@ -70,6 +70,8 @@
 }
 .fd-meter-h { position: relative; border-radius: 1px; background: var(--fd-screen-unlit); }
 .fd-meter-lit { position: absolute; inset: 0; border-radius: inherit; background: var(--fd-param-a); transform-origin: bottom; transform: scaleY(var(--fd-level, 0)); }
+.fd-meter[data-tone="b"] .fd-meter-lit { background: var(--fd-param-b); }
+.fd-meter[data-tone="neutral"] .fd-meter-lit { background: var(--fd-screen-ink-2); }
 .fd-meter-h[data-state="none"] { opacity: 0.45; }
 .fd-meter-h[data-state="unav"] { background: transparent; }
 .fd-meter-h[data-state="unav"]::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--fd-screen-ink-2); }

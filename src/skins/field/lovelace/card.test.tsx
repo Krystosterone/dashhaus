@@ -8,6 +8,7 @@ import type { HaTransport, HassEntities } from "../../../ha/types";
 const entities: HassEntities = {
   "light.kitchen": { entity_id: "light.kitchen", state: "on", attributes: { friendly_name: "Kitchen", supported_color_modes: ["onoff"] } },
   "light.desk": { entity_id: "light.desk", state: "off", attributes: { friendly_name: "Desk", supported_color_modes: ["brightness"] } },
+  "climate.living_room": { entity_id: "climate.living_room", state: "heat", attributes: { friendly_name: "Thermostat", hvac_modes: ["off", "heat"], current_temperature: 20.4, temperature: 21.5 } },
   "light.hidden": { entity_id: "light.hidden", state: "off", attributes: { friendly_name: "Hidden" } },
   "input_boolean.guest": { entity_id: "input_boolean.guest", state: "off", attributes: { friendly_name: "Guest" } },
 };
@@ -34,9 +35,14 @@ const hass = (darkMode = false) => ({
   connection,
   states: entities,
   themes: { darkMode },
-  entities: { "light.kitchen": { device_id: "lamp" }, "light.desk": { area_id: "office" }, "light.hidden": { hidden: true } },
+  entities: {
+    "light.kitchen": { device_id: "lamp" },
+    "light.desk": { area_id: "office" },
+    "climate.living_room": { area_id: "living" },
+    "light.hidden": { hidden: true },
+  },
   devices: { lamp: { area_id: "kitchen" } },
-  areas: { kitchen: { name: "Kitchen" }, office: { name: "Office" } },
+  areas: { kitchen: { name: "Kitchen" }, living: { name: "Living room" }, office: { name: "Office" } },
 });
 
 async function mount(config: Record<string, unknown>, darkMode = false) {
@@ -60,13 +66,13 @@ afterEach(async () => {
 });
 
 describe("home-dashboard-field card", () => {
-  it("draws every visible light by area, scopes the skin's tokens to the host, and links its font", async () => {
-    const card = await mount({ title: "Lights" });
+  it("draws every visible light and climate entity by area, scopes the skin's tokens to the host, and links its font", async () => {
+    const card = await mount({ title: "Home" });
     const shadow = card.shadowRoot!;
     expect(shadow.querySelector("style")?.textContent).toContain(":host { --fd-press: 120ms; }");
-    expect(shadow.querySelector(".fd-dash-title")?.textContent).toBe("Lights");
-    expect(legends(card)).toEqual(["Kitchen", "Office"]);
-    expect(names(card)).toEqual(["Kitchen", "Desk"]);
+    expect(shadow.querySelector(".fd-dash-title")?.textContent).toBe("Home");
+    expect(legends(card)).toEqual(["Kitchen", "Living room", "Office"]);
+    expect(names(card)).toEqual(["Kitchen", "Thermostat", "Desk"]);
     expect(document.head.querySelector("link[href*='family=Archivo']")).not.toBeNull();
   });
 
@@ -93,7 +99,7 @@ describe("home-dashboard-field card", () => {
     const card = document.createElement("home-dashboard-field-test") as Card;
     expect(() => card.setConfig({ modules: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
     expect(() => card.setConfig({ modules: ["switch.fan"] })).toThrow(DashboardConfigError);
-    expect(() => card.setConfig({ modules: ["switch.fan"] })).toThrow("switch.fan must be a light.* entity");
+    expect(() => card.setConfig({ modules: ["switch.fan"] })).toThrow("switch.fan must be a light.* or climate.* entity");
   });
 
   it("pre-fills the card picker in automatic mode", () => {

@@ -162,19 +162,21 @@ nav:
 
 ## The field dashboard
 
-The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws lights only, so far. `npm run deploy` registers the bundle, so the card is available once you have deployed, but the script doesn't create a dashboard for it. To add one: Settings → Dashboards → **Add dashboard**, open it, ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker. With no `modules` it shows every light, grouped by area.
+The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light and climate entities. `npm run deploy` registers the bundle, so the card is available once you have deployed, but the script doesn't create a dashboard for it. To add one: Settings → Dashboards → **Add dashboard**, open it, ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker. With no `modules` it shows every supported light and climate entity, grouped by area.
 
 ```yaml
 type: custom:home-dashboard-field
-title: Lights            # optional, printed at the top
+title: Home              # optional, printed at the top
 finish: home-assistant   # home-assistant (default: follows its dark mode), auto (the device's), alloy, black
 footprint: standard      # standard (160 px modules, default) or compact (64 px rows)
-modules:                 # optional; leave out for every light by area
-  - light.ceiling        # an entity id
+modules:                 # optional; leave out for every supported entity by area
+  - light.ceiling        # a light or climate entity id
   - entity: light.desk_strip
     name: Desk           # overrides the friendly name
     area: Office         # overrides the area; modules are grouped under it
     footprint: compact   # overrides the card's footprint for this module
+  - entity: climate.living_room
+    name: Thermostat
 ```
 
 | Key | Values | Default |
@@ -182,14 +184,14 @@ modules:                 # optional; leave out for every light by area
 | `title` | text | none |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
-| `modules` | a list of `light.*` entity ids or maps of `entity`, `name`, `area`, `footprint` | every visible light |
+| `modules` | a list of `light.*` or `climate.*` entity ids or maps of `entity`, `name`, `area`, `footprint` | every visible supported entity |
 
-Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Home Assistant / Dashboard** shows what it draws on demo data.
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Home Assistant / Dashboard** shows a mixed light and climate dashboard on demo data.
 
 ## What has and hasn't been verified
 
 Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API.
 
-The field card: unit tests cover its config parser, its automatic layout and the element (areas, finish, font link, one store per connection), and the built bundle carries it and its font. It has not been loaded in a live Home Assistant yet.
+The field card: unit tests cover its config parser, automatic mixed-domain layout and element (areas, finish, font link, one store per connection), and the built bundle carries it and its font. It has not been loaded in a live Home Assistant yet.
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port): the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live: service calls from the cards, the YAML-mode resource fallback, and a redeploy over an existing dashboard.

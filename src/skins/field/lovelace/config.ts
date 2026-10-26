@@ -4,7 +4,7 @@ import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
- * every mistake shows at once with its path. Field draws lights only, so far.
+ * every mistake shows at once with its path. Field draws lights and climate entities.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -23,12 +23,12 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** Absent: every light, grouped by area. */
+  /** Absent: every supported light and climate entity, grouped by area. */
   modules?: ModuleConfig[];
 }
 
-/** The domains field has a module for. */
-export const FIELD_DOMAINS = ["light"] as const;
+/** The domains Field has a module for. */
+export const FIELD_DOMAINS = ["light", "climate"] as const;
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
