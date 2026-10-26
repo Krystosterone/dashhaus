@@ -57,13 +57,20 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
   const ofDomain = (...domains: string[]) => sorted(visible.filter((id) => domains.includes(domainOf(id))));
 
   const sections: Section[] = [];
+  // One section per title: a section that would repeat one (an area called Nursery or Outside) joins it, so the
+  // page never shows two sections of one name, and a nav to one never lands on the other.
+  const place = (section: Section) => {
+    const same = sections.find((s) => s.title.toLowerCase() === section.title.toLowerCase());
+    if (same) same.cards.push(...section.cards);
+    else sections.push(section);
+  };
   const alarms = ofDomain("alarm_control_panel");
 
   const weather = ofDomain("weather")[0];
 
   const climate = ofDomain("climate");
   if (climate.length) {
-    sections.push({ title: "Comfort", cards: climate.map((entity, i) => (i === 0 ? entity : { entity, footprint: "compact" })) });
+    place({ title: "Comfort", cards: climate.map((entity, i) => (i === 0 ? entity : { entity, footprint: "compact" })) });
   }
 
   // Room air: one card per device with a temperature (or, failing that, humidity) reading.
@@ -88,7 +95,7 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
   }
 
   const modes = ofDomain("input_boolean");
-  if (modes.length) sections.push({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });
+  if (modes.length) place({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });
 
   const socks = sorted(visible.filter((id) => OWLET.test(id)));
 
@@ -105,15 +112,15 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
     const ids = groups.get(key);
     if (!ids) continue;
     ids.sort((a, b) => order.indexOf(domainOf(a)) - order.indexOf(domainOf(b)));
-    sections.push({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact" })) });
+    place({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact" })) });
   }
 
   // Automatic discovery cannot infer true frequency. It puts every action first, then stable household
   // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
-  if (alarms.length) sections.push({ title: "Security", cards: alarms.map((entity) => ({ entity, footprint: "compact" })) });
-  if (socks.length) sections.push({ title: "Nursery", cards: socks });
-  if (weather) sections.push({ title: "Outside", cards: [weather] });
-  if (air.length) sections.push({ title: "Rooms", cards: air });
+  if (alarms.length) place({ title: "Security", cards: alarms.map((entity) => ({ entity, footprint: "compact" })) });
+  if (socks.length) place({ title: "Nursery", cards: socks });
+  if (weather) place({ title: "Outside", cards: [weather] });
+  if (air.length) place({ title: "Rooms", cards: air });
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
   return sections.length ? { type: "custom:home-dashboard", title, sections } : { type: "custom:home-dashboard", title };

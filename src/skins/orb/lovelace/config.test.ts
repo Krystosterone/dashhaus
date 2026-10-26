@@ -228,6 +228,13 @@ describe("nav and pages", () => {
     ]);
   });
 
+  it("asks for distinct titles when a nav names a section that several share", () => {
+    expect(problems({ sections: [{ title: "Nursery", cards: ["light.a"] }, { title: "Nursery", cards: ["light.b"] }], nav: [{ section: "Nursery" }, { section: "Nursery" }] })).toEqual([
+      'nav[0]: 2 sections are titled "Nursery"; give each its own title so the nav can tell them apart',
+      'nav[1]: 2 sections are titled "Nursery"; give each its own title so the nav can tell them apart',
+    ]);
+  });
+
   it("can't check a section name against the automatic layout, so leaves it to the nav", () => {
     expect(problems({ nav: [{ section: "Comfort" }] })).toEqual([]);
   });

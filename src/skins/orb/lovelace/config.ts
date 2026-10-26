@@ -507,6 +507,9 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
           const near = titles.find((t) => t.toLowerCase() === n.title.toLowerCase()) ?? suggest(n.title, titles);
           read.problem(`nav[${i}]`, `no section titled "${n.title}" in the top-level sections${near ? ` — did you mean "${near}"?` : ""}`);
         }
+        if (n.kind === "section" && titles && titles.filter((t) => t === n.title).length > 1) {
+          read.problem(`nav[${i}]`, `${titles.filter((t) => t === n.title).length} sections are titled "${n.title}"; give each its own title so the nav can tell them apart`);
+        }
       });
     }
   }

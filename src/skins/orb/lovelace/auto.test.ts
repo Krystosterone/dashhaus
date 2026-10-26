@@ -71,6 +71,23 @@ describe("autoDashboard", () => {
     expect(nursery?.items.map((item) => item.kind)).toEqual(["owlet", "owlet"]);
   });
 
+  it("never repeats a section title: an area called Nursery or Outside takes the sock or the weather", () => {
+    const card = autoDashboard({
+      states: {
+        "light.nursery": state("light.nursery"),
+        "light.patio": state("light.patio"),
+        "sensor.owlet_sock_a_sleep_state": state("sensor.owlet_sock_a_sleep_state"),
+        "weather.home": state("weather.home"),
+      },
+      entities: { "light.nursery": { area_id: "nursery" }, "light.patio": { area_id: "outside" } },
+      areas: { nursery: { name: "Nursery" }, outside: { name: "Outside" } },
+    });
+    const sections = card.sections as { title: string; cards: unknown[] }[];
+    expect(sections.map((s) => s.title)).toEqual(["Nursery", "Outside"]);
+    expect(sections[0].cards).toEqual([{ entity: "light.nursery", footprint: "compact" }, "sensor.owlet_sock_a_sleep_state"]);
+    expect(sections[1].cards).toEqual([{ entity: "light.patio", footprint: "compact" }, "weather.home"]);
+  });
+
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:home-dashboard", title: "Home" });

@@ -44,6 +44,19 @@ describe("ConfigDashboard nav", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
   });
 
+  it("sends each of two same-titled sections' pills to its own section", async () => {
+    draw({ sections: [{ title: "Nursery", cards: ["light.a"] }, { title: "Status", cards: ["light.b"] }, { title: "Nursery", cards: ["light.b"] }] });
+    const pills = within(nav()!).getAllByRole("button", { name: "Nursery" });
+    expect(pills).toHaveLength(2);
+    fireEvent.click(pills[1]);
+    // One mock on the prototype: which element it scrolled is the call's `this`.
+    const scrolled = vi.mocked(Element.prototype.scrollIntoView).mock.contexts;
+    expect(scrolled).toEqual([document.querySelector("[data-section-id=section-nursery-2]")]);
+    expect(pills[1].getAttribute("aria-current")).toBe("location");
+    expect(pills[0].hasAttribute("aria-current")).toBe(false);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
+  });
+
   it("opens the card's own pages, keeps them in the URL, and follows back", async () => {
     draw({ title: "Home", sections, pages: [{ id: "living", title: "Living room", sections: [{ title: "Lights", cards: ["light.b"] }] }] });
     const bar = nav()!;

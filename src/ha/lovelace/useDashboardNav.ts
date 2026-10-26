@@ -3,6 +3,7 @@ import type { RefObject } from "react";
 import { useHashPage } from "../../hooks/useHashPage";
 import { useScrollSpy } from "../../hooks/useScrollSpy";
 import { MAIN_PAGE, navigateInHa, sectionId } from "./nav";
+import type { NavTarget } from "./nav";
 import type { NavItem } from "./nav";
 
 /** A nav item as a skin draws it: whether it's where you are, and what a tap does. */
@@ -48,18 +49,19 @@ export function useDashboardNav<T extends HTMLElement>({ items, pages, rootRef, 
   }, [goPage, rootRef]);
 
   const buttons = useMemo((): NavButton[] => {
-    const sectionIsCurrent = (title: string) => page === MAIN_PAGE && reading === sectionId(title);
-    const readingAny = items.some((i) => i.target.kind === "section" && sectionIsCurrent(i.target.title));
+    const idOf = (t: Extract<NavTarget, { kind: "section" }>) => t.id ?? sectionId(t.title);
+    const sectionIsCurrent = (t: Extract<NavTarget, { kind: "section" }>) => page === MAIN_PAGE && reading === idOf(t);
+    const readingAny = items.some((i) => i.target.kind === "section" && sectionIsCurrent(i.target));
     return items.map((item) => {
       const t = item.target;
-      const current = t.kind === "section" ? sectionIsCurrent(t.title)
+      const current = t.kind === "section" ? sectionIsCurrent(t)
         : t.kind === "page" ? page === t.id && !(t.id === MAIN_PAGE && readingAny)
         : location.pathname === t.path || location.pathname.startsWith(`${t.path}/`);
       const onSelect = t.kind === "page" ? () => openPage(t.id)
         : t.kind === "navigate" ? () => navigate(t.path)
         : () => {
-          if (page === MAIN_PAGE) return jump(sectionId(t.title));
-          setPending(sectionId(t.title));
+          if (page === MAIN_PAGE) return jump(idOf(t));
+          setPending(idOf(t));
           goPage(MAIN_PAGE);
         };
       return { key: item.key, label: item.label, kind: t.kind, leaves: item.leaves, current, onSelect };

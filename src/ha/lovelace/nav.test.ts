@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MAIN_PAGE, navigateInHa, resolveNav, sectionId } from "./nav";
+import { MAIN_PAGE, navigateInHa, resolveNav, sectionAnchors, sectionId } from "./nav";
 
 const pages = [{ id: "living", title: "Living room" }, { id: "nursery", title: "Nursery" }];
-const sections = ["Quick actions", "Home status"];
+const sections = sectionAnchors(["Quick actions", "Home status"]);
 
 afterEach(() => history.replaceState(null, "", "/"));
 
@@ -14,7 +14,22 @@ describe("sectionId", () => {
   });
 });
 
+describe("sectionAnchors", () => {
+  it("gives a repeated title an id of its own", () => {
+    expect(sectionAnchors(["Nursery", "Outside", "Nursery", "nursery"]).map((a) => a.id)).toEqual(["section-nursery", "section-outside", "section-nursery-2", "section-nursery-3"]);
+  });
+});
+
 describe("resolveNav", () => {
+  it("points each pill at its own section when two share a title", () => {
+    const items = resolveNav({ mainTitle: "Home", pages: [], sections: sectionAnchors(["Nursery", "Security", "Nursery"]) });
+    expect(items.map((i) => i.target)).toEqual([
+      { kind: "section", title: "Nursery", id: "section-nursery" },
+      { kind: "section", title: "Security", id: "section-security" },
+      { kind: "section", title: "Nursery", id: "section-nursery-2" },
+    ]);
+  });
+
   it("lists the sections when the card has no pages and no nav", () => {
     expect(resolveNav({ mainTitle: "Home", pages: [], sections }).map((i) => i.label)).toEqual(["Quick actions", "Home status"]);
   });
