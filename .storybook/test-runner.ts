@@ -9,6 +9,11 @@ import { injectAxe, getAxeResults } from "axe-playwright";
 const config: TestRunnerConfig = {
   async postVisit(page, context) {
     const { parameters } = await getStoryContext(page, context);
+    // Let entrances settle first (a sheet fading in), so contrast is measured at full opacity. Looping
+    // animations never finish, so they're left out.
+    await page.evaluate(() =>
+      Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))),
+    );
     await injectAxe(page);
     const results = await getAxeResults(page, "#storybook-root", {
       runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
