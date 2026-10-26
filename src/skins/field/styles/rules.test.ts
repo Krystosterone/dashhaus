@@ -1,0 +1,151 @@
+/**
+ * The field skin's design rules (docs/field.md) and the hard rules every skin keeps (AGENTS.md), as checks
+ * against its CSS. The docs are the contract, this test is the tripwire.
+ */
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const SKIN = "src/skins/field";
+const TOKENS = `${SKIN}/styles/tokens.css`;
+const cssFiles = readdirSync(join(process.cwd(), SKIN), { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".css")).map((f) => `${SKIN}/${f}`);
+const css = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const nonTokens = cssFiles.filter((p) => p !== TOKENS);
+
+/** transition/animation declarations, values up to the first `;` or `}`. */
+const decls = (path: string) =>
+  [...css(path).matchAll(/(?:^|;|\{)\s*(transition(?:-[a-z-]+)?|animation(?:-[a-z-]+)?)\s*:\s*([^;}]+)/g)].map((m) => ({ prop: m[1], value: m[2].trim() }));
+
+/** Each rule's selector with its declarations, flattened out of at-rules. */
+const rules = (path: string) => [...css(path).matchAll(/([^{}@]+)\{([^{}]*)\}/g)].map((m) => ({ selector: m[1].trim(), body: m[2] }));
+
+describe("colour: tokens only", () => {
+  it("no hex, named or functional colour outside tokens.css", () => {
+    const bad: string[] = [];
+    const named = /:\s*[^;]*\b(red|green|blue|yellow|orange|purple|pink|grey|gray|white|black|silver|crimson|coral)\b/i;
+    for (const f of nonTokens) {
+      const body = css(f);
+      if (/#[0-9a-fA-F]{3,8}\b/.test(body)) bad.push(`${f}: hex`);
+      if (named.test(body)) bad.push(`${f}: named colour`);
+      if (/\b(oklch|oklab|lab|lch|hsla?|rgba?|hwb)\(/.test(body)) bad.push(`${f}: colour function`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("the skin's tokens are scoped: every custom property it declares starts with --fd-", () => {
+    const bad: string[] = [];
+    for (const f of cssFiles) {
+      for (const [, name] of css(f).matchAll(/(?:^|[;{\s])(--[\w-]+)\s*:/g)) if (!name.startsWith("--fd-") && name !== "--v") bad.push(`${f}: ${name}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("a lit LED is the one sign of on: --fd-led-lit appears only on it", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { selector, body } of rules(f)) if (/var\(--fd-led-lit/.test(body) && selector !== '.fd-led[data-lit="true"]') bad.push(`${f}: ${selector}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("a parameter's colour marks only its control, its pictogram and its history", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { selector, body } of rules(f)) if (/var\(--fd-param-/.test(body) && !/\.fd-(thumb|pict-lit|meter-lit)$/.test(selector)) bad.push(`${f}: ${selector}`);
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("a lamp's own colour", () => {
+  it("shows only as a swatch: on a key, or as a screen pictogram", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { selector, body } of rules(f)) if (/var\(--fd-lamp\b/.test(body) && !/^(\.fd-swatch|\.fd-pict\[data-lamp\] \.fd-pict-lit)$/.test(selector)) bad.push(`${f}: ${selector}`);
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("footprint: height from the footprint, never from state or the viewport", () => {
+  it("each footprint fixes the module's height", () => {
+    const c = css(`${SKIN}/shared/module.css`);
+    expect(c).toMatch(/\.fd-module\[data-footprint="standard"\]\s*\{[^}]*height: 160px/);
+    expect(c).toMatch(/\.fd-module\[data-footprint="compact"\]\s*\{[^}]*height: 64px/);
+  });
+
+  // The detail panel is a dialog, not a card: it sizes to the screen and becomes a bottom sheet on phones.
+  it("no viewport units and no viewport media queries in the modules", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens.filter((p) => p !== `${SKIN}/shared/panel.css`)) {
+      const body = css(f);
+      if (/\d(?:d|s|l)?v(?:w|h|min|max)\b/.test(body)) bad.push(`${f}: viewport unit`);
+      for (const m of body.matchAll(/@media\s+([^{]+)\{/g)) {
+        if (!/prefers-reduced-motion|hover\s*:\s*hover/.test(m[1])) bad.push(`${f}: @media ${m[1].trim()}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("motion: compositor-only, token easing", () => {
+  const ANIMATABLE = new Set(["transform", "translate", "opacity", "clip-path", "background-color", "color", "box-shadow", "none"]);
+
+  it("transitions only animate compositor-safe properties and colour, never `all`", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { value } of decls(f).filter((d) => d.prop === "transition")) {
+        for (const part of value.split(",")) {
+          const prop = part.trim().split(/\s+/)[0];
+          if (!ANIMATABLE.has(prop)) bad.push(`${f}: transition of \`${prop}\``);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("easing comes only from the --fd-ease-* tokens", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { prop, value } of decls(f)) {
+        if (/duration|delay/.test(prop)) continue;
+        const stripped = value.replace(/var\(--fd-ease[^)]*\)/g, "").replace(/\blinear\b/g, "");
+        if (/ease|cubic-bezier|steps|spring/i.test(stripped)) bad.push(`${f}: ${prop}: ${value}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("hover styles live under the hover-capability media query", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      const body = css(f);
+      const stack: string[] = [];
+      for (let i = 0; i < body.length; i++) {
+        if (body.startsWith("@media", i)) {
+          const end = body.indexOf("{", i);
+          stack.push(body.slice(i + 6, end));
+          i = end;
+        } else if (body[i] === "{") stack.push("");
+        else if (body[i] === "}") stack.pop();
+        else if (body.startsWith(":hover", i) && !stack.some((c) => /hover\s*:\s*hover/.test(c) && /pointer\s*:\s*fine/.test(c))) bad.push(`${f}: :hover outside the media query`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("touch: controls answer presses, faders let pages scroll", () => {
+  it("keys and faders take no selection, callout or tap highlight, and no tap delay", () => {
+    const c = css(`${SKIN}/shared/module.css`);
+    for (const decl of ["touch-action: manipulation", "-webkit-tap-highlight-color: transparent", "user-select: none", "-webkit-touch-callout: none"]) expect(c).toContain(decl);
+  });
+
+  it("keys give press feedback on :active", () => {
+    expect(css(`${SKIN}/shared/module.css`)).toMatch(/\.fd-key:active[^{]*\{[^}]*transform:/);
+  });
+
+  it("the fader's hit layer keeps vertical scrolling", () => {
+    expect(css(`${SKIN}/shared/module.css`)).toMatch(/\.fd-hit\s*\{[^}]*touch-action: pan-y/);
+  });
+});

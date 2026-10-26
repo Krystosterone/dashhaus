@@ -1,0 +1,100 @@
+/* The detail panel: a module's plate grown into a modal dialog. Wider screens: a centred panel that fades and
+   settles in. Phones (600 px and under): a bottom sheet that slides up, with a grab bar on its header, which
+   drags it down to close (useSheet). Motion is CSS transitions plus @starting-style, so closing mid-open
+   reverses. Unlike a module, its height follows its content and the screen; it is not a card. */
+
+.fd-panel {
+  box-sizing: border-box;
+  width: min(440px, calc(100% - 32px));
+  max-width: none;
+  max-height: min(760px, calc(100dvh - 48px));
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--fd-hairline);
+  border-radius: var(--fd-r-module);
+  background: var(--fd-module);
+  box-shadow: var(--fd-panel-shadow);
+  color: var(--fd-ink);
+  font-family: var(--fd-sans);
+  font-stretch: var(--fd-wide);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  transition: opacity 200ms var(--fd-ease-out), transform 200ms var(--fd-ease-out);
+}
+.fd-panel::backdrop { background: var(--fd-scrim); transition: opacity 240ms var(--fd-ease-out); }
+@starting-style { .fd-panel[open] { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@starting-style { .fd-panel[open]::backdrop { opacity: 0; } }
+.fd-panel[data-closing] { opacity: 0; transform: translateY(4px) scale(0.99); transition-duration: 150ms; pointer-events: none; }
+.fd-panel[data-closing]::backdrop { opacity: 0; transition-duration: 180ms; }
+
+.fd-panel-in { display: grid; gap: 16px; padding: 0 16px 16px; }
+.fd-panel-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 -16px;
+  padding: 14px 16px 10px;
+  background: var(--fd-module);
+  border-bottom: 1px solid var(--fd-hairline);
+}
+.fd-panel-head .fd-head { flex: 1; }
+.fd-panel-head .fd-name { font-size: 14px; line-height: 18px; }
+
+/* The panel's screen is taller and carries a second channel on its right. */
+.fd-panel .fd-screen { height: 72px; padding: 0 14px; }
+.fd-panel .fd-read { font-size: 36px; }
+.fd-chan { margin: 0; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 22px; font-weight: 300; line-height: 1; white-space: nowrap; }
+.fd-chan small { font-size: 10px; font-weight: 400; color: var(--fd-screen-ink-2); margin-left: 2px; align-self: flex-start; }
+[data-state="off"] .fd-chan { color: var(--fd-screen-ink-2); }
+.fd-chan .fd-pict { width: 16px; height: 21px; }
+.fd-chan-name { font-size: 18px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+.fd-chan-sub { display: block; margin-top: 4px; font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-screen-ink-2); }
+
+.fd-block { display: grid; gap: 8px; min-width: 0; }
+
+/* Meter: 24 hour columns on a strip of screen, each lit to its hour's level. */
+.fd-meter {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 2px;
+  height: 44px;
+  padding: 8px 8px 10px;
+  box-sizing: border-box;
+  border-radius: var(--fd-r-screen);
+  background: var(--fd-screen);
+}
+.fd-meter-h { position: relative; border-radius: 1px; background: var(--fd-screen-unlit); }
+.fd-meter-lit { position: absolute; inset: 0; border-radius: inherit; background: var(--fd-param-a); transform-origin: bottom; transform: scaleY(var(--fd-level, 0)); }
+.fd-meter-h[data-state="none"] { opacity: 0.45; }
+.fd-meter-h[data-state="unav"] { background: transparent; }
+.fd-meter-h[data-state="unav"]::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--fd-screen-ink-2); }
+.fd-meter-h[data-now]::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 2px; height: 3px; margin-left: -1px; background: var(--fd-screen-ink); }
+
+.fd-info { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-ink-3); }
+
+@media (max-width: 600px) {
+  .fd-panel {
+    width: 100%;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    border-width: 1px 0 0;
+    border-radius: 10px 10px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    transition: translate 380ms var(--fd-ease-drawer);
+  }
+  @starting-style { .fd-panel[open] { opacity: 1; transform: none; translate: 0 100%; } }
+  .fd-panel[data-closing] { opacity: 1; transform: none; translate: 0 100%; transition-duration: 240ms; }
+  .fd-panel-head { padding-top: 22px; touch-action: none; cursor: grab; }
+  .fd-panel-head::before { content: ""; position: absolute; top: 8px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--fd-hairline); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-panel { transition: opacity 200ms var(--fd-ease-out); }
+  @starting-style { .fd-panel[open] { opacity: 0; transform: none; translate: none; } }
+  .fd-panel[data-closing] { opacity: 0; transform: none; translate: none; transition-duration: 150ms; }
+}

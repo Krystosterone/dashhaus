@@ -1,15 +1,17 @@
 import type { Decorator, Preview } from "@storybook/react";
 import { orbStorybook } from "../src/skins/orb/storybook";
+import { fieldStorybook } from "../src/skins/field/storybook";
 
 /**
  * Every skin brings its own Storybook setup (src/skins/<skin>/storybook.tsx): a section its story titles start with,
- * its toolbar, and a decorator for its surface. A new skin adds itself here, and its section to storySort below;
- * its decorator runs for its stories only.
+ * its toolbar, the class its page surface puts on <body>, and a decorator. A new skin adds itself here, and its
+ * section to storySort below; its decorator and surface apply to its stories only.
  */
-const SKINS = [orbStorybook];
+const SKINS = [orbStorybook, fieldStorybook];
 
 const withSkin: Decorator = (Story, ctx) => {
   const skin = SKINS.find((s) => ctx.title.startsWith(`${s.section}/`));
+  for (const s of SKINS) document.body.classList.toggle(s.surface, s === skin);
   return skin ? skin.decorator(Story, ctx) : <Story />;
 };
 
@@ -23,7 +25,7 @@ const preview: Preview = {
     // Storybook reads this statically, so it must stay a literal: one section per skin, then its own order.
     options: {
       storySort: {
-        order: ["Orb", ["Widgets", ["Header", "Light", "Climate", "Sensor", "Home", "Toggle", "Cover", "Alarm"], "Dashboards", ["Phone", "Phone, mixed sizes", "Tablet", "Wall panel"], "Foundations", "Bundles", "Nav bar", "Home Assistant"]],
+        order: ["Orb", ["Widgets", ["Header", "Light", "Climate", "Sensor", "Home", "Toggle", "Cover", "Alarm"], "Dashboards", ["Phone", "Phone, mixed sizes", "Tablet", "Wall panel"], "Foundations", "Bundles", "Nav bar", "Home Assistant"], "Field", ["Widgets", "Home Assistant"]],
       },
     },
   },

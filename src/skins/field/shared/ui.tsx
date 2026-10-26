@@ -1,0 +1,266 @@
+import { useId } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useTrack, trackPos } from "../../../hooks/useTrack";
+import { useLongPress } from "../../../hooks/useLongPress";
+import { useSheet } from "../../../hooks/useSheet";
+import type { HourSample } from "../../../domains/history";
+import "./module.css";
+import "./panel.css";
+
+type Vars = CSSProperties & Record<`--${string}`, string | number>;
+
+/** A module's fixed height: a 64 px row, or a 160 px module. State and entity type never change it. */
+export type FieldFootprint = "compact" | "standard";
+
+/** Which parameter colour a control and its pictogram wear: a module's first (a light's brightness), or second. */
+export type Param = "a" | "b";
+
+const IconOpen = () => <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h7M6 3l3 3-3 3" /></svg>;
+const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>;
+
+export interface ModuleProps {
+  /** The skin's class prefix for this kind, e.g. "fd-lt" for a light. */
+  kind: string;
+  name: string;
+  area?: string;
+  footprint?: FieldFootprint;
+  /** The entity's state, for styling hooks only. */
+  state: string;
+  /** Makes the name the button that opens the detail panel. */
+  onOpen?: () => void;
+  children: ReactNode;
+}
+
+/**
+ * The module every field widget sits in: a plate with a name and area in its header. The footprint sets the
+ * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
+ */
+export function Module({ kind, name, area, footprint = "standard", state, onOpen, children }: ModuleProps) {
+  const nameId = useId();
+  return (
+    <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} aria-labelledby={nameId}>
+      <header className="fd-head">
+        {/* Labelled by the name alone, so the heading stays "Ceiling" while the button inside reads "Ceiling details". */}
+        <h3 className="fd-name" title={name} aria-labelledby={nameId}>
+          {onOpen ? (
+            <button type="button" className="fd-open" aria-label={`${name} details`} aria-haspopup="dialog" onClick={onOpen}>
+              <span className="fd-open-t" id={nameId}>{name}</span><IconOpen />
+            </button>
+          ) : <span id={nameId}>{name}</span>}
+        </h3>
+        {area && <p className="fd-area" title={area}>{area}</p>}
+      </header>
+      {children}
+    </article>
+  );
+}
+
+export interface KeyProps {
+  label: string;
+  /** A latching key: it sits lower and its LED is lit while pressed. Leave it out for a key that acts once. */
+  pressed?: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+  /** Press and hold. The click that ends the hold doesn't also press the key. */
+  onHold?: () => void;
+  /** Fills its cell instead of being square. */
+  wide?: boolean;
+  /** A word beside the glyph; the key fills its cell. */
+  caption?: string;
+  children: ReactNode;
+}
+
+/** A key: flat-topped and just raised, so you press it. A latching key's LED is lit while it's pressed. */
+export function Key({ label, pressed, disabled, onPress, onHold, wide, caption, children }: KeyProps) {
+  const hold = useLongPress(disabled ? undefined : onHold);
+  return (
+    <button
+      type="button"
+      className="fd-key"
+      aria-label={label}
+      aria-pressed={pressed}
+      disabled={disabled}
+      data-wide={wide || caption ? "" : undefined}
+      {...hold.handlers}
+      onClick={() => { if (!hold.consumeLongPress()) onPress(); }}
+    >
+      {pressed !== undefined && <span className="fd-led" data-lit={pressed && !disabled} aria-hidden="true" />}
+      <span className="fd-key-glyph" aria-hidden="true">{children}</span>
+      {caption && <span className="fd-key-cap" aria-hidden="true">{caption}</span>}
+    </button>
+  );
+}
+
+/** The dark display: a pictogram and a figure, then up to two meta lines, or another channel (`aside`). Never pressable. */
+export function Screen({ pict, children, meta, aside }: { pict?: ReactNode; children: ReactNode; meta?: [ReactNode, ReactNode?]; aside?: ReactNode }) {
+  return (
+    <div className="fd-screen">
+      <p className="fd-read">{pict}<span className="fd-read-fig">{children}</span></p>
+      {aside}
+      {!aside && meta && (
+        <p className="fd-meta">
+          <span>{meta[0]}</span>
+          {meta[1] && <span className="fd-meta-2">{meta[1]}</span>}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A number in a fixed count of digits. The leading digits are unlit segments, drawn by CSS so a screen reader
+ * hears "80" rather than "080", and so the unlit glyphs are no text to be read.
+ */
+export function Digits({ value, places = 3 }: { value: number; places?: number }) {
+  const text = String(Math.round(value));
+  const pad = "0".repeat(Math.max(0, places - text.length));
+  return <span className="fd-digits" data-pad={pad || undefined}>{text}</span>;
+}
+
+/**
+ * A screen pictogram, after a segment display's: the shape is always there unlit, and lights in its parameter's
+ * colour up to `level` (0-1) from the bottom while `lit`, or in a colour lamp's own colour (`lamp`, its name).
+ * Decorative: the figure beside it says the same.
+ */
+export function Pictogram({ level = 1, lit, param = "a", lamp, children }: { level?: number; lit: boolean; param?: Param; lamp?: string; children: ReactNode }) {
+  const style = { "--fd-level": Math.min(1, Math.max(0, level)).toFixed(3), ...(lamp ? { "--fd-lamp": lampToken(lamp) } : {}) } as Vars;
+  return (
+    <span className="fd-pict" data-lit={lit} data-param={param} data-lamp={lamp ? "" : undefined} style={style} aria-hidden="true">
+      <svg className="fd-pict-unlit" viewBox="0 0 20 26">{children}</svg>
+      <svg className="fd-pict-lit" viewBox="0 0 20 26">{children}</svg>
+    </span>
+  );
+}
+
+/** A colour lamp's colour by name ("Amber"), as its field token. */
+const lampToken = (name: string) => `var(--fd-lamp-${name.toLowerCase()})`;
+
+/** A square of a colour lamp's colour, for a key's face. */
+export function Swatch({ lamp }: { lamp: string }) {
+  return <span className="fd-swatch" style={{ "--fd-lamp": lampToken(lamp) } as Vars} aria-hidden="true" />;
+}
+
+/** Unlit segments for a reading the screen doesn't have, with its meaning for screen readers. */
+export function Blank({ places = 3, label }: { places?: number; label: string }) {
+  return <span className="fd-digits" data-pad={"-".repeat(places)}><span className="fd-sr">{label}</span></span>;
+}
+
+export interface FaderProps {
+  id: string;
+  label: string;
+  /** The word printed over the slot, with a rule out to its end, e.g. "Brightness". */
+  legend: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  /** Whether what it sets is on. While off, setting the current level still reports it, so the fader turns it on. */
+  lit: boolean;
+  disabled?: boolean;
+  /** The thumb's colour: the parameter it sets. Default the module's first. */
+  param?: Param;
+  valueText: string;
+  onChange: (value: number) => void;
+}
+
+/** Half the thumb's width, in px. Matches .fd-thumb in module.css. */
+const THUMB_HALF = 9;
+
+/**
+ * A linear fader: a printed legend, a thin slot with a dotted scale, and a round thumb in its parameter's colour.
+ * A tap jumps the thumb (animated); a drag follows the finger. Pointer input comes from useTrack on a hit layer
+ * that leaves vertical swipes to the page; a hidden range input carries the keyboard and screen readers.
+ */
+export function Fader({ id, label, legend, value, min, max, step = 1, lit, disabled, param = "a", valueText, onChange }: FaderProps) {
+  const v = Math.min(max, Math.max(min, value));
+  const track = useTrack<HTMLDivElement>((x, el) => {
+    if (disabled) return;
+    const next = Math.min(max, Math.max(min, min + Math.round((trackPos(x, el.getBoundingClientRect(), THUMB_HALF) * (max - min)) / step) * step));
+    if (next !== v || !lit) onChange(next);
+  });
+  return (
+    <div className="fd-fader" ref={track.ref} data-lit={lit} data-param={param} data-disabled={disabled || undefined} style={{ "--v": ((v - min) / Math.max(1, max - min)).toFixed(4) } as Vars}>
+      <p className="fd-legend" aria-hidden="true">{legend}</p>
+      <div className="fd-slot" aria-hidden="true" />
+      <div className="fd-scale" aria-hidden="true" />
+      <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>
+      <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : track.handlers)} />
+      <input
+        id={id}
+        className="fd-in"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={v}
+        disabled={disabled}
+        aria-label={label}
+        aria-valuetext={valueText}
+        onKeyDown={track.onKeyDown}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  );
+}
+
+/** A printed section label with its rule, as over a fader, for a group of keys or a meter. */
+export function Legend({ id, children, value }: { id?: string; children: ReactNode; value?: ReactNode }) {
+  return (
+    <p className="fd-legend fd-legend--block">
+      <span id={id}>{children}</span>
+      {value != null && <span className="fd-legend-v">{value}</span>}
+    </p>
+  );
+}
+
+/**
+ * Today on a strip of screen, one segment column per hour, lit in the parameter's colour to that hour's level.
+ * Hours not yet come are dark; unavailable hours show a dash; the current hour has a tick under it.
+ */
+export function Meter({ label, samples, currentHour }: { label: string; samples: HourSample[]; currentHour: number }) {
+  return (
+    <div className="fd-meter" role="img" aria-label={label}>
+      {Array.from({ length: 24 }, (_, i) => {
+        const x = samples[i];
+        const state = x === "unavailable" ? "unav" : x == null ? "none" : "lvl";
+        const level = typeof x === "number" ? Math.min(1, Math.max(0, x)) : 0;
+        return (
+          <span key={i} className="fd-meter-h" data-state={state} data-now={i === currentHour || undefined} style={{ "--fd-level": level.toFixed(3) } as Vars}>
+            <span className="fd-meter-lit" />
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Longest exit transition in panel.css, plus a frame. */
+const CLOSE_MS = 250;
+const PHONE = "(max-width: 600px)";
+
+/**
+ * The detail panel: a module's plate grown into a modal dialog, a bottom sheet on phones (drag its header down
+ * to close) and a centred panel on wider screens. Its header repeats the name and area, with a close key.
+ */
+export function Panel({ open, onClose, name, area, children }: { open: boolean; onClose: () => void; name: string; area?: string; children: ReactNode }) {
+  const { mounted, dialogProps } = useSheet({ open, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".fd-panel-head", snapBack: "translate 300ms var(--fd-ease-drawer)" });
+  return (
+    // The click only closes on backdrop; Escape is the keyboard path (onCancel).
+    <dialog className="fd-panel" aria-label={`${name} details`} {...dialogProps}>
+      {mounted && (
+        <div className="fd-panel-in">
+          <header className="fd-panel-head">
+            <div className="fd-head">
+              <h2 className="fd-name" title={name}>{name}</h2>
+              {area && <p className="fd-area" title={area}>{area}</p>}
+            </div>
+            <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name}`} data-autofocus onClick={onClose}>
+              <span className="fd-key-glyph" aria-hidden="true"><IconClose /></span>
+            </button>
+          </header>
+          {children}
+        </div>
+      )}
+    </dialog>
+  );
+}

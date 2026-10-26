@@ -42,9 +42,11 @@ The code is split by responsibility, so a whole different UI, a skin, can sit on
 - `src/index.ts` — public exports. Every new widget must be exported here.
 - `scripts/new-widget/` — the widget generator, drawing new widgets in the orb skin. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new widgets start from the current rules. `index.test.ts` runs the generator: a dry run against the repo for every anchor it edits, and a real run in a temporary copy that must typecheck and pass the conformance test.
 
+- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` (the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`), `widgets/light/` (`LightModule` with its detail panel, its only widget so far), `ha/` (`HaLightModule`), and `styles/` (`tokens.css` with every token prefixed `--fd-`, and `rules.test.ts`). Class prefix `fd-`; a widget adds its own, `fd-lt-` for the light.
+
 ### Adding a skin
 
-Create `src/skins/<skin>/` with its `styles/tokens.css` (scope its tokens so they can't collide with another skin's) and a `storybook.tsx` like orb's, added to `SKINS` in `.storybook/preview.tsx`, and title its stories `<Skin>/…`. Draw its cards from the `useHa<Name>` hooks or headless components; never import another skin. For Home Assistant, extend `LovelaceDashboardElement` (`src/ha/lovelace/element.tsx`) in its `lovelace/` and register the card in `src/ha/lovelace/entry.ts`. Write its own design rules down, and encode them in a rules test like orb's.
+Create `src/skins/<skin>/` with its `styles/tokens.css` (scope its tokens so they can't collide with another skin's) and a `storybook.tsx` like orb's (its section, toolbar, `surface` body class and decorator), added to `SKINS` in `.storybook/preview.tsx`, and title its stories `<Skin>/…`. Draw its cards from the `useHa<Name>` hooks or headless components; never import another skin. For Home Assistant, extend `LovelaceDashboardElement` (`src/ha/lovelace/element.tsx`) in its `lovelace/` and register the card in `src/ha/lovelace/entry.ts`. Write its own design rules down, and encode them in a rules test like orb's.
 
 ## Hard rules
 

@@ -12,11 +12,12 @@ const ACCENTS: Record<string, [number, number] | null> = {
 
 /**
  * The orb skin in Storybook: its section (every orb story's title starts with it), its toolbar, and a decorator
- * that applies the toolbar's theme and accent to <html> and the dashboard surface to <body>. .storybook/preview.tsx
- * runs the decorator for orb stories only.
+ * that applies the toolbar's theme and accent to <html>. .storybook/preview.tsx runs the decorator for orb stories
+ * only and puts the dashboard surface on <body>.
  */
 export const orbStorybook = {
   section: "Orb",
+  surface: "ha-surface",
   globalTypes: {
     theme: {
       description: "Color theme",
@@ -56,7 +57,6 @@ export const orbStorybook = {
     const accent = ACCENTS[ctx.globals.accent as string] ?? null;
     if (accent) { root.style.setProperty("--brand-c", String(accent[0])); root.style.setProperty("--brand-h", String(accent[1])); }
     else { root.style.removeProperty("--brand-c"); root.style.removeProperty("--brand-h"); }
-    document.body.classList.add("ha-surface");
     return <Story />;
   }) satisfies Decorator,
 };
