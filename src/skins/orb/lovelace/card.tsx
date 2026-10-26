@@ -8,6 +8,9 @@ import { scopeToHost } from "../../../ha/lovelace/styles";
 
 export const CARD_TYPE = "home-dashboard";
 
+/** Orb's typeface, Urbanist. */
+const FONT_HREF = "https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap";
+
 /** The card fills its view; tokens.css's dashboard surface paints the page behind it. Home Assistant's toolbar
     (`--header-height`, plus the notch) sits over the top of the view, so a nav jump stops below it. */
 const HOST_CSS = `
@@ -28,6 +31,7 @@ export function createHomeDashboardCard(css: string) {
   return class HomeDashboardCard extends LovelaceDashboardElement<DashboardConfig> {
     protected readonly styles = styles;
     protected readonly mountClass = "ha-surface";
+    protected readonly fontHref = FONT_HREF;
     #auto?: { key: unknown[]; blocks: BlockConfig[] };
 
     setConfig(raw: unknown) {

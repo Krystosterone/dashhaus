@@ -32,14 +32,15 @@ export interface LovelaceHass {
 /** The states and registries an automatic layout reads, from `hass`. */
 export const autoInput = (hass: LovelaceHass) => ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas });
 
-const FONT_HREF = "https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap";
-
-/** Fonts only load from the document, never from inside a shadow root. */
-function loadFont() {
-  if (document.head.querySelector(`link[href="${FONT_HREF}"]`)) return;
+/**
+ * A web font's stylesheet, linked from the page itself: fonts only load from the document, never from inside a
+ * shadow root. Once per page, however many cards ask. Without the network the card keeps its fallback stack.
+ */
+function loadFont(href: string) {
+  if (document.head.querySelector(`link[href="${href}"]`)) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = FONT_HREF;
+  link.href = href;
   document.head.append(link);
 }
 
@@ -65,6 +66,8 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
   protected abstract readonly styles: string;
   /** A class for the element React renders into. */
   protected readonly mountClass: string = "";
+  /** The skin's web font, as a stylesheet URL (Google Fonts); none keeps the skin's fallback stack. */
+  protected readonly fontHref?: string;
   protected config?: C;
   #hass?: LovelaceHass;
   #store?: HaStore;
@@ -105,7 +108,7 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
       this.#mount = document.createElement("div");
       if (this.mountClass) this.#mount.className = this.mountClass;
       shadow.append(style, this.#mount);
-      loadFont();
+      if (this.fontHref) loadFont(this.fontHref);
     }
     this.render();
   }
