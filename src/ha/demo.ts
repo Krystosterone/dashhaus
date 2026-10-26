@@ -158,7 +158,15 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service === "turn_on") {
           next.state = "on";
           if (typeof serviceData.brightness_pct === "number") next.attributes.brightness = Math.round(serviceData.brightness_pct * 2.55);
-          if (typeof serviceData.color_temp_kelvin === "number") next.attributes.color_temp_kelvin = serviceData.color_temp_kelvin;
+          // As a real lamp reports it: a colour temperature or a colour, by its color_mode.
+          if (typeof serviceData.color_temp_kelvin === "number") {
+            next.attributes.color_temp_kelvin = serviceData.color_temp_kelvin;
+            next.attributes.color_mode = "color_temp";
+          }
+          if (Array.isArray(serviceData.hs_color)) {
+            next.attributes.hs_color = serviceData.hs_color;
+            next.attributes.color_mode = "hs";
+          }
         }
       } else {
         const hvacModes = Array.isArray(current.attributes.hvac_modes) ? current.attributes.hvac_modes : [];

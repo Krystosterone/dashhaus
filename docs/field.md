@@ -2,7 +2,7 @@
 
 A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, with a **Finish** toolbar (Auto, Alloy, Black).
 
-Status: the light is the first and only widget, with its detail panel. There is no Lovelace card or dashboard yet.
+Status: the light is the first and only widget, with its detail panel. Its Lovelace card, `custom:home-dashboard-field`, draws every light by area ([deploy.md](deploy.md#the-field-dashboard)); it hasn't been loaded in a live Home Assistant yet.
 
 ## Design rules
 

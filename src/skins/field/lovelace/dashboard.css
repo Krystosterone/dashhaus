@@ -1,0 +1,40 @@
+/* The field page: a printed title, then a section per area under its legend, modules in a grid. Columns come
+   from the page's own width, so the modules keep their footprint heights whatever the screen. */
+.fd-dash {
+  container-type: inline-size;
+  box-sizing: border-box;
+  display: grid;
+  gap: 24px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px 16px 24px;
+  font-family: var(--fd-sans);
+  font-stretch: var(--fd-wide);
+  color: var(--fd-ink);
+}
+.fd-dash-title { margin: 4px 0 0; font-size: 20px; font-weight: 500; letter-spacing: 0.06em; line-height: 24px; text-transform: uppercase; }
+.fd-dash-area { display: grid; gap: 10px; min-width: 0; }
+.fd-dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.fd-dash[data-footprint="compact"] .fd-dash-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 8px; }
+.fd-dash-empty { margin: 0; font-size: 12px; color: var(--fd-ink-2); }
+
+/* A rejected command: a plate docked at the bottom of the page, its words and its keys. */
+.fd-notice {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 12px;
+  border: 1px solid var(--fd-hairline);
+  border-radius: var(--fd-r-module);
+  background: var(--fd-module);
+  box-shadow: var(--fd-panel-shadow);
+}
+.fd-notice-t { flex: 1 1 220px; display: grid; gap: 2px; margin: 0; font-size: 12px; line-height: 1.35; }
+.fd-notice-t strong { font-weight: 600; letter-spacing: 0.02em; }
+.fd-notice-t span { color: var(--fd-ink-2); }
+.fd-notice-keys { display: flex; gap: 8px; }
+.fd-notice-keys .fd-key { width: auto; padding: 0 14px; }

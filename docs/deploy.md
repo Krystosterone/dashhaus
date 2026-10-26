@@ -1,6 +1,6 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below). It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
 
 ## First deploy
 
@@ -160,8 +160,36 @@ nav:
 
 **Storybook → Orb / Home Assistant / Config dashboard → Nav and pages** shows this config on the demo data. Pages take the same `sections` as the main page, so a room, a floor or a task can each have its own. Home Assistant shows its own tabs when a dashboard has several views, and each view would need its own card and `nav`; `pages` keeps one card and one nav, and `navigate:` stays for the dashboards that really are separate.
 
+## The field dashboard
+
+The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws lights only, so far. `npm run deploy` registers the bundle, so the card is available once you have deployed, but the script doesn't create a dashboard for it. To add one: Settings → Dashboards → **Add dashboard**, open it, ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker. With no `modules` it shows every light, grouped by area.
+
+```yaml
+type: custom:home-dashboard-field
+title: Lights            # optional, printed at the top
+finish: home-assistant   # home-assistant (default: follows its dark mode), auto (the device's), alloy, black
+footprint: standard      # standard (160 px modules, default) or compact (64 px rows)
+modules:                 # optional; leave out for every light by area
+  - light.ceiling        # an entity id
+  - entity: light.desk_strip
+    name: Desk           # overrides the friendly name
+    area: Office         # overrides the area; modules are grouped under it
+    footprint: compact   # overrides the card's footprint for this module
+```
+
+| Key | Values | Default |
+| --- | --- | --- |
+| `title` | text | none |
+| `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
+| `footprint` | `standard`, `compact` | `standard` |
+| `modules` | a list of `light.*` entity ids or maps of `entity`, `name`, `area`, `footprint` | every visible light |
+
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Home Assistant / Dashboard** shows what it draws on demo data.
+
 ## What has and hasn't been verified
 
 Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API.
+
+The field card: unit tests cover its config parser, its automatic layout and the element (areas, finish, font link, one store per connection), and the built bundle carries it and its font. It has not been loaded in a live Home Assistant yet.
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port): the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live: service calls from the cards, the YAML-mode resource fallback, and a redeploy over an existing dashboard.

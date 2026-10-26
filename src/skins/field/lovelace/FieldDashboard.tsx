@@ -1,0 +1,74 @@
+import { useState } from "react";
+import { useHaSelector, useHaStore } from "../../../ha/provider";
+import { HaLight } from "../../../ha/headless";
+import { actionMessage } from "../../../ha/lovelace/actionMessage";
+import { LightModule } from "../widgets/light/LightModule";
+import { Key, Legend } from "../shared/ui";
+import type { FieldFootprint } from "../shared/ui";
+import { groupByArea } from "./auto";
+import type { ModuleConfig } from "./config";
+import "./dashboard.css";
+
+/** One module, live: the useHaLight hook through its headless component, today's history for its panel. */
+function LiveModule({ item, footprint }: { item: ModuleConfig; footprint: FieldFootprint }) {
+  return (
+    <HaLight entityId={item.entity} name={item.name} area={item.area}>
+      {(l) => <LightModule entity={l.entity} history={l.history} footprint={item.footprint ?? footprint} {...l.actions} />}
+    </HaLight>
+  );
+}
+
+/** The latest command Home Assistant rejected, with Retry when repeating it is safe, and Dismiss. */
+function ActionNotice() {
+  const store = useHaStore();
+  const error = useHaSelector((snapshot) => snapshot.lastActionError);
+  const entity = useHaSelector((snapshot) => (error?.entityId ? snapshot.entities[error.entityId] : undefined));
+  const [retrying, setRetrying] = useState(false);
+  const canRetry = store.canRetryLastAction?.() === true;
+  const message = actionMessage(error, entity, canRetry);
+  if (!message) return null;
+  return (
+    <div className="fd-notice" role="alert" aria-label="Home Assistant action failed">
+      <p className="fd-notice-t"><strong>{message.title}</strong><span>{message.detail}</span></p>
+      <div className="fd-notice-keys">
+        {canRetry && (
+          <Key label={retrying ? "Retrying" : "Retry"} caption={retrying ? "Retrying" : "Retry"} disabled={retrying} onPress={() => {
+            setRetrying(true);
+            void store.retryLastAction?.().catch(() => undefined).finally(() => setRetrying(false));
+          }}>{null}</Key>
+        )}
+        <Key label="Dismiss" caption="Dismiss" onPress={() => store.clearActionError?.()}>{null}</Key>
+      </div>
+    </div>
+  );
+}
+
+export interface FieldDashboardProps {
+  title?: string;
+  /** The modules, each with its area from the YAML or, failing that, Home Assistant's registries. */
+  items: ModuleConfig[];
+  footprint: FieldFootprint;
+}
+
+/**
+ * The field page drawn from the card's config: an optional printed title, then a section per area, each under its
+ * legend, its modules in a grid. A rejected command docks at the bottom. It needs an `HaProvider` above it.
+ */
+export function FieldDashboard({ title, items, footprint }: FieldDashboardProps) {
+  const groups = groupByArea(items);
+  return (
+    <div className="fd-dash" data-footprint={footprint}>
+      {title && <h1 className="fd-dash-title">{title}</h1>}
+      {groups.map((g) => (
+        <section key={g.area ?? ""} className="fd-dash-area" aria-label={g.area ?? "Other"}>
+          {g.area && groups.length > 1 && <Legend>{g.area}</Legend>}
+          <div className="fd-dash-grid">
+            {g.modules.map((item) => <LiveModule key={item.entity} item={item} footprint={footprint} />)}
+          </div>
+        </section>
+      ))}
+      {items.length === 0 && <p className="fd-dash-empty">No lights yet. Add <code>modules</code> to the card, or a light to Home Assistant.</p>}
+      <ActionNotice />
+    </div>
+  );
+}

@@ -21,6 +21,20 @@ describe("createDemoClimateHaTransport", () => {
   });
 });
 
+describe("createDemoHaTransport", () => {
+  it("shows a colour or a colour temperature by color_mode, as a real lamp reports it", async () => {
+    const transport = createDemoHaTransport();
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("light", "turn_on", { entity_id: "light.living_room", hs_color: [220, 100] });
+    expect(latest?.["light.living_room"]?.attributes).toMatchObject({ color_mode: "hs", hs_color: [220, 100] });
+
+    await transport.callService("light", "turn_on", { entity_id: "light.living_room", color_temp_kelvin: 4000 });
+    expect(latest?.["light.living_room"]?.attributes).toMatchObject({ color_mode: "color_temp", color_temp_kelvin: 4000 });
+  });
+});
+
 describe("createDemoSensorHaTransport", () => {
   it("publishes the composed temperature, humidity, and battery entities", async () => {
     const transport = createDemoSensorHaTransport();
