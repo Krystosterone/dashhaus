@@ -4,7 +4,7 @@ import "./skins/orb/styles/tokens.css";
 export { Orb, CardTitle, CircleButton, SheetClose, TogglePill, UnavailableSlot, Readout, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./skins/orb/shared/ui";
 export { useCard, detailsSheet, detailsTile, normalizeReadings } from "./skins/orb/shared/ui";
 export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, WidgetFootprint, CardProps, SheetProps, TileProps, Reading } from "./skins/orb/shared/ui";
-export { useLongPress } from "./skins/orb/shared/useLongPress";
+export { useLongPress } from "./hooks/useLongPress";
 export { useTrack, trackPos } from "./hooks/useTrack";
 export { useNow } from "./hooks/useNow";
 

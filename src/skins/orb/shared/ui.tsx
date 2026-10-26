@@ -1,9 +1,10 @@
-import { createContext, createElement, useContext, useEffect, useId, useRef, useState } from "react";
-import type { ComponentType, CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import { useLongPress } from "./useLongPress";
+import { createContext, createElement, useContext, useId, useState } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
+import { useLongPress } from "../../../hooks/useLongPress";
+import { useSheet } from "../../../hooks/useSheet";
 import type { ColorName } from "../../../domains/color";
 import type { HourSample, Reading } from "../../../domains/history";
-import { fmt1 } from "../../../domains/format";
+import { fmt1, fmtDuration } from "../../../domains/format";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -297,12 +298,7 @@ export function TodayStrip({ samples, currentHour, summary, title = "Today", ton
 }
 
 /** Minutes as "54m", "3h", "11h 54m". Callers handle 0 with their own words ("Not on today"). */
-export const fmtDuration = (m: number) => {
-  const mins = Math.max(0, Math.round(m));
-  const h = Math.floor(mins / 60), r = mins % 60;
-  return h === 0 ? `${r}m` : r === 0 ? `${h}h` : `${h}h ${r}m`;
-};
-export { fmt1 };
+export { fmt1, fmtDuration };
 
 /* ---------- Choice chips: one of several, the selected one in the accent ---------- */
 export interface ChoiceOption<T extends string | number> { value: T; label: string; sub?: string }
@@ -331,9 +327,6 @@ export function ChoiceChips<T extends string | number>({ id, label, options, val
 const PHONE = "(max-width: 600px)";
 /** Longest exit transition in card.css, plus a frame. */
 const CLOSE_MS = 250;
-/** px per ms over the last 100ms of the drag. Vaul's threshold: a flick is enough. */
-const FLICK = 0.4;
-const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * What a sheet shows under its widget, set by whoever renders the tile. A bundle's lead uses it to list
@@ -343,113 +336,11 @@ export const SheetExtra = createContext<{ title: string; content: ReactNode } | 
 
 export function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () => void; label: string; children: ReactNode }) {
   const extra = useContext(SheetExtra);
-  const ref = useRef<HTMLDialogElement>(null);
-  const [mounted, setMounted] = useState(open);
-  const drag = useRef<{ id: number; y0: number; dy: number; trail: { t: number; y: number }[] } | null>(null);
-  if (open && !mounted) setMounted(true);
-
-  // Show once the content is in the DOM; lock page scroll while open.
-  useEffect(() => {
-    const d = ref.current;
-    if (!d || !open || !mounted) return;
-    d.removeAttribute("data-closing");
-    d.style.translate = "";
-    d.style.transition = "";
-    if (!d.open) {
-      try { d.showModal(); } catch { d.setAttribute("open", ""); }
-      d.querySelector<HTMLElement>("[data-autofocus]")?.focus();
-    }
-    const root = document.documentElement;
-    const prev = root.style.overflow;
-    root.style.overflow = "hidden";
-    return () => { root.style.overflow = prev; };
-  }, [open, mounted]);
-
-  // Animate out, then close and unmount.
-  useEffect(() => {
-    const d = ref.current;
-    if (open || !d) return;
-    if (!d.open) { setMounted(false); return; }
-    const finish = () => {
-      d.removeAttribute("data-closing");
-      d.style.translate = "";
-      d.style.transition = "";
-      if (d.open) d.close();
-      setMounted(false);
-    };
-    d.setAttribute("data-closing", "");
-    const t = window.setTimeout(finish, CLOSE_MS);
-    return () => window.clearTimeout(t);
-  }, [open]);
-
-  const onPointerDown = (e: ReactPointerEvent<HTMLDialogElement>) => {
-    // One finger at a time: a second touch mid-drag would make the sheet jump to it.
-    if (drag.current) return;
-    const t = e.target as Element;
-    if (e.button > 0 || !window.matchMedia(PHONE).matches) return;
-    // A sheet opened from inside this one (a bundle row's) handles its own drags.
-    if (t.closest("dialog") !== e.currentTarget) return;
-    if (!t.closest(".hd--sheet > .hd-head") || t.closest("button, a, input")) return;
-    drag.current = { id: e.pointerId, y0: e.clientY, dy: 0, trail: [{ t: e.timeStamp, y: e.clientY }] };
-    e.currentTarget.setPointerCapture(e.pointerId);
-    e.currentTarget.style.transition = "none";
-  };
-  const onPointerMove = (e: ReactPointerEvent<HTMLDialogElement>) => {
-    const g = drag.current;
-    if (!g || e.pointerId !== g.id) return;
-    g.dy = e.clientY - g.y0;
-    g.trail.push({ t: e.timeStamp, y: e.clientY });
-    while (g.trail.length > 2 && e.timeStamp - g.trail[0].t > 100) g.trail.shift();
-    // Down follows the finger 1:1. Up is past the resting edge, so it gives a little, less the further you pull.
-    const y = g.dy >= 0 ? g.dy : -3 * Math.sqrt(-g.dy);
-    e.currentTarget.style.translate = `0 ${y.toFixed(1)}px`;
-  };
-  const endDrag = (e: ReactPointerEvent<HTMLDialogElement>) => {
-    const g = drag.current;
-    if (!g || e.pointerId !== g.id) return;
-    drag.current = null;
-    const d = e.currentTarget;
-    const a = g.trail[0], b = g.trail[g.trail.length - 1];
-    const velocity = (b.y - a.y) / Math.max(1, b.t - a.t);
-    d.style.transition = "";
-    if (g.dy > Math.min(140, d.offsetHeight * 0.3) || (g.dy > 12 && velocity > FLICK)) {
-      // Hand over to the closing transition from where the finger left it.
-      if (!reducedMotion()) d.style.translate = "";
-      d.setAttribute("data-closing", "");
-      onClose();
-    } else {
-      d.style.transition = "translate 300ms var(--ease-drawer)";
-      d.style.translate = "0 0";
-      window.setTimeout(() => { if (!drag.current) { d.style.transition = ""; d.style.translate = ""; } }, 320);
-    }
-  };
+  const { mounted, dialogProps } = useSheet({ open, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".hd--sheet > .hd-head", snapBack: "translate 300ms var(--ease-drawer)" });
 
   return (
-    // The click only closes on backdrop; Escape is the keyboard path (onCancel below).
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
-    <dialog
-      ref={ref}
-      className="hd-sheet"
-      aria-label={label}
-      onCancel={(e) => {
-        // Escape belongs to the top sheet only, not to a sheet it was opened from.
-        if (e.target !== e.currentTarget) return;
-        e.preventDefault();
-        onClose();
-      }}
-      onClick={(e) => {
-        // Only a click on the backdrop closes: the dialog itself receives the click that ends a drag.
-        const d = ref.current;
-        if (!d || e.target !== d) return;
-        const r = d.getBoundingClientRect();
-        const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-        if (outside) onClose();
-      }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-    >
+    // The click only closes on backdrop; Escape is the keyboard path (onCancel).
+    <dialog className="hd-sheet" aria-label={label} {...dialogProps}>
       {mounted && (
         <CardHeadingLevelContext.Provider value={2}>
           <div className={`hd-c${extra ? " hd-c--more" : ""}`}>
