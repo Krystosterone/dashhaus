@@ -3,8 +3,8 @@ import { getStoryContext } from "@storybook/test-runner";
 import { injectAxe, getAxeResults } from "axe-playwright";
 
 /**
- * Every story must render (smoke) and pass axe (a11y). A violation fails the run
- * with the rule, impact, and target elements in the message.
+ * Every story must render and pass axe (a11y). Field modules must also fit their own
+ * container; a violation reports the module and measured widths.
  */
 const config: TestRunnerConfig = {
   async postVisit(page, context) {
@@ -14,6 +14,21 @@ const config: TestRunnerConfig = {
     await page.evaluate(() =>
       Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))),
     );
+    const overflows = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
+      modules.flatMap((module) => {
+        const element = module as HTMLElement;
+        if (element.scrollWidth <= element.clientWidth + 1) return [];
+        return [{
+          name: element.querySelector(".fd-name")?.textContent?.trim() || "unnamed",
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+        }];
+      }),
+    );
+    if (overflows.length) {
+      const lines = overflows.map(({ name, clientWidth, scrollWidth }) => `  ${name}: ${scrollWidth}px content in ${clientWidth}px module`);
+      throw new Error(`Field module horizontal overflow\n${lines.join("\n")}`);
+    }
     await injectAxe(page);
     const results = await getAxeResults(page, "#storybook-root", {
       runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],

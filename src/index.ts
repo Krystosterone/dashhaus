@@ -1,3 +1,4 @@
+// The public barrel exports both skins, so load both scoped token sets.
 import "./skins/orb/styles/tokens.css";
 import "./skins/field/styles/tokens.css";
 
@@ -47,6 +48,17 @@ export type { HaToggleTileProps } from "./skins/orb/ha/HaToggleTile";
 export { HaAlarmTile } from "./skins/orb/ha/HaAlarmTile";
 export type { HaAlarmTileProps } from "./skins/orb/ha/HaAlarmTile";
 
+// Field skin: presentational modules and their connected Home Assistant containers.
+export { LightModule } from "./skins/field/widgets/light/LightModule";
+export type { LightModuleProps } from "./skins/field/widgets/light/LightModule";
+export { HaLightModule } from "./skins/field/ha/HaLightModule";
+export type { HaLightModuleProps } from "./skins/field/ha/HaLightModule";
+export { ClimateModule } from "./skins/field/widgets/climate/ClimateModule";
+export type { ClimateModuleProps } from "./skins/field/widgets/climate/ClimateModule";
+export { HaClimateModule } from "./skins/field/ha/HaClimateModule";
+export type { HaClimateModuleProps } from "./skins/field/ha/HaClimateModule";
+export type { FieldFootprint } from "./skins/field/shared/ui";
+
 // Header
 export { HeaderWidget } from "./skins/orb/widgets/header/HeaderWidget";
 export type { HeaderWidgetProps } from "./skins/orb/widgets/header/HeaderWidget";
@@ -66,13 +78,6 @@ export type { ClimateWidgetProps, ClimateSheetProps } from "./skins/orb/widgets/
 export { ClimateTile } from "./skins/orb/widgets/climate/ClimateTile";
 export type { ClimateTileProps } from "./skins/orb/widgets/climate/ClimateTile";
 export type { ClimateEntity, ClimateHistory, HvacMode, HvacAction } from "./domains/climate/types";
-// Field skin
-export { ClimateModule } from "./skins/field/widgets/climate/ClimateModule";
-export type { ClimateModuleProps } from "./skins/field/widgets/climate/ClimateModule";
-export { HaClimateModule } from "./skins/field/ha/HaClimateModule";
-export type { HaClimateModuleProps } from "./skins/field/ha/HaClimateModule";
-export type { FieldFootprint } from "./skins/field/shared/ui";
-
 
 // Sensor
 export { SensorWidget, SensorSheet } from "./skins/orb/widgets/sensor/SensorWidget";

@@ -8,7 +8,7 @@ const SIZES = { S: 200, M: 340, L: 464 } as const;
 const CLIMATES = Object.keys(CLIMATE_SEEDS) as ClimateSeedName[];
 
 function DemoClimate({ climate, width, footprint, defaultOpen }: { climate: ClimateSeedName; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
-  const demo = useDemoClimate(climate);
+  const demo = useDemoClimate(CLIMATE_SEEDS[climate]);
   return (
     <div style={{ width, maxWidth: "100%" }}>
       <ClimateModule {...demo} footprint={footprint} defaultOpen={defaultOpen} />

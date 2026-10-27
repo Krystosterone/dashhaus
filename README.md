@@ -1,18 +1,35 @@
 # Home Dashboard
 
-Widgets for a custom Home Assistant dashboard, in React and TypeScript, with Storybook. Each widget shows one entity (the sensor widget shows one device's temperature and humidity together, and the sound widget a sound machine's sound with its volume). Lights, climate, covers, alarms, toggles, sounds and temperature/humidity sensors are composed into phone, tablet and wall-panel dashboards.
+React and TypeScript skins for a custom Home Assistant dashboard, developed and verified in Storybook.
 
-This file is the rules: what every widget must do, how motion behaves, and how dashboards compose. Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); the Home Assistant data boundary is in [docs/home-assistant.md](docs/home-assistant.md); commands, layout and the adding-a-widget steps are in AGENTS.md. Use the Theme menu in the Storybook toolbar to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
+Widgets show one Home Assistant entity each (the sensor widget combines one device's temperature and humidity, and the sound widget combines a sound machine's sound and volume). Lights, climate, covers, alarms, toggles, sounds and temperature/humidity sensors compose into phone, tablet and wall-panel dashboards.
+
+This file is the Orb skin's design and composition rules. Field's distinct hardware language is in [docs/field.md](docs/field.md). Per-widget behaviour is in [docs/widgets.md](docs/widgets.md); the Home Assistant data boundary is in [docs/home-assistant.md](docs/home-assistant.md); commands, layout and extension workflows are in AGENTS.md.
+
+## Install
+
+```sh
+npm install
+```
+
+## Usage
+
+```sh
+npm run storybook
+```
+
+Storybook documents every widget, supported footprint and skin. Use the Theme menu to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
+
 
 ## Running with Home Assistant
 
-To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs the `custom:home-dashboard` card and creates a dashboard laid out from your areas. You then edit its YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
+To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb) and `custom:home-dashboard-field` (Field), then creates the Orb dashboard the first time. You edit either card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
 
-The presentational widgets stay provider-agnostic. The connected Home Assistant slices currently include a shared injected transport/store, a loss-preserving raw entity snapshot, pure light, climate, sensor, and weather mappers, typed light/climate actions, forecast response queries, and `HaLightTile`/`HaClimateTile`/`HaSensorTile`/`HaWeatherTile` containers. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the boundary.
+The presentational widgets stay provider-agnostic. Each supported entity kind has a UI-free `useHa<Kind>` hook and headless component under `src/ha/`; each skin wraps those shared results in its own connected tiles or modules. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the seam.
 
 The host supplies authentication and an implementation of the transport (the repository includes an adapter for the official `home-assistant-js-websocket` client). Fake transports power unit tests and Storybook; passing them is not evidence of a live Home Assistant connection.
 
-## Design rules every widget follows
+## Orb design rules
 
 - **One widget, one entity.**
 - **One modular footprint system.** Every widget type and both bundle types use the same 60 px unit and 8 px gap: `compact` is 60 px, `standard` is 128 px, and `featured` is 264 px. In general, $n$ units occupy $n \times 60 + (n - 1) \times 8$ pixels.
@@ -145,3 +162,11 @@ The Storybook dashboards demonstrate:
 - **Tablet, landscape:** the same four actions, one of them featured, followed by household and nursery status, then outside and room readings.
 - **Wall panel:** one column per place, each ordered actions, status, then glance; the complete 1280 × 800 surface fits without scrolling.
 - **Phone, ungrouped footprints:** unrelated widget types, all three footprints and both bundle forms share one `WidgetGrid` without a section.
+
+## Contributing
+
+Ask questions and agree proposed changes in [GitHub Issues](https://github.com/Krystosterone/home-dashboard/issues). Pull requests are accepted after that agreement. Before opening one, run `npm run check` and `npm run test-storybook`, document behavior changes, and preserve the domain → Home Assistant → skin import direction.
+
+## License
+
+UNLICENSED.

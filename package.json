@@ -1,5 +1,6 @@
 {
   "name": "home-dashboard",
+  "description": "React and TypeScript skins for a custom Home Assistant dashboard, developed and verified in Storybook.",
   "version": "0.1.0",
   "private": true,
   "type": "module",

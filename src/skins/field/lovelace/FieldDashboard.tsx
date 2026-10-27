@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useHaSelector, useHaStore } from "../../../ha/provider";
-import { HaClimate, HaLight } from "../../../ha/headless";
 import { actionMessage } from "../../../ha/lovelace/actionMessage";
-import { ClimateModule } from "../widgets/climate/ClimateModule";
-import { LightModule } from "../widgets/light/LightModule";
+import { HaClimateModule } from "../ha/HaClimateModule";
+import { HaLightModule } from "../ha/HaLightModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
@@ -14,17 +13,9 @@ import "./dashboard.css";
 function LiveModule({ item, footprint }: { item: ModuleConfig; footprint: FieldFootprint }) {
   const moduleFootprint = item.footprint ?? footprint;
   if (item.entity.startsWith("climate.")) {
-    return (
-      <HaClimate entityId={item.entity} name={item.name} area={item.area}>
-        {(climate) => <ClimateModule entity={climate.entity} history={climate.history} footprint={moduleFootprint} {...climate.actions} />}
-      </HaClimate>
-    );
+    return <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={moduleFootprint} />;
   }
-  return (
-    <HaLight entityId={item.entity} name={item.name} area={item.area}>
-      {(light) => <LightModule entity={light.entity} history={light.history} footprint={moduleFootprint} {...light.actions} />}
-    </HaLight>
-  );
+  return <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={moduleFootprint} />;
 }
 
 /** The latest command Home Assistant rejected, with Retry when repeating it is safe, and Dismiss. */
