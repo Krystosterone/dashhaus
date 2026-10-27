@@ -53,6 +53,17 @@ describe("ClimateModule", () => {
     expect(onRangeChange).toHaveBeenCalledWith(24, 24);
   });
 
+  it("keeps an irregular Fahrenheit endpoint available to keyboard input", () => {
+    const onRangeChange = vi.fn();
+    render(<ClimateModule entity={CLIMATE_SEEDS.worstCase.entity} onToggle={vi.fn()} onTargetChange={vi.fn()} onRangeChange={onRangeChange} />);
+    const high = screen.getByRole("slider", { name: "North-east open-plan living and dining heat pump, cool above" }) as HTMLInputElement;
+    expect(high.value).toBe("95");
+
+    fireEvent.keyDown(high, { key: "ArrowDown" });
+
+    expect(onRangeChange).toHaveBeenCalledWith(44.6, 94.5);
+  });
+
   it("exposes exact range steps and supported mode, preset and fan commands in details", () => {
     const onRangeChange = vi.fn();
     const onModeChange = vi.fn();
@@ -82,10 +93,32 @@ describe("ClimateModule", () => {
   });
 
   it("uses blank segments, explicit unavailable copy and no live controls when unreachable", () => {
-    const el = draw(CLIMATE_SEEDS.unavailable.entity);
+    const entity = {
+      ...CLIMATE_SEEDS.unavailable.entity,
+      presetMode: "home",
+      presetModes: ["home", "away"],
+      fanMode: "auto",
+      fanModes: ["auto", "high"],
+    };
+    const { container: el } = render(
+      <ClimateModule
+        entity={entity}
+        defaultOpen
+        onToggle={vi.fn()}
+        onTargetChange={vi.fn()}
+        onRangeChange={vi.fn()}
+        onModeChange={vi.fn()}
+        onPresetChange={vi.fn()}
+        onFanChange={vi.fn()}
+      />,
+    );
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
-    expect(screen.getByText("Unavailable", { selector: ".fd-sr" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Garage heater, unavailable" }) as HTMLButtonElement).disabled).toBe(true);
+    const module = el.querySelector("article")!;
+    expect(within(module).getByText("Unavailable", { selector: ".fd-sr" })).toBeTruthy();
+    expect((within(module).getByRole("button", { name: "Garage heater, unavailable" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.queryByRole("slider")).toBeNull();
+    const panel = screen.getByRole("dialog", { name: "Garage heater details", hidden: true });
+    expect((within(panel).getByRole("button", { name: "Garage heater, unavailable", hidden: true }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(panel).queryByRole("button", { name: /^Set (mode|preset|fan) to /, hidden: true })).toBeNull();
   });
 });

@@ -1,11 +1,25 @@
 import { fireEvent, render } from "@testing-library/react";
+import type { KeyboardEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { trackPos, useTrack } from "./useTrack";
+import { rangeKeyValue, trackPos, useOrderedRangeTrack, useTrack } from "./useTrack";
 
 function Harness({ pick }: { pick: (clientX: number, root: HTMLDivElement, phase: "jump" | "drag", x0: number) => void }) {
   const { ref, handlers, onKeyDown } = useTrack<HTMLDivElement>(pick);
   // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- test-only harness; production tracks carry a real range input for keyboard use.
   return <div data-testid="track" ref={ref} {...handlers} onKeyDown={onKeyDown} />;
+}
+
+function OrderedHarness({ onChange }: { onChange: (low: number, high: number) => void }) {
+  const range = useOrderedRangeTrack<HTMLDivElement>({
+    low: 50,
+    high: 70,
+    min: 44.6,
+    max: 95,
+    step: 0.5,
+    inset: 0,
+    onChange,
+  });
+  return <div data-testid="ordered-track" ref={range.ref} {...range.handlers} />;
 }
 
 const ptr = (eventType: string, x: number, pointerType: "mouse" | "touch") => {
@@ -33,6 +47,16 @@ describe("trackPos", () => {
   it("excludes the inset from the usable length", () => {
     const rr = { left: 10, width: 100 } as DOMRect;
     expect(trackPos(60, rr, 10)).toBe(0.5);
+  });
+});
+
+describe("rangeKeyValue", () => {
+  const event = (key: string) => ({ key, preventDefault: vi.fn() }) as unknown as KeyboardEvent;
+
+  it("steps from the current value and preserves irregular endpoints", () => {
+    expect(rangeKeyValue(event("ArrowUp"), 70, 44.6, 95, 0.5)).toBe(70.5);
+    expect(rangeKeyValue(event("ArrowDown"), 95, 44.6, 95, 0.5)).toBe(94.5);
+    expect(rangeKeyValue(event("End"), 70, 44.6, 95, 0.5)).toBe(95);
   });
 });
 
@@ -84,5 +108,18 @@ describe("useTrack", () => {
     Object.defineProperties(other, { pointerId: { value: 2 }, pointerType: { value: "mouse" } });
     fireEvent(el, other);
     expect(pick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("useOrderedRangeTrack", () => {
+  it("anchors pointer steps to the minimum", () => {
+    const onChange = vi.fn();
+    const { getByTestId } = render(<OrderedHarness onChange={onChange} />);
+    const el = getByTestId("ordered-track");
+    Object.defineProperty(el, "getBoundingClientRect", { value: () => ({ left: 0, width: 100 }) });
+
+    fireEvent(el, ptr("pointerdown", 1, "mouse"));
+
+    expect(onChange).toHaveBeenCalledWith(45.1, 70);
   });
 });

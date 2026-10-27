@@ -226,14 +226,14 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
         />
       )}
 
-      {onModeChange && modeOptions.length > 0 && (
-        <ModeKeys id={`${uid}-mode`} current={mode} options={modeOptions} disabled={unavailable} onChange={onModeChange} />
+      {!unavailable && onModeChange && modeOptions.length > 0 && (
+        <ModeKeys id={`${uid}-mode`} current={mode} options={modeOptions} onChange={onModeChange} />
       )}
-      {onPresetChange && e.presetModes && e.presetModes.length > 0 && (
-        <TextKeys id={`${uid}-preset`} label="Preset" current={e.presetMode} options={e.presetModes} disabled={unavailable} onChange={onPresetChange} />
+      {!unavailable && onPresetChange && e.presetModes && e.presetModes.length > 0 && (
+        <TextKeys id={`${uid}-preset`} label="Preset" current={e.presetMode} options={e.presetModes} onChange={onPresetChange} />
       )}
-      {onFanChange && e.fanModes && e.fanModes.length > 0 && (
-        <TextKeys id={`${uid}-fan`} label="Fan" current={e.fanMode} options={e.fanModes} disabled={unavailable} onChange={onFanChange} />
+      {!unavailable && onFanChange && e.fanModes && e.fanModes.length > 0 && (
+        <TextKeys id={`${uid}-fan`} label="Fan" current={e.fanMode} options={e.fanModes} onChange={onFanChange} />
       )}
 
       {history && (
@@ -275,14 +275,14 @@ function RangeFine({ name, low, high, min, max, step, onChange }: { name: string
   );
 }
 
-function ModeKeys({ id, current, options, disabled, onChange }: { id: string; current: HvacMode; options: HvacMode[]; disabled: boolean; onChange: (mode: HvacMode) => void }) {
+function ModeKeys({ id, current, options, onChange }: { id: string; current: HvacMode; options: HvacMode[]; onChange: (mode: HvacMode) => void }) {
   return (
     <div className="fd-block">
       <Legend id={id} value={MODE_META[current].label}>Mode</Legend>
       <div className="fd-cl-mode-keys" role="group" aria-labelledby={id}>
         {options.map((option) => (
           <div key={option} className="fd-cl-option">
-            <Key label={`Set mode to ${MODE_META[option].label}`} wide disabled={disabled || option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
+            <Key label={`Set mode to ${MODE_META[option].label}`} wide disabled={option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
             <span className="fd-cl-option-name" title={MODE_META[option].label}>{MODE_META[option].label}</span>
           </div>
         ))}
@@ -291,14 +291,14 @@ function ModeKeys({ id, current, options, disabled, onChange }: { id: string; cu
   );
 }
 
-function TextKeys({ id, label, current, options, disabled, onChange }: { id: string; label: string; current?: string; options: string[]; disabled: boolean; onChange: (value: string) => void }) {
+function TextKeys({ id, label, current, options, onChange }: { id: string; label: string; current?: string; options: string[]; onChange: (value: string) => void }) {
   return (
     <div className="fd-block">
       <Legend id={id} value={current ? titleCase(current) : undefined}>{label}</Legend>
       <div className="fd-cl-text-keys" role="group" aria-labelledby={id}>
         {options.map((option) => {
           const text = titleCase(option);
-          return <Key key={option} label={`Set ${label.toLowerCase()} to ${text}`} wide caption={text} disabled={disabled || option === current} onPress={() => onChange(option)}>{null}</Key>;
+          return <Key key={option} label={`Set ${label.toLowerCase()} to ${text}`} wide caption={text} disabled={option === current} onPress={() => onChange(option)}>{null}</Key>;
         })}
       </div>
     </div>

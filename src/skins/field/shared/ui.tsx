@@ -1,6 +1,6 @@
-import { useId, useRef } from "react";
-import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { useTrack, trackPos } from "../../../hooks/useTrack";
+import { useId } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { rangeKeyValue, trackPos, useOrderedRangeTrack, useTrack } from "../../../hooks/useTrack";
 import { useLongPress } from "../../../hooks/useLongPress";
 import { useSheet } from "../../../hooks/useSheet";
 import type { HourSample } from "../../../domains/history";
@@ -196,12 +196,16 @@ export function Fader({ id, label, legend, value, min, max, step = 1, lit, disab
           type="range"
           min={min}
           max={max}
-          step={step}
+          step="any"
           value={v}
           disabled={disabled}
           aria-label={label}
           aria-valuetext={valueText}
-          onKeyDown={track.onKeyDown}
+          onKeyDown={(event) => {
+            track.onKeyDown(event);
+            const next = rangeKeyValue(event, v, min, max, step);
+            if (next != null && next !== v) onChange(next);
+          }}
           onChange={(e) => onChange(Number(e.target.value))}
         />
       )}
@@ -230,46 +234,13 @@ export interface RangeFaderProps {
  * thumbs choose from the tap side or the first drag direction.
  */
 export function RangeFader({ id, name, legend, low, high, min, max, step = 1, disabled, lowValueText, highValueText, onChange }: RangeFaderProps) {
-  const lo = Math.min(max, Math.max(min, Math.min(low, high)));
-  const hi = Math.min(max, Math.max(min, Math.max(low, high)));
-  const span = Math.max(step, max - min);
-  const which = useRef<"low" | "high" | null>(null);
-
-  const apply = (thumb: "low" | "high", value: number) => {
-    const nextLow = thumb === "low" ? Math.min(value, hi) : lo;
-    const nextHigh = thumb === "high" ? Math.max(value, lo) : hi;
-    if (nextLow !== lo || nextHigh !== hi) onChange(nextLow, nextHigh);
-  };
-  const track = useTrack<HTMLDivElement>((x, el, phase, x0) => {
-    if (disabled) return;
-    const snapped = Math.round((min + trackPos(x, el.getBoundingClientRect(), THUMB_HALF) * span) / step) * step;
-    const at = Math.min(max, Math.max(min, Number(snapped.toFixed(4))));
-    if (phase === "jump") {
-      which.current = null;
-      apply(lo === hi ? (at > lo ? "high" : "low") : Math.abs(at - lo) <= Math.abs(at - hi) ? "low" : "high", at);
-      return;
-    }
-    if (!which.current) {
-      const start = Math.round((min + trackPos(x0, el.getBoundingClientRect(), THUMB_HALF) * span) / step) * step;
-      which.current = lo === hi ? (x > x0 ? "high" : "low") : Math.abs(start - lo) <= Math.abs(start - hi) ? "low" : "high";
-    }
-    apply(which.current, at);
-  });
-  const endGesture = {
-    onPointerUp: (event: PointerEvent<HTMLDivElement>) => {
-      track.handlers.onPointerUp(event);
-      which.current = null;
-    },
-    onPointerCancel: (event: PointerEvent<HTMLDivElement>) => {
-      track.handlers.onPointerCancel(event);
-      which.current = null;
-    },
-  };
+  const range = useOrderedRangeTrack<HTMLDivElement>({ low, high, min, max, step, inset: THUMB_HALF, disabled, onChange });
+  const { low: lo, high: hi, span } = range;
 
   return (
     <div
       className="fd-fader fd-range"
-      ref={track.ref}
+      ref={range.ref}
       data-disabled={disabled || undefined}
       style={{ "--fd-lo": ((lo - min) / span).toFixed(4), "--fd-hi": ((hi - min) / span).toFixed(4) } as Vars}
     >
@@ -278,20 +249,20 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
       <div className="fd-scale" aria-hidden="true" />
       <div className="fd-rail fd-range-rail fd-range-rail--low" data-param="a" aria-hidden="true"><div className="fd-thumb" /></div>
       <div className="fd-rail fd-range-rail fd-range-rail--high" data-param="b" aria-hidden="true"><div className="fd-thumb" /></div>
-      <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : track.handlers)} {...(disabled ? {} : endGesture)} />
+      <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : range.handlers)} />
       <input
         id={`${id}-low`}
         className="fd-in fd-range-in fd-range-in--low"
         type="range"
         min={min}
         max={max}
-        step={step}
+        step="any"
         value={lo}
         disabled={disabled}
         aria-label={`${name}, heat below`}
         aria-valuetext={lowValueText}
-        onKeyDown={track.onKeyDown}
-        onChange={(event) => apply("low", Number(event.target.value))}
+        onKeyDown={(event) => range.onKeyDown(event, "low")}
+        onChange={(event) => range.apply("low", Number(event.target.value))}
       />
       <input
         id={`${id}-high`}
@@ -299,13 +270,13 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
         type="range"
         min={min}
         max={max}
-        step={step}
+        step="any"
         value={hi}
         disabled={disabled}
         aria-label={`${name}, cool above`}
         aria-valuetext={highValueText}
-        onKeyDown={track.onKeyDown}
-        onChange={(event) => apply("high", Number(event.target.value))}
+        onKeyDown={(event) => range.onKeyDown(event, "high")}
+        onChange={(event) => range.apply("high", Number(event.target.value))}
       />
     </div>
   );

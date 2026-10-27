@@ -1,7 +1,6 @@
-import { useRef } from "react";
-import type { PointerEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Vars } from "../../shared/ui";
-import { useTrack, trackPos } from "../../../../hooks/useTrack";
+import { useOrderedRangeTrack } from "../../../../hooks/useTrack";
 import { fmtTarget } from "../../../../domains/climate/modes";
 
 /**
@@ -19,64 +18,45 @@ export function RangeBar({ id, name, low, high, current, modeCue, min, max, step
   onChange: (low: number, high: number) => void;
   onOpen?: () => void;
 }) {
-  const span = Math.max(step, max - min);
-  const p = (v: number) => Math.min(1, Math.max(0, (v - min) / span));
-  const style = { "--lo": p(low).toFixed(4), "--hi": p(high).toFixed(4), ...(current != null ? { "--cur": p(current).toFixed(4) } : {}) } as Vars;
-  // Which handle the current gesture moves; null while the handles overlap and the finger hasn't picked a side.
-  const which = useRef<"lo" | "hi" | null>(null);
-
-  const apply = (w: "lo" | "hi", v: number) => {
-    const lo = w === "lo" ? Math.min(v, high) : low;
-    const hi = w === "hi" ? Math.max(v, low) : high;
-    if (lo !== low || hi !== high) onChange(lo, hi);
-  };
-  const track = useTrack<HTMLDivElement>((x, el, phase, x0) => {
-    // Pointer position to a snapped temperature, using the knob width so the knob centre follows the finger.
-    const kn = el.querySelector<HTMLElement>(".cw-rb-k")!.getBoundingClientRect().width;
-    const v = +(Math.round((min + trackPos(x, el.getBoundingClientRect(), kn / 2) * span) / step) * step).toFixed(2);
-    const at = Math.min(max, Math.max(min, v));
-    if (phase === "jump") {
-      // Nearest handle; when they overlap, a tap moves the one on the side tapped.
-      which.current = null;
-      apply(low === high ? (at > low ? "hi" : "lo") : Math.abs(at - low) <= Math.abs(at - high) ? "lo" : "hi", at);
-      return;
-    }
-    if (!which.current) {
-      // First sideways move of a drag: nearest handle, or when they overlap, the direction of travel.
-      const start = +(Math.round((min + trackPos(x0, el.getBoundingClientRect(), kn / 2) * span) / step) * step).toFixed(2);
-      which.current = low === high ? (x > x0 ? "hi" : "lo") : Math.abs(start - low) <= Math.abs(start - high) ? "lo" : "hi";
-    }
-    apply(which.current, at);
+  const range = useOrderedRangeTrack<HTMLDivElement>({
+    low,
+    high,
+    min,
+    max,
+    step,
+    inset: (root) => root.querySelector<HTMLElement>(".cw-rb-k")!.getBoundingClientRect().width / 2,
+    onChange,
   });
-  const endGesture = { onPointerUp: (e: PointerEvent<HTMLDivElement>) => { track.handlers.onPointerUp(e); which.current = null; },
-    onPointerCancel: (e: PointerEvent<HTMLDivElement>) => { track.handlers.onPointerCancel(e); which.current = null; } };
+  const { low: lo, high: hi, span } = range;
+  const p = (v: number) => Math.min(1, Math.max(0, (v - min) / span));
+  const style = { "--lo": p(lo).toFixed(4), "--hi": p(hi).toFixed(4), ...(current != null ? { "--cur": p(current).toFixed(4) } : {}) } as Vars;
 
   return (
-    <div className="cw-rb" style={style} ref={track.ref}>
+    <div className="cw-rb" style={style} ref={range.ref}>
       <div className="cw-rb-zone cw-rb-zone--heat" />
       <div className="cw-rb-zone cw-rb-zone--cool" />
       {current != null && <i className="cw-rb-cur" aria-hidden="true" />}
       {/* Narrow and compact: one readout. Wider standard/featured cards: values ride the handles. */}
-      <span className="cw-rb-lab" aria-hidden="true"><span>{modeCue && <span className="cw-control-mode">{modeCue}</span>}{low === high ? fmtTarget(low) : `${fmtTarget(low)}–${fmtTarget(high)}`}°</span></span>
+      <span className="cw-rb-lab" aria-hidden="true"><span>{modeCue && <span className="cw-control-mode">{modeCue}</span>}{lo === hi ? fmtTarget(lo) : `${fmtTarget(lo)}–${fmtTarget(hi)}`}°</span></span>
       <div className="cw-rb-rail" aria-hidden="true">
-        <div className="cw-rb-at cw-rb-at--lo"><i className="cw-rb-k cw-rb-k--lo">{fmtTarget(low)}°</i></div>
-        <div className="cw-rb-at cw-rb-at--hi"><i className="cw-rb-k cw-rb-k--hi">{fmtTarget(high)}°</i></div>
+        <div className="cw-rb-at cw-rb-at--lo"><i className="cw-rb-k cw-rb-k--lo">{fmtTarget(lo)}°</i></div>
+        <div className="cw-rb-at cw-rb-at--hi"><i className="cw-rb-k cw-rb-k--hi">{fmtTarget(hi)}°</i></div>
       </div>
       {/* Pointer: tap or drag anywhere on the bar. Keyboard and screen readers: the two sliders below. */}
-      <div className="cw-rb-hit" aria-hidden="true" {...track.handlers} {...endGesture} />
+      <div className="cw-rb-hit" aria-hidden="true" {...range.handlers} />
       <input
-        id={`${id}-lo`} className="cw-rb-in cw-rb-in--lo" type="range" min={min} max={max} step={step} value={low}
-        aria-label={`${name}, heat below`} aria-valuetext={`Heat below ${fmtTarget(low)} degrees`}
-        onKeyDown={track.onKeyDown} onChange={(ev) => apply("lo", Number(ev.target.value))}
+        id={`${id}-lo`} className="cw-rb-in cw-rb-in--lo" type="range" min={min} max={max} step="any" value={lo}
+        aria-label={`${name}, heat below`} aria-valuetext={`Heat below ${fmtTarget(lo)} degrees`}
+        onKeyDown={(ev) => range.onKeyDown(ev, "low")} onChange={(ev) => range.apply("low", Number(ev.target.value))}
       />
       <input
-        id={`${id}-hi`} className="cw-rb-in cw-rb-in--hi" type="range" min={min} max={max} step={step} value={high}
-        aria-label={`${name}, cool above`} aria-valuetext={`Cool above ${fmtTarget(high)} degrees`}
-        onKeyDown={track.onKeyDown} onChange={(ev) => apply("hi", Number(ev.target.value))}
+        id={`${id}-hi`} className="cw-rb-in cw-rb-in--hi" type="range" min={min} max={max} step="any" value={hi}
+        aria-label={`${name}, cool above`} aria-valuetext={`Cool above ${fmtTarget(hi)} degrees`}
+        onKeyDown={(ev) => range.onKeyDown(ev, "high")} onChange={(ev) => range.apply("high", Number(ev.target.value))}
       />
       {onOpen && (
         <button type="button" className="cw-rb-open" onClick={onOpen}
-          aria-label={`${name}: heat below ${fmtTarget(low)}°, cool above ${fmtTarget(high)}°. Open details`} />
+          aria-label={`${name}: heat below ${fmtTarget(lo)}°, cool above ${fmtTarget(hi)}°. Open details`} />
       )}
     </div>
   );
