@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "../../../../domains/weather/types";
-import { CONDITION_LABEL, precipitation, isWet, clock, compass, toKmh } from "../../../../domains/weather/conditions";
-import { ConditionIcon, aqiBand, uvBand } from "./conditions";
+import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "../../../../domains/weather/conditions";
+import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "../../../../domains/weather/readings";
+import { ConditionIcon } from "./conditions";
 import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherCard.css";
@@ -27,12 +28,6 @@ export interface WeatherCardProps extends CardProps {
 }
 
 const deg = (t: number) => `${fmt1(t).replace(/\.0$/, "")}°`;
-/** Whole degrees, never "-0°". */
-const deg0 = (t: number) => `${Math.round(t) || 0}°`;
-/** Gusts from this speed are a warning. */
-const GUST_WARN_KMH = 50;
-/** A UV index from "Very high" up is a warning. */
-const UV_WARN = 8;
 /** Hours ahead the forecast row can show; the row shows as many as its width fits. */
 const HOURS_AHEAD = 12;
 
@@ -99,36 +94,23 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
   const { nameId, sheet, compact, featured, bare, article } = useCard("wx", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const cond = unav ? null : (e.state as Condition);
-  // Unknown daylight keeps the day icons rather than guessing night.
-  const night = cond === "clear-night" || e.isDay === false;
+  const night = isNight(e);
   const t = unav ? undefined : e.temperature;
   const feels = unav ? undefined : e.apparentTemperature;
   const colors = paint("reading", 0, null, color);
 
   // Today's range: what happened so far, what's forecast for the rest of today, and now.
   const hour = history?.currentHour ?? 0;
-  const seen = (history?.temperature ?? []).filter((x): x is number => typeof x === "number");
-  const ahead = (hourly ?? []).filter((h) => h.hour > hour && h.hour < 24).map((h) => h.temperature);
-  const today = unav ? [] : [...seen, ...ahead, ...(t != null ? [t] : []), ...(daily?.[0] ? [daily[0].low, daily[0].high] : [])];
-  const low = today.length ? Math.min(...today) : undefined;
-  const high = today.length ? Math.max(...today) : undefined;
-  // A dash beside a minus sign misreads ("-3°–-1°"), so a range below zero is spelled out.
-  const range = low == null || high == null || Math.round(high) === Math.round(low) ? null
-    : `${deg0(low)}${Math.round(high) < 0 ? " to " : "–"}${deg0(high)}`;
+  const range = unav ? null : rangeText(todayRange(t, history, hourly, daily));
 
-  const label = cond ? (night && cond === "sunny" ? "Clear" : CONDITION_LABEL[cond]) : "Unavailable";
+  const label = cond ? conditionLabel(cond, night) : "Unavailable";
   const precip = cond ? precipitation(cond, hourly, hour) : null;
   // Falling rain that stops soon already names itself ("Rain until 15:00").
   const condition = precip && cond && isWet(cond) ? null : label;
 
   // Warnings come first, in the warn colour, like a sensor's low battery.
   const band = e.aqi != null ? aqiBand(e.aqi) : null;
-  const gustKmh = e.windGustSpeed != null ? toKmh(e.windGustSpeed, e.windSpeedUnit) : 0;
-  const warnings = unav ? [] : [
-    e.aqi != null && e.aqi > 100 ? (e.aqi > 300 ? "Hazardous air" : e.aqi > 200 ? "Very poor air" : "Poor air") : null,
-    gustKmh >= GUST_WARN_KMH ? `Gusts ${Math.round(e.windGustSpeed!)} ${e.windSpeedUnit}` : null,
-    e.uvIndex != null && e.uvIndex >= UV_WARN ? `${uvBand(e.uvIndex).label} UV` : null,
-  ].filter((x): x is string => !!x);
+  const warnings = weatherWarnings(e);
   // On a card the most urgent warning leads with a count of the rest ("Hazardous air +2"), so an ellipsis
   // never hides that more exist; under 260 px, where even that clips, the count alone ("3 warnings"). The
   // sheet names them all, and the alert label always speaks all of them.
@@ -187,9 +169,9 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
             {e.apparentTemperature != null && <Stat label="Feels like" value={deg(e.apparentTemperature)} sub={e.dewPoint != null ? `Dew point ${deg(e.dewPoint)}` : undefined} />}
             {e.humidity != null && <Stat label="Humidity" value={<>{Math.round(e.humidity)}<small>%</small></>} />}
             {e.windSpeed != null && <Stat label="Wind" value={<>{Math.round(e.windSpeed)}<small> {e.windSpeedUnit}</small></>}
-              sub={[e.windBearing != null ? compass(e.windBearing) : null, e.windGustSpeed != null ? `gusts ${Math.round(e.windGustSpeed)}` : null].filter(Boolean).join(", ") || undefined} warn={gustKmh >= GUST_WARN_KMH} />}
-            {band && <Stat label="Air quality" value={Math.round(e.aqi!)} sub={band.label} warn={e.aqi! > 100} />}
-            {e.uvIndex != null && <Stat label="UV index" value={Math.round(e.uvIndex)} sub={uvBand(e.uvIndex).label} warn={e.uvIndex >= UV_WARN} />}
+              sub={[e.windBearing != null ? compass(e.windBearing) : null, e.windGustSpeed != null ? `gusts ${Math.round(e.windGustSpeed)}` : null].filter(Boolean).join(", ") || undefined} warn={gustWarns(e)} />}
+            {band && <Stat label="Air quality" value={Math.round(e.aqi!)} sub={band.label} warn={airWarns(e)} />}
+            {e.uvIndex != null && <Stat label="UV index" value={Math.round(e.uvIndex)} sub={uvBand(e.uvIndex).label} warn={uvWarns(e)} />}
             {e.pressure != null && <Stat label="Pressure" value={<>{e.pressureUnit === "inHg" ? e.pressure.toFixed(2) : Math.round(e.pressure)}<small> {e.pressureUnit}</small></>} />}
           </div>
         </div>

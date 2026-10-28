@@ -5,6 +5,7 @@ import { actionMessage } from "../../../ha/lovelace/actionMessage";
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
 import { HaSensorModule } from "../ha/HaSensorModule";
+import { HaWeatherModule } from "../ha/HaWeatherModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
@@ -19,6 +20,9 @@ const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
   climate: ({ item, footprint }) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
   sensor: ({ item, footprint }) => (
     <HaSensorModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} humidityEntityId={item.humidity} batteryEntityId={item.battery} outdoor={item.outdoor} />
+  ),
+  weather: ({ item, footprint }) => (
+    <HaWeatherModule entityId={item.entity} name={item.name} footprint={footprint} aqiEntityId={item.aqi} aqiScale={item.aqiScale} sunEntityId={item.sun} loadForecasts={item.forecasts} />
   ),
 };
 

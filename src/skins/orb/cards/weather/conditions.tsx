@@ -1,25 +1,6 @@
 import type { Condition } from "../../../../domains/weather/types";
 import { SKY } from "../../../../domains/weather/conditions";
 
-/** US AQI bands, with a tone each: green, butter, apricot, red, violet, maroon. */
-export function aqiBand(aqi: number): { label: string; short: string; h: number; c: number } {
-  if (aqi <= 50) return { label: "Good", short: "Good", h: 150, c: 0.11 };
-  if (aqi <= 100) return { label: "Moderate", short: "Moderate", h: 95, c: 0.13 };
-  if (aqi <= 150) return { label: "Unhealthy for sensitive groups", short: "Sensitive", h: 60, c: 0.14 };
-  if (aqi <= 200) return { label: "Unhealthy", short: "Unhealthy", h: 30, c: 0.15 };
-  if (aqi <= 300) return { label: "Very unhealthy", short: "Very poor", h: 330, c: 0.12 };
-  return { label: "Hazardous", short: "Hazardous", h: 10, c: 0.12 };
-}
-
-/** WHO UV index bands. */
-export function uvBand(uv: number): { label: string; h: number; c: number } {
-  if (uv < 3) return { label: "Low", h: 150, c: 0.11 };
-  if (uv < 6) return { label: "Moderate", h: 95, c: 0.13 };
-  if (uv < 8) return { label: "High", h: 60, c: 0.14 };
-  if (uv < 11) return { label: "Very high", h: 30, c: 0.15 };
-  return { label: "Extreme", h: 330, c: 0.12 };
-}
-
 /* ---------- Icons: 20px, stroked like the rest of the set ---------- */
 const P = { fill: "none", stroke: "currentColor" } as const;
 const CLOUD = "M6.2 15.5h8a3.2 3.2 0 0 0 .4-6.4 4.4 4.4 0 0 0-8.5 1.1 2.7 2.7 0 0 0 .1 5.3Z";

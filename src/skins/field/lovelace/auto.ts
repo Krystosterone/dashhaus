@@ -21,18 +21,21 @@ export function areaName(input: AutoInput, entityId: string): string | undefined
 /**
  * Every supported entity Field can draw, for a card without `modules`, as the card its entity id picks: hidden and
  * config or diagnostic entities left out, sorted by name. The sensor card takes only room air: one per device, its
- * humidity and battery as companions (`roomSensors`). The dashboard groups them by area.
+ * humidity and battery as companions (`roomSensors`). The weather card takes the first weather entity by name, as
+ * orb's does, with `sun.sun` for night. The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states, entities = {} } = input;
   const name = (m: ModuleConfig) => String(states[m.entity]?.attributes.friendly_name ?? m.entity);
-  const others = Object.keys(states).flatMap((entity): ModuleConfig[] => {
+  const visible = Object.keys(states).flatMap((entity): ModuleConfig[] => {
     const entry = entities[entity];
     const kind = kindOf(entity);
-    return !entry?.hidden && !entry?.entity_category && kind && kind !== "sensor" ? [{ entity, kind }] : [];
-  });
+    return !entry?.hidden && !entry?.entity_category && kind ? [{ entity, kind }] : [];
+  }).sort((a, b) => name(a).localeCompare(name(b)));
+  const others = visible.filter((m) => m.kind !== "sensor" && m.kind !== "weather");
+  const weather = visible.find((m) => m.kind === "weather");
   const sensors = roomSensors(input).map((room): ModuleConfig => ({ ...room, kind: "sensor" }));
-  return [...others, ...sensors].sort((a, b) => name(a).localeCompare(name(b)));
+  return [...others, ...(weather ? [{ ...weather, sun: "sun.sun" }] : []), ...sensors].sort((a, b) => name(a).localeCompare(name(b)));
 }
 
 export interface AreaGroup<M extends { area?: string } = ModuleConfig> { area?: string; modules: M[] }

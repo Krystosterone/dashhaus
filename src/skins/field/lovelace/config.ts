@@ -4,7 +4,7 @@ import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
- * every mistake shows at once with its path. Field draws lights, climate entities and room sensors.
+ * every mistake shows at once with its path. Field draws lights, climate entities, room sensors and the weather.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -21,6 +21,11 @@ export interface ModuleConfig {
   humidity?: string;
   battery?: string;
   outdoor?: boolean;
+  /** A weather's air-quality sensor and its scale, its sun entity (default `sun.sun`), and whether to read forecasts. */
+  aqi?: string;
+  aqiScale?: "US";
+  sun?: string;
+  forecasts?: boolean;
 }
 
 export interface FieldConfig {
@@ -29,12 +34,12 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** Absent: every supported light and climate entity and room sensor, grouped by area. */
+  /** Absent: every supported light, climate and weather entity and room sensor, grouped by area. */
   modules?: ModuleConfig[];
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor";
+export type FieldKind = "light" | "climate" | "sensor" | "weather";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -52,6 +57,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   light: { domains: ["light"] },
   climate: { domains: ["climate"] },
   sensor: { domains: ["sensor"] },
+  weather: { domains: ["weather"] },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];
@@ -75,7 +81,7 @@ const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
 const TOP_KEYS = ["type", "title", "finish", "footprint", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"] };
+const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"] };
 
 function module(read: Reader, value: unknown, path: string): ModuleConfig | undefined {
   if (!isRaw(value) && typeof value !== "string") {
@@ -101,6 +107,12 @@ function module(read: Reader, value: unknown, path: string): ModuleConfig | unde
     config.humidity = read.optionalEntity(raw, "humidity", at, ["sensor"]);
     config.battery = read.optionalEntity(raw, "battery", at, ["sensor"]);
     config.outdoor = read.boolean(raw, "outdoor", at);
+  }
+  if (kind === "weather") {
+    config.aqi = read.optionalEntity(raw, "aqi", at, ["sensor"]);
+    config.aqiScale = read.choice(raw, "aqi_scale", at, ["US"] as const);
+    config.sun = raw.sun === undefined ? "sun.sun" : read.optionalEntity(raw, "sun", at, ["sun"]);
+    config.forecasts = read.boolean(raw, "forecasts", at) ?? true;
   }
   return config;
 }

@@ -16,8 +16,8 @@ const CARDS = [
   ["probeFan", "--code", "zf", "--domain", "probe_fan"],
   ["probeCo2", "--code", "zc", "--domain", "sensor", "--kind", "reading", "--unit", "ppm"],
 ];
-/** Field cards over the generated domains above and over hand-built ones: a control, and a reading with no area. */
-const FIELD_CARDS = [["probeFan"], ["probeCo2"], ["humidifier"], ["weather"]].map((args) => [...args, "--skin", "field"]);
+/** Field cards over the generated domains above and over hand-built ones: a control, and a reading started on a control's domain. */
+const FIELD_CARDS = [["probeFan"], ["probeCo2"], ["humidifier"], ["owlet", "--kind", "reading"]].map((args) => [...args, "--skin", "field"]);
 /** Domains the field generator must refuse, each with the reason it gives. */
 const REFUSED = [
   ["toggle", /useHaToggle requires domain/],

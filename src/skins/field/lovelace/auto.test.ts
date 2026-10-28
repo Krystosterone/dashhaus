@@ -26,6 +26,13 @@ describe("autoModules", () => {
     });
     expect(modules).toEqual([{ entity: "sensor.bed_t", humidity: "sensor.bed_h", battery: "sensor.bed_b", kind: "sensor" }, { entity: "light.lamp", kind: "light" }]);
   });
+
+  it("takes the first weather entity by name, with the sun for night", () => {
+    const modules = autoModules({
+      states: { "weather.met": state("weather.met", "Met"), "weather.home": state("weather.home", "Home"), "light.lamp": state("light.lamp", "Lamp") },
+    });
+    expect(modules).toEqual([{ entity: "weather.home", kind: "weather", sun: "sun.sun" }, { entity: "light.lamp", kind: "light" }]);
+  });
 });
 
 describe("groupByArea", () => {
@@ -59,6 +66,15 @@ describe("parseFieldConfig", () => {
     ]);
     expect(() => parseFieldConfig({ modules: [{ entity: "sensor.bed_t", humidity: "light.lamp" }] })).toThrow("light.lamp must be a sensor.* entity");
     expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", battery: "sensor.b" }] })).toThrow('"battery"');
+  });
+
+  it("takes a weather's AQI, sun and forecast settings, the sun by default, on weather only", () => {
+    expect(parseFieldConfig({ modules: ["weather.home", { entity: "weather.met", aqi: "sensor.aqi", aqi_scale: "US", sun: null, forecasts: false }] }).modules).toEqual([
+      { entity: "weather.home", kind: "weather", name: undefined, area: undefined, footprint: undefined, aqi: undefined, aqiScale: undefined, sun: "sun.sun", forecasts: true },
+      { entity: "weather.met", kind: "weather", name: undefined, area: undefined, footprint: undefined, aqi: "sensor.aqi", aqiScale: "US", sun: undefined, forecasts: false },
+    ]);
+    expect(() => parseFieldConfig({ modules: [{ entity: "weather.home", sun: "sensor.sun" }] })).toThrow("sensor.sun must be a sun.* entity");
+    expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", aqi: "sensor.aqi" }] })).toThrow('"aqi"');
   });
 
   it("takes a card for the entity's domain with \"card\", and no other", () => {

@@ -1,0 +1,268 @@
+import type { CSSProperties, ReactNode } from "react";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../../../../domains/weather/types";
+import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "../../../../domains/weather/conditions";
+import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "../../../../domains/weather/readings";
+import { normalizeReadings } from "../../../../domains/history";
+import type { HourSample } from "../../../../domains/history";
+import { fmt1 } from "../../../../domains/format";
+import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import type { FieldFootprint } from "../../shared/ui";
+import { IconWeather, conditionPict } from "./icons";
+import "./WeatherModule.css";
+
+export interface WeatherModuleProps {
+  entity: WeatherEntity;
+  footprint?: FieldFootprint;
+  /** Today's temperatures so far, on the module's meter and in the panel. Omit and the meter's hours stay dark. */
+  history?: WeatherHistory;
+  /** Tells when rain starts or stops, completes today's low and high, and is the panel's next hours. */
+  hourly?: HourlyForecast[];
+  /** Completes today's low and high, and is the panel's next days. */
+  daily?: DailyForecast[];
+  /** Open the detail panel on first render (stories). */
+  defaultOpen?: boolean;
+}
+
+/** Hours the panel's strip shows, one column each: as many as a phone's panel holds. */
+const HOURS = 8;
+/** Days the panel's strip shows, today first. */
+const DAYS = 5;
+/** A chance of rain from this much is printed. */
+const RAIN_SHOWN = 20;
+
+const rainText = (p?: number) => (p != null && p >= RAIN_SHOWN ? `${Math.round(p)}%` : "");
+
+/** A fixed-place temperature: the leading place is an unlit segment ("06.2"), heard as the real value. */
+function Temperature({ value, unit }: { value: number; unit: WeatherEntity["temperatureUnit"] }) {
+  return <><Digits text={fmt1(value)} places={4} /><small>{unit}</small></>;
+}
+
+/**
+ * The home's outdoor conditions as a field module: a reading, so nothing on it is pressed but its name. Its glyph
+ * lies flat where a key would be, and today's temperatures take the fader's place, with today's low and high. The
+ * screen leads with the temperature under the sky's pictogram; its meta lines say, most urgent first, a warning,
+ * rain or snow on its way, or the condition, then how it feels. A compact row has no meta lines, so that first line
+ * takes the area's place under the name. The name opens the panel: how it feels on the screen's second channel,
+ * every warning, today, the next hours and days, then every reading.
+ */
+export function WeatherModule({ entity: e, footprint = "standard", history, hourly, daily, defaultOpen = false }: WeatherModuleProps) {
+  const details = useDetails(defaultOpen);
+  const unav = e.state === "unavailable";
+  const cond = unav ? null : (e.state as Condition);
+  const night = isNight(e);
+  const t = unav ? undefined : e.temperature;
+  const feels = unav ? undefined : e.apparentTemperature;
+  const hour = history?.currentHour ?? 0;
+
+  const warnings = weatherWarnings(e);
+  const precip = cond ? precipitation(cond, hourly, hour) : null;
+  // Falling rain that stops soon already names itself ("Rain until 15:00").
+  const sky = cond ? precip ?? conditionLabel(cond, night) : null;
+  // The most urgent warning, with a count of the rest so a clipped line never hides that more exist; where even
+  // that clips, the count alone. Spoken in full.
+  const warn = warnings.length > 1 ? (
+    <Warn>
+      <span aria-hidden="true">
+        <span className="fd-wx-warn-l">{`${warnings[0]} +${warnings.length - 1}`}</span>
+        <span className="fd-wx-warn-s">{`${warnings.length} warnings`}</span>
+      </span>
+      <span className="fd-sr">{warnings.join(", ")}</span>
+    </Warn>
+  ) : warnings.length === 1 && <Warn>{warnings[0]}</Warn>;
+
+  const pict = <Pictogram param="neutral" lit={cond != null}>{conditionPict(cond, night)}</Pictogram>;
+  const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
+    : t != null ? <Temperature value={t} unit={e.temperatureUnit} />
+    : <Blank places={4} label="No temperature yet" />;
+  const meta: [ReactNode, ReactNode?] = unav
+    ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
+    : [warn || sky, feels != null ? `Feels ${deg0(feels)}` : t == null ? "No temperature yet" : undefined];
+
+  // Today's low and high: what was read, what's forecast for the rest of it, and now. While unavailable, what was read.
+  const range = todayRange(t, history, unav ? undefined : hourly, unav ? undefined : daily);
+  const day = history ? normalizeReadings(history.temperature, 0.5) : null;
+  const glyph = <Glyph unavailable={unav}><IconWeather /></Glyph>;
+
+  // A compact row has no meta lines: the first takes the area's line, a warning behind its marker.
+  const compact = footprint === "compact";
+  const line = compact ? (unav ? "Unavailable" : sky ?? undefined) : undefined;
+  const plateWarning = compact && warnings.length ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
+
+  return (
+    <ModuleFrame
+      kind="fd-wx"
+      name={e.name}
+      area={line}
+      footprint={footprint}
+      state={e.state}
+      warning={plateWarning}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={glyph}
+      row={(
+        <div className="fd-wx-row">
+          {glyph}
+          <Today summary={rangeText(range) ?? undefined} label="Temperature by hour today." tone="neutral" samples={day?.samples} currentHour={history?.currentHour} />
+        </div>
+      )}
+    >
+      <WeatherDetails e={e} cond={cond} night={night} read={read} pict={pict} meta={meta} feels={feels} warnings={warnings} precip={precip} range={range} day={day?.samples} history={history} hourly={hourly} daily={daily} />
+    </ModuleFrame>
+  );
+}
+
+interface DetailsProps {
+  e: WeatherEntity;
+  cond: Condition | null;
+  night: boolean;
+  read: ReactNode;
+  pict: ReactNode;
+  meta: [ReactNode, ReactNode?];
+  feels?: number;
+  warnings: string[];
+  /** Rain or snow on its way, or when falling rain stops. */
+  precip: string | null;
+  range: { low: number; high: number } | null;
+  day?: HourSample[];
+  history?: WeatherHistory;
+  hourly?: HourlyForecast[];
+  daily?: DailyForecast[];
+}
+
+/**
+ * The panel's content: the screen with how it feels on its second channel, every warning and the sky in words,
+ * today, the next hours and the next days on strips of screen, then every reading printed on the plate.
+ */
+function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, precip, range, day, history, hourly, daily }: DetailsProps) {
+  const unav = cond == null;
+  const hour = history?.currentHour ?? 0;
+  // The condition, then the rain on its way; falling rain that stops soon already names itself ("Rain until 15:00").
+  const words = cond ? [precip && isWet(cond) ? null : conditionLabel(cond, night), precip].filter(Boolean).join(" · ") : "";
+
+  const aside = feels != null ? (
+    <p className="fd-chan">
+      <span>
+        <Digits value={Math.round(feels) || 0} places={2} /><small>°</small>
+        <span className="fd-chan-sub">Feels like</span>
+      </span>
+    </p>
+  ) : undefined;
+
+  const hours = (hourly ?? []).filter((h) => h.hour > hour).slice(0, HOURS);
+  const days = (daily ?? []).slice(0, DAYS);
+  const reported = unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `Updated ${e.lastUpdated}` : "";
+
+  return (
+    <div className="fd-wx-panel" data-state={e.state}>
+      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
+      {!unav && (warnings.length > 0 || words) && (
+        <ul className="fd-wx-say">
+          {warnings.map((w) => <li key={w}><Warn>{w}</Warn></li>)}
+          {words && <li>{words}</li>}
+        </ul>
+      )}
+      {history && (
+        <Today
+          legend="Temperature today"
+          summary={range ? `Low ${deg0(range.low)} · High ${deg0(range.high)}` : unav ? undefined : "No readings yet"}
+          label="Temperature by hour today."
+          tone="neutral"
+          samples={day}
+          currentHour={history.currentHour}
+        />
+      )}
+      {!unav && <Hours hours={hours} />}
+      {!unav && days.length > 0 && <Days days={days} />}
+      {!unav && <Readings e={e} />}
+      <p className="fd-info">
+        <span>{reported}</span>
+      </p>
+    </div>
+  );
+}
+
+type Vars = CSSProperties & Record<`--${string}`, string | number>;
+
+/** The next hours on a strip of screen: the hour, its sky, its temperature, and its chance of rain from 20%. */
+function Hours({ hours }: { hours: HourlyForecast[] }) {
+  const spoken = hours.map((h) => [
+    clock(h.hour),
+    CONDITION_LABEL[h.condition],
+    deg0(h.temperature),
+    rainText(h.precipitationProbability) && `${rainText(h.precipitationProbability)} chance of precipitation`,
+  ].filter(Boolean).join(", ")).join("; ");
+  return (
+    <div className="fd-block">
+      <Legend value={hours.length ? undefined : "No forecast yet"}>Next hours</Legend>
+      {hours.length > 0 && (
+        <ol className="fd-wx-strip" role="img" aria-label={`Next hours: ${spoken}.`} style={{ "--fd-wx-n": HOURS } as Vars}>
+          {hours.map((h) => (
+            <li key={h.hour} className="fd-wx-col" aria-hidden="true">
+              <span className="fd-wx-t">{String(h.hour % 24).padStart(2, "0")}</span>
+              <Pictogram param="neutral" lit>{conditionPict(h.condition)}</Pictogram>
+              <span className="fd-wx-v">{deg0(h.temperature)}</span>
+              <span className="fd-wx-p">{rainText(h.precipitationProbability)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
+/** The next days on a strip of screen, today first: the day, its sky, its high over its low, its chance of rain. */
+function Days({ days }: { days: DailyForecast[] }) {
+  const name = (d: DailyForecast, i: number) => (i === 0 ? "Today" : d.day);
+  const spoken = days.map((d, i) => [
+    name(d, i),
+    CONDITION_LABEL[d.condition],
+    `high ${deg0(d.high)}, low ${deg0(d.low)}`,
+    rainText(d.precipitationProbability) && `${rainText(d.precipitationProbability)} chance of precipitation`,
+  ].filter(Boolean).join(", ")).join("; ");
+  return (
+    <div className="fd-block">
+      <Legend>Next days</Legend>
+      <ol className="fd-wx-strip fd-wx-strip--days" role="img" aria-label={`Next days: ${spoken}.`} style={{ "--fd-wx-n": DAYS } as Vars}>
+        {days.map((d, i) => (
+          <li key={i} className="fd-wx-col" aria-hidden="true">
+            <span className="fd-wx-t">{name(d, i)}</span>
+            <Pictogram param="neutral" lit>{conditionPict(d.condition)}</Pictogram>
+            <span className="fd-wx-v">{deg0(d.high)}<span className="fd-wx-lo">{deg0(d.low)}</span></span>
+            <span className="fd-wx-p">{rainText(d.precipitationProbability)}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/** Every reading the entity has, printed on the plate, with what qualifies it under it: a warning's reading behind the marker. */
+function Readings({ e }: { e: WeatherEntity }) {
+  const deg = (x: number) => `${fmt1(x).replace(/\.0$/, "")}°`;
+  const rows: [label: string, value: string, warns?: boolean, sub?: string][] = [];
+  if (e.dewPoint != null) rows.push(["Dew point", deg(e.dewPoint)]);
+  if (e.humidity != null) rows.push(["Humidity", `${Math.round(e.humidity)}%`]);
+  if (e.windSpeed != null) {
+    const how = [e.windBearing != null ? compass(e.windBearing) : null, e.windGustSpeed != null ? `gusts ${Math.round(e.windGustSpeed)}` : null].filter(Boolean).join(", ");
+    rows.push(["Wind", `${Math.round(e.windSpeed)} ${e.windSpeedUnit}`, gustWarns(e), how || undefined]);
+  }
+  if (e.aqi != null) rows.push(["Air quality", `${Math.round(e.aqi)} ${aqiBand(e.aqi).short}`, airWarns(e)]);
+  if (e.uvIndex != null) rows.push(["UV index", `${Math.round(e.uvIndex)} ${uvBand(e.uvIndex).label}`, uvWarns(e)]);
+  if (e.pressure != null) rows.push(["Pressure", `${e.pressureUnit === "inHg" ? e.pressure.toFixed(2) : Math.round(e.pressure)} ${e.pressureUnit}`]);
+  if (!rows.length) return null;
+  return (
+    <div className="fd-block">
+      <Legend>Now</Legend>
+      <dl className="fd-wx-facts">
+        {rows.map(([label, value, warns, sub]) => (
+          <div key={label} className="fd-wx-fact">
+            <dt>{label}</dt>
+            <dd>{warns ? <Warn>{value}</Warn> : value}{sub && <span className="fd-wx-fact-s">{sub}</span>}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}

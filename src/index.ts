@@ -67,6 +67,10 @@ export { SensorModule } from "./skins/field/cards/sensor/SensorModule";
 export type { SensorModuleProps } from "./skins/field/cards/sensor/SensorModule";
 export { HaSensorModule } from "./skins/field/ha/HaSensorModule";
 export type { HaSensorModuleProps } from "./skins/field/ha/HaSensorModule";
+export { WeatherModule } from "./skins/field/cards/weather/WeatherModule";
+export type { WeatherModuleProps } from "./skins/field/cards/weather/WeatherModule";
+export { HaWeatherModule } from "./skins/field/ha/HaWeatherModule";
+export type { HaWeatherModuleProps } from "./skins/field/ha/HaWeatherModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header

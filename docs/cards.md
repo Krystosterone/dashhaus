@@ -141,6 +141,14 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
   - The sheet: every reading as a chip-shaped tile (feels-like and dew point, humidity, wind, air quality, UV, pressure), the next hours, and the next five days. The large temperature and the Feels like tile replace the card's reading.
 - **Units.** Comfort bands are in Celsius; Fahrenheit readings are converted first. This applies to the sensor card too.
 
+### Field weather module
+
+`WeatherModule` is the same normalized weather entity, history and forecasts in the Field skin, with the same warnings, rain line and today's low–high (`src/domains/weather/readings.ts`); `HaWeatherModule` is its connected container, on the same `useHaWeather` hook as `HaWeatherTile`, taking the same `aqiEntityId`, `aqiScale`, `sunEntityId` and `loadForecasts`. See [field.md](field.md#weather).
+
+```tsx
+<HaWeatherModule entityId="weather.home" aqiEntityId="sensor.home_aqi" aqiScale="US" sunEntityId="sun.sun" />
+```
+
 ## Using the alarm card
 
 A security alarm: one `alarm_control_panel.*`.
