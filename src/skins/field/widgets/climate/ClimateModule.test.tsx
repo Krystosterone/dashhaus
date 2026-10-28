@@ -92,6 +92,20 @@ describe("ClimateModule", () => {
     expect(onFanChange).toHaveBeenCalledWith("high");
   });
 
+  it("announces the current choice as pressed and keeps it focusable, without choosing it again", () => {
+    const onModeChange = vi.fn();
+    render(<ClimateModule entity={CLIMATE_SEEDS.heating.entity} defaultOpen onToggle={vi.fn()} onTargetChange={vi.fn()} onModeChange={onModeChange} />);
+    const panel = screen.getByRole("dialog", { name: "Thermostat details", hidden: true });
+    const keys = within(within(panel).getByRole("group", { name: "Mode", hidden: true })).getAllByRole("button", { hidden: true }) as HTMLButtonElement[];
+    const chosen = keys.filter((key) => key.getAttribute("aria-pressed") === "true");
+    expect(chosen).toHaveLength(1);
+    expect(chosen[0].disabled).toBe(false);
+    expect(keys.every((key) => key.hasAttribute("aria-pressed"))).toBe(true);
+    expect(chosen[0].querySelector(".fd-led")).toBeNull();
+    fireEvent.click(chosen[0]);
+    expect(onModeChange).not.toHaveBeenCalled();
+  });
+
   it("uses blank segments, explicit unavailable copy and no live controls when unreachable", () => {
     const entity = {
       ...CLIMATE_SEEDS.unavailable.entity,

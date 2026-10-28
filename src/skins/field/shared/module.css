@@ -89,13 +89,13 @@
   transition: transform var(--fd-press) var(--fd-ease-out), box-shadow var(--fd-press) var(--fd-ease-out), background-color var(--fd-press) var(--fd-ease-out);
 }
 .fd-key[data-wide] { width: 100%; }
-.fd-key:active:not(:disabled) { transform: translateY(1px) scale(0.97); box-shadow: var(--fd-key-sunk); }
-.fd-key[data-wide]:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+.fd-key:active:not(:disabled, [data-chosen]) { transform: translateY(1px) scale(0.97); box-shadow: var(--fd-key-sunk); }
+.fd-key[data-wide]:active:not(:disabled, [data-chosen]) { transform: translateY(1px) scale(0.99); }
 .fd-key:focus-visible { outline: 2px solid var(--fd-focus); outline-offset: 2px; }
-/* A key that can't be pressed lies flat. */
-.fd-key:disabled { cursor: default; box-shadow: none; color: var(--fd-ink-3); }
+/* A key that can't be pressed lies flat, and so does the chosen key of a group: choosing it again does nothing. */
+.fd-key:is(:disabled, [data-chosen]) { cursor: default; box-shadow: none; color: var(--fd-ink-3); }
 @media (hover: hover) and (pointer: fine) {
-  .fd-key:hover:not(:disabled) { border-color: var(--fd-ink-3); }
+  .fd-key:hover:not(:disabled, [data-chosen]) { border-color: var(--fd-ink-3); }
 }
 .fd-key-glyph { display: inline-flex; }
 .fd-key-glyph svg { width: 20px; height: 20px; }
@@ -225,7 +225,7 @@
 /* Reduced motion: gentler, not none. Colour changes stay; presses and jumps stop moving. */
 @media (prefers-reduced-motion: reduce) {
   .fd-key { transition: box-shadow var(--fd-press) var(--fd-ease-out), background-color var(--fd-press) var(--fd-ease-out); }
-  .fd-key:active:not(:disabled) { transform: none; }
+  .fd-key:active:not(:disabled, [data-chosen]) { transform: none; }
   .fd-fader[data-anim] .fd-rail { transition: none; }
   .fd-pict-lit { transition: opacity 150ms var(--fd-ease-out); }
 }

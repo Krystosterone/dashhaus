@@ -59,6 +59,11 @@ export interface KeyProps {
   label: string;
   /** A latching key: it sits lower and its LED is lit while pressed. Leave it out for a key that acts once. */
   pressed?: boolean;
+  /**
+   * A choice key, one of a group (a mode, a preset): announced as pressed while chosen, with no LED, since its
+   * choice isn't "on". The chosen one lies flat and pressing it does nothing, but it stays focusable.
+   */
+  chosen?: boolean;
   disabled?: boolean;
   onPress: () => void;
   /** Press and hold. The click that ends the hold doesn't also press the key. */
@@ -71,10 +76,10 @@ export interface KeyProps {
 }
 
 /** A key: flat-topped and just raised, so you press it. A latching key's LED is lit while it's pressed. */
-export function Key({ label, pressed, disabled, onPress, onHold, wide, caption, children }: KeyProps) {
-  const press = usePress({ onPress, onHold, pressed, disabled });
+export function Key({ label, pressed, chosen, disabled, onPress, onHold, wide, caption, children }: KeyProps) {
+  const press = usePress({ onPress: chosen ? () => {} : onPress, onHold, pressed: pressed ?? chosen, disabled });
   return (
-    <button className="fd-key" aria-label={label} data-wide={wide || caption ? "" : undefined} {...press}>
+    <button className="fd-key" aria-label={label} data-wide={wide || caption ? "" : undefined} data-chosen={chosen || undefined} {...press}>
       {pressed !== undefined && <span className="fd-led" data-lit={pressed && !disabled} aria-hidden="true" />}
       <span className="fd-key-glyph" aria-hidden="true">{children}</span>
       {caption && <span className="fd-key-cap" aria-hidden="true">{caption}</span>}

@@ -282,7 +282,7 @@ function ModeKeys({ id, current, options, onChange }: { id: string; current: Hva
       <div className="fd-cl-mode-keys" role="group" aria-labelledby={id}>
         {options.map((option) => (
           <div key={option} className="fd-cl-option">
-            <Key label={`Set mode to ${MODE_META[option].label}`} wide disabled={option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
+            <Key label={`Set mode to ${MODE_META[option].label}`} wide chosen={option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
             <span className="fd-cl-option-name" title={MODE_META[option].label}>{MODE_META[option].label}</span>
           </div>
         ))}
@@ -298,7 +298,7 @@ function TextKeys({ id, label, current, options, onChange }: { id: string; label
       <div className="fd-cl-text-keys" role="group" aria-labelledby={id}>
         {options.map((option) => {
           const text = titleCase(option);
-          return <Key key={option} label={`Set ${label.toLowerCase()} to ${text}`} wide caption={text} disabled={option === current} onPress={() => onChange(option)}>{null}</Key>;
+          return <Key key={option} label={`Set ${label.toLowerCase()} to ${text}`} wide caption={text} chosen={option === current} onPress={() => onChange(option)}>{null}</Key>;
         })}
       </div>
     </div>
