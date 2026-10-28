@@ -12,9 +12,12 @@ import { DemoToggleTile as Toggle } from "../cards/toggle/demo/DemoToggleTile";
 import { DemoCoverTile as Cover } from "../cards/cover/demo/DemoCoverTile";
 import { DemoAlarmTile as Alarm } from "../cards/alarm/demo/DemoAlarmTile";
 import { DemoOwletTile as Owlet } from "../cards/owlet/demo/DemoOwletTile";
-import { DemoHumidifierTile as Humidifier } from "../cards/humidifier/demo/DemoHumidifierTile";
-import { DemoSoundTile as Sound } from "../cards/sound/demo/DemoSoundTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
+
+/*
+ * Examples of composing a dashboard, one per device. They show the composition rules (README.md → Dashboards), not
+ * every card: a card earns a place here by showing something about a page, and each one's own stories show the rest.
+ */
 
 /** A device-sized frame so each dashboard is seen at its real width. The content scrolls inside. */
 function Device({ label, width, height, children }: { label: string; width: number; height: number; children: ReactNode }) {
@@ -33,7 +36,7 @@ const meta = {
   title: "Orb/Dashboards/Examples",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Examples of composing a dashboard per device: weather, security, modes, bundles, lights, covers, climate, sensors and the baby's sock. Not a template, and not every card. Example data; the time is fixed at 11:54." } },
+    docs: { description: { component: "Examples of composing a dashboard per device. Not a template, and not every card: each shows a way to order a page for a glance. Example data; the time is fixed at 11:54." } },
   },
 } satisfies Meta;
 
@@ -60,8 +63,6 @@ function PhoneDashboard() {
           <Alarm alarm="ring" readOnly footprint="compact" />
           <Climate unit="heating" footprint="compact" />
           <Cover cover="garage" footprint="compact" />
-          <Toggle mode="quiet" footprint="compact" />
-          <Toggle mode="guest" footprint="compact" />
         </Section>
         <Section id="nursery" title="Nursery">
           <Owlet seed="deep" />
@@ -69,7 +70,6 @@ function PhoneDashboard() {
           <Bundle bundle="sleep" />
         </Section>
         <Section id="rooms" title="Rooms" columns={2}>
-          <Cell span={2}><Humidifier seed="on" footprint="compact" /></Cell>
           <Sensor sensor="living" />
           <Sensor sensor="bedroom" />
           <Sensor sensor="bathroom" />
@@ -82,8 +82,8 @@ function PhoneDashboard() {
 
 export const Phone: Story = { render: () => <PhoneDashboard /> };
 
-/** Tablet, landscape: the same four actions as the phone, one of them the hero, lead; household status and
-    nursery state follow, then the outside and room glance. */
+/** Tablet, landscape: the same four actions as the phone, one of them the hero, lead; household status (with the
+    upstairs heating as a lead bundle) and the nursery follow, then the outside and room glance. */
 export const Tablet: Story = {
   render: () => (
     <Device label="Tablet, landscape" width={1180} height={820}>
@@ -95,24 +95,18 @@ export const Tablet: Story = {
         <Columns columns={2}>
           <Section title="Home status">
             <Alarm alarm="ring" readOnly footprint="compact" />
-            <Climate unit="heating" />
-            <Climate unit="cooling" footprint="compact" />
-            <Climate unit="range" footprint="compact" />
-            <Climate unit="off" footprint="compact" />
+            <Bundle bundle="upstairs" />
             <Toggle mode="quiet" footprint="compact" />
-            <Toggle mode="guest" footprint="compact" />
           </Section>
-          <Section title="Nursery" columns={2}>
-            <Cell span={2}><Owlet seed="deep" /></Cell>
-            <Cell span={2}><Bundle bundle="sleep" /></Cell>
-            <Cell span={2}><Bundle bundle="upstairs" /></Cell>
+          <Section title="Nursery">
+            <Owlet seed="deep" />
+            <Bundle bundle="sleep" />
           </Section>
         </Columns>
         <Columns columns={2}>
           <Section title="Outside">
             <Weather weather="partly" />
             <Light light="onOff" footprint="compact" />
-            <Sensor sensor="garage" footprint="compact" />
             <Cover cover="garage" footprint="compact" />
           </Section>
           <Section title="Rooms" columns={2}>
@@ -137,7 +131,6 @@ export const WallPanel: Story = {
           <Section title="Living room">
             <Light light="dimmable" footprint="featured" />
             <Cover cover="curtains" footprint="compact" />
-            <Light light="dimmableOff" footprint="compact" />
             <Climate unit="heating" footprint="compact" />
             <Sensor sensor="living" name="Air" />
           </Section>
@@ -146,11 +139,9 @@ export const WallPanel: Story = {
             <Bundle bundle="sleep" />
             <Climate unit="cooling" />
             <Sensor sensor="bedroom" name="Air" />
-            <Sensor sensor="office" footprint="compact" />
           </Section>
           <Section title="Nursery">
             <Bundle bundle="nursery" />
-            <Bundle bundle="upstairs" />
             <Owlet seed="deep" />
           </Section>
           <Section title="Outside">
@@ -158,7 +149,6 @@ export const WallPanel: Story = {
             <Cover cover="garage" footprint="compact" />
             <Alarm alarm="ring" readOnly footprint="compact" />
             <Weather weather="partly" />
-            <Sensor sensor="garage" footprint="compact" />
           </Section>
         </Columns>
       </DashboardPage>
@@ -166,7 +156,7 @@ export const WallPanel: Story = {
   ),
 };
 
-/** One ungrouped grid keeps the same priority order while freely mixing every footprint and bundle form. */
+/** One ungrouped grid keeps the same priority order while mixing all three footprints and two bundle forms. */
 export const PhoneUngrouped: Story = {
   name: "Phone, ungrouped footprints",
   render: () => (
@@ -177,7 +167,6 @@ export const PhoneUngrouped: Story = {
           <Bundle bundle="sleep" />
           <Bundle bundle="nursery" />
           <Climate unit="heating" footprint="compact" />
-          <Sound seed="noVolume" footprint="compact" />
           <Cover cover="garage" footprint="compact" />
           <Sensor sensor="living" name="Air" />
           <Weather weather="partly" />

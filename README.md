@@ -158,10 +158,10 @@ Bundles use the same footprint matrix as standalone cards. Members are ordinary 
 
 The Storybook dashboards (**Orb / Dashboards / Examples**) are examples of composing with these rules, not templates and not a list of every card. They show:
 
-- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and every bundle type share the same grid, and a nav docked at the bottom jumps between the four sections.
-- **Tablet, landscape:** the same four actions, one of them featured, followed by household and nursery status, then outside and room readings.
+- **Phone:** a shortlist of four quick actions first (a bundle counts each of its members), then household and nursery status, then room readings; compact controls and bundles share the same grid, and a nav docked at the bottom jumps between the four sections.
+- **Tablet, landscape:** the same four actions, one of them featured, followed by household status (the upstairs heating as a lead bundle) and the nursery, then outside and room readings.
 - **Wall panel:** one column per place, each ordered actions, status, then glance; the complete 1280 × 800 surface fits without scrolling.
-- **Phone, ungrouped footprints:** unrelated card types, all three footprints and both bundle forms share one `CardGrid` without a section.
+- **Phone, ungrouped footprints:** unrelated card types, all three footprints and two bundle forms share one `CardGrid` without a section.
 
 ## Contributing
 
