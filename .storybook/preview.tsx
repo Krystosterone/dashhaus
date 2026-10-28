@@ -30,7 +30,7 @@ const preview: Preview = {
           "Orb", [
             "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet"],
             "Bundles",
-            "Dashboards", ["Layouts", ["Phone", "Tablet", "Wall panel", "Phone, ungrouped footprints"], "Lovelace card", "Header", "Nav bar"],
+            "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Phone, ungrouped footprints"], "Lovelace card", "Header", "Nav bar"],
             "Foundations", ["Design rules", "Palette", "Color temperature", "Compact rows", "Worst case"],
             "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet"],
           ],

@@ -67,10 +67,6 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(missing, "AGENTS.md → Adding a card, step 3").toEqual([]);
   });
 
-  it("is on a dashboard", () => {
-    expect(read(`${SKIN}/dashboards/Dashboards.stories.tsx`), "AGENTS.md → Adding a card, step 4").toContain(`"../cards/${name}/`);
-  });
-
   it("is documented in docs/cards.md", () => {
     expect(read("docs/cards.md")).toContain(`## Using the ${words} card`);
   });

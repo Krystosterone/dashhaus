@@ -30,10 +30,10 @@ function Device({ label, width, height, children }: { label: string; width: numb
 const NOW = new Date(2026, 9, 17, 11, 54);
 
 const meta = {
-  title: "Orb/Dashboards/Layouts",
+  title: "Orb/Dashboards/Examples",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Weather, security, modes, bundles, lights, covers, climate, sensors and the baby's sock composed per device. Example data; the time is fixed at 11:54." } },
+    docs: { description: { component: "Examples of composing a dashboard per device: weather, security, modes, bundles, lights, covers, climate, sensors and the baby's sock. Not a template, and not every card. Example data; the time is fixed at 11:54." } },
   },
 } satisfies Meta;
 

@@ -155,18 +155,6 @@ edit(fixtures, afterLast(/^import \w+ from "\.\.\/fixtures\/.*$/gm, fill(`import
 edit(fixtures, afterLast(/^import \{ \w+FromHass \} from "\.\/.*$/gm, fill(`import { __name__FromHass } from "./__name__";\n`)));
 edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__label__", fixture: __name__, map: __name__FromHass, keepsState: ${!reading} },`)));
 
-// On a dashboard: a control as a compact row in the phone's Quick actions section, a reading beside the room sensors.
-// Move it where it belongs; this only puts it on screen.
-const dashboards = `${SKIN}/dashboards/Dashboards.stories.tsx`;
-edit(dashboards, afterLast(/^import \{ Demo\w+Tile as \w+ \} from "\.\.\/cards\/.*$/gm, fill(`import { Demo__Name__Tile as __Name__ } from "../cards/__name__/demo/Demo__Name__Tile";\n`)));
-edit(dashboards, (s) => {
-  const start = s.indexOf(reading ? '<Section title="Rooms" columns={2}>' : '<Section title="Quick actions" columns={2}>');
-  const end = start === -1 ? -1 : s.indexOf("</Section>", start);
-  if (end === -1) return s;
-  const indent = s.slice(s.lastIndexOf("\n", end) + 1, end);
-  return s.slice(0, end) + fill(reading ? `  <__Name__ seed="normal" />\n` : `  <__Name__ seed="on" footprint="compact" />\n`) + indent + s.slice(end);
-});
-
 // The per-card spec, for the author to finish.
 edit("docs/cards.md", before("## The dashboard header", fill(reading ? `## Using the __label__ card
 
@@ -244,7 +232,7 @@ Next:
   1. npm run storybook  →  Orb/Cards/${Name} and Orb/Connected/${Name}
   2. Make it the ${words}: fields in src/domains/${name}/types.ts, the card in ${Name}Card.tsx,
      attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
-  3. Draw its icon in ${SKIN}/cards/${name}/icons.tsx; move it to the right section in ${SKIN}/dashboards/Dashboards.stories.tsx
+  3. Draw its icon in ${SKIN}/cards/${name}/icons.tsx
   4. Finish "Using the ${words} card" in docs/cards.md
   5. Its Lovelace card: its YAML keys in ${SKIN}/lovelace/config.ts and docs/deploy.md${placed ? "" : `,
      and its place in the automatic layout, ${SKIN}/lovelace/auto.ts`}${sharesDomain ? `
