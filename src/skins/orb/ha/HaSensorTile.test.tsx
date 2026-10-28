@@ -1,9 +1,8 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaSensorTile } from "./HaSensorTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "sensor.living_room_temperature": {
@@ -33,31 +32,16 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  let listener: ((entities: HassEntities) => void) | undefined;
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      listener = next;
-      queueMicrotask(() => next(raw));
-      return () => { listener = undefined; };
-    },
-    callService: async () => undefined,
-  };
-  return { value, emit: (entities: HassEntities) => listener?.(entities) };
-}
 
 describe("HaSensorTile", () => {
   it("maps companion raw entities into the existing SensorTile", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaSensorTile
-          entityId="sensor.living_room_temperature"
-          humidityEntityId="sensor.living_room_humidity"
-          batteryEntityId="sensor.living_room_battery"
-        />
-      </HaProvider>,
+    const fake = renderConnected(
+      <HaSensorTile
+        entityId="sensor.living_room_temperature"
+        humidityEntityId="sensor.living_room_humidity"
+        batteryEntityId="sensor.living_room_battery"
+      />,
+      raw,
     );
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room" })).toBeTruthy());

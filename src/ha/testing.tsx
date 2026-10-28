@@ -24,9 +24,8 @@ export function fakeTransport(entities: HassEntities) {
   return { transport, callService, emit: (next: HassEntities) => listener?.(next) };
 }
 
-/** Render a connected card under a store on `fakeTransport(entities)`. */
+/** Render a connected card under a store on `fakeTransport(entities)`: what `render` returns, and the transport's handles. */
 export function renderConnected(ui: ReactNode, entities: HassEntities) {
   const fake = fakeTransport(entities);
-  const { container } = render(<HaProvider store={createHaStore(fake.transport)}>{ui}</HaProvider>);
-  return { container, ...fake };
+  return { ...render(<HaProvider store={createHaStore(fake.transport)}>{ui}</HaProvider>), ...fake };
 }

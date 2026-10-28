@@ -1,9 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { HaHumidifierTile } from "./HaHumidifierTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "humidifier.bedroom": {
@@ -15,26 +14,10 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  const callService = vi.fn(async () => undefined);
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      queueMicrotask(() => next(raw));
-      return () => {};
-    },
-    callService,
-  };
-  return { value, callService };
-}
 
 describe("HaHumidifierTile", () => {
   it("maps the raw entity into the tile and routes the orb through the store", async () => {
-    const fake = transport();
-    render(
-      <HaProvider store={createHaStore(fake.value)}>
-        <HaHumidifierTile entityId="humidifier.bedroom" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaHumidifierTile entityId="humidifier.bedroom" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Bedroom" })).toBeTruthy());
     await act(async () => {
@@ -45,12 +28,7 @@ describe("HaHumidifierTile", () => {
   });
 
   it("shows a missing entity as unavailable", async () => {
-    const fake = transport();
-    render(
-      <HaProvider store={createHaStore(fake.value)}>
-        <HaHumidifierTile entityId="humidifier.missing" name="Missing" />
-      </HaProvider>,
-    );
+    renderConnected(<HaHumidifierTile entityId="humidifier.missing" name="Missing" />, raw);
     await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));
   });
 });

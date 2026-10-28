@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { HaLight, HaToggle } from "./headless";
 import { HaProvider } from "./provider";
 import { createHaStore } from "./store";
-import type { HaTransport, HassEntities } from "./types";
+import type { HassEntities } from "./types";
+import { fakeTransport } from "./testing";
 
 const light = (id: string, name: string, state: "on" | "off") => ({
   entity_id: id,
@@ -20,14 +21,7 @@ const raw: HassEntities = {
 };
 
 function setup() {
-  const callService = vi.fn(async () => undefined);
-  const transport: HaTransport = {
-    subscribeEntities(next) {
-      queueMicrotask(() => next(raw));
-      return () => undefined;
-    },
-    callService,
-  };
+  const { transport, callService } = fakeTransport(raw);
   return { callService, store: createHaStore(transport) };
 }
 

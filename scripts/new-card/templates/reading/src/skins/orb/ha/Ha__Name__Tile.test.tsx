@@ -1,9 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Ha__Name__Tile } from "./Ha__Name__Tile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "__domain__.living_room": {
@@ -15,26 +14,15 @@ const raw: HassEntities = {
   },
 };
 
-function store() {
-  const transport: HaTransport = {
-    subscribeEntities(next) {
-      queueMicrotask(() => next(raw));
-      return () => {};
-    },
-    callService: async () => undefined,
-  };
-  return createHaStore(transport);
-}
-
 describe("Ha__Name__Tile", () => {
   it("maps the raw entity into the tile", async () => {
-    render(<HaProvider store={store()}><Ha__Name__Tile entityId="__domain__.living_room" /></HaProvider>);
+    renderConnected(<Ha__Name__Tile entityId="__domain__.living_room" />, raw);
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room" })).toBeTruthy());
     expect(screen.getByRole("button", { name: "Living room: 42 ppm. Open details" })).toBeTruthy();
   });
 
   it("shows a missing entity as unavailable", async () => {
-    render(<HaProvider store={store()}><Ha__Name__Tile entityId="__domain__.missing" name="Missing" /></HaProvider>);
+    renderConnected(<Ha__Name__Tile entityId="__domain__.missing" name="Missing" />, raw);
     await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));
   });
 });

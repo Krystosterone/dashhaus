@@ -1,9 +1,8 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaCoverTile } from "./HaCoverTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "cover.living_room": {
@@ -21,28 +20,10 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  let listener: ((entities: HassEntities) => void) | undefined;
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      listener = next;
-      queueMicrotask(() => next(raw));
-      return () => { listener = undefined; };
-    },
-    callService: async () => undefined,
-  };
-  return { value, emit: (entities: HassEntities) => listener?.(entities) };
-}
 
 describe("HaCoverTile", () => {
   it("maps a raw cover entity into the existing CoverTile", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaCoverTile entityId="cover.living_room" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaCoverTile entityId="cover.living_room" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room blinds" })).toBeTruthy());
     act(() => fake.emit({ ...raw, "cover.living_room": { ...raw["cover.living_room"], state: "unavailable" } }));

@@ -1,9 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { HaAlarmTile } from "./HaAlarmTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "alarm_control_panel.house": {
@@ -20,29 +19,10 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  let listener: ((entities: HassEntities) => void) | undefined;
-  const callService = vi.fn(async () => undefined);
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      listener = next;
-      queueMicrotask(() => next(raw));
-      return () => { listener = undefined; };
-    },
-    callService,
-  };
-  return { value, callService, emit: (entities: HassEntities) => listener?.(entities) };
-}
 
 describe("HaAlarmTile", () => {
   it("maps a raw entity into the existing AlarmTile and routes controls through the store", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaAlarmTile entityId="alarm_control_panel.house" area="Whole home" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaAlarmTile entityId="alarm_control_panel.house" area="Whole home" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "House alarm" })).toBeTruthy());
 
@@ -56,13 +36,7 @@ describe("HaAlarmTile", () => {
   });
 
   it("shows the unavailable slot when the panel stops responding", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaAlarmTile entityId="alarm_control_panel.house" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaAlarmTile entityId="alarm_control_panel.house" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "House alarm" })).toBeTruthy());
 

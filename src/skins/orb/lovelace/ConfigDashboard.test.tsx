@@ -1,28 +1,18 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
 
 const light = (id: string, name: string) => ({ entity_id: id, state: "on", attributes: { friendly_name: name, supported_color_modes: ["onoff"] } });
 const raw: HassEntities = { "light.a": light("light.a", "Desk"), "light.b": light("light.b", "Pendant") };
 
-const transport: HaTransport = {
-  subscribeEntities(next) {
-    queueMicrotask(() => next(raw));
-    return () => undefined;
-  },
-  callService: async () => undefined,
-};
-
 function draw(yaml: Record<string, unknown>) {
   const config = parseDashboardConfig(yaml);
-  return render(
-    <HaProvider store={createHaStore(transport)}>
-      <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} panels={{ "baby-view": { url_path: "baby-view", title: "Baby View" } }} now={new Date(2026, 9, 17, 11, 54)} />
-    </HaProvider>,
+  return renderConnected(
+    <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} panels={{ "baby-view": { url_path: "baby-view", title: "Baby View" } }} now={new Date(2026, 9, 17, 11, 54)} />,
+    raw,
   );
 }
 

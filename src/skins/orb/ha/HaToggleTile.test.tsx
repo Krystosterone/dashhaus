@@ -1,9 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { HaToggleTile } from "./HaToggleTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "input_boolean.guest_mode": {
@@ -15,29 +14,10 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  let listener: ((entities: HassEntities) => void) | undefined;
-  const callService = vi.fn(async () => undefined);
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      listener = next;
-      queueMicrotask(() => next(raw));
-      return () => { listener = undefined; };
-    },
-    callService,
-  };
-  return { value, callService, emit: (entities: HassEntities) => listener?.(entities) };
-}
 
 describe("HaToggleTile", () => {
   it("maps a raw entity into the existing ToggleTile and routes toggle through the store", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaToggleTile entityId="input_boolean.guest_mode" domain="input_boolean" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaToggleTile entityId="input_boolean.guest_mode" domain="input_boolean" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Guest" })).toBeTruthy());
 
@@ -49,12 +29,9 @@ describe("HaToggleTile", () => {
   });
 
   it("passes host metadata through to the mapped entity", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaToggleTile entityId="input_boolean.guest_mode" domain="input_boolean" icon="guest" color="lavender" description="Lets visitors on the Wi-Fi." />
-      </HaProvider>,
+    renderConnected(
+      <HaToggleTile entityId="input_boolean.guest_mode" domain="input_boolean" icon="guest" color="lavender" description="Lets visitors on the Wi-Fi." />,
+      raw,
     );
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Guest" })).toBeTruthy());

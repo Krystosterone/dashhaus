@@ -1,10 +1,11 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { useHaLight } from "./light";
 import { HaProvider } from "../provider";
 import { createHaStore } from "../store";
-import type { HaTransport, HassEntities } from "../types";
+import type { HassEntities } from "../types";
+import { fakeTransport } from "../testing";
 import type { LightHistory } from "../../domains/light/types";
 
 const raw: HassEntities = {
@@ -18,14 +19,7 @@ const raw: HassEntities = {
 };
 
 function setup() {
-  const callService = vi.fn(async () => undefined);
-  const transport: HaTransport = {
-    subscribeEntities(next) {
-      queueMicrotask(() => next(raw));
-      return () => undefined;
-    },
-    callService,
-  };
+  const { transport, callService } = fakeTransport(raw);
   const store = createHaStore(transport);
   const wrapper = ({ children }: { children: ReactNode }) => <HaProvider store={store}>{children}</HaProvider>;
   return { callService, wrapper };

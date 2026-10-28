@@ -1,9 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { HaLightTile } from "./HaLightTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 
 const raw: HassEntities = {
   "light.living_room": {
@@ -22,29 +21,10 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  let listener: ((entities: HassEntities) => void) | undefined;
-  const callService = vi.fn(async () => undefined);
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      listener = next;
-      queueMicrotask(() => next(raw));
-      return () => { listener = undefined; };
-    },
-    callService,
-  };
-  return { value, callService, emit: (entities: HassEntities) => listener?.(entities) };
-}
 
 describe("HaLightTile", () => {
   it("maps a raw light entity into the existing LightTile and routes toggle through the store", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaLightTile entityId="light.living_room" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaLightTile entityId="light.living_room" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room" })).toBeTruthy());
 
@@ -56,13 +36,7 @@ describe("HaLightTile", () => {
   });
 
   it("shows the unavailable slot when the light stops responding", async () => {
-    const fake = transport();
-    const store = createHaStore(fake.value);
-    render(
-      <HaProvider store={store}>
-        <HaLightTile entityId="light.living_room" />
-      </HaProvider>,
-    );
+    const fake = renderConnected(<HaLightTile entityId="light.living_room" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Living room" })).toBeTruthy());
 
