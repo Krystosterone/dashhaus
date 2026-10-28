@@ -5,7 +5,7 @@
  * with `--skin field`, over both generated and hand-built domains in field.
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -76,5 +76,15 @@ describe("new-card", () => {
       const lint = run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);
     }, 240_000);
+
+    it("refuses a domain whose hook needs an option a generated module can't know, and says which", () => {
+      const orb = run(copy, "node", [script, "probeHub", "--code", "zh", "--domain", "probe_hub"]);
+      expect(orb.status, orb.output).toBe(0);
+      const hook = join(copy, "src/ha/hooks/probeHub.ts");
+      writeFileSync(hook, readFileSync(hook, "utf8").replace("export interface HaProbeHubOptions {\n", "export interface HaProbeHubOptions {\n  hubId: string;\n"));
+      const { status, output } = run(copy, "node", [script, "probeHub", "--skin", "field", "--dry-run"]);
+      expect(status).toBe(1);
+      expect(output).toMatch(/useHaProbeHub requires hubId/);
+    });
   });
 });

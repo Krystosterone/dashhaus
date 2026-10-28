@@ -179,7 +179,7 @@ if (placed) {
 }
 const deploy = "docs/deploy.md";
 edit(deploy, afterLast(/^- `.*`: .*$/gm, `- \`${domain}\`${sharesDomain ? ` with \`card: ${name}\`` : ""}: ${words}\n`));
-edit(deploy, (s) => s.replace(/^\| ([a-z, ]+) \| `color` \|/m, `| $1, ${words} | \`color\` |`));
+edit(deploy, (s) => s.replace(/^\| ([a-z0-9, ]+) \| `color` \|/m, `| $1, ${words} | \`color\` |`));
 if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | The unit, when the entity doesn't say. |\n`));
 
 // ---------- Write ----------
