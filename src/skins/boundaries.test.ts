@@ -1,5 +1,5 @@
 /**
- * Skins never import each other: what two skins share goes in src/domains/, src/hooks/ or src/ha/. ESLint's
+ * Skins never import each other: what two skins share goes in src/domains/, src/primitives/, src/hooks/ or src/ha/. ESLint's
  * import patterns can't say "any skin but this one", so this resolves every relative import in each skin.
  */
 import { readFileSync, readdirSync } from "node:fs";

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Vars } from "../../shared/ui";
+import { usePress } from "../../../../primitives/press";
 import type { AlarmMode } from "../../../../domains/alarm/types";
 import { ModeIcon, MODE_LABEL } from "./icons";
 
@@ -18,13 +19,18 @@ export function ModeSwitch({ name, modes, current, onPick }: { name: string; mod
   return (
     <div className="al-sw" role="group" aria-label={`${name} mode`} data-armed={current !== "off" || undefined} data-many={all.length >= 5 || undefined} data-crowd={all.length >= 6 || undefined} style={{ "--n": all.length, "--i": i } as Vars}>
       <span className="al-thumb" aria-hidden="true" />
-      {all.map((m) => (
-        <button key={m} type="button" className="al-seg" aria-pressed={current === m} aria-label={m === "off" ? "Off: Disarm" : `Arm ${MODE_LABEL[m].toLowerCase()}`} title={MODE_LABEL[m]} onClick={() => { if (current !== m) onPick(m); }}>
-          <ModeIcon mode={m} />
-          <span className="al-seg-l">{MODE_LABEL[m]}</span>
-        </button>
-      ))}
+      {all.map((m) => <Segment key={m} mode={m} current={current === m} onPick={() => { if (current !== m) onPick(m); }} />)}
     </div>
+  );
+}
+
+function Segment({ mode, current, onPick }: { mode: AlarmMode | "off"; current: boolean; onPick: () => void }) {
+  const press = usePress({ onPress: onPick, pressed: current });
+  return (
+    <button className="al-seg" aria-label={mode === "off" ? "Off: Disarm" : `Arm ${MODE_LABEL[mode].toLowerCase()}`} title={MODE_LABEL[mode]} {...press}>
+      <ModeIcon mode={mode} />
+      <span className="al-seg-l">{MODE_LABEL[mode]}</span>
+    </button>
   );
 }
 

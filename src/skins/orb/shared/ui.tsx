@@ -1,7 +1,7 @@
 import { createContext, createElement, useContext, useId, useState } from "react";
 import type { ComponentType, CSSProperties, ReactNode } from "react";
-import { useLongPress } from "../../../hooks/useLongPress";
-import { useSheet } from "../../../hooks/useSheet";
+import { usePress } from "../../../primitives/press";
+import { useSheet } from "../../../primitives/sheet";
 import type { ColorName } from "../../../domains/color";
 import type { HourSample, Reading } from "../../../domains/history";
 import { fmt1, fmtDuration } from "../../../domains/format";
@@ -139,22 +139,9 @@ export interface OrbProps {
   children: ReactNode;
 }
 export function Orb({ label, pressed, unavailable, intensity = 1, small, onToggle, onLongPress, children }: OrbProps) {
-  const lp = useLongPress(onLongPress);
+  const press = usePress({ onPress: onToggle, onHold: onLongPress, pressed, unavailable });
   return (
-    <button
-      type="button"
-      className={`hd-orb${small ? " hd-orb--sm" : ""}`}
-      aria-label={label}
-      aria-pressed={pressed}
-      aria-disabled={unavailable || undefined}
-      data-holding={lp.holding || undefined}
-      style={{ "--b": intensity } as Vars}
-      {...lp.handlers}
-      onClick={() => {
-        if (lp.consumeLongPress()) return;
-        if (!unavailable) onToggle();
-      }}
-    >
+    <button className={`hd-orb${small ? " hd-orb--sm" : ""}`} aria-label={label} style={{ "--b": intensity } as Vars} {...press}>
       <span className="hd-orb-i">{children}</span>
     </button>
   );
@@ -220,8 +207,9 @@ export function AlertStatus({ label, children }: { label: string; children: Reac
 /** Full-width toggle button: raised when off, the accent when on. */
 /** `turnOn`: the off-state control of a unit whose status line already says Off (climate, humidifier). */
 export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { label: string; on: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean }) {
+  const press = usePress({ onPress: onToggle, pressed: on });
   return (
-    <button type="button" className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} aria-pressed={on} onClick={onToggle}>
+    <button className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} {...press}>
       <span>{children}</span>
       {extra && <span className="hd-pill-x">{extra}</span>}
     </button>
@@ -302,16 +290,23 @@ export { fmt1, fmtDuration };
 
 /* ---------- Choice chips: one of several, the selected one in the accent ---------- */
 export interface ChoiceOption<T extends string | number> { value: T; label: string; sub?: string }
+
+/** One chip: pressed while its option is the chosen one. `className` adds to `hd-chip`. */
+export function Chip({ selected, className, onPick, children }: { selected: boolean; className?: string; onPick: () => void; children: ReactNode }) {
+  const press = usePress({ onPress: onPick, pressed: selected });
+  return <button className={className ? `hd-chip ${className}` : "hd-chip"} {...press}>{children}</button>;
+}
+
 export function ChoiceChips<T extends string | number>({ id, label, options, value, onChange }: { id: string; label: string; options: ChoiceOption<T>[]; value: T | null | undefined; onChange: (v: T) => void }) {
   return (
     <div className="hd-blk">
       <p className="hd-blk-h"><span id={id}>{label}</span></p>
       <div className="hd-chips" role="group" aria-labelledby={id} style={{ "--n": options.length } as Vars}>
         {options.map((o) => (
-          <button key={String(o.value)} type="button" className="hd-chip" aria-pressed={value === o.value} onClick={() => onChange(o.value)}>
+          <Chip key={String(o.value)} selected={value === o.value} onPick={() => onChange(o.value)}>
             <span>{o.label}</span>
             {o.sub && <small>{o.sub}</small>}
-          </button>
+          </Chip>
         ))}
       </div>
     </div>
@@ -336,11 +331,11 @@ export const SheetExtra = createContext<{ title: string; content: ReactNode } | 
 
 export function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () => void; label: string; children: ReactNode }) {
   const extra = useContext(SheetExtra);
-  const { mounted, dialogProps } = useSheet({ open, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".hd--sheet > .hd-head", snapBack: "translate 300ms var(--ease-drawer)" });
+  const { mounted, dialogProps } = useSheet({ open, label, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".hd--sheet > .hd-head", snapBack: "translate 300ms var(--ease-drawer)" });
 
   return (
     // The click only closes on backdrop; Escape is the keyboard path (onCancel).
-    <dialog className="hd-sheet" aria-label={label} {...dialogProps}>
+    <dialog className="hd-sheet" {...dialogProps}>
       {mounted && (
         <CardHeadingLevelContext.Provider value={2}>
           <div className={`hd-c${extra ? " hd-c--more" : ""}`}>

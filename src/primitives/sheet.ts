@@ -7,6 +7,8 @@ const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)"
 
 export interface SheetOptions {
   open: boolean;
+  /** The dialog's accessible name, e.g. "Kitchen details". */
+  label: string;
   onClose: () => void;
   /** The skin's longest exit transition plus a frame, in ms: how long `data-closing` stays before the dialog closes. */
   closeMs: number;
@@ -23,10 +25,13 @@ export interface SheetOptions {
  * modal, locks the page's scroll, and on close sets `data-closing` for the skin's exit transition before it
  * closes and unmounts. Escape and a backdrop click close it. On phones the handle drags it down: past 30% of
  * its height (140 px at most) or any flick dismisses it, a short slow drag snaps back, and dragging up meets
- * growing friction. One pointer at a time. Spread `dialogProps` on the dialog and render the content only while
+ * growing friction. One pointer at a time. Spread `dialogProps` on a `<dialog>` and render the content only while
  * `mounted`; `[data-autofocus]` inside takes focus on open.
+ *
+ * It stays a native modal `<dialog>`, never a portalled one: the platform puts it in the top layer and makes the
+ * page behind inert, and that holds inside the Lovelace card's shadow root (research/08-interaction-primitives.md).
  */
-export function useSheet({ open, onClose, closeMs, phone, handle, snapBack }: SheetOptions) {
+export function useSheet({ open, label, onClose, closeMs, phone, handle, snapBack }: SheetOptions) {
   const ref = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(open);
   const drag = useRef<{ id: number; y0: number; dy: number; trail: { t: number; y: number }[] } | null>(null);
@@ -110,6 +115,7 @@ export function useSheet({ open, onClose, closeMs, phone, handle, snapBack }: Sh
 
   const dialogProps = {
     ref,
+    "aria-label": label,
     onCancel: (e: SyntheticEvent<HTMLDialogElement>) => {
       // Escape belongs to the top sheet only, not to a sheet it was opened from.
       if (e.target !== e.currentTarget) return;

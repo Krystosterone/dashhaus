@@ -6,9 +6,15 @@ import "./skins/field/styles/tokens.css";
 export { Orb, CardTitle, CircleButton, SheetClose, TogglePill, UnavailableSlot, Readout, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./skins/orb/shared/ui";
 export { useCard, detailsSheet, detailsTile, normalizeReadings } from "./skins/orb/shared/ui";
 export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, WidgetFootprint, CardProps, SheetProps, TileProps, Reading } from "./skins/orb/shared/ui";
-export { useLongPress } from "./hooks/useLongPress";
-export { useTrack, trackPos } from "./hooks/useTrack";
 export { useNow } from "./hooks/useNow";
+
+// Headless interaction primitives every skin draws its controls on.
+export { usePress } from "./primitives/press";
+export { useSlider, useRangeSlider } from "./primitives/slider";
+export { useSheet } from "./primitives/sheet";
+export type { PressOptions } from "./primitives/press";
+export type { SliderOptions, RangeSliderOptions } from "./primitives/slider";
+export type { SheetOptions } from "./primitives/sheet";
 
 // Home Assistant integration, for any skin: the store, the provider, one live entity per hook or headless
 // component. Mappers, handler factories and history parsers for custom containers live in ./ha.

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Vars } from "../../shared/ui";
-import { useOrderedRangeTrack } from "../../../../hooks/useTrack";
+import { useRangeSlider } from "../../../../primitives/slider";
 import { fmtTarget } from "../../../../domains/climate/modes";
 
 /**
@@ -18,21 +18,21 @@ export function RangeBar({ id, name, low, high, current, modeCue, min, max, step
   onChange: (low: number, high: number) => void;
   onOpen?: () => void;
 }) {
-  const range = useOrderedRangeTrack<HTMLDivElement>({
+  const range = useRangeSlider<HTMLDivElement>({
     low,
     high,
     min,
     max,
     step,
     inset: (root) => root.querySelector<HTMLElement>(".cw-rb-k")!.getBoundingClientRect().width / 2,
+    valueText: (v, thumb) => `${thumb === "low" ? "Heat below" : "Cool above"} ${fmtTarget(v)} degrees`,
     onChange,
   });
-  const { low: lo, high: hi, span } = range;
-  const p = (v: number) => Math.min(1, Math.max(0, (v - min) / span));
+  const { low: lo, high: hi, fraction: p } = range;
   const style = { "--lo": p(lo).toFixed(4), "--hi": p(hi).toFixed(4), ...(current != null ? { "--cur": p(current).toFixed(4) } : {}) } as Vars;
 
   return (
-    <div className="cw-rb" style={style} ref={range.ref}>
+    <div className="cw-rb" style={style} {...range.rootProps}>
       <div className="cw-rb-zone cw-rb-zone--heat" />
       <div className="cw-rb-zone cw-rb-zone--cool" />
       {current != null && <i className="cw-rb-cur" aria-hidden="true" />}
@@ -43,17 +43,9 @@ export function RangeBar({ id, name, low, high, current, modeCue, min, max, step
         <div className="cw-rb-at cw-rb-at--hi"><i className="cw-rb-k cw-rb-k--hi">{fmtTarget(hi)}°</i></div>
       </div>
       {/* Pointer: tap or drag anywhere on the bar. Keyboard and screen readers: the two sliders below. */}
-      <div className="cw-rb-hit" aria-hidden="true" {...range.handlers} />
-      <input
-        id={`${id}-lo`} className="cw-rb-in cw-rb-in--lo" type="range" min={min} max={max} step="any" value={lo}
-        aria-label={`${name}, heat below`} aria-valuetext={`Heat below ${fmtTarget(lo)} degrees`}
-        onKeyDown={(ev) => range.onKeyDown(ev, "low")} onChange={(ev) => range.apply("low", Number(ev.target.value))}
-      />
-      <input
-        id={`${id}-hi`} className="cw-rb-in cw-rb-in--hi" type="range" min={min} max={max} step="any" value={hi}
-        aria-label={`${name}, cool above`} aria-valuetext={`Cool above ${fmtTarget(hi)} degrees`}
-        onKeyDown={(ev) => range.onKeyDown(ev, "high")} onChange={(ev) => range.apply("high", Number(ev.target.value))}
-      />
+      <div className="cw-rb-hit" {...range.hitProps} />
+      <input id={`${id}-lo`} className="cw-rb-in cw-rb-in--lo" aria-label={`${name}, heat below`} {...range.lowInputProps} />
+      <input id={`${id}-hi`} className="cw-rb-in cw-rb-in--hi" aria-label={`${name}, cool above`} {...range.highInputProps} />
       {onOpen && (
         <button type="button" className="cw-rb-open" onClick={onOpen}
           aria-label={`${name}: heat below ${fmtTarget(lo)}°, cool above ${fmtTarget(hi)}°. Open details`} />

@@ -9,8 +9,8 @@ Status: light and climate are implemented, each with a detail panel. The Lovelac
 The every-skin hard rules in AGENTS.md apply. `src/skins/field/styles/rules.test.ts` checks the ones below that CSS can show.
 
 - **Three parts, one meaning each.**
-  - **Key** (flat-topped, just raised): press it. A key that can't be pressed lies flat. Its glyph is the domain's (a bulb for a light), so the key is also the row's identity.
-  - **Fader** (a printed legend with a rule out to its end, a thin dark slot, a dotted scale, a round thumb): slide or set along it. A tap jumps the thumb; a drag follows the finger (`useTrack`).
+  - **Key** (flat-topped, just raised): press it (`usePress`, shared with orb). A key that can't be pressed lies flat. Its glyph is the domain's (a bulb for a light), so the key is also the row's identity.
+  - **Fader** (a printed legend with a rule out to its end, a thin dark slot, a dotted scale, a round thumb): slide or set along it. A tap jumps the thumb; a drag follows the finger (`useSlider`, shared with orb).
   - **Screen** (always dark, in both finishes): read it, never press it. A pictogram and a big thin figure on the left, up to two meta lines on the right.
 - **A lit LED says on.** The LED in a key's corner is the one sign that something is on (`--fd-led-lit`); the screen agrees, with a lit pictogram and a bright figure, or `OFF` in the dim screen ink.
 - **Colour names a parameter**, the way a knob's colour names what it sets on TE's devices. `--fd-param-a`, orange, is a module's first parameter (a light's brightness; climate's single target or lower heat threshold). `--fd-param-b`, blue, is its second (a light's warmth; climate's upper cool threshold). The parameter colour appears on its fader thumb and screen pictogram, not as a heat/cool signal; words and mode geometry carry that meaning.

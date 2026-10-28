@@ -1,10 +1,10 @@
 import { act, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useSheet } from "./useSheet";
+import { useSheet } from "./sheet";
 
 function Probe({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { mounted, dialogProps } = useSheet({ open, onClose, closeMs: 200, phone: "(max-width: 600px)", handle: ".head", snapBack: "none" });
-  return <dialog aria-label="Probe" {...dialogProps}>{mounted && <p className="head">Inside</p>}</dialog>;
+  const { mounted, dialogProps } = useSheet({ open, label: "Probe", onClose, closeMs: 200, phone: "(max-width: 600px)", handle: ".head", snapBack: "none" });
+  return <dialog {...dialogProps}>{mounted && <p className="head">Inside</p>}</dialog>;
 }
 
 beforeEach(() => {
@@ -20,6 +20,7 @@ describe("useSheet", () => {
   it("mounts its content on open, locks page scroll, and unmounts after the exit time", () => {
     const { container, rerender } = render(<Probe open onClose={() => {}} />);
     expect(container.textContent).toBe("Inside");
+    expect(container.querySelector("dialog")?.getAttribute("aria-label")).toBe("Probe");
     expect(document.documentElement.style.overflow).toBe("hidden");
     rerender(<Probe open={false} onClose={() => {}} />);
     expect(container.querySelector("dialog")?.hasAttribute("data-closing")).toBe(true);

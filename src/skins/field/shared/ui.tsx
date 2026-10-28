@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { rangeKeyValue, trackPos, useOrderedRangeTrack, useTrack } from "../../../hooks/useTrack";
-import { useLongPress } from "../../../hooks/useLongPress";
-import { useSheet } from "../../../hooks/useSheet";
+import { usePress } from "../../../primitives/press";
+import { useRangeSlider, useSlider } from "../../../primitives/slider";
+import { useSheet } from "../../../primitives/sheet";
 import type { HourSample } from "../../../domains/history";
 import "./module.css";
 import "./panel.css";
@@ -72,18 +72,9 @@ export interface KeyProps {
 
 /** A key: flat-topped and just raised, so you press it. A latching key's LED is lit while it's pressed. */
 export function Key({ label, pressed, disabled, onPress, onHold, wide, caption, children }: KeyProps) {
-  const hold = useLongPress(disabled ? undefined : onHold);
+  const press = usePress({ onPress, onHold, pressed, disabled });
   return (
-    <button
-      type="button"
-      className="fd-key"
-      aria-label={label}
-      aria-pressed={pressed}
-      disabled={disabled}
-      data-wide={wide || caption ? "" : undefined}
-      {...hold.handlers}
-      onClick={() => { if (!hold.consumeLongPress()) onPress(); }}
-    >
+    <button className="fd-key" aria-label={label} data-wide={wide || caption ? "" : undefined} {...press}>
       {pressed !== undefined && <span className="fd-led" data-lit={pressed && !disabled} aria-hidden="true" />}
       <span className="fd-key-glyph" aria-hidden="true">{children}</span>
       {caption && <span className="fd-key-cap" aria-hidden="true">{caption}</span>}
@@ -169,46 +160,22 @@ const THUMB_HALF = 9;
 
 /**
  * A linear fader: a printed legend, a thin slot with a dotted scale, and a round thumb in its parameter's colour.
- * A tap jumps the thumb (animated); a drag follows the finger. Pointer input comes from useTrack on a hit layer
- * that leaves vertical swipes to the page; a hidden range input carries the keyboard and screen readers.
+ * A tap jumps the thumb (animated); a drag follows the finger, on a hit layer that leaves vertical swipes to the
+ * page; a hidden range input carries the keyboard and screen readers.
  */
 export function Fader({ id, label, legend, value, min, max, step = 1, lit, disabled, param = "a", valueText, onChange }: FaderProps) {
   const known = value != null && Number.isFinite(value);
-  const v = known ? Math.min(max, Math.max(min, value)) : min;
   const inactive = disabled || !known;
-  const track = useTrack<HTMLDivElement>((x, el) => {
-    if (inactive) return;
-    const next = Math.min(max, Math.max(min, min + Math.round((trackPos(x, el.getBoundingClientRect(), THUMB_HALF) * (max - min)) / step) * step));
-    if (next !== v || !lit) onChange(next);
-  });
-  const style = (known ? { "--v": ((v - min) / Math.max(1, max - min)).toFixed(4) } : {}) as Vars;
+  const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, onChange });
+  const style = (known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) as Vars;
   return (
-    <div className="fd-fader" ref={track.ref} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>
+    <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>
       <p className="fd-legend" aria-hidden="true">{legend}</p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
       {known && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
-      {known && <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : track.handlers)} />}
-      {known && (
-        <input
-          id={id}
-          className="fd-in"
-          type="range"
-          min={min}
-          max={max}
-          step="any"
-          value={v}
-          disabled={disabled}
-          aria-label={label}
-          aria-valuetext={valueText}
-          onKeyDown={(event) => {
-            track.onKeyDown(event);
-            const next = rangeKeyValue(event, v, min, max, step);
-            if (next != null && next !== v) onChange(next);
-          }}
-          onChange={(e) => onChange(Number(e.target.value))}
-        />
-      )}
+      {known && <div className="fd-hit" {...slider.hitProps} />}
+      {known && <input id={id} className="fd-in" aria-label={label} {...slider.inputProps} />}
     </div>
   );
 }
@@ -234,50 +201,27 @@ export interface RangeFaderProps {
  * thumbs choose from the tap side or the first drag direction.
  */
 export function RangeFader({ id, name, legend, low, high, min, max, step = 1, disabled, lowValueText, highValueText, onChange }: RangeFaderProps) {
-  const range = useOrderedRangeTrack<HTMLDivElement>({ low, high, min, max, step, inset: THUMB_HALF, disabled, onChange });
-  const { low: lo, high: hi, span } = range;
+  const range = useRangeSlider<HTMLDivElement>({
+    low, high, min, max, step, inset: THUMB_HALF, disabled, onChange,
+    valueText: (_v, thumb) => (thumb === "low" ? lowValueText : highValueText),
+  });
+  const { low: lo, high: hi } = range;
 
   return (
     <div
       className="fd-fader fd-range"
-      ref={range.ref}
+      {...range.rootProps}
       data-disabled={disabled || undefined}
-      style={{ "--fd-lo": ((lo - min) / span).toFixed(4), "--fd-hi": ((hi - min) / span).toFixed(4) } as Vars}
+      style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4) } as Vars}
     >
       <p className="fd-legend" aria-hidden="true">{legend}</p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
       <div className="fd-rail fd-range-rail fd-range-rail--low" data-param="a" aria-hidden="true"><div className="fd-thumb" /></div>
       <div className="fd-rail fd-range-rail fd-range-rail--high" data-param="b" aria-hidden="true"><div className="fd-thumb" /></div>
-      <div className="fd-hit" aria-hidden="true" {...(disabled ? {} : range.handlers)} />
-      <input
-        id={`${id}-low`}
-        className="fd-in fd-range-in fd-range-in--low"
-        type="range"
-        min={min}
-        max={max}
-        step="any"
-        value={lo}
-        disabled={disabled}
-        aria-label={`${name}, heat below`}
-        aria-valuetext={lowValueText}
-        onKeyDown={(event) => range.onKeyDown(event, "low")}
-        onChange={(event) => range.apply("low", Number(event.target.value))}
-      />
-      <input
-        id={`${id}-high`}
-        className="fd-in fd-range-in fd-range-in--high"
-        type="range"
-        min={min}
-        max={max}
-        step="any"
-        value={hi}
-        disabled={disabled}
-        aria-label={`${name}, cool above`}
-        aria-valuetext={highValueText}
-        onKeyDown={(event) => range.onKeyDown(event, "high")}
-        onChange={(event) => range.apply("high", Number(event.target.value))}
-      />
+      <div className="fd-hit" {...range.hitProps} />
+      <input id={`${id}-low`} className="fd-in fd-range-in fd-range-in--low" aria-label={`${name}, heat below`} {...range.lowInputProps} />
+      <input id={`${id}-high`} className="fd-in fd-range-in fd-range-in--high" aria-label={`${name}, cool above`} {...range.highInputProps} />
     </div>
   );
 }
@@ -322,10 +266,10 @@ const PHONE = "(max-width: 600px)";
  * to close) and a centred panel on wider screens. Its header repeats the name and area, with a close key.
  */
 export function Panel({ open, onClose, name, area, children }: { open: boolean; onClose: () => void; name: string; area?: string; children: ReactNode }) {
-  const { mounted, dialogProps } = useSheet({ open, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".fd-panel-head", snapBack: "translate 300ms var(--fd-ease-drawer)" });
+  const { mounted, dialogProps } = useSheet({ open, label: `${name} details`, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".fd-panel-head", snapBack: "translate 300ms var(--fd-ease-drawer)" });
   return (
     // The click only closes on backdrop; Escape is the keyboard path (onCancel).
-    <dialog className="fd-panel" aria-label={`${name} details`} {...dialogProps}>
+    <dialog className="fd-panel" {...dialogProps}>
       {mounted && (
         <div className="fd-panel-in">
           <header className="fd-panel-head">

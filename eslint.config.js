@@ -57,9 +57,14 @@ export default tseslint.config(
     },
   },
   {
-    // React hooks with no UI of their own (the minute clock, the track's pointer input), for every skin.
+    // React hooks with no UI of their own (the minute clock, a page's nav), for every skin.
     files: ["src/hooks/**/*.{ts,tsx}"],
     rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, ...noSkin("src/hooks/ holds UI-free hooks; keep UI in its skin.")] }] },
+  },
+  {
+    // Headless interaction primitives (press, slider, sheet): behaviour and semantics, never markup or styles.
+    files: ["src/primitives/**/*.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { patterns: [...haBoundary, ...noSkin("src/primitives/ is headless; each skin draws the control.")] }] },
   },
   {
     // Mappers, actions, hooks, headless components, the store and the Lovelace element base feed every skin, so

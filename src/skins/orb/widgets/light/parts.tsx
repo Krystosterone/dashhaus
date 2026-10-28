@@ -1,5 +1,6 @@
+import { Chip } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
-import { useTrack, trackPos } from "../../../../hooks/useTrack";
+import { useSlider } from "../../../../primitives/slider";
 import { kelvinName, K_MIN, K_MAX } from "../../../../domains/light/kelvin";
 import { warmGradient } from "./kelvin";
 import { LAMP_COLORS, swatchColor } from "./color";
@@ -22,30 +23,19 @@ export const IconBulbOff = () => (
 /** Brightness bar: the light fills it; the label inverts where it passes.
  *  Pointer input goes to a hit layer (tap anywhere, or drag); the range input is for keyboard and screen readers. */
 export function BrightnessBar({ id, label, value, on, onChange }: { id: string; label: string; value: number; on: boolean; onChange: (v: number) => void }) {
-  const pct = Math.min(100, Math.max(1, Math.round(value)));
-  const text = on ? `${pct}%` : "Off";
-  const track = useTrack<HTMLDivElement>((x, el) => {
-    const v = Math.round(1 + trackPos(x, el.getBoundingClientRect(), THUMB / 2) * 99);
-    if (v !== pct || !on) onChange(v);
+  // Setting the level the thumb already shows still reports it while off, so it turns the light on.
+  const slider = useSlider<HTMLDivElement>({
+    value: Math.round(value), min: 1, max: 100, inset: THUMB / 2, reportUnchanged: !on, onChange,
+    valueText: (v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`),
   });
+  const pct = slider.value;
+  const text = on ? `${pct}%` : "Off";
   return (
-    <div className="lw-bar" ref={track.ref} data-lit={on} style={{ "--v": ((pct - 1) / 99).toFixed(4) } as Vars}>
+    <div className="lw-bar" {...slider.rootProps} data-lit={on} style={{ "--v": slider.fraction(pct).toFixed(4) } as Vars}>
       <div className="lw-bar-lab">{text}</div>
       <div className="lw-bar-lit" aria-hidden="true"><div className="lw-bar-lab">{text}</div></div>
-      <div className="lw-hit" aria-hidden="true" {...track.handlers} />
-      <input
-        id={id}
-        className="lw-in"
-        type="range"
-        min={1}
-        max={100}
-        step={1}
-        value={pct}
-        aria-label={label}
-        aria-valuetext={on ? `${pct} percent` : `Off. Last set to ${pct} percent`}
-        onKeyDown={track.onKeyDown}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
+      <div className="lw-hit" {...slider.hitProps} />
+      <input id={id} className="lw-in" aria-label={label} {...slider.inputProps} />
     </div>
   );
 }
@@ -61,22 +51,21 @@ export const QUICK_LEVELS = [
 
 /** Warmth ruler: ticks every 100 K over the warm-to-cool scale; an ink stick and a tag mark the value. */
 export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, onChange }: { id: string; kelvin: number; min?: number; max?: number; disabled?: boolean; onChange: (k: number) => void }) {
-  const span = Math.max(100, max - min);
-  const k = Math.min(max, Math.max(min, kelvin));
-  const intervals = Math.max(1, Math.round(span / 100));
-  const track = useTrack<HTMLDivElement>((x, el) => {
-    if (disabled) return;
-    const v = Math.min(max, Math.round((min + trackPos(x, el.getBoundingClientRect(), 12) * span) / 100) * 100);
-    if (v !== k) onChange(Math.max(min, v));
+  const intervals = Math.max(1, Math.round(Math.max(100, max - min) / 100));
+  // The pointer lands on whole hundreds of kelvin, whatever the lamp's own ends.
+  const slider = useSlider<HTMLDivElement>({
+    value: kelvin, min, max, step: 100, inset: 12, disabled, snap: (raw) => Math.round(raw / 100) * 100, onChange,
+    valueText: (v) => `${v} kelvin, ${kelvinName(v)}`,
   });
+  const k = slider.value;
   return (
     <div className="hd-blk">
       <p className="hd-blk-h"><label htmlFor={id}>Warmth</label><span className="hd-blk-v">{kelvinName(k)}</span></p>
       <div
         className="lw-ruler"
-        ref={track.ref}
+        {...slider.rootProps}
         data-disabled={disabled || undefined}
-        style={{ "--v": ((k - min) / span).toFixed(4), "--warm-grad": warmGradient(min, Math.max(max, min + 100)) } as Vars}
+        style={{ "--v": slider.fraction(k).toFixed(4), "--warm-grad": warmGradient(min, Math.max(max, min + 100)) } as Vars}
       >
         <div className="lw-ruler-ticks" style={{ background: `repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px calc(100% / ${intervals}))` }} />
         <div className="lw-ruler-line" />
@@ -84,20 +73,8 @@ export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, on
           <div className="lw-ruler-at lw-ruler-at--mark"><div className="lw-ruler-mark" /></div>
           <div className="lw-ruler-at lw-ruler-at--tip"><div className="lw-ruler-tip">{k} K</div></div>
         </div>
-        <div className="lw-hit" aria-hidden="true" {...track.handlers} />
-        <input
-          id={id}
-          className="lw-in"
-          type="range"
-          min={min}
-          max={Math.max(max, min + 100)}
-          step={100}
-          value={k}
-          disabled={disabled}
-          aria-valuetext={`${k} kelvin, ${kelvinName(k)}`}
-          onKeyDown={track.onKeyDown}
-          onChange={(e) => onChange(Number(e.target.value))}
-        />
+        <div className="lw-hit" {...slider.hitProps} />
+        <input id={id} className="lw-in" {...slider.inputProps} />
       </div>
     </div>
   );
@@ -111,10 +88,10 @@ export function ColorChips({ id, value, onChange }: { id: string; value: LampCol
       <p className="hd-blk-h"><span id={id}>Colour</span>{value && <span className="hd-blk-v">{value.name}</span>}</p>
       <div className="hd-chips" role="group" aria-labelledby={id} style={{ "--n": LAMP_COLORS.length } as Vars}>
         {LAMP_COLORS.map((c) => (
-          <button key={c.name} type="button" className="hd-chip lw-chip" aria-pressed={value?.name === c.name} onClick={() => onChange(c)}>
+          <Chip key={c.name} className="lw-chip" selected={value?.name === c.name} onPick={() => onChange(c)}>
             <span className="lw-sw" aria-hidden="true" style={{ "--sw": swatchColor(c.swatch) } as Vars} />
             <span>{c.name}</span>
-          </button>
+          </Chip>
         ))}
       </div>
     </div>
