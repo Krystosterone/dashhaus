@@ -241,7 +241,7 @@ const created = [...writes.keys()].filter((p) => p.includes(`/${name}`) || p.inc
 console.log(`Created the ${words} ${kind} card (${code}-, ${domain}.*): ${created.length} files, registered in ${writes.size - created.length} more.
 
 Next:
-  1. npm run storybook  →  Orb/Cards/${Name} and Orb/Home Assistant/${Name}
+  1. npm run storybook  →  Orb/Cards/${Name} and Orb/Connected/${Name}
   2. Make it the ${words}: fields in src/domains/${name}/types.ts, the card in ${Name}Card.tsx,
      attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
   3. Draw its icon in ${SKIN}/cards/${name}/icons.tsx; move it to the right section in ${SKIN}/dashboards/Dashboards.stories.tsx

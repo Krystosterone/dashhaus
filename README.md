@@ -18,7 +18,7 @@ npm install
 npm run storybook
 ```
 
-Storybook documents every card, supported footprint and skin, each skin under the same groups: Cards, Bundles (orb only), Dashboards, Foundations, Home Assistant (AGENTS.md → Storybook). Use the Theme menu to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
+Storybook documents every card, supported footprint and skin, each skin under the same groups: Cards, Bundles (orb only), Dashboards, Foundations, Connected (AGENTS.md → Storybook). Use the Theme menu to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
 
 
 ## Running with Home Assistant

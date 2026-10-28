@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoClimateHaTransport } from "../../../ha/demo";
 
 const meta = {
-  title: "Orb/Home Assistant/Climate",
+  title: "Orb/Connected/Climate",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

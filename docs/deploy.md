@@ -69,7 +69,7 @@ sections:
         name: Nova
 ```
 
-**Storybook → Orb / Home Assistant / Dashboard** shows this exact config on the demo data.
+**Storybook → Orb / Dashboards / Lovelace card** shows this exact config on the demo data.
 
 The entity's domain picks the card. One card shows one entity, though some cards also read the device's other entities:
 
@@ -158,7 +158,7 @@ nav:
     label: Baby view
 ```
 
-**Storybook → Orb / Home Assistant / Dashboard → Nav and pages** shows this config on the demo data. Pages take the same `sections` as the main page, so a room, a floor or a task can each have its own. Home Assistant shows its own tabs when a dashboard has several views, and each view would need its own card and `nav`; `pages` keeps one card and one nav, and `navigate:` stays for the dashboards that really are separate.
+**Storybook → Orb / Dashboards / Lovelace card → Nav and pages** shows this config on the demo data. Pages take the same `sections` as the main page, so a room, a floor or a task can each have its own. Home Assistant shows its own tabs when a dashboard has several views, and each view would need its own card and `nav`; `pages` keeps one card and one nav, and `navigate:` stays for the dashboards that really are separate.
 
 ## The field dashboard
 
@@ -186,7 +186,7 @@ modules:                 # optional; leave out for every supported entity by are
 | `footprint` | `standard`, `compact` | `standard` |
 | `modules` | a list of `light.*` or `climate.*` entity ids or maps of `entity`, `name`, `area`, `footprint` | every visible supported entity |
 
-Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Home Assistant / Dashboard** shows a mixed light and climate dashboard on demo data.
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light and climate dashboard on demo data.
 
 ## What has and hasn't been verified
 

@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoHaTransport } from "../../../ha/demo";
 
 const meta = {
-  title: "Orb/Home Assistant/Light",
+  title: "Orb/Connected/Light",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

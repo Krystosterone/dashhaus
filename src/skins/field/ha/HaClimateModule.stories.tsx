@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { HaClimateModule } from "./HaClimateModule";
 
 const meta = {
-  title: "Field/Home Assistant/Climate",
+  title: "Field/Connected/Climate",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

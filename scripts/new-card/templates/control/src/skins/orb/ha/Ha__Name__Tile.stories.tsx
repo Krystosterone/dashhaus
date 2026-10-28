@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemo__Name__HaTransport } from "../../../ha/demo/__name__";
 
 const meta = {
-  title: "Orb/Home Assistant/__Name__",
+  title: "Orb/Connected/__Name__",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

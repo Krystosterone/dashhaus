@@ -41,7 +41,7 @@ function Demo({ title, footprint }: { title?: string; footprint: FieldFootprint 
 }
 
 const meta = {
-  title: "Field/Home Assistant/Dashboard",
+  title: "Field/Dashboards/Lovelace card",
   component: Demo,
   parameters: {
     layout: "fullscreen",

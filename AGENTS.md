@@ -15,7 +15,7 @@ One word per thing, the same in code, Storybook and the docs.
 - **Bundle** — orb only: several cards drawn as one outer card (joined, lead, titled).
 - **Dashboard** — a page of cards and what frames them: `DashboardPage`, `Section`, `CardGrid`, `Columns`, `Cell`, the `Header` and the `NavBar`. The header and the nav bar are page furniture, not cards.
 - **Foundation** — a story about a skin's rules rather than one card: its palette, colour temperature, compact rows, worst-case data side by side.
-- **Connected** — a card bound to the store: `Ha<Name>Tile` in orb, `Ha<Name>Module` in field, on the shared `useHa<Name>` hook.
+- **Connected** — a card bound to the store: `Ha<Name>Tile` in orb, `Ha<Name>Module` in field, on the shared `useHa<Name>` hook. Its stories are under `<Skin>/Connected/<Name>`.
 - **Lovelace card** — the custom element Home Assistant loads (`custom:home-dashboard`, `custom:home-dashboard-field`); it draws a whole dashboard from its YAML. Always say Lovelace card for it, so "card" alone keeps meaning one entity's card. Inside its YAML, `cards:` lists entity cards and `card:` picks which card draws an entity.
 - **Primitive** — a headless interaction hook in `src/primitives/`: behaviour, no markup.
 - **Seed** — demo data for one example entity, in a card's `demo/`; `<NAME>_WORST_CASE` are its worst-case seeds.
@@ -61,7 +61,7 @@ The code is split by responsibility, so a whole different UI, a skin, can sit on
 - `src/index.ts` — public exports. Every new card must be exported here.
 - `scripts/new-card/` — the card generator, drawing new cards in the orb skin. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new cards start from the current rules. `index.test.ts` runs the generator: a dry run against the repo for every anchor it edits, and a real run in a temporary copy that must typecheck and pass the conformance test.
 
-- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` owns the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`; `cards/light/` and `cards/climate/` own `LightModule` and `ClimateModule`, each with its CSS, demo, stories, tests and detail content; `ha/` connects them as `HaLightModule` and `HaClimateModule`; `styles/` owns `tokens.css` with every token prefixed `--fd-` and `rules.test.ts`; `lovelace/` owns `custom:home-dashboard-field` through `config.ts`, `auto.ts`, `FieldDashboard.tsx` and `card.tsx` (YAML in `docs/deploy.md` → The field dashboard). Shared classes use `fd-`; card classes add `fd-lt-` for light and `fd-cl-` for climate. `stories/` holds its Foundations story (Palette: its parts and what each means) and the one that says why its Dashboards group is empty.
+- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` owns the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`; `cards/light/` and `cards/climate/` own `LightModule` and `ClimateModule`, each with its CSS, demo, stories, tests and detail content; `ha/` connects them as `HaLightModule` and `HaClimateModule`; `styles/` owns `tokens.css` with every token prefixed `--fd-` and `rules.test.ts`; `lovelace/` owns `custom:home-dashboard-field` through `config.ts`, `auto.ts`, `FieldDashboard.tsx` and `card.tsx` (YAML in `docs/deploy.md` → The field dashboard). Shared classes use `fd-`; card classes add `fd-lt-` for light and `fd-cl-` for climate. `stories/` holds its Foundations story (Palette: its parts and what each means).
 
 ### Adding a skin
 
@@ -73,7 +73,7 @@ The domain and Home Assistant slice already exist; add only the new skin's drawi
 
 1. Reuse `src/domains/<name>/` and `useHa<Name>` from `src/ha/hooks/<name>.ts`. Do not fork its entity model, mapper, actions, history parsing or demo transport for a skin.
 2. Add the presentational component, skin-prefixed CSS, icons, local demo seeds, interaction tests and stories under `src/skins/<skin>/cards/<name>/`, its stories titled `<Skin>/Cards/<Name>` with the standard set (Storybook below). Presentational files never import `src/ha/`; keep worst-case data in the demo seeds rather than adding product-only debug props or URL switches.
-3. Add `src/skins/<skin>/ha/Ha<Name><Surface>.tsx`, where `<Surface>` is that skin's noun such as `Tile` or `Module`. It calls the shared `useHa<Name>` hook and only adapts its result to the presentational component. Add its real-store Storybook story, titled `<Skin>/Home Assistant/<Name>`, and focused adapter tests.
+3. Add `src/skins/<skin>/ha/Ha<Name><Surface>.tsx`, where `<Surface>` is that skin's noun such as `Tile` or `Module`. It calls the shared `useHa<Name>` hook and only adapts its result to the presentational component. Add its real-store Storybook story, titled `<Skin>/Connected/<Name>`, and focused adapter tests.
 4. Extend that skin's Lovelace parser, generated layout and renderer, plus the corresponding YAML in `docs/deploy.md`. Reuse the connected container there instead of repeating hook-to-view wiring.
 5. Export the presentational component, connected container and their prop types from `src/index.ts`; token CSS is imported once per skin, not by individual cards.
 6. Run the skin's rules test, `npm run check`, `npm run test-storybook` and `npm run build:ha`; visually inspect the state matrix, every supported width and footprint, compact rows, details, unavailable data and the longest labels.
@@ -84,11 +84,11 @@ Every skin's section has the same groups, in this order, so the tree has one sha
 
 1. **Cards** — `<Skin>/Cards/<Name>`, one per card. Every card has the same stories under the same names: its own states first, then **Unavailable**, **Worst case** (its `<NAME>_WORST_CASE` or worst-case seed), **All states**, **Sizes**, **Footprints**, **Compact**, **Details**, **Details, unavailable** and **Details, phone**. A card adds stories for what only it can do (a climate range, a colour lamp, a view-only alarm) beside the one they extend, and drops none.
 2. **Bundles** — orb only: its joined, lead and titled bundles. A bundle is an orb idea, not a gap in other skins, so they leave the group out.
-3. **Dashboards** — whole pages and their furniture: orb's `Layouts` (phone, tablet, wall panel), `Header` and `Nav bar`.
-4. **Foundations** — a skin's rules across cards: orb's palette, colour temperature, compact rows and worst case; field's palette.
-5. **Home Assistant** — on the demo transports: `Dashboard`, the Lovelace card drawn from YAML, then one connected story per card under the card's name.
+3. **Dashboards** — whole pages and their furniture: every skin's `Lovelace card`, its whole dashboard drawn from YAML on the demo transports; orb's hand-composed `Layouts` (phone, tablet, wall panel), `Header` and `Nav bar`.
+4. **Foundations** — a skin's rules across cards: orb's palette, colour temperature, compact rows and worst case; field's design rules and palette. Field's Design rules is an MDX page that draws `docs/field.md` whole through `.storybook/blocks/MarkdownWithStories.tsx`, with chosen stories after their sections: the markdown stays the source, so edit it, not the page.
+5. **Connected** — one story per card under the card's name: its connected card on the demo transports, so a press goes through the `useHa<Name>` hook, mapper and actions and the state comes back through the store. These live in the skin's `ha/`, apart from `Cards`, because only `ha/` and `lovelace/` may import `src/ha/`.
 
-Any other group a skin can't fill holds one **Not in <Skin>** story that says why (field's `stories/`), never filler. Today field has no hand-composed dashboards.
+Any other group a skin can't fill holds one **Not in <Skin>** story that says why, never filler. Today every skin fills every group it has.
 
 ### Primitives
 

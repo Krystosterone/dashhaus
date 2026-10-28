@@ -33,7 +33,7 @@ const meta = {
   component: Bar,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "The page's bottom nav: one raised pill per destination, the current one in the solid accent, and an arrow on a pill that leaves the dashboard. On a page it docks at the bottom (Orb → Dashboards → Phone); the Lovelace card fills it from its sections, pages and `nav:` (Orb → Home Assistant → Config dashboard → Nav and pages)." } },
+    docs: { description: { component: "The page's bottom nav: one raised pill per destination, the current one in the solid accent, and an arrow on a pill that leaves the dashboard. On a page it docks at the bottom (Orb → Dashboards → Layouts → Phone); the Lovelace card fills it from its sections, pages and `nav:` (Orb → Dashboards → Lovelace card → Nav and pages)." } },
   },
 } satisfies Meta<typeof Bar>;
 export default meta;

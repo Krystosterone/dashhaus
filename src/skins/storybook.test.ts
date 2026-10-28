@@ -8,7 +8,7 @@ import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /** Each skin's top-level groups, in sidebar order. A group a skin can't fill holds one story that says why. */
-const GROUPS = ["Cards", "Bundles", "Dashboards", "Foundations", "Home Assistant"];
+const GROUPS = ["Cards", "Bundles", "Dashboards", "Foundations", "Connected"];
 
 /** Groups that belong to one skin's idea rather than to every skin: other skins leave them out, with no gap story. */
 const OWN: Record<string, string> = { Bundles: "Orb" };
@@ -60,10 +60,11 @@ const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: tru
     const dir = `src/skins/${skin}`;
     const section = read(`${dir}/storybook.tsx`).match(/section: "([^"]+)"/)?.[1] ?? "";
     const files = readdirSync(join(process.cwd(), dir), { recursive: true, encoding: "utf8" })
-      .filter((f) => f.endsWith(".stories.tsx"))
+      .filter((f) => f.endsWith(".stories.tsx") || f.endsWith(".mdx"))
       .map((f) => posix.join(dir, f))
       .map((path) => ({ path, source: read(path) }))
-      .map(({ path, source }) => ({ path, source, title: source.slice(source.indexOf("const meta")).match(/\btitle: "([^"]+)"/)?.[1] ?? "" }));
+      // A CSF file's title is in its meta, an MDX page's in its <Meta title="…" />.
+      .map(({ path, source }) => ({ path, source, title: source.slice(Math.max(0, source.indexOf("const meta"))).match(/\btitle[:=]\s*"([^"]+)"/)?.[1] ?? "" }));
     const cards = readdirSync(join(process.cwd(), dir, "cards"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
     return { skin, section, files, cards };
   });
@@ -113,8 +114,8 @@ describe.each(skins)("the $section section", ({ section, files, cards, skin }) =
       expect(misnamed).toEqual([]);
     });
 
-    it(`has a connected story under ${section}/Home Assistant/<Name>`, () => {
-      expect(files.some((f) => f.title === `${section}/Home Assistant/${label(card)}`)).toBe(true);
+    it(`has a connected story under ${section}/Connected/<Name>`, () => {
+      expect(files.some((f) => f.title === `${section}/Connected/${label(card)}`)).toBe(true);
     });
   });
 });

@@ -1,0 +1,19 @@
+import { Meta } from "@storybook/blocks";
+import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
+import field from "../../../../docs/field.md?raw";
+import * as Palette from "./Palette.stories";
+import * as Light from "../cards/light/LightModule.stories";
+import * as Climate from "../cards/climate/ClimateModule.stories";
+
+{/* docs/field.md, drawn whole, with the stories that show each part. Edit the markdown, not this page. */}
+
+<Meta title="Field/Foundations/Design rules" />
+
+<MarkdownWithStories
+  markdown={field}
+  after={{
+    "Design rules": [Palette.Roles],
+    Light: [Light.AllStates, Light.Footprints],
+    Climate: [Climate.AllStates, Climate.Footprints],
+  }}
+/>
