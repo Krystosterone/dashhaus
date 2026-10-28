@@ -10,7 +10,7 @@ export interface HaToggleTileProps extends HaToggleOptions, Omit<ToggleTileProps
 }
 
 /** A live toggle tile: the useHaToggle hook above the presentational tile. */
-export function HaToggleTile({ entityId, domain, name, area, lastSeen, icon, color, description, history, loadHistory, onActionError, ...props }: HaToggleTileProps) {
-  const toggle = useHaToggle(entityId, { domain, name, area, lastSeen, icon, color, description, history, loadHistory, onActionError });
+export function HaToggleTile({ entityId, name, area, lastSeen, icon, color, description, history, loadHistory, onActionError, ...props }: HaToggleTileProps) {
+  const toggle = useHaToggle(entityId, { name, area, lastSeen, icon, color, description, history, loadHistory, onActionError });
   return <ToggleTile {...props} entity={toggle.entity} history={toggle.history} {...toggle.actions} />;
 }

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useHaEntity, useHaStore } from "../provider";
 import { createToggleHandlers } from "../actions/toggle";
-import type { ToggleDomain, ToggleHandlers } from "../actions/toggle";
+import type { ToggleHandlers } from "../actions/toggle";
 import { toggleFromHass } from "../mappers/toggle";
 import { toggleHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
@@ -12,8 +12,6 @@ import type { ColorName } from "../../domains/color";
 import type { HaActionError } from "../types";
 
 export interface HaToggleOptions {
-  /** Required: the native domain ("input_boolean" | "switch"). */
-  domain: ToggleDomain;
   name?: string;
   area?: string;
   lastSeen?: string;
@@ -34,7 +32,7 @@ export interface HaToggleResult {
 }
 
 /** One live input_boolean or switch for any UI: the mapped entity, today's history and its toggle. */
-export function useHaToggle(entityId: string, { domain, name, area, lastSeen, icon, color, description, history, loadHistory = true, onActionError }: HaToggleOptions): HaToggleResult {
+export function useHaToggle(entityId: string, { name, area, lastSeen, icon, color, description, history, loadHistory = true, onActionError }: HaToggleOptions = {}): HaToggleResult {
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
@@ -42,6 +40,6 @@ export function useHaToggle(entityId: string, { domain, name, area, lastSeen, ic
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => toggleHistoryFromHass(records, entityId, now), [records, entityId, now]);
   const entity = useMemo(() => toggleFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, icon, color, description, now }), [raw, entityId, area, registryArea, name, lastSeen, icon, color, description, now]);
-  const actions = useMemo(() => createToggleHandlers(store, entity, { domain, onError: onActionError }), [store, entity, domain, onActionError]);
+  const actions = useMemo(() => createToggleHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

@@ -17,7 +17,7 @@ const raw: HassEntities = {
 
 describe("HaToggleTile", () => {
   it("maps a raw entity into the existing ToggleTile and routes toggle through the store", async () => {
-    const fake = renderConnected(<HaToggleTile entityId="input_boolean.guest_mode" domain="input_boolean" />, raw);
+    const fake = renderConnected(<HaToggleTile entityId="input_boolean.guest_mode" />, raw);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Guest" })).toBeTruthy());
 
@@ -30,7 +30,7 @@ describe("HaToggleTile", () => {
 
   it("passes host metadata through to the mapped entity", async () => {
     renderConnected(
-      <HaToggleTile entityId="input_boolean.guest_mode" domain="input_boolean" icon="guest" color="lavender" description="Lets visitors on the Wi-Fi." />,
+      <HaToggleTile entityId="input_boolean.guest_mode" icon="guest" color="lavender" description="Lets visitors on the Wi-Fi." />,
       raw,
     );
 

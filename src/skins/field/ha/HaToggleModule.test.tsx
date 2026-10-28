@@ -8,11 +8,11 @@ import fixture from "../../../ha/fixtures/toggle.json";
 const raw = fixture as HassEntities;
 
 describe("HaToggleModule", () => {
-  it("routes the key to the entity's own domain's toggle", async () => {
+  it("routes the key to the toggle service of the entity id's own domain", async () => {
     const live = renderConnected(
       <>
-        <HaToggleModule entityId="input_boolean.guest_mode" domain="input_boolean" loadHistory={false} />
-        <HaToggleModule entityId="switch.lamp" domain="switch" loadHistory={false} />
+        <HaToggleModule entityId="input_boolean.guest_mode" loadHistory={false} />
+        <HaToggleModule entityId="switch.lamp" loadHistory={false} />
       </>,
       raw,
     );
@@ -27,7 +27,7 @@ describe("HaToggleModule", () => {
   });
 
   it("passes the host's icon and description through, and follows the store when it stops responding", async () => {
-    const live = renderConnected(<HaToggleModule entityId="input_boolean.guest_mode" domain="input_boolean" icon="guest" description="Lets visitors on the Wi-Fi." loadHistory={false} defaultOpen />, raw);
+    const live = renderConnected(<HaToggleModule entityId="input_boolean.guest_mode" icon="guest" description="Lets visitors on the Wi-Fi." loadHistory={false} defaultOpen />, raw);
     await waitFor(() => expect(screen.getByText("Lets visitors on the Wi-Fi.")).toBeTruthy());
     // The module's key and the panel's, which is open.
     const keys = () => screen.getAllByRole("button", { name: "Guest", hidden: true }) as HTMLButtonElement[];

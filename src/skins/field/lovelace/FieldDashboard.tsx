@@ -26,7 +26,7 @@ const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
     <HaWeatherModule entityId={item.entity} name={item.name} footprint={footprint} aqiEntityId={item.aqi} aqiScale={item.aqiScale} sunEntityId={item.sun} loadForecasts={item.forecasts} />
   ),
   toggle: ({ item, footprint }) => (
-    <HaToggleModule entityId={item.entity} domain={item.entity.startsWith("switch.") ? "switch" : "input_boolean"} name={item.name} area={item.area} footprint={footprint} icon={item.icon} description={item.description} />
+    <HaToggleModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} icon={item.icon} description={item.description} />
   ),
 };
 

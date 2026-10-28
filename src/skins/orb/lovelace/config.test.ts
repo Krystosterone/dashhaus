@@ -119,7 +119,7 @@ describe("parseDashboardConfig", () => {
       items: [
         { kind: "sensor", entity: "sensor.t", humidity: "sensor.h", battery: "sensor.b", footprint: "compact", span: 2, showControl: false, history: false },
         { kind: "weather", aqi: "sensor.aqi", aqiScale: "US", sun: "sun.sun", forecasts: false },
-        { kind: "toggle", domain: "switch", icon: "waves", color: "rose", description: "Ceiling fan" },
+        { kind: "toggle", icon: "waves", color: "rose", description: "Ceiling fan" },
         { kind: "alarm", readOnly: true, exitDelay: 30, openSensors: ["Back door"] },
       ],
     });

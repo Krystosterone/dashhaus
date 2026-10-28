@@ -250,7 +250,7 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 
 ### Field toggle module
 
-`ToggleModule` is the same normalized toggle entity, history, `durations` and `onTurnOnFor` in the Field skin; `HaToggleModule` is its connected container, on the same `useHaToggle` hook as `HaToggleTile`, taking the same required `domain` and the host's `icon` and `description`. Its key carries the mode's glyph, spans the 160 px module's row with its state word, and its LED is the one on signal; the screen says ON or OFF, then until when and since when. A mode sets no parameter, so its pictogram lights in the figure's ink and the entity's `color` isn't drawn. The detail panel puts the end time on the screen's second channel and adds the description, the duration keys (chosen while on) and today. See [field.md](field.md#toggle).
+`ToggleModule` is the same normalized toggle entity, history, `durations` and `onTurnOnFor` in the Field skin; `HaToggleModule` is its connected container, on the same `useHaToggle` hook as `HaToggleTile`, taking the same host's `icon` and `description`. Its key carries the mode's glyph, spans the 160 px module's row with its state word, and its LED is the one on signal; the screen says ON or OFF, then until when and since when. A mode sets no parameter, so its pictogram lights in the figure's ink and the entity's `color` isn't drawn. The detail panel puts the end time on the screen's second channel and adds the description, the duration keys (chosen while on) and today. See [field.md](field.md#toggle).
 
 ## Using the owlet card
 

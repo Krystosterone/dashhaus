@@ -56,7 +56,7 @@ export type CardConfig = CardBase & (
   | { kind: "sensor"; humidity?: string; battery?: string; outdoor?: boolean; unit?: "°C" | "°F"; color?: ColorName | "none" }
   | { kind: "weather"; aqi?: string; aqiScale?: "US"; sun?: string; forecasts: boolean }
   | { kind: "cover"; color?: ColorName | "none" }
-  | { kind: "toggle"; domain: "input_boolean" | "switch"; icon?: ToggleIcon; color?: ColorName; description?: string }
+  | { kind: "toggle"; icon?: ToggleIcon; color?: ColorName; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
   | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
   | { kind: "humidifier"; color?: ColorName | "none" }
@@ -164,7 +164,6 @@ class Reader extends YamlReader {
     }
     const entity = this.entityId(raw.entity, path);
     if (!entity) return undefined;
-    const domain = entity.slice(0, entity.indexOf("."));
     const kind = this.kind(raw, entity, path);
     if (!kind) return undefined;
     const at = `${path} (${entity})`;
@@ -204,7 +203,6 @@ class Reader extends YamlReader {
       case "toggle": return {
         ...base,
         kind,
-        domain: domain as "input_boolean" | "switch",
         icon: this.choice(raw, "icon", at, TOGGLE_ICONS),
         color: this.choice(raw, "color", at, COLOR_NAMES),
         description: this.string(raw, "description", at),

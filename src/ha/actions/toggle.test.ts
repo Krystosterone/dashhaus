@@ -9,9 +9,9 @@ const entity: ToggleEntity = {
 };
 
 describe("createToggleHandlers", () => {
-  it("calls the native toggle service on the required domain", async () => {
+  it("calls the native toggle service on the entity's own domain", async () => {
     const callService = vi.fn(async () => undefined);
-    const handlers = createToggleHandlers({ callService }, entity, { domain: "input_boolean" });
+    const handlers = createToggleHandlers({ callService }, entity);
 
     handlers.onToggle();
     await Promise.resolve();
@@ -21,7 +21,7 @@ describe("createToggleHandlers", () => {
 
   it("targets the switch domain for switch entities", async () => {
     const callService = vi.fn(async () => undefined);
-    const handlers = createToggleHandlers({ callService }, { ...entity, entityId: "switch.porch" }, { domain: "switch" });
+    const handlers = createToggleHandlers({ callService }, { ...entity, entityId: "switch.porch" });
 
     handlers.onToggle();
     await Promise.resolve();
@@ -32,7 +32,7 @@ describe("createToggleHandlers", () => {
   it("does not call the service for an unavailable entity and reports unsupported", () => {
     const callService = vi.fn(async () => undefined);
     const onError = vi.fn();
-    const handlers = createToggleHandlers({ callService }, { ...entity, state: "unavailable" }, { domain: "input_boolean", onError });
+    const handlers = createToggleHandlers({ callService }, { ...entity, state: "unavailable" }, { onError });
 
     handlers.onToggle();
 
@@ -44,15 +44,23 @@ describe("createToggleHandlers", () => {
     const failure = new Error("denied");
     const onError = vi.fn();
     const callService = vi.fn(async () => { throw failure; });
-    const handlers = createToggleHandlers({ callService }, entity, { domain: "input_boolean", onError });
+    const handlers = createToggleHandlers({ callService }, entity, { onError });
 
     handlers.onToggle();
     await Promise.resolve();
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "service_failed", domain: "input_boolean", service: "toggle" }));
   });
 
+  it("reports an entity of another domain as unsupported, without calling a service", () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    createToggleHandlers({ callService }, { ...entity, entityId: "light.porch" }, { onError }).onToggle();
+    expect(callService).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported", domain: "light", entityId: "light.porch" }));
+  });
+
   it("does not expose a timed-on handler", () => {
-    const handlers = createToggleHandlers({ callService: vi.fn(async () => undefined) }, entity, { domain: "input_boolean" });
+    const handlers = createToggleHandlers({ callService: vi.fn(async () => undefined) }, entity);
     expect("onTurnOnFor" in handlers).toBe(false);
   });
 });

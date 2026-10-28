@@ -54,7 +54,7 @@ describe("headless components", () => {
     const { callService, store } = setup();
     render(
       <HaProvider store={store}>
-        <HaToggle entityId="switch.router" domain="switch" name="WiFi" loadHistory={false}>
+        <HaToggle entityId="switch.router" name="WiFi" loadHistory={false}>
           {({ entity, actions }) => <button type="button" onClick={actions.onToggle}>{entity.name}</button>}
         </HaToggle>
       </HaProvider>,

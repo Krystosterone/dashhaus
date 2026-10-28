@@ -18,9 +18,9 @@ function DemoConnectedToggle() {
   return (
     <HaProvider store={store}>
       <div style={{ width: 340, maxWidth: "90vw", display: "grid", gap: 8 }}>
-        <HaToggleModule entityId="input_boolean.guest_mode" domain="input_boolean" icon="guest" description="Lets visitors on the Wi-Fi." />
-        <HaToggleModule entityId="input_boolean.guest_mode" domain="input_boolean" icon="guest" footprint="compact" />
-        <HaToggleModule entityId="switch.office" domain="switch" footprint="compact" />
+        <HaToggleModule entityId="input_boolean.guest_mode" icon="guest" description="Lets visitors on the Wi-Fi." />
+        <HaToggleModule entityId="input_boolean.guest_mode" icon="guest" footprint="compact" />
+        <HaToggleModule entityId="switch.office" footprint="compact" />
       </div>
     </HaProvider>
   );
