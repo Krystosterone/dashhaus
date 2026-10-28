@@ -18,7 +18,7 @@ npm install
 npm run storybook
 ```
 
-Storybook documents every card, supported footprint and skin, each skin under the same groups: Cards, Bundles (orb only), Dashboards, Foundations, Connected (AGENTS.md → Storybook). Use the Theme menu to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
+Storybook documents every card, supported footprint and skin, each skin under the same groups: Cards, Bundles (orb only), Dashboards, Foundations, Connected (AGENTS.md → Storybook). **Orb / Foundations / Design rules** draws the design sections of this file with the stories that show them. Use the Theme menu to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
 
 
 ## Running with Home Assistant
@@ -32,7 +32,7 @@ The host supplies authentication and an implementation of the transport (the rep
 ## Orb design rules
 
 - **One card, one entity.**
-- **One modular footprint system.** Every card type and both bundle types use the same 60 px unit and 8 px gap: `compact` is 60 px, `standard` is 128 px, and `featured` is 264 px. In general, $n$ units occupy $n \times 60 + (n - 1) \times 8$ pixels.
+- **One modular footprint system.** Every card type and both bundle types use the same 60 px unit and 8 px gap: `compact` is 60 px, `standard` is 128 px, and `featured` is 264 px. In general, n units occupy n × 60 + (n − 1) × 8 pixels.
 - **Height never changes with state, entity type or width.** Set `footprint="compact" | "standard" | "featured"` on any tile; the default is `standard`. Width may simplify the internal arrangement, but it never changes the footprint or promotes a standard card to featured.
 - **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its orb, control and tappable name in the same places; a bare reading icon drops its empty orb-sized box so the name keeps its room. `featured` explicitly adds the Today strip and a large readout when that figure is not already printed on the control; below 260 px the readout yields to the orb. History remains in the sheet for smaller footprints.
 - **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a tap on the card's name (marked by a small chevron after it) or a press and hold on the main control. Below 186 px the chevron yields before the primary identity, but the name remains the same details button. The tap area spans the header (name and readout) under the orb; in compact rows it spans the title column, stopping 8 px short of the control, or the whole row when there is no control. No card spends a column on an open button; the only circle button is the sheet's close.
