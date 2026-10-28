@@ -25,7 +25,7 @@ const preview: Preview = {
     // Storybook reads this statically, so it must stay a literal: one section per skin, then its own order.
     options: {
       storySort: {
-        // Every skin has the same groups in the same order (AGENTS.md → Storybook; src/skins/storybook.test.ts checks).
+        // Every skin has the same groups in the same order, Bundles in orb only (AGENTS.md → Storybook; src/skins/storybook.test.ts checks).
         order: [
           "Orb", [
             "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet"],
@@ -36,9 +36,8 @@ const preview: Preview = {
           ],
           "Field", [
             "Cards", ["Light", "Climate"],
-            "Bundles",
             "Dashboards",
-            "Foundations",
+            "Foundations", ["Palette"],
             "Home Assistant", ["Dashboard", "Light", "Climate"],
           ],
         ],

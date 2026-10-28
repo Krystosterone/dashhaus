@@ -61,7 +61,7 @@ The code is split by responsibility, so a whole different UI, a skin, can sit on
 - `src/index.ts` — public exports. Every new card must be exported here.
 - `scripts/new-card/` — the card generator, drawing new cards in the orb skin. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new cards start from the current rules. `index.test.ts` runs the generator: a dry run against the repo for every anchor it edits, and a real run in a temporary copy that must typecheck and pass the conformance test.
 
-- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` owns the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`; `cards/light/` and `cards/climate/` own `LightModule` and `ClimateModule`, each with its CSS, demo, stories, tests and detail content; `ha/` connects them as `HaLightModule` and `HaClimateModule`; `styles/` owns `tokens.css` with every token prefixed `--fd-` and `rules.test.ts`; `lovelace/` owns `custom:home-dashboard-field` through `config.ts`, `auto.ts`, `FieldDashboard.tsx` and `card.tsx` (YAML in `docs/deploy.md` → The field dashboard). Shared classes use `fd-`; card classes add `fd-lt-` for light and `fd-cl-` for climate. `stories/` holds the stories that say why Field's Bundles, Dashboards and Foundations groups are empty.
+- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` owns the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`; `cards/light/` and `cards/climate/` own `LightModule` and `ClimateModule`, each with its CSS, demo, stories, tests and detail content; `ha/` connects them as `HaLightModule` and `HaClimateModule`; `styles/` owns `tokens.css` with every token prefixed `--fd-` and `rules.test.ts`; `lovelace/` owns `custom:home-dashboard-field` through `config.ts`, `auto.ts`, `FieldDashboard.tsx` and `card.tsx` (YAML in `docs/deploy.md` → The field dashboard). Shared classes use `fd-`; card classes add `fd-lt-` for light and `fd-cl-` for climate. `stories/` holds its Foundations story (Palette: its parts and what each means) and the one that says why its Dashboards group is empty.
 
 ### Adding a skin
 
@@ -80,15 +80,15 @@ The domain and Home Assistant slice already exist; add only the new skin's drawi
 
 ## Storybook
 
-Every skin's section has the same groups, in this order, so the tree has one shape whichever skin you open. `.storybook/preview.tsx`'s `storySort` lists them and `src/skins/storybook.test.ts` checks both.
+Every skin's section has the same groups, in this order, so the tree has one shape whichever skin you open; Bundles alone is orb's. `.storybook/preview.tsx`'s `storySort` lists them and `src/skins/storybook.test.ts` checks both.
 
 1. **Cards** — `<Skin>/Cards/<Name>`, one per card. Every card has the same stories under the same names: its own states first, then **Unavailable**, **Worst case** (its `<NAME>_WORST_CASE` or worst-case seed), **All states**, **Sizes**, **Footprints**, **Compact**, **Details**, **Details, unavailable** and **Details, phone**. A card adds stories for what only it can do (a climate range, a colour lamp, a view-only alarm) beside the one they extend, and drops none.
-2. **Bundles** — orb's joined, lead and titled bundles.
+2. **Bundles** — orb only: its joined, lead and titled bundles. A bundle is an orb idea, not a gap in other skins, so they leave the group out.
 3. **Dashboards** — whole pages and their furniture: orb's `Layouts` (phone, tablet, wall panel), `Header` and `Nav bar`.
-4. **Foundations** — a skin's rules across cards: orb's palette, colour temperature, compact rows and worst case.
+4. **Foundations** — a skin's rules across cards: orb's palette, colour temperature, compact rows and worst case; field's palette.
 5. **Home Assistant** — on the demo transports: `Dashboard`, the Lovelace card drawn from YAML, then one connected story per card under the card's name.
 
-A group a skin can't fill holds one **Not in <Skin>** story that says why (field's `stories/`), never filler. Today field has no bundles, no hand-composed dashboards and no foundation stories.
+Any other group a skin can't fill holds one **Not in <Skin>** story that says why (field's `stories/`), never filler. Today field has no hand-composed dashboards.
 
 ### Primitives
 

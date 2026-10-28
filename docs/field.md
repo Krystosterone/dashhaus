@@ -1,6 +1,6 @@
 # Field skin
 
-A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, in the same groups as orb's, with a **Finish** toolbar (Auto, Alloy, Black); Bundles, Dashboards and Foundations each hold one story saying why Field has nothing there yet.
+A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, in the same groups as orb's except Bundles, which are orb's alone, with a **Finish** toolbar (Auto, Alloy, Black). Foundations → Palette shows the parts below and what each means; Dashboards holds one story saying why Field has none of its own yet.
 
 Status: light and climate are implemented, each with a detail panel. The Lovelace card, `custom:home-dashboard-field`, draws every supported light and climate entity by area ([deploy.md](deploy.md#the-field-dashboard)); it hasn't been loaded in a live Home Assistant yet.
 

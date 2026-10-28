@@ -10,6 +10,10 @@ import { describe, expect, it } from "vitest";
 /** Each skin's top-level groups, in sidebar order. A group a skin can't fill holds one story that says why. */
 const GROUPS = ["Cards", "Bundles", "Dashboards", "Foundations", "Home Assistant"];
 
+/** Groups that belong to one skin's idea rather than to every skin: other skins leave them out, with no gap story. */
+const OWN: Record<string, string> = { Bundles: "Orb" };
+const groupsOf = (section: string) => GROUPS.filter((g) => !OWN[g] || OWN[g] === section);
+
 /** The stories every card has, in this order, as [export, sidebar name]. A card's own states come first; it may add capability stories in between. */
 const STANDARD: [string, string][] = [
   ["Unavailable", "Unavailable"],
@@ -75,20 +79,20 @@ describe("the Storybook tree", () => {
       const i = order.indexOf(section);
       expect(i, `.storybook/preview.tsx: list ${section} in storySort`).toBeGreaterThanOrEqual(0);
       const groups = (order[i + 1] as unknown[]).filter((g) => typeof g === "string");
-      expect(groups, `${section}'s groups in storySort`).toEqual(GROUPS);
+      expect(groups, `${section}'s groups in storySort`).toEqual(groupsOf(section));
     }
   });
 });
 
 describe.each(skins)("the $section section", ({ section, files, cards, skin }) => {
   it("files every story under one of the shared groups", () => {
-    const stray = files.filter(({ title }) => !GROUPS.some((g) => title.startsWith(`${section}/${g}`))).map((f) => `${f.path}: "${f.title}"`);
-    expect(stray, `titles start with ${section}/<${GROUPS.join(" | ")}>`).toEqual([]);
+    const stray = files.filter(({ title }) => !groupsOf(section).some((g) => title.startsWith(`${section}/${g}`))).map((f) => `${f.path}: "${f.title}"`);
+    expect(stray, `titles start with ${section}/<${groupsOf(section).join(" | ")}>`).toEqual([]);
   });
 
   it("has every group, filled or saying why it is empty", () => {
     const present = GROUPS.filter((g) => files.some(({ title }) => title === `${section}/${g}` || title.startsWith(`${section}/${g}/`)));
-    expect(present).toEqual(GROUPS);
+    expect(present).toEqual(groupsOf(section));
   });
 
   describe.each(cards)(`src/skins/${skin}/cards/%s`, (card) => {
