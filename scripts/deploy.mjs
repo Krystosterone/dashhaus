@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// npm run deploy — build the Lovelace card, copy it into Home Assistant's www folder, point the dashboard
-// resource at the new file, and create the dashboard the first time. Settings come from .env (see
-// .env.example). Run again after every change; it never overwrites a dashboard you have edited.
+// npm run deploy — build the Lovelace cards' bundle, copy it into Home Assistant's www folder, point the dashboard
+// resource at the new file, and create one dashboard per skin the first time. Settings come from .env (see
+// .env.example). Run again after every change; it never overwrites a dashboard layout you have edited.
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
@@ -20,8 +20,9 @@ if (args.has("--help") || args.has("-h")) {
   console.log(`Usage: npm run deploy [-- --skip-build]
 
 Builds dist/${FILE}, copies it to $HA_WWW/${FOLDER}/, registers ${RESOURCE_PATH} as a dashboard
-resource (with a version so browsers fetch the new file), and creates the "$HA_DASHBOARD" dashboard
-with a generated layout if it does not exist yet. Settings: .env, see .env.example.`);
+resource (with a version so browsers fetch the new file), and creates the Orb ("$HA_DASHBOARD") and
+Field ("$HA_FIELD_DASHBOARD") dashboards with automatic layouts if they do not exist yet. Settings: .env,
+see .env.example.`);
   process.exit(0);
 }
 
@@ -39,8 +40,29 @@ const HA_URL = process.env.HA_URL?.replace(/\/+$/, "");
 const HA_TOKEN = process.env.HA_TOKEN;
 const HA_WWW = process.env.HA_WWW;
 const HA_SSH_PORT = process.env.HA_SSH_PORT;
-const DASHBOARD = process.env.HA_DASHBOARD || "home-dashboard";
-const TITLE = process.env.HA_DASHBOARD_TITLE || "Home";
+// The page title each card prints in its header; the sidebar titles below tell the two dashboards apart.
+const PAGE_TITLE = "Home";
+// One dashboard per skin. Orb's layout is generated from the house once, to edit; Field's card, given no
+// modules, lays the house out itself every time it draws.
+const DASHBOARDS = [
+  {
+    path: process.env.HA_DASHBOARD || "home-dashboard",
+    title: process.env.HA_DASHBOARD_TITLE || "Home (Orb)",
+    icon: "mdi:home-variant",
+    async card(ha) {
+      const card = autoDashboard(await house(ha), PAGE_TITLE);
+      return { card, made: `${card.sections?.length ?? 0} generated sections` };
+    },
+  },
+  {
+    path: process.env.HA_FIELD_DASHBOARD || "home-dashboard-field",
+    title: process.env.HA_FIELD_DASHBOARD_TITLE || "Home (Field)",
+    icon: "mdi:knob",
+    async card() {
+      return { card: { type: "custom:home-dashboard-field", title: PAGE_TITLE }, made: "every light and climate entity by area" };
+    },
+  },
+];
 
 const missing = [
   !HA_URL && "HA_URL      your Home Assistant address, e.g. http://homeassistant.local:8123",
@@ -50,7 +72,10 @@ const missing = [
 if (missing.length) {
   fail(`Missing settings. Copy .env.example to .env and fill in:\n    ${missing.join("\n    ")}`);
 }
-if (!DASHBOARD.includes("-")) fail(`HA_DASHBOARD must contain a hyphen (Home Assistant requires it): "${DASHBOARD}"`);
+for (const [key, { path }] of [["HA_DASHBOARD", DASHBOARDS[0]], ["HA_FIELD_DASHBOARD", DASHBOARDS[1]]]) {
+  if (!path.includes("-")) fail(`${key} must contain a hyphen (Home Assistant requires it): "${path}"`);
+}
+if (DASHBOARDS[0].path === DASHBOARDS[1].path) fail(`HA_DASHBOARD and HA_FIELD_DASHBOARD must differ: both are "${DASHBOARDS[0].path}"`);
 
 // ---------- Build ----------
 const bundle = join(root, "dist", FILE);
@@ -103,34 +128,48 @@ try {
         type: module`);
 }
 
-step(`Checking the "${DASHBOARD}" dashboard`);
 const dashboards = await ha.send("lovelace/dashboards/list");
-if (dashboards.some((d) => d.url_path === DASHBOARD)) {
-  done("exists; its layout is yours and was left alone");
-} else {
+for (const dashboard of DASHBOARDS) {
+  step(`Checking the "${dashboard.title}" dashboard (/${dashboard.path})`);
+  const existing = dashboards.find((d) => d.url_path === dashboard.path);
+  if (existing) {
+    // The sidebar title follows .env; the layout is never touched.
+    if (existing.title !== dashboard.title) {
+      await ha.send("lovelace/dashboards/update", { dashboard_id: existing.id, title: dashboard.title });
+      done(`exists; renamed "${existing.title}" → "${dashboard.title}", its layout is yours and was left alone`);
+    } else {
+      done("exists; its layout is yours and was left alone");
+    }
+    continue;
+  }
+  const { card, made } = await dashboard.card(ha);
+  await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
+  await ha.send("lovelace/config/save", { url_path: dashboard.path, config: lovelaceDashboard(card, PAGE_TITLE) });
+  done(`created with ${made}`);
+}
+ha.close();
+
+console.log(`\nDone. Open ${DASHBOARDS.map((d) => `${HA_URL}/${d.path}/home`).join(" or ")} and reload the page once to pick up version ${version}.
+To edit one: ⋮ → Edit dashboard → the card's ✎ → Code editor. The formats are in docs/deploy.md.`);
+process.exit(0);
+
+// ---------- Helpers ----------
+
+/** The house as `autoDashboard` reads it: states and the entity, device and area registries. */
+async function house(ha) {
   const [states, entityRegistry, devices, areas] = await Promise.all([
     ha.send("get_states"),
     ha.send("config/entity_registry/list_for_display").catch(() => undefined),
     ha.send("config/device_registry/list").catch(() => []),
     ha.send("config/area_registry/list").catch(() => []),
   ]);
-  const card = autoDashboard({
+  return {
     states: Object.fromEntries(states.map((s) => [s.entity_id, s])),
     entities: entityRegistryEntries(entityRegistry),
     devices: Object.fromEntries(devices.map((d) => [d.id, { area_id: d.area_id }])),
     areas: Object.fromEntries(areas.map((a) => [a.area_id, { name: a.name }])),
-  }, TITLE);
-  await ha.send("lovelace/dashboards/create", { url_path: DASHBOARD, title: TITLE, icon: "mdi:home-variant", mode: "storage", show_in_sidebar: true, require_admin: false });
-  await ha.send("lovelace/config/save", { url_path: DASHBOARD, config: lovelaceDashboard(card, TITLE) });
-  done(`created with ${card.sections?.length ?? 0} generated sections`);
+  };
 }
-ha.close();
-
-console.log(`\nDone. Open ${HA_URL}/${DASHBOARD}/home and reload the page once to pick up version ${version}.
-To edit it: ⋮ → Edit dashboard → the card's ✎ → Code editor. The format is in docs/deploy.md.`);
-process.exit(0);
-
-// ---------- Helpers ----------
 
 /** `config/entity_registry/list_for_display` → the frontend's `hass.entities` shape. */
 function entityRegistryEntries(response) {

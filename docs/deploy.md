@@ -1,6 +1,6 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below). It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below), and the deploy sets up a dashboard for each. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
 
 ## First deploy
 
@@ -9,9 +9,9 @@ The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a 
    - `HA_TOKEN`: a long-lived access token from an admin user (Profile → Security → Long-lived access tokens). Only the deploy script uses it; it never goes into the bundle.
    - `HA_WWW`: where Home Assistant's `/config/www` folder is. Over SSH, `root@homeassistant.local:/config/www` (Terminal & SSH add-on, with your public key in its `authorized_keys`), with `HA_SSH_PORT` if it isn't 22. A folder on this machine also works: the Samba add-on's share mounted at `/Volumes/config/www`, or a Docker volume.
 2. Run `npm run deploy`.
-3. Reload any Home Assistant tab that was already open, then open the **Home** dashboard in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
+3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
 
-`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates the `home-dashboard` dashboard with one panel view and a layout generated from your house. Run it again after every code change. It updates the resource and never touches a dashboard that already exists, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates two dashboards, each one panel view: **Home (Orb)** at `home-dashboard`, with a layout generated from your house, and **Home (Field)** at `home-dashboard-field`, a field card with no `modules`, so it lays out every light and climate entity by area each time it draws. `HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` settings change the paths and sidebar titles. Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
 
 If your dashboards are in YAML mode, the script can't manage resources and prints the lines to add to `configuration.yaml` instead.
 
@@ -162,7 +162,7 @@ nav:
 
 ## The field dashboard
 
-The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light and climate entities. `npm run deploy` registers the bundle, so the card is available once you have deployed, but the script doesn't create a dashboard for it. To add one: Settings → Dashboards → **Add dashboard**, open it, ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker. With no `modules` it shows every supported light and climate entity, grouped by area.
+The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light and climate entities. `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `modules`, so it shows every supported light and climate entity, grouped by area. To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker.
 
 ```yaml
 type: custom:home-dashboard-field

@@ -26,7 +26,7 @@ One word per thing, the same in code, Storybook and the docs.
 - `npm run storybook` — dev server at http://localhost:6006
 - `npm run build-storybook` — static build in `storybook-static/`
 - `npm run build:ha` — the Lovelace card as one file, `dist/home-dashboard.js`
-- `npm run deploy` — build, copy into Home Assistant, register the resource, create the dashboard the first time (settings in `.env`, see `docs/deploy.md`)
+- `npm run deploy` — build, copy into Home Assistant, register the resource, create the Orb and Field dashboards the first time (settings in `.env`, see `docs/deploy.md`)
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run lint` — `eslint .` (flat config in `eslint.config.js`)
 - `npm run test` — `vitest run`; unit tests live next to their module as `*.test.{ts,tsx}`

@@ -23,7 +23,7 @@ Storybook documents every card, supported footprint and skin, each skin under th
 
 ## Running with Home Assistant
 
-To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb) and `custom:home-dashboard-field` (Field), then creates the Orb dashboard the first time. You edit either card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
+To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb) and `custom:home-dashboard-field` (Field), then creates a dashboard for each the first time, Home (Orb) and Home (Field). You edit either card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
 
 The presentational cards stay provider-agnostic. Each supported entity kind has a UI-free `useHa<Kind>` hook and headless component under `src/ha/`; each skin wraps those shared results in its own connected tiles or modules. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the seam.
 
