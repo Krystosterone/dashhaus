@@ -4,15 +4,8 @@
  * AGENTS.md → Adding an existing domain to another skin. Its stories are held to the shared set in
  * src/skins/storybook.test.ts.
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-
-const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
-const exists = (path: string) => existsSync(join(process.cwd(), path));
-const uncomment = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "");
-/** The body of a top-level `const <name> … = { … };` object in a source file. */
-const object = (source: string, name: string) => source.match(new RegExp(`const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\};`))?.[1] ?? "";
+import { cardFolders, exists, object, read, strayClasses, uncomment } from "../../conformance";
 
 const SKIN = "src/skins/field";
 const STEP = "AGENTS.md → Adding an existing domain to another skin";
@@ -30,9 +23,8 @@ function sorted(section: string, group: string) {
   return source.slice(from).match(new RegExp(`"${group}", \\[([^\\]]*)\\]`))?.[1] ?? "";
 }
 
-const cards = readdirSync(join(process.cwd(), SKIN, "cards"), { withFileTypes: true })
-  .filter((d) => d.isDirectory())
-  .map(({ name }) => {
+const cards = cardFolders(SKIN)
+  .map((name) => {
     const Name = name[0].toUpperCase() + name.slice(1);
     const dir = `${SKIN}/cards/${name}`;
     const moduleFile = `${dir}/${Name}Module.tsx`;
@@ -54,15 +46,7 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source,
   });
 
   it("prefixes every class of its own with fd-<code>-", () => {
-    const allowed = (cls: string) => cls === `fd-${code}` || cls.startsWith(`fd-${code}-`) || SHARED.has(cls);
-    const bad: string[] = [];
-    for (const file of readdirSync(join(process.cwd(), dir), { recursive: true, encoding: "utf8" }).filter((f) => /\.(css|tsx)$/.test(f))) {
-      const body = uncomment(read(`${dir}/${file}`));
-      const classes = file.endsWith(".css")
-        ? [...body.matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1])
-        : [...body.matchAll(/className="([^"]*)"/g)].flatMap((m) => m[1].split(/\s+/)).filter(Boolean);
-      for (const cls of classes) if (!allowed(cls)) bad.push(`${dir}/${file}: .${cls}`);
-    }
+    const bad = strayClasses(dir, (cls) => cls === `fd-${code}` || cls.startsWith(`fd-${code}-`) || SHARED.has(cls));
     expect(bad, `classes start with fd-${code}- (or are the shared fd- system's)`).toEqual([]);
   });
 

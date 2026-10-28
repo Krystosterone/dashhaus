@@ -15,7 +15,7 @@
  */
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { afterLast, before, changes, fail, filler, intoObject, read, root } from "./lib.mjs";
+import { afterLast, before, changes, fail, filler, intoObject, names, orbKinds, read, root } from "./lib.mjs";
 
 /** The skin a new card is drawn in; its logic goes outside it, in src/domains/ and src/ha/. */
 const SKIN = "src/skins/orb";
@@ -55,7 +55,7 @@ if (unit != null && kind !== "reading") fail("--unit is for --kind reading");
 const reading = kind === "reading";
 
 // ---------- Validation ----------
-if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like "fan" or "airPurifier"`);
+const { Name, CONST, words, Label } = names(name, '"fan" or "airPurifier"');
 for (const dir of [`${SKIN}/cards`, "src/domains"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
 // Names the dashboard stories already use as identifiers.
 if (["cell", "columns", "section", "device", "bundle", "dashboardPage", "cardGrid"].includes(name)) fail(`"${name}" is taken by the dashboard layout`);
@@ -73,13 +73,11 @@ for (const dir of readdirSync(join(root, SKIN, "cards")).filter((d) => statSync(
 if (taken.has(code)) fail(`code "${code}" is taken; in use: ${[...taken].sort().join(", ")}`);
 
 // ---------- Names ----------
-const Name = name[0].toUpperCase() + name.slice(1);
-const words = name.replace(/([A-Z])/g, " $1").toLowerCase();
 const tokens = {
   __Name__: Name,
   __name__: name,
-  __CONST__: name.replace(/([A-Z])/g, "_$1").toUpperCase(),
-  __Label__: words[0].toUpperCase() + words.slice(1),
+  __CONST__: CONST,
+  __Label__: Label,
   __label__: words,
   __code__: code,
   __domain__: domain,
@@ -162,10 +160,8 @@ One \`__domain__.*\` entity, switched on and off:
 edit("AGENTS.md", before(". Outside the cards", `, \`${code}-\` ${words}`));
 
 // A card on the Lovelace dashboard. The domain picks it; when the domain already has a card, `card:` does.
-const lovelace = `${SKIN}/lovelace/config.ts`;
-const domainKinds = read(lovelace).match(/const DOMAIN_KIND\b[^{]*\{([\s\S]*?)\n\};/)?.[1];
-if (domainKinds == null) fail(`could not find DOMAIN_KIND in ${lovelace}. Update scripts/new-card/index.mjs`);
-const sharesDomain = new RegExp(`^\\s*${domain}:`, "m").test(domainKinds);
+const { path: lovelace, domainKind } = orbKinds();
+const sharesDomain = domain in domainKind;
 edit(lovelace, (s) => s.replace(/^(export type Kind = .*);$/m, `$1 | "${name}";`));
 edit(lovelace, sharesDomain ? intoObject("SHARED_KINDS", `  ${name}: { domains: ["${domain}"] },`) : intoObject("DOMAIN_KIND", `  ${domain}: "${name}",`));
 edit(lovelace, before("\n);\n\nexport type ItemConfig", `\n  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));

@@ -13,8 +13,50 @@ export const fail = (message) => {
   process.exit(1);
 };
 
-/** Replace every token in a text: `{ __Name__: "Fan" }`. */
-export const filler = (tokens) => (text) => Object.entries(tokens).reduce((s, [token, value]) => s.replaceAll(token, value), text);
+/**
+ * Replace every token in a text: `{ __Name__: "Fan" }`. A line a token empties is dropped, so an optional prop
+ * can stand on its own line in a template: `__pressProps__` on a JSX line, filled with `onToggle={…}` or nothing.
+ */
+export const filler = (tokens) => (text) => text
+  .split("\n")
+  .flatMap((line) => {
+    const filled = Object.entries(tokens).reduce((s, [token, value]) => s.replaceAll(token, value), line);
+    return filled.trim() === "" && line.trim() !== "" ? [] : [filled];
+  })
+  .join("\n");
+
+/** A card's name in every form a template and a doc use, or a failure if it isn't camelCase. */
+export function names(name, example) {
+  if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like ${example}`);
+  const words = name.replace(/([A-Z])/g, " $1").toLowerCase();
+  return {
+    name,
+    Name: name[0].toUpperCase() + name.slice(1),
+    CONST: name.replace(/([A-Z])/g, "_$1").toUpperCase(),
+    /** "air purifier" */
+    words,
+    /** "Air purifier" */
+    Label: words[0].toUpperCase() + words.slice(1),
+  };
+}
+
+const ORB_CONFIG = "src/skins/orb/lovelace/config.ts";
+
+/**
+ * Which orb card draws which Home Assistant domain, read from orb's Lovelace config: `domainKind` is DOMAIN_KIND
+ * (a domain's own card), `shared` is SHARED_KINDS (a card on another card's domain, with its `id` pattern as source).
+ */
+export function orbKinds() {
+  const source = read(ORB_CONFIG);
+  const body = (constName) => source.match(new RegExp(`const ${constName}\\b[^{]*\\{([\\s\\S]*?)\\n\\};`))?.[1];
+  const domainKinds = body("DOMAIN_KIND");
+  const sharedKinds = body("SHARED_KINDS");
+  if (domainKinds == null || sharedKinds == null) fail(`could not find DOMAIN_KIND and SHARED_KINDS in ${ORB_CONFIG}. Update scripts/new-card/lib.mjs`);
+  const domainKind = Object.fromEntries([...domainKinds.matchAll(/^\s*(\w+): "(\w+)",/gm)].map((m) => [m[1], m[2]]));
+  const shared = Object.fromEntries([...sharedKinds.matchAll(/^\s*(\w+): \{ domains: \[([^\]]*)\](?:, id: (\/.*\/))? \},/gm)]
+    .map((m) => [m[1], { domains: [...m[2].matchAll(/"(\w+)"/g)].map((d) => d[1]), id: m[3] }]));
+  return { path: ORB_CONFIG, domainKind, shared };
+}
 
 const walk = (dir, out = []) => {
   for (const entry of readdirSync(dir)) {

@@ -3,24 +3,16 @@
  * produces a card that passes all of this; a hand-built one fails here with what is missing.
  * The steps are in AGENTS.md → Adding a card. Its stories are held to the shared set in src/skins/storybook.test.ts.
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-
-const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
-const exists = (path: string) => existsSync(join(process.cwd(), path));
-const uncomment = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "");
-/** The body of a top-level `const <name> … = { … };` object in a source file. */
-const object = (source: string, name: string) => source.match(new RegExp(`const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\};`))?.[1] ?? "";
+import { cardFolders, exists, object, read, strayClasses } from "../../conformance";
 
 /** The skin these cards belong to; a card's logic lives outside it, in src/domains/ and src/ha/. */
 const SKIN = "src/skins/orb";
 
 /* Every folder in cards/ is one entity's card. The dashboard's title row is type on the page, not a card: it lives
    in dashboards/ with the rest of the page. */
-const cards = readdirSync(join(process.cwd(), SKIN, "cards"), { withFileTypes: true })
-  .filter((d) => d.isDirectory())
-  .map(({ name }) => {
+const cards = cardFolders(SKIN)
+  .map((name) => {
     const Name = name[0].toUpperCase() + name.slice(1);
     const dir = `${SKIN}/cards/${name}`;
     const cardFile = `${dir}/${Name}Card.tsx`;
@@ -45,15 +37,7 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
   });
 
   it("prefixes every class with its card code", () => {
-    const allowed = (cls: string) => cls === code || cls.startsWith(`${code}-`) || cls === "hd" || cls.startsWith("hd-");
-    const bad: string[] = [];
-    for (const file of readdirSync(join(process.cwd(), dir), { recursive: true, encoding: "utf8" }).filter((f) => /\.(css|tsx)$/.test(f))) {
-      const body = uncomment(read(`${dir}/${file}`));
-      const classes = file.endsWith(".css")
-        ? [...body.matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1])
-        : file.endsWith(".tsx") ? [...body.matchAll(/className="([^"]*)"/g)].flatMap((m) => m[1].split(/\s+/)).filter(Boolean) : [];
-      for (const cls of classes) if (!allowed(cls)) bad.push(`${dir}/${file}: .${cls}`);
-    }
+    const bad = strayClasses(dir, (cls) => cls === code || cls.startsWith(`${code}-`) || cls === "hd" || cls.startsWith("hd-"));
     expect(bad, `classes start with ${code}- (or are the shared hd- system)`).toEqual([]);
   });
 

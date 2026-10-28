@@ -1,17 +1,23 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { __Name__Module } from "./__Name__Module";
 import type { FieldFootprint } from "../../shared/ui";
-import { __CONST___SEEDS, __CONST___WORST_CASE, useDemo__Name__ } from "./demo/__seedFile__";
+import { __CONST___SEEDS, __CONST___WORST_CASE__demoImport__ } from "./demo/__seedFile__";
 import type { __Name__Seed, __Name__SeedName } from "./demo/__seedFile__";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(__CONST___SEEDS) as __Name__SeedName[];
 
 function Demo__Name__({ seed, width, footprint, defaultOpen }: { seed: __Name__Seed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
-  const demo = useDemo__Name__(seed);
+  const demo = __DEMO__;
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <__Name__Module entity={demo.entity} history={demo.history} onToggle={demo.onToggle} footprint={footprint} defaultOpen={defaultOpen} />
+      <__Name__Module
+        entity={demo.entity}
+        history={demo.history}
+        __demoProps__
+        footprint={footprint}
+        defaultOpen={defaultOpen}
+      />
     </div>
   );
 }
@@ -28,8 +34,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "One __label__ as a field module. Press the key to switch it; its LED is lit while it's on. Tap the name, or press and hold " +
-          "the key, for the detail panel with today. Standard modules are 160 px, compact rows 64 px.",
+          "One __label__ as a field module. __about__ Standard modules are 160 px, compact rows 64 px.",
       },
     },
   },
@@ -47,7 +52,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
-/** Blank segments on the screen; the key lies flat. */
+/** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { __name__: "__unavailableSeed__" } };
 
 /** Every slot at its widest: the worst-case seeds. */
@@ -108,10 +113,10 @@ export const Compact: Story = {
   ),
 };
 
-/** The detail panel: the screen, the key and today. */
+/** The detail panel: the screen and today. */
 export const Details: Story = { args: { defaultOpen: true } };
 
-/** Unavailable: blank screen, the key flat, the unavailable hours dashed on the meter. */
+/** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { __name__: "__unavailableSeed__", defaultOpen: true } };
 
 /** On a phone the panel is a bottom sheet: drag its header down to close. */

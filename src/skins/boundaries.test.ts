@@ -1,6 +1,7 @@
 /**
  * Skins never import each other: what two skins share goes in src/domains/, src/primitives/, src/hooks/ or src/ha/. ESLint's
- * import patterns can't say "any skin but this one", so this resolves every relative import in each skin.
+ * import patterns can't say "any skin but this one", so this resolves every relative import in each skin. The files at
+ * src/skins/'s root are test helpers (conformance.ts), so only a skin's tests may import them.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, posix } from "node:path";
@@ -20,7 +21,9 @@ describe.each(skins)("the %s skin", (skin) => {
       for (const [, spec] of readFileSync(join(process.cwd(), path), "utf8").matchAll(SPEC)) {
         const target = posix.normalize(posix.join(posix.dirname(path), spec));
         const [, , other] = target.split("/");
-        if (target.startsWith("src/skins/") && other !== skin) crossings.push(`${path} → ${target}`);
+        const otherSkin = skins.includes(other) && other !== skin;
+        const helper = !skins.includes(other) && !/\.test\.tsx?$/.test(file);
+        if (target.startsWith("src/skins/") && (otherSkin || helper)) crossings.push(`${path} → ${target}`);
       }
     }
     expect(crossings).toEqual([]);

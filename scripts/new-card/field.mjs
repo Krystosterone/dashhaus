@@ -15,7 +15,7 @@
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { afterLast, before, changes, exists, fail, filler, intoObject, read, root } from "./lib.mjs";
+import { afterLast, before, changes, exists, fail, filler, intoObject, names, orbKinds, read, root } from "./lib.mjs";
 
 const SKIN = "src/skins/field";
 const ORB = "src/skins/orb";
@@ -28,11 +28,7 @@ const objectBody = (source, name) => source.match(new RegExp(`export const ${nam
 
 export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun }) {
   // ---------- What the domain already has ----------
-  if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like "humidifier"`);
-  const Name = name[0].toUpperCase() + name.slice(1);
-  const CONST = name.replace(/([A-Z])/g, "_$1").toUpperCase();
-  const words = name.replace(/([A-Z])/g, " $1").toLowerCase();
-  const Label = words[0].toUpperCase() + words.slice(1);
+  const { Name, CONST, words, Label } = names(name, '"humidifier"');
   const step = (n) => `AGENTS.md → Adding an existing domain to another skin, step ${n}`;
 
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
@@ -80,10 +76,10 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     if (!new RegExp(`export (const|interface|type) ${needed}\\b`).test(seeds)) fail(`${demoDir}/${seedFile} must export ${needed}`);
   }
   // Same depth in both skins, so a path to src/ stays right; orb's own modules can't come along.
-  seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, names, path) => {
+  seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
     if (path.startsWith("../../../../../")) return line;
-    const imported = names.split(",").map((n) => n.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${names}} from "../../../../../domains/history";`;
+    const imported = list.split(",").map((n) => n.trim()).filter(Boolean);
+    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${list}} from "../../../../../domains/history";`;
     fail(`${demoDir}/${seedFile} imports ${path}, which is orb's own; move what it needs to src/domains/ first`);
   });
   seeds = `// Copied from orb's card by \`npm run new-card -- ${name} --skin field\`: field's own seeds from here.\n${seeds}`;
@@ -109,16 +105,22 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   if (!fixtureId) fail(`${fixturePath} has no available entity for its connected module's test`);
 
   // The Home Assistant domains it draws, as orb's Lovelace card has them.
-  const orbConfig = read(`${ORB}/lovelace/config.ts`);
-  const domainKinds = orbConfig.match(/const DOMAIN_KIND\b[^{]*\{([\s\S]*?)\n\};/)?.[1] ?? "";
-  const shared = orbConfig.match(/const SHARED_KINDS\b[^{]*\{([\s\S]*?)\n\};/)?.[1]?.match(new RegExp(`^\\s*${name}: \\{ domains: \\[([^\\]]*)\\](?:, id: (/.*/))? \\},`, "m"));
-  const domains = shared ? [...shared[1].matchAll(/"(\w+)"/g)].map((m) => m[1]) : [...domainKinds.matchAll(new RegExp(`^\\s*(\\w+): "${name}",`, "gm"))].map((m) => m[1]);
-  if (!domains.length) fail(`${ORB}/lovelace/config.ts gives ${name} no domain in DOMAIN_KIND or SHARED_KINDS`);
+  const orb = orbKinds();
+  const shared = orb.shared[name];
+  const domains = shared?.domains ?? Object.keys(orb.domainKind).filter((d) => orb.domainKind[d] === name);
+  if (!domains.length) fail(`${orb.path} gives ${name} no domain in DOMAIN_KIND or SHARED_KINDS`);
 
   // ---------- Files from the templates ----------
   const fill = filler({
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",
+    // A control's one press, in its stories and from its hook's actions; a line of its own, gone for a reading.
+    __demoProps__: kind === "control" ? "onToggle={demo.onToggle}" : "",
+    __liveProps__: kind === "control" ? "onToggle={actions.onToggle}" : "",
+    __actions__: kind === "control" ? ", actions" : "",
+    __about__: kind === "control"
+      ? "Press the key to switch it; its LED is lit while it's on. Tap the name, or press and hold the key, for the detail panel with today."
+      : "A reading, so nothing on it is pressed: its glyph lies flat where a key would be, and today's meter takes the fader's place. Tap the name for the detail panel.",
     __areaProp__: /^\s+area\?: /m.test(entity) ? " area={e.area}" : "",
     __samples__: /^\s+samples: /m.test(history) ? "history?.samples ?? NO_HOURS" : "NO_HOURS",
     __seedFile__: seedFile.replace(/\.ts$/, ""),
@@ -174,7 +176,7 @@ export type { Ha__Name__ModuleProps } from "./skins/field/ha/Ha__Name__Module";
   // The Lovelace card: its domains, and its connected module.
   const config = `${SKIN}/lovelace/config.ts`;
   edit(config, (s) => s.replace(/^(export type FieldKind = .*);$/m, `$1 | "${name}";`));
-  edit(config, intoObject("FIELD_KINDS", `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.[2] ? `, id: ${shared[2]}` : ""} },`));
+  edit(config, intoObject("FIELD_KINDS", `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""} },`));
   const dashboard = `${SKIN}/lovelace/FieldDashboard.tsx`;
   edit(dashboard, afterLast(/^import \{ Ha\w+Module \} from "\.\.\/ha\/Ha\w+Module";$/gm, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
   // The module's own name and area, where the hook takes them.
