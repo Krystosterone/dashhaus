@@ -31,11 +31,12 @@ describe("__Name__Module", () => {
     expect(onToggle).toHaveBeenCalledTimes(keys.length);
   });
 
-  it("blanks the screen while unavailable, says when it was last seen, and lays every key flat", () => {
+  it("blanks the screen while unavailable, says when it was last seen, and lays every key flat with no state word", () => {
     const { container, keys } = draw("__unavailableSeed__");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
     expect(keys.every((key) => key.disabled)).toBe(true);
+    expect(container.querySelector(".fd-key-cap")).toBeNull();
   });
 
   it("leads a compact row with its key, or a reading's glyph", () => {

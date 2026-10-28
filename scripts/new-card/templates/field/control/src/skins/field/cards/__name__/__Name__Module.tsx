@@ -28,9 +28,10 @@ export function __Name__Module({ entity: e, footprint = "standard", history, onT
   // A plain on/off has no parameter to colour: the pictogram is neutral, and the LED says on.
   const pict = <Pictogram param="neutral" lit={on}>{__CONST___PICT}</Pictogram>;
   const read: ReactNode = unav ? <Blank label="Unavailable" /> : on ? "ON" : "OFF";
-  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : undefined;
+  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : __meta__;
+  // Square at the head of a compact row; across the row with its state word, which unavailable has none of.
   const key = (wide: boolean) => (
-    <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={details.openDetails} caption={wide ? (on ? "On" : "Off") : undefined}>
+    <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
       <Icon__Name__ />
     </Key>
   );
@@ -47,7 +48,7 @@ export function __Name__Module({ entity: e, footprint = "standard", history, onT
           currentHour={history?.currentHour}
         />
         <p className="fd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ""}</span>
+          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : __changed__}</span>
         </p>
       </div>
     </ModuleFrame>

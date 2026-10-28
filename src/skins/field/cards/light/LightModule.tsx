@@ -66,7 +66,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   // The power key and the brightness fader, the same in the module and the panel.
   const controls = (where: string) => (
     <div className="fd-lt-row" data-dimmable={dimmable}>
-      <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel} caption={!dimmable ? (on ? "On" : "Off") : undefined}>
+      <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel} wide={!dimmable} caption={!dimmable && !unav ? (on ? "On" : "Off") : undefined}>
         <IconBulb />
       </Key>
       {dimmable && (

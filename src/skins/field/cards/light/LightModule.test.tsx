@@ -36,6 +36,13 @@ describe("LightModule", () => {
     expect(screen.getByRole("button", { name: "Porch light" }).textContent).toBe("On");
   });
 
+  it("keeps an unavailable on/off light's key wide, without a state word it doesn't know", () => {
+    draw({ ...SEEDS.onOff, state: "unavailable" });
+    const key = screen.getByRole("button", { name: "Porch light" });
+    expect(key.hasAttribute("data-wide")).toBe(true);
+    expect(key.textContent).toBe("");
+  });
+
   it("blanks the screen and disables the controls while unavailable", () => {
     const el = draw(SEEDS.unavailable);
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");

@@ -122,6 +122,9 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       ? "Press the key to switch it; its LED is lit while it's on. Tap the name, or press and hold the key, for the detail panel with today."
       : "A reading, so nothing on it is pressed: its glyph lies flat where a key would be, and today's meter takes the fader's place. Tap the name for the detail panel.",
     __areaProp__: /^\s+area\?: /m.test(entity) ? " area={e.area}" : "",
+    // Since when it has been as it is, on the screen and in the panel's facts, where the entity says.
+    __meta__: /^\s+lastChanged\??: /m.test(entity) ? "e.lastChanged ? [`Since ${e.lastChanged}`] : undefined" : "undefined",
+    __changed__: /^\s+lastChanged\??: /m.test(entity) ? "e.lastChanged ? `Last changed ${e.lastChanged}` : \"\"" : "\"\"",
     // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
     __samplesProp__: /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
     __testProps__: kind === "control" ? "onToggle={onToggle}" : "",
