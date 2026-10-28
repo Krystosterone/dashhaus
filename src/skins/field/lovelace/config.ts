@@ -1,10 +1,11 @@
 import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace/yaml";
 import type { Raw } from "../../../ha/lovelace/yaml";
+import type { ToggleIcon } from "../../../domains/toggle/types";
 import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
- * every mistake shows at once with its path. Field draws lights, climate entities, room sensors and the weather.
+ * every mistake shows at once with its path. Field draws lights, climate entities, room sensors, the weather and modes.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -26,6 +27,9 @@ export interface ModuleConfig {
   aqiScale?: "US";
   sun?: string;
   forecasts?: boolean;
+  /** A toggle's glyph, and one line on what it does for its panel. */
+  icon?: ToggleIcon;
+  description?: string;
 }
 
 export interface FieldConfig {
@@ -34,12 +38,12 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** Absent: every supported light, climate and weather entity and room sensor, grouped by area. */
+  /** Absent: every supported light, climate, weather, input_boolean and switch entity and room sensor, grouped by area. */
   modules?: ModuleConfig[];
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather";
+export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -58,6 +62,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   climate: { domains: ["climate"] },
   sensor: { domains: ["sensor"] },
   weather: { domains: ["weather"] },
+  toggle: { domains: ["input_boolean", "switch"] },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];
@@ -81,7 +86,8 @@ const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
 const TOP_KEYS = ["type", "title", "finish", "footprint", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"] };
+const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"] };
+const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
 function module(read: Reader, value: unknown, path: string): ModuleConfig | undefined {
   if (!isRaw(value) && typeof value !== "string") {
@@ -113,6 +119,10 @@ function module(read: Reader, value: unknown, path: string): ModuleConfig | unde
     config.aqiScale = read.choice(raw, "aqi_scale", at, ["US"] as const);
     config.sun = raw.sun === undefined ? "sun.sun" : read.optionalEntity(raw, "sun", at, ["sun"]);
     config.forecasts = read.boolean(raw, "forecasts", at) ?? true;
+  }
+  if (kind === "toggle") {
+    config.icon = read.choice(raw, "icon", at, TOGGLE_ICONS);
+    config.description = read.string(raw, "description", at);
   }
   return config;
 }

@@ -20,7 +20,6 @@ const CARDS = [
 const FIELD_CARDS = [["probeFan"], ["probeCo2"], ["humidifier"], ["owlet", "--kind", "reading"]].map((args) => [...args, "--skin", "field"]);
 /** Domains the field generator must refuse, each with the reason it gives. */
 const REFUSED = [
-  ["toggle", /useHaToggle requires domain/],
   ["cover", /has no onToggle[\s\S]*--kind reading/],
   ["light", /src\/skins\/field\/cards\/light already exists/],
 ] as const;

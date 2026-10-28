@@ -248,6 +248,10 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
   - `onTurnOnFor(value)` receives the option's value. Wire it to a timer or an automation that turns the mode off.
   - Pass your own `durations` to change the options.
 
+### Field toggle module
+
+`ToggleModule` is the same normalized toggle entity, history, `durations` and `onTurnOnFor` in the Field skin; `HaToggleModule` is its connected container, on the same `useHaToggle` hook as `HaToggleTile`, taking the same required `domain` and the host's `icon` and `description`. Its key carries the mode's glyph, spans the 160 px module's row with its state word, and its LED is the one on signal; the screen says ON or OFF, then until when and since when. A mode sets no parameter, so its pictogram lights in the figure's ink and the entity's `color` isn't drawn. The detail panel puts the end time on the screen's second channel and adds the description, the duration keys (chosen while on) and today. See [field.md](field.md#toggle).
+
 ## Using the owlet card
 
 An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. It composes three sensors of the custom [`owlet` integration](https://github.com/ryanbdclark/owlet) (the sleep state needs a Dream Sock):

@@ -5,6 +5,7 @@ import { actionMessage } from "../../../ha/lovelace/actionMessage";
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
 import { HaSensorModule } from "../ha/HaSensorModule";
+import { HaToggleModule } from "../ha/HaToggleModule";
 import { HaWeatherModule } from "../ha/HaWeatherModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
@@ -23,6 +24,9 @@ const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
   ),
   weather: ({ item, footprint }) => (
     <HaWeatherModule entityId={item.entity} name={item.name} footprint={footprint} aqiEntityId={item.aqi} aqiScale={item.aqiScale} sunEntityId={item.sun} loadForecasts={item.forecasts} />
+  ),
+  toggle: ({ item, footprint }) => (
+    <HaToggleModule entityId={item.entity} domain={item.entity.startsWith("switch.") ? "switch" : "input_boolean"} name={item.name} area={item.area} footprint={footprint} icon={item.icon} description={item.description} />
   ),
 };
 
@@ -80,7 +84,7 @@ export function FieldDashboard({ title, items, footprint }: FieldDashboardProps)
           </div>
         </section>
       ))}
-      {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light, climate entity or temperature sensor to Home Assistant.</p>}
+      {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
       <ActionNotice />
     </div>
   );

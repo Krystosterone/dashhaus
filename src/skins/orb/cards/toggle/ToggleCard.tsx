@@ -1,16 +1,9 @@
 import type { ToggleEntity, ToggleHistory, DurationOption } from "../../../../domains/toggle/types";
+import { DEFAULT_DURATIONS } from "../../../../domains/toggle/durations";
 import { ToggleIconSvg } from "./icons";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleCard.css";
-
-/** Default ways to turn a mode on: for a while, until morning, or until turned off. */
-export const DEFAULT_DURATIONS: DurationOption[] = [
-  { value: "30", label: "30 min" },
-  { value: "60", label: "1 hour" },
-  { value: "morning", label: "Morning", sub: "07:00" },
-  { value: "manual", label: "Until off", sub: "No end" },
-];
 
 export interface ToggleCardProps extends CardProps {
   entity: ToggleEntity;

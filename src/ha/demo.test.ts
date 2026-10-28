@@ -33,6 +33,23 @@ describe("createDemoHaTransport", () => {
     await transport.callService("light", "turn_on", { entity_id: "light.living_room", color_temp_kelvin: 4000 });
     expect(latest?.["light.living_room"]?.attributes).toMatchObject({ color_mode: "color_temp", color_temp_kelvin: 4000 });
   });
+
+  it("switches an input_boolean or a switch it was seeded with", async () => {
+    const stamp = "2026-10-19T11:20:00Z";
+    const seed: HassEntities = {
+      "input_boolean.guest": { entity_id: "input_boolean.guest", state: "off", attributes: {}, last_changed: stamp, last_updated: stamp },
+      "switch.fan": { entity_id: "switch.fan", state: "on", attributes: {}, last_changed: stamp, last_updated: stamp },
+    };
+    const transport = createDemoHaTransport(seed);
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("input_boolean", "toggle", { entity_id: "input_boolean.guest" });
+    await transport.callService("switch", "turn_off", { entity_id: "switch.fan" });
+    expect(latest?.["input_boolean.guest"]?.state).toBe("on");
+    expect(latest?.["input_boolean.guest"]?.last_changed).not.toBe(stamp);
+    expect(latest?.["switch.fan"]?.state).toBe("off");
+  });
 });
 
 describe("createDemoSensorHaTransport", () => {

@@ -33,6 +33,14 @@ describe("autoModules", () => {
     });
     expect(modules).toEqual([{ entity: "weather.home", kind: "weather", sun: "sun.sun" }, { entity: "light.lamp", kind: "light" }]);
   });
+
+  it("takes every visible input_boolean and switch as a toggle", () => {
+    const modules = autoModules({
+      states: { "input_boolean.guest": state("input_boolean.guest", "Guest"), "switch.fan": state("switch.fan", "Fan"), "switch.led": state("switch.led", "Status LED") },
+      entities: { "switch.led": { entity_category: "config" } },
+    });
+    expect(modules).toEqual([{ entity: "switch.fan", kind: "toggle" }, { entity: "input_boolean.guest", kind: "toggle" }]);
+  });
 });
 
 describe("groupByArea", () => {
@@ -75,6 +83,15 @@ describe("parseFieldConfig", () => {
     ]);
     expect(() => parseFieldConfig({ modules: [{ entity: "weather.home", sun: "sensor.sun" }] })).toThrow("sensor.sun must be a sun.* entity");
     expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", aqi: "sensor.aqi" }] })).toThrow('"aqi"');
+  });
+
+  it("takes a toggle's icon and description, on toggles only", () => {
+    expect(parseFieldConfig({ modules: ["switch.fan", { entity: "input_boolean.dnd", icon: "bell-off", description: "Silences the chimes." }] }).modules).toEqual([
+      { entity: "switch.fan", kind: "toggle", name: undefined, area: undefined, footprint: undefined, icon: undefined, description: undefined },
+      { entity: "input_boolean.dnd", kind: "toggle", name: undefined, area: undefined, footprint: undefined, icon: "bell-off", description: "Silences the chimes." },
+    ]);
+    expect(() => parseFieldConfig({ modules: [{ entity: "input_boolean.dnd", icon: "bel-off" }] })).toThrow('did you mean "bell-off"?');
+    expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", icon: "moon" }] })).toThrow('"icon"');
   });
 
   it("takes a card for the entity's domain with \"card\", and no other", () => {

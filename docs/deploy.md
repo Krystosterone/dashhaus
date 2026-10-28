@@ -162,7 +162,7 @@ nav:
 
 ## The field dashboard
 
-The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light and climate entities, room sensors and the weather. `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `modules`, so it shows every supported entity, grouped by area: every light and climate entity, the first weather entity by name (with `sun.sun` for night, as the main card's Outside), and of sensors only room air, one per device, found the way the main card finds its Rooms (each temperature sensor with the humidity and battery sensors on its device, then humidity sensors on devices without one). To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker.
+The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light and climate entities, room sensors, the weather and modes (`input_boolean` and `switch`). `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `modules`, so it shows every supported entity, grouped by area: every light, climate, `input_boolean` and `switch` entity, the first weather entity by name (with `sun.sun` for night, as the main card's Outside), and of sensors only room air, one per device, found the way the main card finds its Rooms (each temperature sensor with the humidity and battery sensors on its device, then humidity sensors on devices without one). To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker.
 
 ```yaml
 type: custom:home-dashboard-field
@@ -186,6 +186,9 @@ modules:                 # optional; leave out for every supported entity by are
     aqi_scale: US                        # says the AQI sensor is on the US scale, so it can warn
     sun: sun.sun                         # the default; null keeps the day's pictograms
     forecasts: true                      # false skips the forecast read
+  - entity: input_boolean.do_not_disturb # a mode: an input_boolean or a switch
+    icon: bell-off                       # its glyph, as on the main card
+    description: Silences the chimes.    # one line for its panel
 ```
 
 | Key | Values | Default |
@@ -193,11 +196,11 @@ modules:                 # optional; leave out for every supported entity by are
 | `title` | text | none |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
-| `modules` | a list of `light.*`, `climate.*`, `sensor.*` or `weather.*` entity ids or maps of `entity`, `card`, `name`, `area`, `footprint`; a sensor also takes `humidity`, `battery` (`sensor.*` ids) and `outdoor`; a weather `aqi` (a `sensor.*` id), `aqi_scale` (`US`), `sun` (a `sun.*` id, default `sun.sun`) and `forecasts` (default `true`) | every visible supported entity |
+| `modules` | a list of `light.*`, `climate.*`, `sensor.*`, `weather.*`, `input_boolean.*` or `switch.*` entity ids or maps of `entity`, `card`, `name`, `area`, `footprint`; a sensor also takes `humidity`, `battery` (`sensor.*` ids) and `outdoor`; a weather `aqi` (a `sensor.*` id), `aqi_scale` (`US`), `sun` (a `sun.*` id, default `sun.sun`) and `forecasts` (default `true`); an `input_boolean.*` or `switch.*` `icon` (`bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`) and `description` | every visible supported entity |
 
 Each module's entity id picks its card. Where two field cards draw one domain, the domain's own card is the default and `card:` picks the other; the error lists the cards that can draw it.
 
-Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, sensor and weather dashboard on demo data.
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, sensor, weather and toggle dashboard on demo data.
 
 ## What has and hasn't been verified
 

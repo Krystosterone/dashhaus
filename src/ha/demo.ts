@@ -148,12 +148,16 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service !== "get_forecasts" || typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo weather target not found");
         return { response: { [entityId]: { forecast: weatherForecasts[type] } } };
       }
-      if (domain !== "light" && domain !== "climate") throw new Error(`Unsupported demo domain: ${domain}`);
+      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch") throw new Error(`Unsupported demo domain: ${domain}`);
       const entityId = serviceData.entity_id;
       if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
       const current = entities[entityId];
       const next: HassEntity = { ...current, attributes: { ...current.attributes }, last_updated: new Date().toISOString() };
-      if (domain === "light") {
+      if (domain === "input_boolean" || domain === "switch") {
+        if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
+        if (service === "turn_on" || service === "turn_off") next.state = service === "turn_on" ? "on" : "off";
+        next.last_changed = next.last_updated;
+      } else if (domain === "light") {
         if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
         if (service === "turn_on") {
           next.state = "on";

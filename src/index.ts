@@ -71,6 +71,10 @@ export { WeatherModule } from "./skins/field/cards/weather/WeatherModule";
 export type { WeatherModuleProps } from "./skins/field/cards/weather/WeatherModule";
 export { HaWeatherModule } from "./skins/field/ha/HaWeatherModule";
 export type { HaWeatherModuleProps } from "./skins/field/ha/HaWeatherModule";
+export { ToggleModule } from "./skins/field/cards/toggle/ToggleModule";
+export type { ToggleModuleProps } from "./skins/field/cards/toggle/ToggleModule";
+export { HaToggleModule } from "./skins/field/ha/HaToggleModule";
+export type { HaToggleModuleProps } from "./skins/field/ha/HaToggleModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header
@@ -108,7 +112,8 @@ export type { WeatherTileProps } from "./skins/orb/cards/weather/WeatherTile";
 export type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "./domains/weather/types";
 
 // Toggle (modes)
-export { ToggleCard, ToggleSheet, DEFAULT_DURATIONS } from "./skins/orb/cards/toggle/ToggleCard";
+export { ToggleCard, ToggleSheet } from "./skins/orb/cards/toggle/ToggleCard";
+export { DEFAULT_DURATIONS } from "./domains/toggle/durations";
 export type { ToggleCardProps, ToggleSheetProps } from "./skins/orb/cards/toggle/ToggleCard";
 export { ToggleTile } from "./skins/orb/cards/toggle/ToggleTile";
 export type { ToggleTileProps } from "./skins/orb/cards/toggle/ToggleTile";
