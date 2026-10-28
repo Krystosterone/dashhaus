@@ -1,8 +1,7 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import type { HassEntities } from "../../../ha/types";
+import { renderConnected } from "../../../ha/testing";
 import { HaClimateModule } from "./HaClimateModule";
 
 const raw: HassEntities = {
@@ -25,29 +24,8 @@ const raw: HassEntities = {
   },
 };
 
-function transport() {
-  let listener: ((entities: HassEntities) => void) | undefined;
-  const callService = vi.fn(async () => undefined);
-  const value: HaTransport = {
-    subscribeEntities(next) {
-      listener = next;
-      queueMicrotask(() => next(raw));
-      return () => { listener = undefined; };
-    },
-    callService,
-  };
-  return { value, callService, emit: (entities: HassEntities) => listener?.(entities) };
-}
 
-function renderLive() {
-  const fake = transport();
-  render(
-    <HaProvider store={createHaStore(fake.value)}>
-      <HaClimateModule entityId="climate.living_room" loadHistory={false} />
-    </HaProvider>,
-  );
-  return fake;
-}
+const renderLive = () => renderConnected(<HaClimateModule entityId="climate.living_room" loadHistory={false} />, raw);
 
 describe("HaClimateModule", () => {
   it("routes the key and target fader through native climate services", async () => {

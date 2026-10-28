@@ -1,11 +1,11 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { ReactNode } from "react";
 import type { LightEntity, LightHistory } from "../../../../domains/light/types";
 import { kelvinName, K_MIN, K_MAX } from "../../../../domains/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "../../../../domains/light/color";
 import type { Hs } from "../../../../domains/light/color";
 import { fmtDuration } from "../../../../domains/format";
-import { Module, Key, Screen, Digits, Blank, Fader, Pictogram, Panel, Legend, Swatch, Today } from "../../shared/ui";
+import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Pictogram, Legend, Swatch, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -42,7 +42,7 @@ const LEVELS = [
  */
 export function LightModule({ entity: e, footprint = "standard", history, onToggle, onBrightnessChange, onKelvinChange, onColorChange, defaultOpen = false }: LightModuleProps) {
   const uid = useId();
-  const [open, setOpen] = useState(defaultOpen);
+  const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const dimmable = e.supportsBrightness;
@@ -62,7 +62,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
 
   // The bulb's base always lights while on, so a lamp at 3% still reads lit; the rest fills with brightness.
   const pict = <Pictogram level={known ? 0.25 + 0.75 * (pct / 100) : 1} lit={on}>{BULB}</Pictogram>;
-  const openPanel = () => setOpen(true);
+  const openPanel = details.openDetails;
   // The power key and the brightness fader, the same in the module and the panel.
   const controls = (where: string) => (
     <div className="fd-lt-row" data-dimmable={dimmable}>
@@ -87,24 +87,21 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   );
 
   return (
-    <>
-      <Module kind="fd-lt" name={e.name} area={e.area} footprint={footprint} state={e.state} onOpen={openPanel}>
-        {footprint === "compact" ? (
-          <>
-            <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel}><IconBulb /></Key>
-            <Screen pict={pict}>{read}</Screen>
-          </>
-        ) : (
-          <>
-            <Screen pict={pict} meta={meta}>{read}</Screen>
-            {controls("m")}
-          </>
-        )}
-      </Module>
-      <Panel open={open} onClose={() => setOpen(false)} name={e.name} area={e.area}>
-        <LightDetails e={e} read={read} pict={pict} controls={controls("p")} history={history} onBrightnessChange={onBrightnessChange} onKelvinChange={onKelvinChange} onColorChange={onColorChange} />
-      </Panel>
-    </>
+    <ModuleFrame
+      kind="fd-lt"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={<Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel}><IconBulb /></Key>}
+      row={controls("m")}
+    >
+      <LightDetails e={e} read={read} pict={pict} controls={controls("p")} history={history} onBrightnessChange={onBrightnessChange} onKelvinChange={onKelvinChange} onColorChange={onColorChange} />
+    </ModuleFrame>
   );
 }
 

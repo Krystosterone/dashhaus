@@ -1,9 +1,9 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "../../../../domains/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "../../../../domains/climate/modes";
 import { fmtDuration } from "../../../../domains/format";
-import { Blank, Digits, Fader, Key, Legend, Module, Panel, Pictogram, RangeFader, Screen, Today } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, RangeFader, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { MinusIcon, ModeIcon, ModeShape, PlusIcon, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
@@ -45,7 +45,7 @@ function targetCopy(e: ClimateEntity, mode: HvacMode) {
  */
 export function ClimateModule({ entity: e, footprint = "standard", history, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, defaultOpen = false }: ClimateModuleProps) {
   const uid = useId();
-  const [open, setOpen] = useState(defaultOpen);
+  const details = useDetails(defaultOpen);
   const unavailable = e.state === "unavailable";
   const mode: HvacMode = e.state === "unavailable" ? "off" : e.state;
   const on = !unavailable && mode !== "off";
@@ -53,7 +53,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
   const target = targetCopy(e, mode);
   const hasRange = on && mode === "heat_cool" && e.targetLow != null && e.targetHigh != null && onRangeChange != null;
   const hasSingle = on && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
-  const openPanel = () => setOpen(true);
+  const openPanel = details.openDetails;
   const lastMode = e.hvacModes.find((candidate) => candidate !== "off") ?? "heat";
   const pictMode = on ? mode : lastMode;
 
@@ -132,40 +132,39 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
   };
 
   return (
-    <>
-      <Module kind="fd-cl" name={e.name} area={e.area} footprint={footprint} state={e.state} onOpen={openPanel}>
-        {footprint === "compact" ? (
-          <>
-            <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} pressed={on} disabled={unavailable} onPress={onToggle} onHold={openPanel}>
-              <ThermostatIcon />
-            </Key>
-            <Screen pict={pict}>{read}</Screen>
-          </>
-        ) : (
-          <>
-            <Screen pict={pict} meta={meta}>{read}</Screen>
-            {controls("module")}
-          </>
-        )}
-      </Module>
-      <Panel open={open} onClose={() => setOpen(false)} name={e.name} area={e.area}>
-        <ClimateDetails
-          e={e}
-          mode={mode}
-          on={on}
-          unavailable={unavailable}
-          read={read}
-          pict={pict}
-          target={target}
-          controls={controls("panel")}
-          history={history}
-          setRange={setRange}
-          onModeChange={onModeChange}
-          onPresetChange={onPresetChange}
-          onFanChange={onFanChange}
-        />
-      </Panel>
-    </>
+    <ModuleFrame
+      kind="fd-cl"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={(
+        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} pressed={on} disabled={unavailable} onPress={onToggle} onHold={openPanel}>
+          <ThermostatIcon />
+        </Key>
+      )}
+      row={controls("module")}
+    >
+      <ClimateDetails
+        e={e}
+        mode={mode}
+        on={on}
+        unavailable={unavailable}
+        read={read}
+        pict={pict}
+        target={target}
+        controls={controls("panel")}
+        history={history}
+        setRange={setRange}
+        onModeChange={onModeChange}
+        onPresetChange={onPresetChange}
+        onFanChange={onFanChange}
+      />
+    </ModuleFrame>
   );
 }
 

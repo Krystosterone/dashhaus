@@ -63,7 +63,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   // ---------- Orb's card: its code, its seeds, its connected story ----------
   const orbDir = `${ORB}/cards/${name}`;
   if (!exists(orbDir)) fail(`${orbDir} doesn't exist: field copies its demo seeds and card code from orb's card`);
-  const fieldCodes = readdirSync(join(root, SKIN, "cards")).map((d) => exists(`${SKIN}/cards/${d}/${d[0].toUpperCase()}${d.slice(1)}Module.tsx`) && read(`${SKIN}/cards/${d}/${d[0].toUpperCase()}${d.slice(1)}Module.tsx`).match(/<Module\s+kind="fd-([a-z]{2})"/)?.[1]).filter(Boolean);
+  const fieldCodes = readdirSync(join(root, SKIN, "cards")).map((d) => exists(`${SKIN}/cards/${d}/${d[0].toUpperCase()}${d.slice(1)}Module.tsx`) && read(`${SKIN}/cards/${d}/${d[0].toUpperCase()}${d.slice(1)}Module.tsx`).match(/<ModuleFrame\s+kind="fd-([a-z]{2})"/)?.[1]).filter(Boolean);
   const code = askedCode ?? (exists(`${orbDir}/${Name}Card.tsx`) ? read(`${orbDir}/${Name}Card.tsx`).match(/useCard\("([a-z]{2})"/)?.[1] : undefined);
   if (!code || !/^[a-z]{2}$/.test(code)) fail(`no card code: pass --code <xx>, two lower-case letters for its fd-<xx>- classes`);
   if (fieldCodes.includes(code)) fail(`fd-${code}- is taken; in use: ${fieldCodes.map((c) => `fd-${c}-`).join(", ")}. Pass --code <xx>`);
@@ -122,7 +122,9 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       ? "Press the key to switch it; its LED is lit while it's on. Tap the name, or press and hold the key, for the detail panel with today."
       : "A reading, so nothing on it is pressed: its glyph lies flat where a key would be, and today's meter takes the fader's place. Tap the name for the detail panel.",
     __areaProp__: /^\s+area\?: /m.test(entity) ? " area={e.area}" : "",
-    __samples__: /^\s+samples: /m.test(history) ? "history?.samples ?? NO_HOURS" : "NO_HOURS",
+    // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
+    __samplesProp__: /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
+    __testProps__: kind === "control" ? "onToggle={onToggle}" : "",
     __seedFile__: seedFile.replace(/\.ts$/, ""),
     __firstSeed__: firstSeed,
     __unavailableSeed__: unavailableSeed,

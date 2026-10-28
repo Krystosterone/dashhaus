@@ -1,8 +1,6 @@
-import { useState } from "react";
 import type { ReactNode } from "react";
 import type { __Name__Entity, __Name__History } from "../../../../domains/__name__/types";
-import type { HourSample } from "../../../../domains/history";
-import { Blank, Glyph, Module, Panel, Pictogram, Screen, Today } from "../../shared/ui";
+import { Blank, Glyph, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
 import "./__Name__Module.css";
@@ -16,9 +14,6 @@ export interface __Name__ModuleProps {
   defaultOpen?: boolean;
 }
 
-/** No history: every hour dark, none marked as now. */
-const NO_HOURS: HourSample[] = Array(24).fill(null);
-
 /** A state as words on the screen's meta line: "partlycloudy" stays, "deep_sleep" becomes "deep sleep". */
 const words = (state: string) => state.replace(/[_-]+/g, " ");
 
@@ -29,43 +24,31 @@ const words = (state: string) => state.replace(/[_-]+/g, " ");
  * __label__'s own reading.
  */
 export function __Name__Module({ entity: e, footprint = "standard", history, defaultOpen = false }: __Name__ModuleProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
 
   const pict = <Pictogram param="neutral" lit={!unav}>{__CONST___PICT}</Pictogram>;
   const read: ReactNode = <Blank label={unav ? "Unavailable" : "No figure yet"} />;
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : [words(e.state)];
+  const glyph = <Glyph unavailable={unav}><Icon__Name__ /></Glyph>;
   const today = (
-    <Today label="__Label__ by hour today." tone="neutral" samples={__samples__} currentHour={history?.currentHour ?? -1} />
+    <Today
+      label="__Label__ by hour today."
+      tone="neutral"
+      __samplesProp__
+      currentHour={history?.currentHour}
+    />
   );
 
   return (
-    <>
-      <Module kind="fd-__code__" name={e.name}__areaProp__ footprint={footprint} state={e.state} onOpen={() => setOpen(true)}>
-        {footprint === "compact" ? (
-          <>
-            <Glyph unavailable={unav}><Icon__Name__ /></Glyph>
-            <Screen pict={pict}>{read}</Screen>
-          </>
-        ) : (
-          <>
-            <Screen pict={pict} meta={meta}>{read}</Screen>
-            <div className="fd-__code__-row">
-              <Glyph unavailable={unav}><Icon__Name__ /></Glyph>
-              {today}
-            </div>
-          </>
-        )}
-      </Module>
-      <Panel open={open} onClose={() => setOpen(false)} name={e.name}__areaProp__>
-        <div className="fd-__code__-panel" data-state={e.state}>
-          <Screen pict={pict} meta={meta}>{read}</Screen>
-          {today}
-          <p className="fd-info">
-            <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ""}</span>
-          </p>
-        </div>
-      </Panel>
-    </>
+    <ModuleFrame kind="fd-__code__" name={e.name}__areaProp__ footprint={footprint} state={e.state} details={details} pict={pict} read={read} meta={meta} lead={glyph} row={<div className="fd-__code__-row">{glyph}{today}</div>}>
+      <div className="fd-__code__-panel" data-state={e.state}>
+        <Screen pict={pict} meta={meta}>{read}</Screen>
+        {today}
+        <p className="fd-info">
+          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ""}</span>
+        </p>
+      </div>
+    </ModuleFrame>
   );
 }

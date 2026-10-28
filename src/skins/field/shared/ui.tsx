@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { usePress } from "../../../primitives/press";
 import { useRangeSlider, useSlider } from "../../../primitives/slider";
@@ -295,17 +295,21 @@ export interface TodayProps {
   summary?: string;
   /** The meter's spoken description. */
   label: string;
-  samples: HourSample[];
-  /** The hour now, marked under its column; -1 for none. */
-  currentHour: number;
+  /** One per hour; omit and every hour is dark. */
+  samples?: HourSample[];
+  /** The hour now, marked under its column; omit or -1 for none. */
+  currentHour?: number;
   tone?: Tone;
 }
+
+/** No history: every hour dark. */
+const NO_HOURS: HourSample[] = Array(24).fill(null);
 
 /**
  * Today: a printed legend, with its summary at the end, over the hour meter. In a panel, a block; in a module it
  * takes a fader's place and height, its legend over a shorter strip.
  */
-export function Today({ legend = "Today", summary, label, samples, currentHour, tone }: TodayProps) {
+export function Today({ legend = "Today", summary, label, samples = NO_HOURS, currentHour = -1, tone }: TodayProps) {
   return (
     <div className="fd-block fd-today">
       <Legend value={summary}>{legend}</Legend>
@@ -342,5 +346,59 @@ export function Panel({ open, onClose, name, area, children }: { open: boolean; 
         </div>
       )}
     </dialog>
+  );
+}
+
+/** Whether a module's detail panel is open, with what opens it (its name, a key's hold) and closes it. */
+export interface Details {
+  open: boolean;
+  openDetails: () => void;
+  closeDetails: () => void;
+}
+
+/** A module's detail panel state, open on first render with `defaultOpen` (stories). */
+export function useDetails(defaultOpen = false): Details {
+  const [open, setOpen] = useState(defaultOpen);
+  return { open, openDetails: () => setOpen(true), closeDetails: () => setOpen(false) };
+}
+
+export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children"> {
+  /** From `useDetails`: the name opens the panel. */
+  details: Details;
+  /** The screen's pictogram and figure, in both footprints. */
+  pict: ReactNode;
+  read: ReactNode;
+  /** The screen's meta lines, in a standard module only. */
+  meta?: [ReactNode, ReactNode?];
+  /** First in a compact row: the key, or a reading's glyph. */
+  lead: ReactNode;
+  /** Under the screen in a standard module: the key and its fader, or a reading's glyph and today. */
+  row: ReactNode;
+  /** The detail panel's content. */
+  children: ReactNode;
+}
+
+/**
+ * Every field card's frame: the module in its footprint, a compact row's lead and screen or a standard module's screen
+ * and row, and the detail panel its name opens. A card brings what goes in it.
+ */
+export function ModuleFrame({ details, pict, read, meta, lead, row, children, ...module }: ModuleFrameProps) {
+  return (
+    <>
+      <Module {...module} onOpen={details.openDetails}>
+        {module.footprint === "compact" ? (
+          <>
+            {lead}
+            <Screen pict={pict}>{read}</Screen>
+          </>
+        ) : (
+          <>
+            <Screen pict={pict} meta={meta}>{read}</Screen>
+            {row}
+          </>
+        )}
+      </Module>
+      <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area}>{children}</Panel>
+    </>
   );
 }

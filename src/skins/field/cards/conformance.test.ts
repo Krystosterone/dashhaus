@@ -30,7 +30,7 @@ const cards = cardFolders(SKIN)
     const moduleFile = `${dir}/${Name}Module.tsx`;
     const source = exists(moduleFile) ? read(moduleFile) : "";
     const words = name.replace(/([A-Z])/g, " $1").toLowerCase();
-    return { name, Name, dir, moduleFile, source, code: source.match(/<Module\s+kind="fd-([a-z]{2})"/)?.[1], words };
+    return { name, Name, dir, moduleFile, source, code: source.match(/<ModuleFrame\s+kind="fd-([a-z]{2})"/)?.[1], words };
   });
 
 describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source, code, words }) => {
@@ -39,9 +39,8 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source,
     expect(missing, `${STEP}, step 2`).toEqual([]);
   });
 
-  it("is drawn on the shared module system, with its details in a panel", () => {
-    expect(code, `${moduleFile}: draw it in <Module kind="fd-<code>" …>`).toBeDefined();
-    expect(source, `${moduleFile}: details open in <Panel>`).toMatch(/<Panel\b/);
+  it("is drawn in the shared frame, with its details in its panel", () => {
+    expect(code, `${moduleFile}: draw it in <ModuleFrame kind="fd-<code>" …>, which opens its details in a panel`).toBeDefined();
     expect(source, `${moduleFile}: presentational files never import src/ha/`).not.toMatch(/from "(\.\.\/)+ha\//);
   });
 

@@ -39,7 +39,7 @@ export default tseslint.config(
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
-    // Field's templates fill some uses from what the domain has (`__samples__`, `__DEMO__`), so a value can look
+    // Field's templates fill some uses from what the domain has (`__DEMO__` for a story's seed), so a value can look
     // unused until the generator writes the card. It writes it into src/, where it is linted in full.
     files: ["scripts/new-card/templates/field/**"],
     rules: { "@typescript-eslint/no-unused-vars": "off" },

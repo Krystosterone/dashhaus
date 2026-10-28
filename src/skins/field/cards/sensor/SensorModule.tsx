@@ -1,9 +1,8 @@
-import { useState } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "../../../../domains/sensor/types";
 import type { HourSample } from "../../../../domains/history";
 import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "../../../../domains/sensor/readings";
-import { Blank, Digits, Glyph, Module, Panel, Pictogram, Screen, Today, Warn } from "../../shared/ui";
+import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconThermo, THERMO } from "./icons";
 import "./SensorModule.css";
@@ -16,9 +15,6 @@ export interface SensorModuleProps {
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
 }
-
-/** No history: every hour dark, none marked as now. */
-const NO_HOURS: HourSample[] = Array(24).fill(null);
 
 /** A fixed-place temperature: the leading place is an unlit segment ("06.2"), heard as the real value. */
 function Temperature({ value, unit }: { value: number; unit: SensorEntity["unit"] }) {
@@ -36,7 +32,7 @@ const thermoLevel = (celsius: number) => 0.4 + 0.6 * Math.min(1, Math.max(0, (ce
  * second channel, today's temperature and humidity, the battery and when it last reported.
  */
 export function SensorModule({ entity: e, footprint = "standard", history, defaultOpen = false }: SensorModuleProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
   const t = unav ? undefined : e.temperature;
   const h = unav ? undefined : e.humidity;
@@ -71,34 +67,30 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
   const range = day && day.min != null && day.max != null ? { short: `${fmt(day.min)}–${fmt(day.max)}`, long: `Low ${fmt(day.min)} · High ${fmt(day.max)}` } : undefined;
   const what = humidityOnly ? "Humidity" : "Temperature";
 
+  const glyph = <Glyph unavailable={unav}><IconThermo /></Glyph>;
+
   return (
-    <>
-      <Module kind="fd-sw" name={e.name} area={e.area} footprint={footprint} state={e.state} onOpen={() => setOpen(true)} warning={battery}>
-        {footprint === "compact" ? (
-          <>
-            <Glyph unavailable={unav}><IconThermo /></Glyph>
-            <Screen pict={pict}>{read}</Screen>
-          </>
-        ) : (
-          <>
-            <Screen pict={pict} meta={meta}>{read}</Screen>
-            <div className="fd-sw-row">
-              <Glyph unavailable={unav}><IconThermo /></Glyph>
-              <Today
-                summary={range?.short}
-                label={`${what} by hour today.`}
-                tone="neutral"
-                samples={day?.samples ?? NO_HOURS}
-                currentHour={history?.currentHour ?? -1}
-              />
-            </div>
-          </>
-        )}
-      </Module>
-      <Panel open={open} onClose={() => setOpen(false)} name={e.name} area={e.area}>
-        <SensorDetails e={e} read={read} pict={pict} meta={meta} history={history} day={day?.samples} range={range?.long} what={what} battery={battery} context={[comfort, trend && TREND_WORD[trend]].filter(Boolean).join(" · ")} />
-      </Panel>
-    </>
+    <ModuleFrame
+      kind="fd-sw"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      warning={battery}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={glyph}
+      row={(
+        <div className="fd-sw-row">
+          {glyph}
+          <Today summary={range?.short} label={`${what} by hour today.`} tone="neutral" samples={day?.samples} currentHour={history?.currentHour} />
+        </div>
+      )}
+    >
+      <SensorDetails e={e} read={read} pict={pict} meta={meta} history={history} day={day?.samples} range={range?.long} what={what} battery={battery} context={[comfort, trend && TREND_WORD[trend]].filter(Boolean).join(" · ")} />
+    </ModuleFrame>
   );
 }
 
