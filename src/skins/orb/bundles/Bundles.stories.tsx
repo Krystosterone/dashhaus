@@ -13,9 +13,9 @@ const meta = {
     docs: {
       description: {
         component:
-          "Several widgets sharing one modular card. Joined forces equal compact members; lead bundles force one standard lead and compact rows; " +
+          "Several cards sharing one outer card. Joined forces equal compact members; lead bundles force one standard lead and compact rows; " +
           "titled bundles put compact rows, the parts of one thing, under a 60px lid that names it and its room once. " +
-          "Members can be any widget type and retain their own tap, hold and detail-sheet behavior.",
+          "Members can be any card type and retain their own tap, hold and detail-sheet behavior.",
       },
     },
   },

@@ -2,7 +2,7 @@ import type { Reading } from "../history";
 
 /**
  * A temperature and humidity sensor. In Home Assistant these are usually two sensor entities
- * (device_class temperature and humidity) on one device; the widget shows them together, read-only.
+ * (device_class temperature and humidity) on one device; the card shows them together, read-only.
  */
 export interface SensorEntity {
   entityId: string;

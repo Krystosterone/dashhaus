@@ -1,13 +1,13 @@
 ---
 name: row-identity
-description: Give dense same-shaped compact controls their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a widget's compact footprint, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies research/03-dense-list-identity.md.
+description: Give dense same-shaped compact controls their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a card's compact footprint, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies research/03-dense-list-identity.md.
 ---
 
 # Row Identity
 
 A column of compact cards all in one shape is unreadable when the shell carries meaning that each row's content should. This skill is the contract for per-row identity.
 
-Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every widget follows.
+Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every card follows.
 
 ## The Contract
 
@@ -37,5 +37,5 @@ Group or order rows by domain (Climate, Covers, Lights) without changing row hei
 ## Verify
 
 - `npm run typecheck`.
-- Storybook: affected widget at the compact footprint at every width, including under 320 px; Orb → Foundations → Compact rows, control on and off.
+- Storybook: affected card at the compact footprint at every width, including under 320 px; Orb → Foundations → Compact rows, control on and off.
 - Visual QA gate: on the Controls story at real compact widths, every row must show a distinct icon, concise primary/secondary text, and a visible state/action cue with colour ignored. Record which rows fail before any implementation pass.

@@ -1,9 +1,9 @@
 import type { HourSample } from "../history";
 
-/** Home Assistant cover device classes the widget draws. */
+/** Home Assistant cover device classes the card draws. */
 export type CoverClass = "curtain" | "blind" | "shade" | "shutter" | "awning" | "window" | "garage" | "door" | "gate";
 
-/** Mirrors the parts of a Home Assistant `cover.*` entity the widget needs. Position: 0 closed, 100 open. */
+/** Mirrors the parts of a Home Assistant `cover.*` entity the card needs. Position: 0 closed, 100 open. */
 export interface CoverEntity {
   entityId: string;
   name: string;

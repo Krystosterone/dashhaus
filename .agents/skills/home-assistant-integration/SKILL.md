@@ -1,11 +1,11 @@
 ---
 name: home-assistant-integration
-description: Keeps Home Assistant transport, raw entity state, mappers, actions, and React containers behind the dashboard's normalized widget props. Use when adding or reviewing live Home Assistant integration, entity adapters, service actions, connection/store code, or dashboard containers. Don't use for presentational widget styling, Storybook-only demo fixtures, or generic React components.
+description: Keeps Home Assistant transport, raw entity state, mappers, actions, and React containers behind the dashboard's normalized card props. Use when adding or reviewing live Home Assistant integration, entity adapters, service actions, connection/store code, or dashboard containers. Don't use for presentational card styling, Storybook-only demo fixtures, or generic React components.
 ---
 
 # Home Assistant integration
 
-Preserve the repository's component boundary while adding live Home Assistant data. The integration owns connection lifecycle, raw snapshots, capability checks, service payloads, and action errors; widgets receive the existing normalized entities and callbacks.
+Preserve the repository's component boundary while adding live Home Assistant data. The integration owns connection lifecycle, raw snapshots, capability checks, service payloads, and action errors; cards receive the existing normalized entities and callbacks.
 
 Read `docs/home-assistant.md` before changing the boundary. The current contract lives there; `research/05-ha-integration-map.md`, `research/06-ha-entity-contracts.md`, and `research/07-react-ha-architecture.md` are the historical evidence behind it.
 
@@ -13,13 +13,13 @@ Read `docs/home-assistant.md` before changing the boundary. The current contract
 
 ### Boundary
 
-- Put provider-facing code under `src/ha/`. Keep every `src/skins/<skin>/widgets/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees may import `src/ha/`. Shared `src/ha/` never imports a skin except the bundle registration in `src/ha/lovelace/entry.ts`. Mappers import normalized models from `src/domains/`, never a skin.
+- Put provider-facing code under `src/ha/`. Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees may import `src/ha/`. Shared `src/ha/` never imports a skin except the bundle registration in `src/ha/lovelace/entry.ts`. Mappers import normalized models from `src/domains/`, never a skin.
 - Preserve raw entity snapshots keyed by `entity_id`, including the raw state string, attributes, and timestamps.
 - Keep `unknown`, `unavailable`, missing entities, and capability absence explicit. Suppress stale measured readings in the normalized model while an entity is unavailable; never default them to a safe-looking active or closed state.
 
 ### Mappers
 
-Make mappers pure. Convert one raw domain object plus optional metadata into the existing widget model, and test normal, unavailable, unknown, missing, and capability-limited inputs beside the mapper.
+Make mappers pure. Convert one raw domain object plus optional metadata into the existing card model, and test normal, unavailable, unknown, missing, and capability-limited inputs beside the mapper.
 
 - **Light:** reject non-finite or out-of-wire brightness rather than clamping invalid measurements into a plausible percentage; use an explicit allowlist of brightness-capable color modes; omit Kelvin readings outside the entity's own consistent min/max bounds.
 - **Climate:** omit target setpoints outside the reported control bounds.
@@ -27,8 +27,8 @@ Make mappers pure. Convert one raw domain object plus optional metadata into the
 - **Read-only sensor slice:** compose a primary temperature/humidity entity with explicit companion snapshots; parse the raw numeric state rather than stale attributes; treat an explicit device class as authoritative over a contradictory unit; allow unit fallback only when the class is absent; omit out-of-range percentages.
 - **Weather/home slice:** map `weather.*` conditions/readings plus explicit AQI and `sun.sun` companions; require an explicit AQI scale assertion before applying the normalized US-AQI bands; keep unknown daylight neutral; suppress measured values while the weather state is unknown or unavailable; parse `weather.get_forecasts` response records separately from current state.
 - **Forecasts:** require valid forecast timestamps even when fallback hour/day fields are supplied; reject contradictory explicit hourly fields; use local-calendar rollover arithmetic across DST.
-- **Cover:** gate position, stop, and tilt on `supported_features` bits; map `unknown` to unavailable rather than closed; never send the widget's presentation fallback position back as measured state.
-- **Toggle:** retain the domain (`input_boolean` or `switch`) beside the entity because the widget model cannot carry it; the timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
+- **Cover:** gate position, stop, and tilt on `supported_features` bits; map `unknown` to unavailable rather than closed; never send the card's presentation fallback position back as measured state.
+- **Toggle:** retain the domain (`input_boolean` or `switch`) beside the entity because the card model cannot carry it; the timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
 - **Alarm:** default `codeArmRequired` to true; map unrecognized states including `unknown` to unavailable; take delay and open-sensor metadata from host options rather than inventing them.
 - **History:** read `history/history_during_period` with `entity_ids` and `significant_changes_only: false`; the reply is `{ [entity_id]: [{ s, a, lu, lc? }] }` with epoch-second times. Parse it defensively; drop rows without a time; carry the latest pre-midnight record into hour 0; extend the day with live changes after the read and read again at local midnight; keep the hour axis local-calendar so DST days still yield 24 samples; mark pre-first-record hours `unavailable` for state domains and `null` for sensor/weather readings; the current hour's sample is the current state's value; minute totals count full past hours plus the current minute; climate derives `activity` from the day's dominant `hvac_action`; sensor composes temperature plus an optional humidity entity; weather reads the `temperature` attribute, never the condition state.
 - **Registry:** resolve an entity's area through `config/entity_registry/list_for_display`, `config/device_registry/list` and `config/area_registry/list`: the entity's own area, else its device's; read once per generation; return undefined when the transport lacks generic commands; an explicit connected-surface prop always wins over the lookup.
@@ -64,11 +64,11 @@ The weather/home container owns hourly/daily `weather.get_forecasts` request/res
 
 ### Adding a domain or skin surface
 
-When a domain joins the shared connected boundary, start from `npm run new-widget -- <name> --code <xx> --domain <domain>`. The current generator writes the shared mapper, actions, fixture and demo transport plus Orb's initial connected tile, tests, story and registrations. Then:
+When a domain joins the shared connected boundary, start from `npm run new-card -- <name> --code <xx> --domain <domain>`. The current generator writes the shared mapper, actions, fixture and demo transport plus Orb's initial connected tile, tests, story and registrations. Then:
 
 - Add its canonical raw fixture to `src/ha/fixtures/` and register it in `src/ha/mappers/fixtures.test.ts`, which runs every fixture entity through the real mapper. Include representative states plus `unknown`/`unavailable`; toggle fixtures span both `input_boolean` and `switch` ID prefixes. Forecast and history response fixtures stay in their parser tests because they are request/response data rather than entity snapshots.
 - Ship a Storybook demo transport that exercises the real store, mapper, action and history path, and a story for that generated Orb tile. The demo transport answers `history/history_during_period` in the compressed wire shape and the three registry lists, so the story shows the Today strip and a registry-resolved area.
-- For a domain that already has this shared slice, follow `AGENTS.md` → Adding an existing domain to another skin. Reuse the hook and demo transport; add only the skin's presentational widget, thin connected surface and Lovelace config/auto/renderer entries. Export both components and their prop types; load token CSS once at the skin's entry, never from an individual widget or connected surface. The skin's Lovelace renderer reuses its connected surface instead of repeating hook-to-view wiring.
+- For a domain that already has this shared slice, follow `AGENTS.md` → Adding an existing domain to another skin. Reuse the hook and demo transport; add only the skin's presentational card, thin connected surface and Lovelace config/auto/renderer entries. Export both components and their prop types; load token CSS once at the skin's entry, never from an individual card or connected surface. The skin's Lovelace renderer reuses its connected surface instead of repeating hook-to-view wiring.
 
 ## Verification
 
@@ -82,9 +82,9 @@ Report the changed integration paths, the exact test and check results, and the 
 
 ## Recovery
 
-- If a mapper needs a raw field that the widget model cannot represent, preserve it in the raw snapshot or an explicit adapter-side type. If the UI must distinguish missing data, evolve the normalized model deliberately with presentation/tests; never fabricate a measured value just to satisfy an old required field.
+- If a mapper needs a raw field that the card model cannot represent, preserve it in the raw snapshot or an explicit adapter-side type. If the UI must distinguish missing data, evolve the normalized model deliberately with presentation/tests; never fabricate a measured value just to satisfy an old required field.
 - If a normalized control requires bounds or a step that Home Assistant defines a documented metadata default for, keep that distinction explicit: metadata defaults may keep a control usable, but never default current/target readings, availability, or state.
 - When the connection changes, advance the generation first. Ignore entity callbacks from an abandoned subscription, and drop forecast, history and registry results from an older generation.
 - Treat transport and Home Assistant payloads as untrusted input: malformed entity shapes fail closed, and public lifecycle/action errors must not retain raw provider error objects or their messages.
-- If the boundary lint rule fails, inspect the import direction and fix the source boundary rather than weakening the rule; keep raw Home Assistant coupling out of presentational widgets.
-- Do not add authentication tokens to widget props or commit real credentials. Authentication belongs to the host-supplied transport or the official Home Assistant client adapter.
+- If the boundary lint rule fails, inspect the import direction and fix the source boundary rather than weakening the rule; keep raw Home Assistant coupling out of presentational cards.
+- Do not add authentication tokens to card props or commit real credentials. Authentication belongs to the host-supplied transport or the official Home Assistant client adapter.

@@ -40,7 +40,7 @@ describe("alarmFromHass", () => {
     expect(alarmFromHass(undefined, raw.entity_id).state).toBe("unavailable");
   });
 
-  it("derives modes in the widget's order from the supported_features bitmask", () => {
+  it("derives modes in the card's order from the supported_features bitmask", () => {
     const entity = alarmFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: 16 | 32 | 1 } }, raw.entity_id);
     expect(entity.modes).toEqual(["home", "vacation", "custom_bypass"]);
   });

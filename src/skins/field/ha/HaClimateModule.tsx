@@ -1,7 +1,7 @@
 import { useHaClimate } from "../../../ha/hooks/climate";
 import type { HaClimateOptions } from "../../../ha/hooks/climate";
-import { ClimateModule } from "../widgets/climate/ClimateModule";
-import type { ClimateModuleProps } from "../widgets/climate/ClimateModule";
+import { ClimateModule } from "../cards/climate/ClimateModule";
+import type { ClimateModuleProps } from "../cards/climate/ClimateModule";
 
 export interface HaClimateModuleProps extends HaClimateOptions, Pick<ClimateModuleProps, "footprint" | "defaultOpen"> {
   entityId: string;

@@ -29,7 +29,7 @@ function Bar({ destinations, start = 0, width = 390 }: { destinations: Destinati
 }
 
 const meta = {
-  title: "Orb/Nav bar",
+  title: "Orb/Dashboards/Nav bar",
   component: Bar,
   parameters: {
     layout: "fullscreen",

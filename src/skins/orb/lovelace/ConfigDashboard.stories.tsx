@@ -10,7 +10,7 @@ import { createDemoHouseTransport } from "../../../ha/demo/house";
 import type { HaTransport } from "../../../ha/types";
 
 const meta = {
-  title: "Orb/Home Assistant/Config dashboard",
+  title: "Orb/Home Assistant/Dashboard",
   parameters: {
     layout: "fullscreen",
     docs: { description: { component: "The `custom:home-dashboard` Lovelace card: a whole page from its YAML (docs/deploy.md), on the demo transports. The header time is fixed at 11:54." } },

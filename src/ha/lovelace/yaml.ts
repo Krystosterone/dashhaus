@@ -1,5 +1,5 @@
 /*
- * Reading a dashboard card's YAML, for every skin's card: each check records its problem with the path to it, so
+ * Reading a Lovelace card's YAML, for every skin's Lovelace card: each check records its problem with the path to it, so
  * every mistake shows at once in the card editor, and a near-miss key or word gets a "did you mean".
  */
 
@@ -43,7 +43,7 @@ export function suggest(word: string, allowed: readonly string[]): string | unde
 
 export const oneOf = (allowed: readonly string[]) => allowed.map((a) => `"${a}"`).join(", ");
 
-/** Checks values, collecting every problem. A skin's card extends it with its own sections and widgets. */
+/** Checks values, collecting every problem. A skin's Lovelace card extends it with its own sections and cards. */
 export class Reader {
   readonly problems: string[] = [];
 

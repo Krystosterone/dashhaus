@@ -36,7 +36,7 @@ function bounds(min: number | undefined, max: number | undefined) {
 }
 
 /**
- * Map one raw Home Assistant `humidifier.*` state to the widget model. Only "on" and "off" are states;
+ * Map one raw Home Assistant `humidifier.*` state to the card model. Only "on" and "off" are states;
  * `unknown`, `unavailable` and a missing entity are unavailable, never a safe-looking off. Readings are
  * dropped while unavailable, and a target outside the reported bounds is left out rather than clamped.
  */

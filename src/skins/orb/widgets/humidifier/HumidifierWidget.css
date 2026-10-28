@@ -1,3 +1,0 @@
-/* Humidifier widget. Everything it draws (orb, pill, setpoint stepper, mode chips, today strip, sheet)
-   comes from src/shared/card.css; the readout is the room's humidity, a number like any other.
-   Classes here start with hu-; colours only from tokens.css. */

@@ -1,7 +1,7 @@
 import { useHaLight } from "../../../ha/hooks/light";
 import type { HaLightOptions } from "../../../ha/hooks/light";
-import { LightModule } from "../widgets/light/LightModule";
-import type { LightModuleProps } from "../widgets/light/LightModule";
+import { LightModule } from "../cards/light/LightModule";
+import type { LightModuleProps } from "../cards/light/LightModule";
 
 export interface HaLightModuleProps extends HaLightOptions, Pick<LightModuleProps, "footprint" | "defaultOpen"> {
   entityId: string;

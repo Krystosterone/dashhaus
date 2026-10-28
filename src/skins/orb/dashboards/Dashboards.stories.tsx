@@ -1,19 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { DashboardPage, Section, Columns, WidgetGrid, Cell } from "./layout";
+import { DashboardPage, Section, Columns, CardGrid, Cell } from "./layout";
 import { NavBar } from "./NavBar";
 import { useScrollSpy } from "../../../hooks/useScrollSpy";
-import { DemoLightTile as Light } from "../widgets/light/demo/DemoLightTile";
-import { DemoClimateTile as Climate } from "../widgets/climate/demo/DemoClimateTile";
-import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile";
-import { DemoWeatherTile as Weather } from "../widgets/weather/demo/DemoWeatherTile";
-import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
-import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
-import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
-import { DemoOwletTile as Owlet } from "../widgets/owlet/demo/DemoOwletTile";
-import { DemoHumidifierTile as Humidifier } from "../widgets/humidifier/demo/DemoHumidifierTile";
-import { DemoSoundTile as Sound } from "../widgets/sound/demo/DemoSoundTile";
+import { DemoLightTile as Light } from "../cards/light/demo/DemoLightTile";
+import { DemoClimateTile as Climate } from "../cards/climate/demo/DemoClimateTile";
+import { DemoSensorTile as Sensor } from "../cards/sensor/demo/DemoSensorTile";
+import { DemoWeatherTile as Weather } from "../cards/weather/demo/DemoWeatherTile";
+import { DemoToggleTile as Toggle } from "../cards/toggle/demo/DemoToggleTile";
+import { DemoCoverTile as Cover } from "../cards/cover/demo/DemoCoverTile";
+import { DemoAlarmTile as Alarm } from "../cards/alarm/demo/DemoAlarmTile";
+import { DemoOwletTile as Owlet } from "../cards/owlet/demo/DemoOwletTile";
+import { DemoHumidifierTile as Humidifier } from "../cards/humidifier/demo/DemoHumidifierTile";
+import { DemoSoundTile as Sound } from "../cards/sound/demo/DemoSoundTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
 /** A device-sized frame so each dashboard is seen at its real width. The content scrolls inside. */
@@ -30,7 +30,7 @@ function Device({ label, width, height, children }: { label: string; width: numb
 const NOW = new Date(2026, 9, 17, 11, 54);
 
 const meta = {
-  title: "Orb/Dashboards",
+  title: "Orb/Dashboards/Layouts",
   parameters: {
     layout: "fullscreen",
     docs: { description: { component: "Weather, security, modes, bundles, lights, covers, climate, sensors and the baby's sock composed per device. Example data; the time is fixed at 11:54." } },
@@ -172,7 +172,7 @@ export const PhoneUngrouped: Story = {
   render: () => (
     <Device label="Phone" width={390} height={844}>
       <DashboardPage title="Mixed dashboard" subtitle="No sections or groups" now={NOW}>
-        <WidgetGrid columns={2}>
+        <CardGrid columns={2}>
           <Cell span={2}><Light light="dimmable" footprint="featured" /></Cell>
           <Bundle bundle="sleep" />
           <Bundle bundle="nursery" />
@@ -181,7 +181,7 @@ export const PhoneUngrouped: Story = {
           <Cover cover="garage" footprint="compact" />
           <Sensor sensor="living" name="Air" />
           <Weather weather="partly" />
-        </WidgetGrid>
+        </CardGrid>
       </DashboardPage>
     </Device>
   ),

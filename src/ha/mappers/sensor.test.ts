@@ -56,7 +56,7 @@ describe("sensorFromHass", () => {
     expect(sensorFromHass(temperature, temperature.entity_id).lastUpdated).toBeDefined();
   });
 
-  it("maps Fahrenheit and outdoor metadata without converting the widget reading", () => {
+  it("maps Fahrenheit and outdoor metadata without converting the card reading", () => {
     const mapped = sensorFromHass({
       ...temperature,
       state: "70",

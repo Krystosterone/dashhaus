@@ -1,6 +1,6 @@
 # Home Assistant integration
 
-The dashboard remains a React/TypeScript component library. The normalized entity models (`LightEntity`, `ClimateEntity`, …) live in `src/domains/`, free of any UI, so more than one skin can sit on them; a skin's widgets take those models and callback actions as props. Home Assistant wire data is owned by `src/ha/`, whose mappers and actions import only from `src/domains/`.
+The dashboard remains a React/TypeScript component library. The normalized entity models (`LightEntity`, `ClimateEntity`, …) live in `src/domains/`, free of any UI, so more than one skin can sit on them; a skin's cards take those models and callback actions as props. Home Assistant wire data is owned by `src/ha/`, whose mappers and actions import only from `src/domains/`.
 
 ## Data flow
 
@@ -10,7 +10,7 @@ Home Assistant auth + connection
      -> shared entity store (raw snapshots + connection status)
         -> pure domain mapper + capability gate
            -> useHa<Kind>() hook: { entity, history, actions }
-              -> any skin; in orb, the Ha*Tile container -> Tile/Widget props
+              -> any skin; in orb, the Ha*Tile container -> Tile/Card props
               (or the hook as a headless component: <HaLight entityId>{(light) => …}</HaLight>)
 ```
 
@@ -33,12 +33,12 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/mappers/sensor.ts` composes a primary temperature or humidity sensor with optional humidity and battery companions, preserving numeric readings, units, availability, outdoor metadata, and timestamps.
 - `src/skins/orb/ha/HaSensorTile.tsx` connects the shared store to the existing read-only `SensorTile`; it has no service actions.
 - `src/ha/mappers/weather.ts` maps `weather.*` conditions and numeric readings, composes explicit `sensor.*` AQI and `sun.sun` companions, and parses response-shaped hourly/daily forecast data without treating forecasts as current state.
-- `src/skins/orb/ha/HaWeatherTile.tsx` connects the shared store to the existing `WeatherTile`/`WeatherWidget`, requests hourly and daily forecasts through `weather.get_forecasts` with a response request, and leaves forecast failures observable through `onForecastError`.
+- `src/skins/orb/ha/HaWeatherTile.tsx` connects the shared store to the existing `WeatherTile`/`WeatherCard`, requests hourly and daily forecasts through `weather.get_forecasts` with a response request, and leaves forecast failures observable through `onForecastError`.
 - `src/ha/mappers/cover.ts` maps raw cover state, device class, position/tilt readings, and `supported_features` bits (set-position, stop, tilt) into the existing `CoverEntity` model; unknown is never presented as closed.
 - `src/ha/actions/cover.ts` builds `cover.open_cover`, `close_cover`, `stop_cover`, `set_cover_position`, and `set_cover_tilt_position` payloads, gated by the entity's feature flags, and never sends a presentation fallback position as measured state.
 - `src/skins/orb/ha/HaCoverTile.tsx` connects the store to the existing `CoverTile`.
 - `src/ha/mappers/toggle.ts` maps raw `input_boolean.*`/`switch.*` state into the existing `ToggleEntity` model; icon, colour, and description stay host metadata because Home Assistant carries none of them.
-- `src/ha/actions/toggle.ts` builds a domain-native toggle service (`input_boolean.toggle` or `switch.toggle`); the widget's timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
+- `src/ha/actions/toggle.ts` builds a domain-native toggle service (`input_boolean.toggle` or `switch.toggle`); the card's timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
 - `src/skins/orb/ha/HaToggleTile.tsx` connects the store to the existing `ToggleTile` and requires the `domain` prop because `ToggleEntity` cannot carry it.
 - `src/ha/mappers/alarm.ts` maps raw `alarm_control_panel` state, `supported_features` mode bits, code policy, delays, and trigger context into the existing `AlarmEntity` model; unknown states map to unavailable.
 - `src/ha/actions/alarm.ts` builds the arm/disarm services with an optional code, resolves false for a recognized wrong code (sanitized `translation_key`/service-validation scalar) and rejects for anything else; codes are never logged or persisted.
@@ -82,7 +82,7 @@ root.render(
 );
 ```
 
-The same store can feed a climate tile without changing the widget contract:
+The same store can feed a climate tile without changing the card contract:
 
 ```tsx
 <HaClimateTile entityId="climate.living_room" footprint="standard" />
@@ -121,18 +121,18 @@ To surface a rejected action, read `useHaSnapshot()` or pass `onActionError` to 
 - Preserve raw `state`, `attributes`, `last_changed`, and `last_updated` before mapping.
 - Keep `unknown`, `unavailable`, and a missing entity distinct from `off`.
 - Derive light capabilities from `supported_color_modes`; do not infer support from a stale `brightness` attribute alone.
-- Convert Home Assistant brightness (`0..255`) to the widget's percent contract (`1..100`). If a capable light has not reported brightness, reports a non-finite/out-of-range value, or its raw state is `unknown`/`unavailable`, keep normalized brightness and Kelvin readings absent while retaining capability metadata; render the safe on/off fallback and never send or display a fabricated measured value.
+- Convert Home Assistant brightness (`0..255`) to the card's percent contract (`1..100`). If a capable light has not reported brightness, reports a non-finite/out-of-range value, or its raw state is `unknown`/`unavailable`, keep normalized brightness and Kelvin readings absent while retaining capability metadata; render the safe on/off fallback and never send or display a fabricated measured value.
 - Treat `last_changed` as a state-transition timestamp, not as proof of last reachability. `lastSeen` is populated only from explicit adapter metadata.
 - Accept timestamps only when their ISO date/time components are valid; reject nonexistent timezone-less local times during DST gaps and do not let JavaScript date normalization turn impossible values into plausible display times. Display them relative to the tile's minute clock: the time for today, weekday and time within the last week, the date before that.
 - Reject non-finite brightness/Kelvin inputs and Kelvin values outside the entity's reported range before sending a service payload.
-- Climate modes/actions, current/target temperatures, ranges, limits, units, presets, and fans are mapped only from their raw attributes. Missing current or target readings stay absent, and stale measured values are suppressed while the raw entity is unknown or unavailable; documented Home Assistant defaults are used only for control metadata needed by the normalized widget.
+- Climate modes/actions, current/target temperatures, ranges, limits, units, presets, and fans are mapped only from their raw attributes. Missing current or target readings stay absent, and stale measured values are suppressed while the raw entity is unknown or unavailable; documented Home Assistant defaults are used only for control metadata needed by the normalized card.
 - Climate range actions order `target_temp_low <= target_temp_high`, validate both values against the reported bounds, and use `climate.turn_on`/`climate.turn_off` rather than inventing a prior HVAC mode.
 - Sensor mappers parse numeric `sensor.*` states for the supported temperature, humidity, and battery device classes; when `device_class` is absent, a recognized temperature unit may provide the temperature fallback, but an explicit other class wins over a contradictory unit. Companion humidity/battery entities are optional, percentage values outside `0..100` are omitted, blank/invalid numeric states are omitted, and unknown/unavailable primary entities suppress normalized readings rather than exposing stale attributes.
 - Weather mappers accept the documented Home Assistant condition set, suppress current readings while the weather state is `unknown` or `unavailable`, reject invalid humidity/UV/wind/AQI values, and never infer `isDay` from a missing or unavailable `sun.sun` companion. Only an explicit AQI companion with `device_class: "aqi"`, a declared `aqiScale="US"`, and a `0..500` value is mapped into the repository's US-AQI model; without the scale assertion, AQI remains absent.
 - Weather forecasts are a separate `weather.get_forecasts` query product. The integration requests `hourly` and `daily` scopes with a target and response flag through `store.query`, which stays out of action ordering and `lastActionError`, reads each scope once per hour (keeping the previous hour's forecast up while the next loads), deduplicates in-flight requests by store/generation/entity/scope/hour across StrictMode effect replay, requires a valid forecast timestamp before accepting any record (even when an explicit hour/day field is present), rejects contradictory explicit hourly fields instead of letting a convenient fallback override the timestamp, uses local-calendar hours so DST does not create 23/25-hour rollover values, validates condition/temperature fields, rejects inverted daily high/low bounds, omits incomplete daily records, ignores late results across reconnects with generation checks, and reports each rejected request via `onForecastError` while retaining a successful result from the other scope; no forecast value becomes a current reading.
-- Keep domain action payload construction in `src/ha/actions/`, not in widgets or Storybook stories. Each module runs its services through `serviceRunner()` (`src/ha/actions/run.ts`), which sanitizes rejections and refuses actions on an unavailable entity; an entity whose state is `on`/`off` reads today through `onOffHistoryFromHass`.
-- Cover mappers gate position, stop, and tilt on the entity's `supported_features` bits, map `unknown` to unavailable rather than closed, and never send the widget's presentation fallback position back as measured state.
-- Toggle integration retains the domain (`input_boolean` or `switch`) beside the entity because `ToggleEntity` cannot carry it; the widget's timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
+- Keep domain action payload construction in `src/ha/actions/`, not in cards or Storybook stories. Each module runs its services through `serviceRunner()` (`src/ha/actions/run.ts`), which sanitizes rejections and refuses actions on an unavailable entity; an entity whose state is `on`/`off` reads today through `onOffHistoryFromHass`.
+- Cover mappers gate position, stop, and tilt on the entity's `supported_features` bits, map `unknown` to unavailable rather than closed, and never send the card's presentation fallback position back as measured state.
+- Toggle integration retains the domain (`input_boolean` or `switch`) beside the entity because `ToggleEntity` cannot carry it; the card's timed-on sheet feature stays a host timer hook because neither domain has a native duration service.
 - Alarm mappers default `codeArmRequired` to true, map unrecognized states including `unknown` to unavailable, and take delay/open-sensor metadata from host options rather than inventing it. Alarm actions resolve false only for a recognized wrong code (the sanitized `invalid_code` translation-key scalar); any other rejection, including a bare service-validation scalar, means the call did not go through, and codes are never logged or persisted.
 - When a compact home card hides its control (`footprint="compact" showControl={false}`), preserve the normalized details interaction: the value row remains keyboard and pointer activatable and opens the existing details sheet.
 - Keep optimistic interaction state separate from the current-state mapper. Histories and registry metadata are their own read-only slices: pure per-domain parsers over `history/history_during_period` rows plus a registry lookup, fetched through `store.callApi`, never a current reading and never action state.

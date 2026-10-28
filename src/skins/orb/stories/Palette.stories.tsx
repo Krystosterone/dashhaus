@@ -9,7 +9,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "One UI language for every widget: shape says what you can do, fill says state, a dashed outline says unavailable. " +
+          "One UI language for every card: shape says what you can do, fill says state, a dashed outline says unavailable. " +
           "Change the accent with --brand-c / --brand-h in tokens.css, or try the Accent toolbar.",
       },
     },
@@ -55,7 +55,7 @@ export const Roles: Story = {
       <Role title="Warn: text only" rule="Low battery, a door left open, poor air, strong gusts. A triggered alarm alone fills.">
         <span style={{ color: "var(--warn)", fontWeight: 600, fontSize: 15 }}>Battery 8%</span>
       </Role>
-      <Role title="Colour slot: opt-in, the orb only" rule="No widget colours its orb by default. Pass color (or a toggle's own colour) to tint the orb on standard, featured and sheet surfaces; never a fill, never in compact rows.">
+      <Role title="Colour slot: opt-in, the orb only" rule="No card colours its orb by default. Pass color (or a toggle's own colour) to tint the orb on standard, featured and sheet surfaces; never a fill, never in compact rows.">
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {Object.entries(COLORS).map(([name, c]) => (
             <div key={name} title={name} style={{ width: 34, height: 34, borderRadius: "50%", background: `oklch(var(--accent-l) ${c.c} ${c.h})` }} />

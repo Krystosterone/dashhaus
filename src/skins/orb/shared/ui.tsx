@@ -13,11 +13,11 @@ export type Vars = CSSProperties & Record<`--${string}`, string | number>;
 /* ---------- Colour ----------
    One accent hue (tokens.css --brand-c/--brand-h) means on: solid for energy, soft for on-but-not-energy.
    Neutrals for the rest.
-   A widget's own colour is the "colour slot": opt-in, painted on the orb and nowhere else. */
+   A card's own colour is the "colour slot": opt-in, painted on the orb and nowhere else. */
 
 /** A colour for the orb, as OKLCH chroma and hue (lightness comes from the theme). */
 export interface SlotColor { c: number; h: number }
-/** Named colours for the slot. Use sparingly: one per widget, and only where it means something. */
+/** Named colours for the slot. Use sparingly: one per card, and only where it means something. */
 export const COLORS = {
   yellow: { c: 0.145, h: 92 },
   apricot: { c: 0.13, h: 52 },
@@ -28,23 +28,23 @@ export const COLORS = {
   sage: { c: 0.08, h: 150 },
 } satisfies Record<ColorName, SlotColor>;
 export type { ColorName };
-/** A widget's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
+/** A card's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
 export type ColorProp = ColorName | SlotColor | "none";
 
 /** Dashboard footprint. Every step uses one 60px unit; adjacent units are separated by the shared 8px gap. */
-export type WidgetFootprint = "compact" | "standard" | "featured";
+export type CardFootprint = "compact" | "standard" | "featured";
 
 export type Role = "energy" | "state" | "reading";
 
 /** Card titles are H2 outside a titled section and H3 inside one. Detail sheets reset to H2. */
 export const CardHeadingLevelContext = createContext<2 | 3>(2);
 
-/** The props every card widget takes, whatever its entity. A widget's props extend this. */
+/** The props every card takes, whatever its entity. A card's props extend this. */
 export interface CardProps {
   /** "card" sits on the dashboard; "sheet" is the detail view with everything visible. */
   variant?: "card" | "sheet";
   /** Card footprint. Standard is 128px; compact is 60px; featured is 264px at every width. */
-  footprint?: WidgetFootprint;
+  footprint?: CardFootprint;
   /**
    * Compact only. false removes the inline control, shows the value in its place, and makes the row open
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
@@ -63,7 +63,7 @@ export const BundleLid = createContext<{ title: string; area?: string } | null>(
 const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /**
- * What a card widget derives from its variant and footprint. `code` is the widget's class prefix ("lw").
+ * What a card derives from its variant and footprint. `code` is the card's class prefix ("lw").
  * Spread `article` onto the `<article>`, give `nameId` to the `CardTitle`, and build other ids from `uid`.
  * Show `area`, not the entity's own: under a titled bundle's lid a member in the lid's room has none on its
  * card (the lid says it once, for all of them), and its sheet, seen without the lid, says whose part it is.
@@ -97,8 +97,8 @@ export function useCard(code: string, { variant = "card", footprint = "standard"
 }
 
 /**
- * The colour attributes for a widget's article: its role, its glow, and its colour slot.
- * `own` is what the widget would show by default (a lamp's colour, heat or cool); `prop` overrides it.
+ * The colour attributes for a card's article: its role, its glow, and its colour slot.
+ * `own` is what the card would show by default (a lamp's colour, heat or cool); `prop` overrides it.
  */
 export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: ColorProp) {
   const c = prop === "none" ? null : typeof prop === "string" ? COLORS[prop] : prop ?? own ?? null;
@@ -324,7 +324,7 @@ const PHONE = "(max-width: 600px)";
 const CLOSE_MS = 250;
 
 /**
- * What a sheet shows under its widget, set by whoever renders the tile. A bundle's lead uses it to list
+ * What a sheet shows under its card, set by whoever renders the tile. A bundle's lead uses it to list
  * the bundle's other members in its sheet. Sheets inside that list get none, so it never nests.
  */
 export const SheetExtra = createContext<{ title: string; content: ReactNode } | null>(null);
@@ -355,37 +355,37 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
   );
 }
 
-/* ---------- Sheet and tile for a widget ----------
-   Every card widget renders twice: as the card, and as itself in its details sheet (`variant="sheet"`).
-   These two build the wrappers so a widget only writes the card. */
+/* ---------- Sheet and tile for a card ----------
+   Every card renders twice: as the card, and as itself in its details sheet (`variant="sheet"`).
+   These two build the wrappers so a card only writes the card. */
 
-/** A widget's sheet props: everything but the card-only ones, plus whether it is open. */
+/** A card's sheet props: everything but the card-only ones, plus whether it is open. */
 export type SheetProps<P> = Omit<P, "variant" | "footprint" | "onOpenDetails" | "onClose"> & { open: boolean; onClose: () => void };
-/** A widget's tile props: the card's, with the sheet wired in. */
+/** A card's tile props: the card's, with the sheet wired in. */
 export type TileProps<P> = Omit<P, "variant" | "onOpenDetails" | "onClose"> & { defaultOpen?: boolean };
 
-/** The details sheet for a widget: the widget itself as `variant="sheet"`, in a `Sheet`. */
-export function detailsSheet<P extends CardProps & { entity: { name: string } }>(Widget: ComponentType<P>, label = (name: string) => `${name} details`) {
+/** The details sheet for a card: the card itself as `variant="sheet"`, in a `Sheet`. */
+export function detailsSheet<P extends CardProps & { entity: { name: string } }>(Card: ComponentType<P>, label = (name: string) => `${name} details`) {
   function DetailsSheet({ open, onClose, ...props }: SheetProps<P>) {
     const p = { ...props, variant: "sheet", onClose } as unknown as P;
-    return <Sheet open={open} onClose={onClose} label={label(p.entity.name)}>{createElement(Widget, p)}</Sheet>;
+    return <Sheet open={open} onClose={onClose} label={label(p.entity.name)}>{createElement(Card, p)}</Sheet>;
   }
-  DetailsSheet.displayName = `${(Widget.displayName ?? Widget.name).replace(/Widget$/, "")}Sheet`;
+  DetailsSheet.displayName = `${(Card.displayName ?? Card.name).replace(/Card$/, "")}Sheet`;
   return DetailsSheet;
 }
 
-/** A dashboard-ready tile for a widget: the card in its size container, plus its details sheet. */
-export function detailsTile<P extends CardProps>(Widget: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>) {
+/** A dashboard-ready tile for a card: the card in its size container, plus its details sheet. */
+export function detailsTile<P extends CardProps>(Card: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>) {
   function Tile({ defaultOpen = false, ...props }: TileProps<P>) {
     const [open, setOpen] = useState(defaultOpen);
     // The sheet gets the card's props too: a sheet ignores footprint.
     return (
       <>
-        <div className="hd-c">{createElement(Widget, { ...props, onOpenDetails: () => setOpen(true) } as unknown as P)}</div>
+        <div className="hd-c">{createElement(Card, { ...props, onOpenDetails: () => setOpen(true) } as unknown as P)}</div>
         {createElement(DetailsSheet, { ...props, open, onClose: () => setOpen(false) } as unknown as SheetProps<P>)}
       </>
     );
   }
-  Tile.displayName = `${(Widget.displayName ?? Widget.name).replace(/Widget$/, "")}Tile`;
+  Tile.displayName = `${(Card.displayName ?? Card.name).replace(/Card$/, "")}Tile`;
   return Tile;
 }

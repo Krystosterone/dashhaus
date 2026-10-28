@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { TitledBundle } from "./Bundle";
-import { ToggleTile } from "../widgets/toggle/ToggleTile";
-import { LightTile } from "../widgets/light/LightTile";
-import { SoundTile } from "../widgets/sound/SoundTile";
+import { ToggleTile } from "../cards/toggle/ToggleTile";
+import { LightTile } from "../cards/light/LightTile";
+import { SoundTile } from "../cards/sound/SoundTile";
 
 const noop = () => {};
 

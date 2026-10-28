@@ -1,8 +1,8 @@
 import { useHaOwlet } from "../../../ha/hooks/owlet";
 import type { HaOwletOptions } from "../../../ha/hooks/owlet";
 import type { OwletHandlers } from "../../../ha/actions/owlet";
-import { OwletTile } from "../widgets/owlet/OwletTile";
-import type { OwletTileProps } from "../widgets/owlet/OwletTile";
+import { OwletTile } from "../cards/owlet/OwletTile";
+import type { OwletTileProps } from "../cards/owlet/OwletTile";
 
 export interface HaOwletTileProps extends HaOwletOptions, Omit<OwletTileProps, "entity" | "history" | keyof OwletHandlers> {
   /** The sock's sleep state sensor, `sensor.owlet_sock_<serial>_sleep_state` (custom `owlet` integration). */

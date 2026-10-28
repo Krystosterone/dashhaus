@@ -6,7 +6,7 @@ import { HaProvider } from "../../../ha/provider";
 import { createHaStore } from "../../../ha/store";
 
 const meta = {
-  title: "Orb/Home Assistant/Weather tile",
+  title: "Orb/Home Assistant/Weather",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

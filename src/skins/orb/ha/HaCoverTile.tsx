@@ -1,8 +1,8 @@
 import { useHaCover } from "../../../ha/hooks/cover";
 import type { HaCoverOptions } from "../../../ha/hooks/cover";
 import type { CoverHandlers } from "../../../ha/actions/cover";
-import { CoverTile } from "../widgets/cover/CoverTile";
-import type { CoverTileProps } from "../widgets/cover/CoverTile";
+import { CoverTile } from "../cards/cover/CoverTile";
+import type { CoverTileProps } from "../cards/cover/CoverTile";
 
 export interface HaCoverTileProps extends HaCoverOptions, Omit<CoverTileProps, "entity" | "history" | keyof CoverHandlers> {
   entityId: string;

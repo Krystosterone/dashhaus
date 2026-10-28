@@ -88,7 +88,7 @@ function latestUpdate(entities: Array<HassEntity | undefined>): { raw: string; a
 }
 
 /**
- * Map an Owlet sock (custom `owlet` integration) to the widget model: the sleep state sensor, composed with
+ * Map an Owlet sock (custom `owlet` integration) to the card model: the sleep state sensor, composed with
  * its heart rate and oxygen companions. `unknown` (no sleep state yet), `unavailable` (charging) and a missing
  * entity are all unavailable; each reading is kept or dropped on its own.
  */

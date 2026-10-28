@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoToggleHaTransport } from "../../../ha/demo/toggle";
 
 const meta = {
-  title: "Orb/Home Assistant/Toggle tile",
+  title: "Orb/Home Assistant/Toggle",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

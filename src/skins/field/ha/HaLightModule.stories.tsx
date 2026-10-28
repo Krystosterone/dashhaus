@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoHaTransport } from "../../../ha/demo";
 
 const meta = {
-  title: "Field/Home Assistant/Light module",
+  title: "Field/Home Assistant/Light",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

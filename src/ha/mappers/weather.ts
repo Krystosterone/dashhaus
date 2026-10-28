@@ -178,7 +178,7 @@ function calendarDayNumber(date: Date) {
 }
 
 function calendarHour(date: Date, firstDate: Date) {
-  // The widget's 0..23 axis is local-calendar time; calendar arithmetic avoids DST's 23/25-hour days.
+  // The card's 0..23 axis is local-calendar time; calendar arithmetic avoids DST's 23/25-hour days.
   return Math.round(calendarDayNumber(date) - calendarDayNumber(firstDate)) * 24 + date.getHours();
 }
 
@@ -186,7 +186,7 @@ function precipitation(value: unknown) {
   return percentage(value);
 }
 
-/** Map the response returned by `weather.get_forecasts` into the widget's normalized forecast models. */
+/** Map the response returned by `weather.get_forecasts` into the card's normalized forecast models. */
 export function forecastFromHass(response: unknown, entityId: string, type: "hourly"): HourlyForecast[];
 export function forecastFromHass(response: unknown, entityId: string, type: "daily"): DailyForecast[];
 export function forecastFromHass(response: unknown, entityId: string, type: ForecastType): HourlyForecast[] | DailyForecast[] {

@@ -38,7 +38,7 @@ export function parseHaTime(value: unknown): Date | undefined {
 }
 
 /**
- * Keep the display formatting at the adapter boundary; widgets receive a short local string that
+ * Keep the display formatting at the adapter boundary; cards receive a short local string that
  * says when, relative to `now`: "14:32" today, "Tue 14:32" within the last week, "3 Oct" before that.
  */
 export function formatHaTime(value: unknown, now: Date = new Date()) {

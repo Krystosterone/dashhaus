@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoSoundHaTransport } from "../../../ha/demo/sound";
 
 const meta = {
-  title: "Orb/Home Assistant/Sound tile",
+  title: "Orb/Home Assistant/Sound",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

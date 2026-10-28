@@ -1,14 +1,14 @@
 import { JoinedBundle, LeadBundle, TitledBundle } from "../Bundle";
-import { ToggleTile } from "../../widgets/toggle/ToggleTile";
-import { LightTile } from "../../widgets/light/LightTile";
-import { ClimateTile } from "../../widgets/climate/ClimateTile";
-import { SoundTile } from "../../widgets/sound/SoundTile";
-import { TOGGLE_SEEDS, useDemoToggle } from "../../widgets/toggle/demo/useDemoToggle";
-import { SEEDS as LIGHT_SEEDS, useDemoLight } from "../../widgets/light/demo/useDemoLight";
-import { CLIMATE_SEEDS, useDemoClimate } from "../../widgets/climate/demo/useDemoClimate";
-import { SOUND_SEEDS, useDemoSound } from "../../widgets/sound/demo/useDemoSound";
-import type { ToggleSeedName } from "../../widgets/toggle/demo/useDemoToggle";
-import type { WidgetFootprint } from "../../shared/ui";
+import { ToggleTile } from "../../cards/toggle/ToggleTile";
+import { LightTile } from "../../cards/light/LightTile";
+import { ClimateTile } from "../../cards/climate/ClimateTile";
+import { SoundTile } from "../../cards/sound/SoundTile";
+import { TOGGLE_SEEDS, useDemoToggle } from "../../cards/toggle/demo/useDemoToggle";
+import { SEEDS as LIGHT_SEEDS, useDemoLight } from "../../cards/light/demo/useDemoLight";
+import { CLIMATE_SEEDS, useDemoClimate } from "../../cards/climate/demo/useDemoClimate";
+import { SOUND_SEEDS, useDemoSound } from "../../cards/sound/demo/useDemoSound";
+import type { ToggleSeedName } from "../../cards/toggle/demo/useDemoToggle";
+import type { CardFootprint } from "../../shared/ui";
 
 export type BundleName = "sleep" | "nursery" | "upstairs" | "stressJoined" | "stressLead" | "stressTitled";
 
@@ -31,7 +31,7 @@ export function DemoBundle({ bundle, width, defaultOpen }: DemoBundleProps) {
 
 type Open = { defaultOpen?: boolean };
 
-type TProps = { seed: ToggleSeedName; footprint?: WidgetFootprint } & Open;
+type TProps = { seed: ToggleSeedName; footprint?: CardFootprint } & Open;
 
 const T = ({ seed, footprint, defaultOpen }: TProps) =>
   <ToggleTile {...useDemoToggle(TOGGLE_SEEDS[seed])} footprint={footprint} defaultOpen={defaultOpen} />;

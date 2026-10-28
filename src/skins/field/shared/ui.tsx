@@ -32,7 +32,7 @@ export interface ModuleProps {
 }
 
 /**
- * The module every field widget sits in: a plate with a name and area in its header. The footprint sets the
+ * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
 export function Module({ kind, name, area, footprint = "standard", state, onOpen, children }: ModuleProps) {

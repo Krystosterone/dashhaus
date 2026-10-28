@@ -30,7 +30,7 @@ const byName = (states: Record<string, AutoState>) => (a: string, b: string) => 
 };
 
 /**
- * An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet widget. This file may only
+ * An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet card. This file may only
  * `import type`, so the pattern is repeated; auto.test.ts fails when the two drift apart.
  */
 const OWLET = /^sensor\.\w+_sleep_state$/;

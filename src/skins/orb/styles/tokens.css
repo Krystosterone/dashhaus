@@ -3,7 +3,7 @@
    Palette: neutrals everywhere; ONE accent hue, solid, means on (lit, running, armed, a mode, chosen);
    a dashed outline means unavailable; warn as text; inverse (--inv-*) for the one urgent action, never a
    state. Surfaces say what a control does: --btn is raised (tap it), --groove is recessed (slide or set
-   along it). A widget's own colour is opt-in and only ever goes in its orb. */
+   along it). A card's own colour is opt-in and only ever goes in its orb. */
 :root {
   /* The accent. Swap these two numbers (chroma, hue) to re-colour active state;
      lightness comes from the theme. Default: Crextio yellow. */

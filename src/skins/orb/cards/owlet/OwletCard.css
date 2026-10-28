@@ -1,0 +1,92 @@
+/* Owlet sock card. Shell, header, bare icon, readout, metrics, today strip and sheet come from src/shared/card.css.
+   Classes here start with ow-; colours only from tokens.css. */
+
+/* The two vitals are balanced metric columns. At useful widths they share the title's text axis, while the
+   smallest standard width keeps the whole slot. Labels use the same grammar; units stay subordinate. */
+.ow-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+.ow-metric {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "cue label" "value value";
+  align-content: center; column-gap: 4px; row-gap: 2px;
+}
+.ow-metric--oxygen { grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "value"; }
+.ow-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ow-value {
+  grid-area: value; min-width: 0; font-size: clamp(26px, 6.8cqi, 30px); font-weight: var(--type-readout-weight);
+  letter-spacing: -0.03em; line-height: 1; color: var(--ink);
+}
+.ow-value small { margin-left: 3px; color: var(--ink-2); font-size: 12.5px; font-weight: 600; letter-spacing: 0; }
+.ow-compact-unit { display: none; }
+
+@container hd (min-width: 260px) {
+  .ow:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
+}
+@container hd (max-width: 259px) {
+  .ow:not(.hd--compact):not(.hd--sheet) .ow-bar { column-gap: 10px; }
+  .ow:not(.hd--compact):not(.hd--sheet) .ow-value { font-size: 23px; }
+  .ow:not(.hd--compact):not(.hd--sheet) .ow-value small { margin-left: 1px; font-size: 11px; }
+  .ow[data-stale]:not(.hd--compact):not(.hd--sheet) .hd-area { font-size: 12px; }
+  .ow[data-stale]:not(.hd--compact):not(.hd--sheet) .hd-alert-cue { width: 12px; height: 12px; margin-inline-end: 3px; }
+}
+
+/* Compact rows retain the concise inline figures and put the liveness cue beside the heart rate. */
+.hd--compact .ow-metric { display: flex; align-items: baseline; column-gap: 0; }
+.hd--compact .ow-value { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
+.hd--compact .ow-value small { margin-left: 2px; font-size: 12.5px; }
+.hd--compact .ow-compact-unit { display: inline; }
+.hd--compact .ow-heart { margin-right: 3px; }
+.hd--sheet .ow-value { font-size: 30px; }
+
+/* Live: a small outlined heart is the liveness cue. Stale: it stands still and all metric text dims. */
+.ow-heart { grid-area: cue; display: inline-grid; place-items: center; width: 11px; color: var(--ink-3); }
+.ow-heart-i {
+  display: block; width: 100%; height: auto; fill: none; stroke: currentColor; stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.ow-heart[data-live] .ow-heart-i { animation: ow-beat 2.4s var(--ease-out) infinite; transform-origin: 50% 60%; }
+@keyframes ow-beat { 0%, 12%, 100% { scale: 1; } 5% { scale: 1.24; } 9% { scale: 0.96; } }
+.ow[data-stale] :is(.ow-value, .ow-value small, .hd-label, .ow-heart, .hd-val) { color: var(--ink-3); }
+/* The stale warning: the sentence where it fits, "Stopped 11:49" in compact rows and narrow cards. */
+.ow-st-s { display: none; }
+.hd--compact .ow-st-l { display: none; }
+.hd--compact .ow-st-s { display: inline; }
+@container hd (max-width: 259px) {
+  .ow-st-l { display: none; }
+  .ow-st-s { display: inline; }
+}
+/* Reduced motion: gentler, not none. The beat becomes a fade. */
+@media (prefers-reduced-motion: reduce) {
+  .ow-heart[data-live] .ow-heart-i { animation: ow-fade 2.4s var(--ease-in-out) infinite alternate; }
+  @keyframes ow-fade { to { opacity: 0.4; } }
+}
+
+/* ---------- A vitals alert: the alarm going off, the one place warn fills (as a triggered security alarm) ---------- */
+.ow-alarm {
+  position: relative; isolation: isolate;
+  display: flex; align-items: center; gap: 12px; min-width: 0; height: var(--slot-h); padding: 0 16px; border-radius: 99px;
+  background: var(--warn); color: var(--on-warn); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* As the security alarm's pill: the fill deepens under the text, so the figures never drop under 4.5:1. */
+.ow-alarm::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: color-mix(in oklab, var(--warn) 78%, var(--ink)); opacity: 0;
+  animation: ow-alarm 1.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes ow-alarm { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ow-alarm::before { animation: none; } }
+.ow-alarm-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.ow-alarm-l b { font-weight: 700; }
+.ow-alarm-v { flex: none; font-size: 14px; font-weight: 700; }
+@container hd (max-width: 259px) { .ow-alarm-c { display: none; } }
+.hd--compact .ow-alarm { padding: 0 var(--pad-in); }
+.hd--compact .ow-alarm-l, .hd--compact .ow-alarm-v { font-size: 12.5px; }
+.hd--compact .ow-alarm-c { display: none; }
+/* Beside a compact row's title the pill has a control's width: the alert's name only; the figures go to the status line. */
+.hd--compact:not([data-control="off"]) .ow-alarm-v { display: none; }
+
+/* The sheet's base station switch: the shared pill, under its heading */
+.ow-base .hd-blk-h { margin: 0; }
+
+/* The sheet's list of what is sounding now */
+.ow-alerts { display: grid; gap: 8px; }
+.ow-alerts .hd-blk-h { margin: 0; }
+.ow-alerts ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 600; }

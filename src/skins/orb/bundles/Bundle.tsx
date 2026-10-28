@@ -1,14 +1,14 @@
 import { Children, cloneElement, isValidElement, useContext, useId } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { BundleLid, CardHeadingLevelContext, SheetExtra } from "../shared/ui";
-import type { Vars, WidgetFootprint } from "../shared/ui";
+import type { Vars, CardFootprint } from "../shared/ui";
 import "./Bundle.css";
 
-type Tile = ReactElement<{ footprint?: WidgetFootprint }>;
+type Tile = ReactElement<{ footprint?: CardFootprint }>;
 const tiles = (children: ReactNode) => Children.toArray(children).filter(isValidElement) as Tile[];
 
 /**
- * Joined: equal compact members sharing one card. Members can be any widget type; the bundle owns
+ * Joined: equal compact members sharing one card. Members can be any card type; the bundle owns
  * their footprint so a horizontal bundle is 60px and a stacked bundle follows the 60px + 8px rhythm.
  */
 export function JoinedBundle({ label, children }: { label?: string; children: ReactNode }) {
@@ -23,7 +23,7 @@ export function JoinedBundle({ label, children }: { label?: string; children: Re
 }
 
 /**
- * Lead and rows: a standard widget followed by compact widgets in one card.
+ * Lead and rows: a standard card followed by compact cards in one card.
  * The bundle owns every member's footprint, so its total height stays on the shared modular grid.
  */
 export function LeadBundle({ lead, label, sheetTitle = "Also in this bundle", children }: { lead: Tile; label?: string; sheetTitle?: string; children: ReactNode }) {

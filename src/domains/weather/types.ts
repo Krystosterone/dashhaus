@@ -5,10 +5,10 @@ export type Condition =
   | "lightning" | "lightning-rainy" | "windy" | "windy-variant" | "exceptional";
 
 /**
- * The home's outdoor conditions: the parts of a Home Assistant `weather.*` entity the widget needs.
+ * The home's outdoor conditions: the parts of a Home Assistant `weather.*` entity the card needs.
  * Two values usually live in other entities and are passed in alongside: `aqi` (a sensor with
  * device_class aqi) and `isDay` (from `sun.sun`). Both are optional; missing or unavailable `isDay`
- * remains unknown so the widget does not infer a daylight presentation.
+ * remains unknown so the card does not infer a daylight presentation.
  */
 export interface WeatherEntity {
   entityId: string;

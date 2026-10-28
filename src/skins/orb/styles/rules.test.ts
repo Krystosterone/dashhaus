@@ -132,9 +132,10 @@ describe("motion: composite-only, token easing, no viewport sizing", () => {
     expect(bad).toEqual([]);
   });
 
-  it("widget CSS only uses media queries for motion or pointer capability", () => {
+  // Cards and the page around them size from their container; only the sheet (card.css, Bundle.css) asks the viewport.
+  it("card and dashboard CSS only uses media queries for motion or pointer capability", () => {
     const bad: string[] = [];
-    for (const f of cssFiles.filter((p) => p.startsWith(`${SKIN}/widgets/`))) {
+    for (const f of cssFiles.filter((p) => p.startsWith(`${SKIN}/cards/`) || p.startsWith(`${SKIN}/dashboards/`))) {
       for (const m of css(f).matchAll(/@media\s+([^{]+)\{/g)) {
         const c = m[1];
         const reduced = /prefers-reduced-motion/.test(c);
@@ -156,7 +157,7 @@ describe("touch: controls answer presses, tracks let pages scroll", () => {
   });
 
   it("each track hit layer keeps vertical scrolling (pan-y)", () => {
-    for (const f of ["widgets/light/LightWidget.css", "widgets/climate/ClimateWidget.css", "widgets/cover/CoverWidget.css"].map((f) => `${SKIN}/${f}`)) {
+    for (const f of ["cards/light/LightCard.css", "cards/climate/ClimateCard.css", "cards/cover/CoverCard.css"].map((f) => `${SKIN}/${f}`)) {
       expect(css(f), f).toContain("touch-action: pan-y");
     }
   });

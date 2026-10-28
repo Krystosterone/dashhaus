@@ -7,7 +7,7 @@ import { createDemoOwletHaTransport, owletDemoEntities } from "../../../ha/demo/
 import type { HassEntities } from "../../../ha/types";
 
 const meta = {
-  title: "Orb/Home Assistant/Owlet tile",
+  title: "Orb/Home Assistant/Owlet",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

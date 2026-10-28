@@ -22,7 +22,7 @@ Edit the layout in Home Assistant: open the dashboard → ⋮ → **Edit dashboa
 ```text
 Home Dashboard config has 2 problems:
 • sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
-• sections[2].cards[3]: media_player.tv: media_player.* entities have no widget yet
+• sections[2].cards[3]: media_player.tv: media_player.* entities have no card yet
 ```
 
 To start a new dashboard somewhere else, add the **Home Dashboard** card from the card picker. It pre-fills the generated layout for your house, ready to edit. Put it in a **Panel** view so it gets the full width.
@@ -69,9 +69,9 @@ sections:
         name: Nova
 ```
 
-**Storybook → Orb / Home Assistant / Config dashboard** shows this exact config on the demo data.
+**Storybook → Orb / Home Assistant / Dashboard** shows this exact config on the demo data.
 
-The entity's domain picks the widget. One card shows one entity, though some widgets also read the device's other entities:
+The entity's domain picks the card. One card shows one entity, though some cards also read the device's other entities:
 
 - `light`: light
 - `climate`: climate
@@ -82,26 +82,26 @@ The entity's domain picks the widget. One card shows one entity, though some wid
 - `input_boolean`, `switch`: toggle
 - `alarm_control_panel`: alarm
 - `humidifier`: humidifier (a dehumidifier too)
-- `switch` with `widget: sound`: sound, a sound machine's sound with its volume `number.*` found beside it
+- `switch` with `card: sound`: sound, a sound machine's sound with its volume `number.*` found beside it
 
-When a domain has more than one widget, `widget:` picks one: `widget: owlet` for a sock whose sensor is named differently, or `widget: sensor` to override the default.
+When a domain has more than one card, `card:` picks one: `card: owlet` for a sock whose sensor is named differently, or `card: sensor` to override the default.
 
 | Where | Key | Meaning |
 | --- | --- | --- |
-| card | `title`, `subtitle` | The page header. `title` defaults to "Home". |
-| card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`. |
-| card | `viewing` | `near` (default: a phone or tablet in the hand) or `far`, for a wall panel read from across the room: larger status lines, captions and warn cues, and heavier figures. Card heights don't change. |
-| card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
-| card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
-| card | `nav` | The bottom nav's destinations (see [Navigation](#navigation)), or `false` for none. |
-| card | `pages` | More pages in the card, each `id`, `title` and `sections` (see [Navigation](#navigation)). |
-| card | `sections` | The layout, top to bottom. Leave it out and the house is laid out automatically, kept up to date as you add devices. |
+| Lovelace card | `title`, `subtitle` | The page header. `title` defaults to "Home". |
+| Lovelace card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`. |
+| Lovelace card | `viewing` | `near` (default: a phone or tablet in the hand) or `far`, for a wall panel read from across the room: larger status lines, captions and warn cues, and heavier figures. Card heights don't change. |
+| Lovelace card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
+| Lovelace card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
+| Lovelace card | `nav` | The bottom nav's destinations (see [Navigation](#navigation)), or `false` for none. |
+| Lovelace card | `pages` | More pages in the card, each `id`, `title` and `sections` (see [Navigation](#navigation)). |
+| Lovelace card | `sections` | The layout, top to bottom. Leave it out and the house is laid out automatically, kept up to date as you add devices. |
 | section | `title`, `note` | A heading. Without a title, the cards form a plain grid. |
 | section | `columns`, `gap` | Grid columns (default 1) and gap in px. |
 | section | `cards` | Cards, bundles, or entity ids. |
 | side by side | `sections`, `columns`, `gap` | A list item with its own `sections` puts them in columns: a tablet or wall-panel layout. |
 | any card | `entity` | Required. |
-| any card | `widget` | Picks one of the domain's widgets (see above). |
+| any card | `card` | Picks one of the domain's cards (see above). |
 | any card | `footprint` | `compact` (60 px row), `standard` (default), `featured` (the one hero). |
 | any card | `name`, `area` | Override the friendly name and the registry area. |
 | any card | `span` | Grid columns the card spans. |
@@ -158,7 +158,7 @@ nav:
     label: Baby view
 ```
 
-**Storybook → Orb / Home Assistant / Config dashboard → Nav and pages** shows this config on the demo data. Pages take the same `sections` as the main page, so a room, a floor or a task can each have its own. Home Assistant shows its own tabs when a dashboard has several views, and each view would need its own card and `nav`; `pages` keeps one card and one nav, and `navigate:` stays for the dashboards that really are separate.
+**Storybook → Orb / Home Assistant / Dashboard → Nav and pages** shows this config on the demo data. Pages take the same `sections` as the main page, so a room, a floor or a task can each have its own. Home Assistant shows its own tabs when a dashboard has several views, and each view would need its own card and `nav`; `pages` keeps one card and one nav, and `navigate:` stays for the dashboards that really are separate.
 
 ## The field dashboard
 

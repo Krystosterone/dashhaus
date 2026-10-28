@@ -1,4 +1,4 @@
-/* Shared card system. Every widget is an .hd card inside an .hd-c size container.
+/* Shared card system. Every card is an .hd article inside an .hd-c size container.
    All dashboard items share one spacing system and a modular footprint: compact = 60px, standard = 128px,
    and featured = 264px. The 8px rhythm also separates bundle members, so every standalone card and bundle
    lands on the same vertical grid.
@@ -9,7 +9,7 @@
    - A dashed outline with muted text is unavailable, and nothing else.
    Values sit on their control; where a fill passes under a label, the label flips to --on-accent.
    Inverse (--inv-*) is the one urgent action (Stop, Disarm, Enter), never a state.
-   A widget declares its role with data-role: "energy" (its orb blooms and its card glows), "state"
+   A card declares its role with data-role: "energy" (its orb blooms and its card glows), "state"
    (on without energy: no bloom, no glow) or "reading" (no on/off: its orb is a bare icon). A colour of
    its own is opt-in (data-color, --color-c/--color-h) and is painted on the orb only, never in compact
    cards. --hd-glow (0-1) is how much energy is flowing; the glow is always the accent.
@@ -29,7 +29,7 @@
 .hd {
   --accent: oklch(var(--accent-l) var(--brand-c) var(--brand-h));
   --accent-strong: oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h));
-  /* The colour slot: the widget's own colour, or the accent when it has none */
+  /* The colour slot: the card's own colour, or the accent when it has none */
   --o-c: var(--brand-c);
   --o-h: var(--brand-h);
   --color: oklch(var(--accent-l) var(--o-c) var(--o-h));
@@ -155,7 +155,7 @@
   box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / 0.5),
               0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / calc(0.25 + 0.35 * var(--b)));
 }
-/* The colour slot: a widget's own colour, opted in, on its orb and nowhere else */
+/* The colour slot: a card's own colour, opted in, on its orb and nowhere else */
 .hd[data-color] { --o-c: var(--color-c); --o-h: var(--color-h); }
 /* On, but not energy (a mode, an armed alarm, a door left open): the same accent, without the bloom. */
 .hd[data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { box-shadow: none; }
@@ -166,8 +166,8 @@
 .hd-orb:focus-visible { outline: none; }
 .hd-orb:focus-visible .hd-orb-i { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-orb--sm { --sz: 34px; }
-/* Static orb for read-only widgets: a bare icon, so a reading never looks like a control switched off.
-   Tinted with the widget's own colour when it has one. */
+/* Static orb for read-only cards: a bare icon, so a reading never looks like a control switched off.
+   Tinted with the card's own colour when it has one. */
 .hd-orb--static { cursor: default; color: var(--ink); }
 .hd-orb--static .hd-orb-i { background: transparent; box-shadow: none; }
 .hd[data-color] .hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--color) var(--tint-mix), var(--card-solid)); }
@@ -335,7 +335,7 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 /* A featured header figure yields when the control below already prints the same value. */
 .hd--featured:not(.hd--sheet) .hd-num--control-duplicate { display: none; }
 
-/* Compact footprint: one 60px row. Header children and the slot share the row, so mixed widgets align. */
+/* Compact footprint: one 60px row. Header children and the slot share the row, so mixed cards align. */
 .hd--compact {
   --pad: 8px;
   --pad-in: 12px;

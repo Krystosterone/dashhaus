@@ -21,7 +21,7 @@ const percentValue = (value: unknown) => {
 const COVER_STATES = new Set<CoverEntity["state"]>(["open", "opening", "closed", "closing"]);
 const COVER_CLASSES = new Set<CoverClass>(["curtain", "blind", "shade", "shutter", "awning", "window", "garage", "door", "gate"]);
 
-/** Home Assistant `CoverEntityFeature` bit values the widget reads. */
+/** Home Assistant `CoverEntityFeature` bit values the card reads. */
 const SUPPORTS_POSITION = 4;
 const SUPPORTS_STOP = 8;
 const SUPPORTS_TILT = 128;

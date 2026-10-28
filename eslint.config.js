@@ -6,7 +6,7 @@ import globals from "globals";
 
 const haBoundary = [
   { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Keep the websocket client under src/ha/." },
-  { group: ["**/ha", "**/ha/*"], message: "Widgets stay provider-agnostic; connect them in a src/ha/ container." },
+  { group: ["**/ha", "**/ha/*"], message: "Cards stay provider-agnostic; connect them in a src/ha/ container." },
   { group: ["**/index"], message: "Import the module directly, not the public barrel." },
 ];
 /** A skin is a whole UI; what every skin shares never imports one. */
@@ -33,13 +33,13 @@ export default tseslint.config(
     },
   },
   {
-    // Template placeholders (`__Name__Widget`) don't start upper-case, so the hooks rule can't tell they're
+    // Template placeholders (`__Name__Card`) don't start upper-case, so the hooks rule can't tell they're
     // components. What the generator writes from them is linted in src/ like any other file.
-    files: ["scripts/new-widget/templates/**"],
+    files: ["scripts/new-card/templates/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
-    // The Home Assistant boundary: a skin's widgets, layout and stories never see the transport or raw entities.
+    // The Home Assistant boundary: a skin's cards, layout and stories never see the transport or raw entities.
     // Only src/ha/, the public barrel, and a skin's own ha/ (connected tiles) and lovelace/ (its card) may import it.
     // Skins never import each other either; src/skins/boundaries.test.ts checks that.
     files: ["src/**/*.{ts,tsx}"],

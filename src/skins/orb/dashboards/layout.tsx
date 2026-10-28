@@ -1,11 +1,11 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { CardHeadingLevelContext } from "../shared/ui";
 import type { Vars } from "../shared/ui";
-import { HeaderWidget } from "../widgets/header/HeaderWidget";
-import type { HeaderWidgetProps } from "../widgets/header/HeaderWidget";
+import { Header } from "./Header";
+import type { HeaderProps } from "./Header";
 import "./layout.css";
 
-export interface DashboardPageProps extends HeaderWidgetProps {
+export interface DashboardPageProps extends HeaderProps {
   children: ReactNode;
   /** Optional host-level layout override, such as removing scroll padding on a fixed wall panel. */
   style?: CSSProperties;
@@ -17,11 +17,11 @@ export interface DashboardPageProps extends HeaderWidgetProps {
   pageRef?: Ref<HTMLDivElement>;
 }
 
-/** A dashboard page: the header widget (title, date, optional clock), then any composition, then its nav. */
+/** A dashboard page: the header card (title, date, optional clock), then any composition, then its nav. */
 export function DashboardPage({ children, style, viewing, nav, pageRef, ...header }: DashboardPageProps) {
   return (
     <div ref={pageRef} className="dash" style={style} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
-      <HeaderWidget {...header} />
+      <Header {...header} />
       {children}
       {nav && <div className="dash-dock">{nav}</div>}
     </div>
@@ -39,8 +39,8 @@ export function Columns({ columns, gap, children }: { columns: number; gap?: num
     </div>
   );
 }
-/** An ungrouped grid of widgets. Sections use the same primitive, but semantic grouping is optional. */
-export function WidgetGrid({ columns = 1, gap, children }: { columns?: number; gap?: number; children: ReactNode }) {
+/** An ungrouped grid of cards. Sections use the same primitive, but semantic grouping is optional. */
+export function CardGrid({ columns = 1, gap, children }: { columns?: number; gap?: number; children: ReactNode }) {
   return (
     <div
       className={columns === 1 ? "dash-grid dash-grid--1" : "dash-grid"}
@@ -51,13 +51,13 @@ export function WidgetGrid({ columns = 1, gap, children }: { columns?: number; g
   );
 }
 
-/** A titled grid of widgets. Each widget sizes itself from its cell's width. `id` lets a nav find and jump to it. */
+/** A titled grid of cards. Each card sizes itself from its cell's width. `id` lets a nav find and jump to it. */
 export function Section({ id, title, note, columns = 1, gap, children }: { id?: string; title: string; note?: string; columns?: number; gap?: number; children: ReactNode }) {
   return (
     <section id={id} data-section-id={id} className="dash-sec" aria-label={title}>
       <h2 className="dash-sec-h">{title}{note && <small>{note}</small>}</h2>
       <CardHeadingLevelContext.Provider value={3}>
-        <WidgetGrid columns={columns} gap={gap}>{children}</WidgetGrid>
+        <CardGrid columns={columns} gap={gap}>{children}</CardGrid>
       </CardHeadingLevelContext.Provider>
     </section>
   );

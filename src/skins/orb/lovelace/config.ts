@@ -1,9 +1,9 @@
 import { DashboardConfigError, Reader as YamlReader, isRaw, oneOf, suggest } from "../../../ha/lovelace/yaml";
 import type { Raw } from "../../../ha/lovelace/yaml";
 import { COLORS } from "../shared/ui";
-import type { ColorName, WidgetFootprint } from "../shared/ui";
+import type { ColorName, CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "../../../domains/toggle/types";
-import type { AlarmTileProps } from "../widgets/alarm/AlarmTile";
+import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "../../../domains/owlet/types";
 import { OWLET_ALERT_SUFFIX } from "../../../ha/mappers/owlet";
 import { MAIN_PAGE } from "../../../ha/lovelace/nav";
@@ -17,7 +17,7 @@ import type { NavEntry } from "../../../ha/lovelace/nav";
 
 export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet" | "humidifier" | "sound";
 
-/** Each supported domain's widget: the entity id picks it. */
+/** Each supported domain's card: the entity id picks it. */
 export const DOMAIN_KIND: Record<string, Kind> = {
   light: "light",
   climate: "climate",
@@ -31,8 +31,8 @@ export const DOMAIN_KIND: Record<string, Kind> = {
 };
 
 /**
- * Widgets that share a domain with that domain's own widget. A card picks one with `widget:`; an entity id
- * matching `id` picks it without.
+ * Cards that share a domain with that domain's own card. A card picks one with `card:`; an entity id matching `id`
+ * picks it without.
  */
 export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp }>> = {
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
@@ -43,7 +43,7 @@ interface CardBase {
   entity: string;
   name?: string;
   area?: string;
-  footprint?: WidgetFootprint;
+  footprint?: CardFootprint;
   span: number;
   showControl?: boolean;
   /** False skips the Today history read. */
@@ -111,10 +111,10 @@ export const ACCENTS: Record<string, Accent> = {
 
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
-const FOOTPRINTS: readonly WidgetFootprint[] = ["compact", "standard", "featured"];
+const FOOTPRINTS: readonly CardFootprint[] = ["compact", "standard", "featured"];
 const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
 
-const COMMON_KEYS = ["entity", "widget", "name", "area", "footprint", "span", "show_control", "history"];
+const COMMON_KEYS = ["entity", "card", "name", "area", "footprint", "span", "show_control", "history"];
 const KIND_KEYS: Record<Kind, string[]> = {
   light: ["color"],
   climate: ["unit", "color"],
@@ -136,18 +136,18 @@ const GROUP_KEYS = ["columns", "gap", "sections"];
 export { DashboardConfigError, suggest };
 
 class Reader extends YamlReader {
-  /** The widget for an entity: `widget:` when given, else a shared widget its id names, else its domain's. */
+  /** The card for an entity: `card:` when given, else a shared card its id names, else its domain's. */
   kind(raw: Raw, entity: string, path: string): Kind | undefined {
     const domain = entity.slice(0, entity.indexOf("."));
     const shared = (Object.keys(SHARED_KINDS) as Kind[]).filter((k) => SHARED_KINDS[k]?.domains.includes(domain));
     const kinds = [...(DOMAIN_KIND[domain] ? [DOMAIN_KIND[domain]] : []), ...shared];
     if (!kinds.length) {
-      this.problem(path, `${entity}: ${domain}.* entities have no widget yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`);
+      this.problem(path, `${entity}: ${domain}.* entities have no card yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`);
       return undefined;
     }
-    if (raw.widget != null) return this.choice(raw, "widget", `${path} (${entity})`, kinds);
+    if (raw.card != null) return this.choice(raw, "card", `${path} (${entity})`, kinds);
     const kind = shared.find((k) => SHARED_KINDS[k]?.id?.test(entity)) ?? DOMAIN_KIND[domain];
-    if (!kind) this.problem(path, `${entity}: pick its widget with "widget": one of ${oneOf(kinds)}`);
+    if (!kind) this.problem(path, `${entity}: pick its card with "card": one of ${oneOf(kinds)}`);
     return kind;
   }
 

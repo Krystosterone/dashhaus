@@ -1,189 +1,110 @@
-import type { WidgetFootprint } from "../shared/ui";
+import type { CardFootprint } from "../shared/ui";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { LightTile } from "../widgets/light/LightTile";
-import { SEEDS, useDemoLight } from "../widgets/light/demo/useDemoLight";
-import type { DemoSeed } from "../widgets/light/demo/useDemoLight";
-import { ClimateTile } from "../widgets/climate/ClimateTile";
-import { CLIMATE_SEEDS, useDemoClimate } from "../widgets/climate/demo/useDemoClimate";
-import type { ClimateSeed } from "../widgets/climate/demo/useDemoClimate";
-import { SensorTile } from "../widgets/sensor/SensorTile";
-import { SENSOR_SEEDS } from "../widgets/sensor/demo/sensors";
-import type { SensorSeed } from "../widgets/sensor/demo/sensors";
-import type { Reading } from "../../../domains/sensor/types";
-import { WeatherTile } from "../widgets/weather/WeatherTile";
-import { WEATHER_SEEDS } from "../widgets/weather/demo/weather";
-import type { WeatherSeed } from "../widgets/weather/demo/weather";
-import { ToggleTile } from "../widgets/toggle/ToggleTile";
-import { TOGGLE_SEEDS, useDemoToggle } from "../widgets/toggle/demo/useDemoToggle";
-import type { ToggleSeed } from "../widgets/toggle/demo/useDemoToggle";
-import { CoverTile } from "../widgets/cover/CoverTile";
-import { COVER_SEEDS, useDemoCover } from "../widgets/cover/demo/useDemoCover";
-import type { CoverSeed } from "../widgets/cover/demo/useDemoCover";
-import { AlarmTile } from "../widgets/alarm/AlarmTile";
-import { ALARM_SEEDS, useDemoAlarm } from "../widgets/alarm/demo/useDemoAlarm";
-import type { AlarmSeed } from "../widgets/alarm/demo/useDemoAlarm";
+import { LightTile } from "../cards/light/LightTile";
+import { LIGHT_WORST_CASE, SEEDS, useDemoLight } from "../cards/light/demo/useDemoLight";
+import type { DemoSeed } from "../cards/light/demo/useDemoLight";
+import { ClimateTile } from "../cards/climate/ClimateTile";
+import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "../cards/climate/demo/useDemoClimate";
+import type { ClimateSeed } from "../cards/climate/demo/useDemoClimate";
+import { SensorTile } from "../cards/sensor/SensorTile";
+import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "../cards/sensor/demo/sensors";
+import type { SensorSeed } from "../cards/sensor/demo/sensors";
+import { WeatherTile } from "../cards/weather/WeatherTile";
+import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "../cards/weather/demo/weather";
+import type { WeatherSeed } from "../cards/weather/demo/weather";
+import { ToggleTile } from "../cards/toggle/ToggleTile";
+import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "../cards/toggle/demo/useDemoToggle";
+import type { ToggleSeed } from "../cards/toggle/demo/useDemoToggle";
+import { CoverTile } from "../cards/cover/CoverTile";
+import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "../cards/cover/demo/useDemoCover";
+import type { CoverSeed } from "../cards/cover/demo/useDemoCover";
+import { AlarmTile } from "../cards/alarm/AlarmTile";
+import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "../cards/alarm/demo/useDemoAlarm";
+import type { AlarmSeed } from "../cards/alarm/demo/useDemoAlarm";
+import { DemoHumidifierTile } from "../cards/humidifier/demo/DemoHumidifierTile";
+import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE } from "../cards/humidifier/demo/useDemoHumidifier";
+import type { HumidifierSeed } from "../cards/humidifier/demo/useDemoHumidifier";
+import { DemoOwletTile } from "../cards/owlet/demo/DemoOwletTile";
+import { OWLET_SEEDS, OWLET_WORST_CASE } from "../cards/owlet/demo/socks";
+import type { OwletSeed } from "../cards/owlet/demo/socks";
+import { DemoSoundTile } from "../cards/sound/demo/DemoSoundTile";
+import { SOUND_SEEDS, SOUND_WORST_CASE } from "../cards/sound/demo/useDemoSound";
+import type { SoundSeed } from "../cards/sound/demo/useDemoSound";
 
 /*
- * Worst-case data: values real Home Assistant installs produce, not random strings.
- * Long and compound names, missing areas, readings at and past their limits, raw floats from
- * integrations, sensors with no readings yet, handles that meet. Kept as a regression test.
+ * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its
+ * demo seeds (`<NAME>_WORST_CASE`), which its Worst case story also draws; this page runs them all side by side.
  */
-
-const H = 11;
-const zeros = (n: number) => Array<number>(n).fill(0);
-const day = (past: Reading[], now: Reading): Reading[] => [...past, now, ...Array<Reading>(24 - past.length - 1).fill(null)];
 
 const LIGHTS: Record<"demo" | "worst", DemoSeed[]> = {
   demo: [SEEDS.dimmable, SEEDS.onOff],
-  worst: [
-    { // German compound name, long area, 1%, a Kelvin value below the bulb's own minimum
-      entity: { entityId: "light.wohnzimmer", name: "Wohnzimmerdeckenleuchte", area: "Primary bedroom suite, upstairs", state: "on", supportsBrightness: true, brightness: 1, supportsColorTemp: true, kelvin: 2000, minKelvin: 2202, maxKelvin: 6535, lastChanged: "11:54" },
-      past: zeros(H),
-    },
-    { // No area, a raw float from an integration, a bulb whose warmth range is a single value
-      entity: { entityId: "light.kitchen_island_left", name: "Kitchen island pendant (left)", state: "on", supportsBrightness: true, brightness: 99.6, supportsColorTemp: true, kelvin: 2700, minKelvin: 2700, maxKelvin: 2700, lastChanged: "06:00" },
-      past: Array<number>(H).fill(1),
-    },
-    { // Two letters, never on today
-      entity: { entityId: "light.jo", name: "Jo", area: "Porch", state: "off", supportsBrightness: false, brightness: 100, lastChanged: "00:00" },
-      past: zeros(H),
-    },
-  ],
-};
-
-const fullClimate: Pick<ClimateSeed["entity"], "hvacModes" | "presetModes" | "fanModes"> = {
-  hvacModes: ["off", "heat", "cool", "heat_cool", "auto", "dry", "fan_only"],
-  presetModes: ["none", "eco", "away", "boost", "comfort", "home", "sleep", "activity"],
-  fanModes: ["auto", "low", "medium", "high", "top", "middle", "focus", "diffuse"],
+  worst: LIGHT_WORST_CASE,
 };
 
 const CLIMATES: Record<"demo" | "worst", ClimateSeed[]> = {
   demo: [CLIMATE_SEEDS.heating, CLIMATE_SEEDS.range],
-  worst: [
-    { // Fahrenheit, whole-degree steps, both thresholds on the same value, no room reading, every mode
-      entity: { entityId: "climate.zone_3", name: "Mitsubishi Hyper-Heat, zone 3", area: "Finished basement & guest suite", state: "heat_cool", hvacAction: "idle", ...fullClimate, currentHumidity: 45.333333, targetLow: 68, targetHigh: 68, minTemp: 45, maxTemp: 95, step: 1, unit: "°F", presetMode: "activity", fanMode: "diffuse", lastChanged: "11:02" },
-      past: zeros(H), activity: "running",
-    },
-    { // Stacked diacritics, at the top of its range, heating all day
-      entity: { entityId: "climate.office", name: "Đặng Thị Ngọc Hân’s office", area: "Office", state: "heat", hvacAction: "heating", hvacModes: ["off", "heat"], currentTemperature: 29.96, currentHumidity: 61.7, targetTemperature: 30, minTemp: 7, maxTemp: 30, step: 0.5, unit: "°C", lastChanged: "00:01" },
-      past: Array<number>(H).fill(1), activity: "heating",
-    },
-    { // A raw fan mode from the integration
-      entity: { entityId: "climate.dehumidifier", name: "Dehumidifier", area: "Laundry", state: "dry", hvacAction: "drying", hvacModes: ["off", "dry"], currentTemperature: 18.04, minTemp: 16, maxTemp: 30, step: 1, unit: "°C", fanMode: "quiet_night", fanModes: ["quiet_night", "auto"], lastChanged: "09:30" },
-      past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], activity: "running",
-    },
-  ],
+  worst: CLIMATE_WORST_CASE,
 };
 
 const SENSORS: Record<"demo" | "worst", SensorSeed[]> = {
   demo: [SENSOR_SEEDS.living, SENSOR_SEEDS.outdoor],
-  worst: [
-    { // Hovering around zero outdoors, saturated humidity, a nearly flat battery
-      entity: { entityId: "sensor.backyard", name: "Backyard weather station", area: "Garden, north side", state: "ok", temperature: -0.04, humidity: 100, unit: "°C", outdoor: true, battery: 1, lastUpdated: "11:53" },
-      history: { temperature: day([1.2, 0.8, 0.3, -0.2, -0.6, -0.9, -0.7, -0.4, -0.1, 0.0, -0.02], -0.04), humidity: day([97, 98, 99, 100, 100, 100, 100, 100, 100, 100, 100], 100), currentHour: H },
-    },
-    { // Sauna: far past every comfort band, almost no humidity
-      entity: { entityId: "sensor.sauna", name: "Sauna", area: "Spa", state: "ok", temperature: 92.4, humidity: 4, unit: "°C", lastUpdated: "11:54" },
-      history: { temperature: day([21, 21, 21, 21, 21, 21, 21, 40, 75, 88, 91], 92.4), humidity: day([40, 40, 40, 40, 40, 40, 40, 20, 8, 5, 4], 4), currentHour: H },
-    },
-    { // Paired at midnight, no reading has arrived yet
-      entity: { entityId: "sensor.crawlspace", name: "Crawlspace", area: "Basement", state: "ok", unit: "°C", battery: 100 },
-      history: { temperature: day(Array<Reading>(H).fill("unavailable"), null), humidity: day(Array<Reading>(H).fill("unavailable"), null), currentHour: H },
-    },
-    { // A Fahrenheit winter night: the widest temperature beside the widest humidity
-      entity: { entityId: "sensor.shed", name: "Shed", area: "Garden", state: "ok", temperature: -13.7, humidity: 100, unit: "°F", outdoor: true, battery: 40, lastUpdated: "11:50" },
-      history: { temperature: day([-4, -6, -8, -10, -11, -12, -13, -13.5, -13.6, -13.7, -13.7], -13.7), humidity: day(Array<Reading>(H).fill(100), 100), currentHour: H },
-    },
-    { // Long compound name, bone dry
-      entity: { entityId: "sensor.arbeitszimmer", name: "Arbeitszimmer-Fensterbank", area: "Arbeitszimmer", state: "ok", temperature: 12.25, humidity: 0, unit: "°C", battery: 15, lastUpdated: "11:41" },
-      history: { temperature: day([13, 13, 12.9, 12.8, 12.6, 12.5, 12.4, 12.3, 12.3, 12.3, 12.3], 12.25), humidity: day(zeros(H), 0), currentHour: H },
-    },
-  ],
+  worst: SENSOR_WORST_CASE,
 };
 
 const WEATHERS: Record<"demo" | "worst", WeatherSeed[]> = {
   demo: [WEATHER_SEEDS.partly],
-  worst: [
-    { // Fahrenheit and mph, a long place name, hazardous air, a gale, no forecast and no history
-      entity: { entityId: "weather.farm", name: "Ferme Sainte-Anne-des-Plaines", state: "exceptional", temperature: 104.3, apparentTemperature: 112.8, humidity: 9, pressure: 29.71, windSpeed: 61, windGustSpeed: 84, windBearing: 200, uvIndex: 12, aqi: 312, temperatureUnit: "°F", windSpeedUnit: "mph", pressureUnit: "inHg", lastUpdated: "11:54" },
-      history: { temperature: [], currentHour: H }, hourly: [], daily: [],
-    },
-    { // Only humidity reported: no temperature, no wind, no air quality
-      entity: { entityId: "weather.cabin", name: "Cabin", state: "fog", humidity: 100, temperatureUnit: "°C", windSpeedUnit: "km/h", pressureUnit: "hPa" },
-      history: { temperature: Array<Reading>(H).fill("unavailable"), currentHour: H }, hourly: [], daily: [],
-    },
-  ],
+  worst: WEATHER_WORST_CASE,
 };
 
 const TOGGLES: Record<"demo" | "worst", ToggleSeed[]> = {
   demo: [TOGGLE_SEEDS.dnd],
-  worst: [
-    { // A long French name, no area, on until a time tomorrow, no description
-      entity: { entityId: "input_boolean.ne_pas_deranger", name: "Ne pas déranger – chambre principale", state: "on", icon: "bell-off", until: "Sun 07:00", duration: "morning", lastChanged: "23:58" },
-      past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    },
-    { // No icon, no tone, never changed
-      entity: { entityId: "switch.x", name: "X", state: "off" },
-      past: [],
-    },
-  ],
+  worst: TOGGLE_WORST_CASE,
 };
 
 const COVERS: Record<"demo" | "worst", CoverSeed[]> = {
   demo: [COVER_SEEDS.curtains, COVER_SEEDS.garage],
-  worst: [
-    { // A long name, curtains a hair from closed, moving, with no stop
-      entity: { entityId: "cover.salon", name: "Rideaux du grand salon (côté jardin)", area: "Salon", state: "closing", deviceClass: "curtain", position: 1, supportsPosition: true, supportsStop: false, lastChanged: "21:59" },
-      past: [],
-    },
-    { // A gate with no area and no history, left open, never reported when it changed
-      entity: { entityId: "cover.gate", name: "Gate", state: "open", deviceClass: "gate", supportsPosition: false, supportsStop: false },
-      past: [],
-    },
-  ],
+  worst: COVER_WORST_CASE,
 };
 
 const ALARMS: Record<"demo" | "worst", AlarmSeed[]> = {
   demo: [ALARM_SEEDS.away],
-  worst: [
-    { // Every arm mode, a long name, three open sensors, a text code, nobody recorded as changing it
-      entity: { entityId: "alarm_control_panel.chalet", name: "Système d'alarme du chalet", area: "Chalet", state: "disarmed", modes: ["home", "away", "night", "vacation"], codeFormat: "text", codeArmRequired: true, openSensors: ["Porte-fenêtre du salon", "Garage side door", "Bathroom window"] },
-      past: [],
-    },
-    { // Triggered by a long-named sensor, at the end of a long night
-      entity: { entityId: "alarm_control_panel.home", name: "Alarm", state: "triggered", modes: ["home", "away", "night"], codeFormat: "number", triggeredBy: "Basement egress window (north)", lastChanged: "03:12" },
-      past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    },
-    { // All five arm modes, armed in custom bypass
-      entity: { entityId: "alarm_control_panel.villa", name: "Villa", state: "armed_custom_bypass", modes: ["home", "away", "night", "vacation", "custom_bypass"], codeFormat: "number", changedBy: "Installer account (remote)", lastChanged: "Mon 09:40" },
-      past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    },
-    { // HA's core entity mid-arming: no target mode, no delay length, so no timer
-      entity: { entityId: "alarm_control_panel.shop", name: "Shop", state: "arming", modes: ["away"], codeFormat: "number" },
-      past: [],
-    },
-  ],
+  worst: ALARM_WORST_CASE,
 };
 
-function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: WidgetFootprint }) {
+const HUMIDIFIERS: Record<"demo" | "worst", HumidifierSeed[]> = {
+  demo: [HUMIDIFIER_SEEDS.on],
+  worst: HUMIDIFIER_WORST_CASE,
+};
+
+const OWLETS: Record<"demo" | "worst", OwletSeed[]> = {
+  demo: [OWLET_SEEDS.deep],
+  worst: OWLET_WORST_CASE,
+};
+
+const SOUNDS: Record<"demo" | "worst", SoundSeed[]> = {
+  demo: [SOUND_SEEDS.on],
+  worst: SOUND_WORST_CASE,
+};
+
+function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: CardFootprint }) {
   const demo = useDemoAlarm(seed);
   return <AlarmTile {...demo} footprint={footprint} />;
 }
 
-function Cover({ seed, footprint }: { seed: CoverSeed; footprint: WidgetFootprint }) {
+function Cover({ seed, footprint }: { seed: CoverSeed; footprint: CardFootprint }) {
   const demo = useDemoCover(seed);
   return <CoverTile {...demo} footprint={footprint} />;
 }
 
-function Toggle({ seed, footprint }: { seed: ToggleSeed; footprint: WidgetFootprint }) {
+function Toggle({ seed, footprint }: { seed: ToggleSeed; footprint: CardFootprint }) {
   const demo = useDemoToggle(seed);
   return <ToggleTile {...demo} footprint={footprint} />;
 }
 
 /** Width and footprint are independent: wide standard stays standard; featured is always explicit. */
-const CASES: { width: number; footprint: WidgetFootprint }[] = [
+const CASES: { width: number; footprint: CardFootprint }[] = [
   { width: 170, footprint: "standard" },
   { width: 320, footprint: "standard" },
   { width: 480, footprint: "standard" },
@@ -191,7 +112,7 @@ const CASES: { width: number; footprint: WidgetFootprint }[] = [
   { width: 300, footprint: "compact" },
 ];
 
-function Row({ children }: { children: (footprint: WidgetFootprint) => ReactNode }) {
+function Row({ children }: { children: (footprint: CardFootprint) => ReactNode }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 12 }}>
       {CASES.map(({ width, footprint }) => <div key={`${width}-${footprint}`} style={{ width, maxWidth: "100%" }}>{children(footprint)}</div>)}
@@ -199,11 +120,11 @@ function Row({ children }: { children: (footprint: WidgetFootprint) => ReactNode
   );
 }
 
-function Light({ seed, footprint }: { seed: DemoSeed; footprint: WidgetFootprint }) {
+function Light({ seed, footprint }: { seed: DemoSeed; footprint: CardFootprint }) {
   const demo = useDemoLight(seed);
   return <LightTile {...demo} footprint={footprint} />;
 }
-function Climate({ seed, footprint }: { seed: ClimateSeed; footprint: WidgetFootprint }) {
+function Climate({ seed, footprint }: { seed: ClimateSeed; footprint: CardFootprint }) {
   const demo = useDemoClimate(seed);
   return <ClimateTile {...demo} footprint={footprint} />;
 }
@@ -233,6 +154,9 @@ function WorstCasePage() {
       {COVERS[data].map((seed, index) => <Row key={`v${index}`}>{(footprint) => <Cover seed={seed} footprint={footprint} />}</Row>)}
       {TOGGLES[data].map((seed, index) => <Row key={`t${index}`}>{(footprint) => <Toggle seed={seed} footprint={footprint} />}</Row>)}
       {SENSORS[data].map((seed, index) => <Row key={`s${index}`}>{(footprint) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} />}</Row>)}
+      {HUMIDIFIERS[data].map((seed, index) => <Row key={`h${index}`}>{(footprint) => <DemoHumidifierTile seed={seed} footprint={footprint} />}</Row>)}
+      {SOUNDS[data].map((seed, index) => <Row key={`n${index}`}>{(footprint) => <DemoSoundTile seed={seed} footprint={footprint} />}</Row>)}
+      {OWLETS[data].map((seed, index) => <Row key={`o${index}`}>{(footprint) => <DemoOwletTile seed={seed} footprint={footprint} />}</Row>)}
       <DataToggle value={data} onChange={setData} />
     </div>
   );
@@ -245,5 +169,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every widget against realistic worst-case data at narrow/wide standard, featured, and compact footprints. */
-export const AllWidgets: Story = { render: () => <WorstCasePage /> };
+/** Every card against realistic worst-case data at narrow/wide standard, featured, and compact footprints. */
+export const AllCards: Story = { render: () => <WorstCasePage /> };

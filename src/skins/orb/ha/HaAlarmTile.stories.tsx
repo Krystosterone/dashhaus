@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoAlarmHaTransport } from "../../../ha/demo/alarm";
 
 const meta = {
-  title: "Orb/Home Assistant/Alarm tile",
+  title: "Orb/Home Assistant/Alarm",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

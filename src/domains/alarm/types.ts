@@ -2,12 +2,12 @@ import type { HourSample } from "../history";
 
 export type AlarmMode = "home" | "away" | "night" | "vacation" | "custom_bypass";
 
-/** Home Assistant `alarm_control_panel` states the widget shows. */
+/** Home Assistant `alarm_control_panel` states the card shows. */
 export type AlarmState =
   | "disarmed" | "armed_home" | "armed_away" | "armed_night" | "armed_vacation" | "armed_custom_bypass"
   | "arming" | "pending" | "disarming" | "triggered" | "unavailable";
 
-/** Mirrors the parts of a Home Assistant `alarm_control_panel.*` entity the widget needs. */
+/** Mirrors the parts of a Home Assistant `alarm_control_panel.*` entity the card needs. */
 export interface AlarmEntity {
   entityId: string;
   name: string;
@@ -24,7 +24,7 @@ export interface AlarmEntity {
   /**
    * Length of the current exit or entry delay, in seconds. Home Assistant's alarm entity doesn't expose it:
    * Alarmo has it as the `delay` attribute; for the manual alarm it's your arming_time / delay_time.
-   * With `changedAt`, the widget counts down. Without it, the slot shows the delay with no timer.
+   * With `changedAt`, the card counts down. Without it, the slot shows the delay with no timer.
    */
   delay?: number;
   /** When the current state started, in ms since the epoch (HA last_changed). */

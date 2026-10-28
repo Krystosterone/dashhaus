@@ -5,7 +5,7 @@ export type HvacMode = "off" | "heat" | "cool" | "heat_cool" | "auto" | "dry" | 
 /** What the unit is doing right now (HA `hvac_action`). */
 export type HvacAction = "heating" | "cooling" | "idle" | "off" | "drying" | "fan";
 
-/** Mirrors the parts of a Home Assistant `climate.*` entity the widget needs. */
+/** Mirrors the parts of a Home Assistant `climate.*` entity the card needs. */
 export interface ClimateEntity {
   entityId: string;
   name: string;

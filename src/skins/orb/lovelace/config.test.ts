@@ -18,7 +18,7 @@ describe("parseDashboardConfig", () => {
     });
   });
 
-  it("picks each card's widget from its entity's domain", () => {
+  it("picks each card from its entity's domain", () => {
     const config = parseDashboardConfig({
       sections: [{ title: "All", cards: ["light.a", "climate.a", "sensor.a", "weather.a", "cover.a", "input_boolean.a", "switch.a", "alarm_control_panel.a"] }],
     });
@@ -29,13 +29,13 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
-  it("picks a shared widget from the entity id or from widget:", () => {
+  it("picks a shared card from the entity id or from card:", () => {
     const config = parseDashboardConfig({
       sections: [{ cards: [
         "sensor.owlet_sock_ac0_sleep_state",
-        { entity: "sensor.nova", widget: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", base_station: "switch.nova_base", stale_after: 5 },
-        { entity: "sensor.odd_sleep_state", widget: "sensor" },
-        { entity: "sensor.ben", widget: "owlet", alerts: { low_oxygen: "binary_sensor.ben_spo2_low", sock_off: "binary_sensor.ben_off" } },
+        { entity: "sensor.nova", card: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", base_station: "switch.nova_base", stale_after: 5 },
+        { entity: "sensor.odd_sleep_state", card: "sensor" },
+        { entity: "sensor.ben", card: "owlet", alerts: { low_oxygen: "binary_sensor.ben_spo2_low", sock_off: "binary_sensor.ben_off" } },
       ] }],
     });
     expect(config.blocks?.[0]).toMatchObject({
@@ -48,12 +48,12 @@ describe("parseDashboardConfig", () => {
     });
   });
 
-  it("draws a switch as a sound only with widget:, with its volume number", () => {
+  it("draws a switch as a sound only with card:, with its volume number", () => {
     const config = parseDashboardConfig({
       sections: [{ cards: [
         "switch.nursery_music",
-        { entity: "switch.nursery_music", widget: "sound" },
-        { entity: "switch.noise", widget: "sound", volume: "number.noise_level" },
+        { entity: "switch.nursery_music", card: "sound" },
+        { entity: "switch.noise", card: "sound", volume: "number.noise_level" },
       ] }],
     });
     expect(config.blocks?.[0]).toMatchObject({
@@ -63,7 +63,7 @@ describe("parseDashboardConfig", () => {
         { kind: "sound", entity: "switch.noise", volume: "number.noise_level" },
       ],
     });
-    expect(problems({ sections: [{ cards: [{ entity: "switch.noise", widget: "sound", volume: "sensor.noise_level" }] }] })).toEqual([
+    expect(problems({ sections: [{ cards: [{ entity: "switch.noise", card: "sound", volume: "sensor.noise_level" }] }] })).toEqual([
       "sections[0].cards[0] (switch.noise).volume: sensor.noise_level must be a number.* entity",
     ]);
   });
@@ -79,10 +79,16 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
-  it("only offers widget: the widgets of the entity's domain", () => {
-    expect(problems({ sections: [{ cards: [{ entity: "light.a", widget: "owlet" }, { entity: "sensor.a", widget: "owlett" }] }] })).toEqual([
-      'sections[0].cards[0] (light.a): "widget" must be one of "light"',
-      expect.stringMatching(/^sections\[0\]\.cards\[1\] \(sensor\.a\): "widget" must be one of "sensor", "owlet"(, .*)? — did you mean "owlet"\?$/),
+  it("only offers card: the cards of the entity's domain", () => {
+    expect(problems({ sections: [{ cards: [{ entity: "light.a", card: "owlet" }, { entity: "sensor.a", card: "owlett" }] }] })).toEqual([
+      'sections[0].cards[0] (light.a): "card" must be one of "light"',
+      expect.stringMatching(/^sections\[0\]\.cards\[1\] \(sensor\.a\): "card" must be one of "sensor", "owlet"(, .*)? — did you mean "owlet"\?$/),
+    ]);
+  });
+
+  it("no longer reads widget:, card:'s old name", () => {
+    expect(problems({ sections: [{ cards: [{ entity: "sensor.nova", widget: "owlet" }] }] })).toEqual([
+      expect.stringMatching(/^sections\[0\]\.cards\[0\] \(sensor\.nova\): unknown key "widget"/),
     ]);
   });
 
@@ -122,7 +128,7 @@ describe("parseDashboardConfig", () => {
   it("reads a titled bundle: what its rows make up, its room, and the rows", () => {
     const config = parseDashboardConfig({ sections: [{ title: "Quick", cards: [{
       title: "Sound machine", area: "Baby Room", span: 2,
-      rows: [{ entity: "switch.nursery", name: "Power", icon: "power" }, "light.nursery", { entity: "switch.nursery_music", widget: "sound" }],
+      rows: [{ entity: "switch.nursery", name: "Power", icon: "power" }, "light.nursery", { entity: "switch.nursery_music", card: "sound" }],
     }] }] });
     expect(config.blocks?.[0]).toMatchObject({ items: [{
       kind: "titled", title: "Sound machine", area: "Baby Room", span: 2,
@@ -159,7 +165,7 @@ describe("parseDashboardConfig", () => {
       'unknown key "titel" — did you mean "title"?',
       'sections[0].cards[0] (sensor.t): unknown key "humdity" — did you mean "humidity"?',
       'sections[0].cards[1]: "lamp" is not an entity id like light.kitchen',
-      expect.stringContaining("sections[0].cards[2]: media_player.tv: media_player.* entities have no widget yet"),
+      expect.stringContaining("sections[0].cards[2]: media_player.tv: media_player.* entities have no card yet"),
       'sections[0].cards[3] (light.a): "footprint" must be one of "compact", "standard", "featured"',
       'sections[1]: "cards" must be a list of at least one card',
       '"theme" must be one of "home-assistant", "auto", "light", "dark" — did you mean "dark"?',

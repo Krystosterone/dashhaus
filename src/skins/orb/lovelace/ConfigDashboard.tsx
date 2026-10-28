@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import type { ReactElement } from "react";
-import { DashboardPage, Section, Columns, WidgetGrid, Cell } from "../dashboards/layout";
+import { DashboardPage, Section, Columns, CardGrid, Cell } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
 import { MAIN_PAGE, resolveNav, sectionAnchors } from "../../../ha/lovelace/nav";
 import type { PanelInfo } from "../../../ha/lovelace/nav";
@@ -59,7 +59,7 @@ function section(s: SectionConfig, key: number, ids: Map<SectionConfig, string>)
   const items = s.items.map(item);
   return s.title
     ? <Section key={key} id={ids.get(s)} title={s.title} note={s.note} columns={s.columns} gap={s.gap}>{items}</Section>
-    : <WidgetGrid key={key} columns={s.columns} gap={s.gap}>{items}</WidgetGrid>;
+    : <CardGrid key={key} columns={s.columns} gap={s.gap}>{items}</CardGrid>;
 }
 
 function block(b: BlockConfig, key: number, ids: Map<SectionConfig, string>) {

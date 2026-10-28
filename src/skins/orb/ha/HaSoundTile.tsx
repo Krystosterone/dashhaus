@@ -1,8 +1,8 @@
 import { useHaSound } from "../../../ha/hooks/sound";
 import type { HaSoundOptions } from "../../../ha/hooks/sound";
 import type { SoundHandlers } from "../../../ha/actions/sound";
-import { SoundTile } from "../widgets/sound/SoundTile";
-import type { SoundTileProps } from "../widgets/sound/SoundTile";
+import { SoundTile } from "../cards/sound/SoundTile";
+import type { SoundTileProps } from "../cards/sound/SoundTile";
 
 export interface HaSoundTileProps extends HaSoundOptions, Omit<SoundTileProps, "entity" | "history" | keyof SoundHandlers> {
   /** The sound's `switch.*` (the Tuya integration's `switch.<device>_music`). */

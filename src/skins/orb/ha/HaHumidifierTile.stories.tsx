@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoHumidifierHaTransport } from "../../../ha/demo/humidifier";
 
 const meta = {
-  title: "Orb/Home Assistant/Humidifier tile",
+  title: "Orb/Home Assistant/Humidifier",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

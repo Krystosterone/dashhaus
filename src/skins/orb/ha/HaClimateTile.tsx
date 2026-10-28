@@ -1,8 +1,8 @@
 import { useHaClimate } from "../../../ha/hooks/climate";
 import type { HaClimateOptions } from "../../../ha/hooks/climate";
 import type { ClimateHandlers } from "../../../ha/actions/climate";
-import { ClimateTile } from "../widgets/climate/ClimateTile";
-import type { ClimateTileProps } from "../widgets/climate/ClimateTile";
+import { ClimateTile } from "../cards/climate/ClimateTile";
+import type { ClimateTileProps } from "../cards/climate/ClimateTile";
 
 export interface HaClimateTileProps extends HaClimateOptions, Omit<ClimateTileProps, "entity" | "history" | keyof ClimateHandlers> {
   entityId: string;

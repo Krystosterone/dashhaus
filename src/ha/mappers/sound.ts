@@ -46,7 +46,7 @@ export function soundVolumeFromHass(raw: HassEntity | undefined): SoundVolumeRan
 }
 
 /**
- * Map one raw Home Assistant `switch.*` state, and its volume `number.*`, to the widget model. Only "on" and
+ * Map one raw Home Assistant `switch.*` state, and its volume `number.*`, to the card model. Only "on" and
  * "off" are states; `unknown`, `unavailable` and a missing entity are unavailable, never a safe-looking off.
  */
 export function soundFromHass(raw: HassEntity | undefined, entityId: string, options: SoundMapOptions = {}): SoundEntity {

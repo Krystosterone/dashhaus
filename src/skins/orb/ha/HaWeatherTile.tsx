@@ -1,7 +1,7 @@
 import { useHaWeather } from "../../../ha/hooks/weather";
 import type { HaWeatherOptions } from "../../../ha/hooks/weather";
-import { WeatherTile } from "../widgets/weather/WeatherTile";
-import type { WeatherTileProps } from "../widgets/weather/WeatherTile";
+import { WeatherTile } from "../cards/weather/WeatherTile";
+import type { WeatherTileProps } from "../cards/weather/WeatherTile";
 
 export interface HaWeatherTileProps extends HaWeatherOptions, Omit<WeatherTileProps, "entity" | "history" | "hourly" | "daily"> {
   entityId: string;

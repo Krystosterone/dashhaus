@@ -1,7 +1,7 @@
 # Mechanism backlog
 
 Component-level changes that would let the shared card system enforce the
-codified contracts instead of per-widget discipline. Each item names its
+codified contracts instead of per-card discipline. Each item names its
 contract, today's mechanism, the gap, the proposal, and the gate that must
 pass before implementation. Append here as further research points get
 codified; strike items when implemented.
@@ -10,9 +10,9 @@ codified; strike items when implemented.
 
 **Contract:** attention-budget contract items 1–2; README "Glow follows urgency, not position".
 
-- **Today:** `layout.css` damps later glowing cards to 0.5 by sibling position only (`--glow-damp`). Widgets have no input.
+- **Today:** `layout.css` damps later glowing cards to 0.5 by sibling position only (`--glow-damp`). Cards have no input.
 - **Gap:** urgency cannot influence damping — the retune the research recommends has no mechanism to stand on.
-- **Proposal:** widgets declare an attention level (e.g. `data-attention="routine | urgent"` on the `hd` article, surfaced through `paint()` or a dedicated prop); `layout.css` damps by level instead of raw position; urgent states keep their marker (item 2) and outrank routine glow.
+- **Proposal:** cards declare an attention level (e.g. `data-attention="routine | urgent"` on the `hd` article, surfaced through `paint()` or a dedicated prop); `layout.css` damps by level instead of raw position; urgent states keep their marker (item 2) and outrank routine glow.
 - **Gate:** the research's scan-task comparison (missed-urgent rate, target-finding time) before changing default damping values.
 - **Validation status (2026-10-18):** blocked on participant scan metrics; no urgency-aware damping implementation or value change is authorized.
 
@@ -20,7 +20,7 @@ codified; strike items when implemented.
 
 **Contract:** attention-budget contract items 4–5; README "Alerts first…" warn marker.
 
-- **Outcome (2026-10-18):** urgent widgets declare `data-alert="warn"` and render one shared `AlertStatus` in the existing status channel. The primitive couples warn-colour text with an accessible outlined-exclamation cue; Cover, Sensor, Home, and Alarm use it, while only a triggered alarm keeps the exceptional warn fill.
+- **Outcome (2026-10-18):** urgent cards declare `data-alert="warn"` and render one shared `AlertStatus` in the existing status channel. The primitive couples warn-colour text with an accessible outlined-exclamation cue; Cover, Sensor, Home, and Alarm use it, while only a triggered alarm keeps the exceptional warn fill.
 - **Gate result (2026-10-18):** UX and UI review rejected a new row or grid column because it would duplicate identity and reduce title space. Storybook checks at 360 px and 280 px confirmed one visible cue, fixed row height, no horizontal overflow, warning-first narrow copy, and a distinct accessible warning label for every migrated state.
 
 ## ~~3. Compact-row identity slots~~ — satisfied

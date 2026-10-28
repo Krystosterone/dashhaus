@@ -1,8 +1,8 @@
 import { useHaHumidifier } from "../../../ha/hooks/humidifier";
 import type { HaHumidifierOptions } from "../../../ha/hooks/humidifier";
 import type { HumidifierHandlers } from "../../../ha/actions/humidifier";
-import { HumidifierTile } from "../widgets/humidifier/HumidifierTile";
-import type { HumidifierTileProps } from "../widgets/humidifier/HumidifierTile";
+import { HumidifierTile } from "../cards/humidifier/HumidifierTile";
+import type { HumidifierTileProps } from "../cards/humidifier/HumidifierTile";
 
 export interface HaHumidifierTileProps extends HaHumidifierOptions, Omit<HumidifierTileProps, "entity" | "history" | keyof HumidifierHandlers> {
   entityId: string;

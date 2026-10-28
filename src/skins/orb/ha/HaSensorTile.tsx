@@ -1,7 +1,7 @@
 import { useHaSensor } from "../../../ha/hooks/sensor";
 import type { HaSensorOptions } from "../../../ha/hooks/sensor";
-import { SensorTile } from "../widgets/sensor/SensorTile";
-import type { SensorTileProps } from "../widgets/sensor/SensorTile";
+import { SensorTile } from "../cards/sensor/SensorTile";
+import type { SensorTileProps } from "../cards/sensor/SensorTile";
 
 export interface HaSensorTileProps extends HaSensorOptions, Omit<SensorTileProps, "entity" | "history"> {
   /** Primary sensor, normally the temperature entity for this device. */

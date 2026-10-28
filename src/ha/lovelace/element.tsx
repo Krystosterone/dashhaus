@@ -56,9 +56,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }
 }
 
 /**
- * What every dashboard card shares, whichever UI it draws: a shadow root with the bundle's styles, one store per
+ * What every skin's Lovelace card shares, whichever UI it draws: a shadow root with the bundle's styles, one store per
  * frontend connection (reused, never closed, so no token), and a React root that survives Lovelace moving the
- * card between parents. A card parses its YAML, says which `hass` changes its page reads (entity states reach it
+ * card between parents. A Lovelace card parses its YAML, says which `hass` changes its page reads (entity states reach it
  * through the store either way), and draws.
  */
 export abstract class LovelaceDashboardElement<C> extends HTMLElement {

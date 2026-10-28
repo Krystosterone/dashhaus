@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ReactNode } from "react";
-import { DemoLightTile as Light } from "../widgets/light/demo/DemoLightTile";
-import { DemoClimateTile as Climate } from "../widgets/climate/demo/DemoClimateTile";
-import { DemoSensorTile as Sensor } from "../widgets/sensor/demo/DemoSensorTile";
-import { DemoWeatherTile as Weather } from "../widgets/weather/demo/DemoWeatherTile";
-import { DemoToggleTile as Toggle } from "../widgets/toggle/demo/DemoToggleTile";
-import { DemoCoverTile as Cover } from "../widgets/cover/demo/DemoCoverTile";
-import { DemoAlarmTile as Alarm } from "../widgets/alarm/demo/DemoAlarmTile";
+import { DemoLightTile as Light } from "../cards/light/demo/DemoLightTile";
+import { DemoClimateTile as Climate } from "../cards/climate/demo/DemoClimateTile";
+import { DemoSensorTile as Sensor } from "../cards/sensor/demo/DemoSensorTile";
+import { DemoWeatherTile as Weather } from "../cards/weather/demo/DemoWeatherTile";
+import { DemoToggleTile as Toggle } from "../cards/toggle/demo/DemoToggleTile";
+import { DemoCoverTile as Cover } from "../cards/cover/demo/DemoCoverTile";
+import { DemoAlarmTile as Alarm } from "../cards/alarm/demo/DemoAlarmTile";
 
-/** Every widget's compact row, with its control and without. */
+/** Every card's compact row, with its control and without. */
 function Rows({ showControl, width }: { showControl: boolean; width: number }) {
   const rows: ReactNode[] = [
     <Light key="l1" light="dimmable" footprint="compact" showControl={showControl} />,
@@ -47,7 +47,7 @@ const meta = {
   component: Compare,
   parameters: {
     layout: "padded",
-    docs: { description: { component: "Every 60px compact card can hide its control (showControl={false}): the value replaces it and the row opens details. All widget types keep the same anatomy and rhythm." } },
+    docs: { description: { component: "Every 60px compact card can hide its control (showControl={false}): the value replaces it and the row opens details. All card types keep the same anatomy and rhythm." } },
   },
   argTypes: { width: { control: { type: "range", min: 240, max: 560, step: 2 } } },
   args: { width: 380 },

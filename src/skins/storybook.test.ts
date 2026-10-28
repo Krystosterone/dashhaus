@@ -1,0 +1,116 @@
+/**
+ * Every skin's Storybook section has the same shape (AGENTS.md → Storybook): the same groups in the same order, and
+ * every card the same stories under the same names, so moving between skins or cards never means relearning the tree.
+ * Story titles and names are read from the source the way Storybook's indexer reads them: statically.
+ */
+import { readFileSync, readdirSync } from "node:fs";
+import { join, posix } from "node:path";
+import { describe, expect, it } from "vitest";
+
+/** Each skin's top-level groups, in sidebar order. A group a skin can't fill holds one story that says why. */
+const GROUPS = ["Cards", "Bundles", "Dashboards", "Foundations", "Home Assistant"];
+
+/** The stories every card has, in this order, as [export, sidebar name]. A card's own states come first; it may add capability stories in between. */
+const STANDARD: [string, string][] = [
+  ["Unavailable", "Unavailable"],
+  ["WorstCase", "Worst case"],
+  ["AllStates", "All states"],
+  ["Sizes", "Sizes"],
+  ["Footprints", "Footprints"],
+  ["Compact", "Compact"],
+  ["Details", "Details"],
+  ["DetailsUnavailable", "Details, unavailable"],
+  ["DetailsPhone", "Details, phone"],
+];
+
+const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
+const label = (name: string) => name[0].toUpperCase() + name.slice(1);
+
+/** Each story export of a CSF file and its sidebar name: its `name:`, or the export name when it has none. */
+function stories(source: string) {
+  const out: { id: string; name: string }[] = [];
+  const exports = [...source.matchAll(/^export const (\w+): Story = /gm)];
+  exports.forEach((m, i) => {
+    const body = source.slice(m.index + m[0].length, exports[i + 1]?.index ?? source.length);
+    out.push({ id: m[1], name: body.match(/^\{\s*name: "([^"]+)"/)?.[1] ?? m[1] });
+  });
+  return out;
+}
+
+/** `storySort.order` in .storybook/preview.tsx, which must stay a literal for Storybook to read it. */
+function storySort(): unknown[] {
+  const source = read(".storybook/preview.tsx");
+  const start = source.indexOf("[", source.indexOf("order:"));
+  let depth = 0;
+  let end = start;
+  for (; end < source.length; end++) {
+    if (source[end] === "[") depth++;
+    if (source[end] === "]" && --depth === 0) break;
+  }
+  return JSON.parse(source.slice(start, end + 1).replace(/\/\/.*$/gm, "").replace(/,(\s*\])/g, "$1"));
+}
+
+const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: true })
+  .filter((d) => d.isDirectory())
+  .map(({ name: skin }) => {
+    const dir = `src/skins/${skin}`;
+    const section = read(`${dir}/storybook.tsx`).match(/section: "([^"]+)"/)?.[1] ?? "";
+    const files = readdirSync(join(process.cwd(), dir), { recursive: true, encoding: "utf8" })
+      .filter((f) => f.endsWith(".stories.tsx"))
+      .map((f) => posix.join(dir, f))
+      .map((path) => ({ path, source: read(path) }))
+      .map(({ path, source }) => ({ path, source, title: source.slice(source.indexOf("const meta")).match(/\btitle: "([^"]+)"/)?.[1] ?? "" }));
+    const cards = readdirSync(join(process.cwd(), dir, "cards"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+    return { skin, section, files, cards };
+  });
+
+describe("the Storybook tree", () => {
+  it("covers every skin", () => {
+    expect(skins.map((s) => s.section).filter((s) => !s), "each src/skins/<skin>/storybook.tsx names its section").toEqual([]);
+  });
+
+  it("orders every skin's groups the same in storySort", () => {
+    const order = storySort();
+    for (const { section } of skins) {
+      const i = order.indexOf(section);
+      expect(i, `.storybook/preview.tsx: list ${section} in storySort`).toBeGreaterThanOrEqual(0);
+      const groups = (order[i + 1] as unknown[]).filter((g) => typeof g === "string");
+      expect(groups, `${section}'s groups in storySort`).toEqual(GROUPS);
+    }
+  });
+});
+
+describe.each(skins)("the $section section", ({ section, files, cards, skin }) => {
+  it("files every story under one of the shared groups", () => {
+    const stray = files.filter(({ title }) => !GROUPS.some((g) => title.startsWith(`${section}/${g}`))).map((f) => `${f.path}: "${f.title}"`);
+    expect(stray, `titles start with ${section}/<${GROUPS.join(" | ")}>`).toEqual([]);
+  });
+
+  it("has every group, filled or saying why it is empty", () => {
+    const present = GROUPS.filter((g) => files.some(({ title }) => title === `${section}/${g}` || title.startsWith(`${section}/${g}/`)));
+    expect(present).toEqual(GROUPS);
+  });
+
+  describe.each(cards)(`src/skins/${skin}/cards/%s`, (card) => {
+    const title = `${section}/Cards/${label(card)}`;
+    const own = files.find((f) => f.path.startsWith(`src/skins/${skin}/cards/${card}/`) && f.title === title);
+
+    it(`is titled ${section}/Cards/<Name>`, () => {
+      expect(own?.path, `a stories file in src/skins/${skin}/cards/${card}/ titled "${title}"`).toBeDefined();
+    });
+
+    it("has the standard stories, in order and by their shared names", () => {
+      const found = stories(own?.source ?? "");
+      const ids = found.map((s) => s.id);
+      expect(STANDARD.map(([id]) => id).filter((id) => !ids.includes(id)), "missing standard stories").toEqual([]);
+      const positions = STANDARD.map(([id]) => ids.indexOf(id));
+      expect(positions, `standard stories in the order ${STANDARD.map(([id]) => id).join(", ")}`).toEqual([...positions].sort((a, b) => a - b));
+      const misnamed = STANDARD.filter(([id, name]) => found.find((s) => s.id === id)?.name !== name).map(([id, name]) => `${id} should be named "${name}"`);
+      expect(misnamed).toEqual([]);
+    });
+
+    it(`has a connected story under ${section}/Home Assistant/<Name>`, () => {
+      expect(files.some((f) => f.title === `${section}/Home Assistant/${label(card)}`)).toBe(true);
+    });
+  });
+});

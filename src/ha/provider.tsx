@@ -28,7 +28,7 @@ export interface HaProviderProps {
   children: ReactNode;
 }
 
-/** Own the store lifecycle at the application boundary, not inside a widget. */
+/** Own the store lifecycle at the application boundary, not inside a card. */
 export function HaProvider({ store, children }: HaProviderProps) {
   const activeStore = useRef<HaStore | null>(null);
   const effectGeneration = useRef(0);

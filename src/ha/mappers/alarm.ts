@@ -19,7 +19,7 @@ export interface AlarmMapOptions {
   triggeredBy?: string;
 }
 
-/** AlarmControlPanelEntityFeature bits, in the widget's display order. */
+/** AlarmControlPanelEntityFeature bits, in the card's display order. */
 const FEATURES: [number, AlarmMode][] = [[1, "home"], [2, "away"], [4, "night"], [32, "vacation"], [16, "custom_bypass"]];
 const STATES: Record<AlarmState, true> = {
   disarmed: true,
@@ -43,7 +43,7 @@ function modeOf(value: unknown): AlarmMode | undefined {
   return FEATURES.some(([, feature]) => feature === mode) ? (mode as AlarmMode) : undefined;
 }
 
-/** Map one raw Home Assistant alarm_control_panel state to the widget's entity. */
+/** Map one raw Home Assistant alarm_control_panel state to the card's entity. */
 export function alarmFromHass(raw: HassEntity | undefined, entityId: string, options: AlarmMapOptions = {}): AlarmEntity {
   const attributes = raw?.attributes ?? {};
   const state: AlarmState = typeof raw?.state === "string" && STATES[raw.state as AlarmState] === true

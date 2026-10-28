@@ -6,7 +6,7 @@ import { createHaStore } from "../../../ha/store";
 import { createDemoSensorHaTransport } from "../../../ha/demo";
 
 const meta = {
-  title: "Orb/Home Assistant/Sensor tile",
+  title: "Orb/Home Assistant/Sensor",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

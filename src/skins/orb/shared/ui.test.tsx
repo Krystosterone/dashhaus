@@ -21,7 +21,7 @@ describe("paint", () => {
     expect(p.style["--color-h"]).toBe(52);
     expect(paint("state", 0).style["--color-c"]).toBeUndefined();
   });
-  it("lets the prop override the widget's own colour, and none keep the orb neutral", () => {
+  it("lets the prop override the card's own colour, and none keep the orb neutral", () => {
     const own = { c: 0.13, h: 52 };
     const over = paint("energy", 0, own, "sage");
     expect(over.style["--color-c"]).toBe(COLORS.sage.c);
@@ -91,7 +91,7 @@ describe("useCard", () => {
   });
 });
 
-/** The smallest widget: its name, and a close button in the sheet. */
+/** The smallest card: its name, and a close button in the sheet. */
 function Probe({ entity, variant, footprint, showControl, onOpenDetails, onClose }: CardProps & { entity: { name: string } }) {
   const { sheet, nameId, article } = useCard("xx", { variant, footprint, showControl });
   return (
@@ -105,7 +105,7 @@ const ProbeSheet = detailsSheet(Probe);
 const ProbeTile = detailsTile(Probe, ProbeSheet);
 
 describe("detailsSheet and detailsTile", () => {
-  it("renders the widget as itself in a labelled sheet", () => {
+  it("renders the card as itself in a labelled sheet", () => {
     render(<ProbeSheet entity={{ name: "Fan" }} open onClose={() => {}} />);
     expect(screen.getByRole("dialog", { hidden: true }).getAttribute("aria-label")).toBe("Fan details");
     expect(document.querySelector("dialog article")?.className).toBe("hd xx hd--sheet");
@@ -127,7 +127,7 @@ describe("detailsSheet and detailsTile", () => {
     render(<ProbeTile entity={{ name: "Fan" }} defaultOpen />);
     expect(document.querySelector("dialog article")).not.toBeNull();
   });
-  it("names the wrappers after the widget", () => {
+  it("names the wrappers after the card", () => {
     expect(ProbeSheet.displayName).toBe("ProbeSheet");
     expect(ProbeTile.displayName).toBe("ProbeTile");
   });

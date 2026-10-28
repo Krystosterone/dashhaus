@@ -1,6 +1,6 @@
 ---
 name: attention-budget
-description: Decide how much attention each widget and dashboard card may claim — who glows, who is subordinate, and how urgent states are marked. Use when building or editing a widget's glow/colour treatment, composing or reviewing a dashboard, or changing the damping rules in layout.css / card.css. Codifies research/02-attention-budget.md.
+description: Decide how much attention each card on a dashboard may claim — who glows, who is subordinate, and how urgent states are marked. Use when building or editing a card's glow/colour treatment, composing or reviewing a dashboard, or changing the damping rules in layout.css / card.css. Codifies research/02-attention-budget.md.
 ---
 
 # Attention Budget
@@ -29,7 +29,7 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 
 ## Rules
 
-- `paint(role, glow, own, prop)` is the only way a widget asks for glow. `--glow-damp` is set by the dashboard (`layout.css`), never by a widget.
+- `paint(role, glow, own, prop)` is the only way a card asks for glow. `--glow-damp` is set by the dashboard (`layout.css`), never by a card.
 - The damping values (100% / 50% / 0%) are a product heuristic. Change them only after a scan-task comparison shows missed urgent states or slower target finding; never justify them by citing Apple numbers.
 - Apple's `relevanceScore`, "up to three" Live Activities, and the 2-second animation cap are ordering and presentation precedents — not opacity, glow, or percentage formulas. Do not cite them as such.
 - Warn treatments use tokens from `src/skins/orb/styles/tokens.css`, never colour literals.
@@ -38,5 +38,5 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 ## Verify
 
 - `npm run typecheck`.
-- Storybook: affected widget's story at every width and footprint, and Orb → Foundations → Worst case.
+- Storybook: affected card's story at every width and footprint, and Orb → Foundations → Worst case.
 - Dashboard stories: exactly one card reads as the primary claim per screen, urgent states read urgent, and no state is communicated by glow alone. Skim the screen with colour ignored — does every state still read?

@@ -1,7 +1,7 @@
 import type { HourSample } from "../history";
 export type { HourSample };
 
-/** Mirrors the parts of a Home Assistant `light.*` entity the widget needs. */
+/** Mirrors the parts of a Home Assistant `light.*` entity the card needs. */
 export type LightState = "on" | "off" | "unavailable";
 
 export interface LightEntity {

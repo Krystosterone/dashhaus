@@ -1,8 +1,8 @@
 import { useHaLight } from "../../../ha/hooks/light";
 import type { HaLightOptions } from "../../../ha/hooks/light";
 import type { LightHandlers } from "../../../ha/actions/light";
-import { LightTile } from "../widgets/light/LightTile";
-import type { LightTileProps } from "../widgets/light/LightTile";
+import { LightTile } from "../cards/light/LightTile";
+import type { LightTileProps } from "../cards/light/LightTile";
 
 export interface HaLightTileProps extends HaLightOptions, Omit<LightTileProps, "entity" | "history" | keyof LightHandlers> {
   entityId: string;

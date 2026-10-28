@@ -24,7 +24,7 @@ export interface ToggleHandlerOptions {
  * Create safe callback handlers for the existing ToggleTile contract.
  *
  * Native Home Assistant has no timed-on ("turn on for N minutes") service for input_boolean or switch:
- * both only expose `toggle`. The widget's durations feature is a host-side timer hook, so `onTurnOnFor`
+ * both only expose `toggle`. The card's durations feature is a host-side timer hook, so `onTurnOnFor`
  * is intentionally absent here and stays host-owned.
  */
 export function createToggleHandlers(caller: ToggleServiceCaller, entity: ToggleEntity, options: ToggleHandlerOptions): ToggleHandlers {
