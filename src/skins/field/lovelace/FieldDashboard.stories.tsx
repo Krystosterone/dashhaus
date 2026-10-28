@@ -28,14 +28,14 @@ const ENTITIES: HassEntities = {
 };
 
 const ITEMS: ModuleConfig[] = [
-  { entity: "light.ceiling", area: "Living room" },
-  { entity: "climate.living_room", area: "Living room" },
-  { entity: "light.reading_lamp", area: "Living room" },
-  { entity: "light.night_light", area: "Nursery" },
-  { entity: "sensor.nursery_temperature", area: "Nursery", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" },
-  { entity: "light.desk_strip", area: "Office" },
-  { entity: "light.porch", area: "Outside" },
-  { entity: "sensor.outside_temperature", area: "Outside", battery: "sensor.outside_battery", outdoor: true },
+  { entity: "light.ceiling", kind: "light", area: "Living room" },
+  { entity: "climate.living_room", kind: "climate", area: "Living room" },
+  { entity: "light.reading_lamp", kind: "light", area: "Living room" },
+  { entity: "light.night_light", kind: "light", area: "Nursery" },
+  { entity: "sensor.nursery_temperature", kind: "sensor", area: "Nursery", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" },
+  { entity: "light.desk_strip", kind: "light", area: "Office" },
+  { entity: "light.porch", kind: "light", area: "Outside" },
+  { entity: "sensor.outside_temperature", kind: "sensor", area: "Outside", battery: "sensor.outside_battery", outdoor: true },
 ];
 
 function Demo({ title, footprint }: { title?: string; footprint: FieldFootprint }) {

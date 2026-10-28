@@ -12,7 +12,7 @@ const entities: HassEntities = {
   "sensor.office_temperature": { entity_id: "sensor.office_temperature", state: "21.2", attributes: { friendly_name: "Office air", device_class: "temperature", unit_of_measurement: "°C" } },
   "sensor.office_power": { entity_id: "sensor.office_power", state: "84", attributes: { friendly_name: "Office power", device_class: "power" } },
   "light.hidden": { entity_id: "light.hidden", state: "off", attributes: { friendly_name: "Hidden" } },
-  "input_boolean.guest": { entity_id: "input_boolean.guest", state: "off", attributes: { friendly_name: "Guest" } },
+  "input_text.note": { entity_id: "input_text.note", state: "", attributes: { friendly_name: "Note" } },
 };
 
 const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn() }));
@@ -101,8 +101,8 @@ describe("home-dashboard-field card", () => {
   it("throws every config problem for the YAML editor to show", () => {
     const card = document.createElement("home-dashboard-field-test") as Card;
     expect(() => card.setConfig({ modules: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
-    expect(() => card.setConfig({ modules: ["switch.fan"] })).toThrow(DashboardConfigError);
-    expect(() => card.setConfig({ modules: ["switch.fan"] })).toThrow("switch.fan must be a light.* or climate.* or sensor.* entity");
+    expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(DashboardConfigError);
+    expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(/input_text\.note must be a light\.\* or .* entity/);
   });
 
   it("pre-fills the card picker in automatic mode", () => {

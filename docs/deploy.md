@@ -188,7 +188,9 @@ modules:                 # optional; leave out for every supported entity by are
 | `title` | text | none |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
-| `modules` | a list of `light.*`, `climate.*` or `sensor.*` entity ids or maps of `entity`, `name`, `area`, `footprint`; a sensor also takes `humidity`, `battery` (`sensor.*` ids) and `outdoor` | every visible supported entity |
+| `modules` | a list of `light.*`, `climate.*` or `sensor.*` entity ids or maps of `entity`, `card`, `name`, `area`, `footprint`; a sensor also takes `humidity`, `battery` (`sensor.*` ids) and `outdoor` | every visible supported entity |
+
+Each module's entity id picks its card. Where two field cards draw one domain, the domain's own card is the default and `card:` picks the other; the error lists the cards that can draw it.
 
 Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate and sensor dashboard on demo data.
 

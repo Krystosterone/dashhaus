@@ -5,26 +5,20 @@
  *   npm run new-card -- fan --code fn --domain fan
  *   npm run new-card -- co2 --code co --domain sensor --kind reading --unit ppm
  *
+ * With `--skin field` it draws a domain that already exists in the field skin instead (./field.mjs).
+ *
  * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the card
  * everywhere the conformance test (src/skins/orb/cards/conformance.test.ts) looks, the Lovelace card included:
  *   - control (default): an on/off entity with an orb and a pill, over `<domain>.toggle`.
  *   - reading: a read-only number with a bare icon and a readout, no services.
  * Nothing is written unless every file and every registration can be made.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { afterLast, before, changes, fail, filler, intoObject, read, root } from "./lib.mjs";
 
-const root = fileURLToPath(new URL("../../", import.meta.url));
 /** The skin a new card is drawn in; its logic goes outside it, in src/domains/ and src/ha/. */
 const SKIN = "src/skins/orb";
-const templates = fileURLToPath(new URL("./templates/", import.meta.url));
-const read = (path) => readFileSync(join(root, path), "utf8");
-
-const fail = (message) => {
-  console.error(`new-card: ${message}`);
-  process.exit(1);
-};
 
 // ---------- Arguments ----------
 const args = process.argv.slice(2);
@@ -37,6 +31,16 @@ const flag = (name) => {
 };
 const dryRun = args.includes("--dry-run");
 if (dryRun) args.splice(args.indexOf("--dry-run"), 1);
+const skin = flag("skin") ?? "orb";
+if (skin === "field") {
+  const { newFieldCard } = await import("./field.mjs");
+  const options = { kind: flag("kind"), code: flag("code"), dryRun };
+  const [fieldName, ...rest] = args;
+  if (!fieldName || rest.length) fail("usage: npm run new-card -- <name> --skin field [--kind control|reading] [--code <xx>] [--dry-run]\n       e.g. npm run new-card -- humidifier --skin field");
+  newFieldCard({ name: fieldName, ...options });
+  process.exit(0);
+}
+if (skin !== "orb") fail(`skin "${skin}" must be "orb" (the default) or "field"`);
 const code = flag("code");
 const domain = flag("domain");
 const kind = flag("kind") ?? "control";
@@ -81,46 +85,15 @@ const tokens = {
   __domain__: domain,
   __unit__: unit ?? "%",
 };
-const fill = (text) => Object.entries(tokens).reduce((s, [token, value]) => s.replaceAll(token, value), text);
+const fill = filler(tokens);
 
 // ---------- Files from the template ----------
-const walk = (dir, out = []) => {
-  for (const entry of readdirSync(dir)) {
-    const path = join(dir, entry);
-    if (statSync(path).isDirectory()) walk(path, out);
-    else out.push(path);
-  }
-  return out;
-};
-/** path (relative to the repo) → content. The kind's own files win over common ones. */
-const writes = new Map();
-for (const base of ["common", kind].map((dir) => join(templates, dir))) {
-  for (const source of walk(base)) {
-    const target = fill(relative(base, source));
-    if (existsSync(join(root, target))) fail(`${target} already exists`);
-    writes.set(target, fill(readFileSync(source, "utf8")));
-  }
-}
+// The kind's own files win over common ones.
+const change = changes();
+const { writes, edit } = change;
+change.fromTemplates(["common", kind], fill);
 
 // ---------- Registrations ----------
-/** Change one file in place, failing loudly when the change finds nothing to anchor on. */
-const edit = (path, change) => {
-  const current = writes.get(path) ?? read(path);
-  const next = change(current);
-  if (next === current) fail(`could not register in ${path}: its anchor moved. Update scripts/new-card/index.mjs`);
-  writes.set(path, next);
-};
-const before = (anchor, text) => (s) => {
-  const i = typeof anchor === "string" ? s.indexOf(anchor) : s.search(anchor);
-  return i === -1 ? s : s.slice(0, i) + text + s.slice(i);
-};
-const afterLast = (pattern, text) => (s) => {
-  const matches = [...s.matchAll(pattern)];
-  const last = matches.at(-1);
-  if (!last) return s;
-  const end = s.indexOf("\n", last.index) + 1;
-  return s.slice(0, end) + text + s.slice(end);
-};
 
 // Public exports: the card, its tile, its types, its hook and its connected tile.
 edit("src/index.ts", before('export { JoinedBundle, LeadBundle, TitledBundle } from "./skins/orb/bundles/Bundle";', fill(`// __Label__
@@ -190,8 +163,6 @@ edit("AGENTS.md", before(". Outside the cards", `, \`${code}-\` ${words}`));
 
 // A card on the Lovelace dashboard. The domain picks it; when the domain already has a card, `card:` does.
 const lovelace = `${SKIN}/lovelace/config.ts`;
-/** Add a line at the end of a top-level `const <name> … = { … };` object. */
-const intoObject = (constName, line) => (s) => s.replace(new RegExp(`(const ${constName}\\b[^{]*\\{[\\s\\S]*?)(\\n\\};)`), `$1\n${line}$2`);
 const domainKinds = read(lovelace).match(/const DOMAIN_KIND\b[^{]*\{([\s\S]*?)\n\};/)?.[1];
 if (domainKinds == null) fail(`could not find DOMAIN_KIND in ${lovelace}. Update scripts/new-card/index.mjs`);
 const sharesDomain = new RegExp(`^\\s*${domain}:`, "m").test(domainKinds);
@@ -216,14 +187,7 @@ edit(deploy, (s) => s.replace(/^\| ([a-z, ]+) \| `color` \|/m, `| $1, ${words} |
 if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | The unit, when the entity doesn't say. |\n`));
 
 // ---------- Write ----------
-if (dryRun) {
-  for (const path of [...writes.keys()].sort()) console.log(`${existsSync(join(root, path)) ? "edit  " : "create"} ${path}`);
-  process.exit(0);
-}
-for (const [path, content] of writes) {
-  mkdirSync(dirname(join(root, path)), { recursive: true });
-  writeFileSync(join(root, path), content);
-}
+if (!change.commit(dryRun)) process.exit(0);
 
 const created = [...writes.keys()].filter((p) => p.includes(`/${name}`) || p.includes(`${Name}`));
 console.log(`Created the ${words} ${kind} card (${code}-, ${domain}.*): ${created.length} files, registered in ${writes.size - created.length} more.

@@ -1,6 +1,6 @@
 import type { AutoEntityEntry } from "../../../ha/lovelace/element";
 import { roomSensors } from "../../../ha/lovelace/rooms";
-import { FIELD_DOMAINS } from "./config";
+import { kindOf } from "./config";
 import type { ModuleConfig } from "./config";
 
 /** What the automatic layout reads from `hass`: states for names, and the registries for areas. */
@@ -11,8 +11,6 @@ export interface AutoInput {
   areas?: Record<string, { name: string }>;
 }
 
-const domainOf = (id: string) => id.slice(0, id.indexOf("."));
-
 /** An entity's area name from the frontend's registries: its own area, else its device's. */
 export function areaName(input: AutoInput, entityId: string): string | undefined {
   const entry = input.entities?.[entityId];
@@ -21,30 +19,30 @@ export function areaName(input: AutoInput, entityId: string): string | undefined
 }
 
 /**
- * Every supported entity Field can draw, for a card without `modules`: hidden and config or diagnostic entities
- * left out, sorted by name. Of sensors, only room air: one per device, its humidity and battery as companions
- * (`roomSensors`). The dashboard groups them by area.
+ * Every supported entity Field can draw, for a card without `modules`, as the card its entity id picks: hidden and
+ * config or diagnostic entities left out, sorted by name. The sensor card takes only room air: one per device, its
+ * humidity and battery as companions (`roomSensors`). The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states, entities = {} } = input;
   const name = (m: ModuleConfig) => String(states[m.entity]?.attributes.friendly_name ?? m.entity);
-  const controls = Object.keys(states)
-    .filter((id) => {
-      const entry = entities[id];
-      return !entry?.hidden && !entry?.entity_category && domainOf(id) !== "sensor" && (FIELD_DOMAINS as readonly string[]).includes(domainOf(id));
-    })
-    .map((entity) => ({ entity }));
-  return [...controls, ...roomSensors(input)].sort((a, b) => name(a).localeCompare(name(b)));
+  const others = Object.keys(states).flatMap((entity): ModuleConfig[] => {
+    const entry = entities[entity];
+    const kind = kindOf(entity);
+    return !entry?.hidden && !entry?.entity_category && kind && kind !== "sensor" ? [{ entity, kind }] : [];
+  });
+  const sensors = roomSensors(input).map((room): ModuleConfig => ({ ...room, kind: "sensor" }));
+  return [...others, ...sensors].sort((a, b) => name(a).localeCompare(name(b)));
 }
 
-export interface AreaGroup { area?: string; modules: ModuleConfig[] }
+export interface AreaGroup<M extends { area?: string } = ModuleConfig> { area?: string; modules: M[] }
 
 /**
  * Modules by area, areas by name, each module keeping its order within its area. Modules with no area come last,
  * under no heading.
  */
-export function groupByArea(modules: readonly ModuleConfig[]): AreaGroup[] {
-  const groups = new Map<string | undefined, ModuleConfig[]>();
+export function groupByArea<M extends { area?: string }>(modules: readonly M[]): AreaGroup<M>[] {
+  const groups = new Map<string | undefined, M[]>();
   for (const m of modules) groups.set(m.area, [...(groups.get(m.area) ?? []), m]);
   return [...groups.entries()]
     .sort(([a], [b]) => (a == null ? 1 : b == null ? -1 : a.localeCompare(b)))

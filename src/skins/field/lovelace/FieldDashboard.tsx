@@ -8,13 +8,13 @@ import { HaSensorModule } from "../ha/HaSensorModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
-import type { FieldDomain, ModuleConfig } from "./config";
+import type { FieldKind, ModuleConfig } from "./config";
 import "./dashboard.css";
 
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
 
-/** Each domain's connected module, given a module's config and its footprint. A new card adds its row here. */
-const LIVE: Record<FieldDomain, (props: LiveProps) => ReactNode> = {
+/** Each card's connected module, given a module's config and its footprint. A new card adds its row here. */
+const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
   light: ({ item, footprint }) => <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
   climate: ({ item, footprint }) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
   sensor: ({ item, footprint }) => (
@@ -22,10 +22,9 @@ const LIVE: Record<FieldDomain, (props: LiveProps) => ReactNode> = {
   ),
 };
 
-/** One live module, routed by its validated entity domain to the skin-free hook and the matching Field drawing. */
+/** One live module, routed by its card to the skin-free hook and the matching Field drawing. */
 function LiveModule({ item, footprint }: LiveProps) {
-  const domain = item.entity.slice(0, item.entity.indexOf(".")) as FieldDomain;
-  return LIVE[domain]({ item, footprint: item.footprint ?? footprint });
+  return LIVE[item.kind]({ item, footprint: item.footprint ?? footprint });
 }
 
 /** The latest command Home Assistant rejected, with Retry when repeating it is safe, and Dismiss. */

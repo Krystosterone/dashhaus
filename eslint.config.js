@@ -39,6 +39,12 @@ export default tseslint.config(
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
+    // Field's templates fill some uses from what the domain has (`__samples__`, `__DEMO__`), so a value can look
+    // unused until the generator writes the card. It writes it into src/, where it is linted in full.
+    files: ["scripts/new-card/templates/field/**"],
+    rules: { "@typescript-eslint/no-unused-vars": "off" },
+  },
+  {
     // The Home Assistant boundary: a skin's cards, layout and stories never see the transport or raw entities.
     // Only src/ha/, the public barrel, and a skin's own ha/ (connected tiles) and lovelace/ (its card) may import it.
     // Skins never import each other either; src/skins/boundaries.test.ts checks that.
