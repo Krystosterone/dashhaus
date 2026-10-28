@@ -1,6 +1,6 @@
 # AGENTS.md
 
-React + TypeScript widgets for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app; the checks are the ones under Commands. The spec is split: `README.md` (design and composition rules) and `docs/widgets.md` (per-widget behaviour) — consult both before changing widget behaviour. The UI is a skin, `orb`, in `src/skins/orb/`; the entity models and Home Assistant logic under it are skin-free, so another skin can sit on them (Layout → Adding a skin). Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
+React + TypeScript skins for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app; the checks are the ones under Commands. The current skins are Orb (`src/skins/orb/`) and Field (`src/skins/field/`); the entity models and Home Assistant logic under them are skin-free. The spec is split: `README.md` contains Orb's design and composition rules, `docs/field.md` contains Field's, and `docs/widgets.md` contains per-widget behaviour. Consult the affected skin's rules and the widget behaviour before changing it. Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
 
 ## Commands
 
@@ -20,7 +20,7 @@ React + TypeScript widgets for a custom Home Assistant dashboard, developed and 
 
 1. `npm run check` — typecheck, lint, and unit tests.
 2. `npm run test-storybook` — every story renders and passes axe; failures name the rule, impact, and elements.
-3. `npm run storybook` — open the affected widget's story, check every width and footprint, and Orb → Foundations → Worst case.
+3. `npm run storybook` — open the affected widget's state matrix, Sizes and Compact stories, check every width and footprint, and inspect its Worst case story when present. For Orb-wide changes, also inspect Orb → Foundations → Worst case.
 
 Unit tests cover pure logic and shared hooks (kelvin, track position, formatting, alarm mapping, nav resolution, `useNow`, `useLongPress`, `useTrack`, `useScrollSpy`, `useHashPage`); stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/skins/orb/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
 
@@ -42,11 +42,22 @@ The code is split by responsibility, so a whole different UI, a skin, can sit on
 - `src/index.ts` — public exports. Every new widget must be exported here.
 - `scripts/new-widget/` — the widget generator, drawing new widgets in the orb skin. `templates/common` plus `templates/control` or `templates/reading` mirror the repo with `__Name__`, `__name__`, `__code__`, `__domain__` and `__unit__` placeholders. Change the templates when the framework changes, so new widgets start from the current rules. `index.test.ts` runs the generator: a dry run against the repo for every anchor it edits, and a real run in a temporary copy that must typecheck and pass the conformance test.
 
-- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` (the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`), `widgets/light/` (`LightModule` with its detail panel, its only widget so far), `ha/` (`HaLightModule`), and `styles/` (`tokens.css` with every token prefixed `--fd-`, and `rules.test.ts`), and `lovelace/`, its card `custom:home-dashboard-field` (`config.ts`, `auto.ts`, `FieldDashboard.tsx`, `card.tsx`; YAML in `docs/deploy.md` → The field dashboard). Class prefix `fd-`; a widget adds its own, `fd-lt-` for the light.
+- `src/skins/field/` — the field skin, a second UI after Teenage Engineering's EP–133 K.O. II (`docs/field.md`): `shared/` owns the module, key, screen, fader, meter and detail panel in `ui.tsx`, `module.css` and `panel.css`; `widgets/light/` and `widgets/climate/` own `LightModule` and `ClimateModule`, each with its CSS, demo, stories, tests and detail content; `ha/` connects them as `HaLightModule` and `HaClimateModule`; `styles/` owns `tokens.css` with every token prefixed `--fd-` and `rules.test.ts`; `lovelace/` owns `custom:home-dashboard-field` through `config.ts`, `auto.ts`, `FieldDashboard.tsx` and `card.tsx` (YAML in `docs/deploy.md` → The field dashboard). Shared classes use `fd-`; widget classes add `fd-lt-` for light and `fd-cl-` for climate.
 
 ### Adding a skin
 
 Create `src/skins/<skin>/` with its `styles/tokens.css` (scope its tokens so they can't collide with another skin's) and a `storybook.tsx` like orb's (its section, toolbar, `surface` body class and decorator), added to `SKINS` in `.storybook/preview.tsx`, and title its stories `<Skin>/…`. Draw its cards from the `useHa<Name>` hooks or headless components; never import another skin. For Home Assistant, extend `LovelaceDashboardElement` (`src/ha/lovelace/element.tsx`) in its `lovelace/`, giving it the skin's `fontHref`, read its YAML with `src/ha/lovelace/yaml.ts`'s `Reader`, import its `tokens.css` and register the card in `src/ha/lovelace/entry.ts`. Write its own design rules down, and encode them in a rules test like orb's.
+
+### Adding an existing domain to another skin
+
+The domain and Home Assistant slice already exist; add only the new skin's drawing and adapters:
+
+1. Reuse `src/domains/<name>/` and `useHa<Name>` from `src/ha/hooks/<name>.ts`. Do not fork its entity model, mapper, actions, history parsing or demo transport for a skin.
+2. Add the presentational component, skin-prefixed CSS, icons, local demo seeds, interaction tests and stories under `src/skins/<skin>/widgets/<name>/`. Presentational files never import `src/ha/`; keep worst-case data in the demo seeds rather than adding product-only debug props or URL switches.
+3. Add `src/skins/<skin>/ha/Ha<Name><Surface>.tsx`, where `<Surface>` is that skin's noun such as `Tile` or `Module`. It calls the shared `useHa<Name>` hook and only adapts its result to the presentational component. Add its real-store Storybook story and focused adapter tests.
+4. Extend that skin's Lovelace parser, generated layout and renderer, plus the corresponding YAML in `docs/deploy.md`. Reuse the connected container there instead of repeating hook-to-view wiring.
+5. Export the presentational component, connected container and their prop types from `src/index.ts`; token CSS is imported once per skin, not by individual widgets.
+6. Run the skin's rules test, `npm run check`, `npm run test-storybook` and `npm run build:ha`; visually inspect the state matrix, every supported width and footprint, compact rows, details, unavailable data and the longest labels.
 
 ## Hard rules
 

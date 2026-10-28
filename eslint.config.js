@@ -13,7 +13,7 @@ const haBoundary = [
 const noSkin = (message) => [{ group: ["**/skins/**", "*.css", "**/*.css"], message }];
 
 export default tseslint.config(
-  { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**"] },
+  { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
