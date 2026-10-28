@@ -31,7 +31,7 @@ The integration now covers one `light.*` entity, one `climate.*` entity, one com
 - `src/ha/actions/climate.ts` builds climate on/off, setpoint, range, mode, preset, and fan payloads, gates capability arrays, validates finite/ranged temperatures, and reports rejected actions.
 - `src/skins/orb/ha/HaClimateTile.tsx` and `src/skins/field/ha/HaClimateModule.tsx` connect the same hook to each skin without changing the normalized climate contract.
 - `src/ha/mappers/sensor.ts` composes a primary temperature or humidity sensor with optional humidity and battery companions, preserving numeric readings, units, availability, outdoor metadata, and timestamps.
-- `src/skins/orb/ha/HaSensorTile.tsx` connects the shared store to the existing read-only `SensorTile`; it has no service actions.
+- `src/skins/orb/ha/HaSensorTile.tsx` and `src/skins/field/ha/HaSensorModule.tsx` connect `useHaSensor` to each skin's read-only sensor; neither has service actions.
 - `src/ha/mappers/weather.ts` maps `weather.*` conditions and numeric readings, composes explicit `sensor.*` AQI and `sun.sun` companions, and parses response-shaped hourly/daily forecast data without treating forecasts as current state.
 - `src/skins/orb/ha/HaWeatherTile.tsx` connects the shared store to the existing `WeatherTile`/`WeatherCard`, requests hourly and daily forecasts through `weather.get_forecasts` with a response request, and leaves forecast failures observable through `onForecastError`.
 - `src/ha/mappers/cover.ts` maps raw cover state, device class, position/tilt readings, and `supported_features` bits (set-position, stop, tilt) into the existing `CoverEntity` model; unknown is never presented as closed.

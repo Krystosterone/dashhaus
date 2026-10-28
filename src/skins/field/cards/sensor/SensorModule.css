@@ -1,0 +1,18 @@
+/* Sensor module (fd-sw): a reading. Its glyph where a key would be, then today's meter where a fader would be. */
+.fd-sw-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+
+/* Narrow modules keep the figure and one meta line; the glyph below names the reading, so the pictogram goes. */
+@container (max-width: 239px) {
+  .fd-sw .fd-meta-2 { display: none; }
+  .fd-sw .fd-read { font-size: 22px; }
+  .fd-sw .fd-screen .fd-pict { display: none; }
+}
+
+/* A narrow row keeps the figure and lets the thermometer go. */
+@container (max-width: 279px) {
+  .fd-sw[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-sw[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+
+/* The detail panel's sensor content. */
+.fd-sw-panel { display: grid; gap: 16px; min-width: 0; }

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "../../../../domains/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "../../../../domains/climate/modes";
 import { fmtDuration } from "../../../../domains/format";
-import { Blank, Fader, Key, Legend, Meter, Module, Panel, Pictogram, RangeFader, Screen } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, Legend, Module, Panel, Pictogram, RangeFader, Screen, Today } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { MinusIcon, ModeIcon, ModeShape, PlusIcon, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
@@ -25,9 +25,7 @@ export interface ClimateModuleProps {
 
 /** A fixed-place temperature: visual leading zeroes are CSS-only, while assistive technology hears the real value. */
 function Temperature({ value, unit }: { value: number; unit: ClimateEntity["unit"] }) {
-  const text = fmtCurrent(value);
-  const padding = "0".repeat(Math.max(0, 4 - text.length));
-  return <><span className="fd-digits" data-pad={padding || undefined}>{text}</span><small>{unit}</small></>;
+  return <><Digits text={fmtCurrent(value)} places={4} /><small>{unit}</small></>;
 }
 
 function targetCopy(e: ClimateEntity, mode: HvacMode) {
@@ -236,12 +234,7 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
         <TextKeys id={`${uid}-fan`} label="Fan" current={e.fanMode} options={e.fanModes} onChange={onFanChange} />
       )}
 
-      {history && (
-        <div className="fd-block">
-          <Legend value={today}>Today</Legend>
-          <Meter tone="neutral" label={`Climate activity by hour today. ${today}.`} samples={history.samples} currentHour={history.currentHour} />
-        </div>
-      )}
+      {history && <Today summary={today} label="Climate activity by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
       <p className="fd-info">
         <span>{unavailable ? `Last seen ${e.lastSeen ?? "unknown"}` : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : ""}</span>

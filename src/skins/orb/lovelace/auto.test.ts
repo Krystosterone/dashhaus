@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { autoDashboard, lovelaceDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
+import { roomSensors } from "../../../ha/lovelace/rooms";
 import type { SectionConfig } from "./config";
 
 const state = (entity_id: string, attributes: Record<string, unknown> = {}): AutoState => ({ entity_id, state: "on", attributes });
@@ -42,6 +43,11 @@ const input = {
 };
 
 describe("autoDashboard", () => {
+  it("finds the same room sensors as the shared roomSensors, which auto.ts repeats because it may only import types", () => {
+    const rooms = (autoDashboard(input).sections as { title: string; cards: unknown[] }[]).find((s) => s.title === "Rooms")!.cards;
+    expect(rooms).toEqual(roomSensors(input).map((r) => (r.humidity || r.battery ? r : r.entity)));
+  });
+
   it("lays out actions, household status, then the room and environment glance", () => {
     expect(autoDashboard(input)).toEqual({
       type: "custom:home-dashboard",

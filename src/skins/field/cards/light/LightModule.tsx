@@ -5,7 +5,7 @@ import { kelvinName, K_MIN, K_MAX } from "../../../../domains/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "../../../../domains/light/color";
 import type { Hs } from "../../../../domains/light/color";
 import { fmtDuration } from "../../../../domains/format";
-import { Module, Key, Screen, Digits, Blank, Fader, Pictogram, Panel, Legend, Meter, Swatch } from "../../shared/ui";
+import { Module, Key, Screen, Digits, Blank, Fader, Pictogram, Panel, Legend, Swatch, Today } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -209,12 +209,7 @@ function LightDetails({ e, read, pict, controls, history, onBrightnessChange, on
         </div>
       )}
 
-      {history && (
-        <div className="fd-block">
-          <Legend value={today}>Today</Legend>
-          <Meter label={`Brightness by hour today. ${today}.`} samples={history.samples} currentHour={history.currentHour} />
-        </div>
-      )}
+      {history && <Today summary={today} label="Brightness by hour today." samples={history.samples} currentHour={history.currentHour} />}
 
       <p className="fd-info">
         <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>

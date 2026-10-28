@@ -12,7 +12,7 @@ const stamp = "2026-10-19T11:20:00Z";
 const entity = (id: string, name: string, state: string, attributes: Record<string, unknown>) =>
   ({ [id]: { entity_id: id, state, attributes: { friendly_name: name, ...attributes }, last_changed: stamp, last_updated: stamp } });
 
-/** A small mixed house: Field's light types plus one heating thermostat. */
+/** A small mixed house: Field's light types, one heating thermostat, and room sensors with their companions. */
 const ENTITIES: HassEntities = {
   ...entity("light.ceiling", "Ceiling", "on", { supported_color_modes: ["color_temp"], color_mode: "color_temp", brightness: 204, color_temp_kelvin: 2700, min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
   ...entity("light.reading_lamp", "Reading lamp", "off", { supported_color_modes: ["color_temp"], min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
@@ -20,6 +20,11 @@ const ENTITIES: HassEntities = {
   ...entity("light.desk_strip", "Desk strip", "on", { supported_color_modes: ["color_temp", "hs"], color_mode: "color_temp", brightness: 153, color_temp_kelvin: 4000, min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
   ...entity("light.porch", "Porch", "on", { supported_color_modes: ["onoff"], color_mode: "onoff" }),
   ...entity("climate.living_room", "Thermostat", "heat", { hvac_modes: ["off", "heat", "cool", "heat_cool"], hvac_action: "heating", current_temperature: 20.4, current_humidity: 41, temperature: 21.5, min_temp: 7, max_temp: 30, target_temp_step: 0.5, temperature_unit: "°C", preset_mode: "home", preset_modes: ["home", "away", "sleep"], fan_mode: "auto", fan_modes: ["auto", "low", "high"] }),
+  ...entity("sensor.nursery_temperature", "Nursery air", "20.6", { device_class: "temperature", unit_of_measurement: "°C" }),
+  ...entity("sensor.nursery_humidity", "Nursery humidity", "47", { device_class: "humidity", unit_of_measurement: "%" }),
+  ...entity("sensor.nursery_battery", "Nursery battery", "64", { device_class: "battery", unit_of_measurement: "%" }),
+  ...entity("sensor.outside_temperature", "Outside", "6.2", { device_class: "temperature", unit_of_measurement: "°C" }),
+  ...entity("sensor.outside_battery", "Outside battery", "9", { device_class: "battery", unit_of_measurement: "%" }),
 };
 
 const ITEMS: ModuleConfig[] = [
@@ -27,8 +32,10 @@ const ITEMS: ModuleConfig[] = [
   { entity: "climate.living_room", area: "Living room" },
   { entity: "light.reading_lamp", area: "Living room" },
   { entity: "light.night_light", area: "Nursery" },
+  { entity: "sensor.nursery_temperature", area: "Nursery", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" },
   { entity: "light.desk_strip", area: "Office" },
   { entity: "light.porch", area: "Outside" },
+  { entity: "sensor.outside_temperature", area: "Outside", battery: "sensor.outside_battery", outdoor: true },
 ];
 
 function Demo({ title, footprint }: { title?: string; footprint: FieldFootprint }) {
@@ -45,7 +52,7 @@ const meta = {
   component: Demo,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light and climate modules over the demo transport. Every control works; open a module's panel from its name." } },
+    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate and sensor modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
   argTypes: { footprint: { control: "inline-radio", options: ["standard", "compact"] }, title: { control: "text" } },
   args: { title: "Home", footprint: "standard" },

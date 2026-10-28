@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "../../../../domains/sensor/types";
-import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, IconThermo, IconThermoOff } from "./readings";
+import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, lowBattery as isLowBattery, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
 import { AlertStatus, CardTitle, Readout, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./SensorCard.css";
@@ -22,9 +22,6 @@ export interface SensorCardProps extends CardProps {
   color?: ColorProp;
 }
 
-const TREND_WORD = { rising: "Rising", falling: "Falling", steady: "Steady" } as const;
-const LOW_BATTERY = 15;
-
 /**
  * A read-only temperature and humidity sensor using the shared modular footprint matrix.
  * A reading: neutral, a bare icon in place of an orb, and no glow because nothing is running.
@@ -40,7 +37,7 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   const colors = paint("reading", 0, null, color);
 
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
-  const lowBattery = !unav && e.battery != null && e.battery <= LOW_BATTERY;
+  const lowBattery = isLowBattery(e);
   const batteryText = lowBattery ? `Battery ${e.battery}%` : null;
   const alertLabel = batteryText ? `Warning: ${batteryText} on ${e.name}, replace soon` : null;
   const comfort = comfortLabel(tC, h, e.outdoor);

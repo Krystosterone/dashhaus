@@ -112,17 +112,8 @@ export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: C
 
 export type { HourSample, Reading };
 
-/**
- * Scale readings to 0.12-1 for a Today strip, keeping gaps and hours ahead; min and max are null with no
- * reading yet. `minSpan` keeps a near-flat day from filling the strip (0.5° for a temperature, 1 bpm …).
- */
-export function normalizeReadings(series: Reading[], minSpan = 0.5): { samples: HourSample[]; min: number | null; max: number | null } {
-  const nums = series.filter((x): x is number => typeof x === "number");
-  if (!nums.length) return { samples: series.map((x) => (typeof x === "number" ? 0 : x)), min: null, max: null };
-  const min = Math.min(...nums), max = Math.max(...nums);
-  const span = Math.max(max - min, minSpan);
-  return { samples: series.map((x) => (typeof x === "number" ? 0.12 + (0.88 * (x - min)) / span : x)), min, max };
-}
+/** Scale readings for a Today strip; shared with every skin through src/domains/history.ts. */
+export { normalizeReadings } from "../../../domains/history";
 
 export const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" /></svg>;
 

@@ -1,4 +1,5 @@
 import type { AutoEntityEntry } from "../../../ha/lovelace/element";
+import { roomSensors } from "../../../ha/lovelace/rooms";
 import { FIELD_DOMAINS } from "./config";
 import type { ModuleConfig } from "./config";
 
@@ -21,18 +22,19 @@ export function areaName(input: AutoInput, entityId: string): string | undefined
 
 /**
  * Every supported entity Field can draw, for a card without `modules`: hidden and config or diagnostic entities
- * left out, sorted by name. The dashboard groups them by area.
+ * left out, sorted by name. Of sensors, only room air: one per device, its humidity and battery as companions
+ * (`roomSensors`). The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states, entities = {} } = input;
-  const name = (id: string) => String(states[id]?.attributes.friendly_name ?? id);
-  return Object.keys(states)
+  const name = (m: ModuleConfig) => String(states[m.entity]?.attributes.friendly_name ?? m.entity);
+  const controls = Object.keys(states)
     .filter((id) => {
       const entry = entities[id];
-      return !entry?.hidden && !entry?.entity_category && (FIELD_DOMAINS as readonly string[]).includes(domainOf(id));
+      return !entry?.hidden && !entry?.entity_category && domainOf(id) !== "sensor" && (FIELD_DOMAINS as readonly string[]).includes(domainOf(id));
     })
-    .sort((a, b) => name(a).localeCompare(name(b)))
     .map((entity) => ({ entity }));
+  return [...controls, ...roomSensors(input)].sort((a, b) => name(a).localeCompare(name(b)));
 }
 
 export interface AreaGroup { area?: string; modules: ModuleConfig[] }

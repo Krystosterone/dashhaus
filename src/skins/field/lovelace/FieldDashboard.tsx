@@ -1,21 +1,31 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { useHaSelector, useHaStore } from "../../../ha/provider";
 import { actionMessage } from "../../../ha/lovelace/actionMessage";
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
+import { HaSensorModule } from "../ha/HaSensorModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
-import type { ModuleConfig } from "./config";
+import type { FieldDomain, ModuleConfig } from "./config";
 import "./dashboard.css";
 
+interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
+
+/** Each domain's connected module, given a module's config and its footprint. A new card adds its row here. */
+const LIVE: Record<FieldDomain, (props: LiveProps) => ReactNode> = {
+  light: ({ item, footprint }) => <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
+  climate: ({ item, footprint }) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
+  sensor: ({ item, footprint }) => (
+    <HaSensorModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} humidityEntityId={item.humidity} batteryEntityId={item.battery} outdoor={item.outdoor} />
+  ),
+};
+
 /** One live module, routed by its validated entity domain to the skin-free hook and the matching Field drawing. */
-function LiveModule({ item, footprint }: { item: ModuleConfig; footprint: FieldFootprint }) {
-  const moduleFootprint = item.footprint ?? footprint;
-  if (item.entity.startsWith("climate.")) {
-    return <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={moduleFootprint} />;
-  }
-  return <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={moduleFootprint} />;
+function LiveModule({ item, footprint }: LiveProps) {
+  const domain = item.entity.slice(0, item.entity.indexOf(".")) as FieldDomain;
+  return LIVE[domain]({ item, footprint: item.footprint ?? footprint });
 }
 
 /** The latest command Home Assistant rejected, with Retry when repeating it is safe, and Dismiss. */
@@ -67,7 +77,7 @@ export function FieldDashboard({ title, items, footprint }: FieldDashboardProps)
           </div>
         </section>
       ))}
-      {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light or climate entity to Home Assistant.</p>}
+      {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light, climate entity or temperature sensor to Home Assistant.</p>}
       <ActionNotice />
     </div>
   );

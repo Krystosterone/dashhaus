@@ -57,6 +57,20 @@ describe("colour: tokens only", () => {
   });
 });
 
+describe("a reading", () => {
+  it("draws its glyph flat, never as a control: no lift, no press, no hover, no pointer", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { selector, body } of rules(f)) {
+        if (!/\.fd-glyph/.test(selector)) continue;
+        if (/:(active|hover|focus)/.test(selector)) bad.push(`${f}: ${selector}`);
+        if (/cursor:\s*pointer|box-shadow|--fd-key-lift|--fd-key\)/.test(body)) bad.push(`${f}: ${selector} looks pressable`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
 describe("a lamp's own colour", () => {
   it("shows only as a swatch: on a key, or as a screen pictogram", () => {
     const bad: string[] = [];
