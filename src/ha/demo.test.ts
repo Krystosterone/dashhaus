@@ -64,6 +64,20 @@ describe("createDemoHaTransport", () => {
     await transport.callService("humidifier", "set_mode", { entity_id: "humidifier.bedroom", mode: "eco" });
     expect(latest?.["humidifier.bedroom"]).toMatchObject({ state: "on", attributes: { humidity: 50, mode: "eco", action: "humidifying" } });
   });
+
+  it("sets a sound's volume number it was seeded with, and leaves the sound as it was", async () => {
+    const stamp = "2026-10-19T11:20:00Z";
+    const transport = createDemoHaTransport({
+      "switch.nursery_music": { entity_id: "switch.nursery_music", state: "off", attributes: {}, last_changed: stamp, last_updated: stamp },
+      "number.nursery_volume": { entity_id: "number.nursery_volume", state: "40", attributes: { min: 0, max: 100, step: 1 }, last_changed: stamp, last_updated: stamp },
+    });
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("number", "set_value", { entity_id: "number.nursery_volume", value: 55 });
+    expect(latest?.["number.nursery_volume"]?.state).toBe("55");
+    expect(latest?.["switch.nursery_music"]?.state).toBe("off");
+  });
 });
 
 describe("createDemoSensorHaTransport", () => {

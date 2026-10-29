@@ -5,7 +5,8 @@ import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
- * every mistake shows at once with its path. Field draws lights, climate entities, room sensors, the weather and modes.
+ * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
+ * weather, modes and sound machines.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -30,6 +31,8 @@ export interface ModuleConfig {
   /** A toggle's glyph, and one line on what it does for its panel. */
   icon?: ToggleIcon;
   description?: string;
+  /** A sound's volume `number.*`, when it isn't named after the switch or its device. */
+  volume?: string;
 }
 
 export interface FieldConfig {
@@ -43,7 +46,7 @@ export interface FieldConfig {
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier";
+export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -53,8 +56,9 @@ interface KindSpec {
 }
 
 /**
- * Each field card and the Home Assistant domains it draws. On a domain two cards draw, the one without an `id` is
- * the domain's own; the other is picked with `card:`, or by its `id`. A new card adds itself here and to `LIVE`
+ * Each field card and the Home Assistant domains it draws. On a domain two cards draw, the first without an `id` is
+ * the domain's own (a switch is a toggle; a sound is picked with `card: sound`, as on the main card); the other is
+ * picked with `card:`, or by its `id`. A new card adds itself here and to `LIVE`
  * (FieldDashboard.tsx).
  */
 export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
@@ -64,6 +68,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   weather: { domains: ["weather"] },
   toggle: { domains: ["input_boolean", "switch"] },
   humidifier: { domains: ["humidifier"] },
+  sound: { domains: ["switch"] },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];
@@ -87,7 +92,7 @@ const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
 const TOP_KEYS = ["type", "title", "finish", "footprint", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"] };
+const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"] };
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
 function module(read: Reader, value: unknown, path: string): ModuleConfig | undefined {
@@ -125,6 +130,7 @@ function module(read: Reader, value: unknown, path: string): ModuleConfig | unde
     config.icon = read.choice(raw, "icon", at, TOGGLE_ICONS);
     config.description = read.string(raw, "description", at);
   }
+  if (kind === "sound") config.volume = read.optionalEntity(raw, "volume", at, ["number"]);
   return config;
 }
 

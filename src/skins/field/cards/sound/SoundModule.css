@@ -1,0 +1,17 @@
+/* Sound module (fd-sn): the key spans the row with its state word; the volume is set in the panel only. */
+
+/* Narrow modules keep the figure and one meta line; the key names the sound, so the speaker goes and the line fits. */
+@container (max-width: 239px) {
+  .fd-sn .fd-meta-2 { display: none; }
+  .fd-sn .fd-read { font-size: 22px; }
+  .fd-sn .fd-screen .fd-pict { display: none; }
+}
+
+/* A narrow row keeps the figure and lets the speaker go; the key's glyph names the sound. */
+@container (max-width: 279px) {
+  .fd-sn[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-sn[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+
+/* The detail panel's sound content. */
+.fd-sn-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }

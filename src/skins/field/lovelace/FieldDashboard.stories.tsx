@@ -12,7 +12,7 @@ const stamp = "2026-10-19T11:20:00Z";
 const entity = (id: string, name: string, state: string, attributes: Record<string, unknown>) =>
   ({ [id]: { entity_id: id, state, attributes: { friendly_name: name, ...attributes }, last_changed: stamp, last_updated: stamp } });
 
-/** A small mixed house: Field's light types, one heating thermostat, a humidifier, room sensors with their companions, the weather, and modes. */
+/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a sound machine and its volume, room sensors with their companions, the weather, and modes. */
 const ENTITIES: HassEntities = {
   ...entity("light.ceiling", "Ceiling", "on", { supported_color_modes: ["color_temp"], color_mode: "color_temp", brightness: 204, color_temp_kelvin: 2700, min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
   ...entity("light.reading_lamp", "Reading lamp", "off", { supported_color_modes: ["color_temp"], min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
@@ -31,6 +31,8 @@ const ENTITIES: HassEntities = {
   ...entity("input_boolean.do_not_disturb", "Do Not Disturb", "off", {}),
   ...entity("input_boolean.guest_mode", "Guest mode", "on", {}),
   ...entity("switch.white_noise", "White noise", "on", {}),
+  ...entity("number.white_noise_volume", "White noise volume", "62", { min: 0, max: 100, step: 1 }),
+  ...entity("switch.office_fan", "Desk fan", "off", {}),
   ...entity("humidifier.nursery", "Humidifier", "on", { device_class: "humidifier", action: "humidifying", current_humidity: 38, humidity: 45, min_humidity: 30, max_humidity: 80, mode: "normal", available_modes: ["normal", "eco", "sleep", "boost"] }),
 };
 
@@ -41,10 +43,11 @@ const ITEMS: ModuleConfig[] = [
   { entity: "input_boolean.do_not_disturb", kind: "toggle", area: "Home", icon: "bell-off", description: "Silences phone notifications, the doorbell chime and speaker announcements." },
   { entity: "input_boolean.guest_mode", kind: "toggle", area: "Home", icon: "guest" },
   { entity: "light.night_light", kind: "light", area: "Nursery" },
-  { entity: "switch.white_noise", kind: "toggle", area: "Nursery", icon: "waves" },
+  { entity: "switch.white_noise", kind: "sound", area: "Nursery" },
   { entity: "humidifier.nursery", kind: "humidifier", area: "Nursery" },
   { entity: "sensor.nursery_temperature", kind: "sensor", area: "Nursery", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" },
   { entity: "light.desk_strip", kind: "light", area: "Office" },
+  { entity: "switch.office_fan", kind: "toggle", area: "Office", icon: "power" },
   { entity: "light.porch", kind: "light", area: "Outside" },
   { entity: "sensor.outside_temperature", kind: "sensor", area: "Outside", battery: "sensor.outside_battery", outdoor: true },
   { entity: "weather.home", kind: "weather", area: "Outside", aqi: "sensor.home_aqi", aqiScale: "US", sun: "sun.sun" },
@@ -64,7 +67,7 @@ const meta = {
   component: Demo,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate, humidifier, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
+    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate, humidifier, sound, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
   argTypes: { footprint: { control: "inline-radio", options: ["standard", "compact"] }, title: { control: "text" } },
   args: { title: "Home", footprint: "standard" },

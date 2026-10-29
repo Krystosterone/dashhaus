@@ -328,6 +328,10 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 - **Home Assistant:** `HaSoundTile` takes the sound's switch and finds its volume beside it: `number.<switch>_volume`, then `number.<device>_volume` (the Tuya integration's `switch.nursery_music` and `number.nursery_volume`). Pass `volumeEntityId` when it is named otherwise. The volume is a percent of the number's range, set back in its own range and step.
 - **With its machine:** a sound machine whose power, night light and sound are separate entities is a titled bundle: "Sound machine" and its room on the lid, then Power (a toggle, `icon: power`), Night light and White noise as compact rows, which say since when, the colour and the volume where the room would be. Whether the device accepts the light or the sound while its power is off is the device's business; the rows show what it reports.
 
+### Field sound module
+
+`SoundModule` is the same normalized sound entity in the Field skin; `HaSoundModule` is its connected container, on the same `useHaSound` hook as `HaSoundTile`, so it finds the volume the same way (or takes `volumeEntityId`) and takes the same `onToggle` and `onVolumeChange`. The screen leads with the volume, the key spans the row, and the volume fader is in the panel only, as on the tile. See [field.md](field.md#sound).
+
 ## The dashboard header
 
 Not a card, so it lives with the page in `src/skins/orb/dashboards/` (`Header`, `hh-`). The top of a dashboard: its name, today's date under it, and an optional clock on the right. `DashboardPage` renders it for you; pass its props to the page:

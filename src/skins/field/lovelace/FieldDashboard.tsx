@@ -8,6 +8,7 @@ import { HaSensorModule } from "../ha/HaSensorModule";
 import { HaToggleModule } from "../ha/HaToggleModule";
 import { HaWeatherModule } from "../ha/HaWeatherModule";
 import { HaHumidifierModule } from "../ha/HaHumidifierModule";
+import { HaSoundModule } from "../ha/HaSoundModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
@@ -30,6 +31,7 @@ const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
     <HaToggleModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} icon={item.icon} description={item.description} />
   ),
   humidifier: ({ item, footprint }) => <HaHumidifierModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
+  sound: ({ item, footprint }) => <HaSoundModule entityId={item.entity} volumeEntityId={item.volume} name={item.name} area={item.area} footprint={footprint} />,
 };
 
 /** One live module, routed by its card to the skin-free hook and the matching Field drawing. */

@@ -98,6 +98,15 @@ describe("parseFieldConfig", () => {
     expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", icon: "moon" }] })).toThrow('"icon"');
   });
 
+  it("draws a switch as a sound with \"card: sound\", taking its volume number, on sounds only", () => {
+    expect(parseFieldConfig({ modules: [{ entity: "switch.nursery_music", card: "sound", volume: "number.nursery_volume" }, { entity: "switch.office_noise", card: "sound" }] }).modules).toEqual([
+      { entity: "switch.nursery_music", kind: "sound", name: undefined, area: undefined, footprint: undefined, volume: "number.nursery_volume" },
+      { entity: "switch.office_noise", kind: "sound", name: undefined, area: undefined, footprint: undefined, volume: undefined },
+    ]);
+    expect(() => parseFieldConfig({ modules: [{ entity: "switch.nursery_music", card: "sound", volume: "sensor.volume" }] })).toThrow("sensor.volume must be a number.* entity");
+    expect(() => parseFieldConfig({ modules: [{ entity: "switch.fan", volume: "number.fan_volume" }] })).toThrow('"volume"');
+  });
+
   it("takes a card for the entity's domain with \"card\", and no other", () => {
     expect(parseFieldConfig({ modules: [{ entity: "sensor.bed_t", card: "sensor" }] }).modules?.[0].kind).toBe("sensor");
     expect(() => parseFieldConfig({ modules: [{ entity: "sensor.bed_t", card: "light" }] })).toThrow('"card" must be one of "sensor"');

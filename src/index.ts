@@ -79,6 +79,10 @@ export { HumidifierModule } from "./skins/field/cards/humidifier/HumidifierModul
 export type { HumidifierModuleProps } from "./skins/field/cards/humidifier/HumidifierModule";
 export { HaHumidifierModule } from "./skins/field/ha/HaHumidifierModule";
 export type { HaHumidifierModuleProps } from "./skins/field/ha/HaHumidifierModule";
+export { SoundModule } from "./skins/field/cards/sound/SoundModule";
+export type { SoundModuleProps } from "./skins/field/cards/sound/SoundModule";
+export { HaSoundModule } from "./skins/field/ha/HaSoundModule";
+export type { HaSoundModuleProps } from "./skins/field/ha/HaSoundModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header
