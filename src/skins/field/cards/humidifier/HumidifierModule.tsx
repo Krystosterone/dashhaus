@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import type { HumidifierEntity, HumidifierHistory } from "../../../../domains/humidifier/types";
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "../../../../domains/humidifier/labels";
 import { fmtDuration } from "../../../../domains/format";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
-import { DROP, IconHumidifier, MinusIcon, PlusIcon } from "./icons";
+import { DROP, IconHumidifier } from "./icons";
 import "./HumidifierModule.css";
 
 export interface HumidifierModuleProps {
@@ -61,11 +61,13 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
     : [mode ?? "On", doing];
 
   const openPanel = details.openDetails;
+  // The key says what pressing it does; its LED says it's on, and the screen says the mode it runs in.
+  const keyLabel = `${e.name}, ${unav ? "unavailable" : on ? "turn off" : "turn on"}`;
   // The power key and the target fader, the same in the module and the panel. Without a target to set, the key
-  // spans the row with what it does: turn it on, or the mode it runs in.
+  // spans the row with what it does.
   const controls = (where: string) => (
     <div className="fd-hu-row" data-adjustable={adjustable}>
-      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!adjustable} caption={adjustable || unav ? undefined : on ? mode ?? "On" : "Turn on"}>
+      <Key label={keyLabel} led={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!adjustable} caption={adjustable || unav ? undefined : on ? "Turn off" : "Turn on"}>
         <IconHumidifier kind={e.kind} />
       </Key>
       {adjustable && (
@@ -96,7 +98,7 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
       pict={pict}
       read={read}
       meta={meta}
-      lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconHumidifier kind={e.kind} /></Key>}
+      lead={<Key label={keyLabel} led={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconHumidifier kind={e.kind} /></Key>}
       row={controls("m")}
     >
       <HumidifierDetails
@@ -166,11 +168,17 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
       {onTargetChange && target != null && down != null && up != null && (
         <div className="fd-block">
           <Legend>Fine target</Legend>
-          <div className="fd-hu-fine" role="group" aria-label={`${e.name}, ${verb.toLowerCase()}`}>
-            <span className="fd-hu-fine-label"><span>{verb}</span><b>{fmtHumidity(target)}%</b></span>
-            <Key label={`Lower target to ${down}%`} unavailable={down === Math.round(target)} onPress={() => onTargetChange(down)}><MinusIcon /></Key>
-            <Key label={`Raise target to ${up}%`} unavailable={up === Math.round(target)} onPress={() => onTargetChange(up)}><PlusIcon /></Key>
-          </div>
+          <Steps
+            group={`${e.name}, ${verb.toLowerCase()}`}
+            label={verb}
+            value={`${fmtHumidity(target)}%`}
+            downLabel={`Lower target to ${down}%`}
+            upLabel={`Raise target to ${up}%`}
+            atMin={down === Math.round(target)}
+            atMax={up === Math.round(target)}
+            onDown={() => onTargetChange(down)}
+            onUp={() => onTargetChange(up)}
+          />
         </div>
       )}
 

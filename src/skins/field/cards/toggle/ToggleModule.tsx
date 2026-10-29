@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { DurationOption, ToggleEntity, ToggleHistory } from "../../../../domains/toggle/types";
 import { DEFAULT_DURATIONS } from "../../../../domains/toggle/durations";
 import { fmtDuration } from "../../../../domains/format";
-import { Blank, Key, Legend, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import { Blank, Key, Legend, ModuleFrame, Option, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
 import "./ToggleModule.css";
@@ -98,10 +98,9 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
           <Legend id={`${uid}-d`} value={chosen?.label}>{on ? "Keep on" : "Turn on for"}</Legend>
           <div className="fd-tw-durations" role="group" aria-labelledby={`${uid}-d`}>
             {durations.map((d) => (
-              <div key={d.value} className="fd-tw-duration">
+              <Option key={d.value} name={d.sub}>
                 <Key label={d.sub ? `${d.label}, ${d.sub}` : d.label} wide caption={d.label} chosen={d === chosen} disabled={unav} onPress={() => onTurnOnFor(d.value)}>{null}</Key>
-                <span className="fd-tw-duration-sub" aria-hidden="true">{d.sub}</span>
-              </div>
+              </Option>
             ))}
           </div>
         </div>

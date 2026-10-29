@@ -2,12 +2,16 @@ import type { HvacMode } from "../../../../domains/climate/types";
 
 const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
-/** Stable climate identity for the power key. */
+/**
+ * Stable climate identity for the power key: a round wall thermostat, its dial and setpoint mark, so a column tells
+ * it from a room sensor's thermometer.
+ */
 export function ThermostatIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...STROKE}>
-      <path d="M9 14.2V5.5a3 3 0 1 1 6 0v8.7a5 5 0 1 1-6 0Z" />
-      <path d="M12 10v7" />
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <path d="M12 3.5v3" />
     </svg>
   );
 }
@@ -48,12 +52,4 @@ export function ModeShape({ mode }: { mode: HvacMode }) {
     default:
       return <path d="M8.5 1h3v11h-3V1ZM4.8 4.5l2 2A7 7 0 1 0 13.2 6.5l2-2A10 10 0 1 1 4.8 4.5Z" />;
   }
-}
-
-export function MinusIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true" {...STROKE}><path d="M6 12h12" /></svg>;
-}
-
-export function PlusIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true" {...STROKE}><path d="M6 12h12M12 6v12" /></svg>;
 }

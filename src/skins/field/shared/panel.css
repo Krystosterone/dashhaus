@@ -53,9 +53,19 @@
 [data-state="off"] .fd-chan { color: var(--fd-screen-ink-2); }
 .fd-chan .fd-pict { width: 16px; height: 21px; }
 .fd-chan-name { font-size: 18px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
-.fd-chan-sub { display: block; margin-top: 4px; font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-screen-ink-2); }
+.fd-chan-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-screen-ink-2); }
 
 .fd-block { display: grid; gap: 8px; min-width: 0; }
+
+/* A key with its name printed under it: a quick level, a colour, a mode, a way to turn it on. */
+.fd-option { display: grid; justify-items: center; gap: 6px; min-width: 0; }
+.fd-option-name { min-height: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; line-height: 12px; text-transform: uppercase; color: var(--fd-print); }
+
+/* Exact steps: what the value is and the value printed, then full-size minus and plus keys. */
+.fd-steps { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; align-items: center; gap: 8px; }
+.fd-steps-label { min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fd-ink-2); }
+.fd-steps-label span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-steps-label b { flex: none; color: var(--fd-ink); font-size: 13px; font-weight: 500; letter-spacing: 0; }
 
 /* Meter: 24 hour columns on a strip of screen, each lit to its hour's level. */
 .fd-meter {
@@ -77,7 +87,7 @@
 .fd-meter-h[data-state="unav"]::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--fd-screen-ink-2); }
 .fd-meter-h[data-now]::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 2px; height: 3px; margin-left: -1px; background: var(--fd-screen-ink); }
 
-.fd-info { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-ink-3); }
+.fd-info { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-ink-3); }
 
 @media (max-width: 600px) {
   .fd-panel {

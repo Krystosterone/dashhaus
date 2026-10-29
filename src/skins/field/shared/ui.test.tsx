@@ -51,7 +51,7 @@ describe("ModuleFrame", () => {
     expect(screen.queryByText("Inside")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Probe details" }));
     expect(screen.getByRole("dialog", { name: "Probe details" }).textContent).toContain("Inside");
-    fireEvent.click(screen.getByRole("button", { name: "Close Probe" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close Probe details" }));
     await waitFor(() => expect(screen.queryByText("Inside")).toBeNull());
   });
 

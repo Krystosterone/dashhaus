@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "../../../../domains/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "../../../../domains/climate/modes";
 import { fmtDuration } from "../../../../domains/format";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, RangeFader, Screen, Today, useDetails } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
-import { MinusIcon, ModeIcon, ModeShape, PlusIcon, ThermostatIcon } from "./icons";
+import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
 
 export interface ClimateModuleProps {
@@ -85,12 +85,13 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
 
   const controls = (where: string) => {
     const adjustable = hasSingle || hasRange;
-    const caption = unavailable ? undefined : !on ? "Turn on" : MODE_META[mode].label;
+    // The key says what pressing it does; the screen says the mode it runs in.
+    const caption = unavailable ? undefined : on ? "Turn off" : "Turn on";
     return (
       <div className="fd-cl-row" data-adjustable={adjustable}>
         <Key
           label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`}
-          pressed={on}
+          led={on}
           unavailable={unavailable}
           onPress={onToggle}
           onHold={openPanel}
@@ -144,7 +145,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
       read={read}
       meta={meta}
       lead={(
-        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} pressed={on} unavailable={unavailable} onPress={onToggle} onHold={openPanel}>
+        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} led={on} unavailable={unavailable} onPress={onToggle} onHold={openPanel}>
           <ThermostatIcon />
         </Key>
       )}
@@ -161,6 +162,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
         controls={controls("panel")}
         history={history}
         setRange={setRange}
+        onTargetChange={hasSingle ? onTargetChange : undefined}
         onModeChange={onModeChange}
         onPresetChange={onPresetChange}
         onFanChange={onFanChange}
@@ -180,12 +182,14 @@ interface ClimateDetailsProps {
   controls: ReactNode;
   history?: ClimateHistory;
   setRange?: (low: number, high: number) => void;
+  /** A single target's exact steps; omit while there is none to set. */
+  onTargetChange?: (temperature: number) => void;
   onModeChange?: (mode: HvacMode) => void;
   onPresetChange?: (preset: string) => void;
   onFanChange?: (fan: string) => void;
 }
 
-function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls, history, setRange, onModeChange, onPresetChange, onFanChange }: ClimateDetailsProps) {
+function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls, history, setRange, onTargetChange, onModeChange, onPresetChange, onFanChange }: ClimateDetailsProps) {
   const uid = useId();
   const targetPictMode = on ? mode : (e.hvacModes.find((candidate) => candidate !== "off") ?? "heat");
   const aside = unavailable ? (
@@ -211,6 +215,10 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
     <div className="fd-cl-panel" data-state={e.state}>
       <Screen pict={pict} aside={aside}>{read}</Screen>
       {controls}
+
+      {onTargetChange && target && e.targetTemperature != null && (
+        <TargetFine name={e.name} label={target.label} value={e.targetTemperature} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />
+      )}
 
       {on && mode === "heat_cool" && e.targetLow != null && e.targetHigh != null && setRange && (
         <RangeFine
@@ -244,25 +252,62 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
   );
 }
 
+/** A step from `value`, kept within its bounds and off floating-point noise. */
+const stepped = (value: number, by: number, lo: number, hi: number) => Number(Math.min(hi, Math.max(lo, value + by)).toFixed(4));
+
+function TargetFine({ name, label, value, min, max, step, onChange }: { name: string; label: string; value: number; min: number; max: number; step: number; onChange: (value: number) => void }) {
+  const down = stepped(value, -step, min, max);
+  const up = stepped(value, step, min, max);
+  return (
+    <div className="fd-block">
+      <Legend>Fine target</Legend>
+      <Steps
+        group={`${name}, ${label.toLowerCase()}`}
+        label={label}
+        value={`${fmtTarget(value)}°`}
+        downLabel={`Lower target to ${fmtTarget(down)}°`}
+        upLabel={`Raise target to ${fmtTarget(up)}°`}
+        atMin={down === value}
+        atMax={up === value}
+        onDown={() => onChange(down)}
+        onUp={() => onChange(up)}
+      />
+    </div>
+  );
+}
+
 function RangeFine({ name, low, high, min, max, step, onChange }: { name: string; low: number; high: number; min: number; max: number; step: number; onChange: (low: number, high: number) => void }) {
-  const nextLowDown = Number(Math.max(min, low - step).toFixed(4));
-  const nextLowUp = Number(Math.min(high, low + step).toFixed(4));
-  const nextHighDown = Number(Math.max(low, high - step).toFixed(4));
-  const nextHighUp = Number(Math.min(max, high + step).toFixed(4));
+  // The thresholds never cross: heat's ceiling is cool's threshold, and cool's floor is heat's.
+  const lowDown = stepped(low, -step, min, high);
+  const lowUp = stepped(low, step, min, high);
+  const highDown = stepped(high, -step, low, max);
+  const highUp = stepped(high, step, low, max);
   return (
     <div className="fd-block">
       <Legend>Fine range</Legend>
       <div className="fd-cl-fine">
-        <div className="fd-cl-fine-row" role="group" aria-label={`${name}, heat below`}>
-          <span className="fd-cl-fine-label"><span>Heat below</span><b>{fmtTarget(low)}°</b></span>
-          <Key label={`Lower heat threshold to ${fmtTarget(nextLowDown)}°`} unavailable={nextLowDown === low} onPress={() => onChange(nextLowDown, high)}><MinusIcon /></Key>
-          <Key label={`Raise heat threshold to ${fmtTarget(nextLowUp)}°`} unavailable={nextLowUp === low} onPress={() => onChange(nextLowUp, high)}><PlusIcon /></Key>
-        </div>
-        <div className="fd-cl-fine-row" role="group" aria-label={`${name}, cool above`}>
-          <span className="fd-cl-fine-label"><span>Cool above</span><b>{fmtTarget(high)}°</b></span>
-          <Key label={`Lower cool threshold to ${fmtTarget(nextHighDown)}°`} unavailable={nextHighDown === high} onPress={() => onChange(low, nextHighDown)}><MinusIcon /></Key>
-          <Key label={`Raise cool threshold to ${fmtTarget(nextHighUp)}°`} unavailable={nextHighUp === high} onPress={() => onChange(low, nextHighUp)}><PlusIcon /></Key>
-        </div>
+        <Steps
+          group={`${name}, heat below`}
+          label="Heat below"
+          value={`${fmtTarget(low)}°`}
+          downLabel={`Lower heat threshold to ${fmtTarget(lowDown)}°`}
+          upLabel={`Raise heat threshold to ${fmtTarget(lowUp)}°`}
+          atMin={lowDown === low}
+          atMax={lowUp === low}
+          onDown={() => onChange(lowDown, high)}
+          onUp={() => onChange(lowUp, high)}
+        />
+        <Steps
+          group={`${name}, cool above`}
+          label="Cool above"
+          value={`${fmtTarget(high)}°`}
+          downLabel={`Lower cool threshold to ${fmtTarget(highDown)}°`}
+          upLabel={`Raise cool threshold to ${fmtTarget(highUp)}°`}
+          atMin={highDown === high}
+          atMax={highUp === high}
+          onDown={() => onChange(low, highDown)}
+          onUp={() => onChange(low, highUp)}
+        />
       </div>
     </div>
   );
@@ -274,10 +319,9 @@ function ModeKeys({ id, current, options, onChange }: { id: string; current: Hva
       <Legend id={id} value={MODE_META[current].label}>Mode</Legend>
       <div className="fd-cl-mode-keys" role="group" aria-labelledby={id}>
         {options.map((option) => (
-          <div key={option} className="fd-cl-option">
+          <Option key={option} name={MODE_META[option].label}>
             <Key label={`Set mode to ${MODE_META[option].label}`} wide chosen={option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
-            <span className="fd-cl-option-name" title={MODE_META[option].label}>{MODE_META[option].label}</span>
-          </div>
+          </Option>
         ))}
       </div>
     </div>

@@ -3,22 +3,11 @@
 /* On/off only: the key spans the row, its caption beside the bulb. */
 .fd-lt-row[data-dimmable="false"] { grid-template-columns: minmax(0, 1fr); }
 
-/* Narrow modules keep one meta line on the screen. */
-@container (max-width: 239px) {
-  .fd-lt .fd-meta-2 { display: none; }
-  .fd-lt .fd-read { font-size: 24px; }
-}
-
-/* A narrow row keeps the figure and lets the bulb go. */
-@container (max-width: 279px) {
-  .fd-lt[data-footprint="compact"] .fd-pict { display: none; }
-  .fd-lt[data-footprint="compact"] .fd-screen { width: 80px; }
-}
-
 /* The detail panel's light content. */
-.fd-lt-panel { display: grid; gap: 16px; min-width: 0; }
+.fd-lt-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 .fd-lt-levels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-/* Seven colours in a row: a swatch on each key, its name printed under it. */
+/* Seven colours in a row: a swatch on each key, its name printed under it; four and three on a phone, so each name fits. */
 .fd-lt-colours { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.fd-lt-level { display: grid; justify-items: center; gap: 6px; min-width: 0; }
-.fd-lt-level-name { max-width: 100%; overflow: hidden; text-overflow: clip; white-space: nowrap; font-size: 8.5px; font-weight: 600; letter-spacing: 0.1em; line-height: 10px; text-transform: uppercase; color: var(--fd-print); }
+@container (max-width: 419px) {
+  .fd-lt-colours { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+}

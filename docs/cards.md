@@ -70,7 +70,7 @@ Temperature bounds remain reachable even when `(max_temp - min_temp)` is not an 
 
 ### Field climate module
 
-`ClimateModule` is the same normalized climate entity and callbacks in the Field skin; `HaClimateModule` is its connected container. Its 160 px module keeps current temperature primary, target and HVAC action secondary, and uses the thermostat key as the one on/off signal. Heat, cool and auto use one orange target fader. `heat_cool` uses two ordered native sliders on one fader: orange means heat below, blue means cool above. Off, dry and fan-only replace the fader with one wide key rather than inventing a target.
+`ClimateModule` is the same normalized climate entity and callbacks in the Field skin; `HaClimateModule` is its connected container. Its 160 px module keeps current temperature primary, target and HVAC action secondary, and uses the thermostat key as the one on/off signal. Heat, cool and auto use one orange target fader. `heat_cool` uses two ordered native sliders on one fader: orange means heat below, blue means cool above. Off, dry and fan-only replace the fader with one wide **Turn on** or **Turn off** key rather than inventing a target; the panel adds exact steps for a single target or a heat/cool range.
 
 The 64 px compact footprint keeps only the thermostat key, identity and current-temperature screen. The detail panel adds exact range steps plus only the HVAC modes, presets and fan modes Home Assistant reports. The selected choice is printed and disabled; those choice keys never light a second on LED. Today’s activity meter is neutral. Unavailable climate entities show blank segments and expose no live temperature control.
 
@@ -232,7 +232,7 @@ Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and ga
 
 ### Field cover module
 
-`CoverModule` is the same normalized cover entity in the Field skin; `HaCoverModule` is its connected container, on the same `useHaCover` hook as `HaCoverTile`, and takes the same `onOpenCover`, `onCloseCover`, `onStopCover`, `onSetPosition` and `onSetTilt`. The screen leads with how open it is, the key opens, closes or stops it, the position fader has the tile's magnetic ends, and a door left open warns on the screen; the panel has quick positions, or close, stop and open for a cover with no position, and slats on their own fader. See [field.md](field.md#cover).
+`CoverModule` is the same normalized cover entity in the Field skin; `HaCoverModule` is its connected container, on the same `useHaCover` hook as `HaCoverTile`, and takes the same `onOpenCover`, `onCloseCover`, `onStopCover`, `onSetPosition` and `onSetTilt`. The screen leads with how open it is, the key opens, closes or stops it and prints which, a garage door, door or gate moving only on a press and hold from the module (a tap opens its details), the position fader has the tile's magnetic ends, and a door left open warns on the screen; the panel has quick positions, or close, stop and open for a cover with no position, and slats on their own fader. See [field.md](field.md#cover).
 
 ## Using the toggle card
 

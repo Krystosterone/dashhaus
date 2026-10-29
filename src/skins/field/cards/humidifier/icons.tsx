@@ -27,11 +27,3 @@ export function IconHumidifier({ kind }: { kind?: HumidifierEntity["kind"] }) {
 
 /** A drop, for the screen's pictogram (20 x 26): humidity, filled from the bottom to its level. */
 export const DROP = <path d="M10 2.5c3.6 5 6.5 8.5 6.5 13a6.5 6.5 0 0 1-13 0c0-4.5 2.9-8 6.5-13Z" />;
-
-export function MinusIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true" {...STROKE}><path d="M6 12h12" /></svg>;
-}
-
-export function PlusIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true" {...STROKE}><path d="M6 12h12M12 6v12" /></svg>;
-}

@@ -20,6 +20,9 @@ export type Tone = Param | "neutral";
 
 const IconOpen = () => <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h7M6 3l3 3-3 3" /></svg>;
 const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>;
+const STEP_STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" } as const;
+const IconMinus = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE}><path d="M6 12h12" /></svg>;
+const IconPlus = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE}><path d="M6 12h12M12 6v12" /></svg>;
 const IconWarn = () => <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5 11 10.5H1Z" /><path d="M6 5v2.5M6 8.75v.25" /></svg>;
 
 export interface ModuleProps {
@@ -69,6 +72,11 @@ export interface KeyProps {
   /** A latching key: it sits lower and its LED is lit while pressed. Leave it out for a key that acts once. */
   pressed?: boolean;
   /**
+   * A key that prints the verb its press performs ("Close", "Turn off") still shows what is on with its LED, but isn't
+   * announced as pressed: its label already says what it does. Use instead of `pressed`.
+   */
+  led?: boolean;
+  /**
    * A choice key, one of a group (a mode, a preset): announced as pressed while chosen, with no LED, since its
    * choice isn't "on". The chosen one lies flat and pressing it does nothing, but it stays focusable.
    */
@@ -91,14 +99,56 @@ export interface KeyProps {
 }
 
 /** A key: flat-topped and just raised, so you press it. A latching key's LED is lit while it's pressed. */
-export function Key({ label, pressed, chosen, disabled, unavailable, onPress, onHold, wide, caption, children }: KeyProps) {
+export function Key({ label, pressed, led, chosen, disabled, unavailable, onPress, onHold, wide, caption, children }: KeyProps) {
   const press = usePress({ onPress: chosen ? () => {} : onPress, onHold, pressed: pressed ?? chosen, disabled, unavailable });
+  const lit = pressed ?? led;
   return (
     <button className="fd-key" aria-label={label} data-wide={wide || caption ? "" : undefined} data-chosen={chosen || undefined} {...press}>
-      {pressed !== undefined && <span className="fd-led" data-lit={pressed && !disabled && !unavailable} aria-hidden="true" />}
+      {lit !== undefined && <span className="fd-led" data-lit={lit && !disabled && !unavailable} aria-hidden="true" />}
       <span className="fd-key-glyph" aria-hidden="true">{children}</span>
       {caption && <span className="fd-key-cap" aria-hidden="true">{caption}</span>}
     </button>
+  );
+}
+
+/**
+ * A key with its name printed under it, as on a quick level, a colour or a mode: the key carries the figure or glyph,
+ * the plate the word. `name` is printed only; the key's label says it.
+ */
+export function Option({ name, children }: { name?: string; children: ReactNode }) {
+  return (
+    <div className="fd-option">
+      {children}
+      <span className="fd-option-name" aria-hidden="true">{name}</span>
+    </div>
+  );
+}
+
+export interface StepsProps {
+  /** The group's spoken name, e.g. "Thermostat, heat to". */
+  group: string;
+  /** What the value is, printed before it: "Heat to", "Cool above". */
+  label: string;
+  /** The value, printed: "21.5°". */
+  value: string;
+  /** The keys' spoken labels, saying where each goes: "Lower target to 21°". */
+  downLabel: string;
+  upLabel: string;
+  /** At a bound, its key lies flat but keeps focus. */
+  atMin: boolean;
+  atMax: boolean;
+  onDown: () => void;
+  onUp: () => void;
+}
+
+/** Exact steps: what the value is and the value printed, then a minus and a plus key that act once. */
+export function Steps({ group, label, value, downLabel, upLabel, atMin, atMax, onDown, onUp }: StepsProps) {
+  return (
+    <div className="fd-steps" role="group" aria-label={group}>
+      <span className="fd-steps-label"><span>{label}</span><b>{value}</b></span>
+      <Key label={downLabel} unavailable={atMin} onPress={onDown}><IconMinus /></Key>
+      <Key label={upLabel} unavailable={atMax} onPress={onUp}><IconPlus /></Key>
+    </div>
   );
 }
 
@@ -346,7 +396,7 @@ export function Panel({ open, onClose, name, area, children }: { open: boolean; 
               <h2 className="fd-name" title={name}>{name}</h2>
               {area && <p className="fd-area" title={area}>{area}</p>}
             </div>
-            <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name}`} data-autofocus onClick={onClose}>
+            <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name} details`} data-autofocus onClick={onClose}>
               <span className="fd-key-glyph" aria-hidden="true"><IconClose /></span>
             </button>
           </header>

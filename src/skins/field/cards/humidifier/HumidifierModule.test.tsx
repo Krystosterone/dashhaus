@@ -27,11 +27,11 @@ const draw = (seed: keyof typeof HUMIDIFIER_SEEDS, footprint?: "compact" | "stan
 };
 
 describe("HumidifierModule", () => {
-  it("presses each of its keys once, and lights their LEDs while it's on", () => {
-    const { container, keys, onToggle } = draw("on");
-    const on = container.querySelector(".fd-module")?.getAttribute("data-state") === "on";
+  it("presses each of its keys once, says what a press does, and lights their LEDs while it's on", () => {
+    const { keys, onToggle } = draw("on");
     for (const key of keys) {
-      expect(key.getAttribute("aria-pressed")).toBe(String(on));
+      expect(key.getAttribute("aria-label")).toMatch(/, turn off$/);
+      expect(key.querySelector(".fd-led")?.getAttribute("data-lit")).toBe("true");
       fireEvent.click(key);
     }
     expect(onToggle).toHaveBeenCalledTimes(keys.length);
@@ -79,10 +79,11 @@ describe("HumidifierModule", () => {
     expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Turn on");
   });
 
-  it("says ON with its mode on the key when it has no target or room reading, never a made-up number", () => {
+  it("says ON with its mode on the screen when it has no target or room reading, never a made-up number", () => {
     const { container } = draw("modeOnly");
     expect(container.querySelector(".fd-read")?.textContent).toBe("ON");
-    expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Sleep");
+    expect(container.querySelector(".fd-meta")?.textContent).toContain("Sleep");
+    expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Turn off");
     expect(screen.queryByRole("slider")).toBeNull();
   });
 

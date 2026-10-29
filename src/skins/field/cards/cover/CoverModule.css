@@ -5,24 +5,8 @@
 /* Closed is a reading, 0% open, so its figure keeps its places in the dim ink, as OFF does. */
 :is(.fd-cv, .fd-cv-panel)[data-state="closed"] :is(.fd-read-fig, .fd-chan) { color: var(--fd-screen-ink-2); }
 
-/*
- * Narrow modules keep the figure and one meta line, the state or a door's warning; the key names the cover, so the
- * window goes.
- */
-@container (max-width: 239px) {
-  .fd-cv .fd-meta-2 { display: none; }
-  .fd-cv .fd-read { font-size: 24px; }
-  .fd-cv .fd-screen .fd-pict { display: none; }
-}
-
 /* OPEN and SHUT fill a row's screen, so a cover with no position lets the window go there; its key names it. */
 .fd-cv[data-footprint="compact"]:not(:has(.fd-read .fd-digits)) .fd-pict { display: none; }
-
-/* A narrow row keeps the figure and lets the window go. */
-@container (max-width: 279px) {
-  .fd-cv[data-footprint="compact"] .fd-pict { display: none; }
-  .fd-cv[data-footprint="compact"] .fd-screen { width: 80px; }
-}
 
 /* The detail panel's cover content. */
 .fd-cv-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }

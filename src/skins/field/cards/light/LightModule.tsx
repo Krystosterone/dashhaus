@@ -5,7 +5,7 @@ import { kelvinName, K_MIN, K_MAX } from "../../../../domains/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "../../../../domains/light/color";
 import type { Hs } from "../../../../domains/light/color";
 import { fmtDuration } from "../../../../domains/format";
-import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Pictogram, Legend, Swatch, Today, useDetails } from "../../shared/ui";
+import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Legend, Swatch, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -163,12 +163,11 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
           <Legend id={`${uid}-lv`}>Quick levels</Legend>
           <div className="fd-lt-levels" role="group" aria-labelledby={`${uid}-lv`}>
             {LEVELS.map((l) => (
-              <div key={l.value} className="fd-lt-level">
+              <Option key={l.value} name={l.name}>
                 <Key label={`${l.name}, ${l.value}%`} wide disabled={unav} onPress={() => onBrightnessChange(l.value)}>
                   <span className="fd-key-fig">{l.value}</span>
                 </Key>
-                <span className="fd-lt-level-name" aria-hidden="true">{l.name}</span>
-              </div>
+              </Option>
             ))}
           </div>
         </div>
@@ -196,12 +195,11 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
           <Legend id={`${uid}-c`} value={lamp?.name}>Colour</Legend>
           <div className="fd-lt-colours" role="group" aria-labelledby={`${uid}-c`}>
             {LAMP_COLORS.map((c) => (
-              <div key={c.name} className="fd-lt-level">
+              <Option key={c.name} name={c.name}>
                 <Key label={c.name} pressed={lamp?.name === c.name} wide disabled={unav} onPress={() => onColorChange(c.hs)}>
                   <Swatch lamp={c.name} />
                 </Key>
-                <span className="fd-lt-level-name" aria-hidden="true">{c.name}</span>
-              </div>
+              </Option>
             ))}
           </div>
         </div>

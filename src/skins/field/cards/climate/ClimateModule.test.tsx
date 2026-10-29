@@ -24,7 +24,10 @@ describe("ClimateModule", () => {
     const el = draw(CLIMATE_SEEDS.heating.entity);
     expect(el.querySelector(".fd-read")?.textContent).toBe("20.4°C");
     expect(el.querySelector(".fd-meta")?.textContent).toBe("Heat to 21.5°Heating");
-    expect(screen.getByRole("button", { name: "Thermostat, turn off" }).getAttribute("aria-pressed")).toBe("true");
+    // The label says what a press does, so it isn't also announced as pressed; the LED says it's on.
+    const key = screen.getByRole("button", { name: "Thermostat, turn off" });
+    expect(key.hasAttribute("aria-pressed")).toBe(false);
+    expect(key.querySelector(".fd-led")?.getAttribute("data-lit")).toBe("true");
     expect(screen.getByRole("slider", { name: "Thermostat target temperature" }).getAttribute("aria-valuetext")).toBe("21.5 degrees Celsius");
   });
 

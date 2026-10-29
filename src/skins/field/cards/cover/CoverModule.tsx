@@ -69,15 +69,32 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
 
   const openPanel = details.openDetails;
   const press = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
-  const key = (wide: boolean) => (
-    <Key label={stopping ? `Stop ${e.name}` : e.name} pressed={open} unavailable={unav} onPress={press} onHold={openPanel} wide={wide} caption={wide && !unav ? (stopping ? "Stop" : word) : undefined}>
-      {stopping ? <IconStop /> : <IconCover kind={e.deviceClass} open={open} />}
-    </Key>
-  );
-  // The key and the position fader, the same in the module and the panel. Without a position to set, the key spans the row with its state.
-  const controls = (where: string) => (
+  // The key says what pressing it does; its LED says it's open, and the screen says where it is.
+  const verb = stopping ? "Stop" : open ? "Close" : "Open";
+  // A garage door, door or gate moves on a press and hold from the module, never a stray tap; a tap opens the
+  // details, where its keys act at once. Stopping one is always a tap.
+  const guarded = isAccess(e.deviceClass) && !stopping;
+  const key = (wide: boolean, where: "m" | "p") => {
+    const hold = guarded && where === "m";
+    const does = hold ? `Hold to ${verb.toLowerCase()}` : verb;
+    return (
+      <Key
+        label={unav ? `${e.name}, unavailable` : `${does} ${e.name}`}
+        led={open}
+        unavailable={unav}
+        onPress={hold ? openPanel : press}
+        onHold={hold ? press : openPanel}
+        wide={wide}
+        caption={wide && !unav ? does : undefined}
+      >
+        {stopping ? <IconStop /> : <IconCover kind={e.deviceClass} open={open} />}
+      </Key>
+    );
+  };
+  // The key and the position fader, the same in the module and the panel. Without a position to set, the key spans the row with what it does.
+  const controls = (where: "m" | "p") => (
     <div className="fd-cv-row" data-settable={settable}>
-      {key(!settable)}
+      {key(!settable, where)}
       {settable && (
         <Fader
           id={`${uid}-${where}`}
@@ -107,7 +124,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       pict={pict}
       read={read}
       meta={meta}
-      lead={key(false)}
+      lead={key(false, "m")}
       row={controls("m")}
     >
       <CoverDetails

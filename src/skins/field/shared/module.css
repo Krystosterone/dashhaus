@@ -24,10 +24,10 @@
 
 .fd-head { min-width: 0; display: grid; gap: 1px; }
 /* A standard module's header keeps the area's line when it has none, so every screen in a grid is one height. */
-.fd-module[data-footprint="standard"] .fd-head { min-height: 30px; align-content: start; }
+.fd-module[data-footprint="standard"] .fd-head { min-height: 31px; align-content: start; }
 .fd-name, .fd-area { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-transform: uppercase; }
 .fd-name { font-size: 12px; font-weight: 600; letter-spacing: 0.03em; line-height: 16px; }
-.fd-area { font-size: 9.5px; font-weight: 500; letter-spacing: 0.06em; line-height: 13px; color: var(--fd-ink-3); }
+.fd-area { font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; line-height: 14px; color: var(--fd-ink-3); }
 /* An openable name: the whole name is the button, with a small arrow after it. */
 .fd-open {
   display: inline-flex;
@@ -168,7 +168,7 @@
 .fd-read small { font-size: 11px; font-weight: 400; color: var(--fd-screen-ink-2); margin-left: 2px; align-self: flex-start; margin-top: 3px; }
 .fd-read-fig { display: inline-flex; align-items: baseline; }
 [data-state="off"] .fd-read-fig { color: var(--fd-screen-ink-2); }
-.fd-meta { margin: 0; display: grid; justify-items: end; gap: 3px; min-width: 0; font-size: 9.5px; font-weight: 500; letter-spacing: 0.08em; line-height: 12px; text-transform: uppercase; color: var(--fd-screen-ink-2); text-align: right; }
+.fd-meta { margin: 0; display: grid; justify-items: end; gap: 3px; min-width: 0; font-size: 10.5px; font-weight: 500; letter-spacing: 0.07em; line-height: 13px; text-transform: uppercase; color: var(--fd-screen-ink-2); text-align: right; }
 .fd-meta > span { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 /* Fixed digit places: the leading ones are unlit segments, like a segment display's. The empty alternative text
    keeps them out of the accessibility tree, so "080" is heard as "80"; a browser without it keeps the first rule. */
@@ -190,6 +190,19 @@
 .fd-pict[data-lit="false"] .fd-pict-lit { opacity: 0; }
 .fd-module[data-footprint="compact"] .fd-pict { width: 14px; height: 18px; }
 
+/* Narrow modules keep the figure and one meta line, and the pictogram goes: the key or glyph below names the
+   device. A card that needs another line kept (humidifier) or a smaller figure (weather) says so in its own CSS. */
+@container (max-width: 239px) {
+  .fd-module[data-footprint="standard"] .fd-meta-2 { display: none; }
+  .fd-module[data-footprint="standard"] .fd-read { font-size: 22px; }
+  .fd-module[data-footprint="standard"] .fd-screen .fd-pict { display: none; }
+}
+/* A narrow row keeps the figure on a narrower screen and lets the pictogram go. */
+@container (max-width: 279px) {
+  .fd-module[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-module[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+
 /* Fader: a printed legend with its rule, a thin dark slot, a dotted scale, and a round thumb on a rail moved
    with transform. */
 .fd-fader { position: relative; height: 44px; min-width: 0; overflow: clip; }
@@ -201,9 +214,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   line-height: 10px;
   text-transform: uppercase;
   color: var(--fd-print);

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CoverModule } from "./CoverModule";
 import type { CoverModuleProps } from "./CoverModule";
@@ -19,10 +19,10 @@ const draw = (seed: keyof typeof COVER_SEEDS | CoverEntity, footprint?: "compact
 };
 
 describe("CoverModule", () => {
-  it("presses each of its keys once, and lights their LEDs while it's open", () => {
+  it("presses each of its keys once, says what a press does, and lights their LEDs while it's open", () => {
     const { container, keys, onCloseCover } = draw("curtains");
     for (const key of keys) {
-      expect(key.getAttribute("aria-pressed")).toBe("true");
+      expect(key.getAttribute("aria-label")).toBe("Close Curtains");
       expect(key.querySelector(".fd-led")?.getAttribute("data-lit")).toBe("true");
       fireEvent.click(key);
     }
@@ -54,7 +54,8 @@ describe("CoverModule", () => {
   it("says a closed cover is 0% open, and opens it from the key", () => {
     const { container, keys, onOpenCover } = draw("shade");
     expect(container.querySelector(".fd-read")?.textContent).toBe("0%");
-    expect(keys[0].getAttribute("aria-pressed")).toBe("false");
+    expect(keys[0].getAttribute("aria-label")).toBe("Open Roller shade");
+    expect(keys[0].querySelector(".fd-led")?.getAttribute("data-lit")).toBe("false");
     fireEvent.click(keys[0]);
     expect(onOpenCover).toHaveBeenCalledOnce();
   });
@@ -78,16 +79,32 @@ describe("CoverModule", () => {
 
   it("keeps the key opening and closing on the way when the cover can't stop", () => {
     const { onCloseCover } = draw(COVER_WORST_CASE[0].entity);
-    fireEvent.click(screen.getByRole("button", { name: COVER_WORST_CASE[0].entity.name }));
+    fireEvent.click(screen.getByRole("button", { name: `Close ${COVER_WORST_CASE[0].entity.name}` }));
     expect(onCloseCover).toHaveBeenCalledOnce();
   });
 
-  it("says OPEN for a garage door with no position, warns it was left open, and spans the key with its state", () => {
+  it("says OPEN for a garage door with no position, warns it was left open, and spans the key with what a hold does", () => {
     const { container } = draw("garage");
     expect(container.querySelector(".fd-read")?.textContent).toBe("OPEN");
     expect(container.querySelector(".fd-meta")?.textContent).toBe("Warning: Open since 10:20");
-    expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Open");
+    expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Hold to close");
     expect(screen.queryByRole("slider")).toBeNull();
+  });
+
+  it("moves a garage door only on a press and hold from the module; a tap opens its details, where its key acts at once", () => {
+    vi.useFakeTimers();
+    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute("open", ""); };
+    const { onCloseCover } = draw("garage");
+    const key = screen.getByRole("button", { name: "Hold to close Garage door" });
+    fireEvent.click(key);
+    expect(onCloseCover).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Garage door details" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Close Garage door", hidden: true }));
+    expect(onCloseCover).toHaveBeenCalledOnce();
+    fireEvent.pointerDown(key, { button: 0 });
+    act(() => vi.advanceTimersByTime(450));
+    expect(onCloseCover).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
   });
 
   it("puts a door's warning in place of the area on a compact row", () => {
