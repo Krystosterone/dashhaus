@@ -1,6 +1,6 @@
 import type { OwletEntity, OwletHistory } from "../../../../domains/owlet/types";
 import { HeartIcon, OwletIcon } from "./icons";
-import { ALERT_WORD, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
+import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
 import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
@@ -20,6 +20,8 @@ export interface OwletCardProps extends CardProps {
 /**
  * An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. A reading: neutral,
  * a bare icon in place of an orb, and no glow. It reports nothing while the sock charges.
+ * The sleep state leads the readout as a figure of its own, before the two vitals; a compact row, or a card whose
+ * slot the alarm fills, says it on the status line instead, so it shows in every state the sock reads in.
  * While readings arrive, the heart beside the heart rate beats; once they stop, it stands still, the figures
  * dim, and the status line warns since when. The base station's alerts show too: a vitals alert fills the slot
  * in warn, a problem with the sock or base leads the status line. The base station is switched in the sheet only:
@@ -52,17 +54,23 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
   const sleepWord = sleep ? SLEEP_WORD[sleep] : "Sleep state unknown";
   const readings = [hr != null ? `${fmtBpm(hr)} bpm` : null, o2 != null ? `${fmtOxygen(o2)}% O₂` : null].filter(Boolean).join(" · ");
   const figures = [hr != null ? `heart rate ${fmtBpm(hr)} beats per minute` : null, o2 != null ? `oxygen ${fmtOxygen(o2)} percent` : null].filter(Boolean).join(", ");
-  const spoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleText.toLowerCase()}` : figures;
-  const where = sheet && area ? `${area} · ${sleepWord}` : sleepWord;
+  const vitalsSpoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleText.toLowerCase()}` : figures;
+  const spoken = `${sleepWord.toLowerCase()}, ${vitalsSpoken}`;
   // Off, the base sounds no alarm while the sock may still read: said in words, after any warning.
   const baseOff = e.baseOn === false;
-  const status = problem ? <><AlertStatus label={problemLabel!}>{ALERT_WORD[problem]}</AlertStatus>{!offline && <span className="ow-st-l"> · {sleepWord}</span>}</>
+  // The sleep state leads the readout. Where there is none to lead (a compact row, or the alarm in the slot),
+  // the status line carries it instead, after any warning, so no state ever hides it.
+  const sleepInStatus = compact || vital != null;
+  const lead = problem ? <AlertStatus label={problemLabel!}>{ALERT_WORD[problem]}</AlertStatus>
+    : stale ? <AlertStatus label={problemLabel!}>{staleWords}</AlertStatus>
+    : baseOff ? "Base station off"
+    : null;
+  const status = offline ? (problem ? lead : e.charging ? "Charging" : "Unavailable")
     // A compact row's alarm pill only has room for the alert's name, so the figures move up here.
     : vital && compact && readings ? readings
-    : stale ? <><AlertStatus label={problemLabel!}>{staleWords}</AlertStatus><span className="ow-st-l"> · {sleepWord}</span></>
-    : offline ? (e.charging ? "Charging" : "Unavailable")
-    : baseOff ? <>Base station off<span className="ow-st-l"> · {sleepWord}</span></>
-    : where;
+    // After a warning a narrow compact row has room for the figure alone ("Stopped 11:49 · Deep"), not its phrase.
+    : sleepInStatus ? (lead && sleep ? <>{lead} · <span className="ow-sl-l">{sleepWord}</span><span className="ow-sl-s">{SLEEP_FIGURE[sleep]}</span></> : <>{lead}{lead && " · "}{sleepWord}</>)
+    : lead ?? area;
   // Under 320px a compact row keeps only this line, so it carries the alert, the sleep state and the readings.
   const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? "Charging" : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "No reading yet"].filter(Boolean).join(" · ");
   const sub = vitalText ? <AlertStatus label={`Alert: ${vitalText} on ${e.name}'s sock`}>{vitalText}</AlertStatus>
@@ -71,6 +79,11 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
 
   const bar = (
     <span className="hd-bar ow-bar">
+      <span className="hd-metric ow-metric ow-metric--sleep">
+        <span className="hd-label ow-label">Sleep</span>
+        {sleep ? <span className="ow-value ow-sleep">{SLEEP_FIGURE[sleep]}</span> : <span className="ow-sleep-none">Unknown</span>}
+      </span>
+      <span className="ow-vitals">
       {hr != null && (
         <span className="hd-metric ow-metric ow-metric--heart">
           <span className="ow-heart" data-live={e.live || undefined}><HeartIcon /></span>
@@ -85,6 +98,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
         </span>
       )}
       {hr == null && o2 == null && <span className="hd-none">No reading yet</span>}
+      </span>
     </span>
   );
 

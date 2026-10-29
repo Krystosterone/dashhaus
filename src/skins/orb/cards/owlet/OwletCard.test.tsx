@@ -15,24 +15,26 @@ describe("OwletCard", () => {
     expect(container.querySelector(".hd-orb--static")).not.toBeNull();
   });
 
-  it("says the sleep state and reads both figures aloud", () => {
-    render(<OwletCard entity={sock} />);
-    expect(screen.getByText("Deep sleep")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
+  it("leads the readout with the sleep state, then reads both figures aloud", () => {
+    const { container } = render(<OwletCard entity={sock} />);
+    expect(screen.getByRole("img", { name: "deep sleep, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
+    expect([...container.querySelectorAll(".ow-metric")].map((m) => m.textContent)).toEqual(["SleepDeep", "Heart rateHeart121bpm", "Oxygen98% O₂"]);
+    // The status line is free for the area.
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Nursery");
   });
 
   it("opens details from the readings", () => {
     let opened = false;
     render(<OwletCard entity={sock} onOpenDetails={() => { opened = true; }} />);
-    screen.getByRole("button", { name: "Nova: heart rate 121 beats per minute, oxygen 98 percent. Open details" }).click();
+    screen.getByRole("button", { name: "Nova: deep sleep, heart rate 121 beats per minute, oxygen 98 percent. Open details" }).click();
     expect(opened).toBe(true);
   });
 
   it("keeps the readings when the sleep state is unknown, without dimming them", () => {
     const { container } = render(<OwletCard entity={{ ...sock, state: "unavailable" }} />);
     expect(container.querySelector("article")?.getAttribute("data-state")).toBe("unknown");
-    expect(screen.getByText("Sleep state unknown")).toBeTruthy();
-    expect(screen.getByRole("img", { name: /heart rate 121/ })).toBeTruthy();
+    expect(container.querySelector(".ow-sleep-none")?.textContent).toBe("Unknown");
+    expect(screen.getByRole("img", { name: "sleep state unknown, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
   });
 
   it("is unavailable when the sock reports nothing", () => {
@@ -44,7 +46,7 @@ describe("OwletCard", () => {
   it("beats the heart and says live while readings arrive", () => {
     const { container } = render(<OwletCard entity={{ ...sock, live: true }} />);
     expect(container.querySelector(".ow-heart[data-live]")).not.toBeNull();
-    expect(screen.getByRole("img", { name: "live, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "deep sleep, live, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBeNull();
   });
 
@@ -57,7 +59,7 @@ describe("OwletCard", () => {
     expect(screen.getByText("No new reading since 11:49")).toBeTruthy();
     expect(screen.getByText("Stopped 11:49")).toBeTruthy();
     expect(screen.getByRole("img", { name: "Warning: Nova's sock has sent no new reading since 11:49" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "heart rate 121 beats per minute, oxygen 98 percent, no new reading since 11:49" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "deep sleep, heart rate 121 beats per minute, oxygen 98 percent, no new reading since 11:49" })).toBeTruthy();
   });
 
   it("never calls an offline sock stale", () => {
@@ -71,8 +73,9 @@ describe("OwletCard", () => {
     expect(alarm.textContent).toBe("Low oxygen86% O₂");
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("alarm");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
-    // The device problem still leads the status line.
+    // The device problem still leads the status line, and the sleep state the alarm displaced follows it.
     expect(screen.getByRole("img", { name: "Warning: Battery low on Nova's sock" })).toBeTruthy();
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Battery low · Deep sleepDeep");
   });
 
   it("names every vitals alert, the most urgent first, with the matching figure", () => {
@@ -110,6 +113,14 @@ describe("OwletCard", () => {
     expect(container.querySelector(".hd-area")?.textContent).toBe("121 bpm · 86% O₂");
   });
 
+  it("keeps the sleep state on a compact row's status line, after any warning", () => {
+    const status = (entity: OwletEntity) => render(<OwletCard entity={entity} footprint="compact" />).container.querySelector(".hd-area")?.textContent;
+    expect(status(sock)).toBe("Deep sleep");
+    expect(status({ ...sock, live: false, lastUpdated: "11:49" })).toBe("No new reading since 11:49Stopped 11:49 · Deep sleepDeep");
+    expect(status({ ...sock, alerts: ["low_battery"] })).toBe("Battery low · Deep sleepDeep");
+    expect(status({ ...sock, baseOn: false })).toBe("Base station off · Deep sleepDeep");
+  });
+
   it("puts the sleep state and the readings on the compact value line", () => {
     const { container } = render(<OwletCard entity={sock} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Deep sleep · 121 bpm · 98% O₂");
@@ -119,7 +130,7 @@ describe("OwletCard", () => {
     let toggled = 0;
     const onBaseToggle = () => { toggled++; };
     const { container, rerender } = render(<OwletCard entity={{ ...sock, baseOn: false }} onBaseToggle={onBaseToggle} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Base station off · Deep sleep");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Base station off");
     expect(screen.queryByRole("button", { name: /Base station/ })).toBeNull();
     rerender(<OwletCard entity={{ ...sock, baseOn: false }} onBaseToggle={onBaseToggle} variant="sheet" />);
     screen.getByRole("button", { name: "Base station: Off · Turn on" }).click();

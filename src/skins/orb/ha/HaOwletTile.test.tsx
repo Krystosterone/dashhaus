@@ -28,8 +28,7 @@ describe("HaOwletTile", () => {
   it("composes the sleep state with the integration's heart rate and oxygen sensors", async () => {
     renderConnected(<HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" />, raw);
     await waitFor(() => expect(screen.getByRole("heading", { name: "Nova" })).toBeTruthy());
-    expect(screen.getByText("Light sleep")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Nova: live, heart rate 133 beats per minute, oxygen 97 percent. Open details" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Nova: light sleep, live, heart rate 133 beats per minute, oxygen 97 percent. Open details" })).toBeTruthy();
   });
 
   it("is live with fresh readings, and warns once they are older than the stale window", async () => {

@@ -2,6 +2,8 @@ import { normalizeReadings } from "../../shared/ui";
 import type { OwletAlert, Reading, SleepState } from "../../../../domains/owlet/types";
 
 export const SLEEP_WORD: Record<SleepState, string> = { deep_sleep: "Deep sleep", light_sleep: "Light sleep", awake: "Awake" };
+/** The sleep state as a readout figure, under its Sleep caption. */
+export const SLEEP_FIGURE: Record<SleepState, string> = { deep_sleep: "Deep", light_sleep: "Light", awake: "Awake" };
 
 export const fmtBpm = (n: number) => String(Math.round(n));
 export const fmtOxygen = (n: number) => String(Math.round(n));
