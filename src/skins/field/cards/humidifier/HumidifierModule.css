@@ -1,0 +1,41 @@
+/* Humidifier module (fd-hu): the power key, then the target fader across the rest of the row. */
+.fd-hu-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+/* No target to set (off, or a unit without one): the key spans the row with what it does. */
+.fd-hu-row[data-adjustable="false"] { grid-template-columns: minmax(0, 1fr); }
+.fd-hu-row .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/*
+ * Narrow modules keep the figure and one meta line: the one the module doesn't already say. The fader's legend prints
+ * the target, so its action stays; the screen says OFF, so the room's humidity stays. The key names the unit, so the
+ * drop goes.
+ */
+@container (max-width: 239px) {
+  .fd-hu .fd-meta-2 { display: none; }
+  .fd-hu:is([data-state="off"], :has(.fd-fader)) .fd-meta:has(.fd-meta-2) > span:first-child { display: none; }
+  .fd-hu:is([data-state="off"], :has(.fd-fader)) .fd-meta-2 { display: block; }
+  .fd-hu .fd-read { font-size: 22px; }
+  .fd-hu .fd-screen .fd-pict { display: none; }
+}
+
+/* A narrow row keeps the figure and lets the drop go; the key's glyph names the unit. */
+@container (max-width: 279px) {
+  .fd-hu[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-hu[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+
+/* The detail panel's humidifier content. */
+.fd-hu-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
+.fd-hu-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Exact target steps: the target printed, then full-size momentary keys. */
+.fd-hu-fine { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; align-items: center; gap: 8px; }
+.fd-hu-fine-label { min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fd-ink-2); }
+.fd-hu-fine-label span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-hu-fine-label b { flex: none; color: var(--fd-ink); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+
+/* Modes put their full word on the key; three in a row, two on a narrow panel. */
+.fd-hu-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.fd-hu-modes .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 300px) {
+  .fd-hu-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

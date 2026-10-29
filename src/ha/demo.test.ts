@@ -50,6 +50,20 @@ describe("createDemoHaTransport", () => {
     expect(latest?.["input_boolean.guest"]?.last_changed).not.toBe(stamp);
     expect(latest?.["switch.fan"]?.state).toBe("off");
   });
+
+  it("switches a humidifier it was seeded with, and sets its target and mode", async () => {
+    const stamp = "2026-10-19T11:20:00Z";
+    const transport = createDemoHaTransport({
+      "humidifier.bedroom": { entity_id: "humidifier.bedroom", state: "off", attributes: { humidity: 45, mode: "normal", available_modes: ["normal", "eco"] }, last_changed: stamp, last_updated: stamp },
+    });
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("humidifier", "toggle", { entity_id: "humidifier.bedroom" });
+    await transport.callService("humidifier", "set_humidity", { entity_id: "humidifier.bedroom", humidity: 50 });
+    await transport.callService("humidifier", "set_mode", { entity_id: "humidifier.bedroom", mode: "eco" });
+    expect(latest?.["humidifier.bedroom"]).toMatchObject({ state: "on", attributes: { humidity: 50, mode: "eco", action: "humidifying" } });
+  });
 });
 
 describe("createDemoSensorHaTransport", () => {

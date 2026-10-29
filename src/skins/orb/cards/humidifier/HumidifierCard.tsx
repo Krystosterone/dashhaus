@@ -1,4 +1,5 @@
-import type { HumidifierAction, HumidifierEntity, HumidifierHistory } from "../../../../domains/humidifier/types";
+import type { HumidifierEntity, HumidifierHistory } from "../../../../domains/humidifier/types";
+import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "../../../../domains/humidifier/labels";
 import { HumidifierIcon } from "./icons";
 import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
@@ -14,12 +15,8 @@ export interface HumidifierCardProps extends CardProps {
   onModeChange?: (mode: string) => void;
 }
 
-const ACTION_LABEL: Record<HumidifierAction, string> = { humidifying: "Humidifying", drying: "Drying", idle: "Idle", off: "Off" };
 /** HA sets humidity in whole percent. */
 const STEP = 1;
-
-export const fmtHumidity = (h: number) => String(Math.round(h));
-export const modeLabel = (m: string) => m.charAt(0).toUpperCase() + m.slice(1).replace(/_/g, " ");
 
 /**
  * One humidifier or dehumidifier (`humidifier.*`). It uses the same card anatomy and footprint matrix
@@ -30,7 +27,6 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
   const { uid, nameId, sheet, compact, bare, article, area } = useCard("hu", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  const dry = e.kind === "dehumidifier";
   // A state: on is the accent, with no glow. Humidifying is not light or heat, so it never claims the
   // energy bloom (attention-budget skill); the action words say whether it is working.
   const colors = paint("state", 0, null, color);
@@ -47,7 +43,7 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
   if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
   else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} turnOn>Turn on</TogglePill>;
   else if (target != null && onTargetChange) {
-    slot = <Stepper label={`${e.name} target humidity`} kicker={compact ? undefined : dry ? "Dry to" : "Humidify to"} value={target} unit="%" format={fmtHumidity} min={e.minHumidity} max={e.maxHumidity} step={STEP} onChange={onTargetChange} />;
+    slot = <Stepper label={`${e.name} target humidity`} kicker={compact ? undefined : targetVerb(e.kind)} value={target} unit="%" format={fmtHumidity} min={e.minHumidity} max={e.maxHumidity} step={STEP} onChange={onTargetChange} />;
   } else {
     const word = target != null ? `${fmtHumidity(target)}%` : "On";
     const cue = e.mode ? modeLabel(e.mode) : undefined;

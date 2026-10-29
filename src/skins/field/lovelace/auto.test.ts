@@ -41,6 +41,10 @@ describe("autoModules", () => {
     });
     expect(modules).toEqual([{ entity: "switch.fan", kind: "toggle" }, { entity: "input_boolean.guest", kind: "toggle" }]);
   });
+
+  it("takes every visible humidifier", () => {
+    expect(autoModules({ states: { "humidifier.bedroom": state("humidifier.bedroom", "Bedroom") } })).toEqual([{ entity: "humidifier.bedroom", kind: "humidifier" }]);
+  });
 });
 
 describe("groupByArea", () => {

@@ -43,7 +43,7 @@ export interface FieldConfig {
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle";
+export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -63,6 +63,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   sensor: { domains: ["sensor"] },
   weather: { domains: ["weather"] },
   toggle: { domains: ["input_boolean", "switch"] },
+  humidifier: { domains: ["humidifier"] },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];

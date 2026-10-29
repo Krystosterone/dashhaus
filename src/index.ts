@@ -75,6 +75,10 @@ export { ToggleModule } from "./skins/field/cards/toggle/ToggleModule";
 export type { ToggleModuleProps } from "./skins/field/cards/toggle/ToggleModule";
 export { HaToggleModule } from "./skins/field/ha/HaToggleModule";
 export type { HaToggleModuleProps } from "./skins/field/ha/HaToggleModule";
+export { HumidifierModule } from "./skins/field/cards/humidifier/HumidifierModule";
+export type { HumidifierModuleProps } from "./skins/field/cards/humidifier/HumidifierModule";
+export { HaHumidifierModule } from "./skins/field/ha/HaHumidifierModule";
+export type { HaHumidifierModuleProps } from "./skins/field/ha/HaHumidifierModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header

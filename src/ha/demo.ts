@@ -148,7 +148,7 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service !== "get_forecasts" || typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo weather target not found");
         return { response: { [entityId]: { forecast: weatherForecasts[type] } } };
       }
-      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch") throw new Error(`Unsupported demo domain: ${domain}`);
+      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier") throw new Error(`Unsupported demo domain: ${domain}`);
       const entityId = serviceData.entity_id;
       if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
       const current = entities[entityId];
@@ -157,6 +157,12 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
         if (service === "turn_on" || service === "turn_off") next.state = service === "turn_on" ? "on" : "off";
         next.last_changed = next.last_updated;
+      } else if (domain === "humidifier") {
+        if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
+        if (service === "set_humidity" && typeof serviceData.humidity === "number") next.attributes.humidity = serviceData.humidity;
+        if (service === "set_mode" && typeof serviceData.mode === "string") next.attributes.mode = serviceData.mode;
+        next.attributes.action = next.state === "on" ? "humidifying" : "off";
+        if (next.state !== current.state) next.last_changed = next.last_updated;
       } else if (domain === "light") {
         if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
         if (service === "turn_on") {

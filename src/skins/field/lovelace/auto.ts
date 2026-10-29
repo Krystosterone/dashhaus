@@ -22,7 +22,7 @@ export function areaName(input: AutoInput, entityId: string): string | undefined
  * Every supported entity Field can draw, for a card without `modules`, as the card its entity id picks: hidden and
  * config or diagnostic entities left out, sorted by name. The sensor card takes only room air: one per device, its
  * humidity and battery as companions (`roomSensors`). The weather card takes the first weather entity by name, as
- * orb's does, with `sun.sun` for night. Every input_boolean and switch is a toggle. The dashboard groups them by area.
+ * orb's does, with `sun.sun` for night. Every input_boolean and switch is a toggle, and every humidifier a humidifier. The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states, entities = {} } = input;

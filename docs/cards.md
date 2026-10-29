@@ -302,6 +302,10 @@ One `humidifier.*` entity: a humidifier, or a dehumidifier by its `device_class`
 - **Compact:** the domain icon (mist over the unit, or a dehumidifier's tank), name, status line, and the stepper; under 320 px the humidity and setpoint share the value line ("38% · Set 45%").
 - **Sheet:** press and hold the orb, or tap the name: the stepper, the mode chips when it lists more than one mode, today's on/off history, and the settable range.
 
+### Field humidifier module
+
+`HumidifierModule` is the same normalized humidifier entity in the Field skin; `HaHumidifierModule` is its connected container, on the same `useHaHumidifier` hook as `HaHumidifierTile`, so it takes the same `onToggle`, `onTargetChange` and `onModeChange`. The screen leads with the room's humidity, the fader sets the target while it is on, and the panel adds one-percent steps and the mode keys. See [field.md](field.md#humidifier).
+
 ## Using the sound card
 
 A sound machine's sound: one `switch.*` that plays it, and the `number.*` that sets its volume (one device, as the sensor card reads one device's temperature and humidity):

@@ -2,7 +2,7 @@
  * Draws a domain that already exists in the field skin:
  *
  *   npm run new-card -- <name> --skin field [--kind control|reading] [--code <xx>] [--dry-run]
- *   npm run new-card -- humidifier --skin field
+ *   npm run new-card -- sound --skin field
  *
  * The domain, its `useHa<Name>` hook and its orb card come first; this reads them and draws only field's side
  * (AGENTS.md → Adding an existing domain to another skin). It copies ./templates/field/common plus
@@ -28,7 +28,7 @@ const objectBody = (source, name) => source.match(new RegExp(`export const ${nam
 
 export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun }) {
   // ---------- What the domain already has ----------
-  const { Name, CONST, words, Label } = names(name, '"humidifier"');
+  const { Name, CONST, words, Label } = names(name, '"sound"');
   const step = (n) => `AGENTS.md → Adding an existing domain to another skin, step ${n}`;
 
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);

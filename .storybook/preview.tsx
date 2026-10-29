@@ -35,10 +35,10 @@ const preview: Preview = {
             "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet"],
           ],
           "Field", [
-            "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle"],
+            "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier"],
             "Dashboards", ["Lovelace card"],
             "Foundations", ["Design rules", "Palette"],
-            "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle"],
+            "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier"],
           ],
         ],
       },
