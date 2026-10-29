@@ -232,8 +232,9 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-long { display: none; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-short { display: inline; }
 }
+/* Centred, not baseline: a flex line aligns its baselines at the top of the slot, under the row's centre line. */
 .hd--compact .hd-bar {
-  display: flex; align-items: baseline; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
+  display: flex; align-items: center; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
 }
 .hd--compact .hd-label { display: none; }
 .hd--compact .hd-none { flex: none; font-size: 12.5px; }

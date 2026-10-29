@@ -1,11 +1,11 @@
 /* Weather card. Shell, header, badge and sheet come from src/shared/card.css.
    A reading: neutral and without glow. The condition icon is the badge at every size. */
 
-/* ---------- The reading: now, then feels-like on its baseline. The readout itself is shared (card.css) ---------- */
+/* ---------- The reading: now, then feels-like on its baseline. The readout and its bar are shared (card.css) ---------- */
 /* Feels-like keeps its place; only a reading too wide for its card wraps it out of sight. */
 .wx-rd {
   display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; min-width: 0; height: var(--slot-h); overflow: hidden;
-  line-height: var(--slot-h); white-space: nowrap; font-variant-numeric: tabular-nums;
+  line-height: var(--slot-h);
 }
 .wx-rd-t { color: var(--ink); font-size: 20px; font-weight: 700; }
 /* Several warnings: "Hazardous air +2" where it fits, "3 warnings" where even that would clip. */
@@ -18,7 +18,7 @@
 /* Standard and featured: now is the card's figure, in the large-readout voice. */
 .wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
 .wx:not(.hd--compact):not(.hd--sheet) .wx-rd-f { font-size: 15px; }
-.hd--compact .wx-rd { justify-content: flex-end; column-gap: 8px; padding-inline-end: var(--pad-in); }
+.hd--compact .wx-rd { justify-content: flex-end; column-gap: 8px; }
 .hd--compact .wx-rd-t { font-size: 13.5px; }
 .hd--compact .wx-rd-f { color: var(--ink-3); font-size: 12.5px; }
 

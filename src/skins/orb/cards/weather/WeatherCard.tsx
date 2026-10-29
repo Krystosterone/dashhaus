@@ -31,12 +31,14 @@ const deg = (t: number) => `${fmt1(t).replace(/\.0$/, "")}°`;
 /** Hours ahead the forecast row can show; the row shows as many as its width fits. */
 const HOURS_AHEAD = 12;
 
-/** Now, then feels-like on its baseline. A readout: no container. */
+/** Now, then feels-like on its baseline: one metric in the shared bar. A readout: no container. */
 function Reading({ now, feels, label, onOpen }: { now: number; feels?: number; label: string; onOpen?: () => void }) {
   const read = (
-    <span className="wx-rd">
-      <span className="wx-rd-t">{fmt1(now)}°</span>
-      {feels != null && <span className="wx-rd-f">Feels {deg0(feels)}</span>}
+    <span className="hd-bar wx-bar">
+      <span className="hd-metric wx-rd">
+        <span className="wx-rd-t">{fmt1(now)}°</span>
+        {feels != null && <span className="wx-rd-f">Feels {deg0(feels)}</span>}
+      </span>
     </span>
   );
   return <Readout label={label} onOpen={onOpen}>{read}</Readout>;
