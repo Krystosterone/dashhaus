@@ -1,0 +1,65 @@
+/* The dashboard's alert line: a strip of screen under the title, an entry per alarm or urgent warning. Each entry is
+   a 44 px row to tap, 32 px under a fine pointer. */
+.fd-alerts {
+  display: grid;
+  padding: 2px 10px;
+  border-radius: var(--fd-r-screen);
+  background: var(--fd-screen);
+  color: var(--fd-screen-ink);
+  font-family: var(--fd-sans);
+  font-stretch: var(--fd-wide);
+}
+.fd-alerts-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  line-height: 15px;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity var(--fd-press) var(--fd-ease-out);
+}
+.fd-alerts-entry + .fd-alerts-entry { border-top: 1px solid var(--fd-screen-unlit); }
+.fd-alerts-entry:active { opacity: 0.7; }
+.fd-alerts-entry:focus-visible { outline: 2px solid var(--fd-screen-ink); outline-offset: -2px; }
+.fd-alerts-what { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fd-alerts-what b { font-weight: 700; }
+.fd-alerts-what > span:last-child { color: var(--fd-screen-ink-2); }
+.fd-alerts-more { color: var(--fd-screen-ink-2); }
+/* The level, boxed with its glyph and word, so a module named "Alarm" never runs into it. An alarm's box is inverted
+   and flashes with its module. */
+.fd-alerts-tag {
+  flex: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 88px;
+  padding: 1px 5px;
+  border: 1px solid var(--fd-screen-ink);
+  border-radius: 1px;
+  font-weight: 700;
+}
+.fd-alerts-tag svg { flex: none; width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.fd-alerts-entry[data-level="alarm"] .fd-alerts-tag { background: var(--fd-screen-ink); color: var(--fd-screen); animation: fd-alarm-flash 1s linear 10; }
+@media (prefers-reduced-motion: reduce) {
+  .fd-alerts-entry[data-level="alarm"] .fd-alerts-tag { animation: none; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .fd-alerts-entry { min-height: 32px; }
+  .fd-alerts-entry:hover .fd-alerts-what b { text-decoration: underline; text-underline-offset: 2px; }
+}

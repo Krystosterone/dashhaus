@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fmtBpm, fmtOxygen, normalize, rankAlerts } from "./readings";
+import { fmtBpm, fmtOxygen, normalize, owletSeverity, rankAlerts } from "./readings";
 
 describe("normalize", () => {
   it("scales readings between 0.12 and 1, keeping gaps and hours ahead", () => {
@@ -31,5 +31,20 @@ describe("rankAlerts", () => {
   });
   it("is empty without alerts", () => {
     expect(rankAlerts()).toEqual({ vitals: [], problems: [] });
+  });
+});
+
+describe("owletSeverity", () => {
+  it("makes a vitals alert the alarm, whatever else is sounding", () => {
+    expect(owletSeverity(["low_battery", "low_oxygen"], true)).toBe("alarm");
+  });
+  it("makes a problem that stops the monitoring, or stopped readings, urgent", () => {
+    expect(owletSeverity(["sock_off"])).toBe("urgent");
+    expect(owletSeverity(["critical_battery", "low_battery"])).toBe("urgent");
+    expect(owletSeverity([], true)).toBe("urgent");
+  });
+  it("leaves a low battery advisory, and a quiet sock at nothing", () => {
+    expect(owletSeverity(["low_battery"])).toBe("advisory");
+    expect(owletSeverity()).toBeUndefined();
   });
 });

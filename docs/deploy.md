@@ -169,6 +169,7 @@ type: custom:home-dashboard-field
 title: Home              # optional, printed at the top
 finish: home-assistant   # home-assistant (default: follows its dark mode), auto (the device's), alloy, black
 footprint: standard      # standard (160 px modules, default) or compact (64 px rows)
+quiet: false             # true: an alarm holds its inverted screen with no flash (a nursery's panel at night)
 modules:                 # optional; leave out for every supported entity by area
   - light.ceiling        # a light or climate entity id
   - entity: light.desk_strip
@@ -214,7 +215,10 @@ modules:                 # optional; leave out for every supported entity by are
 | `title` | text | none |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
+| `quiet` | `true`, `false`: an alarm holds its inverted screen from the start instead of flashing for ten seconds | `false` |
 | `modules` | a list of `light.*`, `climate.*`, `sensor.*`, `weather.*`, `input_boolean.*`, `switch.*`, `humidifier.*`, `cover.*` or `alarm_control_panel.*` entity ids, or an Owlet sock's `sensor.*_sleep_state`, or maps of `entity`, `card`, `name`, `area`, `footprint`; a sensor also takes `humidity`, `battery` (`sensor.*` ids) and `outdoor`; a weather `aqi` (a `sensor.*` id), `aqi_scale` (`US`), `sun` (a `sun.*` id, default `sun.sun`) and `forecasts` (default `true`); an `input_boolean.*` or `switch.*` `icon` (`bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`) and `description`; a sound (`card: sound`) `volume` (a `number.*` id, default `number.<switch>_volume`, then `number.<device>_volume`); an alarm `read_only`, `exit_delay` and `entry_delay` (seconds) and `open_sensors` (names); an owlet `heart_rate`, `oxygen` (`sensor.*` ids), `charging` (a `binary_sensor.*` id), `base_station` (a `switch.*` id), `alerts` (alert names to `binary_sensor.*` ids, as on the main card) and `stale_after` (minutes, default 3) | every visible supported entity |
+
+Under the title, the card draws an alert line whenever a module has something urgent or an alarm: a sock's vitals alert, a triggered alarm, a sock off, an entry delay ([field.md](field.md#design-rules)). Each entry opens that module's panel.
 
 Each module's entity id picks its card. Where two field cards draw one domain, the domain's own card is the default and `card:` picks the other (a `switch` is a toggle unless `card: sound`; a `sensor.*_sleep_state` is an owlet, and `card: owlet` picks it for a sock named otherwise); the error lists the cards that can draw it.
 

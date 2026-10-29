@@ -6,7 +6,7 @@ import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "../../../ha/demo/owlet";
 
 const ID = "sensor.owlet_sock_ac000w0123_sleep_state";
 const BASE = "switch.owlet_sock_ac000w0123_base_station_on";
-const renderLive = (props = {}) => renderConnected(<HaOwletModule entityId={ID} name="Nova" loadHistory={false} {...props} />, OWLET_DEMO_ENTITIES);
+const renderLive = (props = {}) => renderConnected(<HaOwletModule entityId={ID} name="Nova" area="Nursery" loadHistory={false} {...props} />, OWLET_DEMO_ENTITIES);
 
 describe("HaOwletModule", () => {
   // jsdom has no modal dialog; these do what a browser's do to the `open` attribute.
@@ -21,12 +21,14 @@ describe("HaOwletModule", () => {
     expect([...container.querySelectorAll(".fd-module .fd-meta > span")].map((s) => s.textContent)).toEqual(["Deep sleep", "98% O₂"]);
   });
 
-  it("puts the base station's alert on the screen, and a problem with the sock on the plate", async () => {
+  it("makes the base station's vitals alert the alarm, and lets the advisory battery step aside", async () => {
     const { container, ...fake } = renderLive();
     await waitFor(() => expect(container.querySelector(".fd-module .fd-read")?.textContent).toBe("121bpm"));
     act(() => fake.emit(owletDemoEntities({ "binary_sensor.owlet_sock_ac000w0123_low_oxygen_alert": "on", "binary_sensor.owlet_sock_ac000w0123_low_battery_alert": "on" })));
-    await waitFor(() => expect(container.querySelector(".fd-module .fd-meta > span")?.textContent).toBe("Warning: Low oxygen"));
-    expect(container.querySelector(".fd-module .fd-area")?.textContent).toBe("Warning: Battery low");
+    await waitFor(() => expect(container.querySelector(".fd-module")?.getAttribute("data-level")).toBe("alarm"));
+    expect(container.querySelector(".fd-module .fd-read")?.textContent).toBe("98% O₂");
+    expect(container.querySelector(".fd-module .fd-meta > span")?.textContent).toBe("Low");
+    expect(container.querySelector(".fd-module .fd-area")?.textContent).toBe("Nursery");
   });
 
   it("switches the base station from the panel with the service for the state it shows", async () => {

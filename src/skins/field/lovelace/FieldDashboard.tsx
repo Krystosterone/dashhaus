@@ -13,6 +13,7 @@ import { HaCoverModule } from "../ha/HaCoverModule";
 import { HaAlarmModule } from "../ha/HaAlarmModule";
 import { HaOwletModule } from "../ha/HaOwletModule";
 import { Key, Legend } from "../shared/ui";
+import { AlertLine, AlertsProvider } from "../shared/alerts";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
 import type { FieldKind, ModuleConfig } from "./config";
@@ -79,27 +80,33 @@ export interface FieldDashboardProps {
   /** The modules, each with its area from the YAML or, failing that, Home Assistant's registries. */
   items: ModuleConfig[];
   footprint: FieldFootprint;
+  /** An alarm holds its inverted screen from the start, with no flash (YAML `quiet: true`). */
+  quiet?: boolean;
 }
 
 /**
- * The field page drawn from the card's config: an optional printed title, then a section per area, each under its
- * legend, its modules in a grid. A rejected command docks at the bottom. It needs an `HaProvider` above it.
+ * The field page drawn from the card's config: an optional printed title, the alert line with every alarm and urgent
+ * warning its modules report, then a section per area, each under its legend, its modules in a grid. A rejected
+ * command docks at the bottom. It needs an `HaProvider` above it.
  */
-export function FieldDashboard({ title, items, footprint }: FieldDashboardProps) {
+export function FieldDashboard({ title, items, footprint, quiet }: FieldDashboardProps) {
   const groups = groupByArea(items);
   return (
-    <div className="fd-dash" data-footprint={footprint}>
-      {title && <h1 className="fd-dash-title">{title}</h1>}
-      {groups.map((g) => (
-        <section key={g.area ?? ""} className="fd-dash-area" aria-label={g.area ?? "Other"}>
-          {g.area && groups.length > 1 && <Legend>{g.area}</Legend>}
-          <div className="fd-dash-grid">
-            {g.modules.map((item) => <LiveModule key={item.entity} item={item} footprint={footprint} />)}
-          </div>
-        </section>
-      ))}
-      {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
-      <ActionNotice />
-    </div>
+    <AlertsProvider>
+      <div className="fd-dash" data-footprint={footprint} data-quiet={quiet || undefined}>
+        {title && <h1 className="fd-dash-title">{title}</h1>}
+        <AlertLine />
+        {groups.map((g) => (
+          <section key={g.area ?? ""} className="fd-dash-area" aria-label={g.area ?? "Other"}>
+            {g.area && groups.length > 1 && <Legend>{g.area}</Legend>}
+            <div className="fd-dash-grid">
+              {g.modules.map((item) => <LiveModule key={item.entity} item={item} footprint={footprint} />)}
+            </div>
+          </section>
+        ))}
+        {items.length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
+        <ActionNotice />
+      </div>
+    </AlertsProvider>
   );
 }

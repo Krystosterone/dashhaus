@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mmss, modeChoices, needsCode } from "./modes";
+import { alarmSeverity, mmss, modeChoices, needsCode } from "./modes";
 
 describe("modeChoices", () => {
   it("puts Off before the panel's modes", () => {
@@ -29,5 +29,18 @@ describe("mmss", () => {
     expect(mmss(600)).toBe("10:00");
     expect(mmss(0.2)).toBe("0:01");
     expect(mmss(-3)).toBe("0:00");
+  });
+});
+
+describe("alarmSeverity", () => {
+  it("makes triggered the alarm, and the entry delay urgent", () => {
+    expect(alarmSeverity({ state: "triggered" })).toBe("alarm");
+    expect(alarmSeverity({ state: "pending" })).toBe("urgent");
+  });
+  it("leaves doors open while disarmed advisory, and the rest at nothing", () => {
+    expect(alarmSeverity({ state: "disarmed", openSensors: ["Back door"] })).toBe("advisory");
+    expect(alarmSeverity({ state: "disarmed", openSensors: [] })).toBeUndefined();
+    expect(alarmSeverity({ state: "armed_away", openSensors: ["Back door"] })).toBeUndefined();
+    expect(alarmSeverity({ state: "arming" })).toBeUndefined();
   });
 });

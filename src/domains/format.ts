@@ -10,3 +10,9 @@ export const fmtDuration = (m: number) => {
   const h = Math.floor(mins / 60), r = mins % 60;
   return h === 0 ? `${r}m` : r === 0 ? `${h}h` : `${h}h ${r}m`;
 };
+
+/** How long ago, in one unit so it fits a row's screen: "3m", "4h", "10d". Negative counts as none. */
+export const fmtAgo = (m: number) => {
+  const mins = Math.max(0, Math.floor(m));
+  return mins < 60 ? `${mins}m` : mins < 1440 ? `${Math.floor(mins / 60)}h` : `${Math.floor(mins / 1440)}d`;
+};

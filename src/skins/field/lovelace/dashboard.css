@@ -38,3 +38,6 @@
 .fd-notice-t span { color: var(--fd-ink-2); }
 .fd-notice-keys { display: flex; gap: 8px; }
 .fd-notice-keys .fd-key { width: auto; padding: 0 14px; }
+
+/* `quiet: true` (a nursery's panel at night): an alarm holds its inversion from the start, with no flash. */
+.fd-dash[data-quiet] :is(.fd-module[data-level="alarm"] .fd-screen, .fd-module[data-level="alarm"] .fd-led, .fd-alerts-tag) { animation: none; }

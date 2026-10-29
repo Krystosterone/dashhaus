@@ -20,16 +20,9 @@
 /* Readings that stopped are old: the figure dims to the meta lines' ink, as the heart beside it goes out. */
 :is(.fd-ow, .fd-ow-panel)[data-state="stale"] .fd-read-fig { color: var(--fd-screen-ink-2); }
 
-/* More than one vitals alert: the most urgent with a count of the rest, or the count alone where even that clips. */
-.fd-ow-warn-s { display: none; }
-@container (max-width: 299px) {
-  .fd-ow .fd-ow-warn-l { display: none; }
-  .fd-ow .fd-ow-warn-s { display: inline; }
-}
-
 /* Narrow modules keep both meta lines, the sleep state and the oxygen, since no other part of the module says
    them; the pictogram still goes (module.css), and the figure takes a size smaller and the screen tighter, so
-   "Light sleep" and "2 alerts" stay whole. */
+   "Light sleep" stays whole. */
 @container (max-width: 239px) {
   .fd-ow.fd-module[data-footprint="standard"] .fd-meta-2 { display: block; }
   .fd-ow.fd-module[data-footprint="standard"] .fd-read { font-size: 19px; }

@@ -78,8 +78,13 @@ describe("groupByArea", () => {
 });
 
 describe("parseFieldConfig", () => {
-  it("defaults to automatic modules, Home Assistant's dark mode, standard modules", () => {
-    expect(parseFieldConfig({ type: "custom:home-dashboard-field" })).toEqual({ title: undefined, finish: "home-assistant", footprint: "standard" });
+  it("defaults to automatic modules, Home Assistant's dark mode, standard modules, and alarms that flash", () => {
+    expect(parseFieldConfig({ type: "custom:home-dashboard-field" })).toEqual({ title: undefined, finish: "home-assistant", footprint: "standard", quiet: false });
+  });
+
+  it("takes quiet, for a panel where an alarm mustn't flash", () => {
+    expect(parseFieldConfig({ quiet: true }).quiet).toBe(true);
+    expect(() => parseFieldConfig({ quiet: "yes" })).toThrow('"quiet"');
   });
 
   it("reads supported modules as ids or maps, and reports every problem at once", () => {

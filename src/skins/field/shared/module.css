@@ -203,6 +203,41 @@
   .fd-module[data-footprint="compact"] .fd-screen { width: 80px; }
 }
 
+/* Severity (src/domains/severity.ts): how much of the always-dark screen inverts. Advisory is the marker and its
+   words; urgent turns the warning into an inverted block; alarm inverts the whole screen. Never a colour: field has
+   none to raise, and inversion reads with colour removed. */
+
+/* Urgent: the warning's words in an inverted block, against the screen, or a row's plate. */
+.fd-warn[data-block] { box-sizing: border-box; min-width: 0; padding: 1px 5px; border-radius: 1px; font-weight: 700; }
+.fd-screen .fd-warn[data-block] { background: var(--fd-screen-ink); color: var(--fd-screen); }
+.fd-area .fd-warn[data-block] { background: var(--fd-ink); color: var(--fd-module); }
+
+/* Alarm: the whole screen inverts, everything on it following the screen's ink, so the flash swaps two colours. A
+   bezel in the screen's own dark keeps a lit screen a screen on the light alloy plate, and an ink rule inside the
+   plate's edge claims the module from a wall panel's distance. The alarm's own words, the first line, go a size up. */
+.fd-module[data-level="alarm"] { box-shadow: inset 0 0 0 2px var(--fd-ink); }
+.fd-module[data-level="alarm"] .fd-screen { background: var(--fd-screen-ink); color: var(--fd-screen); box-shadow: inset 0 0 0 3px var(--fd-screen); }
+.fd-module[data-level="alarm"] .fd-screen :is(.fd-meta, .fd-warn, .fd-read small, .fd-read-fig) { color: inherit; }
+.fd-module[data-level="alarm"] .fd-meta > span:first-child { font-size: 12px; font-weight: 700; line-height: 15px; }
+.fd-module[data-level="alarm"] .fd-pict-lit { fill: currentColor; }
+.fd-module[data-level="alarm"] .fd-pict-unlit { fill: currentColor; opacity: 0.15; }
+.fd-module[data-level="alarm"] .fd-digits::before { color: currentColor; opacity: 0.2; }
+/* The flash: once a second, well under WCAG's three, for ten seconds; then the inversion, the base style, holds until
+   the alarm clears. The LED blinks with it. */
+.fd-module[data-level="alarm"] .fd-screen { animation: fd-alarm-flash 1s linear 10; }
+.fd-module[data-level="alarm"] .fd-led { animation: fd-alarm-blink 1s linear 10; }
+@keyframes fd-alarm-flash {
+  0%, 59.9% { background-color: var(--fd-screen-ink); color: var(--fd-screen); }
+  60%, 100% { background-color: var(--fd-screen); color: var(--fd-screen-ink); }
+}
+@keyframes fd-alarm-blink {
+  0%, 59.9% { opacity: 1; }
+  60%, 100% { opacity: 0.15; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fd-module[data-level="alarm"] :is(.fd-screen, .fd-led) { animation: none; }
+}
+
 /* Fader: a printed legend with its rule, a thin dark slot, a dotted scale, and a round thumb on a rail moved
    with transform. */
 .fd-fader { position: relative; height: 44px; min-width: 0; overflow: clip; }

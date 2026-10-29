@@ -97,15 +97,32 @@ describe("AlarmModule", () => {
     expect(untimed.container.querySelector(".fd-module .fd-read .fd-digits")?.getAttribute("data-pad")).toBe("----");
   });
 
-  it("puts what set off an entry delay or the alarm behind the warning marker, and disarms from its key", () => {
+  it("makes the entry delay urgent, what set it off in an inverted block, and disarms from its key", () => {
     const pending = draw("pending");
-    expect(pending.container.querySelector(".fd-module .fd-meta .fd-warn")?.textContent).toBe("Warning: Front door opened");
+    expect(pending.container.querySelector(".fd-module")?.getAttribute("data-level")).toBe("urgent");
+    const block = pending.container.querySelector(".fd-module .fd-meta .fd-warn");
+    expect(block?.textContent).toBe("Warning: Front door");
+    expect(block?.hasAttribute("data-block")).toBe(true);
     expect(meta(pending.container)).toMatch(/Disarm now$/);
+    expect(draw("pending", "compact").container.querySelector(".fd-area .fd-warn")?.hasAttribute("data-block")).toBe(true);
+  });
 
+  it("makes triggered the alarm: the figure says ALARM, its lines say what set it off and since when, and it is announced", () => {
     const triggered = draw("triggered");
-    expect(triggered.container.querySelector(".fd-module .fd-meta .fd-warn")?.textContent).toBe("Warning: Triggered by Back door");
+    const module = triggered.container.querySelector(".fd-module");
+    expect(module?.getAttribute("data-level")).toBe("alarm");
+    expect(module?.querySelector(".fd-read")?.textContent).toBe("ALARM");
+    expect(meta(triggered.container)).toBe("Back doorSince 11:51");
+    expect(module?.querySelector("[role=alert]")?.textContent).toBe("Alarm: Alarm triggered by Back door.");
     fireEvent.click(triggered.keys[0]);
     expect(screen.getByText("Code to disarm")).toBeTruthy();
+  });
+
+  it("gives a triggered row how long ago it went off, which can't be mistaken for the clock", () => {
+    const changedAt = Date.now() - 3 * 60_000;
+    const { container } = render(<AlarmModule entity={{ ...ALARM_SEEDS.triggered.entity, changedAt }} footprint="compact" onArm={() => true} onDisarm={() => true} />);
+    expect(container.querySelector(".fd-read")?.textContent).toBe("Alarm, 3m");
+    expect(container.querySelector(".fd-area .fd-warn")?.textContent).toBe("Warning: Back door");
   });
 
   it("warns of an open door while disarmed, on the screen or in place of a row's area", () => {

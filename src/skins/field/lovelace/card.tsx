@@ -57,7 +57,7 @@ export function createFieldCard(css: string) {
     }
 
     protected draw(config: FieldConfig, hass: LovelaceHass) {
-      return <FieldDashboard title={config.title} items={this.#itemsFor(config, hass)} footprint={config.footprint} />;
+      return <FieldDashboard title={config.title} items={this.#itemsFor(config, hass)} footprint={config.footprint} quiet={config.quiet} />;
     }
 
     /** The registries and the set of entities decide the modules and their areas; a state change does not. */

@@ -5,7 +5,7 @@ import type { ModuleConfig } from "./config";
 import { HaProvider } from "../../../ha/provider";
 import { createHaStore } from "../../../ha/store";
 import { createDemoHaTransport } from "../../../ha/demo";
-import { OWLET_DEMO_ENTITIES } from "../../../ha/demo/owlet";
+import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "../../../ha/demo/owlet";
 import type { HassEntities } from "../../../ha/types";
 import type { FieldFootprint } from "../shared/ui";
 
@@ -62,11 +62,18 @@ const ITEMS: ModuleConfig[] = [
   { entity: "weather.home", kind: "weather", area: "Outside", aqi: "sensor.home_aqi", aqiScale: "US", sun: "sun.sun" },
 ];
 
-function Demo({ title, footprint }: { title?: string; footprint: FieldFootprint }) {
-  const store = useMemo(() => createHaStore(createDemoHaTransport(ENTITIES)), []);
+/** The same house in trouble: the sock's oxygen alarm and a low battery, and the house alarm triggered. */
+const ALERTING: HassEntities = {
+  ...ENTITIES,
+  ...owletDemoEntities({ "binary_sensor.owlet_sock_ac000w0123_low_oxygen_alert": "on", "binary_sensor.owlet_sock_ac000w0123_low_battery_alert": "on" }),
+  ...entity("alarm_control_panel.house", "Alarm", "triggered", { code_format: "number", code_arm_required: true, supported_features: 1 | 2 | 4, changed_by: "Alex" }),
+};
+
+function Demo({ title, footprint, quiet, alerting }: { title?: string; footprint: FieldFootprint; quiet?: boolean; alerting?: boolean }) {
+  const store = useMemo(() => createHaStore(createDemoHaTransport(alerting ? ALERTING : ENTITIES)), [alerting]);
   return (
     <HaProvider store={store}>
-      <FieldDashboard title={title} items={ITEMS} footprint={footprint} />
+      <FieldDashboard title={title} items={ITEMS} footprint={footprint} quiet={quiet} />
     </HaProvider>
   );
 }
@@ -78,7 +85,11 @@ const meta = {
     layout: "fullscreen",
     docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
-  argTypes: { footprint: { control: "inline-radio", options: ["standard", "compact"] }, title: { control: "text" } },
+  argTypes: {
+    footprint: { control: "inline-radio", options: ["standard", "compact"] },
+    title: { control: "text" },
+    quiet: { control: "boolean", description: "An alarm holds its inversion, with no flash" },
+  },
   args: { title: "Home", footprint: "standard" },
 } satisfies Meta<typeof Demo>;
 
@@ -90,3 +101,8 @@ export const Standard: Story = {};
 export const Compact: Story = { args: { footprint: "compact" } };
 /** On a phone. */
 export const Phone: Story = { parameters: { viewport: { defaultViewport: "mobile2" } } };
+/**
+ * Two alarms: the alert line under the title lists them, alarms first, and a tap opens the module's panel; each module
+ * inverts its screen and flashes for ten seconds, then holds. Set `quiet` for a nursery's panel: no flash.
+ */
+export const WithAlerts: Story = { name: "With alerts", args: { alerting: true } };

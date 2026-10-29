@@ -2,6 +2,7 @@ import { Meta } from "@storybook/blocks";
 import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
 import field from "../../../../docs/field.md?raw";
 import * as Palette from "./Palette.stories";
+import * as Alerts from "./Alerts.stories";
 import * as Light from "../cards/light/LightModule.stories";
 import * as Climate from "../cards/climate/ClimateModule.stories";
 import * as Sensor from "../cards/sensor/SensorModule.stories";
@@ -21,7 +22,7 @@ import * as Owlet from "../cards/owlet/OwletModule.stories";
   markdown={field}
   path="docs/field.md"
   after={{
-    "Design rules": [Palette.Roles],
+    "Design rules": [Palette.Roles, Alerts.Ladder],
     Light: [Light.AllStates, Light.Footprints],
     Climate: [Climate.AllStates, Climate.Footprints],
     Sensor: [Sensor.AllStates, Sensor.Footprints],

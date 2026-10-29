@@ -1,4 +1,5 @@
 import { normalizeReadings } from "../history";
+import type { Severity } from "../severity";
 import type { OwletAlert, Reading, SleepState } from "./types";
 
 export const SLEEP_WORD: Record<SleepState, string> = { deep_sleep: "Deep sleep", light_sleep: "Light sleep", awake: "Awake" };
@@ -37,4 +38,23 @@ export const ALERT_WORD: Record<OwletAlert, string> = {
 export function rankAlerts(alerts: readonly OwletAlert[] = []) {
   const active = ALERT_ORDER.filter((a) => alerts.includes(a));
   return { vitals: active.filter((a) => VITAL_ALERTS.has(a)), problems: active.filter((a) => !VITAL_ALERTS.has(a)) };
+}
+
+/** A vitals alert in a word, beside the figure it is about: "Critical" beside 79% O₂. */
+export const ALERT_SHORT: Partial<Record<OwletAlert, string>> = {
+  critical_oxygen: "Critical", low_oxygen: "Low", high_oxygen: "High", low_heart_rate: "Low", high_heart_rate: "High",
+};
+
+/** Problems that stop the monitoring: the sock off or out of reach, the base without power, a battery about to die. */
+export const URGENT_PROBLEMS = new Set<OwletAlert>(["sock_off", "sock_disconnected", "lost_power", "critical_battery"]);
+
+/**
+ * How much the sock's state may claim: a vitals alert is the alarm going off; a problem that stops the monitoring, or
+ * readings that stopped, is urgent; any other problem (a low battery) is advisory.
+ */
+export function owletSeverity(alerts: readonly OwletAlert[] = [], stale = false): Severity | undefined {
+  const { vitals, problems } = rankAlerts(alerts);
+  if (vitals.length) return "alarm";
+  if (stale || problems.some((p) => URGENT_PROBLEMS.has(p))) return "urgent";
+  return problems.length ? "advisory" : undefined;
 }

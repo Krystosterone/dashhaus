@@ -59,6 +59,8 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
+  /** An alarm holds its inverted screen from the start, with no flash: a panel in a nursery at night. */
+  quiet: boolean;
   /** Absent: every supported light, climate, weather, humidifier, cover, alarm, input_boolean and switch entity, Owlet sock and room sensor, grouped by area. */
   modules?: ModuleConfig[];
 }
@@ -110,7 +112,7 @@ export function kindOf(entity: string): FieldKind | undefined {
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
-const TOP_KEYS = ["type", "title", "finish", "footprint", "modules", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "finish", "footprint", "quiet", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
 const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"] };
@@ -190,6 +192,7 @@ export function parseFieldConfig(raw: unknown): FieldConfig {
     title: read.string(top, "title", ""),
     finish: read.choice(top, "finish", "", FINISHES) ?? "home-assistant",
     footprint: read.choice(top, "footprint", "", FOOTPRINTS) ?? "standard",
+    quiet: read.boolean(top, "quiet", "") ?? false,
   };
   if (top.modules != null) {
     if (!Array.isArray(top.modules)) read.problem("modules", "must be a list of entity ids or modules");

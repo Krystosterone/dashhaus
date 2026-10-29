@@ -58,30 +58,41 @@ describe("OwletModule", () => {
     expect(meta).toEqual(["Sleep unknown", "98% O₂"]);
   });
 
-  it("dims stopped readings and puts the heart out, saying since when on the area's line", () => {
-    const { container, read, line } = draw("stale");
+  it("makes stopped readings urgent: the heart goes out, the figure dims, and an inverted block says since when", () => {
+    const { container, read, meta, line } = draw("stale");
     expect(read).toBe("119bpm");
     expect(container.querySelector(".fd-module")?.getAttribute("data-state")).toBe("stale");
+    expect(container.querySelector(".fd-module")?.getAttribute("data-level")).toBe("urgent");
     expect(container.querySelector(".fd-pict")?.getAttribute("data-lit")).toBe("false");
-    expect(line).toBe("Warning: No reading since 11:49");
-    // A row says it shorter, keeping the time; a day as well as a time keeps the time.
+    expect(meta).toEqual(["Warning: Stopped 11:49", "Deep sleep"]);
+    expect(container.querySelector(".fd-meta .fd-warn")?.hasAttribute("data-block")).toBe(true);
+    expect(line).toBe("Nursery");
+    // A row's line takes the block; a day as well as a time keeps the time.
     expect(draw("stale", "compact").line).toBe("Warning: Stopped 11:49");
     expect(draw("long", "compact").line).toBe("Warning: Stopped 18:30");
   });
 
-  it("puts a vitals alert first on the screen, the oxygen beside it, and a row's line names its figure", () => {
-    expect(draw("lowOxygen").meta).toEqual(["Warning: Low oxygen", "84% O₂"]);
-    expect(draw("lowOxygen", "compact").line).toBe("Warning: Low oxygen 84%");
+  it("makes a vitals alert the alarm: the vital that set it off is the figure, its first line says how in a word", () => {
+    const { container, read, meta, line } = draw("lowOxygen");
+    expect(container.querySelector(".fd-module")?.getAttribute("data-level")).toBe("alarm");
+    expect(read).toBe("84% O₂");
+    expect(meta).toEqual(["Low", "131 bpm"]);
+    expect(line).toBe("Nursery");
+    expect(container.querySelector("[role=alert]")?.textContent).toBe("Alarm: Nova, low oxygen, oxygen 84 percent.");
+    // A row's line names it in full, in an inverted block; its screen keeps the vital's figure.
+    const row = draw("lowOxygen", "compact");
+    expect(row.line).toBe("Warning: Low oxygen");
+    expect(row.container.querySelector(".fd-area .fd-warn")?.hasAttribute("data-block")).toBe(true);
+    expect(row.read).toBe("84% O₂");
   });
 
-  it("names the most urgent of several vitals alerts with a count, speaks them all, and keeps the device's problem on the plate", () => {
-    const { container, line } = draw("critical");
-    const first = container.querySelector(".fd-module .fd-meta > span");
-    expect(first?.querySelector(".fd-ow-warn-l")?.textContent).toBe("Critical oxygen +1");
-    expect(first?.querySelector(".fd-sr:last-child")?.textContent).toBe("Critical oxygen, Low heart rate");
-    expect(line).toBe("Warning: Battery low");
-    // A row has no meta lines: the count first, so a long line never hides it.
-    expect(draw("critical", "compact").line).toBe("Warning: 2 alerts: Critical oxygen 79%, Low heart rate");
+  it("names the next vitals alert on the second line, and lets the advisory battery step aside", () => {
+    const { read, meta, line } = draw("critical");
+    expect(read).toBe("79% O₂");
+    expect(meta).toEqual(["Critical", "Low heart rate"]);
+    // The battery is advisory: the alarm takes its place, and the panel still lists it.
+    expect(line).toBe("Nursery");
+    expect(draw("critical", "compact").line).toBe("Warning: Critical oxygen +1");
   });
 
   it("says a switched-off base station in plain words in place of the area, behind any warning", () => {
@@ -101,8 +112,15 @@ describe("OwletModule", () => {
     expect(meta).toEqual(["Charging", "Seen 07:12"]);
     expect(draw("unavailable").meta).toEqual(["Unavailable", "Seen 10:42"]);
     expect(container.querySelector(".fd-glyph")?.hasAttribute("data-unavailable")).toBe(true);
-    // A sock off its foot: the base's alert takes the plate, the screen says it reports nothing.
-    expect(draw("sockOff").line).toBe("Warning: Sock off");
+    // A sock off its foot stops the monitoring: urgent, its block on the screen, when it was last seen beside it.
+    expect(draw("sockOff").meta).toEqual(["Warning: Sock off", "Seen 11:41"]);
+  });
+
+  it("leaves a low battery advisory, on the plate's line with its marker", () => {
+    const { container, line } = draw("lowBattery");
+    expect(line).toBe("Warning: Battery low");
+    expect(container.querySelector(".fd-module")?.hasAttribute("data-level")).toBe(false);
+    expect(container.querySelector(".fd-area .fd-warn")?.hasAttribute("data-block")).toBe(false);
   });
 
   it("lists every alert in the panel, keeps the sleep state on its screen, and switches the base station only there", () => {

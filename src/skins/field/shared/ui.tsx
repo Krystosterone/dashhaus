@@ -4,6 +4,8 @@ import { usePress } from "../../../primitives/press";
 import { useRangeSlider, useSlider } from "../../../primitives/slider";
 import { useSheet } from "../../../primitives/sheet";
 import type { HourSample } from "../../../domains/history";
+import { useReportAlert } from "./alerts";
+import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
 import "./panel.css";
 
@@ -45,6 +47,14 @@ export interface ModuleProps {
    * area; a warning takes its place.
    */
   note?: string;
+  /**
+   * What can't wait (`src/domains/severity.ts`): urgent, or alarm. An alarm inverts the screen, flashes it for ten
+   * seconds (not under the dashboard's `quiet`, nor reduced motion), and holds it inverted until it clears; it rules the
+   * plate's edge and blinks the LED. Either level draws a warning on the plate's line, a row's, as an inverted block.
+   */
+  level?: Pressing;
+  /** Said once by a screen reader when an alarm starts: "Alarm: Nova, critical oxygen, 79 percent". */
+  say?: string;
   children: ReactNode;
 }
 
@@ -52,10 +62,10 @@ export interface ModuleProps {
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
-export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, children }: ModuleProps) {
+export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, level, say, children }: ModuleProps) {
   const nameId = useId();
   return (
-    <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} aria-labelledby={nameId}>
+    <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} data-level={level} aria-labelledby={nameId}>
       <header className="fd-head">
         {/* Labelled by the name alone, so the heading stays "Ceiling" while the button inside reads "Ceiling details". */}
         <h3 className="fd-name" title={name} aria-labelledby={nameId}>
@@ -65,10 +75,11 @@ export function Module({ kind, name, area, footprint = "standard", state, onOpen
             </button>
           ) : <span id={nameId}>{name}</span>}
         </h3>
-        {warning ? <p className="fd-area" title={warning}><Warn>{warning}</Warn></p>
+        {warning ? <p className="fd-area" title={warning}><Warn block={level != null}>{warning}</Warn></p>
           : (note ?? area) && <p className="fd-area" title={note ?? area}>{note ?? area}</p>}
       </header>
       {children}
+      {level === "alarm" && say && <p className="fd-sr" role="alert">{say}</p>}
     </article>
   );
 }
@@ -168,10 +179,11 @@ export function Glyph({ unavailable, children }: { unavailable?: boolean; childr
 
 /**
  * A warning: an outlined marker before its words, said as "Warning: …". Field has no warning colour and no glow to
- * raise, so the marker and the words carry it, first in their line.
+ * raise, so the marker and the words carry it, first in their line. `block` is an urgent warning: the same words in an
+ * inverted block, against the screen or the plate.
  */
-export function Warn({ children }: { children: ReactNode }) {
-  return <span className="fd-warn"><IconWarn /><span className="fd-warn-t"><span className="fd-sr">Warning: </span>{children}</span></span>;
+export function Warn({ block, children }: { block?: boolean; children: ReactNode }) {
+  return <span className="fd-warn" data-block={block || undefined}><IconWarn /><span className="fd-warn-t"><span className="fd-sr">Warning: </span>{children}</span></span>;
 }
 
 /** The dark display: a pictogram and a figure, then up to two meta lines, or another channel (`aside`). Never pressable. */
@@ -448,16 +460,22 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   children: ReactNode;
   /** The panel opens with focus in its content (its `[data-autofocus]`), not on its close key. */
   panelFocus?: "content";
+  /**
+   * What can't wait: the module draws its level (`Module`'s `level`), and reports it to the dashboard's alert line, its
+   * name opening this module's details. `what` is the line's words ("Critical oxygen 79%"), `say` the alarm's.
+   */
+  alert?: Omit<AlertEntry, "name"> & { say?: string };
 }
 
 /**
  * Every field card's frame: the module in its footprint, a compact row's lead and screen or a standard module's screen
  * and row, and the detail panel its name opens. A card brings what goes in it.
  */
-export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelFocus, children, ...module }: ModuleFrameProps) {
+export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelFocus, alert, children, ...module }: ModuleFrameProps) {
+  useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what }, details.openDetails);
   return (
     <>
-      <Module {...module} area={module.footprint === "compact" ? line ?? module.area : module.area} onOpen={details.openDetails}>
+      <Module {...module} area={module.footprint === "compact" ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say}>
         {module.footprint === "compact" ? (
           <>
             {lead}

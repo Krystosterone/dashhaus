@@ -37,7 +37,7 @@ const preview: Preview = {
           "Field", [
             "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet"],
             "Dashboards", ["Lovelace card"],
-            "Foundations", ["Design rules", "Palette", "Parts"],
+            "Foundations", ["Design rules", "Palette", "Parts", "Alerts"],
             "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet"],
           ],
         ],

@@ -149,6 +149,26 @@ describe("motion: compositor-only, token easing", () => {
   });
 });
 
+describe("severity: inversion, never a colour, and a flash that ends", () => {
+  it("an alarm's flash runs a set number of times, never forever, and stops under reduced motion and quiet", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { prop, value } of decls(f)) if (prop === "animation" && /fd-alarm-/.test(value) && !/\s\d+$/.test(value)) bad.push(`${f}: ${value}`);
+    }
+    expect(bad).toEqual([]);
+    expect(css(`${SKIN}/shared/module.css`)).toMatch(/prefers-reduced-motion: reduce\)\s*\{[^}]*data-level="alarm"\][^}]*animation: none/);
+    expect(css(`${SKIN}/lovelace/dashboard.css`)).toMatch(/\.fd-dash\[data-quiet\][^{]*\{\s*animation: none/);
+  });
+
+  it("a level is drawn with the screen's and the plate's own inks, never a warning colour", () => {
+    const bad: string[] = [];
+    for (const f of nonTokens) {
+      for (const { selector, body } of rules(f)) if (/data-level|data-block|fd-alerts/.test(selector) && /var\(--fd-(param|led|lamp)/.test(body)) bad.push(`${f}: ${selector}`);
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
 describe("touch: controls answer presses, faders let pages scroll", () => {
   it("keys and faders take no selection, callout or tap highlight, and no tap delay", () => {
     const c = css(`${SKIN}/shared/module.css`);

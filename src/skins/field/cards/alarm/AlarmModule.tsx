@@ -1,9 +1,10 @@
 import { useEffect, useId, useState } from "react";
 import type { ReactNode } from "react";
 import type { AlarmAction, AlarmEntity, AlarmHistory, AlarmMode, AlarmResult } from "../../../../domains/alarm/types";
-import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, mmss, modeChoices, needsCode } from "../../../../domains/alarm/modes";
-import { fmtDuration } from "../../../../domains/format";
+import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, alarmSeverity, mmss, modeChoices, needsCode } from "../../../../domains/alarm/modes";
+import { fmtAgo, fmtDuration } from "../../../../domains/format";
 import { useDelayLeft } from "../../../../hooks/useDelayLeft";
+import { useNow } from "../../../../hooks/useNow";
 import { useKeypad } from "../../../../primitives/keypad";
 import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -57,6 +58,8 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   // Armed, and on its way in or out: the shield lights and the LED says on.
   const on = !unav && e.state !== "disarmed";
   const left = useDelayLeft(e.delay, e.changedAt, moving);
+  const now = useNow();
+  const level = unav ? undefined : alarmSeverity(e);
   // A disarm that's no longer needed (it disarmed from elsewhere) leaves the keypad.
   useEffect(() => { if (e.state === "disarmed" && pending?.kind === "disarm") setPending(null); }, [e.state, pending]);
 
@@ -73,9 +76,10 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
 
   const to = e.armingTo ? ` ${MODE_LABEL[e.armingTo].toLowerCase()}` : "";
   const open = e.openSensors ?? [];
+  // Triggered and the entry delay name what set them off, short: the figure says ALARM, or counts down.
   const warning = unav ? undefined
-    : e.state === "triggered" ? `Triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}`
-    : e.state === "pending" ? (e.triggeredBy ? `${e.triggeredBy} opened` : "Entry delay")
+    : e.state === "triggered" ? e.triggeredBy ?? "Triggered"
+    : e.state === "pending" ? e.triggeredBy ?? "Entry delay"
     // More than one open: the count first, so a long name truncates before it does.
     : e.state === "disarmed" && open.length ? (open.length > 1 ? `${open.length} open: ${open.join(", ")}` : `${open[0]} open`)
     : undefined;
@@ -83,13 +87,18 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
 
   const pict = <Pictogram param="neutral" lit={on}>{SHIELD_PICT}</Pictogram>;
   // A delay counts down in the figure's place; without its length there's no way to know, so the segments are blank.
+  // Triggered, the alarm: the figure says ALARM; a row's screen can't hold it, so it says how long ago it went off, which
+  // can't be mistaken for the clock.
+  const ago = e.changedAt != null ? Math.floor((now.getTime() - e.changedAt) / 60_000) : undefined;
   const read: ReactNode = unav ? <Blank label="Unavailable" />
+    : e.state === "triggered" ? (footprint === "compact" ? (ago != null ? <><span className="fd-sr">Alarm, </span>{ago < 1 ? "NOW" : fmtAgo(ago)}</> : <Blank label="Alarm" />) : "ALARM")
     : moving ? (left != null ? <Digits text={mmss(left)} places={4} /> : <Blank places={4} label={word} />)
     : on ? "ON" : "OFF";
   const since = e.lastChanged ? `Since ${e.lastChanged}` : undefined;
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : e.state === "triggered" ? [<Warn key="w">{warning}</Warn>, since]
-    : e.state === "pending" ? [<Warn key="w">{warning}</Warn>, ro ? "Entry delay" : "Disarm now"]
+    // The figure says ALARM: its lines say what set it off, if known, and since when.
+    : e.state === "triggered" ? (e.triggeredBy ? [e.triggeredBy, since] : [since ?? "Triggered"])
+    : e.state === "pending" ? [<Warn key="w" block>{warning}</Warn>, ro ? "Entry delay" : "Disarm now"]
     : e.state === "arming" ? [word, "Leave now"]
     : warning ? [<Warn key="w">{warning}</Warn>, since]
     : [word, since];
@@ -159,6 +168,8 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       state={e.state}
       warning={footprint === "compact" ? warning : undefined}
       line={line}
+      alert={level === "alarm" ? { level, what: warning ?? "Triggered", say: `Alarm: ${e.name} triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}.` }
+        : level === "urgent" ? { level, what: e.triggeredBy ? `Entry delay, ${e.triggeredBy}` : "Entry delay" } : undefined}
       panelFocus={pending ? "content" : undefined}
       details={{ ...details, openDetails: openPanel }}
       pict={pict}

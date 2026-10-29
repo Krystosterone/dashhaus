@@ -26,3 +26,6 @@ export function IconBase() {
     </svg>
   );
 }
+
+/** Oxygen, for an oxygen alarm's pictogram on the screen (20 x 26): an O with a small 2, so a drop keeps meaning humidity. */
+export const O2 = <path fillRule="evenodd" d="M8 3.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15Zm0 3.6a3.9 3.9 0 1 0 0 7.8 3.9 3.9 0 0 0 0-7.8ZM13.5 20.5h6v2h-3.4l3.4 2v1h-6v-2h3.4l-3.4-2Z" />;
