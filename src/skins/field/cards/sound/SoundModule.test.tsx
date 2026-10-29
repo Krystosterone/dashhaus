@@ -39,7 +39,8 @@ describe("SoundModule", () => {
     const { container, keys } = draw("unavailable");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
-    expect(keys.every((key) => key.disabled)).toBe(true);
+    // Flat but still focusable, so a hold opens the details.
+    expect(keys.every((key) => key.getAttribute("aria-disabled") === "true" && !key.disabled)).toBe(true);
     expect(container.querySelector(".fd-key-cap")).toBeNull();
   });
 

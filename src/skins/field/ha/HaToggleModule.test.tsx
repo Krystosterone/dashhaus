@@ -31,9 +31,9 @@ describe("HaToggleModule", () => {
     await waitFor(() => expect(screen.getByText("Lets visitors on the Wi-Fi.")).toBeTruthy());
     // The module's key and the panel's, which is open.
     const keys = () => screen.getAllByRole("button", { name: "Guest", hidden: true }) as HTMLButtonElement[];
-    expect(keys().map((key) => key.disabled)).toEqual([false, false]);
+    expect(keys().map((key) => key.getAttribute("aria-disabled"))).toEqual([null, null]);
     act(() => live.emit({ ...raw, "input_boolean.guest_mode": { ...raw["input_boolean.guest_mode"], state: "unavailable" } }));
     await waitFor(() => expect(live.container.querySelector(".fd-module")?.getAttribute("data-state")).toBe("unavailable"));
-    expect(keys().map((key) => key.disabled)).toEqual([true, true]);
+    expect(keys().map((key) => key.getAttribute("aria-disabled"))).toEqual(["true", "true"]);
   });
 });

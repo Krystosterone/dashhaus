@@ -129,10 +129,10 @@ describe("ClimateModule", () => {
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
     const module = el.querySelector("article")!;
     expect(within(module).getByText("Unavailable", { selector: ".fd-sr" })).toBeTruthy();
-    expect((within(module).getByRole("button", { name: "Garage heater, unavailable" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(module).getByRole("button", { name: "Garage heater, unavailable" }).getAttribute("aria-disabled")).toBe("true");
     expect(screen.queryByRole("slider")).toBeNull();
     const panel = screen.getByRole("dialog", { name: "Garage heater details", hidden: true });
-    expect((within(panel).getByRole("button", { name: "Garage heater, unavailable", hidden: true }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(panel).getByRole("button", { name: "Garage heater, unavailable", hidden: true }).getAttribute("aria-disabled")).toBe("true");
     expect(within(panel).queryByRole("button", { name: /^Set (mode|preset|fan) to /, hidden: true })).toBeNull();
   });
 });

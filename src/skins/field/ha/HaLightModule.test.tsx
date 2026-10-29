@@ -35,7 +35,7 @@ describe("HaLightModule", () => {
     const fake = renderLive();
     await waitFor(() => expect(screen.getByRole("button", { name: "Living room" })).toBeTruthy());
     act(() => fake.emit({ "light.living_room": { ...raw["light.living_room"], state: "unavailable" } }));
-    await waitFor(() => expect((screen.getByRole("button", { name: "Living room" }) as HTMLButtonElement).disabled).toBe(true));
-    expect((screen.getByRole("slider") as HTMLInputElement).disabled).toBe(true);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Living room" }).getAttribute("aria-disabled")).toBe("true"));
+    expect(screen.queryByRole("slider")).toBeNull();
   });
 });

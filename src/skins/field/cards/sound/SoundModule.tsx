@@ -46,7 +46,7 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
     : undefined;
   // Square at the head of a compact row; across the row with its state word, which unavailable has none of.
   const key = (wide: boolean) => (
-    <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
+    <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
       <IconSound />
     </Key>
   );

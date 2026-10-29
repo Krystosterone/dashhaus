@@ -43,11 +43,14 @@ describe("LightModule", () => {
     expect(key.textContent).toBe("");
   });
 
-  it("blanks the screen and disables the controls while unavailable", () => {
+  it("blanks the screen, lays the key flat and drops the fader while unavailable", () => {
     const el = draw(SEEDS.unavailable);
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(screen.getByText("Unavailable", { selector: ".fd-sr" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Shelf strip" }) as HTMLButtonElement).disabled).toBe(true);
+    const key = screen.getByRole("button", { name: "Shelf strip" });
+    expect(key.getAttribute("aria-disabled")).toBe("true");
+    expect(key.hasAttribute("data-wide")).toBe(true);
+    expect(screen.queryByRole("slider", { name: "Shelf strip brightness", hidden: true })).toBeNull();
   });
 
   it("says ON for a dimmable light that hasn't reported its brightness", () => {

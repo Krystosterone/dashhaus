@@ -44,7 +44,8 @@ describe("ToggleModule", () => {
     const { container, keys } = draw(TOGGLE_SEEDS.unavailable);
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableSeen 08:20");
-    expect(keys.every((key) => key.disabled)).toBe(true);
+    // Flat but still focusable, so a hold opens the details.
+    expect(keys.every((key) => key.getAttribute("aria-disabled") === "true" && !key.disabled)).toBe(true);
     expect(container.querySelector(".fd-key-cap")).toBeNull();
   });
 
@@ -87,6 +88,6 @@ describe("ToggleModule", () => {
   it("lays the panel's keys flat while unavailable", () => {
     render(<ToggleModule entity={TOGGLE_SEEDS.unavailable.entity} defaultOpen onToggle={vi.fn()} onTurnOnFor={vi.fn()} />);
     const panel = screen.getByRole("dialog", { hidden: true });
-    expect(within(panel).getAllByRole("button", { hidden: true }).filter((b) => !b.getAttribute("aria-label")?.startsWith("Close")).every((b) => (b as HTMLButtonElement).disabled)).toBe(true);
+    expect(within(panel).getAllByRole("button", { hidden: true }).filter((b) => !b.getAttribute("aria-label")?.startsWith("Close")).every((b) => (b as HTMLButtonElement).disabled || b.getAttribute("aria-disabled") === "true")).toBe(true);
   });
 });

@@ -36,6 +36,8 @@
 /* Modes put their full word on the key; three in a row, two on a narrow panel. */
 .fd-hu-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .fd-hu-modes .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Four modes sit four in a row rather than three and an orphan. */
+.fd-hu-modes:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @container (max-width: 300px) {
-  .fd-hu-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fd-hu-modes, .fd-hu-modes:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

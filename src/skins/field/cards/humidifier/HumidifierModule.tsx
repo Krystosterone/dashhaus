@@ -65,7 +65,7 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
   // spans the row with what it does: turn it on, or the mode it runs in.
   const controls = (where: string) => (
     <div className="fd-hu-row" data-adjustable={adjustable}>
-      <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel} wide={!adjustable} caption={adjustable || unav ? undefined : on ? mode ?? "On" : "Turn on"}>
+      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!adjustable} caption={adjustable || unav ? undefined : on ? mode ?? "On" : "Turn on"}>
         <IconHumidifier kind={e.kind} />
       </Key>
       {adjustable && (
@@ -96,7 +96,7 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
       pict={pict}
       read={read}
       meta={meta}
-      lead={<Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel}><IconHumidifier kind={e.kind} /></Key>}
+      lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconHumidifier kind={e.kind} /></Key>}
       row={controls("m")}
     >
       <HumidifierDetails
@@ -168,8 +168,8 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
           <Legend>Fine target</Legend>
           <div className="fd-hu-fine" role="group" aria-label={`${e.name}, ${verb.toLowerCase()}`}>
             <span className="fd-hu-fine-label"><span>{verb}</span><b>{fmtHumidity(target)}%</b></span>
-            <Key label={`Lower target to ${down}%`} disabled={down === Math.round(target)} onPress={() => onTargetChange(down)}><MinusIcon /></Key>
-            <Key label={`Raise target to ${up}%`} disabled={up === Math.round(target)} onPress={() => onTargetChange(up)}><PlusIcon /></Key>
+            <Key label={`Lower target to ${down}%`} unavailable={down === Math.round(target)} onPress={() => onTargetChange(down)}><MinusIcon /></Key>
+            <Key label={`Raise target to ${up}%`} unavailable={up === Math.round(target)} onPress={() => onTargetChange(up)}><PlusIcon /></Key>
           </div>
         </div>
       )}

@@ -59,7 +59,8 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
 
   const focus = hasRange ? (e.targetLow! + e.targetHigh!) / 2 : hasSingle ? e.targetTemperature! : e.currentTemperature;
   const level = focus == null ? 1 : Math.min(1, Math.max(0, (focus - e.minTemp) / Math.max(e.step, e.maxTemp - e.minTemp)));
-  const pict = <Pictogram level={level} lit={on} param="a"><ModeShape mode={pictMode} /></Pictogram>;
+  // A mode with no target (dry, fan only) sets no parameter, so its pictogram lights in the figure's ink.
+  const pict = <Pictogram level={level} lit={on} param={hasSingle || hasRange || !on ? "a" : "neutral"}><ModeShape mode={pictMode} /></Pictogram>;
 
   const read: ReactNode = unavailable ? <Blank places={4} label="Unavailable" />
     : !on ? "OFF"
@@ -84,13 +85,13 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
 
   const controls = (where: string) => {
     const adjustable = hasSingle || hasRange;
-    const caption = unavailable ? "Unavailable" : !on ? "Turn on" : MODE_META[mode].label;
+    const caption = unavailable ? undefined : !on ? "Turn on" : MODE_META[mode].label;
     return (
       <div className="fd-cl-row" data-adjustable={adjustable}>
         <Key
           label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`}
           pressed={on}
-          disabled={unavailable}
+          unavailable={unavailable}
           onPress={onToggle}
           onHold={openPanel}
           wide={!adjustable}
@@ -143,7 +144,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
       read={read}
       meta={meta}
       lead={(
-        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} pressed={on} disabled={unavailable} onPress={onToggle} onHold={openPanel}>
+        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} pressed={on} unavailable={unavailable} onPress={onToggle} onHold={openPanel}>
           <ThermostatIcon />
         </Key>
       )}
@@ -237,7 +238,7 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
 
       <p className="fd-info">
         <span>{unavailable ? `Last seen ${e.lastSeen ?? "unknown"}` : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : ""}</span>
-        <span>{unavailable ? "" : e.lastChanged ? `Changed ${e.lastChanged} · ${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}` : `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`}</span>
+        <span>{unavailable ? "" : e.lastChanged ? `Last changed ${e.lastChanged} · ${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}` : `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`}</span>
       </p>
     </div>
   );
@@ -254,13 +255,13 @@ function RangeFine({ name, low, high, min, max, step, onChange }: { name: string
       <div className="fd-cl-fine">
         <div className="fd-cl-fine-row" role="group" aria-label={`${name}, heat below`}>
           <span className="fd-cl-fine-label"><span>Heat below</span><b>{fmtTarget(low)}°</b></span>
-          <Key label={`Lower heat threshold to ${fmtTarget(nextLowDown)}°`} disabled={nextLowDown === low} onPress={() => onChange(nextLowDown, high)}><MinusIcon /></Key>
-          <Key label={`Raise heat threshold to ${fmtTarget(nextLowUp)}°`} disabled={nextLowUp === low} onPress={() => onChange(nextLowUp, high)}><PlusIcon /></Key>
+          <Key label={`Lower heat threshold to ${fmtTarget(nextLowDown)}°`} unavailable={nextLowDown === low} onPress={() => onChange(nextLowDown, high)}><MinusIcon /></Key>
+          <Key label={`Raise heat threshold to ${fmtTarget(nextLowUp)}°`} unavailable={nextLowUp === low} onPress={() => onChange(nextLowUp, high)}><PlusIcon /></Key>
         </div>
         <div className="fd-cl-fine-row" role="group" aria-label={`${name}, cool above`}>
           <span className="fd-cl-fine-label"><span>Cool above</span><b>{fmtTarget(high)}°</b></span>
-          <Key label={`Lower cool threshold to ${fmtTarget(nextHighDown)}°`} disabled={nextHighDown === high} onPress={() => onChange(low, nextHighDown)}><MinusIcon /></Key>
-          <Key label={`Raise cool threshold to ${fmtTarget(nextHighUp)}°`} disabled={nextHighUp === high} onPress={() => onChange(low, nextHighUp)}><PlusIcon /></Key>
+          <Key label={`Lower cool threshold to ${fmtTarget(nextHighDown)}°`} unavailable={nextHighDown === high} onPress={() => onChange(low, nextHighDown)}><MinusIcon /></Key>
+          <Key label={`Raise cool threshold to ${fmtTarget(nextHighUp)}°`} unavailable={nextHighUp === high} onPress={() => onChange(low, nextHighUp)}><PlusIcon /></Key>
         </div>
       </div>
     </div>

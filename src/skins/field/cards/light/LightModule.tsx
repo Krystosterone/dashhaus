@@ -63,13 +63,15 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   // The bulb's base always lights while on, so a lamp at 3% still reads lit; the rest fills with brightness.
   const pict = <Pictogram level={known ? 0.25 + 0.75 * (pct / 100) : 1} lit={on}>{BULB}</Pictogram>;
   const openPanel = details.openDetails;
-  // The power key and the brightness fader, the same in the module and the panel.
+  // The power key and the brightness fader, the same in the module and the panel. Unavailable, the brightness isn't
+  // known, so the fader goes and the key spans the row, as every field control's does.
+  const faded = dimmable && !unav;
   const controls = (where: string) => (
-    <div className="fd-lt-row" data-dimmable={dimmable}>
-      <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel} wide={!dimmable} caption={!dimmable && !unav ? (on ? "On" : "Off") : undefined}>
+    <div className="fd-lt-row" data-dimmable={faded}>
+      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!dimmable && !unav ? (on ? "On" : "Off") : undefined}>
         <IconBulb />
       </Key>
-      {dimmable && (
+      {faded && (
         <Fader
           id={`${uid}-${where}`}
           label={`${e.name} brightness`}
@@ -78,8 +80,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
           min={1}
           max={100}
           lit={on}
-          disabled={unav}
-          valueText={unav ? "Unavailable" : on ? `${pct} percent` : `Off. Last set to ${pct} percent`}
+          valueText={on ? `${pct} percent` : `Off. Last set to ${pct} percent`}
           onChange={onBrightnessChange}
         />
       )}
@@ -97,10 +98,10 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
       pict={pict}
       read={read}
       meta={meta}
-      lead={<Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={openPanel}><IconBulb /></Key>}
+      lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconBulb /></Key>}
       row={controls("m")}
     >
-      <LightDetails e={e} read={read} pict={pict} controls={controls("p")} history={history} onBrightnessChange={onBrightnessChange} onKelvinChange={onKelvinChange} onColorChange={onColorChange} />
+      <LightDetails e={e} read={read} pict={pict} meta={meta} controls={controls("p")} history={history} onBrightnessChange={onBrightnessChange} onKelvinChange={onKelvinChange} onColorChange={onColorChange} />
     </ModuleFrame>
   );
 }
@@ -109,6 +110,7 @@ interface DetailsProps {
   e: LightEntity;
   read: ReactNode;
   pict: ReactNode;
+  meta?: [string, string?];
   controls: ReactNode;
   history?: LightHistory;
   onBrightnessChange: (percent: number) => void;
@@ -120,21 +122,20 @@ interface DetailsProps {
  * The panel's content: the screen with a second channel (the lamp's colour while it shows one, else its warmth),
  * the controls, quick levels, warmth, colours, today, and facts.
  */
-function LightDetails({ e, read, pict, controls, history, onBrightnessChange, onKelvinChange, onColorChange }: DetailsProps) {
+function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChange, onKelvinChange, onColorChange }: DetailsProps) {
   const uid = useId();
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const min = e.minKelvin ?? K_MIN;
   const max = Math.max(e.maxKelvin ?? K_MAX, min + 100);
   const k = e.kelvin == null ? null : Math.min(max, Math.max(min, Math.round(e.kelvin / 100) * 100));
-  // What the warmth channel shows: nothing while unreachable.
-  const shownK = unav ? null : k;
   const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
 
   // The colour it shows now: only while on, since Home Assistant reports none while off or on a colour temperature.
   const lamp = on && e.supportsColor && e.hs ? lampColorOf(e.hs) : null;
 
-  const aside = lamp ? (
+  // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
+  const aside = unav ? undefined : lamp ? (
     <p className="fd-chan">
       <Pictogram lit lamp={lamp.name}>{LENS}</Pictogram>
       <span>
@@ -146,15 +147,15 @@ function LightDetails({ e, read, pict, controls, history, onBrightnessChange, on
     <p className="fd-chan">
       <Pictogram lit={on && k != null} param="b">{SUN}</Pictogram>
       <span>
-        {shownK != null ? <>{shownK}<small>K</small></> : <Blank places={4} label="No warmth" />}
-        <span className="fd-chan-sub">{shownK != null ? kelvinName(shownK) : "Warmth"}</span>
+        {k != null ? <>{k}<small>K</small></> : <Blank places={4} label="No warmth" />}
+        <span className="fd-chan-sub">{k != null ? kelvinName(k) : "Warmth"}</span>
       </span>
     </p>
   ) : undefined;
 
   return (
     <div className="fd-lt-panel" data-state={e.state}>
-      <Screen pict={pict} aside={aside}>{read}</Screen>
+      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {controls}
 
       {e.supportsBrightness && (
@@ -178,7 +179,7 @@ function LightDetails({ e, read, pict, controls, history, onBrightnessChange, on
           id={`${uid}-k`}
           label={`${e.name} warmth`}
           legend="Warmth"
-          value={k ?? min}
+          value={unav ? undefined : k ?? min}
           min={min}
           max={max}
           step={100}

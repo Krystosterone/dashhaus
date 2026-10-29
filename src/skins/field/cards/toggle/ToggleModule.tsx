@@ -43,7 +43,7 @@ export function ToggleModule({ entity: e, footprint = "standard", history, onTog
     : undefined;
   // Square at the head of a compact row; across the row in a module and the panel, with its state word.
   const key = (wide: boolean) => (
-    <Key label={e.name} pressed={on} disabled={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
+    <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
       <IconMode icon={e.icon} />
     </Key>
   );

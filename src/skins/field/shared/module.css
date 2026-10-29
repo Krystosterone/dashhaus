@@ -23,6 +23,8 @@
 .fd-module[data-footprint="compact"] { height: 64px; padding: 9px; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
 
 .fd-head { min-width: 0; display: grid; gap: 1px; }
+/* A standard module's header keeps the area's line when it has none, so every screen in a grid is one height. */
+.fd-module[data-footprint="standard"] .fd-head { min-height: 30px; align-content: start; }
 .fd-name, .fd-area { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-transform: uppercase; }
 .fd-name { font-size: 12px; font-weight: 600; letter-spacing: 0.03em; line-height: 16px; }
 .fd-area { font-size: 9.5px; font-weight: 500; letter-spacing: 0.06em; line-height: 13px; color: var(--fd-ink-3); }
@@ -48,7 +50,10 @@
   user-select: none;
   touch-action: manipulation;
   transition: opacity var(--fd-press) var(--fd-ease-out);
+  position: relative;
 }
+/* A 44 px hit area over the name and the area line under it, inside the plate's padding. */
+.fd-open::before { content: ""; position: absolute; inset: -4px 0 -12px; }
 /* The button truncates the name itself, so the heading lets its padded hit area out. */
 .fd-name:has(.fd-open) { width: 100%; min-width: 0; overflow: visible; }
 .fd-open-t { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -89,21 +94,24 @@
   transition: transform var(--fd-press) var(--fd-ease-out), box-shadow var(--fd-press) var(--fd-ease-out), background-color var(--fd-press) var(--fd-ease-out);
 }
 .fd-key[data-wide] { width: 100%; }
-.fd-key:active:not(:disabled, [data-chosen]) { transform: translateY(1px) scale(0.97); box-shadow: var(--fd-key-sunk); }
-.fd-key[data-wide]:active:not(:disabled, [data-chosen]) { transform: translateY(1px) scale(0.99); }
+.fd-key:active:not(:disabled, [aria-disabled="true"], [data-chosen]) { transform: translateY(1px) scale(0.97); box-shadow: var(--fd-key-sunk); }
+.fd-key[data-wide]:active:not(:disabled, [aria-disabled="true"], [data-chosen]) { transform: translateY(1px) scale(0.99); }
 .fd-key:focus-visible { outline: 2px solid var(--fd-focus); outline-offset: 2px; }
-/* A key that can't be pressed lies flat, and so does the chosen key of a group: choosing it again does nothing. */
-.fd-key:is(:disabled, [data-chosen]) { cursor: default; box-shadow: none; color: var(--fd-ink-3); }
+/* A key that can't be pressed lies flat in dim ink: out of reach, or an entity that can't act (still focusable). */
+.fd-key:is(:disabled, [aria-disabled="true"]) { cursor: default; box-shadow: none; color: var(--fd-ink-3); }
+/* The chosen key of a group stays down, sunk to the plate's face and pressed in, in full ink: choosing it again does
+   nothing, but it isn't out of reach. */
+.fd-key[data-chosen] { cursor: default; background: var(--fd-module); border-color: var(--fd-ink-3); box-shadow: var(--fd-key-sunk); }
 @media (hover: hover) and (pointer: fine) {
-  .fd-key:hover:not(:disabled, [data-chosen]) { border-color: var(--fd-ink-3); }
+  .fd-key:hover:not(:disabled, [aria-disabled="true"], [data-chosen]) { border-color: var(--fd-ink-3); }
 }
 .fd-key-glyph { display: inline-flex; }
 .fd-key-glyph svg { width: 20px; height: 20px; }
 .fd-key-fig { font-size: 15px; font-weight: 400; letter-spacing: 0; }
 /* A colour on a key: a small square of it, edged so white still shows on a light key. */
 .fd-swatch { display: block; width: 16px; height: 16px; border-radius: 2px; background: var(--fd-lamp); box-shadow: inset 0 0 0 1px var(--fd-swatch-edge); }
-.fd-key:disabled .fd-swatch { opacity: 0.4; }
-.fd-key--close { width: 36px; height: 36px; flex: none; }
+.fd-key:is(:disabled, [aria-disabled="true"]) .fd-swatch { opacity: 0.4; }
+.fd-key--close { width: 44px; height: 44px; margin: -4px 0; flex: none; }
 .fd-key--close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .fd-key-cap { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 
@@ -162,8 +170,9 @@
 [data-state="off"] .fd-read-fig { color: var(--fd-screen-ink-2); }
 .fd-meta { margin: 0; display: grid; justify-items: end; gap: 3px; min-width: 0; font-size: 9.5px; font-weight: 500; letter-spacing: 0.08em; line-height: 12px; text-transform: uppercase; color: var(--fd-screen-ink-2); text-align: right; }
 .fd-meta > span { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-/* Fixed digit places: the leading ones are unlit segments, like a segment display's. */
-.fd-digits::before { content: attr(data-pad); color: var(--fd-screen-unlit); }
+/* Fixed digit places: the leading ones are unlit segments, like a segment display's. The empty alternative text
+   keeps them out of the accessibility tree, so "080" is heard as "80"; a browser without it keeps the first rule. */
+.fd-digits::before { content: attr(data-pad); content: attr(data-pad) / ""; color: var(--fd-screen-unlit); }
 /* One screen width down a column of rows, whatever it reads. */
 .fd-module[data-footprint="compact"] .fd-screen { width: 104px; height: 40px; padding: 0 8px; }
 .fd-module[data-footprint="compact"] .fd-read { gap: 6px; font-size: 21px; }
@@ -253,7 +262,7 @@
 /* Reduced motion: gentler, not none. Colour changes stay; presses and jumps stop moving. */
 @media (prefers-reduced-motion: reduce) {
   .fd-key { transition: box-shadow var(--fd-press) var(--fd-ease-out), background-color var(--fd-press) var(--fd-ease-out); }
-  .fd-key:active:not(:disabled, [data-chosen]) { transform: none; }
+  .fd-key:active:not(:disabled, [aria-disabled="true"], [data-chosen]) { transform: none; }
   .fd-fader[data-anim] .fd-rail { transition: none; }
   .fd-pict-lit { transition: opacity 150ms var(--fd-ease-out); }
 }

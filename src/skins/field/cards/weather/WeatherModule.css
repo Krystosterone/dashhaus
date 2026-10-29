@@ -27,7 +27,11 @@
 
 /* Every warning, then the sky in words, printed under the screen. */
 .fd-wx-say { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 14px; text-transform: uppercase; color: var(--fd-ink-2); }
-.fd-wx-say > li { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* The panel has the room the module doesn't: every warning and the sky in full, wrapped, never cut. */
+.fd-wx-say > li { min-width: 0; overflow-wrap: anywhere; }
+.fd-wx-say .fd-warn { align-items: flex-start; }
+.fd-wx-say .fd-warn svg { margin-top: 2px; }
+.fd-wx-say .fd-warn-t { white-space: normal; }
 
 /* The next hours and days: a strip of screen, one column each, in fixed places like the meter's. */
 .fd-wx-strip {

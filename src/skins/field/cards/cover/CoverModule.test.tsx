@@ -34,7 +34,8 @@ describe("CoverModule", () => {
     const { container, keys } = draw("unavailable");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
-    expect(keys.every((key) => key.disabled)).toBe(true);
+    // Flat but still focusable, so a hold opens the details.
+    expect(keys.every((key) => key.getAttribute("aria-disabled") === "true" && !key.disabled)).toBe(true);
     expect(container.querySelector(".fd-key-cap")).toBeNull();
     expect(screen.queryByRole("slider")).toBeNull();
   });
@@ -118,8 +119,8 @@ describe("CoverModule", () => {
   it("closes, stops and opens a cover with no position from the panel, laying flat what can't act", () => {
     const { onCloseCover } = draw("garage", "standard", { defaultOpen: true });
     const key = (name: string) => screen.getByRole("button", { name, hidden: true }) as HTMLButtonElement;
-    expect(key("Garage door, open").disabled).toBe(true);
-    expect(key("Garage door, stop").disabled).toBe(true);
+    expect(key("Garage door, open").getAttribute("aria-disabled")).toBe("true");
+    expect(key("Garage door, stop").getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(key("Garage door, close"));
     expect(onCloseCover).toHaveBeenCalledOnce();
   });

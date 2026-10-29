@@ -41,7 +41,8 @@ describe("HumidifierModule", () => {
     const { container, keys } = draw("unavailable");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
-    expect(keys.every((key) => key.disabled)).toBe(true);
+    // Flat but still focusable, so a hold opens the details.
+    expect(keys.every((key) => key.getAttribute("aria-disabled") === "true" && !key.disabled)).toBe(true);
     expect(container.querySelector(".fd-key-cap")).toBeNull();
     expect(screen.queryByRole("slider")).toBeNull();
   });
@@ -94,7 +95,7 @@ describe("HumidifierModule", () => {
     const { onTargetChange } = draw("long", "standard", { defaultOpen: true });
     fireEvent.click(screen.getByRole("button", { name: "Lower target to 99%", hidden: true }));
     expect(onTargetChange).toHaveBeenCalledWith(99);
-    expect((screen.getByRole("button", { name: "Raise target to 100%", hidden: true }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Raise target to 100%", hidden: true }).getAttribute("aria-disabled")).toBe("true");
   });
 
   it("chooses a mode in the panel, the current one announced as pressed", () => {

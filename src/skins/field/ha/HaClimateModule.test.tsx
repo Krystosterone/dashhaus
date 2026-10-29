@@ -45,7 +45,7 @@ describe("HaClimateModule", () => {
     const fake = renderLive();
     await waitFor(() => expect(screen.getByRole("button", { name: "Thermostat, turn off" })).toBeTruthy());
     act(() => fake.emit({ "climate.living_room": { ...raw["climate.living_room"], state: "unavailable" } }));
-    await waitFor(() => expect((screen.getByRole("button", { name: "Thermostat, unavailable" }) as HTMLButtonElement).disabled).toBe(true));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Thermostat, unavailable" }).getAttribute("aria-disabled")).toBe("true"));
     expect(screen.queryByRole("slider")).toBeNull();
   });
 });

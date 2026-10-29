@@ -70,7 +70,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const openPanel = details.openDetails;
   const press = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
   const key = (wide: boolean) => (
-    <Key label={stopping ? `Stop ${e.name}` : e.name} pressed={open} disabled={unav} onPress={press} onHold={openPanel} wide={wide} caption={wide && !unav ? (stopping ? "Stop" : word) : undefined}>
+    <Key label={stopping ? `Stop ${e.name}` : e.name} pressed={open} unavailable={unav} onPress={press} onHold={openPanel} wide={wide} caption={wide && !unav ? (stopping ? "Stop" : word) : undefined}>
       {stopping ? <IconStop /> : <IconCover kind={e.deviceClass} open={open} />}
     </Key>
   );
@@ -176,9 +176,9 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
         <div className="fd-block">
           <Legend id={`${uid}-mv`}>Move</Legend>
           <div className="fd-cv-keys" data-transport role="group" aria-labelledby={`${uid}-mv`}>
-            <Key label={`${e.name}, close`} wide caption="Close" disabled={!open && !moving} onPress={onCloseCover}><IconDown /></Key>
-            {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" disabled={!moving} onPress={onStopCover}><IconStop /></Key>}
-            <Key label={`${e.name}, open`} wide caption="Open" disabled={open && !moving} onPress={onOpenCover}><IconUp /></Key>
+            <Key label={`${e.name}, close`} wide caption="Close" unavailable={!open && !moving} onPress={onCloseCover}><IconDown /></Key>
+            {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving} onPress={onStopCover}><IconStop /></Key>}
+            <Key label={`${e.name}, open`} wide caption="Open" unavailable={open && !moving} onPress={onOpenCover}><IconUp /></Key>
           </div>
         </div>
       )}

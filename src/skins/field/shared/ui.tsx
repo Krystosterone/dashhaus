@@ -73,7 +73,13 @@ export interface KeyProps {
    * choice isn't "on". The chosen one lies flat and pressing it does nothing, but it stays focusable.
    */
   chosen?: boolean;
+  /** Out of reach: native `disabled`, so no tap, hold or focus. */
   disabled?: boolean;
+  /**
+   * The entity can't act, or a step is at its bound: the key lies flat and a tap does nothing, but it stays focusable
+   * and says so (`aria-disabled`), and a hold still opens the details.
+   */
+  unavailable?: boolean;
   onPress: () => void;
   /** Press and hold. The click that ends the hold doesn't also press the key. */
   onHold?: () => void;
@@ -85,11 +91,11 @@ export interface KeyProps {
 }
 
 /** A key: flat-topped and just raised, so you press it. A latching key's LED is lit while it's pressed. */
-export function Key({ label, pressed, chosen, disabled, onPress, onHold, wide, caption, children }: KeyProps) {
-  const press = usePress({ onPress: chosen ? () => {} : onPress, onHold, pressed: pressed ?? chosen, disabled });
+export function Key({ label, pressed, chosen, disabled, unavailable, onPress, onHold, wide, caption, children }: KeyProps) {
+  const press = usePress({ onPress: chosen ? () => {} : onPress, onHold, pressed: pressed ?? chosen, disabled, unavailable });
   return (
     <button className="fd-key" aria-label={label} data-wide={wide || caption ? "" : undefined} data-chosen={chosen || undefined} {...press}>
-      {pressed !== undefined && <span className="fd-led" data-lit={pressed && !disabled} aria-hidden="true" />}
+      {pressed !== undefined && <span className="fd-led" data-lit={pressed && !disabled && !unavailable} aria-hidden="true" />}
       <span className="fd-key-glyph" aria-hidden="true">{children}</span>
       {caption && <span className="fd-key-cap" aria-hidden="true">{caption}</span>}
     </button>

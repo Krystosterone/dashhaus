@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
-import { ModuleFrame, useDetails } from "./ui";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Key, ModuleFrame, useDetails } from "./ui";
 import type { FieldFootprint } from "./ui";
 
 function Probe({ footprint, defaultOpen }: { footprint?: FieldFootprint; defaultOpen?: boolean }) {
@@ -58,5 +58,34 @@ describe("ModuleFrame", () => {
   it("opens on first render with defaultOpen", () => {
     render(<Probe defaultOpen />);
     expect(screen.getByText("Inside")).toBeTruthy();
+  });
+});
+
+describe("Key", () => {
+  it("lies flat while unavailable but stays focusable: a tap does nothing, a hold still opens the details", () => {
+    vi.useFakeTimers();
+    const onPress = vi.fn();
+    const onHold = vi.fn();
+    render(<Key label="Lamp" pressed unavailable onPress={onPress} onHold={onHold}>{null}</Key>);
+    const key = screen.getByRole("button", { name: "Lamp" }) as HTMLButtonElement;
+    expect(key.disabled).toBe(false);
+    expect(key.getAttribute("aria-disabled")).toBe("true");
+    expect(key.querySelector(".fd-led")?.getAttribute("data-lit")).toBe("false");
+    fireEvent.click(key);
+    expect(onPress).not.toHaveBeenCalled();
+    fireEvent.pointerDown(key, { button: 0 });
+    act(() => vi.advanceTimersByTime(450));
+    expect(onHold).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it("marks the chosen key of a group as pressed, and pressing it again does nothing", () => {
+    const onPress = vi.fn();
+    render(<Key label="Home" chosen onPress={onPress} caption="Home">{null}</Key>);
+    const key = screen.getByRole("button", { name: "Home" });
+    expect(key.getAttribute("aria-pressed")).toBe("true");
+    expect(key.hasAttribute("data-chosen")).toBe(true);
+    fireEvent.click(key);
+    expect(onPress).not.toHaveBeenCalled();
   });
 });
