@@ -45,6 +45,10 @@ describe("autoModules", () => {
   it("takes every visible humidifier", () => {
     expect(autoModules({ states: { "humidifier.bedroom": state("humidifier.bedroom", "Bedroom") } })).toEqual([{ entity: "humidifier.bedroom", kind: "humidifier" }]);
   });
+
+  it("takes every visible cover", () => {
+    expect(autoModules({ states: { "cover.garage_door": state("cover.garage_door", "Garage door") } })).toEqual([{ entity: "cover.garage_door", kind: "cover" }]);
+  });
 });
 
 describe("groupByArea", () => {

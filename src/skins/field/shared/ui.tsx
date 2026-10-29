@@ -183,6 +183,8 @@ export interface FaderProps {
   /** The thumb's colour: the parameter it sets. Default the module's first. */
   param?: Param;
   valueText: string;
+  /** A pointer value onto the fader's grid, for magnetic ends (a cover's). Default: the nearest step. */
+  snap?: (raw: number) => number;
   onChange: (value: number) => void;
 }
 
@@ -194,10 +196,10 @@ const THUMB_HALF = 9;
  * A tap jumps the thumb (animated); a drag follows the finger, on a hit layer that leaves vertical swipes to the
  * page; a hidden range input carries the keyboard and screen readers.
  */
-export function Fader({ id, label, legend, value, min, max, step = 1, lit, disabled, param = "a", valueText, onChange }: FaderProps) {
+export function Fader({ id, label, legend, value, min, max, step = 1, lit, disabled, param = "a", valueText, snap, onChange }: FaderProps) {
   const known = value != null && Number.isFinite(value);
   const inactive = disabled || !known;
-  const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, onChange });
+  const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, snap, onChange });
   const style = (known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) as Vars;
   return (
     <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>

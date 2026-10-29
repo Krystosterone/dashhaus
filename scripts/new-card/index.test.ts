@@ -20,13 +20,14 @@ const CARDS = [
  * Field cards over the generated domains above and over hand-built ones, each a reading started on a control's domain:
  * every hand-built domain with an onToggle has its field card, so none is left to draw as a control.
  */
-const FIELD_CARDS = [["probeFan"], ["probeCo2"], ["cover", "--kind", "reading"], ["owlet", "--kind", "reading"]].map((args) => [...args, "--skin", "field"]);
+const FIELD_CARDS = [["probeFan"], ["probeCo2"], ["alarm", "--kind", "reading"], ["owlet", "--kind", "reading"]].map((args) => [...args, "--skin", "field"]);
 /** Domains the field generator must refuse, each with the reason it gives. */
 const REFUSED = [
-  ["cover", /has no onToggle[\s\S]*--kind reading/],
+  ["alarm", /has no onToggle[\s\S]*--kind reading/],
   ["light", /src\/skins\/field\/cards\/light already exists/],
   ["humidifier", /src\/skins\/field\/cards\/humidifier already exists/],
   ["sound", /src\/skins\/field\/cards\/sound already exists/],
+  ["cover", /src\/skins\/field\/cards\/cover already exists/],
 ] as const;
 
 /** Children run outside this vitest run: without its variables a nested `vitest run` acts as a fresh one. */

@@ -2,7 +2,7 @@
  * Draws a domain that already exists in the field skin:
  *
  *   npm run new-card -- <name> --skin field [--kind control|reading] [--code <xx>] [--dry-run]
- *   npm run new-card -- cover --skin field --kind reading
+ *   npm run new-card -- alarm --skin field --kind reading
  *
  * The domain, its `useHa<Name>` hook and its orb card come first; this reads them and draws only field's side
  * (AGENTS.md → Adding an existing domain to another skin). It copies ./templates/field/common plus

@@ -83,6 +83,10 @@ export { SoundModule } from "./skins/field/cards/sound/SoundModule";
 export type { SoundModuleProps } from "./skins/field/cards/sound/SoundModule";
 export { HaSoundModule } from "./skins/field/ha/HaSoundModule";
 export type { HaSoundModuleProps } from "./skins/field/ha/HaSoundModule";
+export { CoverModule } from "./skins/field/cards/cover/CoverModule";
+export type { CoverModuleProps } from "./skins/field/cards/cover/CoverModule";
+export { HaCoverModule } from "./skins/field/ha/HaCoverModule";
+export type { HaCoverModuleProps } from "./skins/field/ha/HaCoverModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header

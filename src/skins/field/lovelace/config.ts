@@ -6,7 +6,7 @@ import type { FieldFootprint } from "../shared/ui";
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
  * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
- * weather, modes and sound machines.
+ * weather, modes, sound machines and covers.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -41,12 +41,12 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** Absent: every supported light, climate, weather, input_boolean and switch entity and room sensor, grouped by area. */
+  /** Absent: every supported light, climate, weather, humidifier, cover, input_boolean and switch entity and room sensor, grouped by area. */
   modules?: ModuleConfig[];
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound";
+export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -69,6 +69,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   toggle: { domains: ["input_boolean", "switch"] },
   humidifier: { domains: ["humidifier"] },
   sound: { domains: ["switch"] },
+  cover: { domains: ["cover"] },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];

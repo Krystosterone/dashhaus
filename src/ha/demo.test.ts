@@ -78,6 +78,22 @@ describe("createDemoHaTransport", () => {
     expect(latest?.["number.nursery_volume"]?.state).toBe("55");
     expect(latest?.["switch.nursery_music"]?.state).toBe("off");
   });
+
+  it("moves a cover it was seeded with, and tilts its slats", async () => {
+    const stamp = "2026-10-19T11:20:00Z";
+    const transport = createDemoHaTransport({
+      "cover.blind": { entity_id: "cover.blind", state: "closed", attributes: { current_position: 0, current_tilt_position: 50 }, last_changed: stamp, last_updated: stamp },
+    });
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("cover", "set_cover_position", { entity_id: "cover.blind", position: 40 });
+    await transport.callService("cover", "set_cover_tilt_position", { entity_id: "cover.blind", tilt_position: 80 });
+    expect(latest?.["cover.blind"]).toMatchObject({ state: "open", attributes: { current_position: 40, current_tilt_position: 80 } });
+    expect(latest?.["cover.blind"]?.last_changed).not.toBe(stamp);
+    await transport.callService("cover", "close_cover", { entity_id: "cover.blind" });
+    expect(latest?.["cover.blind"]).toMatchObject({ state: "closed", attributes: { current_position: 0 } });
+  });
 });
 
 describe("createDemoSensorHaTransport", () => {

@@ -1,11 +1,9 @@
 import { Track } from "../../shared/ui";
 import { useSlider } from "../../../../primitives/slider";
+import { snapEnds } from "../../../../domains/cover/position";
 
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverCard.css. */
 const STUB = 14;
-
-/** Magnetic ends: within 3% of either end means fully closed or fully open, never a stray 1%. */
-export const snapEnds = (raw: number) => (raw <= 3 ? 0 : raw >= 97 ? 100 : raw);
 
 /**
  * The window, on one bar: the groove is the fabric, the accent is the daylight let through.

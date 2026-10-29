@@ -148,7 +148,7 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service !== "get_forecasts" || typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo weather target not found");
         return { response: { [entityId]: { forecast: weatherForecasts[type] } } };
       }
-      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number") throw new Error(`Unsupported demo domain: ${domain}`);
+      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number" && domain !== "cover") throw new Error(`Unsupported demo domain: ${domain}`);
       const entityId = serviceData.entity_id;
       if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
       const current = entities[entityId];
@@ -160,6 +160,19 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
       } else if (domain === "number") {
         // A volume beside a sound switch: setting it never switches the sound.
         if (service === "set_value" && typeof serviceData.value === "number") next.state = String(serviceData.value);
+        if (next.state !== current.state) next.last_changed = next.last_updated;
+      } else if (domain === "cover") {
+        // It arrives at once: the demo has no travel.
+        if (service === "open_cover" || service === "close_cover") {
+          next.state = service === "open_cover" ? "open" : "closed";
+          next.attributes.current_position = service === "open_cover" ? 100 : 0;
+        }
+        if (service === "stop_cover") next.state = current.state === "opening" ? "open" : current.state === "closing" ? "closed" : current.state;
+        if (service === "set_cover_position" && typeof serviceData.position === "number") {
+          next.attributes.current_position = serviceData.position;
+          next.state = serviceData.position === 0 ? "closed" : "open";
+        }
+        if (service === "set_cover_tilt_position" && typeof serviceData.tilt_position === "number") next.attributes.current_tilt_position = serviceData.tilt_position;
         if (next.state !== current.state) next.last_changed = next.last_updated;
       } else if (domain === "humidifier") {
         if (service === "toggle") next.state = current.state === "on" ? "off" : "on";

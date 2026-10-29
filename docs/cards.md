@@ -230,6 +230,10 @@ Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and ga
   - Garage doors, doors and gates are a state, with no glow, and the control never fills. Left open, standard/featured cards and sheets lead with a warning ("Open since 10:20"). Compact cards keep the area/class line and add the shared non-colour warning cue; under 320 px the cue sits beside the Open readout.
 - **Sheet:** quick positions (Closed, 25%, Half, Open), slat tilt for blinds that support it, and today's openness by hour.
 
+### Field cover module
+
+`CoverModule` is the same normalized cover entity in the Field skin; `HaCoverModule` is its connected container, on the same `useHaCover` hook as `HaCoverTile`, and takes the same `onOpenCover`, `onCloseCover`, `onStopCover`, `onSetPosition` and `onSetTilt`. The screen leads with how open it is, the key opens, closes or stops it, the position fader has the tile's magnetic ends, and a door left open warns on the screen; the panel has quick positions, or close, stop and open for a cover with no position, and slats on their own fader. See [field.md](field.md#cover).
+
 ## Using the toggle card
 
 A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It shows one `input_boolean` or `switch`:

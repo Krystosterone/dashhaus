@@ -1,22 +1,11 @@
-import type { CoverEntity, CoverHistory, CoverClass } from "../../../../domains/cover/types";
+import type { CoverEntity, CoverHistory } from "../../../../domains/cover/types";
+import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "../../../../domains/cover/position";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
 import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
 
-const CLASS_LABEL: Record<CoverClass, string> = {
-  curtain: "Curtain", blind: "Blind", shade: "Shade", shutter: "Shutter", awning: "Awning", window: "Window", garage: "Garage door", door: "Door", gate: "Gate",
-};
-/** Covers that let a person in, rather than light: open is a state (the accent orb, no glow), and reads as a warning. */
-const ACCESS = new Set<CoverClass>(["garage", "door", "gate"]);
-
-const QUICK = [
-  { value: 0, label: "Closed" },
-  { value: 25, label: "25%" },
-  { value: 50, label: "Half" },
-  { value: 100, label: "Open" },
-];
 const SLATS = [
   { value: 0, label: "Closed" },
   { value: 50, label: "Angled" },
@@ -51,14 +40,15 @@ export interface CoverCardProps extends CardProps {
 export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverCardProps) {
   const { uid, nameId, sheet, compact, bare, article, area } = useCard("cv", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
-  const moving = e.state === "opening" || e.state === "closing";
-  const pos = e.position ?? (e.state === "open" || e.state === "opening" ? 100 : 0);
+  const moving = isMoving(e);
+  const pos = openness(e);
   const open = pos > 0 || e.state === "open";
-  const access = ACCESS.has(e.deviceClass);
+  // A cover that lets a person in: open is a state (the accent orb, no glow), and reads as a warning.
+  const access = isAccess(e.deviceClass);
   // Glow is energy flowing: daylight coming in through an open curtain. A garage door lets in no light worth showing.
   const colors = paint(access ? "state" : "energy", unav || access ? 0 : (0.6 * pos) / 100, null, color);
 
-  const withPos = e.supportsPosition && e.position != null;
+  const withPos = hasPosition(e);
   const text = moving
     ? `${e.state === "opening" ? "Opening" : "Closing"}${withPos ? ` · ${pos}%` : ""}`
     : !open ? "Closed" : !withPos || pos === 100 ? "Open" : `Open · ${pos}%`;
@@ -103,7 +93,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
 
       {sheet && !unav && (withPos || e.supportsTilt) && (
         <div className="hd-extra">
-          {withPos && onSetPosition && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK} value={moving ? null : pos} onChange={onSetPosition} />}
+          {withPos && onSetPosition && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
           {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLATS} value={e.tilt} onChange={onSetTilt} />}
         </div>
       )}

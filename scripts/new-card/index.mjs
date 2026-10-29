@@ -36,7 +36,7 @@ if (skin === "field") {
   const { newFieldCard } = await import("./field.mjs");
   const options = { kind: flag("kind"), code: flag("code"), dryRun };
   const [fieldName, ...rest] = args;
-  if (!fieldName || rest.length) fail("usage: npm run new-card -- <name> --skin field [--kind control|reading] [--code <xx>] [--dry-run]\n       e.g. npm run new-card -- cover --skin field --kind reading");
+  if (!fieldName || rest.length) fail("usage: npm run new-card -- <name> --skin field [--kind control|reading] [--code <xx>] [--dry-run]\n       e.g. npm run new-card -- alarm --skin field --kind reading");
   newFieldCard({ name: fieldName, ...options });
   process.exit(0);
 }
