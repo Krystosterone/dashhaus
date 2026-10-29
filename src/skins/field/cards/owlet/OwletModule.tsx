@@ -64,7 +64,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
 
   let pict: ReactNode = heart, read = heartRead, meta = reading;
   let warning: string | undefined, rowWarning: string | undefined;
-  let alert: { level: "urgent" | "alarm"; what: string; say?: string } | undefined;
+  let alert: { level: "urgent" | "alarm"; what: string; startedAt?: number; say?: string } | undefined;
   if (level === "alarm") {
     // The figure is the vital that set it off: the oxygen, or the heart rate. Its first line says how, in a word.
     const lead = vitals[0];
@@ -80,7 +80,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     rowWarning = withCount(vitals.map((a) => ALERT_WORD[a]));
     const what = [ALERT_WORD[lead], figure].filter(Boolean).join(" ") + (vitals.length > 1 ? ` +${vitals.length - 1}` : "");
     const spoken = vitals.map((a) => ALERT_WORD[a].toLowerCase()).join(", ");
-    alert = { level, what, say: `Alarm: ${e.name}, ${spoken}${byOxygen ? `, oxygen ${fmtOxygen(o2)} percent` : hr != null ? `, heart rate ${hr}` : ""}.` };
+    alert = { level, what, startedAt: e.vitalsSince, say: `Alarm: ${e.name}, ${spoken}${byOxygen ? `, oxygen ${fmtOxygen(o2)} percent` : hr != null ? `, heart rate ${hr}` : ""}.` };
   } else if (level === "urgent") {
     // What stopped the monitoring, in an inverted block; a day as well as a time ("Fri 18:30") keeps the time.
     const time = e.lastUpdated?.trim().split(/\s+/).at(-1);

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Severity } from "../../../domains/severity";
 import "./alerts.css";
 
@@ -13,10 +13,12 @@ export interface AlertEntry {
   name: string;
   /** What is wrong, short: "Critical oxygen 79%". */
   what: string;
+  /** When it started, in ms since the epoch, if the host knows: the line's order, and an alarm's flash keeps its phase. */
+  startedAt?: number;
 }
 
 interface Reported extends AlertEntry {
-  /** When this level started here, for the line's order. */
+  /** When it started, or else when this level was first reported here: the line's order. */
   since: number;
   open: () => void;
 }
@@ -57,7 +59,7 @@ export function useReportAlert(entry: AlertEntry | undefined, open: () => void) 
   const opener = useRef(open);
   opener.current = open;
   const since = useRef<{ level: Pressing; at: number } | undefined>(undefined);
-  const { level, name, what } = entry ?? {};
+  const { level, name, what, startedAt } = entry ?? {};
   useEffect(() => {
     if (!registry) return;
     if (!level || !name || !what) {
@@ -66,9 +68,29 @@ export function useReportAlert(entry: AlertEntry | undefined, open: () => void) 
       return;
     }
     if (since.current?.level !== level) since.current = { level, at: Date.now() };
-    registry.set(id, { level, name, what, since: since.current.at, open: () => opener.current() });
-  }, [registry, id, level, name, what]);
+    registry.set(id, { level, name, what, startedAt, since: startedAt ?? since.current.at, open: () => opener.current() });
+  }, [registry, id, level, name, what, startedAt]);
   useEffect(() => () => registry?.set(id, undefined), [registry, id]);
+}
+
+/**
+ * An alarm's flash, as a negative `animation-delay` (`--fd-alarm-delay`): fixed as the alarm begins, from when it
+ * started, so a module mounted later (a view switched back to, a reconnect) picks the flash up where it would be, and
+ * one more than ten seconds old lands with it done. Unknown start: the flash runs from now.
+ */
+export function useAlarmPhase(active: boolean, startedAt?: number): string | undefined {
+  return useMemo(() => (active && startedAt != null ? `${-Math.max(0, (Date.now() - startedAt) / 1000).toFixed(2)}s` : undefined), [active, startedAt]);
+}
+
+/** One entry on the alert line, its alarm tag blinking in phase with its module. */
+function Entry({ entry: e }: { entry: Reported }) {
+  const delay = useAlarmPhase(e.level === "alarm", e.startedAt);
+  return (
+    <button type="button" className="fd-alerts-entry" data-level={e.level} onClick={e.open}>
+      <span className="fd-alerts-tag" aria-hidden="true" style={delay ? ({ "--fd-alarm-delay": delay } as CSSProperties) : undefined}>{e.level === "alarm" ? <IconAlarm /> : <IconUrgent />}{WORD[e.level]}</span>
+      <span className="fd-alerts-what"><span className="fd-sr">{WORD[e.level]}: </span><b>{e.name}</b><span> · {e.what}</span></span>
+    </button>
+  );
 }
 
 /** Shown at once, before "+N more". */
@@ -92,12 +114,7 @@ export function AlertLine() {
   const more = list.length - SHOWN;
   return (
     <section className="fd-alerts" aria-label="Alerts">
-      {(all ? list : list.slice(0, SHOWN)).map((e) => (
-        <button key={`${e.name}-${e.since}`} type="button" className="fd-alerts-entry" data-level={e.level} onClick={e.open}>
-          <span className="fd-alerts-tag" aria-hidden="true">{e.level === "alarm" ? <IconAlarm /> : <IconUrgent />}{WORD[e.level]}</span>
-          <span className="fd-alerts-what"><span className="fd-sr">{WORD[e.level]}: </span><b>{e.name}</b><span> · {e.what}</span></span>
-        </button>
-      ))}
+      {(all ? list : list.slice(0, SHOWN)).map((e) => <Entry key={`${e.name}-${e.since}`} entry={e} />)}
       {more > 0 && (
         <button type="button" className="fd-alerts-entry fd-alerts-more" aria-expanded={all} onClick={() => setAll((a) => !a)}>
           <span className="fd-alerts-what">{all ? "Show fewer" : `+${more} more`}</span>

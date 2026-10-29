@@ -93,6 +93,20 @@ describe("owletFromHass alerts", () => {
     expect(mapped.alerts).toEqual(["low_oxygen"]);
   });
 
+  it("dates the alarm from the first vitals alert sounding now, not from device problems or silent sensors", () => {
+    const at = (entity: ReturnType<typeof binary>, stamp: string) => ({ ...entity, last_changed: stamp });
+    const mapped = owletFromHass(sleep, sleep.entity_id, {
+      alertEntities: {
+        low_oxygen: at(binary("low_oxygen_alert", "on"), "2026-10-29T11:52:00Z"),
+        low_heart_rate: at(binary("low_heart_rate_alert", "on"), "2026-10-29T11:50:00Z"),
+        high_oxygen: at(binary("high_oxygen_alert", "off"), "2026-10-29T11:00:00Z"),
+        sock_off: at(binary("sock_off", "on"), "2026-10-29T10:00:00Z"),
+      },
+    });
+    expect(mapped.vitalsSince).toBe(Date.parse("2026-10-29T11:50:00Z"));
+    expect(owletFromHass(sleep, sleep.entity_id, { alertEntities: { sock_off: binary("sock_off", "on") } }).vitalsSince).toBeUndefined();
+  });
+
   it("has no alerts without alert sensors", () => {
     expect(owletFromHass(sleep, sleep.entity_id).alerts).toEqual([]);
   });

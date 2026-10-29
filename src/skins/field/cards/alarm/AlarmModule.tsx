@@ -168,8 +168,8 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       state={e.state}
       warning={footprint === "compact" ? warning : undefined}
       line={line}
-      alert={level === "alarm" ? { level, what: warning ?? "Triggered", say: `Alarm: ${e.name} triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}.` }
-        : level === "urgent" ? { level, what: e.triggeredBy ? `Entry delay, ${e.triggeredBy}` : "Entry delay" } : undefined}
+      alert={level === "alarm" ? { level, what: warning ?? "Triggered", startedAt: e.changedAt, say: `Alarm: ${e.name} triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}.` }
+        : level === "urgent" ? { level, what: e.triggeredBy ? `Entry delay, ${e.triggeredBy}` : "Entry delay", startedAt: e.changedAt } : undefined}
       panelFocus={pending ? "content" : undefined}
       details={{ ...details, openDetails: openPanel }}
       pict={pict}

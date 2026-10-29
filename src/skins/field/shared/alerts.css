@@ -41,7 +41,8 @@
 .fd-alerts-what > span:last-child { color: var(--fd-screen-ink-2); }
 .fd-alerts-more { color: var(--fd-screen-ink-2); }
 /* The level, boxed with its glyph and word, so a module named "Alarm" never runs into it. An alarm's box is inverted
-   and flashes with its module. */
+   and blinks by opacity in phase with its module, never swapping inks: dark on the dark strip, it would read as an
+   urgent box. */
 .fd-alerts-tag {
   flex: none;
   box-sizing: border-box;
@@ -55,7 +56,7 @@
   font-weight: 700;
 }
 .fd-alerts-tag svg { flex: none; width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
-.fd-alerts-entry[data-level="alarm"] .fd-alerts-tag { background: var(--fd-screen-ink); color: var(--fd-screen); animation: fd-alarm-flash 1s linear 10; }
+.fd-alerts-entry[data-level="alarm"] .fd-alerts-tag { background: var(--fd-screen-ink); color: var(--fd-screen); animation: fd-alarm-blink 1s linear var(--fd-alarm-delay, 0s) 10; }
 @media (prefers-reduced-motion: reduce) {
   .fd-alerts-entry[data-level="alarm"] .fd-alerts-tag { animation: none; }
 }

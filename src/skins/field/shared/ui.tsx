@@ -4,7 +4,7 @@ import { usePress } from "../../../primitives/press";
 import { useRangeSlider, useSlider } from "../../../primitives/slider";
 import { useSheet } from "../../../primitives/sheet";
 import type { HourSample } from "../../../domains/history";
-import { useReportAlert } from "./alerts";
+import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
 import "./panel.css";
@@ -55,6 +55,8 @@ export interface ModuleProps {
   level?: Pressing;
   /** Said once by a screen reader when an alarm starts: "Alarm: Nova, critical oxygen, 79 percent". */
   say?: string;
+  /** When the alarm started, in ms since the epoch: its flash keeps that phase, so a remount never replays it. */
+  since?: number;
   children: ReactNode;
 }
 
@@ -62,10 +64,11 @@ export interface ModuleProps {
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
-export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, level, say, children }: ModuleProps) {
+export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, level, say, since, children }: ModuleProps) {
   const nameId = useId();
+  const delay = useAlarmPhase(level === "alarm", since);
   return (
-    <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} data-level={level} aria-labelledby={nameId}>
+    <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} data-level={level} aria-labelledby={nameId} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
       <header className="fd-head">
         {/* Labelled by the name alone, so the heading stays "Ceiling" while the button inside reads "Ceiling details". */}
         <h3 className="fd-name" title={name} aria-labelledby={nameId}>
@@ -462,7 +465,8 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   panelFocus?: "content";
   /**
    * What can't wait: the module draws its level (`Module`'s `level`), and reports it to the dashboard's alert line, its
-   * name opening this module's details. `what` is the line's words ("Critical oxygen 79%"), `say` the alarm's.
+   * name opening this module's details. `what` is the line's words ("Critical oxygen 79%"), `say` the alarm's, and
+   * `startedAt` when it started, if known, which keeps an alarm's flash in phase.
    */
   alert?: Omit<AlertEntry, "name"> & { say?: string };
 }
@@ -472,10 +476,10 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
  * and row, and the detail panel its name opens. A card brings what goes in it.
  */
 export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelFocus, alert, children, ...module }: ModuleFrameProps) {
-  useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what }, details.openDetails);
+  useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what, startedAt: alert.startedAt }, details.openDetails);
   return (
     <>
-      <Module {...module} area={module.footprint === "compact" ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say}>
+      <Module {...module} area={module.footprint === "compact" ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say} since={alert?.startedAt}>
         {module.footprint === "compact" ? (
           <>
             {lead}

@@ -2,6 +2,7 @@ import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
 import { stringValue } from "../util";
 import type { OwletAlert, OwletEntity, SleepState } from "../../domains/owlet/types";
+import { VITAL_ALERTS } from "../../domains/owlet/readings";
 
 export interface OwletMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
@@ -102,6 +103,11 @@ export function owletFromHass(raw: HassEntity | undefined, entityId: string, opt
   const latest = offline ? undefined : latestUpdate([raw, options.heartRateEntity, options.oxygenEntity]);
   const now = options.now ?? new Date();
   const staleAfter = (options.staleAfterMinutes ?? OWLET_STALE_AFTER_MINUTES) * 60_000;
+  // Only an `on` alert sounds: off, unknown, unavailable and a missing sensor are silent, never assumed.
+  const sounding = (Object.keys(options.alertEntities ?? {}) as OwletAlert[]).filter((alert) => options.alertEntities?.[alert]?.state === "on");
+  // The alarm started when the first vitals alert sounding now went on.
+  const starts = sounding.filter((a) => VITAL_ALERTS.has(a)).map((a) => parseHaTime(options.alertEntities?.[a]?.last_changed)?.getTime()).filter((t): t is number => t != null);
+  const vitalsSince = starts.length ? Math.min(...starts) : undefined;
 
   return {
     entityId,
@@ -110,8 +116,8 @@ export function owletFromHass(raw: HassEntity | undefined, entityId: string, opt
     state,
     heartRate,
     oxygen,
-    // Only an `on` alert sounds: off, unknown, unavailable and a missing sensor are silent, never assumed.
-    alerts: (Object.keys(options.alertEntities ?? {}) as OwletAlert[]).filter((alert) => options.alertEntities?.[alert]?.state === "on"),
+    alerts: sounding,
+    vitalsSince,
     charging: options.chargingEntity?.state === "on",
     // Only a switch that says on or off: unknown, unavailable and a missing switch leave it out, never assumed.
     baseOn: options.baseEntity?.state === "on" ? true : options.baseEntity?.state === "off" ? false : undefined,

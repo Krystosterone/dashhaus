@@ -222,10 +222,11 @@
 .fd-module[data-level="alarm"] .fd-pict-lit { fill: currentColor; }
 .fd-module[data-level="alarm"] .fd-pict-unlit { fill: currentColor; opacity: 0.15; }
 .fd-module[data-level="alarm"] .fd-digits::before { color: currentColor; opacity: 0.2; }
-/* The flash: once a second, well under WCAG's three, for ten seconds; then the inversion, the base style, holds until
-   the alarm clears. The LED blinks with it. */
-.fd-module[data-level="alarm"] .fd-screen { animation: fd-alarm-flash 1s linear 10; }
-.fd-module[data-level="alarm"] .fd-led { animation: fd-alarm-blink 1s linear 10; }
+/* The flash: once a second, well under WCAG's three, for ten seconds from when the alarm started (`--fd-alarm-delay`,
+   negative, set by `Module`), so a remount never replays it; then the inversion, the base style, holds until the alarm
+   clears. A hard cut, like a segment display's. The LED blinks with it. */
+.fd-module[data-level="alarm"] .fd-screen { animation: fd-alarm-flash 1s linear var(--fd-alarm-delay, 0s) 10; }
+.fd-module[data-level="alarm"] .fd-led { animation: fd-alarm-blink 1s linear var(--fd-alarm-delay, 0s) 10; }
 @keyframes fd-alarm-flash {
   0%, 59.9% { background-color: var(--fd-screen-ink); color: var(--fd-screen); }
   60%, 100% { background-color: var(--fd-screen); color: var(--fd-screen-ink); }

@@ -36,6 +36,11 @@ export interface OwletEntity {
   live?: boolean;
   /** The alerts sounding now, in any order. */
   alerts?: OwletAlert[];
+  /**
+   * When the vitals alerts sounding now started, in ms since the epoch: the first of them to go on. Omitted while none
+   * sounds, or when the host can't tell.
+   */
+  vitalsSince?: number;
   /** On its charger: the reason it reports nothing. */
   charging?: boolean;
   /**

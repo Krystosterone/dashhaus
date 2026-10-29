@@ -4,7 +4,7 @@ import { AlertLine, AlertsProvider } from "./alerts";
 import type { Pressing } from "./alerts";
 import { ModuleFrame, useDetails } from "./ui";
 
-function Probe({ name, level, what }: { name: string; level?: Pressing; what?: string }) {
+function Probe({ name, level, what, startedAt }: { name: string; level?: Pressing; what?: string; startedAt?: number }) {
   const details = useDetails();
   return (
     <ModuleFrame
@@ -12,7 +12,7 @@ function Probe({ name, level, what }: { name: string; level?: Pressing; what?: s
       name={name}
       state="on"
       details={details}
-      alert={level && what ? { level, what, say: `Alarm: ${name}, ${what}.` } : undefined}
+      alert={level && what ? { level, what, startedAt, say: `Alarm: ${name}, ${what}.` } : undefined}
       pict={null}
       read="ON"
       lead={null}
@@ -72,5 +72,23 @@ describe("the alert line", () => {
     const { container } = render(<Probe name="Nova" level="alarm" what="Low oxygen" />);
     expect(container.querySelector(".fd-module")?.getAttribute("data-level")).toBe("alarm");
     expect(screen.getByRole("alert").textContent).toBe("Alarm: Nova, Low oxygen.");
+  });
+
+  it("keeps an alarm's flash in phase with when it started, on the module and its tag, so a remount never replays it", () => {
+    const { container } = render(<AlertsProvider><AlertLine /><Probe name="Nova" level="alarm" what="Low oxygen" startedAt={Date.now() - 4_000} /></AlertsProvider>);
+    const delay = (el: Element | null) => Number.parseFloat((el as HTMLElement | null)?.style.getPropertyValue("--fd-alarm-delay") ?? "");
+    expect(delay(container.querySelector(".fd-module"))).toBeCloseTo(-4, 0);
+    expect(delay(container.querySelector(".fd-alerts-tag"))).toBeCloseTo(-4, 0);
+  });
+
+  it("orders the line by when each started, when the host knows", () => {
+    render(
+      <AlertsProvider>
+        <AlertLine />
+        <Probe name="Older" level="urgent" what="Sock off" startedAt={Date.now() - 60_000} />
+        <Probe name="Newer" level="urgent" what="Sock off" startedAt={Date.now() - 1_000} />
+      </AlertsProvider>,
+    );
+    expect(entries()).toEqual(["UrgentUrgent: Newer · Sock off", "UrgentUrgent: Older · Sock off"]);
   });
 });
