@@ -1,26 +1,13 @@
 /* Light-specific parts. The card shell, header, orb, pills, today strip, chips and sheet come from src/shared/card.css. */
 
-/* Brightness bar: a groove the light fills; the label inverts where it passes */
-.lw-bar { position: relative; height: var(--slot-h); border-radius: 99px; background: var(--groove); box-shadow: var(--groove-shadow); }
-.lw-bar-lab { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 var(--pad-in); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); pointer-events: none; }
-.lw-bar-lit { position: absolute; inset: 0; border-radius: inherit; background: var(--accent); clip-path: inset(0 calc((100% - 30px) * (1 - var(--v, 0.5))) 0 0 round 99px); transition: opacity 200ms var(--ease-out); }
-/* Only a tap that jumps the value animates. Dragging follows the finger; arrow keys are instant. */
-.lw-bar[data-anim] .lw-bar-lit { transition: clip-path 160ms var(--ease-out), opacity 200ms var(--ease-out); }
-.lw-bar-lit .lw-bar-lab { color: var(--on-accent); }
+/* Brightness bar: a track the light fills (Track in shared/ui.tsx), keeping a 30px lit end cap. */
+.lw-bar { --cap: 30px; }
 /* The warmth or colour name on the status line. Compact rows keep the room alone; the sheet names it over its ruler or chips. */
 .hd--compact .lw-k, .hd--sheet .lw-k { display: none; }
-.lw-bar[data-lit="false"] .lw-bar-lit { opacity: 0; }
-.lw-bar:has(.lw-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
-.hd--compact .lw-bar-lab { font-size: 13px; }
-
-/* Pointer input: a hit layer that takes taps and sideways drags anywhere on the track, and leaves
-   vertical swipes to the page. (A native range input on iOS only moves when you grab its thumb.) */
-.lw-hit { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; touch-action: pan-y; }
-/* The slider stays for keyboard and screen readers, out of the pointer's way. */
-.lw-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.hd--compact .lw-bar .hd-track-lab { font-size: 13px; }
 
 /* Warmth ruler: ticks every 100 K over the warm-to-cool scale; an ink stick and a tag mark the value */
-.lw-ruler { --tw: 24px; position: relative; height: 70px; }
+.lw-ruler { --tw: 24px; height: 70px; }
 .lw-ruler-ticks { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 14px; }
 .lw-ruler-line { position: absolute; left: 12px; right: 12px; bottom: 0; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--warm-grad)); }
 /* The rail spans the usable track. Each marker rides a rail-wide layer parked just left of it, whose
@@ -32,8 +19,7 @@
 .lw-ruler[data-anim] .lw-ruler-at { transition: transform 160ms var(--ease-out); }
 .lw-ruler-mark { position: absolute; bottom: 8px; left: 100%; width: 4px; height: 34px; translate: -50% 0; border-radius: 2px; background: var(--ink); }
 .lw-ruler-tip { position: absolute; top: 0; left: 100%; translate: -50% 0; padding: 6px 14px; border-radius: 99px; background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.lw-ruler:has(.lw-in:focus-visible) .lw-ruler-mark { outline: 2px solid var(--ink); outline-offset: 3px; }
-.lw-ruler[data-disabled="true"] .lw-hit { cursor: default; }
+.lw-ruler:has(.hd-track-in:focus-visible) .lw-ruler-mark { outline: 2px solid var(--ink); outline-offset: 3px; }
 .lw-ruler[data-disabled="true"] { opacity: 0.4; }
 
 /* Colour chips: the swatch sits before the name. It is the lamp's hue, drawn only here, in the sheet. */

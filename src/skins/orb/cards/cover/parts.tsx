@@ -1,4 +1,4 @@
-import type { Vars } from "../../shared/ui";
+import { Track } from "../../shared/ui";
 import { useSlider } from "../../../../primitives/slider";
 
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverCard.css. */
@@ -28,14 +28,17 @@ export function PositionBar({ id, label, kind, position, moving, text, onChange 
     onChange,
   });
   const pos = slider.value;
+  // The track's fill is the daylight, and carries its own copy of the label, so the text flips where daylight passes.
   return (
-    <div className="cv-bar" {...slider.rootProps} data-kind={kind} data-moving={moving || undefined} style={{ "--p": slider.fraction(pos).toFixed(3) } as Vars}>
-      <span className="cv-lab" aria-hidden="true">{text}</span>
-      {/* The daylight with its own copy of the label, so the text flips where daylight passes under it. */}
-      <span className="cv-day" aria-hidden="true"><span className="cv-lab">{text}</span></span>
-      <div className="cv-hit" {...slider.hitProps} />
-      <input id={id} className="cv-in" aria-label={label} {...slider.inputProps} />
-    </div>
+    <Track
+      slider={slider}
+      inputs={[{ id, "aria-label": label, ...slider.inputProps }]}
+      className="cv-bar"
+      text={text}
+      data-kind={kind}
+      data-moving={moving || undefined}
+      style={{ "--v": slider.fraction(pos).toFixed(3) }}
+    />
   );
 }
 

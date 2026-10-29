@@ -1,6 +1,7 @@
 import { createContext, createElement, useContext, useId, useState } from "react";
-import type { ComponentType, CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
 import { usePress } from "../../../primitives/press";
+import type { useSlider } from "../../../primitives/slider";
 import { useSheet } from "../../../primitives/sheet";
 import type { ColorName } from "../../../domains/color";
 import type { HourSample, Reading } from "../../../domains/history";
@@ -247,6 +248,66 @@ export function Stepper({ label, kicker, cue, value, unit, format = String, min,
         {format(value)}<small>{unit}</small>
       </span>
       <button type="button" className="hd-step-b" aria-label={`Raise to ${format(up)}${unit}`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
+    </div>
+  );
+}
+
+/* ---------- Track: a groove you slide along or set ----------
+   Every orb control that slides draws its track here. The card calls useSlider or useRangeSlider with what only
+   it knows (its ends, its snap, how a pointer reads along it) and hands the result over; the track draws the
+   groove, the hit layer that takes the pointer and leaves vertical swipes to the page, the hidden range inputs
+   for keyboard and screen readers, and the focus ring. The card's own fill and marks are its children. */
+
+/** What a track takes from useSlider or useRangeSlider: the root's ref and the hit layer's pointer handlers. */
+export type TrackGesture = Pick<ReturnType<typeof useSlider<HTMLDivElement>>, "rootProps" | "hitProps">;
+/** One hidden range input: a slider's `inputProps`, with its id, and its label unless a `<label>` names it. */
+export type TrackInput = InputHTMLAttributes<HTMLInputElement> & { id: string };
+
+export interface TrackProps {
+  slider: TrackGesture;
+  /** One per value: a slider's input, or a range's low and high. */
+  inputs: TrackInput[];
+  /** The card's class for this track ("lw-bar"); `hd-track` comes with it. */
+  className?: string;
+  /**
+   * The value on the groove, drawn twice: on the groove, and on the fill in --on-accent, so it flips where the
+   * fill passes under it. The fill is clipped from the right by --v (0-1) less --cap, the end cap it keeps at
+   * zero; a card with another shape sets its own clip-path on `.hd-track-fill`.
+   */
+  text?: ReactNode;
+  /** Whether the fill shows. Off is the plain groove. Default true. */
+  lit?: boolean;
+  /** "thumb": the card draws the focus ring on what rides the track, not on the groove. */
+  focus?: "groove" | "thumb";
+  /** false draws no groove, for a track that is a scale (the warmth ruler). */
+  groove?: boolean;
+  disabled?: boolean;
+  style?: Vars;
+  /** The card's fill and marks, under the hit layer. */
+  children?: ReactNode;
+  [data: `data-${string}`]: string | boolean | undefined;
+}
+
+export function Track({ slider, inputs, className, text, lit = true, focus = "groove", groove = true, disabled, style, children, ...data }: TrackProps) {
+  return (
+    <div
+      className={["hd-track", groove && "hd-track--groove", className].filter(Boolean).join(" ")}
+      {...slider.rootProps}
+      {...data}
+      data-lit={lit ? undefined : "false"}
+      data-focus={focus === "thumb" ? "thumb" : undefined}
+      data-disabled={disabled || undefined}
+      style={style}
+    >
+      {text != null && (
+        <>
+          <span className="hd-track-lab" aria-hidden="true">{text}</span>
+          <span className="hd-track-fill" aria-hidden="true"><span className="hd-track-lab">{text}</span></span>
+        </>
+      )}
+      {children}
+      <div className="hd-track-hit" {...slider.hitProps} />
+      {inputs.map(({ className: own, ...input }) => <input key={input.id} className={own ? `hd-track-in ${own}` : "hd-track-in"} {...input} />)}
     </div>
   );
 }

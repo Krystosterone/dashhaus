@@ -1,4 +1,4 @@
-import { Chip } from "../../shared/ui";
+import { Chip, Track } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
 import { useSlider } from "../../../../primitives/slider";
 import { kelvinName, K_MIN, K_MAX } from "../../../../domains/light/kelvin";
@@ -20,8 +20,7 @@ export const IconBulbOff = () => (
   </svg>
 );
 
-/** Brightness bar: the light fills it; the label inverts where it passes.
- *  Pointer input goes to a hit layer (tap anywhere, or drag); the range input is for keyboard and screen readers. */
+/** Brightness bar: the light fills the track; the label inverts where it passes. */
 export function BrightnessBar({ id, label, value, on, onChange }: { id: string; label: string; value: number; on: boolean; onChange: (v: number) => void }) {
   // Setting the level the thumb already shows still reports it while off, so it turns the light on.
   const slider = useSlider<HTMLDivElement>({
@@ -29,17 +28,18 @@ export function BrightnessBar({ id, label, value, on, onChange }: { id: string; 
     valueText: (v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`),
   });
   const pct = slider.value;
-  const text = on ? `${pct}%` : "Off";
   return (
-    <div className="lw-bar" {...slider.rootProps} data-lit={on} style={{ "--v": slider.fraction(pct).toFixed(4) } as Vars}>
-      <div className="lw-bar-lab">{text}</div>
-      <div className="lw-bar-lit" aria-hidden="true"><div className="lw-bar-lab">{text}</div></div>
-      <div className="lw-hit" {...slider.hitProps} />
-      <input id={id} className="lw-in" aria-label={label} {...slider.inputProps} />
-    </div>
+    <Track
+      slider={slider}
+      inputs={[{ id, "aria-label": label, ...slider.inputProps }]}
+      className="lw-bar"
+      text={on ? `${pct}%` : "Off"}
+      lit={on}
+      style={{ "--v": slider.fraction(pct).toFixed(4) }}
+    />
   );
 }
-/** Width of the lit end cap, in px. Matches the clip-path in LightCard.css. */
+/** Width of the lit end cap, in px. Matches --cap in LightCard.css. */
 const THUMB = 30;
 
 export const QUICK_LEVELS = [
@@ -61,11 +61,15 @@ export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, on
   return (
     <div className="hd-blk">
       <p className="hd-blk-h"><label htmlFor={id}>Warmth</label><span className="hd-blk-v">{kelvinName(k)}</span></p>
-      <div
+      {/* A scale, not a groove: the warm-to-cool gradient is its fill, and the focus ring goes on the mark. */}
+      <Track
+        slider={slider}
+        inputs={[{ id, ...slider.inputProps }]}
         className="lw-ruler"
-        {...slider.rootProps}
-        data-disabled={disabled || undefined}
-        style={{ "--v": slider.fraction(k).toFixed(4), "--warm-grad": warmGradient(min, Math.max(max, min + 100)) } as Vars}
+        groove={false}
+        focus="thumb"
+        disabled={disabled}
+        style={{ "--v": slider.fraction(k).toFixed(4), "--warm-grad": warmGradient(min, Math.max(max, min + 100)) }}
       >
         <div className="lw-ruler-ticks" style={{ background: `repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px calc(100% / ${intervals}))` }} />
         <div className="lw-ruler-line" />
@@ -73,9 +77,7 @@ export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, on
           <div className="lw-ruler-at lw-ruler-at--mark"><div className="lw-ruler-mark" /></div>
           <div className="lw-ruler-at lw-ruler-at--tip"><div className="lw-ruler-tip">{k} K</div></div>
         </div>
-        <div className="lw-hit" {...slider.hitProps} />
-        <input id={id} className="lw-in" {...slider.inputProps} />
-      </div>
+      </Track>
     </div>
   );
 }

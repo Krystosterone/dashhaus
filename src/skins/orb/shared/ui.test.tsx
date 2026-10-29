@@ -1,6 +1,7 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { COLORS, CardTitle, SheetClose, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
+import { describe, expect, it, vi } from "vitest";
+import { useRangeSlider, useSlider } from "../../../primitives/slider";
+import { COLORS, CardTitle, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
 
 describe("paint", () => {
@@ -130,5 +131,48 @@ describe("detailsSheet and detailsTile", () => {
   it("names the wrappers after the card", () => {
     expect(ProbeSheet.displayName).toBe("ProbeSheet");
     expect(ProbeTile.displayName).toBe("ProbeTile");
+  });
+});
+
+describe("Track", () => {
+  function Level({ on = true }: { on?: boolean }) {
+    const slider = useSlider<HTMLDivElement>({ value: 40, min: 0, max: 100, inset: 0, valueText: (v) => `${v} percent`, onChange: vi.fn() });
+    return <Track slider={slider} inputs={[{ id: "lv", "aria-label": "Level", ...slider.inputProps }]} className="xx-bar" text={`${slider.value}%`} lit={on} />;
+  }
+
+  it("draws the groove, the value on it and on the fill, a hit layer and the input", () => {
+    const { container } = render(<Level />);
+    const root = container.firstElementChild!;
+    expect(root.className).toBe("hd-track hd-track--groove xx-bar");
+    expect([...root.querySelectorAll(".hd-track-lab")].map((l) => l.textContent)).toEqual(["40%", "40%"]);
+    expect(root.querySelector(".hd-track-fill .hd-track-lab")).not.toBeNull();
+    expect(root.querySelector(".hd-track-hit")?.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.getByRole("slider", { name: "Level" }).getAttribute("aria-valuetext")).toBe("40 percent");
+    expect(root.hasAttribute("data-lit")).toBe(false);
+  });
+
+  it("empties the fill while off", () => {
+    const { container } = render(<Level on={false} />);
+    expect(container.firstElementChild!.getAttribute("data-lit")).toBe("false");
+  });
+
+  it("takes a range's two inputs with their own classes, and leaves the focus ring to the thumbs", () => {
+    function Range() {
+      const r = useRangeSlider<HTMLDivElement>({ low: 20, high: 24, min: 10, max: 30, step: 0.5, inset: 0, valueText: (v, t) => `${t} ${v}`, onChange: vi.fn() });
+      return (
+        <Track slider={r} focus="thumb" className="xx-range" inputs={[
+          { id: "lo", className: "xx-lo", "aria-label": "Low", ...r.lowInputProps },
+          { id: "hi", className: "xx-hi", "aria-label": "High", ...r.highInputProps },
+        ]}><i className="xx-zone" /></Track>
+      );
+    }
+    const { container } = render(<Range />);
+    const root = container.firstElementChild!;
+    expect(root.getAttribute("data-focus")).toBe("thumb");
+    expect(root.querySelector(".hd-track-lab")).toBeNull();
+    expect(screen.getByRole("slider", { name: "Low" }).className).toBe("hd-track-in xx-lo");
+    expect(screen.getByRole("slider", { name: "High" }).className).toBe("hd-track-in xx-hi");
+    // The card's fill sits under the hit layer.
+    expect([...root.children].map((c) => c.className)).toEqual(["xx-zone", "hd-track-hit", "hd-track-in xx-lo", "hd-track-in xx-hi"]);
   });
 });

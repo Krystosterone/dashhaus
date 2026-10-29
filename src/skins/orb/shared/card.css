@@ -274,6 +274,27 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   .hd-step-b > span { scale: none !important; }
 }
 
+/* Track: a groove you slide along or set (Track in ui.tsx). The card brings its fill and marks.
+   The value sits on the groove and again on the fill, in --on-accent, so it flips where the fill passes. The
+   fill is clipped from the right (clip-path only: no layout per frame), keeping an end cap of --cap at zero. */
+.hd-track { position: relative; min-width: 0; }
+/* :where() keeps the groove's look overridable: climate's narrow bar is a raised button instead. */
+:where(.hd-track--groove) { height: var(--slot-h); border-radius: 99px; background: var(--groove); box-shadow: var(--groove-shadow); }
+.hd-track--groove:not([data-focus="thumb"]):has(> .hd-track-in:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd-track-lab { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 var(--pad-in); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-2); pointer-events: none; }
+.hd-track-fill { position: absolute; inset: 0; border-radius: inherit; background: var(--accent); pointer-events: none; clip-path: inset(0 calc((100% - var(--cap, 0px)) * (1 - var(--v, 0))) 0 0 round 99px); transition: opacity 200ms var(--ease-out); }
+.hd-track-fill .hd-track-lab { color: var(--on-accent); }
+/* Off is the plain groove. */
+.hd-track[data-lit="false"] .hd-track-fill { opacity: 0; }
+/* Only a tap that jumps the value animates. Dragging follows the finger; arrow keys are instant. */
+.hd-track[data-anim] .hd-track-fill { transition: clip-path 160ms var(--ease-out), opacity 200ms var(--ease-out); }
+/* Pointer input: a hit layer that takes taps and sideways drags anywhere on the track, and leaves vertical
+   swipes to the page. (A native range input on iOS only moves when you grab its thumb.) */
+.hd-track-hit { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; touch-action: pan-y; }
+.hd-track[data-disabled] .hd-track-hit { cursor: default; }
+/* The range inputs stay for keyboard and screen readers, out of the pointer's way. */
+.hd-track-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+
 /* Today: 24 hourly sticks. Height = intensity that hour; the current hour is the accent. */
 .hd-tl { display: none; gap: 8px; }
 .hd-tl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }

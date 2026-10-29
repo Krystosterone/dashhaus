@@ -36,7 +36,7 @@ The host supplies authentication and an implementation of the transport (the rep
 - **Height never changes with state, entity type or width.** Set `footprint="compact" | "standard" | "featured"` on any tile; the default is `standard`. Width may simplify the internal arrangement, but it never changes the footprint or promotes a standard card to featured.
 - **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its orb, control and tappable name in the same places; a bare reading icon drops its empty orb-sized box so the name keeps its room. `featured` explicitly adds the Today strip and a large readout when that figure is not already printed on the control; below 260 px the readout yields to the orb. History remains in the sheet for smaller footprints.
 - **No expanding cards.** More detail opens in a sheet (bottom sheet on phones, centered panel on wider screens), from a tap on the card's name (marked by a small chevron after it) or a press and hold on the main control. Below 186 px the chevron yields before the primary identity, but the name remains the same details button. The tap area spans the header (name and readout) under the orb; in compact rows it spans the title column, stopping 8 px short of the control, or the whole row when there is no control. No card spends a column on an open button; the only circle button is the sheet's close.
-- **One UI language.** Every signal has one meaning: shape says what you can do, fill says state, a dashed outline says unavailable. **Orb / Foundations / Palette** shows each one.
+- **One UI language.** Every signal has one meaning: shape says what you can do, fill says state, a dashed outline says unavailable. **Orb / Foundations / Palette** shows each one, and **Orb / Foundations / Parts** each part across its states.
   - **Shape says what you can do.**
     - **Button** (`--btn`, raised): tap it. Orbs, toggle pills, the stepper's and open/close buttons, chips, keypad keys. A disabled button lies flat.
     - **Groove** (`--groove`, recessed): slide or set along it. Brightness, curtains and shades, the heat/cool range, the setpoint stepper, the alarm's mode switch, a countdown.
@@ -73,7 +73,7 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
 - **Every control gives press feedback on `:active`.** Scales are 0.92 to 0.98: small buttons go lower, wide pills stay near 1.
 - **Hover styles live under `@media (hover: hover) and (pointer: fine)`.**
 - **Reduced motion means gentler, not none.** Fades and color changes stay; scaling and sliding go.
-- **Tracks** (brightness, warmth, heat/cool range) take pointer input on a hit layer with `touch-action: pan-y`.
+- **Tracks** (brightness, volume, cover position, warmth, heat/cool range) are one part, `Track` in `src/skins/orb/shared/ui.tsx`, and take pointer input on its hit layer with `touch-action: pan-y`. Each card brings only its fill.
   - Touch values change on a tap or a sideways drag, so a vertical scroll that starts on a track changes nothing.
   - A hidden range input stays for keyboard and screen readers. A native iOS range input only moves when you grab its thumb.
 - **Controls aren't selectable.** No selection, callout or tap highlight, and `touch-action: manipulation` is on. Visible compact controls keep a 44 px hit dimension; crowded alarm modes move to the sheet instead of shrinking their targets.

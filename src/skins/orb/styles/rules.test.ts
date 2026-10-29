@@ -156,10 +156,10 @@ describe("touch: controls answer presses, tracks let pages scroll", () => {
     expect(c).toContain("-webkit-touch-callout: none");
   });
 
-  it("each track hit layer keeps vertical scrolling (pan-y)", () => {
-    for (const f of ["cards/light/LightCard.css", "cards/climate/ClimateCard.css", "cards/cover/CoverCard.css"].map((f) => `${SKIN}/${f}`)) {
-      expect(css(f), f).toContain("touch-action: pan-y");
-    }
+  it("the track's hit layer keeps vertical scrolling (pan-y), and no card draws its own", () => {
+    expect(css(`${SKIN}/shared/card.css`)).toMatch(/\.hd-track-hit \{[^}]*touch-action: pan-y/);
+    const own = cssFiles.filter((f) => f.startsWith(`${SKIN}/cards/`) && /touch-action/.test(css(f)));
+    expect(own, "a card that slides draws its track with Track (shared/ui.tsx)").toEqual([]);
   });
 });
 

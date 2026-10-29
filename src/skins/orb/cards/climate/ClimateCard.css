@@ -6,12 +6,10 @@
 
 .cw-slot { display: grid; min-width: 0; }
 
-/* Heat/cool range on one bar */
+/* Heat/cool range on one track (Track in shared/ui.tsx): the zones are its fill, the handles ride it. */
 .cw-rb {
   --kn: 48px;
   --kh: calc(var(--slot-h) - 2 * var(--inset));
-  position: relative; height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--groove); box-shadow: var(--groove-shadow);
 }
 /* Zones and handles move with clip-path and transform only, and only animate after a tap-jump. */
 .cw-rb-zone { position: absolute; inset: 0; border-radius: inherit; }
@@ -34,10 +32,9 @@
   color: var(--ink); font-size: 13.5px; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 
-/* Sliders are for keyboard and screen readers only; pointer input goes to .cw-rb-hit */
-.cw-rb-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
-.cw-rb-hit { position: absolute; inset: 0; border-radius: inherit; cursor: grab; touch-action: pan-y; }
-.cw-rb-hit:active { cursor: grabbing; }
+/* The handles are grabbed: the track's hit layer says so. */
+.cw-rb .hd-track-hit { cursor: grab; }
+.cw-rb .hd-track-hit:active { cursor: grabbing; }
 .cw-rb:has(.cw-rb-in--lo:focus-visible) .cw-rb-k--lo, .cw-rb:has(.cw-rb-in--hi:focus-visible) .cw-rb-k--hi { outline: 2px solid var(--ink); outline-offset: 2px; }
 .cw-rb-open { position: absolute; inset: 0; padding: 0; border: 0; border-radius: inherit; background: none; cursor: pointer; }
 .cw-rb { transition: scale var(--press) var(--ease-out); }
@@ -45,19 +42,19 @@
 .cw-rb-open:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* Handles drag from M up; at S and in compact cards the bar is a button: it shows the range and opens details */
-.cw-rb-in, .cw-rb-hit, .cw-rb-k { display: none; }
+.cw-rb .hd-track-in, .cw-rb .hd-track-hit, .cw-rb-k { display: none; }
 .cw-rb-lab { display: flex; }
 .cw-rb { background: var(--btn); box-shadow: var(--btn-shadow); }
 .cw-rb-zone, .cw-rb-cur { display: none; }
 @container hd (min-width: 260px) {
   .cw-rb { background: var(--groove); box-shadow: var(--groove-shadow); }
   .cw-rb-zone, .cw-rb-cur { display: block; }
-  .cw-rb-in, .cw-rb-hit { display: block; }
+  .cw-rb .hd-track-in, .cw-rb .hd-track-hit { display: block; }
   .cw-rb-k { display: grid; }
   .cw-rb-open, .cw-rb-lab { display: none; }
 }
 .hd--compact .cw-rb { background: var(--btn); box-shadow: var(--btn-shadow); }
-.hd--compact .cw-rb-zone, .hd--compact .cw-rb-cur, .hd--compact .cw-rb-in, .hd--compact .cw-rb-hit, .hd--compact .cw-rb-k { display: none; }
+.hd--compact .cw-rb-zone, .hd--compact .cw-rb-cur, .hd--compact .cw-rb .hd-track-in, .hd--compact .cw-rb .hd-track-hit, .hd--compact .cw-rb-k { display: none; }
 .hd--compact .cw-rb-open { display: block; }
 .hd--compact .cw-rb-lab { display: flex; }
 .hd--compact .cw-rb-lab > span { font-size: 12.5px; }
