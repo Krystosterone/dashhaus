@@ -191,7 +191,7 @@ import { HaAlarmTile } from "./src";
 <AlarmTile entity={alarmFromHass(hass.states[id], id)} history={today} readOnly />
 ```
 
-- The mode switch becomes a readout with no container: "Armed home" or "Disarmed" beside the mode's icon, with who changed it at 260 px and up ("by Keypad"). The badge is the accent while armed. In compact cards, the mode is one word ("Home", "Disarmed").
+- The mode switch becomes a readout with no container, on the head's axes: the mode's icon under the badge, "Armed home" or "Disarmed" on the name's line, and who changed it at the end at 260 px and up ("by Keypad"). Below 260 px it says the mode in one word ("Home"). The badge is the accent while armed. In compact cards, the mode is one word ("Home", "Disarmed").
 - Exit and entry delays still count down, without Cancel or Disarm; the entry delay reads "Entry delay". Triggered keeps its warn pill, without Disarm.
 - Nothing opens the keypad. The sheet has the status, today's history and "View only" in its info row; open doors and windows are still listed.
 

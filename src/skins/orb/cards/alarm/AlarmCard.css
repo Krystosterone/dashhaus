@@ -83,6 +83,21 @@
 .al-st-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .al-st-s { display: none; }
 .al-st-x { margin-left: auto; padding-left: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; opacity: 0.72; }
+/* View only, outside compact rows: the readout sits on the head's axes, the mode's icon centred under the
+   44px orb and its words on the name's text axis; who changed it keeps a pill label's inset at the end.
+   With no edge to close the row, a line centred in it leaves half the row as padding under it: it sits on
+   the row's bottom instead, as far from the card's edge as the name is from the top.
+   Below 260 px the head's gap narrows with it, and the short mode word keeps the words whole. */
+.al:not(.hd--compact) .al-st:not(.al-st--open) {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; column-gap: var(--head-gap); padding-inline-end: var(--pad-in);
+  align-self: end; height: auto;
+}
+.al:not(.hd--compact) .al-st:not(.al-st--open) svg { justify-self: center; }
+@container hd (max-width: 259px) {
+  .al:not(.hd--compact):not(.hd--sheet) .al-st:not(.al-st--open) { column-gap: 10px; padding-inline-end: 0; }
+  .al:not(.hd--compact):not(.hd--sheet) .al-st:not(.al-st--open) .al-st-l { display: none; }
+  .al:not(.hd--compact):not(.hd--sheet) .al-st:not(.al-st--open) .al-st-s { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
 .al-st--open {
   display: none; width: 100%; padding: 0 var(--pad-in); border: 0; border-radius: 99px;
   background: var(--btn); box-shadow: var(--btn-shadow);
