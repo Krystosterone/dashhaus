@@ -69,11 +69,11 @@ const ALERTING: HassEntities = {
   ...entity("alarm_control_panel.house", "Alarm", "triggered", { code_format: "number", code_arm_required: true, supported_features: 1 | 2 | 4, changed_by: "Alex" }),
 };
 
-function Demo({ title, footprint, quiet, alerting }: { title?: string; footprint: FieldFootprint; quiet?: boolean; alerting?: boolean }) {
+function Demo({ title, showTime, hourCycle, footprint, quiet, alerting }: { title?: string; showTime?: boolean; hourCycle?: "h12" | "h23"; footprint: FieldFootprint; quiet?: boolean; alerting?: boolean }) {
   const store = useMemo(() => createHaStore(createDemoHaTransport(alerting ? ALERTING : ENTITIES)), [alerting]);
   return (
     <HaProvider store={store}>
-      <FieldDashboard title={title} items={ITEMS} footprint={footprint} quiet={quiet} />
+      <FieldDashboard title={title} showTime={showTime} hourCycle={hourCycle} items={ITEMS} footprint={footprint} quiet={quiet} />
     </HaProvider>
   );
 }
@@ -88,6 +88,8 @@ const meta = {
   argTypes: {
     footprint: { control: "inline-radio", options: ["standard", "compact"] },
     title: { control: "text" },
+    showTime: { control: "boolean", description: "A clock in the header (YAML `show_time`)" },
+    hourCycle: { control: "inline-radio", options: [undefined, "h12", "h23"], description: "YAML `hour_cycle`" },
     quiet: { control: "boolean", description: "An alarm holds its inversion, with no flash" },
   },
   args: { title: "Home", footprint: "standard" },
@@ -99,6 +101,8 @@ type Story = StoryObj<typeof meta>;
 export const Standard: Story = {};
 /** Every module a 64 px row: a phone's whole house in one screen. */
 export const Compact: Story = { args: { footprint: "compact" } };
+/** `show_time: true`: the clock on a strip of screen beside the title, live. */
+export const WithTime: Story = { name: "With time", args: { showTime: true } };
 /** On a phone. */
 export const Phone: Story = { parameters: { viewport: { defaultViewport: "mobile2" } } };
 /**

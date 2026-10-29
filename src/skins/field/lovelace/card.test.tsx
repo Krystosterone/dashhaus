@@ -73,10 +73,17 @@ describe("home-dashboard-field card", () => {
     const card = await mount({ title: "Home" });
     const shadow = card.shadowRoot!;
     expect(shadow.querySelector("style")?.textContent).toContain(":host { --fd-press: 120ms; }");
-    expect(shadow.querySelector(".fd-dash-title")?.textContent).toBe("Home");
+    expect(shadow.querySelector(".fd-hh-title")?.textContent).toBe("Home");
+    expect(shadow.querySelector(".fd-hh-clock")).toBeNull();
     expect(legends(card)).toEqual(["Kitchen", "Living room", "Office"]);
     expect(names(card)).toEqual(["Kitchen", "Thermostat", "Desk", "Office air"]);
     expect(document.head.querySelector("link[href*='family=Archivo']")).not.toBeNull();
+  });
+
+  it("draws a clock in the header with show_time, on the hour cycle asked for", async () => {
+    const card = await mount({ title: "Home", show_time: true, hour_cycle: "h23" });
+    const clock = card.shadowRoot!.querySelector(".fd-hh-clock");
+    expect(clock?.textContent).toMatch(/^\d{2}:\d{2}$/);
   });
 
   it("draws only the configured modules when given, with their own names and areas", async () => {

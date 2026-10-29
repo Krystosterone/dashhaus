@@ -1,6 +1,6 @@
 # Field skin
 
-A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, in the same groups as orb's except Bundles, which are orb's alone, with a **Finish** toolbar (Auto, Alloy, Black). Foundations → Design rules draws this file with live stories beside its sections (edit it here, not there), Foundations → Palette shows the parts below and what each means, Foundations → Parts each part across its states, and Dashboards → Lovelace card is its whole dashboard from YAML.
+A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, in the same groups as orb's except Bundles, which are orb's alone, with a **Finish** toolbar (Auto, Alloy, Black). Foundations → Design rules draws this file with live stories beside its sections (edit it here, not there), Foundations → Palette shows the parts below and what each means, Foundations → Parts each part across its states; under Dashboards, Examples compose a page per device, Lovelace card is its whole dashboard from YAML, and Header is the top of every page.
 
 Status: light, climate, sensor, weather, toggle, humidifier, sound, cover, alarm and owlet are implemented, each with a detail panel; sensor, weather and owlet are readings, the pattern the other read-only cards follow, and toggle is the plainest control, one key. The Lovelace card, `custom:home-dashboard-field`, draws every supported light, climate and humidifier entity, room sensor, the weather, every cover and alarm panel, every Owlet sock and every mode (input_boolean or switch) by area, and a sound machine's sound where its YAML picks `card: sound` ([deploy.md](deploy.md#the-field-dashboard)); it hasn't been loaded in a live Home Assistant yet.
 
@@ -31,6 +31,22 @@ The every-skin hard rules in AGENTS.md apply. `src/skins/field/styles/rules.test
 - **Footprints:** `standard` is a 160 px module (header, screen, a 44 px control row); `compact` is a 64 px row (key, name and area, a fixed-width screen). The height never changes with state or entity type, nor with whether the module has an area. Container queries simplify the inside at narrow widths, the same for every card (`module.css`): under 240 px a module keeps its figure and one meta line and its pictogram goes, since the key or glyph below names the device; under 280 px a row's screen narrows and its pictogram goes.
 - **Scoped tokens.** Every custom property starts with `--fd-`, including the easings (`--fd-ease-out`, `--fd-ease-in-out`), so field and orb can share a page. No colour outside `styles/tokens.css`. The page is a plain body, with no pattern.
 - **Motion:** presses take `--fd-press` (120 ms) on `transform` and `box-shadow`; a fader jump moves its rail with `transform`; the pictogram fills with `clip-path`; the LED fades its colour; an Owlet sock's heart flashes its colour while readings arrive; an alarm's screen swaps its two inks once a second for ten seconds. Reduced motion keeps colour and fill changes and drops the movement, turns the heart's flash into a slow swell, and holds an alarm's screen inverted without flashing. Hover only under `(hover: hover) and (pointer: fine)`.
+
+## Dashboards
+
+A field page is `FieldPage` (`src/skins/field/dashboards/layout.tsx`): its header, the alert line, then its areas. The Lovelace card draws the same page from its YAML, so the examples and the real card can't drift apart.
+
+- **The header is print, the clock a screen.** The page's name printed large and upper-case, today's date under it in the area's small print, and, given `showTime`, the time on a strip of screen as tall as a control row, its figure the module screen's (`Header`). It is page furniture, not a module: no plate, no key, nothing to press, the clock the one thing lit. The digits keep their places, a 12-hour clock's first one an unlit segment before 10, so 9:05 and 12:59 are the same width and nothing shifts as the minute turns. Date and time come from `src/domains/clock.ts`, shared with orb's header.
+- **The alert line sits under the header**, and is the one thing that moves the page: an alarm stays in its module's ordinary place, and the line names it on the first screen.
+- **An area is a legend and a grid** (`Area`): its name printed with the fader legend's rule, its modules in columns from its own width. A page with one area prints no legend. `Areas` puts areas side by side, one column each, for a tablet or a wall panel; under 640 px of page they stack.
+- **Mix footprints by column, not by row.** A column of a wall panel leads with whole modules and takes 64 px rows under them; a row of whole modules stays whole, so screens line up across it.
+
+The Storybook pages (**Field / Dashboards / Examples**) are examples of composing with these rules, not templates and not a list of every card:
+
+- **Phone:** every module a 64 px row, the house in about one screen: the four things pressed most, each keeping its own room, then the nursery, then each room's air.
+- **Tablet, landscape:** whole modules, an area a row of four, so every fader and today's meter is in reach: the living room, the nursery, outside.
+- **Wall panel:** one column per place, its leads whole modules and the rest rows under them; the whole 1280 × 800 surface fits without scrolling.
+- **Phone, alarm below the fold:** whole modules, the sock's alarm in the nursery under the fold; the alert line names it on the first screen and opens its panel.
 
 ## From the exploration and the references
 

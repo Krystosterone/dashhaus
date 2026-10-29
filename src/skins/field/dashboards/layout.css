@@ -1,0 +1,24 @@
+/* The field page: its header, then a section per area under its legend, modules in a grid. Columns come from the
+   page's own width, so the modules keep their footprint heights whatever the screen. */
+.fd-dash {
+  container-type: inline-size;
+  box-sizing: border-box;
+  display: grid;
+  gap: 24px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px 16px 24px;
+  font-family: var(--fd-sans);
+  font-stretch: var(--fd-wide);
+  color: var(--fd-ink);
+}
+.fd-dash-area { display: grid; align-content: start; gap: 10px; min-width: 0; }
+.fd-dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.fd-dash-grid[data-footprint="compact"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 8px; }
+.fd-dash-areas { display: grid; grid-template-columns: repeat(var(--fd-cols, 2), minmax(0, 1fr)); gap: 24px 16px; align-items: start; }
+@container (max-width: 639px) {
+  .fd-dash-areas { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* `quiet` (a nursery's panel at night): an alarm holds its inversion from the start, with no flash. */
+.fd-dash[data-quiet] :is(.fd-module[data-level="alarm"] .fd-screen, .fd-module[data-level="alarm"] .fd-led, .fd-alerts-tag) { animation: none; }

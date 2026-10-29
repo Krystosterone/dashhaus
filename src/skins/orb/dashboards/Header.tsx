@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useNow } from "../../../hooks/useNow";
+import { clockFace } from "../../../domains/clock";
 import "./Header.css";
 
 export interface HeaderProps {
@@ -27,16 +28,8 @@ export interface HeaderProps {
  */
 export function Header({ title, subtitle, showTime, hourCycle, locale, timeZone, now: fixed }: HeaderProps) {
   const now = useNow(fixed);
-  const date = new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric", timeZone }).format(now);
-  // 24-hour clocks pad the hour ("09:05"); 12-hour clocks don't ("9:05 a.m.").
-  const cycle = new Intl.DateTimeFormat(locale, { hour: "numeric", hourCycle, timeZone }).resolvedOptions().hourCycle;
-  const twentyFour = cycle === "h23" || cycle === "h24";
-  const parts = new Intl.DateTimeFormat(locale, { hour: twentyFour ? "2-digit" : "numeric", minute: "2-digit", hourCycle, timeZone }).formatToParts(now);
   // The time large; AM/PM small beside it.
-  const main = parts.filter((p) => p.type !== "dayPeriod").map((p) => p.value).join("").trim();
-  const period = parts.find((p) => p.type === "dayPeriod")?.value;
-  // Machine-readable date in the same time zone as what is shown (toISOString would use UTC).
-  const day = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone }).format(now);
+  const { date, day, time: main, period } = clockFace(now, { locale, hourCycle, timeZone });
 
   return (
     <div className="hh-c">

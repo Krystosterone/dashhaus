@@ -166,7 +166,9 @@ The same bundle carries a second card, `custom:home-dashboard-field`: the field 
 
 ```yaml
 type: custom:home-dashboard-field
-title: Home              # optional, printed at the top
+title: Home              # optional, printed at the top with today's date under it
+show_time: true          # a clock in the header, on a strip of screen
+hour_cycle: h23          # optional: h12 or h23; the locale's when left out
 finish: home-assistant   # home-assistant (default: follows its dark mode), auto (the device's), alloy, black
 footprint: standard      # standard (160 px modules, default) or compact (64 px rows)
 quiet: false             # true: an alarm holds its inverted screen with no flash (a nursery's panel at night)
@@ -213,6 +215,8 @@ modules:                 # optional; leave out for every supported entity by are
 | Key | Values | Default |
 | --- | --- | --- |
 | `title` | text | none |
+| `show_time` | `true`, `false`: a clock in the header, beside the title | `false` |
+| `hour_cycle` | `h12`, `h23` | the locale's |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
 | `quiet` | `true`, `false`: an alarm holds its inverted screen from the start instead of flashing for ten seconds | `false` |

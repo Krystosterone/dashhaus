@@ -55,6 +55,10 @@ export interface ModuleConfig {
 
 export interface FieldConfig {
   title?: string;
+  /** A clock in the header. */
+  showTime: boolean;
+  /** The clock's 12 or 24 hours; the locale's when left out. */
+  hourCycle?: "h12" | "h23";
   /** "home-assistant" follows Home Assistant's dark mode; "auto", the device's. */
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
@@ -112,7 +116,7 @@ export function kindOf(entity: string): FieldKind | undefined {
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
-const TOP_KEYS = ["type", "title", "finish", "footprint", "quiet", "modules", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "show_time", "hour_cycle", "finish", "footprint", "quiet", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
 const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"] };
@@ -190,6 +194,8 @@ export function parseFieldConfig(raw: unknown): FieldConfig {
   read.keys(top, "", TOP_KEYS);
   const config: FieldConfig = {
     title: read.string(top, "title", ""),
+    showTime: read.boolean(top, "show_time", "") ?? false,
+    hourCycle: read.choice(top, "hour_cycle", "", ["h12", "h23"] as const),
     finish: read.choice(top, "finish", "", FINISHES) ?? "home-assistant",
     footprint: read.choice(top, "footprint", "", FOOTPRINTS) ?? "standard",
     quiet: read.boolean(top, "quiet", "") ?? false,

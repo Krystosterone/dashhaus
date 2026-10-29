@@ -3,6 +3,8 @@ import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithS
 import field from "../../../../docs/field.md?raw";
 import * as Palette from "./Palette.stories";
 import * as Alerts from "./Alerts.stories";
+import * as Examples from "../dashboards/Examples.stories";
+import * as Header from "../dashboards/Header.stories";
 import * as Light from "../cards/light/LightModule.stories";
 import * as Climate from "../cards/climate/ClimateModule.stories";
 import * as Sensor from "../cards/sensor/SensorModule.stories";
@@ -23,6 +25,7 @@ import * as Owlet from "../cards/owlet/OwletModule.stories";
   path="docs/field.md"
   after={{
     "Design rules": [Palette.Roles, Alerts.Ladder],
+    Dashboards: [Header.Sizes, Examples.WallPanel],
     Light: [Light.AllStates, Light.Footprints],
     Climate: [Climate.AllStates, Climate.Footprints],
     Sensor: [Sensor.AllStates, Sensor.Footprints],

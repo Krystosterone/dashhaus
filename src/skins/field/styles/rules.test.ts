@@ -157,7 +157,7 @@ describe("severity: inversion, never a colour, and a flash that ends", () => {
     }
     expect(bad).toEqual([]);
     expect(css(`${SKIN}/shared/module.css`)).toMatch(/prefers-reduced-motion: reduce\)\s*\{[^}]*data-level="alarm"\][^}]*animation: none/);
-    expect(css(`${SKIN}/lovelace/dashboard.css`)).toMatch(/\.fd-dash\[data-quiet\][^{]*\{\s*animation: none/);
+    expect(css(`${SKIN}/dashboards/layout.css`)).toMatch(/\.fd-dash\[data-quiet\][^{]*\{\s*animation: none/);
   });
 
   it("a level is drawn with the screen's and the plate's own inks, never a warning colour", () => {

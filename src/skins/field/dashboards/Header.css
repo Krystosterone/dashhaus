@@ -1,0 +1,40 @@
+/* The top of a field page: its name and today in print on the page, the clock on a strip of screen as tall as a
+   control row, its figure the module screen's. The title and date are as tall as the screen, so their bottoms line up. */
+.fd-hh {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  font-family: var(--fd-sans);
+  font-stretch: var(--fd-wide);
+  color: var(--fd-ink);
+}
+.fd-hh-t { display: grid; gap: 5px; min-width: 0; padding-bottom: 1px; }
+.fd-hh-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 24px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fd-hh-sub {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  line-height: 13px;
+  text-transform: uppercase;
+  color: var(--fd-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fd-hh-clock { flex: none; }
+.fd-hh-clock .fd-screen { height: 44px; padding: 0 12px; }
+.fd-hh-clock .fd-read { font-variant-numeric: tabular-nums; }
+.fd-hh-clock .fd-read small { text-transform: uppercase; letter-spacing: 0.07em; }
