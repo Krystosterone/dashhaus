@@ -17,13 +17,13 @@ const CARDS = [
   ["probeCo2", "--code", "zc", "--domain", "sensor", "--kind", "reading", "--unit", "ppm"],
 ];
 /**
- * Field cards over the generated domains above and over hand-built ones, each a reading started on a control's domain:
- * every hand-built domain with an onToggle has its field card, so none is left to draw as a control.
+ * Field cards over the generated domains above, run in the copy once orb has drawn them: every hand-built domain has
+ * its field card, so none is left to sample in the repo.
  */
-const FIELD_CARDS = [["probeFan"], ["probeCo2"], ["owlet", "--kind", "reading"]].map((args) => [...args, "--skin", "field"]);
+const FIELD_CARDS = [["probeFan"], ["probeCo2"]].map((args) => [...args, "--skin", "field"]);
 /** Domains the field generator must refuse, each with the reason it gives. */
 const REFUSED = [
-  ["owlet", /has no onToggle[\s\S]*--kind reading/],
+  ["owlet", /src\/skins\/field\/cards\/owlet already exists/],
   ["light", /src\/skins\/field\/cards\/light already exists/],
   ["humidifier", /src\/skins\/field\/cards\/humidifier already exists/],
   ["sound", /src\/skins\/field\/cards\/sound already exists/],
@@ -47,14 +47,6 @@ describe("new-card", () => {
     }
   });
 
-  it.each(FIELD_CARDS.slice(2))("finds every field anchor for %s", (...args) => {
-    const { status, output } = run(root, "node", [script, ...args, "--dry-run"]);
-    expect(status, output).toBe(0);
-    for (const path of ["src/skins/field/lovelace/config.ts", "src/skins/field/lovelace/FieldDashboard.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "AGENTS.md"]) {
-      expect(output).toContain(`edit   ${path}`);
-    }
-  });
-
   it.each(REFUSED)("refuses to draw %s in field, and says why", (name, reason) => {
     const { status, output } = run(root, "node", [script, name, "--skin", "field", "--dry-run"]);
     expect(status).toBe(1);
@@ -71,8 +63,20 @@ describe("new-card", () => {
     });
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
+    it("finds every field anchor", () => {
+      for (const args of CARDS) {
+        const { status, output } = run(copy, "node", [script, ...args]);
+        expect(status, output).toBe(0);
+      }
+      const { status, output } = run(copy, "node", [script, ...FIELD_CARDS[0], "--dry-run"]);
+      expect(status, output).toBe(0);
+      for (const path of ["src/skins/field/lovelace/config.ts", "src/skins/field/lovelace/FieldDashboard.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "AGENTS.md"]) {
+        expect(output).toContain(`edit   ${path}`);
+      }
+    });
+
     it("writes cards that typecheck and pass the conformance and Storybook shape tests", () => {
-      for (const args of [...CARDS, ...FIELD_CARDS]) {
+      for (const args of FIELD_CARDS) {
         const { status, output } = run(copy, "node", [script, ...args]);
         expect(status, output).toBe(0);
       }
@@ -83,6 +87,18 @@ describe("new-card", () => {
       const lint = run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);
     }, 240_000);
+
+    it("refuses a control domain with no onToggle, unless it starts as a reading", () => {
+      const orb = run(copy, "node", [script, "probeDial", "--code", "zd", "--domain", "probe_dial"]);
+      expect(orb.status, orb.output).toBe(0);
+      const actions = join(copy, "src/ha/actions/probeDial.ts");
+      writeFileSync(actions, readFileSync(actions, "utf8").replaceAll("onToggle", "onSpin"));
+      const control = run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
+      expect(control.status).toBe(1);
+      expect(control.output).toMatch(/has no onToggle[\s\S]*--kind reading/);
+      const reading = run(copy, "node", [script, "probeDial", "--skin", "field", "--kind", "reading", "--dry-run"]);
+      expect(reading.status, reading.output).toBe(0);
+    });
 
     it("refuses a domain whose hook needs an option a generated module can't know, and says which", () => {
       const orb = run(copy, "node", [script, "probeHub", "--code", "zh", "--domain", "probe_hub"]);

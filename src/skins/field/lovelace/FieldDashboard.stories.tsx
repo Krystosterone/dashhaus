@@ -5,6 +5,7 @@ import type { ModuleConfig } from "./config";
 import { HaProvider } from "../../../ha/provider";
 import { createHaStore } from "../../../ha/store";
 import { createDemoHaTransport } from "../../../ha/demo";
+import { OWLET_DEMO_ENTITIES } from "../../../ha/demo/owlet";
 import type { HassEntities } from "../../../ha/types";
 import type { FieldFootprint } from "../shared/ui";
 
@@ -12,7 +13,7 @@ const stamp = "2026-10-19T11:20:00Z";
 const entity = (id: string, name: string, state: string, attributes: Record<string, unknown>) =>
   ({ [id]: { entity_id: id, state, attributes: { friendly_name: name, ...attributes }, last_changed: stamp, last_updated: stamp } });
 
-/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a sound machine and its volume, curtains and a garage door, the house alarm (code 1234), room sensors with their companions, the weather, and modes. */
+/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a sound machine and its volume, curtains and a garage door, the house alarm (code 1234), an Owlet sock and its base station, room sensors with their companions, the weather, and modes. */
 const ENTITIES: HassEntities = {
   ...entity("light.ceiling", "Ceiling", "on", { supported_color_modes: ["color_temp"], color_mode: "color_temp", brightness: 204, color_temp_kelvin: 2700, min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
   ...entity("light.reading_lamp", "Reading lamp", "off", { supported_color_modes: ["color_temp"], min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
@@ -36,6 +37,7 @@ const ENTITIES: HassEntities = {
   ...entity("cover.living_room_curtains", "Curtains", "open", { device_class: "curtain", current_position: 70, supported_features: 1 | 2 | 4 | 8 }),
   ...entity("cover.garage_door", "Garage door", "closed", { device_class: "garage", supported_features: 1 | 2 | 8 }),
   ...entity("alarm_control_panel.house", "Alarm", "disarmed", { code_format: "number", code_arm_required: true, supported_features: 1 | 2 | 4, changed_by: "Alex" }),
+  ...OWLET_DEMO_ENTITIES,
   ...entity("humidifier.nursery", "Humidifier", "on", { device_class: "humidifier", action: "humidifying", current_humidity: 38, humidity: 45, min_humidity: 30, max_humidity: 80, mode: "normal", available_modes: ["normal", "eco", "sleep", "boost"] }),
 };
 
@@ -47,6 +49,7 @@ const ITEMS: ModuleConfig[] = [
   { entity: "input_boolean.do_not_disturb", kind: "toggle", area: "Home", icon: "bell-off", description: "Silences phone notifications, the doorbell chime and speaker announcements." },
   { entity: "input_boolean.guest_mode", kind: "toggle", area: "Home", icon: "guest" },
   { entity: "alarm_control_panel.house", kind: "alarm", area: "Home" },
+  { entity: "sensor.owlet_sock_ac000w0123_sleep_state", kind: "owlet", name: "Nova", area: "Nursery" },
   { entity: "light.night_light", kind: "light", area: "Nursery" },
   { entity: "switch.white_noise", kind: "sound", area: "Nursery" },
   { entity: "humidifier.nursery", kind: "humidifier", area: "Nursery" },
@@ -73,7 +76,7 @@ const meta = {
   component: Demo,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate, humidifier, sound, cover, alarm, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
+    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
   argTypes: { footprint: { control: "inline-radio", options: ["standard", "compact"] }, title: { control: "text" } },
   args: { title: "Home", footprint: "standard" },

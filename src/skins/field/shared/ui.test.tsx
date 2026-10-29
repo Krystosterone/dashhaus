@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Key, ModuleFrame, useDetails } from "./ui";
 import type { FieldFootprint } from "./ui";
 
-function Probe({ footprint, defaultOpen }: { footprint?: FieldFootprint; defaultOpen?: boolean }) {
+function Probe({ footprint, defaultOpen, warning, note }: { footprint?: FieldFootprint; defaultOpen?: boolean; warning?: string; note?: string }) {
   const details = useDetails(defaultOpen);
   return (
     <ModuleFrame
@@ -12,6 +12,8 @@ function Probe({ footprint, defaultOpen }: { footprint?: FieldFootprint; default
       area="Hall"
       footprint={footprint}
       state="on"
+      warning={warning}
+      note={note}
       details={details}
       pict={<i data-testid="pict" />}
       read="ON"
@@ -53,6 +55,14 @@ describe("ModuleFrame", () => {
     expect(screen.getByRole("dialog", { name: "Probe details" }).textContent).toContain("Inside");
     fireEvent.click(screen.getByRole("button", { name: "Close Probe details" }));
     await waitFor(() => expect(screen.queryByText("Inside")).toBeNull());
+  });
+
+  it("prints a note in place of the area, a warning before either, and keeps the area in the panel", () => {
+    const { container, rerender } = render(<Probe note="Base off" defaultOpen />);
+    expect(container.querySelector(".fd-module .fd-area")?.textContent).toBe("Base off");
+    expect(screen.getByRole("dialog", { name: "Probe details" }).querySelector(".fd-area")?.textContent).toBe("Hall");
+    rerender(<Probe note="Base off" warning="Sock off" defaultOpen />);
+    expect(container.querySelector(".fd-module .fd-area")?.textContent).toBe("Warning: Sock off");
   });
 
   it("opens on first render with defaultOpen", () => {

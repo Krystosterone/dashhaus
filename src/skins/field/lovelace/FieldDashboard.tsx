@@ -11,6 +11,7 @@ import { HaHumidifierModule } from "../ha/HaHumidifierModule";
 import { HaSoundModule } from "../ha/HaSoundModule";
 import { HaCoverModule } from "../ha/HaCoverModule";
 import { HaAlarmModule } from "../ha/HaAlarmModule";
+import { HaOwletModule } from "../ha/HaOwletModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
@@ -37,6 +38,9 @@ const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
   cover: ({ item, footprint }) => <HaCoverModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
   alarm: ({ item, footprint }) => (
     <HaAlarmModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} readOnly={item.readOnly} exitDelay={item.exitDelay} entryDelay={item.entryDelay} openSensors={item.openSensors} />
+  ),
+  owlet: ({ item, footprint }) => (
+    <HaOwletModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} heartRateEntityId={item.heartRate} oxygenEntityId={item.oxygen} chargingEntityId={item.charging} baseEntityId={item.baseStation} alertEntityIds={item.alerts} staleAfterMinutes={item.staleAfter} />
   ),
 };
 

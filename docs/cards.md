@@ -285,6 +285,14 @@ An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. I
 - **Home Assistant:** `HaOwletTile` takes the sleep state sensor and finds the rest beside it: `sensor.…_heart_rate`, `sensor.…_o2_saturation`, `binary_sensor.…_charging`, the ten alert sensors (`binary_sensor.…_low_oxygen_alert`, `…_sock_off` …) and the base station's `switch.…_base_station_on`. Pass `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId` or `alertEntityIds` when yours are named differently. Its one service is the base station's `switch.turn_on` or `switch.turn_off`, for the state the card shows (never `toggle`, so a repeated tap repeats the request instead of undoing it).
 - **Not a medical alarm:** the card shows what Home Assistant last received, every few seconds at best, and an alert reaches it only after the base station has raised it. Owlet's own app and base station are the alarm; this card repeats it.
 
+### Field owlet module
+
+`OwletModule` is the same normalized owlet entity and history in the Field skin, with the same sleep words, alert names and ranking (`src/domains/owlet/readings.ts`); `HaOwletModule` is its connected container, on the same `useHaOwlet` hook as `HaOwletTile`, finding the same companions or taking the same `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId`, `alertEntityIds` and `staleAfterMinutes`. The screen leads with the heart rate beside a heart that flashes once every 2.4 s while readings arrive (its colour only, as a pulse oximeter's segment, where the tile's heart beats in size), then the sleep state and the oxygen; a vitals alert takes the screen's first line behind the marker, a problem with the sock or base, or readings that stopped, the area's line. The base station switches from the panel only, as on the tile. Field has no glow or warning colour, so the alarm is the marker and its words, never a pulse. See [field.md](field.md#owlet).
+
+```tsx
+<HaOwletModule entityId="sensor.owlet_sock_ac000w0123_sleep_state" name="Nova" />
+```
+
 ## Using the humidifier card
 
 One `humidifier.*` entity: a humidifier, or a dehumidifier by its `device_class`.

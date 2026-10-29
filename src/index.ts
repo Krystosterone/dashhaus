@@ -91,6 +91,10 @@ export { AlarmModule } from "./skins/field/cards/alarm/AlarmModule";
 export type { AlarmModuleProps } from "./skins/field/cards/alarm/AlarmModule";
 export { HaAlarmModule } from "./skins/field/ha/HaAlarmModule";
 export type { HaAlarmModuleProps } from "./skins/field/ha/HaAlarmModule";
+export { OwletModule } from "./skins/field/cards/owlet/OwletModule";
+export type { OwletModuleProps } from "./skins/field/cards/owlet/OwletModule";
+export { HaOwletModule } from "./skins/field/ha/HaOwletModule";
+export type { HaOwletModuleProps } from "./skins/field/ha/HaOwletModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header

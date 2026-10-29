@@ -40,6 +40,11 @@ export interface ModuleProps {
    * the area: printed on the plate, at the module's full width in either footprint.
    */
   warning?: string;
+  /**
+   * Something about the device in plain words rather than a warning (a base station switched off), in place of the
+   * area; a warning takes its place.
+   */
+  note?: string;
   children: ReactNode;
 }
 
@@ -47,7 +52,7 @@ export interface ModuleProps {
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
-export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, children }: ModuleProps) {
+export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, children }: ModuleProps) {
   const nameId = useId();
   return (
     <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} aria-labelledby={nameId}>
@@ -60,7 +65,8 @@ export function Module({ kind, name, area, footprint = "standard", state, onOpen
             </button>
           ) : <span id={nameId}>{name}</span>}
         </h3>
-        {warning ? <p className="fd-area" title={warning}><Warn>{warning}</Warn></p> : area && <p className="fd-area" title={area}>{area}</p>}
+        {warning ? <p className="fd-area" title={warning}><Warn>{warning}</Warn></p>
+          : (note ?? area) && <p className="fd-area" title={note ?? area}>{note ?? area}</p>}
       </header>
       {children}
     </article>

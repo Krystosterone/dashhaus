@@ -1,5 +1,5 @@
-import { normalizeReadings } from "../../shared/ui";
-import type { OwletAlert, Reading, SleepState } from "../../../../domains/owlet/types";
+import { normalizeReadings } from "../history";
+import type { OwletAlert, Reading, SleepState } from "./types";
 
 export const SLEEP_WORD: Record<SleepState, string> = { deep_sleep: "Deep sleep", light_sleep: "Light sleep", awake: "Awake" };
 /** The sleep state as a readout figure, under its Sleep caption. */

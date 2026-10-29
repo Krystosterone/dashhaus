@@ -50,6 +50,17 @@ describe("autoModules", () => {
     expect(autoModules({ states: { "cover.garage_door": state("cover.garage_door", "Garage door") } })).toEqual([{ entity: "cover.garage_door", kind: "cover" }]);
   });
 
+  it("takes every visible Owlet sock by its sleep state sensor, among the rest by name, and leaves its readings out", () => {
+    const modules = autoModules({
+      states: {
+        "sensor.owlet_sock_a_sleep_state": state("sensor.owlet_sock_a_sleep_state", "Nova"),
+        "sensor.owlet_sock_a_heart_rate": state("sensor.owlet_sock_a_heart_rate", "Nova heart rate"),
+        "light.lamp": state("light.lamp", "Lamp"),
+      },
+    });
+    expect(modules).toEqual([{ entity: "sensor.owlet_sock_a_sleep_state", kind: "owlet" }, { entity: "light.lamp", kind: "light" }]);
+  });
+
   it("takes every visible alarm panel", () => {
     expect(autoModules({ states: { "alarm_control_panel.house": state("alarm_control_panel.house", "House alarm") } })).toEqual([{ entity: "alarm_control_panel.house", kind: "alarm" }]);
   });
@@ -121,6 +132,19 @@ describe("parseFieldConfig", () => {
     ]);
     expect(() => parseFieldConfig({ modules: [{ entity: "alarm_control_panel.house", open_sensors: "Back door" }] })).toThrow('"open_sensors" must be a list of names');
     expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", exit_delay: 30 }] })).toThrow('"exit_delay"');
+  });
+
+  it("takes an Owlet sock's companions, alert sensors and stale minutes, on socks only", () => {
+    expect(parseFieldConfig({ modules: [
+      "sensor.owlet_sock_a_sleep_state",
+      { entity: "sensor.nova", card: "owlet", heart_rate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", base_station: "switch.nova_base", alerts: { low_oxygen: "binary_sensor.nova_spo2_low" }, stale_after: 5 },
+    ] }).modules).toEqual([
+      expect.objectContaining({ entity: "sensor.owlet_sock_a_sleep_state", kind: "owlet", heartRate: undefined, alerts: undefined }),
+      { entity: "sensor.nova", kind: "owlet", name: undefined, area: undefined, footprint: undefined, heartRate: "sensor.nova_bpm", oxygen: "sensor.nova_spo2", charging: "binary_sensor.nova_dock", baseStation: "switch.nova_base", alerts: { low_oxygen: "binary_sensor.nova_spo2_low" }, staleAfter: 5 },
+    ]);
+    expect(() => parseFieldConfig({ modules: [{ entity: "sensor.a_sleep_state", alerts: { low_oxygn: "binary_sensor.a" } }] })).toThrow('did you mean "low_oxygen"?');
+    expect(() => parseFieldConfig({ modules: [{ entity: "sensor.a_sleep_state", alerts: ["binary_sensor.a"] }] })).toThrow('"alerts" must map alerts');
+    expect(() => parseFieldConfig({ modules: [{ entity: "sensor.bed_t", heart_rate: "sensor.bpm" }] })).toThrow('"heart_rate"');
   });
 
   it("takes a card for the entity's domain with \"card\", and no other", () => {

@@ -1,12 +1,14 @@
 import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace/yaml";
 import type { Raw } from "../../../ha/lovelace/yaml";
 import type { ToggleIcon } from "../../../domains/toggle/types";
+import type { OwletAlert } from "../../../domains/owlet/types";
+import { OWLET_ALERT_SUFFIX } from "../../../ha/mappers/owlet";
 import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
  * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
- * weather, modes, sound machines, covers and alarms.
+ * weather, modes, sound machines, covers, alarms and Owlet socks.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -38,6 +40,17 @@ export interface ModuleConfig {
   exitDelay?: number;
   entryDelay?: number;
   openSensors?: string[];
+  /**
+   * An Owlet sock's companions, when they aren't named after its sleep state sensor: its heart rate and oxygen
+   * sensors, charging sensor, base station switch and alert sensors; and the minutes before it warns that readings
+   * stopped.
+   */
+  heartRate?: string;
+  oxygen?: string;
+  charging?: string;
+  baseStation?: string;
+  alerts?: Partial<Record<OwletAlert, string>>;
+  staleAfter?: number;
 }
 
 export interface FieldConfig {
@@ -46,12 +59,12 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** Absent: every supported light, climate, weather, humidifier, cover, alarm, input_boolean and switch entity and room sensor, grouped by area. */
+  /** Absent: every supported light, climate, weather, humidifier, cover, alarm, input_boolean and switch entity, Owlet sock and room sensor, grouped by area. */
   modules?: ModuleConfig[];
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover" | "alarm";
+export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover" | "alarm" | "owlet";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -76,6 +89,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   sound: { domains: ["switch"] },
   cover: { domains: ["cover"] },
   alarm: { domains: ["alarm_control_panel"] },
+  owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];
@@ -99,7 +113,8 @@ const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
 const TOP_KEYS = ["type", "title", "finish", "footprint", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"] };
+const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"] };
+const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
 function module(read: Reader, value: unknown, path: string): ModuleConfig | undefined {
@@ -145,6 +160,22 @@ function module(read: Reader, value: unknown, path: string): ModuleConfig | unde
     config.exitDelay = read.number(raw, "exit_delay", at, 0, 3600);
     config.entryDelay = read.number(raw, "entry_delay", at, 0, 3600);
     config.openSensors = Array.isArray(sensors) ? sensors.filter((s): s is string => typeof s === "string") : undefined;
+  }
+  if (kind === "owlet") {
+    const alerts = raw.alerts;
+    if (alerts != null && !isRaw(alerts)) read.problem(at, "\"alerts\" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen");
+    if (isRaw(alerts)) read.keys(alerts, `${at}.alerts`, OWLET_ALERTS);
+    config.heartRate = read.optionalEntity(raw, "heart_rate", at, ["sensor"]);
+    config.oxygen = read.optionalEntity(raw, "oxygen", at, ["sensor"]);
+    config.charging = read.optionalEntity(raw, "charging", at, ["binary_sensor"]);
+    config.baseStation = read.optionalEntity(raw, "base_station", at, ["switch"]);
+    config.alerts = isRaw(alerts)
+      ? Object.fromEntries(OWLET_ALERTS.flatMap((alert) => {
+        const id = read.optionalEntity(alerts, alert, `${at}.alerts`, ["binary_sensor"]);
+        return id ? [[alert, id]] : [];
+      }))
+      : undefined;
+    config.staleAfter = read.number(raw, "stale_after", at, 1, 60);
   }
   return config;
 }
