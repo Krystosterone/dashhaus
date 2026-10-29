@@ -94,6 +94,20 @@ describe("createDemoHaTransport", () => {
     await transport.callService("cover", "close_cover", { entity_id: "cover.blind" });
     expect(latest?.["cover.blind"]).toMatchObject({ state: "closed", attributes: { current_position: 0 } });
   });
+  it("arms and disarms an alarm it was seeded with, with the demo code where one is asked", async () => {
+    const stamp = "2026-10-19T11:20:00Z";
+    const transport = createDemoHaTransport({
+      "alarm_control_panel.house": { entity_id: "alarm_control_panel.house", state: "disarmed", attributes: { code_format: "number", code_arm_required: false, supported_features: 1 | 2 }, last_changed: stamp, last_updated: stamp },
+    });
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("alarm_control_panel", "alarm_arm_away", { entity_id: "alarm_control_panel.house" });
+    expect(latest?.["alarm_control_panel.house"]?.state).toBe("armed_away");
+    await expect(transport.callService("alarm_control_panel", "alarm_disarm", { entity_id: "alarm_control_panel.house", code: "0000" })).rejects.toEqual({ translation_key: "invalid_code" });
+    await transport.callService("alarm_control_panel", "alarm_disarm", { entity_id: "alarm_control_panel.house", code: "1234" });
+    expect(latest?.["alarm_control_panel.house"]?.state).toBe("disarmed");
+  });
 });
 
 describe("createDemoSensorHaTransport", () => {

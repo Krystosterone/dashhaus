@@ -49,3 +49,9 @@ export interface AlarmHistory {
 
 /** What the person is doing that may need the code. */
 export type AlarmAction = { kind: "arm"; mode: AlarmMode } | { kind: "disarm" };
+
+/**
+ * What an arm or disarm call answers: false is a wrong code; anything else is accepted. A promise may answer later
+ * (Home Assistant does), and rejects when the call didn't go through.
+ */
+export type AlarmResult = boolean | void | Promise<boolean | void>;

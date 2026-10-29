@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction } from "../../../../domains/alarm/types";
-import { ShieldIcon, MODE_LABEL } from "./icons";
+import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "../../../../domains/alarm/types";
+import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "../../../../domains/alarm/modes";
+import { useDelayLeft } from "../../../../hooks/useDelayLeft";
+import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
 import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./AlarmCard.css";
 
-/** What an arm or disarm call answers: false is a wrong code; anything else is accepted. */
-export type AlarmResult = boolean | void | Promise<boolean | void>;
+export type { AlarmResult };
 
 export interface AlarmCardProps extends CardProps {
   entity: AlarmEntity;
@@ -38,24 +39,6 @@ export interface AlarmCardProps extends CardProps {
   action?: AlarmAction;
 }
 
-const ARMED: Partial<Record<AlarmEntity["state"], AlarmMode>> = { armed_home: "home", armed_away: "away", armed_night: "night", armed_vacation: "vacation", armed_custom_bypass: "custom_bypass" };
-
-/** Seconds left in the current delay, ticking each second; undefined when there's no way to know. */
-function useDelayLeft(delay: number | undefined, since: number | undefined, active: boolean) {
-  const timed = active && delay != null && delay > 0 && since != null;
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!timed) return;
-    setNow(Date.now());
-    const t = window.setInterval(() => setNow(Date.now()), 1000);
-    const wake = () => setNow(Date.now());
-    document.addEventListener("visibilitychange", wake);
-    return () => { window.clearInterval(t); document.removeEventListener("visibilitychange", wake); };
-  }, [timed, since]);
-  if (!timed) return undefined;
-  return Math.max(0, Math.ceil(delay - (now - since) / 1000));
-}
-
 /**
  * A security alarm (one alarm_control_panel). The slot is the mode switch: Off, Home, Away, Night.
  * Armed is the accent, on the badge and the switch's thumb. Anything that needs the code opens the
@@ -65,7 +48,7 @@ function useDelayLeft(delay: number | undefined, since: number | undefined, acti
 export function AlarmCard({ entity: e, history, variant, footprint, showControl, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmCardProps) {
   const { nameId, sheet, compact, bare, article, area } = useCard("al", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
-  const armedMode = ARMED[e.state];
+  const armedMode = ARMED_MODE[e.state];
   const urgentState = e.state === "pending" || e.state === "triggered";
   const moving = e.state === "arming" || e.state === "pending" || e.state === "disarming";
   const colors = paint("state", 0, null, "none");
@@ -80,7 +63,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   useEffect(() => { setPending(ro ? null : action ?? null); }, [action, ro]);
   useEffect(() => { if (!sheet) return; if (e.state === "disarmed" && pending?.kind === "disarm") setPending(null); }, [e.state, sheet, pending]);
 
-  const needsCode = (a: AlarmAction) => (a.kind === "disarm" ? !!e.codeFormat : codeToArm);
+  const needsCode = (a: AlarmAction) => codeFor(e, a);
   const run = async (a: AlarmAction, code?: string) => (await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) !== false;
   const act = (a: AlarmAction) => {
     if (ro) return;

@@ -210,6 +210,10 @@ What Home Assistant gives you, and what `alarmFromHass` does with it:
 
 `createAlarmHandlers` resolves `false` when Home Assistant rejects the call with the `invalid_code` translation key (the manual alarm's wrong code), so the keypad shakes; any other rejection — including a bare `service_validation_error`, whose message the transport sanitizes away — means the call did not go through. Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
 
+### Field alarm module
+
+`AlarmModule` is the same normalized alarm entity in the Field skin; `HaAlarmModule` is its connected container, on the same `useHaAlarm` hook as `HaAlarmTile`, and takes the same `onArm`, `onDisarm` and `readOnly`. The screen says ON or OFF beside a shield, counting exit and entry delays down in its place; the row is a key for Off and each mode, or one key that says what it does (Arm, Disarm, Cancel) where they don't fit and through a delay; whatever needs the code opens the panel on its keypad, with the tile's code contract; a view-only panel is a reading, its glyph and today. See [field.md](field.md#alarm).
+
 ## Using the cover card
 
 Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and gates: one `cover.*` each. Position follows Home Assistant: 0 is closed, 100 is open.

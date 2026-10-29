@@ -87,6 +87,10 @@ export { CoverModule } from "./skins/field/cards/cover/CoverModule";
 export type { CoverModuleProps } from "./skins/field/cards/cover/CoverModule";
 export { HaCoverModule } from "./skins/field/ha/HaCoverModule";
 export type { HaCoverModuleProps } from "./skins/field/ha/HaCoverModule";
+export { AlarmModule } from "./skins/field/cards/alarm/AlarmModule";
+export type { AlarmModuleProps } from "./skins/field/cards/alarm/AlarmModule";
+export { HaAlarmModule } from "./skins/field/ha/HaAlarmModule";
+export type { HaAlarmModuleProps } from "./skins/field/ha/HaAlarmModule";
 export type { FieldFootprint } from "./skins/field/shared/ui";
 
 // Header

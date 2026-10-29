@@ -49,6 +49,10 @@ describe("autoModules", () => {
   it("takes every visible cover", () => {
     expect(autoModules({ states: { "cover.garage_door": state("cover.garage_door", "Garage door") } })).toEqual([{ entity: "cover.garage_door", kind: "cover" }]);
   });
+
+  it("takes every visible alarm panel", () => {
+    expect(autoModules({ states: { "alarm_control_panel.house": state("alarm_control_panel.house", "House alarm") } })).toEqual([{ entity: "alarm_control_panel.house", kind: "alarm" }]);
+  });
 });
 
 describe("groupByArea", () => {
@@ -109,6 +113,14 @@ describe("parseFieldConfig", () => {
     ]);
     expect(() => parseFieldConfig({ modules: [{ entity: "switch.nursery_music", card: "sound", volume: "sensor.volume" }] })).toThrow("sensor.volume must be a number.* entity");
     expect(() => parseFieldConfig({ modules: [{ entity: "switch.fan", volume: "number.fan_volume" }] })).toThrow('"volume"');
+  });
+
+  it("takes an alarm's view-only flag, delays and open sensors, on alarms only", () => {
+    expect(parseFieldConfig({ modules: [{ entity: "alarm_control_panel.house", read_only: true, exit_delay: 30, entry_delay: 45, open_sensors: ["Back door"] }] }).modules).toEqual([
+      { entity: "alarm_control_panel.house", kind: "alarm", name: undefined, area: undefined, footprint: undefined, readOnly: true, exitDelay: 30, entryDelay: 45, openSensors: ["Back door"] },
+    ]);
+    expect(() => parseFieldConfig({ modules: [{ entity: "alarm_control_panel.house", open_sensors: "Back door" }] })).toThrow('"open_sensors" must be a list of names');
+    expect(() => parseFieldConfig({ modules: [{ entity: "light.lamp", exit_delay: 30 }] })).toThrow('"exit_delay"');
   });
 
   it("takes a card for the entity's domain with \"card\", and no other", () => {

@@ -148,7 +148,7 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service !== "get_forecasts" || typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo weather target not found");
         return { response: { [entityId]: { forecast: weatherForecasts[type] } } };
       }
-      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number" && domain !== "cover") throw new Error(`Unsupported demo domain: ${domain}`);
+      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number" && domain !== "cover" && domain !== "alarm_control_panel") throw new Error(`Unsupported demo domain: ${domain}`);
       const entityId = serviceData.entity_id;
       if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
       const current = entities[entityId];
@@ -173,6 +173,14 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
           next.state = serviceData.position === 0 ? "closed" : "open";
         }
         if (service === "set_cover_tilt_position" && typeof serviceData.tilt_position === "number") next.attributes.current_tilt_position = serviceData.tilt_position;
+        if (next.state !== current.state) next.last_changed = next.last_updated;
+      } else if (domain === "alarm_control_panel") {
+        // As the manual alarm: code 1234, asked to disarm and, unless code_arm_required is false, to arm. It arms at once.
+        const disarm = service === "alarm_disarm";
+        const asked = current.attributes.code_format != null && (disarm || current.attributes.code_arm_required !== false);
+        if (asked && serviceData.code !== "1234") throw { translation_key: "invalid_code" };
+        next.state = disarm ? "disarmed" : service.replace("alarm_arm_", "armed_");
+        next.attributes.changed_by = null;
         if (next.state !== current.state) next.last_changed = next.last_updated;
       } else if (domain === "humidifier") {
         if (service === "toggle") next.state = current.state === "on" ? "off" : "on";

@@ -382,9 +382,10 @@ const PHONE = "(max-width: 600px)";
 
 /**
  * The detail panel: a module's plate grown into a modal dialog, a bottom sheet on phones (drag its header down
- * to close) and a centred panel on wider screens. Its header repeats the name and area, with a close key.
+ * to close) and a centred panel on wider screens. Its header repeats the name and area, with a close key, which takes
+ * focus as it opens unless `focusContent`: then the content's own `[data-autofocus]` does (an alarm's keypad).
  */
-export function Panel({ open, onClose, name, area, children }: { open: boolean; onClose: () => void; name: string; area?: string; children: ReactNode }) {
+export function Panel({ open, onClose, name, area, focusContent, children }: { open: boolean; onClose: () => void; name: string; area?: string; focusContent?: boolean; children: ReactNode }) {
   const { mounted, dialogProps } = useSheet({ open, label: `${name} details`, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".fd-panel-head", snapBack: "translate 300ms var(--fd-ease-drawer)" });
   return (
     // The click only closes on backdrop; Escape is the keyboard path (onCancel).
@@ -396,7 +397,7 @@ export function Panel({ open, onClose, name, area, children }: { open: boolean; 
               <h2 className="fd-name" title={name}>{name}</h2>
               {area && <p className="fd-area" title={area}>{area}</p>}
             </div>
-            <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name} details`} data-autofocus onClick={onClose}>
+            <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name} details`} data-autofocus={!focusContent || undefined} onClick={onClose}>
               <span className="fd-key-glyph" aria-hidden="true"><IconClose /></span>
             </button>
           </header>
@@ -428,22 +429,29 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   read: ReactNode;
   /** The screen's meta lines, in a standard module only. */
   meta?: [ReactNode, ReactNode?];
+  /**
+   * A compact row's line in place of the area, for what its screen can't hold (an alarm's mode); the panel keeps the
+   * area. A row has no meta lines.
+   */
+  line?: string;
   /** First in a compact row: the key, or a reading's glyph. */
   lead: ReactNode;
   /** Under the screen in a standard module: the key and its fader, or a reading's glyph and today. */
   row: ReactNode;
   /** The detail panel's content. */
   children: ReactNode;
+  /** The panel opens with focus in its content (its `[data-autofocus]`), not on its close key. */
+  panelFocus?: "content";
 }
 
 /**
  * Every field card's frame: the module in its footprint, a compact row's lead and screen or a standard module's screen
  * and row, and the detail panel its name opens. A card brings what goes in it.
  */
-export function ModuleFrame({ details, pict, read, meta, lead, row, children, ...module }: ModuleFrameProps) {
+export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelFocus, children, ...module }: ModuleFrameProps) {
   return (
     <>
-      <Module {...module} onOpen={details.openDetails}>
+      <Module {...module} area={module.footprint === "compact" ? line ?? module.area : module.area} onOpen={details.openDetails}>
         {module.footprint === "compact" ? (
           <>
             {lead}
@@ -456,7 +464,7 @@ export function ModuleFrame({ details, pict, read, meta, lead, row, children, ..
           </>
         )}
       </Module>
-      <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area}>{children}</Panel>
+      <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area} focusContent={panelFocus === "content"}>{children}</Panel>
     </>
   );
 }

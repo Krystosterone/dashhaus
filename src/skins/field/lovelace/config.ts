@@ -6,7 +6,7 @@ import type { FieldFootprint } from "../shared/ui";
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
  * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
- * weather, modes, sound machines and covers.
+ * weather, modes, sound machines, covers and alarms.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -33,6 +33,11 @@ export interface ModuleConfig {
   description?: string;
   /** A sound's volume `number.*`, when it isn't named after the switch or its device. */
   volume?: string;
+  /** An alarm drawn without its keys; its exit and entry delays in seconds; the names of doors and windows open. */
+  readOnly?: boolean;
+  exitDelay?: number;
+  entryDelay?: number;
+  openSensors?: string[];
 }
 
 export interface FieldConfig {
@@ -41,12 +46,12 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** Absent: every supported light, climate, weather, humidifier, cover, input_boolean and switch entity and room sensor, grouped by area. */
+  /** Absent: every supported light, climate, weather, humidifier, cover, alarm, input_boolean and switch entity and room sensor, grouped by area. */
   modules?: ModuleConfig[];
 }
 
 /** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover";
+export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover" | "alarm";
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -70,6 +75,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   humidifier: { domains: ["humidifier"] },
   sound: { domains: ["switch"] },
   cover: { domains: ["cover"] },
+  alarm: { domains: ["alarm_control_panel"] },
 };
 
 const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];
@@ -93,7 +99,7 @@ const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
 const TOP_KEYS = ["type", "title", "finish", "footprint", "modules", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint"];
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"] };
+const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { sensor: ["humidity", "battery", "outdoor"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"] };
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
 function module(read: Reader, value: unknown, path: string): ModuleConfig | undefined {
@@ -132,6 +138,14 @@ function module(read: Reader, value: unknown, path: string): ModuleConfig | unde
     config.description = read.string(raw, "description", at);
   }
   if (kind === "sound") config.volume = read.optionalEntity(raw, "volume", at, ["number"]);
+  if (kind === "alarm") {
+    const sensors = raw.open_sensors;
+    if (sensors != null && !(Array.isArray(sensors) && sensors.every((s) => typeof s === "string"))) read.problem(at, "\"open_sensors\" must be a list of names");
+    config.readOnly = read.boolean(raw, "read_only", at);
+    config.exitDelay = read.number(raw, "exit_delay", at, 0, 3600);
+    config.entryDelay = read.number(raw, "entry_delay", at, 0, 3600);
+    config.openSensors = Array.isArray(sensors) ? sensors.filter((s): s is string => typeof s === "string") : undefined;
+  }
   return config;
 }
 

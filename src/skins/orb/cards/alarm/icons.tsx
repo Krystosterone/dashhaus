@@ -20,13 +20,3 @@ const MODE_PATH: Record<AlarmMode | "off", string> = {
 export function ModeIcon({ mode }: { mode: AlarmMode | "off" }) {
   return <svg viewBox="0 0 20 20" aria-hidden="true" {...P}><path d={MODE_PATH[mode]} /></svg>;
 }
-
-export const MODE_LABEL: Record<AlarmMode | "off", string> = { off: "Off", home: "Home", away: "Away", night: "Night", vacation: "Vacation", custom_bypass: "Custom" };
-/** What each mode watches, for the sheet. */
-export const MODE_HINT: Record<AlarmMode, string> = {
-  home: "Doors and windows",
-  away: "Everything",
-  night: "Doors, windows, downstairs",
-  vacation: "Everything, lights on a schedule",
-  custom_bypass: "Everything except the zones you bypassed",
-};

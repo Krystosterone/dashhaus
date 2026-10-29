@@ -1,0 +1,59 @@
+/* Alarm module (fd-al): Off and each arm mode as choice keys, or one key through a delay. A view-only alarm is a
+   reading: its glyph, then today's meter. */
+.fd-al-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+.fd-al-row[data-bank] { grid-template-columns: minmax(0, 1fr); }
+/* Disarmed is a reading, not a blank, so OFF keeps its places in the dim ink. */
+:is(.fd-al, .fd-al-panel)[data-state="disarmed"] .fd-read-fig { color: var(--fd-screen-ink-2); }
+
+/* The mode keys: one column each, the current one chosen. */
+.fd-al-bank { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+.fd-al-bank .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Where the keys don't fit, the one key takes the row: Arm, which opens the panel's mode keys, or Disarm. */
+.fd-al-alt { display: none; }
+
+/* In a module, each key keeps its word only where every word fits, and its 44 px only where every glyph fits:
+   with n choices, glyphs need n × 44 px and the gaps (Off, Home, Away, Night: 200 px), words about twice that. */
+@container (max-width: 259px) { .fd-al-bank[data-where="m"][data-n="3"] .fd-key-cap, .fd-al-bank[data-where="m"][data-n="2"] .fd-key-cap { display: none; } }
+@container (max-width: 359px) { .fd-al-bank[data-where="m"][data-n="4"] .fd-key-cap { display: none; } }
+@container (max-width: 459px) { .fd-al-bank[data-where="m"][data-n="5"] .fd-key-cap { display: none; } }
+.fd-al-bank[data-where="m"][data-n="6"] .fd-key-cap { display: none; }
+@container (max-width: 199px) {
+  .fd-al-row[data-n="4"] .fd-al-bank { display: none; }
+  .fd-al-row[data-n="4"] .fd-al-alt { display: block; }
+}
+@container (max-width: 251px) {
+  .fd-al-row[data-n="5"] .fd-al-bank { display: none; }
+  .fd-al-row[data-n="5"] .fd-al-alt { display: block; }
+}
+@container (max-width: 303px) {
+  .fd-al-row[data-n="6"] .fd-al-bank { display: none; }
+  .fd-al-row[data-n="6"] .fd-al-alt { display: block; }
+}
+
+/* The detail panel's alarm content. */
+.fd-al-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
+/* In the panel every mode key keeps its word: four in a row, or three to a row from five; two on a narrow phone. */
+.fd-al-bank[data-where="p"] { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fd-al-bank[data-where="p"]:is([data-n="2"], [data-n="4"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container (min-width: 400px) {
+  .fd-al-bank[data-where="p"][data-n="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container (max-width: 299px) {
+  .fd-al-bank[data-where="p"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* What the mode watches, and what's open: sentences, so they keep their case and wrap. */
+.fd-al-hint, .fd-al-open { margin: 0; font-size: 12px; font-weight: 400; line-height: 17px; color: var(--fd-ink-2); }
+.fd-al-open .fd-warn { align-items: flex-start; }
+.fd-al-open .fd-warn svg { margin-top: 3px; }
+.fd-al-open .fd-warn-t { white-space: normal; }
+
+/* The keypad: what the code is for, the code on a strip of screen, the keys three by four, then Cancel. */
+.fd-al-pad { display: grid; gap: 12px; min-width: 0; }
+.fd-al-pad:focus { outline: none; }
+.fd-panel .fd-al-code .fd-screen { height: 44px; }
+.fd-al-dots { display: inline-flex; gap: 8px; }
+.fd-al-dots i { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--fd-screen-unlit); transition: background-color 120ms var(--fd-ease-out); }
+.fd-al-dots i[data-on] { background: var(--fd-screen-ink); }
+.fd-al-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.fd-al-keys .fd-key { height: 52px; }
+.fd-al-keys .fd-key-fig { font-size: 20px; font-weight: 300; }

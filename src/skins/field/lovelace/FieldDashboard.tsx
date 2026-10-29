@@ -10,6 +10,7 @@ import { HaWeatherModule } from "../ha/HaWeatherModule";
 import { HaHumidifierModule } from "../ha/HaHumidifierModule";
 import { HaSoundModule } from "../ha/HaSoundModule";
 import { HaCoverModule } from "../ha/HaCoverModule";
+import { HaAlarmModule } from "../ha/HaAlarmModule";
 import { Key, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { groupByArea } from "./auto";
@@ -34,6 +35,9 @@ const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
   humidifier: ({ item, footprint }) => <HaHumidifierModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
   sound: ({ item, footprint }) => <HaSoundModule entityId={item.entity} volumeEntityId={item.volume} name={item.name} area={item.area} footprint={footprint} />,
   cover: ({ item, footprint }) => <HaCoverModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} />,
+  alarm: ({ item, footprint }) => (
+    <HaAlarmModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} readOnly={item.readOnly} exitDelay={item.exitDelay} entryDelay={item.entryDelay} openSensors={item.openSensors} />
+  ),
 };
 
 /** One live module, routed by its card to the skin-free hook and the matching Field drawing. */

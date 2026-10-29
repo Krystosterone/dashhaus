@@ -1,12 +1,9 @@
-import { useEffect, useRef, useState } from "react";
 import type { Vars } from "../../shared/ui";
 import { usePress } from "../../../../primitives/press";
+import { useKeypad } from "../../../../primitives/keypad";
 import type { AlarmMode } from "../../../../domains/alarm/types";
-import { ModeIcon, MODE_LABEL } from "./icons";
-
-/** The switch's segments. Armed in a mode the list leaves out (custom bypass, set from the panel itself): show it rather than "Off". */
-export const modeChoices = (modes: AlarmMode[], current: AlarmMode | "off"): (AlarmMode | "off")[] =>
-  ["off", ...modes, ...(current !== "off" && !modes.includes(current) ? [current] : [])];
+import { ARMED_LABEL, MODE_LABEL, mmss, modeChoices } from "../../../../domains/alarm/modes";
+import { ModeIcon } from "./icons";
 
 /**
  * The mode switch: Off and each arm mode, one segment each. The current one sits on a thumb that slides
@@ -33,8 +30,6 @@ function Segment({ mode, current, onPick }: { mode: AlarmMode | "off"; current: 
     </button>
   );
 }
-
-const mmss = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, Math.ceil(s)) % 60).padStart(2, "0")}`;
 
 /**
  * Exit delay (arming), entry delay (pending) or disarming: what's happening, the time left, and the one thing to do.
@@ -63,15 +58,13 @@ export function AlarmPill({ cause, onDisarm }: { cause?: string; onDisarm?: () =
   );
 }
 
-const ARMED_AS: Record<AlarmMode, string> = { home: "Armed home", away: "Armed away", night: "Armed night", vacation: "Armed vacation", custom_bypass: "Armed, custom bypass" };
-
 /**
  * View-only mode's slot, in place of the mode switch: what the alarm is doing, nothing to press.
  * A readout, with no container: the badge says armed. Who changed it, from M up.
  */
 export function AlarmStatus({ mode, by, onOpen }: { mode: AlarmMode | "off"; by?: string; onOpen?: () => void }) {
   const armed = mode !== "off";
-  const label = armed ? ARMED_AS[mode] : "Disarmed";
+  const label = armed ? ARMED_LABEL[mode] : "Disarmed";
   if (onOpen) return (
     <button type="button" className="al-st al-st--open" data-armed={armed || undefined} aria-label={`${label}. Change mode`} onClick={onOpen}>
       <ModeIcon mode={mode} />
@@ -97,45 +90,12 @@ export function AlarmStatus({ mode, by, onOpen }: { mode: AlarmMode | "off"; by?
  * the code stays, so Enter tries again.
  */
 export function Keypad({ prompt, text, onSubmit, onCancel }: { prompt: string; text?: boolean; onSubmit: (code: string) => boolean | Promise<boolean>; onCancel: () => void }) {
-  const [code, setCode] = useState("");
-  const [error, setError] = useState<"wrong" | "failed" | null>(null);
-  // Home Assistant answers asynchronously; while it does, the keypad waits and says so.
-  const [busy, setBusy] = useState(false);
-  const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
-  // Focus the keypad when it appears, so typing and Enter go to it (not to a button behind it).
-  // In a sheet that is opening, the sheet focuses [data-autofocus] once it is shown.
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (root.current?.closest("dialog")?.open) root.current.focus(); }, []);
-  const submit = async () => {
-    if (!code || busy) return;
-    setBusy(true);
-    let result: "ok" | "wrong" | "failed";
-    try { result = (await onSubmit(code)) ? "ok" : "wrong"; } catch { result = "failed"; }
-    if (!alive.current) return;
-    setBusy(false);
-    if (result === "ok") return;
-    setError(result);
-    if (result === "wrong") setCode("");
-  };
-  const press = (k: string) => { if (busy) return; setError(null); setCode((c) => (c.length >= 12 ? c : c + k)); };
-  const back = () => { if (busy) return; setError(null); setCode((c) => c.slice(0, -1)); };
-
-  useEffect(() => {
-    const onKey = (ev: KeyboardEvent) => {
-      if (ev.target instanceof HTMLInputElement) return;
-      if (/^[0-9]$/.test(ev.key) || (text && /^[a-z]$/i.test(ev.key))) { ev.preventDefault(); press(ev.key); }
-      else if (ev.key === "Backspace") { ev.preventDefault(); back(); }
-      else if (ev.key === "Enter" && !(ev.target instanceof HTMLButtonElement)) { ev.preventDefault(); submit(); }
-      else if (ev.key === "Enter" && ev.target instanceof HTMLButtonElement && !root.current?.contains(ev.target) && code) { ev.preventDefault(); submit(); }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  });
+  // Focuses itself when it appears, so typing and Enter go to it (not to a button behind it).
+  const { code, error, busy, press, back, submit, rootProps } = useKeypad({ text, onSubmit });
 
   const dots = Math.max(4, code.length);
   return (
-    <div className="al-kp" ref={root} tabIndex={-1} data-autofocus aria-label={prompt}>
+    <div className="al-kp" {...rootProps} aria-label={prompt}>
       <p className="al-kp-p" id="al-kp-p">{busy ? "Checking…"
         : error === "wrong" ? <span className="hd-warn">Wrong code. Try again.</span>
         : error === "failed" ? <span className="hd-warn">Didn’t go through. Try again.</span>
