@@ -336,13 +336,16 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
   );
 }
 
-/** A printed section label with its rule, as over a fader, for a group of keys or a meter. */
-export function Legend({ id, children, value }: { id?: string; children: ReactNode; value?: ReactNode }) {
+/**
+ * A printed section label with its rule, as over a fader, for a group of keys or a meter; `as="h2"` for an area of a
+ * page, so the page's headings run title, area, module.
+ */
+export function Legend({ id, children, value, as: Tag = "p" }: { id?: string; children: ReactNode; value?: ReactNode; as?: "p" | "h2" }) {
   return (
-    <p className="fd-legend fd-legend--block">
+    <Tag className="fd-legend fd-legend--block">
       <span id={id}>{children}</span>
       {value != null && <span className="fd-legend-v">{value}</span>}
-    </p>
+    </Tag>
   );
 }
 

@@ -11,7 +11,8 @@ const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(pre
 /**
  * Which section of a page is being read, for a nav that marks it, and a way to jump to one. Sections are the
  * elements under `rootRef` with a `data-section-id`; the one in view is the last whose top has passed a line a
- * third of the way down the viewport, or the last section once the page is scrolled to its end.
+ * third of the way down the viewport, the first while the page hasn't scrolled past its top, or the last section once
+ * the page is scrolled to its end.
  *
  * It listens for scrolls on the whole document (in the capture phase), so it follows the page whichever ancestor
  * scrolls it: the window in Storybook, Home Assistant's view inside the frontend, through shadow roots. `key`
@@ -34,7 +35,9 @@ export function useScrollSpy<T extends HTMLElement>(rootRef: RefObject<T>, key?:
       let current = sections[0];
       for (const s of sections) if (s.getBoundingClientRect().top <= line) current = s;
       const box = root.getBoundingClientRect();
-      if (box.top < 0 && box.bottom <= innerHeight + 2) current = sections[sections.length - 1];
+      // At rest at the top of the page, the first section, however short: a later one may already be past the line.
+      if (box.top >= 0) current = sections[0];
+      else if (box.bottom <= innerHeight + 2) current = sections[sections.length - 1];
       setActive(current.dataset.sectionId ?? null);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };

@@ -1,0 +1,65 @@
+/* The page's bottom nav (NavBar.tsx), docked by layout.css's .fd-dash-dock: a plate, as a module is, holding a row of
+   keys with their words printed on them. The current key stays down, sunk to the plate's face, as a chosen key does
+   (module.css); no LED, since where you are isn't "on". */
+.fd-nav {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px;
+  border: 1px solid var(--fd-hairline);
+  border-radius: var(--fd-r-module);
+  background: var(--fd-module);
+  box-shadow: var(--fd-panel-shadow);
+  font-family: var(--fd-sans);
+  font-stretch: var(--fd-wide);
+}
+/* Keys keep their natural widths while they fit, then narrow to their longest word, a two-word name taking two lines, as
+   a hardware key's print can; only a row that still doesn't fit scrolls sideways and passes under the plate's edge, a
+   key cut by it saying there is more. The list pads out by the keys' lift and focus ring, so its scroll doesn't clip
+   them. */
+.fd-nav-keys {
+  display: flex;
+  gap: 6px;
+  margin: -4px;
+  padding: 4px;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  /* A snap leaves a sliver of the key before, as NavBar scrolls to the current one, so the row says there is more. */
+  scroll-padding-inline: 32px;
+  scrollbar-width: none;
+}
+.fd-nav-keys::-webkit-scrollbar { display: none; }
+.fd-nav-keys > li { flex: 0 1 auto; display: flex; scroll-snap-align: start; }
+.fd-nav-keys .fd-nav-key {
+  flex: 1;
+  width: auto;
+  min-width: 56px;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: var(--fd-type-cap);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 12px;
+  text-transform: uppercase;
+}
+/* Where you are: down, in full ink, with a short printed rule under its word, so it reads as here and never as a focus
+   ring, from across a room and in the black finish. A tap still answers: a section's jumps back to its top, a page's
+   to the page's. */
+.fd-nav-keys .fd-nav-key[aria-current] { background: var(--fd-module); border-color: var(--fd-ink-3); box-shadow: var(--fd-key-sunk); }
+.fd-nav-keys .fd-nav-key[aria-current]::after { content: ""; position: absolute; left: 50%; bottom: 5px; width: 14px; height: 2px; margin-left: -7px; background: currentColor; }
+.fd-nav-keys .fd-nav-key[aria-current]:active { transform: none; }
+/* Words break between words only (keep-all holds a CJK name whole), at most two lines, then an ellipsis. */
+.fd-nav-t {
+  display: -webkit-box;
+  max-width: 22ch;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+.fd-nav-x { flex: none; width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }

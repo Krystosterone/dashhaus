@@ -62,6 +62,14 @@
   --fd-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --fd-wide: 118%;
 
+  /* Type a page sets for its viewing distance. Near: in the hand or at arm's length, nothing under 10 px. */
+  --fd-type-name: 12px;
+  --fd-type-small: 10.5px;
+  --fd-type-cap: 10.5px;
+  --fd-type-legend: 10px;
+  --fd-type-alert: 11px;
+  --fd-type-figure: 300;
+
   --fd-r-module: 4px;
   --fd-r-key: 3px;
   --fd-r-screen: 2px;
@@ -120,6 +128,18 @@
   --fd-focus: #efefec;
   --fd-scrim: #000000a6;
   color-scheme: dark;
+}
+
+/* Far: a wall panel read from across the room (FieldPage viewing="far", YAML `viewing: far`). Print and screen go up a
+   step and a screen's figure a weight, so thin strokes survive the distance; heights don't move, the leading tightens
+   instead. Only on the page itself: a detail panel is read up close, so it keeps the near type. */
+.fd-dash[data-viewing="far"] :is(.fd-hh, .fd-alerts, .fd-module, .fd-dash-area > .fd-legend, .fd-nav) {
+  --fd-type-name: 14px;
+  --fd-type-small: 12px;
+  --fd-type-cap: 12px;
+  --fd-type-legend: 12px;
+  --fd-type-alert: 13px;
+  --fd-type-figure: 400;
 }
 
 /* The page a field dashboard sits on: a plain body. A host page applies it to its body.

@@ -26,8 +26,8 @@
 /* A standard module's header keeps the area's line when it has none, so every screen in a grid is one height. */
 .fd-module[data-footprint="standard"] .fd-head { min-height: 31px; align-content: start; }
 .fd-name, .fd-area { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-transform: uppercase; }
-.fd-name { font-size: 12px; font-weight: 600; letter-spacing: 0.03em; line-height: 16px; }
-.fd-area { font-size: 10.5px; font-weight: 500; letter-spacing: 0.06em; line-height: 14px; color: var(--fd-ink-3); }
+.fd-name { font-size: var(--fd-type-name); font-weight: 600; letter-spacing: 0.03em; line-height: 16px; }
+.fd-area { font-size: var(--fd-type-small); font-weight: 500; letter-spacing: 0.06em; line-height: 14px; color: var(--fd-ink-3); }
 /* An openable name: the whole name is the button, with a small arrow after it. */
 .fd-open {
   display: inline-flex;
@@ -113,7 +113,7 @@
 .fd-key:is(:disabled, [aria-disabled="true"]) .fd-swatch { opacity: 0.4; }
 .fd-key--close { width: 44px; height: 44px; margin: -4px 0; flex: none; }
 .fd-key--close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-.fd-key-cap { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.fd-key-cap { font-size: var(--fd-type-cap); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 
 /* Glyph: a reading's identity where a key would sit, on a plate that lies flat: nothing to press. */
 .fd-glyph {
@@ -164,11 +164,11 @@
   color: var(--fd-screen-ink);
 }
 /* The figure keeps its width; the meta lines take what is left and truncate first. */
-.fd-read { margin: 0; display: flex; flex: none; align-items: center; gap: 8px; min-width: 0; font-size: 28px; font-weight: 300; letter-spacing: -0.01em; line-height: 1; white-space: nowrap; }
+.fd-read { margin: 0; display: flex; flex: none; align-items: center; gap: 8px; min-width: 0; font-size: 28px; font-weight: var(--fd-type-figure); letter-spacing: -0.01em; line-height: 1; white-space: nowrap; }
 .fd-read small { font-size: 11px; font-weight: 400; color: var(--fd-screen-ink-2); margin-left: 2px; align-self: flex-start; margin-top: 3px; }
 .fd-read-fig { display: inline-flex; align-items: baseline; }
 [data-state="off"] .fd-read-fig { color: var(--fd-screen-ink-2); }
-.fd-meta { margin: 0; display: grid; justify-items: end; gap: 3px; min-width: 0; font-size: 10.5px; font-weight: 500; letter-spacing: 0.07em; line-height: 13px; text-transform: uppercase; color: var(--fd-screen-ink-2); text-align: right; }
+.fd-meta { margin: 0; display: grid; justify-items: end; gap: 3px; min-width: 0; font-size: var(--fd-type-small); font-weight: 500; letter-spacing: 0.07em; line-height: 13px; text-transform: uppercase; color: var(--fd-screen-ink-2); text-align: right; }
 .fd-meta > span { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 /* Fixed digit places: the leading ones are unlit segments, like a segment display's. The empty alternative text
    keeps them out of the accessibility tree, so "080" is heard as "80"; a browser without it keeps the first rule. */
@@ -218,7 +218,7 @@
 .fd-module[data-level="alarm"] { box-shadow: inset 0 0 0 2px var(--fd-ink); }
 .fd-module[data-level="alarm"] .fd-screen { background: var(--fd-screen-ink); color: var(--fd-screen); box-shadow: inset 0 0 0 3px var(--fd-screen); }
 .fd-module[data-level="alarm"] .fd-screen :is(.fd-meta, .fd-warn, .fd-read small, .fd-read-fig) { color: inherit; }
-.fd-module[data-level="alarm"] .fd-meta > span:first-child { font-size: 12px; font-weight: 700; line-height: 15px; }
+.fd-module[data-level="alarm"] .fd-meta > span:first-child { font-size: calc(var(--fd-type-small) + 1.5px); font-weight: 700; line-height: 15px; }
 .fd-module[data-level="alarm"] .fd-pict-lit { fill: currentColor; }
 .fd-module[data-level="alarm"] .fd-pict-unlit { fill: currentColor; opacity: 0.15; }
 .fd-module[data-level="alarm"] .fd-digits::before { color: currentColor; opacity: 0.2; }
@@ -250,7 +250,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: var(--fd-type-legend);
   font-weight: 600;
   letter-spacing: 0.08em;
   line-height: 10px;
@@ -315,3 +315,8 @@
   .fd-fader[data-anim] .fd-rail { transition: none; }
   .fd-pict-lit { transition: opacity 150ms var(--fd-ease-out); }
 }
+
+/* Far, on a wall panel: a row's name may take two lines, so a name a step up still reads whole across the room; the
+   leading tightens so the name and the area line still fit the row's 64 px. */
+.fd-dash[data-viewing="far"] .fd-module[data-footprint="compact"] .fd-name { line-height: 15px; white-space: normal; }
+.fd-dash[data-viewing="far"] .fd-module[data-footprint="compact"] .fd-open-t { display: -webkit-box; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }

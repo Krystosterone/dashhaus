@@ -1,7 +1,7 @@
 import { act } from "react";
 // The card renders through its own React root, outside testing-library; tell React this is a test.
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Connection } from "home-assistant-js-websocket";
 import type { HaTransport, HassEntities } from "../../../ha/types";
 
@@ -62,8 +62,12 @@ async function mount(config: Record<string, unknown>, darkMode = false) {
 const names = (card: Card) => [...card.shadowRoot!.querySelectorAll(".fd-module .fd-open-t")].map((n) => n.textContent);
 const legends = (card: Card) => [...card.shadowRoot!.querySelectorAll(".fd-dash-area > .fd-legend")].map((n) => n.textContent);
 
+// jsdom doesn't scroll; the nav's jumps are checked by what they ask to scroll.
+beforeEach(() => { HTMLElement.prototype.scrollIntoView = vi.fn(); });
+
 afterEach(async () => {
   await act(async () => document.body.replaceChildren());
+  history.replaceState(null, "", location.pathname);
   adapter.createHomeAssistantTransport.mockClear();
   document.head.querySelectorAll("link").forEach((l) => l.remove());
 });
@@ -110,6 +114,66 @@ describe("home-dashboard-field card", () => {
     expect(() => card.setConfig({ modules: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
     expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(DashboardConfigError);
     expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(/input_text\.note must be a light\.\* or .* entity/);
+  });
+
+  it("lays out its own sections, a note at a legend's end, and docks a nav to them", async () => {
+    const card = await mount({
+      title: "Home",
+      subtitle: "Everyone home",
+      sections: [
+        { title: "Quick", note: "Pressed most", modules: ["light.kitchen", { entity: "light.desk", span: 2 }] },
+        { columns: 2, sections: [{ title: "Comfort", modules: ["climate.living_room"] }, { title: "Air", modules: ["sensor.office_temperature"] }] },
+      ],
+    });
+    const shadow = card.shadowRoot!;
+    expect(shadow.querySelector(".fd-hh-sub")?.textContent).toBe("Everyone home");
+    expect(legends(card)).toEqual(["QuickPressed most", "Comfort", "Air"]);
+    expect([...shadow.querySelectorAll("[data-section-id]")].map((s) => s.id)).toEqual(["section-quick", "section-comfort", "section-air"]);
+    expect(shadow.querySelector(".fd-dash-cell[data-span='2'] .fd-open-t")?.textContent).toBe("Desk");
+    // The plate names the module's own area, from the registries, whatever its section is called.
+    expect(shadow.querySelector(".fd-dash-cell .fd-area")?.textContent).toBe("Office");
+    const keys = [...shadow.querySelectorAll<HTMLButtonElement>(".fd-nav-key")];
+    expect(keys.map((k) => k.textContent)).toEqual(["Quick", "Comfort", "Air"]);
+    await act(async () => keys[2].click());
+    expect(shadow.querySelector("#section-air")!.scrollIntoView).toHaveBeenCalled();
+    expect(keys[2].getAttribute("aria-current")).toBe("location");
+  });
+
+  it("lists the areas in the automatic layout's nav, and draws none with nav: false", async () => {
+    const auto = await mount({});
+    expect([...auto.shadowRoot!.querySelectorAll(".fd-nav-key")].map((k) => k.textContent)).toEqual(["Kitchen", "Living room", "Office"]);
+    const off = await mount({ nav: false });
+    expect(off.shadowRoot!.querySelector(".fd-nav")).toBeNull();
+  });
+
+  it("opens a page of its own from the nav, its title heading the page", async () => {
+    const card = await mount({
+      title: "Home",
+      modules: ["light.kitchen"],
+      pages: [{ id: "office", title: "Office", sections: [{ title: "Desk", modules: ["light.desk", "sensor.office_temperature"] }] }],
+    });
+    const shadow = card.shadowRoot!;
+    const keys = () => [...shadow.querySelectorAll<HTMLButtonElement>(".fd-nav-key")];
+    expect(keys().map((k) => [k.textContent, k.getAttribute("aria-current")])).toEqual([["Home", "page"], ["Office", null]]);
+    await act(async () => keys()[1].click());
+    expect(shadow.querySelector(".fd-hh-title")?.textContent).toBe("Office");
+    expect(names(card)).toEqual(["Desk", "Office air"]);
+    expect(location.hash).toBe("#page=office");
+    await act(async () => keys()[0].click());
+    expect(names(card)).toEqual(["Kitchen"]);
+  });
+
+  it("sets a wall panel for distance, with no nav unless its YAML lists one", async () => {
+    const far = await mount({ viewing: "far" });
+    expect(far.shadowRoot!.querySelector(".fd-dash")?.getAttribute("data-viewing")).toBe("far");
+    expect(far.shadowRoot!.querySelector(".fd-nav")).toBeNull();
+    const listed = await mount({ viewing: "far", nav: [{ section: "Kitchen" }, { section: "Office" }] });
+    expect([...listed.shadowRoot!.querySelectorAll(".fd-nav-key")].map((k) => k.textContent)).toEqual(["Kitchen", "Office"]);
+  });
+
+  it("reads temperatures in the unit asked for", async () => {
+    const card = await mount({ modules: [{ entity: "climate.living_room", unit: "°F" }] });
+    expect(card.shadowRoot!.querySelector(".fd-read")?.textContent).toContain("°F");
   });
 
   it("pre-fills the card picker in automatic mode", () => {

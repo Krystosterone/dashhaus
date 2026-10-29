@@ -193,39 +193,57 @@ export const Tablet: Story = {
   ),
 };
 
+/** The wall panel's page, read up close or across the room. */
+function WallPage({ viewing }: { viewing?: "far" }) {
+  return (
+    <FieldPage title="Home" now={NOW} showTime viewing={viewing}>
+      <Areas columns={4}>
+        <Area title="Living room">
+          <Light seed="dimmable" area="Living room" />
+          <Climate seed="heating" area="Living room" />
+          <Cover seed="curtains" area="Living room" footprint="compact" />
+          <Sensor seed="indoor" name="Air" footprint="compact" />
+        </Area>
+        <Area title="Nursery">
+          <Owlet seed="deep" area="Nursery" />
+          <Light seed="colour" area="Nursery" />
+          <Sound seed="on" area="Nursery" footprint="compact" />
+          <Humidifier seed="on" area="Nursery" name="Humidifier" footprint="compact" />
+        </Area>
+        <Area title="Whole home">
+          <Alarm seed="away" area="Whole home" />
+          <Toggle seed="dnd" area="Whole home" footprint="compact" />
+          <Toggle seed="guest" area="Whole home" footprint="compact" />
+          <Cover seed="garage" area="Whole home" footprint="compact" />
+        </Area>
+        <Area title="Outside">
+          <Weather seed="partly" name="Weather" />
+          <Light seed="onOff" area="Outside" footprint="compact" />
+          <Sensor seed="outdoor" area="Outside" name="Air" footprint="compact" />
+        </Area>
+      </Areas>
+    </FieldPage>
+  );
+}
+
 /** Wall panel, landscape: one column per place, its leads whole modules and the rest 64 px rows under them; the whole
     1280 × 800 surface fits without scrolling. */
 export const WallPanel: Story = {
   name: "Wall panel",
   render: () => (
     <Device label="Wall panel" width={1280} height={800}>
-      <FieldPage title="Home" now={NOW} showTime>
-        <Areas columns={4}>
-          <Area title="Living room">
-            <Light seed="dimmable" area="Living room" />
-            <Climate seed="heating" area="Living room" />
-            <Cover seed="curtains" area="Living room" footprint="compact" />
-            <Sensor seed="indoor" name="Air" footprint="compact" />
-          </Area>
-          <Area title="Nursery">
-            <Owlet seed="deep" area="Nursery" />
-            <Light seed="colour" area="Nursery" />
-            <Sound seed="on" area="Nursery" footprint="compact" />
-            <Humidifier seed="on" area="Nursery" name="Humidifier" footprint="compact" />
-          </Area>
-          <Area title="Whole home">
-            <Alarm seed="away" area="Whole home" />
-            <Toggle seed="dnd" area="Whole home" footprint="compact" />
-            <Toggle seed="guest" area="Whole home" footprint="compact" />
-            <Cover seed="garage" area="Whole home" footprint="compact" />
-          </Area>
-          <Area title="Outside">
-            <Weather seed="partly" name="Weather" />
-            <Light seed="onOff" area="Outside" footprint="compact" />
-            <Sensor seed="outdoor" area="Outside" name="Air" footprint="compact" />
-          </Area>
-        </Areas>
-      </FieldPage>
+      <WallPage />
+    </Device>
+  ),
+};
+
+/** The same wall panel read from across the room (`viewing="far"`): names, the area and screen lines, legends and key
+    words a step up, the screens' figures a weight up; every height as near, so it still fits without scrolling. */
+export const WallPanelFar: Story = {
+  name: "Wall panel, far",
+  render: () => (
+    <Device label="Wall panel, far" width={1280} height={800}>
+      <WallPage viewing="far" />
     </Device>
   ),
 };

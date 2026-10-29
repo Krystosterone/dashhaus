@@ -47,8 +47,16 @@ describe("useScrollSpy", () => {
     expect(getByTestId("active").textContent).toBe("a");
 
     tops = { a: -300, b: 200, c: 600 };
+    rootBox = { top: -400, bottom: 1600 };
     scroll();
     expect(getByTestId("active").textContent).toBe("b");
+    rootBox = { top: 0, bottom: 2000 };
+  });
+
+  it("marks the first section while the page is at its top, however short it is", () => {
+    tops = { a: 100, b: 180, c: 600 };
+    const { getByTestId } = render(<Page />);
+    expect(getByTestId("active").textContent).toBe("a");
   });
 
   it("marks the last section at the end of the page, even when it can't reach the line", () => {

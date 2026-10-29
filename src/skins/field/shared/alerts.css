@@ -20,7 +20,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 11px;
+  font-size: var(--fd-type-alert);
   font-weight: 500;
   letter-spacing: 0.07em;
   line-height: 15px;

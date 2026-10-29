@@ -12,13 +12,70 @@
   font-stretch: var(--fd-wide);
   color: var(--fd-ink);
 }
-.fd-dash-area { display: grid; align-content: start; gap: 10px; min-width: 0; }
-.fd-dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
-.fd-dash-grid[data-footprint="compact"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 8px; }
+.fd-dash-area { container: fd-area / inline-size; display: grid; align-content: start; gap: 10px; min-width: 0; }
+/* Tracks of at least a module's width (260 px, a row's 300 px), as many as fit. */
+.fd-dash-grid {
+  --fd-gap: 12px;
+  --fd-track: 260px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--fd-track)), 1fr));
+  gap: var(--fd-gap);
+}
+.fd-dash-grid[data-footprint="compact"] { --fd-gap: 8px; --fd-track: 300px; }
+/* `columns`: at most that many across. Each track is at least its share of the width, so no more fit; the 0.1 px keeps
+   rounding from dropping one. */
+.fd-dash-grid[data-columns] {
+  grid-template-columns: repeat(auto-fill, minmax(max(min(100%, var(--fd-track)), (100% - (var(--fd-cols-max) - 1) * var(--fd-gap)) / var(--fd-cols-max) - 0.1px), 1fr));
+}
 .fd-dash-areas { display: grid; grid-template-columns: repeat(var(--fd-cols, 2), minmax(0, 1fr)); gap: 24px 16px; align-items: start; }
 @container (max-width: 639px) {
   .fd-dash-areas { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* A module's `span`: as many tracks as it asks for, where the area is wide enough to have them, so it never makes a
+   track of its own. Each width is that many tracks and their gaps. */
+.fd-dash-cell { min-width: 0; }
+@container fd-area (min-width: 532px) {
+  .fd-dash-grid[data-footprint="standard"] > .fd-dash-cell:is([data-span="2"], [data-span="3"], [data-span="4"]) { grid-column: span 2; }
+}
+@container fd-area (min-width: 804px) {
+  .fd-dash-grid[data-footprint="standard"] > .fd-dash-cell:is([data-span="3"], [data-span="4"]) { grid-column: span 3; }
+}
+@container fd-area (min-width: 1076px) {
+  .fd-dash-grid[data-footprint="standard"] > .fd-dash-cell[data-span="4"] { grid-column: span 4; }
+}
+@container fd-area (min-width: 608px) {
+  .fd-dash-grid[data-footprint="compact"] > .fd-dash-cell:is([data-span="2"], [data-span="3"], [data-span="4"]) { grid-column: span 2; }
+}
+@container fd-area (min-width: 916px) {
+  .fd-dash-grid[data-footprint="compact"] > .fd-dash-cell:is([data-span="3"], [data-span="4"]) { grid-column: span 3; }
+}
+@container fd-area (min-width: 1224px) {
+  .fd-dash-grid[data-footprint="compact"] > .fd-dash-cell[data-span="4"] { grid-column: span 4; }
+}
+
 /* `quiet` (a nursery's panel at night): an alarm holds its inversion from the start, with no flash. */
 .fd-dash[data-quiet] :is(.fd-module[data-level="alarm"] .fd-screen, .fd-module[data-level="alarm"] .fd-led, .fd-alerts-tag) { animation: none; }
+
+/* A jump (the nav to an area, a page opening at its top) stops clear of whatever a host lays over the top of the
+   screen: --fd-scroll-offset, which the Lovelace card sets to Home Assistant's toolbar. */
+.fd-dash { scroll-margin-top: var(--fd-scroll-offset, 0px); }
+.fd-dash-area { scroll-margin-top: calc(var(--fd-scroll-offset, 0px) + 12px); }
+
+/* The page's nav, docked: sticky to the bottom of the screen as the page scrolls. The page becomes a column, so in a
+   host that gives it the screen's height (the Lovelace card) the dock rests at the bottom of a short page. */
+.fd-dash[data-nav] { display: flex; flex-direction: column; }
+.fd-dash-dock {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.fd-dash-dock > * { pointer-events: auto; }
+/* A rejected command (the Lovelace card's notice) rides the dock above the bar instead of docking on its own. */
+.fd-dash-dock > .fd-notice { position: static; align-self: stretch; }

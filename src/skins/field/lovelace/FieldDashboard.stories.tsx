@@ -1,7 +1,10 @@
 import { useMemo } from "react";
+import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FieldDashboard } from "./FieldDashboard";
+import { mapModules, parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
+import { areaSections } from "./auto";
 import { HaProvider } from "../../../ha/provider";
 import { createHaStore } from "../../../ha/store";
 import { createDemoHaTransport } from "../../../ha/demo";
@@ -69,21 +72,133 @@ const ALERTING: HassEntities = {
   ...entity("alarm_control_panel.house", "Alarm", "triggered", { code_format: "number", code_arm_required: true, supported_features: 1 | 2 | 4, changed_by: "Alex" }),
 };
 
-function Demo({ title, showTime, hourCycle, footprint, quiet, alerting }: { title?: string; showTime?: boolean; hourCycle?: "h12" | "h23"; footprint: FieldFootprint; quiet?: boolean; alerting?: boolean }) {
+/** The header's time, fixed so screenshots stay stable. */
+const NOW = new Date(2026, 9, 17, 11, 54);
+
+/** Each module's area, standing in for Home Assistant's registries. */
+const AREAS = new Map(ITEMS.map((m) => [m.entity, m.area]));
+const placed = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? AREAS.get(m.entity) });
+
+function House({ alerting, children }: { alerting?: boolean; children: ReactNode }) {
   const store = useMemo(() => createHaStore(createDemoHaTransport(alerting ? ALERTING : ENTITIES)), [alerting]);
+  return <HaProvider store={store}>{children}</HaProvider>;
+}
+
+function Demo({ title, showTime, hourCycle, footprint, quiet, alerting }: { title?: string; showTime?: boolean; hourCycle?: "h12" | "h23"; footprint: FieldFootprint; quiet?: boolean; alerting?: boolean }) {
+  const blocks = useMemo(() => areaSections(ITEMS), []);
   return (
-    <HaProvider store={store}>
-      <FieldDashboard title={title} showTime={showTime} hourCycle={hourCycle} items={ITEMS} footprint={footprint} quiet={quiet} />
-    </HaProvider>
+    <House alerting={alerting}>
+      <FieldDashboard title={title} showTime={showTime} hourCycle={hourCycle} blocks={blocks} footprint={footprint} quiet={quiet} />
+    </House>
   );
 }
+
+/**
+ * A config as Lovelace hands it to the card, drawn as the card draws it: checked, each module given its area. In
+ * Home Assistant a `navigate:` key would leave for that dashboard; here it stays put.
+ */
+function Yaml({ yaml }: { yaml: Record<string, unknown> }) {
+  const config = useMemo(() => parseFieldConfig(yaml), [yaml]);
+  const blocks = useMemo(() => (config.sections ? mapModules(config.sections, placed) : areaSections((config.modules ?? ITEMS).map(placed))), [config]);
+  const pages = useMemo(() => config.pages?.map((p) => ({ ...p, blocks: mapModules(p.blocks, placed) })), [config]);
+  return (
+    <House>
+      <FieldDashboard
+        title={config.title}
+        subtitle={config.subtitle}
+        showTime={config.showTime}
+        hourCycle={config.hourCycle}
+        viewing={config.viewing}
+        blocks={blocks}
+        pages={pages}
+        nav={config.nav}
+        footprint={config.footprint}
+        quiet={config.quiet}
+        now={NOW}
+        navigate={() => undefined}
+      />
+    </House>
+  );
+}
+
+/** Sections laid out by hand, as on a phone: the keys pressed most as rows, then a room at a time. */
+const SECTIONS_YAML = {
+  type: "custom:home-dashboard-field",
+  title: "Home",
+  subtitle: "Everyone home",
+  sections: [
+    {
+      title: "Quick",
+      note: "Pressed most",
+      modules: [
+        { entity: "input_boolean.do_not_disturb", footprint: "compact", icon: "bell-off" },
+        { entity: "alarm_control_panel.house", footprint: "compact" },
+        { entity: "cover.garage_door", footprint: "compact" },
+        { entity: "input_boolean.guest_mode", footprint: "compact", icon: "guest" },
+      ],
+    },
+    { title: "Living room", modules: ["light.ceiling", "climate.living_room", "light.reading_lamp", "cover.living_room_curtains"] },
+    {
+      title: "Nursery",
+      modules: [
+        { entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" },
+        "light.night_light",
+        { entity: "switch.white_noise", card: "sound" },
+        "humidifier.nursery",
+      ],
+    },
+    {
+      title: "Outside",
+      modules: [
+        { entity: "weather.home", name: "Weather", span: 2, aqi: "sensor.home_aqi", aqi_scale: "US" },
+        { entity: "sensor.outside_temperature", name: "Air", battery: "sensor.outside_battery", outdoor: true },
+        "light.porch",
+      ],
+    },
+  ],
+};
+
+/** docs/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
+const PAGES_YAML = {
+  type: "custom:home-dashboard-field",
+  title: "Home",
+  footprint: "compact",
+  sections: [
+    { title: "Quick", modules: ["input_boolean.do_not_disturb", "alarm_control_panel.house", "cover.garage_door", "light.porch"] },
+    { title: "Rooms", modules: [{ entity: "sensor.nursery_temperature", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" }, { entity: "sensor.outside_temperature", battery: "sensor.outside_battery", outdoor: true }] },
+  ],
+  pages: [
+    { id: "living", title: "Living room", sections: [{ title: "Comfort", modules: ["climate.living_room"] }, { title: "Lights and curtains", modules: ["light.ceiling", "light.reading_lamp", "cover.living_room_curtains"] }] },
+    { id: "nursery", title: "Nursery", sections: [{ title: "Baby", modules: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }, "light.night_light", { entity: "switch.white_noise", card: "sound" }, "humidifier.nursery"] }] },
+  ],
+  nav: [{ page: "home" }, { page: "living" }, { page: "nursery" }, { navigate: "/baby-view/0", label: "Baby view" }],
+};
+
+/** A wall panel read from across the room: one column per place, its leads whole modules and the rest rows. */
+const WALL_YAML = {
+  type: "custom:home-dashboard-field",
+  title: "Home",
+  show_time: true,
+  viewing: "far",
+  sections: [
+    {
+      columns: 4,
+      sections: [
+        { title: "Living room", modules: ["light.ceiling", "climate.living_room", { entity: "cover.living_room_curtains", footprint: "compact" }, { entity: "light.reading_lamp", footprint: "compact" }] },
+        { title: "Nursery", modules: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }, "light.night_light", { entity: "switch.white_noise", card: "sound", footprint: "compact" }, { entity: "humidifier.nursery", footprint: "compact" }] },
+        { title: "Whole home", modules: ["alarm_control_panel.house", { entity: "input_boolean.do_not_disturb", footprint: "compact" }, { entity: "input_boolean.guest_mode", footprint: "compact" }, { entity: "cover.garage_door", footprint: "compact" }] },
+        { title: "Outside", modules: [{ entity: "weather.home", name: "Weather" }, { entity: "light.porch", footprint: "compact" }, { entity: "sensor.outside_temperature", name: "Air", outdoor: true, footprint: "compact" }] },
+      ],
+    },
+  ],
+};
 
 const meta = {
   title: "Field/Dashboards/Lovelace card",
   component: Demo,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
+    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, or the `sections` and `pages` its YAML lays out, with a nav docked at the bottom; live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
   argTypes: {
     footprint: { control: "inline-radio", options: ["standard", "compact"] },
@@ -110,3 +225,13 @@ export const Phone: Story = { parameters: { viewport: { defaultViewport: "mobile
  * inverts its screen and flashes for ten seconds, then holds. Set `quiet` for a nursery's panel: no flash.
  */
 export const WithAlerts: Story = { name: "With alerts", args: { alerting: true } };
+
+/**
+ * `sections:` laid out by hand, with a `subtitle` and a `note`, the weather spanning two tracks where its area has them.
+ * With no `nav:`, the nav lists the titled sections: a tap scrolls there, and the key of the area being read stays down.
+ */
+export const SectionsAndNav: Story = { name: "Sections and nav", render: () => <Yaml yaml={SECTIONS_YAML} /> };
+/** `pages:` and `nav:`: the main page, two pages of the card's own (kept in the URL hash), and another dashboard. */
+export const NavAndPages: Story = { name: "Nav and pages", render: () => <Yaml yaml={PAGES_YAML} /> };
+/** `viewing: far` on a wall panel: print and screens a step up, areas side by side, and no nav unless `nav:` lists one. */
+export const WallPanelFar: Story = { name: "Wall panel, far", render: () => <Yaml yaml={WALL_YAML} /> };

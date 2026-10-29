@@ -1,7 +1,7 @@
 import type { AutoEntityEntry } from "../../../ha/lovelace/element";
 import { roomSensors } from "../../../ha/lovelace/rooms";
 import { kindOf } from "./config";
-import type { ModuleConfig } from "./config";
+import type { ModuleConfig, SectionConfig } from "./config";
 
 /** What the automatic layout reads from `hass`: states for names, and the registries for areas. */
 export interface AutoInput {
@@ -53,3 +53,7 @@ export function groupByArea<M extends { area?: string }>(modules: readonly M[]):
     .sort(([a], [b]) => (a == null ? 1 : b == null ? -1 : a.localeCompare(b)))
     .map(([area, list]) => ({ area, modules: list }));
 }
+
+/** The automatic layout's sections, and a `modules` list's: one per area, titled with its name (`groupByArea`). */
+export const areaSections = (modules: readonly ModuleConfig[]): SectionConfig[] =>
+  groupByArea(modules).map((g) => ({ kind: "section", title: g.area, modules: g.modules }));

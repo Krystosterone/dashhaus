@@ -167,19 +167,24 @@ The same bundle carries a second card, `custom:home-dashboard-field`: the field 
 ```yaml
 type: custom:home-dashboard-field
 title: Home              # optional, printed at the top with today's date under it
+subtitle: Everyone home  # optional, in place of the date on the main page
 show_time: true          # a clock in the header, on a strip of screen
 hour_cycle: h23          # optional: h12 or h23; the locale's when left out
+viewing: near            # near (default) or far: a wall panel read from across the room
 finish: home-assistant   # home-assistant (default: follows its dark mode), auto (the device's), alloy, black
 footprint: standard      # standard (160 px modules, default) or compact (64 px rows)
 quiet: false             # true: an alarm holds its inverted screen with no flash (a nursery's panel at night)
-modules:                 # optional; leave out for every supported entity by area
+modules:                 # optional; leave out (and leave out sections) for every supported entity by area
   - light.ceiling        # a light or climate entity id
   - entity: light.desk_strip
     name: Desk           # overrides the friendly name
     area: Office         # overrides the area; modules are grouped under it
     footprint: compact   # overrides the card's footprint for this module
+    span: 2              # optional: two of its area's columns where it has them (up to 4)
+    history: false       # optional: skips the Today history read
   - entity: climate.living_room
     name: Thermostat
+    unit: °C             # optional, on a climate entity or a sensor: °C or °F, in place of Home Assistant's
   - entity: sensor.bedroom_temperature   # a sensor: temperature, or humidity alone
     humidity: sensor.bedroom_humidity    # optional companions on the same device
     battery: sensor.bedroom_battery
@@ -215,23 +220,63 @@ modules:                 # optional; leave out for every supported entity by are
 | Key | Values | Default |
 | --- | --- | --- |
 | `title` | text | none |
+| `subtitle` | text, in place of the date under the title on the main page | today's date |
 | `show_time` | `true`, `false`: a clock in the header, beside the title | `false` |
 | `hour_cycle` | `h12`, `h23` | the locale's |
+| `viewing` | `near`, `far`: a wall panel read from across the room, its modules' print and screens a step up and no nav unless `nav` lists one | `near` |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
 | `quiet` | `true`, `false`: an alarm holds its inverted screen from the start instead of flashing for ten seconds | `false` |
-| `modules` | a list of `light.*`, `climate.*`, `sensor.*`, `weather.*`, `input_boolean.*`, `switch.*`, `humidifier.*`, `cover.*` or `alarm_control_panel.*` entity ids, or an Owlet sock's `sensor.*_sleep_state`, or maps of `entity`, `card`, `name`, `area`, `footprint`; a sensor also takes `humidity`, `battery` (`sensor.*` ids) and `outdoor`; a weather `aqi` (a `sensor.*` id), `aqi_scale` (`US`), `sun` (a `sun.*` id, default `sun.sun`) and `forecasts` (default `true`); an `input_boolean.*` or `switch.*` `icon` (`bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`) and `description`; a sound (`card: sound`) `volume` (a `number.*` id, default `number.<switch>_volume`, then `number.<device>_volume`); an alarm `read_only`, `exit_delay` and `entry_delay` (seconds) and `open_sensors` (names); an owlet `heart_rate`, `oxygen` (`sensor.*` ids), `charging` (a `binary_sensor.*` id), `base_station` (a `switch.*` id), `alerts` (alert names to `binary_sensor.*` ids, as on the main card) and `stale_after` (minutes, default 3) | every visible supported entity |
+| `modules` | a list of `light.*`, `climate.*`, `sensor.*`, `weather.*`, `input_boolean.*`, `switch.*`, `humidifier.*`, `cover.*` or `alarm_control_panel.*` entity ids, or an Owlet sock's `sensor.*_sleep_state`, or maps of `entity`, `card`, `name`, `area`, `footprint`, `span` (1 to 4) and `history` (default `true`); a climate entity also takes `unit` (`°C`, `°F`); a sensor `humidity`, `battery` (`sensor.*` ids), `outdoor` and `unit`; a weather `aqi` (a `sensor.*` id), `aqi_scale` (`US`), `sun` (a `sun.*` id, default `sun.sun`) and `forecasts` (default `true`); an `input_boolean.*` or `switch.*` `icon` (`bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`) and `description`; a sound (`card: sound`) `volume` (a `number.*` id, default `number.<switch>_volume`, then `number.<device>_volume`); an alarm `read_only`, `exit_delay` and `entry_delay` (seconds) and `open_sensors` (names); an owlet `heart_rate`, `oxygen` (`sensor.*` ids), `charging` (a `binary_sensor.*` id), `base_station` (a `switch.*` id), `alerts` (alert names to `binary_sensor.*` ids, as on the main card) and `stale_after` (minutes, default 3) | every visible supported entity, unless `sections` lays the page out |
+| `sections` | a list of sections, each `title`, `note` (printed at the legend's end), `columns` (at most this many across, 1 to 4) and `modules` (as in `modules`), or a column group, `columns` (1 to 4) and `sections`, side by side; in place of `modules` | `modules` by area |
+| `pages` | more pages, each `id`, `title` and `sections`, opened from the nav ([Navigation](#navigation)) | none |
+| `nav` | the nav's destinations, each `section`, `page` or `navigate` with an optional `label` ([Navigation](#navigation)); `false` for none | the pages, else the main page's areas or sections |
+
+`sections` lays the main page out by hand, as the main card's do, but with field's words: a section lists `modules`, its `columns` is a most rather than a count (columns come from the width, so a module never narrows below its own), and its gaps come from the footprint. Each module's plate still names its own area, from `area` or Home Assistant's registries. A column group puts its sections side by side, one column each; under 640 px of page they stack. Keys the main card takes and field doesn't (`theme`, `accent`, `color`, `show_control`, a section's `cards` and `gap`, bundles) are refused with the reason, for YAML copied across.
+
+```yaml
+type: custom:home-dashboard-field
+title: Home
+sections:
+  - title: Quick
+    note: Pressed most
+    columns: 2
+    modules:
+      - { entity: input_boolean.do_not_disturb, footprint: compact }
+      - { entity: alarm_control_panel.house, footprint: compact }
+  - title: Outside
+    modules:
+      - { entity: weather.home, span: 2 }
+      - sensor.outside_temperature
+  - columns: 2                       # a column group: its sections side by side
+    sections:
+      - { title: Living room, modules: [light.ceiling, climate.living_room] }
+      - { title: Nursery, modules: [light.night_light, humidifier.nursery] }
+pages:
+  - id: nursery
+    title: Nursery
+    sections:
+      - title: Baby
+        modules: [sensor.owlet_sock_ac000w0123_sleep_state]
+nav:
+  - page: home
+  - page: nursery
+  - navigate: /baby-view/0
+    label: Baby view
+```
+
+The nav works as the main card's ([Navigation](#navigation)), drawn in field's parts: a plate of keys docked at the bottom, the key for where you are staying down. Without `nav`, it lists the pages, or else the main page's titled sections: the areas of the automatic layout or of `modules`. A section named in `nav` is checked against `sections` when the YAML lays them out; an area's name comes from Home Assistant, so it can't be.
 
 Under the title, the card draws an alert line whenever a module has something urgent or an alarm: a sock's vitals alert, a triggered alarm, a sock off, an entry delay ([field.md](field.md#design-rules)). Each entry opens that module's panel.
 
 Each module's entity id picks its card. Where two field cards draw one domain, the domain's own card is the default and `card:` picks the other (a `switch` is a toggle unless `card: sound`; a `sensor.*_sleep_state` is an owlet, and `card: owlet` picks it for a sock named otherwise); the error lists the cards that can draw it.
 
-Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data.
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data; its Sections and nav, Nav and pages, and Wall panel, far stories show those keys.
 
 ## What has and hasn't been verified
 
 Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API.
 
-The field card: unit tests cover its config parser, automatic mixed-domain layout (room sensors through the same pairing as the main card's Rooms, `src/ha/lovelace/rooms.ts`) and element (areas, finish, font link, one store per connection), and the built bundle carries it and its font. It has not been loaded in a live Home Assistant yet.
+The field card: unit tests cover its config parser (sections, pages, nav, and the main card's keys it refuses), automatic mixed-domain layout (room sensors through the same pairing as the main card's Rooms, `src/ha/lovelace/rooms.ts`) and element (areas, sections and spans, the nav's jumps and pages, far viewing, finish, font link, one store per connection), and the built bundle carries it and its font. It has not been loaded in a live Home Assistant yet.
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port): the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live: service calls from the cards, the YAML-mode resource fallback, and a redeploy over an existing dashboard.

@@ -102,6 +102,45 @@ describe("footprint: height from the footprint, never from state or the viewport
   });
 });
 
+describe("viewing distance: type for the room, never a height", () => {
+  it("the shared print and the screen's figure take their size and weight from the --fd-type-* roles", () => {
+    const c = css(`${SKIN}/shared/module.css`);
+    expect(c).toMatch(/\.fd-name \{[^}]*font-size: var\(--fd-type-name\)/);
+    expect(c).toMatch(/\.fd-area \{[^}]*font-size: var\(--fd-type-small\)/);
+    expect(c).toMatch(/\.fd-meta \{[^}]*font-size: var\(--fd-type-small\)/);
+    expect(c).toMatch(/\.fd-key-cap \{[^}]*font-size: var\(--fd-type-cap\)/);
+    expect(c).toMatch(/\.fd-legend \{[^}]*font-size: var\(--fd-type-legend\)/);
+    expect(c).toMatch(/\.fd-read \{[^}]*font-weight: var\(--fd-type-figure\)/);
+    expect(css(`${SKIN}/shared/alerts.css`)).toMatch(/\.fd-alerts-entry \{[^}]*font-size: var\(--fd-type-alert\)/);
+  });
+
+  it("far sets only the type roles, on the page and never on a detail panel, which is read up close", () => {
+    const far = rules(TOKENS).filter((r) => r.selector.includes('[data-viewing="far"]'));
+    expect(far).toHaveLength(1);
+    expect(far[0].selector).not.toMatch(/fd-panel/);
+    const props = [...far[0].body.matchAll(/(--?[\w-]+)\s*:/g)].map((m) => m[1]);
+    expect(props.length).toBeGreaterThan(0);
+    expect(props.filter((p) => !p.startsWith("--fd-type-"))).toEqual([]);
+  });
+});
+
+describe("the page's nav: page furniture in the module's parts", () => {
+  it("draws its keys as the module's key part, and where you are as a chosen key: down, never lit", () => {
+    const c = css(`${SKIN}/dashboards/NavBar.css`);
+    expect(readFileSync(join(process.cwd(), `${SKIN}/dashboards/NavBar.tsx`), "utf8")).toContain('className="fd-key fd-nav-key"');
+    const current = rules(`${SKIN}/dashboards/NavBar.css`).filter((r) => r.selector.includes("[aria-current]"));
+    expect(current.some((r) => /box-shadow: var\(--fd-key-sunk\)/.test(r.body))).toBe(true);
+    expect(c).not.toMatch(/var\(--fd-(led|param|lamp)/);
+  });
+
+  it("a span never makes a track of its own: it applies only inside the area's width queries", () => {
+    const c = css(`${SKIN}/dashboards/layout.css`);
+    const outside = c.replace(/@container fd-area[^{]*\{[^{}]*\{[^}]*\}\s*\}/g, "");
+    expect(outside).not.toMatch(/grid-column:\s*span/);
+    expect(c).toMatch(/@container fd-area[^{]*\{[^{}]*\{[^}]*grid-column: span 2/);
+  });
+});
+
 describe("motion: compositor-only, token easing", () => {
   const ANIMATABLE = new Set(["transform", "translate", "opacity", "clip-path", "background-color", "color", "box-shadow", "none"]);
 

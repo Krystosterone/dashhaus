@@ -36,7 +36,7 @@ const preview: Preview = {
           ],
           "Field", [
             "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet"],
-            "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Phone, alarm below the fold"], "Lovelace card", "Header"],
+            "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Wall panel, far", "Phone, alarm below the fold"], "Lovelace card", "Header", "Nav bar"],
             "Foundations", ["Design rules", "Palette", "Parts", "Alerts"],
             "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet"],
           ],

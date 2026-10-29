@@ -6,7 +6,6 @@ import type { ToggleIcon } from "../../../domains/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "../../../domains/owlet/types";
 import { OWLET_ALERT_SUFFIX } from "../../../ha/mappers/owlet";
-import { MAIN_PAGE } from "../../../ha/lovelace/nav";
 import type { NavEntry } from "../../../ha/lovelace/nav";
 
 /*
@@ -128,8 +127,6 @@ const KIND_KEYS: Record<Kind, string[]> = {
   sound: ["volume", "color"],
 };
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "sections", "nav", "pages", "view_layout", "grid_options", "visibility"];
-const NAV_KINDS = ["section", "page", "navigate"] as const;
-const PAGE_ID = /^[a-z0-9][a-z0-9_-]*$/;
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
 const GROUP_KEYS = ["columns", "gap", "sections"];
 
@@ -310,49 +307,6 @@ class Reader extends YamlReader {
     }
     return this.section(value, path);
   }
-
-  /** One nav destination: exactly one of `section`, `page` or `navigate`, and an optional `label`. */
-  navEntry(value: unknown, path: string): NavEntry | undefined {
-    if (!isRaw(value)) {
-      this.problem(path, "a nav item is a map with one of \"section\", \"page\" or \"navigate\"");
-      return undefined;
-    }
-    this.keys(value, path, [...NAV_KINDS, "label"]);
-    const kinds = NAV_KINDS.filter((k) => value[k] != null);
-    if (kinds.length !== 1) {
-      this.problem(path, `needs exactly one of ${oneOf(NAV_KINDS)}`);
-      return undefined;
-    }
-    const label = this.string(value, "label", path);
-    const target = this.string(value, kinds[0], path);
-    if (target == null) return undefined;
-    if (kinds[0] === "section") return { kind: "section", title: target, label };
-    if (kinds[0] === "page") return { kind: "page", id: target, label };
-    if (!target.startsWith("/")) {
-      this.problem(path, `"navigate" is a Home Assistant path like /baby-view/0`);
-      return undefined;
-    }
-    return { kind: "navigate", path: target, label };
-  }
-
-  page(value: unknown, path: string): PageConfig | undefined {
-    if (!isRaw(value)) {
-      this.problem(path, "a page is a map with \"id\", \"title\" and \"sections\"");
-      return undefined;
-    }
-    this.keys(value, path, ["id", "title", "sections"]);
-    const id = this.string(value, "id", path);
-    const title = this.string(value, "title", path);
-    if (id == null || !PAGE_ID.test(id)) this.problem(path, "\"id\" is required: lower-case letters, digits, - and _, like living-room");
-    else if (id === MAIN_PAGE) this.problem(path, `"id" can't be "${MAIN_PAGE}": that is the top-level sections`);
-    if (title == null) this.problem(path, "\"title\" is required");
-    if (!Array.isArray(value.sections) || value.sections.length === 0) {
-      this.problem(path, "\"sections\" must be a list of at least one section");
-      return undefined;
-    }
-    const blocks = value.sections.map((s, i) => this.block(s, `${path}.sections[${i}]`)).filter((b): b is BlockConfig => !!b);
-    return id && title && PAGE_ID.test(id) && id !== MAIN_PAGE ? { id, title, blocks } : undefined;
-  }
 }
 
 /** Check and normalize the card's YAML. Throws a `DashboardConfigError` listing every problem. */
@@ -383,40 +337,9 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     else blocks = value.sections.map((s, i) => read.block(s, `sections[${i}]`)).filter((b): b is BlockConfig => !!b);
   }
 
-  let pages: PageConfig[] | undefined;
-  if (value.pages != null) {
-    if (!Array.isArray(value.pages) || value.pages.length === 0) read.problem("pages", "must be a list of at least one page, or left out");
-    else {
-      pages = value.pages.map((p, i) => read.page(p, `pages[${i}]`)).filter((p): p is PageConfig => !!p);
-      const ids = pages.map((p) => p.id);
-      for (const id of new Set(ids.filter((id, i) => ids.indexOf(id) !== i))) read.problem("pages", `two pages have the id "${id}"`);
-    }
-  }
-
-  let nav: NavEntry[] | false | undefined;
-  if (value.nav === false) nav = false;
-  else if (value.nav != null) {
-    if (!Array.isArray(value.nav)) read.problem("nav", "must be a list of destinations, or false for no nav");
-    else {
-      nav = value.nav.map((n, i) => read.navEntry(n, `nav[${i}]`)).filter((n): n is NavEntry => !!n);
-      const pageIds = [MAIN_PAGE, ...(pages ?? []).map((p) => p.id)];
-      // Automatic sections can't be named ahead; authored ones can.
-      const titles = blocks ? sectionTitles(blocks) : undefined;
-      nav.forEach((n, i) => {
-        if (n.kind === "page" && !pageIds.includes(n.id)) {
-          const near = suggest(n.id, pageIds);
-          read.problem(`nav[${i}]`, `no page "${n.id}"${near ? ` — did you mean "${near}"?` : ` (pages: ${oneOf(pageIds)})`}`);
-        }
-        if (n.kind === "section" && titles && !titles.includes(n.title)) {
-          const near = titles.find((t) => t.toLowerCase() === n.title.toLowerCase()) ?? suggest(n.title, titles);
-          read.problem(`nav[${i}]`, `no section titled "${n.title}" in the top-level sections${near ? ` — did you mean "${near}"?` : ""}`);
-        }
-        if (n.kind === "section" && titles && titles.filter((t) => t === n.title).length > 1) {
-          read.problem(`nav[${i}]`, `${titles.filter((t) => t === n.title).length} sections are titled "${n.title}"; give each its own title so the nav can tell them apart`);
-        }
-      });
-    }
-  }
+  const pages: PageConfig[] | undefined = read.pages(value, (s, path) => read.block(s, path));
+  // Automatic sections can't be named ahead; authored ones can.
+  const nav = read.nav(value, pages ?? [], blocks ? sectionTitles(blocks) : undefined);
 
   const config: DashboardConfig = {
     title: read.string(value, "title", "") ?? "Home",
