@@ -33,7 +33,7 @@ One word per thing, the same in code, Storybook and the docs.
 - `npm run verify:packages` — install the tarballs into a clean app and check imports, typecheck, the deploy bin and tarball contents; `npm run release:check` runs pack then verify (see `docs/release.md`)
 - `npm run deploy [-- …]` — the `@dashhaus/deploy` CLI (`node packages/deploy/bin.mjs --help`): build the config's bundle, copy it into Home Assistant, register the resource, create the dashboards `dashboard.config.mjs` declares the first time; `--config <file>` points at another repo's config and `--skip-build` uses its prebuilt bundle (settings in `.env` beside the config, see `docs/deploy.md`)
 - `npm run typecheck` — `tsc --noEmit` for the root and each public package's `tsconfig.json`, incremental, with the state in `node_modules/.cache/tsc`
-- `npm run lint` — `eslint .` (flat config in `eslint.config.js`), cached in `node_modules/.cache/eslint` and run with `--concurrency 4`
+- `npm run lint` — `eslint .` (flat config in `eslint.config.js`), cached in `node_modules/.cache/eslint`
 - `npm run test` — `vitest run`; one project per public package plus the root app, each with its own include and environment. Unit tests live next to their module as `*.test.{ts,tsx}` in `src/`, `packages/*/src/` and `scripts/`, and the repo's cross-skin checks live in `verify/`
 - `npm run test-storybook` — every story must render (smoke) and pass axe (a11y) in Chromium; failures print the rule, impact, and target elements
 - `npm run test:unit` — every suite except the generator temp-copy runs (`vitest run --exclude "scripts/**"`); CI's `unit` lane
