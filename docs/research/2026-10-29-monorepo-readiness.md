@@ -634,3 +634,20 @@ Resolved from the original list: the websocket type-stripping question moves
 into the deploy config bundling; the hooks-package question is moot (folded into
 `core`); the published-skin-containers question is deferred with the publishing
 decision.
+
+### C4 measurement: deploy config loading (2026-10-29)
+
+C4 uses `dashboard.config.mjs`, plain JavaScript, so deploy itself imports no
+`.ts`; the config is the one file that imports orb's `auto.ts`. Measured on Node
+26.6.0 with `node scripts/deploy.mjs --help`:
+
+- `npm ci` in a fresh copy: `node_modules/@scope/*` are workspace symlinks into
+  `packages/*`; the config, orb's `auto.ts` and `@scope/dashboard/layout` load,
+  and help lists both dashboards.
+- The same install with `@scope/dashboard` copied instead of symlinked: Node
+  refuses `node_modules/@scope/dashboard/src/layout.ts` with
+  `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`.
+
+C4 is therefore reliable for the workspace install (`npm ci`) and still depends
+on that symlink. A packed or published install needs the built JS output owned
+by C5, or a bundled config; C4 adds no build step.
