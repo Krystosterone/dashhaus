@@ -3,24 +3,14 @@
  * rebuilds it through `new-skin` plus the normal Card command, and checks the result at the public seams.
  */
 import { spawn } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, lstatSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
-/** The copy's own node_modules: each dependency linked from the root, but each @scope package pointing at the copy. */
-const linkNodeModules = (copy: string) => {
-  const modules = join(copy, "node_modules");
-  mkdirSync(modules);
-  for (const entry of readdirSync(join(root, "node_modules"))) {
-    if (entry === "@scope") continue;
-    symlinkSync(join(root, "node_modules", entry), join(modules, entry));
-  }
-  mkdirSync(join(modules, "@scope"));
-  for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@scope", scope), "dir");
-};
 
 /**
  * Run a command without blocking the worker: Vitest's parent times out `onTaskUpdate` when a test holds the event
@@ -35,6 +25,13 @@ const run = (cwd: string, command: string, args: string[]) =>
     child.on("error", reject);
     child.on("close", (status) => resolve({ status, output }));
   });
+
+/** A real workspace install: it links every generated skin package by its manifest name. */
+const install = async (cwd: string) => {
+  const result = await run(cwd, "npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund"]);
+  expect(result.status, result.output).toBe(0);
+  return result;
+};
 
 const withoutArrayEntry = (source: string, label: string) => {
   const labelAt = source.indexOf(`"${label}", [`);
@@ -80,17 +77,71 @@ describe("new-skin", () => {
     const result = await run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
     for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    expect(result.output).toContain("create src/skins/probe-skin/package.json");
     expect(result.output).toContain("create src/skins/probe-skin/index.ts");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");
+  });
+
+  describe("a generated skin in a copy", () => {
+    const skip = ["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude", "research"];
+    let copy = "";
+    beforeAll(async () => {
+      copy = mkdtempSync(join(tmpdir(), "new-skin-canvas-"));
+      cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
+      await install(copy);
+    });
+    afterAll(() => rmSync(copy, { recursive: true, force: true }));
+
+    it("creates a linked workspace package that a Card lands in", async () => {
+      const skin = await run(copy, "node", ["scripts/new-skin/index.mjs", "canvas"]);
+      expect(skin.status, skin.output).toBe(0);
+      const card = await run(copy, "node", ["scripts/new-card/index.mjs", "light", "--skin", "canvas"]);
+      expect(card.status, card.output).toBe(0);
+      await install(copy);
+
+      const manifest = JSON.parse(readFileSync(join(copy, "src/skins/canvas/package.json"), "utf8"));
+      expect(manifest.name).toBe("@scope/canvas");
+      expect(manifest.private).toBe(true);
+      expect(manifest.type).toBe("module");
+      expect(manifest.exports).toEqual({
+        ".": "./index.ts",
+        "./styles/tokens.css": "./styles/tokens.css",
+        "./lovelace/card": "./lovelace/card.tsx",
+        "./storybook": "./storybook.tsx",
+      });
+      expect(lstatSync(join(copy, "node_modules/@scope/canvas")).isSymbolicLink()).toBe(true);
+      const require = createRequire(join(copy, "package.json"));
+      expect(require.resolve("@scope/canvas")).toMatch(/\/src\/skins\/canvas\/index\.ts$/);
+      expect(require.resolve("@scope/canvas/storybook")).toMatch(/\/src\/skins\/canvas\/storybook\.tsx$/);
+
+      const preview = readFileSync(join(copy, ".storybook/preview.tsx"), "utf8");
+      expect(preview).toContain('from "@scope/canvas/storybook"');
+      expect(preview).toContain('"Canvas", [');
+      expect(preview).toContain('"Light"');
+      const entry = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
+      expect(entry).toContain('import "@scope/canvas/styles/tokens.css";');
+      expect(entry).toContain('from "@scope/canvas/lovelace/card"');
+      expect(readFileSync(join(copy, "src/skins/canvas/lovelace/registry.tsx"), "utf8")).toContain("light: { domains: [\"light\"]");
+      expect(readFileSync(join(copy, "src/skins/canvas/index.ts"), "utf8")).toContain("CanvasLightCard");
+
+      const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
+      expect(typecheck.status, typecheck.output).toBe(0);
+      const lint = await run(copy, "npx", ["eslint", "src/skins/canvas", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
+      expect(lint.status, lint.output).toBe(0);
+      const tests = await run(copy, "npx", ["vitest", "run", "src/skins/canvas", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts"]);
+      expect(tests.status, tests.output).toBe(0);
+      const bundle = await run(copy, "npm", ["run", "build:ha"]);
+      expect(bundle.status, bundle.output).toBe(0);
+    }, 300_000);
   });
 
   describe("reconstructing Field in a copy", () => {
     const skip = ["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude", "research"];
     let copy = "";
-    beforeAll(() => {
+    beforeAll(async () => {
       copy = mkdtempSync(join(tmpdir(), "new-skin-field-"));
       cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
-      linkNodeModules(copy);
+      await install(copy);
       removeField(copy);
     });
     afterAll(() => process.env.KEEP_NEW_SKIN_COPY ? console.info(`FIELD_RECONSTRUCTION=${copy}`) : rmSync(copy, { recursive: true, force: true }));
@@ -102,6 +153,20 @@ describe("new-skin", () => {
         const result = await run(copy, "node", ["scripts/new-card/index.mjs", card, "--skin", "field"]);
         expect(result.status, `${card}:\n${result.output}`).toBe(0);
       }
+      await install(copy);
+
+      const manifest = JSON.parse(readFileSync(join(copy, "src/skins/field/package.json"), "utf8"));
+      expect(manifest.name).toBe("@scope/field");
+      expect(manifest.private).toBe(true);
+      expect(manifest.exports["."]).toBe("./index.ts");
+      expect(lstatSync(join(copy, "node_modules/@scope/field")).isSymbolicLink()).toBe(true);
+      const require = createRequire(join(copy, "package.json"));
+      expect(require.resolve("@scope/field")).toMatch(/\/src\/skins\/field\/index\.ts$/);
+      expect(require.resolve("@scope/field/storybook")).toMatch(/\/src\/skins\/field\/storybook\.tsx$/);
+      expect(readFileSync(join(copy, ".storybook/preview.tsx"), "utf8")).toContain('from "@scope/field/storybook"');
+      const entry = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
+      expect(entry).toContain('import "@scope/field/styles/tokens.css";');
+      expect(entry).toContain('from "@scope/field/lovelace/card"');
 
       const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);

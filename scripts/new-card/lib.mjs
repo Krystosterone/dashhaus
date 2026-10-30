@@ -2,8 +2,9 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { root, packageFile, packageSpecifier, seams, skinDir } from "../packages.mjs";
 
-export const root = fileURLToPath(new URL("../../", import.meta.url));
+export { root, packageFile, packageSpecifier, seams, skinDir };
 export const templates = fileURLToPath(new URL("./templates/", import.meta.url));
 export const read = (path) => readFileSync(join(root, path), "utf8");
 export const exists = (path) => existsSync(join(root, path));
@@ -40,22 +41,20 @@ export function names(name, example) {
   };
 }
 
-const ORB_CONFIG = "src/skins/orb/lovelace/config.ts";
-
 /**
  * Which orb card draws which Home Assistant domain, read from orb's Lovelace config: `domainKind` is DOMAIN_KIND
  * (a domain's own card), `shared` is SHARED_KINDS (a card on another card's domain, with its `id` pattern as source).
  */
 export function orbKinds() {
-  const source = read(ORB_CONFIG);
+  const source = read(seams.orb.config);
   const body = (constName) => source.match(new RegExp(`const ${constName}\\b[^{]*\\{([\\s\\S]*?)\\n\\};`))?.[1];
   const domainKinds = body("DOMAIN_KIND");
   const sharedKinds = body("SHARED_KINDS");
-  if (domainKinds == null || sharedKinds == null) fail(`could not find DOMAIN_KIND and SHARED_KINDS in ${ORB_CONFIG}. Update scripts/new-card/lib.mjs`);
+  if (domainKinds == null || sharedKinds == null) fail(`could not find DOMAIN_KIND and SHARED_KINDS in ${seams.orb.config}. Update scripts/packages.mjs`);
   const domainKind = Object.fromEntries([...domainKinds.matchAll(/^\s*(\w+): "(\w+)",/gm)].map((m) => [m[1], m[2]]));
   const shared = Object.fromEntries([...sharedKinds.matchAll(/^\s*(\w+): \{ domains: \[([^\]]*)\](?:, id: (\/.*\/))? \},/gm)]
     .map((m) => [m[1], { domains: [...m[2].matchAll(/"(\w+)"/g)].map((d) => d[1]), id: m[3] }]));
-  return { path: ORB_CONFIG, domainKind, shared };
+  return { path: seams.orb.config, domainKind, shared };
 }
 
 const walk = (dir, out = []) => {
@@ -71,6 +70,18 @@ const walk = (dir, out = []) => {
 export const before = (anchor, text) => (s) => {
   const i = typeof anchor === "string" ? s.indexOf(anchor) : s.search(anchor);
   return i === -1 ? s : s.slice(0, i) + text + s.slice(i);
+};
+
+/**
+ * Insert text at a declared marker's registration point, before its comment line. Repeated insertions keep their
+ * order above the marker, and a moved marker leaves the file alone.
+ */
+export const after = (marker, text) => (s) => {
+  const i = s.indexOf(marker);
+  if (i === -1) return s;
+  const line = text.endsWith("\n") ? text : `${text}\n`;
+  const start = s.lastIndexOf("\n", i) + 1;
+  return s.slice(0, start) + line + s.slice(start);
 };
 
 /** Insert a line after the line holding the last match of a global pattern. */

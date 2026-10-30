@@ -7,6 +7,7 @@ import type { NavEntry, PanelInfo } from "@scope/dashboard";
 import { useDashboardNav } from "@scope/dashboard";
 import { renderCard } from "@scope/dashboard/schema";
 import type { CardRenderers } from "@scope/dashboard/schema";
+// new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
 import { HaSensorModule } from "../ha/HaSensorModule";
@@ -49,6 +50,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   owlet: (item, footprint) => (
     <HaOwletModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} heartRateEntityId={item.heartRate} oxygenEntityId={item.oxygen} chargingEntityId={item.charging} baseEntityId={item.baseStation} alertEntityIds={item.alerts} staleAfterMinutes={item.staleAfter} />
   ),
+  // new-card: live modules
 };
 
 /** One live module, routed by its card to the skin-free hook and the matching Field drawing. */

@@ -691,3 +691,57 @@ generator home; generator work stays in `scripts/` under C5b. `panelView` stays
 in `@scope/deploy` so the CLI imports no dashboard package. The CLI's `.`
 export re-exports the loader and its types for embedding and tests; the bin is
 the product entry.
+
+### C5b measurement: package-aware generators (2026-10-30)
+
+Measured on Node 26.6.0. A skin created by `npm run new-skin` is now a private
+workspace package at `src/skins/<skin>`, named `@scope/<skin>`. The root
+`workspaces` are `packages/*` and `src/skins/*`; npm ignores the package-less
+reference-skin folders orb and field, so the two reference skins did not move.
+The generated manifest is `private`, `type: module`, `sideEffects` limited to
+its token CSS, and exports exactly the root's surface:
+
+| Export | File | Consumer |
+| --- | --- | --- |
+| `.` | `./index.ts` | programmatic use; imports `styles/tokens.css` once |
+| `./styles/tokens.css` | `./styles/tokens.css` | `apps/lovelace/entry.ts` |
+| `./lovelace/card` | `./lovelace/card.tsx` | `apps/lovelace/entry.ts` |
+| `./storybook` | `./storybook.tsx` | `.storybook/preview.tsx` |
+
+- `scripts/packages.mjs` is the one package map: workspace globs, the shared
+  packages' folders and declared exports (read from their manifests), the
+  reference skins, the generated skin's location/name/exports, the external
+  seams and their marker comments, and the generated manifest. Generators call
+  `packageFile("core", …)` and `packageSpecifier("dashboard", "card")`; no
+  `packages/*`, `src/skins/*` or bare `@scope/` literal remains in their bodies.
+  `verify/generator-packages.test.ts` fails on a reintroduced literal, a map
+  that drifts from the root workspaces, or a generated manifest that drops an
+  export.
+- Registrations now insert at declared markers (`// new-card: …`,
+  `// new-skin: …`, HTML comments in docs) or into the generated skin's small
+  registry, not beside an unrelated import or line of prose. `new-card` inserts
+  before a marker line so repeated additions keep their order.
+- `new-skin` writes `package.json` and the two root consumers import
+  `@scope/<skin>/storybook`, `@scope/<skin>/styles/tokens.css` and
+  `@scope/<skin>/lovelace/card`. It refuses the reserved package names `core`,
+  `dashboard` and `deploy`.
+- `new-card --skin <generated>` writes inside the package plus the declared
+  seams (Storybook order, `docs/<skin>.md`, `docs/cards.md`); Orb and Field
+  output, flags and generated files are unchanged apart from the marker
+  comments that now hold their registration points.
+- In a temporary copy, `npm install` links `@scope/canvas` and
+  `require.resolve` resolves its `.`, `./storybook` and
+  `./styles/tokens.css` exports. `npm run new-skin -- canvas`,
+  `npm run new-card -- light --skin canvas`, typecheck, lint, the generated
+  conformance test, `verify/storybook.test.ts`, `verify/boundaries.test.ts`
+  and `npm run build:ha` pass there.
+- `npm run check` in the repo passes (129 files, 1,207 tests), including the
+  dry runs, the Orb/Field temp-copy generator run, the Field reconstruction and
+  the canvas package smoke; `npm run build:ha` passes.
+
+Differences from the package map: generator tooling remains in `scripts/` as
+C5 measured, not in `@scope/dashboard/cli`; `packages.mjs` is repo-only, so no
+fourth package was added. The reference skins are still folders, not packages;
+the monorepo rename and their migration stay out of C5b. C5c still owns
+publishing, versioning and release CI for the generated packages, and C6 still
+owns extracting the shared card/schema/layout contract out of the skins.

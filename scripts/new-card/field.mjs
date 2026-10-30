@@ -15,10 +15,11 @@
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { afterLast, before, changes, exists, fail, filler, intoObject, names, orbKinds, read, root } from "./lib.mjs";
+import { markers, packageFile, packageSpecifier } from "../packages.mjs";
+import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.mjs";
 
-const SKIN = "src/skins/field";
-const ORB = "src/skins/orb";
+const SKIN = skinDir("field");
+const ORB = skinDir("orb");
 
 /** The body of `export interface <name> { … }` (or a one-line `type <name> = { … }`) in a source file. */
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
@@ -32,14 +33,14 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const step = (n) => `AGENTS.md → Adding an existing domain to another skin, step ${n}`;
 
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
-  const typesPath = `packages/core/src/entities/${name}/types.ts`;
+  const typesPath = packageFile("core", `src/entities/${name}/types.ts`);
   if (!exists(typesPath)) fail(`${typesPath} doesn't exist. Field draws a domain orb already has: npm run new-card -- ${name} --code <xx> --domain <ha_domain> first`);
   const types = read(typesPath);
   const entity = shape(types, `${Name}Entity`);
   const history = shape(types, `${Name}History`);
   if (!entity || !history) fail(`${typesPath} must export ${Name}Entity and ${Name}History`);
 
-  const hookPath = `packages/core/src/ha/hooks/${name}.ts`;
+  const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
   if (!exists(hookPath)) fail(`${hookPath} doesn't exist: field reaches Home Assistant through useHa${Name} (${step(1)})`);
   const hook = read(hookPath);
   const options = shape(hook, `Ha${Name}Options`);
@@ -47,7 +48,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const required = [...options.matchAll(/^\s+(\w+): /gm)].map((m) => m[1]);
   if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated module can't know. Draw ${words} in field by hand, from ${SKIN}/cards/light/`);
 
-  const actionsPath = `packages/core/src/ha/actions/${name}.ts`;
+  const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
   const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : null;
   const kind = askedKind ?? (handlers == null ? "reading" : "control");
   if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
@@ -79,8 +80,8 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
     if (path.startsWith("../../../../../")) return line;
     const imported = list.split(",").map((n) => n.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${list}} from "@scope/core/entities/history";`;
-    fail(`${demoDir}/${seedFile} imports ${path}, which is orb's own; move what it needs to packages/core/src/entities/ first`);
+    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${list}} from "${packageSpecifier("core", "entities/history")}";`;
+    fail(`${demoDir}/${seedFile} imports ${path}, which is orb's own; move what it needs to ${packageFile("core", "src/entities")}/ first`);
   });
   seeds = `// Copied from orb's card by \`npm run new-card -- ${name} --skin field\`: field's own seeds from here.\n${seeds}`;
   const hasHook = new RegExp(`export function useDemo${Name}\\b`).test(seeds);
@@ -99,7 +100,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${ORB}/ha/Ha${Name}Tile.stories.tsx must import a createDemo…HaTransport and draw an entityId, for field's connected story`);
 
-  const fixturePath = `packages/core/src/ha/fixtures/${name}.json`;
+  const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist, for its connected module's test`);
   const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, e]) => !["unavailable", "unknown"].includes(e.state))?.[0];
   if (!fixtureId) fail(`${fixturePath} has no available entity for its connected module's test`);
@@ -148,47 +149,48 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // ---------- Registrations ----------
-  edit(`${SKIN}/index.ts`, before('export type { FieldFootprint } from "./shared/ui";', fill(`export { __Name__Module } from "./cards/__name__/__Name__Module";
+  edit(`${SKIN}/index.ts`, after(markers.skinCards, fill(`export { __Name__Module } from "./cards/__name__/__Name__Module";
 export type { __Name__ModuleProps } from "./cards/__name__/__Name__Module";
 export { Ha__Name__Module } from "./ha/Ha__Name__Module";
 export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
 `)));
 
   // Storybook: its place in Field's Cards and Connected, and on the Design rules page under its section.
-  edit(".storybook/preview.tsx", (s) => {
+  edit(seams.preview, (s) => {
     const at = s.indexOf('"Field", [');
     if (at === -1) return s;
-    const field = s.slice(at).replace(/("Cards", \[[^\]]*)\]/, `$1, "${Name}"]`).replace(/("Connected", \[[^\]]*)\]/, `$1, "${Name}"]`);
-    return s.slice(0, at) + field;
+    const field = s.slice(at);
+    const insert = (marker) => after(marker, `              "${Name}",\n`);
+    return s.slice(0, at) + insert(markers.previewConnected)(insert(markers.previewCards)(field));
   });
   const rules = `${SKIN}/stories/DesignRules.mdx`;
-  edit(rules, afterLast(/^import \* as \w+ from "\.\.\/cards\/.*$/gm, `import * as ${Name} from "../cards/${name}/${Name}Module.stories";\n`));
-  edit(rules, before(/\n {2}\}\}\n\/>/, `\n    ${/\s/.test(Label) ? `"${Label}"` : Label}: [${Name}.AllStates, ${Name}.Footprints],`));
+  edit(rules, after(markers.designRuleImports, `import * as ${Name} from "../cards/${name}/${Name}Module.stories";\n`));
+  edit(rules, after(markers.designRuleStories, `    ${/\s/.test(Label) ? `"${Label}"` : Label}: [${Name}.AllStates, ${Name}.Footprints],`));
 
   // Its spec, for the author to finish.
-  edit("docs/field.md", (s) => `${s.trimEnd()}\n\n## ${Label}\n\n${kind === "control"
+  edit(seams.fieldDoc, (s) => `${s.trimEnd()}\n\n## ${Label}\n\n${kind === "control"
     ? `- **Module:** the key switches it and its LED says on; the screen says ON or OFF. Compact: key, name and area, screen.\n- **Panel:** the screen, the key and today.\n`
     : `- **Module:** a reading: its glyph on a flat plate and today's meter. The screen's figure is blank until it is given its reading; the meta line says the state. Compact: glyph, name and area, screen.\n- **Panel:** the screen and today.\n`}- **Unavailable:** blank segments and when it was last seen${kind === "control" ? "; the key lies flat" : ""}.\n`);
-  edit("docs/cards.md", (s) => {
+  edit(seams.cardsDoc, (s) => {
     const at = s.indexOf(`## Using the ${words} card`);
     if (at === -1) return s;
     const next = s.indexOf("\n## ", at + 1);
     const end = next === -1 ? s.length : next + 1;
     return `${s.slice(0, end).trimEnd()}\n\n### Field ${words} module\n\n\`${Name}Module\` is the same normalized ${words} entity in the Field skin; \`Ha${Name}Module\` is its connected container, on the same \`useHa${Name}\` hook as \`Ha${Name}Tile\`. See [field.md](field.md#${words.replace(/ /g, "-")}).\n\n${s.slice(end)}`;
   });
-  edit("AGENTS.md", (s) => s.replace(/(card classes add (?:`fd-[a-z]{2}-` for [a-z0-9 ]+, )*`fd-[a-z]{2}-` for [a-z0-9 ]+) and (`fd-[a-z]{2}-` for [a-z0-9 ]+)\./, `$1, $2 and \`fd-${code}-\` for ${words}.`));
+  edit(seams.agents, before(markers.fieldCodes, `, \`fd-${code}-\` for ${words}`));
 
   // The Lovelace card: its domains, and its connected module.
-  const config = `${SKIN}/lovelace/config.ts`;
-  edit(config, (s) => s.replace(/^(export type FieldKind = .*);$/m, `$1 | "${name}";`));
-  edit(config, intoObject("FIELD_KINDS", `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""} },`));
-  const dashboard = `${SKIN}/lovelace/FieldDashboard.tsx`;
-  edit(dashboard, afterLast(/^import \{ Ha\w+Module \} from "\.\.\/ha\/Ha\w+Module";$/gm, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
+  const config = seams.field.config;
+  edit(config, after(markers.kinds, `  | "${name}"\n`));
+  edit(config, after(markers.fieldKinds, `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""} },`));
+  const dashboard = seams.field.dashboard;
+  edit(dashboard, after(markers.moduleImports, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
   // The module's own name and area, where the hook takes them.
   const passed = ["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)).map((key) => ` ${key}={item.${key}}`).join("");
-  edit(dashboard, intoObject("LIVE", `  ${name}: (item, footprint) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
-  const listed = read("docs/deploy.md").match(/^\| `modules` \| a list of ([^|]*?) entity ids/m)?.[1] ?? "";
-  if (domains.some((d) => !listed.includes(`\`${d}.*\``))) edit("docs/deploy.md", (s) => s.replace(/^(\| `modules` \| a list of )([^|]*?)( entity ids)/m, (_, head, list, tail) => {
+  edit(dashboard, after(markers.liveModules, `  ${name}: (item, footprint) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
+  const listed = read(seams.deployDoc).match(/^\| `modules` \| a list of ([^|]*?) entity ids/m)?.[1] ?? "";
+  if (domains.some((d) => !listed.includes(`\`${d}.*\``))) edit(seams.deployDoc, (s) => s.replace(/^(\| `modules` \| a list of )([^|]*?)( entity ids)/m, (_, head, list, tail) => {
     const all = [...new Set([...[...list.matchAll(/`(\w+)\.\*`/g)].map((m) => m[1]), ...domains])].map((d) => `\`${d}.*\``);
     return `${head}${all.slice(0, -1).join(", ")} or ${all.at(-1)}${tail}`;
   }));

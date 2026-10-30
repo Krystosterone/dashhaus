@@ -30,7 +30,19 @@ import type { NavEntry } from "@scope/dashboard";
  * this file is the card's kind table and the bundles only orb has.
  */
 
-export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet" | "humidifier" | "sound";
+export type Kind =
+  | "light"
+  | "climate"
+  | "sensor"
+  | "weather"
+  | "cover"
+  | "toggle"
+  | "alarm"
+  | "owlet"
+  | "humidifier"
+  | "sound"
+  // new-card: kinds
+  ;
 
 /** Each supported domain's card: the entity id picks it. */
 export const DOMAIN_KIND: Record<string, Kind> = {
@@ -43,6 +55,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   switch: "toggle",
   alarm_control_panel: "alarm",
   humidifier: "humidifier",
+  // new-card: domain kinds
 };
 
 /**
@@ -52,6 +65,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
 export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp }>> = {
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
   sound: { domains: ["switch"] },
+  // new-card: shared kinds
 };
 
 interface CardBase {
@@ -76,6 +90,7 @@ export type CardConfig = CardBase & (
   | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
   | { kind: "humidifier"; color?: ColorName | "none" }
   | { kind: "sound"; volume?: string; color?: ColorName | "none" }
+  // new-card: card configs
 );
 
 export type ItemConfig =
@@ -177,6 +192,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     keys: ["volume", "color"],
     options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]), color: readColor(read, raw, at, COLOR_NAMES) }),
   },
+  // new-card: kind specs
 };
 
 /** The kinds an entity id tries: its domain's own, then the cards that share that domain. */

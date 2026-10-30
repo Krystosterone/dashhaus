@@ -1,13 +1,18 @@
 import type { Decorator, Preview } from "@storybook/react";
 import { orbStorybook } from "../src/skins/orb/storybook";
 import { fieldStorybook } from "../src/skins/field/storybook";
+// new-skin: storybook imports
 
 /**
  * Every skin brings its own Storybook setup (src/skins/<skin>/storybook.tsx): a section its story titles start with,
  * its toolbar, the class its page surface puts on <body>, and a decorator. A new skin adds itself here, and its
  * section to storySort below; its decorator and surface apply to its stories only.
  */
-const SKINS = [orbStorybook, fieldStorybook];
+const SKINS = [
+  orbStorybook,
+  fieldStorybook,
+  // new-skin: storybook setups
+];
 
 const withSkin: Decorator = (Story, ctx) => {
   const skin = SKINS.find((s) => ctx.title.startsWith(`${s.section}/`));
@@ -28,18 +33,31 @@ const preview: Preview = {
         // Every skin has the same groups in the same order, Bundles in orb only (AGENTS.md → Storybook; verify/storybook.test.ts checks).
         order: [
           "Orb", [
-            "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet"],
+            "Cards", [
+              "Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet",
+              // new-card: cards
+            ],
             "Bundles",
             "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Phone, ungrouped footprints"], "Lovelace card", "Header", "Nav bar"],
             "Foundations", ["Design rules", "Palette", "Parts", "Color temperature", "Compact rows", "Worst case"],
-            "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet"],
+            "Connected", [
+              "Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet",
+              // new-card: connected
+            ],
           ],
           "Field", [
-            "Cards", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet"],
+            "Cards", [
+              "Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet",
+              // new-card: cards
+            ],
             "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Wall panel, far", "Phone, alarm below the fold"], "Lovelace card", "Header", "Nav bar"],
             "Foundations", ["Design rules", "Palette", "Parts", "Alerts"],
-            "Connected", ["Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet"],
+            "Connected", [
+              "Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet",
+              // new-card: connected
+            ],
           ],
+          // new-skin: section order
         ],
       },
     },

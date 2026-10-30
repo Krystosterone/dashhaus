@@ -116,6 +116,7 @@ The entity's domain picks the card. One card shows one entity, though some cards
 - `alarm_control_panel`: alarm
 - `humidifier`: humidifier (a dehumidifier too)
 - `switch` with `card: sound`: sound, a sound machine's sound with its volume `number.*` found beside it
+<!-- new-card: domains -->
 
 When a domain has more than one card, `card:` picks one: `card: owlet` for a sock whose sensor is named differently, or `card: sensor` to override the default.
 

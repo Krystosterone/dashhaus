@@ -15,12 +15,13 @@
  */
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { afterLast, before, changes, fail, filler, intoObject, names, orbKinds, read, root } from "./lib.mjs";
+import { generated as generatedSkin, markers, packageFile } from "../packages.mjs";
+import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.mjs";
 import { newFieldCard } from "./field.mjs";
 import { newGeneratedCard } from "./generated.mjs";
 
-/** The skin a new card is drawn in; its logic goes outside it, in packages/core/src/entities/ and packages/core/src/ha/. */
-const SKIN = "src/skins/orb";
+/** The skin a new card is drawn in; its logic goes outside it, in @scope/core. */
+const SKIN = skinDir("orb");
 
 // ---------- Arguments ----------
 const args = process.argv.slice(2);
@@ -38,7 +39,7 @@ if (skin !== "orb") {
   const kind = flag("kind");
   const code = flag("code");
   const [skinName, ...rest] = args;
-  const generated = existsSync(join(root, `src/skins/${skin}/lovelace/registry.tsx`));
+  const generated = exists(generatedSkin.file(skin, generatedSkin.files.registry)) && exists(generatedSkin.file(skin, generatedSkin.files.manifest));
   if (!skinName || rest.length) fail(`usage: npm run new-card -- <name> --skin ${skin} [--kind control|reading] [--dry-run]`);
   if (generated && code != null) fail("--code belongs to Orb and the mature Field adapter; generated skins use their full skin and Card names as the CSS namespace");
   if (generated) newGeneratedCard({ skin, name: skinName, kind, dryRun });
@@ -61,13 +62,13 @@ const reading = kind === "reading";
 
 // ---------- Validation ----------
 const { Name, CONST, words, Label } = names(name, '"fan" or "airPurifier"');
-for (const dir of [`${SKIN}/cards`, "packages/core/src/entities"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
+for (const dir of [`${SKIN}/cards`, packageFile("core", "src/entities")]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
 // Names the dashboard stories already use as identifiers.
 if (["cell", "columns", "section", "device", "bundle", "dashboardPage", "cardGrid"].includes(name)) fail(`"${name}" is taken by the dashboard layout`);
 if (!/^[a-z]{2}$/.test(code)) fail(`code "${code}" must be two lower-case letters: the card's CSS class prefix`);
 if (!/^[a-z][a-z0-9_]*$/.test(domain)) fail(`domain "${domain}" must be a Home Assistant domain, like "fan" or "input_boolean"`);
 
-const agents = read("AGENTS.md");
+const agents = read(seams.agents);
 const taken = new Set([...agents.matchAll(/`([a-z]{2})-`/g)].map((m) => m[1]));
 for (const dir of readdirSync(join(root, SKIN, "cards")).filter((d) => statSync(join(root, SKIN, "cards", d)).isDirectory())) {
   for (const file of readdirSync(join(root, SKIN, "cards", dir)).filter((f) => f.endsWith("Card.tsx"))) {
@@ -96,13 +97,14 @@ const change = changes();
 const { writes, edit } = change;
 change.fromTemplates(["common", kind], fill);
 // The demo transport joins the package's demo barrel, the one public address for it.
-edit("packages/core/src/demo/index.ts", (s) => s + fill(`export * from "./__name__";\n`));
+edit(packageFile("core", "src/demo/index.ts"), after(markers.demoTransports, fill(`export * from "./__name__";
+`)));
 
 // ---------- Registrations ----------
 
 // The orb skin's public entry: the card, its tile and its connected tile. The shared hook, the headless
 // component and its types are registered with the Home Assistant slice below.
-edit(`${SKIN}/index.ts`, before('export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";', fill(`// __Label__
+edit(`${SKIN}/index.ts`, after(markers.skinCards, fill(`// __Label__
 export { __Name__Card, __Name__Sheet } from "./cards/__name__/__Name__Card";
 export type { __Name__CardProps, __Name__SheetProps } from "./cards/__name__/__Name__Card";
 export { __Name__Tile } from "./cards/__name__/__Name__Tile";
@@ -112,27 +114,32 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
 
 `)));
 
-edit("packages/core/src/index.ts", (s) => s + fill(`export { __name__FromHass } from "./ha/mappers/__name__";
+edit(packageFile("core", "src/index.ts"), after(markers.coreExports, fill(`export { __name__FromHass } from "./ha/mappers/__name__";
 export type { __Name__MapOptions } from "./ha/mappers/__name__";
 ${reading ? "" : `export { create__Name__Handlers } from "./ha/actions/__name__";
 export type { __Name__Handlers, __Name__HandlerOptions } from "./ha/actions/__name__";
 `}export { useHa__Name__ } from "./ha/hooks/__name__";
 export type { Ha__Name__Options, Ha__Name__Result } from "./ha/hooks/__name__";
 export { Ha__Name__ } from "./ha/headless";
-`));
+`)));
 
 // Its headless component: the hook as a component that draws nothing.
-edit("packages/core/src/ha/headless.tsx", afterLast(/^import \{ useHa\w+ \} from "\.\/hooks\/.*$/gm, fill(`import { useHa__Name__ } from "./hooks/__name__";\n`)));
-edit("packages/core/src/ha/headless.tsx", (s) => s + fill(`export const Ha__Name__ = headless(useHa__Name__, "Ha__Name__");\n`));
+const headless = packageFile("core", "src/ha/headless.tsx");
+edit(headless, after(markers.headlessImports, fill(`import { useHa__Name__ } from "./hooks/__name__";
+`)));
+edit(headless, after(markers.headlessComponents, fill(`export const Ha__Name__ = headless(useHa__Name__, "Ha__Name__");
+`)));
 
 // Every fixture runs through the real mapper.
-const fixtures = "packages/core/src/ha/mappers/fixtures.test.ts";
-edit(fixtures, afterLast(/^import \w+ from "\.\.\/fixtures\/.*$/gm, fill(`import __name__ from "../fixtures/__name__.json";\n`)));
-edit(fixtures, afterLast(/^import \{ \w+FromHass \} from "\.\/.*$/gm, fill(`import { __name__FromHass } from "./__name__";\n`)));
-edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__label__", fixture: __name__, map: __name__FromHass, keepsState: ${!reading} },`)));
+const fixtures = packageFile("core", "src/ha/mappers/fixtures.test.ts");
+edit(fixtures, after(markers.fixtureImports, fill(`import __name__ from "../fixtures/__name__.json";
+`)));
+edit(fixtures, after(markers.mapperImports, fill(`import { __name__FromHass } from "./__name__";
+`)));
+edit(fixtures, after(markers.fixtures, fill(`  { domain: "__label__", fixture: __name__, map: __name__FromHass, keepsState: ${!reading} },`)));
 
 // The per-card spec, for the author to finish.
-edit("docs/cards.md", before("## The dashboard header", fill(reading ? `## Using the __label__ card
+edit(seams.cardsDoc, before(markers.cardsDoc, fill(reading ? `## Using the __label__ card
 
 One \`__domain__.*\` reading:
 
@@ -162,27 +169,27 @@ One \`__domain__.*\` entity, switched on and off:
 `)));
 
 // The class prefix joins the hard rules.
-edit("AGENTS.md", before(". Outside the cards", `, \`${code}-\` ${words}`));
+edit(seams.agents, before(markers.orbCodes, `, \`${code}-\` ${words}`));
 
 // A card on the Lovelace dashboard. The domain picks it; when the domain already has a card, `card:` does.
 const { path: lovelace, domainKind } = orbKinds();
 const sharesDomain = domain in domainKind;
-edit(lovelace, (s) => s.replace(/^(export type Kind = .*);$/m, `$1 | "${name}";`));
-edit(lovelace, sharesDomain ? intoObject("SHARED_KINDS", `  ${name}: { domains: ["${domain}"] },`) : intoObject("DOMAIN_KIND", `  ${domain}: "${name}",`));
-edit(lovelace, before("\n);\n\nexport type ItemConfig", `\n  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));
-edit(lovelace, intoObject("KIND_SPECS", `  ${name}: { keys: [${reading ? '"unit", ' : ""}"color"], options: (read, raw, at) => ({${reading ? ' unit: read.string(raw, "unit", at),' : ""} color: readColor(read, raw, at, COLOR_NAMES) }) },`));
-const renderer = `${SKIN}/lovelace/ConfigDashboard.tsx`;
-edit(renderer, afterLast(/^import \{ Ha\w+Tile \} from "\.\.\/ha\/Ha\w+Tile";$/gm, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";\n`)));
-edit(renderer, intoObject("TILES", fill(`  __name__: (card, key) => <Ha__Name__Tile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />,`)));
+edit(lovelace, after(markers.kinds, `  | "${name}"\n`));
+edit(lovelace, after(sharesDomain ? markers.sharedKinds : markers.domainKinds, sharesDomain ? `  ${name}: { domains: ["${domain}"] },` : `  ${domain}: "${name}",`));
+edit(lovelace, after(markers.cardConfigs, `  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));
+edit(lovelace, after(markers.kindSpecs, `  ${name}: { keys: [${reading ? '"unit", ' : ""}"color"], options: (read, raw, at) => ({${reading ? ' unit: read.string(raw, "unit", at),' : ""} color: readColor(read, raw, at, COLOR_NAMES) }) },`));
+const renderer = seams.orb.renderer;
+edit(renderer, after(markers.tileImports, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";
+`)));
+edit(renderer, after(markers.tiles, fill(`  __name__: (card, key) => <Ha__Name__Tile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />,`)));
 // The automatic layout: a control on a domain of its own joins the compact controls per area.
 const placed = !reading && !sharesDomain;
 if (placed) {
-  edit(`${SKIN}/lovelace/auto.ts`, (s) => s
-    .replace(/const controls = ofDomain\(([^)]*)\);/, `const controls = ofDomain($1, "${domain}");`)
-    .replace(/const order = \[([^\]]*)\];/, `const order = [$1, "${domain}"];`));
+  edit(seams.orb.auto, after(markers.autoControls, `    "${domain}",\n`));
+  edit(seams.orb.auto, after(markers.autoOrder, `    "${domain}",\n`));
 }
-const deploy = "docs/deploy.md";
-edit(deploy, afterLast(/^- `.*`: .*$/gm, `- \`${domain}\`${sharesDomain ? ` with \`card: ${name}\`` : ""}: ${words}\n`));
+const deploy = seams.deployDoc;
+edit(deploy, after(markers.deployDomains, `- \`${domain}\`${sharesDomain ? ` with \`card: ${name}\`` : ""}: ${words}\n`));
 edit(deploy, (s) => s.replace(/^\| ([a-z0-9, ]+) \| `color` \|/m, `| $1, ${words} | \`color\` |`));
 if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | The unit, when the entity doesn't say. |\n`));
 
@@ -194,12 +201,12 @@ console.log(`Created the ${words} ${kind} card (${code}-, ${domain}.*): ${create
 
 Next:
   1. npm run storybook  →  Orb/Cards/${Name} and Orb/Connected/${Name}
-  2. Make it the ${words}: fields in packages/core/src/entities/${name}/types.ts, the card in ${Name}Card.tsx,
-     attributes in packages/core/src/ha/mappers/${name}.ts${reading ? "" : `, services in packages/core/src/ha/actions/${name}.ts`}
+  2. Make it the ${words}: fields in ${packageFile("core", `src/entities/${name}/types.ts`)}, the card in ${Name}Card.tsx,
+     attributes in ${packageFile("core", `src/ha/mappers/${name}.ts`)}${reading ? "" : `, services in ${packageFile("core", `src/ha/actions/${name}.ts`)}`}
   3. Draw its icon in ${SKIN}/cards/${name}/icons.tsx
-  4. Finish "Using the ${words} card" in docs/cards.md
-  5. Its Lovelace card: its YAML keys in ${SKIN}/lovelace/config.ts and docs/deploy.md${placed ? "" : `,
-     and its place in the automatic layout, ${SKIN}/lovelace/auto.ts`}${sharesDomain ? `
+  4. Finish "Using the ${words} card" in ${seams.cardsDoc}
+  5. Its Lovelace card: its YAML keys in ${seams.orb.config} and ${seams.deployDoc}${placed ? "" : `,
+     and its place in the automatic layout, ${seams.orb.auto}`}${sharesDomain ? `
      (${domain}.* already has a card, so a card picks this one with \`card: ${name}\`, or without it
      once its SHARED_KINDS entry has an \`id\` pattern for its entity ids, as owlet's does)` : ""}
   6. npm run check && npm run test-storybook`);

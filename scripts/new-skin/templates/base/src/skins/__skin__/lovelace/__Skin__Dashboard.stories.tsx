@@ -9,6 +9,7 @@ import type { CardConfig } from "./config";
 import type { __Skin__Footprint } from "../shared/ui";
 
 const DEMO_CARDS: CardConfig[] = [
+  // new-card: dashboard cards
 ];
 
 function Demo({ footprint = "standard" }: { footprint?: __Skin__Footprint }) {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { __Skin__Footprint } from "../shared/ui";
+// new-card: registry imports
 
 /** Common YAML facts every generated Card receives. Domain-specific options stay in its Connected adapter. */
 export interface __Skin__CardItem {
@@ -21,6 +22,7 @@ export interface __Skin__CardRegistration {
 
 /** The generated skin's one Card seam. `new-card --skin __skin__` adds imports and one registration here. */
 export const __SKIN_CONST___CARDS = {
+  // new-card: registry entries
 } satisfies Record<string, __Skin__CardRegistration>;
 
 export type __Skin__CardKind = keyof typeof __SKIN_CONST___CARDS;

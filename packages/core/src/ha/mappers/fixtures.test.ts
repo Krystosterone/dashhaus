@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { HassEntities, HassEntity } from "../types";
+// new-card: fixture imports
 import alarm from "../fixtures/alarm.json";
 import climate from "../fixtures/climate.json";
 import cover from "../fixtures/cover.json";
@@ -10,6 +11,7 @@ import weather from "../fixtures/weather.json";
 import owlet from "../fixtures/owlet.json";
 import humidifier from "../fixtures/humidifier.json";
 import sound from "../fixtures/sound.json";
+// new-card: mapper imports
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
 import { coverFromHass } from "./cover";
@@ -35,6 +37,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "owlet sleep state", fixture: owlet, map: owletFromHass, keepsState: true },
   { domain: "humidifier", fixture: humidifier, map: humidifierFromHass, keepsState: true },
   { domain: "sound", fixture: sound, map: soundFromHass, keepsState: true },
+  // new-card: fixtures
 ];
 
 describe.each(domains)("$domain fixture", ({ fixture, map, keepsState }) => {

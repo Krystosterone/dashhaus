@@ -95,6 +95,7 @@ export type { SoundTileProps } from "./cards/sound/SoundTile";
 export { HaSoundTile } from "./ha/HaSoundTile";
 export type { HaSoundTileProps } from "./ha/HaSoundTile";
 
+// new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
 

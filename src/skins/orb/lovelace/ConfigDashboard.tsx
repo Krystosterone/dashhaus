@@ -6,6 +6,7 @@ import { MAIN_PAGE, resolveNav, sectionAnchors } from "@scope/dashboard";
 import type { PanelInfo } from "@scope/dashboard";
 import { useDashboardNav } from "@scope/dashboard";
 import { JoinedBundle, LeadBundle, TitledBundle } from "../bundles/Bundle";
+// new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
 import { HaSensorTile } from "../ha/HaSensorTile";
@@ -33,6 +34,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   owlet: (card, key) => <HaOwletTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} heartRateEntityId={card.heartRate} oxygenEntityId={card.oxygen} chargingEntityId={card.charging} baseEntityId={card.baseStation} alertEntityIds={card.alerts} staleAfterMinutes={card.staleAfter} color={card.color} />,
   humidifier: (card, key) => <HaHumidifierTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} color={card.color} />,
   sound: (card, key) => <HaSoundTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} volumeEntityId={card.volume} color={card.color} />,
+  // new-card: tiles
 };
 
 /** One configured card as its connected tile. */

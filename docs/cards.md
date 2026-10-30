@@ -348,6 +348,7 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 
 `SoundModule` is the same normalized sound entity in the Field skin; `HaSoundModule` is its connected container, on the same `useHaSound` hook as `HaSoundTile`, so it finds the volume the same way (or takes `volumeEntityId`) and takes the same `onToggle` and `onVolumeChange`. The screen leads with the volume, the key spans the row, and the volume fader is in the panel only, as on the tile. See [field.md](field.md#sound).
 
+<!-- new-card: cards -->
 ## The dashboard header
 
 Not a card, so it lives with the page in `src/skins/orb/dashboards/` (`Header`, `hh-`). The top of a dashboard: its name, today's date under it, and an optional clock on the right. `DashboardPage` renders it for you; pass its props to the page:

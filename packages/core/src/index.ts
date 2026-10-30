@@ -99,3 +99,4 @@ export { soundFromHass } from "./ha/mappers/sound";
 export type { SoundMapOptions } from "./ha/mappers/sound";
 export { createSoundHandlers } from "./ha/actions/sound";
 export type { SoundHandlers, SoundHandlerOptions } from "./ha/actions/sound";
+// new-card: exports

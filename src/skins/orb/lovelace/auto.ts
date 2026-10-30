@@ -56,13 +56,25 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   const socks = sorted(visible.filter((id) => OWLET.test(id)));
 
   // Controls, one section per area, then whatever has no area.
-  const controls = ofDomain("cover", "light", "switch", "humidifier");
+  const controls = ofDomain(
+    "cover",
+    "light",
+    "switch",
+    "humidifier",
+    // new-card: auto controls
+  );
   const groups = new Map<string, string[]>();
   for (const id of controls) {
     const key = areaOf(id) ?? "";
     groups.set(key, [...(groups.get(key) ?? []), id]);
   }
-  const order = ["cover", "light", "switch", "humidifier"];
+  const order = [
+    "cover",
+    "light",
+    "switch",
+    "humidifier",
+    // new-card: auto order
+  ];
   const areaIds = [...groups.keys()].filter(Boolean).sort((a, b) => areas[a].name.localeCompare(areas[b].name));
   for (const key of [...areaIds, ""]) {
     const ids = groups.get(key);

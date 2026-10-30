@@ -2,7 +2,8 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterLast, before, changes, exists, fail, filler, names, orbKinds, read, root } from "./lib.mjs";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams } from "../packages.mjs";
+import { after, changes, exists, fail, filler, names, orbKinds, read, root, skinDir } from "./lib.mjs";
 
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
@@ -36,20 +37,21 @@ const summaryFor = (entity) => {
 export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: suppliedChange }) {
   const { Name, CONST, words, Label } = names(name, '"light"');
   const { Skin, Section, skinVar, SKIN_CONST } = skinNames(skin);
-  const SKIN = `src/skins/${skin}`;
-  const registryPath = `${SKIN}/lovelace/registry.tsx`;
+  const SKIN = generatedSkin.dir(skin);
+  const registryPath = generatedSkin.file(skin, generatedSkin.files.registry);
   const change = suppliedChange ?? changes();
+  if (!change.exists(generatedSkin.file(skin, generatedSkin.files.manifest))) fail(`${skin} is not a generated skin package: ${generatedSkin.file(skin, generatedSkin.files.manifest)} is missing. Start it with npm run new-skin -- ${skin}`);
   if (!change.exists(registryPath)) fail(`${skin} is not a generated skin: ${registryPath} is missing. Start it with npm run new-skin -- ${skin}`);
   if (change.exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
 
-  const typesPath = `packages/core/src/entities/${name}/types.ts`;
+  const typesPath = packageFile("core", `src/entities/${name}/types.ts`);
   if (!exists(typesPath)) fail(`${typesPath} doesn't exist. A generated skin draws a shared domain that already exists`);
   const types = read(typesPath);
   const entity = shape(types, `${Name}Entity`);
   const history = shape(types, `${Name}History`);
   if (!entity || !history) fail(`${typesPath} must export ${Name}Entity and ${Name}History`);
 
-  const hookPath = `packages/core/src/ha/hooks/${name}.ts`;
+  const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
   if (!exists(hookPath)) fail(`${hookPath} doesn't exist: generated skins reach Home Assistant through useHa${Name}`);
   const hook = read(hookPath);
   const options = shape(hook, `Ha${Name}Options`);
@@ -57,7 +59,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   const required = [...options.matchAll(/^\s+(\w+): /gm)].map((match) => match[1]);
   if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated Card can't know`);
 
-  const actionsPath = `packages/core/src/ha/actions/${name}.ts`;
+  const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
   const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : "";
   const zeroArg = [...handlers.matchAll(/^\s+(on\w+)\??:\s*\(\)\s*=>/gm)].map((match) => match[1]);
   const kind = askedKind ?? (zeroArg.length ? "control" : "reading");
@@ -65,7 +67,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   if (kind === "control" && !zeroArg.length) fail(`${Name}Handlers has no zero-argument action a neutral Card can expose. Use --kind reading`);
   const actions = kind === "control" ? zeroArg : [];
 
-  const orbDir = `src/skins/orb/cards/${name}`;
+  const orbDir = `${skinDir("orb")}/cards/${name}`;
   const demoDir = `${orbDir}/demo`;
   if (!exists(demoDir)) fail(`${demoDir} doesn't exist: generated skins copy skin-independent demo seeds from Orb`);
   const candidates = readdirSync(join(root, demoDir)).filter((file) => file.endsWith(".ts"));
@@ -80,7 +82,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
     if (path.startsWith("../../../../../")) return line;
     const imported = list.split(",").map((item) => item.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((item) => ["HourSample", "Reading"].includes(item))) return `import type {${list}} from "@scope/core/entities/history";`;
+    if (path === "../../../shared/ui" && isType && imported.every((item) => ["HourSample", "Reading"].includes(item))) return `import type {${list}} from "${packageSpecifier("core", "entities/history")}";`;
     fail(`${demoDir}/${seedFile} imports ${path}, which belongs to Orb; move what it needs to a shared module first`);
   });
   seeds = `// Copied from Orb by \`npm run new-card -- ${name} --skin ${skin}\`; this skin owns its Seeds from here.\n${seeds}`;
@@ -93,12 +95,12 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   if (!unavailableSeed || !firstSeed) fail(`${seedConst} needs available and unavailable examples`);
   if (!hasHook && !/\bhistory\s*:/.test(shape(seeds, seedType) ?? "")) fail(`${seedType} needs history when it has no useDemo${Name}`);
 
-  const orbStoryPath = `src/skins/orb/ha/Ha${Name}Tile.stories.tsx`;
+  const orbStoryPath = `${skinDir("orb")}/ha/Ha${Name}Tile.stories.tsx`;
   const orbStory = exists(orbStoryPath) ? read(orbStoryPath) : "";
   const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@scope\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${orbStoryPath} must import a demo transport and draw an entityId`);
-  const fixturePath = `packages/core/src/ha/fixtures/${name}.json`;
+  const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist`);
   const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
   if (!fixtureId) fail(`${fixturePath} has no available entity`);
@@ -143,34 +145,33 @@ ${actionRows}
   change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // The Card registry is the runtime and generator seam: routing plus the Connected adapter in one row.
-  change.edit(registryPath, afterLast(/^import .*$/gm, fill(`import { Ha__Skin____Name__Card } from "../ha/Ha__Skin____Name__Card";\n`)));
-  change.edit(registryPath, before("\n} satisfies Record<string,", fill(`\n  __name__: { domains: [${domains.map((domain) => `"${domain}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""}, render: (item, footprint) => <Ha__Skin____Name__Card entityId={item.entity}${commonLive} footprint={footprint} /> },`)));
+  change.edit(registryPath, after(markers.registryImports, fill(`import { Ha__Skin____Name__Card } from "../ha/Ha__Skin____Name__Card";
+`)));
+  change.edit(registryPath, after(markers.registryEntries, fill(`  __name__: { domains: [${domains.map((domain) => `"${domain}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""}, render: (item, footprint) => <Ha__Skin____Name__Card entityId={item.entity}${commonLive} footprint={footprint} /> },`)));
 
-  change.edit(`${SKIN}/index.ts`, before("// Cards", fill(`export { __Skin____Name__Card } from "./cards/__name__/__Skin____Name__Card";\nexport type { __Skin____Name__CardProps } from "./cards/__name__/__Skin____Name__Card";\nexport { Ha__Skin____Name__Card } from "./ha/Ha__Skin____Name__Card";\nexport type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";\n`)));
+  change.edit(generatedSkin.file(skin, generatedSkin.files.entry), after(markers.skinCards, fill(`export { __Skin____Name__Card } from "./cards/__name__/__Skin____Name__Card";
+export type { __Skin____Name__CardProps } from "./cards/__name__/__Skin____Name__Card";
+export { Ha__Skin____Name__Card } from "./ha/Ha__Skin____Name__Card";
+export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
+`)));
 
   // Static Storybook ordering and the design-rules page.
-  change.edit(".storybook/preview.tsx", (source) => {
+  change.edit(seams.preview, (source) => {
     const start = source.indexOf(`"${Section}", [`);
     if (start === -1) return source;
-    const prefix = source.slice(0, start);
-    let own = source.slice(start);
-    for (const group of ["Cards", "Connected"]) {
-      const bare = new RegExp(`"${group}",(?=\\n)`);
-      const listed = new RegExp(`("${group}", \\[[^\\]]*)\\]`);
-      own = bare.test(own) ? own.replace(bare, `"${group}", ["${Name}"],`) : own.replace(listed, `$1, "${Name}"]`);
-    }
-    return prefix + own;
+    const own = source.slice(start);
+    const insert = (marker) => after(marker, `              "${Name}",\n`);
+    return source.slice(0, start) + insert(markers.previewConnected)(insert(markers.previewCards)(own));
   });
   const rules = `${SKIN}/stories/DesignRules.mdx`;
-  change.edit(rules, (source) => /^import \* as \w+ from "\.\.\/cards\/.*$/m.test(source)
-    ? afterLast(/^import \* as \w+ from "\.\.\/cards\/.*$/gm, fill(`import * as __Name__ from "../cards/__name__/__Skin____Name__Card.stories";\n`))(source)
-    : source.replace('import * as Examples from "../dashboards/Examples.stories";', fill('import * as Examples from "../dashboards/Examples.stories";\nimport * as __Name__ from "../cards/__name__/__Skin____Name__Card.stories";')));
-  change.edit(rules, before("\n  }}", fill(`\n    __Label__: [__Name__.AllStates, __Name__.Footprints],`)));
+  change.edit(rules, after(markers.designRuleImports, fill(`import * as __Name__ from "../cards/__name__/__Skin____Name__Card.stories";
+`)));
+  change.edit(rules, after(markers.designRuleStories, fill(`    __Label__: [__Name__.AllStates, __Name__.Footprints],`)));
   if (change.exists(`${SKIN}/cards/Empty.stories.tsx`)) change.remove(`${SKIN}/cards/Empty.stories.tsx`);
   if (change.exists(`${SKIN}/ha/Empty.stories.tsx`)) change.remove(`${SKIN}/ha/Empty.stories.tsx`);
 
-  change.edit(`docs/${skin}.md`, (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
-  change.edit("docs/cards.md", (source) => {
+  change.edit(seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
+  change.edit(seams.cardsDoc, (source) => {
     const at = source.indexOf(`## Using the ${words} card`);
     if (at === -1) return source;
     const next = source.indexOf("\n## ", at + 1);
@@ -178,7 +179,7 @@ ${actionRows}
     return `${source.slice(0, end).trimEnd()}\n\n### ${Section} ${words} Card\n\n\`${Skin}${Name}Card\` is the ${Section} skin's neutral drawing of the shared \`${Name}Entity\`; \`Ha${Skin}${Name}Card\` connects the same \`useHa${Name}\` hook. See [${skin}.md](${skin}.md#${words.replace(/ /g, "-")}).\n\n${source.slice(end)}`;
   });
   const dashboardStory = `${SKIN}/lovelace/${Skin}Dashboard.stories.tsx`;
-  change.edit(dashboardStory, before("\n];", `\n  { entity: "${entityId}", kind: "${name}" },`));
+  change.edit(dashboardStory, after(markers.dashboardCards, `  { entity: "${entityId}", kind: "${name}" },`));
 
   if (suppliedChange) return { Name, Skin, Section, writes: change.writes };
   if (!change.commit(dryRun)) return;

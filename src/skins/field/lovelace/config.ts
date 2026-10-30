@@ -128,7 +128,19 @@ export const mapModules = (blocks: readonly BlockConfig[], fn: (m: ModuleConfig)
 };
 
 /** Field's cards, by the name they share with their domain model (`packages/core/src/entities/<kind>/`). */
-export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover" | "alarm" | "owlet";
+export type FieldKind =
+  | "light"
+  | "climate"
+  | "sensor"
+  | "weather"
+  | "toggle"
+  | "humidifier"
+  | "sound"
+  | "cover"
+  | "alarm"
+  | "owlet"
+  // new-card: kinds
+  ;
 
 interface KindSpec {
   /** The Home Assistant domains it draws. */
@@ -154,6 +166,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   cover: { domains: ["cover"] },
   alarm: { domains: ["alarm_control_panel"] },
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
+  // new-card: field kinds
 };
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+// new-card: headless imports
 import { useHaLight } from "./hooks/light";
 import { useHaClimate } from "./hooks/climate";
 import { useHaWeather } from "./hooks/weather";
@@ -40,3 +41,4 @@ export const HaAlarm = headless(useHaAlarm, "HaAlarm");
 export const HaOwlet = headless(useHaOwlet, "HaOwlet");
 export const HaHumidifier = headless(useHaHumidifier, "HaHumidifier");
 export const HaSound = headless(useHaSound, "HaSound");
+// new-card: headless components

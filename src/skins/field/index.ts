@@ -62,4 +62,5 @@ export type { OwletModuleProps } from "./cards/owlet/OwletModule";
 export { HaOwletModule } from "./ha/HaOwletModule";
 export type { HaOwletModuleProps } from "./ha/HaOwletModule";
 
+// new-card: card exports
 export type { FieldFootprint } from "./shared/ui";
