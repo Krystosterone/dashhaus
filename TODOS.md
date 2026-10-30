@@ -16,3 +16,9 @@
   - No street address or home-network address turned up in the current tree, and `.env` was never committed (only `.env.example`), so the Home Assistant URL and credentials are not in history.
   - Do the history rewrite while the repo is private: `git filter-repo --replace-text` (names, ids, home path) and `--mail-map` (author), then force-push. Old clones, forks and GitHub's cached commits keep copies, so ask GitHub support to purge them after.
   - Verify: `git grep -i nova` for the tree and `git log -p -i -S nova` for history on the rewritten repo.
+- [ ] Add CI, so every push and pull request runs the gate instead of trusting the machine that wrote the change.
+  - First pin the toolchain: there is no `engines` field or `.nvmrc`; add both (Node 24 LTS unless the deploy host needs otherwise) and pin the npm major, so CI and local runs use the same runtime.
+  - `.github/workflows/ci.yml` on `push` and `pull_request`: `actions/setup-node` with npm cache, `npm ci`, then `npm run check`, `npm run build:ha` and `npm run test-storybook` (`npx playwright install --with-deps chromium`, with `~/.cache/ms-playwright` cached on the Playwright version).
+  - One job until timings justify splitting; `test-storybook` already builds the static Storybook, so do not run `build-storybook` again.
+  - Add the workflow status badge to `README.md`, then require the job to pass before merge.
+  - Verify by pushing a deliberately broken branch (a type error and a failing story) and confirming both fail with the rule and element named.
