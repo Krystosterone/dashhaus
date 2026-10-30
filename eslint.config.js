@@ -159,6 +159,20 @@ export default tseslint.config(
     },
   },
   {
+    // The deploy CLI is Node-only: it bundles and loads the user's config, and never imports a skin or a browser
+    // package. The repo's config is the one file that reaches a skin's generated layout.
+    files: ["packages/deploy/**/*.mjs"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          { group: ["@scope/core", "@scope/core/*", "@scope/dashboard", "@scope/dashboard/*"], message: "Deploy is Node-only; the user's config imports the dashboard surface, not the CLI." },
+          { group: ["**/skins/**", "**/src/skins/**"], message: "Deploy loads the user's config; it never imports a skin." },
+          { group: ["**/packages/**"], message: "Deploy never imports a package's source; it bundles the user's config." },
+        ],
+      }],
+    },
+  },
+  {
     // A skin's cards, layout, foundations and stories never see the connected layer. Only its ha/ containers, its
     // lovelace/ card and its index.ts may import @scope/core's Home Assistant subpaths, and only lovelace/ may import
     // @scope/dashboard; verify/boundaries.test.ts checks the skin-to-skin half.

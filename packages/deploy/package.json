@@ -1,0 +1,22 @@
+{
+  "name": "@scope/deploy",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "home-dashboard-deploy": "./bin.mjs"
+  },
+  "exports": {
+    ".": "./src/deploy.mjs"
+  },
+  "files": [
+    "bin.mjs",
+    "src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "esbuild": "0.25.12"
+  }
+}

@@ -2,7 +2,8 @@
 // follows. Settings stay in `.env` (see `.env.example`); each dashboard may name the keys that override its path and
 // sidebar title. Deploy never overwrites a dashboard whose layout exists, so changing a card factory affects the
 // first creation only.
-import { generatedDashboards } from "./scripts/deploy/config.mjs";
+import { execFileSync } from "node:child_process";
+import { generatedDashboards } from "@scope/dashboard/cli";
 import { GENERATED_SKINS } from "./scripts/generated-skins.mjs";
 import { autoDashboard } from "./src/skins/orb/lovelace/auto.ts";
 
@@ -15,6 +16,12 @@ const PAGE_TITLE = "Home";
  */
 export default {
   pageTitle: PAGE_TITLE,
+  // The file the CLI uploads; its folder and name make the resource URL.
+  bundle: "dist/home-dashboard.js",
+  // The repo's build stays the config's, not the CLI's. Runs in this file's directory.
+  build() {
+    execFileSync("npx", ["vite", "build", "-c", "vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
+  },
   dashboards: [
     {
       path: "home-dashboard",

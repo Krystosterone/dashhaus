@@ -651,3 +651,43 @@ C4 uses `dashboard.config.mjs`, plain JavaScript, so deploy itself imports no
 C4 is therefore reliable for the workspace install (`npm ci`) and still depends
 on that symlink. A packed or published install needs the built JS output owned
 by C5, or a bundled config; C4 adds no build step.
+
+### C5 measurement: the deploy CLI (2026-10-30)
+
+Measured on Node 26.6.0. The deploy code moved from `scripts/deploy.mjs` and
+`scripts/deploy/` into `packages/deploy` (`@scope/deploy`, bin
+`home-dashboard-deploy`). The config-authoring surface — `generatedDashboards`
+and the `DeployConfig`/`DeployDashboard`/`DeployHa` types — moved to
+`packages/dashboard/src/cli.ts` (`@scope/dashboard/cli`). `scripts/` keeps only
+the repo's own registration (`generated-skins.mjs`) and its generators.
+
+- Config loading bundles the user's config with esbuild before importing it. A
+  config may be JavaScript or TypeScript, may live outside the repo, and may
+  import packages; relative imports resolve from the config's directory. This
+  removes the Node type-stripping dependency C4 measured.
+- Build ownership is the config's: `bundle` names the uploaded file, and an
+  optional `build()` runs in the config's directory. The CLI hardcodes no Vite
+  path. This repo's config declares `dist/home-dashboard.js` and the same
+  `npx vite build -c vite.lovelace.config.ts` build, so its resource URL is
+  unchanged: `/local/home-dashboard/home-dashboard.js`.
+- The resource folder is the bundle's basename without its extension, and the
+  file name is the bundle's basename. The panel view, `.env` overrides, hyphen
+  and uniqueness rules and no-overwrite reconciliation are unchanged.
+- Clean `npm ci` in a fresh copy: `node packages/deploy/bin.mjs --help` and
+  `npx home-dashboard-deploy --help` list both dashboards.
+- The same clean install with `node_modules/@scope/dashboard` replaced by a
+  non-symlinked copy: help still lists both dashboards, because esbuild reads
+  the copied `.ts` sources. The `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`
+  failure recorded under C4 no longer occurs for the config path.
+- `verify/deploy-package.test.ts` repeats the copied-install check in the repo
+  (`lstat` confirms a real directory) and holds the package to Node-only
+  imports. `packages/deploy/src/*.test.ts` covers the loader, `.env` overrides,
+  both path failures, build ownership, upload, resource registration and a
+  two-run fake websocket that creates then never overwrites a layout.
+
+Differences from the package map: `@scope/dashboard/cli` is the
+config-authoring surface (`generatedDashboards` and types), not the `@hd/tools`
+generator home; generator work stays in `scripts/` under C5b. `panelView` stays
+in `@scope/deploy` so the CLI imports no dashboard package. The CLI's `.`
+export re-exports the loader and its types for embedding and tests; the bin is
+the product entry.

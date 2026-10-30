@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./card": "./src/card.tsx",
     "./schema": "./src/schema.ts",
-    "./layout": "./src/layout.ts"
+    "./layout": "./src/layout.ts",
+    "./cli": "./src/cli.ts"
   },
   "dependencies": {
     "@scope/core": "*"

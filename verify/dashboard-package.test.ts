@@ -7,6 +7,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
+import * as cli from "@scope/dashboard/cli";
 import * as layout from "@scope/dashboard/layout";
 import * as schema from "@scope/dashboard/schema";
 
@@ -80,20 +81,20 @@ function declared(spec: string): boolean {
 }
 
 describe("@scope/dashboard", () => {
-  it("declares its four entries and is side-effect free", () => {
+  it("declares its five entries and is side-effect free", () => {
     expect(packageJson.name).toBe("@scope/dashboard");
     expect(packageJson.version).toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
-    expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout"]);
+    expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout", "./cli"]);
   });
 
-  it("exposes the card frame, the card schema and the layout on subpaths of their own", () => {
-    for (const subpath of ["./card", "./schema", "./layout"]) {
+  it("exposes the card frame, the card schema, the layout and the CLI on subpaths of their own", () => {
+    for (const subpath of ["./card", "./schema", "./layout", "./cli"]) {
       expect(packageJson.exports[subpath]).toBeTypeOf("string");
       expect(packageJson.exports[subpath]).not.toBe(packageJson.exports["."]);
     }
-    expect(new Set(Object.values(packageJson.exports)).size).toBe(4);
+    expect(new Set(Object.values(packageJson.exports)).size).toBe(5);
   });
 
   it("exposes exactly the schema's public words", () => {
@@ -134,8 +135,12 @@ describe("@scope/dashboard", () => {
     ]);
   });
 
-  it("keeps the schema and layout pure, so a Node config can import them", () => {
-    for (const subpath of ["./schema", "./layout"]) {
+  it("exposes exactly the CLI's public words", () => {
+    expect(Object.keys(cli).sort()).toEqual(["generatedDashboards"]);
+  });
+
+  it("keeps the schema, layout and CLI pure, so a Node config can import them", () => {
+    for (const subpath of ["./schema", "./layout", "./cli"]) {
       const target = packageJson.exports[subpath];
       const { files, packages, outside } = graph([`${PACKAGE}/${target.replace(/^\.\//, "")}`]);
       expect(outside, `${subpath} has no relative import that leaves the package`).toEqual([]);

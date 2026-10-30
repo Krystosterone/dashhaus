@@ -8,7 +8,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build:ha": "vite build -c vite.lovelace.config.ts",
-    "deploy": "node scripts/deploy.mjs",
+    "deploy": "home-dashboard-deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
@@ -23,7 +23,8 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "@scope/core": "*",
-    "@scope/dashboard": "*"
+    "@scope/dashboard": "*",
+    "@scope/deploy": "*"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
