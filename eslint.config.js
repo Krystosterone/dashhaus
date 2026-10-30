@@ -20,8 +20,17 @@ const coreHa = {
   ],
 };
 const noIndex = [{ group: ["**/index"], message: "Import the module directly, not the public barrel." }];
-const noOtherSkin = [{ group: ["**/skins/**"], message: "Skins never import each other; what two skins share goes in @scope/core." }];
+const noOtherSkin = [{ group: ["**/skins/**"], message: "Skins never import each other; what two skins share goes in @scope/core or @scope/dashboard." }];
 const noDeepCore = [{ group: ["@scope/core/src/*", "@scope/core/ha/*"], message: "Import a declared @scope/core subpath, not a file inside it." }];
+/** Another workspace package is crossed by its declared subpaths, never a file inside it. */
+const noDeepPackage = [{ group: ["@scope/*/src/**", "@scope/*/ha/**"], message: "Import a declared @scope subpath, not a file inside a package." }];
+/** No relative import crosses into a workspace package: the boundary has a package specifier. */
+const noPackageRelative = [
+  ...noCoreRelative,
+  { group: ["**/packages/dashboard", "**/packages/dashboard/**"], message: "Cross the package boundary with @scope/dashboard." },
+];
+/** @scope/dashboard is the Lovelace framework: only a skin's lovelace/ card draws on it. */
+const noDashboard = [{ group: ["@scope/dashboard", "@scope/dashboard/*"], message: "Only a skin's lovelace/ imports @scope/dashboard; cards, dashboards and stories stay presentation-only." }];
 
 export default tseslint.config(
   { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
@@ -128,9 +137,27 @@ export default tseslint.config(
     rules: { "no-restricted-imports": ["error", { patterns: [...noSkin("The headless package never imports a skin."), ...noWebsocket, ...noCoreRelative] }] },
   },
   {
+    // The Lovelace framework: core's declared subpaths, React and react-dom, never a skin, a stylesheet or the
+    // websocket client, and it crosses packages by specifier. verify/dashboard-package.test.ts holds the entry to
+    // that interface.
+    files: ["packages/dashboard/src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          { group: ["@scope/dashboard", "@scope/dashboard/*"], message: "Inside @scope/dashboard, import relatively." },
+          { group: ["../../**"], message: "Cross the package boundary with @scope/core/…" },
+          ...noSkin("The dashboard framework is skin-free and CSS-free."),
+          ...noWebsocket,
+          ...noDeepPackage,
+          ...noPackageRelative,
+        ],
+      }],
+    },
+  },
+  {
     // A skin's cards, layout, foundations and stories never see the connected layer. Only its ha/ containers, its
-    // lovelace/ card and its index.ts may import @scope/core's Home Assistant subpaths; verify/boundaries.test.ts
-    // checks the skin-to-skin half.
+    // lovelace/ card and its index.ts may import @scope/core's Home Assistant subpaths, and only lovelace/ may import
+    // @scope/dashboard; verify/boundaries.test.ts checks the skin-to-skin half.
     files: ["src/skins/**/*.{ts,tsx}"],
     ignores: ["src/skins/*/ha/**", "src/skins/*/lovelace/**", "src/skins/*/index.ts"],
     rules: {
@@ -140,46 +167,50 @@ export default tseslint.config(
           ...coreHa.patterns,
           { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @scope/core/websocket imports the Home Assistant websocket client." },
           ...noOtherSkin,
+          ...noDashboard,
           ...noIndex,
           ...noDeepCore,
-          ...noCoreRelative,
+          ...noPackageRelative,
         ],
       }],
     },
   },
   {
-    // A skin's connected containers, Lovelace card and entry may reach Home Assistant, but only through core's
-    // declared subpaths and never through another skin.
-    files: ["src/skins/*/ha/**/*.{ts,tsx}", "src/skins/*/lovelace/**/*.{ts,tsx}", "src/skins/*/index.ts"],
+    // A skin's connected containers and entry reach Home Assistant, but only through core's declared subpaths and
+    // never through another skin; the Lovelace framework belongs to its lovelace/ card.
+    files: ["src/skins/*/ha/**/*.{ts,tsx}", "src/skins/*/index.ts"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @scope/core/websocket." },
+          ...noOtherSkin,
+          ...noDashboard,
+          ...noDeepCore,
+          ...noIndex,
+          ...noPackageRelative,
+        ],
+      }],
+    },
+  },
+  {
+    // A skin's Lovelace card is the one place that draws on @scope/dashboard; it still imports no other skin and no
+    // file inside either package.
+    files: ["src/skins/*/lovelace/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
           { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @scope/core/websocket." },
           ...noOtherSkin,
           ...noDeepCore,
+          ...noDeepPackage,
           ...noIndex,
-          ...noCoreRelative,
+          ...noPackageRelative,
         ],
       }],
     },
   },
   {
-    // The shared Lovelace slice stays at the root for the future dashboard: it may import core, never a skin.
-    files: ["src/ha/lovelace/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-imports": ["error", {
-        patterns: [
-          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @scope/core/websocket." },
-          { group: ["**/skins/**"], message: "Keep the Lovelace slice skin-free." },
-          ...noDeepCore,
-          ...noIndex,
-          ...noCoreRelative,
-        ],
-      }],
-    },
-  },
-  {
-    // The root apps and repo checks consume the package through its declared subpaths only.
+    // The root apps, repo checks and generators consume the packages through their declared subpaths only.
     files: ["apps/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}", "verify/**/*.ts", "scripts/**/*.ts"],
-    rules: { "no-restricted-imports": ["error", { patterns: [...noCoreRelative] }] },
+    rules: { "no-restricted-imports": ["error", { patterns: [...noPackageRelative] }] },
   },);
