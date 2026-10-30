@@ -1,5 +1,5 @@
-import type { AutoEntityEntry } from "../../../ha/lovelace/element";
-import { roomSensors } from "../../../ha/lovelace/rooms";
+import type { AutoEntityEntry } from "../../../ha/lovelace";
+import { roomSensors } from "../../../ha/lovelace";
 import { kindOf } from "./config";
 import type { ModuleConfig, SectionConfig } from "./config";
 

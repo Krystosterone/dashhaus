@@ -1,6 +1,6 @@
-import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace/yaml";
-import type { NavEntry } from "../../../ha/lovelace/nav";
-import type { Raw } from "../../../ha/lovelace/yaml";
+import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace";
+import type { NavEntry } from "../../../ha/lovelace";
+import type { Raw } from "../../../ha/lovelace";
 import { __skinVar__CardKindsFor, __skinVar__KindOf } from "./registry";
 import type { __Skin__CardItem } from "./registry";
 import type { __Skin__Footprint } from "../shared/ui";

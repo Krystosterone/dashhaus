@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DashboardConfigError } from "../../../ha/lovelace/yaml";
+import { DashboardConfigError } from "../../../ha/lovelace";
 import { mapModules, modulesOf, parseFieldConfig } from "./config";
 
 const problems = (raw: unknown) => {

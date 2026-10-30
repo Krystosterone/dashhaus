@@ -1,6 +1,6 @@
-import { LovelaceDashboardElement, autoInput, registerCard } from "../../../ha/lovelace/element";
-import type { LovelaceHass } from "../../../ha/lovelace/element";
-import { scopeToHost } from "../../../ha/lovelace/styles";
+import { LovelaceDashboardElement, autoInput, registerCard } from "../../../ha/lovelace";
+import type { LovelaceHass } from "../../../ha/lovelace";
+import { scopeToHost } from "../../../ha/lovelace";
 import { mapModules, parseFieldConfig } from "./config";
 import type { BlockConfig, FieldConfig, ModuleConfig, PageConfig } from "./config";
 import { areaName, areaSections, autoModules } from "./auto";

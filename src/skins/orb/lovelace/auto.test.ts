@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { autoDashboard, lovelaceDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
-import { roomSensors } from "../../../ha/lovelace/rooms";
+import { roomSensors } from "../../../ha/lovelace";
 import type { SectionConfig } from "./config";
 
 const state = (entity_id: string, attributes: Record<string, unknown> = {}): AutoState => ({ entity_id, state: "on", attributes });

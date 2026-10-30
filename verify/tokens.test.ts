@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { scopeToHost } from "../src/ha/lovelace/styles";
+import { scopeToHost } from "../src/ha/lovelace";
 
 const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 

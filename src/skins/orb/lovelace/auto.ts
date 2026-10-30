@@ -9,8 +9,8 @@ export interface AutoState {
 }
 
 /** Registry facts per entity, as `hass.entities` holds them; defined with the element every card shares. */
-export type { AutoEntityEntry } from "../../../ha/lovelace/element";
-import type { AutoEntityEntry } from "../../../ha/lovelace/element";
+export type { AutoEntityEntry } from "../../../ha/lovelace";
+import type { AutoEntityEntry } from "../../../ha/lovelace";
 
 export interface AutoInput {
   states: Record<string, AutoState>;

@@ -1,6 +1,6 @@
-import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace/yaml";
-import type { NavEntry } from "../../../ha/lovelace/nav";
-import type { Raw } from "../../../ha/lovelace/yaml";
+import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace";
+import type { NavEntry } from "../../../ha/lovelace";
+import type { Raw } from "../../../ha/lovelace";
 import type { ToggleIcon } from "@scope/core/entities/toggle/types";
 import type { OwletAlert } from "@scope/core/entities/owlet/types";
 import { OWLET_ALERT_SUFFIX } from "@scope/core";

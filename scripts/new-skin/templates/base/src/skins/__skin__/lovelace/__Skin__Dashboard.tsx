@@ -1,7 +1,7 @@
 import { useMemo, useRef } from "react";
-import { MAIN_PAGE, resolveNav, sectionAnchors } from "../../../ha/lovelace/nav";
-import type { NavEntry, PanelInfo } from "../../../ha/lovelace/nav";
-import { useDashboardNav } from "../../../ha/lovelace/useDashboardNav";
+import { MAIN_PAGE, resolveNav, sectionAnchors } from "../../../ha/lovelace";
+import type { NavEntry, PanelInfo } from "../../../ha/lovelace";
+import { useDashboardNav } from "../../../ha/lovelace";
 import { render__Skin__Card } from "./registry";
 import { __Skin__Cell, __Skin__Columns, __Skin__Page, __Skin__Section } from "../dashboards/layout";
 import { __Skin__NavBar } from "../dashboards/NavBar";
