@@ -37,6 +37,12 @@
       "types": "./dist/cli.d.ts",
       "import": "./dist/cli.js",
       "default": "./dist/cli.js"
+    },
+    "./conformance": {
+      "source": "./src/conformance.ts",
+      "types": "./dist/conformance.d.ts",
+      "import": "./dist/conformance.js",
+      "default": "./dist/conformance.js"
     }
   },
   "dependencies": {

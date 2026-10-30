@@ -8,6 +8,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as cli from "@dashhaus/dashboard/cli";
+import * as conformance from "@dashhaus/dashboard/conformance";
 import * as layout from "@dashhaus/dashboard/layout";
 import * as schema from "@dashhaus/dashboard/schema";
 
@@ -29,6 +30,8 @@ const runtime = (path: string) => read(path)
   .replace(/^\s*import\s+type\b[^;]*?;?\s*$/gm, "")
   .replace(/^\s*export\s+type\b[^;]*?;?\s*$/gm, "");
 const specs = (path: string) => JS_SPECS.flatMap((pattern) => [...runtime(path).matchAll(pattern)].map((match) => match[1]));
+/** The stylesheet imports of a source file; a string that merely names a `.css` file is not an import. */
+const stylesheets = (path: string) => specs(path).filter((spec) => /\.(css|scss|less)$/.test(spec));
 
 function resolveSpecifier(spec: string, from: string): string | undefined {
   if (!spec.startsWith(".")) return undefined;
@@ -73,6 +76,9 @@ const sourceTarget = (subpath: string) => {
 };
 
 const entries = () => Object.keys(packageJson.exports).map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
+/** The entries a browser may load. `./conformance` reads a skin's files, so it is Node- and test-only. */
+const BROWSER_ENTRIES = [".", "./card", "./schema", "./layout", "./cli"];
+const browserEntries = () => BROWSER_ENTRIES.map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
 
 /** Whether a bare specifier names a subpath its package declares, wildcard exports included. */
 function declared(spec: string): boolean {
@@ -87,27 +93,28 @@ function declared(spec: string): boolean {
 }
 
 describe("@dashhaus/dashboard", () => {
-  it("declares its five entries, its built files and its release metadata", () => {
+  it("declares its six entries, its built files and its release metadata", () => {
     expect(packageJson.name).toBe("@dashhaus/dashboard");
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
     expect(packageJson.files).toEqual(["dist"]);
-    expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout", "./cli"]);
+    expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout", "./cli", "./conformance"]);
     expect(packageJson.dependencies["@dashhaus/core"]).toBe(`^${packageJson.version}`);
   });
 
-  it("exposes the card frame, the card schema, the layout and the CLI on subpaths of their own", () => {
-    for (const subpath of ["./card", "./schema", "./layout", "./cli"]) {
+  it("exposes the card frame, the card schema, the layout, the CLI and the conformance preset on subpaths of their own", () => {
+    const subpaths = ["./card", "./schema", "./layout", "./cli", "./conformance"];
+    for (const subpath of subpaths) {
       expect(sourceTarget(subpath)).toMatch(new RegExp(`^\\./src/.+\\.tsx?$`));
       expect(sourceTarget(subpath)).not.toBe(sourceTarget("."));
       expect(packageJson.exports[subpath].types).toMatch(new RegExp(`^\\./dist/.+\\.d\\.ts$`));
       expect(packageJson.exports[subpath].import).toMatch(new RegExp(`^\\./dist/.+\\.js$`));
       expect(packageJson.exports[subpath].default).toBe(packageJson.exports[subpath].import);
     }
-    expect(new Set([".", "./card", "./schema", "./layout", "./cli"].map(sourceTarget)).size).toBe(5);
-    expect(new Set([".", "./card", "./schema", "./layout", "./cli"].map((subpath) => packageJson.exports[subpath].import)).size).toBe(5);
+    expect(new Set([".", ...subpaths].map(sourceTarget)).size).toBe(subpaths.length + 1);
+    expect(new Set([".", ...subpaths].map((subpath) => packageJson.exports[subpath].import)).size).toBe(subpaths.length + 1);
   });
 
   it("exposes exactly the schema's public words", () => {
@@ -152,27 +159,43 @@ describe("@dashhaus/dashboard", () => {
     expect(Object.keys(cli).sort()).toEqual(["generatedDashboards"]);
   });
 
+  it("exposes exactly the conformance preset's public words", () => {
+    expect(Object.keys(conformance).sort()).toEqual(["cardFolders", "checkCards", "strayClasses"]);
+  });
+
   it("keeps the schema, layout and CLI pure, so a Node config can import them", () => {
     for (const subpath of ["./schema", "./layout", "./cli"]) {
       const { files, packages, outside } = graph([`${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`]);
       expect(outside, `${subpath} has no relative import that leaves the package`).toEqual([]);
       expect(packages, `${subpath} reaches no React, DOM or Home Assistant package`).toEqual([]);
       expect(files.filter((file) => file.includes("/skins/")), `${subpath} is skin-free`).toEqual([]);
-      expect(files.filter((file) => /\.(css|scss|less)["']/.test(read(file))), `${subpath} imports no stylesheet`).toEqual([]);
+      expect(files.filter((file) => stylesheets(file).length > 0), `${subpath} imports no stylesheet`).toEqual([]);
     }
   });
 
-  it("keeps every reachable file inside the package, with no CSS, no skin and no Node builtin", () => {
-    const { files, packages, outside } = graph(entries());
+  it("keeps every reachable file inside the package, with no CSS and no skin", () => {
+    const { files, outside } = graph(entries());
     expect(files.length).toBeGreaterThan(0);
     expect(outside, "no relative import leaves @dashhaus/dashboard").toEqual([]);
     expect(files.filter((file) => file.includes("/skins/")), "the framework is skin-free").toEqual([]);
-    expect(files.filter((file) => /\.(css|scss|less)["']/.test(read(file))), "the entries import no stylesheet").toEqual([]);
-    expect(packages.filter((spec) => NODE_BUILTINS.test(spec)), "the entry is browser code").toEqual([]);
+    expect(files.filter((file) => stylesheets(file).length > 0), "the entries import no stylesheet").toEqual([]);
+  });
+
+  it("keeps the browser entries free of Node builtins", () => {
+    const { packages } = graph(browserEntries());
+    expect(packages.filter((spec) => NODE_BUILTINS.test(spec)), "the browser entries are browser code").toEqual([]);
+  });
+
+  it("keeps conformance Node-only and self-contained", () => {
+    const { files, packages, outside } = graph([`${PACKAGE}/${sourceTarget("./conformance").replace(/^\.\//, "")}`]);
+    expect(outside, "conformance has no relative import that leaves the package").toEqual([]);
+    expect(files.filter((file) => file.includes("/skins/")), "conformance is skin-free").toEqual([]);
+    expect(files.filter((file) => stylesheets(file).length > 0), "conformance imports no stylesheet").toEqual([]);
+    expect(packages.filter((spec) => !NODE_BUILTINS.test(spec)), "conformance reaches only Node builtins").toEqual([]);
   });
 
   it("reaches only React and declared @dashhaus subpaths, never the websocket client", () => {
-    const { packages } = graph(entries());
+    const { packages } = graph(browserEntries());
     expect(packages.filter((spec) => !BROWSER.includes(spec) && !declared(spec)), "a package specifier is a declared subpath").toEqual([]);
     expect(packages, "the entry reaches the client through @dashhaus/core/websocket").not.toContain("home-assistant-js-websocket");
   });

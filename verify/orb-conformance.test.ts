@@ -5,10 +5,23 @@
  */
 import { describe, expect, it } from "vitest";
 import * as core from "@dashhaus/core";
-import { cardFolders, exists, object, read, strayClasses } from "./conformance";
+import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
+import { exists, object, read, reachesHa } from "./conformance";
 
 /** The skin these cards belong to; a card's logic lives outside it, in @dashhaus/core. */
 const SKIN = "src/skins/orb";
+
+/** The generic checks, declared for orb: its card files, its story section and its two-letter class codes. */
+const CHECKS = {
+  skin: SKIN,
+  storyPrefix: "Orb/Cards",
+  component: (Name: string) => `${Name}Card.tsx`,
+  stories: (Name: string) => `${Name}.stories.tsx`,
+  code: (source: string) => source.match(/useCard\("([a-z]+)"/)?.[1],
+  allowedClass: (cls: string, { code }: { code?: string }) =>
+    cls === "hd" || cls.startsWith("hd-") || (code != null && (cls === code || cls.startsWith(`${code}-`))),
+  forbiddenImport: reachesHa,
+};
 
 /* Every folder in cards/ is one entity's card. The dashboard's title row is type on the page, not a card: it lives
    in dashboards/ with the rest of the page. */
@@ -18,8 +31,14 @@ const cards = cardFolders(SKIN)
     const dir = `${SKIN}/cards/${name}`;
     const cardFile = `${dir}/${Name}Card.tsx`;
     const source = exists(cardFile) ? read(cardFile) : "";
-    return { name, Name, dir, cardFile, source, code: source.match(/useCard\("([a-z]+)"/)?.[1], words: name.replace(/([A-Z])/g, " $1").toLowerCase() };
+    return { name, Name, dir, cardFile, source, code: CHECKS.code(source), words: name.replace(/([A-Z])/g, " $1").toLowerCase() };
   });
+
+describe("the generic card checks", () => {
+  it("pass for every card", () => {
+    expect(checkCards(CHECKS), "@dashhaus/dashboard/conformance").toEqual([]);
+  });
+});
 
 describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, words }) => {
   it("has the standard files", () => {
@@ -31,15 +50,6 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(code, `${cardFile}: call useCard("<code>", …) and spread its \`article\` onto the <article>`).toBeDefined();
     expect(source, `${cardFile}: spread paint(role, glow, own, prop) onto the article`).toMatch(/\bpaint\(/);
     expect(source, `${cardFile}: the sheet needs its close button`).toMatch(/<SheetClose\b/);
-  });
-
-  it("titles its stories Orb/Cards/<Name>", () => {
-    expect(read(`${dir}/${Name}.stories.tsx`)).toContain(`title: "Orb/Cards/${Name}"`);
-  });
-
-  it("prefixes every class with its card code", () => {
-    const bad = strayClasses(dir, (cls) => cls === code || cls.startsWith(`${code}-`) || cls === "hd" || cls.startsWith("hd-"));
-    expect(bad, `classes start with ${code}- (or are the shared hd- system)`).toEqual([]);
   });
 
   it("lists its class prefix in AGENTS.md", () => {
@@ -72,12 +82,5 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(picked, `${step}: give it its domain in DOMAIN_KIND, or list it in SHARED_KINDS (${SKIN}/lovelace/config.ts)`).toBe(true);
     expect(read(`${SKIN}/lovelace/ConfigDashboard.tsx`), `${step}: render it in tile() (${SKIN}/lovelace/ConfigDashboard.tsx)`).toMatch(new RegExp(`<Ha${Name}Tile\\b`));
     expect(read("docs/deploy.md"), `${step}: list its domain in docs/deploy.md`).toMatch(new RegExp(`^- \`.*\`: ${words}\\b`, "m"));
-  });
-});
-
-describe("card codes", () => {
-  it("are unique", () => {
-    const codes = cards.map((c) => c.code);
-    expect(codes.filter((c, i) => codes.indexOf(c) !== i)).toEqual([]);
   });
 });

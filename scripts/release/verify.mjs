@@ -57,7 +57,7 @@ async function checkTarballs(manifests) {
     const required = pkg.key === "core"
       ? ["package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json"]
       : pkg.key === "dashboard"
-        ? ["package/dist/index.js", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/cli.js", "package/dist/cli.d.ts"]
+        ? ["package/dist/index.js", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/cli.js", "package/dist/cli.d.ts", "package/dist/conformance.js", "package/dist/conformance.d.ts"]
         : ["package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
@@ -125,6 +125,9 @@ const cli = await load("@dashhaus/dashboard/cli");
 assert.equal(typeof cli.generatedDashboards, "function");
 await load("@dashhaus/dashboard/schema");
 await load("@dashhaus/dashboard/layout");
+const conformance = await load("@dashhaus/dashboard/conformance");
+assert.equal(typeof conformance.checkCards, "function");
+assert.equal(typeof conformance.cardFolders, "function");
 const deploy = await load("@dashhaus/deploy");
 assert.equal(typeof deploy.loadDashboards, "function");
 
@@ -177,6 +180,8 @@ import type { CardProps } from "@dashhaus/dashboard/card";
 import { cardShape } from "@dashhaus/dashboard/card";
 import type { DeployConfig } from "@dashhaus/dashboard/cli";
 import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import type { CardCheck } from "@dashhaus/dashboard/conformance";
+import { checkCards } from "@dashhaus/dashboard/conformance";
 import { HaActionError } from "@dashhaus/core";
 import type { HassEntity } from "@dashhaus/core";
 import { fmt1 } from "@dashhaus/core/entities/format";
@@ -188,8 +193,9 @@ import fixture from "@dashhaus/core/fixtures/light.json";
 
 const shape = cardShape({ footprint: "compact" });
 const config: DeployConfig = { bundle: "dist/cards.js", dashboards: generatedDashboards([]) };
-export const values = [HaActionError, kelvinToLch, fmt1, usePress, useNow, createDemoHouseTransport, fixture, config, shape];
+export const values = [HaActionError, kelvinToLch, fmt1, usePress, useNow, createDemoHouseTransport, fixture, config, shape, checkCards];
 export type Card = CardProps;
+export type Check = CardCheck;
 export type Entity = HassEntity;
 `);
   await writeFile(join(app, "tsconfig.bundler.json"), `${JSON.stringify({
@@ -211,12 +217,16 @@ export type Entity = HassEntity;
 import type { DeployConfig } from "@dashhaus/dashboard/cli";
 import { generatedDashboards } from "@dashhaus/dashboard/cli";
 import { cardShape } from "@dashhaus/dashboard/card";
+import type { CardCheck } from "@dashhaus/dashboard/conformance";
+import { checkCards } from "@dashhaus/dashboard/conformance";
 import { HaActionError } from "@dashhaus/core";
 import { fmt1 } from "@dashhaus/core/entities/format";
 
 export const value: string = fmt1(1) + generatedDashboards([]).length;
 export const shape = cardShape({ footprint: "compact" });
+export const checks = checkCards;
 export const error = HaActionError;
+export type Check = CardCheck;
 export type Config = DeployConfig;
 `);
   await writeFile(join(app, "tsconfig.node.json"), `${JSON.stringify({

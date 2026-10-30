@@ -26,10 +26,12 @@ async function matches(dir, pattern) {
   return (await readdir(join(root, dir, base))).filter((name) => expression.test(name)).map((name) => ({ base, file: name }));
 }
 
-async function stageFiles(stage, dir, patterns) {
+async function stageFiles(stage, dir, patterns, fromRoot) {
   for (const pattern of patterns) {
     for (const { base, file } of await matches(dir, pattern)) {
-      const from = join(root, dir, base, file);
+      // Only `dist` is built; a package's runnable sources (deploy's bin and src) always come from the repo.
+      const built = file === "dist" || base.startsWith("dist/");
+      const from = join(built ? fromRoot : root, dir, base, file);
       const to = join(stage, base, file);
       await mkdir(join(to, ".."), { recursive: true });
       if ((await stat(from)).isDirectory()) await cp(from, to, { recursive: true });
@@ -38,11 +40,15 @@ async function stageFiles(stage, dir, patterns) {
   }
 }
 
-export async function pack() {
-  await buildPackages();
-  await mkdir(out, { recursive: true });
-  for (const file of await readdir(out)) {
-    if (file.endsWith(".tgz")) await rm(join(out, file), { force: true });
+/**
+ * Build and pack the public packages into `outDir`. `buildRoot` is where `dist/` is written; it defaults to the repo
+ * so the command publishes the real build output, and a test can pass a temporary root to pack without touching it.
+ */
+export async function pack(outDir = out, buildRoot = root) {
+  await buildPackages(buildRoot);
+  await mkdir(outDir, { recursive: true });
+  for (const file of await readdir(outDir)) {
+    if (file.endsWith(".tgz")) await rm(join(outDir, file), { force: true });
   }
 
   const stageRoot = await mkdtemp(join(tmpdir(), "dashhaus-pack-"));
@@ -53,9 +59,9 @@ export async function pack() {
       const stage = join(stageRoot, pkg.key);
       await mkdir(stage, { recursive: true });
       await writeFile(join(stage, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-      await stageFiles(stage, pkg.dir, pkg.ship);
-      execFileSync("npm", ["pack", "--pack-destination", out, "--silent"], { cwd: stage, stdio: "inherit" });
-      const tarball = join(out, `${manifest.name.replace(/^@/, "").replace("/", "-")}-${manifest.version}.tgz`);
+      await stageFiles(stage, pkg.dir, pkg.ship, buildRoot);
+      execFileSync("npm", ["pack", "--pack-destination", outDir, "--silent"], { cwd: stage, stdio: "inherit" });
+      const tarball = join(outDir, `${manifest.name.replace(/^@/, "").replace("/", "-")}-${manifest.version}.tgz`);
       const { size } = await stat(tarball);
       packed.push({ package: manifest.name, version: manifest.version, tarball, size });
       console.log(`${manifest.name}@${manifest.version} → ${tarball} (${(size / 1024).toFixed(1)} KiB)`);

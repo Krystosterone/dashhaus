@@ -5,7 +5,8 @@
  * verify/storybook.test.ts.
  */
 import { describe, expect, it } from "vitest";
-import { cardFolders, exists, object, read, strayClasses, uncomment } from "./conformance";
+import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
+import { exists, object, read, reachesHa, uncomment } from "./conformance";
 
 const SKIN = "src/skins/field";
 const STEP = "AGENTS.md → Adding an existing domain to another skin";
@@ -23,6 +24,18 @@ function sorted(section: string, group: string) {
   return source.slice(from).match(new RegExp(`"${group}", \\[([^\\]]*)\\]`))?.[1] ?? "";
 }
 
+/** The generic checks, declared for field: its module files, its story section and its fd-<code> class prefixes. */
+const CHECKS = {
+  skin: SKIN,
+  storyPrefix: "Field/Cards",
+  component: (Name: string) => `${Name}Module.tsx`,
+  stories: (Name: string) => `${Name}Module.stories.tsx`,
+  code: (source: string) => source.match(/<ModuleFrame\s+kind="fd-([a-z]{2})"/)?.[1],
+  allowedClass: (cls: string, { code }: { code?: string }) =>
+    code != null && (cls === `fd-${code}` || cls.startsWith(`fd-${code}-`) || SHARED.has(cls)),
+  forbiddenImport: reachesHa,
+};
+
 const cards = cardFolders(SKIN)
   .map((name) => {
     const Name = name[0].toUpperCase() + name.slice(1);
@@ -30,10 +43,16 @@ const cards = cardFolders(SKIN)
     const moduleFile = `${dir}/${Name}Module.tsx`;
     const source = exists(moduleFile) ? read(moduleFile) : "";
     const words = name.replace(/([A-Z])/g, " $1").toLowerCase();
-    return { name, Name, dir, moduleFile, source, code: source.match(/<ModuleFrame\s+kind="fd-([a-z]{2})"/)?.[1], words };
+    return { name, Name, dir, moduleFile, code: CHECKS.code(source), words };
   });
 
-describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source, code, words }) => {
+describe("the generic card checks", () => {
+  it("pass for every card", () => {
+    expect(checkCards(CHECKS), "@dashhaus/dashboard/conformance").toEqual([]);
+  });
+});
+
+describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, words }) => {
   it("has the standard files", () => {
     const missing = [moduleFile, `${dir}/${Name}Module.css`, `${dir}/${Name}Module.stories.tsx`, `${dir}/${Name}Module.test.tsx`, `${dir}/icons.tsx`, `${dir}/demo`, `packages/core/src/entities/${name}/types.ts`].filter((p) => !exists(p));
     expect(missing, `${STEP}, step 2`).toEqual([]);
@@ -41,12 +60,6 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source,
 
   it("is drawn in the shared frame, with its details in its panel", () => {
     expect(code, `${moduleFile}: draw it in <ModuleFrame kind="fd-<code>" …>, which opens its details in a panel`).toBeDefined();
-    expect(source, `${moduleFile}: presentational files never import @dashhaus/core's Home Assistant subpaths`).not.toMatch(/from ["'](?:@dashhaus\/core["']|@dashhaus\/core\/(?:websocket|demo|testing|fixtures)|(?:\.\.\/)+ha\/)/);
-  });
-
-  it("prefixes every class of its own with fd-<code>-", () => {
-    const bad = strayClasses(dir, (cls) => cls === `fd-${code}` || cls.startsWith(`fd-${code}-`) || SHARED.has(cls));
-    expect(bad, `classes start with fd-${code}- (or are the shared fd- system's)`).toEqual([]);
   });
 
   it("lists its class prefix in AGENTS.md", () => {
@@ -79,12 +92,5 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source,
   it("is a module on the Lovelace card", () => {
     expect(object(read(`${SKIN}/lovelace/config.ts`), "FIELD_KINDS"), `${STEP}, step 4: give it its domains in FIELD_KINDS (${SKIN}/lovelace/config.ts)`).toMatch(new RegExp(`^\\s*${name}: \\{ domains:`, "m"));
     expect(object(read(`${SKIN}/lovelace/FieldDashboard.tsx`), "LIVE"), `${STEP}, step 4: draw it in LIVE (${SKIN}/lovelace/FieldDashboard.tsx)`).toMatch(new RegExp(`^\\s*${name}: [^\\n]*(\\n[^\\n]*)?<Ha${Name}Module\\b`, "m"));
-  });
-});
-
-describe("field card codes", () => {
-  it("are unique", () => {
-    const codes = cards.map((c) => c.code);
-    expect(codes.filter((c, i) => codes.indexOf(c) !== i)).toEqual([]);
   });
 });

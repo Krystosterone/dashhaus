@@ -12,7 +12,14 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const root = fileURLToPath(new URL("../", import.meta.url));
+/** The repo root: beside this file when Node loads it, or the test runner's cwd when Vite rewrites import.meta.url. */
+export const root = (() => {
+  try {
+    return fileURLToPath(new URL("../", import.meta.url));
+  } catch {
+    return `${process.cwd()}/`;
+  }
+})();
 const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
 
 const packages = [
@@ -46,15 +53,16 @@ async function rewriteImports(path) {
   if (after !== before) await writeFile(path, after);
 }
 
-export async function buildPackages() {
+export async function buildPackages(outRoot = root) {
   for (const pkg of packages) {
     const dir = join(root, pkg.dir);
-    await rm(join(dir, "dist"), { recursive: true, force: true });
-    execFileSync(process.execPath, [tsc, "-p", join(dir, "tsconfig.build.json"), "--pretty", "false"], { cwd: root, stdio: "inherit" });
-    const emitted = await files(join(dir, "dist"));
+    const dist = join(outRoot, pkg.dir, "dist");
+    await rm(dist, { recursive: true, force: true });
+    execFileSync(process.execPath, [tsc, "-p", join(dir, "tsconfig.build.json"), "--outDir", dist, "--pretty", "false"], { cwd: root, stdio: "inherit" });
+    const emitted = await files(dist);
     await Promise.all(emitted.filter((path) => /\.(js|d\.ts)$/.test(path)).map(rewriteImports));
-    if (pkg.fixtures) await cp(join(dir, pkg.fixtures), join(dir, "dist", "ha", "fixtures"), { recursive: true });
-    console.log(`${pkg.name}: ${emitted.length} files in ${pkg.dir}/dist`);
+    if (pkg.fixtures) await cp(join(dir, pkg.fixtures), join(dist, "ha", "fixtures"), { recursive: true });
+    console.log(`${pkg.name}: ${emitted.length} files in ${outRoot === root ? `${pkg.dir}/dist` : dist}`);
   }
 }
 
