@@ -41,7 +41,10 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(6006, "127.0.0.1", () => {
   const bin = join(root, "..", "node_modules", ".bin", "test-storybook");
-  const child = spawn(bin, ["--url", "http://127.0.0.1:6006"], { stdio: "inherit" });
+  const child = spawn(bin, ["--url", "http://127.0.0.1:6006"], {
+    stdio: "inherit",
+    env: { ...process.env, STORYBOOK_PROJECT_ROOT: join(root, "..") },
+  });
   child.on("exit", (code) => {
     server.close();
     process.exit(code ?? 1);

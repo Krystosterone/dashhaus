@@ -34,15 +34,18 @@ export default tseslint.config(
   },
   {
     // Template placeholders (`__Name__Card`) don't start upper-case, so the hooks rule can't tell they're
-    // components. What the generator writes from them is linted in src/ like any other file.
-    files: ["scripts/new-card/templates/**"],
+    // components. Generated files are linted normally after their tokens are filled.
+    files: ["scripts/new-card/templates/**", "scripts/new-skin/templates/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
-    // Field's templates fill some uses from what the domain has (`__DEMO__` for a story's seed), so a value can look
-    // unused until the generator writes the card. It writes it into src/, where it is linted in full.
-    files: ["scripts/new-card/templates/field/**"],
-    rules: { "@typescript-eslint/no-unused-vars": "off" },
+    // Skin adapters fill optional imports and props from the target domain, so template source can look unused.
+    // The generated source under src/ is checked without this allowance.
+    files: ["scripts/new-card/templates/field/**", "scripts/new-skin/templates/**"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+    },
   },
   {
     // The Home Assistant boundary: a skin's cards, layout and stories never see the transport or raw entities.

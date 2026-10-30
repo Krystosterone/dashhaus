@@ -1,0 +1,5 @@
+.__skin__-__name__-facts { margin: 0; display: grid; gap: 10px; }
+.__skin__-__name__-facts div { display: grid; grid-template-columns: minmax(80px, 0.4fr) minmax(0, 1fr); gap: 12px; }
+.__skin__-__name__-facts dt { color: var(--__skin__-ink-muted); }
+.__skin__-__name__-facts dd { margin: 0; overflow-wrap: anywhere; }
+.__skin__-__name__-history { margin: 18px 0 0; color: var(--__skin__-ink-muted); }

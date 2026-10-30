@@ -1,5 +1,5 @@
-/** What the orb and field card generators share: the repo, its templates, and a set of changes made all or none. */
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+/** What the Card and skin generators share: the repo, templates, and one fully planned set of file changes. */
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -84,40 +84,58 @@ export const afterLast = (pattern, text) => (s) => {
 /** Add a line at the end of a top-level `const <name> … = { … };` object. */
 export const intoObject = (constName, line) => (s) => s.replace(new RegExp(`(const ${constName}\\b[^{]*\\{[\\s\\S]*?)(\\n\\};)`), `$1\n${line}$2`);
 
-/** The files to create and edit, written only once every one of them can be made. */
-export function changes() {
-  /** path (relative to the repo) → content */
+/** The files to create, edit or remove, applied only after every change can be planned. */
+export function changes({ templateRoot = templates, onFail = fail } = {}) {
+  /** path (relative to the repo) → content; null removes the path. */
   const writes = new Map();
+  const plannedExists = (path) => writes.has(path) ? writes.get(path) !== null : exists(path);
+  const plannedRead = (path) => {
+    const planned = writes.get(path);
+    if (planned === null) onFail(`${path} is planned for removal`);
+    return planned ?? read(path);
+  };
   return {
     writes,
-    /** Copy template folders (relative to ./templates/) into the repo, names and contents filled; later folders win. */
-    fromTemplates(dirs, fill) {
-      for (const base of dirs.map((dir) => join(templates, dir))) {
+    exists: plannedExists,
+    read: plannedRead,
+    /** Copy template folders into the repo, filling names and contents; later folders win. */
+    fromTemplates(dirs, fill, sourceRoot = templateRoot) {
+      for (const base of dirs.map((dir) => join(sourceRoot, dir))) {
         for (const source of walk(base)) {
           const target = fill(relative(base, source));
-          if (exists(target)) fail(`${target} already exists`);
+          if (plannedExists(target)) onFail(`${target} already exists`);
           writes.set(target, fill(readFileSync(source, "utf8")));
         }
       }
     },
     create(path, content) {
-      if (exists(path)) fail(`${path} already exists`);
+      if (plannedExists(path)) onFail(`${path} already exists`);
       writes.set(path, content);
+    },
+    remove(path) {
+      if (!plannedExists(path)) onFail(`${path} doesn't exist`);
+      writes.set(path, null);
     },
     /** Change one file in place, failing loudly when the change finds nothing to anchor on. */
     edit(path, change) {
-      const current = writes.get(path) ?? read(path);
+      const current = plannedRead(path);
       const next = change(current);
-      if (next === current) fail(`could not register in ${path}: its anchor moved. Update scripts/new-card/`);
+      if (next === current) onFail(`could not register in ${path}: its anchor moved. Update the generator templates and anchors`);
       writes.set(path, next);
     },
-    /** Write everything, or with `dryRun` list what would be created and edited. */
+    /** Write everything, or with `dryRun` list what would be created, edited or removed. */
     commit(dryRun) {
       if (dryRun) {
-        for (const path of [...writes.keys()].sort()) console.log(`${exists(path) ? "edit  " : "create"} ${path}`);
+        for (const [path, content] of [...writes.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+          console.log(`${content === null ? "remove" : exists(path) ? "edit  " : "create"} ${path}`);
+        }
         return false;
       }
       for (const [path, content] of writes) {
+        if (content === null) {
+          rmSync(join(root, path), { recursive: true, force: true });
+          continue;
+        }
         mkdirSync(dirname(join(root, path)), { recursive: true });
         writeFileSync(join(root, path), content);
       }

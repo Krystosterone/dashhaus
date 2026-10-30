@@ -20,10 +20,18 @@ npm run storybook
 
 Storybook documents every card, supported footprint and skin, each skin under the same groups: Cards, Bundles (orb only), Dashboards, Foundations, Connected (AGENTS.md → Storybook). **Orb / Foundations / Design rules** draws the design sections of this file with the stories that show them. Use the Theme menu to switch between Auto (system), Light and Dark. The attention, row and Home Assistant integration rules below have operational forms in `.agents/skills/`; where wording differs, the skill named by the rule wins.
 
+Start a complete neutral skin with one command:
+
+```sh
+npm run new-skin -- canvas
+```
+
+It registers the skin's Foundations, Dashboard, public exports and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [Starting a skin](docs/skins.md).
+
 
 ## Running with Home Assistant
 
-To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb) and `custom:home-dashboard-field` (Field), then creates a dashboard for each the first time, Home (Orb) and Home (Field). You edit either card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
+To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb), `custom:home-dashboard-field` (Field) and every registered generated skin, then creates one dashboard for each the first time. You edit any Lovelace card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
 
 The presentational cards stay provider-agnostic. Each supported entity kind has a UI-free `useHa<Kind>` hook and headless component under `src/ha/`; each skin wraps those shared results in its own connected tiles or modules. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the seam.
 

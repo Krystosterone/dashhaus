@@ -16,6 +16,8 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { afterLast, before, changes, fail, filler, intoObject, names, orbKinds, read, root } from "./lib.mjs";
+import { newFieldCard } from "./field.mjs";
+import { newGeneratedCard } from "./generated.mjs";
 
 /** The skin a new card is drawn in; its logic goes outside it, in src/domains/ and src/ha/. */
 const SKIN = "src/skins/orb";
@@ -32,15 +34,18 @@ const flag = (name) => {
 const dryRun = args.includes("--dry-run");
 if (dryRun) args.splice(args.indexOf("--dry-run"), 1);
 const skin = flag("skin") ?? "orb";
-if (skin === "field") {
-  const { newFieldCard } = await import("./field.mjs");
-  const options = { kind: flag("kind"), code: flag("code"), dryRun };
-  const [fieldName, ...rest] = args;
-  if (!fieldName || rest.length) fail("usage: npm run new-card -- <name> --skin field [--kind control|reading] [--code <xx>] [--dry-run]\n       e.g. npm run new-card -- owlet --skin field --kind reading");
-  newFieldCard({ name: fieldName, ...options });
+if (skin !== "orb") {
+  const kind = flag("kind");
+  const code = flag("code");
+  const [skinName, ...rest] = args;
+  const generated = existsSync(join(root, `src/skins/${skin}/lovelace/registry.tsx`));
+  if (!skinName || rest.length) fail(`usage: npm run new-card -- <name> --skin ${skin} [--kind control|reading] [--dry-run]`);
+  if (generated && code != null) fail("--code belongs to Orb and the mature Field adapter; generated skins use their full skin and Card names as the CSS namespace");
+  if (generated) newGeneratedCard({ skin, name: skinName, kind, dryRun });
+  else if (skin === "field") newFieldCard({ name: skinName, kind, code, dryRun });
+  else fail(`skin "${skin}" doesn't exist or wasn't created by npm run new-skin -- ${skin}`);
   process.exit(0);
 }
-if (skin !== "orb") fail(`skin "${skin}" must be "orb" (the default) or "field"`);
 const code = flag("code");
 const domain = flag("domain");
 const kind = flag("kind") ?? "control";

@@ -1,0 +1,17 @@
+import { Meta } from "@storybook/blocks";
+import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
+import rules from "../../../../docs/__skin__.md?raw";
+import * as Palette from "./Palette.stories";
+import * as Parts from "./Parts.stories";
+import * as Examples from "../dashboards/Examples.stories";
+
+<Meta title="__Section__/Foundations/Design rules" />
+
+<MarkdownWithStories
+  markdown={rules}
+  path="docs/__skin__.md"
+  after={{
+    "Baseline design": [Palette.Roles, Parts.States],
+    Dashboards: [Examples.Phone, Examples.Tablet],
+  }}
+/>

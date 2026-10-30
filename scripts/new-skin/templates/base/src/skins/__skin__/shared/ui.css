@@ -1,0 +1,47 @@
+.__skin__-card {
+  box-sizing: border-box;
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-areas: "icon copy summary" "actions actions actions";
+  gap: 10px 14px;
+  align-items: center;
+  height: 176px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid var(--__skin__-line);
+  border-radius: 14px;
+  background: var(--__skin__-card);
+  color: var(--__skin__-ink);
+  box-shadow: 0 10px 28px var(--__skin__-shadow);
+}
+.__skin__-card[data-footprint="compact"] { height: 72px; grid-template-areas: "icon copy summary"; padding: 10px 12px; }
+.__skin__-identity { grid-area: icon; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--__skin__-card-muted); color: var(--__skin__-ink); font-size: 18px; font-weight: 700; }
+.__skin__-copy { grid-area: copy; min-width: 0; display: grid; gap: 2px; }
+.__skin__-title { appearance: none; width: fit-content; max-width: 100%; padding: 0; overflow: hidden; border: 0; background: transparent; color: inherit; font: 650 15px/1.25 var(--__skin__-sans); text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.__skin__-area, .__skin__-state, .__skin__-summary { margin: 0; }
+.__skin__-area, .__skin__-state { overflow: hidden; color: var(--__skin__-ink-muted); font: 12px/1.3 var(--__skin__-sans); text-overflow: ellipsis; white-space: nowrap; }
+.__skin__-state { text-transform: capitalize; }
+.__skin__-summary { grid-area: summary; color: var(--__skin__-ink); font: 600 24px/1 var(--__skin__-sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.__skin__-actions { grid-area: actions; display: flex; justify-content: flex-start; gap: 8px; min-width: 0; overflow-x: auto; }
+.__skin__-action { flex: none; min-height: 44px; padding: 0 10px; border: 1px solid var(--__skin__-line); border-radius: 10px; background: var(--__skin__-card-muted); color: var(--__skin__-ink); font: 600 12px/1 var(--__skin__-sans); cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform var(--__skin__-press) var(--__skin__-ease-out), color var(--__skin__-press) var(--__skin__-ease-in-out), background-color var(--__skin__-press) var(--__skin__-ease-in-out); }
+.__skin__-action:first-child { margin-left: auto; }
+.__skin__-action[aria-pressed="true"] { border-color: var(--__skin__-accent); background: var(--__skin__-accent); color: var(--__skin__-accent-ink); }
+.__skin__-action:active { transform: scale(0.97); }
+.__skin__-action[aria-disabled="true"] { cursor: not-allowed; color: var(--__skin__-ink-muted); }
+.__skin__-card[data-state="unavailable"] { border-style: dashed; box-shadow: none; }
+.__skin__-card[data-footprint="compact"] .__skin__-state, .__skin__-card[data-footprint="compact"] .__skin__-actions { display: none; }
+.__skin__-dialog { width: min(520px, calc(100vw - 32px)); max-height: min(720px, calc(100dvh - 32px)); padding: 0; overflow: hidden; border: 1px solid var(--__skin__-line); border-radius: 18px; background: var(--__skin__-card); color: var(--__skin__-ink); box-shadow: 0 24px 80px var(--__skin__-shadow); opacity: 1; transition: transform var(--__skin__-close) var(--__skin__-ease-out), opacity var(--__skin__-close) var(--__skin__-ease-in-out); }
+.__skin__-dialog::backdrop { background: var(--__skin__-backdrop); }
+.__skin__-dialog[data-closing] { opacity: 0; transform: translateY(12px); }
+.__skin__-dialog-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--__skin__-line); }
+.__skin__-dialog-head > div { display: grid; gap: 2px; }
+.__skin__-dialog-head span { color: var(--__skin__-ink-muted); font-size: 12px; }
+.__skin__-dialog-head button { min-height: 44px; border: 0; background: transparent; color: var(--__skin__-accent); font-weight: 650; cursor: pointer; touch-action: manipulation; }
+.__skin__-title:focus-visible, .__skin__-action:focus-visible, .__skin__-dialog-head button:focus-visible { outline: 3px solid var(--__skin__-accent); outline-offset: 3px; }
+.__skin__-dialog-body { padding: 20px; overflow: auto; font: 14px/1.5 var(--__skin__-sans); }
+.__skin__-dialog-state { text-transform: capitalize; }
+.__skin__-empty { margin: 0; padding: 24px; color: var(--__skin__-ink-muted); font: 14px/1.5 var(--__skin__-sans); }
+@media (hover: hover) and (pointer: fine) { .__skin__-title:hover { color: var(--__skin__-accent); } .__skin__-action:hover:not([aria-disabled="true"]) { border-color: var(--__skin__-accent); } }
+@media (max-width: 600px) { .__skin__-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; border-radius: 18px 18px 0 0; } .__skin__-dialog[data-closing] { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .__skin__-action, .__skin__-dialog { transition-duration: 1ms; } .__skin__-action:active { transform: none; } }

@@ -5,13 +5,14 @@
  * with `--skin field`, over both generated and hand-built domains in field.
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const script = "scripts/new-card/index.mjs";
+const generatedField = existsSync(join(root, "src/skins/field/lovelace/registry.tsx"));
 const CARDS = [
   ["probeFan", "--code", "zf", "--domain", "probe_fan"],
   ["probeCo2", "--code", "zc", "--domain", "sensor", "--kind", "reading", "--unit", "ppm"],
@@ -54,11 +55,11 @@ describe("new-card", () => {
   });
 
   describe("in a copy of the repo", () => {
-    const skip = new Set(["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude", "research"]);
+    const skip = ["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude", "research"];
     let copy = "";
     beforeAll(() => {
       copy = mkdtempSync(join(tmpdir(), "new-card-"));
-      cpSync(root, copy, { recursive: true, filter: (source) => !skip.has(relative(root, source).split("/")[0]) });
+      cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
       symlinkSync(join(root, "node_modules"), join(copy, "node_modules"));
     });
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
@@ -70,9 +71,10 @@ describe("new-card", () => {
       }
       const { status, output } = run(copy, "node", [script, ...FIELD_CARDS[0], "--dry-run"]);
       expect(status, output).toBe(0);
-      for (const path of ["src/skins/field/lovelace/config.ts", "src/skins/field/lovelace/FieldDashboard.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "AGENTS.md"]) {
-        expect(output).toContain(`edit   ${path}`);
-      }
+      const paths = generatedField
+        ? ["src/skins/field/lovelace/registry.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "docs/field.md"]
+        : ["src/skins/field/lovelace/config.ts", "src/skins/field/lovelace/FieldDashboard.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "AGENTS.md"];
+      for (const path of paths) expect(output).toContain(`edit   ${path}`);
     });
 
     it("writes cards that typecheck and pass the conformance and Storybook shape tests", () => {
@@ -94,8 +96,12 @@ describe("new-card", () => {
       const actions = join(copy, "src/ha/actions/probeDial.ts");
       writeFileSync(actions, readFileSync(actions, "utf8").replaceAll("onToggle", "onSpin"));
       const control = run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
-      expect(control.status).toBe(1);
-      expect(control.output).toMatch(/has no onToggle[\s\S]*--kind reading/);
+      if (generatedField) {
+        expect(control.status, control.output).toBe(0);
+      } else {
+        expect(control.status).toBe(1);
+        expect(control.output).toMatch(/has no onToggle[\s\S]*--kind reading/);
+      }
       const reading = run(copy, "node", [script, "probeDial", "--skin", "field", "--kind", "reading", "--dry-run"]);
       expect(reading.status, reading.output).toBe(0);
     });

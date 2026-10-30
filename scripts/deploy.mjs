@@ -9,6 +9,7 @@ import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { autoDashboard, lovelaceDashboard } from "../src/skins/orb/lovelace/auto.ts";
+import { GENERATED_SKINS } from "./generated-skins.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = "home-dashboard.js";
@@ -20,9 +21,9 @@ if (args.has("--help") || args.has("-h")) {
   console.log(`Usage: npm run deploy [-- --skip-build]
 
 Builds dist/${FILE}, copies it to $HA_WWW/${FOLDER}/, registers ${RESOURCE_PATH} as a dashboard
-resource (with a version so browsers fetch the new file), and creates the Orb ("$HA_DASHBOARD") and
-Field ("$HA_FIELD_DASHBOARD") dashboards with automatic layouts if they do not exist yet. Settings: .env,
-see .env.example.`);
+resource (with a version so browsers fetch the new file), and creates the Orb ("$HA_DASHBOARD"),
+Field ("$HA_FIELD_DASHBOARD") and generated-skin dashboards with automatic layouts if they do not
+exist yet. Settings: .env, see .env.example.`);
   process.exit(0);
 }
 
@@ -62,6 +63,14 @@ const DASHBOARDS = [
       return { card: { type: "custom:home-dashboard-field", title: PAGE_TITLE }, made: "every light and climate entity by area" };
     },
   },
+  ...GENERATED_SKINS.map(({ id, title, icon }) => ({
+    path: `home-dashboard-${id}`,
+    title,
+    icon,
+    async card() {
+      return { card: { type: `custom:home-dashboard-${id}`, title: PAGE_TITLE }, made: `the ${id} skin's automatic layout` };
+    },
+  })),
 ];
 
 const missing = [
@@ -72,10 +81,11 @@ const missing = [
 if (missing.length) {
   fail(`Missing settings. Copy .env.example to .env and fill in:\n    ${missing.join("\n    ")}`);
 }
-for (const [key, { path }] of [["HA_DASHBOARD", DASHBOARDS[0]], ["HA_FIELD_DASHBOARD", DASHBOARDS[1]]]) {
-  if (!path.includes("-")) fail(`${key} must contain a hyphen (Home Assistant requires it): "${path}"`);
+for (const { path } of DASHBOARDS) {
+  if (!path.includes("-")) fail(`dashboard paths must contain a hyphen (Home Assistant requires it): "${path}"`);
 }
-if (DASHBOARDS[0].path === DASHBOARDS[1].path) fail(`HA_DASHBOARD and HA_FIELD_DASHBOARD must differ: both are "${DASHBOARDS[0].path}"`);
+const duplicatePaths = DASHBOARDS.map((dashboard) => dashboard.path).filter((path, i, paths) => paths.indexOf(path) !== i);
+if (duplicatePaths.length) fail(`dashboard paths must be unique: ${duplicatePaths.join(", ")}`);
 
 // ---------- Build ----------
 const bundle = join(root, "dist", FILE);
