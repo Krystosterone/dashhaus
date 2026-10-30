@@ -4,7 +4,7 @@
  * repo checks that what it writes still typechecks and passes the conformance and Storybook shape tests, in orb and,
  * with `--skin field`, over both generated and hand-built domains in field.
  */
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
@@ -46,22 +46,31 @@ const linkNodeModules = (copy: string) => {
   for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@scope", scope), "dir");
 };
 
-const run = (cwd: string, command: string, args: string[]) => {
-  const result = spawnSync(command, args, { cwd, env, encoding: "utf8" });
-  return { status: result.status, output: `${result.stdout}${result.stderr}` };
-};
+/**
+ * Run a command without blocking the worker: Vitest's parent times out `onTaskUpdate` when a test holds the event
+ * loop through a long `spawnSync`, which these generator runs are.
+ */
+const run = (cwd: string, command: string, args: string[]) =>
+  new Promise<{ status: number | null; output: string }>((resolve, reject) => {
+    const child = spawn(command, args, { cwd, env });
+    let output = "";
+    child.stdout?.on("data", (chunk) => { output += chunk; });
+    child.stderr?.on("data", (chunk) => { output += chunk; });
+    child.on("error", reject);
+    child.on("close", (status) => resolve({ status, output }));
+  });
 
 describe("new-card", () => {
-  it.each(CARDS)("finds every anchor for %s", (...args) => {
-    const { status, output } = run(root, "node", [script, ...args, "--dry-run"]);
+  it.each(CARDS)("finds every anchor for %s", async (...args) => {
+    const { status, output } = await run(root, "node", [script, ...args, "--dry-run"]);
     expect(status, output).toBe(0);
     for (const path of ["src/skins/orb/lovelace/config.ts", "src/skins/orb/lovelace/ConfigDashboard.tsx", "docs/deploy.md"]) {
       expect(output).toContain(`edit   ${path}`);
     }
   });
 
-  it.each(REFUSED)("refuses to draw %s in field, and says why", (name, reason) => {
-    const { status, output } = run(root, "node", [script, name, "--skin", "field", "--dry-run"]);
+  it.each(REFUSED)("refuses to draw %s in field, and says why", async (name, reason) => {
+    const { status, output } = await run(root, "node", [script, name, "--skin", "field", "--dry-run"]);
     expect(status).toBe(1);
     expect(output).toMatch(reason);
   });
@@ -76,12 +85,12 @@ describe("new-card", () => {
     });
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
-    it("finds every field anchor", () => {
+    it("finds every field anchor", async () => {
       for (const args of CARDS) {
-        const { status, output } = run(copy, "node", [script, ...args]);
+        const { status, output } = await run(copy, "node", [script, ...args]);
         expect(status, output).toBe(0);
       }
-      const { status, output } = run(copy, "node", [script, ...FIELD_CARDS[0], "--dry-run"]);
+      const { status, output } = await run(copy, "node", [script, ...FIELD_CARDS[0], "--dry-run"]);
       expect(status, output).toBe(0);
       const paths = generatedField
         ? ["src/skins/field/lovelace/registry.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "docs/field.md"]
@@ -89,41 +98,41 @@ describe("new-card", () => {
       for (const path of paths) expect(output).toContain(`edit   ${path}`);
     });
 
-    it("writes cards that typecheck and pass the conformance and Storybook shape tests", () => {
+    it("writes cards that typecheck and pass the conformance and Storybook shape tests", async () => {
       for (const args of FIELD_CARDS) {
-        const { status, output } = run(copy, "node", [script, ...args]);
+        const { status, output } = await run(copy, "node", [script, ...args]);
         expect(status, output).toBe(0);
       }
-      const typecheck = run(copy, "npx", ["tsc", "--noEmit"]);
+      const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "packages/dashboard/src", "packages/core/src/ha/mappers/fixtures.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "packages/dashboard/src", "packages/core/src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
-      const lint = run(copy, "npx", ["eslint", "src/skins/field"]);
+      const lint = await run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);
     }, 240_000);
 
-    it("refuses a control domain with no onToggle, unless it starts as a reading", () => {
-      const orb = run(copy, "node", [script, "probeDial", "--code", "zd", "--domain", "probe_dial"]);
+    it("refuses a control domain with no onToggle, unless it starts as a reading", async () => {
+      const orb = await run(copy, "node", [script, "probeDial", "--code", "zd", "--domain", "probe_dial"]);
       expect(orb.status, orb.output).toBe(0);
       const actions = join(copy, "packages/core/src/ha/actions/probeDial.ts");
       writeFileSync(actions, readFileSync(actions, "utf8").replaceAll("onToggle", "onSpin"));
-      const control = run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
+      const control = await run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
       if (generatedField) {
         expect(control.status, control.output).toBe(0);
       } else {
         expect(control.status).toBe(1);
         expect(control.output).toMatch(/has no onToggle[\s\S]*--kind reading/);
       }
-      const reading = run(copy, "node", [script, "probeDial", "--skin", "field", "--kind", "reading", "--dry-run"]);
+      const reading = await run(copy, "node", [script, "probeDial", "--skin", "field", "--kind", "reading", "--dry-run"]);
       expect(reading.status, reading.output).toBe(0);
     });
 
-    it("refuses a domain whose hook needs an option a generated module can't know, and says which", () => {
-      const orb = run(copy, "node", [script, "probeHub", "--code", "zh", "--domain", "probe_hub"]);
+    it("refuses a domain whose hook needs an option a generated module can't know, and says which", async () => {
+      const orb = await run(copy, "node", [script, "probeHub", "--code", "zh", "--domain", "probe_hub"]);
       expect(orb.status, orb.output).toBe(0);
       const hook = join(copy, "packages/core/src/ha/hooks/probeHub.ts");
       writeFileSync(hook, readFileSync(hook, "utf8").replace("export interface HaProbeHubOptions {\n", "export interface HaProbeHubOptions {\n  hubId: string;\n"));
-      const { status, output } = run(copy, "node", [script, "probeHub", "--skin", "field", "--dry-run"]);
+      const { status, output } = await run(copy, "node", [script, "probeHub", "--skin", "field", "--dry-run"]);
       expect(status).toBe(1);
       expect(output).toMatch(/useHaProbeHub requires hubId/);
     });

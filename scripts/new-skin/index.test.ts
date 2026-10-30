@@ -2,7 +2,7 @@
  * The skin generator crosses every repository surface a skin owns. This test removes Field in a temporary copy,
  * rebuilds it through `new-skin` plus the normal Card command, and checks the result at the public seams.
  */
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
@@ -22,10 +22,19 @@ const linkNodeModules = (copy: string) => {
   for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@scope", scope), "dir");
 };
 
-const run = (cwd: string, command: string, args: string[]) => {
-  const result = spawnSync(command, args, { cwd, env, encoding: "utf8" });
-  return { status: result.status, output: `${result.stdout}${result.stderr}` };
-};
+/**
+ * Run a command without blocking the worker: Vitest's parent times out `onTaskUpdate` when a test holds the event
+ * loop through a long `spawnSync`, which these generator runs are.
+ */
+const run = (cwd: string, command: string, args: string[]) =>
+  new Promise<{ status: number | null; output: string }>((resolve, reject) => {
+    const child = spawn(command, args, { cwd, env });
+    let output = "";
+    child.stdout?.on("data", (chunk) => { output += chunk; });
+    child.stderr?.on("data", (chunk) => { output += chunk; });
+    child.on("error", reject);
+    child.on("close", (status) => resolve({ status, output }));
+  });
 
 const withoutArrayEntry = (source: string, label: string) => {
   const labelAt = source.indexOf(`"${label}", [`);
@@ -67,8 +76,8 @@ const removeField = (copy: string) => {
 const CARDS = ["light", "climate", "sensor", "weather", "toggle", "humidifier", "sound", "cover", "alarm", "owlet"];
 
 describe("new-skin", () => {
-  it("finds every registration anchor without writing", () => {
-    const result = run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
+  it("finds every registration anchor without writing", async () => {
+    const result = await run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
     for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
     expect(result.output).toContain("create src/skins/probe-skin/index.ts");
@@ -86,23 +95,23 @@ describe("new-skin", () => {
     });
     afterAll(() => process.env.KEEP_NEW_SKIN_COPY ? console.info(`FIELD_RECONSTRUCTION=${copy}`) : rmSync(copy, { recursive: true, force: true }));
 
-    it("recreates every current domain and passes generated-skin seams", () => {
-      const skin = run(copy, "node", ["scripts/new-skin/index.mjs", "field"]);
+    it("recreates every current domain and passes generated-skin seams", async () => {
+      const skin = await run(copy, "node", ["scripts/new-skin/index.mjs", "field"]);
       expect(skin.status, skin.output).toBe(0);
       for (const card of CARDS) {
-        const result = run(copy, "node", ["scripts/new-card/index.mjs", card, "--skin", "field"]);
+        const result = await run(copy, "node", ["scripts/new-card/index.mjs", card, "--skin", "field"]);
         expect(result.status, `${card}:\n${result.output}`).toBe(0);
       }
 
-      const typecheck = run(copy, "npx", ["tsc", "--noEmit"]);
+      const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const lint = run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
+      const lint = await run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
-      const storybook = run(copy, "npm", ["run", "build-storybook"]);
+      const storybook = await run(copy, "npm", ["run", "build-storybook"]);
       expect(storybook.status, storybook.output).toBe(0);
-      const bundle = run(copy, "npm", ["run", "build:ha"]);
+      const bundle = await run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);
 
       const index = readFileSync(join(copy, "src/skins/field/index.ts"), "utf8");
