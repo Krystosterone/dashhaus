@@ -13,7 +13,7 @@ Read `docs/home-assistant.md` before changing the boundary. The current contract
 
 ### Boundary
 
-- Put provider-facing code under `packages/core/src/ha/`. Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees may import `packages/core/src/ha/`. Shared `packages/core/src/ha/` never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `packages/core/src/entities/`, never a skin.
+- Put provider-facing code in `@scope/core`'s Home Assistant layer (`packages/core/src/ha/`). Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees, and its entry, may import core's Home Assistant subpaths (`.`, `./websocket`, `./demo`, `./testing`, `./fixtures/*`), while presentation imports `./entities`, `./primitives` and `./hooks`. Core's HA layer never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `@scope/core/entities/*`, never a skin.
 - Preserve raw entity snapshots keyed by `entity_id`, including the raw state string, attributes, and timestamps.
 - Keep `unknown`, `unavailable`, missing entities, and capability absence explicit. Suppress stale measured readings in the normalized model while an entity is unavailable; never default them to a safe-looking active or closed state.
 
@@ -74,7 +74,7 @@ When a domain joins the shared connected boundary, start from `npm run new-card 
 
 Run `npm run check` (typecheck, lint including the import boundary, and unit tests), `npm run test-storybook` and `npm run build:ha`; all must pass at the final revision. Exercise the affected skin's connected surface through its state matrix at every supported size and footprint, including compact, details, unavailable and worst-case labels. If no live Home Assistant instance is available, report the injected/fake transport evidence separately from live connection evidence.
 
-The ESLint boundary rule permits Home Assistant imports only under `packages/core/src/ha/`, `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); websocket-client imports remain under `packages/core/src/ha/`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
+The ESLint boundary permits `@scope/core`'s Home Assistant subpaths only from `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); only `@scope/core/websocket` imports `home-assistant-js-websocket`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
 
 ## Output
 
