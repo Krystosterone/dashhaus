@@ -41,7 +41,7 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source,
 
   it("is drawn in the shared frame, with its details in its panel", () => {
     expect(code, `${moduleFile}: draw it in <ModuleFrame kind="fd-<code>" …>, which opens its details in a panel`).toBeDefined();
-    expect(source, `${moduleFile}: presentational files never import packages/core/src/ha/`).not.toMatch(/from "(\.\.\/)+ha\//);
+    expect(source, `${moduleFile}: presentational files never import @scope/core's Home Assistant subpaths`).not.toMatch(/from ["'](?:@scope\/core["']|@scope\/core\/(?:websocket|demo|testing|fixtures)|(?:\.\.\/)+ha\/)/);
   });
 
   it("prefixes every class of its own with fd-<code>-", () => {
