@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HumidifierCard } from "./HumidifierCard";
-import type { HumidifierEntity } from "../../../../domains/humidifier/types";
+import type { HumidifierEntity } from "@scope/core/entities/humidifier/types";
 
 const entity: HumidifierEntity = {
   entityId: "humidifier.bedroom", name: "Bedroom", area: "Upstairs", state: "on", action: "humidifying",

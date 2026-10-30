@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { usePress } from "../../../primitives/press";
-import { useSheet } from "../../../primitives/sheet";
+import { usePress } from "@scope/core/primitives";
+import { useSheet } from "@scope/core/primitives";
 import "./ui.css";
 
 export type __Skin__Footprint = "compact" | "standard";

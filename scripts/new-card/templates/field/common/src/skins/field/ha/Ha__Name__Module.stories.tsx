@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Ha__Name__Module } from "./Ha__Name__Module";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
 import { __transport__ } from "__transportPath__";
 
 const meta = {

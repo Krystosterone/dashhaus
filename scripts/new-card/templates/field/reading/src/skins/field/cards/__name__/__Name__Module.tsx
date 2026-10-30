@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { __Name__Entity, __Name__History } from "../../../../domains/__name__/types";
+import type { __Name__Entity, __Name__History } from "@scope/core/entities/__name__/types";
 import { Blank, Glyph, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";

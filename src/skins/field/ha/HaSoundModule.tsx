@@ -1,5 +1,5 @@
-import { useHaSound } from "../../../ha/hooks/sound";
-import type { HaSoundOptions } from "../../../ha/hooks/sound";
+import { useHaSound } from "@scope/core";
+import type { HaSoundOptions } from "@scope/core";
 import { SoundModule } from "../cards/sound/SoundModule";
 import type { SoundModuleProps } from "../cards/sound/SoundModule";
 

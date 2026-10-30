@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaSoundTile } from "./HaSoundTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoSoundHaTransport } from "../../../ha/demo/sound";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoSoundHaTransport } from "@scope/core/demo";
 
 const meta = {
   title: "Orb/Connected/Sound",

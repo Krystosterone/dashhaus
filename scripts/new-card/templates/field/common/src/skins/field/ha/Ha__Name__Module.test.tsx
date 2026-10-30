@@ -1,9 +1,9 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Ha__Name__Module } from "./Ha__Name__Module";
-import type { HassEntities } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
-import fixture from "../../../ha/fixtures/__name__.json";
+import type { HassEntities } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
+import fixture from "@scope/core/fixtures/__name__.json";
 
 const raw = fixture as HassEntities;
 const ID = "__fixtureId__";

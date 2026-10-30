@@ -2,10 +2,10 @@ import { DashboardConfigError, Reader as YamlReader, isRaw, oneOf, suggest } fro
 import type { Raw } from "../../../ha/lovelace/yaml";
 import { COLORS } from "../shared/ui";
 import type { ColorName, CardFootprint } from "../shared/ui";
-import type { ToggleIcon } from "../../../domains/toggle/types";
+import type { ToggleIcon } from "@scope/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
-import type { OwletAlert } from "../../../domains/owlet/types";
-import { OWLET_ALERT_SUFFIX } from "../../../ha/mappers/owlet";
+import type { OwletAlert } from "@scope/core/entities/owlet/types";
+import { OWLET_ALERT_SUFFIX } from "@scope/core";
 import type { NavEntry } from "../../../ha/lovelace/nav";
 
 /*

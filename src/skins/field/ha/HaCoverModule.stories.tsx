@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaCoverModule } from "./HaCoverModule";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoCoverHaTransport } from "../../../ha/demo/cover";
-import type { HassEntities } from "../../../ha/types";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoCoverHaTransport } from "@scope/core/demo";
+import type { HassEntities } from "@scope/core";
 
 const stamp = "2026-10-19T11:20:00Z";
 /** The demo's blinds, and a garage door that only opens and closes. */

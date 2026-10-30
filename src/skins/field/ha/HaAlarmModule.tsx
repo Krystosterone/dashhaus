@@ -1,5 +1,5 @@
-import { useHaAlarm } from "../../../ha/hooks/alarm";
-import type { HaAlarmOptions } from "../../../ha/hooks/alarm";
+import { useHaAlarm } from "@scope/core";
+import type { HaAlarmOptions } from "@scope/core";
 import { AlarmModule } from "../cards/alarm/AlarmModule";
 import type { AlarmModuleProps } from "../cards/alarm/AlarmModule";
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useHaSelector, useHaStore } from "../../../ha/provider";
+import { useHaSelector, useHaStore } from "@scope/core";
 import { actionMessage } from "../../../ha/lovelace/actionMessage";
 import "./ActionStatus.css";
 

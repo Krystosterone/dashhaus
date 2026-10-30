@@ -1,5 +1,5 @@
-import type { HvacMode } from "../../../../domains/climate/types";
-import { MODE_META } from "../../../../domains/climate/modes";
+import type { HvacMode } from "@scope/core/entities/climate/types";
+import { MODE_META } from "@scope/core/entities/climate/modes";
 
 /** A mode's label with a break opportunity after its slash, so a narrow chip wraps "Heat/" over "Cool". */
 export const modeLabel = (mode: HvacMode) => MODE_META[mode].label.replace("/", "/\u200b");

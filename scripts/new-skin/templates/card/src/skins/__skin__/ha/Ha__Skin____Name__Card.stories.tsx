@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
 import { __transport__ } from "__transportPath__";
 import { Ha__Skin____Name__Card } from "./Ha__Skin____Name__Card";
 

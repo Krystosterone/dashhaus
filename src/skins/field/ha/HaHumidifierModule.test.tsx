@@ -1,9 +1,9 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaHumidifierModule } from "./HaHumidifierModule";
-import type { HassEntities } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
-import fixture from "../../../ha/fixtures/humidifier.json";
+import type { HassEntities } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
+import fixture from "@scope/core/fixtures/humidifier.json";
 
 const raw = fixture as HassEntities;
 const ID = "humidifier.bedroom";

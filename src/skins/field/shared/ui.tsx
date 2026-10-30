@@ -1,9 +1,9 @@
 import { useId, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { usePress } from "../../../primitives/press";
-import { useRangeSlider, useSlider } from "../../../primitives/slider";
-import { useSheet } from "../../../primitives/sheet";
-import type { HourSample } from "../../../domains/history";
+import { usePress } from "@scope/core/primitives";
+import { useRangeSlider, useSlider } from "@scope/core/primitives";
+import { useSheet } from "@scope/core/primitives";
+import type { HourSample } from "@scope/core/entities/history";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -48,7 +48,7 @@ export interface ModuleProps {
    */
   note?: string;
   /**
-   * What can't wait (`src/domains/severity.ts`): urgent, or alarm. An alarm inverts the screen, flashes it for ten
+   * What can't wait (`packages/core/src/entities/severity.ts`): urgent, or alarm. An alarm inverts the screen, flashes it for ten
    * seconds (not under the dashboard's `quiet`, nor reduced motion), and holds it inverted until it clears; it rules the
    * plate's edge and blinks the LED. Either level draws a warning on the plate's line, a row's, as an inverted block.
    */

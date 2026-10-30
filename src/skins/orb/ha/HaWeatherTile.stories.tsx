@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaWeatherTile } from "./HaWeatherTile";
-import { createDemoWeatherHaTransport } from "../../../ha/demo";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
+import { createDemoWeatherHaTransport } from "@scope/core/demo";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
 
 const meta = {
   title: "Orb/Connected/Weather",

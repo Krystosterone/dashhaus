@@ -1,5 +1,5 @@
-import { useHaLight } from "../../../ha/hooks/light";
-import type { HaLightOptions } from "../../../ha/hooks/light";
+import { useHaLight } from "@scope/core";
+import type { HaLightOptions } from "@scope/core";
 import { LightModule } from "../cards/light/LightModule";
 import type { LightModuleProps } from "../cards/light/LightModule";
 

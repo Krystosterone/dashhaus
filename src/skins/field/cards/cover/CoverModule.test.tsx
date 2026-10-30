@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { CoverModule } from "./CoverModule";
 import type { CoverModuleProps } from "./CoverModule";
 import { COVER_SEEDS, COVER_WORST_CASE } from "./demo/useDemoCover";
-import type { CoverEntity } from "../../../../domains/cover/types";
+import type { CoverEntity } from "@scope/core/entities/cover/types";
 
 /*
  * What every field module does, whatever it is: its keys (a control's; a reading has none) press, a lit LED says on,

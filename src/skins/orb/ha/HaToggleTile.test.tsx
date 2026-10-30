@@ -1,8 +1,8 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaToggleTile } from "./HaToggleTile";
-import type { HassEntities } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
+import type { HassEntities } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
 
 const raw: HassEntities = {
   "input_boolean.guest_mode": {

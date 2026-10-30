@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { createDemoClimateHaTransport } from "../../../ha/demo";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
+import { createDemoClimateHaTransport } from "@scope/core/demo";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
 import { HaClimateModule } from "./HaClimateModule";
 
 const meta = {

@@ -1,5 +1,5 @@
-import { useHaWeather } from "../../../ha/hooks/weather";
-import type { HaWeatherOptions } from "../../../ha/hooks/weather";
+import { useHaWeather } from "@scope/core";
+import type { HaWeatherOptions } from "@scope/core";
 import { WeatherModule } from "../cards/weather/WeatherModule";
 import type { WeatherModuleProps } from "../cards/weather/WeatherModule";
 

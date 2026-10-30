@@ -1,5 +1,5 @@
 // The field skin's public entry: its presentational modules and their connected containers. Importing it loads
-// field's token CSS once; the shared Home Assistant hooks and headless components stay in src/ha/index.ts.
+// field's token CSS once; the shared Home Assistant hooks and headless components stay in packages/core/src/index.ts.
 import "./styles/tokens.css";
 
 // Light

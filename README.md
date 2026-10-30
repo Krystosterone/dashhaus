@@ -33,7 +33,7 @@ It registers the skin's Foundations, Dashboard, its own entry and Lovelace card;
 
 To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb), `custom:home-dashboard-field` (Field) and every registered generated skin, then creates one dashboard for each the first time. You edit any Lovelace card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
 
-The presentational cards stay provider-agnostic. Each supported entity kind has a UI-free `useHa<Kind>` hook and headless component under `src/ha/`; each skin wraps those shared results in its own connected tiles or modules. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the seam.
+The presentational cards stay provider-agnostic. Each supported entity kind has a UI-free `useHa<Kind>` hook and headless component under `packages/core/src/ha/`; each skin wraps those shared results in its own connected tiles or modules. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the seam.
 
 The host supplies authentication and an implementation of the transport (the repository includes an adapter for the official `home-assistant-js-websocket` client). Fake transports power unit tests and Storybook; passing them is not evidence of a live Home Assistant connection.
 
@@ -73,7 +73,7 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
 - **Easing tokens only:** `--ease-out` for anything entering, exiting or answering a press, `--ease-in-out` for movement on screen, `--ease-drawer` for the phone sheet. Never `ease-in`, never `transition: all`.
 - **Durations:** presses take `--press` (160 ms). Fades and jumps take 160 to 300 ms. The phone sheet takes 380 ms in and 240 ms out. Exits are always faster than entries.
 - **Only `transform`, `opacity`, `clip-path` and colour changes animate.** Never layout properties: `width`, `height`, `padding`, `margin`, `top`, `left`. The glow is its own layer that fades with opacity. Bar fills use clip-path. Knobs and markers ride layers moved with transform. State colours fade on `background-color`, `color` and `box-shadow`.
-- **Not everything animates.** Keyboard steps and drags never animate: the value follows the finger. Only a tap that jumps a track animates; the slider primitive (`src/primitives/slider.ts`) sets `data-anim` for that. A control kind entering after an entity state change may use one `--press` opacity/scale handoff; reduced motion keeps opacity only.
+- **Not everything animates.** Keyboard steps and drags never animate: the value follows the finger. Only a tap that jumps a track animates; the slider primitive (`packages/core/src/primitives/slider.ts`) sets `data-anim` for that. A control kind entering after an entity state change may use one `--press` opacity/scale handoff; reduced motion keeps opacity only.
 - **Sheet motion uses CSS transitions plus `@starting-style`**, so closing mid-open reverses smoothly.
   - A flick (0.4 px/ms over the last 100 ms) or a drag past 30% of its height (capped at 140 px) dismisses it.
   - Dragging up meets growing friction.

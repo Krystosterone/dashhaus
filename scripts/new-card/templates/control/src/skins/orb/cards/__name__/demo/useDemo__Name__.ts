@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { HourSample } from "../../../shared/ui";
-import type { __Name__Entity, __Name__History } from "../../../../../domains/__name__/types";
+import type { __Name__Entity, __Name__History } from "@scope/core/entities/__name__/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

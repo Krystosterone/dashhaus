@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { ToggleIcon } from "../../../../domains/toggle/types";
+import type { ToggleIcon } from "@scope/core/entities/toggle/types";
 
 /*
  * A mode's glyph, on its key (20 x 20, stroked): the mode's own, so the key names the row. Power when the mode

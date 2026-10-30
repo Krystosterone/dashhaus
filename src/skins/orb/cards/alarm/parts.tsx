@@ -1,8 +1,8 @@
 import type { Vars } from "../../shared/ui";
-import { usePress } from "../../../../primitives/press";
-import { useKeypad } from "../../../../primitives/keypad";
-import type { AlarmMode } from "../../../../domains/alarm/types";
-import { ARMED_LABEL, MODE_LABEL, mmss, modeChoices } from "../../../../domains/alarm/modes";
+import { usePress } from "@scope/core/primitives";
+import { useKeypad } from "@scope/core/primitives";
+import type { AlarmMode } from "@scope/core/entities/alarm/types";
+import { ARMED_LABEL, MODE_LABEL, mmss, modeChoices } from "@scope/core/entities/alarm/modes";
 import { ModeIcon } from "./icons";
 
 /**

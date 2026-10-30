@@ -42,14 +42,14 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   if (!change.exists(registryPath)) fail(`${skin} is not a generated skin: ${registryPath} is missing. Start it with npm run new-skin -- ${skin}`);
   if (change.exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
 
-  const typesPath = `src/domains/${name}/types.ts`;
+  const typesPath = `packages/core/src/entities/${name}/types.ts`;
   if (!exists(typesPath)) fail(`${typesPath} doesn't exist. A generated skin draws a shared domain that already exists`);
   const types = read(typesPath);
   const entity = shape(types, `${Name}Entity`);
   const history = shape(types, `${Name}History`);
   if (!entity || !history) fail(`${typesPath} must export ${Name}Entity and ${Name}History`);
 
-  const hookPath = `src/ha/hooks/${name}.ts`;
+  const hookPath = `packages/core/src/ha/hooks/${name}.ts`;
   if (!exists(hookPath)) fail(`${hookPath} doesn't exist: generated skins reach Home Assistant through useHa${Name}`);
   const hook = read(hookPath);
   const options = shape(hook, `Ha${Name}Options`);
@@ -57,7 +57,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   const required = [...options.matchAll(/^\s+(\w+): /gm)].map((match) => match[1]);
   if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated Card can't know`);
 
-  const actionsPath = `src/ha/actions/${name}.ts`;
+  const actionsPath = `packages/core/src/ha/actions/${name}.ts`;
   const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : "";
   const zeroArg = [...handlers.matchAll(/^\s+(on\w+)\??:\s*\(\)\s*=>/gm)].map((match) => match[1]);
   const kind = askedKind ?? (zeroArg.length ? "control" : "reading");
@@ -80,7 +80,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
     if (path.startsWith("../../../../../")) return line;
     const imported = list.split(",").map((item) => item.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((item) => ["HourSample", "Reading"].includes(item))) return `import type {${list}} from "../../../../../domains/history";`;
+    if (path === "../../../shared/ui" && isType && imported.every((item) => ["HourSample", "Reading"].includes(item))) return `import type {${list}} from "@scope/core/entities/history";`;
     fail(`${demoDir}/${seedFile} imports ${path}, which belongs to Orb; move what it needs to a shared module first`);
   });
   seeds = `// Copied from Orb by \`npm run new-card -- ${name} --skin ${skin}\`; this skin owns its Seeds from here.\n${seeds}`;
@@ -95,10 +95,10 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
 
   const orbStoryPath = `src/skins/orb/ha/Ha${Name}Tile.stories.tsx`;
   const orbStory = exists(orbStoryPath) ? read(orbStoryPath) : "";
-  const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(\.\.\/\.\.\/\.\.\/ha\/[^"]+)"/);
+  const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@scope\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${orbStoryPath} must import a demo transport and draw an entityId`);
-  const fixturePath = `src/ha/fixtures/${name}.json`;
+  const fixturePath = `packages/core/src/ha/fixtures/${name}.json`;
   if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist`);
   const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
   if (!fixtureId) fail(`${fixturePath} has no available entity`);

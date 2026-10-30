@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { HaProvider, useHaSelector, useHaStatus, useHaStore } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
+import { HaProvider, useHaSelector, useHaStatus, useHaStore } from "@scope/core";
+import { createHaStore } from "@scope/core";
 import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { createDemoHouseTransport } from "../../../ha/demo/house";
-import type { HaTransport } from "../../../ha/types";
+import { createDemoHouseTransport } from "@scope/core/demo";
+import type { HaTransport } from "@scope/core";
 
 const meta = {
   title: "Orb/Dashboards/Lovelace card",

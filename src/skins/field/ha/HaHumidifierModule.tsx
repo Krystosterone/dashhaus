@@ -1,5 +1,5 @@
-import { useHaHumidifier } from "../../../ha/hooks/humidifier";
-import type { HaHumidifierOptions } from "../../../ha/hooks/humidifier";
+import { useHaHumidifier } from "@scope/core";
+import type { HaHumidifierOptions } from "@scope/core";
 import { HumidifierModule } from "../cards/humidifier/HumidifierModule";
 import type { HumidifierModuleProps } from "../cards/humidifier/HumidifierModule";
 

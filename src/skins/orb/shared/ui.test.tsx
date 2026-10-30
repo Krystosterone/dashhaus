@@ -1,6 +1,6 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { useRangeSlider, useSlider } from "../../../primitives/slider";
+import { useRangeSlider, useSlider } from "@scope/core/primitives";
 import { COLORS, CardTitle, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
 

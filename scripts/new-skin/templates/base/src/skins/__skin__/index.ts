@@ -1,5 +1,5 @@
 // The __Section__ skin's public entry: its parts and dashboard furniture. Importing it loads the skin's
-// tokens.css once; the Home Assistant hooks stay in the shared slice, src/ha/index.ts.
+// tokens.css once; the Home Assistant hooks stay in the shared slice, packages/core/src/index.ts.
 import "./styles/tokens.css";
 
 export { __Skin__CardFrame, __Skin__Action } from "./shared/ui";

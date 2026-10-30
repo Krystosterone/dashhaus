@@ -1,5 +1,5 @@
-import type { HumidifierEntity, HumidifierHistory } from "../../../../domains/humidifier/types";
-import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "../../../../domains/humidifier/labels";
+import type { HumidifierEntity, HumidifierHistory } from "@scope/core/entities/humidifier/types";
+import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@scope/core/entities/humidifier/labels";
 import { HumidifierIcon } from "./icons";
 import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";

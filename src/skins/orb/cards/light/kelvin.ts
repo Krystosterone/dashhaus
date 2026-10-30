@@ -1,4 +1,4 @@
-import { K_MAX, K_MIN, kelvinToLch } from "../../../../domains/light/kelvin";
+import { K_MAX, K_MIN, kelvinToLch } from "@scope/core/entities/light/kelvin";
 
 /** CSS color for a Kelvin value. Lightness comes from the theme token --accent-l. */
 export function lampColor(k: number): string {

@@ -5,7 +5,7 @@
  * with `--skin field`, over both generated and hand-built domains in field.
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -34,6 +34,18 @@ const REFUSED = [
 
 /** Children run outside this vitest run: without its variables a nested `vitest run` acts as a fresh one. */
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
+/** The copy's own node_modules: each dependency linked from the root, but @scope/core pointing at the copy's core. */
+const linkNodeModules = (copy: string) => {
+  const modules = join(copy, "node_modules");
+  mkdirSync(modules);
+  for (const entry of readdirSync(join(root, "node_modules"))) {
+    if (entry === "@scope") continue;
+    symlinkSync(join(root, "node_modules", entry), join(modules, entry));
+  }
+  mkdirSync(join(modules, "@scope"));
+  symlinkSync(join(copy, "packages", "core"), join(modules, "@scope", "core"), "dir");
+};
+
 const run = (cwd: string, command: string, args: string[]) => {
   const result = spawnSync(command, args, { cwd, env, encoding: "utf8" });
   return { status: result.status, output: `${result.stdout}${result.stderr}` };
@@ -60,7 +72,7 @@ describe("new-card", () => {
     beforeAll(() => {
       copy = mkdtempSync(join(tmpdir(), "new-card-"));
       cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
-      symlinkSync(join(root, "node_modules"), join(copy, "node_modules"));
+      linkNodeModules(copy);
     });
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
@@ -84,7 +96,7 @@ describe("new-card", () => {
       }
       const typecheck = run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "src/ha/lovelace", "src/ha/mappers/fixtures.test.ts"]);
+      const tests = run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "src/ha/lovelace", "packages/core/src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const lint = run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);
@@ -93,7 +105,7 @@ describe("new-card", () => {
     it("refuses a control domain with no onToggle, unless it starts as a reading", () => {
       const orb = run(copy, "node", [script, "probeDial", "--code", "zd", "--domain", "probe_dial"]);
       expect(orb.status, orb.output).toBe(0);
-      const actions = join(copy, "src/ha/actions/probeDial.ts");
+      const actions = join(copy, "packages/core/src/ha/actions/probeDial.ts");
       writeFileSync(actions, readFileSync(actions, "utf8").replaceAll("onToggle", "onSpin"));
       const control = run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
       if (generatedField) {
@@ -109,7 +121,7 @@ describe("new-card", () => {
     it("refuses a domain whose hook needs an option a generated module can't know, and says which", () => {
       const orb = run(copy, "node", [script, "probeHub", "--code", "zh", "--domain", "probe_hub"]);
       expect(orb.status, orb.output).toBe(0);
-      const hook = join(copy, "src/ha/hooks/probeHub.ts");
+      const hook = join(copy, "packages/core/src/ha/hooks/probeHub.ts");
       writeFileSync(hook, readFileSync(hook, "utf8").replace("export interface HaProbeHubOptions {\n", "export interface HaProbeHubOptions {\n  hubId: string;\n"));
       const { status, output } = run(copy, "node", [script, "probeHub", "--skin", "field", "--dry-run"]);
       expect(status).toBe(1);

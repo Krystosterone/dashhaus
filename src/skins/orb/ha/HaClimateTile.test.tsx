@@ -1,8 +1,8 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaClimateTile } from "./HaClimateTile";
-import type { HassEntities } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
+import type { HassEntities } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
 
 const raw: HassEntities = {
   "climate.living_room": {

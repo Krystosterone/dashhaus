@@ -19,7 +19,7 @@ import { afterLast, before, changes, fail, filler, intoObject, names, orbKinds, 
 import { newFieldCard } from "./field.mjs";
 import { newGeneratedCard } from "./generated.mjs";
 
-/** The skin a new card is drawn in; its logic goes outside it, in src/domains/ and src/ha/. */
+/** The skin a new card is drawn in; its logic goes outside it, in packages/core/src/entities/ and packages/core/src/ha/. */
 const SKIN = "src/skins/orb";
 
 // ---------- Arguments ----------
@@ -61,7 +61,7 @@ const reading = kind === "reading";
 
 // ---------- Validation ----------
 const { Name, CONST, words, Label } = names(name, '"fan" or "airPurifier"');
-for (const dir of [`${SKIN}/cards`, "src/domains"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
+for (const dir of [`${SKIN}/cards`, "packages/core/src/entities"]) if (existsSync(join(root, dir, name))) fail(`${dir}/${name} already exists`);
 // Names the dashboard stories already use as identifiers.
 if (["cell", "columns", "section", "device", "bundle", "dashboardPage", "cardGrid"].includes(name)) fail(`"${name}" is taken by the dashboard layout`);
 if (!/^[a-z]{2}$/.test(code)) fail(`code "${code}" must be two lower-case letters: the card's CSS class prefix`);
@@ -95,6 +95,8 @@ const fill = filler(tokens);
 const change = changes();
 const { writes, edit } = change;
 change.fromTemplates(["common", kind], fill);
+// The demo transport joins the package's demo barrel, the one public address for it.
+edit("packages/core/src/demo/index.ts", (s) => s + fill(`export * from "./__name__";\n`));
 
 // ---------- Registrations ----------
 
@@ -110,21 +112,21 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
 
 `)));
 
-edit("src/ha/index.ts", (s) => s + fill(`export { __name__FromHass } from "./mappers/__name__";
-export type { __Name__MapOptions } from "./mappers/__name__";
-${reading ? "" : `export { create__Name__Handlers } from "./actions/__name__";
-export type { __Name__Handlers, __Name__HandlerOptions } from "./actions/__name__";
-`}export { useHa__Name__ } from "./hooks/__name__";
-export type { Ha__Name__Options, Ha__Name__Result } from "./hooks/__name__";
-export { Ha__Name__ } from "./headless";
+edit("packages/core/src/index.ts", (s) => s + fill(`export { __name__FromHass } from "./ha/mappers/__name__";
+export type { __Name__MapOptions } from "./ha/mappers/__name__";
+${reading ? "" : `export { create__Name__Handlers } from "./ha/actions/__name__";
+export type { __Name__Handlers, __Name__HandlerOptions } from "./ha/actions/__name__";
+`}export { useHa__Name__ } from "./ha/hooks/__name__";
+export type { Ha__Name__Options, Ha__Name__Result } from "./ha/hooks/__name__";
+export { Ha__Name__ } from "./ha/headless";
 `));
 
 // Its headless component: the hook as a component that draws nothing.
-edit("src/ha/headless.tsx", afterLast(/^import \{ useHa\w+ \} from "\.\/hooks\/.*$/gm, fill(`import { useHa__Name__ } from "./hooks/__name__";\n`)));
-edit("src/ha/headless.tsx", (s) => s + fill(`export const Ha__Name__ = headless(useHa__Name__, "Ha__Name__");\n`));
+edit("packages/core/src/ha/headless.tsx", afterLast(/^import \{ useHa\w+ \} from "\.\/hooks\/.*$/gm, fill(`import { useHa__Name__ } from "./hooks/__name__";\n`)));
+edit("packages/core/src/ha/headless.tsx", (s) => s + fill(`export const Ha__Name__ = headless(useHa__Name__, "Ha__Name__");\n`));
 
 // Every fixture runs through the real mapper.
-const fixtures = "src/ha/mappers/fixtures.test.ts";
+const fixtures = "packages/core/src/ha/mappers/fixtures.test.ts";
 edit(fixtures, afterLast(/^import \w+ from "\.\.\/fixtures\/.*$/gm, fill(`import __name__ from "../fixtures/__name__.json";\n`)));
 edit(fixtures, afterLast(/^import \{ \w+FromHass \} from "\.\/.*$/gm, fill(`import { __name__FromHass } from "./__name__";\n`)));
 edit(fixtures, before(/\n\];\n/, fill(`\n  { domain: "__label__", fixture: __name__, map: __name__FromHass, keepsState: ${!reading} },`)));
@@ -193,8 +195,8 @@ console.log(`Created the ${words} ${kind} card (${code}-, ${domain}.*): ${create
 
 Next:
   1. npm run storybook  →  Orb/Cards/${Name} and Orb/Connected/${Name}
-  2. Make it the ${words}: fields in src/domains/${name}/types.ts, the card in ${Name}Card.tsx,
-     attributes in src/ha/mappers/${name}.ts${reading ? "" : `, services in src/ha/actions/${name}.ts`}
+  2. Make it the ${words}: fields in packages/core/src/entities/${name}/types.ts, the card in ${Name}Card.tsx,
+     attributes in packages/core/src/ha/mappers/${name}.ts${reading ? "" : `, services in packages/core/src/ha/actions/${name}.ts`}
   3. Draw its icon in ${SKIN}/cards/${name}/icons.tsx
   4. Finish "Using the ${words} card" in docs/cards.md
   5. Its Lovelace card: its YAML keys in ${SKIN}/lovelace/config.ts and docs/deploy.md${placed ? "" : `,

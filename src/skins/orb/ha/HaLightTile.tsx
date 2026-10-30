@@ -1,6 +1,6 @@
-import { useHaLight } from "../../../ha/hooks/light";
-import type { HaLightOptions } from "../../../ha/hooks/light";
-import type { LightHandlers } from "../../../ha/actions/light";
+import { useHaLight } from "@scope/core";
+import type { HaLightOptions } from "@scope/core";
+import type { LightHandlers } from "@scope/core";
 import { LightTile } from "../cards/light/LightTile";
 import type { LightTileProps } from "../cards/light/LightTile";
 

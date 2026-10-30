@@ -32,14 +32,14 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const step = (n) => `AGENTS.md → Adding an existing domain to another skin, step ${n}`;
 
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
-  const typesPath = `src/domains/${name}/types.ts`;
+  const typesPath = `packages/core/src/entities/${name}/types.ts`;
   if (!exists(typesPath)) fail(`${typesPath} doesn't exist. Field draws a domain orb already has: npm run new-card -- ${name} --code <xx> --domain <ha_domain> first`);
   const types = read(typesPath);
   const entity = shape(types, `${Name}Entity`);
   const history = shape(types, `${Name}History`);
   if (!entity || !history) fail(`${typesPath} must export ${Name}Entity and ${Name}History`);
 
-  const hookPath = `src/ha/hooks/${name}.ts`;
+  const hookPath = `packages/core/src/ha/hooks/${name}.ts`;
   if (!exists(hookPath)) fail(`${hookPath} doesn't exist: field reaches Home Assistant through useHa${Name} (${step(1)})`);
   const hook = read(hookPath);
   const options = shape(hook, `Ha${Name}Options`);
@@ -47,7 +47,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const required = [...options.matchAll(/^\s+(\w+): /gm)].map((m) => m[1]);
   if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated module can't know. Draw ${words} in field by hand, from ${SKIN}/cards/light/`);
 
-  const actionsPath = `src/ha/actions/${name}.ts`;
+  const actionsPath = `packages/core/src/ha/actions/${name}.ts`;
   const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : null;
   const kind = askedKind ?? (handlers == null ? "reading" : "control");
   if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
@@ -79,8 +79,8 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
     if (path.startsWith("../../../../../")) return line;
     const imported = list.split(",").map((n) => n.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${list}} from "../../../../../domains/history";`;
-    fail(`${demoDir}/${seedFile} imports ${path}, which is orb's own; move what it needs to src/domains/ first`);
+    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${list}} from "@scope/core/entities/history";`;
+    fail(`${demoDir}/${seedFile} imports ${path}, which is orb's own; move what it needs to packages/core/src/entities/ first`);
   });
   seeds = `// Copied from orb's card by \`npm run new-card -- ${name} --skin field\`: field's own seeds from here.\n${seeds}`;
   const hasHook = new RegExp(`export function useDemo${Name}\\b`).test(seeds);
@@ -95,11 +95,11 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   if (!unavailableSeed || !firstSeed) fail(`${CONST}_SEEDS needs an unavailable example and an available one, for the Unavailable and default stories`);
 
   const orbStory = exists(`${ORB}/ha/Ha${Name}Tile.stories.tsx`) ? read(`${ORB}/ha/Ha${Name}Tile.stories.tsx`) : "";
-  const transport = orbStory.match(/import \{ (createDemo\w+HaTransport)\b[^}]*\} from "(\.\.\/\.\.\/\.\.\/ha\/[^"]+)"/);
+  const transport = orbStory.match(/import \{ (createDemo\w+HaTransport)\b[^}]*\} from "(@scope\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${ORB}/ha/Ha${Name}Tile.stories.tsx must import a createDemo…HaTransport and draw an entityId, for field's connected story`);
 
-  const fixturePath = `src/ha/fixtures/${name}.json`;
+  const fixturePath = `packages/core/src/ha/fixtures/${name}.json`;
   if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist, for its connected module's test`);
   const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, e]) => !["unavailable", "unknown"].includes(e.state))?.[0];
   if (!fixtureId) fail(`${fixturePath} has no available entity for its connected module's test`);

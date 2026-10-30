@@ -1,4 +1,4 @@
-import type { CoverClass } from "../../../../domains/cover/types";
+import type { CoverClass } from "@scope/core/entities/cover/types";
 
 const P = { fill: "none", stroke: "currentColor" } as const;
 

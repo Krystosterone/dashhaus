@@ -2,9 +2,9 @@ import { StrictMode } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HaWeatherTile } from "./HaWeatherTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import type { HaTransport, HassEntities } from "@scope/core";
 
 const entities: HassEntities = {
   "weather.home": {

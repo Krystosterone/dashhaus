@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoHouseTransport } from "../../../ha/demo/house";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoHouseTransport } from "@scope/core/demo";
 import { areaSections } from "./auto";
 import { __Skin__Dashboard } from "./__Skin__Dashboard";
 import type { CardConfig } from "./config";

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { useNow } from "../../../hooks/useNow";
-import { clockFace } from "../../../domains/clock";
-import type { ClockOptions } from "../../../domains/clock";
+import { useNow } from "@scope/core/hooks";
+import { clockFace } from "@scope/core/entities/clock";
+import type { ClockOptions } from "@scope/core/entities/clock";
 import { Digits, Screen } from "../shared/ui";
 import "./Header.css";
 

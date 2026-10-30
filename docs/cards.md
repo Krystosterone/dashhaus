@@ -143,7 +143,7 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
 
 ### Field weather module
 
-`WeatherModule` is the same normalized weather entity, history and forecasts in the Field skin, with the same warnings, rain line and today's low–high (`src/domains/weather/readings.ts`); `HaWeatherModule` is its connected container, on the same `useHaWeather` hook as `HaWeatherTile`, taking the same `aqiEntityId`, `aqiScale`, `sunEntityId` and `loadForecasts`. See [field.md](field.md#weather).
+`WeatherModule` is the same normalized weather entity, history and forecasts in the Field skin, with the same warnings, rain line and today's low–high (`packages/core/src/entities/weather/readings.ts`); `HaWeatherModule` is its connected container, on the same `useHaWeather` hook as `HaWeatherTile`, taking the same `aqiEntityId`, `aqiScale`, `sunEntityId` and `loadForecasts`. See [field.md](field.md#weather).
 
 ```tsx
 <HaWeatherModule entityId="weather.home" aqiEntityId="sensor.home_aqi" aqiScale="US" sunEntityId="sun.sun" />
@@ -157,7 +157,7 @@ A security alarm: one `alarm_control_panel.*`.
 <AlarmTile entity={panel} history={today} onArm={(mode, code) => arm(mode, code)} onDisarm={(code) => disarm(code)} />
 ```
 
-With Home Assistant, the connected slice in `src/ha/` does the mapping both ways — `alarmFromHass` and `createAlarmHandlers`, or the ready-made `HaAlarmTile`:
+With Home Assistant, the connected slice in `packages/core/src/ha/` does the mapping both ways — `alarmFromHass` and `createAlarmHandlers`, or the ready-made `HaAlarmTile`:
 
 ```tsx
 import { HaAlarmTile } from "./src";
@@ -287,7 +287,7 @@ An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. I
 
 ### Field owlet module
 
-`OwletModule` is the same normalized owlet entity and history in the Field skin, with the same sleep words, alert names and ranking (`src/domains/owlet/readings.ts`); `HaOwletModule` is its connected container, on the same `useHaOwlet` hook as `HaOwletTile`, finding the same companions or taking the same `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId`, `alertEntityIds` and `staleAfterMinutes`. The screen leads with the heart rate beside a heart that flashes once every 2.4 s while readings arrive (its colour only, as a pulse oximeter's segment, where the tile's heart beats in size), then the sleep state and the oxygen. Its warnings take field's severity ladder (`owletSeverity`): a vitals alert is an alarm, the screen inverted with the vital that set it off as its figure; a problem that stops the monitoring, or readings that stopped, is urgent, an inverted block; a low battery is advisory, on the plate's line. Both reach the dashboard's alert line. The base station switches from the panel only, as on the tile. Field has no glow or warning colour, so the alarm is the inverted screen, which flashes for ten seconds and then holds, never a coloured pulse. See [field.md](field.md#owlet).
+`OwletModule` is the same normalized owlet entity and history in the Field skin, with the same sleep words, alert names and ranking (`packages/core/src/entities/owlet/readings.ts`); `HaOwletModule` is its connected container, on the same `useHaOwlet` hook as `HaOwletTile`, finding the same companions or taking the same `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId`, `alertEntityIds` and `staleAfterMinutes`. The screen leads with the heart rate beside a heart that flashes once every 2.4 s while readings arrive (its colour only, as a pulse oximeter's segment, where the tile's heart beats in size), then the sleep state and the oxygen. Its warnings take field's severity ladder (`owletSeverity`): a vitals alert is an alarm, the screen inverted with the vital that set it off as its figure; a problem that stops the monitoring, or readings that stopped, is urgent, an inverted block; a low battery is advisory, on the plate's line. Both reach the dashboard's alert line. The base station switches from the panel only, as on the tile. Field has no glow or warning colour, so the alarm is the inverted screen, which flashes for ten seconds and then holds, never a coloured pulse. See [field.md](field.md#owlet).
 
 ```tsx
 <HaOwletModule entityId="sensor.owlet_sock_ac000w0123_sleep_state" name="Nova" />

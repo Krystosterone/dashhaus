@@ -28,7 +28,7 @@ npm run new-card -- climate --skin canvas
 npm run new-card -- sensor --skin canvas
 ```
 
-The Card generator reads the existing `src/domains/<name>/` model, `useHa<Name>` hook, actions, Orb Seeds, demo transport, fixture, and Lovelace domain routing. It writes a skin-qualified presentational Card (`CanvasLightCard`), Connected adapter (`HaCanvasLightCard`), standard stories, focused tests, local Seeds, the skin's entry exports, documentation, Storybook order, Dashboard demo data, and one runtime registry entry.
+The Card generator reads the existing `packages/core/src/entities/<name>/` model, `useHa<Name>` hook, actions, Orb Seeds, demo transport, fixture, and Lovelace domain routing. It writes a skin-qualified presentational Card (`CanvasLightCard`), Connected adapter (`HaCanvasLightCard`), standard stories, focused tests, local Seeds, the skin's entry exports, documentation, Storybook order, Dashboard demo data, and one runtime registry entry.
 
 A neutral control exposes the shared handler's zero-argument actions. Actions that require values or credentials are not guessed: the Card starts read-only until its bespoke design supplies the right control. `--kind reading` can deliberately suppress available zero-argument actions. Existing Orb generation and the committed Field generator remain unchanged.
 
@@ -37,7 +37,7 @@ A neutral control exposes the shared handler's zero-argument actions. Actions th
 1. Replace `styles/tokens.css` and the neutral Parts in `shared/`; keep every colour in the scoped token file.
 2. Record the skin's rules in `docs/<skin>.md` and encode CSS-enforceable rules in `styles/rules.test.ts`.
 3. Replace each Card's placeholder glyph, summary, actions, history and Details content without forking its domain model or Home Assistant hook.
-4. Keep presentational code out of `src/ha`; only the skin's `ha/` and `lovelace/` folders, and its entry that re-exports their connected containers, cross that seam.
+4. Keep presentational code out of `packages/core/src/ha`; only the skin's `ha/` and `lovelace/` folders, and its entry that re-exports their connected containers, cross that seam.
 5. Keep Storybook's standard state, width, footprint, compact, worst-case and Details stories while adding domain-specific stories.
 
 Verify the result:

@@ -3,13 +3,25 @@
  * rebuilds it through `new-skin` plus the normal Card command, and checks the result at the public seams.
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
+/** The copy's own node_modules: each dependency linked from the root, but @scope/core pointing at the copy's core. */
+const linkNodeModules = (copy: string) => {
+  const modules = join(copy, "node_modules");
+  mkdirSync(modules);
+  for (const entry of readdirSync(join(root, "node_modules"))) {
+    if (entry === "@scope") continue;
+    symlinkSync(join(root, "node_modules", entry), join(modules, entry));
+  }
+  mkdirSync(join(modules, "@scope"));
+  symlinkSync(join(copy, "packages", "core"), join(modules, "@scope", "core"), "dir");
+};
+
 const run = (cwd: string, command: string, args: string[]) => {
   const result = spawnSync(command, args, { cwd, env, encoding: "utf8" });
   return { status: result.status, output: `${result.stdout}${result.stderr}` };
@@ -69,7 +81,7 @@ describe("new-skin", () => {
     beforeAll(() => {
       copy = mkdtempSync(join(tmpdir(), "new-skin-field-"));
       cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
-      symlinkSync(join(root, "node_modules"), join(copy, "node_modules"));
+      linkNodeModules(copy);
       removeField(copy);
     });
     afterAll(() => process.env.KEEP_NEW_SKIN_COPY ? console.info(`FIELD_RECONSTRUCTION=${copy}`) : rmSync(copy, { recursive: true, force: true }));

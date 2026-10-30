@@ -1,11 +1,11 @@
 import { createContext, createElement, useContext, useId, useState } from "react";
 import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
-import { usePress } from "../../../primitives/press";
-import type { useSlider } from "../../../primitives/slider";
-import { useSheet } from "../../../primitives/sheet";
-import type { ColorName } from "../../../domains/color";
-import type { HourSample, Reading } from "../../../domains/history";
-import { fmt1, fmtDuration } from "../../../domains/format";
+import { usePress } from "@scope/core/primitives";
+import type { useSlider } from "@scope/core/primitives";
+import { useSheet } from "@scope/core/primitives";
+import type { ColorName } from "@scope/core/entities/color";
+import type { HourSample, Reading } from "@scope/core/entities/history";
+import { fmt1, fmtDuration } from "@scope/core/entities/format";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -113,8 +113,8 @@ export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: C
 
 export type { HourSample, Reading };
 
-/** Scale readings for a Today strip; shared with every skin through src/domains/history.ts. */
-export { normalizeReadings } from "../../../domains/history";
+/** Scale readings for a Today strip; shared with every skin through packages/core/src/entities/history.ts. */
+export { normalizeReadings } from "@scope/core/entities/history";
 
 export const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" /></svg>;
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { RefObject } from "react";
-import { useHashPage } from "../../hooks/useHashPage";
-import { useScrollSpy } from "../../hooks/useScrollSpy";
+import { useHashPage } from "@scope/core/hooks";
+import { useScrollSpy } from "@scope/core/hooks";
 import { MAIN_PAGE, navigateInHa, sectionId } from "./nav";
 import type { NavTarget } from "./nav";
 import type { NavItem } from "./nav";

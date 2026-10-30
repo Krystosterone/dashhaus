@@ -1,12 +1,12 @@
 import { act } from "react";
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Connection } from "home-assistant-js-websocket";
-import type { HaTransport } from "../../../ha/types";
+import type { Connection } from "@scope/core/websocket";
+import type { HaTransport } from "@scope/core";
 import { create__Skin__Card } from "./card";
 
 const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn() }));
-vi.mock("../../../ha/home-assistant", () => adapter);
+vi.mock("@scope/core/websocket", () => adapter);
 adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({ subscribeEntities: (listener) => { queueMicrotask(() => listener({})); return () => undefined; }, callService: async () => undefined }));
 customElements.define("home-dashboard-__skin__-test", create__Skin__Card(":root { --__skin__-page: #fff; }"));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };

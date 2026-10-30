@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaHumidifierTile } from "./HaHumidifierTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoHumidifierHaTransport } from "../../../ha/demo/humidifier";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoHumidifierHaTransport } from "@scope/core/demo";
 
 const meta = {
   title: "Orb/Connected/Humidifier",

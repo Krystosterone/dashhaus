@@ -1,6 +1,6 @@
 // Copied from orb's card by `npm run new-card -- weather --skin field`: field's own seeds from here.
-import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../../../../../domains/weather/types";
-import type { Reading } from "../../../../../domains/history";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@scope/core/entities/weather/types";
+import type { Reading } from "@scope/core/entities/history";
 
 /** Example data for stories. The clock is fixed at 11:54 (the night example at 22:54). */
 export interface WeatherSeed { entity: WeatherEntity; history: WeatherHistory; hourly: HourlyForecast[]; daily: DailyForecast[] }

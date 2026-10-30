@@ -1,5 +1,5 @@
 import { Track } from "../../shared/ui";
-import { useSlider } from "../../../../primitives/slider";
+import { useSlider } from "@scope/core/primitives";
 
 /** Width of the filled end cap, in px. Matches --cap in SoundCard.css. */
 const THUMB = 30;

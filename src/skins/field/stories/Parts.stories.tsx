@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import type { HourSample } from "../../../domains/history";
+import type { HourSample } from "@scope/core/entities/history";
 import { Blank, Digits, Fader, Glyph, Key, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
@@ -15,7 +15,7 @@ const meta = {
       description: {
         component:
           "Field's parts, the styled controls in src/skins/field/shared/ that every module is built from, each across its states. " +
-          "Primitives (src/primitives/) are their behaviour; these are what a module draws. Try both finishes with the Finish toolbar.",
+          "Primitives (packages/core/src/primitives/) are their behaviour; these are what a module draws. Try both finishes with the Finish toolbar.",
       },
     },
   },

@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
-import type { SensorEntity, SensorHistory } from "../../../../domains/sensor/types";
+import type { SensorEntity, SensorHistory } from "@scope/core/entities/sensor/types";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, lowBattery as isLowBattery, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
 import { AlertStatus, CardTitle, Readout, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";

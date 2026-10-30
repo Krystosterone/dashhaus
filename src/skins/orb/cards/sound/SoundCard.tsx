@@ -1,4 +1,4 @@
-import type { SoundEntity, SoundHistory } from "../../../../domains/sound/types";
+import type { SoundEntity, SoundHistory } from "@scope/core/entities/sound/types";
 import { SoundIcon } from "./icons";
 import { VolumeBar } from "./parts";
 import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";

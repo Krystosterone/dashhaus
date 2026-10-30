@@ -1,8 +1,8 @@
 import { act, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaSensorModule } from "./HaSensorModule";
-import type { HassEntities, HassEntity } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
+import type { HassEntities, HassEntity } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
 
 const stamp = "2026-10-19T10:00:00Z";
 const sensor = (entity_id: string, state: string, attributes: Record<string, unknown>): HassEntity => ({ entity_id, state, attributes, last_changed: stamp, last_updated: stamp });

@@ -1,7 +1,7 @@
 // Copied from orb's card by `npm run new-card -- humidifier --skin field`: field's own seeds from here.
 import { useMemo, useState } from "react";
-import type { HourSample } from "../../../../../domains/history";
-import type { HumidifierEntity, HumidifierHistory } from "../../../../../domains/humidifier/types";
+import type { HourSample } from "@scope/core/entities/history";
+import type { HumidifierEntity, HumidifierHistory } from "@scope/core/entities/humidifier/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

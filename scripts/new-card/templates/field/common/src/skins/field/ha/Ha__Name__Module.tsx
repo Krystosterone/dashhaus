@@ -1,5 +1,5 @@
-import { useHa__Name__ } from "../../../ha/hooks/__name__";
-import type { Ha__Name__Options } from "../../../ha/hooks/__name__";
+import { useHa__Name__ } from "@scope/core";
+import type { Ha__Name__Options } from "@scope/core";
 import { __Name__Module } from "../cards/__name__/__Name__Module";
 import type { __Name__ModuleProps } from "../cards/__name__/__Name__Module";
 

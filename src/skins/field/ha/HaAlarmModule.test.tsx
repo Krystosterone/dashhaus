@@ -1,9 +1,9 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaAlarmModule } from "./HaAlarmModule";
-import type { HassEntities } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
-import fixture from "../../../ha/fixtures/alarm.json";
+import type { HassEntities } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
+import fixture from "@scope/core/fixtures/alarm.json";
 
 const raw = fixture as HassEntities;
 const ID = "alarm_control_panel.disarmed";

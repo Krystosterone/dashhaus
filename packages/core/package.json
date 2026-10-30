@@ -1,0 +1,27 @@
+{
+  "name": "@scope/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./entities": "./src/entities/index.ts",
+    "./entities/*": "./src/entities/*.ts",
+    "./primitives": "./src/primitives/index.ts",
+    "./hooks": "./src/hooks/index.ts",
+    "./websocket": "./src/websocket.ts",
+    "./demo": "./src/demo/index.ts",
+    "./testing": "./src/testing.tsx",
+    "./fixtures/*": "./src/ha/fixtures/*"
+  },
+  "peerDependencies": {
+    "home-assistant-js-websocket": "^9.7.1",
+    "react": "^18.3.1"
+  },
+  "peerDependenciesMeta": {
+    "home-assistant-js-websocket": {
+      "optional": true
+    }
+  }
+}

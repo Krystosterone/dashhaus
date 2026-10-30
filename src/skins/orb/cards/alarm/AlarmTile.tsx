@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlarmCard, AlarmSheet } from "./AlarmCard";
 import type { AlarmCardProps } from "./AlarmCard";
-import type { AlarmAction } from "../../../../domains/alarm/types";
+import type { AlarmAction } from "@scope/core/entities/alarm/types";
 
 export interface AlarmTileProps extends Omit<AlarmCardProps, "variant" | "onOpenDetails" | "onClose" | "action"> {
   defaultOpen?: boolean;

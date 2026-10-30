@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import type { HourSample } from "../../../../../domains/history";
-import type { ToggleEntity, ToggleHistory } from "../../../../../domains/toggle/types";
+import type { HourSample } from "@scope/core/entities/history";
+import type { ToggleEntity, ToggleHistory } from "@scope/core/entities/toggle/types";
 
 /** Example time for stories, fixed so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

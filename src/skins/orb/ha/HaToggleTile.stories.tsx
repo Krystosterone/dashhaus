@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaToggleTile } from "./HaToggleTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoToggleHaTransport } from "../../../ha/demo/toggle";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoToggleHaTransport } from "@scope/core/demo";
 
 const meta = {
   title: "Orb/Connected/Toggle",

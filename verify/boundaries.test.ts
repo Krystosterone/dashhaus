@@ -1,5 +1,5 @@
 /**
- * Skins never import each other: what two skins share goes in src/domains/, src/primitives/, src/hooks/ or src/ha/. ESLint's
+ * Skins never import each other: what two skins share goes in packages/core/src/entities/, packages/core/src/primitives/, packages/core/src/hooks/ or packages/core/src/ha/. ESLint's
  * import patterns can't say "any skin but this one", so this resolves every relative import in each skin. A file
  * directly under src/skins/ would be shared by the skins, so only a skin's test may import it.
  */

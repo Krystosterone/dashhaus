@@ -1,4 +1,4 @@
-import type { HumidifierEntity } from "../../../../domains/humidifier/types";
+import type { HumidifierEntity } from "@scope/core/entities/humidifier/types";
 
 const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 

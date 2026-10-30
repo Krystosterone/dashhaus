@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
-import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../../../../domains/weather/types";
-import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "../../../../domains/weather/conditions";
-import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "../../../../domains/weather/readings";
-import { normalizeReadings } from "../../../../domains/history";
-import type { HourSample } from "../../../../domains/history";
-import { fmt1 } from "../../../../domains/format";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@scope/core/entities/weather/types";
+import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "@scope/core/entities/weather/conditions";
+import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@scope/core/entities/weather/readings";
+import { normalizeReadings } from "@scope/core/entities/history";
+import type { HourSample } from "@scope/core/entities/history";
+import { fmt1 } from "@scope/core/entities/format";
 import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconWeather, conditionPict } from "./icons";

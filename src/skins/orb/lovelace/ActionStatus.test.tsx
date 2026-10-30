@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import type { HassEntities } from "../../../ha/types";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import type { HassEntities } from "@scope/core";
 import { ActionStatus } from "./ActionStatus";
 
 const entities: HassEntities = {

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useHaSelector, useHaStore } from "../../../ha/provider";
+import { useHaSelector, useHaStore } from "@scope/core";
 import { actionMessage } from "../../../ha/lovelace/actionMessage";
 import { MAIN_PAGE, resolveNav, sectionAnchors } from "../../../ha/lovelace/nav";
 import type { NavEntry, PanelInfo } from "../../../ha/lovelace/nav";

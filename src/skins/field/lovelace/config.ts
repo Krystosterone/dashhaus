@@ -1,9 +1,9 @@
 import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace/yaml";
 import type { NavEntry } from "../../../ha/lovelace/nav";
 import type { Raw } from "../../../ha/lovelace/yaml";
-import type { ToggleIcon } from "../../../domains/toggle/types";
-import type { OwletAlert } from "../../../domains/owlet/types";
-import { OWLET_ALERT_SUFFIX } from "../../../ha/mappers/owlet";
+import type { ToggleIcon } from "@scope/core/entities/toggle/types";
+import type { OwletAlert } from "@scope/core/entities/owlet/types";
+import { OWLET_ALERT_SUFFIX } from "@scope/core";
 import type { FieldFootprint } from "../shared/ui";
 
 /*
@@ -115,7 +115,7 @@ export const mapModules = (blocks: readonly BlockConfig[], fn: (m: ModuleConfig)
   return blocks.map((b) => (b.kind === "columns" ? { ...b, sections: b.sections.map(section) } : section(b)));
 };
 
-/** Field's cards, by the name they share with their domain model (`src/domains/<kind>/`). */
+/** Field's cards, by the name they share with their domain model (`packages/core/src/entities/<kind>/`). */
 export type FieldKind = "light" | "climate" | "sensor" | "weather" | "toggle" | "humidifier" | "sound" | "cover" | "alarm" | "owlet";
 
 interface KindSpec {

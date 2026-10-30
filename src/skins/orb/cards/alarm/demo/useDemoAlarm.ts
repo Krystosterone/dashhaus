@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { HourSample } from "../../../shared/ui";
-import type { AlarmEntity, AlarmHistory, AlarmMode } from "../../../../../domains/alarm/types";
+import type { AlarmEntity, AlarmHistory, AlarmMode } from "@scope/core/entities/alarm/types";
 
 /** Example data for stories. The clock is fixed at 11:54. The demo code is 1234; the panel answers after a short wait, like HA. */
 const NOW = { hour: 11, minute: 54 };

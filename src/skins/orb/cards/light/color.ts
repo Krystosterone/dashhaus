@@ -1,5 +1,5 @@
-import { LAMP_COLORS as NAMED, lampColorOf as nameOf } from "../../../../domains/light/color";
-import type { Hs, LampColor as NamedColor, LampColorName } from "../../../../domains/light/color";
+import { LAMP_COLORS as NAMED, lampColorOf as nameOf } from "@scope/core/entities/light/color";
+import type { Hs, LampColor as NamedColor, LampColorName } from "@scope/core/entities/light/color";
 
 export type { Hs };
 
@@ -21,7 +21,7 @@ const SWATCHES: Record<LampColorName, LampColor["swatch"]> = {
 
 const withSwatch = (c: NamedColor): LampColor => ({ ...c, swatch: SWATCHES[c.name] });
 
-/** The colours a lamp's sheet offers (src/domains/light/color.ts), each with its swatch. */
+/** The colours a lamp's sheet offers (packages/core/src/entities/light/color.ts), each with its swatch. */
 export const LAMP_COLORS: LampColor[] = NAMED.map(withSwatch);
 
 /** The colour an `hs_color` is nearest, with its swatch. */

@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaSensorTile } from "./HaSensorTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoSensorHaTransport } from "../../../ha/demo";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoSensorHaTransport } from "@scope/core/demo";
 
 const meta = {
   title: "Orb/Connected/Sensor",

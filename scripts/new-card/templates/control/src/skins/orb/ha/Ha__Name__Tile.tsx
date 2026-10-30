@@ -1,6 +1,6 @@
-import { useHa__Name__ } from "../../../ha/hooks/__name__";
-import type { Ha__Name__Options } from "../../../ha/hooks/__name__";
-import type { __Name__Handlers } from "../../../ha/actions/__name__";
+import { useHa__Name__ } from "@scope/core";
+import type { Ha__Name__Options } from "@scope/core";
+import type { __Name__Handlers } from "@scope/core";
 import { __Name__Tile } from "../cards/__name__/__Name__Tile";
 import type { __Name__TileProps } from "../cards/__name__/__Name__Tile";
 

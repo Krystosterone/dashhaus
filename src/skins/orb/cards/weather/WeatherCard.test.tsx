@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { WeatherCard } from "./WeatherCard";
-import type { WeatherEntity } from "../../../../domains/weather/types";
+import type { WeatherEntity } from "@scope/core/entities/weather/types";
 
 const weather: WeatherEntity = {
   entityId: "weather.home",

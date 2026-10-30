@@ -1,8 +1,8 @@
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaOwletTile } from "./HaOwletTile";
-import type { HassEntities, HassEntity } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
+import type { HassEntities, HassEntity } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
 
 const sensor = (entity_id: string, state: string, friendly_name: string): HassEntity => ({
   entity_id,

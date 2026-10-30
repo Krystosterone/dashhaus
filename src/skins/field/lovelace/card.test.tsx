@@ -2,8 +2,8 @@ import { act } from "react";
 // The card renders through its own React root, outside testing-library; tell React this is a test.
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Connection } from "home-assistant-js-websocket";
-import type { HaTransport, HassEntities } from "../../../ha/types";
+import type { Connection } from "@scope/core/websocket";
+import type { HaTransport, HassEntities } from "@scope/core";
 
 const entities: HassEntities = {
   "light.kitchen": { entity_id: "light.kitchen", state: "on", attributes: { friendly_name: "Kitchen", supported_color_modes: ["onoff"] } },
@@ -16,7 +16,7 @@ const entities: HassEntities = {
 };
 
 const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn() }));
-vi.mock("../../../ha/home-assistant", () => adapter);
+vi.mock("@scope/core/websocket", () => adapter);
 adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
   subscribeEntities(listener) {
     queueMicrotask(() => listener(entities));

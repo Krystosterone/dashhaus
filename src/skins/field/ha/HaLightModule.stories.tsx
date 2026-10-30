@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaLightModule } from "./HaLightModule";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoHaTransport } from "../../../ha/demo";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoHaTransport } from "@scope/core/demo";
 
 const meta = {
   title: "Field/Connected/Light",

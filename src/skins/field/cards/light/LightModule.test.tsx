@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { LightModule } from "./LightModule";
 import { SEEDS } from "./demo/useDemoLight";
-import type { LightEntity } from "../../../../domains/light/types";
+import type { LightEntity } from "@scope/core/entities/light/types";
 
 const draw = (entity: LightEntity, footprint?: "compact" | "standard") =>
   render(<LightModule entity={entity} footprint={footprint} onToggle={vi.fn()} onBrightnessChange={vi.fn()} />).container;

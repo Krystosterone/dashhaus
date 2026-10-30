@@ -1,5 +1,5 @@
-import type { Condition } from "../../../../domains/weather/types";
-import { SKY } from "../../../../domains/weather/conditions";
+import type { Condition } from "@scope/core/entities/weather/types";
+import { SKY } from "@scope/core/entities/weather/conditions";
 
 /* ---------- Icons: 20px, stroked like the rest of the set ---------- */
 const P = { fill: "none", stroke: "currentColor" } as const;

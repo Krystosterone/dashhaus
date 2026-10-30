@@ -13,7 +13,7 @@ Read `docs/home-assistant.md` before changing the boundary. The current contract
 
 ### Boundary
 
-- Put provider-facing code under `src/ha/`. Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees may import `src/ha/`. Shared `src/ha/` never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `src/domains/`, never a skin.
+- Put provider-facing code under `packages/core/src/ha/`. Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees may import `packages/core/src/ha/`. Shared `packages/core/src/ha/` never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `packages/core/src/entities/`, never a skin.
 - Preserve raw entity snapshots keyed by `entity_id`, including the raw state string, attributes, and timestamps.
 - Keep `unknown`, `unavailable`, missing entities, and capability absence explicit. Suppress stale measured readings in the normalized model while an entity is unavailable; never default them to a safe-looking active or closed state.
 
@@ -23,7 +23,7 @@ Make mappers pure. Convert one raw domain object plus optional metadata into the
 
 - **Light:** reject non-finite or out-of-wire brightness rather than clamping invalid measurements into a plausible percentage; use an explicit allowlist of brightness-capable color modes; omit Kelvin readings outside the entity's own consistent min/max bounds.
 - **Climate:** omit target setpoints outside the reported control bounds.
-- **Timestamps:** parse through `src/ha/time.ts`: validate ISO date/time components and reject nonexistent timezone-less local times during DST gaps. Format against the hook's minute clock (`now` mapper option): time for today, weekday and time within a week, date before that; never a bare time for an older day.
+- **Timestamps:** parse through `packages/core/src/ha/time.ts`: validate ISO date/time components and reject nonexistent timezone-less local times during DST gaps. Format against the hook's minute clock (`now` mapper option): time for today, weekday and time within a week, date before that; never a bare time for an older day.
 - **Read-only sensor slice:** compose a primary temperature/humidity entity with explicit companion snapshots; parse the raw numeric state rather than stale attributes; treat an explicit device class as authoritative over a contradictory unit; allow unit fallback only when the class is absent; omit out-of-range percentages.
 - **Weather/home slice:** map `weather.*` conditions/readings plus explicit AQI and `sun.sun` companions; require an explicit AQI scale assertion before applying the normalized US-AQI bands; keep unknown daylight neutral; suppress measured values while the weather state is unknown or unavailable; parse `weather.get_forecasts` response records separately from current state.
 - **Forecasts:** require valid forecast timestamps even when fallback hour/day fields are supplied; reject contradictory explicit hourly fields; use local-calendar rollover arithmetic across DST.
@@ -58,7 +58,7 @@ Use one shared store per connection. Keep it small: the transport owns the socke
 
 ### Containers
 
-Each domain gets a UI-free hook, `src/ha/hooks/<domain>.ts` (`useHa<Kind>(entityId, options)` returning `{ entity, history, actions }`). Each skin that draws it gets a thin connected container under `src/skins/<skin>/ha/`, named for that skin's surface such as `Ha<Kind>Tile` or `Ha<Kind>Module`; it only adapts the shared result to the presentational component. In the hook, select raw entities with `useHaEntity`, run the minute clock (`useNow` from `src/hooks/`) into the mapper and history parser, and memoize the mapped entity, parsed history and handlers. Companion entities and their defaults belong in the hook, so every skin gets them. Keep optimistic interaction state out of the integration; histories and registry metadata are their own read-only slices, never a current reading and never action state.
+Each domain gets a UI-free hook, `packages/core/src/ha/hooks/<domain>.ts` (`useHa<Kind>(entityId, options)` returning `{ entity, history, actions }`). Each skin that draws it gets a thin connected container under `src/skins/<skin>/ha/`, named for that skin's surface such as `Ha<Kind>Tile` or `Ha<Kind>Module`; it only adapts the shared result to the presentational component. In the hook, select raw entities with `useHaEntity`, run the minute clock (`useNow` from `packages/core/src/hooks/`) into the mapper and history parser, and memoize the mapped entity, parsed history and handlers. Companion entities and their defaults belong in the hook, so every skin gets them. Keep optimistic interaction state out of the integration; histories and registry metadata are their own read-only slices, never a current reading and never action state.
 
 The weather/home container owns hourly/daily `weather.get_forecasts` request/response parsing through `useHaRequest`, keyed by entity, scope and hour so forecasts refresh hourly while the previous hour's stays up; partial success is independent and failures reach `onForecastError`. Forecast arrays remain separate from the current-state mapper.
 
@@ -66,7 +66,7 @@ The weather/home container owns hourly/daily `weather.get_forecasts` request/res
 
 When a domain joins the shared connected boundary, start from `npm run new-card -- <name> --code <xx> --domain <domain>`. The current generator writes the shared mapper, actions, fixture and demo transport plus Orb's initial connected tile, tests, story and registrations. Then:
 
-- Add its canonical raw fixture to `src/ha/fixtures/` and register it in `src/ha/mappers/fixtures.test.ts`, which runs every fixture entity through the real mapper. Include representative states plus `unknown`/`unavailable`; toggle fixtures span both `input_boolean` and `switch` ID prefixes. Forecast and history response fixtures stay in their parser tests because they are request/response data rather than entity snapshots.
+- Add its canonical raw fixture to `packages/core/src/ha/fixtures/` and register it in `packages/core/src/ha/mappers/fixtures.test.ts`, which runs every fixture entity through the real mapper. Include representative states plus `unknown`/`unavailable`; toggle fixtures span both `input_boolean` and `switch` ID prefixes. Forecast and history response fixtures stay in their parser tests because they are request/response data rather than entity snapshots.
 - Ship a Storybook demo transport that exercises the real store, mapper, action and history path, and a story for that generated Orb tile. The demo transport answers `history/history_during_period` in the compressed wire shape and the three registry lists, so the story shows the Today strip and a registry-resolved area.
 - For a domain that already has this shared slice, follow `AGENTS.md` → Adding an existing domain to another skin. Reuse the hook and demo transport; add only the skin's presentational card, thin connected surface and Lovelace config/auto/renderer entries. Export both components and their prop types; load token CSS once at the skin's entry, never from an individual card or connected surface. The skin's Lovelace renderer reuses its connected surface instead of repeating hook-to-view wiring.
 
@@ -74,7 +74,7 @@ When a domain joins the shared connected boundary, start from `npm run new-card 
 
 Run `npm run check` (typecheck, lint including the import boundary, and unit tests), `npm run test-storybook` and `npm run build:ha`; all must pass at the final revision. Exercise the affected skin's connected surface through its state matrix at every supported size and footprint, including compact, details, unavailable and worst-case labels. If no live Home Assistant instance is available, report the injected/fake transport evidence separately from live connection evidence.
 
-The ESLint boundary rule permits Home Assistant imports only under `src/ha/`, `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); websocket-client imports remain under `src/ha/`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
+The ESLint boundary rule permits Home Assistant imports only under `packages/core/src/ha/`, `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); websocket-client imports remain under `packages/core/src/ha/`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
 
 ## Output
 

@@ -1,6 +1,6 @@
-import { useHaCover } from "../../../ha/hooks/cover";
-import type { HaCoverOptions } from "../../../ha/hooks/cover";
-import type { CoverHandlers } from "../../../ha/actions/cover";
+import { useHaCover } from "@scope/core";
+import type { HaCoverOptions } from "@scope/core";
+import type { CoverHandlers } from "@scope/core";
 import { CoverTile } from "../cards/cover/CoverTile";
 import type { CoverTileProps } from "../cards/cover/CoverTile";
 

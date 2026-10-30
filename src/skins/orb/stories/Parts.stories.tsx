@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { useSlider } from "../../../primitives/slider";
+import { useSlider } from "@scope/core/primitives";
 import {
   AlertStatus, CardTitle, ChoiceChips, CircleButton, IconClose, Orb, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
 } from "../shared/ui";
@@ -24,7 +24,7 @@ const meta = {
       description: {
         component:
           "Orb's parts, the styled controls in src/skins/orb/shared/ that every card is built from, each across its states. " +
-          "Primitives (src/primitives/) are their behaviour; these are what a card draws. Everything here can be pressed or slid.",
+          "Primitives (packages/core/src/primitives/) are their behaviour; these are what a card draws. Everything here can be pressed or slid.",
       },
     },
   },

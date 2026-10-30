@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaOwletTile } from "./HaOwletTile";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoOwletHaTransport, owletDemoEntities } from "../../../ha/demo/owlet";
-import type { HassEntities } from "../../../ha/types";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoOwletHaTransport, owletDemoEntities } from "@scope/core/demo";
+import type { HassEntities } from "@scope/core";
 
 const meta = {
   title: "Orb/Connected/Owlet",

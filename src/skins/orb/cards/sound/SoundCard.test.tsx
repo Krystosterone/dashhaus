@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { SoundCard } from "./SoundCard";
-import type { SoundEntity } from "../../../../domains/sound/types";
+import type { SoundEntity } from "@scope/core/entities/sound/types";
 
 const entity: SoundEntity = { entityId: "switch.bedroom", name: "Bedroom", area: "Upstairs", state: "on" };
 

@@ -1,5 +1,5 @@
-import { useHaToggle } from "../../../ha/hooks/toggle";
-import type { HaToggleOptions } from "../../../ha/hooks/toggle";
+import { useHaToggle } from "@scope/core";
+import type { HaToggleOptions } from "@scope/core";
 import { ToggleModule } from "../cards/toggle/ToggleModule";
 import type { ToggleModuleProps } from "../cards/toggle/ToggleModule";
 

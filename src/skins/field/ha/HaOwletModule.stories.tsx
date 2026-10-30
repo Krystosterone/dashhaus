@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaOwletModule } from "./HaOwletModule";
-import { HaProvider } from "../../../ha/provider";
-import { createHaStore } from "../../../ha/store";
-import { createDemoOwletHaTransport } from "../../../ha/demo/owlet";
+import { HaProvider } from "@scope/core";
+import { createHaStore } from "@scope/core";
+import { createDemoOwletHaTransport } from "@scope/core/demo";
 
 const meta = {
   title: "Field/Connected/Owlet",

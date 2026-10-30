@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "../../../../domains/alarm/types";
-import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "../../../../domains/alarm/modes";
-import { useDelayLeft } from "../../../../hooks/useDelayLeft";
+import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "@scope/core/entities/alarm/types";
+import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@scope/core/entities/alarm/modes";
+import { useDelayLeft } from "@scope/core/hooks";
 import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
 import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
@@ -21,7 +21,7 @@ export interface AlarmCardProps extends CardProps {
   showControl?: boolean;
   /**
    * Arm in a mode. Resolve (or return) false when the code was wrong; reject when the call didn't go through.
-   * May answer later: the keypad waits. With Home Assistant, `createAlarmHandlers` from src/ha/actions/alarm does all of this.
+   * May answer later: the keypad waits. With Home Assistant, `createAlarmHandlers` from packages/core/src/ha/actions/alarm does all of this.
    */
   onArm?: (mode: AlarmMode, code?: string) => AlarmResult;
   /** Disarm (also cancels arming and silences a triggered alarm). Same contract as onArm. */

@@ -1,5 +1,5 @@
-import { useHaOwlet } from "../../../ha/hooks/owlet";
-import type { HaOwletOptions } from "../../../ha/hooks/owlet";
+import { useHaOwlet } from "@scope/core";
+import type { HaOwletOptions } from "@scope/core";
 import { OwletModule } from "../cards/owlet/OwletModule";
 import type { OwletModuleProps } from "../cards/owlet/OwletModule";
 

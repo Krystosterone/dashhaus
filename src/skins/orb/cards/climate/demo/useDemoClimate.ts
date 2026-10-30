@@ -1,5 +1,5 @@
-import { useDemoClimate } from "../../../../../hooks/useDemoClimate";
-import type { ClimateSeed } from "../../../../../hooks/useDemoClimate";
+import { useDemoClimate } from "@scope/core/hooks";
+import type { ClimateSeed } from "@scope/core/hooks";
 
 export { useDemoClimate };
 export type { ClimateSeed };

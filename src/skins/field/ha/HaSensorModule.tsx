@@ -1,5 +1,5 @@
-import { useHaSensor } from "../../../ha/hooks/sensor";
-import type { HaSensorOptions } from "../../../ha/hooks/sensor";
+import { useHaSensor } from "@scope/core";
+import type { HaSensorOptions } from "@scope/core";
 import { SensorModule } from "../cards/sensor/SensorModule";
 import type { SensorModuleProps } from "../cards/sensor/SensorModule";
 

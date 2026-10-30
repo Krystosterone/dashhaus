@@ -1,9 +1,9 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaWeatherModule } from "./HaWeatherModule";
-import type { HassEntities } from "../../../ha/types";
-import { renderConnected } from "../../../ha/testing";
-import fixture from "../../../ha/fixtures/weather.json";
+import type { HassEntities } from "@scope/core";
+import { renderConnected } from "@scope/core/testing";
+import fixture from "@scope/core/fixtures/weather.json";
 
 const ID = "weather.home";
 const raw: HassEntities = {

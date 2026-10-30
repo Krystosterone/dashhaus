@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { CoverEntity, CoverHistory } from "../../../../domains/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "../../../../domains/cover/position";
+import type { CoverEntity, CoverHistory } from "@scope/core/entities/cover/types";
+import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "@scope/core/entities/cover/position";
 import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconCover, IconDown, IconStop, IconUp, SLATS, WINDOW } from "./icons";

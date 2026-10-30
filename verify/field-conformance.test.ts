@@ -35,13 +35,13 @@ const cards = cardFolders(SKIN)
 
 describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source, code, words }) => {
   it("has the standard files", () => {
-    const missing = [moduleFile, `${dir}/${Name}Module.css`, `${dir}/${Name}Module.stories.tsx`, `${dir}/${Name}Module.test.tsx`, `${dir}/icons.tsx`, `${dir}/demo`, `src/domains/${name}/types.ts`].filter((p) => !exists(p));
+    const missing = [moduleFile, `${dir}/${Name}Module.css`, `${dir}/${Name}Module.stories.tsx`, `${dir}/${Name}Module.test.tsx`, `${dir}/icons.tsx`, `${dir}/demo`, `packages/core/src/entities/${name}/types.ts`].filter((p) => !exists(p));
     expect(missing, `${STEP}, step 2`).toEqual([]);
   });
 
   it("is drawn in the shared frame, with its details in its panel", () => {
     expect(code, `${moduleFile}: draw it in <ModuleFrame kind="fd-<code>" …>, which opens its details in a panel`).toBeDefined();
-    expect(source, `${moduleFile}: presentational files never import src/ha/`).not.toMatch(/from "(\.\.\/)+ha\//);
+    expect(source, `${moduleFile}: presentational files never import packages/core/src/ha/`).not.toMatch(/from "(\.\.\/)+ha\//);
   });
 
   it("prefixes every class of its own with fd-<code>-", () => {
