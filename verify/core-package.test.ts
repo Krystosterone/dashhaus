@@ -25,6 +25,7 @@ const JS_SPECS = [
   /\bfrom\s+["']([^"']+)["']/g,
   /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
   /^\s*import\s+["']([^"']+)["']/gm,
+  /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
 ];
 const specs = (path: string) => [...read(path).matchAll(new RegExp(JS_SPECS.map((r) => r.source).join("|"), "g"))].map((m) => m[1] ?? m[2] ?? m[3]).filter(Boolean);
 
@@ -58,7 +59,7 @@ function graph(entry: string) {
   return { files: [...seen], packages: [...packages] };
 }
 
-const NODE_BUILTINS = /^(node:|fs$|path$|os$|crypto$|url$|util$|stream$|events$|child_process$|module$|assert$|process$)/;
+const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs$|http$|https$|module$|net$|os$|path$|process$|stream$|tls$|url$|util$|zlib$)/;
 const BROWSER = [".", "./entities", "./primitives", "./hooks", "./websocket", "./demo"];
 const entry = (subpath: string) => {
   const target = packageJson.exports[subpath];
