@@ -1,5 +1,5 @@
 /**
- * Skins never import each other: what two skins share goes in @scope/core. ESLint's import patterns can't say
+ * Skins never import each other: what two skins share goes in @dashhaus/core. ESLint's import patterns can't say
  * "any skin but this one", so this resolves every import in each skin: relative paths, bare or aliased specifiers
  * (a workspace alias, an absolute repo path) and CSS `@import`. A file directly under src/skins/ would be shared
  * by the skins, so only a skin's test may import it.
@@ -83,9 +83,9 @@ describe("the import scanner", () => {
     expect(crossings(`${orb}/styles/tokens.css`, '@import "../../field/styles/tokens.css";')).toHaveLength(1);
   });
 
-  it("leaves @scope/core, its own skin and a test's shared helper alone", () => {
+  it("leaves @dashhaus/core, its own skin and a test's shared helper alone", () => {
     const orb = "src/skins/orb";
-    expect(crossings(`${orb}/ha/HaLightTile.tsx`, 'import { HaProvider } from "@scope/core";\nimport { LightEntity } from "@scope/core/entities/light/types";')).toEqual([]);
+    expect(crossings(`${orb}/ha/HaLightTile.tsx`, 'import { HaProvider } from "@dashhaus/core";\nimport { LightEntity } from "@dashhaus/core/entities/light/types";')).toEqual([]);
     expect(crossings(`${orb}/cards/x/X.tsx`, 'import { Card } from "./X";\nimport { N } from "../../n/N";')).toEqual([]);
     expect(crossings(`${orb}/cards/x/X.test.tsx`, 'import { read } from "../../../conformance";')).toEqual([]);
     expect(crossings(`${orb}/cards/x/X.tsx`, 'import { read } from "../../../conformance";')).toHaveLength(1);

@@ -1,5 +1,5 @@
 // The loader is JavaScript so the CLI runs without Node's type stripping. These are its types; the author-facing
-// config types live in @scope/dashboard/cli, and deploy keeps its own copy so it imports no browser package.
+// config types live in @dashhaus/dashboard/cli, and deploy keeps its own copy so it imports no browser package.
 
 /** The websocket calls a config's card factory may make. */
 export interface DeployHa {

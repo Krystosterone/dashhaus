@@ -1,4 +1,4 @@
-import type { ToggleIcon } from "@scope/core/entities/toggle/types";
+import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 
 
 const P = { fill: "none", stroke: "currentColor" } as const;

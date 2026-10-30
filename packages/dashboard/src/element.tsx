@@ -2,11 +2,11 @@ import { Component } from "react";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
-import type { Connection } from "@scope/core/websocket";
-import { HaProvider } from "@scope/core";
-import { createHaStore } from "@scope/core";
-import { createHomeAssistantTransport } from "@scope/core/websocket";
-import type { HaStore, HassEntities } from "@scope/core";
+import type { Connection } from "@dashhaus/core/websocket";
+import { HaProvider } from "@dashhaus/core";
+import { createHaStore } from "@dashhaus/core";
+import { createHomeAssistantTransport } from "@dashhaus/core/websocket";
+import type { HaStore, HassEntities } from "@dashhaus/core";
 
 /** Registry facts per entity: the shape of the frontend's `hass.entities`. */
 export interface AutoEntityEntry {

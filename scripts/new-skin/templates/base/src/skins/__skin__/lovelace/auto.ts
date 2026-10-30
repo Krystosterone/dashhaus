@@ -1,10 +1,10 @@
-import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@scope/dashboard/layout";
-import type { AutoInput } from "@scope/dashboard/layout";
+import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
+import type { AutoInput } from "@dashhaus/dashboard/layout";
 import { __skinVar__KindOf, __SKIN_CONST___CARDS } from "./registry";
 import type { CardConfig, SectionConfig } from "./config";
 
-export type { AutoInput } from "@scope/dashboard/layout";
-export { areaName, groupByArea } from "@scope/dashboard/layout";
+export type { AutoInput } from "@dashhaus/dashboard/layout";
+export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
 
 /** Every supported visible entity, with room sensors reduced to one Card per device and one weather Card. */
 export function autoCards(input: AutoInput): CardConfig[] {

@@ -6,15 +6,15 @@ Create a neutral, first-class skin:
 npm run new-skin -- canvas
 ```
 
-The name is lower-case kebab-case. It determines every namespace and registration: the private workspace package `src/skins/canvas/` named `@scope/canvas`, Storybook section **Canvas**, CSS variables and classes beginning `--canvas-` / `canvas-`, public symbols beginning `Canvas`, and Lovelace card `custom:home-dashboard-canvas`. Use `--dry-run` to validate and list the transaction without writing it.
+The name is lower-case kebab-case. It determines every namespace and registration: the private workspace package `src/skins/canvas/` named `@dashhaus/canvas`, Storybook section **Canvas**, CSS variables and classes beginning `--canvas-` / `canvas-`, public symbols beginning `Canvas`, and Lovelace card `custom:home-dashboard-canvas`. Use `--dry-run` to validate and list the transaction without writing it.
 
 The command creates and registers:
 
-- a `package.json` named `@scope/canvas`: `private`, `type: module`, the workspace's dependencies and peers, and the exports below;
+- a `package.json` named `@dashhaus/canvas`: `private`, `type: module`, the workspace's dependencies and peers, and the exports below;
 - scoped light/dark tokens, fixed `compact` and `standard` footprints, neutral Parts, unavailable treatment, a native Details dialog, and CSS rules tests;
 - Dashboard page, section, columns, cell, header and nav Parts, their stories, and an explicit empty state;
 - Foundations → Design rules, Palette and Parts, backed by `docs/canvas.md`;
-- the package's YAML reader and card schema (`@scope/dashboard/schema`) and automatic area layout (`@scope/dashboard/layout`), pages and nav, a `LovelaceDashboardElement`, card-picker registration, its place in the Home Assistant bundle entry (`apps/lovelace/entry.ts`), and first-deploy dashboard;
+- the package's YAML reader and card schema (`@dashhaus/dashboard/schema`) and automatic area layout (`@dashhaus/dashboard/layout`), pages and nav, a `LovelaceDashboardElement`, card-picker registration, its place in the Home Assistant bundle entry (`apps/lovelace/entry.ts`), and first-deploy dashboard;
 - its own entry (`src/skins/<skin>/index.ts`, which imports its tokens), Storybook setup and static group order, conformance tests, and empty Cards / Connected group explanations.
 
 The baseline is intentionally neutral. It proves the architecture before visual work; it does not copy Orb or synthesize Field's mature hardware design.
@@ -42,7 +42,7 @@ npm run new-card -- climate --skin canvas
 npm run new-card -- sensor --skin canvas
 ```
 
-The Card generator reads the existing `@scope/core/entities/<name>` model, `useHa<Name>` hook, actions, Orb Seeds, demo transport, fixture, and Lovelace domain routing through `scripts/packages.mjs`. It writes a skin-qualified presentational Card (`CanvasLightCard`), Connected adapter (`HaCanvasLightCard`), standard stories, focused tests, local Seeds, the skin's entry exports, documentation, Storybook order, Dashboard demo data, and one runtime registry entry. It writes inside the skin package plus its declared registration seams; every insertion targets a `// new-card: …` marker or the small registry, so an unrelated line moving in a package-owned file does not break a dry run.
+The Card generator reads the existing `@dashhaus/core/entities/<name>` model, `useHa<Name>` hook, actions, Orb Seeds, demo transport, fixture, and Lovelace domain routing through `scripts/packages.mjs`. It writes a skin-qualified presentational Card (`CanvasLightCard`), Connected adapter (`HaCanvasLightCard`), standard stories, focused tests, local Seeds, the skin's entry exports, documentation, Storybook order, Dashboard demo data, and one runtime registry entry. It writes inside the skin package plus its declared registration seams; every insertion targets a `// new-card: …` marker or the small registry, so an unrelated line moving in a package-owned file does not break a dry run.
 
 A neutral control exposes the shared handler's zero-argument actions. Actions that require values or credentials are not guessed: the Card starts read-only until its bespoke design supplies the right control. `--kind reading` can deliberately suppress available zero-argument actions. Existing Orb generation and the committed Field generator remain unchanged.
 

@@ -1,5 +1,5 @@
-import { useHa__Name__ } from "@scope/core";
-import type { Ha__Name__Options } from "@scope/core";
+import { useHa__Name__ } from "@dashhaus/core";
+import type { Ha__Name__Options } from "@dashhaus/core";
 import { __Name__Module } from "../cards/__name__/__Name__Module";
 import type { __Name__ModuleProps } from "../cards/__name__/__Name__Module";
 

@@ -1,5 +1,5 @@
-import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@scope/core/entities/weather/types";
-import type { Reading } from "@scope/core/entities/history";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@dashhaus/core/entities/weather/types";
+import type { Reading } from "@dashhaus/core/entities/history";
 
 /** Example data for stories. The clock is fixed at 11:54 (the night example at 22:54). */
 export interface WeatherSeed { entity: WeatherEntity; history: WeatherHistory; hourly: HourlyForecast[]; daily: DailyForecast[] }

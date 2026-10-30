@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import type { Condition } from "@scope/core/entities/weather/types";
-import { SKY } from "@scope/core/entities/weather/conditions";
-import type { Sky } from "@scope/core/entities/weather/conditions";
+import type { Condition } from "@dashhaus/core/entities/weather/types";
+import { SKY } from "@dashhaus/core/entities/weather/conditions";
+import type { Sky } from "@dashhaus/core/entities/weather/conditions";
 
 /** A sun behind a cloud, on the module's glyph plate: the weather's domain glyph, whatever the sky does. */
 export function IconWeather() {

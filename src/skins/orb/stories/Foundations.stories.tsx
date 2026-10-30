@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { kelvinName } from "@scope/core/entities/light/kelvin";
+import { kelvinName } from "@dashhaus/core/entities/light/kelvin";
 import { lampColor } from "../cards/light/kelvin";
 
 const meta = {

@@ -13,20 +13,20 @@ import {
   readSensorOptions,
   readUnit,
   readWeatherOptions,
-} from "@scope/dashboard/schema";
-import type { CardKindSpec, CardReadSchema } from "@scope/dashboard/schema";
+} from "@dashhaus/dashboard/schema";
+import type { CardKindSpec, CardReadSchema } from "@dashhaus/dashboard/schema";
 import { COLORS } from "../shared/ui";
 import type { ColorName, CardFootprint } from "../shared/ui";
-import type { ToggleIcon } from "@scope/core/entities/toggle/types";
+import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
-import type { OwletAlert } from "@scope/core/entities/owlet/types";
-import { OWLET_ALERT_SUFFIX } from "@scope/core";
-import type { NavEntry } from "@scope/dashboard";
+import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
+import { OWLET_ALERT_SUFFIX } from "@dashhaus/core";
+import type { NavEntry } from "@dashhaus/dashboard";
 
 /*
  * The card's YAML, as Lovelace hands it over (already parsed), checked and normalized. Every mistake is
  * collected with its path and, for a misspelt key, the key that was probably meant, so the YAML editor shows
- * all of them at once instead of the first. The reading itself is the shared card schema (`@scope/dashboard/schema`);
+ * all of them at once instead of the first. The reading itself is the shared card schema (`@dashhaus/dashboard/schema`);
  * this file is the card's kind table and the bundles only orb has.
  */
 

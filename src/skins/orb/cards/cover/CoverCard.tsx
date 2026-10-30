@@ -1,5 +1,5 @@
-import type { CoverEntity, CoverHistory } from "@scope/core/entities/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@scope/core/entities/cover/position";
+import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
+import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
 import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";

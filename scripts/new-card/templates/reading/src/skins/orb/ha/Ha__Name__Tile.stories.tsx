@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Ha__Name__Tile } from "./Ha__Name__Tile";
-import { HaProvider } from "@scope/core";
-import { createHaStore } from "@scope/core";
-import { createDemo__Name__HaTransport } from "@scope/core/demo";
+import { HaProvider } from "@dashhaus/core";
+import { createHaStore } from "@dashhaus/core";
+import { createDemo__Name__HaTransport } from "@dashhaus/core/demo";
 
 const meta = {
   title: "Orb/Connected/__Name__",

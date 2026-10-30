@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
-import type { ClimateEntity, ClimateHistory, HvacMode } from "@scope/core/entities/climate/types";
-import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@scope/core/entities/climate/modes";
+import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
+import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@dashhaus/core/entities/climate/modes";
 import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";

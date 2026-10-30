@@ -1,5 +1,5 @@
-import { useDemoClimate } from "@scope/core/hooks";
-import type { ClimateSeed } from "@scope/core/hooks";
+import { useDemoClimate } from "@dashhaus/core/hooks";
+import type { ClimateSeed } from "@dashhaus/core/hooks";
 
 export { useDemoClimate };
 export type { ClimateSeed };

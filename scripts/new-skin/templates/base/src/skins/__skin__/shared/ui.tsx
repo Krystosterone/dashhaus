@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { usePress } from "@scope/core/primitives";
-import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@scope/dashboard/card";
-import type { CardProps, CardSheetProps, TileProps } from "@scope/dashboard/card";
+import { usePress } from "@dashhaus/core/primitives";
+import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/dashboard/card";
+import type { CardProps, CardSheetProps, TileProps } from "@dashhaus/dashboard/card";
 import "./ui.css";
 
 export type __Skin__Footprint = "compact" | "standard";

@@ -96,7 +96,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   if (!unavailableSeed || !firstSeed) fail(`${CONST}_SEEDS needs an unavailable example and an available one, for the Unavailable and default stories`);
 
   const orbStory = exists(`${ORB}/ha/Ha${Name}Tile.stories.tsx`) ? read(`${ORB}/ha/Ha${Name}Tile.stories.tsx`) : "";
-  const transport = orbStory.match(/import \{ (createDemo\w+HaTransport)\b[^}]*\} from "(@scope\/core\/demo)"/);
+  const transport = orbStory.match(/import \{ (createDemo\w+HaTransport)\b[^}]*\} from "(@dashhaus\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${ORB}/ha/Ha${Name}Tile.stories.tsx must import a createDemo…HaTransport and draw an entityId, for field's connected story`);
 

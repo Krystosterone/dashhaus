@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { K_DEFAULT, K_MAX, K_MIN } from "@scope/core/entities/light/kelvin";
+import { K_DEFAULT, K_MAX, K_MIN } from "@dashhaus/core/entities/light/kelvin";
 import { lampColor, warmGradient } from "./kelvin";
 
 describe("lampColor", () => {

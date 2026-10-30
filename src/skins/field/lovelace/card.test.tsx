@@ -2,8 +2,8 @@ import { act } from "react";
 // The card renders through its own React root, outside testing-library; tell React this is a test.
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Connection } from "@scope/core/websocket";
-import type { HaTransport, HassEntities } from "@scope/core";
+import type { Connection } from "@dashhaus/core/websocket";
+import type { HaTransport, HassEntities } from "@dashhaus/core";
 
 const entities: HassEntities = {
   "light.kitchen": { entity_id: "light.kitchen", state: "on", attributes: { friendly_name: "Kitchen", supported_color_modes: ["onoff"] } },
@@ -16,7 +16,7 @@ const entities: HassEntities = {
 };
 
 const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn() }));
-vi.mock("@scope/core/websocket", () => adapter);
+vi.mock("@dashhaus/core/websocket", () => adapter);
 adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
   subscribeEntities(listener) {
     queueMicrotask(() => listener(entities));
@@ -26,7 +26,7 @@ adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
 }));
 
 const { createFieldCard } = await import("./card");
-const { DashboardConfigError } = await import("@scope/dashboard");
+const { DashboardConfigError } = await import("@dashhaus/dashboard");
 
 customElements.define("home-dashboard-field-test", createFieldCard(":root { --fd-press: 120ms; } :root[data-fd-finish=\"black\"] { --fd-page: #111; }"));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };

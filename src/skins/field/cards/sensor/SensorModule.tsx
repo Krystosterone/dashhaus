@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import type { SensorEntity, SensorHistory } from "@scope/core/entities/sensor/types";
-import type { HourSample } from "@scope/core/entities/history";
-import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "@scope/core/entities/sensor/readings";
+import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
+import type { HourSample } from "@dashhaus/core/entities/history";
+import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "@dashhaus/core/entities/sensor/readings";
 import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconThermo, THERMO } from "./icons";

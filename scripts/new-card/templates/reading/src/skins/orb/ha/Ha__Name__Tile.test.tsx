@@ -1,8 +1,8 @@
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Ha__Name__Tile } from "./Ha__Name__Tile";
-import type { HassEntities } from "@scope/core";
-import { renderConnected } from "@scope/core/testing";
+import type { HassEntities } from "@dashhaus/core";
+import { renderConnected } from "@dashhaus/core/testing";
 
 const raw: HassEntities = {
   "__domain__.living_room": {

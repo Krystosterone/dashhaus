@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { HumidifierEntity, HumidifierHistory } from "@scope/core/entities/humidifier/types";
-import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@scope/core/entities/humidifier/labels";
-import { fmtDuration } from "@scope/core/entities/format";
+import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
+import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
+import { fmtDuration } from "@dashhaus/core/entities/format";
 import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconHumidifier } from "./icons";

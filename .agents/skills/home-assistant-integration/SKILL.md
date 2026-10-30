@@ -13,7 +13,7 @@ Read `docs/home-assistant.md` before changing the boundary. The current contract
 
 ### Boundary
 
-- Put provider-facing code in `@scope/core`'s Home Assistant layer (`packages/core/src/ha/`). Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees, and its entry, may import core's Home Assistant subpaths (`.`, `./websocket`, `./demo`, `./testing`, `./fixtures/*`), while presentation imports `./entities`, `./primitives` and `./hooks`. Core's HA layer never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `@scope/core/entities/*`, never a skin.
+- Put provider-facing code in `@dashhaus/core`'s Home Assistant layer (`packages/core/src/ha/`). Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees, and its entry, may import core's Home Assistant subpaths (`.`, `./websocket`, `./demo`, `./testing`, `./fixtures/*`), while presentation imports `./entities`, `./primitives` and `./hooks`. Core's HA layer never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `@dashhaus/core/entities/*`, never a skin.
 - Preserve raw entity snapshots keyed by `entity_id`, including the raw state string, attributes, and timestamps.
 - Keep `unknown`, `unavailable`, missing entities, and capability absence explicit. Suppress stale measured readings in the normalized model while an entity is unavailable; never default them to a safe-looking active or closed state.
 
@@ -54,7 +54,7 @@ Use one shared store per connection. Keep it small: the transport owns the socke
 - Route background reads through `useHaRequest` over `store.query` (forecasts) or `store.callApi` (history, registries); both stay out of action ordering and `lastActionError`.
 - Only the latest action owns `lastActionError`, and only within its generation. Keep provider string scalars (`translation_key`, `code`), never messages.
 - Shared React providers need reference-counted ownership so replacing/unmounting one provider cannot tear down a store still used by another.
-- The current Orb and Field Lovelace cards extend `LovelaceDashboardElement` from `@scope/dashboard`. The base builds its transport from the frontend's `hass.connection`: one store per connection, never closed by a card, and no re-render on every `hass` set; entity states reach connected surfaces through the store. New card implementations reuse that shared lifecycle rather than duplicating it; equivalent composition is acceptable.
+- The current Orb and Field Lovelace cards extend `LovelaceDashboardElement` from `@dashhaus/dashboard`. The base builds its transport from the frontend's `hass.connection`: one store per connection, never closed by a card, and no re-render on every `hass` set; entity states reach connected surfaces through the store. New card implementations reuse that shared lifecycle rather than duplicating it; equivalent composition is acceptable.
 
 ### Containers
 
@@ -74,7 +74,7 @@ When a domain joins the shared connected boundary, start from `npm run new-card 
 
 Run `npm run check` (typecheck, lint including the import boundary, and unit tests), `npm run test-storybook` and `npm run build:ha`; all must pass at the final revision. Exercise the affected skin's connected surface through its state matrix at every supported size and footprint, including compact, details, unavailable and worst-case labels. If no live Home Assistant instance is available, report the injected/fake transport evidence separately from live connection evidence.
 
-The ESLint boundary permits `@scope/core`'s Home Assistant subpaths only from `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); only `@scope/core/websocket` imports `home-assistant-js-websocket`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
+The ESLint boundary permits `@dashhaus/core`'s Home Assistant subpaths only from `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); only `@dashhaus/core/websocket` imports `home-assistant-js-websocket`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
 
 ## Output
 

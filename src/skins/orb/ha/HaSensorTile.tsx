@@ -1,5 +1,5 @@
-import { useHaSensor } from "@scope/core";
-import type { HaSensorOptions } from "@scope/core";
+import { useHaSensor } from "@dashhaus/core";
+import type { HaSensorOptions } from "@dashhaus/core";
 import { SensorTile } from "../cards/sensor/SensorTile";
 import type { SensorTileProps } from "../cards/sensor/SensorTile";
 

@@ -1,15 +1,15 @@
 /**
- * @scope/dashboard's declared subpaths are its interface: each entry is browser code with no Node builtins, no CSS
- * and no skin, and every package it reaches is React or a declared @scope subpath. This walks the real import graph
+ * @dashhaus/dashboard's declared subpaths are its interface: each entry is browser code with no Node builtins, no CSS
+ * and no skin, and every package it reaches is React or a declared @dashhaus subpath. This walks the real import graph
  * from every entry, the way a bundler would, rather than trusting folder names; it also holds the Lovelace entry to
  * its one caller, a skin's lovelace/ card.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
-import * as cli from "@scope/dashboard/cli";
-import * as layout from "@scope/dashboard/layout";
-import * as schema from "@scope/dashboard/schema";
+import * as cli from "@dashhaus/dashboard/cli";
+import * as layout from "@dashhaus/dashboard/layout";
+import * as schema from "@dashhaus/dashboard/schema";
 
 const root = process.cwd();
 const PACKAGE = "packages/dashboard";
@@ -60,14 +60,14 @@ function graph(entries: string[]) {
 }
 
 const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs$|http$|https$|module$|net$|os$|path$|process$|stream$|tls$|url$|util$|zlib$)/;
-/** The browser packages the entry may reach directly; everything else must be a declared @scope subpath. */
+/** The browser packages the entry may reach directly; everything else must be a declared @dashhaus subpath. */
 const BROWSER = ["react", "react-dom/client"];
 
 /** The workspace resolves source through the export's `source` condition; the graph walks those files. */
 const sourceTarget = (subpath: string) => {
   const target = packageJson.exports[subpath];
   if (typeof target !== "object" || typeof target.source !== "string") {
-    throw new Error(`@scope/dashboard has no source export for ${subpath}`);
+    throw new Error(`@dashhaus/dashboard has no source export for ${subpath}`);
   }
   return target.source;
 };
@@ -77,7 +77,7 @@ const entries = () => Object.keys(packageJson.exports).map((subpath) => `${PACKA
 /** Whether a bare specifier names a subpath its package declares, wildcard exports included. */
 function declared(spec: string): boolean {
   const [scope, name, ...rest] = spec.split("/");
-  if (scope !== "@scope" || !name) return false;
+  if (scope !== "@dashhaus" || !name) return false;
   const manifest = `packages/${name}/package.json`;
   if (!existsSync(join(root, manifest))) return false;
   const subpath = rest.length ? `./${rest.join("/")}` : ".";
@@ -86,16 +86,16 @@ function declared(spec: string): boolean {
   return Object.keys(exports).some((key) => key === subpath || (key.endsWith("/*") && subpath.startsWith(key.slice(0, -1))));
 }
 
-describe("@scope/dashboard", () => {
+describe("@dashhaus/dashboard", () => {
   it("declares its five entries, its built files and its release metadata", () => {
-    expect(packageJson.name).toBe("@scope/dashboard");
+    expect(packageJson.name).toBe("@dashhaus/dashboard");
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
     expect(packageJson.files).toEqual(["dist"]);
     expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout", "./cli"]);
-    expect(packageJson.dependencies["@scope/core"]).toBe(`^${packageJson.version}`);
+    expect(packageJson.dependencies["@dashhaus/core"]).toBe(`^${packageJson.version}`);
   });
 
   it("exposes the card frame, the card schema, the layout and the CLI on subpaths of their own", () => {
@@ -165,16 +165,16 @@ describe("@scope/dashboard", () => {
   it("keeps every reachable file inside the package, with no CSS, no skin and no Node builtin", () => {
     const { files, packages, outside } = graph(entries());
     expect(files.length).toBeGreaterThan(0);
-    expect(outside, "no relative import leaves @scope/dashboard").toEqual([]);
+    expect(outside, "no relative import leaves @dashhaus/dashboard").toEqual([]);
     expect(files.filter((file) => file.includes("/skins/")), "the framework is skin-free").toEqual([]);
     expect(files.filter((file) => /\.(css|scss|less)["']/.test(read(file))), "the entries import no stylesheet").toEqual([]);
     expect(packages.filter((spec) => NODE_BUILTINS.test(spec)), "the entry is browser code").toEqual([]);
   });
 
-  it("reaches only React and declared @scope subpaths, never the websocket client", () => {
+  it("reaches only React and declared @dashhaus subpaths, never the websocket client", () => {
     const { packages } = graph(entries());
     expect(packages.filter((spec) => !BROWSER.includes(spec) && !declared(spec)), "a package specifier is a declared subpath").toEqual([]);
-    expect(packages, "the entry reaches the client through @scope/core/websocket").not.toContain("home-assistant-js-websocket");
+    expect(packages, "the entry reaches the client through @dashhaus/core/websocket").not.toContain("home-assistant-js-websocket");
   });
 
   it("is imported only by a skin's lovelace/ card", () => {
@@ -187,6 +187,6 @@ describe("@scope/dashboard", () => {
       }
     };
     walk("src/skins");
-    expect(files.filter((file) => !file.includes("/lovelace/") && specs(file).includes("@scope/dashboard"))).toEqual([]);
+    expect(files.filter((file) => !file.includes("/lovelace/") && specs(file).includes("@dashhaus/dashboard"))).toEqual([]);
   });
 });

@@ -15,12 +15,12 @@ const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8")
 const manifests: Record<string, PackageManifest> = Object.fromEntries(publicPackages.map((pkg) => [pkg.key, read(`${pkg.dir}/package.json`)]));
 
 describe("public packages", () => {
-  it("share one real version and pin @scope/dashboard's core range", () => {
+  it("share one real version and pin @dashhaus/dashboard's core range", () => {
     const version = manifests.core.version;
     expect(version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(version).not.toBe("0.0.0");
     for (const pkg of publicPackages) expect(manifests[pkg.key].version, pkg.name).toBe(version);
-    expect(manifests.dashboard.dependencies?.["@scope/core"]).toBe(`^${version}`);
+    expect(manifests.dashboard.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
   });
 
   it("resolve source in the workspace and built files in a packed install", () => {
@@ -65,13 +65,13 @@ describe("public packages", () => {
     }
     expect(publishManifest(manifests.core).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
     expect(publishManifest(manifests.dashboard).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
-    expect(publishManifest(manifests.deploy).bin).toEqual({ "home-dashboard-deploy": "./bin.mjs" });
+    expect(publishManifest(manifests.deploy).bin).toEqual({ "dashhaus-deploy": "./bin.mjs" });
     expect(publishManifest(manifests.deploy).engines).toEqual({ node: ">=22" });
   });
 
   it("refuses a placeholder version, an unpinned internal range or a TypeScript export target", () => {
     expect(() => publishManifest({ ...manifests.core, version: "0.0.0" })).toThrow(/real semver/);
-    expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@scope/core": "*" } })).toThrow(/expected/);
+    expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
     expect(() => publishManifest({ ...manifests.core, exports: { ".": { import: "./src/index.ts", default: "./src/index.ts" } } }))
       .toThrow(/built dist files/);
   });

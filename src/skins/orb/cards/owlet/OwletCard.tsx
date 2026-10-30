@@ -1,6 +1,6 @@
-import type { OwletEntity, OwletHistory } from "@scope/core/entities/owlet/types";
+import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
 import { HeartIcon, OwletIcon } from "./icons";
-import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@scope/core/entities/owlet/readings";
+import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
 import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";

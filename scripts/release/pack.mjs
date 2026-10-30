@@ -2,7 +2,7 @@
  * Build and pack the three public packages: `npm run release:pack [-- --out release]`.
  *
  * npm packs a staged copy holding only the files the package ships and its release manifest (no `private`, no
- * `source` condition, internal `@scope` ranges pinned). The tarballs are the publish artifacts; publishing is the
+ * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts; publishing is the
  * operator's call. The build output is `packages/{core,dashboard}/dist`; deploy already runs from its `.mjs` sources.
  */
 import { execFileSync } from "node:child_process";
@@ -45,7 +45,7 @@ export async function pack() {
     if (file.endsWith(".tgz")) await rm(join(out, file), { force: true });
   }
 
-  const stageRoot = await mkdtemp(join(tmpdir(), "home-dashboard-pack-"));
+  const stageRoot = await mkdtemp(join(tmpdir(), "dashhaus-pack-"));
   const packed = [];
   try {
     for (const pkg of publicPackages) {

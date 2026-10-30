@@ -1,10 +1,10 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { LightEntity, LightHistory } from "@scope/core/entities/light/types";
-import { kelvinName, K_MIN, K_MAX } from "@scope/core/entities/light/kelvin";
-import { LAMP_COLORS, lampColorOf } from "@scope/core/entities/light/color";
-import type { Hs } from "@scope/core/entities/light/color";
-import { fmtDuration } from "@scope/core/entities/format";
+import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/types";
+import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
+import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
+import type { Hs } from "@dashhaus/core/entities/light/color";
+import { fmtDuration } from "@dashhaus/core/entities/format";
 import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Legend, Swatch, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";

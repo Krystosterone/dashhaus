@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { DurationOption, ToggleEntity, ToggleHistory } from "@scope/core/entities/toggle/types";
-import { DEFAULT_DURATIONS } from "@scope/core/entities/toggle/durations";
-import { fmtDuration } from "@scope/core/entities/format";
+import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core/entities/toggle/types";
+import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
+import { fmtDuration } from "@dashhaus/core/entities/format";
 import { Blank, Key, Legend, ModuleFrame, Option, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { AlarmModule } from "./AlarmModule";
-import type { AlarmAction } from "@scope/core/entities/alarm/types";
+import type { AlarmAction } from "@dashhaus/core/entities/alarm/types";
 import type { FieldFootprint } from "../../shared/ui";
 import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "./demo/useDemoAlarm";
 import type { AlarmSeed, AlarmSeedName } from "./demo/useDemoAlarm";

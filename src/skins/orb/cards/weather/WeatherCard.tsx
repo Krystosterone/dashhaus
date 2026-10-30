@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "@scope/core/entities/weather/types";
-import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "@scope/core/entities/weather/conditions";
-import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@scope/core/entities/weather/readings";
+import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "@dashhaus/core/entities/weather/types";
+import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "@dashhaus/core/entities/weather/conditions";
+import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
 import { ConditionIcon } from "./conditions";
 import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";

@@ -97,7 +97,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
 
   const orbStoryPath = `${skinDir("orb")}/ha/Ha${Name}Tile.stories.tsx`;
   const orbStory = exists(orbStoryPath) ? read(orbStoryPath) : "";
-  const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@scope\/core\/demo)"/);
+  const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@dashhaus\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${orbStoryPath} must import a demo transport and draw an entityId`);
   const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);

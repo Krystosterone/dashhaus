@@ -6,7 +6,7 @@
  */
 import { createElement, useId, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
-import { useSheet } from "@scope/core/primitives";
+import { useSheet } from "@dashhaus/core/primitives";
 
 /** Dashboard footprints. A skin whose cards don't use `featured` narrows it in its own type. */
 export type CardFootprint = "compact" | "standard" | "featured";

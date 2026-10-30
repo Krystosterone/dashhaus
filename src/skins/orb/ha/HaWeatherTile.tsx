@@ -1,5 +1,5 @@
-import { useHaWeather } from "@scope/core";
-import type { HaWeatherOptions } from "@scope/core";
+import { useHaWeather } from "@dashhaus/core";
+import type { HaWeatherOptions } from "@dashhaus/core";
 import { WeatherTile } from "../cards/weather/WeatherTile";
 import type { WeatherTileProps } from "../cards/weather/WeatherTile";
 

@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { SoundEntity, SoundHistory } from "@scope/core/entities/sound/types";
-import { fmtDuration } from "@scope/core/entities/format";
+import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
+import { fmtDuration } from "@dashhaus/core/entities/format";
 import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconSound, SPEAKER } from "./icons";

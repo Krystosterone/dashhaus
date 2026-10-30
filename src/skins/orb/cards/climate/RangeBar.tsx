@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Track } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
-import { useRangeSlider } from "@scope/core/primitives";
-import { fmtTarget } from "@scope/core/entities/climate/modes";
+import { useRangeSlider } from "@dashhaus/core/primitives";
+import { fmtTarget } from "@dashhaus/core/entities/climate/modes";
 
 /**
  * Heat/cool range on one bar. HA heat_cool: target_temp_low is the heat threshold,

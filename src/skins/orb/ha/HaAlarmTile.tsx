@@ -1,6 +1,6 @@
-import { useHaAlarm } from "@scope/core";
-import type { HaAlarmOptions } from "@scope/core";
-import type { AlarmHandlers } from "@scope/core";
+import { useHaAlarm } from "@dashhaus/core";
+import type { HaAlarmOptions } from "@dashhaus/core";
+import type { AlarmHandlers } from "@dashhaus/core";
 import { AlarmTile } from "../cards/alarm/AlarmTile";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 

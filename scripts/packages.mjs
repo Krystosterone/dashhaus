@@ -42,7 +42,7 @@ export function packageFile(packageName, path = "") {
   return path ? `${entry.dir}/${path}` : entry.dir;
 }
 
-/** A declared specifier for a shared package: `@scope/core`, `@scope/core/demo`, `@scope/dashboard/card`. */
+/** A declared specifier for a shared package: `@dashhaus/core`, `@dashhaus/core/demo`, `@dashhaus/dashboard/card`. */
 export function packageSpecifier(packageName, subpath = "") {
   const entry = packages[packageName];
   if (!entry) throw new Error(`unknown package "${packageName}": add it to scripts/packages.mjs`);
@@ -61,7 +61,7 @@ export const referenceSkins = {
 const RESERVED = ["core", "dashboard", "deploy"];
 
 /**
- * What `npm run new-skin` creates: a private workspace package named `@scope/<skin>` at `src/skins/<skin>`.
+ * What `npm run new-skin` creates: a private workspace package named `@dashhaus/<skin>` at `src/skins/<skin>`.
  * The exports are the surface the root apps consume; a Card added later stays inside the package.
  */
 export const generated = {
@@ -85,8 +85,8 @@ export const generated = {
     return `src/skins/${skin}`;
   },
   name(skin) {
-    if (RESERVED.includes(skin)) throw new Error(`skin "${skin}" would take the reserved package @scope/${skin}`);
-    return `@scope/${skin}`;
+    if (RESERVED.includes(skin)) throw new Error(`skin "${skin}" would take the reserved package @dashhaus/${skin}`);
+    return `@dashhaus/${skin}`;
   },
   file(skin, path = "") {
     const dir = this.dir(skin);

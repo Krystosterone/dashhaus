@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaAlarmModule } from "./HaAlarmModule";
-import { HaProvider } from "@scope/core";
-import { createHaStore } from "@scope/core";
-import { createDemoAlarmHaTransport } from "@scope/core/demo";
+import { HaProvider } from "@dashhaus/core";
+import { createHaStore } from "@dashhaus/core";
+import { createDemoAlarmHaTransport } from "@dashhaus/core/demo";
 
 const meta = {
   title: "Field/Connected/Alarm",

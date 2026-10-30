@@ -1,8 +1,8 @@
 import { act, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { HassEntities } from "@scope/core";
-import { renderConnected } from "@scope/core/testing";
-import fixture from "@scope/core/fixtures/__name__.json";
+import type { HassEntities } from "@dashhaus/core";
+import { renderConnected } from "@dashhaus/core/testing";
+import fixture from "@dashhaus/core/fixtures/__name__.json";
 import { Ha__Skin____Name__Card } from "./Ha__Skin____Name__Card";
 
 const raw = fixture as HassEntities;

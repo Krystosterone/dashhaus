@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AlarmModule } from "./AlarmModule";
 import type { AlarmModuleProps } from "./AlarmModule";
 import { ALARM_SEEDS, ALARM_WORST_CASE } from "./demo/useDemoAlarm";
-import type { AlarmEntity } from "@scope/core/entities/alarm/types";
+import type { AlarmEntity } from "@dashhaus/core/entities/alarm/types";
 
 /*
  * What every field module does, whatever it is: its keys (a control's; a reading has none) press, a lit LED says on,

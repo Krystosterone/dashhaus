@@ -1,4 +1,4 @@
-import type { CoverClass } from "@scope/core/entities/cover/types";
+import type { CoverClass } from "@dashhaus/core/entities/cover/types";
 
 const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 

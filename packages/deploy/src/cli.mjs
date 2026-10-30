@@ -33,7 +33,7 @@ export function helpText(dashboards, configFile) {
   const listed = dashboards.length
     ? dashboards.map((dashboard) => `  ${dashboard.title.padEnd(width)}  /${dashboard.path}`).join("\n")
     : "  (none declared)";
-  return `Usage: home-dashboard-deploy [--config <file>] [--skip-build]
+  return `Usage: dashhaus-deploy [--config <file>] [--skip-build]
 
 Builds the bundle the config names, copies it to $HA_WWW/<folder>/, registers /local/<folder>/<file>
 as a dashboard resource (with a version so browsers fetch the new file), and creates the dashboards

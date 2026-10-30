@@ -100,7 +100,7 @@ describe("new-skin", () => {
       await install(copy);
 
       const manifest = JSON.parse(readFileSync(join(copy, "src/skins/canvas/package.json"), "utf8"));
-      expect(manifest.name).toBe("@scope/canvas");
+      expect(manifest.name).toBe("@dashhaus/canvas");
       expect(manifest.private).toBe(true);
       expect(manifest.type).toBe("module");
       expect(manifest.exports).toEqual({
@@ -109,18 +109,18 @@ describe("new-skin", () => {
         "./lovelace/card": "./lovelace/card.tsx",
         "./storybook": "./storybook.tsx",
       });
-      expect(lstatSync(join(copy, "node_modules/@scope/canvas")).isSymbolicLink()).toBe(true);
+      expect(lstatSync(join(copy, "node_modules/@dashhaus/canvas")).isSymbolicLink()).toBe(true);
       const require = createRequire(join(copy, "package.json"));
-      expect(require.resolve("@scope/canvas")).toMatch(/\/src\/skins\/canvas\/index\.ts$/);
-      expect(require.resolve("@scope/canvas/storybook")).toMatch(/\/src\/skins\/canvas\/storybook\.tsx$/);
+      expect(require.resolve("@dashhaus/canvas")).toMatch(/\/src\/skins\/canvas\/index\.ts$/);
+      expect(require.resolve("@dashhaus/canvas/storybook")).toMatch(/\/src\/skins\/canvas\/storybook\.tsx$/);
 
       const preview = readFileSync(join(copy, ".storybook/preview.tsx"), "utf8");
-      expect(preview).toContain('from "@scope/canvas/storybook"');
+      expect(preview).toContain('from "@dashhaus/canvas/storybook"');
       expect(preview).toContain('"Canvas", [');
       expect(preview).toContain('"Light"');
       const entry = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
-      expect(entry).toContain('import "@scope/canvas/styles/tokens.css";');
-      expect(entry).toContain('from "@scope/canvas/lovelace/card"');
+      expect(entry).toContain('import "@dashhaus/canvas/styles/tokens.css";');
+      expect(entry).toContain('from "@dashhaus/canvas/lovelace/card"');
       expect(readFileSync(join(copy, "src/skins/canvas/lovelace/registry.tsx"), "utf8")).toContain("light: { domains: [\"light\"]");
       expect(readFileSync(join(copy, "src/skins/canvas/index.ts"), "utf8")).toContain("CanvasLightCard");
 
@@ -156,17 +156,17 @@ describe("new-skin", () => {
       await install(copy);
 
       const manifest = JSON.parse(readFileSync(join(copy, "src/skins/field/package.json"), "utf8"));
-      expect(manifest.name).toBe("@scope/field");
+      expect(manifest.name).toBe("@dashhaus/field");
       expect(manifest.private).toBe(true);
       expect(manifest.exports["."]).toBe("./index.ts");
-      expect(lstatSync(join(copy, "node_modules/@scope/field")).isSymbolicLink()).toBe(true);
+      expect(lstatSync(join(copy, "node_modules/@dashhaus/field")).isSymbolicLink()).toBe(true);
       const require = createRequire(join(copy, "package.json"));
-      expect(require.resolve("@scope/field")).toMatch(/\/src\/skins\/field\/index\.ts$/);
-      expect(require.resolve("@scope/field/storybook")).toMatch(/\/src\/skins\/field\/storybook\.tsx$/);
-      expect(readFileSync(join(copy, ".storybook/preview.tsx"), "utf8")).toContain('from "@scope/field/storybook"');
+      expect(require.resolve("@dashhaus/field")).toMatch(/\/src\/skins\/field\/index\.ts$/);
+      expect(require.resolve("@dashhaus/field/storybook")).toMatch(/\/src\/skins\/field\/storybook\.tsx$/);
+      expect(readFileSync(join(copy, ".storybook/preview.tsx"), "utf8")).toContain('from "@dashhaus/field/storybook"');
       const entry = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
-      expect(entry).toContain('import "@scope/field/styles/tokens.css";');
-      expect(entry).toContain('from "@scope/field/lovelace/card"');
+      expect(entry).toContain('import "@dashhaus/field/styles/tokens.css";');
+      expect(entry).toContain('from "@dashhaus/field/lovelace/card"');
 
       const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);

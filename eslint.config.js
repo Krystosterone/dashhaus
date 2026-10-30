@@ -4,36 +4,36 @@ import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import globals from "globals";
 
-/** Only @scope/core/websocket may import Home Assistant's websocket client. */
-const noWebsocket = [{ group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @scope/core/websocket imports the Home Assistant websocket client." }];
+/** Only @dashhaus/core/websocket may import Home Assistant's websocket client. */
+const noWebsocket = [{ group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @dashhaus/core/websocket imports the Home Assistant websocket client." }];
 /** A skin is a whole UI; the headless package never imports one. */
 const noSkin = (message) => [{ group: ["**/skins/**", "*.css", "**/*.css"], message }];
-/** The package boundary is crossed with @scope/core's exports, never a file inside it. */
+/** The package boundary is crossed with @dashhaus/core's exports, never a file inside it. */
 const noCoreRelative = [
-  { group: ["**/packages/core", "**/packages/core/**"], message: "Cross the package boundary with @scope/core/…" },
+  { group: ["**/packages/core", "**/packages/core/**"], message: "Cross the package boundary with @dashhaus/core/…" },
 ];
 /** The Home Assistant layer: the store, provider, transport, mappers, actions, useHa* hooks and headless components. */
 const coreHa = {
-  paths: [{ name: "@scope/core", message: "Cards stay provider-agnostic; connect them in a skin's ha/ container." }],
+  paths: [{ name: "@dashhaus/core", message: "Cards stay provider-agnostic; connect them in a skin's ha/ container." }],
   patterns: [
-    { group: ["@scope/core/websocket", "@scope/core/demo", "@scope/core/testing", "@scope/core/fixtures/*"], message: "Cards stay provider-agnostic; connect them in a skin's ha/ container." },
+    { group: ["@dashhaus/core/websocket", "@dashhaus/core/demo", "@dashhaus/core/testing", "@dashhaus/core/fixtures/*"], message: "Cards stay provider-agnostic; connect them in a skin's ha/ container." },
   ],
 };
 const noIndex = [{ group: ["**/index"], message: "Import the module directly, not the public barrel." }];
-const noOtherSkin = [{ group: ["**/skins/**"], message: "Skins never import each other; what two skins share goes in @scope/core or @scope/dashboard." }];
-const noDeepCore = [{ group: ["@scope/core/src/*", "@scope/core/ha/*"], message: "Import a declared @scope/core subpath, not a file inside it." }];
+const noOtherSkin = [{ group: ["**/skins/**"], message: "Skins never import each other; what two skins share goes in @dashhaus/core or @dashhaus/dashboard." }];
+const noDeepCore = [{ group: ["@dashhaus/core/src/*", "@dashhaus/core/ha/*"], message: "Import a declared @dashhaus/core subpath, not a file inside it." }];
 /** Another workspace package is crossed by its declared subpaths, never a file inside it. */
-const noDeepPackage = [{ group: ["@scope/*/src/**", "@scope/*/ha/**"], message: "Import a declared @scope subpath, not a file inside a package." }];
+const noDeepPackage = [{ group: ["@dashhaus/*/src/**", "@dashhaus/*/ha/**"], message: "Import a declared @dashhaus subpath, not a file inside a package." }];
 /** No relative import crosses into a workspace package: the boundary has a package specifier. */
 const noPackageRelative = [
   ...noCoreRelative,
-  { group: ["**/packages/dashboard", "**/packages/dashboard/**"], message: "Cross the package boundary with @scope/dashboard." },
+  { group: ["**/packages/dashboard", "**/packages/dashboard/**"], message: "Cross the package boundary with @dashhaus/dashboard." },
 ];
-/** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @scope/dashboard/card. */
-const noDashboardEntry = { name: "@scope/dashboard", message: "A card draws on @scope/dashboard/card; only a skin's lovelace/ imports the Lovelace entry." };
+/** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @dashhaus/dashboard/card. */
+const noDashboardEntry = { name: "@dashhaus/dashboard", message: "A card draws on @dashhaus/dashboard/card; only a skin's lovelace/ imports the Lovelace entry." };
 const noDashboard = [{
-  group: ["@scope/dashboard/schema", "@scope/dashboard/layout", "@scope/dashboard/vite", "@scope/dashboard/conformance", "@scope/dashboard/cli"],
-  message: "A card draws on @scope/dashboard/card; the schema, layout, build and CLI subpaths stay in a skin's lovelace/.",
+  group: ["@dashhaus/dashboard/schema", "@dashhaus/dashboard/layout", "@dashhaus/dashboard/vite", "@dashhaus/dashboard/conformance", "@dashhaus/dashboard/cli"],
+  message: "A card draws on @dashhaus/dashboard/card; the schema, layout, build and CLI subpaths stay in a skin's lovelace/.",
 }];
 
 export default tseslint.config(
@@ -72,14 +72,14 @@ export default tseslint.config(
     },
   },
   {
-    // --- @scope/core layers. Inside the package, imports are relative; only its declared subpaths leave it. ---
+    // --- @dashhaus/core layers. Inside the package, imports are relative; only its declared subpaths leave it. ---
     files: ["packages/core/src/entities/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
           { group: ["react", "react-dom", "react/*", "react-dom/*"], message: "Entity models are framework-free." },
           { group: ["node:*", "fs", "path", "crypto"], message: "Entity models are pure: no Node builtins." },
-          { group: ["@scope/core", "@scope/core/*"], message: "Inside @scope/core, import relatively." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*"], message: "Inside @dashhaus/core, import relatively." },
           ...noSkin("Entity models know no UI."),
           ...noWebsocket,
           ...noCoreRelative,
@@ -94,7 +94,7 @@ export default tseslint.config(
       "no-restricted-imports": ["error", {
         patterns: [
           { group: ["../entities", "../entities/*", "../hooks", "../hooks/*", "../ha", "../ha/*"], message: "Primitives know no entities, hooks or Home Assistant; a skin combines them." },
-          { group: ["@scope/core", "@scope/core/*"], message: "Inside @scope/core, import relatively." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*"], message: "Inside @dashhaus/core, import relatively." },
           ...noSkin("Primitives are headless; each skin draws the control."),
           ...noWebsocket,
           ...noCoreRelative,
@@ -109,7 +109,7 @@ export default tseslint.config(
       "no-restricted-imports": ["error", {
         patterns: [
           { group: ["../primitives", "../primitives/*", "../ha", "../ha/*"], message: "UI-free hooks know no primitives and no Home Assistant." },
-          { group: ["@scope/core", "@scope/core/*"], message: "Inside @scope/core, import relatively." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*"], message: "Inside @dashhaus/core, import relatively." },
           ...noSkin("hooks/ holds UI-free hooks; keep UI in its skin."),
           ...noWebsocket,
           ...noCoreRelative,
@@ -125,7 +125,7 @@ export default tseslint.config(
       "no-restricted-imports": ["error", {
         patterns: [
           { group: ["../primitives", "../primitives/*"], message: "The Home Assistant layer knows no UI primitives." },
-          { group: ["@scope/core", "@scope/core/*"], message: "Inside @scope/core, import relatively." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*"], message: "Inside @dashhaus/core, import relatively." },
           ...noSkin("Keep Home Assistant logic skin-free; import entity models from ../entities."),
           ...noWebsocket,
           ...noCoreRelative,
@@ -148,8 +148,8 @@ export default tseslint.config(
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["@scope/dashboard", "@scope/dashboard/*"], message: "Inside @scope/dashboard, import relatively." },
-          { group: ["../../**"], message: "Cross the package boundary with @scope/core/…" },
+          { group: ["@dashhaus/dashboard", "@dashhaus/dashboard/*"], message: "Inside @dashhaus/dashboard, import relatively." },
+          { group: ["../../**"], message: "Cross the package boundary with @dashhaus/core/…" },
           ...noSkin("The dashboard framework is skin-free and CSS-free."),
           ...noWebsocket,
           ...noDeepPackage,
@@ -165,7 +165,7 @@ export default tseslint.config(
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["@scope/core", "@scope/core/*", "@scope/dashboard", "@scope/dashboard/*"], message: "Deploy is Node-only; the user's config imports the dashboard surface, not the CLI." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*", "@dashhaus/dashboard", "@dashhaus/dashboard/*"], message: "Deploy is Node-only; the user's config imports the dashboard surface, not the CLI." },
           { group: ["**/skins/**", "**/src/skins/**"], message: "Deploy loads the user's config; it never imports a skin." },
           { group: ["**/packages/**"], message: "Deploy never imports a package's source; it bundles the user's config." },
         ],
@@ -174,8 +174,8 @@ export default tseslint.config(
   },
   {
     // A skin's cards, layout, foundations and stories never see the connected layer. Only its ha/ containers, its
-    // lovelace/ card and its index.ts may import @scope/core's Home Assistant subpaths, and only lovelace/ may import
-    // @scope/dashboard; verify/boundaries.test.ts checks the skin-to-skin half.
+    // lovelace/ card and its index.ts may import @dashhaus/core's Home Assistant subpaths, and only lovelace/ may import
+    // @dashhaus/dashboard; verify/boundaries.test.ts checks the skin-to-skin half.
     files: ["src/skins/**/*.{ts,tsx}"],
     ignores: ["src/skins/*/ha/**", "src/skins/*/lovelace/**", "src/skins/*/index.ts"],
     rules: {
@@ -183,7 +183,7 @@ export default tseslint.config(
         paths: [...coreHa.paths, noDashboardEntry],
         patterns: [
           ...coreHa.patterns,
-          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @scope/core/websocket imports the Home Assistant websocket client." },
+          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @dashhaus/core/websocket imports the Home Assistant websocket client." },
           ...noOtherSkin,
           ...noDashboard,
           ...noIndex,
@@ -201,7 +201,7 @@ export default tseslint.config(
       "no-restricted-imports": ["error", {
         paths: [noDashboardEntry],
         patterns: [
-          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @scope/core/websocket." },
+          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @dashhaus/core/websocket." },
           ...noOtherSkin,
           ...noDashboard,
           ...noDeepCore,
@@ -212,13 +212,13 @@ export default tseslint.config(
     },
   },
   {
-    // A skin's Lovelace card is the one place that draws on @scope/dashboard; it still imports no other skin and no
+    // A skin's Lovelace card is the one place that draws on @dashhaus/dashboard; it still imports no other skin and no
     // file inside either package.
     files: ["src/skins/*/lovelace/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @scope/core/websocket." },
+          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @dashhaus/core/websocket." },
           ...noOtherSkin,
           ...noDeepCore,
           ...noDeepPackage,

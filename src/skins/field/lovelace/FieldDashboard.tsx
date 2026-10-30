@@ -1,12 +1,12 @@
 import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useHaSelector, useHaStore } from "@scope/core";
-import { actionMessage } from "@scope/dashboard";
-import { MAIN_PAGE, resolveNav, sectionAnchors } from "@scope/dashboard";
-import type { NavEntry, PanelInfo } from "@scope/dashboard";
-import { useDashboardNav } from "@scope/dashboard";
-import { renderCard } from "@scope/dashboard/schema";
-import type { CardRenderers } from "@scope/dashboard/schema";
+import { useHaSelector, useHaStore } from "@dashhaus/core";
+import { actionMessage } from "@dashhaus/dashboard";
+import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
+import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
+import { useDashboardNav } from "@dashhaus/dashboard";
+import { renderCard } from "@dashhaus/dashboard/schema";
+import type { CardRenderers } from "@dashhaus/dashboard/schema";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";

@@ -1,5 +1,5 @@
-import { useHaClimate } from "@scope/core";
-import type { HaClimateOptions } from "@scope/core";
+import { useHaClimate } from "@dashhaus/core";
+import type { HaClimateOptions } from "@dashhaus/core";
 import { ClimateModule } from "../cards/climate/ClimateModule";
 import type { ClimateModuleProps } from "../cards/climate/ClimateModule";
 

@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { OwletEntity, OwletHistory } from "@scope/core/entities/owlet/types";
-import { ALERT_SHORT, ALERT_WORD, SLEEP_WORD, URGENT_PROBLEMS, fmtOxygen, normalize, owletSeverity, rankAlerts } from "@scope/core/entities/owlet/readings";
-import { fmtDuration } from "@scope/core/entities/format";
+import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
+import { ALERT_SHORT, ALERT_WORD, SLEEP_WORD, URGENT_PROBLEMS, fmtOxygen, normalize, owletSeverity, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
+import { fmtDuration } from "@dashhaus/core/entities/format";
 import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";

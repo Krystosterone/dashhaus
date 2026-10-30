@@ -29,7 +29,7 @@ function describeBuildError(error) {
 
 /** Bundle the config to a temporary ESM file; the caller imports it and removes the directory. */
 async function bundleConfig(file) {
-  const directory = await mkdtemp(`${tmpdir()}/home-dashboard-config-`);
+  const directory = await mkdtemp(`${tmpdir()}/dashhaus-config-`);
   const outfile = `${directory}/config.mjs`;
   try {
     await esbuild({

@@ -1,5 +1,5 @@
-import { useHaCover } from "@scope/core";
-import type { HaCoverOptions } from "@scope/core";
+import { useHaCover } from "@dashhaus/core";
+import type { HaCoverOptions } from "@dashhaus/core";
 import { CoverModule } from "../cards/cover/CoverModule";
 import type { CoverModuleProps } from "../cards/cover/CoverModule";
 

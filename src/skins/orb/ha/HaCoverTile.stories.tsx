@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaCoverTile } from "./HaCoverTile";
-import { HaProvider } from "@scope/core";
-import { createHaStore } from "@scope/core";
-import { createDemoCoverHaTransport } from "@scope/core/demo";
+import { HaProvider } from "@dashhaus/core";
+import { createHaStore } from "@dashhaus/core";
+import { createDemoCoverHaTransport } from "@dashhaus/core/demo";
 
 const meta = {
   title: "Orb/Connected/Cover",

@@ -1,5 +1,5 @@
 {
-  "name": "@scope/core",
+  "name": "@dashhaus/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",

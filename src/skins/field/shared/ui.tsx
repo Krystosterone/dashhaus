@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
-import { usePress } from "@scope/core/primitives";
-import { useRangeSlider, useSlider } from "@scope/core/primitives";
-import { CardDialog, cardShape, useCardFrame } from "@scope/dashboard/card";
-import type { Details } from "@scope/dashboard/card";
-import type { HourSample } from "@scope/core/entities/history";
+import { usePress } from "@dashhaus/core/primitives";
+import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
+import { CardDialog, cardShape, useCardFrame } from "@dashhaus/dashboard/card";
+import type { Details } from "@dashhaus/dashboard/card";
+import type { HourSample } from "@dashhaus/core/entities/history";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -425,7 +425,7 @@ export function Panel({ open, onClose, name, area, focusContent, children }: { o
 }
 
 export type { Details };
-export { useDetails } from "@scope/dashboard/card";
+export { useDetails } from "@dashhaus/dashboard/card";
 
 export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children"> {
   /** From `useDetails`: the name opens the panel. */

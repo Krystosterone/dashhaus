@@ -1,6 +1,6 @@
-import { useHaToggle } from "@scope/core";
-import type { HaToggleOptions } from "@scope/core";
-import type { ToggleHandlers } from "@scope/core";
+import { useHaToggle } from "@dashhaus/core";
+import type { HaToggleOptions } from "@dashhaus/core";
+import type { ToggleHandlers } from "@dashhaus/core";
 import { ToggleTile } from "../cards/toggle/ToggleTile";
 import type { ToggleTileProps } from "../cards/toggle/ToggleTile";
 

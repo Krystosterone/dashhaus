@@ -1,5 +1,5 @@
 // The deploy CLI's work: read the user's config, build and upload its bundle, register the dashboard resource and
-// create the dashboards once. Node-only: it imports no @scope package and no skin. Settings are the only thing it
+// create the dashboards once. Node-only: it imports no @dashhaus package and no skin. Settings are the only thing it
 // reads from the environment; the config names the dashboards.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";

@@ -1,6 +1,6 @@
-import { LovelaceDashboardElement, autoInput, registerCard } from "@scope/dashboard";
-import type { LovelaceHass } from "@scope/dashboard";
-import { scopeToHost } from "@scope/dashboard";
+import { LovelaceDashboardElement, autoInput, registerCard } from "@dashhaus/dashboard";
+import type { LovelaceHass } from "@dashhaus/dashboard";
+import { scopeToHost } from "@dashhaus/dashboard";
 import { mapCards, parse__Skin__Config } from "./config";
 import type { __Skin__Config, BlockConfig, CardConfig, PageConfig } from "./config";
 import { areaName, areaSections, autoCards } from "./auto";

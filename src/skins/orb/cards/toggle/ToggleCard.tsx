@@ -1,5 +1,5 @@
-import type { ToggleEntity, ToggleHistory, DurationOption } from "@scope/core/entities/toggle/types";
-import { DEFAULT_DURATIONS } from "@scope/core/entities/toggle/durations";
+import type { ToggleEntity, ToggleHistory, DurationOption } from "@dashhaus/core/entities/toggle/types";
+import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { ToggleIconSvg } from "./icons";
 import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";

@@ -1,8 +1,8 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { HaOwletModule } from "./HaOwletModule";
-import { renderConnected } from "@scope/core/testing";
-import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@scope/core/demo";
+import { renderConnected } from "@dashhaus/core/testing";
+import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@dashhaus/core/demo";
 
 const ID = "sensor.owlet_sock_ac000w0123_sleep_state";
 const BASE = "switch.owlet_sock_ac000w0123_base_station_on";

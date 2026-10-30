@@ -1,6 +1,6 @@
-import { useHaCover } from "@scope/core";
-import type { HaCoverOptions } from "@scope/core";
-import type { CoverHandlers } from "@scope/core";
+import { useHaCover } from "@dashhaus/core";
+import type { HaCoverOptions } from "@dashhaus/core";
+import type { CoverHandlers } from "@dashhaus/core";
 import { CoverTile } from "../cards/cover/CoverTile";
 import type { CoverTileProps } from "../cards/cover/CoverTile";
 

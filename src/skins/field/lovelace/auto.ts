@@ -1,10 +1,10 @@
-import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@scope/dashboard/layout";
-import type { AutoInput } from "@scope/dashboard/layout";
+import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
+import type { AutoInput } from "@dashhaus/dashboard/layout";
 import { kindOf } from "./config";
 import type { ModuleConfig, SectionConfig } from "./config";
 
-export type { AutoInput } from "@scope/dashboard/layout";
-export { areaName, groupByArea } from "@scope/dashboard/layout";
+export type { AutoInput } from "@dashhaus/dashboard/layout";
+export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
 
 /**
  * Every supported entity Field can draw, for a card without `modules`, as the card its entity id picks: hidden and

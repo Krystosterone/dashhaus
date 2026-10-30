@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { useSlider } from "@scope/core/primitives";
+import { useSlider } from "@dashhaus/core/primitives";
 import {
   AlertStatus, CardTitle, ChoiceChips, CircleButton, IconClose, Orb, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
 } from "../shared/ui";

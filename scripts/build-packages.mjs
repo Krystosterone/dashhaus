@@ -16,8 +16,8 @@ export const root = fileURLToPath(new URL("../", import.meta.url));
 const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
 
 const packages = [
-  { name: "@scope/core", dir: "packages/core", fixtures: "src/ha/fixtures" },
-  { name: "@scope/dashboard", dir: "packages/dashboard" },
+  { name: "@dashhaus/core", dir: "packages/core", fixtures: "src/ha/fixtures" },
+  { name: "@dashhaus/dashboard", dir: "packages/dashboard" },
 ];
 
 const RELATIVE_SPECIFIER = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(["'])(\.{1,2}\/[^"']+)\2/g;

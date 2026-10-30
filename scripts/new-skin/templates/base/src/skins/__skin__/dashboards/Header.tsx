@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { useNow } from "@scope/core/hooks";
-import { clockFace } from "@scope/core/entities/clock";
+import { useNow } from "@dashhaus/core/hooks";
+import { clockFace } from "@dashhaus/core/entities/clock";
 import "./dashboard.css";
 
 export interface __Skin__HeaderProps {

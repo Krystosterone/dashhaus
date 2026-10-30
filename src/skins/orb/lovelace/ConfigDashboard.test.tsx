@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { HassEntities } from "@scope/core";
-import { renderConnected } from "@scope/core/testing";
+import type { HassEntities } from "@dashhaus/core";
+import { renderConnected } from "@dashhaus/core/testing";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
 

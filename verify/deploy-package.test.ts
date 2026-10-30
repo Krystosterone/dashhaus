@@ -1,8 +1,8 @@
 // @vitest-environment node
 /**
- * `@scope/deploy` is the Node-only CLI: it loads the user's config, never a skin or a browser package, and the repo's
+ * `@dashhaus/deploy` is the Node-only CLI: it loads the user's config, never a skin or a browser package, and the repo's
  * `dashboard.config.mjs` stays the one file outside orb that reaches orb's generated layout. The last test loads the
- * repo config from a copied, non-symlinked `@scope/dashboard`, which is the install shape Node refuses to type-strip.
+ * repo config from a copied, non-symlinked `@dashhaus/dashboard`, which is the install shape Node refuses to type-strip.
  */
 import { spawnSync } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -10,8 +10,8 @@ import { lstatSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, posix } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { loadDashboards } from "@scope/deploy";
-import type { DeployHa } from "@scope/deploy";
+import { loadDashboards } from "@dashhaus/deploy";
+import type { DeployHa } from "@dashhaus/deploy";
 import { GENERATED_SKINS } from "../scripts/generated-skins.mjs";
 
 const root = process.cwd();
@@ -57,14 +57,14 @@ const fakeHa: DeployHa = {
   },
 };
 
-describe("@scope/deploy", () => {
+describe("@dashhaus/deploy", () => {
   it("is a private Node bin that exports only the CLI", () => {
-    expect(packageJson.name).toBe("@scope/deploy");
+    expect(packageJson.name).toBe("@dashhaus/deploy");
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.type).toBe("module");
-    expect(packageJson.bin).toEqual({ "home-dashboard-deploy": "./bin.mjs" });
+    expect(packageJson.bin).toEqual({ "dashhaus-deploy": "./bin.mjs" });
     expect(packageJson.exports).toEqual({ ".": "./src/deploy.mjs" });
     expect(packageJson.files).toEqual(["bin.mjs", "src/*.mjs", "src/*.d.mts"]);
     expect(packageJson.engines).toEqual({ node: ">=22" });
@@ -73,8 +73,8 @@ describe("@scope/deploy", () => {
 
   it("is wired into npm run deploy", () => {
     const rootPackage = JSON.parse(read("package.json"));
-    expect(rootPackage.scripts.deploy).toBe("home-dashboard-deploy");
-    expect(rootPackage.dependencies["@scope/deploy"]).toBe("*");
+    expect(rootPackage.scripts.deploy).toBe("dashhaus-deploy");
+    expect(rootPackage.dependencies["@dashhaus/deploy"]).toBe("*");
   });
 
   it("imports only Node builtins, esbuild and its own files", () => {
@@ -125,7 +125,7 @@ describe("@scope/deploy", () => {
   it("registers a generated skin through generatedDashboards", async () => {
     const directory = await mkdtemp(join(root, ".deploy-config-"));
     directories.push(directory);
-    await writeFile(join(directory, "dashboard.config.mjs"), `import { generatedDashboards } from "@scope/dashboard/cli";
+    await writeFile(join(directory, "dashboard.config.mjs"), `import { generatedDashboards } from "@dashhaus/dashboard/cli";
 export default {
   bundle: "dist/cards.js",
   dashboards: generatedDashboards([{ id: "canvas", title: "Home (Canvas)", icon: "mdi:view-dashboard-outline" }]),
@@ -139,22 +139,22 @@ export default {
     });
   });
 
-  it("loads a config from a copied, non-symlinked @scope/dashboard install", async () => {
+  it("loads a config from a copied, non-symlinked @dashhaus/dashboard install", async () => {
     const app = await mkdtemp(join(tmpdir(), "deploy-copied-"));
     directories.push(app);
-    await mkdir(join(app, "node_modules", "@scope"), { recursive: true });
-    await cp(join(root, "packages/dashboard"), join(app, "node_modules", "@scope/dashboard"), { recursive: true });
+    await mkdir(join(app, "node_modules", "@dashhaus"), { recursive: true });
+    await cp(join(root, "packages/dashboard"), join(app, "node_modules", "@dashhaus/dashboard"), { recursive: true });
     await mkdir(join(app, "scripts"), { recursive: true });
     await mkdir(join(app, "src", "skins", "orb", "lovelace"), { recursive: true });
     await cp(CONFIG_FILE, join(app, "dashboard.config.mjs"));
     await cp(join(root, "scripts/generated-skins.mjs"), join(app, "scripts/generated-skins.mjs"));
     await cp(join(root, "src/skins/orb/lovelace/auto.ts"), join(app, "src/skins/orb/lovelace/auto.ts"));
-    expect(lstatSync(join(app, "node_modules", "@scope/dashboard")).isSymbolicLink()).toBe(false);
+    expect(lstatSync(join(app, "node_modules", "@dashhaus/dashboard")).isSymbolicLink()).toBe(false);
 
     // A marker in the copy proves the CLI bundled the copy, not the repo's workspace symlink.
-    const copiedCli = join(app, "node_modules", "@scope/dashboard/src/cli.ts");
+    const copiedCli = join(app, "node_modules", "@dashhaus/dashboard/src/cli.ts");
     await writeFile(copiedCli, `${await readFile(copiedCli, "utf8")}\nexport const copiedMarker = "copied-dashboard-package";\n`);
-    await writeFile(join(app, "copied.config.mjs"), `import { generatedDashboards, copiedMarker } from "@scope/dashboard/cli";
+    await writeFile(join(app, "copied.config.mjs"), `import { generatedDashboards, copiedMarker } from "@dashhaus/dashboard/cli";
 export default {
   pageTitle: copiedMarker,
   bundle: "dist/home-dashboard.js",

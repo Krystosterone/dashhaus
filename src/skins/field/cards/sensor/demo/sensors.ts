@@ -1,4 +1,4 @@
-import type { Reading, SensorEntity, SensorHistory } from "@scope/core/entities/sensor/types";
+import type { Reading, SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
 
 /** Example time for stories, fixed so screenshots stay stable. */
 const HOUR = 11;

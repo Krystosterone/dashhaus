@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { ClimateEntity } from "@scope/core/entities/climate/types";
+import type { ClimateEntity } from "@dashhaus/core/entities/climate/types";
 import { ClimateModule } from "./ClimateModule";
 import { CLIMATE_SEEDS } from "./demo/useDemoClimate";
 

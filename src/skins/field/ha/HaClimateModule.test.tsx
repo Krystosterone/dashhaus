@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { HassEntities } from "@scope/core";
-import { renderConnected } from "@scope/core/testing";
+import type { HassEntities } from "@dashhaus/core";
+import { renderConnected } from "@dashhaus/core/testing";
 import { HaClimateModule } from "./HaClimateModule";
 
 const raw: HassEntities = {

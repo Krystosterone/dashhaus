@@ -1,10 +1,10 @@
 {
-  "name": "@scope/deploy",
+  "name": "@dashhaus/deploy",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
-    "home-dashboard-deploy": "./bin.mjs"
+    "dashhaus-deploy": "./bin.mjs"
   },
   "exports": {
     ".": "./src/deploy.mjs"

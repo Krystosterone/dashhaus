@@ -1,5 +1,5 @@
 /**
- * @scope/core's declared subpaths are the package's interface: `./entities` is pure (no React, no DOM, no Node),
+ * @dashhaus/core's declared subpaths are the package's interface: `./entities` is pure (no React, no DOM, no Node),
  * the browser entries carry no Node builtins, and only `./websocket` reaches the Home Assistant websocket client.
  * This walks the real import graph from each entry, the way a bundler would, rather than trusting folder names.
  */
@@ -64,13 +64,13 @@ const BROWSER = [".", "./entities", "./primitives", "./hooks", "./websocket", ".
 const sourceTarget = (subpath: string) => {
   const target = packageJson.exports[subpath];
   if (typeof target !== "object" || typeof target.source !== "string") {
-    throw new Error(`@scope/core has no source export for ${subpath}`);
+    throw new Error(`@dashhaus/core has no source export for ${subpath}`);
   }
   return target.source;
 };
 const entry = (subpath: string) => `packages/core/${sourceTarget(subpath).replace(/^\.\//, "")}`;
 
-describe("@scope/core", () => {
+describe("@dashhaus/core", () => {
   it("declares the package surface, its built files and its release metadata", () => {
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.version).not.toBe("0.0.0");

@@ -1,5 +1,5 @@
-import type { Condition } from "@scope/core/entities/weather/types";
-import { SKY } from "@scope/core/entities/weather/conditions";
+import type { Condition } from "@dashhaus/core/entities/weather/types";
+import { SKY } from "@dashhaus/core/entities/weather/conditions";
 
 /* ---------- Icons: 20px, stroked like the rest of the set ---------- */
 const P = { fill: "none", stroke: "currentColor" } as const;

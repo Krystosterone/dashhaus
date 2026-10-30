@@ -1,10 +1,10 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
-// deploy. It may import @scope/dashboard/layout, the package's pure layout entry, and nothing that reaches React.
+// deploy. It may import @dashhaus/dashboard/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, byName, domainOf, placeSection, roomSensors, visibleEntities } from "@scope/dashboard/layout";
-import type { AutoInput as LayoutInput } from "@scope/dashboard/layout";
+import { areaId, byName, domainOf, placeSection, roomSensors, visibleEntities } from "@dashhaus/dashboard/layout";
+import type { AutoInput as LayoutInput } from "@dashhaus/dashboard/layout";
 
-export type { AutoInput, AutoState } from "@scope/dashboard/layout";
+export type { AutoInput, AutoState } from "@dashhaus/dashboard/layout";
 
 type Card = string | Record<string, unknown>;
 interface Section { title: string; columns?: number; cards: Card[] }

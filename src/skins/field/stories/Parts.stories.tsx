@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import type { HourSample } from "@scope/core/entities/history";
+import type { HourSample } from "@dashhaus/core/entities/history";
 import { Blank, Digits, Fader, Glyph, Key, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";

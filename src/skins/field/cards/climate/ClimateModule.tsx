@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import type { ClimateEntity, ClimateHistory, HvacMode } from "@scope/core/entities/climate/types";
-import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@scope/core/entities/climate/modes";
-import { fmtDuration } from "@scope/core/entities/format";
+import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
+import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
+import { fmtDuration } from "@dashhaus/core/entities/format";
 import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";

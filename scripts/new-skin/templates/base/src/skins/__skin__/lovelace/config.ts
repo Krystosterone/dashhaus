@@ -1,6 +1,6 @@
-import { DashboardConfigError, Reader, isRaw, readCard } from "@scope/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, Raw } from "@scope/dashboard/schema";
-import type { NavEntry } from "@scope/dashboard";
+import { DashboardConfigError, Reader, isRaw, readCard } from "@dashhaus/dashboard/schema";
+import type { CardKindSpec, CardReadSchema, Raw } from "@dashhaus/dashboard/schema";
+import type { NavEntry } from "@dashhaus/dashboard";
 import { __SKIN_CONST___CARDS } from "./registry";
 import type { __Skin__CardItem } from "./registry";
 import type { __Skin__Footprint } from "../shared/ui";

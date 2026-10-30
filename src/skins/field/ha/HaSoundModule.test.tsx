@@ -1,9 +1,9 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaSoundModule } from "./HaSoundModule";
-import type { HassEntities } from "@scope/core";
-import { renderConnected } from "@scope/core/testing";
-import fixture from "@scope/core/fixtures/sound.json";
+import type { HassEntities } from "@dashhaus/core";
+import { renderConnected } from "@dashhaus/core/testing";
+import fixture from "@dashhaus/core/fixtures/sound.json";
 
 const raw = fixture as HassEntities;
 const ID = "switch.bedroom";

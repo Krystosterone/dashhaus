@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DashboardConfigError } from "@scope/dashboard";
+import { DashboardConfigError } from "@dashhaus/dashboard";
 import { mapModules, modulesOf, parseFieldConfig } from "./config";
 
 const problems = (raw: unknown) => {

@@ -1,4 +1,4 @@
-import type { AlarmMode } from "@scope/core/entities/alarm/types";
+import type { AlarmMode } from "@dashhaus/core/entities/alarm/types";
 
 const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 const SHIELD = "M12 3.2 5 6v5.6c0 4.2 2.9 7.6 7 9.2 4.1-1.6 7-5 7-9.2V6Z";

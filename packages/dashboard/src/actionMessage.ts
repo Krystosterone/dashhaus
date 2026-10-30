@@ -1,4 +1,4 @@
-import type { HaActionError, HassEntity } from "@scope/core";
+import type { HaActionError, HassEntity } from "@dashhaus/core";
 
 export interface ActionMessage { title: string; detail: string }
 

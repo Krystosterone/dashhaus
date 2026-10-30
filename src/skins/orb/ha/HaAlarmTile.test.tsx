@@ -1,8 +1,8 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaAlarmTile } from "./HaAlarmTile";
-import type { HassEntities } from "@scope/core";
-import { renderConnected } from "@scope/core/testing";
+import type { HassEntities } from "@dashhaus/core";
+import { renderConnected } from "@dashhaus/core/testing";
 
 const raw: HassEntities = {
   "alarm_control_panel.house": {

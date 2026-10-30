@@ -2,9 +2,9 @@ import { useMemo, useRef } from "react";
 import type { ReactElement } from "react";
 import { DashboardPage, Section, Columns, CardGrid, Cell } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
-import { MAIN_PAGE, resolveNav, sectionAnchors } from "@scope/dashboard";
-import type { PanelInfo } from "@scope/dashboard";
-import { useDashboardNav } from "@scope/dashboard";
+import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
+import type { PanelInfo } from "@dashhaus/dashboard";
+import { useDashboardNav } from "@dashhaus/dashboard";
 import { JoinedBundle, LeadBundle, TitledBundle } from "../bundles/Bundle";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
@@ -17,8 +17,8 @@ import { HaAlarmTile } from "../ha/HaAlarmTile";
 import { HaOwletTile } from "../ha/HaOwletTile";
 import { HaHumidifierTile } from "../ha/HaHumidifierTile";
 import { HaSoundTile } from "../ha/HaSoundTile";
-import { renderCard } from "@scope/dashboard/schema";
-import type { CardRenderers } from "@scope/dashboard/schema";
+import { renderCard } from "@dashhaus/dashboard/schema";
+import type { CardRenderers } from "@dashhaus/dashboard/schema";
 import type { BlockConfig, CardConfig, DashboardConfig, ItemConfig, Kind, SectionConfig } from "./config";
 import { ActionStatus } from "./ActionStatus";
 

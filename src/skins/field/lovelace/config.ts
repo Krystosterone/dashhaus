@@ -9,19 +9,19 @@ import {
   readSensorOptions,
   readUnit,
   readWeatherOptions,
-} from "@scope/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, Raw } from "@scope/dashboard/schema";
-import type { NavEntry } from "@scope/dashboard";
-import type { ToggleIcon } from "@scope/core/entities/toggle/types";
-import type { OwletAlert } from "@scope/core/entities/owlet/types";
-import { OWLET_ALERT_SUFFIX } from "@scope/core";
+} from "@dashhaus/dashboard/schema";
+import type { CardKindSpec, CardReadSchema, Raw } from "@dashhaus/dashboard/schema";
+import type { NavEntry } from "@dashhaus/dashboard";
+import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
+import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
+import { OWLET_ALERT_SUFFIX } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
  * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
  * weather, modes, sound machines, covers, alarms and Owlet socks. The reading itself is the shared card schema
- * (`@scope/dashboard/schema`); this file is the field card's kind table and the words it refuses.
+ * (`@dashhaus/dashboard/schema`); this file is the field card's kind table and the words it refuses.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";

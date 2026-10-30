@@ -73,7 +73,7 @@ describe("helpText", () => {
       { path: "home-a", title: "Home A", icon: "mdi:home", card: async () => ({ card: {}, made: "" }) },
       { path: "home-long", title: "Home Long", icon: "mdi:home", card: async () => ({ card: {}, made: "" }) },
     ], "/configs/dashboard.config.mjs");
-    expect(text).toContain("home-dashboard-deploy [--config <file>] [--skip-build]");
+    expect(text).toContain("dashhaus-deploy [--config <file>] [--skip-build]");
     expect(text).toContain("Home A     /home-a");
     expect(text).toContain("Home Long  /home-long");
     expect(text).toContain("/configs/dashboard.config.mjs");

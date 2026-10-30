@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { LAMP_COLORS } from "@scope/core/entities/light/color";
+import { LAMP_COLORS } from "@dashhaus/core/entities/light/color";
 import { Blank, Digits, Fader, Key, Pictogram, Screen, Swatch } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 

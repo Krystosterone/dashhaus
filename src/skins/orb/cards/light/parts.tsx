@@ -1,7 +1,7 @@
 import { Chip, Track } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
-import { useSlider } from "@scope/core/primitives";
-import { kelvinName, K_MIN, K_MAX } from "@scope/core/entities/light/kelvin";
+import { useSlider } from "@dashhaus/core/primitives";
+import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { warmGradient } from "./kelvin";
 import { LAMP_COLORS, swatchColor } from "./color";
 import type { LampColor } from "./color";

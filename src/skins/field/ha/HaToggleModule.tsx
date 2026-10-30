@@ -1,5 +1,5 @@
-import { useHaToggle } from "@scope/core";
-import type { HaToggleOptions } from "@scope/core";
+import { useHaToggle } from "@dashhaus/core";
+import type { HaToggleOptions } from "@dashhaus/core";
 import { ToggleModule } from "../cards/toggle/ToggleModule";
 import type { ToggleModuleProps } from "../cards/toggle/ToggleModule";
 

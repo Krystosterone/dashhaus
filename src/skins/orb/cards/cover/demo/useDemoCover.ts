@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { HourSample } from "../../../shared/ui";
-import type { CoverEntity, CoverHistory } from "@scope/core/entities/cover/types";
+import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

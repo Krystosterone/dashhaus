@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import type { Severity } from "@scope/core/entities/severity";
+import type { Severity } from "@dashhaus/core/entities/severity";
 import "./alerts.css";
 
 /** The levels that reach the dashboard's alert line: what can't wait. */

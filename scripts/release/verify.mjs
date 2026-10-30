@@ -3,9 +3,9 @@
  *
  * - tarball contents: no tests, stories, repo docs or workspace-only source paths;
  * - packed manifests: real version, no `private`, no `source` condition, internal ranges pinned, optional peers;
- * - Node imports of every declared subpath, a jsdom React render for `@scope/dashboard` and `./card`, a Vitest run
- *   for `@scope/core/testing`, a TypeScript consumer (Bundler and NodeNext), and the `home-dashboard-deploy` bin
- *   loading a config that imports `@scope/dashboard/cli`.
+ * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/dashboard` and `./card`, a Vitest run
+ *   for `@dashhaus/core/testing`, a TypeScript consumer (Bundler and NodeNext), and the `dashhaus-deploy` bin
+ *   loading a config that imports `@dashhaus/dashboard/cli`.
  *
  * Usage: `npm run release:pack` then `npm run verify:packages`.
  */
@@ -65,15 +65,15 @@ async function checkTarballs(manifests) {
   }
 
   const dashboard = manifests.dashboard;
-  if (dashboard.dependencies?.["@scope/core"] !== `^${manifests.core.version}`) {
-    throw new Error(`@scope/dashboard depends on @scope/core "${dashboard.dependencies?.["@scope/core"]}", expected "^${manifests.core.version}"`);
+  if (dashboard.dependencies?.["@dashhaus/core"] !== `^${manifests.core.version}`) {
+    throw new Error(`@dashhaus/dashboard depends on @dashhaus/core "${dashboard.dependencies?.["@dashhaus/core"]}", expected "^${manifests.core.version}"`);
   }
 }
 
 async function install(app, manifests) {
   const dependencies = Object.fromEntries(publicPackages.map((pkg) => [manifests[pkg.key].name, tarballFor(manifests[pkg.key])]));
   const base = {
-    name: "home-dashboard-packed-consumer",
+    name: "dashhaus-packed-consumer",
     private: true,
     type: "module",
     dependencies: { ...dependencies, react: "18.3.1", "react-dom": "18.3.1" },
@@ -107,25 +107,25 @@ const load = async (specifier) => {
   return module;
 };
 
-const core = await load("@scope/core");
+const core = await load("@dashhaus/core");
 assert.equal(typeof core.createHaStore, "function");
 assert.equal(typeof core.HaProvider, "function");
-await load("@scope/core/entities");
-await load("@scope/core/entities/format");
-await load("@scope/core/entities/light/types");
-await load("@scope/core/entities/light/kelvin");
-await load("@scope/core/primitives");
-await load("@scope/core/hooks");
-await load("@scope/core/demo");
-await load("@scope/core/websocket");
-const fixture = (await import("@scope/core/fixtures/light.json", { with: { type: "json" } })).default;
+await load("@dashhaus/core/entities");
+await load("@dashhaus/core/entities/format");
+await load("@dashhaus/core/entities/light/types");
+await load("@dashhaus/core/entities/light/kelvin");
+await load("@dashhaus/core/primitives");
+await load("@dashhaus/core/hooks");
+await load("@dashhaus/core/demo");
+await load("@dashhaus/core/websocket");
+const fixture = (await import("@dashhaus/core/fixtures/light.json", { with: { type: "json" } })).default;
 assert.ok(Object.keys(fixture).length > 0);
 
-const cli = await load("@scope/dashboard/cli");
+const cli = await load("@dashhaus/dashboard/cli");
 assert.equal(typeof cli.generatedDashboards, "function");
-await load("@scope/dashboard/schema");
-await load("@scope/dashboard/layout");
-const deploy = await load("@scope/deploy");
+await load("@dashhaus/dashboard/schema");
+await load("@dashhaus/dashboard/layout");
+const deploy = await load("@dashhaus/deploy");
 assert.equal(typeof deploy.loadDashboards, "function");
 
 const { JSDOM } = await import("jsdom");
@@ -133,9 +133,9 @@ const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http:
 for (const key of ["window", "document", "HTMLElement", "customElements", "CustomEvent", "Event", "Node", "MutationObserver"]) {
   Object.defineProperty(globalThis, key, { value: key === "window" ? dom.window : dom.window[key], configurable: true, writable: true });
 }
-const dashboard = await load("@scope/dashboard");
+const dashboard = await load("@dashhaus/dashboard");
 assert.equal(typeof dashboard.registerCard, "function");
-const card = await load("@scope/dashboard/card");
+const card = await load("@dashhaus/dashboard/card");
 assert.equal(card.cardShape({ footprint: "compact" }).footprint, "compact");
 
 const { createElement } = await import("react");
@@ -158,7 +158,7 @@ async function testingConsumer(app) {
   await writeFile(join(app, "testing.test.ts"), `
 import { createElement } from "react";
 import { expect, it } from "vitest";
-import { fakeTransport, renderConnected } from "@scope/core/testing";
+import { fakeTransport, renderConnected } from "@dashhaus/core/testing";
 
 it("renders a connected component through the packed testing helper", () => {
   const fake = fakeTransport({});
@@ -168,23 +168,23 @@ it("renders a connected component through the packed testing helper", () => {
 });
 `);
   run(join(app, "node_modules", ".bin", "vitest"), ["run", "testing.test.ts", "--environment", "jsdom", "--reporter", "dot"], app);
-  ok("@scope/core/testing runs inside Vitest");
+  ok("@dashhaus/core/testing runs inside Vitest");
 }
 
 async function typeConsumer(app) {
   await writeFile(join(app, "consumer.ts"), `
-import type { CardProps } from "@scope/dashboard/card";
-import { cardShape } from "@scope/dashboard/card";
-import type { DeployConfig } from "@scope/dashboard/cli";
-import { generatedDashboards } from "@scope/dashboard/cli";
-import { HaActionError } from "@scope/core";
-import type { HassEntity } from "@scope/core";
-import { fmt1 } from "@scope/core/entities/format";
-import { kelvinToLch } from "@scope/core/entities/light/kelvin";
-import { useNow } from "@scope/core/hooks";
-import { usePress } from "@scope/core/primitives";
-import { createDemoHouseTransport } from "@scope/core/demo";
-import fixture from "@scope/core/fixtures/light.json";
+import type { CardProps } from "@dashhaus/dashboard/card";
+import { cardShape } from "@dashhaus/dashboard/card";
+import type { DeployConfig } from "@dashhaus/dashboard/cli";
+import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import { HaActionError } from "@dashhaus/core";
+import type { HassEntity } from "@dashhaus/core";
+import { fmt1 } from "@dashhaus/core/entities/format";
+import { kelvinToLch } from "@dashhaus/core/entities/light/kelvin";
+import { useNow } from "@dashhaus/core/hooks";
+import { usePress } from "@dashhaus/core/primitives";
+import { createDemoHouseTransport } from "@dashhaus/core/demo";
+import fixture from "@dashhaus/core/fixtures/light.json";
 
 const shape = cardShape({ footprint: "compact" });
 const config: DeployConfig = { bundle: "dist/cards.js", dashboards: generatedDashboards([]) };
@@ -208,11 +208,11 @@ export type Entity = HassEntity;
   run(process.execPath, [join(root, "node_modules", "typescript", "bin", "tsc"), "-p", join(app, "tsconfig.bundler.json")], app);
 
   await writeFile(join(app, "consumer.node.ts"), `
-import type { DeployConfig } from "@scope/dashboard/cli";
-import { generatedDashboards } from "@scope/dashboard/cli";
-import { cardShape } from "@scope/dashboard/card";
-import { HaActionError } from "@scope/core";
-import { fmt1 } from "@scope/core/entities/format";
+import type { DeployConfig } from "@dashhaus/dashboard/cli";
+import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import { cardShape } from "@dashhaus/dashboard/card";
+import { HaActionError } from "@dashhaus/core";
+import { fmt1 } from "@dashhaus/core/entities/format";
 
 export const value: string = fmt1(1) + generatedDashboards([]).length;
 export const shape = cardShape({ footprint: "compact" });
@@ -236,19 +236,19 @@ export type Config = DeployConfig;
 
 async function deployBin(app) {
   await writeFile(join(app, "dashboard.config.mjs"), `
-import { generatedDashboards } from "@scope/dashboard/cli";
+import { generatedDashboards } from "@dashhaus/dashboard/cli";
 
 export default {
   bundle: "dist/cards.js",
   dashboards: generatedDashboards([{ id: "canvas", title: "Packed", icon: "mdi:home" }]),
 };
 `);
-  const result = spawnSync(join(app, "node_modules", ".bin", "home-dashboard-deploy"), ["--help"], { cwd: app, encoding: "utf8" });
+  const result = spawnSync(join(app, "node_modules", ".bin", "dashhaus-deploy"), ["--help"], { cwd: app, encoding: "utf8" });
   if (result.status !== 0) throw new Error(`deploy bin exited ${result.status}: ${result.stderr}`);
   if (!result.stdout.includes("Packed") || !result.stdout.includes("/home-dashboard-canvas")) {
     throw new Error(`deploy bin did not load the packed config:\n${result.stdout}`);
   }
-  ok("home-dashboard-deploy runs and loads a config importing @scope/dashboard/cli");
+  ok("dashhaus-deploy runs and loads a config importing @dashhaus/dashboard/cli");
 }
 
 async function main() {
@@ -256,7 +256,7 @@ async function main() {
   for (const pkg of publicPackages) manifests[pkg.key] = JSON.parse(await readFile(join(root, pkg.dir, "package.json"), "utf8"));
   await checkTarballs(manifests);
 
-  const app = await mkdtemp(join(tmpdir(), "home-dashboard-consumer-"));
+  const app = await mkdtemp(join(tmpdir(), "dashhaus-consumer-"));
   try {
     await install(app, manifests);
     await nodeConsumer(app);

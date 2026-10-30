@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "@scope/core/entities/alarm/types";
-import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@scope/core/entities/alarm/modes";
-import { useDelayLeft } from "@scope/core/hooks";
+import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "@dashhaus/core/entities/alarm/types";
+import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
+import { useDelayLeft } from "@dashhaus/core/hooks";
 import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
 import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";

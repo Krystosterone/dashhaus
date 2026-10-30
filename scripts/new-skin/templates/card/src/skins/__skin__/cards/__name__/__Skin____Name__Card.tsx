@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { __Name__Entity, __Name__History } from "@scope/core/entities/__name__/types";
+import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
 import { __actionImport____Skin__CardFrame } from "../../shared/ui";
 import type { __Skin__Footprint } from "../../shared/ui";
 import { Icon__Name__ } from "./icons";

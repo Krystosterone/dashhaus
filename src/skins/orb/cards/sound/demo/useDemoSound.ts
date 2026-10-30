@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { HourSample } from "../../../shared/ui";
-import type { SoundEntity, SoundHistory } from "@scope/core/entities/sound/types";
+import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

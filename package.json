@@ -1,5 +1,5 @@
 {
-  "name": "home-dashboard",
+  "name": "dashhaus",
   "description": "React and TypeScript skins for a custom Home Assistant dashboard, developed and verified in Storybook.",
   "version": "0.1.0",
   "private": true,
@@ -9,7 +9,7 @@
     "build-storybook": "storybook build",
     "build:ha": "vite build -c vite.lovelace.config.ts",
     "build:packages": "node scripts/build-packages.mjs",
-    "deploy": "home-dashboard-deploy",
+    "deploy": "dashhaus-deploy",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
@@ -28,9 +28,9 @@
     "home-assistant-js-websocket": "9.7.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "@scope/core": "*",
-    "@scope/dashboard": "*",
-    "@scope/deploy": "*"
+    "@dashhaus/core": "*",
+    "@dashhaus/dashboard": "*",
+    "@dashhaus/deploy": "*"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

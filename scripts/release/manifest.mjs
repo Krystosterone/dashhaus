@@ -20,9 +20,9 @@ export const root = (() => {
 
 /** What each public package ships: `dist` for the built packages, the CLI's runnable sources for deploy. */
 export const publicPackages = [
-  { key: "core", name: "@scope/core", dir: "packages/core", ship: ["dist"] },
-  { key: "dashboard", name: "@scope/dashboard", dir: "packages/dashboard", ship: ["dist"] },
-  { key: "deploy", name: "@scope/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts"] },
+  { key: "core", name: "@dashhaus/core", dir: "packages/core", ship: ["dist"] },
+  { key: "dashboard", name: "@dashhaus/dashboard", dir: "packages/dashboard", ship: ["dist"] },
+  { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts"] },
 ];
 
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -56,7 +56,7 @@ export function publishManifest(manifest) {
   next.exports = withoutSource(next.exports);
   if (JSON.stringify(next.exports).includes('"source"')) throw new Error(`${manifest.name}: the packed exports still declare a source condition`);
   if (next.source !== undefined) throw new Error(`${manifest.name}: drop the top-level source field before packing`);
-  if (next.name !== "@scope/deploy") {
+  if (next.name !== "@dashhaus/deploy") {
     const targets = Object.values(next.exports).flatMap((target) => typeof target === "string" ? [target] : Object.values(target));
     const bad = targets.filter((target) => !target.startsWith("./dist/") || target.endsWith(".tsx") || (target.endsWith(".ts") && !target.endsWith(".d.ts")));
     if (bad.length) throw new Error(`${manifest.name}: export targets must be built dist files: ${bad.join(", ")}`);
@@ -66,7 +66,7 @@ export function publishManifest(manifest) {
 
   for (const field of DEPENDENCY_FIELDS) {
     for (const [name, range] of Object.entries(next[field] ?? {})) {
-      if (name.startsWith("@scope/")) {
+      if (name.startsWith("@dashhaus/")) {
         const expected = `^${next.version}`;
         if (range !== expected) throw new Error(`${manifest.name}: ${field}["${name}"] is "${range}", expected "${expected}"`);
       } else if (range.includes("*")) {
@@ -76,11 +76,11 @@ export function publishManifest(manifest) {
   }
 
   if (!Array.isArray(next.files) || next.files.length === 0) throw new Error(`${manifest.name}: add a files allowlist`);
-  if (next.sideEffects !== false && next.name !== "@scope/deploy") {
+  if (next.sideEffects !== false && next.name !== "@dashhaus/deploy") {
     throw new Error(`${manifest.name}: sideEffects must stay false`);
   }
-  if (next.name === "@scope/deploy" && (!next.bin?.["home-dashboard-deploy"] || !next.engines?.node)) {
-    throw new Error(`${manifest.name}: keep the home-dashboard-deploy bin and its engines.node floor`);
+  if (next.name === "@dashhaus/deploy" && (!next.bin?.["dashhaus-deploy"] || !next.engines?.node)) {
+    throw new Error(`${manifest.name}: keep the dashhaus-deploy bin and its engines.node floor`);
   }
   return next;
 }

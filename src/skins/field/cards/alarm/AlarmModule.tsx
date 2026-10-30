@@ -1,11 +1,11 @@
 import { useEffect, useId, useState } from "react";
 import type { ReactNode } from "react";
-import type { AlarmAction, AlarmEntity, AlarmHistory, AlarmMode, AlarmResult } from "@scope/core/entities/alarm/types";
-import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, alarmSeverity, mmss, modeChoices, needsCode } from "@scope/core/entities/alarm/modes";
-import { fmtAgo, fmtDuration } from "@scope/core/entities/format";
-import { useDelayLeft } from "@scope/core/hooks";
-import { useNow } from "@scope/core/hooks";
-import { useKeypad } from "@scope/core/primitives";
+import type { AlarmAction, AlarmEntity, AlarmHistory, AlarmMode, AlarmResult } from "@dashhaus/core/entities/alarm/types";
+import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, alarmSeverity, mmss, modeChoices, needsCode } from "@dashhaus/core/entities/alarm/modes";
+import { fmtAgo, fmtDuration } from "@dashhaus/core/entities/format";
+import { useDelayLeft } from "@dashhaus/core/hooks";
+import { useNow } from "@dashhaus/core/hooks";
+import { useKeypad } from "@dashhaus/core/primitives";
 import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconDelete, IconEnter, IconMode, IconShield, SHIELD_PICT } from "./icons";

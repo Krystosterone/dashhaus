@@ -34,16 +34,16 @@ const REFUSED = [
 
 /** Children run outside this vitest run: without its variables a nested `vitest run` acts as a fresh one. */
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
-/** The copy's own node_modules: each dependency linked from the root, but each @scope package pointing at the copy. */
+/** The copy's own node_modules: each dependency linked from the root, but each @dashhaus package pointing at the copy. */
 const linkNodeModules = (copy: string) => {
   const modules = join(copy, "node_modules");
   mkdirSync(modules);
   for (const entry of readdirSync(join(root, "node_modules"))) {
-    if (entry === "@scope") continue;
+    if (entry === "@dashhaus") continue;
     symlinkSync(join(root, "node_modules", entry), join(modules, entry));
   }
-  mkdirSync(join(modules, "@scope"));
-  for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@scope", scope), "dir");
+  mkdirSync(join(modules, "@dashhaus"));
+  for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@dashhaus", scope), "dir");
 };
 
 /**

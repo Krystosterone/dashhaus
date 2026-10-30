@@ -68,3 +68,14 @@ node -p 'require("./packages/core/package.json").name' # @dashhaus/core
 and `npm run check`, `npm run test:generators`, `npm run build:ha`, `npm run test-storybook`, `npm run release:pack` and `npm run verify:packages` pass.
 
 Hand back: the branch/commit; the manifests and import count before/after; the verification output; the tarball names and sizes; every live `home-dashboard` occurrence that was intentionally kept and why; the exact operator commands for the GitHub repository rename and remote update; and any difference from `TODOS.md`, the naming note or this brief.
+
+## Outcome (2026-10-30)
+
+Applied on branch `rename-dashhaus`, cut from `main` at `ad4751e` (the brief commit; `4fc6d25` was the pre-brief base, and `main` had only gained this brief).
+
+- Root package `dashhaus`; `@dashhaus/core`, `@dashhaus/dashboard`, `@dashhaus/deploy`; generated skins `@dashhaus/<skin>`; CLI bin `dashhaus-deploy`. Versions stay `0.1.0`.
+- `@scope/` occurrences outside `docs/research/`: 735 in 225 files at `4fc6d25` → 0. `home-dashboard-deploy`: 17 → 0. The brief's 677-in-222 count differs because it used a different counting method; the finish-line greps are exact.
+- Live docs (`README.md`, `AGENTS.md`, `docs/release.md`, `docs/skins.md`, `docs/deploy.md`, `docs/home-assistant.md`, `.agents/skills/home-assistant-integration/SKILL.md`), ESLint patterns and messages, `scripts/packages.mjs`, both generator bodies and templates, the release scripts, `dashboard.config.mjs`, the Storybook/app imports and `package-lock.json` all moved. Historical notes under `docs/research/` are untouched.
+- Kept, intentionally: `custom:home-dashboard` / `custom:home-dashboard-field` / `custom:home-dashboard-<skin>`, `dist/home-dashboard.js`, `www/home-dashboard/`, `/local/home-dashboard/home-dashboard.js`, the `home-dashboard` and `home-dashboard-*` dashboard paths and the HA-facing YAML, the README Issues URL, `.storybook/blocks/MarkdownWithStories.tsx`'s repository URL, `research/*.md`'s `repository: home-dashboard` front matter, and `.impeccable/critique/` paths.
+- Verified green: `npm run check` (130 files, 1212 tests), `npm run test:generators` (15 tests), `npm run build:ha` (`dist/home-dashboard.js`, 650.58 kB / 155.88 kB gzip), `npm run test-storybook` (57 suites, 406 tests), `npm run release:pack` → `release/dashhaus-{core,dashboard,deploy}-0.1.0.tgz` (88K, 21K, 7.8K), `npm run verify:packages` (imports, jsdom render, Vitest, Bundler and NodeNext typecheck, `dashhaus-deploy --help`), `npm ci --dry-run`, and the local `npm run deploy -- --help`.
+- Left for the operator: rename the GitHub repository and update `origin`; then update the README Issues URL and `.storybook/blocks/MarkdownWithStories.tsx`'s `REPO`. Publishing and claiming the npm `@dashhaus` scope remain outside this cut.

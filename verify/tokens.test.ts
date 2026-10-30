@@ -1,12 +1,12 @@
 /**
- * Every skin's tokens load into a shadow root, so `scopeToHost` (@scope/dashboard's `styles.ts`) must leave no `:root`
+ * Every skin's tokens load into a shadow root, so `scopeToHost` (@dashhaus/dashboard's `styles.ts`) must leave no `:root`
  * selector behind in any skin's tokens.css. The skins are named here rather than in `styles.test.ts`, which tests
  * the function itself and knows no skin.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { scopeToHost } from "@scope/dashboard";
+import { scopeToHost } from "@dashhaus/dashboard";
 
 const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
 

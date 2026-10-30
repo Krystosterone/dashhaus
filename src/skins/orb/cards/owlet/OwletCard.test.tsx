@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { OwletCard } from "./OwletCard";
-import type { OwletEntity } from "@scope/core/entities/owlet/types";
+import type { OwletEntity } from "@dashhaus/core/entities/owlet/types";
 
 const sock: OwletEntity = { entityId: "sensor.owlet_sock_1_sleep_state", name: "Nova", area: "Nursery", state: "deep_sleep", heartRate: 121.4, oxygen: 98 };
 

@@ -20,7 +20,7 @@ import { after, before, changes, exists, fail, filler, names, orbKinds, read, ro
 import { newFieldCard } from "./field.mjs";
 import { newGeneratedCard } from "./generated.mjs";
 
-/** The skin a new card is drawn in; its logic goes outside it, in @scope/core. */
+/** The skin a new card is drawn in; its logic goes outside it, in @dashhaus/core. */
 const SKIN = skinDir("orb");
 
 // ---------- Arguments ----------

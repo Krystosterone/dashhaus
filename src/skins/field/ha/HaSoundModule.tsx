@@ -1,5 +1,5 @@
-import { useHaSound } from "@scope/core";
-import type { HaSoundOptions } from "@scope/core";
+import { useHaSound } from "@dashhaus/core";
+import type { HaSoundOptions } from "@dashhaus/core";
 import { SoundModule } from "../cards/sound/SoundModule";
 import type { SoundModuleProps } from "../cards/sound/SoundModule";
 

@@ -1,6 +1,6 @@
 /**
  * The dashboard-repo side of deploy: the shape a `dashboard.config.mjs` declares and the one helper a repo composes
- * its generated skins with. The executable and the loader live in `@scope/deploy`; this module stays pure, so a Node
+ * its generated skins with. The executable and the loader live in `@dashhaus/deploy`; this module stays pure, so a Node
  * config can import it without reaching the browser framework or a skin.
  */
 

@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { HaOwletTile } from "./HaOwletTile";
-import { HaProvider } from "@scope/core";
-import { createHaStore } from "@scope/core";
-import { createDemoOwletHaTransport, owletDemoEntities } from "@scope/core/demo";
-import type { HassEntities } from "@scope/core";
+import { HaProvider } from "@dashhaus/core";
+import { createHaStore } from "@dashhaus/core";
+import { createDemoOwletHaTransport, owletDemoEntities } from "@dashhaus/core/demo";
+import type { HassEntities } from "@dashhaus/core";
 
 const meta = {
   title: "Orb/Connected/Owlet",

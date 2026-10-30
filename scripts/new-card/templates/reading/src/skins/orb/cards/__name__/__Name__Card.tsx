@@ -1,4 +1,4 @@
-import type { __Name__Entity, __Name__History } from "@scope/core/entities/__name__/types";
+import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
 import { __Name__Icon } from "./icons";
 import { CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";

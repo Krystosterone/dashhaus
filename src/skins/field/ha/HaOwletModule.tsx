@@ -1,5 +1,5 @@
-import { useHaOwlet } from "@scope/core";
-import type { HaOwletOptions } from "@scope/core";
+import { useHaOwlet } from "@dashhaus/core";
+import type { HaOwletOptions } from "@dashhaus/core";
 import { OwletModule } from "../cards/owlet/OwletModule";
 import type { OwletModuleProps } from "../cards/owlet/OwletModule";
 

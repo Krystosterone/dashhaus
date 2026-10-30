@@ -1,5 +1,5 @@
-import { useHaHumidifier } from "@scope/core";
-import type { HaHumidifierOptions } from "@scope/core";
+import { useHaHumidifier } from "@dashhaus/core";
+import type { HaHumidifierOptions } from "@dashhaus/core";
 import { HumidifierModule } from "../cards/humidifier/HumidifierModule";
 import type { HumidifierModuleProps } from "../cards/humidifier/HumidifierModule";
 

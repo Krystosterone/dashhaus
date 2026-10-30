@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useHaSelector, useHaStore } from "@scope/core";
-import { actionMessage } from "@scope/dashboard";
+import { useHaSelector, useHaStore } from "@dashhaus/core";
+import { actionMessage } from "@dashhaus/dashboard";
 import "./ActionStatus.css";
 
 /** One dashboard-level recovery surface for the latest rejected Home Assistant action. */

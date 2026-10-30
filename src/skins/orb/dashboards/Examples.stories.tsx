@@ -3,7 +3,7 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 import { DashboardPage, Section, Columns, CardGrid, Cell } from "./layout";
 import { NavBar } from "./NavBar";
-import { useScrollSpy } from "@scope/core/hooks";
+import { useScrollSpy } from "@dashhaus/core/hooks";
 import { DemoLightTile as Light } from "../cards/light/demo/DemoLightTile";
 import { DemoClimateTile as Climate } from "../cards/climate/demo/DemoClimateTile";
 import { DemoSensorTile as Sensor } from "../cards/sensor/demo/DemoSensorTile";

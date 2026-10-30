@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { HourSample } from "../../../shared/ui";
-import type { ToggleEntity, ToggleHistory } from "@scope/core/entities/toggle/types";
+import type { ToggleEntity, ToggleHistory } from "@dashhaus/core/entities/toggle/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

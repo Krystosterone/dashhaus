@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 /** Fold every emitted stylesheet into the JS, where the card puts it in its shadow root. */
 function inlineCss(): Plugin {
   return {
-    name: "home-dashboard-inline-css",
+    name: "dashhaus-inline-css",
     apply: "build",
     enforce: "post",
     generateBundle(_, bundle) {

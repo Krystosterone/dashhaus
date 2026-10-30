@@ -1,4 +1,4 @@
-import type { HvacMode } from "@scope/core/entities/climate/types";
+import type { HvacMode } from "@dashhaus/core/entities/climate/types";
 
 const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 

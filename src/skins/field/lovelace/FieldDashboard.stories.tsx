@@ -5,11 +5,11 @@ import { FieldDashboard } from "./FieldDashboard";
 import { mapModules, parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
 import { areaSections } from "./auto";
-import { HaProvider } from "@scope/core";
-import { createHaStore } from "@scope/core";
-import { createDemoHaTransport } from "@scope/core/demo";
-import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@scope/core/demo";
-import type { HassEntities } from "@scope/core";
+import { HaProvider } from "@dashhaus/core";
+import { createHaStore } from "@dashhaus/core";
+import { createDemoHaTransport } from "@dashhaus/core/demo";
+import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@dashhaus/core/demo";
+import type { HassEntities } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
 
 const stamp = "2026-10-19T11:20:00Z";

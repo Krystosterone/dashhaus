@@ -1,5 +1,5 @@
 {
-  "name": "@scope/dashboard",
+  "name": "@dashhaus/dashboard",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -40,7 +40,7 @@
     }
   },
   "dependencies": {
-    "@scope/core": "^0.1.0"
+    "@dashhaus/core": "^0.1.0"
   },
   "peerDependencies": {
     "home-assistant-js-websocket": "^9.7.1",

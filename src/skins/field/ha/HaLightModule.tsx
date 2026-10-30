@@ -1,5 +1,5 @@
-import { useHaLight } from "@scope/core";
-import type { HaLightOptions } from "@scope/core";
+import { useHaLight } from "@dashhaus/core";
+import type { HaLightOptions } from "@dashhaus/core";
 import { LightModule } from "../cards/light/LightModule";
 import type { LightModuleProps } from "../cards/light/LightModule";
 

@@ -1,5 +1,5 @@
-import { LAMP_COLORS as NAMED, lampColorOf as nameOf } from "@scope/core/entities/light/color";
-import type { Hs, LampColor as NamedColor, LampColorName } from "@scope/core/entities/light/color";
+import { LAMP_COLORS as NAMED, lampColorOf as nameOf } from "@dashhaus/core/entities/light/color";
+import type { Hs, LampColor as NamedColor, LampColorName } from "@dashhaus/core/entities/light/color";
 
 export type { Hs };
 

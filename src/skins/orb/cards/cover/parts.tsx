@@ -1,6 +1,6 @@
 import { Track } from "../../shared/ui";
-import { useSlider } from "@scope/core/primitives";
-import { snapEnds } from "@scope/core/entities/cover/position";
+import { useSlider } from "@dashhaus/core/primitives";
+import { snapEnds } from "@dashhaus/core/entities/cover/position";
 
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverCard.css. */
 const STUB = 14;
