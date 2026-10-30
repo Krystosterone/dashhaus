@@ -7,7 +7,7 @@ topic: "find out whether this repo is decoupled enough to become a monorepo with
 tags: [research, codebase, modularity, import-graph, monorepo, boundaries]
 status: complete
 last_updated: 2026-10-29
-last_updated_note: "Follow-up added: minimal three-package map (core, dashboard, deploy) for external consumers; original internal map and cuts preserved."
+last_updated_note: "Follow-up added: minimal three-package map (core, dashboard, deploy) for external consumers; original internal map and cuts preserved. Line and export counts corrected after the C1-C3 cuts."
 ---
 
 # Research: Monorepo readiness
@@ -56,7 +56,7 @@ last_updated_note: "Follow-up added: minimal three-package map (core, dashboard,
 DAG with the seams AGENTS.md claims: `domains` and `primitives` at the bottom,
 `hooks` above `domains`, `ha` above both, `lovelace` above `ha`, skins above all
 of them. At file level there are zero cycles; at package level there is exactly
-one, created by one 16-line file (`src/ha/lovelace/entry.ts`) that imports both
+one, created by one 15-line file (`src/ha/lovelace/entry.ts`) that imports both
 skins to register their custom elements. No mapper, card, primitive or hook has
 to change behaviour to move.
 
@@ -64,7 +64,7 @@ What is in the way is not tangled code but **ownership**:
 
 1. The bundle entry lives inside the shared Lovelace package and depends on both skins.
 2. The repo-wide verifier (`src/skins/{conformance.ts,boundaries.test.ts,storybook.test.ts}` plus both per-skin conformance tests) lives in the skins directory, reads files by repo-relative path, and asserts on `src/ha` *file paths* rather than its interface.
-3. `src/index.ts` is a single 189-line public barrel that imports both skins' token CSS, so it cannot belong to any one package.
+3. `src/index.ts` is a single 188-line public barrel that imports both skins' token CSS, so it cannot belong to any one package.
 4. `scripts/deploy.mjs` imports orb's `auto.ts` by deep path *with a `.ts` extension*.
 5. The generators write into every package by string anchors, and `new-skin` does not scaffold a package at all.
 
@@ -136,7 +136,7 @@ graph LR
   bundle["lovelace app<br/>(entry.ts, 16)"]
   deploy["@hd/deploy<br/>235"]
   sb["storybook app<br/>165"]
-  verify["@hd/verify<br/>361"]
+  verify["@hd/verify<br/>356"]
   tools["@hd/tools<br/>4,017"]
 
   hooks --> domains
@@ -198,9 +198,9 @@ counts include tests, stories and CSS.
 | `@hd/skin-field` | `src/skins/field/**`: shared module system, 10 modules, dashboards, Foundations stories, `ha/` modules, `lovelace/` card + config + auto + renderer, token CSS, `storybook.tsx` | 11,742 / 123 | same as orb (domains 47, primitives 4, hooks 3, ha 22, lovelace 12) | library |
 | `@hd/deploy` | `scripts/deploy.mjs`, `scripts/generated-skins.mjs` | 235 / 2 | `node:*`, `@hd/skin-orb` (1) | private bin |
 | `@hd/tools` | `scripts/new-card/**`, `scripts/new-skin/**`, `scripts/test-storybook.mjs` | 4,017 / 90 | `node:*`, `vitest`; writes every package's source, imports none | private bin |
-| `@hd/verify` | `src/skins/conformance.ts`, `src/skins/boundaries.test.ts`, `src/skins/storybook.test.ts`, both `cards/conformance.test.ts` | 361 / 5 | `node:fs`, `vitest`; reads every package's source and the repo docs | private test |
+| `@hd/verify` | `src/skins/conformance.ts`, `src/skins/boundaries.test.ts`, `src/skins/storybook.test.ts`, both `cards/conformance.test.ts` | 356 / 5 | `node:fs`, `vitest`; reads every package's source and the repo docs | private test |
 | storybook app | `.storybook/**` (preview, main, test-runner, blocks); the root configs live at the workspace root | 165 / 4 | `@hd/skin-orb`, `@hd/skin-field` (via `storybook.tsx`) | app |
-| lovelace app | `src/ha/lovelace/entry.ts` (moved out of `@hd/lovelace`); `vite.lovelace.config.ts` stays a root config | 16 / 1 | `@hd/skin-orb`, `@hd/skin-field` | app / build entry |
+| lovelace app | `src/ha/lovelace/entry.ts` (moved out of `@hd/lovelace`); `vite.lovelace.config.ts` stays a root config | 15 / 1 | `@hd/skin-orb`, `@hd/skin-field` | app / build entry |
 
 Two decisions in that table, with evidence:
 
@@ -212,7 +212,7 @@ Two decisions in that table, with evidence:
   YAML reader, the custom-element base and the nav: it earns its keep.
 - **The bundle entry is an app, not a package.** It has one implementation, one
   caller (`vite.lovelace.config.ts:46`) and no interface; its only job is
-  to be the one place both skins are registered. A package for 16 lines fails
+  to be the one place both skins are registered. A package for 15 lines fails
   the deletion test, but it must still move out of `@hd/lovelace`.
 
 ### Where the seams already are
@@ -261,9 +261,9 @@ import or file; "size" is what the cut touches.
 
 | # | Crossing | Why it blocks | Cut | Size |
 | --- | --- | --- | --- | --- |
-| C1 | `src/ha/lovelace/entry.ts:4-7` imports `../../skins/orb/styles/tokens.css`, `../../skins/field/styles/tokens.css`, `../../skins/orb/lovelace/card`, `../../skins/field/lovelace/card` | `@hd/lovelace` would depend on both skins while both skins depend on it: the only package cycle in the repo, 2 edges each way | Move `entry.ts` (16 lines) to the lovelace app; point `vite.lovelace.config.ts:46` at it; move the `new-skin` anchor (`scripts/new-skin/index.mjs:71-72`) | **S**: 16 lines + 3 references |
-| C2 | `src/skins/conformance.ts:1-30`; `src/skins/boundaries.test.ts:10,21`; `src/skins/storybook.test.ts:46,57,61`; both `cards/conformance.test.ts`; `src/ha/lovelace/styles.test.ts:17-19` | The verifier reads every skin, the HA source tree, the meta barrel and the repo docs by `process.cwd()` path. It cannot belong to any package, and `@hd/lovelace`'s own test would fail without both skins present | Move the four test files + helper to `@hd/verify` (361 lines). Rewrite the HA assertions against `@hd/ha`'s public exports where possible and keep the fixture registration as a test owned by `@hd/ha`. Move the `:root`-scoping check (`src/ha/lovelace/styles.test.ts:17`) to `@hd/verify` or pass the skin list in | **M**: 361 lines moved, ~20 path assertions rewritten, one `vitest` include (`vitest.config.ts:7`), one ESLint ignore removed |
-| C3 | `src/index.ts:1-189`, especially `:2-3` (both skins' token CSS) and the 72 orb + 42 field re-exports | One barrel mixes seven packages; importing it loads both skins' palettes as a side effect. Nothing inside the repo imports it, so it is a declared surface with no callers, and it is the only place the skins' public API exists | Delete the meta barrel. Each package gets an entry: `@hd/skin-orb` and `@hd/skin-field` export their own cards/containers/dashboards and import their own `tokens.css`; `@hd/ha`, `@hd/domains`, `@hd/primitives`, `@hd/hooks` keep/add theirs. Update the two conformance assertions (`orb:49`, `field:57`) and the generator anchors (`scripts/new-card/generated.mjs:149`, `scripts/new-skin/index.mjs:67-68`) | **M**: 189 lines split into ~7 entries; 4 anchors; no behaviour change |
+| C1 | `src/ha/lovelace/entry.ts:4-7` imports `../../skins/orb/styles/tokens.css`, `../../skins/field/styles/tokens.css`, `../../skins/orb/lovelace/card`, `../../skins/field/lovelace/card` | `@hd/lovelace` would depend on both skins while both skins depend on it: the only package cycle in the repo, 2 edges each way | Move `entry.ts` (15 lines) to the lovelace app; point `vite.lovelace.config.ts:46` at it; move the `new-skin` anchor (`scripts/new-skin/index.mjs:71-72`) | **S**: 15 lines + 3 references |
+| C2 | `src/skins/conformance.ts:1-30`; `src/skins/boundaries.test.ts:10,21`; `src/skins/storybook.test.ts:46,57,61`; both `cards/conformance.test.ts`; `src/ha/lovelace/styles.test.ts:17-20` | The verifier reads every skin, the HA source tree, the meta barrel and the repo docs by `process.cwd()` path. It cannot belong to any package, and `@hd/lovelace`'s own test would fail without both skins present | Move the four test files + helper to `@hd/verify` (356 lines). Rewrite the HA assertions against `@hd/ha`'s public exports where possible and keep the fixture registration as a test owned by `@hd/ha`. Move the `:root`-scoping check (`src/ha/lovelace/styles.test.ts:17`) to `@hd/verify` or pass the skin list in | **M**: 356 lines moved, ~20 path assertions rewritten, one `vitest` include (`vitest.config.ts:7`), one ESLint ignore removed |
+| C3 | `src/index.ts:1-188`, especially `:2-3` (both skins' token CSS) and the 124 orb + 41 field re-exports | One barrel mixes seven packages; importing it loads both skins' palettes as a side effect. Nothing inside the repo imports it, so it is a declared surface with no callers, and it is the only place the skins' public API exists | Delete the meta barrel. Each package gets an entry: `@hd/skin-orb` and `@hd/skin-field` export their own cards/containers/dashboards and import their own `tokens.css`; `@hd/ha`, `@hd/domains`, `@hd/primitives`, `@hd/hooks` keep/add theirs. Update the two conformance assertions (`orb:49`, `field:57`) and the generator anchors (`scripts/new-card/generated.mjs:149`, `scripts/new-skin/index.mjs:67-68`) | **M**: 188 lines split into ~7 entries; 4 anchors; no behaviour change |
 | C4 | `scripts/deploy.mjs:11` — `import { autoDashboard, lovelaceDashboard } from "../src/skins/orb/lovelace/auto.ts"` | Deploy reaches into orb's source with a `.ts` extension, relying on Node type stripping. In a workspace it must be a package specifier; type stripping is disabled for files resolved under `node_modules`, so a copied (non-symlinked) install may fail | Export `auto` as a subpath of `@hd/skin-orb` (`./lovelace/auto`), import the specifier, and smoke-test `npm run deploy -- --skip-build` from a clean workspace install. If copying breaks stripping, give that subpath a compiled `.js` or move `autoDashboard` to a package that ships JS. It cannot move to `deploy`: orb's `card.tsx:44,80` calls it at runtime | **S**: 1 import + 1 `exports` entry; **risk M** (verify Node resolution) |
 | C5 | `scripts/new-card/{index,field,generated,lib}.mjs:1-745`; `scripts/new-skin/index.mjs:1-79` | The generators write across every package by string anchors: `src/index.ts:102`, `src/ha/index.ts`, `src/ha/headless.tsx`, `src/ha/mappers/fixtures.test.ts`, `docs/*.md`, `AGENTS.md`, `.storybook/preview.tsx`, `src/ha/lovelace/entry.ts`, orb's `lovelace/{config,ConfigDashboard,auto}.ts(x)`, and `lib.mjs:43` reads orb's config text. `new-skin` creates a skin directory but no package manifest, exports or tsconfig, so a generated skin would not be a package | Keep the generators as `@hd/tools`, but make them package-aware: replace the ~50 path literals with package-path constants, have `new-skin` scaffold `package.json` + `exports` + tsconfig and register the skin with the lovelace app instead of the shared entry, and have `new-card` write the skin's own entry instead of the meta barrel. Update the two generator tests, which copy the repo and run the real pipeline (`scripts/new-card/index.test.ts:119`, `scripts/new-skin/index.test.ts:101`) | **L**: 1,326 generator lines + 220 test lines; ~50 anchors; new scaffolding output |
 
@@ -392,7 +392,7 @@ the repo root.
 - `deploy → orb` (1 + 0): `scripts/deploy.mjs:11`.
 - `storybook → orb / field` (1 + 0 each): `.storybook/preview.tsx:2-3`.
 - `orb / field → verify` (0 + 1 each): `src/skins/orb/cards/conformance.test.ts:7`, `src/skins/field/cards/conformance.test.ts:8` (both `../../conformance`).
-- `meta-barrel → everything` (189 lines): `src/index.ts:2-3` (tokens CSS), `:12` (primitives), `:21` (ha), `:109` (domains), `:42/:58/:60` (skins). This is the file C3 removes.
+- `meta-barrel → everything` (188 lines): `src/index.ts:2-3` (tokens CSS), `:12` (primitives), `:21` (ha), `:109` (domains), `:42/:58/:60` (skins). This is the file C3 removes.
 
 ## Historical Context
 
@@ -543,9 +543,9 @@ implementations), `apps/storybook`, `apps/lovelace` (the bundle entry),
 
 | Cut | Under the three-package map |
 | --- | --- |
-| C1 | Unchanged: `entry.ts` moves to `apps/lovelace`; 16 lines + 3 references |
-| C2 | Splits: generic conformance to `dashboard/conformance`; repo assertions to `verify/`. Same 361 lines, plus the preset config |
-| C3 | Shrinks: the 189-line barrel becomes two side-effect-free entries; the private skins import both. Update `orb:49`, `field:57` |
+| C1 | Unchanged: `entry.ts` moves to `apps/lovelace`; 15 lines + 3 references |
+| C2 | Splits: generic conformance to `dashboard/conformance`; repo assertions to `verify/`. Same 356 lines, plus the preset config |
+| C3 | Shrinks: the 188-line barrel becomes two side-effect-free entries; the private skins import both. Update `orb:49`, `field:57` |
 | C4 | Becomes a feature: the CLI loads the user's config; the repo's config imports orb's `auto`. Deploy loses its skin import, and the type-stripping risk goes with it if the CLI bundles the config instead of importing `.ts` |
 | C5 | Shrinks: the public CLI lives in `dashboard/cli`; a generated skin depends on `@scope/dashboard` and stops copying the element, YAML and auto layout. The docs/AGENTS/index edits stay in `verify/` or a private tool |
 
