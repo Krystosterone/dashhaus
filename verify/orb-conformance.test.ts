@@ -4,9 +4,10 @@
  * The steps are in AGENTS.md → Adding a card. Its stories are held to the shared set in verify/storybook.test.ts.
  */
 import { describe, expect, it } from "vitest";
+import * as core from "@scope/core";
 import { cardFolders, exists, object, read, strayClasses } from "./conformance";
 
-/** The skin these cards belong to; a card's logic lives outside it, in packages/core/src/entities/ and packages/core/src/ha/. */
+/** The skin these cards belong to; a card's logic lives outside it, in @scope/core. */
 const SKIN = "src/skins/orb";
 
 /* Every folder in cards/ is one entity's card. The dashboard's title row is type on the page, not a card: it lives
@@ -45,13 +46,12 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(read("AGENTS.md"), "AGENTS.md → Hard rules: add it to the prefix list").toContain(`\`${code}-\``);
   });
 
-  it("is exported from the orb skin's entry, its shared hook and headless component from packages/core/src/ha", () => {
+  it("is exported from the orb skin's entry, its shared hook and headless component from @scope/core", () => {
     const entry = read("src/skins/orb/index.ts");
     const missing = [`${Name}Card`, `${Name}Sheet`, `${Name}Tile`, `Ha${Name}Tile`].filter((n) => !new RegExp(`\\b${n}\\b`).test(entry));
     expect(missing, "AGENTS.md → Adding a card, step 3: export it from src/skins/orb/index.ts").toEqual([]);
-    const ha = read("packages/core/src/index.ts");
-    const shared = [`useHa${Name}`, `Ha${Name}`].filter((n) => !new RegExp(`\\b${n}\\b`).test(ha));
-    expect(shared, "export the shared hook and headless component from packages/core/src/index.ts").toEqual([]);
+    const shared = [`useHa${Name}`, `Ha${Name}`].filter((n) => !(n in core));
+    expect(shared, "export the shared hook and headless component from @scope/core").toEqual([]);
   });
 
   it("is documented in docs/cards.md", () => {
@@ -62,7 +62,7 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     const missing = [`packages/core/src/ha/hooks/${name}.ts`, `${SKIN}/ha/Ha${Name}Tile.tsx`, `${SKIN}/ha/Ha${Name}Tile.test.tsx`, `${SKIN}/ha/Ha${Name}Tile.stories.tsx`, `packages/core/src/ha/mappers/${name}.ts`, `packages/core/src/ha/mappers/${name}.test.ts`, `packages/core/src/ha/fixtures/${name}.json`].filter((p) => !exists(p));
     expect(missing, "home-assistant-integration skill → Adding a domain").toEqual([]);
     expect(read("packages/core/src/ha/mappers/fixtures.test.ts"), "register the fixture in packages/core/src/ha/mappers/fixtures.test.ts").toContain(`"../fixtures/${name}.json"`);
-    expect(read("packages/core/src/ha/headless.tsx"), "give it a headless component in packages/core/src/ha/headless.tsx").toContain(`headless(useHa${Name}, "Ha${Name}")`);
+    expect(core, "give it a headless component in @scope/core").toHaveProperty(`Ha${Name}`);
   });
 
   it("is a card on the Lovelace dashboard", () => {

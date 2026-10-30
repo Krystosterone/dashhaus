@@ -1,0 +1,105 @@
+/**
+ * @scope/core's declared subpaths are the package's interface: `./entities` is pure (no React, no DOM, no Node),
+ * the browser entries carry no Node builtins, and only `./websocket` reaches the Home Assistant websocket client.
+ * This walks the real import graph from each entry, the way a bundler would, rather than trusting folder names.
+ */
+import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
+import { join, posix } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const root = process.cwd();
+const packageJson = JSON.parse(readFileSync(join(root, "packages/core/package.json"), "utf8"));
+const CORE = "packages/core/src";
+
+const read = (path: string) => readFileSync(join(root, path), "utf8");
+const walk = (dir: string, out: string[] = []) => {
+  for (const entry of readdirSync(join(root, dir))) {
+    const path = posix.join(dir, entry);
+    if (statSync(join(root, path)).isDirectory()) walk(path, out);
+    else out.push(path);
+  }
+  return out;
+};
+
+const JS_SPECS = [
+  /\bfrom\s+["']([^"']+)["']/g,
+  /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+  /^\s*import\s+["']([^"']+)["']/gm,
+];
+const specs = (path: string) => [...read(path).matchAll(new RegExp(JS_SPECS.map((r) => r.source).join("|"), "g"))].map((m) => m[1] ?? m[2] ?? m[3]).filter(Boolean);
+
+function resolveSpecifier(spec: string, from: string): string | undefined {
+  if (spec.startsWith(".")) {
+    const base = posix.normalize(posix.join(posix.dirname(from), spec));
+    for (const candidate of [base, `${base}.ts`, `${base}.tsx`, `${base}.json`, `${base}/index.ts`, `${base}/index.tsx`]) {
+      if (existsSync(join(root, candidate)) && statSync(join(root, candidate)).isFile()) return candidate;
+    }
+    return undefined;
+  }
+  return spec;
+}
+
+/** Every file reachable from an entry, and every bare package those files import. */
+function graph(entry: string) {
+  const seen = new Set<string>();
+  const packages = new Set<string>();
+  const visit = (path: string) => {
+    if (seen.has(path)) return;
+    seen.add(path);
+    if (!/\.(ts|tsx)$/.test(path)) return;
+    for (const spec of specs(path)) {
+      const target = resolveSpecifier(spec, path);
+      if (!target) continue;
+      if (target.startsWith(CORE)) visit(target);
+      else packages.add(target);
+    }
+  };
+  visit(entry);
+  return { files: [...seen], packages: [...packages] };
+}
+
+const NODE_BUILTINS = /^(node:|fs$|path$|os$|crypto$|url$|util$|stream$|events$|child_process$|module$|assert$|process$)/;
+const BROWSER = [".", "./entities", "./primitives", "./hooks", "./websocket", "./demo"];
+const entry = (subpath: string) => {
+  const target = packageJson.exports[subpath];
+  if (typeof target !== "string") throw new Error(`@scope/core has no string export for ${subpath}`);
+  return `packages/core/${target.replace(/^\.\//, "")}`;
+};
+
+describe("@scope/core", () => {
+  it("declares the package surface and is side-effect free", () => {
+    expect(packageJson.private).toBe(true);
+    expect(packageJson.sideEffects).toBe(false);
+    expect(Object.keys(packageJson.exports)).toEqual(expect.arrayContaining([".", "./entities", "./entities/*", "./primitives", "./hooks", "./websocket", "./demo", "./testing", "./fixtures/*"]));
+  });
+
+  it("has no CSS in any entry's graph", () => {
+    for (const subpath of BROWSER) {
+      const { files } = graph(entry(subpath));
+      expect(files.filter((f) => f.endsWith(".css")), `${subpath} must stay CSS-free`).toEqual([]);
+    }
+  });
+
+  it("keeps ./entities free of React, DOM and Node", () => {
+    const files = walk(`${CORE}/entities`).filter((f) => /\.tsx?$/.test(f));
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const source = read(file);
+      expect(source, `${file} is framework-free`).not.toMatch(/\b(?:from\s+["']react(?:-dom)?(?:\/[^"']*)?["']|React\b)/);
+      expect(source, `${file} has no DOM`).not.toMatch(/\b(?:document|window|navigator|localStorage|sessionStorage)\s*\./);
+      expect(specs(file).filter((s) => NODE_BUILTINS.test(s)), `${file} is pure`).toEqual([]);
+    }
+  });
+
+  it("gives the browser entries no Node builtins", () => {
+    for (const subpath of BROWSER) {
+      const { packages } = graph(entry(subpath));
+      expect(packages.filter((p) => NODE_BUILTINS.test(p)), `${subpath} is a browser entry`).toEqual([]);
+    }
+  });
+
+  it("owns the websocket client in ./websocket, not .", () => {
+    expect(graph(entry(".")).packages, "the . entry must not import the client").not.toContain("home-assistant-js-websocket");
+    expect(graph(entry("./websocket")).packages, "./websocket is the one address for it").toContain("home-assistant-js-websocket");
+  });
+});
