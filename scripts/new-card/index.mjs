@@ -8,7 +8,7 @@
  * With `--skin field` it draws a domain that already exists in the field skin instead (./field.mjs).
  *
  * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the card
- * everywhere the conformance test (src/skins/orb/cards/conformance.test.ts) looks, the Lovelace card included:
+ * everywhere the conformance test (verify/orb-conformance.test.ts) looks, the Lovelace card included:
  *   - control (default): an on/off entity with an orb and a pill, over `<domain>.toggle`.
  *   - reading: a read-only number with a bare icon and a readout, no services.
  * Nothing is written unless every file and every registration can be made.

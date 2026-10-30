@@ -1,10 +1,10 @@
 /**
  * Every card is built the same way and registered in the same places. `npm run new-card`
  * produces a card that passes all of this; a hand-built one fails here with what is missing.
- * The steps are in AGENTS.md → Adding a card. Its stories are held to the shared set in src/skins/storybook.test.ts.
+ * The steps are in AGENTS.md → Adding a card. Its stories are held to the shared set in verify/storybook.test.ts.
  */
 import { describe, expect, it } from "vitest";
-import { cardFolders, exists, object, read, strayClasses } from "../../conformance";
+import { cardFolders, exists, object, read, strayClasses } from "./conformance";
 
 /** The skin these cards belong to; a card's logic lives outside it, in src/domains/ and src/ha/. */
 const SKIN = "src/skins/orb";

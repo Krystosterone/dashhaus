@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardFolders, exists, read, strayClasses } from "../../conformance";
+import { cardFolders, exists, read, strayClasses } from "../../../../verify/conformance";
 
 const SKIN = "src/skins/__skin__";
 const cards = cardFolders(SKIN).map((name) => ({ name, Name: name[0].toUpperCase() + name.slice(1) }));

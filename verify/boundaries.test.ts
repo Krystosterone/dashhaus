@@ -1,7 +1,7 @@
 /**
  * Skins never import each other: what two skins share goes in src/domains/, src/primitives/, src/hooks/ or src/ha/. ESLint's
- * import patterns can't say "any skin but this one", so this resolves every relative import in each skin. The files at
- * src/skins/'s root are test helpers (conformance.ts), so only a skin's tests may import them.
+ * import patterns can't say "any skin but this one", so this resolves every relative import in each skin. A file
+ * directly under src/skins/ would be shared by the skins, so only a skin's test may import it.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, posix } from "node:path";

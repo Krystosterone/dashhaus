@@ -89,7 +89,7 @@ describe("new-skin", () => {
       expect(typecheck.status, typecheck.output).toBe(0);
       const lint = run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "src/skins/field", "src/skins/storybook.test.ts", "src/skins/boundaries.test.ts"]);
+      const tests = run(copy, "npx", ["vitest", "run", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const storybook = run(copy, "npm", ["run", "build-storybook"]);
       expect(storybook.status, storybook.output).toBe(0);

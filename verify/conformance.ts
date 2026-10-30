@@ -1,6 +1,6 @@
 /**
- * What every skin's conformance test reads its cards with: files and source text, and the classes a card folder
- * uses. Only tests import this (src/skins/boundaries.test.ts); it is not code a skin shares.
+ * What the repo's conformance tests read the skins' cards with: files and source text, and the classes a card
+ * folder uses. It lives in verify/, outside every skin; only tests import it.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";

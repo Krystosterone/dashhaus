@@ -2,10 +2,10 @@
  * Every field card is built the same way and registered in the same places. `npm run new-card -- <name> --skin field`
  * produces a card that passes all of this; a hand-built one fails here with what is missing. The steps are in
  * AGENTS.md → Adding an existing domain to another skin. Its stories are held to the shared set in
- * src/skins/storybook.test.ts.
+ * verify/storybook.test.ts.
  */
 import { describe, expect, it } from "vitest";
-import { cardFolders, exists, object, read, strayClasses, uncomment } from "../../conformance";
+import { cardFolders, exists, object, read, strayClasses, uncomment } from "./conformance";
 
 const SKIN = "src/skins/field";
 const STEP = "AGENTS.md → Adding an existing domain to another skin";

@@ -84,7 +84,7 @@ describe("new-card", () => {
       }
       const typecheck = run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "src/skins/orb/cards/conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "src/skins/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "src/ha/lovelace", "src/ha/mappers/fixtures.test.ts"]);
+      const tests = run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "src/ha/lovelace", "src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const lint = run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);

@@ -7,7 +7,7 @@
  * The domain, its `useHa<Name>` hook and its orb card come first; this reads them and draws only field's side
  * (AGENTS.md → Adding an existing domain to another skin). It copies ./templates/field/common plus
  * ./templates/field/<kind>, copies orb's demo seeds into the card's own demo/ (a skin never imports another), and
- * registers the module everywhere src/skins/field/cards/conformance.test.ts looks, the Lovelace card included:
+ * registers the module everywhere verify/field-conformance.test.ts looks, the Lovelace card included:
  *   - control: one key over the handlers' `onToggle`, its LED on while the entity is "on". The default when the
  *     domain has actions.
  *   - reading: the glyph on a flat plate and today's meter, nothing pressed. The default when it has none.
