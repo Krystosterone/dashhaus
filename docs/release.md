@@ -87,7 +87,9 @@ The tarball's manifest is already the release manifest; publishing the tarball, 
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and push, on the declared engine floor (Node 22) with the npm cache enabled:
+`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. Two jobs run in parallel.
+
+`check`:
 
 ```sh
 npm ci
@@ -97,6 +99,16 @@ npm run build:ha
 npm run release:pack
 npm run verify:packages
 ```
+
+`storybook`:
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+npm run test-storybook
+```
+
+The Storybook job caches `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails the job with the rule, impact and target elements.
 
 `npm run check` already includes the unit tests, so `test:generators` is the explicit generator gate the release brief asks for, not the only place they run. CI has no publish, tag or release step, and needs no secrets.
 

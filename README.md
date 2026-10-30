@@ -1,5 +1,7 @@
 # Home Dashboard
 
+[![CI](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml)
+
 React and TypeScript skins for a custom Home Assistant dashboard, developed and verified in Storybook.
 
 Cards show one Home Assistant entity each (the sensor card combines one device's temperature and humidity, and the sound card combines a sound machine's sound and volume). Lights, climate, covers, alarms, toggles, sounds and temperature/humidity sensors compose into phone, tablet and wall-panel dashboards.
