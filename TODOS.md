@@ -3,19 +3,19 @@
 - [x] Pick the monorepo name and rename the repo.
   - Applied: `Dashhaus` on branch `rename-dashhaus` (`docs/research/2026-10-30-monorepo-rename-brief.md`): root package `dashhaus`, `@dashhaus/core`, `@dashhaus/dashboard`, `@dashhaus/deploy`, generated skins `@dashhaus/<skin>`, CLI bin `dashhaus-deploy`.
   - Kept for compatibility: `custom:home-dashboard` / `custom:home-dashboard-field`, `dist/home-dashboard.js`, the `www/home-dashboard/` deploy folder, the `home-dashboard*` dashboard paths and the HA-facing YAML.
-  - Remaining operator step: rename the GitHub repository (`gh repo rename dashhaus`), update `origin`, then the README Issues URL and `.storybook/blocks/MarkdownWithStories.tsx`'s `REPO`.
+  - Follow-up done: GitHub repository renamed to `Krystosterone/dashhaus`, `origin` updated, and the README Issues URL and `.storybook/blocks/MarkdownWithStories.tsx`'s `REPO` point at it.
 - [ ] Add instrumentation so agents can test the performance of dashboards in production.
 - [ ] Split `AGENTS.md`, `README.md` and the skills.
 - [ ] Hide ugly tooling config at the repo root inside folders (`eslint.config.js`, `tsconfig.json`, `vite*.config.ts`, `vitest.config.ts`, `test-runner-jest.config.js`, `skills-lock.json`).
 - [ ] Clean up the repo so it is agent-harness agnostic: standard `.agents/` + `AGENTS.md`, no harness-specific files.
 - [ ] Remove personally identifying information before publishing — current files and git history.
-  - `Nova` (kid's name) is in 36 tracked files: README.md and `docs/cards.md`/`docs/deploy.md` examples, demo seeds and story exports (`novaSleepMode`), `packages/core/src/ha/fixtures/owlet.json`, field's alert copy, and real Home Assistant ids (`nursery_music`, `number.nursery_volume`, `sensor.owlet_sock_ac000w0123_sleep_state`). Replace with a neutral name and ids; keep the examples as readable.
-  - Owner identity: `Krystosterone` in README's Issues link and `.storybook/blocks/MarkdownWithStories.tsx`, plus the `origin` URL; all 155 commits carry `Krystian Czesak <krystianczesak@gmail.com>`.
+  - `Nova` (kid's name) is in 37 tracked files: README.md and `docs/cards.md`/`docs/deploy.md` examples, demo seeds and story exports (`novaSleepMode`), `packages/core/src/ha/fixtures/owlet.json`, field's alert copy, and real Home Assistant ids (`nursery_music`, `number.nursery_volume`, `sensor.owlet_sock_ac000w0123_sleep_state`). Replace with a neutral name and ids; keep the examples as readable.
+  - Owner identity: `Krystosterone` in README's Issues link and `.storybook/blocks/MarkdownWithStories.tsx`, plus the `origin` URL; every commit in history carries `Krystian Czesak <krystianczesak@gmail.com>`. The repository is private today; keep it private until this item is done.
   - `.impeccable/critique/*.md` commit absolute `/home/operator/...` paths; they are dev artifacts, not docs — consider dropping them.
   - No street address or home-network address turned up in the current tree, and `.env` was never committed (only `.env.example`), so the Home Assistant URL and credentials are not in history.
   - Do the history rewrite while the repo is private: `git filter-repo --replace-text` (names, ids, home path) and `--mail-map` (author), then force-push. Old clones, forks and GitHub's cached commits keep copies, so ask GitHub support to purge them after.
   - Verify: `git grep -i nova` for the tree and `git log -p -i -S nova` for history on the rewritten repo.
-- [ ] Find and take the speedups in the gate before CI, so CI is fast without losing coverage.
+- [ ] Find and take the speedups in the gate, so local runs and CI are fast without losing coverage.
   - Measure first, cold and warm: `npm run typecheck`, `npm run lint`, `npm run test`, and `npm run test-storybook` (which includes the build). Record wall time per command and the slowest Vitest files (`npx vitest run --reporter=verbose`), then re-measure after each change; keep the baseline and the result here.
   - Typecheck: one `tsc --noEmit` program with no `incremental`. Enable `incremental` with `tsBuildInfoFile` under `node_modules/.cache/tsc` and cache that file in CI. Project references only if tsc is still dominant after that.
   - Lint: `eslint .` has no cache and no parallelism. The pinned ESLint 9.39.5 supports `--cache` and `--concurrency auto` (checked with `--help`); enable both with the cache under `node_modules/.cache/eslint`, and key the CI cache on the lockfile and `eslint.config.js`. Check lint stays clean and identical in reported problems.
@@ -24,9 +24,19 @@
   - Storybook: `npm run test-storybook` pays a full `storybook build` plus `@storybook/test-runner` with no `--maxWorkers` or shard in `scripts/test-storybook.mjs`, so it will be the long pole. Cache the Vite/Storybook build and Playwright browsers (keyed on their versions), set `--maxWorkers` for the CI runner, and shard the runner across jobs if one process cannot fill the machine. Every story and every axe rule still runs on every push; no path filters.
   - CI shape: once the timings say it pays, split typecheck, lint, unit tests and Storybook into parallel jobs instead of one serial `npm run check`. Keep `npm run check` locally as the same gate.
   - Acceptance: before/after timings per command, with identical test and story counts (`--reporter=json` and the test-runner summary), so the speed comes from caches and parallelism, never skipped coverage.
-- [ ] Add CI, so every push and pull request runs the gate instead of trusting the machine that wrote the change.
-  - First pin the toolchain: there is no `engines` field or `.nvmrc`; add both (Node 24 LTS unless the deploy host needs otherwise) and pin the npm major, so CI and local runs use the same runtime.
-  - `.github/workflows/ci.yml` on `push` and `pull_request`: `actions/setup-node` with npm cache, `npm ci`, then `npm run check`, `npm run build:ha` and `npm run test-storybook` (`npx playwright install --with-deps chromium`, with `~/.cache/ms-playwright` cached on the Playwright version).
-  - One job until timings justify splitting; `test-storybook` already builds the static Storybook, so do not run `build-storybook` again.
-  - Add the workflow status badge to `README.md`, then require the job to pass before merge.
-  - Verify by pushing a deliberately broken branch (a type error and a failing story) and confirming both fail with the rule and element named.
+- [ ] Finish CI beyond the C5c cut.
+  - Pin the toolchain: add root `engines` (Node 22, the deploy floor) and `.nvmrc`, and pin the npm major; CI hardcodes Node 22 while the local machine runs 26.
+  - Add the Storybook render and axe lane: install Chromium, cache `~/.cache/ms-playwright` on the Playwright version, and run `npm run test-storybook`; C5c scoped it out, so CI does not run it today. `test-storybook` already builds the site, so do not add `build-storybook`.
+  - Add the workflow status badge to `README.md` and require the job to pass before merge.
+  - Prove the lane catches failures: push a deliberately broken branch (a type error and a failing story) and confirm both fail with the rule and element named.
+- [ ] Finish the package split's deferred surface before 1.0.
+  - `@dashhaus/dashboard/vite` and `@dashhaus/dashboard/conformance` are in the readiness map but absent from the manifest (`docs/release.md` says they arrive with later cuts); `verify/conformance.ts` is repo-only, so a third-party skin cannot run the conformance preset.
+  - Freeze `@dashhaus/dashboard/card` and `@dashhaus/dashboard/schema` as the third-party contract before 1.0; the conformance preset is the compatibility test, and the schema builder still needs a third-party per-kind options check.
+- [ ] Decide the split's deferred packaging questions.
+  - Reference skins: orb and field stay private folders, not packages; move them into packages only when someone needs to install them rather than read them.
+  - Generator tooling: `new-card` and `new-skin` stay repo-only under `scripts/`; decide whether they ever ship as a private tools package.
+  - Per-package `tsconfig` and Vitest projects: one root program covers the repo today and `verify:packages` covers packed installs; add per-package projects only if build or test time demands it.
+- [ ] Make the first npm release.
+  - Claim the `@dashhaus` scope (re-check availability, create the org, confirm 2FA) and publish `release/dashhaus-{core,dashboard,deploy}-0.1.0.tgz` in dependency order, then tag and create the GitHub release. Start only after the PII/history rewrite and a green `main` CI run.
+- [ ] Decide whether deployed names get `dashhaus` aliases.
+  - The rename kept `custom:home-dashboard*`, `dist/home-dashboard.js` and the `home-dashboard*` dashboard paths; a major can add `custom:dashhaus` aliases or rename the artifacts, with a migration note for existing dashboards.
