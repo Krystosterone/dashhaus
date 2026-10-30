@@ -34,7 +34,7 @@ const REFUSED = [
 
 /** Children run outside this vitest run: without its variables a nested `vitest run` acts as a fresh one. */
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
-/** The copy's own node_modules: each dependency linked from the root, but @scope/core pointing at the copy's core. */
+/** The copy's own node_modules: each dependency linked from the root, but each @scope package pointing at the copy. */
 const linkNodeModules = (copy: string) => {
   const modules = join(copy, "node_modules");
   mkdirSync(modules);
@@ -43,7 +43,7 @@ const linkNodeModules = (copy: string) => {
     symlinkSync(join(root, "node_modules", entry), join(modules, entry));
   }
   mkdirSync(join(modules, "@scope"));
-  symlinkSync(join(copy, "packages", "core"), join(modules, "@scope", "core"), "dir");
+  for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@scope", scope), "dir");
 };
 
 const run = (cwd: string, command: string, args: string[]) => {
@@ -96,7 +96,7 @@ describe("new-card", () => {
       }
       const typecheck = run(copy, "npx", ["tsc", "--noEmit"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "src/ha/lovelace", "packages/core/src/ha/mappers/fixtures.test.ts"]);
+      const tests = run(copy, "npx", ["vitest", "run", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "packages/dashboard/src", "packages/core/src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const lint = run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);

@@ -10,7 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
-/** The copy's own node_modules: each dependency linked from the root, but @scope/core pointing at the copy's core. */
+/** The copy's own node_modules: each dependency linked from the root, but each @scope package pointing at the copy. */
 const linkNodeModules = (copy: string) => {
   const modules = join(copy, "node_modules");
   mkdirSync(modules);
@@ -19,7 +19,7 @@ const linkNodeModules = (copy: string) => {
     symlinkSync(join(root, "node_modules", entry), join(modules, entry));
   }
   mkdirSync(join(modules, "@scope"));
-  symlinkSync(join(copy, "packages", "core"), join(modules, "@scope", "core"), "dir");
+  for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@scope", scope), "dir");
 };
 
 const run = (cwd: string, command: string, args: string[]) => {

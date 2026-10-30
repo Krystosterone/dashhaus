@@ -1,0 +1,23 @@
+{
+  "name": "@scope/dashboard",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@scope/core": "*"
+  },
+  "peerDependencies": {
+    "home-assistant-js-websocket": "^9.7.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "peerDependenciesMeta": {
+    "home-assistant-js-websocket": {
+      "optional": true
+    }
+  }
+}

@@ -1,6 +1,6 @@
-import { DashboardConfigError, Reader, isRaw } from "../../../ha/lovelace";
-import type { NavEntry } from "../../../ha/lovelace";
-import type { Raw } from "../../../ha/lovelace";
+import { DashboardConfigError, Reader, isRaw } from "@scope/dashboard";
+import type { NavEntry } from "@scope/dashboard";
+import type { Raw } from "@scope/dashboard";
 import { __skinVar__CardKindsFor, __skinVar__KindOf } from "./registry";
 import type { __Skin__CardItem } from "./registry";
 import type { __Skin__Footprint } from "../shared/ui";

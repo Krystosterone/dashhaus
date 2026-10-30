@@ -1,5 +1,5 @@
-import type { AutoEntityEntry } from "../../../ha/lovelace";
-import { roomSensors } from "../../../ha/lovelace";
+import type { AutoEntityEntry } from "@scope/dashboard";
+import { roomSensors } from "@scope/dashboard";
 import { kindOf } from "./config";
 import type { ModuleConfig, SectionConfig } from "./config";
 

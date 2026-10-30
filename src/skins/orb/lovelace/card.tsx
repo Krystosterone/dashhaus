@@ -2,9 +2,9 @@ import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import type { BlockConfig, DashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { LovelaceDashboardElement, autoInput, registerCard } from "../../../ha/lovelace";
-import type { LovelaceHass } from "../../../ha/lovelace";
-import { scopeToHost } from "../../../ha/lovelace";
+import { LovelaceDashboardElement, autoInput, registerCard } from "@scope/dashboard";
+import type { LovelaceHass } from "@scope/dashboard";
+import { scopeToHost } from "@scope/dashboard";
 
 export const CARD_TYPE = "home-dashboard";
 

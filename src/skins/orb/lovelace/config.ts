@@ -1,12 +1,12 @@
-import { DashboardConfigError, Reader as YamlReader, isRaw, oneOf, suggest } from "../../../ha/lovelace";
-import type { Raw } from "../../../ha/lovelace";
+import { DashboardConfigError, Reader as YamlReader, isRaw, oneOf, suggest } from "@scope/dashboard";
+import type { Raw } from "@scope/dashboard";
 import { COLORS } from "../shared/ui";
 import type { ColorName, CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@scope/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "@scope/core/entities/owlet/types";
 import { OWLET_ALERT_SUFFIX } from "@scope/core";
-import type { NavEntry } from "../../../ha/lovelace";
+import type { NavEntry } from "@scope/dashboard";
 
 /*
  * The card's YAML, as Lovelace hands it over (already parsed), checked and normalized. Every mistake is

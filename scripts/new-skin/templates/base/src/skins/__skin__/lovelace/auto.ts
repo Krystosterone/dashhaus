@@ -1,5 +1,5 @@
-import type { AutoEntityEntry } from "../../../ha/lovelace";
-import { roomSensors } from "../../../ha/lovelace";
+import type { AutoEntityEntry } from "@scope/dashboard";
+import { roomSensors } from "@scope/dashboard";
 import { __skinVar__KindOf, __SKIN_CONST___CARDS } from "./registry";
 import type { CardConfig, SectionConfig } from "./config";
 

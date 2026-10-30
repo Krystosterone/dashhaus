@@ -1,10 +1,10 @@
 import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useHaSelector, useHaStore } from "@scope/core";
-import { actionMessage } from "../../../ha/lovelace";
-import { MAIN_PAGE, resolveNav, sectionAnchors } from "../../../ha/lovelace";
-import type { NavEntry, PanelInfo } from "../../../ha/lovelace";
-import { useDashboardNav } from "../../../ha/lovelace";
+import { actionMessage } from "@scope/dashboard";
+import { MAIN_PAGE, resolveNav, sectionAnchors } from "@scope/dashboard";
+import type { NavEntry, PanelInfo } from "@scope/dashboard";
+import { useDashboardNav } from "@scope/dashboard";
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
 import { HaSensorModule } from "../ha/HaSensorModule";
