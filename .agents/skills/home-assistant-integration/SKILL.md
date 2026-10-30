@@ -74,7 +74,7 @@ When a domain joins the shared connected boundary, start from `npm run new-card 
 
 Run `npm run check` (typecheck, lint including the import boundary, and unit tests), `npm run test-storybook` and `npm run build:ha`; all must pass at the final revision. Exercise the affected skin's connected surface through its state matrix at every supported size and footprint, including compact, details, unavailable and worst-case labels. If no live Home Assistant instance is available, report the injected/fake transport evidence separately from live connection evidence.
 
-The ESLint boundary rule permits Home Assistant imports only under `src/ha/`, `src/index.ts`, `src/skins/*/ha/` and `src/skins/*/lovelace/`; websocket-client imports remain under `src/ha/`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
+The ESLint boundary rule permits Home Assistant imports only under `src/ha/`, `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); websocket-client imports remain under `src/ha/`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
 
 ## Output
 

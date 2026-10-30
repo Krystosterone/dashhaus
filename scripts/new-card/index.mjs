@@ -98,17 +98,15 @@ change.fromTemplates(["common", kind], fill);
 
 // ---------- Registrations ----------
 
-// Public exports: the card, its tile, its types, its hook and its connected tile.
-edit("src/index.ts", before('export { JoinedBundle, LeadBundle, TitledBundle } from "./skins/orb/bundles/Bundle";', fill(`// __Label__
-export { __Name__Card, __Name__Sheet } from "./skins/orb/cards/__name__/__Name__Card";
-export type { __Name__CardProps, __Name__SheetProps } from "./skins/orb/cards/__name__/__Name__Card";
-export { __Name__Tile } from "./skins/orb/cards/__name__/__Name__Tile";
-export type { __Name__TileProps } from "./skins/orb/cards/__name__/__Name__Tile";
-export type { __Name__Entity, __Name__History } from "./domains/__name__/types";
-export { useHa__Name__, Ha__Name__ } from "./ha";
-export type { Ha__Name__Options, Ha__Name__Result } from "./ha";
-export { Ha__Name__Tile } from "./skins/orb/ha/Ha__Name__Tile";
-export type { Ha__Name__TileProps } from "./skins/orb/ha/Ha__Name__Tile";
+// The orb skin's public entry: the card, its tile and its connected tile. The shared hook, the headless
+// component and its types are registered with the Home Assistant slice below.
+edit(`${SKIN}/index.ts`, before('export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";', fill(`// __Label__
+export { __Name__Card, __Name__Sheet } from "./cards/__name__/__Name__Card";
+export type { __Name__CardProps, __Name__SheetProps } from "./cards/__name__/__Name__Card";
+export { __Name__Tile } from "./cards/__name__/__Name__Tile";
+export type { __Name__TileProps } from "./cards/__name__/__Name__Tile";
+export { Ha__Name__Tile } from "./ha/Ha__Name__Tile";
+export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
 
 `)));
 

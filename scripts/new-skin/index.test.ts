@@ -39,10 +39,6 @@ const writeChanged = (copy: string, path: string, change: (source: string) => st
 const removeField = (copy: string) => {
   rmSync(join(copy, "src/skins/field"), { recursive: true, force: true });
   rmSync(join(copy, "docs/field.md"), { force: true });
-  writeChanged(copy, "src/index.ts", (source) => source
-    .split("\n")
-    .filter((line) => !line.includes("./skins/field/") && !line.startsWith("// Field skin:") && line !== "// Field generated skin")
-    .join("\n"));
   writeChanged(copy, ".storybook/preview.tsx", (source) => withoutArrayEntry(source
     .replace('import { fieldStorybook } from "../src/skins/field/storybook";\n', "")
     .replace(", fieldStorybook", ""), "Field"));
@@ -62,7 +58,8 @@ describe("new-skin", () => {
   it("finds every registration anchor without writing", () => {
     const result = run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
-    for (const path of [".storybook/preview.tsx", "src/index.ts", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    expect(result.output).toContain("create src/skins/probe-skin/index.ts");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");
   });
 
@@ -96,7 +93,7 @@ describe("new-skin", () => {
       const bundle = run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);
 
-      const index = readFileSync(join(copy, "src/index.ts"), "utf8");
+      const index = readFileSync(join(copy, "src/skins/field/index.ts"), "utf8");
       const registry = readFileSync(join(copy, "src/skins/field/lovelace/registry.tsx"), "utf8");
       for (const card of CARDS) {
         const Name = card[0].toUpperCase() + card.slice(1);

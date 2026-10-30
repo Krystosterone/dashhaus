@@ -53,8 +53,8 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, source,
     expect(read("AGENTS.md"), "AGENTS.md → Layout, src/skins/field/: add it to the card class prefixes").toContain(`\`fd-${code}-\``);
   });
 
-  it("is exported from src/index.ts", () => {
-    const index = read("src/index.ts");
+  it("is exported from the field skin's entry", () => {
+    const index = read("src/skins/field/index.ts");
     const missing = [`${Name}Module`, `${Name}ModuleProps`, `Ha${Name}Module`, `Ha${Name}ModuleProps`].filter((n) => !new RegExp(`\\b${n}\\b`).test(index));
     expect(missing, `${STEP}, step 5`).toEqual([]);
   });

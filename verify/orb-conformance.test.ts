@@ -45,10 +45,13 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(read("AGENTS.md"), "AGENTS.md → Hard rules: add it to the prefix list").toContain(`\`${code}-\``);
   });
 
-  it("is exported from src/index.ts", () => {
-    const index = read("src/index.ts");
-    const missing = [`${Name}Card`, `${Name}Sheet`, `${Name}Tile`, `useHa${Name}`, `Ha${Name}`, `Ha${Name}Tile`].filter((n) => !new RegExp(`\\b${n}\\b`).test(index));
-    expect(missing, "AGENTS.md → Adding a card, step 3").toEqual([]);
+  it("is exported from the orb skin's entry, its shared hook and headless component from src/ha", () => {
+    const entry = read("src/skins/orb/index.ts");
+    const missing = [`${Name}Card`, `${Name}Sheet`, `${Name}Tile`, `Ha${Name}Tile`].filter((n) => !new RegExp(`\\b${n}\\b`).test(entry));
+    expect(missing, "AGENTS.md → Adding a card, step 3: export it from src/skins/orb/index.ts").toEqual([]);
+    const ha = read("src/ha/index.ts");
+    const shared = [`useHa${Name}`, `Ha${Name}`].filter((n) => !new RegExp(`\\b${n}\\b`).test(ha));
+    expect(shared, "export the shared hook and headless component from src/ha/index.ts").toEqual([]);
   });
 
   it("is documented in docs/cards.md", () => {

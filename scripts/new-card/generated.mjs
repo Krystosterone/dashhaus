@@ -146,7 +146,7 @@ ${actionRows}
   change.edit(registryPath, afterLast(/^import .*$/gm, fill(`import { Ha__Skin____Name__Card } from "../ha/Ha__Skin____Name__Card";\n`)));
   change.edit(registryPath, before("\n} satisfies Record<string,", fill(`\n  __name__: { domains: [${domains.map((domain) => `"${domain}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""}, render: (item, footprint) => <Ha__Skin____Name__Card entityId={item.entity}${commonLive} footprint={footprint} /> },`)));
 
-  change.edit("src/index.ts", before("// Header", fill(`export { __Skin____Name__Card } from "./skins/__skin__/cards/__name__/__Skin____Name__Card";\nexport type { __Skin____Name__CardProps } from "./skins/__skin__/cards/__name__/__Skin____Name__Card";\nexport { Ha__Skin____Name__Card } from "./skins/__skin__/ha/Ha__Skin____Name__Card";\nexport type { Ha__Skin____Name__CardProps } from "./skins/__skin__/ha/Ha__Skin____Name__Card";\n`)));
+  change.edit(`${SKIN}/index.ts`, before("// Cards", fill(`export { __Skin____Name__Card } from "./cards/__name__/__Skin____Name__Card";\nexport type { __Skin____Name__CardProps } from "./cards/__name__/__Skin____Name__Card";\nexport { Ha__Skin____Name__Card } from "./ha/Ha__Skin____Name__Card";\nexport type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";\n`)));
 
   // Static Storybook ordering and the design-rules page.
   change.edit(".storybook/preview.tsx", (source) => {

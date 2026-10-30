@@ -26,7 +26,7 @@ Start a complete neutral skin with one command:
 npm run new-skin -- canvas
 ```
 
-It registers the skin's Foundations, Dashboard, public exports and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [Starting a skin](docs/skins.md).
+It registers the skin's Foundations, Dashboard, its own entry and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [Starting a skin](docs/skins.md).
 
 
 ## Running with Home Assistant

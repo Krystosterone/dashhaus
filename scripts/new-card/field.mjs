@@ -148,10 +148,10 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // ---------- Registrations ----------
-  edit("src/index.ts", before('export type { FieldFootprint } from "./skins/field/shared/ui";', fill(`export { __Name__Module } from "./skins/field/cards/__name__/__Name__Module";
-export type { __Name__ModuleProps } from "./skins/field/cards/__name__/__Name__Module";
-export { Ha__Name__Module } from "./skins/field/ha/Ha__Name__Module";
-export type { Ha__Name__ModuleProps } from "./skins/field/ha/Ha__Name__Module";
+  edit(`${SKIN}/index.ts`, before('export type { FieldFootprint } from "./shared/ui";', fill(`export { __Name__Module } from "./cards/__name__/__Name__Module";
+export type { __Name__ModuleProps } from "./cards/__name__/__Name__Module";
+export { Ha__Name__Module } from "./ha/Ha__Name__Module";
+export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
 `)));
 
   // Storybook: its place in Field's Cards and Connected, and on the Design rules page under its section.

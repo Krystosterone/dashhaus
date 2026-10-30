@@ -49,10 +49,10 @@ export default tseslint.config(
   },
   {
     // The Home Assistant boundary: a skin's cards, layout and stories never see the transport or raw entities.
-    // Only src/ha/, the public barrel, and a skin's own ha/ (connected tiles) and lovelace/ (its card) may import it.
-    // Skins never import each other either; verify/boundaries.test.ts checks that.
+    // Only src/ha/, a skin's own ha/ (connected tiles), lovelace/ (its card) and index.ts (its public entry) may
+    // import it. Skins never import each other either; verify/boundaries.test.ts checks that.
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/ha/**", "src/index.ts", "src/skins/*/ha/**", "src/skins/*/lovelace/**"],
+    ignores: ["src/ha/**", "src/skins/*/ha/**", "src/skins/*/lovelace/**", "src/skins/*/index.ts"],
     rules: { "no-restricted-imports": ["error", { patterns: haBoundary }] },
   },
   {
