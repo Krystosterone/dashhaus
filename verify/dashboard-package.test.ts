@@ -7,6 +7,8 @@
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
+import * as layout from "@scope/dashboard/layout";
+import * as schema from "@scope/dashboard/schema";
 
 const root = process.cwd();
 const PACKAGE = "packages/dashboard";
@@ -21,7 +23,11 @@ const JS_SPECS = [
   /^\s*import\s+["']([^"']+)["']/gm,
   /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
 ];
-const specs = (path: string) => JS_SPECS.flatMap((pattern) => [...read(path).matchAll(pattern)].map((match) => match[1]));
+/** Type-only imports and re-exports do not exist at runtime, so they are not graph edges. */
+const runtime = (path: string) => read(path)
+  .replace(/^\s*import\s+type\b[^;]*?;?\s*$/gm, "")
+  .replace(/^\s*export\s+type\b[^;]*?;?\s*$/gm, "");
+const specs = (path: string) => JS_SPECS.flatMap((pattern) => [...runtime(path).matchAll(pattern)].map((match) => match[1]));
 
 function resolveSpecifier(spec: string, from: string): string | undefined {
   if (!spec.startsWith(".")) return undefined;
@@ -74,17 +80,69 @@ function declared(spec: string): boolean {
 }
 
 describe("@scope/dashboard", () => {
-  it("declares its one package surface and is side-effect free", () => {
+  it("declares its four entries and is side-effect free", () => {
     expect(packageJson.name).toBe("@scope/dashboard");
     expect(packageJson.version).toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
-    expect(Object.keys(packageJson.exports)).toEqual([".", "./card"]);
+    expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout"]);
   });
 
-  it("exposes the card frame on a subpath of its own", () => {
-    expect(packageJson.exports["./card"]).toBeTypeOf("string");
-    expect(packageJson.exports["./card"]).not.toBe(packageJson.exports["."]);
+  it("exposes the card frame, the card schema and the layout on subpaths of their own", () => {
+    for (const subpath of ["./card", "./schema", "./layout"]) {
+      expect(packageJson.exports[subpath]).toBeTypeOf("string");
+      expect(packageJson.exports[subpath]).not.toBe(packageJson.exports["."]);
+    }
+    expect(new Set(Object.values(packageJson.exports)).size).toBe(4);
+  });
+
+  it("exposes exactly the schema's public words", () => {
+    expect(Object.keys(schema).sort()).toEqual([
+      "DashboardConfigError",
+      "MAIN_PAGE",
+      "Reader",
+      "cardKindOrder",
+      "cardKinds",
+      "isRaw",
+      "oneOf",
+      "readAlarmOptions",
+      "readCard",
+      "readCards",
+      "readColor",
+      "readOwletOptions",
+      "readSensorOptions",
+      "readUnit",
+      "readWeatherOptions",
+      "renderCard",
+      "suggest",
+    ]);
+  });
+
+  it("exposes exactly the layout's public words", () => {
+    expect(Object.keys(layout).sort()).toEqual([
+      "areaId",
+      "areaName",
+      "byName",
+      "deviceClass",
+      "domainOf",
+      "friendlyName",
+      "groupByArea",
+      "placeSection",
+      "roomSensors",
+      "sortByName",
+      "visibleEntities",
+    ]);
+  });
+
+  it("keeps the schema and layout pure, so a Node config can import them", () => {
+    for (const subpath of ["./schema", "./layout"]) {
+      const target = packageJson.exports[subpath];
+      const { files, packages, outside } = graph([`${PACKAGE}/${target.replace(/^\.\//, "")}`]);
+      expect(outside, `${subpath} has no relative import that leaves the package`).toEqual([]);
+      expect(packages, `${subpath} reaches no React, DOM or Home Assistant package`).toEqual([]);
+      expect(files.filter((file) => file.includes("/skins/")), `${subpath} is skin-free`).toEqual([]);
+      expect(files.filter((file) => /\.(css|scss|less)["']/.test(read(file))), `${subpath} imports no stylesheet`).toEqual([]);
+    }
   });
 
   it("keeps every reachable file inside the package, with no CSS, no skin and no Node builtin", () => {

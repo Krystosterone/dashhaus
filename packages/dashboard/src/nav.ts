@@ -1,8 +1,12 @@
+import { MAIN_PAGE } from "./schema";
+
 /*
  * A dashboard's bottom nav, whatever a skin draws: each item is a destination on this page (a section), in this
  * card (a page) or elsewhere in Home Assistant (a dashboard or view), with a label that defaults to the
  * destination's own name. docs/deploy.md → Navigation.
  */
+
+export { MAIN_PAGE };
 
 export type NavTarget =
   /** A YAML entry names a section by title; resolved, it carries the section's id on the page. */
@@ -20,9 +24,6 @@ export interface NavItem {
   /** It leaves this dashboard. */
   leaves: boolean;
 }
-
-/** The card's own sections, before any page; `page: home` returns to it. */
-export const MAIN_PAGE = "home";
 
 /** The frontend's `hass.panels` entry for a dashboard, as far as its name goes. */
 export interface PanelInfo { url_path?: string; title?: string | null }

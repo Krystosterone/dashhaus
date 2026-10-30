@@ -1,6 +1,17 @@
-import { DashboardConfigError, Reader, isRaw } from "@scope/dashboard";
+import {
+  DashboardConfigError,
+  Reader,
+  isRaw,
+  cardKinds,
+  readAlarmOptions,
+  readCard,
+  readOwletOptions,
+  readSensorOptions,
+  readUnit,
+  readWeatherOptions,
+} from "@scope/dashboard/schema";
+import type { CardKindSpec, CardReadSchema, Raw } from "@scope/dashboard/schema";
 import type { NavEntry } from "@scope/dashboard";
-import type { Raw } from "@scope/dashboard";
 import type { ToggleIcon } from "@scope/core/entities/toggle/types";
 import type { OwletAlert } from "@scope/core/entities/owlet/types";
 import { OWLET_ALERT_SUFFIX } from "@scope/core";
@@ -9,7 +20,8 @@ import type { FieldFootprint } from "../shared/ui";
 /*
  * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
  * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
- * weather, modes, sound machines, covers, alarms and Owlet socks.
+ * weather, modes, sound machines, covers, alarms and Owlet socks. The reading itself is the shared card schema
+ * (`@scope/dashboard/schema`); this file is the field card's kind table and the words it refuses.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";
@@ -144,22 +156,6 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
 };
 
-const KINDS = Object.keys(FIELD_KINDS) as FieldKind[];
-
-/** Every domain a field card draws. */
-export const FIELD_DOMAINS: readonly string[] = [...new Set(KINDS.flatMap((k) => FIELD_KINDS[k].domains))];
-
-const domainOf = (entity: string) => entity.slice(0, entity.indexOf("."));
-
-/** The cards that can draw an entity, by its domain. */
-const kindsFor = (entity: string) => KINDS.filter((k) => FIELD_KINDS[k].domains.includes(domainOf(entity)));
-
-/** The card an entity gets without `card:`: one whose `id` matches it, else its domain's own; none outside Field's domains. */
-export function kindOf(entity: string): FieldKind | undefined {
-  const kinds = kindsFor(entity);
-  return kinds.find((k) => FIELD_KINDS[k].id?.test(entity)) ?? kinds.find((k) => !FIELD_KINDS[k].id);
-}
-
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "finish", "footprint", "quiet", "modules", "sections", "pages", "nav", "view_layout", "grid_options", "visibility"];
@@ -169,9 +165,36 @@ const GROUP_KEYS = ["columns", "sections"];
 /** A field page is at most 1240 px wide: four modules across, or four areas side by side. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
+
+/** Each kind's own settings: the shared schema reads the rest. */
+const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: string) => Record<string, unknown>>> = {
+  climate: (read, raw, at) => ({ unit: readUnit(read, raw, at) }),
+  sensor: (read, raw, at) => ({ unit: readUnit(read, raw, at), ...readSensorOptions(read, raw, at) }),
+  weather: readWeatherOptions,
+  toggle: (read, raw, at) => ({ icon: read.choice(raw, "icon", at, TOGGLE_ICONS), description: read.string(raw, "description", at) }),
+  sound: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }),
+  alarm: readAlarmOptions,
+  owlet: (read, raw, at) => readOwletOptions(read, raw, at, OWLET_ALERTS),
+};
+
+/** Field's kind table: the domains above, plus the keys and options each card takes. */
+const KINDS = (Object.keys(FIELD_KINDS) as FieldKind[]).reduce((table, kind) => {
+  table[kind] = { ...FIELD_KINDS[kind], keys: KIND_KEYS[kind], options: KIND_OPTIONS[kind] };
+  return table;
+}, {} as Record<FieldKind, CardKindSpec>);
+
+const TABLE = cardKinds(KINDS);
+
+/** Every domain a field card draws. */
+export const FIELD_DOMAINS: readonly string[] = TABLE.domains;
+
+/** The card an entity gets without `card:`: one whose `id` matches it, else its domain's own; none outside Field's domains. */
+export function kindOf(entity: string): FieldKind | undefined {
+  return TABLE.kindOf(entity);
+}
 
 /**
  * The main card's keys that field leaves out, and why, for YAML copied from it: said in place of an unknown key's
@@ -192,87 +215,37 @@ const ORB_ONLY = {
   },
 } satisfies Record<string, Record<string, string>>;
 
-class FieldReader extends Reader {
-  /** Unknown keys, with the reason for one that only the main card takes. */
-  fieldKeys(raw: Raw, path: string, allowed: readonly string[], orbOnly: Record<string, string>) {
-    for (const key of Object.keys(raw)) if (key in orbOnly && !allowed.includes(key)) this.problem(path, `"${key}" is the main card's: ${orbOnly[key]}`);
-    this.keys(raw, path, [...allowed, ...Object.keys(orbOnly)]);
-  }
+/** Unknown keys, with the reason for one that only the main card takes. */
+function fieldKeys(read: Reader, raw: Raw, path: string, allowed: readonly string[], orbOnly: Record<string, string>) {
+  for (const key of Object.keys(raw)) if (key in orbOnly && !allowed.includes(key)) read.problem(path, `"${key}" is the main card's: ${orbOnly[key]}`);
+  read.keys(raw, path, [...allowed, ...Object.keys(orbOnly)]);
+}
 
+const MODULE_SCHEMA: CardReadSchema<FieldKind, ModuleConfig> = {
+  noun: "module",
+  common: MODULE_KEYS,
+  domains: FIELD_DOMAINS,
+  kinds: KINDS,
+  base: (read, raw, at) => ({
+    name: read.string(raw, "name", at),
+    area: read.string(raw, "area", at),
+    footprint: read.choice(raw, "footprint", at, FOOTPRINTS),
+    span: read.number(raw, "span", at, 1, MAX_ACROSS),
+    history: read.boolean(raw, "history", at),
+  }),
+  before: (read, raw, path) => {
+    if ("joined" in raw || "lead" in raw || "rows" in raw) {
+      read.problem(path, "bundles are the main card's: list each module on its own");
+      return false;
+    }
+    return true;
+  },
+  checkKeys: (read, raw, at, allowed) => fieldKeys(read, raw, at, allowed, ORB_ONLY.module),
+};
+
+class FieldReader extends Reader {
   module(value: unknown, path: string): ModuleConfig | undefined {
-    if (isRaw(value) && ("joined" in value || "lead" in value || "rows" in value)) {
-      this.problem(path, "bundles are the main card's: list each module on its own");
-      return undefined;
-    }
-    if (!isRaw(value) && typeof value !== "string") {
-      this.problem(path, "a module is an entity id, or a map with an \"entity\" key");
-      return undefined;
-    }
-    const raw: Raw = typeof value === "string" ? { entity: value } : value;
-    if (raw.entity == null) {
-      this.problem(path, "a module needs an \"entity\"");
-      return undefined;
-    }
-    const entity = this.entityId(raw.entity, path, FIELD_DOMAINS);
-    if (!entity) return undefined;
-    const at = `${path} (${entity})`;
-    const kind = this.choice(raw, "card", at, kindsFor(entity)) ?? kindOf(entity);
-    if (!kind) {
-      this.problem(at, `pick its card with "card": one of ${kindsFor(entity).join(", ")}`);
-      return undefined;
-    }
-    this.fieldKeys(raw, at, [...MODULE_KEYS, ...(KIND_KEYS[kind] ?? [])], ORB_ONLY.module);
-    const config: ModuleConfig = {
-      entity,
-      kind,
-      name: this.string(raw, "name", at),
-      area: this.string(raw, "area", at),
-      footprint: this.choice(raw, "footprint", at, FOOTPRINTS),
-      span: this.number(raw, "span", at, 1, MAX_ACROSS),
-      history: this.boolean(raw, "history", at),
-    };
-    if (kind === "climate" || kind === "sensor") config.unit = this.choice(raw, "unit", at, ["°C", "°F"] as const);
-    if (kind === "sensor") {
-      config.humidity = this.optionalEntity(raw, "humidity", at, ["sensor"]);
-      config.battery = this.optionalEntity(raw, "battery", at, ["sensor"]);
-      config.outdoor = this.boolean(raw, "outdoor", at);
-    }
-    if (kind === "weather") {
-      config.aqi = this.optionalEntity(raw, "aqi", at, ["sensor"]);
-      config.aqiScale = this.choice(raw, "aqi_scale", at, ["US"] as const);
-      config.sun = raw.sun === undefined ? "sun.sun" : this.optionalEntity(raw, "sun", at, ["sun"]);
-      config.forecasts = this.boolean(raw, "forecasts", at) ?? true;
-    }
-    if (kind === "toggle") {
-      config.icon = this.choice(raw, "icon", at, TOGGLE_ICONS);
-      config.description = this.string(raw, "description", at);
-    }
-    if (kind === "sound") config.volume = this.optionalEntity(raw, "volume", at, ["number"]);
-    if (kind === "alarm") {
-      const sensors = raw.open_sensors;
-      if (sensors != null && !(Array.isArray(sensors) && sensors.every((s) => typeof s === "string"))) this.problem(at, "\"open_sensors\" must be a list of names");
-      config.readOnly = this.boolean(raw, "read_only", at);
-      config.exitDelay = this.number(raw, "exit_delay", at, 0, 3600);
-      config.entryDelay = this.number(raw, "entry_delay", at, 0, 3600);
-      config.openSensors = Array.isArray(sensors) ? sensors.filter((s): s is string => typeof s === "string") : undefined;
-    }
-    if (kind === "owlet") {
-      const alerts = raw.alerts;
-      if (alerts != null && !isRaw(alerts)) this.problem(at, "\"alerts\" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen");
-      if (isRaw(alerts)) this.keys(alerts, `${at}.alerts`, OWLET_ALERTS);
-      config.heartRate = this.optionalEntity(raw, "heart_rate", at, ["sensor"]);
-      config.oxygen = this.optionalEntity(raw, "oxygen", at, ["sensor"]);
-      config.charging = this.optionalEntity(raw, "charging", at, ["binary_sensor"]);
-      config.baseStation = this.optionalEntity(raw, "base_station", at, ["switch"]);
-      config.alerts = isRaw(alerts)
-        ? Object.fromEntries(OWLET_ALERTS.flatMap((alert) => {
-          const id = this.optionalEntity(alerts, alert, `${at}.alerts`, ["binary_sensor"]);
-          return id ? [[alert, id]] : [];
-        }))
-        : undefined;
-      config.staleAfter = this.number(raw, "stale_after", at, 1, 60);
-    }
-    return config;
+    return readCard(this, MODULE_SCHEMA, value, path);
   }
 
   section(value: unknown, path: string): SectionConfig | undefined {
@@ -280,7 +253,7 @@ class FieldReader extends Reader {
       this.problem(path, "a section is a map with \"modules\" (and usually a \"title\")");
       return undefined;
     }
-    this.fieldKeys(value, path, SECTION_KEYS, ORB_ONLY.section);
+    fieldKeys(this, value, path, SECTION_KEYS, ORB_ONLY.section);
     if (!Array.isArray(value.modules) || value.modules.length === 0) this.problem(path, "\"modules\" must be a list of at least one module");
     const modules = Array.isArray(value.modules) ? value.modules.flatMap((m, i) => this.module(m, `${path}.modules[${i}]`) ?? []) : [];
     const columns = this.number(value, "columns", path, 1, MAX_ACROSS);
@@ -296,7 +269,7 @@ class FieldReader extends Reader {
 
   block(value: unknown, path: string): BlockConfig | undefined {
     if (isRaw(value) && "sections" in value) {
-      this.fieldKeys(value, path, GROUP_KEYS, { gap: ORB_ONLY.section.gap });
+      fieldKeys(this, value, path, GROUP_KEYS, { gap: ORB_ONLY.section.gap });
       if (!Array.isArray(value.sections) || value.sections.length === 0) {
         this.problem(path, "\"sections\" must be a list of at least one section");
         return undefined;
@@ -313,7 +286,7 @@ export function parseFieldConfig(raw: unknown): FieldConfig {
   const read = new FieldReader();
   const top: Raw = isRaw(raw) ? raw : {};
   if (raw != null && !isRaw(raw)) read.problem("", "the card's config must be a map");
-  read.fieldKeys(top, "", TOP_KEYS, ORB_ONLY.top);
+  fieldKeys(read, top, "", TOP_KEYS, ORB_ONLY.top);
   const config: FieldConfig = {
     title: read.string(top, "title", ""),
     subtitle: read.string(top, "subtitle", ""),

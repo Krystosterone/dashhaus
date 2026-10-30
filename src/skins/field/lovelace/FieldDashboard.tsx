@@ -5,6 +5,8 @@ import { actionMessage } from "@scope/dashboard";
 import { MAIN_PAGE, resolveNav, sectionAnchors } from "@scope/dashboard";
 import type { NavEntry, PanelInfo } from "@scope/dashboard";
 import { useDashboardNav } from "@scope/dashboard";
+import { renderCard } from "@scope/dashboard/schema";
+import type { CardRenderers } from "@scope/dashboard/schema";
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
 import { HaSensorModule } from "../ha/HaSensorModule";
@@ -26,32 +28,32 @@ import "./dashboard.css";
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
 
 /** Each card's connected module, given a module's config and its footprint. A new card adds its row here. */
-const LIVE: Record<FieldKind, (props: LiveProps) => ReactNode> = {
-  light: ({ item, footprint }) => <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
-  climate: ({ item, footprint }) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} unit={item.unit} />,
-  sensor: ({ item, footprint }) => (
+const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> = {
+  light: (item, footprint) => <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
+  climate: (item, footprint) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} unit={item.unit} />,
+  sensor: (item, footprint) => (
     <HaSensorModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} unit={item.unit} humidityEntityId={item.humidity} batteryEntityId={item.battery} outdoor={item.outdoor} />
   ),
-  weather: ({ item, footprint }) => (
+  weather: (item, footprint) => (
     <HaWeatherModule entityId={item.entity} name={item.name} footprint={footprint} loadHistory={item.history} aqiEntityId={item.aqi} aqiScale={item.aqiScale} sunEntityId={item.sun} loadForecasts={item.forecasts} />
   ),
-  toggle: ({ item, footprint }) => (
+  toggle: (item, footprint) => (
     <HaToggleModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} icon={item.icon} description={item.description} />
   ),
-  humidifier: ({ item, footprint }) => <HaHumidifierModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
-  sound: ({ item, footprint }) => <HaSoundModule entityId={item.entity} volumeEntityId={item.volume} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
-  cover: ({ item, footprint }) => <HaCoverModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
-  alarm: ({ item, footprint }) => (
+  humidifier: (item, footprint) => <HaHumidifierModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
+  sound: (item, footprint) => <HaSoundModule entityId={item.entity} volumeEntityId={item.volume} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
+  cover: (item, footprint) => <HaCoverModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
+  alarm: (item, footprint) => (
     <HaAlarmModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} readOnly={item.readOnly} exitDelay={item.exitDelay} entryDelay={item.entryDelay} openSensors={item.openSensors} />
   ),
-  owlet: ({ item, footprint }) => (
+  owlet: (item, footprint) => (
     <HaOwletModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} heartRateEntityId={item.heartRate} oxygenEntityId={item.oxygen} chargingEntityId={item.charging} baseEntityId={item.baseStation} alertEntityIds={item.alerts} staleAfterMinutes={item.staleAfter} />
   ),
 };
 
 /** One live module, routed by its card to the skin-free hook and the matching Field drawing. */
 function LiveModule({ item, footprint }: LiveProps) {
-  return LIVE[item.kind]({ item, footprint: item.footprint ?? footprint });
+  return renderCard(LIVE, item, item.footprint ?? footprint);
 }
 
 /** The latest command Home Assistant rejected, with Retry when repeating it is safe, and Dismiss. */

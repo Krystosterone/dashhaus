@@ -16,24 +16,28 @@ import { HaAlarmTile } from "../ha/HaAlarmTile";
 import { HaOwletTile } from "../ha/HaOwletTile";
 import { HaHumidifierTile } from "../ha/HaHumidifierTile";
 import { HaSoundTile } from "../ha/HaSoundTile";
-import type { BlockConfig, CardConfig, DashboardConfig, ItemConfig, SectionConfig } from "./config";
+import { renderCard } from "@scope/dashboard/schema";
+import type { CardRenderers } from "@scope/dashboard/schema";
+import type { BlockConfig, CardConfig, DashboardConfig, ItemConfig, Kind, SectionConfig } from "./config";
 import { ActionStatus } from "./ActionStatus";
+
+/** Each kind's connected tile: the shared renderer dispatch picks the card's row. */
+const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
+  light: (card, key) => <HaLightTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} color={card.color} />,
+  climate: (card, key) => <HaClimateTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} color={card.color} />,
+  cover: (card, key) => <HaCoverTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} color={card.color} />,
+  sensor: (card, key) => <HaSensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} humidityEntityId={card.humidity} batteryEntityId={card.battery} outdoor={card.outdoor} unit={card.unit} color={card.color} />,
+  weather: (card, key) => <HaWeatherTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} aqiEntityId={card.aqi} aqiScale={card.aqiScale} sunEntityId={card.sun} loadForecasts={card.forecasts} />,
+  toggle: (card, key) => <HaToggleTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} icon={card.icon} color={card.color} description={card.description} />,
+  alarm: (card, key) => <HaAlarmTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} readOnly={card.readOnly} exitDelay={card.exitDelay} entryDelay={card.entryDelay} openSensors={card.openSensors} />,
+  owlet: (card, key) => <HaOwletTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} heartRateEntityId={card.heartRate} oxygenEntityId={card.oxygen} chargingEntityId={card.charging} baseEntityId={card.baseStation} alertEntityIds={card.alerts} staleAfterMinutes={card.staleAfter} color={card.color} />,
+  humidifier: (card, key) => <HaHumidifierTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} color={card.color} />,
+  sound: (card, key) => <HaSoundTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} volumeEntityId={card.volume} color={card.color} />,
+};
 
 /** One configured card as its connected tile. */
 function tile(card: CardConfig, key?: string): ReactElement {
-  const common = { entityId: card.entity, name: card.name, footprint: card.footprint, showControl: card.showControl, loadHistory: card.history };
-  switch (card.kind) {
-    case "light": return <HaLightTile key={key} {...common} area={card.area} color={card.color} />;
-    case "climate": return <HaClimateTile key={key} {...common} area={card.area} unit={card.unit} color={card.color} />;
-    case "cover": return <HaCoverTile key={key} {...common} area={card.area} color={card.color} />;
-    case "sensor": return <HaSensorTile key={key} {...common} area={card.area} humidityEntityId={card.humidity} batteryEntityId={card.battery} outdoor={card.outdoor} unit={card.unit} color={card.color} />;
-    case "weather": return <HaWeatherTile key={key} {...common} aqiEntityId={card.aqi} aqiScale={card.aqiScale} sunEntityId={card.sun} loadForecasts={card.forecasts} />;
-    case "toggle": return <HaToggleTile key={key} {...common} area={card.area} icon={card.icon} color={card.color} description={card.description} />;
-    case "alarm": return <HaAlarmTile key={key} {...common} area={card.area} readOnly={card.readOnly} exitDelay={card.exitDelay} entryDelay={card.entryDelay} openSensors={card.openSensors} />;
-    case "owlet": return <HaOwletTile key={key} {...common} area={card.area} heartRateEntityId={card.heartRate} oxygenEntityId={card.oxygen} chargingEntityId={card.charging} baseEntityId={card.baseStation} alertEntityIds={card.alerts} staleAfterMinutes={card.staleAfter} color={card.color} />;
-    case "humidifier": return <HaHumidifierTile key={key} {...common} area={card.area} color={card.color} />;
-    case "sound": return <HaSoundTile key={key} {...common} area={card.area} volumeEntityId={card.volume} color={card.color} />;
-  }
+  return renderCard(TILES, card, key);
 }
 
 function item(entry: ItemConfig, index: number) {

@@ -6,7 +6,9 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./card": "./src/card.tsx"
+    "./card": "./src/card.tsx",
+    "./schema": "./src/schema.ts",
+    "./layout": "./src/layout.ts"
   },
   "dependencies": {
     "@scope/core": "*"

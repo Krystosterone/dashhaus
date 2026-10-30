@@ -1,5 +1,20 @@
-import { DashboardConfigError, Reader as YamlReader, isRaw, oneOf, suggest } from "@scope/dashboard";
-import type { Raw } from "@scope/dashboard";
+import {
+  DashboardConfigError,
+  Reader as YamlReader,
+  isRaw,
+  oneOf,
+  suggest,
+  cardKindOrder,
+  readAlarmOptions,
+  readCard,
+  readCards,
+  readColor,
+  readOwletOptions,
+  readSensorOptions,
+  readUnit,
+  readWeatherOptions,
+} from "@scope/dashboard/schema";
+import type { CardKindSpec, CardReadSchema } from "@scope/dashboard/schema";
 import { COLORS } from "../shared/ui";
 import type { ColorName, CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@scope/core/entities/toggle/types";
@@ -11,7 +26,8 @@ import type { NavEntry } from "@scope/dashboard";
 /*
  * The card's YAML, as Lovelace hands it over (already parsed), checked and normalized. Every mistake is
  * collected with its path and, for a misspelt key, the key that was probably meant, so the YAML editor shows
- * all of them at once instead of the first.
+ * all of them at once instead of the first. The reading itself is the shared card schema (`@scope/dashboard/schema`);
+ * this file is the card's kind table and the bundles only orb has.
  */
 
 export type Kind = "light" | "climate" | "sensor" | "weather" | "cover" | "toggle" | "alarm" | "owlet" | "humidifier" | "sound";
@@ -114,18 +130,86 @@ const FOOTPRINTS: readonly CardFootprint[] = ["compact", "standard", "featured"]
 const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
 
 const COMMON_KEYS = ["entity", "card", "name", "area", "footprint", "span", "show_control", "history"];
-const KIND_KEYS: Record<Kind, string[]> = {
-  light: ["color"],
-  climate: ["unit", "color"],
-  sensor: ["humidity", "battery", "outdoor", "unit", "color"],
-  weather: ["aqi", "aqi_scale", "sun", "forecasts"],
-  cover: ["color"],
-  toggle: ["icon", "color", "description"],
-  alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
-  owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after", "color"],
-  humidifier: ["color"],
-  sound: ["volume", "color"],
+
+/** Each kind's own YAML keys and settings: the shared schema reads the rest. */
+const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
+  light: {
+    keys: ["color"],
+    options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  climate: {
+    keys: ["unit", "color"],
+    options: (read, raw, at) => ({ unit: readUnit(read, raw, at), color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  sensor: {
+    keys: ["humidity", "battery", "outdoor", "unit", "color"],
+    options: (read, raw, at) => ({ ...readSensorOptions(read, raw, at), unit: readUnit(read, raw, at), color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  weather: {
+    keys: ["aqi", "aqi_scale", "sun", "forecasts"],
+    options: readWeatherOptions,
+  },
+  cover: {
+    keys: ["color"],
+    options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  toggle: {
+    keys: ["icon", "color", "description"],
+    options: (read, raw, at) => ({
+      icon: read.choice(raw, "icon", at, TOGGLE_ICONS),
+      color: read.choice(raw, "color", at, COLOR_NAMES),
+      description: read.string(raw, "description", at),
+    }),
+  },
+  alarm: {
+    keys: ["read_only", "exit_delay", "entry_delay", "open_sensors"],
+    options: readAlarmOptions,
+  },
+  owlet: {
+    keys: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after", "color"],
+    options: (read, raw, at) => ({ ...readOwletOptions(read, raw, at, OWLET_ALERTS), color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  humidifier: {
+    keys: ["color"],
+    options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  sound: {
+    keys: ["volume", "color"],
+    options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]), color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
 };
+
+/** The kinds an entity id tries: its domain's own, then the cards that share that domain. */
+const KIND_ORDER = cardKindOrder(DOMAIN_KIND, SHARED_KINDS);
+
+/** The kind table with each kind's domains and id pattern, read from the two tables above. */
+const KINDS = (Object.keys(KIND_SPECS) as Kind[]).reduce((table, kind) => {
+  table[kind] = {
+    ...KIND_SPECS[kind],
+    domains: [...Object.keys(DOMAIN_KIND).filter((domain) => DOMAIN_KIND[domain] === kind), ...(SHARED_KINDS[kind]?.domains ?? [])],
+    id: SHARED_KINDS[kind]?.id,
+  };
+  return table;
+}, {} as Record<Kind, CardKindSpec>);
+
+const CARD_SCHEMA: CardReadSchema<Kind, CardConfig> = {
+  noun: "card",
+  common: COMMON_KEYS,
+  order: KIND_ORDER,
+  kinds: KINDS,
+  stopOnInvalidCard: true,
+  base: (read, raw, at) => ({
+    name: read.string(raw, "name", at),
+    area: read.string(raw, "area", at),
+    footprint: read.choice(raw, "footprint", at, FOOTPRINTS),
+    span: read.number(raw, "span", at, 1, 12) ?? 1,
+    showControl: read.boolean(raw, "show_control", at),
+    history: read.boolean(raw, "history", at) ?? true,
+  }),
+  missing: (raw) => `a card needs an "entity"${raw.joined || raw.lead ? " (bundles use \"joined\", \"lead\" or \"title\" with \"rows\" at the section's card level)" : ""}`,
+  noKind: (entity, domain) => `${entity}: ${domain}.* entities have no card yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`,
+};
+
 const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "sections", "nav", "pages", "view_layout", "grid_options", "visibility"];
 const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
 const GROUP_KEYS = ["columns", "gap", "sections"];
@@ -133,121 +217,12 @@ const GROUP_KEYS = ["columns", "gap", "sections"];
 export { DashboardConfigError, suggest };
 
 class Reader extends YamlReader {
-  /** The card for an entity: `card:` when given, else a shared card its id names, else its domain's. */
-  kind(raw: Raw, entity: string, path: string): Kind | undefined {
-    const domain = entity.slice(0, entity.indexOf("."));
-    const shared = (Object.keys(SHARED_KINDS) as Kind[]).filter((k) => SHARED_KINDS[k]?.domains.includes(domain));
-    const kinds = [...(DOMAIN_KIND[domain] ? [DOMAIN_KIND[domain]] : []), ...shared];
-    if (!kinds.length) {
-      this.problem(path, `${entity}: ${domain}.* entities have no card yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`);
-      return undefined;
-    }
-    if (raw.card != null) return this.choice(raw, "card", `${path} (${entity})`, kinds);
-    const kind = shared.find((k) => SHARED_KINDS[k]?.id?.test(entity)) ?? DOMAIN_KIND[domain];
-    if (!kind) this.problem(path, `${entity}: pick its card with "card": one of ${oneOf(kinds)}`);
-    return kind;
-  }
-
-
   card(value: unknown, path: string): CardConfig | undefined {
-    const raw: Raw = typeof value === "string" ? { entity: value } : isRaw(value) ? value : {};
-    if (!isRaw(value) && typeof value !== "string") {
-      this.problem(path, "a card is an entity id, or a map with an \"entity\" key");
-      return undefined;
-    }
-    if (raw.entity == null) {
-      this.problem(path, `a card needs an "entity"${raw.joined || raw.lead ? " (bundles use \"joined\", \"lead\" or \"title\" with \"rows\" at the section's card level)" : ""}`);
-      return undefined;
-    }
-    const entity = this.entityId(raw.entity, path);
-    if (!entity) return undefined;
-    const kind = this.kind(raw, entity, path);
-    if (!kind) return undefined;
-    const at = `${path} (${entity})`;
-    this.keys(raw, at, [...COMMON_KEYS, ...KIND_KEYS[kind]]);
-    const base: CardBase = {
-      entity,
-      name: this.string(raw, "name", at),
-      area: this.string(raw, "area", at),
-      footprint: this.choice(raw, "footprint", at, FOOTPRINTS),
-      span: this.number(raw, "span", at, 1, 12) ?? 1,
-      showControl: this.boolean(raw, "show_control", at),
-      history: this.boolean(raw, "history", at) ?? true,
-    };
-    const color = () => this.choice(raw, "color", at, [...COLOR_NAMES, "none"] as const);
-    const unit = () => this.choice(raw, "unit", at, ["°C", "°F"] as const);
-    switch (kind) {
-      case "light": return { ...base, kind, color: color() };
-      case "cover": return { ...base, kind, color: color() };
-      case "climate": return { ...base, kind, unit: unit(), color: color() };
-      case "sensor": return {
-        ...base,
-        kind,
-        humidity: this.optionalEntity(raw, "humidity", at, ["sensor"]),
-        battery: this.optionalEntity(raw, "battery", at, ["sensor"]),
-        outdoor: this.boolean(raw, "outdoor", at),
-        unit: unit(),
-        color: color(),
-      };
-      case "weather": return {
-        ...base,
-        kind,
-        aqi: this.optionalEntity(raw, "aqi", at, ["sensor"]),
-        aqiScale: this.choice(raw, "aqi_scale", at, ["US"] as const),
-        sun: raw.sun === undefined ? "sun.sun" : this.optionalEntity(raw, "sun", at, ["sun"]),
-        forecasts: this.boolean(raw, "forecasts", at) ?? true,
-      };
-      case "toggle": return {
-        ...base,
-        kind,
-        icon: this.choice(raw, "icon", at, TOGGLE_ICONS),
-        color: this.choice(raw, "color", at, COLOR_NAMES),
-        description: this.string(raw, "description", at),
-      };
-      case "alarm": {
-        const sensors = raw.open_sensors;
-        if (sensors != null && !(Array.isArray(sensors) && sensors.every((s) => typeof s === "string"))) this.problem(at, "\"open_sensors\" must be a list of names");
-        return {
-          ...base,
-          kind,
-          readOnly: this.boolean(raw, "read_only", at),
-          exitDelay: this.number(raw, "exit_delay", at, 0, 3600),
-          entryDelay: this.number(raw, "entry_delay", at, 0, 3600),
-          openSensors: Array.isArray(sensors) ? sensors.filter((s): s is string => typeof s === "string") : undefined,
-        };
-      }
-      case "owlet": {
-        const alerts = raw.alerts;
-        if (alerts != null && !isRaw(alerts)) this.problem(at, "\"alerts\" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen");
-        if (isRaw(alerts)) this.keys(alerts, `${at}.alerts`, OWLET_ALERTS);
-        return {
-          ...base,
-          kind,
-          heartRate: this.optionalEntity(raw, "heart_rate", at, ["sensor"]),
-          oxygen: this.optionalEntity(raw, "oxygen", at, ["sensor"]),
-          charging: this.optionalEntity(raw, "charging", at, ["binary_sensor"]),
-          baseStation: this.optionalEntity(raw, "base_station", at, ["switch"]),
-          alerts: isRaw(alerts)
-            ? Object.fromEntries(OWLET_ALERTS.flatMap((alert) => {
-              const id = this.optionalEntity(alerts, alert, `${at}.alerts`, ["binary_sensor"]);
-              return id ? [[alert, id]] : [];
-            }))
-            : undefined,
-          staleAfter: this.number(raw, "stale_after", at, 1, 60),
-          color: color(),
-        };
-      }
-      case "humidifier": return { ...base, kind, color: color() };
-      case "sound": return { ...base, kind, volume: this.optionalEntity(raw, "volume", at, ["number"]), color: color() };
-    }
+    return readCard(this, CARD_SCHEMA, value, path);
   }
 
   cards(value: unknown, path: string): CardConfig[] {
-    if (!Array.isArray(value) || value.length === 0) {
-      this.problem(path, "must be a list of at least one card");
-      return [];
-    }
-    return value.map((card, i) => this.card(card, `${path}[${i}]`)).filter((c): c is CardConfig => !!c);
+    return readCards(this, CARD_SCHEMA, value, path);
   }
 
   item(value: unknown, path: string): ItemConfig | undefined {

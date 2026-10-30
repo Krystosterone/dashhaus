@@ -186,7 +186,7 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
   edit(dashboard, afterLast(/^import \{ Ha\w+Module \} from "\.\.\/ha\/Ha\w+Module";$/gm, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
   // The module's own name and area, where the hook takes them.
   const passed = ["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)).map((key) => ` ${key}={item.${key}}`).join("");
-  edit(dashboard, intoObject("LIVE", `  ${name}: ({ item, footprint }) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
+  edit(dashboard, intoObject("LIVE", `  ${name}: (item, footprint) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
   const listed = read("docs/deploy.md").match(/^\| `modules` \| a list of ([^|]*?) entity ids/m)?.[1] ?? "";
   if (domains.some((d) => !listed.includes(`\`${d}.*\``))) edit("docs/deploy.md", (s) => s.replace(/^(\| `modules` \| a list of )([^|]*?)( entity ids)/m, (_, head, list, tail) => {
     const all = [...new Set([...[...list.matchAll(/`(\w+)\.\*`/g)].map((m) => m[1]), ...domains])].map((d) => `\`${d}.*\``);

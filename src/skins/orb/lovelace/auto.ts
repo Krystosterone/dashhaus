@@ -1,37 +1,18 @@
-// Self-contained on purpose: scripts/deploy.mjs imports this file directly through Node's type stripping,
-// so it may only use `import type`.
+// Self-contained on purpose: scripts/deploy.mjs imports this file directly through Node's type stripping. It may
+// import @scope/dashboard/layout, the package's pure layout entry, and nothing that reaches React.
 
-/** A raw state, as far as the layout needs one. */
-export interface AutoState {
-  entity_id: string;
-  state: string;
-  attributes: Record<string, unknown>;
-}
+import { areaId, byName, domainOf, placeSection, roomSensors, visibleEntities } from "@scope/dashboard/layout";
+import type { AutoInput as LayoutInput } from "@scope/dashboard/layout";
 
-/** Registry facts per entity, as `hass.entities` holds them; defined with the element every card shares. */
-export type { AutoEntityEntry } from "@scope/dashboard";
-import type { AutoEntityEntry } from "@scope/dashboard";
-
-export interface AutoInput {
-  states: Record<string, AutoState>;
-  entities?: Record<string, AutoEntityEntry>;
-  devices?: Record<string, { area_id?: string | null }>;
-  areas?: Record<string, { name: string }>;
-}
+export type { AutoInput, AutoState } from "@scope/dashboard/layout";
 
 type Card = string | Record<string, unknown>;
 interface Section { title: string; columns?: number; cards: Card[] }
 
-const domainOf = (id: string) => id.slice(0, id.indexOf("."));
-const deviceClass = (s: AutoState) => (typeof s.attributes.device_class === "string" ? s.attributes.device_class : undefined);
-const byName = (states: Record<string, AutoState>) => (a: string, b: string) => {
-  const name = (id: string) => String(states[id]?.attributes.friendly_name ?? id);
-  return name(a).localeCompare(name(b));
-};
-
 /**
- * An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet card. This file may only
- * `import type`, so the pattern is repeated; auto.test.ts fails when the two drift apart.
+ * An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet card. This file imports only
+ * the package's pure layout entry (deploy runs it through Node), so the pattern is repeated; auto.test.ts fails
+ * when the two drift apart.
  */
 const OWLET = /^sensor\.\w+_sleep_state$/;
 
@@ -41,17 +22,12 @@ const OWLET = /^sensor\.\w+_sleep_state$/;
  * so it keeps all discovered actions in deterministic domain/area order for the person to refine.
  * No featured hero is chosen; compact rows carry secondary controls.
  */
-export function autoDashboard(input: AutoInput, title = "Home"): Record<string, unknown> {
-  const { states, entities = {}, devices = {}, areas = {} } = input;
-  const visible = Object.keys(states).filter((id) => {
-    const entry = entities[id];
-    return !entry?.hidden && !entry?.entity_category;
-  });
-  const deviceOf = (id: string) => entities[id]?.device_id ?? undefined;
+export function autoDashboard(input: LayoutInput, title = "Home"): Record<string, unknown> {
+  const { states, areas = {} } = input;
+  const visible = visibleEntities(input);
   const areaOf = (id: string) => {
-    const entry = entities[id];
-    const areaId = entry?.area_id ?? (entry?.device_id ? devices[entry.device_id]?.area_id : undefined);
-    return areaId && areas[areaId] ? areaId : undefined;
+    const area = areaId(input, id);
+    return area && areas[area] ? area : undefined;
   };
   const sorted = (ids: string[]) => ids.sort(byName(states));
   const ofDomain = (...domains: string[]) => sorted(visible.filter((id) => domains.includes(domainOf(id))));
@@ -59,11 +35,7 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
   const sections: Section[] = [];
   // One section per title: a section that would repeat one (an area called Nursery or Outside) joins it, so the
   // page never shows two sections of one name, and a nav to one never lands on the other.
-  const place = (section: Section) => {
-    const same = sections.find((s) => s.title.toLowerCase() === section.title.toLowerCase());
-    if (same) same.cards.push(...section.cards);
-    else sections.push(section);
-  };
+  const place = (section: Section) => placeSection(sections, section);
   const alarms = ofDomain("alarm_control_panel");
 
   const weather = ofDomain("weather")[0];
@@ -74,25 +46,9 @@ export function autoDashboard(input: AutoInput, title = "Home"): Record<string, 
   }
 
   // Room air: one card per device with a temperature (or, failing that, humidity) reading.
-  const sensors = visible.filter((id) => domainOf(id) === "sensor");
-  // Companions may be diagnostic entities (batteries usually are); only hidden ones are left out.
-  const companions = Object.keys(states).filter((id) => domainOf(id) === "sensor" && !entities[id]?.hidden);
-  const companion = (device: string | undefined, cls: string) => (
-    device ? companions.find((id) => deviceOf(id) === device && deviceClass(states[id]) === cls) : undefined
-  );
-  const taken = new Set<string>();
-  const air: Card[] = [];
-  for (const cls of ["temperature", "humidity"]) {
-    for (const id of sorted(sensors.filter((s) => deviceClass(states[s]) === cls))) {
-      const device = deviceOf(id);
-      if (taken.has(id) || (device && taken.has(`device:${device}`))) continue;
-      if (device) taken.add(`device:${device}`);
-      taken.add(id);
-      const humidity = cls === "temperature" ? companion(device, "humidity") : undefined;
-      const battery = companion(device, "battery");
-      air.push(humidity || battery ? { entity: id, ...(humidity && { humidity }), ...(battery && { battery }) } : id);
-    }
-  }
+  const air: Card[] = roomSensors(input).map(({ entity, humidity, battery }) => (
+    humidity || battery ? { entity, ...(humidity && { humidity }), ...(battery && { battery }) } : entity
+  ));
 
   const modes = ofDomain("input_boolean");
   if (modes.length) place({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });

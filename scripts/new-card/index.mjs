@@ -170,11 +170,10 @@ const sharesDomain = domain in domainKind;
 edit(lovelace, (s) => s.replace(/^(export type Kind = .*);$/m, `$1 | "${name}";`));
 edit(lovelace, sharesDomain ? intoObject("SHARED_KINDS", `  ${name}: { domains: ["${domain}"] },`) : intoObject("DOMAIN_KIND", `  ${domain}: "${name}",`));
 edit(lovelace, before("\n);\n\nexport type ItemConfig", `\n  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));
-edit(lovelace, intoObject("KIND_KEYS", `  ${name}: [${reading ? '"unit", ' : ""}"color"],`));
-edit(lovelace, before("    }\n  }\n\n  cards(", `      case "${name}": return { ...base, kind,${reading ? ' unit: this.string(raw, "unit", at),' : ""} color: color() };\n`));
+edit(lovelace, intoObject("KIND_SPECS", `  ${name}: { keys: [${reading ? '"unit", ' : ""}"color"], options: (read, raw, at) => ({${reading ? ' unit: read.string(raw, "unit", at),' : ""} color: readColor(read, raw, at, COLOR_NAMES) }) },`));
 const renderer = `${SKIN}/lovelace/ConfigDashboard.tsx`;
 edit(renderer, afterLast(/^import \{ Ha\w+Tile \} from "\.\.\/ha\/Ha\w+Tile";$/gm, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";\n`)));
-edit(renderer, before("  }\n}\n\nfunction item(", fill(`    case "__name__": return <Ha__Name__Tile key={key} {...common} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />;\n`)));
+edit(renderer, intoObject("TILES", fill(`  __name__: (card, key) => <Ha__Name__Tile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />,`)));
 // The automatic layout: a control on a domain of its own joins the compact controls per area.
 const placed = !reading && !sharesDomain;
 if (placed) {

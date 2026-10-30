@@ -1,7 +1,7 @@
-import { DashboardConfigError, Reader, isRaw } from "@scope/dashboard";
+import { DashboardConfigError, Reader, isRaw, readCard } from "@scope/dashboard/schema";
+import type { CardKindSpec, CardReadSchema, Raw } from "@scope/dashboard/schema";
 import type { NavEntry } from "@scope/dashboard";
-import type { Raw } from "@scope/dashboard";
-import { __skinVar__CardKindsFor, __skinVar__KindOf } from "./registry";
+import { __SKIN_CONST___CARDS } from "./registry";
 import type { __Skin__CardItem } from "./registry";
 import type { __Skin__Footprint } from "../shared/ui";
 
@@ -34,29 +34,24 @@ const GROUP_KEYS = ["columns", "sections"];
 const FOOTPRINTS: readonly __Skin__Footprint[] = ["standard", "compact"];
 const MAX_ACROSS = 4;
 
+/** The generated skin's one Card schema: its registry supplies the kinds, the package reads the rest. */
+const CARD_SCHEMA: CardReadSchema<string, CardConfig> = {
+  noun: "Card",
+  common: CARD_KEYS,
+  kinds: __SKIN_CONST___CARDS as unknown as Record<string, CardKindSpec>,
+  base: (read, raw, at) => ({
+    name: read.string(raw, "name", at),
+    area: read.string(raw, "area", at),
+    footprint: read.choice(raw, "footprint", at, FOOTPRINTS),
+    span: read.number(raw, "span", at, 1, MAX_ACROSS),
+    history: read.boolean(raw, "history", at),
+  }),
+  noKind: (entity) => `${entity}: its domain has no __Section__ Card yet`,
+};
+
 class __Skin__Reader extends Reader {
   card(value: unknown, path: string): CardConfig | undefined {
-    if (!isRaw(value) && typeof value !== "string") { this.problem(path, "a Card is an entity id, or a map with an entity key"); return undefined; }
-    const raw: Raw = typeof value === "string" ? { entity: value } : value;
-    if (raw.entity == null) { this.problem(path, "a Card needs an entity"); return undefined; }
-    const entity = this.entityId(raw.entity, path);
-    if (!entity) return undefined;
-    const kinds = __skinVar__CardKindsFor(entity);
-    if (!kinds.length) { this.problem(path, `${entity}: its domain has no __Section__ Card yet`); return undefined; }
-    const at = `${path} (${entity})`;
-    const selected = this.choice(raw, "card", at, kinds);
-    const kind = selected ?? __skinVar__KindOf(entity);
-    if (!kind) { this.problem(at, `pick its Card with card: one of ${kinds.join(", ")}`); return undefined; }
-    this.keys(raw, at, CARD_KEYS);
-    return {
-      entity,
-      kind,
-      name: this.string(raw, "name", at),
-      area: this.string(raw, "area", at),
-      footprint: this.choice(raw, "footprint", at, FOOTPRINTS),
-      span: this.number(raw, "span", at, 1, MAX_ACROSS),
-      history: this.boolean(raw, "history", at),
-    };
+    return readCard(this, CARD_SCHEMA, value, path);
   }
 
   section(value: unknown, path: string): SectionConfig | undefined {

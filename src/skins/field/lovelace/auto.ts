@@ -1,22 +1,10 @@
-import type { AutoEntityEntry } from "@scope/dashboard";
-import { roomSensors } from "@scope/dashboard";
+import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@scope/dashboard/layout";
+import type { AutoInput } from "@scope/dashboard/layout";
 import { kindOf } from "./config";
 import type { ModuleConfig, SectionConfig } from "./config";
 
-/** What the automatic layout reads from `hass`: states for names, and the registries for areas. */
-export interface AutoInput {
-  states: Record<string, { attributes: Record<string, unknown> }>;
-  entities?: Record<string, AutoEntityEntry>;
-  devices?: Record<string, { area_id?: string | null }>;
-  areas?: Record<string, { name: string }>;
-}
-
-/** An entity's area name from the frontend's registries: its own area, else its device's. */
-export function areaName(input: AutoInput, entityId: string): string | undefined {
-  const entry = input.entities?.[entityId];
-  const areaId = entry?.area_id ?? (entry?.device_id ? input.devices?.[entry.device_id]?.area_id : undefined);
-  return areaId ? input.areas?.[areaId]?.name : undefined;
-}
+export type { AutoInput } from "@scope/dashboard/layout";
+export { areaName, groupByArea } from "@scope/dashboard/layout";
 
 /**
  * Every supported entity Field can draw, for a card without `modules`, as the card its entity id picks: hidden and
@@ -27,33 +15,18 @@ export function areaName(input: AutoInput, entityId: string): string | undefined
  * found beside it, so they aren't drawn on their own). The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
-  const { states, entities = {} } = input;
-  const name = (m: ModuleConfig) => String(states[m.entity]?.attributes.friendly_name ?? m.entity);
-  const visible = Object.keys(states).flatMap((entity): ModuleConfig[] => {
-    const entry = entities[entity];
+  const { states } = input;
+  const visible = visibleEntities(input, (entity) => kindOf(entity) !== undefined);
+  const cards = sortByName(visible.flatMap((entity): ModuleConfig[] => {
     const kind = kindOf(entity);
-    return !entry?.hidden && !entry?.entity_category && kind ? [{ entity, kind }] : [];
-  }).sort((a, b) => name(a).localeCompare(name(b)));
-  const others = visible.filter((m) => m.kind !== "sensor" && m.kind !== "weather");
-  const weather = visible.find((m) => m.kind === "weather");
+    return kind ? [{ entity, kind }] : [];
+  }), (module) => friendlyName(states, module.entity));
+  const others = cards.filter((module) => module.kind !== "sensor" && module.kind !== "weather");
+  const weather = cards.find((module) => module.kind === "weather");
   const sensors = roomSensors(input).map((room): ModuleConfig => ({ ...room, kind: "sensor" }));
-  return [...others, ...(weather ? [{ ...weather, sun: "sun.sun" }] : []), ...sensors].sort((a, b) => name(a).localeCompare(name(b)));
-}
-
-export interface AreaGroup<M extends { area?: string } = ModuleConfig> { area?: string; modules: M[] }
-
-/**
- * Modules by area, areas by name, each module keeping its order within its area. Modules with no area come last,
- * under no heading.
- */
-export function groupByArea<M extends { area?: string }>(modules: readonly M[]): AreaGroup<M>[] {
-  const groups = new Map<string | undefined, M[]>();
-  for (const m of modules) groups.set(m.area, [...(groups.get(m.area) ?? []), m]);
-  return [...groups.entries()]
-    .sort(([a], [b]) => (a == null ? 1 : b == null ? -1 : a.localeCompare(b)))
-    .map(([area, list]) => ({ area, modules: list }));
+  return sortByName([...others, ...(weather ? [{ ...weather, sun: "sun.sun" }] : []), ...sensors], (module) => friendlyName(states, module.entity));
 }
 
 /** The automatic layout's sections, and a `modules` list's: one per area, titled with its name (`groupByArea`). */
 export const areaSections = (modules: readonly ModuleConfig[]): SectionConfig[] =>
-  groupByArea(modules).map((g) => ({ kind: "section", title: g.area, modules: g.modules }));
+  groupByArea(modules).map((group) => ({ kind: "section", title: group.area, modules: group.modules }));
