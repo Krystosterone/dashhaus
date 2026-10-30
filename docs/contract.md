@@ -66,7 +66,7 @@ What it reads, and the rule each failure names:
 | `import` | The component imports no specifier the skin's `forbiddenImport` refuses. |
 | `unique-code` | No two cards share a code. |
 
-`checkCards(check, { root })` resolves from `root` (default `process.cwd()`). `cardFolders(skin, { root })` and `strayClasses(dir, allowed, { root })` are the file helpers underneath. The repo's own conformance tests keep their assertions about exports, docs, Storybook order, Design rules, the Lovelace wiring and the Home Assistant slice beside the preset; those are repo rules, not a skin contract. A generated skin inside this repo may keep using `verify/conformance.ts`, which re-exports the same helpers.
+`checkCards(check, { root })` resolves from `root` (default `process.cwd()`). `cardFolders(skin, { root })` and `strayClasses(dir, allowed, { root })` are the file helpers underneath. The repo's own conformance tests keep their assertions about exports, docs, Storybook order, Design rules, the Lovelace wiring and the Home Assistant slice beside the preset; those are repo rules, not a skin contract. A generated skin inside this repo runs the same preset from its card test, and keeps its repo-specific readers on `verify/conformance.ts`.
 
 Not stable: the wording of a finding's `message`; the `card` and `rule` fields are the contract. The preset does not check a skin's exports, docs, Storybook order or Lovelace wiring, and it is not a substitute for a skin's own tests.
 

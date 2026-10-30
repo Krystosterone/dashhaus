@@ -1,15 +1,10 @@
 /**
- * What the repo's conformance tests read the skins' cards with: the generic file helpers the preset owns, and the
- * repo's own text readers. It lives in verify/, outside every skin; only tests import it.
- *
- * The generic card checks and the class/folder scans are `@dashhaus/dashboard/conformance`; they are re-exported here
- * so a generated skin's test (which may only reach a shared helper by relative path) and the repo tests share one
- * implementation.
+ * What the repo's conformance tests read the skins' source and docs with, outside every skin; only tests import it.
+ * The generic card checks live in `@dashhaus/dashboard/conformance`; these are the repo's own readers and the rule
+ * that keeps a card's presentation away from the Home Assistant slice.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-
-export { cardFolders, strayClasses } from "@dashhaus/dashboard/conformance";
 
 export const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 export const exists = (path: string) => existsSync(join(process.cwd(), path));

@@ -32,9 +32,28 @@ const noPackageRelative = [
 /** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @dashhaus/dashboard/card. */
 const noDashboardEntry = { name: "@dashhaus/dashboard", message: "A card draws on @dashhaus/dashboard/card; only a skin's lovelace/ imports the Lovelace entry." };
 const noDashboard = [{
-  group: ["@dashhaus/dashboard/schema", "@dashhaus/dashboard/layout", "@dashhaus/dashboard/vite", "@dashhaus/dashboard/conformance", "@dashhaus/dashboard/cli"],
+  group: ["@dashhaus/dashboard/schema", "@dashhaus/dashboard/layout", "@dashhaus/dashboard/vite", "@dashhaus/dashboard/cli"],
   message: "A card draws on @dashhaus/dashboard/card; the schema, layout, build and CLI subpaths stay in a skin's lovelace/.",
 }];
+/** The conformance preset reads a skin's files, so only a card's test may import it; a card and its stories never do. */
+const noConformance = [{
+  group: ["@dashhaus/dashboard/conformance"],
+  message: "The conformance preset is Node- and test-only; import it from a card's test, never from a card.",
+}];
+/** The imports a skin's files may not reach. A card's test adds the conformance preset back. */
+const skinImports = {
+  paths: [...coreHa.paths, noDashboardEntry],
+  patterns: [
+    ...coreHa.patterns,
+    { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @dashhaus/core/websocket imports the Home Assistant websocket client." },
+    ...noOtherSkin,
+    ...noDashboard,
+    ...noIndex,
+    ...noDeepCore,
+    ...noPackageRelative,
+  ],
+};
+const skinPresentationImports = { ...skinImports, patterns: [...skinImports.patterns, ...noConformance] };
 
 export default tseslint.config(
   { ignores: ["storybook-static/**", "dist/**", "packages/*/dist/**", "release/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
@@ -175,23 +194,17 @@ export default tseslint.config(
   {
     // A skin's cards, layout, foundations and stories never see the connected layer. Only its ha/ containers, its
     // lovelace/ card and its index.ts may import @dashhaus/core's Home Assistant subpaths, and only lovelace/ may import
-    // @dashhaus/dashboard; verify/boundaries.test.ts checks the skin-to-skin half.
+    // @dashhaus/dashboard (a card's test may import the Node-only conformance preset); verify/boundaries.test.ts
+    // checks the skin-to-skin half.
     files: ["src/skins/**/*.{ts,tsx}"],
     ignores: ["src/skins/*/ha/**", "src/skins/*/lovelace/**", "src/skins/*/index.ts"],
-    rules: {
-      "no-restricted-imports": ["error", {
-        paths: [...coreHa.paths, noDashboardEntry],
-        patterns: [
-          ...coreHa.patterns,
-          { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @dashhaus/core/websocket imports the Home Assistant websocket client." },
-          ...noOtherSkin,
-          ...noDashboard,
-          ...noIndex,
-          ...noDeepCore,
-          ...noPackageRelative,
-        ],
-      }],
-    },
+    rules: { "no-restricted-imports": ["error", skinPresentationImports] },
+  },
+  {
+    // A card's test runs the packaged conformance preset against its own folder. The preset reads files, so it stays
+    // out of cards, stories and the browser bundle.
+    files: ["src/skins/**/cards/**/*.test.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", skinImports] },
   },
   {
     // A skin's connected containers and entry reach Home Assistant, but only through core's declared subpaths and
@@ -204,6 +217,7 @@ export default tseslint.config(
           { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @dashhaus/core/websocket." },
           ...noOtherSkin,
           ...noDashboard,
+          ...noConformance,
           ...noDeepCore,
           ...noIndex,
           ...noPackageRelative,
