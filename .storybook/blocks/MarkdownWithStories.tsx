@@ -4,7 +4,7 @@ import { Canvas, Markdown } from "@storybook/blocks";
 type Of = ComponentProps<typeof Canvas>["of"];
 
 /** Where a doc's relative links point once it's shown in Storybook, where they would lead nowhere. */
-const REPO = "https://github.com/Krystosterone/home-dashboard/blob/main/";
+const REPO = "https://github.com/Krystosterone/dashhaus/blob/main/";
 
 interface Props {
   markdown: string;

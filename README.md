@@ -173,7 +173,7 @@ The Storybook dashboards (**Orb / Dashboards / Examples**) are examples of compo
 
 ## Contributing
 
-Ask questions and agree proposed changes in [GitHub Issues](https://github.com/Krystosterone/home-dashboard/issues). Pull requests are accepted after that agreement. Before opening one, run `npm run check` and `npm run test-storybook`, document behavior changes, and preserve the domain → Home Assistant → skin import direction.
+Ask questions and agree proposed changes in [GitHub Issues](https://github.com/Krystosterone/dashhaus/issues). Pull requests are accepted after that agreement. Before opening one, run `npm run check` and `npm run test-storybook`, document behavior changes, and preserve the domain → Home Assistant → skin import direction.
 
 ## License
 
