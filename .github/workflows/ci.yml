@@ -69,7 +69,9 @@ jobs:
           test "${{ needs.unit.result }}" = "success"
           test "${{ needs.generators.result }}" = "success"
 
-  storybook:
+  # The runner dominates the gate, so it splits by suite; each shard builds the same static site and
+  # runs its half. The `storybook` job below is the required check for both.
+  storybook_one:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -89,4 +91,39 @@ jobs:
           key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook
+      - run: npm run test-storybook -- --shard=1/2
+
+  storybook_two:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - run: npm ci
+      - name: Read the Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - run: npm run test-storybook -- --shard=2/2
+
+  # The required status check: green only when both Storybook shards are green.
+  storybook:
+    needs: [storybook_one, storybook_two]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require both Storybook shards
+        run: |
+          echo "storybook_one: ${{ needs.storybook_one.result }}"
+          echo "storybook_two: ${{ needs.storybook_two.result }}"
+          test "${{ needs.storybook_one.result }}" = "success"
+          test "${{ needs.storybook_two.result }}" = "success"

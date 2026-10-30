@@ -1,6 +1,7 @@
 /**
  * Serves the static storybook build on :6006 and runs @storybook/test-runner against it,
  * exiting with the runner's status. One command = deterministic smoke + axe gate.
+ * Extra arguments pass to the runner, so CI can shard it (`--shard=1/2`).
  */
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
@@ -41,7 +42,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(6006, "127.0.0.1", () => {
   const bin = join(root, "..", "node_modules", ".bin", "test-storybook");
-  const child = spawn(bin, ["--url", "http://127.0.0.1:6006"], {
+  const child = spawn(bin, ["--url", "http://127.0.0.1:6006", ...process.argv.slice(2)], {
     stdio: "inherit",
     env: { ...process.env, STORYBOOK_PROJECT_ROOT: join(root, "..") },
   });

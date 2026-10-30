@@ -110,15 +110,15 @@ npm run test:generators
 
 `check` requires both lanes above and fails unless each is green; it is the status check `main` requires. The generator tests ran in the same job before, but they dominate the unit suite (216s of a 366s Vitest run), so they get their own runner. `npm run check` still runs typecheck, lint and every test locally, generators included.
 
-`storybook`:
+`storybook_one` and `storybook_two`, each:
 
 ```sh
 npm ci
 npx playwright install --with-deps chromium
-npm run test-storybook
+npm run test-storybook -- --shard=1/2     # 2/2 in the second job
 ```
 
-The `unit` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `eslint.config.js` and the tsconfigs). The Storybook job caches `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails the job with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
+`storybook` requires both shards and fails unless each is green; it is the status check `main` requires. Each shard builds the static site from the same commit and runs its half of the suites. The `unit` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `eslint.config.js` and the tsconfigs). The Storybook jobs cache `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails its shard with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
 
 ## Differences from the readiness note
 
