@@ -1,5 +1,5 @@
-// Self-contained on purpose: scripts/deploy.mjs imports this file directly through Node's type stripping. It may
-// import @scope/dashboard/layout, the package's pure layout entry, and nothing that reaches React.
+// Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
+// deploy. It may import @scope/dashboard/layout, the package's pure layout entry, and nothing that reaches React.
 
 import { areaId, byName, domainOf, placeSection, roomSensors, visibleEntities } from "@scope/dashboard/layout";
 import type { AutoInput as LayoutInput } from "@scope/dashboard/layout";
@@ -80,9 +80,4 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
   return sections.length ? { type: "custom:home-dashboard", title, sections } : { type: "custom:home-dashboard", title };
-}
-
-/** The Lovelace dashboard that holds the card: one panel view, so the card gets the full width. */
-export function lovelaceDashboard(card: Record<string, unknown>, title = "Home"): Record<string, unknown> {
-  return { views: [{ title, path: "home", type: "panel", cards: [card] }] };
 }

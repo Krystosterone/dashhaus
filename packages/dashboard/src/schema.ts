@@ -4,7 +4,7 @@ import type { NavEntry } from "./nav";
  * Reading a Lovelace card's YAML, for every skin's Lovelace card: the reader every card extends, the table that
  * turns an entity id into the card kind that draws it, the per-kind escape hatch that reads a kind's own options,
  * and the renderer dispatch that turns a normalized card back into a skin's element. Pure: no React, no DOM, no
- * skin, and no runtime relative import, so a Node config (scripts/deploy.mjs, a generated skin) can import it.
+ * skin, and no runtime relative import, so a Node config (dashboard.config.mjs, a generated skin) can import it.
  */
 
 /** The card's own first page, before any of its `pages`; `page: home` returns to it. */

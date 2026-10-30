@@ -1,37 +1,49 @@
 #!/usr/bin/env node
 // npm run deploy — build the Lovelace cards' bundle, copy it into Home Assistant's www folder, point the dashboard
-// resource at the new file, and create one dashboard per skin the first time. Settings come from .env (see
-// .env.example). Run again after every change; it never overwrites a dashboard layout you have edited.
+// resource at the new file, and create the dashboards dashboard.config.mjs declares the first time. Settings come
+// from .env (see .env.example). Run again after every change; it never overwrites a dashboard layout you have edited.
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { autoDashboard, lovelaceDashboard } from "../src/skins/orb/lovelace/auto.ts";
-import { GENERATED_SKINS } from "./generated-skins.mjs";
+import { panelView, readConfig, resolveDashboards } from "./deploy/config.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const CONFIG_FILE = join(root, "dashboard.config.mjs");
 const FILE = "home-dashboard.js";
 const FOLDER = "home-dashboard";
 const RESOURCE_PATH = `/local/${FOLDER}/${FILE}`;
-
-const args = new Set(process.argv.slice(2));
-if (args.has("--help") || args.has("-h")) {
-  console.log(`Usage: npm run deploy [-- --skip-build]
-
-Builds dist/${FILE}, copies it to $HA_WWW/${FOLDER}/, registers ${RESOURCE_PATH} as a dashboard
-resource (with a version so browsers fetch the new file), and creates the Orb ("$HA_DASHBOARD"),
-Field ("$HA_FIELD_DASHBOARD") and generated-skin dashboards with automatic layouts if they do not
-exist yet. Settings: .env, see .env.example.`);
-  process.exit(0);
-}
 
 const step = (text) => console.log(`\n→ ${text}`);
 const done = (text) => console.log(`  ✓ ${text}`);
 function fail(text) {
   console.error(`\n✗ ${text}`);
   process.exit(1);
+}
+
+// The dashboards are the user's config, not this script. Read it before help so `--help` proves the config loads.
+const config = await readConfig(CONFIG_FILE).catch((error) => fail(error.message));
+
+const args = new Set(process.argv.slice(2));
+if (args.has("--help") || args.has("-h")) {
+  let listed;
+  try {
+    listed = resolveDashboards(config, {}).dashboards;
+  } catch (error) {
+    fail(error.message);
+  }
+  const width = Math.max(0, ...listed.map((dashboard) => dashboard.title.length));
+  console.log(`Usage: npm run deploy [-- --skip-build]
+
+Builds dist/${FILE}, copies it to $HA_WWW/${FOLDER}/, registers ${RESOURCE_PATH} as a dashboard
+resource (with a version so browsers fetch the new file), and creates the dashboards in
+dashboard.config.mjs if they do not exist yet:
+${listed.map((dashboard) => `  ${dashboard.title.padEnd(width)}  /${dashboard.path}`).join("\n")}
+
+Settings: .env, see .env.example.`);
+  process.exit(0);
 }
 
 // ---------- Settings ----------
@@ -41,37 +53,6 @@ const HA_URL = process.env.HA_URL?.replace(/\/+$/, "");
 const HA_TOKEN = process.env.HA_TOKEN;
 const HA_WWW = process.env.HA_WWW;
 const HA_SSH_PORT = process.env.HA_SSH_PORT;
-// The page title each card prints in its header; the sidebar titles below tell the two dashboards apart.
-const PAGE_TITLE = "Home";
-// One dashboard per skin. Orb's layout is generated from the house once, to edit; Field's card, given no
-// modules, lays the house out itself every time it draws.
-const DASHBOARDS = [
-  {
-    path: process.env.HA_DASHBOARD || "home-dashboard",
-    title: process.env.HA_DASHBOARD_TITLE || "Home (Orb)",
-    icon: "mdi:home-variant",
-    async card(ha) {
-      const card = autoDashboard(await house(ha), PAGE_TITLE);
-      return { card, made: `${card.sections?.length ?? 0} generated sections` };
-    },
-  },
-  {
-    path: process.env.HA_FIELD_DASHBOARD || "home-dashboard-field",
-    title: process.env.HA_FIELD_DASHBOARD_TITLE || "Home (Field)",
-    icon: "mdi:knob",
-    async card() {
-      return { card: { type: "custom:home-dashboard-field", title: PAGE_TITLE }, made: "every light and climate entity by area" };
-    },
-  },
-  ...GENERATED_SKINS.map(({ id, title, icon }) => ({
-    path: `home-dashboard-${id}`,
-    title,
-    icon,
-    async card() {
-      return { card: { type: `custom:home-dashboard-${id}`, title: PAGE_TITLE }, made: `the ${id} skin's automatic layout` };
-    },
-  })),
-];
 
 const missing = [
   !HA_URL && "HA_URL      your Home Assistant address, e.g. http://homeassistant.local:8123",
@@ -81,11 +62,13 @@ const missing = [
 if (missing.length) {
   fail(`Missing settings. Copy .env.example to .env and fill in:\n    ${missing.join("\n    ")}`);
 }
-for (const { path } of DASHBOARDS) {
-  if (!path.includes("-")) fail(`dashboard paths must contain a hyphen (Home Assistant requires it): "${path}"`);
+let resolved;
+try {
+  resolved = resolveDashboards(config, process.env);
+} catch (error) {
+  fail(error.message);
 }
-const duplicatePaths = DASHBOARDS.map((dashboard) => dashboard.path).filter((path, i, paths) => paths.indexOf(path) !== i);
-if (duplicatePaths.length) fail(`dashboard paths must be unique: ${duplicatePaths.join(", ")}`);
+const { dashboards, pageTitle } = resolved;
 
 // ---------- Build ----------
 const bundle = join(root, "dist", FILE);
@@ -138,10 +121,10 @@ try {
         type: module`);
 }
 
-const dashboards = await ha.send("lovelace/dashboards/list");
-for (const dashboard of DASHBOARDS) {
+const existingDashboards = await ha.send("lovelace/dashboards/list");
+for (const dashboard of dashboards) {
   step(`Checking the "${dashboard.title}" dashboard (/${dashboard.path})`);
-  const existing = dashboards.find((d) => d.url_path === dashboard.path);
+  const existing = existingDashboards.find((d) => d.url_path === dashboard.path);
   if (existing) {
     // The sidebar title follows .env; the layout is never touched.
     if (existing.title !== dashboard.title) {
@@ -154,44 +137,16 @@ for (const dashboard of DASHBOARDS) {
   }
   const { card, made } = await dashboard.card(ha);
   await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
-  await ha.send("lovelace/config/save", { url_path: dashboard.path, config: lovelaceDashboard(card, PAGE_TITLE) });
+  await ha.send("lovelace/config/save", { url_path: dashboard.path, config: panelView(card, pageTitle) });
   done(`created with ${made}`);
 }
 ha.close();
 
-console.log(`\nDone. Open ${DASHBOARDS.map((d) => `${HA_URL}/${d.path}/home`).join(" or ")} and reload the page once to pick up version ${version}.
+console.log(`\nDone. Open ${dashboards.map((d) => `${HA_URL}/${d.path}/home`).join(" or ")} and reload the page once to pick up version ${version}.
 To edit one: ⋮ → Edit dashboard → the card's ✎ → Code editor. The formats are in docs/deploy.md.`);
 process.exit(0);
 
 // ---------- Helpers ----------
-
-/** The house as `autoDashboard` reads it: states and the entity, device and area registries. */
-async function house(ha) {
-  const [states, entityRegistry, devices, areas] = await Promise.all([
-    ha.send("get_states"),
-    ha.send("config/entity_registry/list_for_display").catch(() => undefined),
-    ha.send("config/device_registry/list").catch(() => []),
-    ha.send("config/area_registry/list").catch(() => []),
-  ]);
-  return {
-    states: Object.fromEntries(states.map((s) => [s.entity_id, s])),
-    entities: entityRegistryEntries(entityRegistry),
-    devices: Object.fromEntries(devices.map((d) => [d.id, { area_id: d.area_id }])),
-    areas: Object.fromEntries(areas.map((a) => [a.area_id, { name: a.name }])),
-  };
-}
-
-/** `config/entity_registry/list_for_display` → the frontend's `hass.entities` shape. */
-function entityRegistryEntries(response) {
-  if (!response?.entities) return undefined;
-  const categories = response.entity_categories ?? {};
-  return Object.fromEntries(response.entities.map((e) => [e.ei, {
-    device_id: e.di,
-    area_id: e.ai,
-    hidden: e.hb === true,
-    entity_category: e.ec === undefined ? undefined : categories[e.ec] ?? "other",
-  }]));
-}
 
 /** A minimal Home Assistant websocket client: authenticate, then send commands and await their results. */
 function connect(base, token) {

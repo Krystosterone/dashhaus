@@ -67,7 +67,7 @@ const removeField = (copy: string) => {
     .replace('import "../../src/skins/field/styles/tokens.css";\n', "")
     .replace('import { defineFieldCard } from "../../src/skins/field/lovelace/card";\n', "")
     .replace("defineFieldCard(css);\n", ""));
-  writeChanged(copy, "scripts/deploy.mjs", (source) => source.replace(/\n {2}\{\n {4}path: process\.env\.HA_FIELD_DASHBOARD[\s\S]*?\n {2}\},/, ""));
+  writeChanged(copy, "dashboard.config.mjs", (source) => source.replace(/\n {4}\{\n {6}path: "home-dashboard-field",[\s\S]*?\n {4}\},/, ""));
   writeChanged(copy, "docs/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
   writeChanged(copy, "docs/cards.md", (source) => source.replace(/\n### Field [^\n]*(?:module|Card)\n[\s\S]*?(?=\n## |\n### )/gi, ""));
   writeChanged(copy, "scripts/generated-skins.mjs", (source) => source.replace(/^ {2}\{ id: "field".*\n/m, ""));

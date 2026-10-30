@@ -1,6 +1,6 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below), and the deploy sets up a dashboard for each. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below), and the deploy sets up a dashboard for each dashboard its config declares. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
 
 ## First deploy
 
@@ -11,9 +11,34 @@ The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a 
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
 
-`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates two dashboards, each one panel view: **Home (Orb)** at `home-dashboard`, with a layout generated from your house, and **Home (Field)** at `home-dashboard-field`, a field card with no `modules`, so it lays out every supported entity by area each time it draws. `HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` settings change the paths and sidebar titles. Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds `dist/home-dashboard.js`, copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `home-dashboard`, with a layout generated from your house, and **Home (Field)** at `home-dashboard-field`, a field card with no `modules`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
 
 If your dashboards are in YAML mode, the script can't manage resources and prints the lines to add to `configuration.yaml` instead.
+
+### The dashboard config
+
+Which dashboards deploy creates is in `dashboard.config.mjs` at the repo root, not in the script. Its default export lists them in order; each one has a `path` (Home Assistant requires a hyphen), a sidebar `title`, an `icon`, and a `card(ha)` factory that returns the card's Lovelace config and what deploy reports it created:
+
+```js
+export default {
+  pageTitle: "Home",              // the header each card prints and the view's title
+  dashboards: [
+    {
+      path: "home-dashboard",
+      title: "Home (Orb)",
+      icon: "mdi:home-variant",
+      env: { path: "HA_DASHBOARD", title: "HA_DASHBOARD_TITLE" }, // optional overrides
+      async card(ha) {
+        return { card: { type: "custom:home-dashboard" }, made: "automatic" };
+      },
+    },
+  ],
+};
+```
+
+`ha` is deploy's websocket client, so a factory can read the house before it builds the card. `env` names the `.env` keys allowed to override that dashboard's path and title; `.env` holds settings only, and no secret belongs in this file. `npm run new-skin` registers generated skins in `scripts/generated-skins.mjs`, and the config spreads them through `generatedDashboards()`. Before building, deploy applies the overrides and refuses a path without a hyphen or two dashboards on one path; `--help` lists the dashboards the config declares. A dashboard that already exists keeps its layout, so a changed factory affects the first creation only.
+
+The file is JavaScript so `scripts/deploy.mjs` loads it without a build step. The repo's config is the only place that imports orb's `auto.ts`; deploy imports no skin.
 
 ## Authoring
 
@@ -275,7 +300,7 @@ Mistakes show the same way as the main card's, all at once with their paths. The
 
 ## What has and hasn't been verified
 
-Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API.
+Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. `scripts/deploy.mjs` has been run against a fake Home Assistant websocket API. The deploy config loader (`scripts/deploy/config.mjs`) is tested without Home Assistant: the dashboards the repo's config yields, the `.env` overrides, the hyphen and uniqueness checks, and the generated skins.
 
 The field card: unit tests cover its config parser (sections, pages, nav, and the main card's keys it refuses), automatic mixed-domain layout (room sensors through the same pairing as the main card's Rooms, `roomSensors` in `@scope/dashboard`) and element (areas, sections and spans, the nav's jumps and pages, far viewing, finish, font link, one store per connection), and the built bundle carries it and its font. It has not been loaded in a live Home Assistant yet.
 

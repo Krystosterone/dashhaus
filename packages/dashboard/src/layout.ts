@@ -4,7 +4,7 @@ import type { AutoEntityEntry } from "./element";
  * The facts an automatic Lovelace layout needs, shared by every skin: which entities are visible, which area an
  * entity is in, how entities sort by name, how they group by area, and how a section joins one of its title. The
  * section policy itself (orb's Comfort/Modes/Rooms/Security/Nursery/Outside, field's by-area modules) stays in the
- * skin. Pure: no React, no DOM, no skin, so a Node config (scripts/deploy.mjs, a generated skin) can import it.
+ * skin. Pure: no React, no DOM, no skin, so a Node config (dashboard.config.mjs, a generated skin) can import it.
  */
 
 export type { AutoEntityEntry } from "./element";

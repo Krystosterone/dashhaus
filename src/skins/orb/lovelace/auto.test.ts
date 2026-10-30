@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autoDashboard, lovelaceDashboard } from "./auto";
+import { autoDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { roomSensors } from "@scope/dashboard";
@@ -65,10 +65,9 @@ describe("autoDashboard", () => {
     });
   });
 
-  it("produces a config the card accepts, inside a panel view", () => {
+  it("produces a config the card accepts", () => {
     const card = autoDashboard(input, "Flat");
     expect(() => parseDashboardConfig(card)).not.toThrow();
-    expect(lovelaceDashboard(card, "Flat")).toEqual({ views: [{ title: "Flat", path: "home", type: "panel", cards: [card] }] });
   });
 
   it("places sleep state sensors that the card draws as owlet socks", () => {
