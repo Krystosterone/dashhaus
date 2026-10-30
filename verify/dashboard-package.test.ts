@@ -1,8 +1,8 @@
 /**
- * @scope/dashboard's one declared subpath is its interface: the entry is browser code with no Node builtins, no CSS
+ * @scope/dashboard's declared subpaths are its interface: each entry is browser code with no Node builtins, no CSS
  * and no skin, and every package it reaches is React or a declared @scope subpath. This walks the real import graph
- * from the entry, the way a bundler would, rather than trusting folder names; it also holds the package to its one
- * caller, a skin's lovelace/ card.
+ * from every entry, the way a bundler would, rather than trusting folder names; it also holds the Lovelace entry to
+ * its one caller, a skin's lovelace/ card.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
@@ -32,8 +32,8 @@ function resolveSpecifier(spec: string, from: string): string | undefined {
   return undefined;
 }
 
-/** Every file reachable from the entry, every bare package those files import, and any relative import that leaves. */
-function graph(entry: string) {
+/** Every file reachable from the entries, every bare package those files import, and any relative import that leaves. */
+function graph(entries: string[]) {
   const files = new Set<string>();
   const packages = new Set<string>();
   const outside: string[] = [];
@@ -48,7 +48,7 @@ function graph(entry: string) {
       else if (!spec.startsWith(".")) packages.add(spec);
     }
   };
-  visit(entry);
+  for (const entry of entries) visit(entry);
   return { files: [...files], packages: [...packages], outside };
 }
 
@@ -56,11 +56,10 @@ const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs
 /** The browser packages the entry may reach directly; everything else must be a declared @scope subpath. */
 const BROWSER = ["react", "react-dom/client"];
 
-const entry = () => {
-  const target = packageJson.exports["."];
-  if (typeof target !== "string") throw new Error("@scope/dashboard has no string export for .");
+const entries = () => Object.entries(packageJson.exports).map(([subpath, target]) => {
+  if (typeof target !== "string") throw new Error(`@scope/dashboard has no string export for ${subpath}`);
   return `${PACKAGE}/${target.replace(/^\.\//, "")}`;
-};
+});
 
 /** Whether a bare specifier names a subpath its package declares, wildcard exports included. */
 function declared(spec: string): boolean {
@@ -80,20 +79,25 @@ describe("@scope/dashboard", () => {
     expect(packageJson.version).toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
-    expect(Object.keys(packageJson.exports)).toEqual(["."]);
+    expect(Object.keys(packageJson.exports)).toEqual([".", "./card"]);
+  });
+
+  it("exposes the card frame on a subpath of its own", () => {
+    expect(packageJson.exports["./card"]).toBeTypeOf("string");
+    expect(packageJson.exports["./card"]).not.toBe(packageJson.exports["."]);
   });
 
   it("keeps every reachable file inside the package, with no CSS, no skin and no Node builtin", () => {
-    const { files, packages, outside } = graph(entry());
+    const { files, packages, outside } = graph(entries());
     expect(files.length).toBeGreaterThan(0);
     expect(outside, "no relative import leaves @scope/dashboard").toEqual([]);
     expect(files.filter((file) => file.includes("/skins/")), "the framework is skin-free").toEqual([]);
-    expect(files.filter((file) => file.endsWith(".css")), "the entry is CSS-free").toEqual([]);
+    expect(files.filter((file) => /\.(css|scss|less)["']/.test(read(file))), "the entries import no stylesheet").toEqual([]);
     expect(packages.filter((spec) => NODE_BUILTINS.test(spec)), "the entry is browser code").toEqual([]);
   });
 
   it("reaches only React and declared @scope subpaths, never the websocket client", () => {
-    const { packages } = graph(entry());
+    const { packages } = graph(entries());
     expect(packages.filter((spec) => !BROWSER.includes(spec) && !declared(spec)), "a package specifier is a declared subpath").toEqual([]);
     expect(packages, "the entry reaches the client through @scope/core/websocket").not.toContain("home-assistant-js-websocket");
   });
@@ -108,6 +112,6 @@ describe("@scope/dashboard", () => {
       }
     };
     walk("src/skins");
-    expect(files.filter((file) => !file.includes("/lovelace/") && specs(file).some((spec) => spec === "@scope/dashboard" || spec.startsWith("@scope/dashboard/")))).toEqual([]);
+    expect(files.filter((file) => !file.includes("/lovelace/") && specs(file).includes("@scope/dashboard"))).toEqual([]);
   });
 });

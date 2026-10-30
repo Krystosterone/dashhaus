@@ -1,8 +1,8 @@
-import { useId, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { usePress } from "@scope/core/primitives";
 import { useRangeSlider, useSlider } from "@scope/core/primitives";
-import { useSheet } from "@scope/core/primitives";
+import { CardDialog, cardShape, useCardFrame } from "@scope/dashboard/card";
+import type { Details } from "@scope/dashboard/card";
 import type { HourSample } from "@scope/core/entities/history";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
@@ -65,18 +65,18 @@ export interface ModuleProps {
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
 export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, level, say, since, children }: ModuleProps) {
-  const nameId = useId();
+  const frame = useCardFrame({ footprint });
   const delay = useAlarmPhase(level === "alarm", since);
   return (
-    <article className={`fd-module ${kind}`} data-footprint={footprint} data-state={state} data-level={level} aria-labelledby={nameId} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
+    <article className={`fd-module ${kind}`} data-footprint={frame.footprint} data-state={state} data-level={level} {...frame.article} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
       <header className="fd-head">
         {/* Labelled by the name alone, so the heading stays "Ceiling" while the button inside reads "Ceiling details". */}
-        <h3 className="fd-name" title={name} aria-labelledby={nameId}>
+        <h3 className="fd-name" title={name} aria-labelledby={frame.nameId}>
           {onOpen ? (
             <button type="button" className="fd-open" aria-label={`${name} details`} aria-haspopup="dialog" onClick={onOpen}>
-              <span className="fd-open-t" id={nameId}>{name}</span><IconOpen />
+              <span className="fd-open-t" id={frame.nameId}>{name}</span><IconOpen />
             </button>
-          ) : <span id={nameId}>{name}</span>}
+          ) : <span id={frame.nameId}>{name}</span>}
         </h3>
         {warning ? <p className="fd-area" title={warning}><Warn block={level != null}>{warning}</Warn></p>
           : (note ?? area) && <p className="fd-area" title={note ?? area}>{note ?? area}</p>}
@@ -400,50 +400,32 @@ export function Today({ legend = "Today", summary, label, samples = NO_HOURS, cu
   );
 }
 
-/** Longest exit transition in panel.css, plus a frame. */
-const CLOSE_MS = 250;
-const PHONE = "(max-width: 600px)";
-
 /**
  * The detail panel: a module's plate grown into a modal dialog, a bottom sheet on phones (drag its header down
  * to close) and a centred panel on wider screens. Its header repeats the name and area, with a close key, which takes
  * focus as it opens unless `focusContent`: then the content's own `[data-autofocus]` does (an alarm's keypad).
  */
 export function Panel({ open, onClose, name, area, focusContent, children }: { open: boolean; onClose: () => void; name: string; area?: string; focusContent?: boolean; children: ReactNode }) {
-  const { mounted, dialogProps } = useSheet({ open, label: `${name} details`, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".fd-panel-head", snapBack: "translate 300ms var(--fd-ease-drawer)" });
   return (
-    // The click only closes on backdrop; Escape is the keyboard path (onCancel).
-    <dialog className="fd-panel" {...dialogProps}>
-      {mounted && (
-        <div className="fd-panel-in">
-          <header className="fd-panel-head">
-            <div className="fd-head">
-              <h2 className="fd-name" title={name}>{name}</h2>
-              {area && <p className="fd-area" title={area}>{area}</p>}
-            </div>
-            <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name} details`} data-autofocus={!focusContent || undefined} onClick={onClose}>
-              <span className="fd-key-glyph" aria-hidden="true"><IconClose /></span>
-            </button>
-          </header>
-          {children}
-        </div>
-      )}
-    </dialog>
+    <CardDialog open={open} onClose={onClose} label={`${name} details`} className="fd-panel" handle=".fd-panel-head" snapBack="translate 300ms var(--fd-ease-drawer)">
+      <div className="fd-panel-in">
+        <header className="fd-panel-head">
+          <div className="fd-head">
+            <h2 className="fd-name" title={name}>{name}</h2>
+            {area && <p className="fd-area" title={area}>{area}</p>}
+          </div>
+          <button type="button" className="fd-key fd-key--close" aria-label={`Close ${name} details`} data-autofocus={!focusContent || undefined} onClick={onClose}>
+            <span className="fd-key-glyph" aria-hidden="true"><IconClose /></span>
+          </button>
+        </header>
+        {children}
+      </div>
+    </CardDialog>
   );
 }
 
-/** Whether a module's detail panel is open, with what opens it (its name, a key's hold) and closes it. */
-export interface Details {
-  open: boolean;
-  openDetails: () => void;
-  closeDetails: () => void;
-}
-
-/** A module's detail panel state, open on first render with `defaultOpen` (stories). */
-export function useDetails(defaultOpen = false): Details {
-  const [open, setOpen] = useState(defaultOpen);
-  return { open, openDetails: () => setOpen(true), closeDetails: () => setOpen(false) };
-}
+export type { Details };
+export { useDetails } from "@scope/dashboard/card";
 
 export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children"> {
   /** From `useDetails`: the name opens the panel. */
@@ -479,11 +461,12 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
  * and row, and the detail panel its name opens. A card brings what goes in it.
  */
 export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelFocus, alert, children, ...module }: ModuleFrameProps) {
+  const { compact } = cardShape({ footprint: module.footprint });
   useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what, startedAt: alert.startedAt }, details.openDetails);
   return (
     <>
-      <Module {...module} area={module.footprint === "compact" ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say} since={alert?.startedAt}>
-        {module.footprint === "compact" ? (
+      <Module {...module} area={compact ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say} since={alert?.startedAt}>
+        {compact ? (
           <>
             {lead}
             <Screen pict={pict}>{read}</Screen>

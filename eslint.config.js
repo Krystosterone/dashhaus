@@ -29,8 +29,12 @@ const noPackageRelative = [
   ...noCoreRelative,
   { group: ["**/packages/dashboard", "**/packages/dashboard/**"], message: "Cross the package boundary with @scope/dashboard." },
 ];
-/** @scope/dashboard is the Lovelace framework: only a skin's lovelace/ card draws on it. */
-const noDashboard = [{ group: ["@scope/dashboard", "@scope/dashboard/*"], message: "Only a skin's lovelace/ imports @scope/dashboard; cards, dashboards and stories stay presentation-only." }];
+/** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @scope/dashboard/card. */
+const noDashboardEntry = { name: "@scope/dashboard", message: "A card draws on @scope/dashboard/card; only a skin's lovelace/ imports the Lovelace entry." };
+const noDashboard = [{
+  group: ["@scope/dashboard/schema", "@scope/dashboard/layout", "@scope/dashboard/vite", "@scope/dashboard/conformance", "@scope/dashboard/cli"],
+  message: "A card draws on @scope/dashboard/card; the schema, layout, build and CLI subpaths stay in a skin's lovelace/.",
+}];
 
 export default tseslint.config(
   { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
@@ -162,7 +166,7 @@ export default tseslint.config(
     ignores: ["src/skins/*/ha/**", "src/skins/*/lovelace/**", "src/skins/*/index.ts"],
     rules: {
       "no-restricted-imports": ["error", {
-        paths: coreHa.paths,
+        paths: [...coreHa.paths, noDashboardEntry],
         patterns: [
           ...coreHa.patterns,
           { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Only @scope/core/websocket imports the Home Assistant websocket client." },
@@ -181,6 +185,7 @@ export default tseslint.config(
     files: ["src/skins/*/ha/**/*.{ts,tsx}", "src/skins/*/index.ts"],
     rules: {
       "no-restricted-imports": ["error", {
+        paths: [noDashboardEntry],
         patterns: [
           { group: ["home-assistant-js-websocket", "home-assistant-js-websocket/*"], message: "Import Connection from @scope/core/websocket." },
           ...noOtherSkin,

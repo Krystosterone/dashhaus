@@ -1,8 +1,9 @@
-import { createContext, createElement, useContext, useId, useState } from "react";
+import { createContext, useContext } from "react";
 import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
 import { usePress } from "@scope/core/primitives";
 import type { useSlider } from "@scope/core/primitives";
-import { useSheet } from "@scope/core/primitives";
+import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@scope/dashboard/card";
+import type { CardFootprint, CardProps as FrameProps, SheetProps, TileProps } from "@scope/dashboard/card";
 import type { ColorName } from "@scope/core/entities/color";
 import type { HourSample, Reading } from "@scope/core/entities/history";
 import { fmt1, fmtDuration } from "@scope/core/entities/format";
@@ -32,28 +33,15 @@ export type { ColorName };
 /** A card's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
 export type ColorProp = ColorName | SlotColor | "none";
 
-/** Dashboard footprint. Every step uses one 60px unit; adjacent units are separated by the shared 8px gap. */
-export type CardFootprint = "compact" | "standard" | "featured";
+export type { CardFootprint, SheetProps, TileProps };
 
 export type Role = "energy" | "state" | "reading";
 
 /** Card titles are H2 outside a titled section and H3 inside one. Detail sheets reset to H2. */
 export const CardHeadingLevelContext = createContext<2 | 3>(2);
 
-/** The props every card takes, whatever its entity. A card's props extend this. */
-export interface CardProps {
-  /** "card" sits on the dashboard; "sheet" is the detail view with everything visible. */
-  variant?: "card" | "sheet";
-  /** Card footprint. Standard is 128px; compact is 60px; featured is 264px at every width. */
-  footprint?: CardFootprint;
-  /**
-   * Compact only. false removes the inline control, shows the value in its place, and makes the row open
-   * the detail sheet. The orb keeps its tap and hold actions. Default true.
-   */
-  showControl?: boolean;
-  /** Card only: the name, and press and hold on the orb, open the details sheet. */
-  onOpenDetails?: () => void;
-  onClose?: () => void;
+/** The props every card takes, whatever its entity: the frame's, plus the orb's colour slot. */
+export interface CardProps extends FrameProps {
   /** Opt-in colour for the orb. */
   color?: ColorProp;
 }
@@ -70,13 +58,8 @@ const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().t
  * card (the lid says it once, for all of them), and its sheet, seen without the lid, says whose part it is.
  */
 export function useCard(code: string, { variant = "card", footprint = "standard", showControl = true, area: own }: Pick<CardProps, "variant" | "footprint" | "showControl"> & { area?: string }) {
-  const uid = useId();
+  const { uid, nameId, sheet, compact, featured, bare } = useCardFrame({ variant, footprint, showControl });
   const lid = useContext(BundleLid);
-  const sheet = variant === "sheet";
-  const compact = !sheet && footprint === "compact";
-  const featured = !sheet && footprint === "featured";
-  const bare = compact && !showControl;
-  const nameId = `${uid}-n`;
   const inLidRoom = lid != null && (own == null || (lid.area != null && sameArea(own, lid.area)));
   const area = !lid ? own
     : sheet ? [lid.title, inLidRoom ? lid.area : own].filter(Boolean).join(" · ")
@@ -366,14 +349,9 @@ export function ChoiceChips<T extends string | number>({ id, label, options, val
 }
 
 /* ---------- Sheet: modal dialog ----------
-   Phones (600px and under): a bottom sheet that slides up, with a grab handle and a pinned header.
-   Drag the header down to dismiss: past 30% of its height (140px at most), or any flick. A short, slow drag
-   snaps back. Dragging up meets growing friction instead of a wall. Wider screens: a centered panel.
-   Close, the backdrop and Escape all animate it out; the motion is CSS transitions, so it can reverse mid-way.
-   The page behind does not scroll while it is open. */
-const PHONE = "(max-width: 600px)";
-/** Longest exit transition in card.css, plus a frame. */
-const CLOSE_MS = 250;
+   Phones (600px and under): a bottom sheet that slides up, with a grab handle and a pinned header. The frame's
+   CardDialog owns the modal behaviour: the drag down to dismiss, the exit transition, Escape and the backdrop.
+   This draws the card system's content, and for a bundle's lead the bundle's other members. */
 
 /**
  * What a sheet shows under its card, set by whoever renders the tile. A bundle's lead uses it to list
@@ -383,61 +361,35 @@ export const SheetExtra = createContext<{ title: string; content: ReactNode } | 
 
 export function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () => void; label: string; children: ReactNode }) {
   const extra = useContext(SheetExtra);
-  const { mounted, dialogProps } = useSheet({ open, label, onClose, closeMs: CLOSE_MS, phone: PHONE, handle: ".hd--sheet > .hd-head", snapBack: "translate 300ms var(--ease-drawer)" });
-
   return (
-    // The click only closes on backdrop; Escape is the keyboard path (onCancel).
-    <dialog className="hd-sheet" {...dialogProps}>
-      {mounted && (
-        <CardHeadingLevelContext.Provider value={2}>
-          <div className={`hd-c${extra ? " hd-c--more" : ""}`}>
-            {children}
-            {extra && (
-              <SheetExtra.Provider value={null}>
-                <section className="hd-more" aria-label={extra.title}>
-                  <h3 className="hd-blk-h">{extra.title}</h3>
-                  {extra.content}
-                </section>
-              </SheetExtra.Provider>
-            )}
-          </div>
-        </CardHeadingLevelContext.Provider>
-      )}
-    </dialog>
+    <CardDialog open={open} onClose={onClose} label={label} className="hd-sheet" handle=".hd--sheet > .hd-head" snapBack="translate 300ms var(--ease-drawer)">
+      <CardHeadingLevelContext.Provider value={2}>
+        <div className={`hd-c${extra ? " hd-c--more" : ""}`}>
+          {children}
+          {extra && (
+            <SheetExtra.Provider value={null}>
+              <section className="hd-more" aria-label={extra.title}>
+                <h3 className="hd-blk-h">{extra.title}</h3>
+                {extra.content}
+              </section>
+            </SheetExtra.Provider>
+          )}
+        </div>
+      </CardHeadingLevelContext.Provider>
+    </CardDialog>
   );
 }
 
 /* ---------- Sheet and tile for a card ----------
    Every card renders twice: as the card, and as itself in its details sheet (`variant="sheet"`).
-   These two build the wrappers so a card only writes the card. */
-
-/** A card's sheet props: everything but the card-only ones, plus whether it is open. */
-export type SheetProps<P> = Omit<P, "variant" | "footprint" | "onOpenDetails" | "onClose"> & { open: boolean; onClose: () => void };
-/** A card's tile props: the card's, with the sheet wired in. */
-export type TileProps<P> = Omit<P, "variant" | "onOpenDetails" | "onClose"> & { defaultOpen?: boolean };
+   The frame composes them; orb supplies its sheet and the container its cards are sized in. */
 
 /** The details sheet for a card: the card itself as `variant="sheet"`, in a `Sheet`. */
 export function detailsSheet<P extends CardProps & { entity: { name: string } }>(Card: ComponentType<P>, label = (name: string) => `${name} details`) {
-  function DetailsSheet({ open, onClose, ...props }: SheetProps<P>) {
-    const p = { ...props, variant: "sheet", onClose } as unknown as P;
-    return <Sheet open={open} onClose={onClose} label={label(p.entity.name)}>{createElement(Card, p)}</Sheet>;
-  }
-  DetailsSheet.displayName = `${(Card.displayName ?? Card.name).replace(/Card$/, "")}Sheet`;
-  return DetailsSheet;
+  return detailsSheetOf(Card, Sheet, (props) => label(props.entity.name));
 }
 
 /** A dashboard-ready tile for a card: the card in its size container, plus its details sheet. */
 export function detailsTile<P extends CardProps>(Card: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>) {
-  function Tile({ defaultOpen = false, ...props }: TileProps<P>) {
-    const [open, setOpen] = useState(defaultOpen);
-    // The sheet gets the card's props too: a sheet ignores footprint.
-    return (
-      <>
-        <div className="hd-c">{createElement(Card, { ...props, onOpenDetails: () => setOpen(true) } as unknown as P)}</div>
-        {createElement(DetailsSheet, { ...props, open, onClose: () => setOpen(false) } as unknown as SheetProps<P>)}
-      </>
-    );
-  }
-  Tile.displayName = `${(Card.displayName ?? Card.name).replace(/Card$/, "")}Tile`;
-  return Tile;
+  return detailsTileOf(Card, DetailsSheet, "hd-c");
 }
