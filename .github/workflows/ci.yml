@@ -9,7 +9,9 @@ env:
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
 jobs:
-  check:
+  # Typecheck, lint, the unit suites and the release proof. The generator tests run in their own lane
+  # because they dominate this one; `check` below is the required status check for both.
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,11 +22,52 @@ jobs:
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
       - run: npm ci
-      - run: npm run check
-      - run: npm run test:generators
+      - name: Cache TypeScript's incremental state
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/tsc
+          key: tsc-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            tsc-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      - name: Cache ESLint's lint results
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/eslint
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-${{ github.sha }}
+          restore-keys: |
+            eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
       - run: npm run build:ha
       - run: npm run release:pack
       - run: npm run verify:packages
+
+  generators:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - run: npm ci
+      - run: npm run test:generators
+
+  # The required status check: green only when both lanes above are green.
+  check:
+    needs: [unit, generators]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the unit and generator lanes
+        run: |
+          echo "unit: ${{ needs.unit.result }}"
+          echo "generators: ${{ needs.generators.result }}"
+          test "${{ needs.unit.result }}" = "success"
+          test "${{ needs.generators.result }}" = "success"
 
   storybook:
     runs-on: ubuntu-latest

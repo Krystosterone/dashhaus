@@ -82,7 +82,7 @@ describe("new-card", () => {
       copy = mkdtempSync(join(tmpdir(), "new-card-"));
       cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
       linkNodeModules(copy);
-    });
+    }, 120_000);
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
     it("finds every field anchor", async () => {

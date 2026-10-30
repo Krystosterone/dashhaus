@@ -87,18 +87,28 @@ The tarball's manifest is already the release manifest; publishing the tarball, 
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. Two jobs run in parallel.
+`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. Three lanes run in parallel, and a fourth `check` job backs the required status check.
 
-`check`:
+`unit`:
 
 ```sh
 npm ci
-npm run check
-npm run test:generators
+npm run typecheck
+npm run lint
+npm run test:unit
 npm run build:ha
 npm run release:pack
 npm run verify:packages
 ```
+
+`generators`:
+
+```sh
+npm ci
+npm run test:generators
+```
+
+`check` requires both lanes above and fails unless each is green; it is the status check `main` requires. The generator tests ran in the same job before, but they dominate the unit suite (216s of a 366s Vitest run), so they get their own runner. `npm run check` still runs typecheck, lint and every test locally, generators included.
 
 `storybook`:
 
@@ -108,9 +118,7 @@ npx playwright install --with-deps chromium
 npm run test-storybook
 ```
 
-The Storybook job caches `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails the job with the rule, impact and target elements.
-
-`npm run check` already includes the unit tests, so `test:generators` is the explicit generator gate the release brief asks for, not the only place they run. CI has no publish, tag or release step, and needs no secrets.
+The `unit` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `eslint.config.js` and the tsconfigs). The Storybook job caches `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails the job with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
 
 ## Differences from the readiness note
 

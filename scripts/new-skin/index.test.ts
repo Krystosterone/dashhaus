@@ -89,7 +89,7 @@ describe("new-skin", () => {
       copy = mkdtempSync(join(tmpdir(), "new-skin-canvas-"));
       cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
       await install(copy);
-    });
+    }, 300_000);
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
     it("creates a linked workspace package that a Card lands in", async () => {
@@ -143,7 +143,7 @@ describe("new-skin", () => {
       cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
       await install(copy);
       removeField(copy);
-    });
+    }, 300_000);
     afterAll(() => process.env.KEEP_NEW_SKIN_COPY ? console.info(`FIELD_RECONSTRUCTION=${copy}`) : rmSync(copy, { recursive: true, force: true }));
 
     it("recreates every current domain and passes generated-skin seams", async () => {
