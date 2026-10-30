@@ -87,7 +87,7 @@ The tarball's manifest is already the release manifest; publishing the tarball, 
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. Three lanes run in parallel, and a fourth `check` job backs the required status check.
+`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. `unit`, `generators` and the two Storybook shards run in parallel, and the `check` and `storybook` aggregate jobs back the required status checks.
 
 `unit`:
 
