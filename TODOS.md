@@ -1,5 +1,10 @@
 # TODOS
 
+- [ ] Pick the monorepo name and rename the repo.
+  - Recommendation: `Dashhaus` (`docs/research/2026-10-29-monorepo-name.md`); fallbacks `Cardfile`, `Kartenwerk`, `Wainscot`.
+  - After confirmation: rename the root/repository and `@scope/core`/`@scope/dashboard` → `@<name>/*` across imports, ESLint rules, generators, docs and the lockfile; add `@<name>/deploy` when the CLI lands.
+  - Keep `custom:home-dashboard` / `custom:home-dashboard-field` and the deploy paths for compatibility, or add `custom:<name>` aliases in a major.
+  - Run `npm run check`, `npm run test-storybook` and `npm run build:ha`; update `origin` after renaming the GitHub repository.
 - [ ] Add instrumentation so agents can test the performance of dashboards in production.
 - [ ] Split `AGENTS.md`, `README.md` and the skills.
 - [ ] Hide ugly tooling config at the repo root inside folders (`eslint.config.js`, `tsconfig.json`, `vite*.config.ts`, `vitest.config.ts`, `test-runner-jest.config.js`, `skills-lock.json`).
