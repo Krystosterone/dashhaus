@@ -124,7 +124,7 @@ describe("new-skin", () => {
       expect(readFileSync(join(copy, "src/skins/canvas/lovelace/registry.tsx"), "utf8")).toContain("light: { domains: [\"light\"]");
       expect(readFileSync(join(copy, "src/skins/canvas/index.ts"), "utf8")).toContain("CanvasLightCard");
 
-      const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
+      const typecheck = await run(copy, "npm", ["run", "typecheck"]);
       expect(typecheck.status, typecheck.output).toBe(0);
       const lint = await run(copy, "npx", ["eslint", "src/skins/canvas", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
       expect(lint.status, lint.output).toBe(0);
@@ -168,7 +168,7 @@ describe("new-skin", () => {
       expect(entry).toContain('import "@dashhaus/field/styles/tokens.css";');
       expect(entry).toContain('from "@dashhaus/field/lovelace/card"');
 
-      const typecheck = await run(copy, "npx", ["tsc", "--noEmit"]);
+      const typecheck = await run(copy, "npm", ["run", "typecheck"]);
       expect(typecheck.status, typecheck.output).toBe(0);
       const lint = await run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
       expect(lint.status, lint.output).toBe(0);

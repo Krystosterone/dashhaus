@@ -1,10 +1,4 @@
 import { defineConfig } from "vitest/config";
+import { projects } from "./vitest.projects";
 
-export default defineConfig({
-  resolve: { conditions: ["source"] },
-  test: {
-    environment: "jsdom",
-    globals: true,
-    include: ["src/**/*.test.{ts,tsx}", "packages/*/src/**/*.test.{ts,tsx}", "verify/**/*.test.{ts,tsx}", "scripts/*/*.test.ts"],
-  },
-});
+export default defineConfig({ test: { projects } });

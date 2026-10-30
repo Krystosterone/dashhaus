@@ -10,7 +10,7 @@
     "build:ha": "vite build -c vite.lovelace.config.ts",
     "build:packages": "node scripts/build-packages.mjs",
     "deploy": "dashhaus-deploy",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/dashboard/tsconfig.json && tsc --noEmit -p packages/deploy/tsconfig.json",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
