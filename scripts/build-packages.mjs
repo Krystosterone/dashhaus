@@ -58,7 +58,24 @@ export async function buildPackages(outRoot = root) {
     const dir = join(root, pkg.dir);
     const dist = join(outRoot, pkg.dir, "dist");
     await rm(dist, { recursive: true, force: true });
-    execFileSync(process.execPath, [tsc, "-p", join(dir, "tsconfig.build.json"), "--outDir", dist, "--pretty", "false"], { cwd: root, stdio: "inherit" });
+    let project = join(dir, "tsconfig.build.json");
+    // A temporary build root is not installed in node_modules, so the framework's build resolves the core build
+    // beside it rather than a dist that may not exist in the repo.
+    if (outRoot !== root && pkg.name === "@dashhaus/dashboard") {
+      project = join(outRoot, "dashboard.tsconfig.json");
+      await writeFile(project, `${JSON.stringify({
+        extends: join(dir, "tsconfig.build.json"),
+        compilerOptions: {
+          baseUrl: ".",
+          typeRoots: [join(root, "node_modules", "@types")],
+          paths: {
+            "@dashhaus/core": ["packages/core/dist/index.d.ts"],
+            "@dashhaus/core/*": ["packages/core/dist/*"],
+          },
+        },
+      }, null, 2)}\n`);
+    }
+    execFileSync(process.execPath, [tsc, "-p", project, "--outDir", dist, "--pretty", "false"], { cwd: root, stdio: "inherit" });
     const emitted = await files(dist);
     await Promise.all(emitted.filter((path) => /\.(js|d\.ts)$/.test(path)).map(rewriteImports));
     if (pkg.fixtures) await cp(join(dir, pkg.fixtures), join(dist, "ha", "fixtures"), { recursive: true });
