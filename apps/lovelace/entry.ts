@@ -1,10 +1,11 @@
 // The Home Assistant bundle's entry (vite.lovelace.config.ts). The build replaces the placeholder with every
 // stylesheet the dashboards import, so the cards ship as one file: custom:home-dashboard (orb) and
-// custom:home-dashboard-field (field).
-import "../../skins/orb/styles/tokens.css";
-import "../../skins/field/styles/tokens.css";
-import { defineHomeDashboardCard } from "../../skins/orb/lovelace/card";
-import { defineFieldCard } from "../../skins/field/lovelace/card";
+// custom:home-dashboard-field (field). It sits outside src/ because it is the one file that ties both skins
+// together; the shared Lovelace code the skins build on stays skin-free.
+import "../../src/skins/orb/styles/tokens.css";
+import "../../src/skins/field/styles/tokens.css";
+import { defineHomeDashboardCard } from "../../src/skins/orb/lovelace/card";
+import { defineFieldCard } from "../../src/skins/field/lovelace/card";
 
 declare const __HOME_DASHBOARD_BUILD__: string;
 

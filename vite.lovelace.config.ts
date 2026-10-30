@@ -43,7 +43,7 @@ export default defineConfig({
     emptyOutDir: true,
     cssCodeSplit: false,
     target: "es2022",
-    lib: { entry: "src/ha/lovelace/entry.ts", formats: ["es"], fileName: () => "home-dashboard.js" },
+    lib: { entry: "apps/lovelace/entry.ts", formats: ["es"], fileName: () => "home-dashboard.js" },
     rollupOptions: { output: { inlineDynamicImports: true } },
   },
 });

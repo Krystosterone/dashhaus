@@ -77,9 +77,8 @@ export default tseslint.config(
   },
   {
     // Mappers, actions, hooks, headless components, the store and the Lovelace element base feed every skin, so
-    // they never import one. The bundle's entry is where the skins' cards are registered.
+    // they never import one; the bundle's entry lives outside src/, in apps/lovelace/entry.ts.
     files: ["src/ha/**/*.{ts,tsx}"],
-    ignores: ["src/ha/lovelace/entry.ts"],
     rules: { "no-restricted-imports": ["error", { patterns: noSkin("Keep Home Assistant logic skin-free; import entity models from src/domains/.") }] },
   },
 );

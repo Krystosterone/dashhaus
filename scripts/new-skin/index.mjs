@@ -36,7 +36,7 @@ if (exists(docs)) fail(`${docs} already exists`);
 
 const preview = read(".storybook/preview.tsx");
 if (preview.includes(`section: "${Section}"`) || preview.includes(`"${Section}", [`)) fail(`Storybook section "${Section}" is already registered`);
-const entry = read("src/ha/lovelace/entry.ts");
+const entry = read("apps/lovelace/entry.ts");
 if (entry.includes(`define${Skin}Card(`)) fail(`Lovelace card "home-dashboard-${skin}" is already registered`);
 
 const fill = filler({
@@ -68,8 +68,8 @@ change.edit("src/index.ts", before("\n// Shared", fill(`import "./skins/__skin__
 change.edit("src/index.ts", before("// Header", fill(`// __Section__ generated skin\nexport { __Skin__CardFrame, __Skin__Action } from "./skins/__skin__/shared/ui";\nexport type { __Skin__Footprint, __Skin__CardFrameProps } from "./skins/__skin__/shared/ui";\nexport { __Skin__Page, __Skin__Section, __Skin__Columns, __Skin__Cell } from "./skins/__skin__/dashboards/layout";\nexport type { __Skin__PageProps, __Skin__SectionProps } from "./skins/__skin__/dashboards/layout";\nexport { __Skin__Header } from "./skins/__skin__/dashboards/Header";\nexport type { __Skin__HeaderProps } from "./skins/__skin__/dashboards/Header";\nexport { __Skin__NavBar } from "./skins/__skin__/dashboards/NavBar";\nexport type { __Skin__NavBarProps, __Skin__NavBarItem } from "./skins/__skin__/dashboards/NavBar";\n\n`)));
 
 // Home Assistant bundle and deploy's first-run dashboard list.
-change.edit("src/ha/lovelace/entry.ts", before("\ndeclare const __HOME_DASHBOARD_BUILD__", fill(`import "../../skins/__skin__/styles/tokens.css";\nimport { define__Skin__Card } from "../../skins/__skin__/lovelace/card";\n`)));
-change.edit("src/ha/lovelace/entry.ts", before("console.info", fill(`define__Skin__Card(css);\n`)));
+change.edit("apps/lovelace/entry.ts", before("\ndeclare const __HOME_DASHBOARD_BUILD__", fill(`import "../../src/skins/__skin__/styles/tokens.css";\nimport { define__Skin__Card } from "../../src/skins/__skin__/lovelace/card";\n`)));
+change.edit("apps/lovelace/entry.ts", before("console.info", fill(`define__Skin__Card(css);\n`)));
 change.edit("scripts/generated-skins.mjs", before("\n];", fill(`\n  { id: "__skin__", title: "Home (__Section__)", icon: "mdi:view-dashboard-outline" },`)));
 
 // The generated design contract and its Lovelace YAML are discoverable from the repository docs.

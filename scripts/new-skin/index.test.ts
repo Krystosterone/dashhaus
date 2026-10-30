@@ -46,9 +46,9 @@ const removeField = (copy: string) => {
   writeChanged(copy, ".storybook/preview.tsx", (source) => withoutArrayEntry(source
     .replace('import { fieldStorybook } from "../src/skins/field/storybook";\n', "")
     .replace(", fieldStorybook", ""), "Field"));
-  writeChanged(copy, "src/ha/lovelace/entry.ts", (source) => source
-    .replace('import "../../skins/field/styles/tokens.css";\n', "")
-    .replace('import { defineFieldCard } from "../../skins/field/lovelace/card";\n', "")
+  writeChanged(copy, "apps/lovelace/entry.ts", (source) => source
+    .replace('import "../../src/skins/field/styles/tokens.css";\n', "")
+    .replace('import { defineFieldCard } from "../../src/skins/field/lovelace/card";\n', "")
     .replace("defineFieldCard(css);\n", ""));
   writeChanged(copy, "scripts/deploy.mjs", (source) => source.replace(/\n {2}\{\n {4}path: process\.env\.HA_FIELD_DASHBOARD[\s\S]*?\n {2}\},/, ""));
   writeChanged(copy, "docs/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
@@ -62,7 +62,7 @@ describe("new-skin", () => {
   it("finds every registration anchor without writing", () => {
     const result = run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
-    for (const path of [".storybook/preview.tsx", "src/index.ts", "src/ha/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    for (const path of [".storybook/preview.tsx", "src/index.ts", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");
   });
 
