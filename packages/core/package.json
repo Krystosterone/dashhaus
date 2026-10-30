@@ -1,26 +1,80 @@
 {
   "name": "@scope/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "exports": {
-    ".": "./src/index.ts",
-    "./entities": "./src/entities/index.ts",
-    "./entities/*": "./src/entities/*.ts",
-    "./primitives": "./src/primitives/index.ts",
-    "./hooks": "./src/hooks/index.ts",
-    "./websocket": "./src/websocket.ts",
-    "./demo": "./src/demo/index.ts",
-    "./testing": "./src/testing.tsx",
-    "./fixtures/*": "./src/ha/fixtures/*"
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./entities": {
+      "source": "./src/entities/index.ts",
+      "types": "./dist/entities/index.d.ts",
+      "import": "./dist/entities/index.js",
+      "default": "./dist/entities/index.js"
+    },
+    "./entities/*": {
+      "source": "./src/entities/*.ts",
+      "types": "./dist/entities/*.d.ts",
+      "import": "./dist/entities/*.js",
+      "default": "./dist/entities/*.js"
+    },
+    "./primitives": {
+      "source": "./src/primitives/index.ts",
+      "types": "./dist/primitives/index.d.ts",
+      "import": "./dist/primitives/index.js",
+      "default": "./dist/primitives/index.js"
+    },
+    "./hooks": {
+      "source": "./src/hooks/index.ts",
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks/index.js",
+      "default": "./dist/hooks/index.js"
+    },
+    "./websocket": {
+      "source": "./src/websocket.ts",
+      "types": "./dist/websocket.d.ts",
+      "import": "./dist/websocket.js",
+      "default": "./dist/websocket.js"
+    },
+    "./demo": {
+      "source": "./src/demo/index.ts",
+      "types": "./dist/demo/index.d.ts",
+      "import": "./dist/demo/index.js",
+      "default": "./dist/demo/index.js"
+    },
+    "./testing": {
+      "source": "./src/testing.tsx",
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "default": "./dist/testing.js"
+    },
+    "./fixtures/*": {
+      "source": "./src/ha/fixtures/*",
+      "default": "./dist/ha/fixtures/*"
+    }
   },
   "peerDependencies": {
+    "@testing-library/react": "^16.0.0",
     "home-assistant-js-websocket": "^9.7.1",
-    "react": "^18.3.1"
+    "react": "^18.3.1",
+    "vitest": "^3.0.0"
   },
   "peerDependenciesMeta": {
+    "@testing-library/react": {
+      "optional": true
+    },
     "home-assistant-js-websocket": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
   }

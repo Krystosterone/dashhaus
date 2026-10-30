@@ -1,6 +1,6 @@
 {
   "name": "@scope/deploy",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
@@ -11,7 +11,8 @@
   },
   "files": [
     "bin.mjs",
-    "src"
+    "src/*.mjs",
+    "src/*.d.mts"
   ],
   "engines": {
     "node": ">=22"

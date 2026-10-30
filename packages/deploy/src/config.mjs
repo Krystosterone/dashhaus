@@ -35,6 +35,7 @@ async function bundleConfig(file) {
     await esbuild({
       absWorkingDir: dirname(file),
       bundle: true,
+      conditions: ["source"],
       define: { "import.meta.url": JSON.stringify(pathToFileURL(file).href) },
       entryPoints: [file],
       format: "esm",

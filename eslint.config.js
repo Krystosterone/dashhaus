@@ -37,7 +37,7 @@ const noDashboard = [{
 }];
 
 export default tseslint.config(
-  { ignores: ["storybook-static/**", "dist/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
+  { ignores: ["storybook-static/**", "dist/**", "packages/*/dist/**", "release/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -1,0 +1,86 @@
+/**
+ * The three public packages, their release manifest, and the rules a packed manifest must satisfy.
+ *
+ * The workspace resolves package source through the `source` export condition. A packed tarball ships only the built
+ * output, so the release pack strips that condition (and `private`) from a staged copy; the package manifests in the
+ * workspace may keep both. `verify/release-packages.test.ts` holds the same rules.
+ */
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+/** The repo root: beside this file when Node loads it, or the test runner's cwd when Vite rewrites import.meta.url. */
+export const root = (() => {
+  try {
+    return fileURLToPath(new URL("../../", import.meta.url));
+  } catch {
+    return `${process.cwd()}/`;
+  }
+})();
+
+/** What each public package ships: `dist` for the built packages, the CLI's runnable sources for deploy. */
+export const publicPackages = [
+  { key: "core", name: "@scope/core", dir: "packages/core", ship: ["dist"] },
+  { key: "dashboard", name: "@scope/dashboard", dir: "packages/dashboard", ship: ["dist"] },
+  { key: "deploy", name: "@scope/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts"] },
+];
+
+export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const DEPENDENCY_FIELDS = ["dependencies", "peerDependencies", "optionalDependencies"];
+
+export async function readManifest(dir) {
+  return JSON.parse(await readFile(join(root, dir, "package.json"), "utf8"));
+}
+
+/** Drop the workspace-only `source` condition from an exports value, recursively. */
+function withoutSource(value) {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) || value === null || typeof value !== "object") return value;
+  const result = {};
+  for (const [key, child] of Object.entries(value)) {
+    if (key !== "source") result[key] = withoutSource(child);
+  }
+  return result;
+}
+
+/**
+ * The manifest `npm pack` sees for a public package: no `private`, no `source` condition, and internal ranges pinned
+ * to the released version. Throws before packing when a rule is broken.
+ */
+export function publishManifest(manifest) {
+  if (!SEMVER.test(manifest.version) || manifest.version === "0.0.0") {
+    throw new Error(`${manifest.name}: release version must be a real semver, not ${manifest.version}; run npm run release:version -- <version>`);
+  }
+  const next = structuredClone(manifest);
+  delete next.private;
+  next.exports = withoutSource(next.exports);
+  if (JSON.stringify(next.exports).includes('"source"')) throw new Error(`${manifest.name}: the packed exports still declare a source condition`);
+  if (next.source !== undefined) throw new Error(`${manifest.name}: drop the top-level source field before packing`);
+  if (next.name !== "@scope/deploy") {
+    const targets = Object.values(next.exports).flatMap((target) => typeof target === "string" ? [target] : Object.values(target));
+    const bad = targets.filter((target) => !target.startsWith("./dist/") || target.endsWith(".tsx") || (target.endsWith(".ts") && !target.endsWith(".d.ts")));
+    if (bad.length) throw new Error(`${manifest.name}: export targets must be built dist files: ${bad.join(", ")}`);
+  } else if (JSON.stringify(next.exports).match(/\.tsx?"/)) {
+    throw new Error(`${manifest.name}: the packed exports reach a TypeScript file`);
+  }
+
+  for (const field of DEPENDENCY_FIELDS) {
+    for (const [name, range] of Object.entries(next[field] ?? {})) {
+      if (name.startsWith("@scope/")) {
+        const expected = `^${next.version}`;
+        if (range !== expected) throw new Error(`${manifest.name}: ${field}["${name}"] is "${range}", expected "${expected}"`);
+      } else if (range.includes("*")) {
+        throw new Error(`${manifest.name}: ${field}["${name}"] uses the wildcard range "${range}"`);
+      }
+    }
+  }
+
+  if (!Array.isArray(next.files) || next.files.length === 0) throw new Error(`${manifest.name}: add a files allowlist`);
+  if (next.sideEffects !== false && next.name !== "@scope/deploy") {
+    throw new Error(`${manifest.name}: sideEffects must stay false`);
+  }
+  if (next.name === "@scope/deploy" && (!next.bin?.["home-dashboard-deploy"] || !next.engines?.node)) {
+    throw new Error(`${manifest.name}: keep the home-dashboard-deploy bin and its engines.node floor`);
+  }
+  return next;
+}

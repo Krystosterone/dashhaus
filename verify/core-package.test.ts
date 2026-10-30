@@ -61,17 +61,33 @@ function graph(entry: string) {
 
 const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs$|http$|https$|module$|net$|os$|path$|process$|stream$|tls$|url$|util$|zlib$)/;
 const BROWSER = [".", "./entities", "./primitives", "./hooks", "./websocket", "./demo"];
-const entry = (subpath: string) => {
+const sourceTarget = (subpath: string) => {
   const target = packageJson.exports[subpath];
-  if (typeof target !== "string") throw new Error(`@scope/core has no string export for ${subpath}`);
-  return `packages/core/${target.replace(/^\.\//, "")}`;
+  if (typeof target !== "object" || typeof target.source !== "string") {
+    throw new Error(`@scope/core has no source export for ${subpath}`);
+  }
+  return target.source;
 };
+const entry = (subpath: string) => `packages/core/${sourceTarget(subpath).replace(/^\.\//, "")}`;
 
 describe("@scope/core", () => {
-  it("declares the package surface and is side-effect free", () => {
+  it("declares the package surface, its built files and its release metadata", () => {
+    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
+    expect(packageJson.files).toEqual(["dist"]);
     expect(Object.keys(packageJson.exports)).toEqual(expect.arrayContaining([".", "./entities", "./entities/*", "./primitives", "./hooks", "./websocket", "./demo", "./testing", "./fixtures/*"]));
+    for (const subpath of [".", "./entities", "./primitives", "./hooks", "./websocket", "./demo", "./testing"]) {
+      expect(packageJson.exports[subpath].types, `${subpath} ships declarations`).toMatch(/^\.\/dist\/.+\.d\.ts$/);
+      expect(packageJson.exports[subpath].import, `${subpath} ships ESM JavaScript`).toMatch(/^\.\/dist\/.+\.js$/);
+      expect(packageJson.exports[subpath].default).toBe(packageJson.exports[subpath].import);
+    }
+    expect(packageJson.exports["./entities/*"].types).toBe("./dist/entities/*.d.ts");
+    expect(packageJson.exports["./fixtures/*"].default).toBe("./dist/ha/fixtures/*");
+    expect(packageJson.peerDependenciesMeta["home-assistant-js-websocket"].optional).toBe(true);
+    expect(packageJson.peerDependenciesMeta.vitest.optional).toBe(true);
+    expect(packageJson.peerDependenciesMeta["@testing-library/react"].optional).toBe(true);
   });
 
   it("has no CSS in any entry's graph", () => {

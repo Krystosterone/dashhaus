@@ -34,6 +34,7 @@ const build = (() => {
 /** `npm run build:ha` — the Lovelace card as one self-contained ES module: dist/home-dashboard.js. */
 export default defineConfig({
   plugins: [react(), inlineCss()],
+  resolve: { conditions: ["source"] },
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
     __HOME_DASHBOARD_BUILD__: JSON.stringify(build),

@@ -1,18 +1,46 @@
 {
   "name": "@scope/dashboard",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "exports": {
-    ".": "./src/index.ts",
-    "./card": "./src/card.tsx",
-    "./schema": "./src/schema.ts",
-    "./layout": "./src/layout.ts",
-    "./cli": "./src/cli.ts"
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./card": {
+      "source": "./src/card.tsx",
+      "types": "./dist/card.d.ts",
+      "import": "./dist/card.js",
+      "default": "./dist/card.js"
+    },
+    "./schema": {
+      "source": "./src/schema.ts",
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js",
+      "default": "./dist/schema.js"
+    },
+    "./layout": {
+      "source": "./src/layout.ts",
+      "types": "./dist/layout.d.ts",
+      "import": "./dist/layout.js",
+      "default": "./dist/layout.js"
+    },
+    "./cli": {
+      "source": "./src/cli.ts",
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js",
+      "default": "./dist/cli.js"
+    }
   },
   "dependencies": {
-    "@scope/core": "*"
+    "@scope/core": "^0.1.0"
   },
   "peerDependencies": {
     "home-assistant-js-websocket": "^9.7.1",

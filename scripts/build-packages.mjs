@@ -1,0 +1,63 @@
+/**
+ * Build the publishable packages' ESM JavaScript and declarations into each package's `dist/`.
+ *
+ * The workspace consumes the packages' source through the `source` export condition, so this output exists only for
+ * packed/published installs. `tsc` keeps the source tree's shape; two details make the output valid Node ESM:
+ * relative imports get the `.js` extension the source's extensionless imports omit (TypeScript's declaration files
+ * need the same), and the raw-state JSON fixtures are copied beside the compiled modules that read them.
+ */
+import { execFileSync } from "node:child_process";
+import { cp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+export const root = fileURLToPath(new URL("../", import.meta.url));
+const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
+
+const packages = [
+  { name: "@scope/core", dir: "packages/core", fixtures: "src/ha/fixtures" },
+  { name: "@scope/dashboard", dir: "packages/dashboard" },
+];
+
+const RELATIVE_SPECIFIER = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(["'])(\.{1,2}\/[^"']+)\2/g;
+const HAS_EXTENSION = /\.(?:[cm]?js|json|css)$/;
+
+async function files(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const found = [];
+  for (const entry of entries) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...await files(path));
+    else found.push(path);
+  }
+  return found;
+}
+
+async function rewriteImports(path) {
+  const before = await readFile(path, "utf8");
+  const after = before.replace(RELATIVE_SPECIFIER, (match, lead, quote, specifier) => {
+    if (HAS_EXTENSION.test(specifier)) return match;
+    const base = join(path, "..", specifier);
+    if (existsSync(`${base}.js`) || existsSync(`${base}.d.ts`)) return `${lead}${quote}${specifier}.js${quote}`;
+    if (existsSync(`${base}.json`)) return `${lead}${quote}${specifier}.json${quote}`;
+    throw new Error(`${path}: cannot resolve emitted import "${specifier}"`);
+  });
+  if (after !== before) await writeFile(path, after);
+}
+
+export async function buildPackages() {
+  for (const pkg of packages) {
+    const dir = join(root, pkg.dir);
+    await rm(join(dir, "dist"), { recursive: true, force: true });
+    execFileSync(process.execPath, [tsc, "-p", join(dir, "tsconfig.build.json"), "--pretty", "false"], { cwd: root, stdio: "inherit" });
+    const emitted = await files(join(dir, "dist"));
+    await Promise.all(emitted.filter((path) => /\.(js|d\.ts)$/.test(path)).map(rewriteImports));
+    if (pkg.fixtures) await cp(join(dir, pkg.fixtures), join(dir, "dist", "ha", "fixtures"), { recursive: true });
+    console.log(`${pkg.name}: ${emitted.length} files in ${pkg.dir}/dist`);
+  }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  await buildPackages();
+}

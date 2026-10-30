@@ -60,10 +60,14 @@ const fakeHa: DeployHa = {
 describe("@scope/deploy", () => {
   it("is a private Node bin that exports only the CLI", () => {
     expect(packageJson.name).toBe("@scope/deploy");
+    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.type).toBe("module");
     expect(packageJson.bin).toEqual({ "home-dashboard-deploy": "./bin.mjs" });
     expect(packageJson.exports).toEqual({ ".": "./src/deploy.mjs" });
+    expect(packageJson.files).toEqual(["bin.mjs", "src/*.mjs", "src/*.d.mts"]);
+    expect(packageJson.engines).toEqual({ node: ">=22" });
     expect(Object.keys(packageJson.dependencies)).toEqual(["esbuild"]);
   });
 

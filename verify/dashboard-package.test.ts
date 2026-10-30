@@ -63,10 +63,16 @@ const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs
 /** The browser packages the entry may reach directly; everything else must be a declared @scope subpath. */
 const BROWSER = ["react", "react-dom/client"];
 
-const entries = () => Object.entries(packageJson.exports).map(([subpath, target]) => {
-  if (typeof target !== "string") throw new Error(`@scope/dashboard has no string export for ${subpath}`);
-  return `${PACKAGE}/${target.replace(/^\.\//, "")}`;
-});
+/** The workspace resolves source through the export's `source` condition; the graph walks those files. */
+const sourceTarget = (subpath: string) => {
+  const target = packageJson.exports[subpath];
+  if (typeof target !== "object" || typeof target.source !== "string") {
+    throw new Error(`@scope/dashboard has no source export for ${subpath}`);
+  }
+  return target.source;
+};
+
+const entries = () => Object.keys(packageJson.exports).map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
 
 /** Whether a bare specifier names a subpath its package declares, wildcard exports included. */
 function declared(spec: string): boolean {
@@ -81,20 +87,27 @@ function declared(spec: string): boolean {
 }
 
 describe("@scope/dashboard", () => {
-  it("declares its five entries and is side-effect free", () => {
+  it("declares its five entries, its built files and its release metadata", () => {
     expect(packageJson.name).toBe("@scope/dashboard");
-    expect(packageJson.version).toBe("0.0.0");
+    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
+    expect(packageJson.files).toEqual(["dist"]);
     expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout", "./cli"]);
+    expect(packageJson.dependencies["@scope/core"]).toBe(`^${packageJson.version}`);
   });
 
   it("exposes the card frame, the card schema, the layout and the CLI on subpaths of their own", () => {
     for (const subpath of ["./card", "./schema", "./layout", "./cli"]) {
-      expect(packageJson.exports[subpath]).toBeTypeOf("string");
-      expect(packageJson.exports[subpath]).not.toBe(packageJson.exports["."]);
+      expect(sourceTarget(subpath)).toMatch(new RegExp(`^\\./src/.+\\.tsx?$`));
+      expect(sourceTarget(subpath)).not.toBe(sourceTarget("."));
+      expect(packageJson.exports[subpath].types).toMatch(new RegExp(`^\\./dist/.+\\.d\\.ts$`));
+      expect(packageJson.exports[subpath].import).toMatch(new RegExp(`^\\./dist/.+\\.js$`));
+      expect(packageJson.exports[subpath].default).toBe(packageJson.exports[subpath].import);
     }
-    expect(new Set(Object.values(packageJson.exports)).size).toBe(5);
+    expect(new Set([".", "./card", "./schema", "./layout", "./cli"].map(sourceTarget)).size).toBe(5);
+    expect(new Set([".", "./card", "./schema", "./layout", "./cli"].map((subpath) => packageJson.exports[subpath].import)).size).toBe(5);
   });
 
   it("exposes exactly the schema's public words", () => {
@@ -141,8 +154,7 @@ describe("@scope/dashboard", () => {
 
   it("keeps the schema, layout and CLI pure, so a Node config can import them", () => {
     for (const subpath of ["./schema", "./layout", "./cli"]) {
-      const target = packageJson.exports[subpath];
-      const { files, packages, outside } = graph([`${PACKAGE}/${target.replace(/^\.\//, "")}`]);
+      const { files, packages, outside } = graph([`${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`]);
       expect(outside, `${subpath} has no relative import that leaves the package`).toEqual([]);
       expect(packages, `${subpath} reaches no React, DOM or Home Assistant package`).toEqual([]);
       expect(files.filter((file) => file.includes("/skins/")), `${subpath} is skin-free`).toEqual([]);
