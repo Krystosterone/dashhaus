@@ -42,7 +42,8 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(6006, "127.0.0.1", () => {
   const bin = join(root, "..", "node_modules", ".bin", "test-storybook");
-  const child = spawn(bin, ["--url", "http://127.0.0.1:6006", ...process.argv.slice(2)], {
+  // `--config-dir` makes test-runner look for `test-runner-jest*` in `.storybook/`, where it now lives.
+  const child = spawn(bin, ["--config-dir", ".storybook", "--url", "http://127.0.0.1:6006", ...process.argv.slice(2)], {
     stdio: "inherit",
     env: { ...process.env, STORYBOOK_PROJECT_ROOT: join(root, "..") },
   });

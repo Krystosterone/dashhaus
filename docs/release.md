@@ -15,7 +15,7 @@ The workspace resolves package **source**; a packed install resolves built **ESM
 }
 ```
 
-- `source` is the workspace-only condition. `tsconfig.base.json` (`customConditions`, inherited by the root and each package's `tsconfig.json`), Vite, Vitest, Storybook's `viteFinal` and the deploy config's esbuild loader all ask for it, so tests, stories and `build:ha` keep reading source.
+- `source` is the workspace-only condition. `config/tsconfig.base.json` (`customConditions`, inherited by the root and each package's `tsconfig.json`), Vite, Vitest, Storybook's `viteFinal` and the deploy config's esbuild loader all ask for it, so tests, stories and `build:ha` keep reading source.
 - `types`/`import`/`default` are what an installed consumer gets. Node ignores `source`; a packed manifest drops it entirely.
 - `npm run build:packages` compiles `packages/{core,dashboard}/src` to `dist` with `tsc` (declarations included), rewrites relative imports to `.js` (Node ESM and NodeNext declarations need the extension), and copies `packages/core/src/ha/fixtures/*.json` to `dist/ha/fixtures/`.
 - `@dashhaus/deploy` has no build: its `.mjs` sources and `.d.mts` declarations are the shipped files.
@@ -118,7 +118,7 @@ npx playwright install --with-deps chromium
 npm run test-storybook -- --shard=1/2     # 2/2 in the second job
 ```
 
-`storybook` requires both shards and fails unless each is green; it is the status check `main` requires. Each shard builds the static site from the same commit and runs its half of the suites. The `unit` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `eslint.config.js` and the tsconfigs). The Storybook jobs cache `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails its shard with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
+`storybook` requires both shards and fails unless each is green; it is the status check `main` requires. Each shard builds the static site from the same commit and runs its half of the suites. The `unit` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `config/eslint.config.js` and the tsconfigs). The Storybook jobs cache `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails its shard with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
 
 ## Differences from the readiness note
 

@@ -33,9 +33,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules/.cache/eslint
-          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-${{ github.sha }}
+          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'config/eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-${{ github.sha }}
           restore-keys: |
-            eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-
+            eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'config/eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit

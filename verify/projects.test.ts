@@ -6,7 +6,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { projects } from "../vitest.projects";
+import { projects } from "../config/vitest.projects";
 
 const root = process.cwd();
 const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8"));
@@ -19,11 +19,11 @@ const project = (name: string) => (projects as Project[]).find((entry) => entry.
 
 describe("workspace projects", () => {
   it("gives every public package its own tsconfig, rooted at the shared base", () => {
-    expect(read("tsconfig.json").extends).toBe("./tsconfig.base.json");
+    expect(read("tsconfig.json").extends).toBe("./config/tsconfig.base.json");
     expect(read("tsconfig.json").include).not.toContain("packages/*/src");
     for (const name of packages) {
       const tsconfig = read(`packages/${name}/tsconfig.json`);
-      expect(tsconfig.extends, `${name} extends the shared base`).toBe("../../tsconfig.base.json");
+      expect(tsconfig.extends, `${name} extends the shared base`).toBe("../../config/tsconfig.base.json");
       expect(tsconfig.include, `${name} owns its src`).toEqual(["src"]);
       const build = `packages/${name}/tsconfig.build.json`;
       if (existsSync(join(root, build))) expect(read(build).extends, `${name} builds from its package config`).toBe("./tsconfig.json");
