@@ -307,6 +307,13 @@ Each module's entity id picks its card. Where two field cards draw one domain, t
 
 Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data; its Sections and nav, Nav and pages, and Wall panel, far stories show those keys.
 
+## Measuring a deployed dashboard
+
+The deployed bundle carries opt-in performance marks, and `npm run perf:collect` drives the live dashboards in
+Chromium, combines those marks with browser timings, and writes a JSON report with a cold load, a details opening and
+one reversible control action, with the metadata needed to compare runs. It is measurement only, not a CI gate. See
+[performance.md](performance.md) for the opt-in, the marks, the report fields and the command's options.
+
 ## What has and hasn't been verified
 
 Unit tests cover the config parser, the generated layout and the card element. Storybook renders the config on the demo transports. The built bundle has been loaded in Chromium against a fake frontend connection: styles in the shadow root, dark mode, sheets and service calls. The deploy CLI is tested without Home Assistant: the config's bundling (a config may import TypeScript), `.env` overrides, the hyphen and uniqueness checks, build ownership, the local upload, generated-skin registration, and a two-run fake websocket that creates each dashboard then leaves its layout alone. `verify/deploy-package.test.ts` holds the package to Node-only imports, proves the repo config is the only outside importer of orb's `auto.ts`, and loads a config from a copied, non-symlinked `@dashhaus/dashboard` install. `npm run deploy -- --help` lists the config's dashboards from a clean `npm ci`.

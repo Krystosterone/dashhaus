@@ -9,6 +9,7 @@ import type {
   Unsubscribe,
 } from "./types";
 import { isRecord, safeProperty } from "./util";
+import { perfEnabled, perfMark, perfMarkAfterPaint } from "../perf";
 
 /** `home-assistant-js-websocket`'s ERR_CONNECTION_LOST: in-flight commands are rejected with it when the socket drops. */
 const ERR_CONNECTION_LOST = 3;
@@ -31,6 +32,8 @@ export function createHaStore(transport: HaTransport): HaStore {
   let attempt: { promise: Promise<void>; resolve: () => void; reject: (error: unknown) => void } | undefined;
   let actionSequence = 0;
   let failedAction: (() => Promise<unknown>) | undefined;
+  /** The action waiting for its entity update, only while performance marks are on. */
+  let tracedAction: { seq: number; entityId?: string } | undefined;
 
   const set = (patch: Partial<HaSnapshot>) => {
     snapshot = { ...snapshot, ...patch };
@@ -53,6 +56,7 @@ export function createHaStore(transport: HaTransport): HaStore {
 
   const teardown = () => {
     session += 1;
+    tracedAction = undefined;
     for (const stop of stops.splice(0)) {
       try {
         stop();
@@ -66,6 +70,7 @@ export function createHaStore(transport: HaTransport): HaStore {
     teardown();
     failedAction = undefined;
     set({ status: "error", entities: {}, error: lifecycleError(), lastActionError: undefined, generation: snapshot.generation + 1 });
+    perfMark("store:error", { generation: snapshot.generation });
     settle(lifecycleError());
   };
 
@@ -82,11 +87,24 @@ export function createHaStore(transport: HaTransport): HaStore {
     set({ status: "connecting", entities: {}, error: undefined, lastActionError: undefined, generation: snapshot.generation + 1 });
     const onEntities = (entities: HassEntities) => {
       if (owner !== session) return;
+      const traced = tracedAction;
+      if (traced?.entityId) {
+        const before = snapshot.entities[traced.entityId];
+        const after = entities[traced.entityId];
+        if (after && (!before || before.state !== after.state || before.last_updated !== after.last_updated)) {
+          tracedAction = undefined;
+          perfMark("action:state", { seq: traced.seq, state: after.state });
+          perfMarkAfterPaint("action:settled", { seq: traced.seq });
+        }
+      }
       if (snapshot.status === "connected") {
         set({ entities });
         return;
       }
       set({ status: "connected", entities, error: undefined, generation: snapshot.generation + 1 });
+      perfMark("store:connected", { generation: snapshot.generation });
+      // The cards draw from this snapshot; the first frame after it is the dashboard with data, not its placeholders.
+      perfMarkAfterPaint("store:painted", { generation: snapshot.generation });
       settle();
     };
     const onConnection = (status: HaTransportConnectionStatus) => {
@@ -97,6 +115,7 @@ export function createHaStore(transport: HaTransport): HaStore {
         if (snapshot.status === "disconnected") return;
         failedAction = undefined;
         set({ status: "disconnected", entities: {}, lastActionError: undefined, generation: snapshot.generation + 1 });
+        perfMark("store:disconnected", { generation: snapshot.generation });
       } else if (snapshot.status !== "connected") {
         // Ready again; the transport resubscribes and the next entity snapshot marks the store connected.
         set({ status: "connecting", generation: snapshot.generation + 1 });
@@ -118,6 +137,7 @@ export function createHaStore(transport: HaTransport): HaStore {
     if (snapshot.status === "disconnected" || snapshot.status === "idle") return;
     failedAction = undefined;
     set({ status: "disconnected", entities: {}, error: undefined, lastActionError: undefined, generation: snapshot.generation + 1 });
+    perfMark("store:disconnected", { generation: snapshot.generation });
   };
 
   /**
@@ -133,7 +153,12 @@ export function createHaStore(transport: HaTransport): HaStore {
   ) => {
     const generation = snapshot.generation;
     const actionId = action ? ++actionSequence : 0;
+    const tracing = action && perfEnabled();
     const report = (error: HaActionError) => {
+      if (tracing) {
+        perfMark("action:error", { seq: actionId, code: error.code });
+        if (tracedAction?.seq === actionId) tracedAction = undefined;
+      }
       if (action && actionId === actionSequence && generation === snapshot.generation) {
         failedAction = retry && (error.code === "service_failed" || error.code === "not_connected") ? retry : undefined;
         set({ lastActionError: error });
@@ -142,6 +167,11 @@ export function createHaStore(transport: HaTransport): HaStore {
     };
     if (snapshot.status !== "connected") {
       throw report(new HaActionError("not_connected", "Home Assistant is not connected", details));
+    }
+    if (tracing) {
+      if (tracedAction) perfMark("action:superseded", { seq: tracedAction.seq });
+      tracedAction = { seq: actionId, entityId: details.entityId };
+      perfMark("action:start", { seq: actionId, label, entityId: details.entityId });
     }
     let result: unknown;
     try {
@@ -157,6 +187,7 @@ export function createHaStore(transport: HaTransport): HaStore {
     if (generation !== snapshot.generation) {
       throw report(new HaActionError("transport_unknown", `Home Assistant connection changed during ${label}; outcome is unknown`, details));
     }
+    if (tracing) perfMark("action:ack", { seq: actionId, label });
     if (action && actionId === actionSequence) {
       failedAction = undefined;
       if (snapshot.lastActionError) set({ lastActionError: undefined });

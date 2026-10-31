@@ -5,6 +5,7 @@
 // new-skin: token css
 import "../../src/skins/orb/styles/tokens.css";
 import "../../src/skins/field/styles/tokens.css";
+import { perfMark } from "@dashhaus/core/perf";
 // new-skin: card definitions
 import { defineDashhausCard } from "../../src/skins/orb/lovelace/card";
 import { defineFieldCard } from "../../src/skins/field/lovelace/card";
@@ -13,6 +14,7 @@ declare const __DASHHAUS_BUILD__: string;
 
 // Every card gets the bundle's one stylesheet; each skin's classes and tokens carry its own prefix.
 const css = "__DASHHAUS_CSS__";
+perfMark("bundle:entry");
 // new-skin: define cards
 defineDashhausCard(css);
 defineFieldCard(css);
