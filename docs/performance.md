@@ -163,3 +163,6 @@ order.
 - The browser's Home Assistant session is a temporary Playwright context; its token is not written to the report.
 - Reports are local files, not uploads. They are safe to commit: they carry the HA URL, dashboard paths and card
   names, never the token or `.env`.
+
+The follow-up cut that acts on the first reports' findings is scoped in
+[2026-10-30-production-performance-brief.md](research/2026-10-30-production-performance-brief.md).
