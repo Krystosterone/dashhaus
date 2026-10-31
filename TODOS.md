@@ -1,6 +1,5 @@
 # TODOS
 
-- [ ] Add instrumentation so agents can test the performance of dashboards in production.
 - [ ] Split `AGENTS.md`, `README.md` and the skills.
 - [ ] Remove personally identifying information before publishing, from the tree and from history.
   - `Nova` is in 37 tracked files: README and `docs/` examples, demo seeds and story exports (`novaSleepMode`), `packages/core/src/ha/fixtures/owlet.json`, field's alert copy and real Home Assistant ids (`nursery_music`, `number.nursery_volume`, `sensor.owlet_sock_ac000w0123_sleep_state`). Replace with a neutral name and ids; keep the examples readable.
