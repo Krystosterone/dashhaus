@@ -1,5 +1,5 @@
 /**
- * Build and pack the three public packages: `npm run release:pack [-- --out release]`.
+ * Build and pack the seven public packages: `npm run release:pack [-- --out release]`.
  *
  * npm packs a staged copy holding only the files the package ships and its release manifest (no `private`, no
  * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts; publishing is the

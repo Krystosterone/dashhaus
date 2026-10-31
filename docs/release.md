@@ -41,11 +41,14 @@ Fixtures, demo transports and `testing` are shipped because they are declared pu
 
 `@dashhaus/deploy/config` is the pure author config surface: `DeployConfig`, `DeployDashboard`, `DeployHa`, `DeployCard`, `GeneratedSkin` and `generatedDashboards`. It imports no Node builtin and no React, so a Node-only app that installs deploy alone can read its config types. The loader that bundles and validates `dashboard.config.mjs` is the main `.` entry.
 
+Current candidate notes: [0.2.0](releases/0.2.0.md), including the publish order, the changes since `0.1.0` and the
+tarball inspection.
+
 Every package ships a non-empty `README.md`; `files` keeps it in the tarball and `npm run verify:packages` refuses an empty one. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
-**Fixed version** across every public package, currently `0.1.0`. There is no independent release need yet:
+**Fixed version** across every public package, currently `0.2.0`. There is no independent release need yet:
 `@dashhaus/dashboard`, the skins and the bundle are built from the same repository and tag, and coupled releases keep
 the internal ranges unambiguous.
 
@@ -56,9 +59,10 @@ npm run release:version -- 0.2.0
 npm install --package-lock-only
 ```
 
-The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`.
+The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`,
+including the scaffolder's `src/templates/package.json` so a newly scaffolded skin installs the same line.
 `scripts/release/manifest.mjs` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
-without `files`/`sideEffects`.
+without `files`/`sideEffects`; `verify:packages` reads the packed template's ranges back.
 
 If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.mjs` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
 
@@ -113,9 +117,58 @@ tarballs, before announcing the release; both are the same clean-room journeys t
 
 The tarball's manifest is already the release manifest; publishing the tarball, not the package folder, is what keeps `source` and `private` out. Tagging, GitHub releases and npm scope claims are separate operator decisions.
 
+### Live Home Assistant smoke
+
+CI proves both journeys against the in-memory Home Assistant in `verify/dx/`. Before publishing, the operator runs the same two journeys once against a real instance. It needs an admin token and an SSH or mounted `HA_WWW`; it is never a CI job and it is recorded as run or unrun, never inferred from the fake.
+
+Prepare:
+
+1. Pack at the candidate commit and note both values: `git rev-parse HEAD` and `npm run release:pack`.
+2. Use a scratch Home Assistant, or first delete the dashboards `home-orb`, `home-field` and `dashhaus-my-skin` and the resource `/local/dashhaus/dashhaus.js` from earlier runs. Otherwise the smoke exercises updates, not first creation, and must say so.
+3. Set `release` to this repository's `release/` directory and `<version>` to the packed version in the commands below. Copy `.env.example` to the app and fill `HA_URL`, `HA_TOKEN` and `HA_WWW` (see [deploy.md](deploy.md)). Never put the token in the record.
+
+User journey, from packed tarballs with no build:
+
+```sh
+app=$(mktemp -d); cd "$app"
+npm init -y && npm pkg set type=module
+npm install "$release"/dashhaus-bundle-<version>.tgz "$release"/dashhaus-deploy-<version>.tgz
+cp /path/to/dashhaus/.env.example .env        # fill the three values, keep it out of git
+# write dashboard.config.mjs as in verify/dx/user.mjs (USER_CONFIG): bundlePath, home-orb and home-field
+npx dashhaus-deploy --skip-build
+```
+
+Author journey, from packed tarballs, scaffolding, testing and building once:
+
+```sh
+app=$(mktemp -d); cd "$app"
+npm init -y && npm pkg set type=module
+npm install "$release"/dashhaus-core-<version>.tgz "$release"/dashhaus-dashboard-<version>.tgz \
+  "$release"/dashhaus-deploy-<version>.tgz "$release"/create-dashhaus-skin-<version>.tgz \
+  react@18 react-dom@18 home-assistant-js-websocket@9 vite @vitejs/plugin-react
+npx create-dashhaus-skin my-skin
+ln -s "$app/node_modules" my-skin/node_modules   # pre-publish stand-in for `npm install` in the scaffold
+cd my-skin
+npm test
+npm run build
+cp /path/to/dashhaus/.env.example .env           # same three values; the scaffold's dashboard is dashhaus-my-skin
+npx dashhaus-deploy --skip-build
+```
+
+Observe, in this order:
+
+1. The deploy prints the upload, exactly one resource registration and the dashboard creation for the app; the uploaded `dashhaus/dashhaus.js` is byte-identical to the tarball's bundle.
+2. Reload every open Home Assistant tab: the frontend reads its resource list once, so a tab opened before the deploy shows a configuration error until reloaded.
+3. The sidebar lists **Home (Orb)**, **Home (Field)** and, from the author app, **Home (My Skin)**. Each opens with no "Configuration error" card and draws its auto layout from the instance's entities; open one card's details and close it.
+4. Press a reversible `input_boolean` or `switch` on Orb or Field, see the state change, then restore it. The browser console shows no errors.
+5. Settings → Dashboards → Resources shows `/local/dashhaus/dashhaus.js?v=<content hash>`; the network request for it is a 200. Edit a dashboard and confirm its generated layout loads in the code editor.
+6. The author build emitted one `dist/dashhaus.js`; its dashboard draws and its card opens details.
+
+Record on the release candidate: date and operator, Home Assistant version, candidate commit, tarball version, the deploy output, pass/fail for each observation above, and where the screenshot or console excerpt lives. If credentials are not supplied, record "live smoke: unrun — no HA_URL/HA_TOKEN/HA_WWW" and do not mark it passed.
+
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. `unit_checks`, the two unit-test shards, `generators` and the two Storybook shards run in parallel, and the `check` and `storybook` aggregate jobs back the required status checks.
+`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. `unit_checks`, the two unit-test shards, `generators`, `dx` and the two Storybook shards run in parallel, and the `check` and `storybook` aggregate jobs back the required status checks.
 
 `unit_checks`:
 
@@ -145,7 +198,19 @@ npx vitest run --config config/vitest.config.ts scripts/new-skin/index.test.ts s
 # scripts/new-skin/field.test.ts in the second job
 ```
 
-`check` requires `unit_checks`, both unit shards and both generator jobs, and fails unless each is green; it is the status check `main` requires. The unit suites are split by file across two runners because one runner spent 160s on them; the two shards together run the same 130 files and 1174 tests. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
+`dx`:
+
+```sh
+npm ci
+npm run release:pack
+npm run verify:packages
+node verify/dx/user.mjs
+node verify/dx/author.mjs
+```
+
+`verify/dx/user.mjs` installs only `@dashhaus/bundle` and `@dashhaus/deploy` into a temporary app outside the workspace, writes `dashboard.config.mjs`, and deploys the prebuilt bundle into an in-memory Home Assistant; it asserts that React, core and dashboard are not installed. `verify/dx/author.mjs` installs core, dashboard, deploy and the scaffolder with React and Vite, runs `create-dashhaus-skin`, its conformance test and its one-file build, then deploys the result into the same fake. Both read the packed tarballs in `release/` (or `--tarballs <dir>`), use only the packed manifests, set no `source` condition, and import nothing from this repository; neither needs the registry or a live Home Assistant. A failure in either is a failure of the public surface, not a flaky integration.
+
+`check` requires `unit_checks`, both unit shards, both generator jobs and `dx`, and fails unless each is green; it is the status check `main` requires. The unit suites are split by file across two runners because one runner spent 160s on them; the two shards together run the same 130 files and 1174 tests. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
 
 `storybook_one` and `storybook_two`, each:
 

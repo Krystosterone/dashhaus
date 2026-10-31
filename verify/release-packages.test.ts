@@ -21,6 +21,10 @@ describe("public packages", () => {
     expect(version).not.toBe("0.0.0");
     for (const pkg of publicPackages) expect(manifests[pkg.key].version, pkg.name).toBe(version);
     expect(manifests.dashboard.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
+    const template = read("packages/create-dashhaus-skin/src/templates/package.json");
+    expect(template.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
+    expect(template.dependencies?.["@dashhaus/dashboard"]).toBe(`^${version}`);
+    expect(template.devDependencies?.["@dashhaus/deploy"]).toBe(`^${version}`);
   });
 
   it("resolve source in the workspace and built files in a packed install", () => {

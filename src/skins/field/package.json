@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/field",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "sideEffects": [
@@ -35,8 +35,8 @@
     }
   },
   "dependencies": {
-    "@dashhaus/core": "^0.1.0",
-    "@dashhaus/dashboard": "^0.1.0"
+    "@dashhaus/core": "^0.2.0",
+    "@dashhaus/dashboard": "^0.2.0"
   },
   "peerDependencies": {
     "home-assistant-js-websocket": "^9.7.1",

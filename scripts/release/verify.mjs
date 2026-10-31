@@ -74,6 +74,15 @@ async function checkTarballs(manifests) {
                 : ["package/README.md", "package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts", "package/src/config.mjs", "package/src/config.d.mts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
+    if (pkg.key === "scaffold") {
+      const template = JSON.parse(execFileSync("tar", ["-xOzf", tarball, "package/dist/templates/package.json"], { encoding: "utf8" }));
+      for (const name of ["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy"]) {
+        const range = template.dependencies?.[name] ?? template.devDependencies?.[name];
+        if (range !== `^${packed.version}`) {
+          throw new Error(`${manifest.name}: template pins ${name} "${range}", expected "^${packed.version}"`);
+        }
+      }
+    }
     const readme = execFileSync("tar", ["-xOzf", tarball, "package/README.md"], { encoding: "utf8" });
     if (!readme.trim()) throw new Error(`${manifest.name}: README.md in the tarball is empty`);
     ok(`${manifest.name}@${packed.version}: ${files.length} entries, ${(statSync(tarball).size / 1024).toFixed(1)} KiB`);

@@ -10,7 +10,7 @@ env:
 
 jobs:
   # Typecheck, lint and the release proof. They share one install and one runner; `check` below requires this lane,
-  # both unit shards and the generators.
+  # both unit shards, the generators and the clean-room DX journeys.
   unit_checks:
     runs-on: ubuntu-latest
     steps:
@@ -34,6 +34,32 @@ jobs:
       - run: npm run build:ha
       - run: npm run release:pack
       - run: npm run verify:packages
+
+  # The two consumer journeys from freshly packed tarballs, never the workspace: the skin user installs only the
+  # prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a standalone skin. Both
+  # deploy into an in-memory Home Assistant, so this lane needs no live instance and no registry.
+  dx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run release:pack
+      - run: npm run verify:packages
+      - run: node verify/dx/user.mjs
+      - run: node verify/dx/author.mjs
 
   # The unit suites, split by file across two runners; together they are the same 130 files and 1174 tests as before.
   unit_one:
@@ -118,24 +144,27 @@ jobs:
         run: npm ci
       - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/field.test.ts
 
-  # The required status check: green only when the checks, both unit shards and both generator halves are green.
+  # The required status check: green only when the checks, both unit shards, both generator halves and both
+  # clean-room journeys are green.
   check:
-    needs: [unit_checks, unit_one, unit_two, generators_one, generators_two]
+    needs: [unit_checks, unit_one, unit_two, generators_one, generators_two, dx]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Require the unit lanes and the generators
+      - name: Require the unit lanes, the generators and the DX journeys
         run: |
           echo "unit_checks: ${{ needs.unit_checks.result }}"
           echo "unit_one: ${{ needs.unit_one.result }}"
           echo "unit_two: ${{ needs.unit_two.result }}"
           echo "generators_one: ${{ needs.generators_one.result }}"
           echo "generators_two: ${{ needs.generators_two.result }}"
+          echo "dx: ${{ needs.dx.result }}"
           test "${{ needs.unit_checks.result }}" = "success"
           test "${{ needs.unit_one.result }}" = "success"
           test "${{ needs.unit_two.result }}" = "success"
           test "${{ needs.generators_one.result }}" = "success"
           test "${{ needs.generators_two.result }}" = "success"
+          test "${{ needs.dx.result }}" = "success"
 
   # The runner splits by suite; each shard builds the same static site and runs its half. The `storybook` job below
   # is the required check for both.

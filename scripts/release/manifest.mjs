@@ -1,5 +1,5 @@
 /**
- * The three public packages, their release manifest, and the rules a packed manifest must satisfy.
+ * The seven public packages, their release manifest, and the rules a packed manifest must satisfy.
  *
  * The workspace resolves package source through the `source` export condition. A packed tarball ships only the built
  * output, so the release pack strips that condition (and `private`) from a staged copy; the package manifests in the
