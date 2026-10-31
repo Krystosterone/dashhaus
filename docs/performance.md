@@ -161,7 +161,9 @@ compare. `entryToReadyMs` isolates the bundle's own work. `render:painted` and `
 React frame and can precede the store's entity snapshot when the store has to wait for its own subscription; that is
 why `store:painted` is the ready mark. When the element has Home Assistant's `hass.states`, it seeds the store with
 that snapshot and connects it before the first render, so the first frame already carries data and `store:painted`
-coincides with `render:painted`; the mark's `seeded` detail says which path ran. `largestContentfulPaintMs` is the
+coincides with `render:painted`; the mark's `seeded` detail says which path ran, `entryToPaintedMs` is then the first
+data frame rather than a placeholder frame, and `storeToReadyMs` is only the two-frame paint window after that connect,
+not a wait for a subscription. `largestContentfulPaintMs` is the
 document's LCP, which on these dashboards is usually Home Assistant's shell before the dashhaus bundle loads; use
 `navigationToReadyMs` for the dashboard.
 

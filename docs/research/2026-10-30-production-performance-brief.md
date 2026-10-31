@@ -130,3 +130,69 @@ ranges; the exact commands; the gates; the restored entity state; and anything t
 If the live instance is unreachable or lacks a safe reversible control, say so and stop before making a production
 claim; do not substitute Storybook or demo data. If the effective dashboard paths differ, or the only improvement
 needs a product behavior change, ask once with the options. Otherwise decide and proceed.
+
+## Result (2026-10-31)
+
+**Branch:** `perf/production-followup`, code commit `980c960`; base `5a63d53` (current `main`, two docs commits past
+the brief's `e1d500c`). The live resource is built from `980c960`. The evidence commit after it only adds reports and
+this section.
+
+**Chosen route:** seed the shared store from the frontend snapshot. `LovelaceDashboardElement` passes `hass.states`
+to `createHaStore(transport, initialEntities)` and connects it immediately before `createRoot`, so the first frame
+carries the house. The live subscription then replaces the seed; a reconnect still waits for the live snapshot.
+`store:connected` and `store:painted` carry `seeded: true` for this path.
+
+**Why:** the phase split put 57-59 ms of the 119-126 ms entry-to-ready in `element:connected → store:connected`, the
+bundle's own subscription round trip, after a cheaper placeholder frame had already painted. Removing that wait puts
+the data in the first render; it is not a mark moved earlier over the same work.
+
+**Rejected routes:**
+
+- Bundle-byte work (per-skin chunks, Preact, or a compressed loader): deploy uploads one file and registers one
+  resource, so chunks need an upload-directory and resource change; the byte bar was not needed once the wait was
+  attributed to the store snapshot.
+- A mark-only change: moving `store:painted` earlier without data would win the number and prove nothing. The seed
+  changes what the first render draws.
+- YAML, card, control or layout changes: out of scope and unnecessary.
+
+**Measurements** (5 cold runs per skin; 1440 × 1000, dark, headless Chromium 156.0.8078.4, cache disabled; medians
+with the 5-run range):
+
+| Field | Orb before | Orb after | Field before | Field after |
+| --- | ---: | ---: | ---: | ---: |
+| **`entryToReadyMs`** | **125.9** [113.9-145.2] | **76.3** [54.2-89.4] | **119.0** [109.0-146.0] | **47.9** [36.2-50.9] |
+| `navigationToReadyMs` | 2671 [2261-5010] | 2528 [2138.7-2940.2] | 2906.3 [2541.9-3697.5] | 2475.4 [2368.2-2867.8] |
+| `element:connected → store:connected` | 57.3 [54.5-62.5] | 2.0 [1.9-2.4] | 58.8 [57.1-71.9] | 1.9 [1.5-2.1] |
+| `store:connected → store:painted` | 64.3 [50.0-75.3] | 72.7 [50.5-84.9] | 53.8 [44.7-67.3] | 42.4 [25.3-47.5] |
+| details request → visible | 38.3 [35.2-44.6] | 40.0 [35.9-40.1] | 31.7 [31.1-43.9] | 31.1 [29.6-31.7] |
+| toggle input → settled | 94.3 [89.7-123.9] | 94.1 [70.4-207.3] | 77.3 [75.7-209.3] | 77.1 [60.1-93.5] |
+| toggle start → HA ack | 53.3 [40.9-76.6] | 51.9 [39.7-156.4] | 45.7 [42.2-184.0] | 46.0 [38.7-62.1] |
+| toggle state → settled paint | 41.6 [35.8-54.4] | 39.5 [30.3-52.9] | 27.4 [20.7-29.7] | 26.9 [17.6-31.8] |
+| bundle transferred | 653,816 B | 654,213 B | 653,816 B | 654,213 B |
+
+Orb's entry-to-ready fell 39.4 % and Field's 59.7 % (bar: 15 % on one skin). The other skin and the details/toggle
+medians stay inside the baseline 5-run ranges. Orb's `entryToPainted` rose (56.4 → 76.4 ms) because that first paint
+is now the full data render rather than a cheaper placeholder frame; data-ready still fell. `store:connected →
+store:painted` is the two-frame paint window after the seeded connect, not a wait for data. Bundle fetch duration and
+TTFB varied with the host and network and are not attributed to the change.
+
+**Off check:** every after report has one `instrumentation.offCheck` per skin: no `window.__dashhausPerf`, zero
+`dashhaus:*` marks, zero measures, zero bundle `pointerdown` listeners, zero bundle fetches, no `perf`/`__dashhaus`
+console line, no console or page error, 85 cards and 1 host — the same as the opt-in page. The opt-in cold load's
+`probe` saw the one listener and zero fetches in every run, so the absence check is not vacuous. The five before
+reports used the old single-skin off check (no probe).
+
+**Restored entity:** `input_boolean.do_not_disturb` was `on` after every run, and a direct Home Assistant read after
+the last run returned `on` (`last_updated` 2026-10-31T03:06:10Z). The token appears in no report or bundle.
+
+**Commands:** `npm run check`; `npm run test-storybook`; `npm run deploy`; `npm run perf:collect` five times.
+
+**Gates:** `npm run check` passed (133 files, 1,197 tests); `npm run test-storybook` passed (57 suites, 406 tests).
+
+**Reports:** before `perf/reports/run-2026-10-31T02-52-45-672Z.json`, `…02-53-00-027Z.json`,
+`…02-53-12-258Z.json`, `…02-53-27-759Z.json`, `…02-53-40-189Z.json`; after
+`perf/reports/run-2026-10-31T03-04-48-797Z.json`, `…03-05-03-880Z.json`, `…03-05-19-867Z.json`,
+`…03-05-38-110Z.json`, `…03-05-56-848Z.json`. The two older `2e1a6ed` runs remain as the original baseline.
+
+**Operator decisions:** none required; the branch is not pushed and the dashboards' layouts were not changed. The
+live resource now points at `980c960`.
