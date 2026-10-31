@@ -107,7 +107,7 @@ describe("new-card", () => {
       expect(typecheck.status, typecheck.output).toBe(0);
       const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "packages/dashboard/src", "packages/core/src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
-      const lint = await run(copy, "npx", ["eslint", "-c", "config/eslint.config.js", "src/skins/field"]);
+      const lint = await run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);
     }, 240_000);
 
