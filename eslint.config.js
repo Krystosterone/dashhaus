@@ -32,8 +32,8 @@ const noPackageRelative = [
 /** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @dashhaus/dashboard/card. */
 const noDashboardEntry = { name: "@dashhaus/dashboard", message: "A card draws on @dashhaus/dashboard/card; only a skin's lovelace/ imports the Lovelace entry." };
 const noDashboard = [{
-  group: ["@dashhaus/dashboard/schema", "@dashhaus/dashboard/layout", "@dashhaus/dashboard/vite", "@dashhaus/dashboard/cli"],
-  message: "A card draws on @dashhaus/dashboard/card; the schema, layout, build and CLI subpaths stay in a skin's lovelace/.",
+  group: ["@dashhaus/dashboard/schema", "@dashhaus/dashboard/layout", "@dashhaus/dashboard/skin", "@dashhaus/dashboard/vite"],
+  message: "A card draws on @dashhaus/dashboard/card; the schema, layout and skin subpaths stay in a skin's lovelace/.",
 }];
 /** The conformance preset reads a skin's files, so only a card's test may import it; a card and its stories never do. */
 const noConformance = [{
@@ -184,7 +184,7 @@ export default tseslint.config(
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["@dashhaus/core", "@dashhaus/core/*", "@dashhaus/dashboard", "@dashhaus/dashboard/*"], message: "Deploy is Node-only; the user's config imports the dashboard surface, not the CLI." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*", "@dashhaus/dashboard", "@dashhaus/dashboard/*"], message: "Deploy is Node-only; it imports no React or dashboard package." },
           { group: ["**/skins/**", "**/src/skins/**"], message: "Deploy loads the user's config; it never imports a skin." },
           { group: ["**/packages/**"], message: "Deploy never imports a package's source; it bundles the user's config." },
         ],

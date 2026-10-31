@@ -3,7 +3,7 @@
 // sidebar title. Deploy never overwrites a dashboard whose layout exists, so changing a card factory affects the
 // first creation only.
 import { execFileSync } from "node:child_process";
-import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import { generatedDashboards } from "@dashhaus/deploy/config";
 import { GENERATED_SKINS } from "./scripts/generated-skins.mjs";
 import { autoDashboard } from "./src/skins/orb/lovelace/auto.ts";
 

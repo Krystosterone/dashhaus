@@ -10,8 +10,8 @@
  *
  * Phase 0 uses `verify/dx/fixtures/author` as the scaffold output, because `create-dashhaus-skin` does not exist yet.
  * The driver refuses to pass with the fixture once the scaffolder tarball appears: Phase 3 must run the real
- * scaffolder here instead. It also expects `@dashhaus/dashboard/skin`; until Phase 1 adds it, the build cannot resolve
- * the frozen skin-author surface.
+ * scaffolder here instead. It expects `@dashhaus/dashboard/skin`, the frozen skin-author surface Phase 1 adds, so the
+ * build resolves the element base from the package rather than the repo.
  *
  * Deviation from the plan's install line: `home-assistant-js-websocket` is installed as well. The element base reaches
  * `@dashhaus/core/websocket`, whose runtime import of the websocket client makes it an optional peer of core, so a

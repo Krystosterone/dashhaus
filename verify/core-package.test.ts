@@ -76,7 +76,7 @@ describe("@dashhaus/core", () => {
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
-    expect(packageJson.files).toEqual(["dist"]);
+    expect(packageJson.files).toEqual(["dist", "README.md"]);
     expect(Object.keys(packageJson.exports)).toEqual(expect.arrayContaining([".", "./entities", "./entities/*", "./primitives", "./hooks", "./perf", "./websocket", "./demo", "./testing", "./fixtures/*"]));
     for (const subpath of [".", "./entities", "./primitives", "./hooks", "./perf", "./websocket", "./demo", "./testing"]) {
       expect(packageJson.exports[subpath].types, `${subpath} ships declarations`).toMatch(/^\.\/dist\/.+\.d\.ts$/);

@@ -2,9 +2,8 @@ import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import type { BlockConfig, DashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { LovelaceDashboardElement, autoInput, registerCard } from "@dashhaus/dashboard";
-import type { LovelaceHass } from "@dashhaus/dashboard";
-import { scopeToHost } from "@dashhaus/dashboard";
+import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
+import type { LovelaceHass } from "@dashhaus/dashboard/skin";
 
 export const CARD_TYPE = "dashhaus-orb";
 

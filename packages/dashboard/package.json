@@ -5,7 +5,8 @@
   "type": "module",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "exports": {
     ".": {
@@ -13,6 +14,12 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./skin": {
+      "source": "./src/skin.ts",
+      "types": "./dist/skin.d.ts",
+      "import": "./dist/skin.js",
+      "default": "./dist/skin.js"
     },
     "./card": {
       "source": "./src/card.tsx",
@@ -31,12 +38,6 @@
       "types": "./dist/layout.d.ts",
       "import": "./dist/layout.js",
       "default": "./dist/layout.js"
-    },
-    "./cli": {
-      "source": "./src/cli.ts",
-      "types": "./dist/cli.d.ts",
-      "import": "./dist/cli.js",
-      "default": "./dist/cli.js"
     },
     "./conformance": {
       "source": "./src/conformance.ts",

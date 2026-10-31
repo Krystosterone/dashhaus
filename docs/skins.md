@@ -14,7 +14,7 @@ The command creates and registers:
 - scoped light/dark tokens, fixed `compact` and `standard` footprints, neutral Parts, unavailable treatment, a native Details dialog, and CSS rules tests;
 - Dashboard page, section, columns, cell, header and nav Parts, their stories, and an explicit empty state;
 - Foundations → Design rules, Palette and Parts, backed by `docs/canvas.md`;
-- the package's YAML reader and card schema (`@dashhaus/dashboard/schema`) and automatic area layout (`@dashhaus/dashboard/layout`), pages and nav, a `LovelaceDashboardElement`, card-picker registration, its place in the Home Assistant bundle entry (`apps/lovelace/entry.ts`), and first-deploy dashboard;
+- the package's YAML reader and card schema (`@dashhaus/dashboard/schema`) and automatic area layout (`@dashhaus/dashboard/layout`), pages and nav, a `LovelaceDashboardElement` and `registerCard` from `@dashhaus/dashboard/skin`, its place in the Home Assistant bundle entry (`apps/lovelace/entry.ts`), and first-deploy dashboard;
 - its own entry (`src/skins/<skin>/index.ts`, which imports its tokens), Storybook setup and static group order, conformance tests, and empty Cards / Connected group explanations.
 
 The baseline is intentionally neutral. It proves the architecture before visual work; it does not copy Orb or synthesize Field's mature hardware design.

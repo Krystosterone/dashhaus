@@ -26,7 +26,7 @@ describe("public packages", () => {
   it("resolve source in the workspace and built files in a packed install", () => {
     for (const key of ["core", "dashboard"]) {
       const manifest = manifests[key];
-      expect(manifest.files, `${manifest.name} ships only dist`).toEqual(["dist"]);
+      expect(manifest.files, `${manifest.name} ships dist and its README`).toEqual(["dist", "README.md"]);
       expect(manifest.sideEffects).toBe(false);
       for (const [subpath, target] of Object.entries(manifest.exports)) {
         expect(target, `${manifest.name} ${subpath}`).toBeTypeOf("object");
@@ -67,9 +67,11 @@ describe("public packages", () => {
     expect(publishManifest(manifests.dashboard).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
     expect(publishManifest(manifests.deploy).bin).toEqual({ "dashhaus-deploy": "./bin.mjs" });
     expect(publishManifest(manifests.deploy).engines).toEqual({ node: ">=22" });
+    for (const pkg of publicPackages) expect(publishManifest(manifests[pkg.key]).files, pkg.name).toContain("README.md");
   });
 
-  it("refuses a placeholder version, an unpinned internal range or a TypeScript export target", () => {
+  it("refuses a package without a README in its files, a placeholder version, an unpinned internal range or a TypeScript export target", () => {
+    expect(() => publishManifest({ ...manifests.core, files: ["dist"] })).toThrow(/README\.md/);
     expect(() => publishManifest({ ...manifests.core, version: "0.0.0" })).toThrow(/real semver/);
     expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
     expect(() => publishManifest({ ...manifests.core, exports: { ".": { import: "./src/index.ts", default: "./src/index.ts" } } }))

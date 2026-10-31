@@ -1,7 +1,7 @@
-// The loader is JavaScript so the CLI runs without Node's type stripping. These are its types; the author-facing
-// config types live in @dashhaus/dashboard/cli, and deploy keeps its own copy so it imports no browser package.
+// The author-facing deploy config surface, in a Node-only package with no React peers. The loader and its validation
+// live in ./load.mjs; a config imports this subpath for its types and generatedDashboards.
 
-/** The websocket calls a config's card factory may make. */
+/** The websocket calls a config's card factory may make. The CLI passes its authenticated client. */
 export interface DeployHa {
   send(type: string, payload?: Record<string, unknown>): Promise<unknown>;
 }
@@ -14,9 +14,11 @@ export interface DeployCard {
 
 /** One dashboard the CLI creates. */
 export interface DeployDashboard {
+  /** Home Assistant requires a hyphen in a dashboard path. */
   path: string;
   title: string;
   icon: string;
+  /** The `.env` keys that override this dashboard's path and sidebar title. */
   env?: { path?: string; title?: string };
   card(ha: DeployHa): DeployCard | Promise<DeployCard>;
 }
@@ -24,33 +26,19 @@ export interface DeployDashboard {
 /** The default export of `dashboard.config.mjs`. */
 export interface DeployConfig {
   pageTitle?: string;
+  /** The file the CLI uploads, relative to the config file (or absolute). */
   bundle: string;
+  /** Optional; runs with the config's directory as the working directory, before the bundle is read. */
   build?(): void | Promise<void>;
   dashboards: DeployDashboard[];
 }
 
-/** Where the bundle goes and the resource URL that serves it. */
-export interface BundleTarget {
-  file: string;
-  name: string;
-  folder: string;
-  resourcePath: string;
+/** One entry in `scripts/generated-skins.mjs`. */
+export interface GeneratedSkin {
+  id: string;
+  title: string;
+  icon: string;
 }
 
-export class DeployConfigError extends Error {}
-
-export function panelView(card: Record<string, unknown>, title?: string): Record<string, unknown>;
-
-export function readConfig(file: string): Promise<DeployConfig>;
-
-export function resolveDashboards(
-  config: DeployConfig,
-  env?: Record<string, string | undefined>,
-): { dashboards: DeployDashboard[]; pageTitle: string };
-
-export function resolveBundle(config: DeployConfig, file: string): BundleTarget;
-
-export function loadDashboards(options: {
-  file: string;
-  env?: Record<string, string | undefined>;
-}): Promise<{ dashboards: DeployDashboard[]; pageTitle: string }>;
+/** One dashboard per generated skin, in the shape a config declares its own. */
+export function generatedDashboards(skins: GeneratedSkin[], title?: string): DeployDashboard[];

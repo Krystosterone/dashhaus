@@ -7,7 +7,6 @@
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
-import * as cli from "@dashhaus/dashboard/cli";
 import * as conformance from "@dashhaus/dashboard/conformance";
 import * as layout from "@dashhaus/dashboard/layout";
 import * as schema from "@dashhaus/dashboard/schema";
@@ -77,7 +76,7 @@ const sourceTarget = (subpath: string) => {
 
 const entries = () => Object.keys(packageJson.exports).map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
 /** The entries a browser may load. `./conformance` reads a skin's files, so it is Node- and test-only. */
-const BROWSER_ENTRIES = [".", "./card", "./schema", "./layout", "./cli"];
+const BROWSER_ENTRIES = [".", "./skin", "./card", "./schema", "./layout"];
 const browserEntries = () => BROWSER_ENTRIES.map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
 
 /** Whether a bare specifier names a subpath its package declares, wildcard exports included. */
@@ -99,13 +98,13 @@ describe("@dashhaus/dashboard", () => {
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
-    expect(packageJson.files).toEqual(["dist"]);
-    expect(Object.keys(packageJson.exports)).toEqual([".", "./card", "./schema", "./layout", "./cli", "./conformance"]);
+    expect(packageJson.files).toEqual(["dist", "README.md"]);
+    expect(Object.keys(packageJson.exports)).toEqual([".", "./skin", "./card", "./schema", "./layout", "./conformance"]);
     expect(packageJson.dependencies["@dashhaus/core"]).toBe(`^${packageJson.version}`);
   });
 
-  it("exposes the card frame, the card schema, the layout, the CLI and the conformance preset on subpaths of their own", () => {
-    const subpaths = ["./card", "./schema", "./layout", "./cli", "./conformance"];
+  it("exposes the skin runtime, the card frame, the card schema, the layout and the conformance preset on subpaths of their own", () => {
+    const subpaths = ["./skin", "./card", "./schema", "./layout", "./conformance"];
     for (const subpath of subpaths) {
       expect(sourceTarget(subpath)).toMatch(new RegExp(`^\\./src/.+\\.tsx?$`));
       expect(sourceTarget(subpath)).not.toBe(sourceTarget("."));
@@ -155,16 +154,12 @@ describe("@dashhaus/dashboard", () => {
     ]);
   });
 
-  it("exposes exactly the CLI's public words", () => {
-    expect(Object.keys(cli).sort()).toEqual(["generatedDashboards"]);
-  });
-
   it("exposes exactly the conformance preset's public words", () => {
     expect(Object.keys(conformance).sort()).toEqual(["cardFolders", "checkCards", "strayClasses"]);
   });
 
-  it("keeps the schema, layout and CLI pure, so a Node config can import them", () => {
-    for (const subpath of ["./schema", "./layout", "./cli"]) {
+  it("keeps the schema and layout pure, so a Node config can import them", () => {
+    for (const subpath of ["./schema", "./layout"]) {
       const { files, packages, outside } = graph([`${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`]);
       expect(outside, `${subpath} has no relative import that leaves the package`).toEqual([]);
       expect(packages, `${subpath} reaches no React, DOM or Home Assistant package`).toEqual([]);

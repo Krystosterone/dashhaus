@@ -2,7 +2,7 @@
 // orchestration so `--help` and argument errors print without touching Home Assistant.
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { DeployConfigError, readConfig, resolveDashboards } from "./config.mjs";
+import { DeployConfigError, readConfig, resolveDashboards } from "./load.mjs";
 import { deploy } from "./deploy.mjs";
 
 /** Parse `--config <file>`, `--config=<file>`, `--skip-build` and `--help`; refuse anything else. */

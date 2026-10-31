@@ -7,12 +7,18 @@
     "dashhaus-deploy": "./bin.mjs"
   },
   "exports": {
-    ".": "./src/deploy.mjs"
+    ".": "./src/deploy.mjs",
+    "./config": {
+      "types": "./src/config.d.mts",
+      "import": "./src/config.mjs",
+      "default": "./src/config.mjs"
+    }
   },
   "files": [
     "bin.mjs",
     "src/*.mjs",
-    "src/*.d.mts"
+    "src/*.d.mts",
+    "README.md"
   ],
   "engines": {
     "node": ">=22"

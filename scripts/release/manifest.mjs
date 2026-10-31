@@ -18,11 +18,11 @@ export const root = (() => {
   }
 })();
 
-/** What each public package ships: `dist` for the built packages, the CLI's runnable sources for deploy. */
+/** What each public package ships: built `dist` or the CLI's runnable sources, plus the package README. */
 export const publicPackages = [
-  { key: "core", name: "@dashhaus/core", dir: "packages/core", ship: ["dist"] },
-  { key: "dashboard", name: "@dashhaus/dashboard", dir: "packages/dashboard", ship: ["dist"] },
-  { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts"] },
+  { key: "core", name: "@dashhaus/core", dir: "packages/core", ship: ["dist", "README.md"] },
+  { key: "dashboard", name: "@dashhaus/dashboard", dir: "packages/dashboard", ship: ["dist", "README.md"] },
+  { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts", "README.md"] },
 ];
 
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -76,6 +76,7 @@ export function publishManifest(manifest) {
   }
 
   if (!Array.isArray(next.files) || next.files.length === 0) throw new Error(`${manifest.name}: add a files allowlist`);
+  if (!next.files.includes("README.md")) throw new Error(`${manifest.name}: ship a README.md in files`);
   if (next.sideEffects !== false && next.name !== "@dashhaus/deploy") {
     throw new Error(`${manifest.name}: sideEffects must stay false`);
   }

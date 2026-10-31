@@ -3,7 +3,7 @@
 
 import type { DeployHa } from "./config.mjs";
 
-export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./config.mjs";
+export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.mjs";
 export type { DeployCard, DeployConfig, DeployDashboard, DeployHa } from "./config.mjs";
 
 /** The authenticated Home Assistant client the CLI hands a config's card factory. */

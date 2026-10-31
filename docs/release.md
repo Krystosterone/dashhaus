@@ -23,14 +23,18 @@ The workspace resolves package **source**; a packed install resolves built **ESM
 | Package | Public subpaths | Ships |
 | --- | --- | --- |
 | `@dashhaus/core` | `.`, `./entities`, `./entities/*`, `./primitives`, `./hooks`, `./perf`, `./websocket`, `./demo`, `./testing`, `./fixtures/*` | `dist/` |
-| `@dashhaus/dashboard` | `.`, `./card`, `./schema`, `./layout`, `./cli`, `./conformance` | `dist/` |
-| `@dashhaus/deploy` | `.`, bin `dashhaus-deploy` | `bin.mjs`, `src/*.mjs`, `src/*.d.mts` |
+| `@dashhaus/dashboard` | `.`, `./skin`, `./card`, `./schema`, `./layout`, `./conformance` | `dist/` |
+| `@dashhaus/deploy` | `.`, `./config`, bin `dashhaus-deploy` | `bin.mjs`, `src/*.mjs`, `src/*.d.mts` |
 
 Fixtures, demo transports and `testing` are shipped because they are declared public subpaths; they contain only demo data, Storybook transports and the Vitest testing helper, never repository material. `./testing` needs `vitest` and `@testing-library/react`; both are optional peers, so a consumer that does not use that subpath does not install them. `home-assistant-js-websocket` stays an optional peer too; only `@dashhaus/core/websocket` reaches it.
 
-`@dashhaus/dashboard/conformance` is Node- and test-only: it reads a skin's files with `node:fs` and `node:path`, and imports no React, DOM, CSS or test runner. A skin imports it from its own test and asserts the findings are empty. What a third-party skin may rely on from `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `docs/contract.md`.
+`@dashhaus/dashboard/skin` is the frozen skin-author runtime: the element base, card-picker registration, token scoping and the layout's `hass` input. A skin's Lovelace card imports it instead of the main entry.
 
-`files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
+`@dashhaus/dashboard/conformance` is Node- and test-only: it reads a skin's files with `node:fs` and `node:path`, and imports no React, DOM, CSS or test runner. A skin imports it from its own test and asserts the findings are empty. What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `docs/contract.md`.
+
+`@dashhaus/deploy/config` is the pure author config surface: `DeployConfig`, `DeployDashboard`, `DeployHa`, `DeployCard`, `GeneratedSkin` and `generatedDashboards`. It imports no Node builtin and no React, so a Node-only app that installs deploy alone can read its config types. The loader that bundles and validates `dashboard.config.mjs` is the main `.` entry.
+
+Every package ships a non-empty `README.md`; `files` keeps it in the tarball and `npm run verify:packages` refuses an empty one. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
@@ -60,12 +64,13 @@ npm run verify:packages             # clean-app install, imports, typecheck, dep
 
 `release:pack` writes `release/dashhaus-core-<version>.tgz`, `release/dashhaus-dashboard-<version>.tgz` and `release/dashhaus-deploy-<version>.tgz`. `verify:packages` installs exactly those tarballs into a fresh app under the system temp directory, with React 18, and checks:
 
-- the tarball file list and the packed manifests (no `private`, no `source`, pinned internal range, optional peers);
-- Node imports of every declared subpath, including a JSON fixture and `@dashhaus/dashboard/cli`;
-- a jsdom React render of `@dashhaus/dashboard` and `@dashhaus/dashboard/card`;
+- the tarball file list and the packed manifests (no `private`, no `source`, pinned internal range, optional peers), including each package's non-empty `README.md`;
+- Node imports of every declared subpath, including a JSON fixture and `@dashhaus/deploy/config`;
+- a jsdom React render of `@dashhaus/dashboard`, `@dashhaus/dashboard/skin` and `@dashhaus/dashboard/card`;
 - `@dashhaus/core/testing` inside Vitest;
 - TypeScript consumers with `moduleResolution: Bundler` and `NodeNext`;
-- `dashhaus-deploy --help` loading a config that imports `@dashhaus/dashboard/cli`.
+- a Node-only app that installs `@dashhaus/deploy` alone and imports `@dashhaus/deploy/config` with no React, core or dashboard package present;
+- `dashhaus-deploy --help` loading a config that imports `@dashhaus/deploy/config`.
 
 It installs from npm for React, the test packages and esbuild. `KEEP_PACKED_APP=1` leaves the temp app in place for debugging.
 
@@ -131,7 +136,8 @@ npm run test-storybook -- --shard=1/2 --maxWorkers=2     # 2/2 in the second job
 
 ## Differences from the readiness note
 
-- The note's `dashboard/conformance` subpath now exists: it is the generic card preset a skin runs against its own cards, shipped Node-test-only with no Vitest peer (`docs/contract.md`). `dashboard/vite` does not exist and is not part of this cut: no consumer needs a shared build, and the deploy config keeps ownership of its `build()`. A demonstrated need starts that cut. `./cli` is the config-authoring surface, and generator tooling stays in `scripts/`.
+- The note's `dashboard/conformance` subpath now exists: it is the generic card preset a skin runs against its own cards, shipped Node-test-only with no Vitest peer (`docs/contract.md`). `dashboard/vite` does not exist and is not part of this cut: no consumer needs a shared build, and the deploy config keeps ownership of its `build()`. A demonstrated need starts that cut.
+- The config-authoring surface moved from `dashboard/cli` to `@dashhaus/deploy/config`, so a deploy-only app installs no React peer and the two package boundaries stay separate. Generator tooling stays in `scripts/`.
 - The note's built-output tradeoff is implemented as described: ESM JavaScript plus `.d.ts`, workspace source through an export condition, no raw TypeScript in an installed package.
 - The reference skins remain folders, not packages; the monorepo rename to Dashhaus applies to the root and package names only.
 - `@dashhaus/core/testing` grew optional peers (`vitest`, `@testing-library/react`) that the note did not enumerate; they are test-only and optional.

@@ -3,9 +3,10 @@
  *
  * - tarball contents: no tests, stories, repo docs or workspace-only source paths;
  * - packed manifests: real version, no `private`, no `source` condition, internal ranges pinned, optional peers;
- * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/dashboard` and `./card`, a Vitest run
- *   for `@dashhaus/core/testing`, a TypeScript consumer (Bundler and NodeNext), and the `dashhaus-deploy` bin
- *   loading a config that imports `@dashhaus/dashboard/cli`.
+ * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/dashboard`, `./skin` and `./card`, a
+ *   Vitest run for `@dashhaus/core/testing`, a TypeScript consumer (Bundler and NodeNext), the `dashhaus-deploy` bin
+ *   loading a config that imports `@dashhaus/deploy/config`, and a Node-only app installing deploy alone.
+ * - each tarball's non-empty README.
  *
  * Usage: `npm run release:pack` then `npm run verify:packages`.
  */
@@ -55,12 +56,14 @@ async function checkTarballs(manifests) {
     if (!filesField.includes("dist") && pkg.key !== "deploy") throw new Error(`${manifest.name}: packed files must ship dist`);
 
     const required = pkg.key === "core"
-      ? ["package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json"]
+      ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json"]
       : pkg.key === "dashboard"
-        ? ["package/dist/index.js", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/cli.js", "package/dist/cli.d.ts", "package/dist/conformance.js", "package/dist/conformance.d.ts"]
-        : ["package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts"];
+        ? ["package/README.md", "package/dist/index.js", "package/dist/skin.js", "package/dist/skin.d.ts", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/conformance.js", "package/dist/conformance.d.ts"]
+        : ["package/README.md", "package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts", "package/src/config.mjs", "package/src/config.d.mts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
+    const readme = execFileSync("tar", ["-xOzf", tarball, "package/README.md"], { encoding: "utf8" });
+    if (!readme.trim()) throw new Error(`${manifest.name}: README.md in the tarball is empty`);
     ok(`${manifest.name}@${packed.version}: ${files.length} entries, ${(statSync(tarball).size / 1024).toFixed(1)} KiB`);
   }
 
@@ -121,8 +124,8 @@ await load("@dashhaus/core/websocket");
 const fixture = (await import("@dashhaus/core/fixtures/light.json", { with: { type: "json" } })).default;
 assert.ok(Object.keys(fixture).length > 0);
 
-const cli = await load("@dashhaus/dashboard/cli");
-assert.equal(typeof cli.generatedDashboards, "function");
+const deployConfig = await load("@dashhaus/deploy/config");
+assert.equal(typeof deployConfig.generatedDashboards, "function");
 await load("@dashhaus/dashboard/schema");
 await load("@dashhaus/dashboard/layout");
 const conformance = await load("@dashhaus/dashboard/conformance");
@@ -138,6 +141,8 @@ for (const key of ["window", "document", "HTMLElement", "customElements", "Custo
 }
 const dashboard = await load("@dashhaus/dashboard");
 assert.equal(typeof dashboard.registerCard, "function");
+const skin = await load("@dashhaus/dashboard/skin");
+assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "registerCard", "scopeToHost"]);
 const card = await load("@dashhaus/dashboard/card");
 assert.equal(card.cardShape({ footprint: "compact" }).footprint, "compact");
 
@@ -178,8 +183,9 @@ async function typeConsumer(app) {
   await writeFile(join(app, "consumer.ts"), `
 import type { CardProps } from "@dashhaus/dashboard/card";
 import { cardShape } from "@dashhaus/dashboard/card";
-import type { DeployConfig } from "@dashhaus/dashboard/cli";
-import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import type { DeployConfig } from "@dashhaus/deploy/config";
+import { generatedDashboards } from "@dashhaus/deploy/config";
+import type { LovelaceHass } from "@dashhaus/dashboard/skin";
 import type { CardCheck } from "@dashhaus/dashboard/conformance";
 import { checkCards } from "@dashhaus/dashboard/conformance";
 import { HaActionError } from "@dashhaus/core";
@@ -197,6 +203,7 @@ export const values = [HaActionError, kelvinToLch, fmt1, usePress, useNow, creat
 export type Card = CardProps;
 export type Check = CardCheck;
 export type Entity = HassEntity;
+export type Hass = LovelaceHass;
 `);
   await writeFile(join(app, "tsconfig.bundler.json"), `${JSON.stringify({
     compilerOptions: {
@@ -214,8 +221,8 @@ export type Entity = HassEntity;
   run(process.execPath, [join(root, "node_modules", "typescript", "bin", "tsc"), "-p", join(app, "tsconfig.bundler.json")], app);
 
   await writeFile(join(app, "consumer.node.ts"), `
-import type { DeployConfig } from "@dashhaus/dashboard/cli";
-import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import type { DeployConfig } from "@dashhaus/deploy/config";
+import { generatedDashboards } from "@dashhaus/deploy/config";
 import { cardShape } from "@dashhaus/dashboard/card";
 import type { CardCheck } from "@dashhaus/dashboard/conformance";
 import { checkCards } from "@dashhaus/dashboard/conformance";
@@ -244,9 +251,42 @@ export type Config = DeployConfig;
   ok("TypeScript consumers typecheck against the packed declarations (Bundler and NodeNext)");
 }
 
+/**
+ * A Node-only app installs `@dashhaus/deploy` alone and imports its pure config subpath. No React, core or dashboard
+ * peer is present, so the import proves the config surface stays installable without the browser packages.
+ */
+async function deployConfigConsumer(manifests) {
+  const app = await mkdtemp(join(tmpdir(), "dashhaus-deploy-app-"));
+  try {
+    await writeFile(join(app, "package.json"), `${JSON.stringify({
+      name: "dashhaus-deploy-only",
+      private: true,
+      type: "module",
+      dependencies: { "@dashhaus/deploy": tarballFor(manifests.deploy) },
+    }, null, 2)}\n`);
+    run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
+    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
+      if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the deploy-only app installed ${peer}; the config surface must not need it`);
+    }
+    await writeFile(join(app, "config.mjs"), `
+import assert from "node:assert/strict";
+import { generatedDashboards } from "@dashhaus/deploy/config";
+
+const [node] = generatedDashboards([{ id: "node", title: "Node", icon: "mdi:home" }]);
+assert.equal(node.path, "dashhaus-node");
+assert.equal((await node.card({ send: async () => undefined })).card.type, "custom:dashhaus-node");
+console.log("deploy/config import ok");
+`);
+    run(process.execPath, ["config.mjs"], app);
+    ok("@dashhaus/deploy/config imports in a Node-only app with no React");
+  } finally {
+    await rm(app, { recursive: true, force: true });
+  }
+}
+
 async function deployBin(app) {
   await writeFile(join(app, "dashboard.config.mjs"), `
-import { generatedDashboards } from "@dashhaus/dashboard/cli";
+import { generatedDashboards } from "@dashhaus/deploy/config";
 
 export default {
   bundle: "dist/cards.js",
@@ -258,7 +298,7 @@ export default {
   if (!result.stdout.includes("Packed") || !result.stdout.includes("/dashhaus-canvas")) {
     throw new Error(`deploy bin did not load the packed config:\n${result.stdout}`);
   }
-  ok("dashhaus-deploy runs and loads a config importing @dashhaus/dashboard/cli");
+  ok("dashhaus-deploy runs and loads a config importing @dashhaus/deploy/config");
 }
 
 async function main() {
@@ -270,6 +310,7 @@ async function main() {
   try {
     await install(app, manifests);
     await nodeConsumer(app);
+    await deployConfigConsumer(manifests);
     await testingConsumer(app);
     await typeConsumer(app);
     await deployBin(app);

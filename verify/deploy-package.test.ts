@@ -5,7 +5,7 @@
  * repo config from a copied, non-symlinked `@dashhaus/dashboard`, which is the install shape Node refuses to type-strip.
  */
 import { spawnSync } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { lstatSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, posix } from "node:path";
@@ -58,15 +58,22 @@ const fakeHa: DeployHa = {
 };
 
 describe("@dashhaus/deploy", () => {
-  it("is a private Node bin that exports only the CLI", () => {
+  it("is a private Node bin with a pure config subpath", () => {
     expect(packageJson.name).toBe("@dashhaus/deploy");
     expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.type).toBe("module");
     expect(packageJson.bin).toEqual({ "dashhaus-deploy": "./bin.mjs" });
-    expect(packageJson.exports).toEqual({ ".": "./src/deploy.mjs" });
-    expect(packageJson.files).toEqual(["bin.mjs", "src/*.mjs", "src/*.d.mts"]);
+    expect(packageJson.exports).toEqual({
+      ".": "./src/deploy.mjs",
+      "./config": {
+        types: "./src/config.d.mts",
+        import: "./src/config.mjs",
+        default: "./src/config.mjs",
+      },
+    });
+    expect(packageJson.files).toEqual(["bin.mjs", "src/*.mjs", "src/*.d.mts", "README.md"]);
     expect(packageJson.engines).toEqual({ node: ">=22" });
     expect(Object.keys(packageJson.dependencies)).toEqual(["esbuild"]);
   });
@@ -75,6 +82,12 @@ describe("@dashhaus/deploy", () => {
     const rootPackage = JSON.parse(read("package.json"));
     expect(rootPackage.scripts.deploy).toBe("dashhaus-deploy");
     expect(rootPackage.dependencies["@dashhaus/deploy"]).toBe("*");
+  });
+
+  it("keeps @dashhaus/deploy/config free of imports, the loader and React", () => {
+    const config = `${PACKAGE}/src/config.mjs`;
+    expect(specs(config)).toEqual([]);
+    expect(read(config).split("\n").filter((line) => /^\s*(?:import|export\s+.*\sfrom)\b/.test(line))).toEqual([]);
   });
 
   it("imports only Node builtins, esbuild and its own files", () => {
@@ -125,7 +138,7 @@ describe("@dashhaus/deploy", () => {
   it("registers a generated skin through generatedDashboards", async () => {
     const directory = await mkdtemp(join(root, ".deploy-config-"));
     directories.push(directory);
-    await writeFile(join(directory, "dashboard.config.mjs"), `import { generatedDashboards } from "@dashhaus/dashboard/cli";
+    await writeFile(join(directory, "dashboard.config.mjs"), `import { generatedDashboards } from "@dashhaus/deploy/config";
 export default {
   bundle: "dist/cards.js",
   dashboards: generatedDashboards([{ id: "canvas", title: "Home (Canvas)", icon: "mdi:view-dashboard-outline" }]),
@@ -144,6 +157,7 @@ export default {
     directories.push(app);
     await mkdir(join(app, "node_modules", "@dashhaus"), { recursive: true });
     await cp(join(root, "packages/dashboard"), join(app, "node_modules", "@dashhaus/dashboard"), { recursive: true });
+    await symlink(join(root, "packages/deploy"), join(app, "node_modules", "@dashhaus/deploy"), "dir");
     await mkdir(join(app, "scripts"), { recursive: true });
     await mkdir(join(app, "src", "skins", "orb", "lovelace"), { recursive: true });
     await cp(CONFIG_FILE, join(app, "dashboard.config.mjs"));
@@ -152,9 +166,10 @@ export default {
     expect(lstatSync(join(app, "node_modules", "@dashhaus/dashboard")).isSymbolicLink()).toBe(false);
 
     // A marker in the copy proves the CLI bundled the copy, not the repo's workspace symlink.
-    const copiedCli = join(app, "node_modules", "@dashhaus/dashboard/src/cli.ts");
-    await writeFile(copiedCli, `${await readFile(copiedCli, "utf8")}\nexport const copiedMarker = "copied-dashboard-package";\n`);
-    await writeFile(join(app, "copied.config.mjs"), `import { generatedDashboards, copiedMarker } from "@dashhaus/dashboard/cli";
+    const copiedSchema = join(app, "node_modules", "@dashhaus/dashboard/src/schema.ts");
+    await writeFile(copiedSchema, `${await readFile(copiedSchema, "utf8")}\nexport const copiedMarker = "copied-dashboard-package";\n`);
+    await writeFile(join(app, "copied.config.mjs"), `import { generatedDashboards } from "@dashhaus/deploy/config";
+import { copiedMarker } from "@dashhaus/dashboard/schema";
 export default {
   pageTitle: copiedMarker,
   bundle: "dist/dashhaus.js",
