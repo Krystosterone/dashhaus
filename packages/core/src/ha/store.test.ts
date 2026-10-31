@@ -59,6 +59,40 @@ describe("createHaStore lifecycle", () => {
     expect(store.getSnapshot().entities).toBe(entities);
   });
 
+  it("starts connected from a host snapshot and still takes the live one", async () => {
+    const fake = fakeTransport();
+    const store = createHaStore(fake.transport, entities);
+
+    const connecting = store.connect();
+    await expect(connecting).resolves.toBeUndefined();
+    expect(store.getSnapshot()).toMatchObject({ status: "connected", entities });
+
+    const live = { "light.one": { entity_id: "light.one", state: "off", attributes: {} } };
+    fake.emit(live);
+    expect(store.getSnapshot()).toMatchObject({ status: "connected", entities: live });
+  });
+
+  it("waits for its subscription when the host snapshot is empty", () => {
+    const fake = fakeTransport();
+    const store = createHaStore(fake.transport, {});
+
+    void store.connect();
+    expect(store.getSnapshot()).toMatchObject({ status: "connecting", entities: {} });
+  });
+
+  it("uses the host snapshot for the first connect only", async () => {
+    const fake = fakeTransport();
+    const store = createHaStore(fake.transport, entities);
+    await store.connect();
+    store.disconnect();
+
+    const again = store.connect();
+    expect(store.getSnapshot().status).toBe("connecting");
+    fake.emit();
+    await again;
+    expect(store.getSnapshot()).toMatchObject({ status: "connected", entities });
+  });
+
   it("shares one connect between concurrent callers and subscribes once", async () => {
     const fake = fakeTransport();
     const store = createHaStore(fake.transport);

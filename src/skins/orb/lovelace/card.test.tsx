@@ -10,11 +10,11 @@ const entities: HassEntities = {
   "input_boolean.guest": { entity_id: "input_boolean.guest", state: "off", attributes: { friendly_name: "Guest" } },
 };
 
-const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn() }));
+const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn(), emitOnSubscribe: true }));
 vi.mock("@dashhaus/core/websocket", () => adapter);
 adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
   subscribeEntities(listener) {
-    queueMicrotask(() => listener(entities));
+    if (adapter.emitOnSubscribe) queueMicrotask(() => listener(entities));
     return () => undefined;
   },
   callService: async () => undefined,
@@ -54,6 +54,16 @@ describe("dashhaus-orb card", () => {
     expect(shadow.querySelector("style")?.textContent).toContain("--dash-scroll-offset: calc(var(--header-height, 56px)");
     expect(shadow.querySelector(".dash-sec-h")?.textContent).toBe("Lights");
     expect(shadow.textContent).toContain("Kitchen");
+  });
+
+  it("draws Home Assistant's states before its own subscription answers", async () => {
+    adapter.emitOnSubscribe = false;
+    try {
+      const card = await mount({ title: "Flat", sections: [{ title: "Lights", cards: ["light.kitchen"] }] });
+      expect(card.shadowRoot!.textContent).toContain("Kitchen");
+    } finally {
+      adapter.emitOnSubscribe = true;
+    }
   });
 
   it("follows Home Assistant's dark mode unless the config picks a theme", async () => {

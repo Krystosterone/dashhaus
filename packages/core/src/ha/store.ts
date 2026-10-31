@@ -23,10 +23,16 @@ type ErrorDetails = { domain?: string; service?: string; entityId?: string };
  * reports loss and recovery through `subscribeConnection`. The store fans snapshots out to React, clears
  * stale entities while the connection is down, and advances `generation` on every loss and recovery so
  * reads and actions started under an older connection are reported as having an unknown outcome.
+ *
+ * `initialEntities` is a complete snapshot the host already has, such as Home Assistant's `hass.states`.
+ * With it, the store is connected from the first frame instead of waiting for its own subscription's
+ * snapshot; the subscription still replaces it with the live snapshot when that arrives. A reconnect
+ * has no seed and waits for the next snapshot, as before.
  */
-export function createHaStore(transport: HaTransport): HaStore {
+export function createHaStore(transport: HaTransport, initialEntities?: HassEntities): HaStore {
   const listeners = new Set<() => void>();
   let snapshot: HaSnapshot = { status: "idle", entities: {}, generation: 0 };
+  let seed = initialEntities && Object.keys(initialEntities).length > 0 ? initialEntities : undefined;
   let session = 0;
   const stops: Unsubscribe[] = [];
   let attempt: { promise: Promise<void>; resolve: () => void; reject: (error: unknown) => void } | undefined;
@@ -84,7 +90,10 @@ export function createHaStore(transport: HaTransport): HaStore {
     teardown();
     failedAction = undefined;
     const owner = session;
-    set({ status: "connecting", entities: {}, error: undefined, lastActionError: undefined, generation: snapshot.generation + 1 });
+    // The host's snapshot is good for this connect attempt only; a reconnect waits for the live one.
+    const initial = seed;
+    seed = undefined;
+    set({ status: "connecting", entities: initial ?? {}, error: undefined, lastActionError: undefined, generation: snapshot.generation + 1 });
     const onEntities = (entities: HassEntities) => {
       if (owner !== session) return;
       const traced = tracedAction;
@@ -125,6 +134,14 @@ export function createHaStore(transport: HaTransport): HaStore {
     try {
       if (transport.subscribeConnection) stops.push(transport.subscribeConnection(onConnection));
       stops.push(transport.subscribeEntities(onEntities));
+      // The subscription is in place; the host's snapshot is the first complete one, so there is nothing
+      // to wait for before the cards may draw and act. A synchronous first snapshot already did this.
+      if (initial && owner === session && snapshot.status === "connecting") {
+        set({ status: "connected", entities: initial, error: undefined, generation: snapshot.generation + 1 });
+        perfMark("store:connected", { generation: snapshot.generation, seeded: true });
+        perfMarkAfterPaint("store:painted", { generation: snapshot.generation, seeded: true });
+        settle();
+      }
     } catch {
       if (owner === session) fail();
     }

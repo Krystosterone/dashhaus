@@ -12,7 +12,7 @@
  * The token is used for the browser's frontend session and for the restore service call; it is never printed or
  * written to the report.
  */
-/* global document, window */
+/* global document, window, XMLHttpRequest */
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -118,6 +118,36 @@ async function createContext(browser, { token, origin, enabled }) {
     colorScheme: "dark",
   });
   await context.addInitScript(({ token, origin, enabled }) => {
+    // The opt-in must add nothing to an off page. Record what the bundle itself registers or fetches,
+    // by checking the call stack, so Home Assistant's own pointer listeners and requests do not count.
+    const fromBundle = () => {
+      const stack = new Error().stack ?? "";
+      return stack.includes("/local/") && stack.includes("dashhaus");
+    };
+    window.__perfProbe = { pointerdown: [], fetches: [] };
+    const addListener = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function (type, listener, options) {
+      if (type === "pointerdown" && fromBundle()) {
+        window.__perfProbe.pointerdown.push({
+          target: this === window ? "window" : this === document ? "document" : this?.tagName?.toLowerCase() ?? "other",
+          capture: typeof options === "object" ? options?.capture === true : options === true,
+          passive: typeof options === "object" ? options?.passive === true : false,
+        });
+      }
+      return addListener.call(this, type, listener, options);
+    };
+    const request = window.fetch;
+    if (request) {
+      window.fetch = function (...args) {
+        if (fromBundle()) window.__perfProbe.fetches.push(typeof args[0] === "string" ? args[0] : args[0]?.url ?? "?");
+        return request.apply(this, args);
+      };
+    }
+    const open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+      if (fromBundle()) window.__perfProbe.fetches.push(String(url));
+      return open.call(this, method, url, ...rest);
+    };
     try {
       localStorage.setItem("hassTokens", JSON.stringify({
         access_token: token,
@@ -337,6 +367,19 @@ async function runSkin(browser, skin, { path, base, token, origin, entity, cardN
     await waitForCards(page);
     await page.waitForTimeout(300);
 
+    // Prove the off check's probe is not vacuous: the opt-in page must show the listener it looks for,
+    // and the bundle must still make no fetch of its own.
+    const probe = await page.evaluate(() => window.__perfProbe ?? { pointerdown: [], fetches: [] });
+    // React's event delegation also registers pointerdown listeners from inside the bundle; the opt-in's
+    // one is the window capture listener it installs, so judge only that signature.
+    const optInListeners = probe.pointerdown.filter((entry) => entry.target === "window" && entry.capture && entry.passive).length;
+    if (optInListeners === 0) {
+      throw new Error("The performance probe saw no opt-in pointerdown listener; the off check cannot prove absence.");
+    }
+    if (probe.fetches.length > 0) {
+      throw new Error(`The dashhaus bundle fetched ${probe.fetches[0]}${probe.fetches.length > 1 ? " and more" : ""}; the opt-in must not add requests.`);
+    }
+
     const loadMarks = await readMarks(page);
     const browserTimings = await readBrowser(page);
     const dom = await readDom(page);
@@ -350,6 +393,7 @@ async function runSkin(browser, skin, { path, base, token, origin, entity, cardN
       ...summarizeMarks(loadMarks),
       cards: dom.cards,
       hosts: dom.hosts,
+      probe: { pointerdownListeners: optInListeners, fetches: probe.fetches.length },
       bundle: (() => {
         const resource = browserTimings.resources.find((entry) => entry.name.includes("/local/") && entry.name.includes("dashhaus"));
         return resource && {
@@ -507,19 +551,54 @@ async function offCheck(browser, { base, path, token, origin, cardName }) {
   const context = await createContext(browser, { token, origin, enabled: false });
   const page = await context.newPage();
   const errors = watchPage(page);
+  const consoleLines = [];
+  page.on("console", (message) => {
+    const text = message.text();
+    if (/\bperf\b|__dashhaus/i.test(text)) consoleLines.push({ type: message.type(), text });
+  });
   try {
     await page.goto(`${base}/${path.replace(/^\/+/, "")}`, { waitUntil: "domcontentloaded" });
     assertAuthenticated(page);
     await waitForCards(page);
     await page.getByRole("article", { name: cardName, exact: true }).first().waitFor({ state: "visible", timeout: 60_000 });
+    await page.waitForTimeout(300);
+    const dom = await readDom(page);
     const result = await page.evaluate(() => ({
       global: "__dashhausPerf" in window,
       marks: performance.getEntriesByType("mark").filter((mark) => mark.name.startsWith("dashhaus:")).length,
+      measures: performance.getEntriesByType("measure").filter((measure) => measure.name.startsWith("dashhaus:")).length,
+      probe: window.__perfProbe ?? { pointerdown: [], fetches: [] },
     }));
-    if (result.global || result.marks > 0) {
-      throw new Error("Instrumentation ran without the opt-in; the off check found marks.");
+    const pointerdownListeners = result.probe.pointerdown
+      .filter((entry) => entry.target === "window" && entry.capture && entry.passive).length;
+    const fetches = result.probe.fetches.length;
+    if (result.global || result.marks > 0 || result.measures > 0) {
+      throw new Error("Instrumentation ran without the opt-in; the off check found a buffer, mark or measure.");
     }
-    return { path, ...result, cards: (await readDom(page)).cards, errors };
+    if (pointerdownListeners > 0) {
+      throw new Error(`Instrumentation ran without the opt-in; the off check found ${pointerdownListeners} pointerdown listener(s).`);
+    }
+    if (fetches > 0) {
+      throw new Error(`Instrumentation ran without the opt-in; the off check found a fetch from the bundle.`);
+    }
+    if (consoleLines.length > 0) {
+      throw new Error(`Instrumentation ran without the opt-in; the off check found a console line: ${consoleLines[0].text}`);
+    }
+    if (errors.console > 0 || errors.page > 0) {
+      throw new Error(`The dashboard logged ${errors.console} console error(s) and ${errors.page} page error(s) without the opt-in.`);
+    }
+    return {
+      path,
+      global: result.global,
+      marks: result.marks,
+      measures: result.measures,
+      pointerdownListeners,
+      fetches,
+      console: consoleLines,
+      cards: dom.cards,
+      hosts: dom.hosts,
+      errors,
+    };
   } finally {
     await context.close();
   }
@@ -563,7 +642,10 @@ async function main() {
     const cardName = options.card ?? entityState.attributes.friendly_name;
     if (!cardName) throw new Error(`Home Assistant has no friendly name for ${entity}; pass --card.`);
 
-    const off = await offCheck(browser, { base, path: orbPath, token, origin, cardName });
+    const off = {
+      orb: await offCheck(browser, { base, path: orbPath, token, origin, cardName }),
+      field: await offCheck(browser, { base, path: fieldPath, token, origin, cardName }),
+    };
     const skins = {};
     for (const [skin, path] of [["orb", orbPath], ["field", fieldPath]]) {
       skins[skin] = await runSkin(browser, skin, {
@@ -577,8 +659,13 @@ async function main() {
       });
     }
 
-    if (off.cards !== skins.orb.coldLoad.cards) {
-      throw new Error(`The opt-in changed the rendered dashboard: ${off.cards} cards off, ${skins.orb.coldLoad.cards} on.`);
+    for (const skin of ["orb", "field"]) {
+      if (off[skin].cards !== skins[skin].coldLoad.cards || off[skin].hosts !== skins[skin].coldLoad.hosts) {
+        throw new Error(
+          `The opt-in changed ${skin}: ${off[skin].cards} cards/${off[skin].hosts} hosts off, ` +
+          `${skins[skin].coldLoad.cards} cards/${skins[skin].coldLoad.hosts} hosts on.`,
+        );
+      }
     }
 
     const report = {

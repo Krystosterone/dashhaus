@@ -1,0 +1,683 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-31T03:05:19.867Z",
+  "commit": "980c9602957c9f19ac79aedd23f7b45668d73e1e",
+  "branch": "perf/production-followup",
+  "dirty": false,
+  "ha": {
+    "url": "http://home-assistant:8123",
+    "version": "2026.10.4",
+    "dashboards": {
+      "orb": "dashhaus-orb",
+      "field": "dashhaus-field"
+    }
+  },
+  "browser": {
+    "name": "Chromium",
+    "version": "156.0.8078.4",
+    "headless": true
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "deviceScaleFactor": 1,
+    "colorScheme": "dark"
+  },
+  "instrumentation": {
+    "optIn": "?dashhaus_perf=1 or localStorage['dashhaus:perf']='1'",
+    "offCheck": {
+      "orb": {
+        "path": "dashhaus-orb",
+        "global": false,
+        "marks": 0,
+        "measures": 0,
+        "pointerdownListeners": 0,
+        "fetches": 0,
+        "console": [],
+        "cards": 85,
+        "hosts": 1,
+        "errors": {
+          "console": 0,
+          "page": 0
+        }
+      },
+      "field": {
+        "path": "dashhaus-field",
+        "global": false,
+        "marks": 0,
+        "measures": 0,
+        "pointerdownListeners": 0,
+        "fetches": 0,
+        "console": [],
+        "cards": 85,
+        "hosts": 1,
+        "errors": {
+          "console": 0,
+          "page": 0
+        }
+      }
+    }
+  },
+  "interaction": {
+    "entity": "input_boolean.do_not_disturb",
+    "card": "Do not Disturb",
+    "control": {
+      "orb": "toggle pill",
+      "field": "key"
+    }
+  },
+  "skins": {
+    "orb": {
+      "dashboard": "dashhaus-orb",
+      "url": "http://home-assistant:8123/dashhaus-orb?dashhaus_perf=1",
+      "coldLoad": {
+        "dashboard": "dashhaus-orb",
+        "url": "http://home-assistant:8123/dashhaus-orb?dashhaus_perf=1",
+        "browser": {
+          "ttfbMs": 57.2,
+          "domContentLoadedMs": 63.4,
+          "loadMs": 226.9,
+          "firstPaintMs": 76,
+          "firstContentfulPaintMs": 232,
+          "largestContentfulPaintMs": 232,
+          "largestContentfulPaintTag": "img",
+          "longTasks": {
+            "count": 1,
+            "totalMs": 71,
+            "maxMs": 71
+          },
+          "navigationTransferSize": 3871,
+          "jsHeapUsedBytes": 56800000
+        },
+        "marks": {
+          "bundleEntryMs": 2084.5,
+          "elementConnectedMs": 2086.3,
+          "storeCreatedMs": 2086.1,
+          "storeConnectedMs": 2088.2,
+          "hassReadyMs": 2085.9,
+          "configParsedMs": 2085.9,
+          "renderStartMs": 2088,
+          "renderPaintedMs": 2138.7,
+          "storePaintedMs": 2138.7
+        },
+        "timings": {
+          "entryToConnectedMs": 1.8,
+          "connectedToPaintedMs": 52.4,
+          "entryToPaintedMs": 54.2,
+          "framePaintToStoreConnectedMs": -50.5,
+          "navigationToPaintedMs": 2138.7,
+          "connectedToReadyMs": 52.4,
+          "entryToReadyMs": 54.2,
+          "storeToReadyMs": 50.5,
+          "navigationToReadyMs": 2138.7
+        },
+        "cards": 85,
+        "hosts": 1,
+        "probe": {
+          "pointerdownListeners": 1,
+          "fetches": 0
+        },
+        "bundle": {
+          "url": "http://home-assistant:8123/local/dashhaus/dashhaus.js?v=96864c71bd",
+          "initiatorType": "script",
+          "durationMs": 527.3,
+          "transferSize": 654213
+        },
+        "resources": [
+          {
+            "name": "http://home-assistant:8123/hacsfiles/lovelace-card-mod/card-mod.js",
+            "initiatorType": "script",
+            "startTimeMs": 63,
+            "durationMs": 82.8,
+            "transferSize": 25363
+          },
+          {
+            "name": "http://home-assistant:8123/hacsfiles/iconset.js",
+            "initiatorType": "script",
+            "startTimeMs": 63,
+            "durationMs": 94.7,
+            "transferSize": 4142
+          },
+          {
+            "name": "http://home-assistant:8123/ui_lovelace_minimalist/cards/hermes-mobile-tapbar-fix/hermes-mobile-tapbar-fix.js",
+            "initiatorType": "script",
+            "startTimeMs": 63,
+            "durationMs": 96.1,
+            "transferSize": 4144
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/49589.23a2870d61954701.js",
+            "initiatorType": "script",
+            "startTimeMs": 201.6,
+            "durationMs": 46.6,
+            "transferSize": 5390
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/342.00f302ecc9d6257a.js",
+            "initiatorType": "script",
+            "startTimeMs": 314.5,
+            "durationMs": 68.3,
+            "transferSize": 513
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/79871.0cd7505014fef7fb.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.2,
+            "durationMs": 70.3,
+            "transferSize": 3795
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/40523.1e09f4c93f125c24.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.3,
+            "durationMs": 63.9,
+            "transferSize": 4342
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/57539.27d7cefd99dace6a.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.3,
+            "durationMs": 64.9,
+            "transferSize": 10457
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/54353.5437d2f3817bda05.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.3,
+            "durationMs": 67.6,
+            "transferSize": 4426
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/37532.79d0d1bb37c67bc0.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.5,
+            "durationMs": 63.3,
+            "transferSize": 2979
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/9287.09045b2bbbaec3ff.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.6,
+            "durationMs": 126.4,
+            "transferSize": 4791
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/83083.fe45ed5de283dceb.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.6,
+            "durationMs": 148.8,
+            "transferSize": 9033
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/24519.eb7116b32c634736.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.7,
+            "durationMs": 126.4,
+            "transferSize": 4231
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/49227.905c893829033053.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.7,
+            "durationMs": 130.5,
+            "transferSize": 5222
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/8099.739711f91e051b08.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.7,
+            "durationMs": 137.1,
+            "transferSize": 6813
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/15204.4ba98d3a7e1188ba.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.8,
+            "durationMs": 137.3,
+            "transferSize": 4817
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/75395.cc5150b9b2a1eaab.js",
+            "initiatorType": "script",
+            "startTimeMs": 315.9,
+            "durationMs": 191.3,
+            "transferSize": 8327
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/88836.82d8c061e321f700.js",
+            "initiatorType": "script",
+            "startTimeMs": 316,
+            "durationMs": 180.3,
+            "transferSize": 6242
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/85803.5b2b792a7300e3b1.js",
+            "initiatorType": "script",
+            "startTimeMs": 316,
+            "durationMs": 191.4,
+            "transferSize": 3519
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/41649.246763083c75df64.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.1,
+            "durationMs": 196.9,
+            "transferSize": 2314
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/54076.4e72607dd775669c.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.1,
+            "durationMs": 201.4,
+            "transferSize": 103555
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/51808.00d17dbc5c336819.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.2,
+            "durationMs": 209.9,
+            "transferSize": 16363
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/19662.02bfe987bcf02fae.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.2,
+            "durationMs": 237.2,
+            "transferSize": 11853
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/38795.f1749be6c0cda8cf.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.3,
+            "durationMs": 238.2,
+            "transferSize": 4961
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/86151.a018324031dccf64.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.3,
+            "durationMs": 239.7,
+            "transferSize": 7539
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/44518.60aafb0dd7361a8a.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.4,
+            "durationMs": 263,
+            "transferSize": 4071
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/53047.2ff52aed1ea1d58d.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.4,
+            "durationMs": 273.2,
+            "transferSize": 5819
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/53224.cf6a4ce6a1632ae3.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.5,
+            "durationMs": 273.3,
+            "transferSize": 4652
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/91441.f4e291d27370bd0e.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.6,
+            "durationMs": 291.6,
+            "transferSize": 4147
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/27885.b2722f12c8ea5f0d.js",
+            "initiatorType": "script",
+            "startTimeMs": 316.6,
+            "durationMs": 302.7,
+            "transferSize": 4130
+          }
+        ]
+      },
+      "details": {
+        "target": "Do not Disturb",
+        "trigger": "name",
+        "inputMs": 2531.5,
+        "requestMs": 2533.3,
+        "visibleMs": 2573.4,
+        "inputToVisibleMs": 41.9,
+        "requestToVisibleMs": 40.1,
+        "dialogOpen": true
+      },
+      "interaction": {
+        "entity": "input_boolean.do_not_disturb",
+        "card": "Do not Disturb",
+        "control": "toggle pill",
+        "before": "on",
+        "after": "off",
+        "action": {
+          "seq": 1,
+          "label": "input_boolean.toggle",
+          "inputMs": 3315.8,
+          "startMs": 3317.8,
+          "ackMs": 3474.2,
+          "stateMs": 3472.9,
+          "settledMs": 3523.1,
+          "startToAckMs": 156.4,
+          "ackToStateMs": -1.3,
+          "stateToSettledMs": 50.2,
+          "inputToSettledMs": 207.3,
+          "startToSettledMs": 205.3
+        },
+        "restored": "on"
+      },
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    "field": {
+      "dashboard": "dashhaus-field",
+      "url": "http://home-assistant:8123/dashhaus-field?dashhaus_perf=1",
+      "coldLoad": {
+        "dashboard": "dashhaus-field",
+        "url": "http://home-assistant:8123/dashhaus-field?dashhaus_perf=1",
+        "browser": {
+          "ttfbMs": 169.6,
+          "domContentLoadedMs": 177.5,
+          "loadMs": 381.8,
+          "firstPaintMs": 192,
+          "firstContentfulPaintMs": 384,
+          "largestContentfulPaintMs": 384,
+          "largestContentfulPaintTag": "img",
+          "longTasks": {
+            "count": 1,
+            "totalMs": 69,
+            "maxMs": 69
+          },
+          "navigationTransferSize": 3871,
+          "jsHeapUsedBytes": 56800000
+        },
+        "marks": {
+          "bundleEntryMs": 2358.1,
+          "elementConnectedMs": 2359.5,
+          "storeCreatedMs": 2359.4,
+          "storeConnectedMs": 2361.5,
+          "hassReadyMs": 2359.2,
+          "configParsedMs": 2359.2,
+          "renderStartMs": 2361.3,
+          "renderPaintedMs": 2409.1,
+          "storePaintedMs": 2409
+        },
+        "timings": {
+          "entryToConnectedMs": 1.4,
+          "connectedToPaintedMs": 49.6,
+          "entryToPaintedMs": 51,
+          "framePaintToStoreConnectedMs": -47.6,
+          "navigationToPaintedMs": 2409.1,
+          "connectedToReadyMs": 49.5,
+          "entryToReadyMs": 50.9,
+          "storeToReadyMs": 47.5,
+          "navigationToReadyMs": 2409
+        },
+        "cards": 85,
+        "hosts": 1,
+        "probe": {
+          "pointerdownListeners": 1,
+          "fetches": 0
+        },
+        "bundle": {
+          "url": "http://home-assistant:8123/local/dashhaus/dashhaus.js?v=96864c71bd",
+          "initiatorType": "script",
+          "durationMs": 358.3,
+          "transferSize": 654213
+        },
+        "resources": [
+          {
+            "name": "http://home-assistant:8123/hacsfiles/iconset.js",
+            "initiatorType": "script",
+            "startTimeMs": 176.6,
+            "durationMs": 105.5,
+            "transferSize": 4142
+          },
+          {
+            "name": "http://home-assistant:8123/hacsfiles/lovelace-card-mod/card-mod.js",
+            "initiatorType": "script",
+            "startTimeMs": 176.7,
+            "durationMs": 123.2,
+            "transferSize": 25363
+          },
+          {
+            "name": "http://home-assistant:8123/ui_lovelace_minimalist/cards/hermes-mobile-tapbar-fix/hermes-mobile-tapbar-fix.js",
+            "initiatorType": "script",
+            "startTimeMs": 176.8,
+            "durationMs": 137,
+            "transferSize": 4144
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/49589.23a2870d61954701.js",
+            "initiatorType": "script",
+            "startTimeMs": 350.6,
+            "durationMs": 60.1,
+            "transferSize": 5390
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/342.00f302ecc9d6257a.js",
+            "initiatorType": "script",
+            "startTimeMs": 484,
+            "durationMs": 51.3,
+            "transferSize": 513
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/79871.0cd7505014fef7fb.js",
+            "initiatorType": "script",
+            "startTimeMs": 484.7,
+            "durationMs": 47.1,
+            "transferSize": 3795
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/57539.27d7cefd99dace6a.js",
+            "initiatorType": "script",
+            "startTimeMs": 484.8,
+            "durationMs": 50,
+            "transferSize": 10457
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/54353.5437d2f3817bda05.js",
+            "initiatorType": "script",
+            "startTimeMs": 484.8,
+            "durationMs": 61,
+            "transferSize": 4426
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/40523.1e09f4c93f125c24.js",
+            "initiatorType": "script",
+            "startTimeMs": 484.9,
+            "durationMs": 45,
+            "transferSize": 4342
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/37532.79d0d1bb37c67bc0.js",
+            "initiatorType": "script",
+            "startTimeMs": 484.9,
+            "durationMs": 54.3,
+            "transferSize": 2979
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/83083.fe45ed5de283dceb.js",
+            "initiatorType": "script",
+            "startTimeMs": 485,
+            "durationMs": 112.2,
+            "transferSize": 9033
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/9287.09045b2bbbaec3ff.js",
+            "initiatorType": "script",
+            "startTimeMs": 485,
+            "durationMs": 116.4,
+            "transferSize": 4791
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/8099.739711f91e051b08.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.1,
+            "durationMs": 112.5,
+            "transferSize": 6813
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/24519.eb7116b32c634736.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.2,
+            "durationMs": 113.5,
+            "transferSize": 4231
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/49227.905c893829033053.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.4,
+            "durationMs": 114.8,
+            "transferSize": 5222
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/15204.4ba98d3a7e1188ba.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.4,
+            "durationMs": 129.4,
+            "transferSize": 4817
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/41649.246763083c75df64.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.5,
+            "durationMs": 166.4,
+            "transferSize": 2314
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/85803.5b2b792a7300e3b1.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.5,
+            "durationMs": 168.6,
+            "transferSize": 3519
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/75395.cc5150b9b2a1eaab.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.5,
+            "durationMs": 171.6,
+            "transferSize": 8327
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/88836.82d8c061e321f700.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.5,
+            "durationMs": 181,
+            "transferSize": 6242
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/54076.4e72607dd775669c.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.6,
+            "durationMs": 176.7,
+            "transferSize": 103555
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/51808.00d17dbc5c336819.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.7,
+            "durationMs": 198.9,
+            "transferSize": 16363
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/19662.02bfe987bcf02fae.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.7,
+            "durationMs": 232.7,
+            "transferSize": 11853
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/38795.f1749be6c0cda8cf.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.8,
+            "durationMs": 230.3,
+            "transferSize": 4961
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/44518.60aafb0dd7361a8a.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.9,
+            "durationMs": 226.5,
+            "transferSize": 4071
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/86151.a018324031dccf64.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.9,
+            "durationMs": 238.8,
+            "transferSize": 7539
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/53047.2ff52aed1ea1d58d.js",
+            "initiatorType": "script",
+            "startTimeMs": 485.9,
+            "durationMs": 248.9,
+            "transferSize": 5819
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/53224.cf6a4ce6a1632ae3.js",
+            "initiatorType": "script",
+            "startTimeMs": 486,
+            "durationMs": 257.2,
+            "transferSize": 4652
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/27885.b2722f12c8ea5f0d.js",
+            "initiatorType": "script",
+            "startTimeMs": 486,
+            "durationMs": 390.8,
+            "transferSize": 4130
+          },
+          {
+            "name": "http://home-assistant:8123/frontend_latest/71054.d65762664ecbb041.js",
+            "initiatorType": "script",
+            "startTimeMs": 486.1,
+            "durationMs": 322.5,
+            "transferSize": 8840
+          }
+        ]
+      },
+      "details": {
+        "target": "Do not Disturb",
+        "trigger": "name",
+        "inputMs": 2818.5,
+        "requestMs": 2823.3,
+        "visibleMs": 2852.9,
+        "inputToVisibleMs": 34.4,
+        "requestToVisibleMs": 29.6,
+        "dialogOpen": true
+      },
+      "interaction": {
+        "entity": "input_boolean.do_not_disturb",
+        "card": "Do not Disturb",
+        "control": "key",
+        "before": "on",
+        "after": "off",
+        "action": {
+          "seq": 1,
+          "label": "input_boolean.toggle",
+          "inputMs": 3468.1,
+          "startMs": 3473.2,
+          "ackMs": 3520.9,
+          "stateMs": 3519.4,
+          "settledMs": 3545.4,
+          "startToAckMs": 47.7,
+          "ackToStateMs": -1.5,
+          "stateToSettledMs": 26,
+          "inputToSettledMs": 77.3,
+          "startToSettledMs": 72.2
+        },
+        "restored": "on"
+      },
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    }
+  }
+}
