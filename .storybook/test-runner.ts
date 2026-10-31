@@ -10,10 +10,21 @@ const config: TestRunnerConfig = {
   async postVisit(page, context) {
     const { parameters } = await getStoryContext(page, context);
     // Let entrances settle first (a sheet fading in), so contrast is measured at full opacity. Looping
-    // animations never finish, so they're left out.
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))),
-    );
+    // animations never finish, so they're left out. A long finite one is an alarm flash, not an entrance:
+    // field blinks once a second for ten seconds, and a story that shows one must not wait it out. End it
+    // at its final state (the alarm's base style) instead, then wait for what is left.
+    await page.evaluate(() => {
+      for (const animation of document.getAnimations()) {
+        const timing = animation.effect?.getComputedTiming();
+        if (!timing || timing.iterations === Infinity || timing.activeDuration <= 1_000) continue;
+        animation.finish();
+      }
+      return Promise.all(
+        document.getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => undefined)),
+      );
+    });
     const overflows = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
       modules.flatMap((module) => {
         const element = module as HTMLElement;

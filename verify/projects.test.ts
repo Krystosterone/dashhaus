@@ -13,7 +13,7 @@ const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8")
 const packages = ["core", "dashboard", "deploy"];
 
 /** A Vitest project as the root config writes it. */
-type Project = { test?: { name?: string; include?: string[]; environment?: string } };
+type Project = { test?: { name?: string; include?: string[]; exclude?: string[]; environment?: string } };
 
 const project = (name: string) => (projects as Project[]).find((entry) => entry.test?.name === name)?.test;
 
@@ -33,6 +33,8 @@ describe("workspace projects", () => {
   it("runs one Vitest project per public package beside the root app", () => {
     expect(Object.fromEntries(projects.map((entry) => [entry.test?.name, entry.test?.environment]))).toEqual({
       root: "jsdom",
+      checks: "node",
+      generators: "node",
       core: "jsdom",
       dashboard: "jsdom",
       deploy: "node",
@@ -40,16 +42,20 @@ describe("workspace projects", () => {
     expect(project("core")?.include, "core's tests are in its project").toEqual(["packages/core/src/**/*.test.{ts,tsx}"]);
     expect(project("dashboard")?.include, "dashboard's tests are in its project").toEqual(["packages/dashboard/src/**/*.test.{ts,tsx}"]);
     expect(project("deploy")?.include, "deploy's tests are in its project").toEqual(["packages/deploy/src/**/*.test.ts"]);
-    expect(project("root")?.include, "the root project holds the app, verify and the generators").toEqual([
+    expect(project("root")?.include, "the root project holds the app and the one check that needs a DOM").toEqual([
       "src/**/*.test.{ts,tsx}",
-      "verify/**/*.test.{ts,tsx}",
-      "scripts/*/*.test.ts",
+      "verify/tokens.test.ts",
     ]);
+    expect(project("checks")?.include, "the repo checks read the repo, no DOM").toEqual(["verify/**/*.test.{ts,tsx}"]);
+    expect((projects as Project[]).find((entry) => entry.test?.name === "checks")?.test?.exclude, "tokens loads the custom-element entry").toEqual(["verify/tokens.test.ts"]);
+    expect(project("generators")?.include, "the generators are Node-only, in their own project").toEqual(["scripts/*/*.test.ts"]);
   });
 
   it("typechecks the root and every package from the one command", () => {
-    const typecheck = read("package.json").scripts.typecheck as string;
-    for (const name of packages) expect(typecheck, `${name} is in npm run typecheck`).toContain(`-p packages/${name}/tsconfig.json`);
-    expect(typecheck.startsWith("tsc --noEmit"), "the root app is typechecked first").toBe(true);
+    expect(read("package.json").scripts.typecheck, "npm run typecheck runs the program list").toBe("node scripts/typecheck.mjs");
+    const typecheck = readFileSync(join(root, "scripts/typecheck.mjs"), "utf8");
+    for (const name of packages) expect(typecheck, `${name} is in npm run typecheck`).toContain(`packages/${name}/tsconfig.json`);
+    expect(typecheck, "each package program is passed with -p").toContain('"-p"');
+    expect(typecheck).toContain("node_modules/.cache/tsc/root.tsbuildinfo");
   });
 });

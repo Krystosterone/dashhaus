@@ -9,9 +9,9 @@ env:
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
 jobs:
-  # Typecheck, lint, the unit suites and the release proof. The generator tests run in their own lane
-  # because they dominate this one; `check` below is the required status check for both.
-  unit:
+  # Typecheck, lint and the release proof. They share one install and one runner; `check` below requires this lane,
+  # both unit shards and the generators.
+  unit_checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,29 +21,22 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
-      - name: Cache TypeScript's incremental state
+      - name: Cache node_modules
+        id: modules
         uses: actions/cache@v4
         with:
-          path: node_modules/.cache/tsc
-          key: tsc-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: |
-            tsc-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
-      - name: Cache ESLint's lint results
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/eslint
-          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-${{ github.sha }}
-          restore-keys: |
-            eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm run test:unit
       - run: npm run build:ha
       - run: npm run release:pack
       - run: npm run verify:packages
 
-  generators:
+  # The unit suites, split by file across two runners; together they are the same 130 files and 1174 tests as before.
+  unit_one:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,24 +46,99 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
-      - run: npm run test:generators
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run test:unit -- --shard=1/2 --maxWorkers=2
 
-  # The required status check: green only when both lanes above are green.
+  unit_two:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run test:unit -- --shard=2/2 --maxWorkers=2
+
+  # The generator suites copy the repo and run its tools inside each copy: a serial chain per copy. Two runners run
+  # the two halves side by side instead of one runner running all three files (157s). Together they are the same 15 tests.
+  generators_one:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/index.test.ts scripts/new-card/index.test.ts
+
+  generators_two:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/field.test.ts
+
+  # The required status check: green only when the checks, both unit shards and both generator halves are green.
   check:
-    needs: [unit, generators]
+    needs: [unit_checks, unit_one, unit_two, generators_one, generators_two]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Require the unit and generator lanes
+      - name: Require the unit lanes and the generators
         run: |
-          echo "unit: ${{ needs.unit.result }}"
-          echo "generators: ${{ needs.generators.result }}"
-          test "${{ needs.unit.result }}" = "success"
-          test "${{ needs.generators.result }}" = "success"
+          echo "unit_checks: ${{ needs.unit_checks.result }}"
+          echo "unit_one: ${{ needs.unit_one.result }}"
+          echo "unit_two: ${{ needs.unit_two.result }}"
+          echo "generators_one: ${{ needs.generators_one.result }}"
+          echo "generators_two: ${{ needs.generators_two.result }}"
+          test "${{ needs.unit_checks.result }}" = "success"
+          test "${{ needs.unit_one.result }}" = "success"
+          test "${{ needs.unit_two.result }}" = "success"
+          test "${{ needs.generators_one.result }}" = "success"
+          test "${{ needs.generators_two.result }}" = "success"
 
-  # The runner dominates the gate, so it splits by suite; each shard builds the same static site and
-  # runs its half. The `storybook` job below is the required check for both.
+  # The runner splits by suite; each shard builds the same static site and runs its half. The `storybook` job below
+  # is the required check for both.
   storybook_one:
     runs-on: ubuntu-latest
     steps:
@@ -81,7 +149,14 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Read the Playwright version
         id: playwright-version
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -91,7 +166,7 @@ jobs:
           key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook -- --shard=1/2
+      - run: npm run test-storybook -- --shard=1/2 --maxWorkers=2
 
   storybook_two:
     runs-on: ubuntu-latest
@@ -103,7 +178,14 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Read the Playwright version
         id: playwright-version
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -113,7 +195,7 @@ jobs:
           key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook -- --shard=2/2
+      - run: npm run test-storybook -- --shard=2/2 --maxWorkers=2
 
   # The required status check: green only when both Storybook shards are green.
   storybook:
