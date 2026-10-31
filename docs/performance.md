@@ -42,8 +42,12 @@ is a compact toggle in Orb's Modes section and an automatic-layout module in Fie
 
 ## What a run does
 
-1. **Off check.** Opens Orb without the opt-in and asserts there is no `window.__dashhausPerf` and no
-   `dashhaus:*` Performance mark. This is the report's `instrumentation.offCheck`.
+1. **Off check, per skin.** Opens Orb and Field without the opt-in and asserts there is no
+   `window.__dashhausPerf`, no `dashhaus:*` Performance mark or measure, no `pointerdown` listener registered by
+   the bundle, no fetch from the bundle, no `perf`/`__dashhaus` console line, no console or page error, and the same
+   cards and hosts as the opt-in page. The listener and fetch probes judge only calls whose stack comes from the
+   bundle, so Home Assistant's own listeners and requests do not count. This is the report's
+   `instrumentation.offCheck`, one entry per skin.
 2. **Cold load, per skin.** A new browser context, a disabled HTTP cache and a new Chromium page navigate to
    `<HA_URL>/<dashboard>?dashhaus_perf=1`. The collector waits for `store:painted`, so the measured page has entity
    data, not only its loading placeholders. It records the marks below plus the browser's navigation, paint, LCP,
@@ -71,8 +75,8 @@ line is added.
 | `dashhaus:config:parsed` | The element's YAML parsed. | |
 | `dashhaus:render:start` | The element starts a React render. | `first` |
 | `dashhaus:render:painted` | The first frame after that render. It can precede entity data. | `first` |
-| `dashhaus:store:connected` | The first complete entity snapshot arrives. | `generation` |
-| `dashhaus:store:painted` | The first frame after that snapshot: the dashboard with entity data. The collector's ready mark. | `generation` |
+| `dashhaus:store:connected` | The first complete entity snapshot arrives, or the frontend snapshot the store was created with (`hass.states`). | `generation`, `seeded` |
+| `dashhaus:store:painted` | The first frame after that snapshot: the dashboard with entity data. The collector's ready mark. | `generation`, `seeded` |
 | `dashhaus:input:pointerdown` | A press on a button, link or `[role=button]`, captured on the document so it sees into shadow roots. | `label`, `tag` |
 | `dashhaus:details:request` | A details trigger (`useDetails.openDetails` or a tile's name). | |
 | `dashhaus:details:visible` | The dialog's first painted frame. | `label` |
@@ -103,7 +107,13 @@ The report is JSON, one file per invocation, shaped like this (values elided):
   "ha": { "url": "…", "version": "…", "dashboards": { "orb": "…", "field": "…" } },
   "browser": { "name": "Chromium", "version": "…", "headless": true },
   "viewport": { "width": 1440, "height": 1000, "deviceScaleFactor": 1, "colorScheme": "dark" },
-  "instrumentation": { "optIn": "…", "offCheck": { "global": false, "marks": 0, "cards": 0 } },
+  "instrumentation": {
+    "optIn": "…",
+    "offCheck": {
+      "orb": { "global": false, "marks": 0, "measures": 0, "pointerdownListeners": 0, "fetches": 0, "console": [], "cards": 0, "hosts": 0 },
+      "field": { "global": false, "marks": 0, "measures": 0, "pointerdownListeners": 0, "fetches": 0, "console": [], "cards": 0, "hosts": 0 }
+    }
+  },
   "interaction": { "entity": "…", "card": "…" },
   "skins": {
     "orb": {
@@ -121,6 +131,8 @@ The report is JSON, one file per invocation, shaped like this (values elided):
           "navigationToPaintedMs": 0
         },
         "cards": 0,
+        "hosts": 0,
+        "probe": { "pointerdownListeners": 1, "fetches": 0 },
         "bundle": { "url": "…", "durationMs": 0, "transferSize": 0 },
         "resources": []
       },
@@ -146,9 +158,15 @@ The report is JSON, one file per invocation, shaped like this (values elided):
 All millisecond values are relative to the page's time origin, the same base as the browser's Performance entries.
 `navigationToReadyMs` is the dashboard with entity data, measured from navigation start; it is the cold-load number to
 compare. `entryToReadyMs` isolates the bundle's own work. `render:painted` and `navigationToPaintedMs` are the first
-React frame and can precede the store's entity snapshot; that is why `store:painted` is the ready mark.
-`largestContentfulPaintMs` is the document's LCP, which on these dashboards is usually Home Assistant's shell before
-the dashhaus bundle loads; use `navigationToReadyMs` for the dashboard.
+React frame and can precede the store's entity snapshot when the store has to wait for its own subscription; that is
+why `store:painted` is the ready mark. When the element has Home Assistant's `hass.states`, it seeds the store with
+that snapshot and connects it before the first render, so the first frame already carries data and `store:painted`
+coincides with `render:painted`; the mark's `seeded` detail says which path ran. `largestContentfulPaintMs` is the
+document's LCP, which on these dashboards is usually Home Assistant's shell before the dashhaus bundle loads; use
+`navigationToReadyMs` for the dashboard.
+
+The opt-in cold-load `probe` shows the off check is not vacuous: it must see the one `pointerdown` listener the opt-in
+installs, and no fetch from the bundle. The off check then requires zero of each.
 
 `ackToStateMs` can be negative: Home Assistant broadcasts the entity update before it answers the service call, so
 `state` can arrive first. `inputToSettledMs` is the press-to-painted interaction latency and does not depend on that

@@ -95,7 +95,9 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
     this.#hass = hass;
     if (!previous) perfMark("hass:ready");
     if (!this.#store || previous?.connection !== hass.connection) {
-      this.#store = createHaStore(createHomeAssistantTransport(hass.connection));
+      // Home Assistant already holds the house's states; seed the store so the first frame has data instead
+      // of placeholders while the store's own subscription answers.
+      this.#store = createHaStore(createHomeAssistantTransport(hass.connection), hass.states);
       perfMark("store:created");
     }
     if (!previous || previous.connection !== hass.connection || this.changed(previous, hass)) this.render();
@@ -134,6 +136,9 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
     const first = !this.#root;
     perfMark("render:start", { first });
     this.paintHost(config, hass);
+    // Connect before the first frame so a host snapshot is in the first render, not behind an effect that
+    // runs after it; HaProvider's own acquire then finds the store already connected.
+    if (first) void this.#store.connect().catch(() => undefined);
     this.#root ??= createRoot(this.#mount);
     this.#root.render(
       <ErrorBoundary>
