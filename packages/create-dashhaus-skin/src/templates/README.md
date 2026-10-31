@@ -9,7 +9,7 @@ repository script: everything here belongs to the skin.
 ```sh
 npm install
 npm test        # the packed conformance preset over cards/
-npm run build   # dist/dashhaus.js: one file, its CSS included
+npm run build   # dist/dashhaus-__skin__.js: one file, its CSS included
 ```
 
 React 18 and `home-assistant-js-websocket` are peers; npm installs them with the rest. The build is one ES module,
@@ -24,8 +24,8 @@ Copy `.env.example` from the deploy docs to `.env` beside `dashboard.config.mjs`
 npx dashhaus-deploy --skip-build
 ```
 
-Or run `npm run deploy` after a build. The config registers `__card_type__`, uploads `dist/dashhaus.js` and creates
-the dashboard once. A card with no `cards` list lays out every light and sensor by Home Assistant area.
+Or run `npm run deploy` after a build. The config registers `__card_type__`, uploads `dist/dashhaus-__skin__.js` and
+creates the dashboard once. A card with no `cards` list lays out every light and sensor by Home Assistant area.
 
 ## Cards
 

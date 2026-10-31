@@ -12,7 +12,7 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     target: "es2022",
-    lib: { entry: "lovelace/entry.tsx", formats: ["es"], fileName: () => "dashhaus.js" },
+    lib: { entry: "lovelace/entry.tsx", formats: ["es"], fileName: () => "dashhaus-__skin__.js" },
     rollupOptions: { output: { inlineDynamicImports: true } },
   },
 });

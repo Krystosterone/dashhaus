@@ -6,7 +6,7 @@
  *   cd my-skin
  *   npm install
  *   npm test        # the packed conformance preset over this skin's cards
- *   npm run build   # dist/dashhaus.js: one file, its CSS included
+ *   npm run build   # dist/dashhaus-<skin>.js: one file, its CSS included
  *   npx dashhaus-deploy --skip-build
  *
  * The output has no Storybook, no workspace and no repo script: one control card (light), one reading card

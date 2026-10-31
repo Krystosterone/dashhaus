@@ -124,7 +124,7 @@ CI proves both journeys against the in-memory Home Assistant in `verify/dx/`. Be
 Prepare:
 
 1. Pack at the candidate commit and note both values: `git rev-parse HEAD` and `npm run release:pack`.
-2. Use a scratch Home Assistant, or first delete the dashboards `home-orb`, `home-field` and `dashhaus-my-skin` and the resource `/local/dashhaus/dashhaus.js` from earlier runs. Otherwise the smoke exercises updates, not first creation, and must say so.
+2. Use a scratch Home Assistant, or first delete the dashboards `home-orb`, `home-field` and `dashhaus-my-skin` and the resources `/local/dashhaus/dashhaus.js` and `/local/dashhaus-my-skin/dashhaus-my-skin.js` from earlier runs. Otherwise the smoke exercises updates, not first creation, and must say so.
 3. Set `release` to this repository's `release/` directory and `<version>` to the packed version in the commands below. Copy `.env.example` to the app and fill `HA_URL`, `HA_TOKEN` and `HA_WWW` (see [deploy.md](deploy.md)). Never put the token in the record.
 
 User journey, from packed tarballs with no build:
@@ -145,7 +145,7 @@ app=$(mktemp -d); cd "$app"
 npm init -y && npm pkg set type=module
 npm install "$release"/dashhaus-core-<version>.tgz "$release"/dashhaus-dashboard-<version>.tgz \
   "$release"/dashhaus-deploy-<version>.tgz "$release"/create-dashhaus-skin-<version>.tgz \
-  react@18 react-dom@18 home-assistant-js-websocket@9 vite @vitejs/plugin-react
+  react@18.3.1 react-dom@18.3.1 home-assistant-js-websocket@9.7.1 vite@5.4.19 @vitejs/plugin-react@4.3.4
 npx create-dashhaus-skin my-skin
 ln -s "$app/node_modules" my-skin/node_modules   # pre-publish stand-in for `npm install` in the scaffold
 cd my-skin
@@ -157,12 +157,12 @@ npx dashhaus-deploy --skip-build
 
 Observe, in this order:
 
-1. The deploy prints the upload, exactly one resource registration and the dashboard creation for the app; the uploaded `dashhaus/dashhaus.js` is byte-identical to the tarball's bundle.
+1. The user deploy prints the upload, registers one resource at `/local/dashhaus/dashhaus.js` and creates its two dashboards. The author deploy registers a second resource at `/local/dashhaus-my-skin/dashhaus-my-skin.js` and creates its dashboard. Each uploaded file is byte-identical to its tarball or build, and the two resources coexist.
 2. Reload every open Home Assistant tab: the frontend reads its resource list once, so a tab opened before the deploy shows a configuration error until reloaded.
 3. The sidebar lists **Home (Orb)**, **Home (Field)** and, from the author app, **Home (My Skin)**. Each opens with no "Configuration error" card and draws its auto layout from the instance's entities; open one card's details and close it.
 4. Press a reversible `input_boolean` or `switch` on Orb or Field, see the state change, then restore it. The browser console shows no errors.
-5. Settings → Dashboards → Resources shows `/local/dashhaus/dashhaus.js?v=<content hash>`; the network request for it is a 200. Edit a dashboard and confirm its generated layout loads in the code editor.
-6. The author build emitted one `dist/dashhaus.js`; its dashboard draws and its card opens details.
+5. Settings → Dashboards → Resources shows both `/local/dashhaus/dashhaus.js?v=<content hash>` and `/local/dashhaus-my-skin/dashhaus-my-skin.js?v=<content hash>`; both network requests are 200. Edit a dashboard and confirm its generated layout loads in the code editor.
+6. The author build emitted one `dist/dashhaus-my-skin.js`; its dashboard draws and its card opens details.
 
 Record on the release candidate: date and operator, Home Assistant version, candidate commit, tarball version, the deploy output, pass/fail for each observation above, and where the screenshot or console excerpt lives. If credentials are not supplied, record "live smoke: unrun — no HA_URL/HA_TOKEN/HA_WWW" and do not mark it passed.
 

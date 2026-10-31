@@ -120,6 +120,7 @@ try {
       return relative(app, resolveFromApp(app, "@dashhaus/dashboard/skin"));
     });
 
+    const bundleName = `dashhaus-${SKIN}.js`;
     const build = await report.stage("build", async () => {
       const result = run("npm", ["run", "build", "--silent"], { cwd: skinApp, allowFailure: true });
       if (result.status !== 0) {
@@ -130,15 +131,15 @@ try {
         throw new Error(`vite build failed:\n${output}`);
       }
       const files = (await readdir(join(skinApp, "dist"))).filter((file) => file.endsWith(".js"));
-      assert.deepEqual(files, ["dashhaus.js"], "the build must emit one JS file");
-      const bundle = await read(join(skinApp, "dist/dashhaus.js"));
+      assert.deepEqual(files, [bundleName], "the build must emit one JS file named for the skin");
+      const bundle = await read(join(skinApp, "dist", bundleName));
       assert.match(bundle, /custom:dashhaus-my-skin/, "the bundle must register the skin's card");
       assert.match(bundle, /--my-skin-/, "the bundle must carry the skin's CSS");
-      return `dist/dashhaus.js (${Math.round(bundle.length / 1024)} kB)`;
+      return `dist/${bundleName} (${Math.round(bundle.length / 1024)} kB)`;
     });
 
     if (!build.ok) {
-      report.blocked("deploy", "no dist/dashhaus.js to upload");
+      report.blocked("deploy", `no dist/${bundleName} to upload`);
     } else {
       await report.stage("deploy", async () => {
         await mkdir(join(app, "www"), { recursive: true });
@@ -161,16 +162,17 @@ try {
         assert.equal(ha.closed, true);
         assert.deepEqual(warnings, []);
         assert.equal(ha.resources.length, 1);
-        assert.match(ha.resources[0].url, /^\/local\/dashhaus\/dashhaus\.js\?v=[0-9a-f]{10}$/);
+        assert.ok(ha.resources[0].url.startsWith(`/local/dashhaus-${SKIN}/${bundleName}?v=`), `unexpected resource URL ${ha.resources[0].url}`);
+        assert.match(ha.resources[0].url, /\?v=[0-9a-f]{10}$/);
         assert.deepEqual(ha.dashboards.map((dashboard) => dashboard.url_path), ["dashhaus-my-skin"]);
         assert.deepEqual(ha.dashboards.map((dashboard) => dashboard.title), ["Home (My Skin)"]);
         assert.equal(ha.saved.length, 1);
         assert.equal(ha.saved[0].config.views[0].type, "panel");
         assert.equal(ha.saved[0].config.views[0].cards[0].type, "custom:dashhaus-my-skin");
         assert.equal(result.dashboards[0].status, "created");
-        const uploaded = join(app, "www/dashhaus/dashhaus.js");
+        const uploaded = join(app, `www/dashhaus-${SKIN}/${bundleName}`);
         assert.ok(existsSync(uploaded), "deploy did not copy the bundle into HA_WWW");
-        assert.equal(await read(uploaded), await read(join(skinApp, "dist/dashhaus.js")));
+        assert.equal(await read(uploaded), await read(join(skinApp, "dist", bundleName)));
         return `1 resource, 1 dashboard, ${Math.round((await read(uploaded)).length / 1024)} kB uploaded`;
       });
     }

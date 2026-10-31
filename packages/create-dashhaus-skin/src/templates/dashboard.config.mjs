@@ -2,7 +2,7 @@
 // add a build() that runs it; settings live in .env beside this file (see the deploy docs).
 export default {
   pageTitle: "Home",
-  bundle: "dist/dashhaus.js",
+  bundle: "dist/dashhaus-__skin__.js",
   dashboards: [
     {
       path: "dashhaus-__skin__",

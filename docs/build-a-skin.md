@@ -38,7 +38,7 @@ lovelace/entry.tsx                  the bundle entry
 shared/ui.tsx                       the action part on usePress
 styles/tokens.css                   every colour, in the skin's namespace
 conformance.mjs                     @dashhaus/dashboard/conformance over cards/
-vite.config.mjs                     one ES module: dist/dashhaus.js
+vite.config.mjs                     one ES module: dist/dashhaus-<skin>.js
 dashboard.config.mjs                the dashboard and the bundle
 ```
 
@@ -75,15 +75,17 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     target: "es2022",
-    lib: { entry: "lovelace/entry.tsx", formats: ["es"], fileName: () => "dashhaus.js" },
+    lib: { entry: "lovelace/entry.tsx", formats: ["es"], fileName: () => "dashhaus-my-skin.js" },
     rollupOptions: { output: { inlineDynamicImports: true } },
   },
 });
 ```
 
 `lovelace/entry.tsx` imports the stylesheets with `?inline` and passes their text to `defineMySkinCard`. The emitted
-`dist/dashhaus.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one resource and
-no separate stylesheet. No extra plugin is required for CSS collection.
+`dist/dashhaus-my-skin.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one
+resource and no separate stylesheet. Name it for the skin: the prebuilt `@dashhaus/bundle` already owns
+`/local/dashhaus/dashhaus.js`, and a skin-specific name lets both live on one instance. No extra plugin is required
+for CSS collection.
 
 ## Deploy
 
@@ -100,7 +102,7 @@ HA_WWW=root@homeassistant.local:/config/www
 ```js
 export default {
   pageTitle: "Home",
-  bundle: "dist/dashhaus.js",
+  bundle: "dist/dashhaus-my-skin.js",
   dashboards: [
     {
       path: "dashhaus-my-skin",

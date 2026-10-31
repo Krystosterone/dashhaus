@@ -33,8 +33,8 @@ lovelace/                           the YAML reader, card registry, element and 
 shared/                             the action part
 styles/tokens.css                   every colour, in the skin's namespace
 conformance.mjs                     @dashhaus/dashboard/conformance over cards/
-vite.config.mjs                     one ES module, dist/dashhaus.js, CSS inlined
-dashboard.config.mjs                the dashboard and the prebuilt bundle
+vite.config.mjs                     one ES module, dist/dashhaus-<skin>.js, CSS inlined
+dashboard.config.mjs                the dashboard and the bundle
 ```
 
 The generated `package.json` depends on `@dashhaus/core` and `@dashhaus/dashboard` and peers on React 18 and
