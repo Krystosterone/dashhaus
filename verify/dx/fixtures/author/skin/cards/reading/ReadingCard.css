@@ -1,0 +1,25 @@
+.fx-rd-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  color: var(--fx-ink);
+  background: var(--fx-page);
+  border: 1px solid var(--fx-line);
+  border-radius: 14px;
+}
+
+.fx-rd-name {
+  font-weight: 600;
+}
+
+.fx-rd-value {
+  margin: 0;
+  font-size: 32px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-rd-unit {
+  margin-left: 4px;
+  font-size: 14px;
+  color: var(--fx-line);
+}
