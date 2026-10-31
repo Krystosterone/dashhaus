@@ -76,8 +76,9 @@ jobs:
         run: npm ci
       - run: npm run test:unit -- --shard=2/2 --maxWorkers=2
 
-  # The generator suites copy the repo and run its tools inside each copy, so they get their own runner.
-  generators:
+  # The generator suites copy the repo and run its tools inside each copy: a serial chain per copy. Two runners run
+  # the two halves side by side instead of one runner running all three files (157s). Together they are the same 15 tests.
+  generators_one:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,11 +96,31 @@ jobs:
           key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
       - if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci
-      - run: npm run test:generators
+      - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/index.test.ts scripts/new-card/index.test.ts
 
-  # The required status check: green only when the checks, both unit shards and the generators are green.
+  generators_two:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/field.test.ts
+
+  # The required status check: green only when the checks, both unit shards and both generator halves are green.
   check:
-    needs: [unit_checks, unit_one, unit_two, generators]
+    needs: [unit_checks, unit_one, unit_two, generators_one, generators_two]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -108,11 +129,13 @@ jobs:
           echo "unit_checks: ${{ needs.unit_checks.result }}"
           echo "unit_one: ${{ needs.unit_one.result }}"
           echo "unit_two: ${{ needs.unit_two.result }}"
-          echo "generators: ${{ needs.generators.result }}"
+          echo "generators_one: ${{ needs.generators_one.result }}"
+          echo "generators_two: ${{ needs.generators_two.result }}"
           test "${{ needs.unit_checks.result }}" = "success"
           test "${{ needs.unit_one.result }}" = "success"
           test "${{ needs.unit_two.result }}" = "success"
-          test "${{ needs.generators.result }}" = "success"
+          test "${{ needs.generators_one.result }}" = "success"
+          test "${{ needs.generators_two.result }}" = "success"
 
   # The runner splits by suite; each shard builds the same static site and runs its half. The `storybook` job below
   # is the required check for both.

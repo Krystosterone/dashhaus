@@ -109,14 +109,15 @@ npm run test:unit -- --shard=1/2 --maxWorkers=2     # 2/2 in the second job
 
 `--maxWorkers=2` gives a two-core runner both cores; Vitest otherwise leaves one idle. The generator lane needs no worker override: on a two-core runner Vitest already runs its three copy suites one at a time, and a copy is a serial chain of the repo's tools.
 
-`generators`:
+`generators_one` and `generators_two`, each:
 
 ```sh
 npm ci
-npm run test:generators
+npx vitest run --config config/vitest.config.ts scripts/new-skin/index.test.ts scripts/new-card/index.test.ts
+# scripts/new-skin/field.test.ts in the second job
 ```
 
-`check` requires `unit_checks`, both unit shards and `generators`, and fails unless each is green; it is the status check `main` requires. The unit suites are split by file across two runners because one runner spent 160s on them; the two shards together run the same 130 files and 1174 tests. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
+`check` requires `unit_checks`, both unit shards and both generator jobs, and fails unless each is green; it is the status check `main` requires. The unit suites are split by file across two runners because one runner spent 160s on them; the two shards together run the same 130 files and 1174 tests. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
 
 `storybook_one` and `storybook_two`, each:
 

@@ -8,7 +8,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 
 const root = process.cwd();
-const tsc = join(root, "node_modules", ".bin", "tsc");
+const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
 const programs = [
   ["--noEmit", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/root.tsbuildinfo"],
   ["--noEmit", "-p", "packages/core/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/core.tsbuildinfo"],
@@ -17,7 +17,7 @@ const programs = [
 ];
 
 const results = await Promise.all(programs.map((args) => new Promise((resolve) => {
-  const child = spawn(tsc, args, { cwd: root });
+  const child = spawn(process.execPath, [tsc, ...args], { cwd: root });
   let output = "";
   child.stdout.on("data", (chunk) => { output += chunk; });
   child.stderr.on("data", (chunk) => { output += chunk; });
