@@ -6,17 +6,17 @@ import type { __Skin__Config, BlockConfig, CardConfig, PageConfig } from "./conf
 import { areaName, areaSections, autoCards } from "./auto";
 import { __Skin__Dashboard } from "./__Skin__Dashboard";
 
-export const __SKIN_CONST___CARD_TYPE = "home-dashboard-__skin__";
+export const __SKIN_CONST___CARD_TYPE = "dashhaus-__skin__";
 const HOST_CSS = `
 :host { display: block; height: 100%; }
 .__skin__-surface { min-height: calc(100dvh - var(--header-height, 56px)); }
 .hd-config-error { margin: 16px; padding: 16px; border: 1px solid var(--__skin__-line); border-radius: 12px; background: var(--__skin__-card); color: var(--__skin__-ink); font: 500 13px/1.5 var(--__skin__-sans); white-space: pre-wrap; }
 `;
 
-/** `type: custom:home-dashboard-__skin__` on Home Assistant's own authenticated frontend connection. */
+/** `type: custom:dashhaus-__skin__` on Home Assistant's own authenticated frontend connection. */
 export function create__Skin__Card(css: string) {
   const styles = scopeToHost(css) + HOST_CSS;
-  return class HomeDashboard__Skin__Card extends LovelaceDashboardElement<__Skin__Config> {
+  return class Dashhaus__Skin__Card extends LovelaceDashboardElement<__Skin__Config> {
     protected readonly styles = styles;
     protected readonly mountClass = "__skin__-surface";
     #layout?: { key: unknown[]; blocks: BlockConfig[]; pages?: PageConfig[] };
@@ -45,5 +45,5 @@ export function create__Skin__Card(css: string) {
 }
 
 export function define__Skin__Card(css: string) {
-  registerCard(__SKIN_CONST___CARD_TYPE, create__Skin__Card(css), "Home Dashboard __Section__", "The __Section__ dashboard. Add Cards with the normal Card generator; omit cards to group supported entities by area.");
+  registerCard(__SKIN_CONST___CARD_TYPE, create__Skin__Card(css), "Dashhaus __Section__", "The __Section__ dashboard. Add Cards with the normal Card generator; omit cards to group supported entities by area.");
 }

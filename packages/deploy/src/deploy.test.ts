@@ -68,14 +68,14 @@ class FakeHomeAssistant implements DeployClient {
 
 const DASHBOARDS = `export default {
   pageTitle: "Home",
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   dashboards: [{
     path: "home-a",
     title: "Home A",
     icon: "mdi:home",
     async card(ha) {
       const states = await ha.send("get_states");
-      return { card: { type: "custom:home-dashboard", states: states.length }, made: "one card" };
+      return { card: { type: "custom:dashhaus-orb", states: states.length }, made: "one card" };
     },
   }],
 };`;
@@ -86,7 +86,7 @@ async function project(source = DASHBOARDS, writeBundle = true) {
   await mkdir(join(directory, "dist"), { recursive: true });
   await mkdir(join(directory, "www"), { recursive: true });
   await writeFile(join(directory, "dashboard.config.mjs"), source);
-  if (writeBundle) await writeFile(join(directory, "dist", "home-dashboard.js"), "console.log('bundle');");
+  if (writeBundle) await writeFile(join(directory, "dist", "dashhaus.js"), "console.log('bundle');");
   return directory;
 }
 
@@ -117,10 +117,10 @@ describe("deploy", () => {
     expect(ha.dashboards).toEqual([{ id: "dashboard-1", url_path: "home-a", title: "Home A" }]);
     expect(ha.saved).toHaveLength(1);
     expect(ha.saved[0].config).toEqual({
-      views: [{ title: "Home", path: "home", type: "panel", cards: [{ type: "custom:home-dashboard", states: 1 }] }],
+      views: [{ title: "Home", path: "home", type: "panel", cards: [{ type: "custom:dashhaus-orb", states: 1 }] }],
     });
-    expect(ha.resources).toEqual([{ id: "resource-1", url: `/local/home-dashboard/home-dashboard.js?v=${first.version}` }]);
-    expect(await readFile(join(directory, "www", "home-dashboard", "home-dashboard.js"), "utf8")).toBe("console.log('bundle');");
+    expect(ha.resources).toEqual([{ id: "resource-1", url: `/local/dashhaus/dashhaus.js?v=${first.version}` }]);
+    expect(await readFile(join(directory, "www", "dashhaus", "dashhaus.js"), "utf8")).toBe("console.log('bundle');");
     expect(ha.closed).toBe(true);
 
     const second = await run();
@@ -159,7 +159,7 @@ export default {
     path: "home-a",
     title: "Home A",
     icon: "mdi:home",
-    async card() { return { card: { type: "custom:home-dashboard" }, made: "one card" }; },
+    async card() { return { card: { type: "custom:dashhaus-orb" }, made: "one card" }; },
   }],
 };`, false);
     const ha = new FakeHomeAssistant();
@@ -177,13 +177,13 @@ export default {
 
   it("skips the build with --skip-build and reads the prebuilt bundle", async () => {
     const directory = await project(`export default {
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   build() { throw new Error("the build must not run"); },
   dashboards: [{
     path: "home-a",
     title: "Home A",
     icon: "mdi:home",
-    async card() { return { card: { type: "custom:home-dashboard" }, made: "one card" }; },
+    async card() { return { card: { type: "custom:dashhaus-orb" }, made: "one card" }; },
   }],
 };`);
     const ha = new FakeHomeAssistant();
@@ -207,7 +207,7 @@ export default {
     })).rejects.toThrowError("is missing");
 
     const failed = await project(`export default {
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   build() { throw new Error("vite exploded"); },
   dashboards: [],
 };`);

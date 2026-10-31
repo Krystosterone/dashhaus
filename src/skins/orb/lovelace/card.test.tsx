@@ -20,18 +20,18 @@ adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
   callService: async () => undefined,
 }));
 
-const { createHomeDashboardCard } = await import("./card");
+const { createDashhausCard } = await import("./card");
 const { DashboardConfigError } = await import("./config");
 
-customElements.define("home-dashboard-test", createHomeDashboardCard(':root { --brand-h: 92; } :root[data-theme="dark"] { --ink: 0; }'));
+customElements.define("dashhaus-test", createDashhausCard(':root { --brand-h: 92; } :root[data-theme="dark"] { --ink: 0; }'));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };
-const Element = customElements.get("home-dashboard-test") as unknown as { new (): Card; getStubConfig(hass: unknown): Record<string, unknown> };
+const Element = customElements.get("dashhaus-test") as unknown as { new (): Card; getStubConfig(hass: unknown): Record<string, unknown> };
 
 const connection = {} as Connection;
 const hass = (darkMode = false) => ({ connection, states: entities, themes: { darkMode } });
 
 async function mount(config: Record<string, unknown>, darkMode = false) {
-  const card = document.createElement("home-dashboard-test") as Card;
+  const card = document.createElement("dashhaus-test") as Card;
   card.setConfig(config);
   card.hass = hass(darkMode);
   await act(async () => {
@@ -46,7 +46,7 @@ afterEach(async () => {
   adapter.createHomeAssistantTransport.mockClear();
 });
 
-describe("home-dashboard card", () => {
+describe("dashhaus-orb card", () => {
   it("draws the configured sections inside its shadow root, with the tokens moved to the host", async () => {
     const card = await mount({ title: "Flat", sections: [{ title: "Lights", cards: ["light.kitchen"] }] });
     const shadow = card.shadowRoot!;
@@ -81,12 +81,12 @@ describe("home-dashboard card", () => {
   });
 
   it("throws every config problem for the YAML editor to show", () => {
-    const card = document.createElement("home-dashboard-test") as Card;
+    const card = document.createElement("dashhaus-test") as Card;
     expect(() => card.setConfig({ sections: [{ cards: [{ entity: "light.a", footprnt: "compact" }] }] })).toThrow(DashboardConfigError);
     expect(() => card.setConfig({ sections: [{ cards: [{ entity: "light.a", footprnt: "compact" }] }] })).toThrow('did you mean "footprint"?');
   });
 
   it("pre-fills the card picker with the automatic layout spelled out", () => {
-    expect(Element.getStubConfig(hass())).toMatchObject({ type: "custom:home-dashboard", sections: [{ title: "Modes" }, { title: "Other" }] });
+    expect(Element.getStubConfig(hass())).toMatchObject({ type: "custom:dashhaus-orb", sections: [{ title: "Modes" }, { title: "Other" }] });
   });
 });

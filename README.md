@@ -1,4 +1,4 @@
-# Home Dashboard
+# Dashhaus
 
 [![CI](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml)
 
@@ -33,7 +33,7 @@ It registers the skin's Foundations, Dashboard, its own entry and Lovelace card;
 
 ## Running with Home Assistant
 
-To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:home-dashboard` (Orb), `custom:home-dashboard-field` (Field) and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
+To put the dashboard on your Home Assistant, fill in `.env` and run `npm run deploy`. It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-field` (Field) and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [docs/deploy.md](docs/deploy.md).
 
 The presentational cards stay provider-agnostic. Each supported entity kind has a UI-free `useHa<Kind>` hook and headless component under `packages/core/src/ha/`; each skin wraps those shared results in its own connected tiles or modules. Start with [docs/home-assistant.md](docs/home-assistant.md); apply the [home-assistant-integration skill](.agents/skills/home-assistant-integration/SKILL.md) before changing the seam.
 

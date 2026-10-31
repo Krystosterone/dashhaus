@@ -6,7 +6,7 @@ Create a neutral, first-class skin:
 npm run new-skin -- canvas
 ```
 
-The name is lower-case kebab-case. It determines every namespace and registration: the private workspace package `src/skins/canvas/` named `@dashhaus/canvas`, Storybook section **Canvas**, CSS variables and classes beginning `--canvas-` / `canvas-`, public symbols beginning `Canvas`, and Lovelace card `custom:home-dashboard-canvas`. Use `--dry-run` to validate and list the transaction without writing it.
+The name is lower-case kebab-case. It determines every namespace and registration: the private workspace package `src/skins/canvas/` named `@dashhaus/canvas`, Storybook section **Canvas**, CSS variables and classes beginning `--canvas-` / `canvas-`, public symbols beginning `Canvas`, and Lovelace card `custom:dashhaus-canvas`. Use `--dry-run` to validate and list the transaction without writing it.
 
 The command creates and registers:
 
@@ -27,7 +27,7 @@ The baseline is intentionally neutral. It proves the architecture before visual 
 | --- | --- | --- |
 | `.` | `index.ts` | Programmatic use: Parts, Dashboard furniture, and every Card's presentational and connected export; loads `styles/tokens.css` once |
 | `./styles/tokens.css` | `styles/tokens.css` | `apps/lovelace/entry.ts`, so the Home Assistant bundle carries the skin's palette |
-| `./lovelace/card` | `lovelace/card.tsx` | `apps/lovelace/entry.ts`, to register `custom:home-dashboard-canvas` |
+| `./lovelace/card` | `lovelace/card.tsx` | `apps/lovelace/entry.ts`, to register `custom:dashhaus-canvas` |
 | `./storybook` | `storybook.tsx` | `.storybook/preview.tsx`, for the skin's section, toolbar and decorator |
 
 The root apps import those specifiers; they never reach into `src/skins/canvas/` by relative path. A Card added later stays inside the package: its components, tests, demo seeds, registry row and entry exports. The only writes outside it are declared registration seams: the Storybook section order, the shared card documentation and the skin's design document. `scripts/packages.mjs` is the one map of package locations and specifiers for both generators, and `verify/generator-packages.test.ts` holds it to the root workspaces and the generated manifest.

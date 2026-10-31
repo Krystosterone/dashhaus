@@ -85,7 +85,7 @@ describe("@dashhaus/deploy", () => {
 
   it("hardcodes neither this repo's Vite config nor its bundle", () => {
     const files = sources([PACKAGE]).filter((path) => /\.(mjs|mts)$/.test(path));
-    expect(files.filter((path) => /vite\.lovelace\.config\.ts|home-dashboard\.js/.test(read(path)))).toEqual([]);
+    expect(files.filter((path) => /vite\.lovelace\.config\.ts|dashhaus\.js/.test(read(path)))).toEqual([]);
   });
 
   it("keeps the repo's config the only outside importer of orb's generated layout", () => {
@@ -102,22 +102,22 @@ describe("@dashhaus/deploy", () => {
     const { dashboards, pageTitle } = await loadDashboards({ file: CONFIG_FILE, env: {} });
     expect(pageTitle).toBe("Home");
     expect(dashboards.map(({ path, title, icon }) => ({ path, title, icon }))).toEqual([
-      { path: "home-dashboard", title: "Home (Orb)", icon: "mdi:home-variant" },
-      { path: "home-dashboard-field", title: "Home (Field)", icon: "mdi:knob" },
-      ...GENERATED_SKINS.map(({ id, title, icon }) => ({ path: `home-dashboard-${id}`, title, icon })),
+      { path: "dashhaus-orb", title: "Home (Orb)", icon: "mdi:home-variant" },
+      { path: "dashhaus-field", title: "Home (Field)", icon: "mdi:knob" },
+      ...GENERATED_SKINS.map(({ id, title, icon }) => ({ path: `dashhaus-${id}`, title, icon })),
     ]);
-    const orb = dashboards.find(({ path }) => path === "home-dashboard")!;
-    const field = dashboards.find(({ path }) => path === "home-dashboard-field")!;
+    const orb = dashboards.find(({ path }) => path === "dashhaus-orb")!;
+    const field = dashboards.find(({ path }) => path === "dashhaus-field")!;
     expect(await orb.card(fakeHa)).toEqual({
       card: {
-        type: "custom:home-dashboard",
+        type: "custom:dashhaus-orb",
         title: "Home",
         sections: [{ title: "Other", cards: [{ entity: "light.bed", footprint: "compact" }] }],
       },
       made: "1 generated sections",
     });
     expect(await field.card(fakeHa)).toEqual({
-      card: { type: "custom:home-dashboard-field", title: "Home" },
+      card: { type: "custom:dashhaus-field", title: "Home" },
       made: "every light and climate entity by area",
     });
   });
@@ -132,9 +132,9 @@ export default {
 };
 `);
     const { dashboards } = await loadDashboards({ file: join(directory, "dashboard.config.mjs"), env: {} });
-    expect(dashboards).toMatchObject([{ path: "home-dashboard-canvas", title: "Home (Canvas)", icon: "mdi:view-dashboard-outline" }]);
+    expect(dashboards).toMatchObject([{ path: "dashhaus-canvas", title: "Home (Canvas)", icon: "mdi:view-dashboard-outline" }]);
     expect(await dashboards[0].card(fakeHa)).toEqual({
-      card: { type: "custom:home-dashboard-canvas", title: "Home" },
+      card: { type: "custom:dashhaus-canvas", title: "Home" },
       made: "the canvas skin's automatic layout",
     });
   });
@@ -157,7 +157,7 @@ export default {
     await writeFile(join(app, "copied.config.mjs"), `import { generatedDashboards, copiedMarker } from "@dashhaus/dashboard/cli";
 export default {
   pageTitle: copiedMarker,
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   dashboards: generatedDashboards([{ id: "copied", title: copiedMarker, icon: "mdi:home" }]),
 };
 `);
@@ -165,7 +165,7 @@ export default {
     const help = spawnSync(process.execPath, [cli, "--config", join(app, "copied.config.mjs"), "--help"], { cwd: app, encoding: "utf8" });
     expect(help.status, help.stderr).toBe(0);
     expect(help.stdout).toContain("copied-dashboard-package");
-    expect(help.stdout).toContain("/home-dashboard-copied");
+    expect(help.stdout).toContain("/dashhaus-copied");
 
     const repo = spawnSync(process.execPath, [cli, "--config", join(app, "dashboard.config.mjs"), "--help"], { cwd: app, encoding: "utf8" });
     expect(repo.status, repo.stderr).toBe(0);

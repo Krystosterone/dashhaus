@@ -1,6 +1,6 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below), and the deploy CLI sets up a dashboard for each dashboard its config declares. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+The dashboard ships as one Lovelace card, `custom:dashhaus-orb`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below), and the deploy CLI sets up a dashboard for each dashboard its config declares. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
 
 ## First deploy
 
@@ -11,7 +11,7 @@ The dashboard ships as one Lovelace card, `custom:home-dashboard`, that draws a 
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
 
-`npm run deploy` builds the bundle `dashboard.config.mjs` names (`dist/home-dashboard.js` here), copies it to `www/home-dashboard/`, and registers it as a dashboard resource at `/local/home-dashboard/home-dashboard.js?v=<content hash>`. The new version number makes browsers fetch the new file. The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `home-dashboard`, with a layout generated from your house, and **Home (Field)** at `home-dashboard-field`, a field card with no `modules`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds the bundle `dashboard.config.mjs` names (`dist/dashhaus.js` here), copies it to `www/dashhaus/`, and registers it as a dashboard resource at `/local/dashhaus/dashhaus.js?v=<content hash>`. The new version number makes browsers fetch the new file. The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `dashhaus-orb`, with a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `modules`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
 
 If your dashboards are in YAML mode, the CLI can't manage resources and prints the lines to add to `configuration.yaml` instead.
 
@@ -24,18 +24,18 @@ import { execFileSync } from "node:child_process";
 
 export default {
   pageTitle: "Home",                  // the header each card prints and the view's title
-  bundle: "dist/home-dashboard.js",   // required: the file uploaded; its folder and name make the URL
+  bundle: "dist/dashhaus.js",   // required: the file uploaded; its folder and name make the URL
   build() {                           // optional: runs in this file's directory, before the upload
     execFileSync("npx", ["vite", "build", "-c", "config/vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
   },
   dashboards: [
     {
-      path: "home-dashboard",
+      path: "dashhaus-orb",
       title: "Home (Orb)",
       icon: "mdi:home-variant",
       env: { path: "HA_DASHBOARD", title: "HA_DASHBOARD_TITLE" }, // optional overrides
       async card(ha) {
-        return { card: { type: "custom:home-dashboard" }, made: "automatic" };
+        return { card: { type: "custom:dashhaus-orb" }, made: "automatic" };
       },
     },
   ],
@@ -53,17 +53,17 @@ The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` run
 Edit the layout in Home Assistant: open the dashboard → ⋮ → **Edit dashboard** → the card's pencil → **Show code editor**. The preview redraws as you type. Every mistake is listed at once, with its path and the probable fix:
 
 ```text
-Home Dashboard config has 2 problems:
+Dashhaus config has 2 problems:
 • sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
 • sections[2].cards[3]: media_player.tv: media_player.* entities have no card yet
 ```
 
-To start a new dashboard somewhere else, add the **Home Dashboard** card from the card picker. It pre-fills the generated layout for your house, ready to edit. Put it in a **Panel** view so it gets the full width.
+To start a new dashboard somewhere else, add the **Dashhaus** card from the card picker. It pre-fills the generated layout for your house, ready to edit. Put it in a **Panel** view so it gets the full width.
 
 ### The format
 
 ```yaml
-type: custom:home-dashboard
+type: custom:dashhaus-orb
 title: Home
 show_time: true                 # a clock in the header
 sections:
@@ -166,7 +166,7 @@ A destination is one of three kinds, each with an optional `label`:
 - `navigate:` another Home Assistant dashboard or view, by its path. It's named after that dashboard and carries a small arrow, since it leaves this one.
 
 ```yaml
-type: custom:home-dashboard
+type: custom:dashhaus-orb
 title: Home
 sections:                     # the main page, `home`
   - title: Quick actions
@@ -196,10 +196,10 @@ nav:
 
 ## The field dashboard
 
-The same bundle carries a second card, `custom:home-dashboard-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light, climate, humidifier, cover and alarm entities, room sensors, the weather, Owlet socks (`sensor.*_sleep_state`), modes (`input_boolean` and `switch`) and a sound machine's sound (a `switch` with `card: sound`). `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `modules`, so it shows every supported entity, grouped by area: every light, climate, humidifier, cover, `alarm_control_panel`, `input_boolean` and `switch` entity, every Owlet sock by its `sensor.*_sleep_state`, the first weather entity by name (with `sun.sun` for night, as the main card's Outside), and of sensors only room air, one per device, found the way the main card finds its Rooms (each temperature sensor with the humidity and battery sensors on its device, then humidity sensors on devices without one). To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Home Dashboard Field** card from the card picker.
+The same bundle carries a second card, `custom:dashhaus-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light, climate, humidifier, cover and alarm entities, room sensors, the weather, Owlet socks (`sensor.*_sleep_state`), modes (`input_boolean` and `switch`) and a sound machine's sound (a `switch` with `card: sound`). `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `modules`, so it shows every supported entity, grouped by area: every light, climate, humidifier, cover, `alarm_control_panel`, `input_boolean` and `switch` entity, every Owlet sock by its `sensor.*_sleep_state`, the first weather entity by name (with `sun.sun` for night, as the main card's Outside), and of sensors only room air, one per device, found the way the main card finds its Rooms (each temperature sensor with the humidity and battery sensors on its device, then humidity sensors on devices without one). To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Dashhaus Field** card from the card picker.
 
 ```yaml
-type: custom:home-dashboard-field
+type: custom:dashhaus-field
 title: Home              # optional, printed at the top with today's date under it
 subtitle: Everyone home  # optional, in place of the date on the main page
 show_time: true          # a clock in the header, on a strip of screen
@@ -269,7 +269,7 @@ modules:                 # optional; leave out (and leave out sections) for ever
 `sections` lays the main page out by hand, as the main card's do, but with field's words: a section lists `modules`, its `columns` is a most rather than a count (columns come from the width, so a module never narrows below its own), and its gaps come from the footprint. Each module's plate still names its own area, from `area` or Home Assistant's registries. A column group puts its sections side by side, one column each; under 640 px of page they stack. Keys the main card takes and field doesn't (`theme`, `accent`, `color`, `show_control`, a section's `cards` and `gap`, bundles) are refused with the reason, for YAML copied across.
 
 ```yaml
-type: custom:home-dashboard-field
+type: custom:dashhaus-field
 title: Home
 sections:
   - title: Quick

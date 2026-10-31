@@ -13,7 +13,7 @@ const meta = {
   title: "Orb/Dashboards/Lovelace card",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "The `custom:home-dashboard` Lovelace card: a whole page from its YAML (docs/deploy.md), on the demo transports. The header time is fixed at 11:54." } },
+    docs: { description: { component: "The `custom:dashhaus-orb` Lovelace card: a whole page from its YAML (docs/deploy.md), on the demo transports. The header time is fixed at 11:54." } },
   },
 } satisfies Meta;
 export default meta;
@@ -24,7 +24,7 @@ const NOW = new Date(2026, 9, 17, 11, 54);
 
 /** The YAML in docs/deploy.md's example, as Lovelace hands it to the card. */
 const YAML = {
-  type: "custom:home-dashboard",
+  type: "custom:dashhaus-orb",
   title: "Home",
   sections: [
     { title: "Security", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }] },
@@ -83,7 +83,7 @@ function FailedAction() {
     void store.callService("light", "toggle", { entity_id: "light.living_room" }).catch(() => undefined);
   }, [status, store]);
   const config = parseDashboardConfig({
-    type: "custom:home-dashboard",
+    type: "custom:dashhaus-orb",
     title: "Home",
     sections: [{ title: "Living room", cards: [{ entity: "light.living_room" }] }],
   });
@@ -100,7 +100,7 @@ function ActionFailureExample() {
 
 /** docs/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
 const NAV_YAML = {
-  type: "custom:home-dashboard",
+  type: "custom:dashhaus-orb",
   title: "Home",
   sections: [
     { title: "Quick actions", cards: [{ entity: "light.living_room", footprint: "compact" }, { entity: "switch.office", footprint: "compact" }] },

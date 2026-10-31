@@ -8,15 +8,15 @@ import { create__Skin__Card } from "./card";
 const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn() }));
 vi.mock("@dashhaus/core/websocket", () => adapter);
 adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({ subscribeEntities: (listener) => { queueMicrotask(() => listener({})); return () => undefined; }, callService: async () => undefined }));
-customElements.define("home-dashboard-__skin__-test", create__Skin__Card(":root { --__skin__-page: #fff; }"));
+customElements.define("dashhaus-__skin__-test", create__Skin__Card(":root { --__skin__-page: #fff; }"));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };
 const connection = {} as Connection;
 
 afterEach(async () => { await act(async () => document.body.replaceChildren()); adapter.createHomeAssistantTransport.mockClear(); });
 
-describe("home-dashboard-__skin__", () => {
+describe("dashhaus-__skin__", () => {
   it("renders a usable empty Dashboard and reuses one store per connection", async () => {
-    const card = document.createElement("home-dashboard-__skin__-test") as Card;
+    const card = document.createElement("dashhaus-__skin__-test") as Card;
     card.setConfig({ title: "Home" });
     card.hass = { connection, states: {}, themes: { darkMode: false } };
     await act(async () => { document.body.append(card); await Promise.resolve(); });

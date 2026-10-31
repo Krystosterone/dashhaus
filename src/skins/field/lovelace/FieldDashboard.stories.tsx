@@ -123,7 +123,7 @@ function Yaml({ yaml }: { yaml: Record<string, unknown> }) {
 
 /** Sections laid out by hand, as on a phone: the keys pressed most as rows, then a room at a time. */
 const SECTIONS_YAML = {
-  type: "custom:home-dashboard-field",
+  type: "custom:dashhaus-field",
   title: "Home",
   subtitle: "Everyone home",
   sections: [
@@ -160,7 +160,7 @@ const SECTIONS_YAML = {
 
 /** docs/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
 const PAGES_YAML = {
-  type: "custom:home-dashboard-field",
+  type: "custom:dashhaus-field",
   title: "Home",
   footprint: "compact",
   sections: [
@@ -176,7 +176,7 @@ const PAGES_YAML = {
 
 /** A wall panel read from across the room: one column per place, its leads whole modules and the rest rows. */
 const WALL_YAML = {
-  type: "custom:home-dashboard-field",
+  type: "custom:dashhaus-field",
   title: "Home",
   show_time: true,
   viewing: "far",
@@ -198,7 +198,7 @@ const meta = {
   component: Demo,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "What `custom:home-dashboard-field` draws: a section per area under its printed legend, or the `sections` and `pages` its YAML lays out, with a nav docked at the bottom; live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
+    docs: { description: { component: "What `custom:dashhaus-field` draws: a section per area under its printed legend, or the `sections` and `pages` its YAML lays out, with a nav docked at the bottom; live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
   argTypes: {
     footprint: { control: "inline-radio", options: ["standard", "compact"] },

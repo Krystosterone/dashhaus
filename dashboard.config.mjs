@@ -17,14 +17,14 @@ const PAGE_TITLE = "Home";
 export default {
   pageTitle: PAGE_TITLE,
   // The file the CLI uploads; its folder and name make the resource URL.
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   // The repo's build stays the config's, not the CLI's. Runs in this file's directory.
   build() {
     execFileSync("npx", ["vite", "build", "-c", "config/vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
   },
   dashboards: [
     {
-      path: "home-dashboard",
+      path: "dashhaus-orb",
       title: "Home (Orb)",
       icon: "mdi:home-variant",
       env: { path: "HA_DASHBOARD", title: "HA_DASHBOARD_TITLE" },
@@ -34,12 +34,12 @@ export default {
       },
     },
     {
-      path: "home-dashboard-field",
+      path: "dashhaus-field",
       title: "Home (Field)",
       icon: "mdi:knob",
       env: { path: "HA_FIELD_DASHBOARD", title: "HA_FIELD_DASHBOARD_TITLE" },
       async card() {
-        return { card: { type: "custom:home-dashboard-field", title: PAGE_TITLE }, made: "every light and climate entity by area" };
+        return { card: { type: "custom:dashhaus-field", title: PAGE_TITLE }, made: "every light and climate entity by area" };
       },
     },
     // `npm run new-skin` registers each generated skin in scripts/generated-skins.mjs.

@@ -6,7 +6,7 @@ import type { BlockConfig, FieldConfig, ModuleConfig, PageConfig } from "./confi
 import { areaName, areaSections, autoModules } from "./auto";
 import { FieldDashboard } from "./FieldDashboard";
 
-export const FIELD_CARD_TYPE = "home-dashboard-field";
+export const FIELD_CARD_TYPE = "dashhaus-field";
 
 /** Field's typeface, Archivo, with its width axis (the skin sets it wide). */
 const FONT_HREF = "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,300..700&display=swap";
@@ -22,14 +22,14 @@ const HOST_CSS = `
 `;
 
 /**
- * `type: custom:home-dashboard-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
- * connection like `custom:home-dashboard`. Without `modules` or `sections` it draws every supported entity, grouped by
+ * `type: custom:dashhaus-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
+ * connection like `custom:dashhaus-orb`. Without `modules` or `sections` it draws every supported entity, grouped by
  * Home Assistant's areas.
  */
 export function createFieldCard(css: string) {
   const styles = scopeToHost(css) + HOST_CSS;
 
-  return class HomeDashboardFieldCard extends LovelaceDashboardElement<FieldConfig> {
+  return class DashhausFieldCard extends LovelaceDashboardElement<FieldConfig> {
     protected readonly styles = styles;
     protected readonly mountClass = "fd-surface";
     protected readonly fontHref = FONT_HREF;
@@ -107,5 +107,5 @@ export function createFieldCard(css: string) {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineFieldCard(css: string) {
-  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Home Dashboard Field", "The field dashboard: hardware-style light, climate and sensor modules by room. Leave out `modules` to show every supported entity.");
+  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Dashhaus Field", "The field dashboard: hardware-style light, climate and sensor modules by room. Leave out `modules` to show every supported entity.");
 }

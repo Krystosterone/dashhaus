@@ -44,5 +44,6 @@
   - Per-package `tsconfig` and Vitest projects: one root program covers the repo today and `verify:packages` covers packed installs; add per-package projects only if build or test time demands it.
 - [ ] Make the first npm release.
   - Claim the `@dashhaus` scope (re-check availability, create the org, confirm 2FA) and publish `release/dashhaus-{core,dashboard,deploy}-0.1.0.tgz` in dependency order, then tag and create the GitHub release. Start only after the PII/history rewrite and a green `main` CI run.
-- [ ] Decide whether deployed names get `dashhaus` aliases.
-  - The rename kept `custom:home-dashboard*`, `dist/home-dashboard.js` and the `home-dashboard*` dashboard paths; a major can add `custom:dashhaus` aliases or rename the artifacts, with a migration note for existing dashboards.
+- [x] Rename deployed names to `dashhaus`.
+  - Applied (`rename/dashhaus-names`): the custom elements and dashboard paths are `custom:dashhaus-orb`, `custom:dashhaus-field` and `custom:dashhaus-<skin>`; the bundle is `dist/dashhaus.js`, deployed at `www/dashhaus/dashhaus.js` and `/local/dashhaus/dashhaus.js`; card-picker names and error copy read Dashhaus. No aliases, migration notes or legacy code.
+  - Verified: `npm run check` (132 files, 1189 tests), `npm run test-storybook` (57 suites, 406 tests), `npm run build:ha` (`dist/dashhaus.js`), `npm run release:check` (three tarballs, packed install), and `npm run deploy -- --help` prints `/dashhaus-orb` and `/dashhaus-field`.

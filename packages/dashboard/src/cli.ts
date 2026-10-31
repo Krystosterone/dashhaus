@@ -46,11 +46,11 @@ export interface GeneratedSkin {
 /** One dashboard per generated skin, in the shape a config declares its own. */
 export function generatedDashboards(skins: GeneratedSkin[], title = "Home"): DeployDashboard[] {
   return skins.map(({ id, title: sidebar, icon }) => ({
-    path: `home-dashboard-${id}`,
+    path: `dashhaus-${id}`,
     title: sidebar,
     icon,
     async card() {
-      return { card: { type: `custom:home-dashboard-${id}`, title }, made: `the ${id} skin's automatic layout` };
+      return { card: { type: `custom:dashhaus-${id}`, title }, made: `the ${id} skin's automatic layout` };
     },
   }));
 }

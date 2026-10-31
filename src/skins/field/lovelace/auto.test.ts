@@ -79,7 +79,7 @@ describe("groupByArea", () => {
 
 describe("parseFieldConfig", () => {
   it("defaults to automatic modules, Home Assistant's dark mode, standard modules, and alarms that flash", () => {
-    expect(parseFieldConfig({ type: "custom:home-dashboard-field" })).toEqual({ title: undefined, showTime: false, hourCycle: undefined, finish: "home-assistant", footprint: "standard", quiet: false });
+    expect(parseFieldConfig({ type: "custom:dashhaus-field" })).toEqual({ title: undefined, showTime: false, hourCycle: undefined, finish: "home-assistant", footprint: "standard", quiet: false });
   });
 
   it("takes a clock for the header, on 12 or 24 hours", () => {

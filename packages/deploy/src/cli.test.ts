@@ -17,16 +17,16 @@ async function project() {
   directories.push(directory);
   await mkdir(join(directory, "dist"), { recursive: true });
   await mkdir(join(directory, "www"), { recursive: true });
-  await writeFile(join(directory, "dist", "home-dashboard.js"), "bundle");
+  await writeFile(join(directory, "dist", "dashhaus.js"), "bundle");
   await writeFile(join(directory, "dashboard.config.mjs"), `export default {
   pageTitle: "Home",
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   dashboards: [{
     path: "home-a",
     title: "Home A",
     icon: "mdi:home",
     env: { path: "HA_DASHBOARD" },
-    async card() { return { card: { type: "custom:home-dashboard" }, made: "one card" }; },
+    async card() { return { card: { type: "custom:dashhaus-orb" }, made: "one card" }; },
   }],
 };`);
   return directory;

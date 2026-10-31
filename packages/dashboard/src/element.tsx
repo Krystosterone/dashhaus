@@ -50,7 +50,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }
   static getDerivedStateFromError(error: Error) { return { error }; }
   render() {
     return this.state.error
-      ? <div className="hd-config-error" role="alert">Home Dashboard stopped: {this.state.error.message}</div>
+      ? <div className="hd-config-error" role="alert">Dashhaus stopped: {this.state.error.message}</div>
       : this.props.children;
   }
 }

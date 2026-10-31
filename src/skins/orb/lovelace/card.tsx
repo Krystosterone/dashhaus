@@ -6,7 +6,7 @@ import { LovelaceDashboardElement, autoInput, registerCard } from "@dashhaus/das
 import type { LovelaceHass } from "@dashhaus/dashboard";
 import { scopeToHost } from "@dashhaus/dashboard";
 
-export const CARD_TYPE = "home-dashboard";
+export const CARD_TYPE = "dashhaus-orb";
 
 /** Orb's typeface, Urbanist. */
 const FONT_HREF = "https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap";
@@ -22,13 +22,13 @@ const HOST_CSS = `
 `;
 
 /**
- * `type: custom:home-dashboard` — a whole dashboard page in one Lovelace card. Lovelace gives it the
+ * `type: custom:dashhaus-orb` — a whole dashboard page in one Lovelace card. Lovelace gives it the
  * config and a live `hass`; it reuses the frontend's own websocket connection, so it needs no token.
  */
-export function createHomeDashboardCard(css: string) {
+export function createDashhausCard(css: string) {
   const styles = scopeToHost(css) + HOST_CSS;
 
-  return class HomeDashboardCard extends LovelaceDashboardElement<DashboardConfig> {
+  return class DashhausCard extends LovelaceDashboardElement<DashboardConfig> {
     protected readonly styles = styles;
     protected readonly mountClass = "ha-surface";
     protected readonly fontHref = FONT_HREF;
@@ -86,6 +86,6 @@ export function createHomeDashboardCard(css: string) {
 }
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
-export function defineHomeDashboardCard(css: string) {
-  registerCard(CARD_TYPE, createHomeDashboardCard(css), "Home Dashboard", "A whole dashboard page from one YAML card. Leave out `sections` to lay the house out automatically.");
+export function defineDashhausCard(css: string) {
+  registerCard(CARD_TYPE, createDashhausCard(css), "Dashhaus", "A whole dashboard page from one YAML card. Leave out `sections` to lay the house out automatically.");
 }

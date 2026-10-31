@@ -19,7 +19,7 @@ afterEach(async () => {
 });
 
 const dashboard = (overrides: Partial<DeployDashboard> = {}): DeployDashboard => ({
-  path: "home-dashboard",
+  path: "dashhaus-orb",
   title: "Home",
   icon: "mdi:home",
   async card() { return { card: {}, made: "" }; },
@@ -27,7 +27,7 @@ const dashboard = (overrides: Partial<DeployDashboard> = {}): DeployDashboard =>
 });
 
 const config = (overrides: Partial<DeployConfig> = {}): DeployConfig => ({
-  bundle: "dist/home-dashboard.js",
+  bundle: "dist/dashhaus.js",
   dashboards: [dashboard()],
   ...overrides,
 });
@@ -36,9 +36,9 @@ describe("resolveDashboards", () => {
   it("applies only the .env overrides each dashboard names", () => {
     const declared = config({
       dashboards: [
-        dashboard({ path: "home-dashboard", title: "Home (Orb)", env: { path: "HA_DASHBOARD", title: "HA_DASHBOARD_TITLE" } }),
-        dashboard({ path: "home-dashboard-field", title: "Home (Field)", env: { path: "HA_FIELD_DASHBOARD", title: "HA_FIELD_DASHBOARD_TITLE" } }),
-        dashboard({ path: "home-dashboard-canvas", title: "Home (Canvas)" }),
+        dashboard({ path: "dashhaus-orb", title: "Home (Orb)", env: { path: "HA_DASHBOARD", title: "HA_DASHBOARD_TITLE" } }),
+        dashboard({ path: "dashhaus-field", title: "Home (Field)", env: { path: "HA_FIELD_DASHBOARD", title: "HA_FIELD_DASHBOARD_TITLE" } }),
+        dashboard({ path: "dashhaus-canvas", title: "Home (Canvas)" }),
       ],
     });
     const { dashboards, pageTitle } = resolveDashboards(declared, {
@@ -50,8 +50,8 @@ describe("resolveDashboards", () => {
     expect(pageTitle).toBe("Home");
     expect(dashboards.map(({ path, title }) => [path, title])).toEqual([
       ["my-house", "My House"],
-      ["home-dashboard-field", "Field House"],
-      ["home-dashboard-canvas", "Home (Canvas)"],
+      ["dashhaus-field", "Field House"],
+      ["dashhaus-canvas", "Home (Canvas)"],
     ]);
   });
 
@@ -82,12 +82,12 @@ describe("resolveDashboards", () => {
 describe("resolveBundle", () => {
   it("resolves the bundle against the config and derives the resource URL from its folder and name", () => {
     const directory = "/configs";
-    const target = resolveBundle(config({ bundle: "dist/home-dashboard.js" }), join(directory, "dashboard.config.mjs"));
+    const target = resolveBundle(config({ bundle: "dist/dashhaus.js" }), join(directory, "dashboard.config.mjs"));
     expect(target).toEqual({
-      file: join(directory, "dist", "home-dashboard.js"),
-      name: "home-dashboard.js",
-      folder: "home-dashboard",
-      resourcePath: "/local/home-dashboard/home-dashboard.js",
+      file: join(directory, "dist", "dashhaus.js"),
+      name: "dashhaus.js",
+      folder: "dashhaus",
+      resourcePath: "/local/dashhaus/dashhaus.js",
     });
   });
 
@@ -145,13 +145,13 @@ describe("loadDashboards", () => {
     await writeFile(join(directory, "dashboard.config.mjs"), [
       "export default {",
       '  pageTitle: "Home",',
-      '  bundle: "dist/home-dashboard.js",',
+      '  bundle: "dist/dashhaus.js",',
       "  dashboards: [{",
-      '    path: "home-dashboard",',
+      '    path: "dashhaus-orb",',
       '    title: "Home",',
       '    icon: "mdi:home",',
       '    env: { path: "HA_DASHBOARD" },',
-      "    async card() { return { card: { type: \"custom:home-dashboard\" }, made: \"one card\" }; },",
+      "    async card() { return { card: { type: \"custom:dashhaus-orb\" }, made: \"one card\" }; },",
       "  }],",
       "};",
     ].join("\n"));

@@ -13,7 +13,7 @@ A neutral generated skin under `src/skins/__skin__/`. It is deliberately usable 
 
 ## Dashboards
 
-`__Skin__Page`, `__Skin__Section`, `__Skin__Columns`, `__Skin__Cell`, `__Skin__Header`, and `__Skin__NavBar` compose phone, tablet, and wall-panel pages. The Lovelace card is `custom:home-dashboard-__skin__`; without explicit Cards or sections, it groups every supported entity by Home Assistant area.
+`__Skin__Page`, `__Skin__Section`, `__Skin__Columns`, `__Skin__Cell`, `__Skin__Header`, and `__Skin__NavBar` compose phone, tablet, and wall-panel pages. The Lovelace card is `custom:dashhaus-__skin__`; without explicit Cards or sections, it groups every supported entity by Home Assistant area.
 
 Add a domain with:
 

@@ -79,7 +79,7 @@ class __Skin__Reader extends Reader {
   }
 }
 
-/** Parse and normalize `custom:home-dashboard-__skin__` YAML, collecting every problem. */
+/** Parse and normalize `custom:dashhaus-__skin__` YAML, collecting every problem. */
 export function parse__Skin__Config(value: unknown): __Skin__Config {
   const reader = new __Skin__Reader();
   const raw: Raw = isRaw(value) ? value : {};

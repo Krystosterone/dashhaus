@@ -43,7 +43,7 @@ if (exists(docs)) fail(`${docs} already exists`);
 const preview = read(seams.preview);
 if (preview.includes(`section: "${Section}"`) || preview.includes(`"${Section}", [`)) fail(`Storybook section "${Section}" is already registered`);
 const entry = read(seams.lovelaceEntry);
-if (entry.includes(`define${Skin}Card(`)) fail(`Lovelace card "home-dashboard-${skin}" is already registered`);
+if (entry.includes(`define${Skin}Card(`)) fail(`Lovelace card "dashhaus-${skin}" is already registered`);
 
 const fill = filler({
   __skin__: skin,
@@ -88,7 +88,7 @@ change.edit(seams.lovelaceEntry, after(markers.entryDefines, fill(`define__Skin_
 change.edit(seams.generatedSkins, after(markers.generatedSkins, fill(`  { id: "__skin__", title: "Home (__Section__)", icon: "mdi:view-dashboard-outline" },`)));
 
 // The generated design contract and its Lovelace YAML are discoverable from the repository docs.
-change.edit(seams.deployDoc, (source) => `${source.trimEnd()}\n\n## The ${Section} dashboard\n\nThe generated ${Section} skin ships as \`custom:home-dashboard-${skin}\` from the private \`${generated.name(skin)}\` package. Without \`cards\` or \`sections\`, it draws every supported entity Card added with \`npm run new-card -- <domain> --skin ${skin}\`, grouped by Home Assistant area.\n\n\`\`\`yaml\ntype: custom:home-dashboard-${skin}\ntitle: Home\n\`\`\`\n`);
+change.edit(seams.deployDoc, (source) => `${source.trimEnd()}\n\n## The ${Section} dashboard\n\nThe generated ${Section} skin ships as \`custom:dashhaus-${skin}\` from the private \`${generated.name(skin)}\` package. Without \`cards\` or \`sections\`, it draws every supported entity Card added with \`npm run new-card -- <domain> --skin ${skin}\`, grouped by Home Assistant area.\n\n\`\`\`yaml\ntype: custom:dashhaus-${skin}\ntitle: Home\n\`\`\`\n`);
 
 if (!change.commit(dryRun)) process.exit(0);
 console.log(`Created the ${Section} skin: ${change.writes.size} files and registrations.\n\nNext:\n  1. npm run new-card -- light --skin ${skin}\n  2. npm run storybook  →  ${Section}/Foundations and ${Section}/Dashboards\n  3. Replace the neutral tokens and parts using ${docs} as the design contract\n  4. npm run check && npm run test-storybook && npm run build:ha`);

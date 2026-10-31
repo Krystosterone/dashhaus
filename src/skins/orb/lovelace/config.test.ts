@@ -13,7 +13,7 @@ const problems = (raw: unknown) => {
 
 describe("parseDashboardConfig", () => {
   it("leaves the layout to the automatic one when sections are left out", () => {
-    expect(parseDashboardConfig({ type: "custom:home-dashboard" })).toEqual({
+    expect(parseDashboardConfig({ type: "custom:dashhaus-orb" })).toEqual({
       title: "Home", subtitle: undefined, showTime: false, hourCycle: undefined, theme: "home-assistant", accent: undefined, blocks: undefined,
     });
   });

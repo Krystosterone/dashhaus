@@ -50,7 +50,7 @@ describe("autoDashboard", () => {
 
   it("lays out actions, household status, then the room and environment glance", () => {
     expect(autoDashboard(input)).toEqual({
-      type: "custom:home-dashboard",
+      type: "custom:dashhaus-orb",
       title: "Home",
       sections: [
         { title: "Comfort", cards: ["climate.attic", { entity: "climate.hall", footprint: "compact" }] },
@@ -95,7 +95,7 @@ describe("autoDashboard", () => {
 
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
-    expect(empty).toEqual({ type: "custom:home-dashboard", title: "Home" });
+    expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });
     expect(parseDashboardConfig(empty).blocks).toBeUndefined();
   });
 

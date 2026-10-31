@@ -91,5 +91,5 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   if (air.length) place({ title: "Rooms", cards: air });
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
-  return sections.length ? { type: "custom:home-dashboard", title, sections } : { type: "custom:home-dashboard", title };
+  return sections.length ? { type: "custom:dashhaus-orb", title, sections } : { type: "custom:dashhaus-orb", title };
 }

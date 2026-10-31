@@ -255,7 +255,7 @@ export default {
 `);
   const result = spawnSync(join(app, "node_modules", ".bin", "dashhaus-deploy"), ["--help"], { cwd: app, encoding: "utf8" });
   if (result.status !== 0) throw new Error(`deploy bin exited ${result.status}: ${result.stderr}`);
-  if (!result.stdout.includes("Packed") || !result.stdout.includes("/home-dashboard-canvas")) {
+  if (!result.stdout.includes("Packed") || !result.stdout.includes("/dashhaus-canvas")) {
     throw new Error(`deploy bin did not load the packed config:\n${result.stdout}`);
   }
   ok("dashhaus-deploy runs and loads a config importing @dashhaus/dashboard/cli");

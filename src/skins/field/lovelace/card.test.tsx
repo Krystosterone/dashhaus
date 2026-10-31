@@ -28,9 +28,9 @@ adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
 const { createFieldCard } = await import("./card");
 const { DashboardConfigError } = await import("@dashhaus/dashboard");
 
-customElements.define("home-dashboard-field-test", createFieldCard(":root { --fd-press: 120ms; } :root[data-fd-finish=\"black\"] { --fd-page: #111; }"));
+customElements.define("dashhaus-field-test", createFieldCard(":root { --fd-press: 120ms; } :root[data-fd-finish=\"black\"] { --fd-page: #111; }"));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };
-const Element = customElements.get("home-dashboard-field-test") as unknown as { new (): Card; getStubConfig(): Record<string, unknown> };
+const Element = customElements.get("dashhaus-field-test") as unknown as { new (): Card; getStubConfig(): Record<string, unknown> };
 
 const connection = {} as Connection;
 const hass = (darkMode = false) => ({
@@ -49,7 +49,7 @@ const hass = (darkMode = false) => ({
 });
 
 async function mount(config: Record<string, unknown>, darkMode = false) {
-  const card = document.createElement("home-dashboard-field-test") as Card;
+  const card = document.createElement("dashhaus-field-test") as Card;
   card.setConfig(config);
   card.hass = hass(darkMode);
   await act(async () => {
@@ -72,7 +72,7 @@ afterEach(async () => {
   document.head.querySelectorAll("link").forEach((l) => l.remove());
 });
 
-describe("home-dashboard-field card", () => {
+describe("dashhaus-field card", () => {
   it("draws every visible light, climate entity and room sensor by area, scopes the skin's tokens to the host, and links its font", async () => {
     const card = await mount({ title: "Home" });
     const shadow = card.shadowRoot!;
@@ -110,7 +110,7 @@ describe("home-dashboard-field card", () => {
   });
 
   it("throws every config problem for the YAML editor to show", () => {
-    const card = document.createElement("home-dashboard-field-test") as Card;
+    const card = document.createElement("dashhaus-field-test") as Card;
     expect(() => card.setConfig({ modules: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
     expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(DashboardConfigError);
     expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(/input_text\.note must be a light\.\* or .* entity/);
@@ -177,6 +177,6 @@ describe("home-dashboard-field card", () => {
   });
 
   it("pre-fills the card picker in automatic mode", () => {
-    expect(Element.getStubConfig()).toEqual({ type: "custom:home-dashboard-field" });
+    expect(Element.getStubConfig()).toEqual({ type: "custom:dashhaus-field" });
   });
 });
