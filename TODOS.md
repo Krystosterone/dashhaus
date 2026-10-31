@@ -2,7 +2,6 @@
 
 - [ ] Add instrumentation so agents can test the performance of dashboards in production.
 - [ ] Split `AGENTS.md`, `README.md` and the skills.
-- [ ] Make the repo agent-harness agnostic: keep `.agents/` + `AGENTS.md` and delete the tracked harness files — `.claude/` (23 files: agents and the `skills` symlinks), `.codex/hooks.json` and `.impeccable/` — then update the design-review paragraph in `AGENTS.md` and the `.claude/settings.local.json` line in `.gitignore`.
 - [ ] Remove personally identifying information before publishing, from the tree and from history.
   - `Nova` is in 37 tracked files: README and `docs/` examples, demo seeds and story exports (`novaSleepMode`), `packages/core/src/ha/fixtures/owlet.json`, field's alert copy and real Home Assistant ids (`nursery_music`, `number.nursery_volume`, `sensor.owlet_sock_ac000w0123_sleep_state`). Replace with a neutral name and ids; keep the examples readable.
   - Owner identity: `Krystosterone` in README's Issues link, `.storybook/blocks/MarkdownWithStories.tsx` and `origin`; every commit is `Krystian Czesak <krystianczesak@gmail.com>`.
