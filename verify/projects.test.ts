@@ -33,6 +33,7 @@ describe("workspace projects", () => {
   it("runs one Vitest project per public package beside the root app", () => {
     expect(Object.fromEntries(projects.map((entry) => [entry.test?.name, entry.test?.environment]))).toEqual({
       root: "jsdom",
+      generators: "node",
       core: "jsdom",
       dashboard: "jsdom",
       deploy: "node",
@@ -40,11 +41,11 @@ describe("workspace projects", () => {
     expect(project("core")?.include, "core's tests are in its project").toEqual(["packages/core/src/**/*.test.{ts,tsx}"]);
     expect(project("dashboard")?.include, "dashboard's tests are in its project").toEqual(["packages/dashboard/src/**/*.test.{ts,tsx}"]);
     expect(project("deploy")?.include, "deploy's tests are in its project").toEqual(["packages/deploy/src/**/*.test.ts"]);
-    expect(project("root")?.include, "the root project holds the app, verify and the generators").toEqual([
+    expect(project("root")?.include, "the root project holds the app and the repo checks").toEqual([
       "src/**/*.test.{ts,tsx}",
       "verify/**/*.test.{ts,tsx}",
-      "scripts/*/*.test.ts",
     ]);
+    expect(project("generators")?.include, "the generators are Node-only, in their own project").toEqual(["scripts/*/*.test.ts"]);
   });
 
   it("typechecks the root and every package from the one command", () => {

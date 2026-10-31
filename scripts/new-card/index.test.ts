@@ -1,19 +1,17 @@
 /**
- * The generator edits files it doesn't own, by anchoring on their text, so a refactor elsewhere can break it
- * without anyone running it. A dry run against the repo catches a moved anchor; a real run in a copy of the
- * repo checks that what it writes still typechecks and passes the conformance and Storybook shape tests, in orb and,
- * with `--skin field`, over both generated and hand-built domains in field.
+ * The card generator edits files it doesn't own, by anchoring on their text, so a refactor elsewhere can break it
+ * without anyone running it. A dry run against the repo catches a moved anchor; a real run in a copy of the repo
+ * checks that what it writes still typechecks and passes the conformance and Storybook shape tests, in orb and, with
+ * `--skin field`, over both generated and hand-built domains in field.
  */
-import { spawn } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join, relative } from "node:path";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { copyRepo, linkNodeModules, root, run, typecheckCopy } from "../repo-copy";
 
-const root = process.cwd();
 const script = "scripts/new-card/index.mjs";
 const generatedField = existsSync(join(root, "src/skins/field/lovelace/registry.tsx"));
-const CARDS = [
+const PROBES = [
   ["probeFan", "--code", "zf", "--domain", "probe_fan"],
   ["probeCo2", "--code", "zc", "--domain", "sensor", "--kind", "reading", "--unit", "ppm"],
 ];
@@ -32,36 +30,8 @@ const REFUSED = [
   ["alarm", /src\/skins\/field\/cards\/alarm already exists/],
 ] as const;
 
-/** Children run outside this vitest run: without its variables a nested `vitest run` acts as a fresh one. */
-const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
-/** The copy's own node_modules: each dependency linked from the root, but each @dashhaus package pointing at the copy. */
-const linkNodeModules = (copy: string) => {
-  const modules = join(copy, "node_modules");
-  mkdirSync(modules);
-  for (const entry of readdirSync(join(root, "node_modules"))) {
-    if (entry === "@dashhaus") continue;
-    symlinkSync(join(root, "node_modules", entry), join(modules, entry));
-  }
-  mkdirSync(join(modules, "@dashhaus"));
-  for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@dashhaus", scope), "dir");
-};
-
-/**
- * Run a command without blocking the worker: Vitest's parent times out `onTaskUpdate` when a test holds the event
- * loop through a long `spawnSync`, which these generator runs are.
- */
-const run = (cwd: string, command: string, args: string[]) =>
-  new Promise<{ status: number | null; output: string }>((resolve, reject) => {
-    const child = spawn(command, args, { cwd, env });
-    let output = "";
-    child.stdout?.on("data", (chunk) => { output += chunk; });
-    child.stderr?.on("data", (chunk) => { output += chunk; });
-    child.on("error", reject);
-    child.on("close", (status) => resolve({ status, output }));
-  });
-
 describe("new-card", () => {
-  it.each(CARDS)("finds every anchor for %s", async (...args) => {
+  it.each(PROBES)("finds every anchor for %s", async (...args) => {
     const { status, output } = await run(root, "node", [script, ...args, "--dry-run"]);
     expect(status, output).toBe(0);
     for (const path of ["src/skins/orb/lovelace/config.ts", "src/skins/orb/lovelace/ConfigDashboard.tsx", "docs/deploy.md"]) {
@@ -76,17 +46,15 @@ describe("new-card", () => {
   });
 
   describe("in a copy of the repo", () => {
-    const skip = ["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude", "research"];
     let copy = "";
     beforeAll(() => {
-      copy = mkdtempSync(join(tmpdir(), "new-card-"));
-      cpSync(root, copy, { recursive: true, filter: (source) => !skip.includes(relative(root, source).split("/")[0]) });
+      copy = copyRepo("new-card-");
       linkNodeModules(copy);
     }, 120_000);
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
     it("finds every field anchor", async () => {
-      for (const args of CARDS) {
+      for (const args of PROBES) {
         const { status, output } = await run(copy, "node", [script, ...args]);
         expect(status, output).toBe(0);
       }
@@ -103,9 +71,9 @@ describe("new-card", () => {
         const { status, output } = await run(copy, "node", [script, ...args]);
         expect(status, output).toBe(0);
       }
-      const typecheck = await run(copy, "npm", ["run", "typecheck"]);
+      const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "verify/orb-conformance.test.ts", "src/skins/field/cards", "src/skins/field/ha", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "packages/dashboard/src", "packages/core/src/ha/mappers/fixtures.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "verify/orb-conformance.test.ts", "src/skins/field/cards/probeFan", "src/skins/field/cards/probeCo2", "src/skins/field/ha/HaProbeFanModule.test.tsx", "src/skins/field/ha/HaProbeCo2Module.test.tsx", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "src/skins/orb/lovelace", "src/skins/field/lovelace", "packages/core/src/ha/mappers/fixtures.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const lint = await run(copy, "npx", ["eslint", "src/skins/field"]);
       expect(lint.status, lint.output).toBe(0);

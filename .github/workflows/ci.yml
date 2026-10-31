@@ -9,9 +9,9 @@ env:
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
 jobs:
-  # Typecheck, lint, the unit suites and the release proof. The generator tests run in their own lane
-  # because they dominate this one; `check` below is the required status check for both.
-  unit:
+  # Typecheck, lint and the release proof. They share one install and one runner; `check` below requires this lane,
+  # both unit shards and the generators.
+  unit_checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,11 +38,38 @@ jobs:
             eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm run test:unit
       - run: npm run build:ha
       - run: npm run release:pack
       - run: npm run verify:packages
 
+  # The unit suites, split by file across two runners; together they are the same 130 files and 1174 tests as before.
+  unit_one:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - run: npm ci
+      - run: npm run test:unit -- --shard=1/2
+
+  unit_two:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - run: npm ci
+      - run: npm run test:unit -- --shard=2/2
+
+  # The generator suites copy the repo and run its tools inside each copy, so they get their own runner.
   generators:
     runs-on: ubuntu-latest
     steps:
@@ -56,21 +83,25 @@ jobs:
       - run: npm ci
       - run: npm run test:generators
 
-  # The required status check: green only when both lanes above are green.
+  # The required status check: green only when the checks, both unit shards and the generators are green.
   check:
-    needs: [unit, generators]
+    needs: [unit_checks, unit_one, unit_two, generators]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Require the unit and generator lanes
+      - name: Require the unit lanes and the generators
         run: |
-          echo "unit: ${{ needs.unit.result }}"
+          echo "unit_checks: ${{ needs.unit_checks.result }}"
+          echo "unit_one: ${{ needs.unit_one.result }}"
+          echo "unit_two: ${{ needs.unit_two.result }}"
           echo "generators: ${{ needs.generators.result }}"
-          test "${{ needs.unit.result }}" = "success"
+          test "${{ needs.unit_checks.result }}" = "success"
+          test "${{ needs.unit_one.result }}" = "success"
+          test "${{ needs.unit_two.result }}" = "success"
           test "${{ needs.generators.result }}" = "success"
 
-  # The runner dominates the gate, so it splits by suite; each shard builds the same static site and
-  # runs its half. The `storybook` job below is the required check for both.
+  # The runner splits by suite; each shard builds the same static site and runs its half. The `storybook` job below
+  # is the required check for both.
   storybook_one:
     runs-on: ubuntu-latest
     steps:

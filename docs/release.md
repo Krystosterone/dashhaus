@@ -87,18 +87,24 @@ The tarball's manifest is already the release manifest; publishing the tarball, 
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. `unit`, `generators` and the two Storybook shards run in parallel, and the `check` and `storybook` aggregate jobs back the required status checks.
+`.github/workflows/ci.yml` runs on every pull request and push, with no path filters. It takes Node from `.nvmrc` (the Node 22 floor in root `engines`) and npm from the fixed `packageManager` version, which it enables with Corepack on the runner. `unit_checks`, the two unit-test shards, `generators` and the two Storybook shards run in parallel, and the `check` and `storybook` aggregate jobs back the required status checks.
 
-`unit`:
+`unit_checks`:
 
 ```sh
 npm ci
 npm run typecheck
 npm run lint
-npm run test:unit
 npm run build:ha
 npm run release:pack
 npm run verify:packages
+```
+
+`unit_one` and `unit_two`, each:
+
+```sh
+npm ci
+npm run test:unit -- --shard=1/2     # 2/2 in the second job
 ```
 
 `generators`:
@@ -108,7 +114,7 @@ npm ci
 npm run test:generators
 ```
 
-`check` requires both lanes above and fails unless each is green; it is the status check `main` requires. The generator tests ran in the same job before, but they dominate the unit suite (216s of a 366s Vitest run), so they get their own runner. `npm run check` still runs typecheck, lint and every test locally, generators included.
+`check` requires `unit_checks`, both unit shards and `generators`, and fails unless each is green; it is the status check `main` requires. The unit suites are split by file across two runners because one runner spent 160s on them; the two shards together run the same 130 files and 1174 tests. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
 
 `storybook_one` and `storybook_two`, each:
 
@@ -118,7 +124,7 @@ npx playwright install --with-deps chromium
 npm run test-storybook -- --shard=1/2     # 2/2 in the second job
 ```
 
-`storybook` requires both shards and fails unless each is green; it is the status check `main` requires. Each shard builds the static site from the same commit and runs its half of the suites. The `unit` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `eslint.config.js` and the tsconfigs). The Storybook jobs cache `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails its shard with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
+`storybook` requires both shards and fails unless each is green; it is the status check `main` requires. Each shard builds the static site from the same commit and runs its half of the suites. The `unit_checks` lane caches TypeScript's incremental state in `node_modules/.cache/tsc` (restored from the latest cache for the lockfile) and ESLint's results in `node_modules/.cache/eslint` (keyed on the lockfile, `eslint.config.js` and the tsconfigs). The Storybook jobs cache `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails its shard with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
 
 ## Differences from the readiness note
 
