@@ -21,21 +21,14 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
-      - name: Cache TypeScript's incremental state
+      - name: Cache node_modules
+        id: modules
         uses: actions/cache@v4
         with:
-          path: node_modules/.cache/tsc
-          key: tsc-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: |
-            tsc-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
-      - name: Cache ESLint's lint results
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/eslint
-          key: eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-${{ github.sha }}
-          restore-keys: |
-            eslint-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js', 'config/tsconfig.base.json', 'tsconfig.json', 'packages/*/tsconfig.json') }}-
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build:ha
@@ -53,8 +46,15 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
-      - run: npm run test:unit -- --shard=1/2
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run test:unit -- --shard=1/2 --maxWorkers=2
 
   unit_two:
     runs-on: ubuntu-latest
@@ -66,8 +66,15 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
-      - run: npm run test:unit -- --shard=2/2
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run test:unit -- --shard=2/2 --maxWorkers=2
 
   # The generator suites copy the repo and run its tools inside each copy, so they get their own runner.
   generators:
@@ -80,7 +87,14 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run test:generators
 
   # The required status check: green only when the checks, both unit shards and the generators are green.
@@ -112,7 +126,14 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Read the Playwright version
         id: playwright-version
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -134,7 +155,14 @@ jobs:
           cache: npm
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
-      - run: npm ci
+      - name: Cache node_modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Read the Playwright version
         id: playwright-version
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
