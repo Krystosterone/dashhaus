@@ -153,7 +153,7 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 | bundle | `lead: ...`, `rows: [...]`, `label`, `sheet_title`, `span` | One standard card followed by compact rows. |
 | bundle | `title`, `area`, `rows: [...]`, `span` | The parts of one thing under a lid naming it and its room; parts in that room drop it. Spell `area` as Home Assistant names the room. |
 
-README.md's Dashboards section has the composition rules: frequent actions first, then household status and the room/environment glance; one hero per screen; compact rows where alignment matters.
+The Dashboards section of [docs/orb.md](orb.md) has the composition rules: frequent actions first, then household status and the room/environment glance; one hero per screen; compact rows where alignment matters.
 
 ### Navigation
 

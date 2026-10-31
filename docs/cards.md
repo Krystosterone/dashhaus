@@ -1,6 +1,6 @@
 # Cards
 
-Per-card behaviour: what each card shows, how it interacts, and its props. The rules every card follows are in [README.md](../README.md); folder layout, commands and the adding-a-card steps are in AGENTS.md.
+Per-card behaviour: what each card shows, how it interacts, and its props. The rules every card follows are in [docs/orb.md](orb.md) and [docs/field.md](field.md); folder layout, commands and the adding-a-card steps are in AGENTS.md.
 
 ## Shared footprints
 

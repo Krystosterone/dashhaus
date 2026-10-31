@@ -1,6 +1,6 @@
 # AGENTS.md
 
-React + TypeScript skins for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app; the checks are the ones under Commands. The current skins are Orb (`src/skins/orb/`) and Field (`src/skins/field/`); the entity models and Home Assistant logic under them are skin-free. The spec is split: `README.md` contains Orb's design and composition rules, `docs/field.md` contains Field's, and `docs/cards.md` contains per-card behaviour. Consult the affected skin's rules and the card behaviour before changing it. `docs/contract.md` is what a third-party skin may rely on from `@dashhaus/dashboard`. `docs/performance.md` documents the opt-in marks and the live production measurement command. Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
+React + TypeScript skins for a custom Home Assistant dashboard, developed and shown in Storybook. This is a component library, not a runnable app; the checks are the ones under Commands. The current skins are Orb (`src/skins/orb/`) and Field (`src/skins/field/`); the entity models and Home Assistant logic under them are skin-free. The spec is split: `docs/orb.md` contains Orb's design and composition rules, `docs/field.md` contains Field's, and `docs/cards.md` contains per-card behaviour. Consult the affected skin's rules and the card behaviour before changing it. `docs/contract.md` is what a third-party skin may rely on from `@dashhaus/dashboard`. `docs/performance.md` documents the opt-in marks and the live production measurement command. Research decisions and evidence live in `research/README.md` and the `research/` notes; component gaps in `research/mechanism-backlog.md`.
 
 ## Vocabulary
 
@@ -114,7 +114,7 @@ Every skin's section has the same groups, in this order, so the tree has one sha
 1. **Cards** — `<Skin>/Cards/<Name>`, one per card. Every card has the same stories under the same names: its own states first, then **Unavailable**, **Worst case** (its `<NAME>_WORST_CASE` or worst-case seed), **All states**, **Sizes**, **Footprints**, **Compact**, **Details**, **Details, unavailable** and **Details, phone**. A card adds stories for what only it can do (a climate range, a colour lamp, a view-only alarm) beside the one they extend, and drops none.
 2. **Bundles** — orb only: its joined, lead and titled bundles. A bundle is an orb idea, not a gap in other skins, so they leave the group out.
 3. **Dashboards** — whole pages and their furniture: every skin's hand-composed `Examples` (phone, tablet, wall panel), its `Lovelace card`, its whole dashboard drawn from YAML on the demo transports, its `Header` and its `Nav bar`. The examples show ways to compose a dashboard, not a register of cards: a card belongs in one only when it shows something about composing.
-4. **Foundations** — a skin's rules across cards, first its **Design rules**: an MDX page that draws the skin's spec (orb: `README.md`'s design sections; field: `docs/field.md`) through `.storybook/blocks/MarkdownWithStories.tsx`, with chosen stories after their sections. The markdown stays the source, so edit it, not the page; every section shows unless the page skips it by heading. Then each skin's palette and **Parts** (its parts from `shared/`, each across its states, drawn with the skin's own components and CSS); orb's colour temperature, compact rows and worst case.
+4. **Foundations** — a skin's rules across cards, first its **Design rules**: an MDX page that draws the skin's spec (orb: `docs/orb.md`; field: `docs/field.md`) through `.storybook/blocks/MarkdownWithStories.tsx`, with chosen stories after their sections. The markdown stays the source, so edit it, not the page; every section shows unless the page skips it by heading. Then each skin's palette and **Parts** (its parts from `shared/`, each across its states, drawn with the skin's own components and CSS); orb's colour temperature, compact rows and worst case.
 5. **Connected** — one story per card under the card's name: its connected card on the demo transports, so a press goes through the `useHa<Name>` hook, mapper and actions and the state comes back through the store. These live in the skin's `ha/`, apart from `Cards`, because only `ha/` and `lovelace/` may import `@dashhaus/core`'s Home Assistant subpaths.
 
 Any other group a skin can't fill holds one **Not in <Skin>** story that says why, never filler. Today every skin fills every group it has.
@@ -135,10 +135,10 @@ For every skin:
 
 For the orb skin:
 
-- One UI language (README → One UI language): a raised `--btn` is tapped, a recessed `--groove` is slid or set, a readout has no container; solid accent is on for every role; a dashed outline is unavailable and nothing else. No hatching, no second strength of accent, no default orb colour.
+- One UI language (docs/orb.md → One UI language): a raised `--btn` is tapped, a recessed `--groove` is slid or set, a readout has no container; solid accent is on for every role; a dashed outline is unavailable and nothing else. No hatching, no second strength of accent, no default orb colour.
 - No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.
 - Prefix each card's CSS classes with its card code: `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hu-` humidifier, `sn-` sound<!-- new-card: orb codes -->. Outside the cards, `hh-` is the dashboard header, `hb-` the bundles and `hd-` the shared card system.
-- Attention follows the README glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
+- Attention follows the docs/orb.md glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
 - Every compact row carries a domain icon, primary identity and one state/action cue; colour never defines a row.
 
 ## Design review
@@ -147,8 +147,8 @@ When design or visual quality is at stake, use these authorities, all committed 
 
 - **Design phase:** run design decisions through the UX Researcher and UI Designer roles in `.agents/design/`.
 - **After building:** run Impeccable's `critique`, `audit`, and `polish` on the card's story (`/impeccable …`; skill at `.agents/skills/impeccable/`).
-- **Motion and worst-case data:** apply Emil Kowalski's skills in `.agents/skills/` — `review-animations`, `animation-performance`, `mobile-native`, `break-ui`. They are the source of the motion rules in README.md.
-- **Attention and glow:** follow the repo's own `attention-budget` skill (`.agents/skills/attention-budget/`); it carries the README glow contract and the evidence in `research/02-attention-budget.md`.
+- **Motion and worst-case data:** apply Emil Kowalski's skills in `.agents/skills/` — `review-animations`, `animation-performance`, `mobile-native`, `break-ui`. They are the source of the motion rules in docs/orb.md.
+- **Attention and glow:** follow the repo's own `attention-budget` skill (`.agents/skills/attention-budget/`); it carries the docs/orb.md glow contract and the evidence in `research/02-attention-budget.md`.
 - **Row identity:** apply the repo's own `row-identity` skill when building or editing compact cards or reviewing the Controls column; evidence in `research/03-dense-list-identity.md`.
 - **Not used:** taste-skill and third-party DESIGN.md files. If a DESIGN.md is ever needed, generate it from this codebase (Impeccable `document`), never import one.
 - **Updating:** `npx skills update` for Emil's skills, `npx impeccable update` for Impeccable; review the diff before committing.

@@ -1,6 +1,6 @@
 import { Meta } from "@storybook/blocks";
 import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
-import readme from "../../../../README.md?raw";
+import readme from "../../../../docs/orb.md?raw";
 import * as Light from "../cards/light/Light.stories";
 import * as Palette from "./Palette.stories";
 import * as ColorTemperature from "./Foundations.stories";
@@ -9,15 +9,13 @@ import * as Bundles from "../bundles/Bundles.stories";
 import * as Examples from "../dashboards/Examples.stories";
 import * as NavBar from "../dashboards/NavBar.stories";
 
-{/* README.md's design and composition rules, drawn with the stories that show them. Edit the README, not this page. */}
+{/* docs/orb.md's design and composition rules, drawn with the stories that show them. Edit docs/orb.md, not this page. */}
 
 <Meta title="Orb/Foundations/Design rules" />
 
 <MarkdownWithStories
   markdown={readme}
-  path="README.md"
-  intro={false}
-  skip={["Install", "Usage", "Running with Home Assistant", "Contributing", "License"]}
+  path="docs/orb.md"
   after={{
     "Orb design rules": [Light.Footprints, Palette.Roles, ColorTemperature.Scale],
     "Motion and touch rules": [CompactRows.WithAndWithout],

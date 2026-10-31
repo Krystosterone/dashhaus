@@ -1,5 +1,5 @@
 /**
- * Encodes the design rules from README.md and the repo skills as deterministic checks.
+ * Encodes the design rules from docs/orb.md and the repo skills as deterministic checks.
  * These read the actual CSS files; the docs are the contract, this test is the tripwire.
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
