@@ -20,7 +20,7 @@ export default {
   bundle: "dist/home-dashboard.js",
   // The repo's build stays the config's, not the CLI's. Runs in this file's directory.
   build() {
-    execFileSync("npx", ["vite", "build", "-c", "vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
+    execFileSync("npx", ["vite", "build", "-c", "config/vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
   },
   dashboards: [
     {

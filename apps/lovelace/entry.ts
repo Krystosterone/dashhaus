@@ -1,4 +1,4 @@
-// The Home Assistant bundle's entry (vite.lovelace.config.ts). The build replaces the placeholder with every
+// The Home Assistant bundle's entry (config/vite.lovelace.config.ts). The build replaces the placeholder with every
 // stylesheet the dashboards import, so the cards ship as one file: custom:home-dashboard (orb) and
 // custom:home-dashboard-field (field). It sits outside src/ because it is the one file that ties both skins
 // together; the shared Lovelace code the skins build on stays skin-free.

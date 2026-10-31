@@ -126,9 +126,9 @@ describe("new-skin", () => {
 
       const typecheck = await run(copy, "npm", ["run", "typecheck"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const lint = await run(copy, "npx", ["eslint", "src/skins/canvas", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
+      const lint = await run(copy, "npx", ["eslint", "-c", "config/eslint.config.js", "src/skins/canvas", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "src/skins/canvas", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/canvas", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const bundle = await run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);
@@ -170,9 +170,9 @@ describe("new-skin", () => {
 
       const typecheck = await run(copy, "npm", ["run", "typecheck"]);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const lint = await run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
+      const lint = await run(copy, "npx", ["eslint", "-c", "config/eslint.config.js", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const storybook = await run(copy, "npm", ["run", "build-storybook"]);
       expect(storybook.status, storybook.output).toBe(0);

@@ -26,7 +26,7 @@ export default {
   pageTitle: "Home",                  // the header each card prints and the view's title
   bundle: "dist/home-dashboard.js",   // required: the file uploaded; its folder and name make the URL
   build() {                           // optional: runs in this file's directory, before the upload
-    execFileSync("npx", ["vite", "build", "-c", "vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
+    execFileSync("npx", ["vite", "build", "-c", "config/vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
   },
   dashboards: [
     {

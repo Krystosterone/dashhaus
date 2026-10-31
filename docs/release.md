@@ -15,7 +15,7 @@ The workspace resolves package **source**; a packed install resolves built **ESM
 }
 ```
 
-- `source` is the workspace-only condition. `tsconfig.base.json` (`customConditions`, inherited by the root and each package's `tsconfig.json`), Vite, Vitest, Storybook's `viteFinal` and the deploy config's esbuild loader all ask for it, so tests, stories and `build:ha` keep reading source.
+- `source` is the workspace-only condition. `config/tsconfig.base.json` (`customConditions`, inherited by the root and each package's `tsconfig.json`), Vite, Vitest, Storybook's `viteFinal` and the deploy config's esbuild loader all ask for it, so tests, stories and `build:ha` keep reading source.
 - `types`/`import`/`default` are what an installed consumer gets. Node ignores `source`; a packed manifest drops it entirely.
 - `npm run build:packages` compiles `packages/{core,dashboard}/src` to `dist` with `tsc` (declarations included), rewrites relative imports to `.js` (Node ESM and NodeNext declarations need the extension), and copies `packages/core/src/ha/fixtures/*.json` to `dist/ha/fixtures/`.
 - `@dashhaus/deploy` has no build: its `.mjs` sources and `.d.mts` declarations are the shipped files.
