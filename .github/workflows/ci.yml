@@ -166,7 +166,7 @@ jobs:
           key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook -- --shard=1/2
+      - run: npm run test-storybook -- --shard=1/2 --maxWorkers=2
 
   storybook_two:
     runs-on: ubuntu-latest
@@ -195,7 +195,7 @@ jobs:
           key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook -- --shard=2/2
+      - run: npm run test-storybook -- --shard=2/2 --maxWorkers=2
 
   # The required status check: green only when both Storybook shards are green.
   storybook:

@@ -107,7 +107,7 @@ npm ci
 npm run test:unit -- --shard=1/2 --maxWorkers=2     # 2/2 in the second job
 ```
 
-`--maxWorkers=2` gives a two-core runner both cores; Vitest otherwise leaves one idle. The generator lane needs no worker override: on a two-core runner Vitest already runs its three copy suites one at a time, and a copy is a serial chain of the repo's tools.
+`--maxWorkers=2` gives a two-core runner both cores, for Vitest and for the Storybook runner, which otherwise leaves one idle. The generator lane needs no worker override: on a two-core runner Vitest already runs its three copy suites one at a time, and a copy is a serial chain of the repo's tools.
 
 `generators_one` and `generators_two`, each:
 
@@ -124,7 +124,7 @@ npx vitest run --config config/vitest.config.ts scripts/new-skin/index.test.ts s
 ```sh
 npm ci
 npx playwright install --with-deps chromium
-npm run test-storybook -- --shard=1/2     # 2/2 in the second job
+npm run test-storybook -- --shard=1/2 --maxWorkers=2     # 2/2 in the second job
 ```
 
 `storybook` requires both shards and fails unless each is green; it is the status check `main` requires. Each shard builds the static site from the same commit and runs its half of the suites. Every job restores `node_modules` from a cache keyed on the lockfile, the root manifests, the workspace manifests and `.nvmrc`, and runs `npm ci` only on a miss; TypeScript's incremental state and ESLint's results live inside it. A cache hit still leaves the workspace links pointing at the same paths, because the checkout path is fixed. The Storybook jobs cache `~/.cache/ms-playwright` on the installed Playwright version. `npm run test-storybook` builds the static site itself, so CI has no separate `build-storybook` step. Every story must render and pass axe in Chromium; a failing story or axe violation fails its shard with the rule, impact and target elements. CI has no publish, tag or release step, and needs no secrets.
