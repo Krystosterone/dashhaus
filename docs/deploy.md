@@ -1,6 +1,13 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:dashhaus-orb`, that draws a whole page from its YAML. The same bundle also carries the field skin's card (The field dashboard, below), and the deploy CLI sets up a dashboard for each dashboard its config declares. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token, no separate server and no rebuild when you change the layout.
+The dashboard ships as one Lovelace card, `custom:dashhaus-orb`, that draws a whole page from its YAML. The same
+bundle also carries the field skin's card (The field dashboard, below), and the deploy CLI sets up a dashboard for
+each dashboard its config declares. It runs inside Home Assistant's own frontend and reuses its websocket connection,
+so the page needs no token, no separate server and no rebuild when you change the layout.
+
+The bundle is also the published `@dashhaus/bundle` package: an app that only wants to deploy installs that package
+and `@dashhaus/deploy`, writes a config naming `fileURLToPath(bundlePath)`, and runs
+`npx dashhaus-deploy --skip-build` without cloning or building this repository.
 
 ## First deploy
 
@@ -11,7 +18,7 @@ The dashboard ships as one Lovelace card, `custom:dashhaus-orb`, that draws a wh
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar. The frontend reads its resource list once, when the tab opens: the new dashboard appears in an open tab's sidebar straight away, but its card isn't loaded until a reload, so Home Assistant shows a bare "Configuration error" until then.
 
-`npm run deploy` builds the bundle `dashboard.config.mjs` names (`dist/dashhaus.js` here), copies it to `www/dashhaus/`, and registers it as a dashboard resource at `/local/dashhaus/dashhaus.js?v=<content hash>`. The new version number makes browsers fetch the new file. The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `dashhaus-orb`, with a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `modules`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds the bundle `dashboard.config.mjs` names (`packages/bundle/dist/dashhaus.js` here), copies it to `www/dashhaus/`, and registers it as a dashboard resource at `/local/dashhaus/dashhaus.js?v=<content hash>`. The new version number makes browsers fetch the new file. The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `dashhaus-orb`, with a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `modules`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Open dashboards pick up a new version on their next reload.
 
 If your dashboards are in YAML mode, the CLI can't manage resources and prints the lines to add to `configuration.yaml` instead.
 
@@ -21,12 +28,14 @@ Which dashboards deploy creates is in `dashboard.config.mjs` at the repo root, n
 
 ```js
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { bundlePath } from "@dashhaus/bundle";
 
 export default {
-  pageTitle: "Home",                  // the header each card prints and the view's title
-  bundle: "dist/dashhaus.js",   // required: the file uploaded; its folder and name make the URL
-  build() {                           // optional: runs in this file's directory, before the upload
-    execFileSync("npx", ["vite", "build", "-c", "config/vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
+  pageTitle: "Home",                        // the header each card prints and the view's title
+  bundle: fileURLToPath(bundlePath),        // required: the file uploaded; its name makes the URL
+  build() {                                 // optional: runs in this file's directory, before the upload
+    execFileSync("npm", ["run", "build:ha", "--silent"], { stdio: "inherit" });
   },
   dashboards: [
     {
@@ -42,11 +51,16 @@ export default {
 };
 ```
 
-`bundle` is resolved against the config's directory. `build` is optional: without it the bundle must already exist, and `--skip-build` skips it. The build is the repo's declaration, not the CLI's, so another repo can build with anything or upload a bundle built elsewhere.
+`bundle` is resolved against the config's directory when relative. This repo names the prebuilt file from
+`@dashhaus/bundle`, the same artifact a deploy-only user installs, and its `build()` refreshes that package's
+`dashhaus.js`; a user app without the repo installs `@dashhaus/bundle` and `@dashhaus/deploy` and skips the build
+(`npx dashhaus-deploy --skip-build`). `build` is optional: without it the bundle must already exist, and
+`--skip-build` skips it. The build is the config's declaration, not the CLI's, so another repo can build with
+anything or upload a bundle built elsewhere.
 
 `ha` is deploy's websocket client, so a factory can read the house before it builds the card. `env` names the `.env` keys allowed to override that dashboard's path and title; `.env` holds settings only, and no secret belongs in this file. `npm run new-skin` registers generated skins in `scripts/generated-skins.mjs`, and the config spreads them through `generatedDashboards()` from `@dashhaus/deploy/config`, the pure config surface a Node app can import without React. Before deploying, the CLI applies the overrides and refuses a path without a hyphen or two dashboards on one path; `--help` lists the dashboards the config declares, before any `.env` override. A dashboard that already exists keeps its layout, so a changed factory affects the first creation only.
 
-The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` runs). Without `--config` it looks for `dashboard.config.mjs` in the working directory, so that is the file a user app writes; it is not named `dashhaus.config.mjs`. It bundles the config with esbuild before importing it, so a config may be JavaScript or TypeScript and may import packages; relative imports resolve from the config's directory, and `.env` is read from beside it. `--config <file>` points the CLI at another repo's config, `--skip-build` skips the build callback, and `node packages/deploy/bin.mjs --help` prints the options and dashboards. The repo's config is the only place outside orb that imports its `auto.ts`; the CLI imports no skin.
+The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` runs). Without `--config` it looks for `dashboard.config.mjs` in the working directory, so that is the file a user app writes; it is not named `dashhaus.config.mjs`. It bundles the config with esbuild before importing it, so a config may be JavaScript or TypeScript and may import packages; relative imports resolve from the config's directory, and `.env` is read from beside it. `--config <file>` points the CLI at another repo's config, `--skip-build` skips the build callback, and `node packages/deploy/bin.mjs --help` prints the options and dashboards. The repo's config is the only outside importer of orb's `@dashhaus/orb/lovelace/auto`; the CLI imports no skin.
 
 ## Authoring
 

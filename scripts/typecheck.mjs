@@ -14,6 +14,8 @@ const programs = [
   ["--noEmit", "-p", "packages/core/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/core.tsbuildinfo"],
   ["--noEmit", "-p", "packages/dashboard/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/dashboard.tsbuildinfo"],
   ["--noEmit", "-p", "packages/deploy/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/deploy.tsbuildinfo"],
+  ["--noEmit", "-p", "src/skins/orb/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/orb.tsbuildinfo"],
+  ["--noEmit", "-p", "src/skins/field/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/field.tsbuildinfo"],
 ];
 
 const results = await Promise.all(programs.map((args) => new Promise((resolve) => {

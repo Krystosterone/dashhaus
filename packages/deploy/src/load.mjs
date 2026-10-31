@@ -2,11 +2,35 @@
 // to create, this module says what Home Assistant accepts, and it bundles the config before importing it so a repo
 // may write TypeScript and import packages without Node's type stripping. The CLI imports this file, never a skin.
 // The author-facing types and `generatedDashboards` are in `./config.mjs`, which imports no Node builtin.
-import { mkdtemp, rm } from "node:fs/promises";
+import { realpathSync } from "node:fs";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build as esbuild } from "esbuild";
+
+const LOADERS = { ".ts": "ts", ".tsx": "tsx", ".mts": "ts", ".cts": "ts", ".js": "js", ".jsx": "jsx", ".mjs": "js", ".cjs": "js" };
+
+/**
+ * Each module bundled into the config keeps its own `import.meta.url`. A single `define` would give every dependency
+ * the config file's URL, so a package that resolves a shipped file (`@dashhaus/bundle`) would look beside the config
+ * instead of beside itself.
+ */
+const ownImportMetaUrl = {
+  name: "dashhaus-own-import-meta-url",
+  setup(build) {
+    build.onLoad({ filter: /\.[cm]?[jt]sx?$/ }, async ({ path }) => {
+      const source = await readFile(path, "utf8");
+      if (!source.includes("import.meta.url")) return undefined;
+      const url = pathToFileURL(realpathSync(path)).href;
+      return {
+        contents: source.replaceAll("import.meta.url", JSON.stringify(url)),
+        loader: LOADERS[extname(path)],
+        resolveDir: dirname(path),
+      };
+    });
+  },
+};
 
 /** A config problem with the words the CLI prints; everything else is a bug. */
 export class DeployConfigError extends Error {
@@ -37,12 +61,12 @@ async function bundleConfig(file) {
       absWorkingDir: dirname(file),
       bundle: true,
       conditions: ["source"],
-      define: { "import.meta.url": JSON.stringify(pathToFileURL(file).href) },
       entryPoints: [file],
       format: "esm",
       logLevel: "silent",
       outfile,
       platform: "node",
+      plugins: [ownImportMetaUrl],
       target: "node22",
     });
   } catch (error) {

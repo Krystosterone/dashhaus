@@ -1,0 +1,60 @@
+/* Page and shared control styles. Every class starts with __skin__-. */
+.__skin__-page {
+  min-height: 100%;
+  margin: 0;
+  padding: 16px;
+  background: var(--__skin__-page);
+  color: var(--__skin__-ink);
+  font: 500 14px/1.45 var(--__skin__-sans);
+}
+
+.__skin__-head h1 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 650;
+}
+
+.__skin__-area {
+  margin: 0 0 20px;
+}
+
+.__skin__-area h2 {
+  margin: 0 0 8px;
+  color: var(--__skin__-ink-muted);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.__skin__-cards {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.__skin__-action {
+  min-height: 40px;
+  border: 1px solid var(--__skin__-line);
+  border-radius: 10px;
+  background: var(--__skin__-card);
+  color: var(--__skin__-ink);
+  font: inherit;
+  touch-action: manipulation;
+}
+
+.__skin__-action:active {
+  transform: scale(0.98);
+}
+
+.__skin__-action[aria-pressed="true"] {
+  border-color: var(--__skin__-accent);
+  background: var(--__skin__-accent);
+  color: var(--__skin__-accent-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .__skin__-action:hover {
+    border-color: var(--__skin__-ink-muted);
+  }
+}

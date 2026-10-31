@@ -28,7 +28,15 @@ Create a new skin from the neutral shell:
 npm run new-skin -- canvas
 ```
 
-It registers the skin's Foundations, Dashboard, its own entry and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [docs/skins.md](docs/skins.md).
+It registers the skin's Foundations, Dashboard, its own entry and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [docs/skins.md](docs/skins.md). To build a skin in its own directory from the published packages, with no Storybook or workspace, use `npm create dashhaus-skin@latest my-skin` and [docs/build-a-skin.md](docs/build-a-skin.md).
+
+## Packages
+
+`@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` are the headless foundation, the framework and the
+deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins. `@dashhaus/bundle` ships the prebuilt one-file
+Lovelace bundle: a deploy-only app installs it with the CLI, names `fileURLToPath(bundlePath)` in its config and runs
+`npx dashhaus-deploy --skip-build`. `create-dashhaus-skin` scaffolds a standalone skin. Package READMEs live in each
+package; the release policy is [docs/release.md](docs/release.md).
 
 ## Running with Home Assistant
 
@@ -50,7 +58,8 @@ It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-fi
 | [docs/home-assistant.md](docs/home-assistant.md) | The Home Assistant data boundary and hooks |
 | [docs/deploy.md](docs/deploy.md) | Deploying the bundle and the Lovelace YAML |
 | [docs/performance.md](docs/performance.md) | The deployed pages' performance marks and report |
-| [docs/skins.md](docs/skins.md) | Starting a skin |
+| [docs/skins.md](docs/skins.md) | Starting a skin in this repository |
+| [docs/build-a-skin.md](docs/build-a-skin.md) | Building a standalone skin from the published packages |
 | [docs/contract.md](docs/contract.md) | What a third-party skin may rely on |
 | [docs/release.md](docs/release.md) | Building and releasing the public packages |
 

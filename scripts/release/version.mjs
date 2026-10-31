@@ -19,7 +19,9 @@ for (const pkg of publicPackages) {
   const file = join(root, pkg.dir, "package.json");
   const manifest = JSON.parse(await readFile(file, "utf8"));
   manifest.version = version;
-  if (manifest.dependencies?.["@dashhaus/core"]) manifest.dependencies["@dashhaus/core"] = `^${version}`;
+  for (const name of Object.keys(manifest.dependencies ?? {})) {
+    if (publicPackages.some((other) => other.name === name)) manifest.dependencies[name] = `^${version}`;
+  }
   await writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`${manifest.name}@${manifest.version}`);
 }

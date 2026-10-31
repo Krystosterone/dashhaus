@@ -1,6 +1,8 @@
 # Releasing the public packages
 
-`@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` are the three packages a dashboard author installs. The reference skins (orb, field), generated skins, Storybook and the Lovelace bundle stay private, so nothing here publishes them.
+`@dashhaus/core`, `@dashhaus/dashboard`, `@dashhaus/deploy`, `@dashhaus/orb`, `@dashhaus/field` and
+`@dashhaus/bundle` are the packages a dashboard author or user installs; `create-dashhaus-skin` scaffolds a
+standalone skin. Generated skins created inside this repository, Storybook and the source of the bundle stay private.
 
 ## Build and export layout
 
@@ -17,7 +19,8 @@ The workspace resolves package **source**; a packed install resolves built **ESM
 
 - `source` is the workspace-only condition. `config/tsconfig.base.json` (`customConditions`, inherited by the root and each package's `tsconfig.json`), Vite, Vitest, Storybook's `viteFinal` and the deploy config's esbuild loader all ask for it, so tests, stories and `build:ha` keep reading source.
 - `types`/`import`/`default` are what an installed consumer gets. Node ignores `source`; a packed manifest drops it entirely.
-- `npm run build:packages` compiles `packages/{core,dashboard}/src` to `dist` with `tsc` (declarations included), rewrites relative imports to `.js` (Node ESM and NodeNext declarations need the extension), and copies `packages/core/src/ha/fixtures/*.json` to `dist/ha/fixtures/`.
+- `npm run build:packages` compiles `packages/{core,dashboard}/src` and `src/skins/{orb,field}` to `dist` with `tsc` (declarations included), rewrites relative imports to `.js` (Node ESM and NodeNext declarations need the extension), copies `packages/core/src/ha/fixtures/*.json` to `dist/ha/fixtures/`, and copies each skin's stylesheets beside the modules that import them. It also copies `create-dashhaus-skin`'s source and templates to its `dist/`.
+- `npm run build:ha` builds the one-file Lovelace bundle and writes the same bytes to `dist/dashhaus.js` and `packages/bundle/dist/dashhaus.js`, so the repo deploys what a `@dashhaus/bundle` consumer installs. `release:pack` builds the bundle directly into its staging root.
 - `@dashhaus/deploy` has no build: its `.mjs` sources and `.d.mts` declarations are the shipped files.
 
 | Package | Public subpaths | Ships |
@@ -25,6 +28,10 @@ The workspace resolves package **source**; a packed install resolves built **ESM
 | `@dashhaus/core` | `.`, `./entities`, `./entities/*`, `./primitives`, `./hooks`, `./perf`, `./websocket`, `./demo`, `./testing`, `./fixtures/*` | `dist/` |
 | `@dashhaus/dashboard` | `.`, `./skin`, `./card`, `./schema`, `./layout`, `./conformance` | `dist/` |
 | `@dashhaus/deploy` | `.`, `./config`, bin `dashhaus-deploy` | `bin.mjs`, `src/*.mjs`, `src/*.d.mts` |
+| `@dashhaus/orb` | `.`, `./lovelace/card`, `./lovelace/auto`, `./styles/tokens.css`, `./storybook` | `dist/` |
+| `@dashhaus/field` | `.`, `./lovelace/card`, `./styles/tokens.css`, `./storybook` | `dist/` |
+| `@dashhaus/bundle` | `.` (`bundlePath`) | `dist/index.js`, `dist/dashhaus.js` |
+| `create-dashhaus-skin` | `.`, bin `create-dashhaus-skin` | `dist/index.js`, `dist/templates/`, `bin.mjs` |
 
 Fixtures, demo transports and `testing` are shipped because they are declared public subpaths; they contain only demo data, Storybook transports and the Vitest testing helper, never repository material. `./testing` needs `vitest` and `@testing-library/react`; both are optional peers, so a consumer that does not use that subpath does not install them. `home-assistant-js-websocket` stays an optional peer too; only `@dashhaus/core/websocket` reaches it.
 
@@ -38,31 +45,38 @@ Every package ships a non-empty `README.md`; `files` keeps it in the tarball and
 
 ## Versioning
 
-**Fixed version** across the three packages, currently `0.1.0`. There is no independent release need yet: `@dashhaus/dashboard` depends on `@dashhaus/core`, all three ship from one repository and one tag, and the readiness note already chose coupled releases. Fixed versions keep the internal range unambiguous and make one release command sufficient.
+**Fixed version** across every public package, currently `0.1.0`. There is no independent release need yet:
+`@dashhaus/dashboard`, the skins and the bundle are built from the same repository and tag, and coupled releases keep
+the internal ranges unambiguous.
 
-Apply it with the command, never by editing three manifests:
+Apply it with the command, never by editing the manifests:
 
 ```sh
 npm run release:version -- 0.2.0
 npm install --package-lock-only
 ```
 
-The command sets the version in all three manifests and rewrites `@dashhaus/dashboard`'s dependency on `@dashhaus/core` to `^0.2.0`. `scripts/release/manifest.mjs` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest without `files`/`sideEffects`.
+The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`.
+`scripts/release/manifest.mjs` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
+without `files`/`sideEffects`.
 
 If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.mjs` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
 
 ## Release commands
 
 ```sh
-npm run release:version -- 0.2.0   # fixed version in all three manifests
+npm run release:version -- 0.2.0   # fixed version in every public manifest
 npm install --package-lock-only     # record it in package-lock.json
 npm run check                       # typecheck, lint, unit tests
 npm run build:ha                    # the Lovelace bundle still builds from source
-npm run release:pack                # build dist, pack release/dashhaus-*.tgz
+npm run release:pack                # build dist, pack the release tarballs
 npm run verify:packages             # clean-app install, imports, typecheck, deploy bin
 ```
 
-`release:pack` writes `release/dashhaus-core-<version>.tgz`, `release/dashhaus-dashboard-<version>.tgz` and `release/dashhaus-deploy-<version>.tgz`. `verify:packages` installs exactly those tarballs into a fresh app under the system temp directory, with React 18, and checks:
+`release:pack` writes `release/dashhaus-core-<version>.tgz`, `dashhaus-dashboard-<version>.tgz`,
+`dashhaus-deploy-<version>.tgz`, `dashhaus-orb-<version>.tgz`, `dashhaus-field-<version>.tgz`,
+`dashhaus-bundle-<version>.tgz` and `create-dashhaus-skin-<version>.tgz`. `verify:packages` installs exactly those
+tarballs into a fresh app under the system temp directory, with React 18, and checks:
 
 - the tarball file list and the packed manifests (no `private`, no `source`, pinned internal range, optional peers), including each package's non-empty `README.md`;
 - Node imports of every declared subpath, including a JSON fixture and `@dashhaus/deploy/config`;
@@ -70,6 +84,8 @@ npm run verify:packages             # clean-app install, imports, typecheck, dep
 - `@dashhaus/core/testing` inside Vitest;
 - TypeScript consumers with `moduleResolution: Bundler` and `NodeNext`;
 - a Node-only app that installs `@dashhaus/deploy` alone and imports `@dashhaus/deploy/config` with no React, core or dashboard package present;
+- a bundle-only app that installs `@dashhaus/bundle` with no React, core or dashboard, resolves `bundlePath`, and finds both cards and both skins' CSS in `dashhaus.js`;
+- the packed `create-dashhaus-skin` scaffold writing a standalone skin with no Storybook or repository path;
 - `dashhaus-deploy --help` loading a config that imports `@dashhaus/deploy/config`.
 
 It installs from npm for React, the test packages and esbuild. `KEEP_PACKED_APP=1` leaves the temp app in place for debugging.
@@ -78,15 +94,22 @@ It installs from npm for React, the test packages and esbuild. `KEEP_PACKED_APP=
 
 Publishing is the operator's call; there is no publish job in CI. Before publishing:
 
-1. Own the `@dashhaus` npm scope: create or join that organization and confirm the account can publish `@dashhaus/*`. The three `name` fields and internal ranges already use it.
+1. Own the `@dashhaus` npm scope: create or join that organization and confirm the account can publish `@dashhaus/*`. The scoped `name` fields and internal ranges already use it; `create-dashhaus-skin` is unscoped.
 2. Be logged in with the registry's required 2FA (`npm whoami`).
-3. Publish in dependency order so `@dashhaus/dashboard`'s core range resolves:
+3. Publish in dependency order so the internal ranges resolve:
 
 ```sh
 npm publish release/dashhaus-core-0.2.0.tgz --access public
 npm publish release/dashhaus-dashboard-0.2.0.tgz --access public
 npm publish release/dashhaus-deploy-0.2.0.tgz --access public
+npm publish release/dashhaus-orb-0.2.0.tgz --access public
+npm publish release/dashhaus-field-0.2.0.tgz --access public
+npm publish release/dashhaus-bundle-0.2.0.tgz --access public
+npm publish release/create-dashhaus-skin-0.2.0.tgz
 ```
+
+After publishing, rerun `node verify/dx/user.mjs` and `node verify/dx/author.mjs` against the registry, not the
+tarballs, before announcing the release; both are the same clean-room journeys the release check runs.
 
 The tarball's manifest is already the release manifest; publishing the tarball, not the package folder, is what keeps `source` and `private` out. Tagging, GitHub releases and npm scope claims are separate operator decisions.
 

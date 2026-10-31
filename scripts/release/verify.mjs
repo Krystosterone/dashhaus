@@ -39,7 +39,11 @@ async function checkTarballs(manifests) {
     const tarball = tarballFor(manifest);
     if (!existsSync(tarball)) throw new Error(`missing ${tarball}; run npm run release:pack`);
     const files = tarFiles(tarball);
-    const bad = files.filter((file) => /(?:\.test\.|\.stories\.|^package\/(?:\.agents|research|docs)\/|^package\/src\/.*\.test\.)/.test(file));
+    const bad = files.filter((file) => {
+      // The scaffolder ships story metadata as templates for the skin it writes, not stories of its own.
+      if (pkg.key === "scaffold" && file.startsWith("package/dist/templates/")) return false;
+      return /(?:\.test\.|\.stories\.|^package\/(?:\.agents|research|docs)\/|^package\/src\/.*\.test\.)/.test(file);
+    });
     if (bad.length) throw new Error(`${manifest.name}: tarball ships ${bad.join(", ")}`);
     if (pkg.key !== "deploy" && files.some((file) => file.startsWith("package/src/"))) {
       throw new Error(`${manifest.name}: tarball ships source instead of dist`);
@@ -49,7 +53,7 @@ async function checkTarballs(manifests) {
     if (packed.private) throw new Error(`${manifest.name}: packed manifest is still private`);
     if (!SEMVER.test(packed.version) || packed.version === "0.0.0") throw new Error(`${manifest.name}: packed version is ${packed.version}`);
     if (JSON.stringify(packed.exports).includes('"source"')) throw new Error(`${manifest.name}: packed exports declare a source condition`);
-    if (pkg.key !== "deploy" && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
+    if (["core", "dashboard", "orb", "field"].includes(pkg.key) && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
       throw new Error(`${manifest.name}: home-assistant-js-websocket must stay an optional peer`);
     }
     const filesField = JSON.stringify(packed.files);
@@ -59,7 +63,15 @@ async function checkTarballs(manifests) {
       ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json"]
       : pkg.key === "dashboard"
         ? ["package/README.md", "package/dist/index.js", "package/dist/skin.js", "package/dist/skin.d.ts", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/conformance.js", "package/dist/conformance.d.ts"]
-        : ["package/README.md", "package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts", "package/src/config.mjs", "package/src/config.d.mts"];
+        : pkg.key === "orb"
+          ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/lovelace/auto.js", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
+          : pkg.key === "field"
+            ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
+            : pkg.key === "bundle"
+              ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
+              : pkg.key === "scaffold"
+                ? ["package/README.md", "package/bin.mjs", "package/dist/index.js", "package/dist/templates/package.json", "package/dist/templates/lovelace/card.tsx"]
+                : ["package/README.md", "package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts", "package/src/config.mjs", "package/src/config.d.mts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
     const readme = execFileSync("tar", ["-xOzf", tarball, "package/README.md"], { encoding: "utf8" });
@@ -85,7 +97,7 @@ async function install(app, manifests) {
   run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
   const wsMeta = manifests.core.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional;
   if (wsMeta !== true) throw new Error("the optional websocket peer lost its optional flag");
-  ok("installed the three tarballs into a clean React 18 app");
+  ok(`installed ${publicPackages.length} tarballs into a clean React 18 app`);
 
   const devDependencies = {
     "@testing-library/react": "16.3.3",
@@ -102,6 +114,8 @@ async function install(app, manifests) {
 async function nodeConsumer(app) {
   await writeFile(join(app, "consumer.mjs"), `
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const loads = [];
 const load = async (specifier) => {
@@ -133,6 +147,14 @@ assert.equal(typeof conformance.checkCards, "function");
 assert.equal(typeof conformance.cardFolders, "function");
 const deploy = await load("@dashhaus/deploy");
 assert.equal(typeof deploy.loadDashboards, "function");
+const orbAuto = await load("@dashhaus/orb/lovelace/auto");
+assert.equal(typeof orbAuto.autoDashboard, "function");
+const bundle = await load("@dashhaus/bundle");
+assert.ok(bundle.bundlePath instanceof URL, "bundlePath is a file URL");
+assert.ok(existsSync(fileURLToPath(bundle.bundlePath)), "the bundle package ships its dashhaus.js");
+const bundleCode = await (await import("node:fs/promises")).readFile(fileURLToPath(bundle.bundlePath), "utf8");
+assert.match(bundleCode, /dashhaus-orb/);
+assert.match(bundleCode, /dashhaus-field/);
 
 const { JSDOM } = await import("jsdom");
 const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });
@@ -252,6 +274,76 @@ export type Config = DeployConfig;
 }
 
 /**
+ * A deploy-only app installs `@dashhaus/bundle` alone and reads the prebuilt file: no React, core or dashboard is
+ * present, and the one bundle carries both cards and their CSS.
+ */
+async function bundleConsumer(manifests) {
+  const app = await mkdtemp(join(tmpdir(), "dashhaus-bundle-app-"));
+  try {
+    await writeFile(join(app, "package.json"), `${JSON.stringify({
+      name: "dashhaus-bundle-only",
+      private: true,
+      type: "module",
+      dependencies: { "@dashhaus/bundle": tarballFor(manifests.bundle) },
+    }, null, 2)}\n`);
+    run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
+    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
+      if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the bundle-only app installed ${peer}; the bundle must carry its runtime`);
+    }
+    await writeFile(join(app, "consumer.mjs"), `
+import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { bundlePath } from "@dashhaus/bundle";
+
+assert.ok(bundlePath instanceof URL, "bundlePath is a file URL");
+const file = fileURLToPath(bundlePath);
+assert.ok(existsSync(file), "bundlePath points at a shipped file");
+assert.match(file, /node_modules\\/@dashhaus\\/bundle\\/dist\\/dashhaus\\.js$/);
+const code = await readFile(file, "utf8");
+assert.match(code, /dashhaus-orb/);
+assert.match(code, /dashhaus-field/);
+assert.match(code, /--brand-c/);
+assert.match(code, /--fd-/);
+console.log("bundle-only import ok");
+`);
+    run(process.execPath, ["consumer.mjs"], app);
+    ok("@dashhaus/bundle installs and resolves its prebuilt file with no React or runtime package");
+  } finally {
+    await rm(app, { recursive: true, force: true });
+  }
+}
+
+/**
+ * The packed scaffolder writes a standalone skin. The app installs only the tool, so this also proves the templates
+ * travel in the tarball and the output names no repository file.
+ */
+async function scaffoldConsumer(manifests) {
+  const app = await mkdtemp(join(tmpdir(), "dashhaus-scaffold-app-"));
+  try {
+    await writeFile(join(app, "package.json"), `${JSON.stringify({
+      name: "dashhaus-scaffold-only",
+      private: true,
+      type: "module",
+      dependencies: { "create-dashhaus-skin": tarballFor(manifests.scaffold) },
+    }, null, 2)}\n`);
+    run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
+    const bin = join(app, "node_modules", "create-dashhaus-skin", "bin.mjs");
+    run(process.execPath, [bin, "outside-skin"], app);
+    const skin = join(app, "outside-skin");
+    for (const file of ["package.json", "vite.config.mjs", "conformance.mjs", "dashboard.config.mjs", "cards/light/OutsideSkinLightCard.tsx", "lovelace/entry.tsx", "styles/tokens.css"]) {
+      if (!existsSync(join(skin, file))) throw new Error(`create-dashhaus-skin wrote no ${file}`);
+    }
+    const source = await readFile(join(skin, "lovelace", "entry.tsx"), "utf8");
+    if (/src\/skins|Storybook|\.\.\/\.\.\//.test(source)) throw new Error("the scaffold reaches a repository path or Storybook");
+    ok("create-dashhaus-skin scaffolds a standalone skin from the packed templates");
+  } finally {
+    await rm(app, { recursive: true, force: true });
+  }
+}
+
+/**
  * A Node-only app installs `@dashhaus/deploy` alone and imports its pure config subpath. No React, core or dashboard
  * peer is present, so the import proves the config surface stays installable without the browser packages.
  */
@@ -310,6 +402,8 @@ async function main() {
   try {
     await install(app, manifests);
     await nodeConsumer(app);
+    await bundleConsumer(manifests);
+    await scaffoldConsumer(manifests);
     await deployConfigConsumer(manifests);
     await testingConsumer(app);
     await typeConsumer(app);

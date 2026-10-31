@@ -23,6 +23,10 @@ export const publicPackages = [
   { key: "core", name: "@dashhaus/core", dir: "packages/core", ship: ["dist", "README.md"] },
   { key: "dashboard", name: "@dashhaus/dashboard", dir: "packages/dashboard", ship: ["dist", "README.md"] },
   { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts", "README.md"] },
+  { key: "orb", name: "@dashhaus/orb", dir: "src/skins/orb", ship: ["dist", "README.md"] },
+  { key: "field", name: "@dashhaus/field", dir: "src/skins/field", ship: ["dist", "README.md"] },
+  { key: "bundle", name: "@dashhaus/bundle", dir: "packages/bundle", ship: ["dist", "README.md"] },
+  { key: "scaffold", name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", ship: ["dist", "bin.mjs", "README.md"] },
 ];
 
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -77,8 +81,11 @@ export function publishManifest(manifest) {
 
   if (!Array.isArray(next.files) || next.files.length === 0) throw new Error(`${manifest.name}: add a files allowlist`);
   if (!next.files.includes("README.md")) throw new Error(`${manifest.name}: ship a README.md in files`);
-  if (next.sideEffects !== false && next.name !== "@dashhaus/deploy") {
-    throw new Error(`${manifest.name}: sideEffects must stay false`);
+  const stylesheetSideEffects = Array.isArray(next.sideEffects)
+    && next.sideEffects.every((pattern) => typeof pattern === "string")
+    && Object.values(next.exports).some((target) => JSON.stringify(target).includes(".css"));
+  if (next.sideEffects !== false && next.name !== "@dashhaus/deploy" && !stylesheetSideEffects) {
+    throw new Error(`${manifest.name}: sideEffects must stay false, or name its stylesheets`);
   }
   if (next.name === "@dashhaus/deploy" && (!next.bin?.["dashhaus-deploy"] || !next.engines?.node)) {
     throw new Error(`${manifest.name}: keep the dashhaus-deploy bin and its engines.node floor`);

@@ -1,6 +1,6 @@
 import type { Decorator, Preview } from "@storybook/react";
-import { orbStorybook } from "../src/skins/orb/storybook";
-import { fieldStorybook } from "../src/skins/field/storybook";
+import { orbStorybook } from "@dashhaus/orb/storybook";
+import { fieldStorybook } from "@dashhaus/field/storybook";
 // new-skin: storybook imports
 
 /**

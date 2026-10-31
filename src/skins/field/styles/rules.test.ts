@@ -8,7 +8,9 @@ import { describe, expect, it } from "vitest";
 
 const SKIN = "src/skins/field";
 const TOKENS = `${SKIN}/styles/tokens.css`;
-const cssFiles = readdirSync(join(process.cwd(), SKIN), { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".css")).map((f) => `${SKIN}/${f}`);
+const cssFiles = readdirSync(join(process.cwd(), SKIN), { recursive: true, encoding: "utf8" })
+  .filter((f) => f.endsWith(".css") && !f.startsWith("dist/"))
+  .map((f) => `${SKIN}/${f}`);
 const css = (path: string) => readFileSync(join(process.cwd(), path), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const nonTokens = cssFiles.filter((p) => p !== TOKENS);
 

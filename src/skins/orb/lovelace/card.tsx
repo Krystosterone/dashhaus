@@ -24,7 +24,7 @@ const HOST_CSS = `
  * `type: custom:dashhaus-orb` — a whole dashboard page in one Lovelace card. Lovelace gives it the
  * config and a live `hass`; it reuses the frontend's own websocket connection, so it needs no token.
  */
-export function createDashhausCard(css: string) {
+export function createDashhausCard(css: string): CustomElementConstructor {
   const styles = scopeToHost(css) + HOST_CSS;
 
   return class DashhausCard extends LovelaceDashboardElement<DashboardConfig> {

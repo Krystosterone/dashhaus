@@ -3,9 +3,11 @@
 // sidebar title. Deploy never overwrites a dashboard whose layout exists, so changing a card factory affects the
 // first creation only.
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { bundlePath } from "@dashhaus/bundle";
 import { generatedDashboards } from "@dashhaus/deploy/config";
 import { GENERATED_SKINS } from "./scripts/generated-skins.mjs";
-import { autoDashboard } from "./src/skins/orb/lovelace/auto.ts";
+import { autoDashboard } from "@dashhaus/orb/lovelace/auto";
 
 // The page title each card prints in its header; the sidebar titles below tell the dashboards apart.
 const PAGE_TITLE = "Home";
@@ -16,11 +18,11 @@ const PAGE_TITLE = "Home";
  */
 export default {
   pageTitle: PAGE_TITLE,
-  // The file the CLI uploads; its folder and name make the resource URL.
-  bundle: "dist/dashhaus.js",
+  // The same prebuilt bundle a `@dashhaus/bundle` consumer installs. Its file name makes the resource URL.
+  bundle: fileURLToPath(bundlePath),
   // The repo's build stays the config's, not the CLI's. Runs in this file's directory.
   build() {
-    execFileSync("npx", ["vite", "build", "-c", "config/vite.lovelace.config.ts", "--logLevel", "warn"], { stdio: "inherit" });
+    execFileSync("npm", ["run", "build:ha", "--silent"], { stdio: "inherit" });
   },
   dashboards: [
     {

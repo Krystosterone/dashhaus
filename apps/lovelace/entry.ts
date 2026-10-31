@@ -3,12 +3,12 @@
 // custom:dashhaus-field (field). It sits outside src/ because it is the one file that ties both skins
 // together; the shared Lovelace code the skins build on stays skin-free.
 // new-skin: token css
-import "../../src/skins/orb/styles/tokens.css";
-import "../../src/skins/field/styles/tokens.css";
+import "@dashhaus/orb/styles/tokens.css";
+import "@dashhaus/field/styles/tokens.css";
 import { perfMark } from "@dashhaus/core/perf";
 // new-skin: card definitions
-import { defineDashhausCard } from "../../src/skins/orb/lovelace/card";
-import { defineFieldCard } from "../../src/skins/field/lovelace/card";
+import { defineDashhausCard } from "@dashhaus/orb/lovelace/card";
+import { defineFieldCard } from "@dashhaus/field/lovelace/card";
 
 declare const __DASHHAUS_BUILD__: string;
 

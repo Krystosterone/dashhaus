@@ -51,6 +51,24 @@ describe("public packages", () => {
     }
   });
 
+  it("ships the skins, the bundle and the scaffolder from built dist", () => {
+    for (const key of ["orb", "field"] as const) {
+      const manifest = manifests[key];
+      expect(manifest.files, `${manifest.name} ships dist and its README`).toEqual(["dist", "README.md"]);
+      expect(manifest.sideEffects, `${manifest.name} keeps its stylesheet side effect`).toEqual(["**/*.css"]);
+      for (const subpath of [".", "./lovelace/card", "./styles/tokens.css"]) {
+        expect(manifest.exports?.[subpath], `${manifest.name} declares ${subpath}`).toBeTypeOf("object");
+      }
+      expect(manifest.dependencies?.["@dashhaus/core"]).toBe(`^${manifests.core.version}`);
+      expect(manifest.dependencies?.["@dashhaus/dashboard"]).toBe(`^${manifests.dashboard.version}`);
+    }
+    expect(manifests.orb.exports?.["./lovelace/auto"]?.source).toBe("./lovelace/auto.ts");
+    expect(manifests.bundle.dependencies).toBeUndefined();
+    expect(manifests.bundle.exports?.["."]?.source).toBe("./index.mjs");
+    expect(manifests.scaffold.bin).toEqual({ "create-dashhaus-skin": "./bin.mjs" });
+    expect(manifests.scaffold.exports?.["."]?.source).toBe("./src/index.js");
+  });
+
   it("packs without private, source conditions or wildcard ranges", () => {
     for (const pkg of publicPackages) {
       const packed = publishManifest(manifests[pkg.key]);

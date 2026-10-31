@@ -25,7 +25,7 @@ const HOST_CSS = `
  * connection like `custom:dashhaus-orb`. Without `modules` or `sections` it draws every supported entity, grouped by
  * Home Assistant's areas.
  */
-export function createFieldCard(css: string) {
+export function createFieldCard(css: string): CustomElementConstructor {
   const styles = scopeToHost(css) + HOST_CSS;
 
   return class DashhausFieldCard extends LovelaceDashboardElement<FieldConfig> {

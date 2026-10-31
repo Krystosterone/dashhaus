@@ -1,5 +1,9 @@
 # Starting a skin
 
+This page is the repository's generator reference: a skin inside this workspace, with Storybook and the shared
+bundle. To build a skin in its own directory from the published packages, with no Storybook or workspace, use
+[build-a-skin.md](build-a-skin.md) and `npm create dashhaus-skin`.
+
 Create a neutral, first-class skin:
 
 ```sh
@@ -31,6 +35,11 @@ The baseline is intentionally neutral. It proves the architecture before visual 
 | `./storybook` | `storybook.tsx` | `.storybook/preview.tsx`, for the skin's section, toolbar and decorator |
 
 The root apps import those specifiers; they never reach into `src/skins/canvas/` by relative path. A Card added later stays inside the package: its components, tests, demo seeds, registry row and entry exports. The only writes outside it are declared registration seams: the Storybook section order, the shared card documentation and the skin's design document. `scripts/packages.mjs` is the one map of package locations and specifiers for both generators, and `verify/generator-packages.test.ts` holds it to the root workspaces and the generated manifest.
+
+Orb and Field are fixed-version workspace packages under the same glob. They declare the same four exports, plus
+`./lovelace/auto` on Orb for the deploy config's pure automatic layout. Their `dist/` is built by
+`npm run build:packages` and shipped by `npm run release:pack`; the workspace keeps reading their source through the
+`source` condition.
 
 ## Add real Cards
 

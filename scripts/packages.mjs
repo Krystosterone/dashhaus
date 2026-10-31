@@ -52,7 +52,7 @@ export function packageSpecifier(packageName, subpath = "") {
   return subpath ? `${entry.name}/${subpath}` : entry.name;
 }
 
-/** Reference skins, which predate the generated-skin package format. */
+/** The reference skins: fixed-version workspace packages beside the generated ones, named by folder. */
 export const referenceSkins = {
   orb: { dir: "src/skins/orb" },
   field: { dir: "src/skins/field" },

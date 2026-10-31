@@ -11,7 +11,7 @@
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "build:ha": "vite build -c config/vite.lovelace.config.ts",
+    "build:ha": "node scripts/build-bundle.mjs",
     "build:packages": "node scripts/build-packages.mjs",
     "deploy": "dashhaus-deploy",
     "typecheck": "node scripts/typecheck.mjs",
@@ -36,7 +36,10 @@
     "react-dom": "18.3.1",
     "@dashhaus/core": "*",
     "@dashhaus/dashboard": "*",
-    "@dashhaus/deploy": "*"
+    "@dashhaus/deploy": "*",
+    "@dashhaus/orb": "*",
+    "@dashhaus/field": "*",
+    "@dashhaus/bundle": "*"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
@@ -52,6 +55,7 @@
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.4",
     "axe-playwright": "2.2.2",
+    "create-dashhaus-skin": "*",
     "eslint": "9.39.5",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-react-hooks": "7.1.1",

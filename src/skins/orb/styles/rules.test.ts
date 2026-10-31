@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 const walk = (dir: string, out: string[] = []): string[] => {
   for (const e of readdirSync(dir)) {
+    if (e === "dist") continue;
     const p = join(dir, e);
     if (statSync(p).isDirectory()) walk(p, out);
     else if (p.endsWith(".css")) out.push(p);

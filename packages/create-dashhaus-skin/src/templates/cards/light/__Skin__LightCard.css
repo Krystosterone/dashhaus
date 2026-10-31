@@ -1,0 +1,39 @@
+.__skin__-lt-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--__skin__-line);
+  border-radius: 12px;
+  background: var(--__skin__-card);
+  color: var(--__skin__-ink);
+}
+
+.__skin__-lt-card[data-state="unavailable"] {
+  border-style: dashed;
+  color: var(--__skin__-ink-muted);
+}
+
+.__skin__-lt-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.__skin__-lt-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.__skin__-lt-area {
+  margin: 0;
+  color: var(--__skin__-ink-muted);
+  font-size: 12px;
+}
+
+.__skin__-lt-reading {
+  margin: 0;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}

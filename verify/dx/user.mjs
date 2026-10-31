@@ -11,12 +11,9 @@
  * The deploy CLI defaults to `dashboard.config.mjs` (`packages/deploy/src/cli.mjs`), so that is the file the driver
  * writes and passes to `deploy()`. The plan's snippet calls it `dashhaus.config.mjs`; `npx dashhaus-deploy --skip-build`
  * would not find that name without `--config`. This is a plan/code discrepancy, not a driver choice.
- *
- * Until Phase 2 adds `@dashhaus/bundle`, the package stage reports the expected gap and the later stages are blocked.
- * If the bundle package appears, the driver runs the whole journey and will not pass on anything less.
  */
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -120,11 +117,13 @@ try {
         "@dashhaus/bundle must export bundlePath as a file URL or path",
       );
       const file = fileURLToPath(module.bundlePath);
-      assert.ok(!relative(app, file).startsWith(".."), `bundlePath points outside the app: ${file}`);
+      // A macOS temp directory is reached through /var, while a module URL is realpathed to /private/var.
+      const inside = relative(realpathSync(app), file);
+      assert.ok(!inside.startsWith(".."), `bundlePath points outside the app: ${file}`);
       const bundle = await read(file);
       assert.match(bundle, /dashhaus-orb/, "the bundle must register custom:dashhaus-orb");
       assert.match(bundle, /dashhaus-field/, "the bundle must register custom:dashhaus-field");
-      return `${relative(app, file)} (${Math.round(bundle.length / 1024)} kB, both cards)`;
+      return `${inside} (${Math.round(bundle.length / 1024)} kB, both cards)`;
     });
 
     const config = await report.stage("config", async () => {

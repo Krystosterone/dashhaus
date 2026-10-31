@@ -105,8 +105,8 @@ describe("@dashhaus/deploy", () => {
     const configImporters = sources(["dashboard.config.mjs", "src", "packages", "scripts", "verify", "apps", ".storybook"])
       .filter((path) => !path.startsWith("src/skins/orb/"))
       .filter((path) => specs(path).some((spec) => {
-        if (!spec.startsWith(".")) return false;
-        return posix.normalize(posix.join(posix.dirname(path), spec)) === "src/skins/orb/lovelace/auto.ts";
+        if (spec === "@dashhaus/orb/lovelace/auto") return true;
+        return spec.startsWith(".") && posix.normalize(posix.join(posix.dirname(path), spec)) === "src/skins/orb/lovelace/auto.ts";
       }));
     expect(configImporters).toEqual(["dashboard.config.mjs"]);
   });
@@ -158,11 +158,11 @@ export default {
     await mkdir(join(app, "node_modules", "@dashhaus"), { recursive: true });
     await cp(join(root, "packages/dashboard"), join(app, "node_modules", "@dashhaus/dashboard"), { recursive: true });
     await symlink(join(root, "packages/deploy"), join(app, "node_modules", "@dashhaus/deploy"), "dir");
+    await symlink(join(root, "src/skins/orb"), join(app, "node_modules", "@dashhaus/orb"), "dir");
+    await symlink(join(root, "packages/bundle"), join(app, "node_modules", "@dashhaus/bundle"), "dir");
     await mkdir(join(app, "scripts"), { recursive: true });
-    await mkdir(join(app, "src", "skins", "orb", "lovelace"), { recursive: true });
     await cp(CONFIG_FILE, join(app, "dashboard.config.mjs"));
     await cp(join(root, "scripts/generated-skins.mjs"), join(app, "scripts/generated-skins.mjs"));
-    await cp(join(root, "src/skins/orb/lovelace/auto.ts"), join(app, "src/skins/orb/lovelace/auto.ts"));
     expect(lstatSync(join(app, "node_modules", "@dashhaus/dashboard")).isSymbolicLink()).toBe(false);
 
     // A marker in the copy proves the CLI bundled the copy, not the repo's workspace symlink.

@@ -10,6 +10,7 @@ import { copyFile, cp, mkdir, mkdtemp, readdir, rm, stat, writeFile } from "node
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { buildBundlePackage } from "../build-bundle.mjs";
 import { buildPackages } from "../build-packages.mjs";
 import { publicPackages, publishManifest, readManifest, root } from "./manifest.mjs";
 
@@ -46,6 +47,7 @@ async function stageFiles(stage, dir, patterns, fromRoot) {
  */
 export async function pack(outDir = out, buildRoot = root) {
   await buildPackages(buildRoot);
+  await buildBundlePackage(buildRoot);
   await mkdir(outDir, { recursive: true });
   for (const file of await readdir(outDir)) {
     if (file.endsWith(".tgz")) await rm(join(outDir, file), { force: true });

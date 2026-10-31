@@ -1,0 +1,25 @@
+{
+  "name": "create-dashhaus-skin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "create-dashhaus-skin": "./bin.mjs"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -33,11 +33,11 @@ const removeField = (copy: string) => {
   rmSync(join(copy, "src/skins/field"), { recursive: true, force: true });
   rmSync(join(copy, "docs/field.md"), { force: true });
   writeChanged(copy, ".storybook/preview.tsx", (source) => withoutArrayEntry(source
-    .replace('import { fieldStorybook } from "../src/skins/field/storybook";\n', "")
+    .replace('import { fieldStorybook } from "@dashhaus/field/storybook";\n', "")
     .replace(", fieldStorybook", ""), "Field"));
   writeChanged(copy, "apps/lovelace/entry.ts", (source) => source
-    .replace('import "../../src/skins/field/styles/tokens.css";\n', "")
-    .replace('import { defineFieldCard } from "../../src/skins/field/lovelace/card";\n', "")
+    .replace('import "@dashhaus/field/styles/tokens.css";\n', "")
+    .replace('import { defineFieldCard } from "@dashhaus/field/lovelace/card";\n', "")
     .replace("defineFieldCard(css);\n", ""));
   writeChanged(copy, "dashboard.config.mjs", (source) => source.replace(/\n {4}\{\n {6}path: "dashhaus-field",[\s\S]*?\n {4}\},/, ""));
   writeChanged(copy, "docs/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
