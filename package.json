@@ -19,7 +19,7 @@
     "test": "vitest run --config config/vitest.config.ts --maxWorkers=6",
     "test:unit": "vitest run --config config/vitest.config.ts --exclude \"scripts/**\"",
     "test:watch": "vitest --config config/vitest.config.ts",
-    "test:generators": "vitest run --config config/vitest.config.ts scripts --maxWorkers=1",
+    "test:generators": "vitest run --config config/vitest.config.ts scripts",
     "test-storybook": "storybook build && node scripts/test-storybook.mjs",
     "perf:collect": "node scripts/perf/collect.mjs",
     "check": "npm run typecheck && npm run lint && npm run test",

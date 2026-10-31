@@ -107,7 +107,7 @@ npm ci
 npm run test:unit -- --shard=1/2 --maxWorkers=2     # 2/2 in the second job
 ```
 
-`--maxWorkers=2` gives a two-core runner both cores; Vitest otherwise leaves one idle. The generator lane's `test:generators` runs its files one at a time (`--maxWorkers=1`), because three copies running tsc, ESLint, Vitest and a bundle build at once thrash a two-core runner.
+`--maxWorkers=2` gives a two-core runner both cores; Vitest otherwise leaves one idle. The generator lane needs no worker override: on a two-core runner Vitest already runs its three copy suites one at a time, and a copy is a serial chain of the repo's tools.
 
 `generators`:
 
