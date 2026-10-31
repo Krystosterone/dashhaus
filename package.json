@@ -21,6 +21,7 @@
     "test:watch": "vitest --config config/vitest.config.ts",
     "test:generators": "vitest run --config config/vitest.config.ts scripts",
     "test-storybook": "storybook build && node scripts/test-storybook.mjs",
+    "perf:collect": "node scripts/perf/collect.mjs",
     "check": "npm run typecheck && npm run lint && npm run test",
     "new-card": "node scripts/new-card/index.mjs",
     "new-skin": "node scripts/new-skin/index.mjs",

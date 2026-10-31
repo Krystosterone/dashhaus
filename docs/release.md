@@ -22,7 +22,7 @@ The workspace resolves package **source**; a packed install resolves built **ESM
 
 | Package | Public subpaths | Ships |
 | --- | --- | --- |
-| `@dashhaus/core` | `.`, `./entities`, `./entities/*`, `./primitives`, `./hooks`, `./websocket`, `./demo`, `./testing`, `./fixtures/*` | `dist/` |
+| `@dashhaus/core` | `.`, `./entities`, `./entities/*`, `./primitives`, `./hooks`, `./perf`, `./websocket`, `./demo`, `./testing`, `./fixtures/*` | `dist/` |
 | `@dashhaus/dashboard` | `.`, `./card`, `./schema`, `./layout`, `./cli`, `./conformance` | `dist/` |
 | `@dashhaus/deploy` | `.`, bin `dashhaus-deploy` | `bin.mjs`, `src/*.mjs`, `src/*.d.mts` |
 

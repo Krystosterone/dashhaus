@@ -7,6 +7,7 @@ import { HaProvider } from "@dashhaus/core";
 import { createHaStore } from "@dashhaus/core";
 import { createHomeAssistantTransport } from "@dashhaus/core/websocket";
 import type { HaStore, HassEntities } from "@dashhaus/core";
+import { perfMark, perfMarkAfterPaint } from "@dashhaus/core/perf";
 
 /** Registry facts per entity: the shape of the frontend's `hass.entities`. */
 export interface AutoEntityEntry {
@@ -85,14 +86,17 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
   /** Lovelace calls this on every YAML edit. */
   setConfig(raw: unknown) {
     this.config = this.parse(raw);
+    perfMark("config:parsed");
     this.render();
   }
 
   set hass(hass: LovelaceHass) {
     const previous = this.#hass;
     this.#hass = hass;
+    if (!previous) perfMark("hass:ready");
     if (!this.#store || previous?.connection !== hass.connection) {
       this.#store = createHaStore(createHomeAssistantTransport(hass.connection));
+      perfMark("store:created");
     }
     if (!previous || previous.connection !== hass.connection || this.changed(previous, hass)) this.render();
   }
@@ -101,6 +105,7 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
   getGridOptions() { return { columns: "full", rows: "auto" }; }
 
   connectedCallback() {
+    perfMark("element:connected", { first: !this.shadowRoot });
     if (!this.shadowRoot) {
       const shadow = this.attachShadow({ mode: "open" });
       const style = document.createElement("style");
@@ -126,6 +131,8 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
     const config = this.config;
     const hass = this.#hass;
     if (!config || !hass || !this.#store || !this.#mount || !this.isConnected) return;
+    const first = !this.#root;
+    perfMark("render:start", { first });
     this.paintHost(config, hass);
     this.#root ??= createRoot(this.#mount);
     this.#root.render(
@@ -133,6 +140,8 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
         <HaProvider store={this.#store}>{this.draw(config, hass)}</HaProvider>
       </ErrorBoundary>,
     );
+    // The first render is the page's load; later renders come from an interaction and are covered by marks there.
+    if (first) perfMarkAfterPaint("render:painted", { first });
   }
 }
 

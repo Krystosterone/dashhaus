@@ -4,8 +4,9 @@
  * class names and its parts, and keeps what only it knows (orb's bundle lid, field's alert line). React only: no
  * CSS, no skin and no Home Assistant.
  */
-import { createElement, useId, useState } from "react";
+import { createElement, useEffect, useId, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
+import { perfMark, perfMarkAfterPaint } from "@dashhaus/core/perf";
 import { useSheet } from "@dashhaus/core/primitives";
 
 /** Dashboard footprints. A skin whose cards don't use `featured` narrows it in its own type. */
@@ -89,7 +90,14 @@ export interface Details {
 /** A card's details state, open on first render with `defaultOpen` (stories). */
 export function useDetails(defaultOpen = false): Details {
   const [open, setOpen] = useState(defaultOpen);
-  return { open, openDetails: () => setOpen(true), closeDetails: () => setOpen(false) };
+  return {
+    open,
+    openDetails: () => {
+      perfMark("details:request");
+      setOpen(true);
+    },
+    closeDetails: () => setOpen(false),
+  };
 }
 
 /** The content a skin's details wrapper renders around a card's sheet view. */
@@ -122,6 +130,10 @@ export interface CardDialogProps extends CardSheetProps {
  */
 export function CardDialog({ open, onClose, label, className, handle, snapBack, closeMs = 250, phone = "(max-width: 600px)", children }: CardDialogProps) {
   const { mounted, dialogProps } = useSheet({ open, label, onClose, closeMs, phone, handle, snapBack });
+  // The sheet's own effect has shown the modal by the time this one runs; mark its first painted frame.
+  useEffect(() => {
+    if (open) perfMarkAfterPaint("details:visible", { label });
+  }, [open, label]);
   return <dialog className={className} {...dialogProps}>{mounted && children}</dialog>;
 }
 
@@ -151,7 +163,13 @@ export function detailsSheet<P extends CardProps>(Card: ComponentType<P>, Sheet:
 export function detailsTile<P extends CardProps>(Card: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>, className?: string) {
   function Tile({ defaultOpen = false, ...props }: TileProps<P>) {
     const [open, setOpen] = useState(defaultOpen);
-    const card = createElement(Card, { ...props, onOpenDetails: () => setOpen(true) } as unknown as P);
+    const card = createElement(Card, {
+      ...props,
+      onOpenDetails: () => {
+        perfMark("details:request");
+        setOpen(true);
+      },
+    } as unknown as P);
     return (
       <>
         {className ? <div className={className}>{card}</div> : card}

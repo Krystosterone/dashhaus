@@ -38,6 +38,12 @@
       "import": "./dist/hooks/index.js",
       "default": "./dist/hooks/index.js"
     },
+    "./perf": {
+      "source": "./src/perf.ts",
+      "types": "./dist/perf.d.ts",
+      "import": "./dist/perf.js",
+      "default": "./dist/perf.js"
+    },
     "./websocket": {
       "source": "./src/websocket.ts",
       "types": "./dist/websocket.d.ts",

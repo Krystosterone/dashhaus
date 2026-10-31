@@ -60,7 +60,7 @@ function graph(entry: string) {
 }
 
 const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs$|http$|https$|module$|net$|os$|path$|process$|stream$|tls$|url$|util$|zlib$)/;
-const BROWSER = [".", "./entities", "./primitives", "./hooks", "./websocket", "./demo"];
+const BROWSER = [".", "./entities", "./primitives", "./hooks", "./perf", "./websocket", "./demo"];
 const sourceTarget = (subpath: string) => {
   const target = packageJson.exports[subpath];
   if (typeof target !== "object" || typeof target.source !== "string") {
@@ -77,8 +77,8 @@ describe("@dashhaus/core", () => {
     expect(packageJson.private).toBe(true);
     expect(packageJson.sideEffects).toBe(false);
     expect(packageJson.files).toEqual(["dist"]);
-    expect(Object.keys(packageJson.exports)).toEqual(expect.arrayContaining([".", "./entities", "./entities/*", "./primitives", "./hooks", "./websocket", "./demo", "./testing", "./fixtures/*"]));
-    for (const subpath of [".", "./entities", "./primitives", "./hooks", "./websocket", "./demo", "./testing"]) {
+    expect(Object.keys(packageJson.exports)).toEqual(expect.arrayContaining([".", "./entities", "./entities/*", "./primitives", "./hooks", "./perf", "./websocket", "./demo", "./testing", "./fixtures/*"]));
+    for (const subpath of [".", "./entities", "./primitives", "./hooks", "./perf", "./websocket", "./demo", "./testing"]) {
       expect(packageJson.exports[subpath].types, `${subpath} ships declarations`).toMatch(/^\.\/dist\/.+\.d\.ts$/);
       expect(packageJson.exports[subpath].import, `${subpath} ships ESM JavaScript`).toMatch(/^\.\/dist\/.+\.js$/);
       expect(packageJson.exports[subpath].default).toBe(packageJson.exports[subpath].import);
