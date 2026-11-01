@@ -7,11 +7,13 @@
  *
  * A driver creates a temporary app outside this repo, installs the packed tarballs by `file:` specifier, and runs the
  * consumer journey there. Nothing here imports a workspace package, and no app config sets the `source` condition.
- * `--tarballs <dir>` reads another release directory; `--keep` leaves the app behind for inspection.
+ * `--tarballs <dir>` reads another release directory; `--keep` leaves the app behind for inspection; `--screenshot <dir>`
+ * saves the deployed dashboards as PNGs, drawn by the fake Home Assistant in the repo's Chromium.
  */
-import { spawnSync } from "node:child_process";
+/* global document, window -- the screenshot's waitForFunction and evaluate callbacks run in the page. */
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -24,6 +26,34 @@ const argv = process.argv.slice(2);
 const tarballArg = argv.indexOf("--tarballs");
 export const tarballsDir = resolve(tarballArg === -1 ? join(repoRoot, "release") : argv[tarballArg + 1] ?? join(repoRoot, "release"));
 export const keepApp = argv.includes("--keep");
+const screenshotArg = argv.indexOf("--screenshot");
+export const screenshotDir = screenshotArg === -1 ? undefined : resolve(argv[screenshotArg + 1] ?? ".");
+
+/**
+ * Draw a dashboard page the fake Home Assistant serves and save it. Playwright is the repo's own (the clean app never
+ * sees it); a page that reports an error, or never draws its card, fails the stage.
+ */
+export async function screenshotDashboard(url, file, { width = 1280, height = 900 } = {}) {
+  const { chromium } = await import("playwright");
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width, height } });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(url);
+    await page.waitForFunction(() => window.__fakeHaReady || window.__fakeHaProblem, null, { timeout: 15000 });
+    const problem = await page.evaluate(() => window.__fakeHaProblem ?? null);
+    if (problem) throw new Error(`${url}: ${problem}`);
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(500);
+    await mkdir(dirname(file), { recursive: true });
+    await page.screenshot({ path: file, fullPage: true });
+    if (errors.length) throw new Error(`${url} reported: ${errors.join("; ")}`);
+    return file;
+  } finally {
+    await browser.close();
+  }
+}
 
 const repoManifest = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
 
@@ -62,6 +92,15 @@ export function tarballManifest(file) {
   return JSON.parse(spawnSync("tar", ["-xOzf", file, "package/package.json"], { encoding: "utf8" }).stdout);
 }
 
+const commandEnv = () => ({
+  ...process.env,
+  NO_COLOR: "1",
+  npm_config_audit: "false",
+  npm_config_fund: "false",
+  npm_config_update_notifier: "false",
+  npm_config_workspaces: "false",
+});
+
 /** Run one command, with its output captured. Non-zero throws unless the caller expects to inspect it. */
 export function run(command, args, { cwd, allowFailure = false } = {}) {
   const started = Date.now();
@@ -69,14 +108,7 @@ export function run(command, args, { cwd, allowFailure = false } = {}) {
     cwd,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
-    env: {
-      ...process.env,
-      NO_COLOR: "1",
-      npm_config_audit: "false",
-      npm_config_fund: "false",
-      npm_config_update_notifier: "false",
-      npm_config_workspaces: "false",
-    },
+    env: commandEnv(),
   });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
   if (result.error) throw new Error(`could not run \`${command} ${args.join(" ")}\`: ${result.error.message}`);
@@ -84,6 +116,26 @@ export function run(command, args, { cwd, allowFailure = false } = {}) {
     throw new Error(`\`${command} ${args.join(" ")}\` failed (exit ${result.status}):\n${tail(output)}`);
   }
   return { status: result.status ?? 1, output, ms: Date.now() - started };
+}
+
+/**
+ * `run`, without blocking this process: the fake Home Assistant a command talks to may be served from here, and a
+ * synchronous child would hold its event loop until the command gave up connecting.
+ */
+export function runAsync(command, args, { cwd, allowFailure = false } = {}) {
+  const started = Date.now();
+  return new Promise((done, fail) => {
+    const child = spawn(command, args, { cwd, env: commandEnv() });
+    let output = "";
+    child.stdout.on("data", (chunk) => (output += chunk));
+    child.stderr.on("data", (chunk) => (output += chunk));
+    child.on("error", (error) => fail(new Error(`could not run \`${command} ${args.join(" ")}\`: ${error.message}`)));
+    child.on("close", (status) => {
+      output = output.trim();
+      if (status !== 0 && !allowFailure) fail(new Error(`\`${command} ${args.join(" ")}\` failed (exit ${status}):\n${tail(output)}`));
+      else done({ status: status ?? 1, output, ms: Date.now() - started });
+    });
+  });
 }
 
 /** A temporary app directory, outside the workspace. */
