@@ -1,7 +1,7 @@
 // The command is JavaScript so the bin runs without Node's type stripping. These are its types.
 
-import type { DeployDashboard } from "./config.mjs";
-import type { DeployClient } from "./deploy.mjs";
+import type { DeployDashboard } from "./config.js";
+import type { DeployClient } from "./deploy.js";
 
 export interface CliOptions {
   config?: string;

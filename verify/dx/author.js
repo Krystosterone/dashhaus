@@ -3,7 +3,7 @@
  * The skin author's clean-room journey, from packed tarballs only:
  *
  *   npm run release:pack
- *   node verify/dx/author.mjs [--tarballs <dir>] [--keep]
+ *   node verify/dx/author.js [--tarballs <dir>] [--keep]
  *
  * Install core, dashboard, deploy, the scaffolder and React; run `create-dashhaus-skin my-skin`; run the skin's
  * conformance test; build one bundle; deploy it through `deploy({ connect: fakeHa })`.
@@ -20,7 +20,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, symlink } from "node:fs/promises";
 import { join, relative } from "node:path";
-import { FakeHomeAssistant, connectTo } from "./fake-ha.mjs";
+import { FakeHomeAssistant, connectTo } from "./fake-ha.js";
 import {
   Gap,
   clean,
@@ -36,7 +36,7 @@ import {
   tarballs,
   tarballsDir,
   toolVersion,
-} from "./harness.mjs";
+} from "./harness.js";
 
 const PHASE_SKIN = "Phase 1 — add and freeze @dashhaus/dashboard/skin";
 const PHASE_SCAFFOLD = "Phase 3 — create create-dashhaus-skin and include it in release:pack";
@@ -98,7 +98,7 @@ try {
       // A real author runs `npm install` in the scaffold; the app already holds those packages.
       await symlink(join(app, "node_modules"), join(skinApp, "node_modules"), "dir");
       const files = await readdir(skinApp);
-      for (const requiredFile of ["package.json", "vite.config.mjs", "conformance.mjs", "dashboard.config.mjs", "cards"]) {
+      for (const requiredFile of ["package.json", "vite.config.js", "conformance.js", "dashboard.config.mjs", "cards"]) {
         assert.ok(files.includes(requiredFile), `the scaffold wrote no ${requiredFile}`);
       }
       return `${SKIN}: ${files.length} entries, no Storybook or repo path`;

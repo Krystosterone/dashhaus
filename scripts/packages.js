@@ -38,14 +38,14 @@ export const packages = {
 /** A file inside a shared package, relative to the repo. */
 export function packageFile(packageName, path = "") {
   const entry = packages[packageName];
-  if (!entry) throw new Error(`unknown package "${packageName}": add it to scripts/packages.mjs`);
+  if (!entry) throw new Error(`unknown package "${packageName}": add it to scripts/packages.js`);
   return path ? `${entry.dir}/${path}` : entry.dir;
 }
 
 /** A declared specifier for a shared package: `@dashhaus/core`, `@dashhaus/core/demo`, `@dashhaus/dashboard/card`. */
 export function packageSpecifier(packageName, subpath = "") {
   const entry = packages[packageName];
-  if (!entry) throw new Error(`unknown package "${packageName}": add it to scripts/packages.mjs`);
+  if (!entry) throw new Error(`unknown package "${packageName}": add it to scripts/packages.js`);
   const key = subpath ? `./${subpath}` : ".";
   const declared = Object.keys(entry.exports).some((exported) => exported === key || (exported.endsWith("/*") && key.startsWith(exported.slice(0, -1))));
   if (!declared) throw new Error(`${entry.name} declares no "${key}" export; add it to ${entry.dir}/package.json`);
@@ -126,7 +126,7 @@ export function generatedManifest(skin) {
 export const seams = {
   preview: ".storybook/preview.tsx",
   lovelaceEntry: "apps/lovelace/entry.ts",
-  generatedSkins: "scripts/generated-skins.mjs",
+  generatedSkins: "scripts/generated-skins.js",
   agents: "AGENTS.md",
   cardsDoc: "spec/cards.md",
   deployDoc: "spec/deploy.md",

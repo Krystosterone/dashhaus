@@ -1,5 +1,5 @@
 /**
- * The generators treat the repo as a package graph through scripts/packages.mjs: one map holds where packages live,
+ * The generators treat the repo as a package graph through scripts/packages.js: one map holds where packages live,
  * which specifiers they declare, where a generated skin lives and which marker each registration targets. This
  * check fails if a generator reintroduces a package path or a bare `@dashhaus/…` literal, or if the map and the root
  * workspace list drift apart.
@@ -7,19 +7,19 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { generated, generatedManifest, packages, workspaces } from "../scripts/packages.mjs";
+import { generated, generatedManifest, packages, workspaces } from "../scripts/packages.js";
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 const rootManifest = JSON.parse(read("package.json"));
 
-/** The generator bodies; templates are generated source, and packages.mjs is the map itself. */
+/** The generator bodies; templates are generated source, and packages.js is the map itself. */
 const GENERATORS = [
-  "scripts/new-card/index.mjs",
-  "scripts/new-card/field.mjs",
-  "scripts/new-card/generated.mjs",
-  "scripts/new-card/lib.mjs",
-  "scripts/new-skin/index.mjs",
+  "scripts/new-card/index.js",
+  "scripts/new-card/field.js",
+  "scripts/new-card/generated.js",
+  "scripts/new-card/lib.js",
+  "scripts/new-skin/index.js",
 ];
 
 /** A string literal that names a package root or a bare @dashhaus specifier rather than going through the map. */
@@ -63,7 +63,7 @@ describe("the generator package map", () => {
     const templates = ["scripts/new-skin/templates", "scripts/new-card/templates"];
     const bad: string[] = [];
     for (const root of templates) {
-      for (const file of readdirSync(join(process.cwd(), root), { recursive: true, encoding: "utf8" }).filter((path) => /\.(tsx?|mjs)$/.test(path))) {
+      for (const file of readdirSync(join(process.cwd(), root), { recursive: true, encoding: "utf8" }).filter((path) => /\.(tsx?|js|mjs)$/.test(path))) {
         const path = `${root}/${file}`;
         for (const match of read(path).matchAll(/\bfrom\s+["'](@dashhaus\/[^"']+)["']/g)) {
           if (!declared(match[1])) bad.push(`${path}: ${match[1]}`);
@@ -81,6 +81,6 @@ describe("the generator package map", () => {
         if (HARD_CODED.some((pattern) => pattern.test(line))) found.push(`${path}:${index + 1}: ${line.trim()}`);
       });
     }
-    expect(found, "name the package in scripts/packages.mjs and cross it by path or specifier").toEqual([]);
+    expect(found, "name the package in scripts/packages.js and cross it by path or specifier").toEqual([]);
   });
 });

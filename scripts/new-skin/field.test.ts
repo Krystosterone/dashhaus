@@ -42,7 +42,7 @@ const removeField = (copy: string) => {
   writeChanged(copy, "dashboard.config.mjs", (source) => source.replace(/\n {4}\{\n {6}path: "dashhaus-field",[\s\S]*?\n {4}\},/, ""));
   writeChanged(copy, "spec/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
   writeChanged(copy, "spec/cards.md", (source) => source.replace(/\n### Field [^\n]*(?:module|Card)\n[\s\S]*?(?=\n## |\n### )/gi, ""));
-  writeChanged(copy, "scripts/generated-skins.mjs", (source) => source.replace(/^ {2}\{ id: "field".*\n/m, ""));
+  writeChanged(copy, "scripts/generated-skins.js", (source) => source.replace(/^ {2}\{ id: "field".*\n/m, ""));
 };
 
 const FIELD_DOMAINS = ["light", "climate", "sensor", "weather", "toggle", "humidifier", "sound", "cover", "alarm", "owlet"];
@@ -57,10 +57,10 @@ describe("new-skin", () => {
     afterAll(() => process.env.KEEP_NEW_SKIN_COPY ? console.info(`FIELD_RECONSTRUCTION=${copy}`) : rmSync(copy, { recursive: true, force: true }));
 
     it("recreates every current domain and passes generated-skin seams", async () => {
-      const skin = await run(copy, "node", ["scripts/new-skin/index.mjs", "field"]);
+      const skin = await run(copy, "node", ["scripts/new-skin/index.js", "field"]);
       expect(skin.status, skin.output).toBe(0);
       for (const card of FIELD_DOMAINS) {
-        const result = await run(copy, "node", ["scripts/new-card/index.mjs", card, "--skin", "field"]);
+        const result = await run(copy, "node", ["scripts/new-card/index.js", card, "--skin", "field"]);
         expect(result.status, `${card}:\n${result.output}`).toBe(0);
       }
       linkNodeModules(copy);
@@ -84,7 +84,7 @@ describe("new-skin", () => {
 
       const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const lint = await run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.mjs"]);
+      const lint = await run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.js"]);
       expect(lint.status, lint.output).toBe(0);
       const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
@@ -100,7 +100,7 @@ describe("new-skin", () => {
         expect(index).toContain(`Field${Name}Card`);
         expect(registry).toContain(`${card}: {`);
       }
-      expect(readFileSync(join(copy, "scripts/generated-skins.mjs"), "utf8")).toContain('{ id: "field"');
+      expect(readFileSync(join(copy, "scripts/generated-skins.js"), "utf8")).toContain('{ id: "field"');
       expect(readFileSync(join(copy, "spec/deploy.md"), "utf8").match(/^## The Field dashboard$/gm)).toHaveLength(1);
       expect(readFileSync(join(copy, "spec/cards.md"), "utf8").match(/^### Field .* Card$/gm)).toHaveLength(FIELD_DOMAINS.length);
     }, 300_000);

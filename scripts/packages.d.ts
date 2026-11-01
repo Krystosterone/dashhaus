@@ -1,4 +1,4 @@
-/** Types for scripts/packages.mjs, the generators' one package map. */
+/** Types for scripts/packages.js, the generators' one package map. */
 export const root: string;
 export const workspaces: string[];
 

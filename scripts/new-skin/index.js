@@ -9,8 +9,8 @@
  *   npm run new-card -- light --skin canvas
  */
 import { fileURLToPath } from "node:url";
-import { generated, generatedManifest, markers, seams } from "../packages.mjs";
-import { after, changes, exists, filler, read } from "../new-card/lib.mjs";
+import { generated, generatedManifest, markers, seams } from "../packages.js";
+import { after, changes, exists, filler, read } from "../new-card/lib.js";
 
 const fail = (message) => {
   console.error(`new-skin: ${message}`);

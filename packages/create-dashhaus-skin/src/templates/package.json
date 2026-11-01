@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node conformance.mjs",
+    "test": "node conformance.js",
     "build": "vite build",
     "deploy": "dashhaus-deploy --skip-build"
   },

@@ -44,10 +44,10 @@ npm install --package-lock-only
 
 The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`,
 including the scaffolder's `src/templates/package.json` so a newly scaffolded skin installs the same line.
-`scripts/release/manifest.mjs` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
+`scripts/release/manifest.js` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
 without `files`/`sideEffects`; `verify:packages` reads the packed template's ranges back.
 
-If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.mjs` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
+If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.js` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
 
 ## Release commands
 
@@ -78,7 +78,7 @@ npm publish release/dashhaus-bundle-0.2.0.tgz --access public
 npm publish release/create-dashhaus-skin-0.2.0.tgz
 ```
 
-After publishing, rerun `node verify/dx/user.mjs` and `node verify/dx/author.mjs` against the registry, not the
+After publishing, rerun `node verify/dx/user.js` and `node verify/dx/author.js` against the registry, not the
 tarballs, before announcing the release; both are the same clean-room journeys the release check runs.
 
 The tarball's manifest is already the release manifest; publishing the tarball, not the package folder, is what keeps `source` and `private` out. Tagging, GitHub releases and npm scope claims are separate operator decisions.
@@ -100,7 +100,7 @@ app=$(mktemp -d); cd "$app"
 npm init -y && npm pkg set type=module
 npm install "$release"/dashhaus-bundle-<version>.tgz "$release"/dashhaus-deploy-<version>.tgz
 cp /path/to/dashhaus/.env.example .env        # fill the three values, keep it out of git
-# write dashboard.config.mjs as in verify/dx/user.mjs (USER_CONFIG): bundlePath, home-orb and home-field
+# write dashboard.config.mjs as in verify/dx/user.js (USER_CONFIG): bundlePath, home-orb and home-field
 npx dashhaus-deploy --skip-build
 ```
 

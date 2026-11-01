@@ -5,7 +5,7 @@
  *   npm run new-card -- fan --code fn --domain fan
  *   npm run new-card -- co2 --code co --domain sensor --kind reading --unit ppm
  *
- * With `--skin field` it draws a domain that already exists in the field skin instead (./field.mjs).
+ * With `--skin field` it draws a domain that already exists in the field skin instead (./field.js).
  *
  * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the card
  * everywhere the conformance test (verify/orb-conformance.test.ts) looks, the Lovelace card included:
@@ -15,10 +15,10 @@
  */
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { generated as generatedSkin, markers, packageFile } from "../packages.mjs";
-import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.mjs";
-import { newFieldCard } from "./field.mjs";
-import { newGeneratedCard } from "./generated.mjs";
+import { generated as generatedSkin, markers, packageFile } from "../packages.js";
+import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
+import { newFieldCard } from "./field.js";
+import { newGeneratedCard } from "./generated.js";
 
 /** The skin a new card is drawn in; its logic goes outside it, in @dashhaus/core. */
 const SKIN = skinDir("orb");

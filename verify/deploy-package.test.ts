@@ -12,7 +12,7 @@ import { join, posix } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { loadDashboards } from "@dashhaus/deploy";
 import type { DeployHa } from "@dashhaus/deploy";
-import { GENERATED_SKINS } from "../scripts/generated-skins.mjs";
+import { GENERATED_SKINS } from "../scripts/generated-skins.js";
 
 const root = process.cwd();
 const PACKAGE = "packages/deploy";
@@ -38,7 +38,7 @@ function sources(paths: string[]): string[] {
     for (const entry of readdirSync(join(root, path), { withFileTypes: true })) walk(`${path}/${entry.name}`);
   };
   for (const path of paths) walk(path);
-  return found.filter((path) => /\.(ts|tsx|mjs|mts)$/.test(path));
+  return found.filter((path) => /\.(ts|tsx|js|mjs|mts)$/.test(path));
 }
 
 const directories: string[] = [];
@@ -64,16 +64,16 @@ describe("@dashhaus/deploy", () => {
     expect(packageJson.version).not.toBe("0.0.0");
     expect(packageJson.private).toBe(true);
     expect(packageJson.type).toBe("module");
-    expect(packageJson.bin).toEqual({ "dashhaus-deploy": "./bin.mjs" });
+    expect(packageJson.bin).toEqual({ "dashhaus-deploy": "./bin.js" });
     expect(packageJson.exports).toEqual({
-      ".": "./src/deploy.mjs",
+      ".": "./src/deploy.js",
       "./config": {
-        types: "./src/config.d.mts",
-        import: "./src/config.mjs",
-        default: "./src/config.mjs",
+        types: "./src/config.d.ts",
+        import: "./src/config.js",
+        default: "./src/config.js",
       },
     });
-    expect(packageJson.files).toEqual(["bin.mjs", "src/*.mjs", "src/*.d.mts", "README.md"]);
+    expect(packageJson.files).toEqual(["bin.js", "src/*.js", "src/*.d.ts", "README.md"]);
     expect(packageJson.engines).toEqual({ node: ">=22" });
     expect(Object.keys(packageJson.dependencies)).toEqual(["esbuild"]);
   });
@@ -85,19 +85,19 @@ describe("@dashhaus/deploy", () => {
   });
 
   it("keeps @dashhaus/deploy/config free of imports, the loader and React", () => {
-    const config = `${PACKAGE}/src/config.mjs`;
+    const config = `${PACKAGE}/src/config.js`;
     expect(specs(config)).toEqual([]);
     expect(read(config).split("\n").filter((line) => /^\s*(?:import|export\s+.*\sfrom)\b/.test(line))).toEqual([]);
   });
 
   it("imports only Node builtins, esbuild and its own files", () => {
-    const files = sources([PACKAGE]).filter((path) => /\.(mjs|mts)$/.test(path));
+    const files = sources([PACKAGE]).filter((path) => /\.(js|mjs|mts)$/.test(path));
     const outside = files.flatMap((path) => specs(path).filter((spec) => !spec.startsWith(".") && !spec.startsWith("node:") && spec !== "esbuild").map((spec) => `${path} → ${spec}`));
     expect(outside).toEqual([]);
   });
 
   it("hardcodes neither this repo's Vite config nor its bundle", () => {
-    const files = sources([PACKAGE]).filter((path) => /\.(mjs|mts)$/.test(path));
+    const files = sources([PACKAGE]).filter((path) => /\.(js|mjs|mts)$/.test(path));
     expect(files.filter((path) => /vite\.lovelace\.config\.ts|dashhaus\.js/.test(read(path)))).toEqual([]);
   });
 
@@ -162,13 +162,13 @@ export default {
     await symlink(join(root, "packages/bundle"), join(app, "node_modules", "@dashhaus/bundle"), "dir");
     await mkdir(join(app, "scripts"), { recursive: true });
     await cp(CONFIG_FILE, join(app, "dashboard.config.mjs"));
-    await cp(join(root, "scripts/generated-skins.mjs"), join(app, "scripts/generated-skins.mjs"));
+    await cp(join(root, "scripts/generated-skins.js"), join(app, "scripts/generated-skins.js"));
     expect(lstatSync(join(app, "node_modules", "@dashhaus/dashboard")).isSymbolicLink()).toBe(false);
 
     // A marker in the copy proves the CLI bundled the copy, not the repo's workspace symlink.
     const copiedSchema = join(app, "node_modules", "@dashhaus/dashboard/src/schema.ts");
     await writeFile(copiedSchema, `${await readFile(copiedSchema, "utf8")}\nexport const copiedMarker = "copied-dashboard-package";\n`);
-    await writeFile(join(app, "copied.config.mjs"), `import { generatedDashboards } from "@dashhaus/deploy/config";
+    await writeFile(join(app, "copied.config.js"), `import { generatedDashboards } from "@dashhaus/deploy/config";
 import { copiedMarker } from "@dashhaus/dashboard/schema";
 export default {
   pageTitle: copiedMarker,
@@ -176,8 +176,8 @@ export default {
   dashboards: generatedDashboards([{ id: "copied", title: copiedMarker, icon: "mdi:home" }]),
 };
 `);
-    const cli = join(root, "packages/deploy/bin.mjs");
-    const help = spawnSync(process.execPath, [cli, "--config", join(app, "copied.config.mjs"), "--help"], { cwd: app, encoding: "utf8" });
+    const cli = join(root, "packages/deploy/bin.js");
+    const help = spawnSync(process.execPath, [cli, "--config", join(app, "copied.config.js"), "--help"], { cwd: app, encoding: "utf8" });
     expect(help.status, help.stderr).toBe(0);
     expect(help.stdout).toContain("copied-dashboard-package");
     expect(help.stdout).toContain("/dashhaus-copied");

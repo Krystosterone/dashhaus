@@ -44,7 +44,7 @@ no presentational card imports the Home Assistant layer. Run it after every card
 
 ## Build
 
-The scaffold's `vite.config.mjs` emits the bundle. `lovelace/entry.tsx` imports the stylesheets with `?inline` and passes their text to `defineMySkinCard`. The emitted
+The scaffold's `vite.config.js` emits the bundle. `lovelace/entry.tsx` imports the stylesheets with `?inline` and passes their text to `defineMySkinCard`. The emitted
 `dist/dashhaus-my-skin.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one
 resource and no separate stylesheet. Name it for the skin: the prebuilt `@dashhaus/bundle` already owns
 `/local/dashhaus/dashhaus.js`, and a skin-specific name lets both live on one instance. No extra plugin is required

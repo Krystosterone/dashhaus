@@ -32,8 +32,8 @@ ha/                                 the useHaLight and useHaSensor adapters
 lovelace/                           the YAML reader, card registry, element and bundle entry
 shared/                             the action part
 styles/tokens.css                   every colour, in the skin's namespace
-conformance.mjs                     @dashhaus/dashboard/conformance over cards/
-vite.config.mjs                     one ES module, dist/dashhaus-<skin>.js, CSS inlined
+conformance.js                      @dashhaus/dashboard/conformance over cards/
+vite.config.js                      one ES module, dist/dashhaus-<skin>.js, CSS inlined
 dashboard.config.mjs                the dashboard and the bundle
 ```
 

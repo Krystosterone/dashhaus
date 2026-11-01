@@ -7,8 +7,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { publicPackages, publishManifest } from "../scripts/release/manifest.mjs";
-import type { PackageManifest } from "../scripts/release/manifest.mjs";
+import { publicPackages, publishManifest } from "../scripts/release/manifest.js";
+import type { PackageManifest } from "../scripts/release/manifest.js";
 
 const root = process.cwd();
 const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8"));
@@ -80,8 +80,8 @@ describe("public packages", () => {
     }
     expect(manifests.orb.exports?.["./lovelace/auto"]?.source).toBe("./lovelace/auto.ts");
     expect(manifests.bundle.dependencies).toBeUndefined();
-    expect(manifests.bundle.exports?.["."]?.source).toBe("./index.mjs");
-    expect(manifests.scaffold.bin).toEqual({ "create-dashhaus-skin": "./bin.mjs" });
+    expect(manifests.bundle.exports?.["."]?.source).toBe("./index.js");
+    expect(manifests.scaffold.bin).toEqual({ "create-dashhaus-skin": "./bin.js" });
     expect(manifests.scaffold.exports?.["."]?.source).toBe("./src/index.js");
   });
 
@@ -99,7 +99,7 @@ describe("public packages", () => {
     }
     expect(publishManifest(manifests.core).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
     expect(publishManifest(manifests.dashboard).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
-    expect(publishManifest(manifests.deploy).bin).toEqual({ "dashhaus-deploy": "./bin.mjs" });
+    expect(publishManifest(manifests.deploy).bin).toEqual({ "dashhaus-deploy": "./bin.js" });
     expect(publishManifest(manifests.deploy).engines).toEqual({ node: ">=22" });
     for (const pkg of publicPackages) expect(publishManifest(manifests[pkg.key]).files, pkg.name).toContain("README.md");
   });

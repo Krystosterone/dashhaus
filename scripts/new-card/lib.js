@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { root, packageFile, packageSpecifier, seams, skinDir } from "../packages.mjs";
+import { root, packageFile, packageSpecifier, seams, skinDir } from "../packages.js";
 
 export { root, packageFile, packageSpecifier, seams, skinDir };
 export const templates = fileURLToPath(new URL("./templates/", import.meta.url));
@@ -50,7 +50,7 @@ export function orbKinds() {
   const body = (constName) => source.match(new RegExp(`const ${constName}\\b[^{]*\\{([\\s\\S]*?)\\n\\};`))?.[1];
   const domainKinds = body("DOMAIN_KIND");
   const sharedKinds = body("SHARED_KINDS");
-  if (domainKinds == null || sharedKinds == null) fail(`could not find DOMAIN_KIND and SHARED_KINDS in ${seams.orb.config}. Update scripts/packages.mjs`);
+  if (domainKinds == null || sharedKinds == null) fail(`could not find DOMAIN_KIND and SHARED_KINDS in ${seams.orb.config}. Update scripts/packages.js`);
   const domainKind = Object.fromEntries([...domainKinds.matchAll(/^\s*(\w+): "(\w+)",/gm)].map((m) => [m[1], m[2]]));
   const shared = Object.fromEntries([...sharedKinds.matchAll(/^\s*(\w+): \{ domains: \[([^\]]*)\](?:, id: (\/.*\/))? \},/gm)]
     .map((m) => [m[1], { domains: [...m[2].matchAll(/"(\w+)"/g)].map((d) => d[1]), id: m[3] }]));

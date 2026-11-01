@@ -17,7 +17,6 @@ const TYPES = {
   ".js": "text/javascript",
   ".json": "application/json",
   ".map": "application/json",
-  ".mjs": "text/javascript",
   ".svg": "image/svg+xml",
 };
 

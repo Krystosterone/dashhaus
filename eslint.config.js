@@ -60,6 +60,19 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // One module extension for Node-run ESM: `.js` under "type": "module", declarations as `.d.ts`. The deploy config
+    // is a public filename, so it stays `.mjs` here and in the scaffolder's template.
+    files: ["**/*.mjs", "**/*.d.mts"],
+    ignores: ["dashboard.config.mjs", "packages/create-dashhaus-skin/src/templates/dashboard.config.mjs"],
+    languageOptions: { parser: tseslint.parser },
+    rules: {
+      "no-restricted-syntax": ["error", {
+        selector: "Program",
+        message: "Use .js for Node-run ESM and .d.ts for declarations; dashboard.config.mjs is the only public .mjs.",
+      }],
+    },
+  },
+  {
     files: ["**/*.{js,mjs}"],
     languageOptions: { globals: globals.node },
   },
@@ -180,7 +193,7 @@ export default tseslint.config(
   {
     // The deploy CLI is Node-only: it bundles and loads the user's config, and never imports a skin or a browser
     // package. The repo's config is the one file that reaches a skin's generated layout.
-    files: ["packages/deploy/**/*.mjs"],
+    files: ["packages/deploy/**/*.js"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [

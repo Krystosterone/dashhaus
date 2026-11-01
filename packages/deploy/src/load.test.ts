@@ -3,8 +3,8 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import type { DeployConfig, DeployDashboard } from "./config.mjs";
-import { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.mjs";
+import type { DeployConfig, DeployDashboard } from "./config.js";
+import { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.js";
 
 const directories: string[] = [];
 
@@ -125,17 +125,17 @@ describe("readConfig", () => {
 
   it("refuses a missing file, a config without dashboards and a bundle that is not a string", async () => {
     const directory = await temporary();
-    await expect(readConfig(join(directory, "missing.mjs"))).rejects.toThrowError("Could not load");
-    await writeFile(join(directory, "no-dashboards.mjs"), "export default { bundle: \"out.js\" };\n");
-    await expect(readConfig(join(directory, "no-dashboards.mjs"))).rejects.toThrowError("must export default");
-    await writeFile(join(directory, "no-bundle.mjs"), "export default { dashboards: [] };\n");
-    await expect(readConfig(join(directory, "no-bundle.mjs"))).rejects.toThrowError("bundle must name the file to upload");
+    await expect(readConfig(join(directory, "missing.js"))).rejects.toThrowError("Could not load");
+    await writeFile(join(directory, "no-dashboards.js"), "export default { bundle: \"out.js\" };\n");
+    await expect(readConfig(join(directory, "no-dashboards.js"))).rejects.toThrowError("must export default");
+    await writeFile(join(directory, "no-bundle.js"), "export default { dashboards: [] };\n");
+    await expect(readConfig(join(directory, "no-bundle.js"))).rejects.toThrowError("bundle must name the file to upload");
   });
 
   it("reports a syntax error at the config's file and line", async () => {
     const directory = await temporary();
-    await writeFile(join(directory, "broken.mjs"), "export default {\n  dashboards: [\n};\n");
-    await expect(readConfig(join(directory, "broken.mjs"))).rejects.toThrowError("Could not load");
+    await writeFile(join(directory, "broken.js"), "export default {\n  dashboards: [\n};\n");
+    await expect(readConfig(join(directory, "broken.js"))).rejects.toThrowError("Could not load");
   });
 });
 

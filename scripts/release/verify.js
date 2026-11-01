@@ -15,7 +15,7 @@ import { existsSync, statSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { publicPackages, root, SEMVER } from "./manifest.mjs";
+import { publicPackages, root, SEMVER } from "./manifest.js";
 
 const outIndex = process.argv.indexOf("--tarballs");
 const tarballsDir = outIndex === -1 ? join(root, "release") : process.argv[outIndex + 1] ?? join(root, "release");
@@ -70,8 +70,8 @@ async function checkTarballs(manifests) {
             : pkg.key === "bundle"
               ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
               : pkg.key === "scaffold"
-                ? ["package/README.md", "package/bin.mjs", "package/dist/index.js", "package/dist/templates/package.json", "package/dist/templates/lovelace/card.tsx"]
-                : ["package/README.md", "package/bin.mjs", "package/src/cli.mjs", "package/src/cli.d.mts", "package/src/config.mjs", "package/src/config.d.mts"];
+                ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/package.json", "package/dist/templates/lovelace/card.tsx"]
+                : ["package/README.md", "package/bin.js", "package/src/cli.js", "package/src/cli.d.ts", "package/src/config.js", "package/src/config.d.ts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
     if (pkg.key === "scaffold") {
@@ -121,7 +121,7 @@ async function install(app, manifests) {
 }
 
 async function nodeConsumer(app) {
-  await writeFile(join(app, "consumer.mjs"), `
+  await writeFile(join(app, "consumer.js"), `
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -189,7 +189,7 @@ loads.push("react-dom render");
 
 console.log(loads.join("\\n"));
 `);
-  run(process.execPath, ["consumer.mjs"], app);
+  run(process.execPath, ["consumer.js"], app);
   ok("Node imports every declared subpath and renders the dashboard entry under jsdom");
 }
 
@@ -299,7 +299,7 @@ async function bundleConsumer(manifests) {
     for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
       if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the bundle-only app installed ${peer}; the bundle must carry its runtime`);
     }
-    await writeFile(join(app, "consumer.mjs"), `
+    await writeFile(join(app, "consumer.js"), `
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -317,7 +317,7 @@ assert.match(code, /--brand-c/);
 assert.match(code, /--fd-/);
 console.log("bundle-only import ok");
 `);
-    run(process.execPath, ["consumer.mjs"], app);
+    run(process.execPath, ["consumer.js"], app);
     ok("@dashhaus/bundle installs and resolves its prebuilt file with no React or runtime package");
   } finally {
     await rm(app, { recursive: true, force: true });
@@ -338,10 +338,10 @@ async function scaffoldConsumer(manifests) {
       dependencies: { "create-dashhaus-skin": tarballFor(manifests.scaffold) },
     }, null, 2)}\n`);
     run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
-    const bin = join(app, "node_modules", "create-dashhaus-skin", "bin.mjs");
+    const bin = join(app, "node_modules", "create-dashhaus-skin", "bin.js");
     run(process.execPath, [bin, "outside-skin"], app);
     const skin = join(app, "outside-skin");
-    for (const file of ["package.json", "vite.config.mjs", "conformance.mjs", "dashboard.config.mjs", "cards/light/OutsideSkinLightCard.tsx", "lovelace/entry.tsx", "styles/tokens.css"]) {
+    for (const file of ["package.json", "vite.config.js", "conformance.js", "dashboard.config.mjs", "cards/light/OutsideSkinLightCard.tsx", "lovelace/entry.tsx", "styles/tokens.css"]) {
       if (!existsSync(join(skin, file))) throw new Error(`create-dashhaus-skin wrote no ${file}`);
     }
     const source = await readFile(join(skin, "lovelace", "entry.tsx"), "utf8");
@@ -369,7 +369,7 @@ async function deployConfigConsumer(manifests) {
     for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
       if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the deploy-only app installed ${peer}; the config surface must not need it`);
     }
-    await writeFile(join(app, "config.mjs"), `
+    await writeFile(join(app, "config.js"), `
 import assert from "node:assert/strict";
 import { generatedDashboards } from "@dashhaus/deploy/config";
 
@@ -378,7 +378,7 @@ assert.equal(node.path, "dashhaus-node");
 assert.equal((await node.card({ send: async () => undefined })).card.type, "custom:dashhaus-node");
 console.log("deploy/config import ok");
 `);
-    run(process.execPath, ["config.mjs"], app);
+    run(process.execPath, ["config.js"], app);
     ok("@dashhaus/deploy/config imports in a Node-only app with no React");
   } finally {
     await rm(app, { recursive: true, force: true });

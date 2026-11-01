@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { helpText, main, parseArgs } from "./cli.mjs";
-import type { DeployClient } from "./deploy.mjs";
+import { helpText, main, parseArgs } from "./cli.js";
+import type { DeployClient } from "./deploy.js";
 
 const directories: string[] = [];
 
@@ -54,8 +54,8 @@ const client = (): DeployClient & { dashboards: unknown[]; saved: unknown[] } =>
 describe("parseArgs", () => {
   it("reads the config path, --skip-build and --help", () => {
     expect(parseArgs([])).toEqual({ config: undefined, skipBuild: false, help: false });
-    expect(parseArgs(["--config", "deploy.mjs", "--skip-build"])).toEqual({ config: "deploy.mjs", skipBuild: true, help: false });
-    expect(parseArgs(["--config=custom.mjs"])).toEqual({ config: "custom.mjs", skipBuild: false, help: false });
+    expect(parseArgs(["--config", "deploy.js", "--skip-build"])).toEqual({ config: "deploy.js", skipBuild: true, help: false });
+    expect(parseArgs(["--config=custom.js"])).toEqual({ config: "custom.js", skipBuild: false, help: false });
     expect(parseArgs(["--help"]).help).toBe(true);
     expect(parseArgs(["-h"]).help).toBe(true);
   });

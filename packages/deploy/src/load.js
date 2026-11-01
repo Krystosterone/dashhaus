@@ -1,15 +1,15 @@
 // The seam between the deploy CLI and the dashboards a repo declares: the user's `dashboard.config.mjs` says what
 // to create, this module says what Home Assistant accepts, and it bundles the config before importing it so a repo
 // may write TypeScript and import packages without Node's type stripping. The CLI imports this file, never a skin.
-// The author-facing types and `generatedDashboards` are in `./config.mjs`, which imports no Node builtin.
+// The author-facing types and `generatedDashboards` are in `./config.js`, which imports no Node builtin.
 import { realpathSync } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build as esbuild } from "esbuild";
 
-const LOADERS = { ".ts": "ts", ".tsx": "tsx", ".mts": "ts", ".cts": "ts", ".js": "js", ".jsx": "jsx", ".mjs": "js", ".cjs": "js" };
+const LOADERS = { ".ts": "ts", ".tsx": "tsx", ".mts": "ts", ".cts": "ts", ".js": "js", ".jsx": "jsx", ".cjs": "js" };
 
 /**
  * Each module bundled into the config keeps its own `import.meta.url`. A single `define` would give every dependency
@@ -25,7 +25,7 @@ const ownImportMetaUrl = {
       const url = pathToFileURL(realpathSync(path)).href;
       return {
         contents: source.replaceAll("import.meta.url", JSON.stringify(url)),
-        loader: LOADERS[extname(path)],
+        loader: LOADERS[extname(path)] ?? "js",
         resolveDir: dirname(path),
       };
     });
@@ -55,8 +55,9 @@ function describeBuildError(error) {
 /** Bundle the config to a temporary ESM file; the caller imports it and removes the directory. */
 async function bundleConfig(file) {
   const directory = await mkdtemp(`${tmpdir()}/dashhaus-config-`);
-  const outfile = `${directory}/config.mjs`;
+  const outfile = `${directory}/config.js`;
   try {
+    await writeFile(`${directory}/package.json`, '{"type":"module"}\n');
     await esbuild({
       absWorkingDir: dirname(file),
       bundle: true,

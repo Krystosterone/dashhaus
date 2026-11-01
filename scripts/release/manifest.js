@@ -22,11 +22,11 @@ export const root = (() => {
 export const publicPackages = [
   { key: "core", name: "@dashhaus/core", dir: "packages/core", ship: ["dist", "README.md"] },
   { key: "dashboard", name: "@dashhaus/dashboard", dir: "packages/dashboard", ship: ["dist", "README.md"] },
-  { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.mjs", "src/*.mjs", "src/*.d.mts", "README.md"] },
+  { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.js", "src/*.js", "src/*.d.ts", "README.md"] },
   { key: "orb", name: "@dashhaus/orb", dir: "src/skins/orb", ship: ["dist", "README.md"] },
   { key: "field", name: "@dashhaus/field", dir: "src/skins/field", ship: ["dist", "README.md"] },
   { key: "bundle", name: "@dashhaus/bundle", dir: "packages/bundle", ship: ["dist", "README.md"] },
-  { key: "scaffold", name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", ship: ["dist", "bin.mjs", "README.md"] },
+  { key: "scaffold", name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", ship: ["dist", "bin.js", "README.md"] },
 ];
 
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -64,8 +64,10 @@ export function publishManifest(manifest) {
     const targets = Object.values(next.exports).flatMap((target) => typeof target === "string" ? [target] : Object.values(target));
     const bad = targets.filter((target) => !target.startsWith("./dist/") || target.endsWith(".tsx") || (target.endsWith(".ts") && !target.endsWith(".d.ts")));
     if (bad.length) throw new Error(`${manifest.name}: export targets must be built dist files: ${bad.join(", ")}`);
-  } else if (JSON.stringify(next.exports).match(/\.tsx?"/)) {
-    throw new Error(`${manifest.name}: the packed exports reach a TypeScript file`);
+  } else {
+    const targets = Object.values(next.exports).flatMap((target) => typeof target === "string" ? [target] : Object.values(target));
+    const bad = targets.filter((target) => target.endsWith(".ts") && !target.endsWith(".d.ts") || target.endsWith(".tsx"));
+    if (bad.length) throw new Error(`${manifest.name}: the packed exports reach a TypeScript implementation file: ${bad.join(", ")}`);
   }
 
   for (const field of DEPENDENCY_FIELDS) {

@@ -3,13 +3,13 @@
  * The skin user's clean-room journey, from packed tarballs only:
  *
  *   npm run release:pack
- *   node verify/dx/user.mjs [--tarballs <dir>] [--keep]
+ *   node verify/dx/user.js [--tarballs <dir>] [--keep]
  *
  * Install `@dashhaus/bundle` and `@dashhaus/deploy`, write a short `dashboard.config.mjs`, and deploy the prebuilt
  * bundle through `deploy({ connect: fakeHa })`. No clone, no build, no React, core or dashboard in the app.
  *
- * The deploy CLI defaults to `dashboard.config.mjs` (`packages/deploy/src/cli.mjs`), so that is the file the driver
- * writes and passes to `deploy()`. The plan's snippet calls it `dashhaus.config.mjs`; `npx dashhaus-deploy --skip-build`
+ * The deploy CLI defaults to `dashboard.config.mjs` (`packages/deploy/src/cli.js`), so that is the file the driver
+ * writes and passes to `deploy()`. The plan's snippet names a different config file; `npx dashhaus-deploy --skip-build`
  * would not find that name without `--config`. This is a plan/code discrepancy, not a driver choice.
  */
 import assert from "node:assert/strict";
@@ -17,7 +17,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FakeHomeAssistant, connectTo } from "./fake-ha.mjs";
+import { FakeHomeAssistant, connectTo } from "./fake-ha.js";
 import {
   Gap,
   clean,
@@ -31,7 +31,7 @@ import {
   shown,
   tarballs,
   tarballsDir,
-} from "./harness.mjs";
+} from "./harness.js";
 
 const PHASE_BUNDLE = "Phase 2 — add @dashhaus/bundle with the prebuilt dashhaus.js and bundlePath";
 
