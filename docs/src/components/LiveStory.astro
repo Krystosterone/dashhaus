@@ -1,0 +1,88 @@
+---
+/**
+ * A Storybook story drawn live in the page: the repository's own stories on the demo house, so a press or a slide
+ * works as it does on a dashboard. The frame keeps the story's device width and scales down to fit the column, and
+ * the story follows the site's light or dark theme through the skin's own Storybook toolbar global.
+ *
+ * In a build, Storybook is the copy `npm run build:docs` puts under /storybook; under `npm run docs`, it is
+ * `npm run storybook` on port 6006.
+ */
+interface Props {
+  /** The story id, as in Storybook's URL (`orb-dashboards-examples--phone`). */
+  id: string;
+  /** What the story shows, for the frame's accessible name. */
+  title: string;
+  /** The story's device frame (`Device` in the Examples stories). */
+  width: number;
+  height: number;
+  /** The toolbar global for each site theme (`theme:light`, `finish:black`). */
+  light: string;
+  dark: string;
+}
+
+const { id, title, width, height, light, dark } = Astro.props;
+const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
+const src = (globals: string) => `${storybook}iframe.html?id=${id}&viewMode=story&globals=${globals}`;
+/** The Examples stories' `Device` adds its caption and margins around the screen. */
+const frame = height + 72;
+---
+
+<div class="live-story" data-live-story style={`--w: ${width}; --h: ${frame}; max-width: ${width}px`}>
+  <iframe title={title} loading="lazy" width={width} height={frame} data-light={src(light)} data-dark={src(dark)}></iframe>
+</div>
+<p class="live-story-link">
+  <a href={`${storybook}?path=/story/${id}`} target="_blank" rel="noopener">Open in Storybook</a>
+</p>
+
+<style>
+  .live-story {
+    --s: 1;
+    position: relative;
+    height: calc(var(--h) * var(--s) * 1px);
+    overflow: hidden;
+  }
+
+  /* Sized here, not by Starlight's content styles (`height: auto`, `max-width: 100%`), which would cut the story
+     short and narrow it before it is scaled. */
+  iframe {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: calc(var(--w) * 1px);
+    height: calc(var(--h) * 1px);
+    max-width: none;
+    margin: 0;
+    border: 0;
+    transform: scale(var(--s));
+    transform-origin: top left;
+  }
+
+  .live-story-link {
+    font-size: var(--sl-text-sm);
+  }
+</style>
+
+<script>
+  const frames = [...document.querySelectorAll<HTMLElement>("[data-live-story]")];
+
+  /** Scale each story down to its column; it never grows past its device width. */
+  const fit = new ResizeObserver((entries) => {
+    for (const { target, contentRect } of entries) {
+      const width = Number(getComputedStyle(target).getPropertyValue("--w"));
+      (target as HTMLElement).style.setProperty("--s", String(Math.min(1, contentRect.width / width)));
+    }
+  });
+
+  /** Point each story at the site's current theme; a theme change reloads it in the other look. */
+  const follow = () => {
+    const theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    for (const frame of frames) {
+      const iframe = frame.querySelector("iframe")!;
+      const src = iframe.dataset[theme]!;
+      if (iframe.getAttribute("src") !== src) iframe.setAttribute("src", src);
+    }
+  };
+
+  for (const frame of frames) fit.observe(frame);
+  follow();
+  new MutationObserver(follow).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>

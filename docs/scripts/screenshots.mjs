@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Captures the skin gallery's screenshots from a static Storybook build: each skin's phone and tablet example, in its
- * light and dark look, written as WebP to src/assets/skins/, plus the home page's square hero (both phones side by
- * side) for each look. Run `npm run build-storybook` at the root first, then
- * `npm run screenshots -w docs [-- <storybook-static dir>]`. Rerun it when a skin's example dashboards change.
+ * Captures the home page's hero from a static Storybook build: each skin's phone example in its light and dark look,
+ * then the two phones side by side as one square image per look, written as WebP to src/assets/skins/. Run
+ * `npm run build-storybook` at the root first, then `npm run screenshots -w docs [-- <storybook-static dir>]`. Rerun it
+ * when a skin's phone example changes.
  */
 /* global document */
 import { createServer } from "node:http";
@@ -17,17 +17,15 @@ const here = fileURLToPath(new URL(".", import.meta.url));
 const storybook = resolve(process.argv[2] ?? join(here, "../../storybook-static"));
 const out = join(here, "../src/assets/skins");
 
-/** [file, story id, globals]: the light look first, then the dark one. */
+/** [skin, look, globals]: each skin's phone example in the site's light and dark look. */
 const SHOTS = [
-  ["orb-phone-light", "orb-dashboards-examples--phone", "theme:light"],
-  ["orb-phone-dark", "orb-dashboards-examples--phone", "theme:dark"],
-  ["orb-tablet-light", "orb-dashboards-examples--tablet", "theme:light"],
-  ["orb-tablet-dark", "orb-dashboards-examples--tablet", "theme:dark"],
-  ["field-phone-light", "field-dashboards-examples--phone", "finish:alloy"],
-  ["field-phone-dark", "field-dashboards-examples--phone", "finish:black"],
-  ["field-tablet-light", "field-dashboards-examples--tablet", "finish:alloy"],
-  ["field-tablet-dark", "field-dashboards-examples--tablet", "finish:black"],
+  ["orb", "light", "theme:light"],
+  ["orb", "dark", "theme:dark"],
+  ["field", "light", "finish:alloy"],
+  ["field", "dark", "finish:black"],
 ];
+/** `<skin>-<look>` → the phone's screen as a PNG. */
+const phones = new Map();
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
 const server = createServer(async (req, res) => {
@@ -44,13 +42,12 @@ const { port } = /** @type {import("node:net").AddressInfo} */ (server.address()
 const browser = await chromium.launch();
 try {
   const page = await browser.newPage({ viewport: { width: 1400, height: 1400 }, deviceScaleFactor: 2, reducedMotion: "reduce" });
-  for (const [file, id, globals] of SHOTS) {
-    await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=${globals}`);
+  for (const [skin, look, globals] of SHOTS) {
+    await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${skin}-dashboards-examples--phone&viewMode=story&globals=${globals}`);
     const screen = page.locator("#storybook-root figure > div").first();
     await screen.waitFor();
     await page.evaluate(() => document.fonts.ready);
-    await sharp(await screen.screenshot({ animations: "disabled" })).webp({ quality: 86 }).toFile(join(out, `${file}.webp`));
-    console.log(`wrote ${file}.webp`);
+    phones.set(`${skin}-${look}`, await screen.screenshot({ animations: "disabled" }));
   }
 } finally {
   await browser.close();
@@ -65,7 +62,7 @@ const fade = Buffer.from(
     `<rect width="100%" height="100%" fill="url(#f)"/></svg>`,
 );
 for (const look of ["light", "dark"]) {
-  const phone = (skin) => sharp(join(out, `${skin}-phone-${look}.webp`)).extract({ left: 0, top: 0, width: 780, height: SIDE }).toBuffer();
+  const phone = (skin) => sharp(phones.get(`${skin}-${look}`)).extract({ left: 0, top: 0, width: 780, height: SIDE }).toBuffer();
   await sharp({ create: { width: SIDE, height: SIDE, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
     .composite([{ input: await phone("orb"), left: 0, top: 0 }, { input: await phone("field"), left: SIDE - 780, top: 0 }, { input: fade, blend: "dest-in" }])
     .webp({ quality: 86 })

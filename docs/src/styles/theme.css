@@ -11,13 +11,3 @@
   --sl-color-accent-high: oklch(0.36 0.08 92);
 }
 
-.skin-shot {
-  border-radius: 0.75rem;
-  border: 1px solid var(--sl-color-hairline);
-}
-
-/* A phone screenshot keeps its device width rather than stretching to the column. */
-.skin-phone {
-  width: 390px;
-  max-width: 100%;
-}
