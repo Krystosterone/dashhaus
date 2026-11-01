@@ -12,6 +12,8 @@ interface Props {
   id: string;
   /** What the story shows, for the frame's accessible name. */
   title: string;
+  /** The device, in the note a narrow page shows instead of a wide story (`Tablet`). */
+  device: string;
   /** The story's device frame (`Device` in the Examples stories). */
   width: number;
   height: number;
@@ -20,19 +22,29 @@ interface Props {
   dark: string;
 }
 
-const { id, title, width, height, light, dark } = Astro.props;
+const { id, title, device, width, height, light, dark } = Astro.props;
+/** A story wider than a phone (a tablet, a wall panel) would shrink past reading on one, so a narrow page links it. */
+const wide = width > 600;
 const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
 const src = (globals: string) => `${storybook}iframe.html?id=${id}&viewMode=story&globals=${globals}`;
 /** The Examples stories' `Device` adds its caption and margins around the screen. */
 const frame = height + 72;
 ---
 
-<div class="live-story" data-live-story style={`--w: ${width}; --h: ${frame}; max-width: ${width}px`}>
+<div class="live-story" data-live-story data-wide={wide || undefined} style={`--w: ${width}; --h: ${frame}; max-width: ${width}px`}>
   <iframe title={title} loading="lazy" width={width} height={frame} data-light={src(light)} data-dark={src(dark)}></iframe>
 </div>
-<p class="live-story-link">
+<p class="live-story-link" data-wide={wide || undefined}>
   <a href={`${storybook}?path=/story/${id}`} target="_blank" rel="noopener">Open in Storybook</a>
 </p>
+{
+  wide && (
+    <p class="live-story-note">
+      <strong>{device} layout.</strong> It is {width} px wide, so it shows on a larger screen.{" "}
+      <a href={`${storybook}?path=/story/${id}`} target="_blank" rel="noopener">Open it in Storybook</a>
+    </p>
+  )
+}
 
 <style>
   .live-story {
@@ -58,6 +70,27 @@ const frame = height + 72;
 
   .live-story-link {
     font-size: var(--sl-text-sm);
+  }
+
+  .live-story-note {
+    display: none;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+
+  /* Below Starlight's sidebar breakpoint, a wide story would draw at a third of its size: a note links it instead. */
+  @media (max-width: 50rem) {
+    .live-story[data-wide],
+    .live-story-link[data-wide] {
+      display: none;
+    }
+
+    .live-story-note {
+      display: block;
+    }
   }
 </style>
 
