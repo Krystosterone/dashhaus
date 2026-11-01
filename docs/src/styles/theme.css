@@ -11,3 +11,8 @@
   --sl-color-accent-high: oklch(0.36 0.08 92);
 }
 
+
+/* A page of live stories gets a wider column, so a tablet story draws near its own size beside the sidebar. */
+:root:has([data-live-story]) {
+  --sl-content-width: 64rem;
+}
