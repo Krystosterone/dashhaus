@@ -1,44 +1,36 @@
 # __Section__
 
-A standalone Dashhaus skin: one control card (light), one reading card (sensor), the shared `@dashhaus/core` hooks
-behind them, and `custom:__card_type__`, which draws the whole page from YAML. No Storybook, no workspace and no
-repository script: everything here belongs to the skin.
+A Dashhaus skin: a Home Assistant dashboard drawn in React inside one Lovelace card, `custom:__card_type__`. It starts
+with a control card (lights), a reading card (temperature and humidity sensors), a page that groups them by
+area, a local preview and a one-file build. `@dashhaus/core` reads Home Assistant; the look is this folder's own.
 
-## Install and test
+Working with an agent? Point it at `AGENTS.md`. It covers where the colours, type, parts and rules live, and how to
+restyle the skin from a screenshot or a description.
+
+## Use
 
 ```sh
 npm install
-npm test        # the packed conformance preset over cards/
-npm run build   # dist/dashhaus-__skin__.js: one file, its CSS included
+npm run preview     # the skin on a sample house, in the browser
+npm run snapshot    # the same page saved as preview/snapshots/*.png (installs nothing; says what it needs)
+npm test            # TypeScript, then the card and CSS rules
+npm run build       # dist/dashhaus-__skin__.js: one ES module, its CSS included
 ```
-
-React 18.3+ or 19 and `home-assistant-js-websocket` are peers; npm installs them with the rest. The build is one ES module,
-so Home Assistant needs one dashboard resource.
 
 ## Deploy
 
-Copy `.env.example` from the deploy docs to `.env` beside `dashboard.config.mjs`, fill in `HA_URL`, `HA_TOKEN` and
-`HA_WWW`, then:
-
 ```sh
-npx dashhaus-deploy --skip-build
+cp .env.example .env    # HA_URL, HA_TOKEN, HA_WWW
+npm run deploy
 ```
 
-Or run `npm run deploy` after a build. The config registers `__card_type__`, uploads `dist/dashhaus-__skin__.js` and
-creates the dashboard once. A card with no `cards` list lays out every light and sensor by Home Assistant area.
+It builds, uploads `dist/dashhaus-__skin__.js` into Home Assistant's `/config/www`, registers it as a dashboard
+resource, checks Home Assistant serves it and creates **Home (__Section__)** the first time. Reload any open tab
+afterwards. Run it again after every change; the dashboard's layout is kept.
 
-## Cards
+## YAML
 
-| Card | Domain | What it draws |
-| --- | --- | --- |
-| `__Skin__LightCard` | `light.*` | its name, area, state and one on/off button, over `useHaLight` |
-| `__Skin__SensorCard` | `sensor.*` | its name, area, temperature and optional humidity, over `useHaSensor` |
-
-Every card folder has its component, its CSS, its story metadata and a two-letter code. Add a domain by giving it a
-card folder, a `ha/` adapter and a row in `lovelace/registry.tsx`; the conformance test checks the class prefix and the
-Home Assistant boundary.
-
-YAML:
+With no `cards`, the card lays out every light and sensor by Home Assistant area. To choose:
 
 ```yaml
 type: custom:__card_type__
@@ -46,15 +38,15 @@ title: Home
 cards:
   - entity: light.kitchen
   - entity: sensor.office_temperature
-    name: Office
+    name: Office        # overrides the friendly name
+    area: Upstairs      # overrides the area it is grouped under
 ```
 
 ## Layout
 
-- `cards/` — the presentational cards; they import `@dashhaus/core` entities, primitives and formatters, never Home Assistant.
-- `ha/` — the connected adapters; the only files that call `useHa<Name>`.
-- `lovelace/` — the YAML reader, the card registry, the custom element and the bundle entry.
-- `shared/` — parts every card uses, such as the action button.
-- `styles/tokens.css` — every colour the skin draws; classes use the `__skin__-` namespace.
-
-The design is yours: change the tokens and the card markup, keep the domain and Home Assistant contracts.
+- `styles/tokens.css`: every colour, font and easing, light and dark.
+- `cards/`: the presentational cards; they never import Home Assistant.
+- `ha/`: the adapters, the only files that call `useHa<Name>`.
+- `shared/`: the page and the parts every card uses.
+- `lovelace/`: the custom element (page layout, fonts), its YAML reader, the card registry and the bundle entry.
+- `preview/`: the local preview and its sample house; not in the bundle.

@@ -8,6 +8,14 @@ import { renderCard } from "./registry";
 
 export const __SKIN_CONST___CARD_TYPE = "__card_type__";
 
+/**
+ * The skin's web fonts, as one Google Fonts stylesheet URL, e.g.
+ * "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap".
+ * The element links it from the page (a font can't load from inside a shadow root); name the families in
+ * styles/tokens.css. Undefined keeps the system stack, and a page without the network keeps it too.
+ */
+const FONT_HREF: string | undefined = undefined;
+
 const HOST_CSS = `
 :host { display: block; height: 100%; }
 .__skin__-surface { min-height: 100%; }
@@ -30,6 +38,7 @@ export function create__Skin__Card(css: string): CustomElementConstructor {
   return class Dashhaus__Skin__Card extends LovelaceDashboardElement<__Skin__Config> {
     protected readonly styles = styles;
     protected readonly mountClass = "__skin__-surface";
+    protected readonly fontHref = FONT_HREF;
     #key?: unknown[];
 
     static getStubConfig() {

@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node conformance.mjs",
+    "preview": "vite serve preview --config vite.config.mjs",
+    "snapshot": "node preview/snapshot.mjs",
+    "test": "tsc && node conformance.mjs",
     "build": "vite build",
-    "deploy": "dashhaus-deploy --skip-build"
+    "deploy": "dashhaus-deploy"
   },
   "dependencies": {
     "@dashhaus/core": "^0.2.0",
@@ -14,7 +16,10 @@
   },
   "devDependencies": {
     "@dashhaus/deploy": "^0.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
     "vite": "^5.4.19"
   },
   "peerDependencies": {
