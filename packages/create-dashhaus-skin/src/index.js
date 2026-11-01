@@ -40,7 +40,7 @@ if (tarballFlag !== -1 && !tarballDir) {
   console.error("create-dashhaus-skin: --tarballs needs the folder holding the .tgz files");
   process.exit(1);
 }
-const positional = args.filter((arg, index) => arg !== "--dry-run" && index !== tarballFlag && index !== tarballFlag + 1);
+const positional = args.filter((arg, index) => arg !== "--dry-run" && (tarballFlag === -1 || (index !== tarballFlag && index !== tarballFlag + 1)));
 if (positional.length !== 1) {
   console.error(HELP);
   process.exit(1);
