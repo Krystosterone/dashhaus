@@ -1,0 +1,51 @@
+name: Docs
+
+# The human documentation site (docs/) with Storybook under /storybook, built on every pull request and deployed to
+# GitHub Pages from main. Pages must be set to deploy from GitHub Actions in the repository settings.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Use the pinned npm
+        run: corepack enable npm && npm --version
+      - run: npm ci
+      - run: npm run build:docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/dist
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

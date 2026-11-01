@@ -6,6 +6,8 @@ React and TypeScript skins for a custom Home Assistant dashboard, developed and 
 
 Dashhaus draws Home Assistant dashboards from React + TypeScript cards, composed into phone, tablet and wall-panel pages. Two skins, Orb and Field, sit on the same entity models and Home Assistant hooks; each brings its own cards, dashboard furniture and Lovelace card (`custom:dashhaus-orb`, `custom:dashhaus-field`). It is a component library, not a runnable app: Storybook is where the cards are developed and checked.
 
+Documentation: **[krystosterone.github.io/dashhaus](https://krystosterone.github.io/dashhaus/)**, with Storybook at [/storybook](https://krystosterone.github.io/dashhaus/storybook/).
+
 ## Install
 
 ```sh

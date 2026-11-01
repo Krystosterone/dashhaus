@@ -1,0 +1,130 @@
+---
+title: Deploy a dashboard
+description: Install the prebuilt bundle and add Orb and Field dashboards to your Home Assistant.
+---
+
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+You don't need to clone or build anything. The prebuilt bundle holds both skins. A small command-line tool copies it
+into Home Assistant and creates a dashboard for each skin. After that you change layouts in Home Assistant itself.
+
+<Aside type="caution" title="Not on npm yet">
+  The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
+  then, deploy from a clone of the [repository](https://github.com/Krystosterone/dashhaus) with `npm install` and
+  `npm run deploy`.
+</Aside>
+
+## What you need
+
+- Home Assistant with an admin user.
+- Node.js 22 or newer on the computer you deploy from.
+- A way to copy a file into Home Assistant's `/config/www` folder: the **Terminal & SSH** add-on with your public key
+  in its `authorized_keys`, the **Samba** add-on's share mounted on your computer, or a Docker volume.
+
+## Deploy
+
+<Steps>
+
+1. Make a folder for your dashboards and install the bundle and the deploy tool:
+
+   ```sh
+   mkdir my-dashboards && cd my-dashboards
+   npm init -y
+   npm install @dashhaus/bundle @dashhaus/deploy
+   ```
+
+2. Create a `.env` file in that folder with three settings:
+
+   ```sh title=".env"
+   HA_URL=http://homeassistant.local:8123
+   HA_TOKEN=your-long-lived-access-token
+   HA_WWW=root@homeassistant.local:/config/www
+   ```
+
+   - `HA_URL` is the address you open Home Assistant at.
+   - `HA_TOKEN` is a long-lived access token from an admin user (**Profile → Security → Long-lived access tokens**).
+     Only the deploy tool uses it. It never goes into the bundle.
+   - `HA_WWW` is where Home Assistant's `/config/www` folder is: an SSH address like the one above (add
+     `HA_SSH_PORT` if it isn't 22), or a local folder such as `/Volumes/config/www`.
+
+   Keep `.env` out of version control.
+
+3. Create `dashboard.config.mjs` next to it. It names the bundle to upload and the dashboards to create:
+
+   ```js title="dashboard.config.mjs"
+   import { fileURLToPath } from "node:url";
+   import { bundlePath } from "@dashhaus/bundle";
+
+   export default {
+     pageTitle: "Home",
+     bundle: fileURLToPath(bundlePath),
+     dashboards: [
+       {
+         path: "home-orb",
+         title: "Home (Orb)",
+         icon: "mdi:home-variant",
+         async card() {
+           return { card: { type: "custom:dashhaus-orb" }, made: "automatic" };
+         },
+       },
+       {
+         path: "home-field",
+         title: "Home (Field)",
+         icon: "mdi:knob",
+         async card() {
+           return { card: { type: "custom:dashhaus-field" }, made: "automatic" };
+         },
+       },
+     ],
+   };
+   ```
+
+   Each `path` needs a hyphen; Home Assistant requires one. Keep only the skin you want if you don't need both.
+
+4. Deploy:
+
+   ```sh
+   npx dashhaus-deploy --skip-build
+   ```
+
+   The tool copies the bundle into `www/`, registers it as a dashboard resource, and creates each dashboard the first
+   time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build.
+
+5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)** or **Home (Field)** in the sidebar.
+
+   Home Assistant reads its list of resources when a tab opens. Until you reload, an open tab shows the new dashboard
+   in the sidebar but says "Configuration error" instead of drawing it.
+
+</Steps>
+
+## Change the layout
+
+A new dashboard lays out every supported entity by area. To choose your own sections and order, open the dashboard and
+go to **⋮ → Edit dashboard**, then the card's pencil and **Show code editor**. The preview redraws as you type, and
+mistakes are listed all together with where they are and what you probably meant:
+
+```text
+Dashhaus config has 2 problems:
+• sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
+• sections[2].cards[3]: media_player.tv: media_player.* entities have no card yet
+```
+
+To put a Dashhaus card on another dashboard, add **Dashhaus** from the card picker. It starts from the generated layout
+for your house. Put it in a **Panel** view so it gets the full width.
+
+## Update
+
+Update the packages and run the same command again:
+
+```sh
+npm update @dashhaus/bundle @dashhaus/deploy
+npx dashhaus-deploy --skip-build
+```
+
+Redeploying replaces the bundle and leaves your dashboards alone, so layouts you edited in Home Assistant are kept.
+Open tabs pick up the new version when they reload.
+
+<Aside>
+  If your dashboards are in YAML mode, the tool can't register resources itself. It prints the lines to add to
+  `configuration.yaml` instead.
+</Aside>

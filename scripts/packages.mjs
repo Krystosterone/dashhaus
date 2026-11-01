@@ -21,7 +21,7 @@ export const root = (() => {
 })();
 
 /** Root `workspaces`: the shared packages, and one package per generated skin. */
-export const workspaces = ["packages/*", "src/skins/*"];
+export const workspaces = ["packages/*", "src/skins/*", "docs"];
 
 const define = (dir) => {
   const manifest = JSON.parse(readFileSync(join(root, dir, "package.json"), "utf8"));

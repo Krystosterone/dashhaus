@@ -1,0 +1,55 @@
+---
+title: Orb and Field
+description: The two Dashhaus skins, side by side on a phone and a tablet.
+---
+
+import { Image } from "astro:assets";
+import { LinkCard } from "@astrojs/starlight/components";
+import orbPhoneLight from "../../assets/skins/orb-phone-light.webp";
+import orbPhoneDark from "../../assets/skins/orb-phone-dark.webp";
+import orbTabletLight from "../../assets/skins/orb-tablet-light.webp";
+import orbTabletDark from "../../assets/skins/orb-tablet-dark.webp";
+import fieldPhoneLight from "../../assets/skins/field-phone-light.webp";
+import fieldPhoneDark from "../../assets/skins/field-phone-dark.webp";
+import fieldTabletLight from "../../assets/skins/field-tablet-light.webp";
+import fieldTabletDark from "../../assets/skins/field-tablet-dark.webp";
+
+A skin is a whole look for your dashboards. Both skins draw the same entities from the same Home Assistant data, and
+the bundle carries both, so trying the other one is just another dashboard. The pictures follow this site's theme:
+switch it to see each skin in light and dark.
+
+## Orb
+
+Soft, rounded and made to read at a glance. Each card has a round button for its main action. Lights, climate and
+covers get a slider or stepper beside it, and readings show a big figure. Colour means something: the yellow accent
+shows what is on, and a dashed outline means a device is unavailable. Tap a card's name, or press and hold its button,
+to open more detail in a sheet. Orb also joins related cards into one, like a nursery's sound machine, night light and
+white noise.
+
+<Image src={orbPhoneLight} alt="Orb on a phone in light mode: quick actions, home status and room readings" class="skin-shot skin-phone dark:sl-hidden" widths={[390, 780]} sizes="390px" />
+<Image src={orbPhoneDark} alt="Orb on a phone in dark mode: quick actions, home status and room readings" class="skin-shot skin-phone light:sl-hidden" widths={[390, 780]} sizes="390px" />
+
+<Image src={orbTabletLight} alt="Orb on a tablet in light mode" class="skin-shot dark:sl-hidden" />
+<Image src={orbTabletDark} alt="Orb on a tablet in dark mode" class="skin-shot light:sl-hidden" />
+
+<LinkCard title="Orb in Storybook" description="Every Orb card in every state, with its details sheet." href="/dashhaus/storybook/?path=/docs/orb-foundations-design-rules--docs" target="_blank" />
+
+## Field
+
+A hardware panel. Each module has a key you press, a fader you slide and an always-dark screen you read, with printed
+labels in capitals. A small orange mark shows what a control sets. Field comes in two finishes, light grey Alloy and
+Black, and opens detail in a panel from the module's name.
+
+<Image src={fieldPhoneLight} alt="Field on a phone in the Alloy finish" class="skin-shot skin-phone dark:sl-hidden" widths={[390, 780]} sizes="390px" />
+<Image src={fieldPhoneDark} alt="Field on a phone in the Black finish" class="skin-shot skin-phone light:sl-hidden" widths={[390, 780]} sizes="390px" />
+
+<Image src={fieldTabletLight} alt="Field on a tablet in the Alloy finish: living room, nursery and outside" class="skin-shot dark:sl-hidden" />
+<Image src={fieldTabletDark} alt="Field on a tablet in the Black finish: living room, nursery and outside" class="skin-shot light:sl-hidden" />
+
+<LinkCard title="Field in Storybook" description="Every Field module in every state, with its detail panel." href="/dashhaus/storybook/?path=/docs/field-foundations-design-rules--docs" target="_blank" />
+
+## What they draw
+
+Both skins have cards for lights, climate, covers, toggles (switches and `input_boolean` modes), sensors, the weather,
+alarm panels, humidifiers, sound machines and Owlet socks. An entity without a card isn't drawn, and the layout editor
+tells you so.
