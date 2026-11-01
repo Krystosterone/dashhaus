@@ -1,0 +1,40 @@
+---
+/**
+ * A code sample from a real file, never from the page: `docs/examples/<file>`, which `npm run typecheck` and
+ * `npm run lint` check (and `verify/docs.test.ts` parses, for YAML), or a scaffolder template (`template`), shown as
+ * `create-dashhaus-skin my-skin` writes it. A page can't hold a sample that no longer compiles.
+ */
+import { readFileSync } from "node:fs";
+import { extname, join } from "node:path";
+import { Code } from "@astrojs/starlight/components";
+import { examplesDir, repoRoot } from "../lib/api";
+import { fill } from "../lib/scaffold";
+
+interface Props {
+  /** A path under docs/examples. */
+  file?: string;
+  /** A path under packages/create-dashhaus-skin/src/templates, with its placeholders. */
+  template?: string;
+  /** The frame's title; a template defaults to the path the scaffold writes. */
+  title?: string;
+  /** Lines or text to mark as added. */
+  ins?: (number | string)[] | string;
+  /** Lines or text to highlight. */
+  mark?: (number | string)[] | string;
+  /** Wrap long lines, for a sample in a narrow column. */
+  wrap?: boolean;
+}
+
+const { file, template, title, ins, mark, wrap } = Astro.props;
+if ((file == null) === (template == null)) throw new Error("Example: give one of file or template");
+
+const LANGS: Record<string, string> = { ".ts": "ts", ".tsx": "tsx", ".mjs": "js", ".js": "js", ".yaml": "yaml", ".json": "json", ".css": "css" };
+const path = file ? join(examplesDir(), file) : join(repoRoot(), "packages/create-dashhaus-skin/src/templates", template!);
+const raw = readFileSync(path, "utf8");
+const code = (template ? fill(raw) : raw).trimEnd();
+const lang = LANGS[extname(path)];
+if (!lang) throw new Error(`Example: no language for ${path}`);
+const frameTitle = title ?? (template ? fill(template) : undefined);
+---
+
+<Code code={code} lang={lang} title={frameTitle} ins={ins} mark={mark} wrap={wrap} />

@@ -1,0 +1,84 @@
+---
+title: Repository and commands
+description: "For contributors - how the Dashhaus repository is laid out, the commands, and what a change must pass."
+---
+
+This section is for working on Dashhaus itself, in a clone of the
+[repository](https://github.com/Krystosterone/dashhaus). It names paths and commands; the rest of the site doesn't.
+
+## Set up
+
+```sh
+git clone https://github.com/Krystosterone/dashhaus.git
+cd dashhaus
+npm install
+npm run storybook
+```
+
+Node 22 (`.nvmrc`; 22.9 at least), and the npm version root `package.json` pins with `packageManager`. `npm install`
+links every workspace package, so the root apps read each package's source, not a build. Storybook runs at
+`http://localhost:6006`.
+
+## Layout
+
+```text
+packages/
+  core/                  @dashhaus/core: entities/, ha/ (store, mappers, actions, hooks), primitives/, hooks/, demo/
+  dashboard/             @dashhaus/dashboard: element, card frame, schema, layout, conformance
+  deploy/                @dashhaus/deploy: the dashhaus-deploy CLI
+  bundle/                @dashhaus/bundle: the prebuilt dist/dashhaus.js
+  create-dashhaus-skin/  the scaffolder and its templates
+src/skins/
+  orb/                   @dashhaus/orb: cards/, shared/, bundles/, dashboards/, ha/, lovelace/, styles/
+  field/                 @dashhaus/field: the same shape, without bundles
+apps/lovelace/entry.ts   the bundle's entry: both skins' Lovelace cards in one file
+verify/                  checks across packages and skins: boundaries, conformance, Storybook, releases, docs
+scripts/                 the generators (new-card, new-skin), builds, release and perf tooling
+spec/                    the specification the code is held to, for maintainers and agents
+docs/                    this site (Astro Starlight); its code samples are in docs/examples/
+```
+
+Imports go one way: an entity model imports nothing of Home Assistant, the Home Assistant layer imports no skin, a
+skin imports no other skin, and a skin's cards never import the Home Assistant layer, only its `ha/` and `lovelace/`
+folders do. ESLint and `verify/boundaries.test.ts` hold it.
+
+## Commands
+
+| Command | Does |
+| --- | --- |
+| `npm run storybook` | Storybook's dev server, every skin's cards and dashboards on demo data |
+| `npm run check` | Typecheck, lint and unit tests: the gate before any change is done |
+| `npm run test-storybook` | Builds Storybook, then renders every story and runs axe on it in Chromium |
+| `npm run build:ha` | The one-file Lovelace bundle, `dist/dashhaus.js`, copied into `packages/bundle/dist/` |
+| `npm run deploy` | Builds the bundle and deploys the dashboards `dashboard.config.mjs` declares, with `.env` beside it |
+| `npm run docs` | This site's dev server; `npm run build:docs` builds it with Storybook under `/storybook` |
+| `npm run build:packages` | Each public package's `dist` |
+| `npm run release:check` | Packs the seven tarballs and installs them into a clean app |
+| `npm run new-card`, `npm run new-skin` | The generators ([Add a card or a skin](/dashhaus/develop/cards-and-skins/)) |
+| `npm run perf:collect` | Measures the deployed dashboards in Chromium against a live Home Assistant |
+
+## What a change must pass
+
+1. `npm run check`.
+2. `npm run test-storybook`: every story renders and passes axe, and a failure names the rule and the elements.
+3. A look in Storybook at the cards you touched: their All states, Sizes, Footprints, Compact, Worst case and Details
+   stories, at every width.
+
+CI runs the first two on every push and pull request, and also packs the release and runs the two clean-room journeys
+these docs describe: [deploying the bundle](/dashhaus/start/deploy/) and [building a skin](/dashhaus/start/build-a-skin/),
+from the tarballs alone, into a simulated Home Assistant.
+
+## The docs' code samples
+
+Every code sample on this site is a file in `docs/examples/`, shown by `docs/src/components/Example.astro`. They are
+checked like code:
+
+- `npm run typecheck` compiles them (`docs/examples/tsconfig.json`) and `npm run lint` lints them.
+- `verify/docs.test.ts` fails a page with a TypeScript, JavaScript, YAML or JSON code fence of its own, parses every
+  Lovelace YAML sample with its skin's reader, loads the deploy config, and typechecks the author guide's scaffold
+  with its added domain.
+- Tests among them, such as `docs/examples/testing/LightButton.test.tsx`, run with the unit tests.
+
+The API lists (options, return values, signatures) aren't written by hand either: `docs/src/lib/api.ts` reads them
+from the packages' TypeScript when the site builds, so a renamed option changes the page, and a removed one fails the
+build.

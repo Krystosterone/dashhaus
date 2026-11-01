@@ -1,0 +1,119 @@
+---
+title: Getting started
+description: "Install the packages, put the store above your app, and draw a first control headless and with a skin."
+---
+
+import { Aside, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import Example from "../../../components/Example.astro";
+
+This page puts Dashhaus in a React app of yours: install, connect the store, then draw one light twice, once with your
+own markup on the headless hook and once with a skin's ready-made component. If you only want a finished dashboard in
+Home Assistant, [Deploy a dashboard](/dashhaus/start/deploy/) needs no React at all.
+
+<Aside type="caution" title="Not on npm yet">
+  The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
+  then, try the samples from a clone of the [repository](https://github.com/Krystosterone/dashhaus), where every
+  package is linked by `npm install`.
+</Aside>
+
+## 1. Install
+
+<Tabs syncKey="way">
+  <TabItem label="Headless">
+    ```sh
+    npm install @dashhaus/core react react-dom home-assistant-js-websocket
+    ```
+
+    `@dashhaus/core` has no markup and no CSS. React 18.3 or newer (19 included) is a peer.
+    `home-assistant-js-websocket` is only needed by `@dashhaus/core/websocket`, which opens the connection.
+
+  </TabItem>
+  <TabItem label="Orb">
+    ```sh
+    npm install @dashhaus/orb @dashhaus/core react react-dom home-assistant-js-websocket
+    ```
+
+    `@dashhaus/orb` brings `@dashhaus/core` and `@dashhaus/dashboard` with it; naming core lets your own code import
+    the store and the hooks. Importing `@dashhaus/orb` loads Orb's stylesheet, so build with a bundler that handles
+    CSS imports, such as Vite.
+
+  </TabItem>
+  <TabItem label="Field">
+    ```sh
+    npm install @dashhaus/field @dashhaus/core react react-dom home-assistant-js-websocket
+    ```
+
+    The same as Orb: `@dashhaus/field` brings core and the dashboard package, and importing it loads Field's
+    stylesheet.
+
+  </TabItem>
+</Tabs>
+
+## 2. Put the store above your app
+
+Everything reads Home Assistant through one store. `createHaStore` turns a transport into the store and `HaProvider`
+connects it while it is mounted. Your app owns the login and the transport: here Home Assistant's OAuth flow from
+`home-assistant-js-websocket`, then `connectHomeAssistant` from `@dashhaus/core/websocket`.
+
+<Tabs syncKey="store">
+  <TabItem label="Home Assistant">
+    <Example file="start/main.tsx" title="main.tsx" />
+  </TabItem>
+  <TabItem label="Demo house">
+    No Home Assistant yet? `createDemoStore()` is the store on a demo house: the same entities Storybook and this
+    site's live dashboards use, and every action answers.
+
+    <Example file="start/demo.tsx" title="main.tsx" />
+
+  </TabItem>
+</Tabs>
+
+<Example file="start/App.tsx" title="App.tsx" />
+
+Inside Home Assistant, a skin's Lovelace card does this for you on the frontend's own connection; you never handle a
+token there. [Connecting and auth](/dashhaus/errors/auth/) covers both, and a kiosk.
+
+## 3. Draw a first control
+
+<Tabs syncKey="way">
+  <TabItem label="Headless">
+    `useHaLight` hands over the light as a plain `LightEntity`, today's history, and its actions. You draw it:
+
+    <Example file="start/DeskLamp.tsx" title="DeskLamp.tsx" />
+
+    A tap calls `light.toggle`. When Home Assistant reports the new state, the store updates and the button follows:
+    the hook never assumes the call worked.
+
+  </TabItem>
+  <TabItem label="Orb">
+    `HaLightTile` is the same hook above Orb's light tile: the round button, the brightness track, the colour and
+    warmth controls in its details sheet, and today's history.
+
+    <Example file="start/DeskLampTile.tsx" title="DeskLampTile.tsx" />
+
+    A tile fills the width of its container and keeps a fixed height, its footprint. Put `class="ha-surface"` on
+    `<body>` for Orb's page background and type.
+
+  </TabItem>
+  <TabItem label="Field">
+    `HaLightModule` is the same hook above Field's light module: a key, a fader and a screen, with a detail panel.
+
+    <Example file="start/DeskLampModule.tsx" title="DeskLampModule.tsx" />
+
+    Put `class="fd-surface"` on `<body>` for Field's page and type.
+
+  </TabItem>
+</Tabs>
+
+Swap `useHaLight` for any other hook and the pattern holds: every kind of entity has a hook, a headless component and
+a tile and a module. [Entities](/dashhaus/entities/) lists them all.
+
+## Next
+
+<Steps>
+
+1. Say when the dashboard can't reach Home Assistant: [Connection status](/dashhaus/errors/connection/).
+2. Draw a list of entities, every light in the house, with the headless components: [Light](/dashhaus/entities/light/#every-light).
+3. Test a connected control without Home Assistant: [Testing and demo data](/dashhaus/develop/testing/).
+
+</Steps>

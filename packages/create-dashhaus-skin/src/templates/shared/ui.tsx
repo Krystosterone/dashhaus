@@ -10,5 +10,5 @@ export interface ActionProps {
 
 export function Action({ label, onPress, pressed, unavailable }: ActionProps) {
   const press = usePress({ onPress, pressed, unavailable });
-  return <button type="button" className="__skin__-action" {...press}>{label}</button>;
+  return <button className="__skin__-action" {...press}>{label}</button>;
 }

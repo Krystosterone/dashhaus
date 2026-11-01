@@ -1,0 +1,44 @@
+---
+title: Entities
+description: "The ten kinds of entity Dashhaus draws, with each one's hook, headless component, Orb tile and Field module."
+---
+
+Each kind of entity has the same four things: a hook and a headless component in `@dashhaus/core`, a tile in
+`@dashhaus/orb` and a module in `@dashhaus/field`. The hook is the one implementation; the other three are it, drawn
+or not.
+
+| Kind | Home Assistant | Hook | Component | Orb | Field |
+| --- | --- | --- | --- | --- | --- |
+| [Light](/dashhaus/entities/light/) | `light.*` | `useHaLight` | `HaLight` | `HaLightTile` | `HaLightModule` |
+| [Toggle](/dashhaus/entities/toggle/) | `input_boolean.*`, `switch.*` | `useHaToggle` | `HaToggle` | `HaToggleTile` | `HaToggleModule` |
+| [Cover](/dashhaus/entities/cover/) | `cover.*` | `useHaCover` | `HaCover` | `HaCoverTile` | `HaCoverModule` |
+| [Sound](/dashhaus/entities/sound/) | `switch.*` and a volume `number.*` | `useHaSound` | `HaSound` | `HaSoundTile` | `HaSoundModule` |
+| [Climate](/dashhaus/entities/climate/) | `climate.*` | `useHaClimate` | `HaClimate` | `HaClimateTile` | `HaClimateModule` |
+| [Humidifier](/dashhaus/entities/humidifier/) | `humidifier.*` | `useHaHumidifier` | `HaHumidifier` | `HaHumidifierTile` | `HaHumidifierModule` |
+| [Sensor](/dashhaus/entities/sensor/) | `sensor.*` | `useHaSensor` | `HaSensor` | `HaSensorTile` | `HaSensorModule` |
+| [Weather](/dashhaus/entities/weather/) | `weather.*` | `useHaWeather` | `HaWeather` | `HaWeatherTile` | `HaWeatherModule` |
+| [Alarm](/dashhaus/entities/alarm/) | `alarm_control_panel.*` | `useHaAlarm` | `HaAlarm` | `HaAlarmTile` | `HaAlarmModule` |
+| [Owlet](/dashhaus/entities/owlet/) | `sensor.*_sleep_state` | `useHaOwlet` | `HaOwlet` | `HaOwletTile` | `HaOwletModule` |
+
+## What every hook returns
+
+`useHa<Name>(entityId, options)` returns:
+
+- `entity`: the normalized model. It is always there, even before Home Assistant has delivered the entity or while it
+  is unavailable: its `state` is then `"unavailable"`, and its fields are what's known.
+- `history`: today, hour by hour, from Home Assistant's recorder and every change since.
+- `actions`: what the entity can do, for a control. An optional handler (a light's `onKelvinChange`, a cover's
+  `onSetPosition`) is left out when the entity can't use it, so test the handler before drawing its control. Sensors
+  and the weather have no actions; the weather adds `hourly` and `daily` forecasts.
+
+Every hook takes `name` and `area` to override what Home Assistant says, `history` and `loadHistory` to supply or skip
+today's read, and, for a control, `onActionError` ([Action errors](/dashhaus/errors/actions/)).
+
+## Calls are a request, not a result
+
+An action sends one Home Assistant service call and returns. The entity changes when Home Assistant reports that it
+changed, through the store, never before: a light shows on because it is on. So a control drawn on a hook is never
+optimistic, and a call Home Assistant refuses never leaves the screen out of step.
+
+An entity id from the wrong domain, or one that isn't an entity id at all, gets a console warning in development
+naming the hook. It is almost always a typo, and otherwise the card would only ever say unavailable.

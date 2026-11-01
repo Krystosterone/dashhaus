@@ -1,0 +1,80 @@
+---
+title: Sound
+description: "A sound machine's sound: the switch that plays it and the volume number beside it."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+A sound machine's sound: the `switch.*` that plays it, and the volume `number.*` beside it.
+
+## Quick example
+
+<Example file="entities/sound/SoundMachine.tsx" />
+
+Without `volumeEntityId`, the hook looks beside the switch: for `switch.nursery_music` it tries `number.nursery_music_volume`, then `number.nursery_volume`. The volume is a percent of that number's own range.
+
+## Component
+
+`<HaSound>` is `useHaSound` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaSoundProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaSound" />
+
+It reads the switch, the volume number, its area and today's history.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaSoundOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaSoundResult" />
+
+#### `entity`: SoundEntity
+
+<ApiMembers from="@dashhaus/core/entities/sound/types" name="SoundEntity" notes={{}} />
+
+#### `history`: SoundHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/sound/types" name="SoundHistory" />
+
+#### `actions`: SoundHandlers
+
+<ApiMembers from="@dashhaus/core" name="SoundHandlers" notes={{"onToggle": "Calls `switch.toggle`.", "onVolumeChange": "Only when a volume number with a usable range is found. Calls `number.set_value`, turning the percent back into the number's range and step. Setting the volume never switches the sound on or off."}} />
+
+Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
+
+## Every sound
+
+A switch doesn't say it plays a sound, so there's nothing in the house to find them by: list them yourself. The Lovelace cards ask for the same thing, with `card: sound` on the switch.
+
+<Example file="entities/sound/AllSounds.tsx" />
+
+## In a skin
+
+Orb's `HaSoundTile` and Field's `HaSoundModule` are `useHaSound` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/sound/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaSoundTileProps" except={{ from: "@dashhaus/core", name: "HaSoundOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaSoundModuleProps" except={{ from: "@dashhaus/core", name: "HaSoundOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-sound--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-sound--all-states).

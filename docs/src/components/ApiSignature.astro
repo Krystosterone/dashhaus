@@ -1,0 +1,18 @@
+---
+/** A function's signature and doc comment, read from its declaration (`docs/src/lib/api.ts`). */
+import { Code } from "@astrojs/starlight/components";
+import { signature } from "../lib/api";
+
+interface Props {
+  from: string;
+  name: string;
+  /** Leave out the doc comment, when the page says it in its own words. */
+  bare?: boolean;
+}
+
+const { from, name, bare } = Astro.props;
+const { text, doc } = signature(from, name);
+---
+
+<Code code={text} lang="ts" frame="none" />
+{!bare && doc && <p class="api-doc">{doc}</p>}

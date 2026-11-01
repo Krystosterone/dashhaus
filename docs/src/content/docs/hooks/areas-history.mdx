@@ -1,0 +1,53 @@
+---
+title: Areas, history and requests
+description: "Group the house by area from Home Assistant's registries, read today's history for any entity, and make any other read."
+---
+
+import ApiMembers from "../../../components/ApiMembers.astro";
+import Example from "../../../components/Example.astro";
+
+These reads go through Home Assistant's websocket commands, not the entity subscription. Each is shared by every
+component asking for the same thing, run again after a reconnect, and never answered with a result from an older
+connection. A transport without generic commands (`sendMessage`), such as a minimal test transport, makes them read
+as `undefined` rather than fail.
+
+## Areas
+
+`useHaAreas` returns every area with the entity ids that belong to it: an entity's own area, or else its device's.
+Areas come in the registry's order, and an area with no entities is still there, with an empty list. It is
+`undefined` while the registries load.
+
+<Example file="hooks/Areas.tsx" />
+
+<ApiMembers from="@dashhaus/core" name="HaAreaEntities" />
+
+`useHaArea(entityId)` is one entity's area name, which every entity hook already reads for its `area`.
+`useHaRegistry()` is all of it, typed: areas, floors, devices, entities and the membership map.
+
+<ApiMembers from="@dashhaus/core" name="HaRegistry" />
+
+The registries are read once per connection and shared by every caller; an entity changing state never reads them
+again.
+
+## Today's history, raw
+
+The entity hooks parse their history into hourly samples. For anything else, `useHaHistory` returns today's raw state
+changes: what the recorder holds since midnight, then every change seen live since that read. It is read again on a
+new day and after a reconnect. Pass the page's clock (`useNow`), so the day turns over with it.
+
+<Example file="hooks/History.tsx" />
+
+<ApiMembers from="@dashhaus/core" name="HaHistoryRecord" />
+
+## Any other read
+
+`useHaRequest(key, fetch, options)` runs one read through the store while connected. Callers with the same `key` share
+it; a new connection runs it again; `undefined` as the key skips it. `cache: true` keeps a successful answer for the
+rest of the connection; `keepPrevious: true` keeps showing the last key's value while a new key loads.
+
+<Example file="hooks/Request.tsx" />
+
+<ApiMembers from="@dashhaus/core" name="HaRequestState" />
+<ApiMembers from="@dashhaus/core" name="HaRequestOptions" />
+
+A failed read sets `error` and never touches the store's `lastActionError`: that is for things you did.

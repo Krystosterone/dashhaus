@@ -1,0 +1,31 @@
+type: custom:dashhaus-orb
+title: Home
+show_time: true
+sections:
+  - title: Quick actions
+    columns: 2
+    cards:
+      - entity: climate.living_room
+        span: 2
+      - entity: light.living_room
+        footprint: compact
+      - entity: cover.living_room
+        footprint: compact
+  - title: Home status
+    cards:
+      - entity: alarm_control_panel.house
+        footprint: compact
+      - joined: [input_boolean.guest_mode, input_boolean.dnd]
+        label: Modes
+  - title: Outside
+    cards:
+      - entity: weather.home
+        aqi: sensor.home_aqi
+        aqi_scale: US
+  - title: Rooms
+    columns: 2
+    cards:
+      - entity: sensor.living_room_temperature
+        humidity: sensor.living_room_humidity
+        battery: sensor.living_room_battery
+        span: 2

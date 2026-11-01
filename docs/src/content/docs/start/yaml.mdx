@@ -1,0 +1,98 @@
+---
+title: Lay it out in YAML
+description: "Each skin is one Lovelace card. Leave its YAML empty for the automatic layout, or write sections, pages and a nav."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import Example from "../../../components/Example.astro";
+
+Each skin is one Lovelace card: `custom:dashhaus-orb` for Orb, `custom:dashhaus-field` for Field. The card draws the
+whole dashboard from its YAML.
+
+## The automatic layout
+
+With nothing but its `type`, the card lays out every supported entity it can see, grouped by area from Home
+Assistant's registries, and keeps up as you add devices. The dashboards the deploy tool creates start this way. Hidden,
+configuration and diagnostic entities are left out; room sensors are paired with the humidity and battery sensors on the same device.
+
+## Your own layout
+
+Open the dashboard, **⋮ → Edit dashboard**, the card's pencil, then **Show code editor**. The preview redraws as you
+type, and every mistake is listed at once, with where it is and what you probably meant:
+
+```text
+Dashhaus config has 2 problems:
+• sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
+• sections[2].cards[3]: media_player.tv: media_player.* entities have no card yet
+```
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <Example file="user/orb.yaml" />
+
+    A section's `cards` lists entities, either as the id alone or as a map with options. `joined` puts compact cards
+    side by side in one outer card, a bundle.
+
+  </TabItem>
+  <TabItem label="Field">
+    <Example file="user/field.yaml" />
+
+    Field lists `modules` where Orb lists `cards`, and a section's `columns` is a most, not a count: columns come from
+    the width, so a module never narrows below its own. A list item with its own `sections` puts them side by side.
+
+  </TabItem>
+</Tabs>
+
+## Which card draws an entity
+
+The entity's domain picks its card. Where two cards draw one domain, `card:` picks the other:
+
+| Entity | Card |
+| --- | --- |
+| `light.*` | light |
+| `climate.*` | climate |
+| `sensor.*` | sensor, with its device's humidity and battery sensors |
+| `sensor.*_sleep_state` | owlet, an Owlet sock; `card: owlet` for a sock named otherwise |
+| `weather.*` | weather, with its air-quality sensor and `sun.sun` |
+| `cover.*` | cover |
+| `input_boolean.*`, `switch.*` | toggle |
+| `switch.*` with `card: sound` | sound, with its volume `number.*` found beside it |
+| `alarm_control_panel.*` | alarm |
+| `humidifier.*` | humidifier |
+
+An entity with no card is an error that says so, rather than an empty space.
+
+## Keys
+
+| Where | Orb | Field |
+| --- | --- | --- |
+| The card | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `theme`, `accent`, `sections`, `pages`, `nav` | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `finish`, `footprint`, `quiet`, `modules`, `sections`, `pages`, `nav` |
+| A section | `title`, `note`, `columns`, `gap`, `cards` | `title`, `note`, `columns`, `modules` |
+| Side by side | `columns`, `gap`, `sections` | `columns`, `sections` |
+| Any card | `entity`, `card`, `name`, `area`, `footprint`, `span`, `show_control`, `history` | `entity`, `card`, `name`, `area`, `footprint`, `span`, `history` |
+
+Each card adds its own: a sensor's `humidity`, `battery`, `outdoor` and `unit`; the weather's `aqi`, `aqi_scale`, `sun`
+and `forecasts`; a toggle's `icon` and `description`; a sound's `volume`; an alarm's `read_only`, `exit_delay`,
+`entry_delay` and `open_sensors`; an Owlet sock's `heart_rate`, `oxygen`, `charging`, `base_station`, `alerts` and
+`stale_after`; a climate entity's `unit`. In Orb, most cards also take a `color` for their orb.
+
+`viewing: far` is for a wall panel read from across the room: larger status lines and captions, heavier figures,
+the same card heights. A key Orb takes and Field doesn't (`theme`, `accent`, `color`, a section's `gap`, bundles) is
+refused with the reason, for YAML copied from one card to the other.
+
+The specification's [deploy page](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md#the-format)
+has every value and default.
+
+## Pages and the nav
+
+A nav docks at the bottom of the screen, one pill or key per destination. Without `nav`, it lists the card's pages,
+or else its sections. `pages` are more pages in the same card, each with its own `sections`; the URL keeps the page
+open (`#page=nursery`), so the back button returns.
+
+<Example file="user/pages.yaml" />
+
+A destination is a `section:` of the main page by its title, a `page:` by its `id` (`home` is the main page), or
+`navigate:` to another Home Assistant dashboard by its path. `nav: false` turns the nav off; a wall panel has none
+unless `nav` lists one.
+
+Both skins take the same `pages` and `nav`; in Field a page's sections list `modules`.
