@@ -27,7 +27,8 @@ Why `home-assistant-js-websocket` and React 18.3+ or 19 are required is in [cont
 [create-dashhaus-skin's README](../packages/create-dashhaus-skin/README.md#what-it-writes) lists the files; the
 scaffold's own sources are the reference for each. The scaffold is agent-first: its `AGENTS.md` (with a `CLAUDE.md`
 that imports it) is the one document a consumer's agent reads, so an agent given only a screenshot or a description
-needs no second prompt. It must say where the tokens, fonts, page, cards and parts are, which rules `npm test` checks,
+needs no second prompt. It must say where the tokens, fonts, page, cards and parts are, the
+[rules every skin keeps](skins.md#rules-every-skin-keeps) under their titles there and which of them `npm test` checks,
 how to see the result (`npm run snapshot`), what data each card gets, how to add a domain and how to deploy. A change
 to the scaffold's files or scripts updates it in the same change.
 

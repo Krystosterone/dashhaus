@@ -77,7 +77,8 @@ Work from the outside in, snapshotting after each step and comparing with the re
 - **One card, one entity.**
 - **A card's height never changes with its state**: turning a light on must not move the page.
 - **Unavailable reads as unavailable** without colour: a dash, a word or a dashed outline.
-- **Controls feel like controls:** `touch-action: manipulation`, no text selection, press feedback on `:active`.
+- **Controls feel like controls:** `touch-action: manipulation`, no text selection or tap highlight, press feedback on
+  `:active`.
   `Action` already does this; build new controls on `usePress` from `@dashhaus/core/primitives`.
 - **Readable at phone width (390 px) and in dark mode.** Snapshot both.
 

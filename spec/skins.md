@@ -32,9 +32,28 @@ The Card generator writes inside the skin package plus its declared registration
 
 A neutral control exposes the shared handler's zero-argument actions. Actions that require values or credentials are not guessed: the Card starts read-only until its bespoke design supplies the right control. `--kind reading` can deliberately suppress available zero-argument actions. Existing Orb generation and the committed Field generator remain unchanged.
 
+## Rules every skin keeps
+
+These hold for every skin: Orb, Field, a skin `new-skin` generates and a standalone skin from `create-dashhaus-skin`.
+This section is their one home. A skin's own spec adds its numbers and names (footprints, token names, its
+accent), and the scaffold's `AGENTS.md` repeats each rule under the same bold title for an agent with only the
+package; `verify/skin-rules.test.ts` holds it to that.
+
+- **One card, one entity.** A card draws one Home Assistant entity; companions (a humidity sensor beside a
+  temperature) are that card's options, and several things on one card are a skin's bundle of cards.
+- **Colours come from tokens.** No colour literal in a skin's CSS: every colour is a token in the skin's
+  `styles/tokens.css`, under the skin's namespace, with its light and dark values.
+- **A card's height never changes with its state.** Turning something on, a longer value or an unavailable entity
+  never moves the page. A height comes from the card's footprint and its container, never the viewport.
+- **Motion only on `transform`, `opacity`, `clip-path` and colours**, never on layout properties. Easing and
+  durations come from the skin's tokens; reduced motion drops the movement and keeps the change.
+- **Hover only under `@media (hover: hover) and (pointer: fine)`**, so a tap never leaves a hover state behind.
+- **Controls feel like controls:** no text selection or tap highlight, `touch-action: manipulation`, press feedback
+  on `:active`, built on the `@dashhaus/core/primitives` hooks rather than hand-written ARIA.
+
 ## Make it its own skin
 
-1. Replace `styles/tokens.css` and the neutral Parts in `shared/`; keep every colour in the scoped token file.
+1. Replace `styles/tokens.css` and the neutral Parts in `shared/`, within [Rules every skin keeps](#rules-every-skin-keeps).
 2. Record the skin's rules in `spec/<skin>.md` and encode CSS-enforceable rules in `styles/rules.test.ts`.
 3. Replace each Card's placeholder glyph, summary, actions, history and Details content without forking its domain model or Home Assistant hook.
 4. Keep presentational code out of `packages/core/src/ha`; only the skin's `ha/` and `lovelace/` folders, and its entry that re-exports their connected containers, cross that seam.
