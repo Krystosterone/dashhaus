@@ -15,14 +15,14 @@ const raw: HassEntities = {
   "switch.nursery_music": {
     entity_id: "switch.nursery_music",
     state: "on",
-    attributes: { friendly_name: "Chambre Nova Music", icon: "mdi:music" },
+    attributes: { friendly_name: "Nursery Music", icon: "mdi:music" },
     last_changed: "2026-10-19T10:00:00Z",
     last_updated: "2026-10-19T10:00:00Z",
   },
   "number.nursery_volume": {
     entity_id: "number.nursery_volume",
     state: "62.0",
-    attributes: { friendly_name: "Chambre Nova Volume", min: 0, max: 100, step: 1, mode: "auto" },
+    attributes: { friendly_name: "Nursery Volume", min: 0, max: 100, step: 1, mode: "auto" },
     last_changed: "2026-10-19T10:00:00Z",
     last_updated: "2026-10-19T10:00:00Z",
   },

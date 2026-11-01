@@ -39,7 +39,7 @@ describe("lightFromHass", () => {
     const lamp = {
       ...raw,
       entity_id: "light.nursery",
-      attributes: { friendly_name: "Chambre Nova", supported_color_modes: ["hs"], color_mode: "hs", brightness: 8, hs_color: [31.086, 94.488], rgb_color: [255, 139, 14] },
+      attributes: { friendly_name: "Nursery", supported_color_modes: ["hs"], color_mode: "hs", brightness: 8, hs_color: [31.086, 94.488], rgb_color: [255, 139, 14] },
     };
     expect(lightFromHass(lamp, lamp.entity_id)).toMatchObject({ supportsBrightness: true, brightness: 3, supportsColorTemp: false, kelvin: undefined, supportsColor: true, hs: [31.086, 94.488] });
   });

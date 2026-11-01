@@ -58,7 +58,7 @@ describe("autoModules", () => {
         "light.lamp": state("light.lamp", "Lamp"),
       },
     });
-    expect(modules).toEqual([{ entity: "sensor.owlet_sock_a_sleep_state", kind: "owlet" }, { entity: "light.lamp", kind: "light" }]);
+    expect(modules).toEqual([{ entity: "light.lamp", kind: "light" }, { entity: "sensor.owlet_sock_a_sleep_state", kind: "owlet" }]);
   });
 
   it("takes every visible alarm panel", () => {

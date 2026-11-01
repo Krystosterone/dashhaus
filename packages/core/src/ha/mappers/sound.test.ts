@@ -51,7 +51,7 @@ describe("soundFromHass", () => {
   const volume = {
     entity_id: "number.nursery_volume",
     state: "62.0",
-    attributes: { friendly_name: "Chambre Nova Volume", min: 0, max: 100, step: 1, mode: "auto" },
+    attributes: { friendly_name: "Nursery Volume", min: 0, max: 100, step: 1, mode: "auto" },
     last_changed: "2026-10-20T01:48:22Z",
     last_updated: "2026-10-20T01:48:22Z",
   };
