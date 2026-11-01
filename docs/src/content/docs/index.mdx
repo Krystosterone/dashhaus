@@ -1,0 +1,42 @@
+---
+title: Dashhaus
+description: Home Assistant dashboards drawn in React, with two skins and room for your own.
+template: splash
+hero:
+  tagline: Home Assistant dashboards for phones, tablets and wall panels. Pick a skin, deploy it once, and lay out your house from Home Assistant.
+  image:
+    alt: The same house on a phone in each skin, Orb on the left and Field on the right
+    dark: ../../assets/skins/hero-dark.webp
+    light: ../../assets/skins/hero-light.webp
+  actions:
+    - text: Deploy a dashboard
+      link: /dashhaus/start/deploy/
+      icon: right-arrow
+    - text: See the skins
+      link: /dashhaus/skins/
+      variant: minimal
+    - text: Open Storybook
+      link: /dashhaus/storybook/
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid>
+  <Card title="Two skins, one house" icon="seti:image">
+    Orb is soft and glanceable. Field is a hardware panel with keys, faders and a dark screen. Both draw the same
+    entities, so you can switch between them or run both.
+  </Card>
+  <Card title="Lays out your house" icon="rocket">
+    With no layout written, each dashboard groups your lights, climate, covers, sensors and alarm by area. Write YAML
+    when you want your own order.
+  </Card>
+  <Card title="Edit in Home Assistant" icon="pencil">
+    Each dashboard is one Lovelace card. Change its layout in Home Assistant's code editor: the preview redraws as you
+    type, and every mistake is listed with a fix.
+  </Card>
+  <Card title="Build your own skin" icon="puzzle">
+    The entity models, Home Assistant hooks and card frame are packages. A new skin brings only its drawing.
+  </Card>
+</CardGrid>

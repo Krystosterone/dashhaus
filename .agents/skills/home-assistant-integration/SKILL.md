@@ -7,7 +7,7 @@ description: Keeps Home Assistant transport, raw entity state, mappers, actions,
 
 Preserve the repository's component boundary while adding live Home Assistant data. The integration owns connection lifecycle, raw snapshots, capability checks, service payloads, and action errors; cards receive the existing normalized entities and callbacks.
 
-Read `docs/home-assistant.md` before changing the boundary; it is the contract, and this skill is its procedure. The seam lives in `packages/core/src/ha/`, with its fixtures, mappers, actions and tests.
+Read `spec/home-assistant.md` before changing the boundary; it is the contract, and this skill is its procedure. The seam lives in `packages/core/src/ha/`, with its fixtures, mappers, actions and tests.
 
 ## Procedure
 

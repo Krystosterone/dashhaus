@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Field's parts and what each one means (docs/field.md → Design rules), drawn with the skin's own key, fader and screen. " +
+          "Field's parts and what each one means (spec/field.md → Design rules), drawn with the skin's own key, fader and screen. " +
           "Try both finishes with the Finish toolbar.",
       },
     },

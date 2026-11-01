@@ -7,7 +7,7 @@ description: Decide how much attention each card on a dashboard may claim — wh
 
 One dashboard screen, one attention budget. A glanceable dashboard fails when everything glows: if all states look the same, none is seen. This skill is the contract for spending that budget.
 
-The spec wording is `docs/orb.md` → Dashboards → "Composing for a glance"; this skill is its operational form, and the glow hard rule in `AGENTS.md` points here. The contract is the doc plus this skill — there is no separate research note.
+The spec wording is `spec/orb.md` → Dashboards → "Composing for a glance"; this skill is its operational form, and the glow hard rule in `AGENTS.md` points here. The contract is the doc plus this skill — there is no separate research note.
 
 ## The Contract
 

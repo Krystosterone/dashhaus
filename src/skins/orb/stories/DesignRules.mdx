@@ -1,6 +1,6 @@
 import { Meta } from "@storybook/blocks";
 import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
-import readme from "../../../../docs/orb.md?raw";
+import readme from "../../../../spec/orb.md?raw";
 import * as Light from "../cards/light/Light.stories";
 import * as Palette from "./Palette.stories";
 import * as ColorTemperature from "./Foundations.stories";
@@ -9,13 +9,13 @@ import * as Bundles from "../bundles/Bundles.stories";
 import * as Examples from "../dashboards/Examples.stories";
 import * as NavBar from "../dashboards/NavBar.stories";
 
-{/* docs/orb.md's design and composition rules, drawn with the stories that show them. Edit docs/orb.md, not this page. */}
+{/* spec/orb.md's design and composition rules, drawn with the stories that show them. Edit spec/orb.md, not this page. */}
 
 <Meta title="Orb/Foundations/Design rules" />
 
 <MarkdownWithStories
   markdown={readme}
-  path="docs/orb.md"
+  path="spec/orb.md"
   after={{
     "Orb design rules": [Light.Footprints, Palette.Roles, ColorTemperature.Scale],
     "Motion and touch rules": [CompactRows.WithAndWithout],

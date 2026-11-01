@@ -15,7 +15,7 @@ import { DemoOwletTile as Owlet } from "../cards/owlet/demo/DemoOwletTile";
 import { DemoBundle as Bundle } from "../bundles/demo/DemoBundle";
 
 /*
- * Examples of composing a dashboard, one per device. They show the composition rules (docs/orb.md → Dashboards), not
+ * Examples of composing a dashboard, one per device. They show the composition rules (spec/orb.md → Dashboards), not
  * every card: a card earns a place here by showing something about a page, and each one's own stories show the rest.
  */
 

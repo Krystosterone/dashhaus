@@ -48,6 +48,6 @@ npx dashhaus-deploy
 
 ## Docs
 
-- [Deploying and the dashboard config](https://github.com/Krystosterone/dashhaus/blob/main/docs/deploy.md)
-- [Releasing the public packages](https://github.com/Krystosterone/dashhaus/blob/main/docs/release.md)
+- [Deploying and the dashboard config](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md)
+- [Releasing the public packages](https://github.com/Krystosterone/dashhaus/blob/main/spec/release.md)
 - [Repository overview](https://github.com/Krystosterone/dashhaus#readme)

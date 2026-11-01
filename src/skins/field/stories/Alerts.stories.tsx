@@ -18,7 +18,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Field's severity ladder (docs/field.md → Design rules): how much of the always-dark screen inverts. Advisory keeps the marker " +
+          "Field's severity ladder (spec/field.md → Design rules): how much of the always-dark screen inverts. Advisory keeps the marker " +
           "and its words; urgent turns them into an inverted block; an alarm inverts the whole screen, makes the figure the alarm, rules " +
           "the plate's edge, flashes once a second for ten seconds and then holds until it clears (steady from the start under reduced " +
           "motion, or the dashboard's `quiet`). The dashboard's alert line lists every alarm and urgent warning. Remount a story to see " +

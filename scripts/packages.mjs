@@ -21,7 +21,7 @@ export const root = (() => {
 })();
 
 /** Root `workspaces`: the shared packages, and one package per generated skin. */
-export const workspaces = ["packages/*", "src/skins/*"];
+export const workspaces = ["packages/*", "src/skins/*", "docs"];
 
 const define = (dir) => {
   const manifest = JSON.parse(readFileSync(join(root, dir, "package.json"), "utf8"));
@@ -128,10 +128,10 @@ export const seams = {
   lovelaceEntry: "apps/lovelace/entry.ts",
   generatedSkins: "scripts/generated-skins.mjs",
   agents: "AGENTS.md",
-  cardsDoc: "docs/cards.md",
-  deployDoc: "docs/deploy.md",
-  fieldDoc: "docs/field.md",
-  skinDoc: (skin) => `docs/${skin}.md`,
+  cardsDoc: "spec/cards.md",
+  deployDoc: "spec/deploy.md",
+  fieldDoc: "spec/field.md",
+  skinDoc: (skin) => `spec/${skin}.md`,
   orb: {
     config: `${referenceSkins.orb.dir}/lovelace/config.ts`,
     renderer: `${referenceSkins.orb.dir}/lovelace/ConfigDashboard.tsx`,

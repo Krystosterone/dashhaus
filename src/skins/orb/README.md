@@ -36,7 +36,7 @@ The Lovelace card accepts `custom:dashhaus-orb` YAML with `title`, `sections`, `
 
 ## Docs
 
-- [Orb design](https://github.com/Krystosterone/dashhaus/blob/main/docs/orb.md)
-- [Card behaviour](https://github.com/Krystosterone/dashhaus/blob/main/docs/cards.md)
-- [Deploy YAML](https://github.com/Krystosterone/dashhaus/blob/main/docs/deploy.md)
-- [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/docs/build-a-skin.md)
+- [Orb design](https://github.com/Krystosterone/dashhaus/blob/main/spec/orb.md)
+- [Card behaviour](https://github.com/Krystosterone/dashhaus/blob/main/spec/cards.md)
+- [Deploy YAML](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md)
+- [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/spec/build-a-skin.md)

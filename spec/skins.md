@@ -17,7 +17,7 @@ The command creates and registers:
 - a `package.json` named `@dashhaus/canvas`: `private`, `type: module`, the workspace's dependencies and peers, and the exports below;
 - scoped light/dark tokens, fixed `compact` and `standard` footprints, neutral Parts, unavailable treatment, a native Details dialog, and CSS rules tests;
 - Dashboard page, section, columns, cell, header and nav Parts, their stories, and an explicit empty state;
-- Foundations → Design rules, Palette and Parts, backed by `docs/canvas.md`;
+- Foundations → Design rules, Palette and Parts, backed by `spec/canvas.md`;
 - the package's YAML reader and card schema (`@dashhaus/dashboard/schema`) and automatic area layout (`@dashhaus/dashboard/layout`), pages and nav, a `LovelaceDashboardElement` and `registerCard` from `@dashhaus/dashboard/skin`, its place in the Home Assistant bundle entry (`apps/lovelace/entry.ts`), and first-deploy dashboard;
 - its own entry (`src/skins/<skin>/index.ts`, which imports its tokens), Storybook setup and static group order, conformance tests, and empty Cards / Connected group explanations.
 
@@ -58,7 +58,7 @@ A neutral control exposes the shared handler's zero-argument actions. Actions th
 ## Make it its own skin
 
 1. Replace `styles/tokens.css` and the neutral Parts in `shared/`; keep every colour in the scoped token file.
-2. Record the skin's rules in `docs/<skin>.md` and encode CSS-enforceable rules in `styles/rules.test.ts`.
+2. Record the skin's rules in `spec/<skin>.md` and encode CSS-enforceable rules in `styles/rules.test.ts`.
 3. Replace each Card's placeholder glyph, summary, actions, history and Details content without forking its domain model or Home Assistant hook.
 4. Keep presentational code out of `packages/core/src/ha`; only the skin's `ha/` and `lovelace/` folders, and its entry that re-exports their connected containers, cross that seam.
 5. Keep Storybook's standard state, width, footprint, compact, worst-case and Details stories while adding domain-specific stories.

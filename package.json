@@ -13,6 +13,8 @@
     "build-storybook": "storybook build",
     "build:ha": "node scripts/build-bundle.mjs",
     "build:packages": "node scripts/build-packages.mjs",
+    "docs": "npm run dev -w docs",
+    "build:docs": "npm run build -w docs && storybook build --quiet -o docs/dist/storybook",
     "deploy": "dashhaus-deploy",
     "typecheck": "node scripts/typecheck.mjs",
     "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/.eslintcache",
@@ -70,6 +72,7 @@
   },
   "workspaces": [
     "packages/*",
-    "src/skins/*"
+    "src/skins/*",
+    "docs"
   ]
 }

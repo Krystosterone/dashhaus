@@ -56,9 +56,9 @@ Each card lays out the house itself when its YAML has no `sections` or `modules`
 | --- | --- |
 | `bundlePath` | `dashhaus.js` as a file `URL`; pass it through `fileURLToPath` to the deploy config |
 
-The package has no dependencies and no build step. To swap in a composition build, install `@dashhaus/orb` and/or `@dashhaus/field` and build your own bundle instead; see [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/docs/build-a-skin.md).
+The package has no dependencies and no build step. To swap in a composition build, install `@dashhaus/orb` and/or `@dashhaus/field` and build your own bundle instead; see [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/spec/build-a-skin.md).
 
 ## Docs
 
-- [Deploy](https://github.com/Krystosterone/dashhaus/blob/main/docs/deploy.md)
-- [Release](https://github.com/Krystosterone/dashhaus/blob/main/docs/release.md)
+- [Deploy](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md)
+- [Release](https://github.com/Krystosterone/dashhaus/blob/main/spec/release.md)

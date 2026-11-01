@@ -158,7 +158,7 @@ const SECTIONS_YAML = {
   ],
 };
 
-/** docs/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
+/** spec/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
 const PAGES_YAML = {
   type: "custom:dashhaus-field",
   title: "Home",

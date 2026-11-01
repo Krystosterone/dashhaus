@@ -44,6 +44,6 @@ registerCard("dashhaus-my-skin", MyCard, "Dashhaus My skin", "A Dashhaus skin.")
 
 ## Docs
 
-- [Skin contract](https://github.com/Krystosterone/dashhaus/blob/main/docs/contract.md)
-- [Home Assistant and Lovelace](https://github.com/Krystosterone/dashhaus/blob/main/docs/home-assistant.md)
+- [Skin contract](https://github.com/Krystosterone/dashhaus/blob/main/spec/contract.md)
+- [Home Assistant and Lovelace](https://github.com/Krystosterone/dashhaus/blob/main/spec/home-assistant.md)
 - [Repository overview](https://github.com/Krystosterone/dashhaus#readme)

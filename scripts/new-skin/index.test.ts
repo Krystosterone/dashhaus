@@ -13,7 +13,7 @@ describe("new-skin", () => {
   it("finds every registration anchor without writing", async () => {
     const result = await run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
-    for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "docs/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "spec/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
     expect(result.output).toContain("create src/skins/probe-skin/package.json");
     expect(result.output).toContain("create src/skins/probe-skin/index.ts");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");

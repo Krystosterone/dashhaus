@@ -1,7 +1,7 @@
 /**
  * Install the release tarballs into a clean app outside the workspace and prove the packed surface:
  *
- * - tarball contents: no tests, stories, repo docs or workspace-only source paths;
+ * - tarball contents: no tests, stories, repo docs or spec, or workspace-only source paths;
  * - packed manifests: real version, no `private`, no `source` condition, internal ranges pinned, optional peers;
  * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/dashboard`, `./skin` and `./card`, a
  *   Vitest run for `@dashhaus/core/testing`, a TypeScript consumer (Bundler and NodeNext), the `dashhaus-deploy` bin
@@ -42,7 +42,7 @@ async function checkTarballs(manifests) {
     const bad = files.filter((file) => {
       // The scaffolder ships story metadata as templates for the skin it writes, not stories of its own.
       if (pkg.key === "scaffold" && file.startsWith("package/dist/templates/")) return false;
-      return /(?:\.test\.|\.stories\.|^package\/(?:\.agents|research|docs)\/|^package\/src\/.*\.test\.)/.test(file);
+      return /(?:\.test\.|\.stories\.|^package\/(?:\.agents|research|docs|spec)\/|^package\/src\/.*\.test\.)/.test(file);
     });
     if (bad.length) throw new Error(`${manifest.name}: tarball ships ${bad.join(", ")}`);
     if (pkg.key !== "deploy" && files.some((file) => file.startsWith("package/src/"))) {

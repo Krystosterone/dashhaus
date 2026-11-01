@@ -138,7 +138,7 @@ export class Reader {
   }
 
   /**
-   * The card's `nav` (docs/deploy.md → Navigation): a list of destinations, `false` for none, or left out. A page must
+   * The card's `nav` (spec/deploy.md → Navigation): a list of destinations, `false` for none, or left out. A page must
    * be one of `pages` or the main page; a section, one of `titles`, the main page's titled sections, when the YAML
    * lays them out (an automatic layout's can't be named ahead), and the only one of its title.
    */

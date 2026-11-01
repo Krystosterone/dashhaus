@@ -201,10 +201,10 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
 
 Next:
   1. npm run storybook  →  Field/Cards/${Name} and Field/Connected/${Name}
-  2. Make it the ${words}: its screen and ${kind === "control" ? "panel controls" : "figure"} in ${SKIN}/cards/${name}/${Name}Module.tsx (docs/field.md → Design rules)
+  2. Make it the ${words}: its screen and ${kind === "control" ? "panel controls" : "figure"} in ${SKIN}/cards/${name}/${Name}Module.tsx (spec/field.md → Design rules)
   3. Draw its glyph and pictogram in ${SKIN}/cards/${name}/icons.tsx
-  4. Finish "## ${Label}" in docs/field.md and "### Field ${words} module" in docs/cards.md,
-     and name ${words} where docs/field.md and docs/deploy.md list what field draws${shared ? `
+  4. Finish "## ${Label}" in spec/field.md and "### Field ${words} module" in spec/cards.md,
+     and name ${words} where spec/field.md and spec/deploy.md list what field draws${shared ? `
   5. ${domains.join(", ")} already has a field card, so a module picks this one with \`card: ${name}\`` : ""}
   ${shared ? 6 : 5}. npm run check && npm run test-storybook`);
 }

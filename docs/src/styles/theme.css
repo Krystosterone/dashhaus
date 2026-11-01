@@ -1,0 +1,13 @@
+/* Orb's yellow accent (--brand-h 92), held to text contrast on each theme's page. */
+:root {
+  --sl-color-accent-low: oklch(0.3 0.06 92);
+  --sl-color-accent: oklch(0.82 0.145 92);
+  --sl-color-accent-high: oklch(0.93 0.09 92);
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: oklch(0.95 0.06 92);
+  --sl-color-accent: oklch(0.48 0.1 92);
+  --sl-color-accent-high: oklch(0.36 0.08 92);
+}
+

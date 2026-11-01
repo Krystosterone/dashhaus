@@ -1,5 +1,5 @@
 /**
- * The field skin's design rules (docs/field.md) and the hard rules every skin keeps (AGENTS.md), as checks
+ * The field skin's design rules (spec/field.md) and the hard rules every skin keeps (AGENTS.md), as checks
  * against its CSS. The docs are the contract, this test is the tripwire.
  */
 import { readFileSync, readdirSync } from "node:fs";
