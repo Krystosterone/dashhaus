@@ -204,7 +204,7 @@ Next:
   2. Make it the ${words}: its screen and ${kind === "control" ? "panel controls" : "figure"} in ${SKIN}/cards/${name}/${Name}Module.tsx (spec/field.md → Design rules)
   3. Draw its glyph and pictogram in ${SKIN}/cards/${name}/icons.tsx
   4. Finish "## ${Label}" in spec/field.md and "### Field ${words} module" in spec/cards.md,
-     and name ${words} where spec/field.md and spec/deploy.md list what field draws${shared ? `
+     and name ${words} where spec/deploy.md lists what field draws${shared ? `
   5. ${domains.join(", ")} already has a field card, so a module picks this one with \`card: ${name}\`` : ""}
   ${shared ? 6 : 5}. npm run check && npm run test-storybook`);
 }

@@ -2,16 +2,10 @@
 
 Per-card behaviour: what each card shows, how it interacts, and its props. The rules every card follows are in [spec/orb.md](orb.md) and [spec/field.md](field.md); folder layout, commands and the adding-a-card steps are in AGENTS.md.
 
-## Shared footprints
-
-Every dashboard tile accepts `footprint="compact" | "standard" | "featured"`; the default is `standard`. Compact is 60 px, standard is 128 px, and featured is 264 px at every width. Width changes anatomy, not height or semantic prominence: below 260 px a standard tile keeps its orb, control and details action, and a bare reading icon (sensor, weather) narrows to the glyph so the name keeps its room. Use `featured` explicitly for the Today strip and for a large readout when that figure is not already printed on the control. Below 260 px that readout yields and the orb stays. All card types and both bundle types follow this matrix.
-
-`showControl={false}` applies to compact tiles. It replaces the inline control with the short value and makes the row open details; actionable orbs keep their independent tap and hold behavior.
-
 ## Using the light card
 
 ```tsx
-import { LightTile } from "./src";
+import { LightTile } from "@dashhaus/orb";
 
 <div style={{ width: 360 }}>
   <LightTile
@@ -33,10 +27,8 @@ The bulb is the accent when lit, whatever its colour temperature or colour; the 
 
 A colour lamp (an `hs`, `xy` or RGB colour mode) names its colour the same way ("Nursery · Amber"). Its sheet has a chip per colour, warm to cool: Red, Amber, Yellow, Green, Blue, Purple, White. Each chip carries its swatch, the one place a colour lamp's hue is drawn; the lamp's own colour is selected, and choosing one while it is off turns it on in that colour. A colour set elsewhere, such as the device's own app, takes the name of the chip nearest its hue (any colour barely saturated is White), and choosing that chip sends the chip's own colour. Pass `onColorChange` to show the chips.
 
-The connected integration paths are available through `HaProvider` and the `Ha*Tile` containers for every domain (light, climate, sensor, weather, cover, toggle, alarm); the remaining normalized callback examples below show the parent-side wiring each container replaces.
-
 ```tsx
-import { HaLightTile } from "./src";
+import { HaLightTile } from "@dashhaus/orb";
 
 <HaLightTile entityId="light.living_room" footprint="compact" />
 ```
@@ -46,7 +38,7 @@ The connected container must be rendered below `HaProvider`; see [spec/home-assi
 ## Using the climate card
 
 ```tsx
-import { ClimateTile } from "./src";
+import { ClimateTile } from "@dashhaus/orb";
 
 <div style={{ width: 360 }}>
   <ClimateTile
@@ -70,14 +62,12 @@ Temperature bounds remain reachable even when `(max_temp - min_temp)` is not an 
 
 ### Field climate module
 
-`ClimateModule` is the same normalized climate entity and callbacks in the Field skin; `HaClimateModule` is its connected container. Its 160 px module keeps current temperature primary, target and HVAC action secondary, and uses the thermostat key as the one on/off signal. Heat, cool and auto use one orange target fader. `heat_cool` uses two ordered native sliders on one fader: orange means heat below, blue means cool above. Off, dry and fan-only replace the fader with one wide **Turn on** or **Turn off** key rather than inventing a target; the panel adds exact steps for a single target or a heat/cool range.
-
-The 64 px compact footprint keeps only the thermostat key, identity and current-temperature screen. The detail panel adds exact range steps plus only the HVAC modes, presets and fan modes Home Assistant reports. The selected choice is printed and disabled; those choice keys never light a second on LED. Today’s activity meter is neutral. Unavailable climate entities show blank segments and expose no live temperature control.
+`ClimateModule` is the same normalized climate entity and callbacks in the Field skin; `HaClimateModule` is its connected container. See [field.md](field.md#climate).
 
 ## Using the sensor card
 
 ```tsx
-import { SensorTile, HaSensorTile } from "./src";
+import { SensorTile, HaSensorTile } from "@dashhaus/orb";
 
 <SensorTile entity={{ entityId: "sensor.bedroom", name: "Bedroom", state: "ok", temperature: 20.1, humidity: 52, unit: "°C", battery: 64 }} history={history} />
 ```
@@ -96,9 +86,7 @@ Read-only: no toggle and no glow. The readings are a readout with no container: 
 
 ### Field sensor module
 
-`SensorModule` is the same normalized sensor entity and history in the Field skin; `HaSensorModule` is its connected container, taking the same `humidityEntityId`, `batteryEntityId` and `outdoor` options as `HaSensorTile`. It is Field's first reading: nothing on it is pressed but its name. Its 160 px module puts the thermometer glyph on a flat plate where a key would sit, and today's temperature meter, with its low and high, where a fader would. The screen leads with the temperature, its thermometer lit in the figure's ink rather than a parameter colour; its two meta lines take, in order, the humidity, comfort, and the trend. A low battery takes the area's line under the name, behind the warning marker, in both footprints. A sensor with only humidity makes humidity the figure.
-
-The 64 px compact row keeps the glyph, identity and temperature. The detail panel puts humidity on the screen's second channel, then today's temperature and humidity meters, then comfort and trend (or the battery warning, with "replace soon"), the battery level and when it last reported. Unavailable sensors show blank segments and when they were last seen, and dash the hours they were gone on the meters.
+`SensorModule` is the same normalized sensor entity and history in the Field skin; `HaSensorModule` is its connected container, taking the same `humidityEntityId`, `batteryEntityId` and `outdoor` options as `HaSensorTile`. See [field.md](field.md#sensor).
 
 ## Using the weather card
 
@@ -111,7 +99,7 @@ Outdoor conditions now: the temperature, how it feels, and anything about the we
 The connected Home Assistant path keeps the same normalized card contract while selecting companions and fetching forecasts behind the boundary:
 
 ```tsx
-import { HaWeatherTile } from "./src";
+import { HaWeatherTile } from "@dashhaus/orb";
 
 <HaWeatherTile
   entityId="weather.home"
@@ -160,7 +148,7 @@ A security alarm: one `alarm_control_panel.*`.
 With Home Assistant, the connected slice in `packages/core/src/ha/` does the mapping both ways — `alarmFromHass` and `createAlarmHandlers`, or the ready-made `HaAlarmTile`:
 
 ```tsx
-import { HaAlarmTile } from "./src";
+import { HaAlarmTile } from "@dashhaus/orb";
 
 <HaAlarmTile entityId="alarm_control_panel.house" area="Whole home" exitDelay={30} entryDelay={30} />
 ```
@@ -177,6 +165,7 @@ import { HaAlarmTile } from "./src";
   - A physical keyboard works too: digits, Backspace, Enter.
   - `onArm` and `onDisarm` may return a promise. The keypad waits ("Checking…", the dots breathe), then closes when the call is accepted.
   - Resolving `false` means a wrong code: the dots shake and clear. Rejecting means the call didn't go through: the keypad says so and keeps the code, so Enter tries again.
+  - Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
   - The badge only shows status, so a stray tap never arms or disarms.
 - **Delays.** Exit delay (arming) and entry delay (pending) count down in the slot, with Cancel or Disarm.
   - The card works out the time left from `delay` (the delay's length in seconds) and `changedAt` (when the state started), and ticks each second itself. Time running out fills the pill linearly; the entry delay is tinted with the warn colour.
@@ -195,24 +184,9 @@ import { HaAlarmTile } from "./src";
 - Exit and entry delays still count down, without Cancel or Disarm; the entry delay reads "Entry delay". Triggered keeps its warn pill, without Disarm.
 - Nothing opens the keypad. The sheet has the status, today's history and "View only" in its info row; open doors and windows are still listed.
 
-What Home Assistant gives you, and what `alarmFromHass` does with it:
-
-| Card | Home Assistant |
-| --- | --- |
-| `state` | The entity state, all 11 of them. Anything else reads as unavailable. |
-| `modes` | `supported_features` bits (home 1, away 2, night 4, custom bypass 16, vacation 32); an empty set stays empty rather than inventing a mode. |
-| `codeFormat`, `codeArmRequired` | `code_format`, `code_arm_required` (default true). |
-| `armingTo` | `next_state` (manual alarm, Alarmo) or Alarmo's `arm_mode`. The core entity doesn't say, so the slot reads plain "Arming". |
-| `delay` | Alarmo's `delay` attribute; otherwise the `exitDelay` / `entryDelay` you pass (the manual alarm's `arming_time` and `delay_time`). |
-| `changedAt`, `lastChanged`, `changedBy` | `last_changed`, `changed_by`. |
-| `openSensors` | Host-composed from your own binary sensors; pass the names in. |
-| `triggeredBy` | Not in HA; pass it if an automation tracks it. |
-
-`createAlarmHandlers` resolves `false` when Home Assistant rejects the call with the `invalid_code` translation key (the manual alarm's wrong code), so the keypad shakes; any other rejection — including a bare `service_validation_error`, whose message the transport sanitizes away — means the call did not go through. Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
-
 ### Field alarm module
 
-`AlarmModule` is the same normalized alarm entity in the Field skin; `HaAlarmModule` is its connected container, on the same `useHaAlarm` hook as `HaAlarmTile`, and takes the same `onArm`, `onDisarm` and `readOnly`. The screen says ON or OFF beside a shield, counting exit and entry delays down in its place; the row is a key for Off and each mode, or one key that says what it does (Arm, Disarm, Cancel) where they don't fit and through a delay; whatever needs the code opens the panel on its keypad, with the tile's code contract; a view-only panel is a reading, its glyph and today. Triggered is an alarm on field's severity ladder (`alarmSeverity`): the screen inverts and says ALARM, and a row's screen how long ago it went off; the entry delay is urgent, what set it off in an inverted block. Both reach the dashboard's alert line. See [field.md](field.md#alarm).
+`AlarmModule` is the same normalized alarm entity in the Field skin; `HaAlarmModule` is its connected container, on the same `useHaAlarm` hook as `HaAlarmTile`, and takes the same `onArm`, `onDisarm` and `readOnly`. See [field.md](field.md#alarm).
 
 ## Using the cover card
 
@@ -236,7 +210,7 @@ Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and ga
 
 ### Field cover module
 
-`CoverModule` is the same normalized cover entity in the Field skin; `HaCoverModule` is its connected container, on the same `useHaCover` hook as `HaCoverTile`, and takes the same `onOpenCover`, `onCloseCover`, `onStopCover`, `onSetPosition` and `onSetTilt`. The screen leads with how open it is, the key opens, closes or stops it and prints which, a garage door, door or gate moving only on a press and hold from the module (a tap opens its details), the position fader has the tile's magnetic ends, and a door left open warns on the screen; the panel has quick positions, or close, stop and open for a cover with no position, and slats on their own fader. See [field.md](field.md#cover).
+`CoverModule` is the same normalized cover entity in the Field skin; `HaCoverModule` is its connected container, on the same `useHaCover` hook as `HaCoverTile`, and takes the same `onOpenCover`, `onCloseCover`, `onStopCover`, `onSetPosition` and `onSetTilt`. See [field.md](field.md#cover).
 
 ## Using the toggle card
 
@@ -248,7 +222,7 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 
 - **Switching:** the orb and the pill both toggle. Both are raised buttons when off and the accent when on (a mode is on, not energy: no bloom, no glow). It says when the mode ends ("Until 12:54") or how long it has been on ("Since Fri 18:30").
 - **Icon and optional colour per mode:**
-  - Icons: `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`.
+  - Icons: `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`.
   - The entity's optional `color` (for example `lavender` for quiet and night) tints the orb on standard cards and sheets. Most modes need none.
 - **Status line:** shows where the mode applies; in compact cards the end time takes its place. It never says On or Off; that's the pill's word.
 - **Compact:** the toggle uses the same 60 px orb/title/control anatomy as every other card. Use a CSS grid or `JoinedBundle` for mode grids; there is no toggle-only mini variant.
@@ -258,7 +232,7 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 
 ### Field toggle module
 
-`ToggleModule` is the same normalized toggle entity, history, `durations` and `onTurnOnFor` in the Field skin; `HaToggleModule` is its connected container, on the same `useHaToggle` hook as `HaToggleTile`, taking the same host's `icon` and `description`. Its key carries the mode's glyph, spans the 160 px module's row with its state word, and its LED is the one on signal; the screen says ON or OFF, then until when and since when. A mode sets no parameter, so its pictogram lights in the figure's ink and the entity's `color` isn't drawn. The detail panel puts the end time on the screen's second channel and adds the description, the duration keys (chosen while on) and today. See [field.md](field.md#toggle).
+`ToggleModule` is the same normalized toggle entity, history, `durations` and `onTurnOnFor` in the Field skin; `HaToggleModule` is its connected container, on the same `useHaToggle` hook as `HaToggleTile`, taking the same host's `icon` and `description`. See [field.md](field.md#toggle).
 
 ## Using the owlet card
 
@@ -287,7 +261,7 @@ An Owlet Smart Sock: the baby's sleep state, heart rate and oxygen saturation. I
 
 ### Field owlet module
 
-`OwletModule` is the same normalized owlet entity and history in the Field skin, with the same sleep words, alert names and ranking (`packages/core/src/entities/owlet/readings.ts`); `HaOwletModule` is its connected container, on the same `useHaOwlet` hook as `HaOwletTile`, finding the same companions or taking the same `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId`, `alertEntityIds` and `staleAfterMinutes`. The screen leads with the heart rate beside a heart that flashes once every 2.4 s while readings arrive (its colour only, as a pulse oximeter's segment, where the tile's heart beats in size), then the sleep state and the oxygen. Its warnings take field's severity ladder (`owletSeverity`): a vitals alert is an alarm, the screen inverted with the vital that set it off as its figure; a problem that stops the monitoring, or readings that stopped, is urgent, an inverted block; a low battery is advisory, on the plate's line. Both reach the dashboard's alert line. The base station switches from the panel only, as on the tile. Field has no glow or warning colour, so the alarm is the inverted screen, which flashes for ten seconds and then holds, never a coloured pulse. See [field.md](field.md#owlet).
+`OwletModule` is the same normalized owlet entity and history in the Field skin, with the same sleep words, alert names and ranking (`packages/core/src/entities/owlet/readings.ts`); `HaOwletModule` is its connected container, on the same `useHaOwlet` hook as `HaOwletTile`, finding the same companions or taking the same `heartRateEntityId`, `oxygenEntityId`, `chargingEntityId`, `baseEntityId`, `alertEntityIds` and `staleAfterMinutes`. See [field.md](field.md#owlet).
 
 ```tsx
 <HaOwletModule entityId="sensor.owlet_sock_ac000w0123_sleep_state" name="Nova" />
@@ -320,7 +294,7 @@ One `humidifier.*` entity: a humidifier, or a dehumidifier by its `device_class`
 
 ### Field humidifier module
 
-`HumidifierModule` is the same normalized humidifier entity in the Field skin; `HaHumidifierModule` is its connected container, on the same `useHaHumidifier` hook as `HaHumidifierTile`, so it takes the same `onToggle`, `onTargetChange` and `onModeChange`. The screen leads with the room's humidity, the fader sets the target while it is on, and the panel adds one-percent steps and the mode keys. See [field.md](field.md#humidifier).
+`HumidifierModule` is the same normalized humidifier entity in the Field skin; `HaHumidifierModule` is its connected container, on the same `useHaHumidifier` hook as `HaHumidifierTile`, so it takes the same `onToggle`, `onTargetChange` and `onModeChange`. See [field.md](field.md#humidifier).
 
 ## Using the sound card
 
@@ -346,7 +320,7 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 
 ### Field sound module
 
-`SoundModule` is the same normalized sound entity in the Field skin; `HaSoundModule` is its connected container, on the same `useHaSound` hook as `HaSoundTile`, so it finds the volume the same way (or takes `volumeEntityId`) and takes the same `onToggle` and `onVolumeChange`. The screen leads with the volume, the key spans the row, and the volume fader is in the panel only, as on the tile. See [field.md](field.md#sound).
+`SoundModule` is the same normalized sound entity in the Field skin; `HaSoundModule` is its connected container, on the same `useHaSound` hook as `HaSoundTile`, so it finds the volume the same way (or takes `volumeEntityId`) and takes the same `onToggle` and `onVolumeChange`. See [field.md](field.md#sound).
 
 <!-- new-card: cards -->
 ## The dashboard header
