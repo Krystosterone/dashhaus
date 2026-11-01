@@ -23,7 +23,7 @@ const CHECKS = {
   forbiddenImport: reachesHa,
 };
 
-/* Every folder in cards/ is one entity's card. The dashboard's title row is type on the page, not a card: it lives
+/* Every folder in cards/ is one model's card. The dashboard's title row is type on the page, not a card: it lives
    in dashboards/ with the rest of the page. */
 const cards = cardFolders(SKIN)
   .map((name) => {
