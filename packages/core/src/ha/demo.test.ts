@@ -175,6 +175,7 @@ describe("demo history and registry commands", () => {
     );
 
     expect(names.get("light.living_room")).toBe("Living room");
+    await expect(send("config/floor_registry/list")).resolves.toEqual([{ floor_id: "ground", name: "Ground floor", level: 0 }]);
   });
 
   it("leaves unknown history entities out and rejects unsupported commands", async () => {

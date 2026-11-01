@@ -6,6 +6,7 @@ import { soundFromHass, soundVolumeCandidates, soundVolumeFromHass } from "../ma
 import { onOffHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { SoundEntity, SoundHistory } from "../../entities/sound/types";
 import type { HaActionError } from "../types";
@@ -32,6 +33,7 @@ export interface HaSoundResult {
 
 /** One live sound machine for any UI: the switch and its volume mapped together, today's history and its actions. */
 export function useHaSound(entityId: string, { volumeEntityId, name, area, lastSeen, history, loadHistory = true, onActionError }: HaSoundOptions = {}): HaSoundResult {
+  checkEntityId(entityId, ["switch"], "useHaSound");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const candidates = useHaEntities(volumeEntityId ? [volumeEntityId] : soundVolumeCandidates(entityId));

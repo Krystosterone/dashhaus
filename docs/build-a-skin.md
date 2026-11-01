@@ -20,7 +20,7 @@ npx dashhaus-deploy --skip-build
 empty; `--dry-run` lists the files instead of writing them.
 
 `home-assistant-js-websocket` is required in the app that builds the bundle: the Lovelace element reaches
-`@dashhaus/core/websocket`, whose client is an optional peer of core. React 18 is required.
+`@dashhaus/core/websocket`, whose client is an optional peer of core. React 18.3+ or 19 is required.
 
 ## What the scaffold writes
 

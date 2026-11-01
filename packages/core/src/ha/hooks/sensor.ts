@@ -4,6 +4,7 @@ import { sensorFromHass } from "../mappers/sensor";
 import { sensorHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { SensorEntity, SensorHistory } from "../../entities/sensor/types";
 
@@ -30,6 +31,7 @@ export interface HaSensorResult {
 
 /** One live, read-only sensor for any UI: the primary sensor composed with its humidity and battery companions. */
 export function useHaSensor(entityId: string, { humidityEntityId, batteryEntityId, name, area, outdoor, lastSeen, unit, history, loadHistory = true }: HaSensorOptions = {}): HaSensorResult {
+  checkEntityId(entityId, ["sensor"], "useHaSensor");
   const raw = useHaEntity(entityId);
   const humidityEntity = useHaEntity(humidityEntityId ?? "");
   const batteryEntity = useHaEntity(batteryEntityId ?? "");

@@ -6,6 +6,7 @@ import { humidifierFromHass } from "../mappers/humidifier";
 import { onOffHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { HumidifierEntity, HumidifierHistory } from "../../entities/humidifier/types";
 import type { HaActionError } from "../types";
@@ -30,6 +31,7 @@ export interface HaHumidifierResult {
 
 /** One live humidifier for any UI: the mapped entity, today's history and its service actions. */
 export function useHaHumidifier(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaHumidifierOptions = {}): HaHumidifierResult {
+  checkEntityId(entityId, ["humidifier"], "useHaHumidifier");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

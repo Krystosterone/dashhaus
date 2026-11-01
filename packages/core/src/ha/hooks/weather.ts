@@ -7,6 +7,7 @@ import { useNow } from "../../hooks/useNow";
 import type { HaStore } from "../types";
 import { useHaEntity } from "../provider";
 import { useHaRequest } from "../useHaRequest";
+import { checkEntityId } from "../dev";
 
 type Forecasts = { hourly: HourlyForecast[]; daily: DailyForecast[] };
 type ForecastType = keyof Forecasts;
@@ -80,6 +81,7 @@ export function useHaWeather(entityId: string, {
   loadForecasts = true,
   onForecastError,
 }: HaWeatherOptions = {}): HaWeatherResult {
+  checkEntityId(entityId, ["weather"], "useHaWeather");
   const raw = useHaEntity(entityId);
   const aqiEntity = useHaEntity(aqiEntityId ?? "");
   const sunEntity = useHaEntity(sunEntityId ?? "");

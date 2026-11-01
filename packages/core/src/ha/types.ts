@@ -53,8 +53,27 @@ export type HaConnectionStatus = "idle" | "connecting" | "connected" | "disconne
 
 export type HaActionErrorCode = "not_connected" | "service_failed" | "transport_unknown" | "unsupported" | "invalid_input";
 
+export type HaActionErrorCategory = "connection" | "rejected" | "unsupported" | "invalid_input";
+
+export interface HaActionErrorMetadata {
+  category: HaActionErrorCategory;
+  /** Safe to repeat on the current connection, not a promise that the repeat succeeds. */
+  retryable: boolean;
+}
+
+/** The one code-to-metadata rule. The store's retry policy reads it, so a new code cannot drift. */
+export const HA_ACTION_ERROR_META: Record<HaActionErrorCode, HaActionErrorMetadata> = {
+  not_connected: { category: "connection", retryable: true },
+  service_failed: { category: "rejected", retryable: true },
+  transport_unknown: { category: "connection", retryable: false },
+  unsupported: { category: "unsupported", retryable: false },
+  invalid_input: { category: "invalid_input", retryable: false },
+};
+
 export class HaActionError extends Error {
   readonly code: HaActionErrorCode;
+  readonly category: HaActionErrorCategory;
+  readonly retryable: boolean;
   readonly domain?: string;
   readonly service?: string;
   readonly entityId?: string;
@@ -77,6 +96,9 @@ export class HaActionError extends Error {
     super(message);
     this.name = "HaActionError";
     this.code = code;
+    const meta = HA_ACTION_ERROR_META[code];
+    this.category = meta.category;
+    this.retryable = meta.retryable;
     this.domain = details.domain;
     this.service = details.service;
     this.entityId = details.entityId;

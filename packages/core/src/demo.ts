@@ -263,8 +263,13 @@ export interface DemoHistoryRow {
 export const DEMO_AREA_ID = "living_room";
 export const DEMO_AREA_NAME = "Living room";
 
-export function demoAreaRegistry(): Array<{ area_id: string; name: string }> {
-  return [{ area_id: DEMO_AREA_ID, name: DEMO_AREA_NAME }];
+export function demoAreaRegistry(): Array<{ area_id: string; name: string; floor_id: string }> {
+  return [{ area_id: DEMO_AREA_ID, name: DEMO_AREA_NAME, floor_id: "ground" }];
+}
+
+/** `config/floor_registry/list`: the demo's one area sits on one floor. */
+export function demoFloorRegistry(): Array<{ floor_id: string; name: string; level: number }> {
+  return [{ floor_id: "ground", name: "Ground floor", level: 0 }];
 }
 
 export const DEMO_DEVICE_ID = "demo_device";
@@ -371,5 +376,6 @@ export async function demoSendMessage(
   if (type === "config/entity_registry/list_for_display") return demoEntityRegistry(entities);
   if (type === "config/device_registry/list") return demoDeviceRegistry();
   if (type === "config/area_registry/list") return demoAreaRegistry();
+  if (type === "config/floor_registry/list") return demoFloorRegistry();
   throw new Error(`Unsupported demo command: ${type}`);
 }

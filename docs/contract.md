@@ -2,7 +2,7 @@
 
 A skin is one whole UI on the headless foundation. It gets entities from `@dashhaus/core` and draws them itself; the parts it may not rewrite are `@dashhaus/dashboard/skin`, the element runtime every skin's Lovelace card extends, `@dashhaus/dashboard/card`, the behaviour every card shares, and `@dashhaus/dashboard/schema`, the reader its Lovelace YAML is written against. Those three subpaths are the frozen 1.0 contract. `@dashhaus/dashboard/conformance` is its compatibility test: a skin runs it against its own cards.
 
-A skin author installs React 18 and the packages it needs:
+A skin author installs React 18.3+ or 19 and the packages it needs:
 
 ```sh
 npm install @dashhaus/core @dashhaus/dashboard @dashhaus/deploy react@18 react-dom@18 home-assistant-js-websocket@9

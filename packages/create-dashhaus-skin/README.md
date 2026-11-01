@@ -37,7 +37,7 @@ vite.config.mjs                     one ES module, dist/dashhaus-<skin>.js, CSS 
 dashboard.config.mjs                the dashboard and the bundle
 ```
 
-The generated `package.json` depends on `@dashhaus/core` and `@dashhaus/dashboard` and peers on React 18 and
+The generated `package.json` depends on `@dashhaus/core` and `@dashhaus/dashboard` and peers on React 18.3+ or 19 and
 `home-assistant-js-websocket`; the deploy CLI is a dev dependency. The build is one file, so the dashboard resource
 needs no separate stylesheet.
 

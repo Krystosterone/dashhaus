@@ -6,5 +6,6 @@ export * from "./house";
 export * from "./humidifier";
 export * from "./owlet";
 export * from "./sound";
+export * from "./store";
 export * from "./toggle";
 // new-card: demo transports

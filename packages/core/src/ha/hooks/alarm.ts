@@ -6,6 +6,7 @@ import { alarmFromHass } from "../mappers/alarm";
 import { alarmHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { AlarmEntity, AlarmHistory } from "../../entities/alarm/types";
 import type { HaActionError } from "../types";
@@ -34,6 +35,7 @@ export interface HaAlarmResult {
 
 /** One live alarm panel for any UI: the mapped entity, today's history and its arm and disarm actions. */
 export function useHaAlarm(entityId: string, { name, area, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, history, loadHistory = true, onActionError }: HaAlarmOptions = {}): HaAlarmResult {
+  checkEntityId(entityId, ["alarm_control_panel"], "useHaAlarm");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

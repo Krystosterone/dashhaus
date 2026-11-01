@@ -6,6 +6,7 @@ import { climateFromHass } from "../mappers/climate";
 import { climateHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { ClimateEntity, ClimateHistory } from "../../entities/climate/types";
 import type { HaActionError } from "../types";
@@ -30,6 +31,7 @@ export interface HaClimateResult {
 
 /** One live climate entity for any UI: the mapped entity, today's history and its service actions. */
 export function useHaClimate(entityId: string, { name, area, lastSeen, unit, history, loadHistory = true, onActionError }: HaClimateOptions = {}): HaClimateResult {
+  checkEntityId(entityId, ["climate"], "useHaClimate");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

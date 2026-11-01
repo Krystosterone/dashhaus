@@ -12,7 +12,7 @@ npm test        # the packed conformance preset over cards/
 npm run build   # dist/dashhaus-__skin__.js: one file, its CSS included
 ```
 
-React 18 and `home-assistant-js-websocket` are peers; npm installs them with the rest. The build is one ES module,
+React 18.3+ or 19 and `home-assistant-js-websocket` are peers; npm installs them with the rest. The build is one ES module,
 so Home Assistant needs one dashboard resource.
 
 ## Deploy

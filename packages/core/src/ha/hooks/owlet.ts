@@ -6,6 +6,7 @@ import { OWLET_ALERT_SUFFIX, owletCompanionIds, owletFromHass } from "../mappers
 import { owletHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { HaActionError, HassEntity } from "../types";
 import type { OwletAlert, OwletEntity, OwletHistory } from "../../entities/owlet/types";
@@ -47,6 +48,7 @@ export interface HaOwletResult {
  * the base station's switch; the readings are read-only.
  */
 export function useHaOwlet(entityId: string, { heartRateEntityId, oxygenEntityId, chargingEntityId, baseEntityId, alertEntityIds, name, area, lastSeen, history, loadHistory = true, staleAfterMinutes, onActionError }: HaOwletOptions = {}): HaOwletResult {
+  checkEntityId(entityId, ["sensor"], "useHaOwlet");
   const store = useHaStore();
   const derived = owletCompanionIds(entityId);
   const heartRateId = heartRateEntityId ?? derived?.heartRate;

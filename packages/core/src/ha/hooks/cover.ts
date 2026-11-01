@@ -6,6 +6,7 @@ import { coverFromHass } from "../mappers/cover";
 import { coverHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { CoverEntity, CoverHistory } from "../../entities/cover/types";
 import type { HaActionError } from "../types";
@@ -29,6 +30,7 @@ export interface HaCoverResult {
 
 /** One live cover for any UI: the mapped entity, today's history and its service actions. */
 export function useHaCover(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaCoverOptions = {}): HaCoverResult {
+  checkEntityId(entityId, ["cover"], "useHaCover");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

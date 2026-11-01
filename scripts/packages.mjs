@@ -115,7 +115,7 @@ export function generatedManifest(skin) {
     sideEffects: ["./styles/tokens.css"],
     exports: generated.exports,
     dependencies: { [packages.core.name]: "*", [packages.dashboard.name]: "*" },
-    peerDependencies: { react: "^18.3.1", "react-dom": "^18.3.1" },
+    peerDependencies: { react: "^18.3.1 || ^19.0.0", "react-dom": "^18.3.1 || ^19.0.0" },
   };
 }
 

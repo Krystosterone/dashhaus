@@ -11,10 +11,12 @@ export type {
   HaSnapshot,
   HaStore,
   HaActionErrorCode,
+  HaActionErrorCategory,
+  HaActionErrorMetadata,
   HaServiceTarget,
   HaServiceCallOptions,
 } from "./ha/types";
-export { HaActionError } from "./ha/types";
+export { HA_ACTION_ERROR_META, HaActionError } from "./ha/types";
 export { createHaStore } from "./ha/store";
 export { HaProvider, useHaEntities, useHaEntity, useHaGeneration, useHaSelector, useHaSnapshot, useHaStatus, useHaStore } from "./ha/provider";
 export type { HaProviderProps } from "./ha/provider";
@@ -84,7 +86,15 @@ export type { HaHistoryRecord, OnOffHistory } from "./ha/history";
 export { serviceRunner } from "./ha/actions/run";
 export type { ServiceCaller } from "./ha/actions/run";
 export { useHaHistory } from "./ha/useHaHistory";
-export { areaNamesFromRegistries, useHaArea } from "./ha/registry";
+export { areaMembership, areaNamesFromRegistries, readRegistries, useHaArea, useHaAreas, useHaRegistry } from "./ha/registry";
+export type {
+  HaAreaEntities,
+  HaAreaRegistryEntry,
+  HaDeviceRegistryEntry,
+  HaEntityRegistryEntry,
+  HaFloorRegistryEntry,
+  HaRegistry,
+} from "./ha/registry";
 export { useHaRequest } from "./ha/useHaRequest";
 export type { HaRequestOptions, HaRequestState } from "./ha/useHaRequest";
 export { OWLET_ALERT_SUFFIX, OWLET_STALE_AFTER_MINUTES, owletFromHass, owletCompanionIds } from "./ha/mappers/owlet";

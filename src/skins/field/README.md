@@ -8,7 +8,7 @@ The Field skin: React modules drawn after Teenage Engineering's EP–133 K.O. II
 npm install @dashhaus/field @dashhaus/core @dashhaus/dashboard react@18 react-dom@18 home-assistant-js-websocket@9
 ```
 
-React 18 is required. The websocket client is an optional peer: the Lovelace element reaches it through `@dashhaus/core/websocket`, so install it in the app that builds the browser bundle.
+React 18.3+ or 19 is supported. The websocket client is an optional peer: the Lovelace element reaches it through `@dashhaus/core/websocket`, so install it in the app that builds the browser bundle.
 
 ## Use
 

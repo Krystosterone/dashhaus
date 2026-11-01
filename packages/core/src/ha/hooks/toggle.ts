@@ -6,6 +6,7 @@ import { toggleFromHass } from "../mappers/toggle";
 import { toggleHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { ToggleEntity, ToggleIcon, ToggleHistory } from "../../entities/toggle/types";
 import type { ColorName } from "../../entities/color";
@@ -33,6 +34,7 @@ export interface HaToggleResult {
 
 /** One live input_boolean or switch for any UI: the mapped entity, today's history and its toggle. */
 export function useHaToggle(entityId: string, { name, area, lastSeen, icon, color, description, history, loadHistory = true, onActionError }: HaToggleOptions = {}): HaToggleResult {
+  checkEntityId(entityId, ["input_boolean", "switch"], "useHaToggle");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

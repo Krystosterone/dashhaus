@@ -6,6 +6,7 @@ import { lightFromHass } from "../mappers/light";
 import { lightHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
+import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { LightEntity, LightHistory } from "../../entities/light/types";
 import type { HaActionError } from "../types";
@@ -29,6 +30,7 @@ export interface HaLightResult {
 
 /** One live light for any UI: the mapped entity, today's history and its service actions. */
 export function useHaLight(entityId: string, { name, area, lastSeen, history, loadHistory = true, onActionError }: HaLightOptions = {}): HaLightResult {
+  checkEntityId(entityId, ["light"], "useHaLight");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);

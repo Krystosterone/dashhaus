@@ -27,6 +27,18 @@ describe("public packages", () => {
     expect(template.devDependencies?.["@dashhaus/deploy"]).toBe(`^${version}`);
   });
 
+  it("publishes the React 18 and 19 peer range the consumer test covered", () => {
+    for (const key of ["core", "dashboard", "orb", "field"] as const) {
+      expect(manifests[key].peerDependencies?.react, `${manifests[key].name} accepts React 19`).toBe("^18.3.1 || ^19.0.0");
+    }
+    for (const key of ["dashboard", "orb", "field"] as const) {
+      expect(manifests[key].peerDependencies?.["react-dom"], `${manifests[key].name} accepts React 19`).toBe("^18.3.1 || ^19.0.0");
+    }
+    const template = read("packages/create-dashhaus-skin/src/templates/package.json");
+    expect(template.peerDependencies?.react).toBe("^18.3.1 || ^19.0.0");
+    expect(template.peerDependencies?.["react-dom"]).toBe("^18.3.1 || ^19.0.0");
+  });
+
   it("resolve source in the workspace and built files in a packed install", () => {
     for (const key of ["core", "dashboard"]) {
       const manifest = manifests[key];

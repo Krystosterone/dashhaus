@@ -56,6 +56,7 @@ It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-fi
 | [docs/field.md](docs/field.md) | Field's design and composition rules |
 | [docs/cards.md](docs/cards.md) | Per-card behaviour |
 | [docs/home-assistant.md](docs/home-assistant.md) | The Home Assistant data boundary and hooks |
+| [docs/core.md](docs/core.md) | The core contract, error metadata, transport lifecycle and auth boundary |
 | [docs/deploy.md](docs/deploy.md) | Deploying the bundle and the Lovelace YAML |
 | [docs/performance.md](docs/performance.md) | The deployed pages' performance marks and report |
 | [docs/skins.md](docs/skins.md) | Starting a skin in this repository |

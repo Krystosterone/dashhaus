@@ -8,7 +8,7 @@ The framework a Dashhaus skin's Lovelace card draws on: the frozen skin-author r
 npm install @dashhaus/dashboard @dashhaus/core react@18 react-dom@18 home-assistant-js-websocket@9
 ```
 
-React 18 is required. The websocket client is an optional peer: the element base reaches it through `@dashhaus/core/websocket`, so install it in the app that builds the browser bundle.
+React 18.3+ or 19 is supported. The websocket client is an optional peer: the element base reaches it through `@dashhaus/core/websocket`, so install it in the app that builds the browser bundle.
 
 ## Use
 

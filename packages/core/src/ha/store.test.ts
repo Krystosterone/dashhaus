@@ -330,6 +330,7 @@ describe("createHaStore actions", () => {
     const { store } = await connected({ callService });
 
     await store.callService("light", "toggle", { entity_id: "light.one" }).catch(() => undefined);
+    expect(store.getSnapshot().lastActionError).toMatchObject({ code: "service_failed", category: "rejected", retryable: true });
     expect(store.canRetryLastAction?.()).toBe(true);
 
     fail = false;
@@ -350,6 +351,7 @@ describe("createHaStore actions", () => {
 
     const unknown = await connected({ callService: vi.fn(async () => { throw 3; }) });
     await unknown.store.callService("cover", "open_cover", { entity_id: "cover.garage" }).catch(() => undefined);
+    expect(unknown.store.getSnapshot().lastActionError).toMatchObject({ code: "transport_unknown", category: "connection", retryable: false });
     expect(unknown.store.canRetryLastAction?.()).toBe(false);
   });
 

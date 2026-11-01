@@ -177,7 +177,7 @@ export function createHaStore(transport: HaTransport, initialEntities?: HassEnti
         if (tracedAction?.seq === actionId) tracedAction = undefined;
       }
       if (action && actionId === actionSequence && generation === snapshot.generation) {
-        failedAction = retry && (error.code === "service_failed" || error.code === "not_connected") ? retry : undefined;
+        failedAction = retry && error.retryable ? retry : undefined;
         set({ lastActionError: error });
       }
       return error;
