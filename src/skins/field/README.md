@@ -35,7 +35,7 @@ The Lovelace card accepts `custom:dashhaus-field` YAML with `title`, `modules`, 
 
 ## Docs
 
-- [Field design](https://github.com/Krystosterone/dashhaus/blob/main/docs/field.md)
-- [Card behaviour](https://github.com/Krystosterone/dashhaus/blob/main/docs/cards.md)
-- [Deploy YAML](https://github.com/Krystosterone/dashhaus/blob/main/docs/deploy.md)
-- [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/docs/build-a-skin.md)
+- [Field design](https://github.com/Krystosterone/dashhaus/blob/main/spec/field.md)
+- [Card behaviour](https://github.com/Krystosterone/dashhaus/blob/main/spec/cards.md)
+- [Deploy YAML](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md)
+- [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/spec/build-a-skin.md)

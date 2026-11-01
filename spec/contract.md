@@ -10,7 +10,7 @@ npm install @dashhaus/core @dashhaus/dashboard @dashhaus/deploy react@18 react-d
 
 `home-assistant-js-websocket` is not optional for the app that builds a skin's browser bundle: the element base reaches `@dashhaus/core/websocket`, whose runtime import of the client makes it an optional peer of core, so Vite cannot bundle the card without it. It is not needed by an app that only deploys a prebuilt bundle.
 
-The public packages share one version, currently `0.2.0`, and move together (`docs/release.md`). A standalone
+The public packages share one version, currently `0.2.0`, and move together (`spec/release.md`). A standalone
 project starts with `npm create dashhaus-skin@latest my-skin`; [build-a-skin.md](build-a-skin.md) walks the whole
 journey from install to deploy. Until 1.0, a breaking change to this page is allowed, but it has to be a change to this page: the conformance preset and the package tests are what say the contract still holds. What a skin draws — its markup, classes, tokens, stories and docs — is the skin's own and is never part of this contract.
 

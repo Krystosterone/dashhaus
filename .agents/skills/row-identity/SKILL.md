@@ -7,7 +7,7 @@ description: Give dense same-shaped compact controls their own identity — doma
 
 A column of compact cards all in one shape is unreadable when the shell carries meaning that each row's content should. This skill is the contract for per-row identity.
 
-The spec wording is `docs/orb.md` → Orb design rules → "Compact cards carry their own identity"; this skill is its operational form. The contract is the doc plus this skill — there is no separate research note.
+The spec wording is `spec/orb.md` → Orb design rules → "Compact cards carry their own identity"; this skill is its operational form. The contract is the doc plus this skill — there is no separate research note.
 
 ## The Contract
 

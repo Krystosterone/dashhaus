@@ -79,8 +79,8 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
   });
 
   it("is documented", () => {
-    expect(read("docs/field.md"), "docs/field.md: a section for the card").toMatch(new RegExp(`^## ${name[0].toUpperCase()}${words.slice(1)}$`, "m"));
-    if (name !== "light") expect(read("docs/cards.md"), "docs/cards.md: a field subsection under the card").toContain(`### Field ${words} module`);
+    expect(read("spec/field.md"), "spec/field.md: a section for the card").toMatch(new RegExp(`^## ${name[0].toUpperCase()}${words.slice(1)}$`, "m"));
+    if (name !== "light") expect(read("spec/cards.md"), "spec/cards.md: a field subsection under the card").toContain(`### Field ${words} module`);
   });
 
   it("is in Storybook's order and on the Design rules page", () => {

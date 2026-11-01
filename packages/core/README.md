@@ -45,7 +45,7 @@ const store = createHaStore(createHomeAssistantTransport(connection));
 
 ## Docs
 
-- [Core contract and auth boundary](https://github.com/Krystosterone/dashhaus/blob/main/docs/core.md)
-- [Home Assistant boundary](https://github.com/Krystosterone/dashhaus/blob/main/docs/home-assistant.md)
-- [Skin contract](https://github.com/Krystosterone/dashhaus/blob/main/docs/contract.md)
+- [Core contract and auth boundary](https://github.com/Krystosterone/dashhaus/blob/main/spec/core.md)
+- [Home Assistant boundary](https://github.com/Krystosterone/dashhaus/blob/main/spec/home-assistant.md)
+- [Skin contract](https://github.com/Krystosterone/dashhaus/blob/main/spec/contract.md)
 - [Repository overview](https://github.com/Krystosterone/dashhaus#readme)

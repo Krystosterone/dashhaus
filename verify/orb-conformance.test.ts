@@ -64,8 +64,8 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(shared, "export the shared hook and headless component from @dashhaus/core").toEqual([]);
   });
 
-  it("is documented in docs/cards.md", () => {
-    expect(read("docs/cards.md")).toContain(`## Using the ${words} card`);
+  it("is documented in spec/cards.md", () => {
+    expect(read("spec/cards.md")).toContain(`## Using the ${words} card`);
   });
 
   it("connects to Home Assistant", () => {
@@ -81,6 +81,6 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     const picked = object(config, "DOMAIN_KIND").includes(`: "${name}",`) || new RegExp(`^\\s*${name}:`, "m").test(object(config, "SHARED_KINDS"));
     expect(picked, `${step}: give it its domain in DOMAIN_KIND, or list it in SHARED_KINDS (${SKIN}/lovelace/config.ts)`).toBe(true);
     expect(read(`${SKIN}/lovelace/ConfigDashboard.tsx`), `${step}: render it in tile() (${SKIN}/lovelace/ConfigDashboard.tsx)`).toMatch(new RegExp(`<Ha${Name}Tile\\b`));
-    expect(read("docs/deploy.md"), `${step}: list its domain in docs/deploy.md`).toMatch(new RegExp(`^- \`.*\`: ${words}\\b`, "m"));
+    expect(read("spec/deploy.md"), `${step}: list its domain in spec/deploy.md`).toMatch(new RegExp(`^- \`.*\`: ${words}\\b`, "m"));
   });
 });

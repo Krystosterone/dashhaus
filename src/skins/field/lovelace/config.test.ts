@@ -22,7 +22,7 @@ describe("parseFieldConfig: the page", () => {
   it("says why a main-card key isn't field's, rather than guessing at a typo", () => {
     expect(problems({ theme: "dark", accent: "sage" })).toEqual([
       '"theme" is the main card\'s: field\'s finish is "finish": home-assistant, auto, alloy or black',
-      '"accent" is the main card\'s: field has no accent: colour names a parameter (docs/field.md)',
+      '"accent" is the main card\'s: field has no accent: colour names a parameter (spec/field.md)',
     ]);
   });
 });
@@ -54,7 +54,7 @@ describe("parseFieldConfig: a module's keys", () => {
 
   it("says why color, show_control and a bundle are the main card's", () => {
     expect(problems({ modules: [{ entity: "light.lamp", color: "amber", show_control: true }, { joined: ["light.a"] }] })).toEqual([
-      'modules[0] (light.lamp): "color" is the main card\'s: field keeps colour for what a control sets (docs/field.md)',
+      'modules[0] (light.lamp): "color" is the main card\'s: field keeps colour for what a control sets (spec/field.md)',
       'modules[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',
       "modules[1]: bundles are the main card's: list each module on its own",
     ]);

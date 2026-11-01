@@ -13,7 +13,7 @@ const meta = {
   title: "Orb/Dashboards/Lovelace card",
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "The `custom:dashhaus-orb` Lovelace card: a whole page from its YAML (docs/deploy.md), on the demo transports. The header time is fixed at 11:54." } },
+    docs: { description: { component: "The `custom:dashhaus-orb` Lovelace card: a whole page from its YAML (spec/deploy.md), on the demo transports. The header time is fixed at 11:54." } },
   },
 } satisfies Meta;
 export default meta;
@@ -22,7 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 const NOW = new Date(2026, 9, 17, 11, 54);
 
-/** The YAML in docs/deploy.md's example, as Lovelace hands it to the card. */
+/** The YAML in spec/deploy.md's example, as Lovelace hands it to the card. */
 const YAML = {
   type: "custom:dashhaus-orb",
   title: "Home",
@@ -98,7 +98,7 @@ function ActionFailureExample() {
   return <House transport={transport}><FailedAction /></House>;
 }
 
-/** docs/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
+/** spec/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
 const NAV_YAML = {
   type: "custom:dashhaus-orb",
   title: "Home",

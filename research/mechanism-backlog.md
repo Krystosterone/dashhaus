@@ -7,7 +7,7 @@ list.
 
 ## 1. Attention channel — urgency input to damping
 
-**Contract:** the `attention-budget` skill items 1–2 and `docs/orb.md` → Dashboards → "Composing for a glance" (glow
+**Contract:** the `attention-budget` skill items 1–2 and `spec/orb.md` → Dashboards → "Composing for a glance" (glow
 follows urgency, not position).
 
 - **Today:** `src/skins/orb/dashboards/layout.css` damps later glowing cards to 0.5 by sibling position only

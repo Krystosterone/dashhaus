@@ -37,7 +37,7 @@ Fixtures, demo transports and `testing` are shipped because they are declared pu
 
 `@dashhaus/dashboard/skin` is the frozen skin-author runtime: the element base, card-picker registration, token scoping and the layout's `hass` input. A skin's Lovelace card imports it instead of the main entry.
 
-`@dashhaus/dashboard/conformance` is Node- and test-only: it reads a skin's files with `node:fs` and `node:path`, and imports no React, DOM, CSS or test runner. A skin imports it from its own test and asserts the findings are empty. What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `docs/contract.md`.
+`@dashhaus/dashboard/conformance` is Node- and test-only: it reads a skin's files with `node:fs` and `node:path`, and imports no React, DOM, CSS or test runner. A skin imports it from its own test and asserts the findings are empty. What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `spec/contract.md`.
 
 `@dashhaus/deploy/config` is the pure author config surface: `DeployConfig`, `DeployDashboard`, `DeployHa`, `DeployCard`, `GeneratedSkin` and `generatedDashboards`. It imports no Node builtin and no React, so a Node-only app that installs deploy alone can read its config types. The loader that bundles and validates `dashboard.config.mjs` is the main `.` entry.
 
@@ -224,7 +224,7 @@ npm run test-storybook -- --shard=1/2 --maxWorkers=2     # 2/2 in the second job
 
 ## Differences from the readiness note
 
-- The note's `dashboard/conformance` subpath now exists: it is the generic card preset a skin runs against its own cards, shipped Node-test-only with no Vitest peer (`docs/contract.md`). `dashboard/vite` does not exist and is not part of this cut: no consumer needs a shared build, and the deploy config keeps ownership of its `build()`. A demonstrated need starts that cut.
+- The note's `dashboard/conformance` subpath now exists: it is the generic card preset a skin runs against its own cards, shipped Node-test-only with no Vitest peer (`spec/contract.md`). `dashboard/vite` does not exist and is not part of this cut: no consumer needs a shared build, and the deploy config keeps ownership of its `build()`. A demonstrated need starts that cut.
 - The config-authoring surface moved from `dashboard/cli` to `@dashhaus/deploy/config`, so a deploy-only app installs no React peer and the two package boundaries stay separate. Generator tooling stays in `scripts/`.
 - The note's built-output tradeoff is implemented as described: ESM JavaScript plus `.d.ts`, workspace source through an export condition, no raw TypeScript in an installed package.
 - The reference skins remain folders, not packages; the monorepo rename to Dashhaus applies to the root and package names only.

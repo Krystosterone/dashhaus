@@ -18,7 +18,7 @@ import { OWLET_ALERT_SUFFIX } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
 
 /*
- * The field card's YAML (docs/deploy.md → The field dashboard), checked with the reader every card shares, so
+ * The field card's YAML (spec/deploy.md → The field dashboard), checked with the reader every card shares, so
  * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
  * weather, modes, sound machines, covers, alarms and Owlet socks. The reading itself is the shared card schema
  * (`@dashhaus/dashboard/schema`); this file is the field card's kind table and the words it refuses.
@@ -216,14 +216,14 @@ export function kindOf(entity: string): FieldKind | undefined {
 const ORB_ONLY = {
   top: {
     theme: "field's finish is \"finish\": home-assistant, auto, alloy or black",
-    accent: "field has no accent: colour names a parameter (docs/field.md)",
+    accent: "field has no accent: colour names a parameter (spec/field.md)",
   },
   section: {
     cards: "a field section lists \"modules\"",
     gap: "field spaces its grid by footprint: 12 px between modules, 8 px between rows",
   },
   module: {
-    color: "field keeps colour for what a control sets (docs/field.md)",
+    color: "field keeps colour for what a control sets (spec/field.md)",
     show_control: "a field row shows its screen in place of a control",
   },
 } satisfies Record<string, Record<string, string>>;

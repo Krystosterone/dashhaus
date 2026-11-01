@@ -43,5 +43,5 @@ needs no separate stylesheet.
 
 ## Docs
 
-- [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/docs/build-a-skin.md)
-- [Deploy](https://github.com/Krystosterone/dashhaus/blob/main/docs/deploy.md)
+- [Build a skin](https://github.com/Krystosterone/dashhaus/blob/main/spec/build-a-skin.md)
+- [Deploy](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md)

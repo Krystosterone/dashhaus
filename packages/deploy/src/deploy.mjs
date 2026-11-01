@@ -155,7 +155,7 @@ export async function deploy({
     const resource = await registerResource(ha, target, version, report, warn);
     const results = await reconcileDashboards(ha, dashboards, pageTitle, report);
     report(`\nDone. Open ${dashboards.map((dashboard) => `${settings.url}/${dashboard.path}/home`).join(" or ")} and reload the page once to pick up version ${version}.
-To edit one: ⋮ → Edit dashboard → the card's ✎ → Code editor. The formats are in docs/deploy.md.`);
+To edit one: ⋮ → Edit dashboard → the card's ✎ → Code editor. The formats are in spec/deploy.md.`);
     return { version, resource, dashboards: results };
   } finally {
     ha.close();

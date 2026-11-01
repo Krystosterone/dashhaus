@@ -1,6 +1,6 @@
 # Cards
 
-Per-card behaviour: what each card shows, how it interacts, and its props. The rules every card follows are in [docs/orb.md](orb.md) and [docs/field.md](field.md); folder layout, commands and the adding-a-card steps are in AGENTS.md.
+Per-card behaviour: what each card shows, how it interacts, and its props. The rules every card follows are in [spec/orb.md](orb.md) and [spec/field.md](field.md); folder layout, commands and the adding-a-card steps are in AGENTS.md.
 
 ## Shared footprints
 
@@ -41,7 +41,7 @@ import { HaLightTile } from "./src";
 <HaLightTile entityId="light.living_room" footprint="compact" />
 ```
 
-The connected container must be rendered below `HaProvider`; see [docs/home-assistant.md](home-assistant.md) for the transport/store setup.
+The connected container must be rendered below `HaProvider`; see [spec/home-assistant.md](home-assistant.md) for the transport/store setup.
 
 ## Using the climate card
 

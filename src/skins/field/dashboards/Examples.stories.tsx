@@ -35,7 +35,7 @@ import { OWLET_SEEDS } from "../cards/owlet/demo/socks";
 import type { OwletSeedName } from "../cards/owlet/demo/socks";
 
 /*
- * Examples of composing a field page, one per device. They show the composition rules (docs/field.md → Dashboards),
+ * Examples of composing a field page, one per device. They show the composition rules (spec/field.md → Dashboards),
  * not every card: a card earns a place here by showing something about a page, and each one's own stories show the rest.
  */
 

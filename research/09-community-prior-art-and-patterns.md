@@ -11,7 +11,7 @@ last_updated: 2026-10-31
 
 # Research: Community prior art and reusable patterns
 
-> **Scope.** Public GitHub, npm and Home Assistant community sources surveyed on 2026-10-31. Star and download counts are snapshots, not endorsements. “Not found” means not found in the searched public surface, not universal absence. This note consolidates the community landscape and the `hass-react` / `@hakit/core` deep dives. The transport/store seam is recorded in `docs/home-assistant.md` and `packages/core/src/ha/`; this note adds the broader prior art, auth, dual surfaces and the concrete next steps.
+> **Scope.** Public GitHub, npm and Home Assistant community sources surveyed on 2026-10-31. Star and download counts are snapshots, not endorsements. “Not found” means not found in the searched public surface, not universal absence. This note consolidates the community landscape and the `hass-react` / `@hakit/core` deep dives. The transport/store seam is recorded in `spec/home-assistant.md` and `packages/core/src/ha/`; this note adds the broader prior art, auth, dual surfaces and the concrete next steps.
 
 ## Research question
 
@@ -175,7 +175,7 @@ Observed surface:
 - **`useAreas` recomputation:** it depends on the whole `entities` map, so it recomputes on every state change (O(areas × entities)). A core registry hook should depend only on registry data and return entity IDs.
 - **Generated types/locales:** the `hakit-sync-types` CLI and service Proxy are excellent developer experience but couple the package to a live HA instance and generated service signatures. They conflict with our hand-normalized, skin-free models.
 - **One-entry core and large peer list:** a single `.` entry plus `./sync`, `./registry`, `./constants`; peers include Emotion, lodash, iconify, React 19, websocket, `use-debounce`, `ws`, `yargs`, `zustand`. Our subpaths and optional peers are cleaner.
-- **Broad provider:** `HassConnect` owns auth, data subscriptions, locale, registries, user, services and suspend/resume. Powerful, but not a small boundary; a module-level attempted-URL guard can also make remount/retry surprising (`docs/home-assistant.md` records the seam's host lifecycle).
+- **Broad provider:** `HassConnect` owns auth, data subscriptions, locale, registries, user, services and suspend/resume. Powerful, but not a small boundary; a module-level attempted-URL guard can also make remount/retry surprising (`spec/home-assistant.md` records the seam's host lifecycle).
 - **No headless component counterparts:** the headless surface is hooks; the component package is styled. HAKit does not answer the “components and hooks” question for entity data.
 
 ### Take from `@hakit/core`
@@ -251,7 +251,7 @@ If a skin needs user or config metadata, add read-only `useHaUser` / `useHaConfi
 
 The component exists for one concrete reason: a config list cannot call hooks in a loop. It renders nothing of its own and is an adapter for the same hook. Our `headless()` factory is the better implementation: type-derived props, one code path, no hand-written wrappers.
 
-Rules to document in `docs/core.md`:
+Rules to document in `spec/core.md`:
 
 1. Every `useHa<Name>` entity hook gets a `Ha<Name>` render-prop component.
 2. Collection hooks get a component only when a list needs per-item rendering.
@@ -269,7 +269,7 @@ Rules to document in `docs/core.md`:
 
 | # | Change | Files | Acceptance gate |
 | --- | --- | --- | --- |
-| 1 | **Core contract and auth boundary** — stable vs internal core surface, error codes, transport lifecycle, host-owned auth, external-transport security | `docs/core.md` (new); `docs/home-assistant.md` auth section; link from `packages/core/README.md` | Docs review; no runtime change |
+| 1 | **Core contract and auth boundary** — stable vs internal core surface, error codes, transport lifecycle, host-owned auth, external-transport security | `spec/core.md` (new); `spec/home-assistant.md` auth section; link from `packages/core/README.md` | Docs review; no runtime change |
 | 2 | **Dev-only entity contract checks** — malformed ID and wrong domain; warn once, non-production, never throw; no missing-entity warning by default | `packages/core/src/ha/dev.ts` (new); call from `packages/core/src/ha/hooks/*.ts`; `dev.test.ts` | `npm run check`; console-warn spy tests; valid IDs silent; production silent |
 | 3 | **Machine-readable error metadata** — `category` and `retryable` on `HaActionError` or exported helpers; store uses the same rule; keep sanitization and skin-owned copy | `packages/core/src/ha/types.ts`, `packages/core/src/ha/store.ts`, tests | `npm run check`; code-to-metadata table; existing retry behavior unchanged |
 | 4 | **Registry hooks** — `useHaRegistry` returning typed areas, devices, floors and entity-registry display; pure `areaMembership`; `useHaAreas` returning area + entity IDs; refactor `useHaArea` onto it | `packages/core/src/ha/registry.ts`, `registry.test.tsx`, `packages/core/src/index.ts` | Fixtures; one cached read per generation; no recompute when entity state changes |
@@ -279,7 +279,7 @@ Rules to document in `docs/core.md`:
 
 ### Suggested order
 
-1. Write `docs/core.md` and the auth/transport security section first; it freezes the decision and prevents auth code from drifting into core.
+1. Write `spec/core.md` and the auth/transport security section first; it freezes the decision and prevents auth code from drifting into core.
 2. Add dev contract checks; they are local, non-breaking and catch the most common third-party skin bug.
 3. Add error metadata; it unifies the store’s retry rule with what skins can display.
 4. Add registry hooks; this is the only functional gap in the core surface.
@@ -382,8 +382,8 @@ Rules to document in `docs/core.md`:
 - `packages/core/src/demo/*` — per-domain demo transports and the house.
 - `packages/core/src/websocket.ts` — official websocket adapter and `connectHomeAssistant`.
 - `packages/dashboard/src/element.tsx` — Lovelace element uses `hass.connection`.
-- `docs/contract.md` — frozen dashboard package contract; does not yet freeze core.
-- `docs/home-assistant.md` — data boundary and integration rules.
+- `spec/contract.md` — frozen dashboard package contract; does not yet freeze core.
+- `spec/home-assistant.md` — data boundary and integration rules.
 - `packages/core/README.md` — core install/use/subpaths; thin on stability and auth.
 
 ## Provenance

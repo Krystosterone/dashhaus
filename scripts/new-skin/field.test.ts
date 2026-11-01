@@ -31,7 +31,7 @@ const writeChanged = (copy: string, path: string, change: (source: string) => st
 /** Remove Field's source and compile-time registrations, as the reconstruction exercise requires. */
 const removeField = (copy: string) => {
   rmSync(join(copy, "src/skins/field"), { recursive: true, force: true });
-  rmSync(join(copy, "docs/field.md"), { force: true });
+  rmSync(join(copy, "spec/field.md"), { force: true });
   writeChanged(copy, ".storybook/preview.tsx", (source) => withoutArrayEntry(source
     .replace('import { fieldStorybook } from "@dashhaus/field/storybook";\n', "")
     .replace(", fieldStorybook", ""), "Field"));
@@ -40,8 +40,8 @@ const removeField = (copy: string) => {
     .replace('import { defineFieldCard } from "@dashhaus/field/lovelace/card";\n', "")
     .replace("defineFieldCard(css);\n", ""));
   writeChanged(copy, "dashboard.config.mjs", (source) => source.replace(/\n {4}\{\n {6}path: "dashhaus-field",[\s\S]*?\n {4}\},/, ""));
-  writeChanged(copy, "docs/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
-  writeChanged(copy, "docs/cards.md", (source) => source.replace(/\n### Field [^\n]*(?:module|Card)\n[\s\S]*?(?=\n## |\n### )/gi, ""));
+  writeChanged(copy, "spec/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
+  writeChanged(copy, "spec/cards.md", (source) => source.replace(/\n### Field [^\n]*(?:module|Card)\n[\s\S]*?(?=\n## |\n### )/gi, ""));
   writeChanged(copy, "scripts/generated-skins.mjs", (source) => source.replace(/^ {2}\{ id: "field".*\n/m, ""));
 };
 
@@ -101,8 +101,8 @@ describe("new-skin", () => {
         expect(registry).toContain(`${card}: {`);
       }
       expect(readFileSync(join(copy, "scripts/generated-skins.mjs"), "utf8")).toContain('{ id: "field"');
-      expect(readFileSync(join(copy, "docs/deploy.md"), "utf8").match(/^## The Field dashboard$/gm)).toHaveLength(1);
-      expect(readFileSync(join(copy, "docs/cards.md"), "utf8").match(/^### Field .* Card$/gm)).toHaveLength(FIELD_DOMAINS.length);
+      expect(readFileSync(join(copy, "spec/deploy.md"), "utf8").match(/^## The Field dashboard$/gm)).toHaveLength(1);
+      expect(readFileSync(join(copy, "spec/cards.md"), "utf8").match(/^### Field .* Card$/gm)).toHaveLength(FIELD_DOMAINS.length);
     }, 300_000);
   });
 });
