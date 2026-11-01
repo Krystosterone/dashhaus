@@ -79,6 +79,16 @@ describe("helpText", () => {
     expect(text).toContain("/configs/dashboard.config.mjs");
     expect(text).toContain(".env");
   });
+
+  it("without a config, says so and prints a config and a .env to start from", () => {
+    const text = helpText(undefined, "/somewhere/dashboard.config.mjs");
+    expect(text).toContain("/somewhere/dashboard.config.mjs");
+    expect(text).toContain("not found");
+    expect(text).toContain('import { bundlePath } from "@dashhaus/bundle"');
+    expect(text).toContain("custom:dashhaus-orb");
+    expect(text).toMatch(/HA_URL=.*\n.*HA_TOKEN=.*\n.*HA_WWW=/);
+    expect(text).not.toContain(".env.example");
+  });
 });
 
 describe("main", () => {
@@ -95,6 +105,27 @@ describe("main", () => {
     expect(code).toBe(0);
     expect(messages.join("\n")).toContain("Home A");
     expect(messages.join("\n")).toContain("/home-a");
+  });
+
+  it("prints help with a starter config in an empty folder", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "deploy-cli-"));
+    directories.push(directory);
+    const messages: string[] = [];
+    const code = await main({ argv: ["--help"], cwd: directory, env: {}, report: (message) => messages.push(message), error: (message) => messages.push(message) });
+    expect(code).toBe(0);
+    expect(messages.join("\n")).toContain("Write dashboard.config.mjs");
+    expect(messages.join("\n")).toContain("@dashhaus/bundle");
+  });
+
+  it("names the missing config and where to start, instead of a resolver error", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "deploy-cli-"));
+    directories.push(directory);
+    const messages: string[] = [];
+    const code = await main({ argv: [], cwd: directory, env: {}, report: (message) => messages.push(message), error: (message) => messages.push(message) });
+    expect(code).toBe(1);
+    expect(messages.join("\n")).toContain(`No config at ${join(directory, "dashboard.config.mjs")}`);
+    expect(messages.join("\n")).toContain("--help");
+    expect(messages.join("\n")).not.toContain("Could not resolve");
   });
 
   it("runs the deploy and returns 0", async () => {
