@@ -1,19 +1,19 @@
 ---
 name: attention-budget
-description: Decide how much attention each card on a dashboard may claim — who glows, who is subordinate, and how urgent states are marked. Use when building or editing a card's glow/colour treatment, composing or reviewing a dashboard, or changing the damping rules in layout.css / card.css. Codifies research/02-attention-budget.md.
+description: Decide how much attention each card on a dashboard may claim — who glows, who is subordinate, and how urgent states are marked. Use when building or editing a card's glow/colour treatment, composing or reviewing a dashboard, or changing the damping rules in layout.css / card.css.
 ---
 
 # Attention Budget
 
 One dashboard screen, one attention budget. A glanceable dashboard fails when everything glows: if all states look the same, none is seen. This skill is the contract for spending that budget.
 
-Evidence and provenance for the contract live in `research/02-attention-budget.md` (2026-10-18, parent-verified Apple HIG and NN/G sources). Read it before changing the contract. The spec wording is README → Dashboards → "Composing for a glance".
+The spec wording is `docs/orb.md` → Dashboards → "Composing for a glance"; this skill is its operational form, and the glow hard rule in `AGENTS.md` points here. The contract is the doc plus this skill — there is no separate research note.
 
 ## The Contract
 
 1. **One primary claim per screen.** The hero card owns the full glow. In a one-column section the first glowing card is the primary attention claim — not merely the first card rendered.
 2. **Glow follows semantic urgency, not position.** Later active cards are subordinate by default, but how subordinate is an urgency decision, not a fixed ratio. `layout.css` damps later glowing cards to 0.5 via `--glow-damp`; that is a local heuristic, not a law and not an Apple standard.
-3. **Compact stays quiet.** Compact cards never glow and never bloom; their on-state is the solid accent, never the colour slot.
+3. **Compact stays quiet.** Compact cards never glow and never bloom; their on-state is the solid accent, never the colour slot. `.hd--compact` in `card.css` enforces it; do not re-add density subtraction as a card-by-card rule.
 4. **Urgent and problem states get a marker, not more brightness.** Low battery, a door left open, an alarm: a distinct warn treatment. Never make every active state brighter to express importance.
 5. **Never glow alone.** Every important state has a non-colour cue: text, icon, position, or meaningful state motion. Colour and glow are never the only channel.
 
@@ -30,7 +30,8 @@ Evidence and provenance for the contract live in `research/02-attention-budget.m
 ## Rules
 
 - `paint(role, glow, own, prop)` is the only way a card asks for glow. `--glow-damp` is set by the dashboard (`layout.css`), never by a card.
-- The damping values (100% / 50% / 0%) are a product heuristic. Change them only after a scan-task comparison shows missed urgent states or slower target finding; never justify them by citing Apple numbers.
+- The damping values (100% / 50% / 0%) are a product heuristic. Change them only after a scan-task comparison shows missed urgent states or slower target finding; never justify them by citing Apple numbers. That comparison has not been run, so the current values stand.
+- No source fixes a maximum for simultaneous glow, colour or motion signals; one primary claim is the repo's rule, not an external ceiling.
 - Apple's `relevanceScore`, "up to three" Live Activities, and the 2-second animation cap are ordering and presentation precedents — not opacity, glow, or percentage formulas. Do not cite them as such.
 - Warn treatments use tokens from `src/skins/orb/styles/tokens.css`, never colour literals.
 - An important state change must read with colour removed: text, icon, position, or state motion must carry it.

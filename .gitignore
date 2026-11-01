@@ -6,6 +6,9 @@ dist/
 storybook-static/
 /release/
 
+# Local performance reports (`npm run perf:collect`)
+/perf/reports/
+
 # Logs
 *.log
 npm-debug.log*

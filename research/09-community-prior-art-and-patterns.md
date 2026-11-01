@@ -11,7 +11,7 @@ last_updated: 2026-10-31
 
 # Research: Community prior art and reusable patterns
 
-> **Scope.** Public GitHub, npm and Home Assistant community sources surveyed on 2026-10-31. Star and download counts are snapshots, not endorsements. “Not found” means not found in the searched public surface, not universal absence. This note consolidates the community landscape and the `hass-react` / `@hakit/core` deep dives. [07-react-ha-architecture.md](07-react-ha-architecture.md) remains the original transport/store survey and the historical baseline; this note adds the broader prior art, auth, dual surfaces and the concrete next steps.
+> **Scope.** Public GitHub, npm and Home Assistant community sources surveyed on 2026-10-31. Star and download counts are snapshots, not endorsements. “Not found” means not found in the searched public surface, not universal absence. This note consolidates the community landscape and the `hass-react` / `@hakit/core` deep dives. The transport/store seam is recorded in `docs/home-assistant.md` and `packages/core/src/ha/`; this note adds the broader prior art, auth, dual surfaces and the concrete next steps.
 
 ## Research question
 
@@ -175,7 +175,7 @@ Observed surface:
 - **`useAreas` recomputation:** it depends on the whole `entities` map, so it recomputes on every state change (O(areas × entities)). A core registry hook should depend only on registry data and return entity IDs.
 - **Generated types/locales:** the `hakit-sync-types` CLI and service Proxy are excellent developer experience but couple the package to a live HA instance and generated service signatures. They conflict with our hand-normalized, skin-free models.
 - **One-entry core and large peer list:** a single `.` entry plus `./sync`, `./registry`, `./constants`; peers include Emotion, lodash, iconify, React 19, websocket, `use-debounce`, `ws`, `yargs`, `zustand`. Our subpaths and optional peers are cleaner.
-- **Broad provider:** `HassConnect` owns auth, data subscriptions, locale, registries, user, services and suspend/resume. Powerful, but not a small boundary; a module-level attempted-URL guard can also make remount/retry surprising (see [07](07-react-ha-architecture.md)).
+- **Broad provider:** `HassConnect` owns auth, data subscriptions, locale, registries, user, services and suspend/resume. Powerful, but not a small boundary; a module-level attempted-URL guard can also make remount/retry surprising (`docs/home-assistant.md` records the seam's host lifecycle).
 - **No headless component counterparts:** the headless surface is hooks; the component package is styled. HAKit does not answer the “components and hooks” question for entity data.
 
 ### Take from `@hakit/core`

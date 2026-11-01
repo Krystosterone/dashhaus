@@ -1,13 +1,13 @@
 ---
 name: row-identity
-description: Give dense same-shaped compact controls their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a card's compact footprint, reviewing the Controls column, or when rows look indistinguishable at a glance. Codifies research/03-dense-list-identity.md.
+description: Give dense same-shaped compact controls their own identity — domain icon, primary and secondary text, and one explicit state/action cue, with colour as reinforcement only. Use when building or editing a card's compact footprint, reviewing the Controls column, or when rows look indistinguishable at a glance.
 ---
 
 # Row Identity
 
 A column of compact cards all in one shape is unreadable when the shell carries meaning that each row's content should. This skill is the contract for per-row identity.
 
-Evidence: `research/03-dense-list-identity.md` (Apple HIG Lists/Icons, Material 3 Lists, Mushroom Template/Climate cards). The spec wording is README → Design rules every card follows.
+The spec wording is `docs/orb.md` → Orb design rules → "Compact cards carry their own identity"; this skill is its operational form. The contract is the doc plus this skill — there is no separate research note.
 
 ## The Contract
 
@@ -33,6 +33,7 @@ Group or order rows by domain (Climate, Covers, Lights) without changing row hei
 - Row height, alignment and action placement stay stable across all rows (the 60 px `hd--compact` grid in `card.css`).
 - The compact card's orb is both control and domain icon; the text carries the identity too. There is no separate icon slot.
 - No source requires a unique outer shape per row or a numeric row-count threshold — do not invent one.
+- These are established list patterns, not proof that a row failed: the Controls story at real widths is what decides, and the visual QA gate records which rows fail before a pass. No WCAG colour-only conformance claim is made here.
 
 ## Verify
 

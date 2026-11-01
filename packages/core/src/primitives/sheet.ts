@@ -29,7 +29,8 @@ export interface SheetOptions {
  * `mounted`; `[data-autofocus]` inside takes focus on open.
  *
  * It stays a native modal `<dialog>`, never a portalled one: the platform puts it in the top layer and makes the
- * page behind inert, and that holds inside the Lovelace card's shadow root (research/08-interaction-primitives.md).
+ * page behind inert, and that holds inside the Lovelace card's shadow root, where a portalled dialog's
+ * document-level focus trap does not.
  */
 export function useSheet({ open, label, onClose, closeMs, phone, handle, snapBack }: SheetOptions) {
   const ref = useRef<HTMLDialogElement>(null);

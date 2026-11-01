@@ -21,9 +21,9 @@ This is measurement only: no CI threshold, no continuous telemetry, no Home Assi
 npm run perf:collect
 ```
 
-One run measures both skins and writes `perf/reports/run-<timestamp>.json`. Run it twice and keep both files to see
-run-to-run variance. The report includes the commit, branch, Home Assistant URL and version, dashboard paths, viewport,
-browser, timestamp, the interaction performed, and every timing below.
+One run measures both skins and writes `perf/reports/run-<timestamp>.json`, which is ignored by git. Run it twice and
+keep both files locally to see run-to-run variance. The report includes the commit, branch, Home Assistant URL and
+version, dashboard paths, viewport, browser, timestamp, the interaction performed, and every timing below.
 
 Options:
 
@@ -174,6 +174,40 @@ installs, and no fetch from the bundle. The off check then requires zero of each
 `state` can arrive first. `inputToSettledMs` is the press-to-painted interaction latency and does not depend on that
 order.
 
+## Baseline
+
+The first measured cut is the comparison a later run starts from. It seeded the store from the frontend snapshot:
+`LovelaceDashboardElement` passes `hass.states` to `createHaStore(transport, initialEntities)` and connects it before
+the first render, so the first frame carries the house and the live subscription replaces the seed. That removed the
+bundle's own subscription round trip between `element:connected` and `store:connected`; it did not move a mark over the
+same work.
+
+Run conditions: code `980c960` (base `5a63d53`), 5 cold runs per skin, 1440 × 1000, dark, device scale 1, headless
+Chromium 156.0.8078.4, cache disabled, Home Assistant 2026.10.4, the collector's default reversible control
+(`input_boolean.do_not_disturb`), each run restored to `on`. Medians with the 5-run range:
+
+| Field | Orb before | Orb after | Field before | Field after |
+| --- | ---: | ---: | ---: | ---: |
+| **`entryToReadyMs`** | **125.9** [113.9-145.2] | **76.3** [54.2-89.4] | **119.0** [109.0-146.0] | **47.9** [36.2-50.9] |
+| `navigationToReadyMs` | 2671 [2261-5010] | 2528 [2138.7-2940.2] | 2906.3 [2541.9-3697.5] | 2475.4 [2368.2-2867.8] |
+| `element:connected → store:connected` | 57.3 [54.5-62.5] | 2.0 [1.9-2.4] | 58.8 [57.1-71.9] | 1.9 [1.5-2.1] |
+| `store:connected → store:painted` | 64.3 [50.0-75.3] | 72.7 [50.5-84.9] | 53.8 [44.7-67.3] | 42.4 [25.3-47.5] |
+| details request → visible | 38.3 [35.2-44.6] | 40.0 [35.9-40.1] | 31.7 [31.1-43.9] | 31.1 [29.6-31.7] |
+| toggle input → settled | 94.3 [89.7-123.9] | 94.1 [70.4-207.3] | 77.3 [75.7-209.3] | 77.1 [60.1-93.5] |
+| toggle start → HA ack | 53.3 [40.9-76.6] | 51.9 [39.7-156.4] | 45.7 [42.2-184.0] | 46.0 [38.7-62.1] |
+| toggle state → settled paint | 41.6 [35.8-54.4] | 39.5 [30.3-52.9] | 27.4 [20.7-29.7] | 26.9 [17.6-31.8] |
+| bundle transferred | 653,816 B | 654,213 B | 653,816 B | 654,213 B |
+
+Orb's entry-to-ready fell 39.4% and Field's 59.7% (the bar was 15% on one skin). The other skin and the details/toggle
+medians stayed inside the baseline 5-run ranges. Orb's `entryToPainted` rose because the first paint is now the full
+data render rather than a cheaper placeholder frame; data-ready still fell. `store:connected → store:painted` is the
+two-frame paint window after the seeded connect, not a wait for data. Bundle transfer size did not change materially,
+and bundle fetch duration and TTFB varied with the host and network, so neither is attributed to the change. The opt-in
+off check still found no global, no mark, no bundle listener, no extra fetch and no console line, with 85 cards and one
+host per skin.
+
+The runs' JSON reports were evidence at the time and are not tracked; the numbers above are the record.
+
 ## Limits
 
 - One desktop viewport (`1440 × 1000`, dark, device scale 1), headless Chromium, cache disabled for the measured load.
@@ -181,8 +215,9 @@ order.
 - The collector toggles one `input_boolean` or `switch` and restores it. It refuses locks, covers, alarms, lights and
   anything else whose state would need more than an on/off restore.
 - The browser's Home Assistant session is a temporary Playwright context; its token is not written to the report.
-- Reports are local files, not uploads. They are safe to commit: they carry the HA URL, dashboard paths and card
-  names, never the token or `.env`.
+- Reports are local files, not uploads, and `/perf/reports/` is ignored by git. A report carries the Home Assistant
+  URL, dashboard paths, card names and timings — environment detail, not a secret, but not something the repo tracks.
+  It never contains the token or `.env`.
 
-The follow-up cut that acts on the first reports' findings is scoped in
+The measured cut that acted on the first reports' findings is recorded in
 [2026-10-30-production-performance-brief.md](research/2026-10-30-production-performance-brief.md).

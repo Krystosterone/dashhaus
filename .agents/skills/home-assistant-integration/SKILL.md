@@ -7,7 +7,7 @@ description: Keeps Home Assistant transport, raw entity state, mappers, actions,
 
 Preserve the repository's component boundary while adding live Home Assistant data. The integration owns connection lifecycle, raw snapshots, capability checks, service payloads, and action errors; cards receive the existing normalized entities and callbacks.
 
-Read `docs/home-assistant.md` before changing the boundary. The current contract lives there; `research/05-ha-integration-map.md`, `research/06-ha-entity-contracts.md`, and `research/07-react-ha-architecture.md` are the historical evidence behind it.
+Read `docs/home-assistant.md` before changing the boundary; it is the contract, and this skill is its procedure. The seam lives in `packages/core/src/ha/`, with its fixtures, mappers, actions and tests.
 
 ## Procedure
 
@@ -16,6 +16,7 @@ Read `docs/home-assistant.md` before changing the boundary. The current contract
 - Put provider-facing code in `@dashhaus/core`'s Home Assistant layer (`packages/core/src/ha/`). Keep every `src/skins/<skin>/cards/` tree independent of Home Assistant wire objects and transport imports; within a skin, only its `ha/` and `lovelace/` trees, and its entry, may import core's Home Assistant subpaths (`.`, `./websocket`, `./demo`, `./testing`, `./fixtures/*`), while presentation imports `./entities`, `./primitives` and `./hooks`. Core's HA layer never imports a skin; the bundle registration lives outside it, in `apps/lovelace/entry.ts`. Mappers import normalized models from `@dashhaus/core/entities/*`, never a skin.
 - Preserve raw entity snapshots keyed by `entity_id`, including the raw state string, attributes, and timestamps.
 - Keep `unknown`, `unavailable`, missing entities, and capability absence explicit. Suppress stale measured readings in the normalized model while an entity is unavailable; never default them to a safe-looking active or closed state.
+- Do not adopt a dashboard framework as the integration layer (`hass-react`, `@hakit/core`, a whole dashboard app): take their connection-generation, shared-subscription and typed-error patterns, not their editor, registry breadth, presentation enrichment or auth lifecycle.
 
 ### Mappers
 
@@ -50,6 +51,7 @@ Use one shared store per connection. Keep it small: the transport owns the socke
 - The transport delivers the full entity map on subscribe and after every change, keeps unchanged entities' object identity, and keeps the subscription alive across its own reconnects. The official adapter gets all of this from `home-assistant-js-websocket`'s `subscribeEntities`; do not re-implement the compressed stream or resubscription.
 - Fan snapshots out to React; isolate subscriber callback failures. Components select slices (`useHaEntity`, `useHaStatus`, `useHaGeneration`); never subscribe a connected surface to the whole snapshot.
 - Clear stale entities on loss. Advance `generation` on every loss, recovery, failure, connect and disconnect; a read or action that settles under a newer generation has an unknown outcome.
+- Every connected surface reads the one store subscription: a second card for the same entity adds no subscription, and unmounting one leaves the other's data. An update is the whole snapshot, not the state word — attributes can change while `state` stays the same, so select and map the entity, not a state string.
 - Concurrent callers share one `connect()`. A terminal transport error or a throwing subscription fails closed with a sanitized error. `disconnect()` unsubscribes and clears state; the host that opened the connection closes it.
 - Route background reads through `useHaRequest` over `store.query` (forecasts) or `store.callApi` (history, registries); both stay out of action ordering and `lastActionError`.
 - Only the latest action owns `lastActionError`, and only within its generation. Keep provider string scalars (`translation_key`, `code`), never messages.
@@ -74,7 +76,7 @@ When a domain joins the shared connected boundary, start from `npm run new-card 
 
 Run `npm run check` (typecheck, lint including the import boundary, and unit tests), `npm run test-storybook` and `npm run build:ha`; all must pass at the final revision. Exercise the affected skin's connected surface through its state matrix at every supported size and footprint, including compact, details, unavailable and worst-case labels. If no live Home Assistant instance is available, report the injected/fake transport evidence separately from live connection evidence.
 
-The ESLint boundary permits `@dashhaus/core`'s Home Assistant subpaths only from `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); only `@dashhaus/core/websocket` imports `home-assistant-js-websocket`. Fix a crossing at its source instead of weakening the rule. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
+The ESLint boundary permits `@dashhaus/core`'s Home Assistant subpaths only from `src/skins/*/ha/`, `src/skins/*/lovelace/` and the skins' entries (`src/skins/*/index.ts`); only `@dashhaus/core/websocket` imports `home-assistant-js-websocket`. Fix a crossing at its source instead of weakening the rule. Presentational card tests use plain normalized fixtures and callback spies and never import Home Assistant packages; connected tests use the fake transport and a real store. Documentation must name the exact evidence boundary: fake/injected tests are not proof of a live Home Assistant instance.
 
 ## Output
 
