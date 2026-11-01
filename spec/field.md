@@ -2,7 +2,7 @@
 
 A second skin, `src/skins/field/`, drawn after Teenage Engineering's EP–133 K.O. II: a flat light-grey body, printed labels, flat-topped keys, a thin fader with a round thumb, and a dark segment-style screen. It sits on the same entity models and Home Assistant hooks as orb (`useHaLight` and the rest); only the drawing differs. Stories are under **Field** in Storybook, in the same groups as orb's except Bundles, which are orb's alone, with a **Finish** toolbar (Auto, Alloy, Black). Foundations → Design rules draws this file with live stories beside its sections (edit it here, not there), Foundations → Palette shows the parts below and what each means, Foundations → Parts each part across its states; under Dashboards, Examples compose a page per device, Lovelace card is its whole dashboard from YAML, Header is the top of every page and Nav bar its bottom.
 
-Status: light, climate, sensor, weather, toggle, humidifier, sound, cover, alarm and owlet are implemented, each with a detail panel; sensor, weather and owlet are readings, the pattern the other read-only cards follow, and toggle is the plainest control, one key. The Lovelace card, `custom:dashhaus-field`, draws every supported light, climate and humidifier entity, room sensor, the weather, every cover and alarm panel, every Owlet sock and every mode (input_boolean or switch) by area, and a sound machine's sound where its YAML picks `card: sound`, or the sections and pages its YAML lays out, with a nav to them ([deploy.md](deploy.md#the-field-dashboard)); it hasn't been loaded in a live Home Assistant yet.
+Its Lovelace card, `custom:dashhaus-field`, and its YAML are in [deploy.md](deploy.md#the-field-dashboard).
 
 ## Design rules
 
@@ -43,13 +43,6 @@ A field page is `FieldPage` (`src/skins/field/dashboards/layout.tsx`): its heade
 - **The nav is a plate of keys at the bottom** (`NavBar`): the module's plate, docked as the page scrolls, holding a key per destination (an area of this page, a page of the card's own, another dashboard), its word printed on it. Where you are is the key that stays down, sunk to the plate's face, as a group's chosen key does: no LED, since a place isn't on, and no colour, since it sets nothing. A tap still answers, an area's jumping back to its top. A key that leaves the dashboard carries a small arrow. Keys keep their widths while they fit, then narrow to their longest word, a two-word name taking two lines, so a phone holds four; a row that still doesn't fit scrolls under the plate's edge, the cut key saying there is more, the current one kept in view. It is page furniture, not a module: nothing on it reads a state. A page with one destination has none; so does a wall panel, unless its YAML lists one. A rejected command rides the dock above it.
 - **Far is type, never size** (`viewing="far"`, YAML `viewing: far`): a wall panel read from across the room sets its modules' print a step up (names 14 px, the area and screen lines, legends and key words 12 px, the alert line 13 px) and its screens' figures a weight up, from light to regular, since thin strokes vanish at a distance. Heights don't move; the leading tightens instead, so the far page fits where the near one did, and longer words truncate a little sooner. Width can't tell a wall panel from a tablet in the hand, so far is never inferred. A detail panel is opened up close, so it keeps the near type.
 - **Mix footprints by column, not by row.** A column of a wall panel leads with whole modules and takes 64 px rows under them; a row of whole modules stays whole, so screens line up across it.
-
-The Storybook pages (**Field / Dashboards / Examples**) are examples of composing with these rules, not templates and not a list of every card:
-
-- **Phone:** every module a 64 px row, the house in about one screen: the four things pressed most, each keeping its own room, then the nursery, then each room's air.
-- **Tablet, landscape:** whole modules, an area a row of four, so every fader and today's meter is in reach: the living room, the nursery, outside.
-- **Wall panel:** one column per place, its leads whole modules and the rest rows under them; the whole 1280 × 800 surface fits without scrolling. **Wall panel, far** is the same page set for across the room, and still fits.
-- **Phone, alarm below the fold:** whole modules, the sock's alarm in the nursery under the fold; the alert line names it on the first screen and opens its panel.
 
 ## From the exploration and the references
 

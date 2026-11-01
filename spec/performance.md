@@ -25,17 +25,8 @@ One run measures both skins and writes `perf/reports/run-<timestamp>.json`, whic
 keep both files locally to see run-to-run variance. The report includes the commit, branch, Home Assistant URL and
 version, dashboard paths, viewport, browser, timestamp, the interaction performed, and every timing below.
 
-Options:
-
-| Option | Meaning |
-| --- | --- |
-| `--orb <path>` | Orb dashboard path. Default: the first dashboard in `dashboard.config.mjs`, after overrides. |
-| `--field <path>` | Field dashboard path. Default: the second dashboard. |
-| `--entity <id>` | The reversible control to toggle. Default: `input_boolean.do_not_disturb`. Only `input_boolean.*` and `switch.*` are accepted, so the collector can restore the exact on/off state. |
-| `--card <name>` | The card's printed name, when the dashboard renames it away from the entity's friendly name. |
-| `--out <file>` | Report path. Default: `perf/reports/run-<timestamp>.json`. |
-| `--headed` | Show the browser instead of running headless. |
-| `--help` | Print the usage. |
+`npm run perf:collect -- --help` prints the options: the two dashboard paths, the control to toggle, its card's name,
+the report path and a headed browser.
 
 The default entity and card must appear in both dashboards. On the repo's live instance, `input_boolean.do_not_disturb`
 is a compact toggle in Orb's Modes section and an automatic-layout module in Field, so one card name drives both.
@@ -94,66 +85,6 @@ dashhaus code runs is what counts: add `?dashhaus_perf=1` to a dashboard URL, or
 `localStorage["dashhaus:perf"] = "1"` and reload. A page that did not opt in stays off even if storage changes later.
 
 ## The report
-
-The report is JSON, one file per invocation, shaped like this (values elided):
-
-```json
-{
-  "schema": 1,
-  "generatedAt": "…",
-  "commit": "…",
-  "branch": "perf/production-instrumentation",
-  "dirty": false,
-  "ha": { "url": "…", "version": "…", "dashboards": { "orb": "…", "field": "…" } },
-  "browser": { "name": "Chromium", "version": "…", "headless": true },
-  "viewport": { "width": 1440, "height": 1000, "deviceScaleFactor": 1, "colorScheme": "dark" },
-  "instrumentation": {
-    "optIn": "…",
-    "offCheck": {
-      "orb": { "global": false, "marks": 0, "measures": 0, "pointerdownListeners": 0, "fetches": 0, "console": [], "cards": 0, "hosts": 0 },
-      "field": { "global": false, "marks": 0, "measures": 0, "pointerdownListeners": 0, "fetches": 0, "console": [], "cards": 0, "hosts": 0 }
-    }
-  },
-  "interaction": { "entity": "…", "card": "…" },
-  "skins": {
-    "orb": {
-      "dashboard": "dashhaus-orb",
-      "url": "…",
-      "coldLoad": {
-        "browser": { "ttfbMs": 0, "firstContentfulPaintMs": 0, "largestContentfulPaintMs": 0, "longTasks": {} },
-        "marks": { "bundleEntryMs": 0, "elementConnectedMs": 0, "storeConnectedMs": 0, "storePaintedMs": 0 },
-        "timings": {
-          "navigationToReadyMs": 0,
-          "entryToReadyMs": 0,
-          "connectedToReadyMs": 0,
-          "storeToReadyMs": 0,
-          "entryToPaintedMs": 0,
-          "navigationToPaintedMs": 0
-        },
-        "cards": 0,
-        "hosts": 0,
-        "probe": { "pointerdownListeners": 1, "fetches": 0 },
-        "bundle": { "url": "…", "durationMs": 0, "transferSize": 0 },
-        "resources": []
-      },
-      "details": { "requestToVisibleMs": 0, "inputToVisibleMs": 0 },
-      "interaction": {
-        "before": "on",
-        "after": "off",
-        "restored": "on",
-        "action": {
-          "startToAckMs": 0,
-          "ackToStateMs": 0,
-          "stateToSettledMs": 0,
-          "inputToSettledMs": 0,
-          "startToSettledMs": 0
-        }
-      },
-      "errors": { "console": 0, "page": 0 }
-    }
-  }
-}
-```
 
 All millisecond values are relative to the page's time origin, the same base as the browser's Performance entries.
 `navigationToReadyMs` is the dashboard with entity data, measured from navigation start; it is the cold-load number to
@@ -220,4 +151,4 @@ The runs' JSON reports were evidence at the time and are not tracked; the number
   It never contains the token or `.env`.
 
 The measured cut that acted on the first reports' findings is recorded in
-[2026-10-30-production-performance-brief.md](research/2026-10-30-production-performance-brief.md).
+[2026-10-30-production-performance-brief.md](../docs/research/2026-10-30-production-performance-brief.md).

@@ -107,6 +107,7 @@ The store's `lastActionError` is the latest settled action failure. `clearAction
   under a different generation than it started under has an unknown outcome.
 - Concurrent `connect()` callers share one attempt. A throwing subscription fails closed with a sanitized lifecycle
   error; the store does not retry by itself.
+- Subscriber callback failures are isolated, and service input is validated before it reaches the transport.
 - `disconnect()` stops the store's subscriptions and clears its entities. It never closes the transport: the host
   that opened the connection owns closing it.
 - `createHaStore(transport, initialEntities)` may seed a complete snapshot the host already has, such as Lovelace's
@@ -170,8 +171,4 @@ Both are additive: a test may use them, and their seeds can change.
 
 ## What is not stable
 
-- The `message` of an error or a development warning.
-- The internals of the store, the request cache and the provider's effect scheduling.
-- The layout of `packages/core/src/`, and any export not declared by `packages/core/package.json`.
-- The demo seeds, fixtures and the fake transport's simulated transitions.
 - The dashboard package's surface: [contract.md](contract.md) freezes that separately.
