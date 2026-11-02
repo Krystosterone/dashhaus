@@ -8,7 +8,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 
 | Model | Cards | What it is |
 | --- | --- | --- |
-| Direct | light, climate, cover, toggle, humidifier, alarm | One Home Assistant entity and its attributes. |
+| Direct | light, climate, cover, toggle, humidifier, fan, alarm | One Home Assistant entity and its attributes. |
 | Composed | sensor, sound, weather, owlet | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
@@ -363,8 +363,38 @@ The handlers never reject: `createLockHandlers` answers `"done"`, `"wrong_code"`
 ### Field lock module
 
 `LockModule` is the same normalized lock entity in the Field skin; `HaLockModule` is its connected container, on the same `useHaLock` hook as `HaLockTile`, and takes the same `onLock`, `onUnlock`, `onOpenDoor` and `readOnly`. See [field.md](field.md#lock).
+## Using the fan card
+
+One `fan.*` entity: a tower or desk fan, a ceiling fan, an extractor.
+
+```tsx
+<FanTile
+  entity={entity}
+  history={today}
+  onToggle={() => callService("fan", "toggle", { entity_id: entity.entityId })}
+  onPercentageChange={(pct) => callService("fan", "set_percentage", { entity_id: entity.entityId, percentage: pct })}
+  onPresetChange={(p) => callService("fan", "set_preset_mode", { entity_id: entity.entityId, preset_mode: p })}
+  onOscillateChange={(o) => callService("fan", "oscillate", { entity_id: entity.entityId, oscillating: o })}
+  onDirectionChange={(d) => callService("fan", "set_direction", { entity_id: entity.entityId, direction: d })}
+/>
+<HaFanTile entityId="fan.bedroom" />
+```
+
+- **A state, not energy.** The orb is the accent while it runs, with no bloom and no glow: moving air is not light, heat or daylight (attention-budget skill). How fast it runs is the groove's fill and its words.
+- **Switching:** the orb toggles it. A fan without speeds has the On/Off pill in its slot, as a switch's, and the pill toggles it too.
+- **Speed is the light card's groove**, counted in the fan's own speeds: Home Assistant's `percentage_step` gives the count (33.3 is three speeds), so a three-speed fan's groove has three stops and an arrow key or a drag moves one speed; a fan with more than ten speeds, or a stepless one, moves one percent. The groove hands back the whole percentage the speed stands for (33, 67, 100), never 0, so it never switches the fan off. A fan with up to ten speeds says its speed ("Speed 2"); any other says the percent ("40%"). Dragging or tapping the groove while the fan is off turns it on at that speed; the groove is empty and reads Off while it is off, since Home Assistant reports no speed then. A fan that declares a speed but only one has the pill.
+- **Status line:** the area, and while it runs its preset or that it sweeps: "Bedroom · Sleep", "Bedroom · Oscillating". Compact rows keep the room alone; under a titled bundle's lid it says the preset, or since when.
+- **The readout** on the sheet repeats the groove's speed, or the pill's On or Off; featured cards leave it to the control, as the light card does.
+- **Compact:** the fan icon, name, the room, and the groove (or the pill); under 320 px the speed is the value line ("Speed 2", "Off").
+- **Sheet:** press and hold the orb, or tap the name: the groove, then the preset chips (choosing one while off turns it on), Oscillation (Off, On) and a ceiling fan's Direction (Forward, Reverse), each only when the fan declares it; then today's on/off history, and what the fan can do ("3 speeds, presets, oscillates").
+- **Home Assistant:** five services, each gated on the fan's `supported_features` and on its being available: `fan.toggle`; `fan.set_percentage` (`SET_SPEED`); `fan.set_preset_mode` (`PRESET_MODE`, and only one of its own `preset_modes`); `fan.oscillate` (`OSCILLATE`); `fan.set_direction` (`DIRECTION`). A control the fan doesn't declare is never drawn, and a call it can't take is reported as unsupported, never sent. Its speed and preset are read only while it is on; `unknown`, `unavailable` and a missing entity are unavailable.
 
 <!-- new-card: cards -->
+
+### Field fan module
+
+`FanModule` is the same normalized fan entity in the Field skin; `HaFanModule` is its connected container, on the same `useHaFan` hook as `HaFanTile`, so it takes the same `onToggle`, `onPercentageChange`, `onPresetChange`, `onOscillateChange` and `onDirectionChange`, and its fader counts the same speeds. See [field.md](field.md#fan).
+
 ## The dashboard header
 
 Not a card, so it lives with the page in `src/skins/orb/dashboards/` (`Header`, `hh-`). The top of a dashboard: its name, today's date under it, and an optional clock on the right. `DashboardPage` renders it for you; pass its props to the page:

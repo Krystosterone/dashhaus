@@ -9,4 +9,5 @@ export * from "./sound";
 export * from "./store";
 export * from "./toggle";
 export * from "./lock";
+export * from "./fan";
 // new-card: demo transports

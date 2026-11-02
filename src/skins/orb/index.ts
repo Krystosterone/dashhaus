@@ -102,6 +102,13 @@ export { LockTile } from "./cards/lock/LockTile";
 export type { LockTileProps } from "./cards/lock/LockTile";
 export { HaLockTile } from "./ha/HaLockTile";
 export type { HaLockTileProps } from "./ha/HaLockTile";
+// Fan
+export { FanCard, FanSheet } from "./cards/fan/FanCard";
+export type { FanCardProps, FanSheetProps } from "./cards/fan/FanCard";
+export { FanTile } from "./cards/fan/FanTile";
+export type { FanTileProps } from "./cards/fan/FanTile";
+export { HaFanTile } from "./ha/HaFanTile";
+export type { HaFanTileProps } from "./ha/HaFanTile";
 
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";

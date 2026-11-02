@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { HassEntities, HassEntity } from "../types";
 import lock from "../fixtures/lock.json";
+import fan from "../fixtures/fan.json";
 // new-card: fixture imports
 import alarm from "../fixtures/alarm.json";
 import climate from "../fixtures/climate.json";
@@ -13,6 +14,7 @@ import owlet from "../fixtures/owlet.json";
 import humidifier from "../fixtures/humidifier.json";
 import sound from "../fixtures/sound.json";
 import { lockFromHass } from "./lock";
+import { fanFromHass } from "./fan";
 // new-card: mapper imports
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
@@ -40,6 +42,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "humidifier", fixture: humidifier, map: humidifierFromHass, keepsState: true },
   { domain: "sound", fixture: sound, map: soundFromHass, keepsState: true },
   { domain: "lock", fixture: lock, map: lockFromHass, keepsState: true },
+  { domain: "fan", fixture: fan, map: fanFromHass, keepsState: true },
   // new-card: fixtures
 ];
 

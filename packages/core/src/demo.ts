@@ -1,4 +1,5 @@
 import type { HaServiceCallOptions, HaTransport, HassEntity, HassEntities } from "./ha/types";
+import { fanService } from "./demo/fanService";
 
 const stamp = "2026-10-19T11:20:00Z";
 const initial: HassEntities = {
@@ -148,7 +149,7 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (service !== "get_forecasts" || typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo weather target not found");
         return { response: { [entityId]: { forecast: weatherForecasts[type] } } };
       }
-      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number" && domain !== "cover" && domain !== "alarm_control_panel") throw new Error(`Unsupported demo domain: ${domain}`);
+      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number" && domain !== "cover" && domain !== "alarm_control_panel" && domain !== "fan") throw new Error(`Unsupported demo domain: ${domain}`);
       const entityId = serviceData.entity_id;
       if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
       const current = entities[entityId];
@@ -181,6 +182,11 @@ export function createDemoHaTransport(seed: HassEntities = initial): HaTransport
         if (asked && serviceData.code !== "1234") throw { translation_key: "invalid_code" };
         next.state = disarm ? "disarmed" : service.replace("alarm_arm_", "armed_");
         next.attributes.changed_by = null;
+        if (next.state !== current.state) next.last_changed = next.last_updated;
+      } else if (domain === "fan") {
+        const [state, changed] = fanService(current, service, serviceData);
+        next.state = state;
+        Object.assign(next.attributes, changed);
         if (next.state !== current.state) next.last_changed = next.last_updated;
       } else if (domain === "humidifier") {
         if (service === "toggle") next.state = current.state === "on" ? "off" : "on";

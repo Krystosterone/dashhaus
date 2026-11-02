@@ -1,0 +1,25 @@
+/* Fan module (fd-fn): the power key, then the speed fader across the rest of the row. */
+.fd-fn-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+/* On/off only: the key spans the row, its state word beside the fan. */
+.fd-fn-row[data-speeds="false"] { grid-template-columns: minmax(0, 1fr); }
+
+/*
+ * Narrow modules keep one meta line (module.css): the speed and preset, which the fader's legend doesn't print,
+ * rather than since when.
+ */
+
+/* The detail panel's fan content. */
+.fd-fn-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
+.fd-fn-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Presets put their full word on the key; three in a row, two on a narrow panel. */
+.fd-fn-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.fd-fn-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Four presets sit four in a row rather than three and an orphan; a direction is one of two. */
+.fd-fn-keys:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.fd-fn-keys--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container (max-width: 300px) {
+  .fd-fn-keys, .fd-fn-keys:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* The oscillation key latches, half the panel's width so it reads as one key, not a bar. */
+.fd-fn-latch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

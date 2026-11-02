@@ -6,6 +6,7 @@ import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
 import { renderCard } from "@dashhaus/dashboard/schema";
 import type { CardRenderers } from "@dashhaus/dashboard/schema";
+import { HaFanModule } from "../ha/HaFanModule";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
@@ -51,6 +52,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
     <HaOwletModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} heartRateEntityId={item.heartRate} oxygenEntityId={item.oxygen} chargingEntityId={item.charging} baseEntityId={item.baseStation} alertEntityIds={item.alerts} staleAfterMinutes={item.staleAfter} />
   ),
   lock: (item, footprint) => <HaLockModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} batteryEntityId={item.battery} />,
+  fan: (item, footprint) => <HaFanModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
   // new-card: live modules
 };
 

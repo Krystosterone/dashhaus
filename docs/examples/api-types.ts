@@ -8,6 +8,7 @@ import type {
   useHaAlarm,
   useHaClimate,
   useHaCover,
+  useHaFan,
   useHaHumidifier,
   useHaLight,
   useHaLock,
@@ -23,6 +24,7 @@ export type HaClimateProps = HeadlessProps<typeof useHaClimate>;
 export type HaCoverProps = HeadlessProps<typeof useHaCover>;
 export type HaToggleProps = HeadlessProps<typeof useHaToggle>;
 export type HaHumidifierProps = HeadlessProps<typeof useHaHumidifier>;
+export type HaFanProps = HeadlessProps<typeof useHaFan>;
 export type HaSoundProps = HeadlessProps<typeof useHaSound>;
 export type HaAlarmProps = HeadlessProps<typeof useHaAlarm>;
 export type HaSensorProps = HeadlessProps<typeof useHaSensor>;

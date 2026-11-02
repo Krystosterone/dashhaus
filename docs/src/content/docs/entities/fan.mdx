@@ -1,0 +1,97 @@
+---
+title: Fan
+description: "One fan.* entity: on and off, its speed, presets, oscillation and a ceiling fan's direction."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+One `fan.*` entity: a tower or desk fan, a ceiling fan, an extractor. On and off, its speed, and the presets,
+oscillation and direction it declares.
+
+## Quick example
+
+<Example file="entities/fan/Speed.tsx" />
+
+`speedCount` is how many speeds the fan has, from Home Assistant's `percentage_step`: 3 for a three-speed fan, 100 for a
+stepless one. Its speed is always a percentage, so a three-speed fan runs at 33, 67 or 100.
+
+## Component
+
+`<HaFan>` is `useHaFan` as a component that draws nothing of its own. It takes every option of the hook as a prop, and
+hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaFanProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaFan" />
+
+It reads the fan, its area and today's history.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaFanOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaFanResult" />
+
+#### `entity`: FanEntity
+
+Each `supports…` flag comes from what the fan declares to Home Assistant. Its speed and preset are known only while it
+is on; a fan that is off reports neither.
+
+<ApiMembers from="@dashhaus/core/entities/fan/types" name="FanEntity" notes={{}} />
+
+#### `history`: FanHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/fan/types" name="FanHistory" />
+
+#### `actions`: FanHandlers
+
+<ApiMembers from="@dashhaus/core" name="FanHandlers" notes={{"onToggle": "Calls `fan.toggle`.", "onPercentageChange": "Calls `fan.set_percentage`, rounded to a whole percent from 1 to 100, so it never switches the fan off; setting a speed while it is off turns it on. A fan without speeds reports `unsupported`.", "onPresetChange": "Calls `fan.set_preset_mode`, which turns the fan on. A fan without presets reports `unsupported`; a preset it doesn't list reports `invalid_input`.", "onOscillateChange": "Calls `fan.oscillate`. A fan that doesn't oscillate reports `unsupported`.", "onDirectionChange": "Calls `fan.set_direction` with `forward` or `reverse`. A fan that doesn't reverse reports `unsupported`."}} />
+
+Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
+
+## Every fan
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string:
+`useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes.
+Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/fan/AllFans.tsx" />
+
+## Tasks
+
+### Presets, oscillation and direction
+
+<Example file="entities/fan/Extras.tsx" />
+
+`presetModes` is Home Assistant's `preset_modes`: normal, sleep, nature, whatever the fan has. Direction is a ceiling
+fan's: forward for a summer downdraft on most, reverse for winter.
+
+## In a skin
+
+Orb's `HaFanTile` and Field's `HaFanModule` are `useHaFan` above each skin's card. Both set the speed on the light's
+groove or fader, one stop per speed, and keep presets, oscillation and direction in its details. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/fan/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaFanTileProps" except={{ from: "@dashhaus/core", name: "HaFanOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaFanModuleProps" except={{ from: "@dashhaus/core", name: "HaFanOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-fan--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-fan--all-states).

@@ -66,5 +66,9 @@ export { LockModule } from "./cards/lock/LockModule";
 export type { LockModuleProps } from "./cards/lock/LockModule";
 export { HaLockModule } from "./ha/HaLockModule";
 export type { HaLockModuleProps } from "./ha/HaLockModule";
+export { FanModule } from "./cards/fan/FanModule";
+export type { FanModuleProps } from "./cards/fan/FanModule";
+export { HaFanModule } from "./ha/HaFanModule";
+export type { HaFanModuleProps } from "./ha/HaFanModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

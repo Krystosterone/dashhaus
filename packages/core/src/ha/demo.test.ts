@@ -51,6 +51,26 @@ describe("createDemoHaTransport", () => {
     expect(latest?.["switch.fan"]?.state).toBe("off");
   });
 
+  it("runs a fan it was seeded with: speed, preset, sweep and direction", async () => {
+    const stamp = "2026-10-19T11:20:00Z";
+    const transport = createDemoHaTransport({
+      "fan.office": { entity_id: "fan.office", state: "off", attributes: { percentage: 0, preset_modes: ["sleep"], oscillating: false, direction: "forward", supported_features: 1 | 2 | 4 | 8 }, last_changed: stamp, last_updated: stamp },
+    });
+    let latest: HassEntities | undefined;
+    transport.subscribeEntities((entities) => { latest = entities; });
+
+    await transport.callService("fan", "set_percentage", { entity_id: "fan.office", percentage: 50 });
+    expect(latest?.["fan.office"]).toMatchObject({ state: "on", attributes: { percentage: 50 } });
+    expect(latest?.["fan.office"]?.last_changed).not.toBe(stamp);
+    await transport.callService("fan", "set_preset_mode", { entity_id: "fan.office", preset_mode: "sleep" });
+    await transport.callService("fan", "oscillate", { entity_id: "fan.office", oscillating: true });
+    await transport.callService("fan", "set_direction", { entity_id: "fan.office", direction: "reverse" });
+    expect(latest?.["fan.office"]?.attributes).toMatchObject({ preset_mode: "sleep", oscillating: true, direction: "reverse" });
+    await transport.callService("fan", "toggle", { entity_id: "fan.office" });
+    expect(latest?.["fan.office"]).toMatchObject({ state: "off", attributes: { percentage: 0 } });
+    await expect(transport.callService("fan", "set_preset_mode", { entity_id: "fan.office", preset_mode: "turbo" })).rejects.toThrow();
+  });
+
   it("switches a humidifier it was seeded with, and sets its target and mode", async () => {
     const stamp = "2026-10-19T11:20:00Z";
     const transport = createDemoHaTransport({

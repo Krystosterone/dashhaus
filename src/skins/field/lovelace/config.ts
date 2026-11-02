@@ -140,6 +140,7 @@ export type FieldKind =
   | "alarm"
   | "owlet"
   | "lock"
+  | "fan"
   // new-card: kinds
   ;
 
@@ -168,6 +169,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   alarm: { domains: ["alarm_control_panel"] },
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
   lock: { domains: ["lock"] },
+  fan: { domains: ["fan"] },
   // new-card: field kinds
 };
 

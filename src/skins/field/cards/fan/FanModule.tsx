@@ -1,0 +1,203 @@
+import { useId } from "react";
+import type { ReactNode } from "react";
+import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
+import { DIRECTION_LABEL, namedSpeeds, percentOf, presetLabel, speedOf } from "@dashhaus/core/entities/fan/speed";
+import { fmtDuration } from "@dashhaus/core/entities/format";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Option, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import type { FieldFootprint } from "../../shared/ui";
+import { FAN_PICT, IconFan, IconSweep, IconTurn } from "./icons";
+import "./FanModule.css";
+
+export interface FanModuleProps {
+  entity: FanEntity;
+  footprint?: FieldFootprint;
+  /** Today, for the detail panel. Omit to leave its meter dark. */
+  history?: FanHistory;
+  onToggle: () => void;
+  /** The speed fader, in percent. Omit, or a fan without speeds, and the key spans the row. */
+  onPercentageChange?: (percent: number) => void;
+  /** Panel: the preset keys. */
+  onPresetChange?: (preset: string) => void;
+  /** Panel: the oscillation key. */
+  onOscillateChange?: (oscillating: boolean) => void;
+  /** Panel: a ceiling fan's direction keys. */
+  onDirectionChange?: (direction: FanDirection) => void;
+  /** Open the detail panel on first render (stories). */
+  defaultOpen?: boolean;
+}
+
+const DIRECTIONS: FanDirection[] = ["forward", "reverse"];
+
+/**
+ * One fan as a field module. The key switches it and its LED says it's on. The screen's fan fills with the speed,
+ * in the fader's colour; beside it the figure, then the speed as a step of a stepped fan, its preset, and since
+ * when. The fader sets the speed, one stop per speed, and sliding it while off turns the fan on. A fan without
+ * speeds has one wide key with its state word. The name, or a press and hold on the key, opens the detail panel:
+ * presets, oscillation, direction, today.
+ */
+export function FanModule({ entity: e, footprint = "standard", history, onToggle, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, defaultOpen = false }: FanModuleProps) {
+  const uid = useId();
+  const details = useDetails(defaultOpen);
+  const unav = e.state === "unavailable";
+  const on = e.state === "on";
+  const count = e.speedCount ?? 0;
+  const speedy = !!(e.supportsSpeed && count >= 2);
+  // Off, the fan reports no speed: the thumb waits at the first one, and a slide turns it on where it lands.
+  const speed = on && e.percentage != null && speedy ? speedOf(e.percentage, count) : null;
+  const pct = speed == null ? null : percentOf(speed, count);
+
+  const read: ReactNode = unav ? <Blank label="Unavailable" /> : !on ? "OFF" : pct != null ? <><Digits value={pct} /><small>%</small></> : "ON";
+  const step = speed != null && namedSpeeds(count) ? `Speed ${speed} of ${count}` : null;
+  const mode = on ? (e.presetMode ? presetLabel(e.presetMode) : e.oscillating ? "Oscillating" : null) : null;
+  const first = [step, mode].filter(Boolean).join(" · ") || null;
+  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : undefined) : e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : first ? [first, since] : since ? [since] : undefined;
+
+  // The hub always lights while on, so the first of three speeds still reads lit; the blades fill with the speed.
+  const pict = <Pictogram level={pct != null ? 0.25 + 0.75 * (pct / 100) : 1} lit={on}>{FAN_PICT}</Pictogram>;
+  const openPanel = details.openDetails;
+  // The power key and the speed fader, the same in the module and the panel. Unavailable, the speed isn't known, so
+  // the fader goes and the key spans the row, as every field control's does.
+  const faded = speedy && !unav && !!onPercentageChange;
+  const at = speed ?? 1;
+  const controls = (where: string) => (
+    <div className="fd-fn-row" data-speeds={faded}>
+      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? (on ? "On" : "Off") : undefined}>
+        <IconFan />
+      </Key>
+      {faded && (
+        <Fader
+          id={`${uid}-${where}`}
+          label={`${e.name} speed`}
+          legend="Speed"
+          value={at}
+          min={1}
+          max={count}
+          lit={on}
+          valueText={speedSaid(at, count, on)}
+          onChange={(next) => onPercentageChange?.(percentOf(next, count))}
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <ModuleFrame
+      kind="fd-fn"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconFan /></Key>}
+      row={controls("m")}
+    >
+      <FanDetails e={e} read={read} pict={pict} meta={meta} controls={controls("p")} history={history} onPresetChange={onPresetChange} onOscillateChange={onOscillateChange} onDirectionChange={onDirectionChange} />
+    </ModuleFrame>
+  );
+}
+
+/** What the fader says: a stepped fan's speed by number, a stepless one's in percent. */
+function speedSaid(speed: number, count: number, on: boolean) {
+  const said = namedSpeeds(count) ? `speed ${speed} of ${count}` : `${percentOf(speed, count)} percent`;
+  return on ? said.charAt(0).toUpperCase() + said.slice(1) : `Off. Last set to ${said}`;
+}
+
+interface DetailsProps {
+  e: FanEntity;
+  read: ReactNode;
+  pict: ReactNode;
+  meta?: [string, string?];
+  controls: ReactNode;
+  history?: FanHistory;
+  onPresetChange?: (preset: string) => void;
+  onOscillateChange?: (oscillating: boolean) => void;
+  onDirectionChange?: (direction: FanDirection) => void;
+}
+
+/** What the fan can do, for the panel's facts: "3 speeds, presets, oscillates". */
+function abilities(e: FanEntity) {
+  const count = e.speedCount ?? 0;
+  const parts = [
+    e.supportsSpeed && count >= 2 ? (namedSpeeds(count) ? `${count} speeds` : "variable speed") : null,
+    e.supportsPreset ? "presets" : null,
+    e.supportsOscillate ? "oscillates" : null,
+    e.supportsDirection ? "reverses" : null,
+  ].filter(Boolean).join(", ");
+  return parts ? parts.charAt(0).toUpperCase() + parts.slice(1) : "On / off";
+}
+
+/**
+ * The panel's content: the screen with a second channel (a ceiling fan's direction), the controls, the presets,
+ * the oscillation key, the direction keys, today, and facts.
+ */
+function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, onOscillateChange, onDirectionChange }: DetailsProps) {
+  const uid = useId();
+  const unav = e.state === "unavailable";
+  const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
+  const presets = e.supportsPreset ? e.presetModes ?? [] : [];
+
+  // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
+  const aside = !unav && e.supportsDirection ? (
+    <p className="fd-chan">
+      <span>
+        <span className="fd-chan-name">{e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label="Direction not reported" />}</span>
+        <span className="fd-chan-sub">Direction</span>
+      </span>
+    </p>
+  ) : undefined;
+
+  return (
+    <div className="fd-fn-panel" data-state={e.state}>
+      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
+      {controls}
+
+      {presets.length > 0 && onPresetChange && (
+        <div className="fd-block">
+          <Legend id={`${uid}-p`} value={e.presetMode ? presetLabel(e.presetMode) : undefined}>Preset</Legend>
+          <div className="fd-fn-keys" role="group" aria-labelledby={`${uid}-p`}>
+            {presets.map((p) => (
+              <Key key={p} label={`Set preset to ${presetLabel(p)}`} wide caption={presetLabel(p)} chosen={p === e.presetMode} disabled={unav} onPress={() => onPresetChange(p)}>{null}</Key>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {e.supportsOscillate && onOscillateChange && (
+        <div className="fd-block">
+          <Legend id={`${uid}-o`}>Oscillation</Legend>
+          <div className="fd-fn-latch" role="group" aria-labelledby={`${uid}-o`}>
+            <Key label="Oscillate" pressed={e.oscillating === true} unavailable={unav || e.oscillating == null} wide caption={unav || e.oscillating == null ? undefined : e.oscillating ? "On" : "Off"} onPress={() => onOscillateChange(!e.oscillating)}>
+              <IconSweep />
+            </Key>
+          </div>
+        </div>
+      )}
+
+      {e.supportsDirection && onDirectionChange && (
+        <div className="fd-block">
+          <Legend id={`${uid}-d`} value={e.direction ? DIRECTION_LABEL[e.direction] : undefined}>Direction</Legend>
+          <div className="fd-fn-keys fd-fn-keys--two" role="group" aria-labelledby={`${uid}-d`}>
+            {DIRECTIONS.map((d) => (
+              <Option key={d} name={DIRECTION_LABEL[d]}>
+                <Key label={`Turn ${DIRECTION_LABEL[d].toLowerCase()}`} wide chosen={d === e.direction} disabled={unav} onPress={() => onDirectionChange(d)}>
+                  <IconTurn direction={d} />
+                </Key>
+              </Option>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
+
+      <p className="fd-info">
+        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
+        <span>{abilities(e)}</span>
+      </p>
+    </div>
+  );
+}

@@ -7,6 +7,7 @@ import type { PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
 import { JoinedBundle, LeadBundle, TitledBundle } from "../bundles/Bundle";
 import { HaLockTile } from "../ha/HaLockTile";
+import { HaFanTile } from "../ha/HaFanTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
@@ -36,6 +37,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   humidifier: (card, key) => <HaHumidifierTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} color={card.color} />,
   sound: (card, key) => <HaSoundTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} volumeEntityId={card.volume} color={card.color} />,
   lock: (card, key) => <HaLockTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} batteryEntityId={card.battery} color={card.color} />,
+  fan: (card, key) => <HaFanTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} color={card.color} />,
   // new-card: tiles
 };
 

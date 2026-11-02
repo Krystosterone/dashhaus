@@ -66,6 +66,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
     "light",
     "switch",
     "humidifier",
+    "fan",
     // new-card: auto controls
   );
   const groups = new Map<string, string[]>();
@@ -78,6 +79,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
     "light",
     "switch",
     "humidifier",
+    "fan",
     // new-card: auto order
   ];
   const areaIds = [...groups.keys()].filter(Boolean).sort((a, b) => areas[a].name.localeCompare(areas[b].name));
