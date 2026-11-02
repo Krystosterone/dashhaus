@@ -91,6 +91,7 @@ The entity's domain picks the card. One card shows one normalized model, built f
 - `alarm_control_panel`: alarm
 - `humidifier`: humidifier (a dehumidifier too)
 - `switch` with `card: sound`: sound, a sound machine's sound with its volume `number.*` found beside it
+- `lock`: lock
 <!-- new-card: domains -->
 
 When a domain has more than one card, `card:` picks one: `card: owlet` for a sock whose sensor is named differently, or `card: sensor` to override the default.
@@ -116,7 +117,7 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 | any card | `span` | Grid columns the card spans. |
 | any card | `show_control` | `false` on a compact card: the value replaces the control and a tap opens details. |
 | any card | `history` | `false` skips today's history read. |
-| light, climate, sensor, cover, toggle, owlet, humidifier, sound | `color` | The orb's or icon's own colour: `yellow`, `apricot`, `rose`, `lavender`, `blue`, `teal`, `sage`, or `none` (not on toggles). |
+| light, climate, sensor, cover, toggle, owlet, humidifier, sound, lock | `color` | The orb's or icon's own colour: `yellow`, `apricot`, `rose`, `lavender`, `blue`, `teal`, `sage`, or `none` (not on toggles). |
 | climate, sensor | `unit` | `°C` or `°F`, when the entity doesn't say. |
 | sensor | `humidity`, `battery`, `outdoor` | Companion `sensor.*` entities; `outdoor: true`. |
 | weather | `aqi`, `aqi_scale`, `sun`, `forecasts` | AQI sensor plus `aqi_scale: US` to band it; `sun` defaults to `sun.sun`; `forecasts: false` skips the forecast read. |

@@ -1,0 +1,54 @@
+{
+  "lock.front_door": {
+    "entity_id": "lock.front_door",
+    "state": "locked",
+    "attributes": {
+      "friendly_name": "Front door",
+      "supported_features": 1,
+      "code_format": "^\\d{4,6}$",
+      "changed_by": "Keypad"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "lock.back_door": {
+    "entity_id": "lock.back_door",
+    "state": "unlocked",
+    "attributes": {
+      "friendly_name": "Back door",
+      "supported_features": 0,
+      "battery_level": 64
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "lock.garage_side": {
+    "entity_id": "lock.garage_side",
+    "state": "jammed",
+    "attributes": {
+      "friendly_name": "Garage side door",
+      "supported_features": 0
+    },
+    "last_changed": "2026-10-19T09:40:00+00:00",
+    "last_updated": "2026-10-19T09:40:00+00:00"
+  },
+  "lock.porch": {
+    "entity_id": "lock.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "lock.shed": {
+    "entity_id": "lock.shed",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Shed",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

@@ -337,6 +337,19 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 
 `SoundModule` is the same normalized sound entity in the Field skin; `HaSoundModule` is its connected container, on the same `useHaSound` hook as `HaSoundTile`, so it finds the volume the same way (or takes `volumeEntityId`) and takes the same `onToggle` and `onVolumeChange`. See [field.md](field.md#sound).
 
+## Using the lock card
+
+One `lock.*` entity, switched on and off:
+
+```tsx
+<LockTile entity={entity} history={today} onToggle={toggle} />
+<HaLockTile entityId="lock.bedroom" />
+```
+
+- **Switching:** the orb and the pill both toggle it. Both are raised buttons when off and the accent when on (a state: no bloom, no glow).
+- **Status line:** the area. It never says On or Off; that's the pill's word.
+- **Sheet:** press and hold the orb, or tap the name, for today's history.
+
 <!-- new-card: cards -->
 ## The dashboard header
 

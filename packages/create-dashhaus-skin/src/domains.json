@@ -109,6 +109,28 @@
     "companions": [],
     "fixtureId": "light.living_room"
   },
+  "lock": {
+    "name": "lock",
+    "Name": "Lock",
+    "CONST": "LOCK",
+    "words": "lock",
+    "Label": "Lock",
+    "domains": [
+      "lock"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "lock.bedroom"
+  },
   "owlet": {
     "name": "owlet",
     "Name": "Owlet",

@@ -8,4 +8,5 @@ export * from "./owlet";
 export * from "./sound";
 export * from "./store";
 export * from "./toggle";
+export * from "./lock";
 // new-card: demo transports

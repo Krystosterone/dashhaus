@@ -5,3 +5,4 @@ export type { ClimateSeed } from "./useDemoClimate";
 export { pageFromHash, useHashPage } from "./useHashPage";
 export { useNow } from "./useNow";
 export { useScrollSpy } from "./useScrollSpy";
+export { SETTLE_MS, useSettled } from "./useSettled";

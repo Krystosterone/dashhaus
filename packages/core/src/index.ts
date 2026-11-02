@@ -109,4 +109,11 @@ export { soundFromHass } from "./ha/mappers/sound";
 export type { SoundMapOptions } from "./ha/mappers/sound";
 export { createSoundHandlers } from "./ha/actions/sound";
 export type { SoundHandlers, SoundHandlerOptions } from "./ha/actions/sound";
+export { lockFromHass } from "./ha/mappers/lock";
+export type { LockMapOptions } from "./ha/mappers/lock";
+export { createLockHandlers } from "./ha/actions/lock";
+export type { LockHandlers, LockHandlerOptions } from "./ha/actions/lock";
+export { useHaLock } from "./ha/hooks/lock";
+export type { HaLockOptions, HaLockResult } from "./ha/hooks/lock";
+export { HaLock } from "./ha/headless";
 // new-card: exports

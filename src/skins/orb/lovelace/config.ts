@@ -41,6 +41,7 @@ export type Kind =
   | "owlet"
   | "humidifier"
   | "sound"
+  | "lock"
   // new-card: kinds
   ;
 
@@ -55,6 +56,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   switch: "toggle",
   alarm_control_panel: "alarm",
   humidifier: "humidifier",
+  lock: "lock",
   // new-card: domain kinds
 };
 
@@ -90,6 +92,7 @@ export type CardConfig = CardBase & (
   | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
   | { kind: "humidifier"; color?: ColorName | "none" }
   | { kind: "sound"; volume?: string; color?: ColorName | "none" }
+  | { kind: "lock"; battery?: string; color?: ColorName | "none" }
   // new-card: card configs
 );
 
@@ -191,6 +194,10 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   sound: {
     keys: ["volume", "color"],
     options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]), color: readColor(read, raw, at, COLOR_NAMES) }),
+  },
+  lock: {
+    keys: ["battery", "color"],
+    options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]), color: readColor(read, raw, at, COLOR_NAMES) }),
   },
   // new-card: kind specs
 };

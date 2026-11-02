@@ -3,6 +3,7 @@ import {
   areaId,
   areaName,
   byName,
+  deviceCompanion,
   friendlyName,
   groupByArea,
   placeSection,
@@ -95,5 +96,36 @@ describe("roomSensors", () => {
       { entity: "sensor.temperature", humidity: "sensor.humidity", battery: "sensor.battery" },
       { entity: "sensor.humidity_only" },
     ]);
+  });
+});
+
+describe("deviceCompanion", () => {
+  const lock = {
+    states: {
+      ...input.states,
+      "lock.front": { attributes: { friendly_name: "Front door" } },
+      "sensor.front_battery": { attributes: { friendly_name: "Front door battery", device_class: "battery" } },
+      "sensor.front_battery_hidden": { attributes: { friendly_name: "Old battery", device_class: "battery" } },
+      "binary_sensor.front_battery": { attributes: { friendly_name: "Front door battery low", device_class: "battery" } },
+    },
+    entities: {
+      ...input.entities,
+      "lock.front": { device_id: "front" },
+      "sensor.front_battery_hidden": { device_id: "front", hidden: true },
+      "sensor.front_battery": { device_id: "front", entity_category: "diagnostic" as const },
+      "binary_sensor.front_battery": { device_id: "front" },
+    },
+  };
+
+  it("finds a device's battery sensor for any entity on it, a lock's as a room sensor's", () => {
+    expect(deviceCompanion(lock, "lock.front", "battery")).toBe("sensor.front_battery");
+    expect(deviceCompanion(lock, "sensor.temperature", "battery")).toBe("sensor.battery");
+    expect(deviceCompanion(lock, "lock.front", "battery", "binary_sensor")).toBe("binary_sensor.front_battery");
+  });
+
+  it("finds nothing without a device, or with no sensor of that class on it", () => {
+    expect(deviceCompanion(lock, "light.kitchen", "battery")).toBeUndefined();
+    expect(deviceCompanion(lock, "lock.front", "humidity")).toBeUndefined();
+    expect(deviceCompanion(lock, "lock.missing", "battery")).toBeUndefined();
   });
 });

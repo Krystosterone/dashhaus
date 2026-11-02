@@ -65,6 +65,25 @@ describe("autoDashboard", () => {
     });
   });
 
+  it("puts locks under Security after the alarm, each with its device's battery", () => {
+    const withLocks = {
+      ...input,
+      states: { ...states, ...Object.fromEntries([
+        state("lock.front", { friendly_name: "Front door" }),
+        state("lock.back", { friendly_name: "Back door" }),
+        state("sensor.front_battery", { device_class: "battery" }),
+      ].map((s) => [s.entity_id, s])) },
+      entities: { ...input.entities, "lock.front": { device_id: "front" }, "sensor.front_battery": { device_id: "front", entity_category: "diagnostic" } },
+    };
+    const security = (autoDashboard(withLocks).sections as { title: string; cards: unknown[] }[]).find((s) => s.title === "Security");
+    expect(security?.cards).toEqual([
+      { entity: "alarm_control_panel.house", footprint: "compact" },
+      { entity: "lock.back", footprint: "compact" },
+      { entity: "lock.front", footprint: "compact", battery: "sensor.front_battery" },
+    ]);
+    expect(() => parseDashboardConfig(autoDashboard(withLocks))).not.toThrow();
+  });
+
   it("produces a config the card accepts", () => {
     const card = autoDashboard(input, "Flat");
     expect(() => parseDashboardConfig(card)).not.toThrow();

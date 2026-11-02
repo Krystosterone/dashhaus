@@ -103,18 +103,26 @@ export function placeSection<S extends { title: string; cards: C[] }, C>(section
 }
 
 /**
+ * The first `domain` entity (by default a `sensor.*`) of one device class on the same device as `entity`: a room
+ * sensor's humidity, a lock's or a door sensor's battery. Companions may be diagnostic entities (batteries usually
+ * are); only hidden ones, and the entity itself, are left out. Nothing when the entity has no device in the registry.
+ */
+export function deviceCompanion({ states, entities = {} }: RoomSensorInput, entity: string, cls: string, domain = "sensor"): string | undefined {
+  const device = entities[entity]?.device_id;
+  if (!device) return undefined;
+  return Object.keys(states).find((id) => id !== entity && id.startsWith(`${domain}.`) && !entities[id]?.hidden && entities[id]?.device_id === device && deviceClass(states[id]) === cls);
+}
+
+/**
  * Room air for an automatic layout, one per device: every visible temperature sensor, with the humidity and battery
  * sensors on its device as companions, then every humidity sensor on a device that has no temperature. Each group
  * sorted by name. Companions may be diagnostic entities (batteries usually are); only hidden ones are left out.
  */
 export function roomSensors({ states, entities = {} }: RoomSensorInput): RoomSensor[] {
   const name = (id: string) => friendlyName(states, id);
-  const sensors = Object.keys(states).filter((id) => id.startsWith("sensor.") && !entities[id]?.hidden);
-  const visible = sensors.filter((id) => !entities[id]?.entity_category);
+  const visible = Object.keys(states).filter((id) => id.startsWith("sensor.") && !entities[id]?.hidden && !entities[id]?.entity_category);
   const deviceOf = (id: string) => entities[id]?.device_id ?? undefined;
-  const companion = (device: string | undefined, cls: string) => (
-    device ? sensors.find((id) => deviceOf(id) === device && deviceClass(states[id]) === cls) : undefined
-  );
+  const companion = (id: string, cls: string) => deviceCompanion({ states, entities }, id, cls);
   const taken = new Set<string>();
   const rooms: RoomSensor[] = [];
   for (const cls of ["temperature", "humidity"]) {
@@ -123,8 +131,8 @@ export function roomSensors({ states, entities = {} }: RoomSensorInput): RoomSen
       if (taken.has(id) || (device && taken.has(`device:${device}`))) continue;
       if (device) taken.add(`device:${device}`);
       taken.add(id);
-      const humidity = cls === "temperature" ? companion(device, "humidity") : undefined;
-      const battery = companion(device, "battery");
+      const humidity = cls === "temperature" ? companion(id, "humidity") : undefined;
+      const battery = companion(id, "battery");
       rooms.push({ entity: id, ...(humidity && { humidity }), ...(battery && { battery }) });
     }
   }

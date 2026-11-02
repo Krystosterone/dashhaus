@@ -1,7 +1,8 @@
 import type { SensorEntity } from "../../entities/sensor/types";
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
-import { finiteNumber, stringValue } from "../util";
+import { stringValue } from "../util";
+import { batteryFromHass, inlineBattery } from "./battery";
 
 export interface SensorMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
@@ -28,14 +29,6 @@ function stateNumber(raw: HassEntity | undefined) {
   if (!raw || typeof raw.state !== "string" || raw.state === "unknown" || raw.state === "unavailable" || raw.state.trim().length === 0) return undefined;
   const value = Number(raw.state);
   return Number.isFinite(value) ? value : undefined;
-}
-
-function firstNumber(...values: unknown[]) {
-  for (const value of values) {
-    const number = finiteNumber(value);
-    if (number != null) return number;
-  }
-  return undefined;
 }
 
 function temperatureUnit(value: unknown): "°C" | "°F" | undefined {
@@ -69,12 +62,6 @@ function isHumiditySensor(raw: HassEntity | undefined) {
   return kind === "humidity" || (kind == null && (attributes?.unit_of_measurement === "%" || attributes?.native_unit_of_measurement === "%"));
 }
 
-function isBatterySensor(raw: HassEntity | undefined) {
-  const kind = deviceClass(raw);
-  const attributes = attributesOf(raw);
-  return kind === "battery" || (kind == null && (attributes?.unit_of_measurement === "%" || attributes?.native_unit_of_measurement === "%"));
-}
-
 /** Map one temperature/humidity device from one primary sensor and optional companion sensors. */
 export function sensorFromHass(raw: HassEntity | undefined, entityId: string, options: SensorMapOptions = {}): SensorEntity {
   const attributes = attributesOf(raw) ?? {};
@@ -94,10 +81,8 @@ export function sensorFromHass(raw: HassEntity | undefined, entityId: string, op
     ? percentValue(stateNumber(options.humidityEntity))
     : undefined;
   const primaryBattery = primaryValue != null && primaryClass === "battery" ? percentValue(primaryValue) : undefined;
-  const inlineBattery = state === "ok" ? percentValue(firstNumber(attributes.battery_level, attributes.battery)) : undefined;
-  const companionBattery = state === "ok" && isAvailable(options.batteryEntity) && isBatterySensor(options.batteryEntity)
-    ? percentValue(stateNumber(options.batteryEntity))
-    : undefined;
+  const ownBattery = state === "ok" ? inlineBattery(attributes) : undefined;
+  const companionBattery = state === "ok" ? batteryFromHass(options.batteryEntity) : undefined;
   const friendlyName = stringValue(attributes.friendly_name);
   const lastSeen = state === "unavailable"
     ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now)
@@ -112,7 +97,7 @@ export function sensorFromHass(raw: HassEntity | undefined, entityId: string, op
     humidity: primaryHumidity ?? companionHumidity,
     unit,
     outdoor: options.outdoor,
-    battery: primaryBattery ?? inlineBattery ?? companionBattery,
+    battery: primaryBattery ?? ownBattery ?? companionBattery,
     lastUpdated: formatHaTime(stringValue(raw?.last_updated), options.now),
     lastSeen,
   };
