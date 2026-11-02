@@ -1,0 +1,300 @@
+/* Futura parts: the bezel, the dial, the readout, the meter, keys, the level and telemetry.
+   Colours are tokens only. A part's tone (cyan or amber) arrives as data-tone and resolves to --futura-tone*. */
+
+:where(.futura-card, .futura-sheet, .futura-dial, .futura-meter, .futura-action, .futura-stepper, .futura-level) {
+  --futura-tone: var(--futura-cyan);
+  --futura-tone-dim: var(--futura-cyan-dim);
+  --futura-tone-glow: var(--futura-cyan-glow);
+  --futura-tone-ink: var(--futura-cyan-ink);
+}
+:where(.futura-card, .futura-sheet, .futura-dial, .futura-meter, .futura-action, .futura-stepper, .futura-level)[data-tone="amber"] {
+  --futura-tone: var(--futura-amber);
+  --futura-tone-dim: var(--futura-amber-dim);
+  --futura-tone-glow: var(--futura-amber-glow);
+  --futura-tone-ink: var(--futura-amber-ink);
+}
+
+/* ---------- Bezel: the card ---------- */
+.futura-card {
+  position: relative;
+  box-sizing: border-box;
+  container-type: inline-size;
+  isolation: isolate;
+  height: 176px;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--futura-edge);
+  border-radius: var(--futura-radius);
+  background: linear-gradient(180deg, var(--futura-panel-raised), var(--futura-panel) 52%);
+  box-shadow: inset 0 1px 0 var(--futura-sheen), 0 14px 30px var(--futura-shadow);
+  color: var(--futura-ink);
+  font-family: var(--futura-sans);
+}
+/* The bezel's index tick, top left: edge-bright at rest, the tone while lit. */
+.futura-card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 30px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--futura-edge-bright);
+  transition: background-color var(--futura-glow-in) var(--futura-ease-out);
+}
+/* The glow: a lit edge and halo, faded in on opacity so a switch never repaints the panel. */
+.futura-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -1px;
+  border: 1px solid var(--futura-tone);
+  border-radius: inherit;
+  box-shadow: 0 0 20px var(--futura-tone-glow), inset 0 0 22px var(--futura-tone-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--futura-glow-in) var(--futura-ease-out);
+}
+.futura-card[data-lit]::before { background: var(--futura-tone); }
+.futura-card[data-lit]::after { opacity: 1; }
+.futura-card[data-state="unavailable"] { border-style: dashed; background: var(--futura-panel); box-shadow: none; }
+
+.futura-face {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-template-rows: 56px minmax(0, 1fr) 44px;
+  grid-template-areas: "lead copy summary" "strip strip strip" "foot foot foot";
+  gap: 6px 12px;
+  height: 100%;
+  min-width: 0;
+}
+.futura-lead { grid-area: lead; width: 56px; height: 56px; }
+.futura-copy { grid-area: copy; min-width: 0; display: grid; align-content: center; gap: 1px; }
+.futura-area, .futura-state, .futura-summary { margin: 0; }
+.futura-area, .futura-kicker { overflow: hidden; color: var(--futura-ink-muted); font: 500 10px/1.4 var(--futura-mono); letter-spacing: 0.14em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.futura-title { appearance: none; width: fit-content; max-width: 100%; padding: 0; overflow: hidden; border: 0; background: transparent; color: inherit; font: 600 15px/1.3 var(--futura-sans); text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: color var(--futura-press) var(--futura-ease-in-out); }
+.futura-state { overflow: hidden; color: var(--futura-ink-muted); font: 12px/1.35 var(--futura-sans); text-overflow: ellipsis; white-space: nowrap; }
+.futura-state::first-letter { text-transform: uppercase; }
+.futura-card[data-lit] .futura-state { color: var(--futura-ink); }
+.futura-summary { grid-area: summary; align-self: center; justify-self: end; white-space: nowrap; }
+.futura-strip { grid-area: strip; align-self: end; min-width: 0; }
+.futura-actions, .futura-foot { grid-area: foot; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.futura-foot { justify-content: flex-start; border-top: 1px solid var(--futura-edge); }
+.futura-actions > .futura-level { flex: 1 1 auto; }
+
+/* Compact: one 72 px row, the dial, the name and its state, the figure. */
+.futura-card[data-footprint="compact"] { height: 72px; padding: 13px 14px 13px 12px; }
+.futura-card[data-footprint="compact"] .futura-face { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-rows: 44px; grid-template-areas: "lead copy summary"; }
+.futura-card[data-footprint="compact"] .futura-lead { width: 44px; height: 44px; }
+.futura-card[data-footprint="compact"] :is(.futura-area, .futura-strip, .futura-actions, .futura-foot) { display: none; }
+.futura-card[data-footprint="compact"] .futura-readout-value { font-size: 20px; }
+.futura-card[data-footprint="compact"]::before { left: 14px; width: 18px; }
+/* Rows sit densely: a lit row keeps its lit edge but only a close halo, so a room of lit rows stays readable. */
+.futura-card[data-footprint="compact"]::after { box-shadow: 0 0 8px var(--futura-tone-dim), inset 0 0 14px var(--futura-tone-dim); }
+
+/* A narrow card keeps its keys and drops today's meter to the details. */
+@container (max-width: 250px) {
+  .futura-face { grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr) 44px; grid-template-areas: "lead summary" "copy copy" "foot foot"; }
+  .futura-lead { width: 48px; height: 48px; }
+  :is(.futura-strip, .futura-area) { display: none; }
+  .futura-readout-value { font-size: 24px; }
+  .futura-stats > div:nth-child(n + 3) { display: none; }
+  .futura-card[data-footprint="compact"] .futura-face { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "lead copy summary"; }
+  .futura-card[data-footprint="compact"] .futura-area { display: none; }
+}
+
+/* ---------- Dial ---------- */
+.futura-dial { position: relative; display: grid; place-items: center; width: 100%; height: 100%; }
+.futura-dial > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.futura-dial-ticks { fill: none; stroke: var(--futura-ink-faint); stroke-width: 3; stroke-dasharray: 0.5 4.5; }
+.futura-dial-groove { fill: none; stroke: var(--futura-edge); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 75 100; }
+.futura-dial-arc { fill: none; stroke: var(--futura-tone); stroke-width: 7; stroke-linecap: round; opacity: 0.5; transition: opacity var(--futura-glow-in) var(--futura-ease-out), stroke var(--futura-glow-in) var(--futura-ease-out); }
+.futura-dial-core { fill: var(--futura-panel-raised); stroke: var(--futura-edge-bright); stroke-width: 1; transition: stroke var(--futura-press) var(--futura-ease-in-out); }
+.futura-dial-glyph { position: relative; display: grid; place-items: center; width: 38%; height: 38%; color: var(--futura-ink-muted); font: 600 13px/1 var(--futura-mono); transition: color var(--futura-glow-in) var(--futura-ease-out); }
+.futura-dial-glyph svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.futura-dial[data-lit] .futura-dial-arc { opacity: 1; filter: drop-shadow(0 0 3px var(--futura-tone-glow)); }
+.futura-dial[data-lit] .futura-dial-ticks { stroke: var(--futura-tone-dim); }
+.futura-dial[data-lit] .futura-dial-glyph { color: var(--futura-tone); filter: drop-shadow(0 0 4px var(--futura-tone-glow)); }
+.futura-dial[data-unavailable] .futura-dial-groove { stroke-width: 3; stroke-dasharray: 2.5 3.5; stroke-linecap: butt; }
+.futura-dial[data-unavailable] .futura-dial-core { stroke-dasharray: 3 3; }
+.futura-dial[data-unavailable] .futura-dial-glyph { color: var(--futura-ink-faint); }
+
+.futura-dial-key {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--futura-press) var(--futura-ease-out);
+}
+.futura-dial-key:active:not([aria-disabled="true"]) { transform: scale(0.93); }
+.futura-dial-key[aria-disabled="true"] { cursor: not-allowed; }
+
+/* ---------- Readout ---------- */
+.futura-readout { display: inline-flex; align-items: flex-start; gap: 3px; font-family: var(--futura-mono); font-variant-numeric: tabular-nums; }
+.futura-readout-value { color: var(--futura-ink); font-size: 28px; font-weight: 400; line-height: 1; letter-spacing: -0.03em; transition: color var(--futura-glow-in) var(--futura-ease-out); }
+.futura-readout-unit { margin-top: 2px; color: var(--futura-ink-muted); font-size: 11px; line-height: 1; letter-spacing: 0.06em; }
+:is(.futura-card, .futura-sheet)[data-lit] .futura-readout-value { color: var(--futura-tone); text-shadow: 0 0 14px var(--futura-tone-glow); }
+
+/* ---------- Meter: today in 24 segments ---------- */
+.futura-meter { display: grid; gap: 4px; min-width: 0; }
+.futura-meter-head { display: flex; justify-content: space-between; gap: 10px; margin: 0; overflow: hidden; color: var(--futura-ink-muted); font: 500 9.5px/1.3 var(--futura-mono); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+.futura-meter-caption { overflow: hidden; color: var(--futura-ink); text-overflow: ellipsis; letter-spacing: 0.08em; }
+.futura-meter-bars { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); align-items: end; gap: 2px; height: 16px; }
+.futura-meter-bar { height: 100%; border-radius: 1px; background: var(--futura-tone); transform: scaleY(var(--futura-level)); transform-origin: bottom; }
+.futura-meter-bar[data-kind="on"] { opacity: 0.78; }
+.futura-meter-bar[data-kind="off"] { background: var(--futura-ink-faint); transform: scaleY(0.16); }
+.futura-meter-bar[data-kind="ahead"] { background: var(--futura-edge); transform: scaleY(0.16); }
+.futura-meter-bar[data-kind="gap"] { background: transparent; border-bottom: 2px dotted var(--futura-ink-faint); transform: none; }
+.futura-meter-bar[data-now][data-kind="on"] { opacity: 1; box-shadow: 0 0 6px var(--futura-tone-glow); }
+.futura-meter-bar[data-now]:not([data-kind="on"]) { background: var(--futura-ink-muted); transform: none; opacity: 0.6; }
+
+/* ---------- Keys ---------- */
+.futura-action {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--futura-edge-bright);
+  border-radius: var(--futura-radius-small);
+  background: linear-gradient(180deg, var(--futura-panel-raised), var(--futura-panel));
+  box-shadow: inset 0 1px 0 var(--futura-sheen);
+  color: var(--futura-ink);
+  font: 600 11px/1 var(--futura-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--futura-press) var(--futura-ease-out), color var(--futura-press) var(--futura-ease-in-out), border-color var(--futura-press) var(--futura-ease-in-out), background-color var(--futura-press) var(--futura-ease-in-out);
+}
+.futura-action[data-icon] { width: 44px; padding: 0; }
+.futura-action svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.futura-action[aria-pressed="true"] { border-color: var(--futura-tone); background: var(--futura-tone-dim); color: var(--futura-tone); box-shadow: inset 0 0 12px var(--futura-tone-dim), 0 0 10px var(--futura-tone-dim); }
+.futura-action:active:not([aria-disabled="true"]) { transform: scale(0.95); background: var(--futura-panel-sunk); }
+.futura-action[aria-disabled="true"] { border-style: dashed; border-color: var(--futura-edge); background: transparent; box-shadow: none; color: var(--futura-ink-faint); cursor: not-allowed; }
+
+.futura-stepper { display: flex; align-items: center; gap: 6px; }
+.futura-stepper-value { min-width: 64px; color: var(--futura-ink); font: 400 15px/1 var(--futura-mono); font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
+
+/* ---------- Level: a recessed groove, its lit fill and a needle ---------- */
+.futura-level {
+
+  position: relative;
+  box-sizing: border-box;
+  min-width: 96px;
+  height: 44px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The groove: 24 px of the 44 px target, sunk, with ten ticks along its floor. */
+.futura-level::before {
+  content: "";
+  position: absolute;
+  inset: 10px 0;
+  border: 1px solid var(--futura-edge);
+  border-radius: var(--futura-radius-small);
+  background:
+    repeating-linear-gradient(90deg, var(--futura-ink-faint) 0 1px, transparent 1px 10%) left bottom / 100% 5px no-repeat,
+    var(--futura-panel-sunk);
+  box-shadow: inset 0 2px 6px var(--futura-shadow);
+}
+.futura-level-fill { position: absolute; inset: 11px 1px; border-radius: 8px; background: linear-gradient(90deg, transparent, var(--futura-edge)); clip-path: inset(0 calc((1 - var(--futura-fraction)) * 100%) 0 0); pointer-events: none; }
+.futura-level-needle { position: absolute; inset: 5px 4px; transform: translateX(calc(var(--futura-fraction) * 100%)); pointer-events: none; }
+.futura-level-needle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1.5px; width: 3px; border-radius: 2px; background: var(--futura-ink-muted); }
+.futura-level[data-lit] .futura-level-fill { background: linear-gradient(90deg, transparent, var(--futura-tone-dim) 40%, var(--futura-tone-glow)); }
+.futura-level[data-lit] .futura-level-needle::before { background: var(--futura-tone); box-shadow: 0 0 8px var(--futura-tone-glow); }
+.futura-level[data-unavailable] { cursor: not-allowed; }
+.futura-level[data-unavailable]::before { border-style: dashed; box-shadow: none; }
+.futura-level[data-unavailable] :is(.futura-level-fill, .futura-level-needle) { opacity: 0; }
+.futura-level[data-anim] .futura-level-fill { transition: clip-path 220ms var(--futura-ease-out); }
+.futura-level[data-anim] .futura-level-needle { transition: transform 220ms var(--futura-ease-out); }
+.futura-level-hit { position: absolute; inset: 0; }
+.futura-level-input { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.futura-level:has(> .futura-level-input:focus-visible) { border-radius: var(--futura-radius-small); outline: 2px solid var(--futura-cyan); outline-offset: 0; }
+
+/* ---------- Telemetry ---------- */
+.futura-stats { display: flex; gap: 18px; min-width: 0; margin: 0; overflow: hidden; }
+.futura-stats > div { min-width: 0; }
+.futura-stats dt { color: var(--futura-ink-muted); font: 500 9.5px/1.4 var(--futura-mono); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+.futura-stats dd { margin: 0; overflow: hidden; color: var(--futura-ink); font: 400 13px/1.35 var(--futura-mono); font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.futura-stats dd[data-alert] { color: var(--futura-alert); }
+/* The details' telemetry grid: hairline cells drawn by each cell's own right and bottom rule, clipped at the frame, so a
+   short last row leaves sunk panel rather than a lit block. */
+.futura-stats--facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0; overflow: hidden; border: 1px solid var(--futura-edge); border-radius: 10px; background: var(--futura-panel-sunk); }
+.futura-stats--facts > div { padding: 10px 12px; box-shadow: 1px 0 0 var(--futura-edge), 0 1px 0 var(--futura-edge); }
+.futura-stats--facts dd { overflow-wrap: anywhere; white-space: normal; }
+
+/* ---------- Details: a console dialog ---------- */
+.futura-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(760px, calc(100dvh - 32px));
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--futura-edge-bright);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--futura-panel-raised), var(--futura-panel) 30%);
+  color: var(--futura-ink);
+  box-shadow: inset 0 1px 0 var(--futura-sheen), 0 30px 90px var(--futura-shadow), 0 0 60px var(--futura-cyan-dim);
+  opacity: 1;
+  transition: transform var(--futura-close) var(--futura-ease-out), opacity var(--futura-close) var(--futura-ease-in-out);
+}
+.futura-dialog::backdrop { background: var(--futura-backdrop); }
+.futura-dialog[data-closing] { opacity: 0; transform: translateY(12px); }
+.futura-dialog-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 14px 14px 12px 20px; border-bottom: 1px solid var(--futura-edge); background: var(--futura-panel-raised); }
+.futura-dialog-head > div { display: grid; gap: 2px; min-width: 0; }
+.futura-dialog-head strong { overflow-wrap: anywhere; font: 600 19px/1.25 var(--futura-sans); }
+.futura-dialog-head button { flex: none; min-width: 44px; min-height: 44px; padding: 0 12px; border: 1px solid var(--futura-edge-bright); border-radius: var(--futura-radius-small); background: transparent; color: var(--futura-cyan); font: 600 11px/1 var(--futura-mono); letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform var(--futura-press) var(--futura-ease-out); }
+.futura-dialog-head button:active { transform: scale(0.96); }
+.futura-dialog-body { display: grid; gap: 20px; padding: 20px; font: 14px/1.5 var(--futura-sans); }
+.futura-hero { display: grid; grid-template-columns: 132px minmax(0, 1fr); align-items: center; gap: 20px; }
+.futura-hero-dial { width: 132px; height: 132px; }
+.futura-hero-copy { display: grid; gap: 6px; min-width: 0; }
+.futura-hero .futura-summary { grid-area: auto; justify-self: start; }
+.futura-hero .futura-readout-value { font-size: 44px; }
+.futura-hero .futura-readout-unit { font-size: 14px; }
+.futura-hero .futura-state { font-size: 14px; white-space: normal; }
+.futura-sheet[data-state="unavailable"] .futura-dialog-head { border-bottom-style: dashed; }
+.futura-controls { display: grid; gap: 10px; }
+.futura-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.futura-control > span { color: var(--futura-ink-muted); font: 500 10px/1.4 var(--futura-mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.futura-control > .futura-level { grid-column: 1 / -1; }
+
+.futura-title:focus-visible, .futura-action:focus-visible, .futura-dial-key:focus-visible, .futura-dialog-head button:focus-visible { outline: 2px solid var(--futura-cyan); outline-offset: 3px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .futura-title:hover { color: var(--futura-cyan); }
+  .futura-action:hover:not([aria-disabled="true"]) { border-color: var(--futura-tone); }
+  .futura-dial-key:hover:not([aria-disabled="true"]) .futura-dial-core { stroke: var(--futura-tone); }
+  .futura-dialog-head button:hover { border-color: var(--futura-cyan); }
+}
+@media (max-width: 600px) {
+  .futura-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; border-radius: 18px 18px 0 0; }
+  .futura-dialog[data-closing] { transform: translateY(100%); }
+  .futura-hero { grid-template-columns: 104px minmax(0, 1fr); }
+  .futura-hero-dial { width: 104px; height: 104px; }
+  .futura-hero .futura-readout-value { font-size: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .futura-action, .futura-dial-key, .futura-dialog, .futura-dialog-head button, .futura-card::before, .futura-card::after, .futura-dial-arc, .futura-dial-glyph, .futura-readout-value { transition-duration: 1ms; }
+  .futura-action:active, .futura-dial-key:active, .futura-dialog-head button:active { transform: none; }
+  .futura-level[data-anim] :is(.futura-level-fill, .futura-level-needle) { transition-duration: 1ms; }
+}

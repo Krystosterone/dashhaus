@@ -2,10 +2,12 @@
 // stylesheet the dashboards import, so the cards ship as one file: custom:dashhaus-orb (orb) and
 // custom:dashhaus-field (field). It sits outside src/ because it is the one file that ties both skins
 // together; the shared Lovelace code the skins build on stays skin-free.
+import "@dashhaus/futura/styles/tokens.css";
 // new-skin: token css
 import "@dashhaus/orb/styles/tokens.css";
 import "@dashhaus/field/styles/tokens.css";
 import { perfMark } from "@dashhaus/core/perf";
+import { defineFuturaCard } from "@dashhaus/futura/lovelace/card";
 // new-skin: card definitions
 import { defineDashhausCard } from "@dashhaus/orb/lovelace/card";
 import { defineFieldCard } from "@dashhaus/field/lovelace/card";
@@ -15,6 +17,7 @@ declare const __DASHHAUS_BUILD__: string;
 // Every card gets the bundle's one stylesheet; each skin's classes and tokens carry its own prefix.
 const css = "__DASHHAUS_CSS__";
 perfMark("bundle:entry");
+defineFuturaCard(css);
 // new-skin: define cards
 defineDashhausCard(css);
 defineFieldCard(css);

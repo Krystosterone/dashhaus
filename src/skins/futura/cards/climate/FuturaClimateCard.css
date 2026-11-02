@@ -1,0 +1,2 @@
+/* The climate's own: its mode keys in the details wrap as a row of latching keys. */
+.climate-modes { display: flex; flex-wrap: wrap; gap: 6px; }

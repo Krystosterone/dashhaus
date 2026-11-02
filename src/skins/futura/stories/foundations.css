@@ -1,0 +1,17 @@
+/* Foundations stories only: the sheet the palette and parts are laid out on. Tokens only, like every Futura file. */
+.futura-board { box-sizing: border-box; min-height: 100dvh; padding: 28px clamp(16px, 3vw, 40px) 40px; background: var(--futura-page); color: var(--futura-ink); font-family: var(--futura-sans); }
+.futura-board-inner { width: min(1200px, 100%); margin: 0 auto; display: grid; gap: 30px; }
+.futura-board h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; color: var(--futura-ink); font: 600 11px/1.3 var(--futura-mono); letter-spacing: 0.18em; text-transform: uppercase; }
+.futura-board h2::before { content: ""; width: 14px; height: 2px; border-radius: 2px; background: var(--futura-cyan); box-shadow: 0 0 8px var(--futura-cyan-glow); }
+.futura-board p.futura-board-note { max-width: 70ch; margin: -4px 0 14px; color: var(--futura-ink-muted); font: 13px/1.5 var(--futura-sans); }
+.futura-board-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
+.futura-board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.futura-specimen { display: grid; justify-items: center; gap: 8px; margin: 0; }
+.futura-specimen figcaption, .futura-swatch figcaption { color: var(--futura-ink-muted); font: 500 10px/1.4 var(--futura-mono); letter-spacing: 0.12em; text-align: center; text-transform: uppercase; }
+.futura-specimen-dial { width: 76px; height: 76px; }
+.futura-specimen-wide { width: 300px; max-width: 100%; justify-items: stretch; }
+.futura-swatch { display: grid; gap: 8px; margin: 0; }
+.futura-swatch-chip { height: 76px; border: 1px solid var(--futura-edge-bright); border-radius: var(--futura-radius-small); }
+.futura-swatch-chip[data-glow] { box-shadow: 0 0 20px var(--futura-swatch); }
+.futura-swatch figcaption { text-align: left; }
+.futura-swatch code { color: var(--futura-ink); font: 11px/1.4 var(--futura-mono); letter-spacing: 0; text-transform: none; }

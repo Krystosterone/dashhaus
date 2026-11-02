@@ -289,3 +289,12 @@ Mistakes show the same way as the main card's, all at once with their paths. The
 ## What has and hasn't been verified
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port), before the CLI move: the SSH upload, resource registration and the first-time dashboard creation (16 generated sections) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live after the move: a redeploy over an existing dashboard (the two-run fake websocket covers creation and no-overwrite), and the YAML-mode resource fallback.
+
+## The Futura dashboard
+
+The generated Futura skin ships as `custom:dashhaus-futura` from the private `@dashhaus/futura` package. Without `cards` or `sections`, it draws every supported entity Card added with `npm run new-card -- <domain> --skin futura`, grouped by Home Assistant area.
+
+```yaml
+type: custom:dashhaus-futura
+title: Home
+```

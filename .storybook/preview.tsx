@@ -1,6 +1,7 @@
 import type { Decorator, Loader, Preview } from "@storybook/react";
 import { orbStorybook } from "@dashhaus/orb/storybook";
 import { fieldStorybook } from "@dashhaus/field/storybook";
+import { futuraStorybook } from "@dashhaus/futura/storybook";
 // new-skin: storybook imports
 
 /**
@@ -24,6 +25,7 @@ interface SkinStorybook {
 const SKINS: SkinStorybook[] = [
   orbStorybook,
   fieldStorybook,
+  futuraStorybook,
   // new-skin: storybook setups
 ];
 
@@ -111,6 +113,26 @@ const preview: Preview = {
             "Foundations", ["Design rules", "Palette", "Parts", "Alerts"],
             "Connected", [
               "Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet",
+              // new-card: connected
+            ],
+          ],
+          "Futura", [
+            "Cards", [
+              "Light",
+              "Climate",
+              "Toggle",
+              "Sensor",
+              "Weather",
+              // new-card: cards
+            ],
+            "Dashboards", ["Examples", "Lovelace card", "Header", "Nav bar"],
+            "Foundations", ["Design rules", "Palette", "Parts"],
+            "Connected", [
+              "Light",
+              "Climate",
+              "Toggle",
+              "Sensor",
+              "Weather",
               // new-card: connected
             ],
           ],

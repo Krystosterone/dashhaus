@@ -1,0 +1,23 @@
+{
+  "name": "@dashhaus/futura",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "./styles/tokens.css"
+  ],
+  "exports": {
+    ".": "./index.ts",
+    "./styles/tokens.css": "./styles/tokens.css",
+    "./lovelace/card": "./lovelace/card.tsx",
+    "./storybook": "./storybook.tsx"
+  },
+  "dependencies": {
+    "@dashhaus/core": "*",
+    "@dashhaus/dashboard": "*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
+  }
+}
