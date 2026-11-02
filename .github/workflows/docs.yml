@@ -1,7 +1,9 @@
 name: Docs
 
-# The human documentation site (docs/) with Storybook under /storybook, built on every pull request and deployed to
-# GitHub Pages from main. Pages must be set to deploy from GitHub Actions in the repository settings.
+# The human documentation site (docs/) with Storybook under /storybook, built on every pull request, and deployed to
+# GitHub Pages from main once the repository is public: Pages is unavailable to a private repository, so the deploy job
+# would otherwise fail the whole run on every push to main. Before the first deploy, Pages must be set to deploy from
+# GitHub Actions in the repository settings.
 on:
   pull_request:
   push:
@@ -32,12 +34,16 @@ jobs:
         run: corepack enable npm && npm --version
       - run: npm ci
       - run: npm run build:docs
-      - uses: actions/upload-pages-artifact@v3
+      # Nothing reads this artifact until the deploy job below can run, and a private repository's artifact quota is small.
+      - if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.event.repository.visibility == 'public'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/dist
 
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # Only a public repository can serve Pages, so deploying before launch would turn every push to main red. A missing
+    # or non-public `visibility` skips the job, and making the repository public turns it on.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.event.repository.visibility == 'public'
     needs: build
     runs-on: ubuntu-latest
     permissions:
