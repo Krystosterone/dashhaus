@@ -1,0 +1,39 @@
+.my-skin-cv-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--my-skin-line);
+  border-radius: 12px;
+  background: var(--my-skin-card);
+  color: var(--my-skin-ink);
+}
+
+.my-skin-cv-card[data-state="unavailable"] {
+  border-style: dashed;
+  color: var(--my-skin-ink-muted);
+}
+
+.my-skin-cv-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.my-skin-cv-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.my-skin-cv-area {
+  margin: 0;
+  color: var(--my-skin-ink-muted);
+  font-size: 12px;
+}
+
+.my-skin-cv-reading {
+  margin: 0;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}

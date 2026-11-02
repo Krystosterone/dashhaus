@@ -1,0 +1,19 @@
+type: custom:dashhaus-field
+title: Home
+show_time: true
+finish: home-assistant
+sections:
+  - title: Quick
+    note: Pressed most
+    columns: 2
+    modules:
+      - { entity: input_boolean.do_not_disturb, footprint: compact }
+      - { entity: alarm_control_panel.house, footprint: compact }
+  - title: Outside
+    modules:
+      - { entity: weather.home, span: 2 }
+      - sensor.outside_temperature
+  - columns: 2
+    sections:
+      - { title: Living room, modules: [light.ceiling, climate.living_room] }
+      - { title: Nursery, modules: [light.night_light, humidifier.nursery] }

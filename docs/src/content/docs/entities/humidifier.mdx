@@ -1,0 +1,88 @@
+---
+title: Humidifier
+description: "One humidifier.* entity, a dehumidifier included: on and off, a target humidity and a mode."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+One `humidifier.*` entity, a dehumidifier included: on and off, a target humidity and its modes.
+
+## Quick example
+
+<Example file="entities/humidifier/Humidity.tsx" />
+
+`kind` is `dehumidifier` when Home Assistant's `device_class` says so: it dries to its target instead of adding moisture.
+
+## Component
+
+`<HaHumidifier>` is `useHaHumidifier` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaHumidifierProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaHumidifier" />
+
+It reads the device, its area and today's history.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaHumidifierOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaHumidifierResult" />
+
+#### `entity`: HumidifierEntity
+
+<ApiMembers from="@dashhaus/core/entities/humidifier/types" name="HumidifierEntity" notes={{}} />
+
+#### `history`: HumidifierHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/humidifier/types" name="HumidifierHistory" />
+
+#### `actions`: HumidifierHandlers
+
+<ApiMembers from="@dashhaus/core" name="HumidifierHandlers" notes={{"onToggle": "Calls `humidifier.toggle`.", "onTargetChange": "Only for a device that reports a target. Calls `humidifier.set_humidity`, rounded to a whole percent; outside `minHumidity` to `maxHumidity` reports `invalid_input`.", "onModeChange": "Only with modes. Calls `humidifier.set_mode`; a mode the device doesn't list reports `unsupported`."}} />
+
+Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
+
+## Every humidifier
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string: `useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes. Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/humidifier/AllHumidifiers.tsx" />
+
+## Tasks
+
+### Pick a mode
+
+<Example file="entities/humidifier/Modes.tsx" />
+
+`modes` is Home Assistant's `available_modes`: normal, eco, sleep, boost, whatever the device has.
+
+## In a skin
+
+Orb's `HaHumidifierTile` and Field's `HaHumidifierModule` are `useHaHumidifier` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/humidifier/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaHumidifierTileProps" except={{ from: "@dashhaus/core", name: "HaHumidifierOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaHumidifierModuleProps" except={{ from: "@dashhaus/core", name: "HaHumidifierOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-humidifier--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-humidifier--all-states).

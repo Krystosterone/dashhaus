@@ -1,0 +1,41 @@
+---
+title: Connection status
+description: "What the store does when Home Assistant goes away and comes back, and how to say so on the page."
+---
+
+import Example from "../../../components/Example.astro";
+
+The store reports one status for the whole connection, and every entity follows it.
+
+| Status | When |
+| --- | --- |
+| `idle` | The store hasn't been connected yet. `HaProvider` connects it when it mounts. |
+| `connecting` | Waiting for the first full set of entities. |
+| `connected` | Entities are live. |
+| `disconnected` | The connection dropped. The transport reconnects by itself; the store waits for it. |
+| `error` | The connection failed for good, such as a reconnect refused for bad credentials. The store doesn't retry. |
+
+While the store isn't connected, it holds no entities. Every hook's `entity` then reads as `unavailable`, and each
+skin draws its cards as unavailable (in Orb, a dashed outline). Nothing shows a state from
+before the drop as if it were current. When the connection comes back, the store takes Home Assistant's fresh
+snapshot.
+
+## Say so on the page
+
+<Example file="errors/ConnectionLine.tsx" />
+
+## Generations
+
+`useHaGeneration()` is a counter that moves on every connect, disconnect, loss, recovery and failure. Each read and
+action is tied to the generation it started in:
+
+- A background read (history, the registries, a forecast, `useHaRequest`) that answers under a newer generation is
+  dropped, and runs again on the new connection.
+- An action whose connection changed before Home Assistant answered fails with `transport_unknown`: it may or may not
+  have happened, so it is not offered again ([Action errors](/dashhaus/errors/actions/)).
+
+## In Home Assistant
+
+A skin's Lovelace card builds its store on the frontend's own connection and seeds it with the states the frontend
+already has, so the first frame is drawn connected. The frontend reconnects by itself, and the card follows it through
+the same statuses.

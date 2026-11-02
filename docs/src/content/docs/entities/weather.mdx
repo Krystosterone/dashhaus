@@ -1,0 +1,96 @@
+---
+title: Weather
+description: "The home's outdoor conditions from a weather.* entity, with its air quality, the sun and the forecasts."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+The home's outdoor conditions from one `weather.*` entity, with an air-quality sensor, `sun.sun` for day and night, and the hourly and daily forecasts. Read-only.
+
+## Quick example
+
+<Example file="entities/weather/Outside.tsx" />
+
+`aqi` is only read with `aqiScale: "US"` and a sensor whose `device_class` is `aqi`: the hook won't band a figure on a scale it can't name. `isDay` comes from the sun entity you give; without one it stays unknown rather than guessing day.
+
+## Component
+
+`<HaWeather>` is `useHaWeather` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaWeatherProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaWeather" />
+
+It reads the weather entity, its companions, today's temperature history, and the forecasts through `weather.get_forecasts`.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaWeatherOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaWeatherResult" />
+
+`hourly` and `daily` are `undefined` until the first forecast read settles. They are read once an hour, and the previous hour's forecast stays up while the next loads. Pass `loadForecasts={false}` when another part of your app reads them.
+
+#### `entity`: WeatherEntity
+
+<ApiMembers from="@dashhaus/core/entities/weather/types" name="WeatherEntity" notes={{}} />
+
+#### `history`: WeatherHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/weather/types" name="WeatherHistory" />
+
+#### HourlyForecast
+
+One hour of `hourly`.
+
+<ApiMembers from="@dashhaus/core/entities/weather/types" name="HourlyForecast" />
+
+#### DailyForecast
+
+One day of `daily`.
+
+<ApiMembers from="@dashhaus/core/entities/weather/types" name="DailyForecast" />
+
+## Every weather entity
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string: `useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes. Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/weather/AllWeather.tsx" />
+
+## Tasks
+
+### The next five days
+
+<Example file="entities/weather/Forecast.tsx" />
+
+A failed forecast read goes to `onForecastError`, never to the action errors: it's a read, not something you did.
+
+## In a skin
+
+Orb's `HaWeatherTile` and Field's `HaWeatherModule` are `useHaWeather` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/weather/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaWeatherTileProps" except={{ from: "@dashhaus/core", name: "HaWeatherOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaWeatherModuleProps" except={{ from: "@dashhaus/core", name: "HaWeatherOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-weather--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-weather--all-states).

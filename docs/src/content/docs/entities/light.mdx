@@ -1,0 +1,94 @@
+---
+title: Light
+description: "One light.* entity: on and off, brightness, colour temperature and colour."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+One `light.*` entity: whether it's on, how bright, and its warmth or colour when it has them.
+
+## Quick example
+
+<Example file="entities/light/LightButton.tsx" />
+
+The hook maps the raw light into a `LightEntity` and builds its actions. A tap calls `light.toggle`; the button changes when Home Assistant reports the new state.
+
+## Component
+
+`<HaLight>` is `useHaLight` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaLightProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaLight" />
+
+It reads the light, its area from Home Assistant's registries, and today's history from the recorder.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaLightOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaLightResult" />
+
+#### `entity`: LightEntity
+
+<ApiMembers from="@dashhaus/core/entities/light/types" name="LightEntity" notes={{}} />
+
+#### `history`: LightHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/light/types" name="LightHistory" />
+
+#### `actions`: LightHandlers
+
+<ApiMembers from="@dashhaus/core" name="LightHandlers" notes={{"onToggle": "Calls `light.toggle`.", "onBrightnessChange": "Calls `light.turn_on` with `brightness_pct`, rounded and held between 1 and 100. A light without brightness reports `unsupported`.", "onKelvinChange": "Only for a light that takes a colour temperature. Calls `light.turn_on` with `color_temp_kelvin`; a value outside `minKelvin` to `maxKelvin` reports `invalid_input`.", "onColorChange": "Only for a colour light. Calls `light.turn_on` with `hs_color`: hue 0 to 360, saturation 0 to 100."}} />
+
+Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
+
+## Every light
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string: `useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes. Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/light/AllLights.tsx" />
+
+## Tasks
+
+### Dim it and set its warmth
+
+<Example file="entities/light/Dimmer.tsx" />
+
+`onKelvinChange` and `onColorChange` are only there when the light can use them, so test the handler, not the light's name or model.
+
+### How long it's been on today
+
+<Example file="entities/light/OnToday.tsx" />
+
+`history.onMinutes` counts today's minutes on, the current hour included. `history.samples` has one value per hour for a strip of your own.
+
+## In a skin
+
+Orb's `HaLightTile` and Field's `HaLightModule` are `useHaLight` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/light/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaLightTileProps" except={{ from: "@dashhaus/core", name: "HaLightOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaLightModuleProps" except={{ from: "@dashhaus/core", name: "HaLightOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-light--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-light--all-states).

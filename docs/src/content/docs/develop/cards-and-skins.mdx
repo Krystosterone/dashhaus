@@ -1,0 +1,66 @@
+---
+title: Add a card or a skin
+description: "For contributors - the generators that add a new domain to Orb, draw an existing domain in Field, or start a new skin in the repository."
+---
+
+Three generators do the registering, so a new card or skin passes `npm run check` and `npm run test-storybook` before
+you change a line of it. Add `--dry-run` to any of them to see what it would write.
+
+## A new domain, in Orb
+
+```sh
+npm run new-card -- fan --code fn --domain fan                               # a control: on and off, over fan.toggle
+npm run new-card -- co2 --code co --domain sensor --kind reading --unit ppm  # a reading: a read-only number
+```
+
+A **control** is an orb and a pill that switch the entity; a **reading** is a bare icon and a figure, with no services.
+The generator writes the whole slice, the Home Assistant side included, and registers it everywhere:
+
+- `packages/core/src/entities/fan/` for the model, `packages/core/src/ha/` for the mapper, the actions, the
+  `useHaFan` hook and the `HaFan` headless component;
+- `src/skins/orb/cards/fan/` for the card, its CSS, demo seeds and the standard stories, and
+  `src/skins/orb/ha/HaFanTile.tsx`;
+- Orb's Lovelace card (`src/skins/orb/lovelace/`), its exports, and the spec's card and deploy pages.
+
+Then make it the real thing: the entity's fields, the card's drawing, the mapper's attributes and the actions' services,
+its section in `spec/cards.md`. `verify/orb-conformance.test.ts` says which step is missing.
+
+## An existing domain, in Field
+
+```sh
+npm run new-card -- <name> --skin field
+```
+
+For a domain Orb draws and Field doesn't yet. Its model and hook already exist, so this writes only Field's drawing and adapters: the module, its CSS, icons,
+demo seeds, tests and stories, `src/skins/field/ha/Ha<Name>Module.tsx`, and the module's place in Field's
+Lovelace card. A domain with actions starts as a control, one key over `onToggle`; one without starts as a reading,
+a glyph and today. The generator refuses, saying why, a domain whose hook needs an option it can't know.
+`verify/field-conformance.test.ts` holds the result to the same steps.
+
+## A new skin
+
+```sh
+npm run new-skin -- canvas
+```
+
+It creates `src/skins/canvas/`, a workspace package named `@dashhaus/canvas`, with neutral tokens, its parts, fixed
+footprints, dashboard furniture, its Storybook groups, a `custom:dashhaus-canvas` Lovelace card, tests and
+`spec/canvas.md`, and registers it with Storybook, the bundle and the deploy config. The empty dashboard is a valid
+start. Add domains with the card generator:
+
+```sh
+npm run new-card -- light --skin canvas
+```
+
+A generated skin's cards start read-only, or with the hook's zero-argument actions, rather than inventing behaviour.
+Give the skin its look by replacing its tokens and parts.
+
+For a skin outside the repository, with no Storybook or workspace, use the published scaffolder instead:
+[Build a skin](/dashhaus/start/build-a-skin/).
+
+## Storybook's shape
+
+Every skin's section has the same groups in the same order: **Cards**, **Bundles** (Orb only), **Dashboards**,
+**Foundations**, **Connected**. Every card has the same stories under the same names: its own states, then
+Unavailable, Worst case, All states, Sizes, Footprints, Compact, Details, Details, unavailable and Details, phone.
+`verify/storybook.test.ts` checks both.

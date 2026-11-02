@@ -1,0 +1,82 @@
+---
+title: Sensor
+description: "A room's temperature and humidity: one sensor, read with the humidity and battery sensors on its device."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+A room's reading: a temperature or humidity `sensor.*`, read with the humidity and battery sensors on the same device. Read-only.
+
+## Quick example
+
+<Example file="entities/sensor/RoomReading.tsx" />
+
+Home Assistant gives each measurement its own entity. The hook reads the companions you name and puts them on one `SensorEntity`, so a card shows the room, not three sensors.
+
+## Component
+
+`<HaSensor>` is `useHaSensor` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaSensorProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaSensor" />
+
+It reads the sensor and its companions, its area, and today's history of the temperature and the humidity companion. `outdoor` marks a sensor outside, where indoor comfort words don't apply.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaSensorOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaSensorResult" />
+
+#### `entity`: SensorEntity
+
+<ApiMembers from="@dashhaus/core/entities/sensor/types" name="SensorEntity" notes={{}} />
+
+#### `history`: SensorHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/sensor/types" name="SensorHistory" />
+
+## Every temperature
+
+A sensor's domain doesn't say what it measures, so the selector reads each one's `device_class`.
+
+<Example file="entities/sensor/AllTemperatures.tsx" />
+
+## Tasks
+
+### Today's high and low
+
+<Example file="entities/sensor/HighLow.tsx" />
+
+`history.temperature` has one reading per hour: a number, `"unavailable"`, or `null` for hours ahead and before the first reading.
+
+## In a skin
+
+Orb's `HaSensorTile` and Field's `HaSensorModule` are `useHaSensor` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/sensor/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaSensorTileProps" except={{ from: "@dashhaus/core", name: "HaSensorOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaSensorModuleProps" except={{ from: "@dashhaus/core", name: "HaSensorOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-sensor--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-sensor--all-states).

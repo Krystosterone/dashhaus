@@ -1,0 +1,18 @@
+type: custom:dashhaus-orb
+title: Home
+sections:
+  - title: Quick actions
+    cards: [light.living_room, climate.living_room]
+pages:
+  - id: nursery
+    title: Nursery
+    sections:
+      - title: Baby
+        cards:
+          - sensor.owlet_sock_ac000w0123_sleep_state
+          - { entity: switch.nursery_music, card: sound }
+nav:
+  - page: home
+  - page: nursery
+  - navigate: /energy
+    label: Energy

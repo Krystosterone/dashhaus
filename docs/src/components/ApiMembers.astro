@@ -1,0 +1,82 @@
+---
+/**
+ * A type's members as a typed list: each name, whether it is optional, its type and its doc comment, all read from
+ * the package's declaration (`docs/src/lib/api.ts`). `notes` adds words for a member whose declaration has none;
+ * a few options every hook shares have them here.
+ */
+import { members } from "../lib/api";
+
+interface Props {
+  from: string;
+  name: string;
+  only?: string[];
+  omit?: string[];
+  /** Leave out the members of another type: a tile's props without the hook options it passes on. */
+  except?: { from: string; name: string };
+  notes?: Record<string, string>;
+}
+
+/** The options and props every entity hook and headless component shares, which their declarations leave bare. */
+const COMMON: Record<string, string> = {
+  entityId: "The Home Assistant entity id.",
+  children: "Draws the hook's result. The component itself draws nothing.",
+  name: "Overrides Home Assistant's friendly name.",
+  area: "Overrides the area Home Assistant's registries resolve for the entity.",
+  lastSeen: "Overrides when the entity was last reachable, shown while it is unavailable.",
+  onActionError: "Called with an HaActionError when an action is refused or fails.",
+};
+
+const { from, name, only, omit, except, notes = {} } = Astro.props;
+const skip = new Set(except ? members(except.from, except.name).map((member) => member.name) : []);
+const list = members(from, name, { only, omit }).filter((member) => !skip.has(member.name));
+---
+
+<dl class="api-members">
+  {
+    list.map((member) => (
+      <div>
+        <dt>
+          <code class="api-name">{member.name}{member.optional ? "?" : ""}</code>
+          <code class="api-type">{member.type}</code>
+        </dt>
+        {(notes[member.name] ?? (member.doc || COMMON[member.name])) && <dd>{notes[member.name] ?? (member.doc || COMMON[member.name])}</dd>}
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .api-members {
+    display: grid;
+    gap: 0.25rem;
+    margin-block: 1rem;
+  }
+
+  .api-members > div {
+    padding-block: 0.5rem;
+    border-bottom: 1px solid var(--sl-color-hairline);
+  }
+
+  dt {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+  }
+
+  .api-name {
+    font-weight: 600;
+  }
+
+  .api-type {
+    color: var(--sl-color-gray-2);
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+    font-size: var(--sl-text-sm);
+  }
+</style>
