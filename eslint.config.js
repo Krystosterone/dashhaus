@@ -56,7 +56,7 @@ const skinImports = {
 const skinPresentationImports = { ...skinImports, patterns: [...skinImports.patterns, ...noConformance] };
 
 export default tseslint.config(
-  { ignores: ["storybook-static/**", "dist/**", "docs/dist/**", "docs/.astro/**", "packages/*/dist/**", "src/skins/*/dist/**", "release/**", "node_modules/**", ".agents/**", ".claude/worktrees/**"] },
+  { ignores: ["storybook-static/**", "dist/**", "docs/dist/**", "docs/.astro/**", "packages/*/dist/**", "src/skins/*/dist/**", "release/**", "node_modules/**", ".agents/**", ".claude/worktrees/**", "studies/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -55,7 +55,7 @@ export const studies: {
 
 export function storySection(storybookSource: string): string | undefined;
 
-export function generatedManifest(skin: string, options?: { study?: boolean; Section?: string; theme?: StudyTheme }): {
+export function generatedManifest(skin: string): {
   name: string;
   version: string;
   description?: string;

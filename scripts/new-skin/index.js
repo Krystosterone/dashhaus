@@ -2,16 +2,12 @@
 /**
  * Creates a neutral, complete skin shell and registers it everywhere a skin exists:
  *
- *   npm run new-skin -- canvas [--study] [--dry-run]
+ *   npm run new-skin -- canvas [--dry-run]
  *
  * The shell deliberately has no entity cards. Add real domains with the normal generator:
  *
  *   npm run new-card -- light --skin canvas
  *
- * `--study` makes a study (spec/skins.md → Studies): the same skin from the same templates, plus a README and a Read me
- * first page, with its stories under `Studies/<Name>`, a marker in its manifest, and no registration in the Lovelace
- * bundle, the deploy config or spec/deploy.md, so it never ships. Nothing else differs, so a study exercises the
- * generators exactly as a real skin does.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -31,9 +27,8 @@ const flag = (name) => {
   return at !== -1;
 };
 const dryRun = flag("--dry-run");
-const study = flag("--study");
 const [skin, ...extra] = args;
-const usage = "usage: npm run new-skin -- <lower-case-kebab-name> [--study] [--dry-run]\n       e.g. npm run new-skin -- canvas";
+const usage = "usage: npm run new-skin -- <lower-case-kebab-name> [--dry-run]\n       e.g. npm run new-skin -- canvas";
 if (!skin || extra.length) fail(usage);
 if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(skin)) fail(`name "${skin}" must be lower-case kebab-case, like "quiet-glass"`);
 
@@ -42,11 +37,11 @@ const Skin = parts.map((part) => part[0].toUpperCase() + part.slice(1)).join("")
 const skinVar = parts[0] + parts.slice(1).map((part) => part[0].toUpperCase() + part.slice(1)).join("");
 const Section = parts.map((part) => part[0].toUpperCase() + part.slice(1)).join(" ");
 const SKIN_CONST = parts.join("_").toUpperCase();
-/** Its Storybook section: the skin's name, or under Studies for a study. */
-const Stories = study ? studies.section(Section) : Section;
+/** Its Storybook section: the skin's name. */
+const Stories = Section;
 const dir = generated.dir(skin);
-/** Its design rules: spec/<skin>.md for a skin; a study keeps its own in its folder, so the specs name shipped skins only. */
-const docs = study ? studies.designDoc(skin) : seams.skinDoc(skin);
+/** Its design rules. */
+const docs = seams.skinDoc(skin);
 try {
   generated.name(skin);
 } catch (error) {
@@ -77,11 +72,10 @@ const change = changes({ templateRoot, onFail: fail });
 // The core every skin shares, from the scaffolder's templates, then what a skin in this repository adds: its stories,
 // tests, Storybook setup and entry.
 change.fromTemplates([""], fill, join(root, skinTemplates.skin), dir);
-change.fromTemplates(study ? ["repo", "study"] : ["repo"], fill, templateRoot, dir);
+change.fromTemplates(["repo"], fill, templateRoot, dir);
 change.create(docs, fill(readFileSync(join(templateRoot, "design.md"), "utf8")));
 // The skin is a private workspace package: `npm install` links its name and the root apps import its exports.
-const theme = { global: `${skinVar}Theme`, light: "light", dark: "dark" };
-change.create(generated.file(skin, generated.files.manifest), `${JSON.stringify(generatedManifest(skin, { study, Section, theme }), null, 2)}\n`);
+change.create(generated.file(skin, generated.files.manifest), `${JSON.stringify(generatedManifest(skin), null, 2)}\n`);
 
 // Storybook: setup, decorator selection, and a literal order for its static indexer.
 change.edit(seams.preview, after(markers.previewImports, fill(`import { __skinVar__Storybook } from "__storybookSpecifier__";
@@ -89,7 +83,7 @@ change.edit(seams.preview, after(markers.previewImports, fill(`import { __skinVa
 change.edit(seams.preview, after(markers.previewSetups, fill(`  __skinVar__Storybook,
 `)));
 const order = (indent) => fill(`"__Section__", [
-${study ? `  "Read me first",\n` : ""}  "Cards", [
+  "Cards", [
     // new-card: cards
   ],
   "Dashboards", ["Examples", "Lovelace card", "Header", "Nav bar"],
@@ -99,22 +93,19 @@ ${study ? `  "Read me first",\n` : ""}  "Cards", [
   ],
 ],
 `).replace(/^(?=.)/gm, indent);
-change.edit(seams.preview, study ? after(markers.previewStudies, order("            ")) : after(markers.previewSections, order("          ")));
+change.edit(seams.preview, after(markers.previewSections, order("          ")));
 
-// A study never ships: no bundle registration, no dashboard from the deploy config, no YAML in spec/deploy.md.
-if (!study) {
-  // Home Assistant bundle: the package's token CSS and its card, by the specifiers its manifest declares.
-  change.edit(seams.lovelaceEntry, after(markers.entryTokens, fill(`import "__tokensSpecifier__";
+// Home Assistant bundle: the package's token CSS and its card, by the specifiers its manifest declares.
+change.edit(seams.lovelaceEntry, after(markers.entryTokens, fill(`import "__tokensSpecifier__";
 `)));
-  change.edit(seams.lovelaceEntry, after(markers.entryCards, fill(`import { define__Skin__Card } from "__cardSpecifier__";
+change.edit(seams.lovelaceEntry, after(markers.entryCards, fill(`import { define__Skin__Card } from "__cardSpecifier__";
 `)));
-  change.edit(seams.lovelaceEntry, after(markers.entryDefines, fill(`define__Skin__Card(css);
+change.edit(seams.lovelaceEntry, after(markers.entryDefines, fill(`define__Skin__Card(css);
 `)));
-  change.edit(seams.generatedSkins, after(markers.generatedSkins, fill(`  { id: "__skin__", title: "Home (__Section__)", icon: "mdi:view-dashboard-outline" },`)));
+change.edit(seams.generatedSkins, after(markers.generatedSkins, fill(`  { id: "__skin__", title: "Home (__Section__)", icon: "mdi:view-dashboard-outline" },`)));
 
-  // The generated design contract and its Lovelace YAML are discoverable from the repository docs.
-  change.edit(seams.deployDoc, (source) => `${source.trimEnd()}\n\n## The ${Section} dashboard\n\nThe generated ${Section} skin ships as \`custom:dashhaus-${skin}\` from the private \`${generated.name(skin)}\` package. Without \`cards\` or \`sections\`, it draws every supported entity Card added with \`npm run new-card -- <domain> --skin ${skin}\`, grouped by Home Assistant area.\n\n\`\`\`yaml\ntype: custom:dashhaus-${skin}\ntitle: Home\n\`\`\`\n`);
-}
+// The generated design contract and its Lovelace YAML are discoverable from the repository docs.
+change.edit(seams.deployDoc, (source) => `${source.trimEnd()}\n\n## The ${Section} dashboard\n\nThe generated ${Section} skin ships as \`custom:dashhaus-${skin}\` from the private \`${generated.name(skin)}\` package. Without \`cards\` or \`sections\`, it draws every supported entity Card added with \`npm run new-card -- <domain> --skin ${skin}\`, grouped by Home Assistant area.\n\n\`\`\`yaml\ntype: custom:dashhaus-${skin}\ntitle: Home\n\`\`\`\n`);
 
 if (!change.commit(dryRun)) process.exit(0);
-console.log(`Created the ${Section} ${study ? "study" : "skin"}: ${change.writes.size} files and registrations.\n\nNext:\n  1. npm run new-card -- light --skin ${skin}\n  2. npm run storybook  →  ${Stories}/Foundations and ${Stories}/Dashboards\n  3. Replace the neutral tokens and parts using ${docs} as the design contract\n  4. npm run check && npm run test-storybook && npm run build:ha`);
+console.log(`Created the ${Section} skin: ${change.writes.size} files and registrations.\n\nNext:\n  1. npm run new-card -- light --skin ${skin}\n  2. npm run storybook  →  ${Stories}/Foundations and ${Stories}/Dashboards\n  3. Replace the neutral tokens and parts using ${docs} as the design contract\n  4. npm run check && npm run test-storybook && npm run build:ha`);

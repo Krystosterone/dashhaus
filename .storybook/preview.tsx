@@ -141,7 +141,6 @@ const preview: Preview = {
                 // new-card: connected
               ],
             ],
-            // new-skin: study order
           ],
         ],
       },

@@ -1,10 +1,33 @@
 ---
 /**
- * Every study in the repository (spec/skins.md → Studies), read at build time from the skins' own manifests: a skin
- * whose package.json carries `dashhaus.study` appears here with its description, its phone Examples story drawn live
- * in the site's look, and links to its Read me first page and its source. A new study needs no edit to this page.
+ * Every study in the repository (spec/skins.md → Studies), read at build time: each kept study run from its
+ * `studies/<name>/study.json`, with its reference, the dashboard it deployed and links to its report and skin; and each
+ * in-repo study from its skin's manifest (`dashhaus.study`), with its phone Examples story drawn live and a link to its
+ * Read me first page. A new study needs no edit to this page.
  */
 import LiveStory from "./LiveStory.astro";
+
+interface KeptStudy {
+  name: string;
+  kept: string;
+  version: string;
+  reference: { kind: "image"; file: string } | { kind: "description"; text: string };
+  captures: string[];
+}
+
+const keptFiles = import.meta.glob<KeptStudy>("../../../studies/*/study.json", { eager: true, import: "default" });
+const keptImages = import.meta.glob<string>("../../../studies/*/{captures/*.png,reference.*}", { eager: true, query: "?url", import: "default" });
+const kept = Object.entries(keptFiles)
+  .map(([path, study]) => {
+    const dir = path.replace(/\/study\.json$/, "");
+    const picture = ["deployed.png", "desktop.png", "phone.png"].find((file) => study.captures.includes(file));
+    return {
+      ...study,
+      picture: picture ? keptImages[`${dir}/captures/${picture}`] : undefined,
+      reference: study.reference.kind === "image" ? { image: keptImages[`${dir}/${study.reference.file}`] } : { text: study.reference.text },
+    };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 interface Manifest {
   name: string;
@@ -33,7 +56,24 @@ const studies = Object.entries(manifests)
   .sort((a, b) => a.name.localeCompare(b.name));
 ---
 
-{studies.length === 0 && <p>No studies yet.</p>}
+{studies.length === 0 && kept.length === 0 && <p>No studies yet.</p>}
+{
+  kept.map((study) => (
+    <section class="study" aria-labelledby={`kept-${study.name}`}>
+      <h2 id={`kept-${study.name}`}>{study.name}</h2>
+      <p>
+        Built from @dashhaus {study.version} on {study.kept}, from {study.reference.text ? <>this description: <q>{study.reference.text}</q></> : "this picture:"}
+      </p>
+      {study.reference.image && <img class="study-reference" src={study.reference.image} alt={`The reference ${study.name} was built from`} />}
+      {study.picture && <img class="study-picture" src={study.picture} alt={`The ${study.name} dashboard as the agent deployed it`} />}
+      <p class="study-links">
+        <a href={`${repo}/blob/main/studies/${study.name}/REPORT.md`} target="_blank" rel="noopener">The agent's report</a>
+        {" · "}
+        <a href={`${repo}/tree/main/studies/${study.name}/skin`} target="_blank" rel="noopener">Its skin</a>
+      </p>
+    </section>
+  ))
+}
 {
   studies.map((study) => (
     <section class="study" aria-labelledby={`study-${study.dir}`}>
@@ -65,5 +105,18 @@ const studies = Object.entries(manifests)
 
   .study-links {
     font-size: var(--sl-text-sm);
+  }
+
+  .study-reference {
+    max-width: min(16rem, 100%);
+    border-radius: 0.5rem;
+  }
+
+  .study-picture {
+    display: block;
+    max-width: 100%;
+    margin-top: 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
   }
 </style>
