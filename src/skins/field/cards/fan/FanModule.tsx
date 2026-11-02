@@ -30,8 +30,8 @@ const DIRECTIONS: FanDirection[] = ["forward", "reverse"];
 
 /**
  * One fan as a field module. The key switches it and its LED says it's on. The screen's fan fills with the speed,
- * in the fader's colour; beside it the figure, then the speed as a step of a stepped fan, its preset, and since
- * when. The fader sets the speed, one stop per speed, and sliding it while off turns the fan on. A fan without
+ * in the fader's colour; beside it the figure (a stepped fan's step, 2/3, or a stepless one's percent), then its
+ * preset or sweep, and since when. The fader sets the speed, one stop per speed, and sliding it while off turns the fan on. A fan without
  * speeds has one wide key with its state word. The name, or a press and hold on the key, opens the detail panel:
  * presets, oscillation, direction, today.
  */
@@ -46,10 +46,14 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   const speed = on && e.percentage != null && speedy ? speedOf(e.percentage, count) : null;
   const pct = speed == null ? null : percentOf(speed, count);
 
-  const read: ReactNode = unav ? <Blank label="Unavailable" /> : !on ? "OFF" : pct != null ? <><Digits value={pct} /><small>%</small></> : "ON";
-  const step = speed != null && namedSpeeds(count) ? `Speed ${speed} of ${count}` : null;
-  const mode = on ? (e.presetMode ? presetLabel(e.presetMode) : e.oscillating ? "Oscillating" : null) : null;
-  const first = [step, mode].filter(Boolean).join(" · ") || null;
+  // A fan with a few speeds reads its step, as its own buttons are numbered (2/3); a stepless one its percent (040%).
+  const named = namedSpeeds(count);
+  const read: ReactNode = unav ? <Blank label="Unavailable" />
+    : !on ? "OFF"
+    : speed != null && named ? <><Digits value={speed} places={1} /><small aria-hidden="true">/{count}</small><span className="fd-sr"> of {count}</span></>
+    : pct != null ? <><Digits value={pct} /><small>%</small></>
+    : "ON";
+  const first = on ? (e.presetMode ? presetLabel(e.presetMode) : e.oscillating ? "Oscillating" : null) : null;
   const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : undefined) : e.lastChanged ? `Since ${e.lastChanged}` : undefined;
   const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : first ? [first, since] : since ? [since] : undefined;
 

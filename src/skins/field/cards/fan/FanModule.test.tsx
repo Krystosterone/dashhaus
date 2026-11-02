@@ -36,10 +36,12 @@ describe("FanModule", () => {
     expect(onPercentageChange).toHaveBeenLastCalledWith(100);
   });
 
-  it("reads the speed on the screen, with a stepped fan's step and its sweep beside it", () => {
+  it("reads a stepped fan's step on the screen, a stepless one's percent, and its sweep beside it", () => {
     const { container } = draw(FAN_SEEDS.on.entity);
-    expect(container.querySelector(".fd-read")?.textContent).toBe("67%");
-    expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Speed 2 of 3 · Oscillating/);
+    expect(container.querySelector(".fd-read")?.textContent).toBe("2/3 of 3");
+    expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Oscillating/);
+    const ceiling = draw(FAN_SEEDS.ceiling.entity).container;
+    expect(ceiling.querySelector(".fd-read")?.textContent).toBe("40%");
   });
 
   it("keeps a fan without speeds to one wide key with its state word", () => {

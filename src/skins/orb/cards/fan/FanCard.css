@@ -7,6 +7,13 @@
 
 /* The preset on the status line. Compact rows keep the room alone; the sheet names it on its chips. */
 .hd--compact .fn-mode, .hd--sheet .fn-mode { display: none; }
+/* Under 260 px there is room for the room alone: the preset goes whole rather than cut mid-word. */
+@container hd (max-width: 259px) {
+  .fn-mode { display: none; }
+}
+
+/* A preset's name keeps to two lines on its chip, so a long one doesn't stretch its row. */
+.fn .hd-chip > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 
 /* Speed groove: a track the accent fills while the fan runs (Track in shared/ui.tsx), keeping a 30px end cap. */
 .fn-bar { --cap: 30px; }
