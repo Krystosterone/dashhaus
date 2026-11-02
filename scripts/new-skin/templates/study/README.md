@@ -1,8 +1,8 @@
 # __Section__, a study
 
-__Section__ is a **study**: a skin an agent built with this repository's generators, kept so you can see what they
-make and start from it. It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and
-`npm run deploy` doesn't create its dashboard.
+__Section__ is a **study**: a skin an agent built, kept so you can see what it made and start from it.
+It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and `npm run deploy` doesn't
+create its dashboard. It is checked like every skin in this repository, so it keeps working as the packages change.
 
 ## Use it
 
@@ -14,6 +14,7 @@ it. If you make it better, contributions back are welcome; open a pull request.
 - **Storybook:** Studies → __Section__, with the same groups as every skin (Cards, Dashboards, Foundations, Connected).
 - **Source:** `src/skins/__skin__/`, the private workspace package `@dashhaus/__skin__`.
 - **Its design rules:** `__designDoc__`, also drawn in Storybook as Foundations → Design rules.
+- **The run:** `study.json` records how it was made and what it was built from; `captures/` holds what it looked like.
 
 ## How it was made
 

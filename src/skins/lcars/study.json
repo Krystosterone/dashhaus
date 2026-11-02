@@ -1,0 +1,19 @@
+{
+  "name": "lcars",
+  "skin": "lcars",
+  "kept": "2026-11-02",
+  "version": "0.2.0",
+  "commit": "1e13615",
+  "made": "run",
+  "reference": {
+    "kind": "description",
+    "text": "Star Trek's LCARS"
+  },
+  "task": "Create a new Dashhaus skin that looks like Star Trek's LCARS, and deploy it to my Home Assistant at http://127.0.0.1:8801 (token fake-ha-token, its www folder is ~/dashhaus-try/ha/www).\n\nAsked once it was done: write REPORT.md beside the skin with two sections, ## FRICTION (every guess, retry, workaround, or doc that pointed somewhere you could not reach) and ## RESULT (what is deployed and how you know). Later: write DESIGN.md beside it, the skin's design rules (## Palette, ## Parts, ## Dashboards, then ## Light and ## Sensor).",
+  "captures": [
+    "desktop-dark.png",
+    "desktop.png",
+    "phone.png",
+    "deployed.png"
+  ]
+}

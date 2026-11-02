@@ -18,7 +18,7 @@ The server prints `HA_URL`, `HA_TOKEN` and `HA_WWW`. It speaks Home Assistant's 
 www folder, and draws each deployed dashboard at `/<path>` (registered resources loaded, the saved card configured,
 presses toggling the house). `/api/fake/state` and `--state` show what a deploy left behind.
 
-For the author path, put a reference image (or nothing, for a description) beside the tarballs instead.
+For the author path, `npm run study -- <name> (--image <path> | --describe "<text>")` sets up this same run (tarballs, reference, task and fake Home Assistant) and `npm run study:keep -- <name>` brings what the agent made into `src/skins/<skin>/` as a study ([spec/skins.md → Running a study](../../spec/skins.md#running-a-study)).
 
 ## Run
 

@@ -63,13 +63,17 @@ with Retry and Dismiss, so a failed tap never goes unnoticed.
 
 ### A study
 
+A study is not made with `new-skin`: a study run has a fresh agent build a skin the way someone outside the repository
+would, from the release tarballs, a picture or a description, and a simulated Home Assistant.
+
 ```sh
-npm run new-skin -- canvas --study
+npm run study -- canvas --image ./reference.png    # or --describe "warm paper, ink and brass"
+npm run study:keep -- canvas                       # once the agent is done
 ```
 
-`--study` makes the same skin from the same templates, kept to learn from rather than shipped: its stories sit under
-**Studies/Canvas**, opening on a Read me first page from its `README.md`, its `package.json` marks it, and it is
-left out of the Lovelace bundle and the deploy config. Add its cards with the same `new-card` command.
+The first packs the release, sets up a sandbox and prints the task to hand a fresh agent; the second brings the skin it
+built into `src/skins/` as a study, with the same Storybook groups as every skin, its design rules, the agent's report
+of every guess and dead end, and screenshots.
 [Studies](/dashhaus/develop/studies/) lists every one.
 
 For a skin outside the repository, with no Storybook or workspace, use the published scaffolder instead:

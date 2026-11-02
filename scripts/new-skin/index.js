@@ -8,15 +8,16 @@
  *
  *   npm run new-card -- light --skin canvas
  *
- * `--study` makes a study (spec/skins.md → Studies): the same skin from the same templates, plus a README and a Read me
- * first page, with its stories under `Studies/<Name>`, a marker in its manifest, and no registration in the Lovelace
- * bundle, the deploy config or spec/deploy.md, so it never ships. Nothing else differs, so a study exercises the
- * generators exactly as a real skin does.
+ * `--study` makes a study's shell (spec/skins.md → Studies): the same skin from the same templates, plus a README and a
+ * Read me first page, with its stories under `Studies/<Name>`, a marker in its manifest, and no registration in the
+ * Lovelace bundle, the deploy config or spec/deploy.md, so it never ships. `npm run study:keep` runs it to bring a
+ * study run into the repository, then lays the agent's skin over it.
  */
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generated, generatedManifest, markers, root, seams, skinTemplates, studies } from "../packages.js";
+import { generated, generatedManifest, markers, packages, root, seams, skinTemplates, studies } from "../packages.js";
 import { after, changes, exists, filler, read } from "../new-card/lib.js";
 
 const fail = (message) => {
@@ -82,6 +83,13 @@ change.create(docs, fill(readFileSync(join(templateRoot, "design.md"), "utf8")))
 // The skin is a private workspace package: `npm install` links its name and the root apps import its exports.
 const theme = { global: `${skinVar}Theme`, light: "light", dark: "dark" };
 change.create(generated.file(skin, generated.files.manifest), `${JSON.stringify(generatedManifest(skin, { study, Section, theme }), null, 2)}\n`);
+// A study's record (scripts/study/lib.js → StudyRecord): made by the generators until `npm run study:keep` says it was a run.
+if (study) {
+  const version = JSON.parse(read(`${packages.core.dir}/package.json`)).version;
+  const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim() || "0000000";
+  const record = { name: skin, skin, kept: new Date().toISOString().slice(0, 10), version, commit, made: "generators", captures: [] };
+  change.create(studies.record(skin), `${JSON.stringify(record, null, 2)}\n`);
+}
 
 // Storybook: setup, decorator selection, and a literal order for its static indexer.
 change.edit(seams.preview, after(markers.previewImports, fill(`import { __skinVar__Storybook } from "__storybookSpecifier__";

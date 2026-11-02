@@ -51,6 +51,9 @@ export const studies: {
   section(Section: string): string;
   marker(theme: StudyTheme): StudyMarker;
   is(manifest: unknown): boolean;
+  designDoc(skin: string): string;
+  record(skin: string): string;
+  captures(skin: string): string;
 };
 
 export function storySection(storybookSource: string): string | undefined;

@@ -88,7 +88,7 @@ describe("new-skin", () => {
       const studyFile = (path: string) => readFileSync(join(copy, "src/skins/atelier", path), "utf8");
       const studyManifest = JSON.parse(studyFile("package.json"));
       expect(studyManifest.dashhaus).toEqual({ study: { theme: { global: "atelierTheme", light: "light", dark: "dark" } } });
-      expect(studyManifest.description).toMatch(/^A study: the Atelier skin/);
+      expect(studyManifest.description).toMatch(/^A study: the Atelier skin an agent built/);
       expect(studyFile("storybook.tsx")).toContain('section: "Studies/Atelier",');
       expect(studyFile("README.md")).toMatch(/^# Atelier, a study\n/);
       expect(studyFile("stories/ReadMeFirst.mdx")).toContain('<Meta title="Studies/Atelier/Read me first" />');

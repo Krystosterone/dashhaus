@@ -1,0 +1,13 @@
+{
+  "name": "futura",
+  "skin": "futura",
+  "kept": "2026-11-02",
+  "version": "0.2.0",
+  "commit": "5468e8d",
+  "made": "generators",
+  "captures": [
+    "examples-phone-390.png",
+    "examples-tablet-1280.png",
+    "foundations-parts-1280.png"
+  ]
+}

@@ -1,14 +1,18 @@
 /**
- * Studies (spec/skins.md → Studies): skins an agent built with the generators, kept to learn from and build on. A study
- * is marked in its package.json and that marker decides everything else: it says what it is (its README and Read me
- * first page), it sits under Studies in Storybook, it never ships, its docs stay in its folder, and the docs site lists
- * it. Every other skin ships. The specs, AGENTS.md and the docs pages talk about studies in general, never one by name.
+ * Studies (spec/skins.md → Studies): skins an agent built, kept to learn from and build on. A study run is a fresh agent
+ * building a standalone skin from the release tarballs in a sandbox (`npm run study`); keeping it (`npm run
+ * study:keep`) brings it into `src/skins/<skin>/` with the shape every study has: marked in its package.json, under
+ * Studies in Storybook with a Read me first page, its own design rules, captures and study.json, and for a run the
+ * agent's report. None ships, all are on the docs site's Studies page, and the specs, AGENTS.md and the docs pages talk
+ * about studies in general, never one by name.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GENERATED_SKINS } from "../scripts/generated-skins.js";
 import { storySection, studies } from "../scripts/packages.js";
+import { DESIGN_SECTIONS, REPORT_SECTIONS, fitDesignRules, taskText } from "../scripts/study/lib.js";
+import type { StudyRecord } from "../scripts/study/lib.js";
 
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
@@ -80,37 +84,86 @@ describe.each(studySkins.map((s) => [s.skin, s] as const))("the %s study", (skin
     expect(setup).toMatch(new RegExp(`\\b${global}: \\{`));
     for (const value of [light, dark]) expect(setup).toContain(`"${value}"`);
   });
+
+  const record: StudyRecord | undefined = existsSync(join(process.cwd(), dir, "study.json")) ? JSON.parse(read(`${dir}/study.json`)) : undefined;
+
+  it("records how it was made: its name, the version and commit it was built from, and what it looked like", () => {
+    expect(record, `${dir}/study.json`).toBeDefined();
+    expect(record!.skin).toBe(skin);
+    expect(record!.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(record!.commit).toMatch(/^[0-9a-f]{7,}$/);
+    expect(["run", "generators"]).toContain(record!.made);
+    for (const capture of record!.captures) expect(existsSync(join(process.cwd(), dir, "captures", capture)), capture).toBe(true);
+  });
+
+  it("draws its own design rules as Foundations → Design rules", () => {
+    const rules = read(`${dir}/stories/DesignRules.mdx`);
+    expect(rules).toMatch(new RegExp(`import rules from "(?:\\.\\./design\\.md|(?:\\.\\./)+${dir}/design\\.md)\\?raw";`));
+    expect(rules).toContain(`<Meta title="${section}/Foundations/Design rules" />`);
+  });
+
+  it.runIf(record?.made === "run")("keeps its run: the agent's report and design rules, its reference and its task", () => {
+    expect(record!.captures.length, "its snapshots or the dashboard it deployed").toBeGreaterThan(0);
+    for (const heading of REPORT_SECTIONS) expect(read(`${dir}/REPORT.md`)).toContain(heading);
+    for (const heading of DESIGN_SECTIONS) expect(read(`${dir}/design.md`)).toMatch(new RegExp(`^${heading}\\s*$`, "m"));
+    const reference = record!.reference!;
+    if (reference.kind === "image") expect(existsSync(join(process.cwd(), dir, reference.file))).toBe(true);
+    else expect(reference.text).toBeTruthy();
+    expect(record!.task).toContain("REPORT.md");
+    expect(read(`${dir}/README.md`)).toContain("[`REPORT.md`](REPORT.md)");
+  });
 });
 
-describe("the study brief", () => {
-  it("asks for what the generator makes a study today, so starting a run can't send an agent somewhere stale", () => {
-    const brief = read("spec/study-brief.md");
-    for (const expected of [
-      "npm run new-skin -- <name> --study",
-      "npm run new-card -- <domain> --skin <name>",
-      "src/skins/<name>/design.md",
-      "src/skins/<name>/captures/",
-      `${studies.group}/<Name>`,
-      "Read me first",
-      "FRICTION",
-      "spec/skins.md → Running a study",
-    ]) expect(brief, `spec/study-brief.md names ${expected}`).toContain(expected);
-    expect(brief).not.toMatch(/artifacts\/|spec\/<name>\.md/);
+describe("a study run", () => {
+  it("gives the agent one request and what a person would know, never a repository path", () => {
+    for (const reference of [{ kind: "image", file: "reference.png" }, { kind: "description", text: "warm paper and brass" }] as const) {
+      const task = taskText({ reference, haUrl: "http://127.0.0.1:8801", token: "fake-ha-token", www: "/tmp/www" });
+      expect(task).toContain(reference.kind === "image" ? "./reference.png" : "warm paper and brass");
+      for (const expected of ["./tarballs", "http://127.0.0.1:8801", "fake-ha-token", "/tmp/www", "Work only in this folder", "REPORT.md", "DESIGN.md", ...REPORT_SECTIONS, ...DESIGN_SECTIONS]) expect(task).toContain(expected);
+      expect(task).not.toMatch(/src\/skins|spec\/|AGENTS\.md|npm run new-/);
+    }
   });
 
-  it("is where AGENTS.md and spec/skins.md send an agent", () => {
-    expect(read("AGENTS.md")).toContain("[spec/study-brief.md](spec/study-brief.md)");
-    expect(read("spec/skins.md")).toContain("### Running a study");
-    expect(read("spec/skins.md")).toContain("[study-brief.md](study-brief.md)");
+  it("draws the design rules the agent wrote: its palette and parts after their sections, nothing after one it lacks", () => {
+    const template = [
+      "  after={{",
+      '    "Baseline design": [Palette.Roles, Parts.States],',
+      "    Dashboards: [Examples.Phone, Examples.Tablet],",
+      "    Light: [Light.AllStates, Light.Footprints],",
+      "    Sensor: [Sensor.AllStates, Sensor.Footprints],",
+      "    // new-card: design rule stories",
+      "  }}",
+    ].join("\n");
+    expect(fitDesignRules(template, ["Direction", "Palette", "Parts", "Dashboards", "Light"])).toBe([
+      "  after={{",
+      "    Palette: [Palette.Roles],",
+      "    Parts: [Parts.States],",
+      "    Dashboards: [Examples.Phone, Examples.Tablet],",
+      "    Light: [Light.AllStates, Light.Footprints],",
+      "    // new-card: design rule stories",
+      "  }}",
+    ].join("\n"));
   });
+
+  it("is how AGENTS.md and spec/skins.md say to start one", () => {
+    const root = JSON.parse(read("package.json"));
+    expect(root.scripts.study).toBe("node scripts/study/run.js");
+    expect(root.scripts["study:keep"]).toBe("node scripts/study/keep.js");
+    expect(read("AGENTS.md")).toContain("npm run study -- <name>");
+    const skins = read("spec/skins.md");
+    expect(skins).toContain("### Running a study");
+    for (const command of ["npm run study --", "npm run study:keep --"]) expect(skins).toContain(command);
+  });
+
 });
 
 describe("the docs site's Studies page", () => {
-  it("is built from the skins' manifests, so every study appears with no edit", () => {
+  it("is built from every study's manifest and study.json, so every study appears with no edit", () => {
     expect(read("docs/src/content/docs/develop/studies.mdx")).toContain("<Studies />");
     const component = read("docs/src/components/Studies.astro");
     expect(component).toContain('import.meta.glob<Manifest>("../../../src/skins/*/package.json"');
     expect(component).toContain("manifest.dashhaus?.study");
+    expect(component).toContain('import.meta.glob<StudyRecord>("../../../src/skins/*/study.json"');
     expect(read("docs/astro.config.js")).toContain('slug: "develop/studies"');
   });
 });

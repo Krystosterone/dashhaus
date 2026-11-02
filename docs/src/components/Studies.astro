@@ -1,8 +1,9 @@
 ---
 /**
- * Every study in the repository (spec/skins.md → Studies), read at build time from the skins' own manifests: a skin
- * whose package.json carries `dashhaus.study` appears here with its description, its phone Examples story drawn live
- * in the site's look, and links to its Read me first page and its source. A new study needs no edit to this page.
+ * Every study in the repository (spec/skins.md → Studies), read at build time from each skin's manifest
+ * (`dashhaus.study`) and its `study.json`: its description and reference, its phone Examples story drawn live, and
+ * links to its Read me first page, the agent's report when the study is a kept run, and its source. Every study has
+ * the same shape, so a new one needs no edit to this page.
  */
 import LiveStory from "./LiveStory.astro";
 
@@ -12,8 +13,15 @@ interface Manifest {
   dashhaus?: { study?: { theme: { global: string; light: string; dark: string } } };
 }
 
+interface StudyRecord {
+  made: "run" | "generators";
+  reference?: { kind: "image"; file: string } | { kind: "description"; text: string };
+}
+
 const manifests = import.meta.glob<Manifest>("../../../src/skins/*/package.json", { eager: true, import: "default" });
 const setups = import.meta.glob<string>("../../../src/skins/*/storybook.tsx", { eager: true, query: "?raw", import: "default" });
+const records = import.meta.glob<StudyRecord>("../../../src/skins/*/study.json", { eager: true, import: "default" });
+const references = import.meta.glob<string>("../../../src/skins/*/reference.*", { eager: true, query: "?url", import: "default" });
 const repo = "https://github.com/Krystosterone/dashhaus";
 const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
 /** Storybook's id for a title: lower-case words joined by hyphens. */
@@ -23,12 +31,16 @@ const studies = Object.entries(manifests)
   .flatMap(([path, manifest]) => {
     const marker = manifest.dashhaus?.study;
     if (!marker) return [];
-    const dir = path.match(/src\/skins\/([^/]+)\/package\.json$/)![1];
-    const section = setups[path.replace(/package\.json$/, "storybook.tsx")]?.match(/^\s*section: "([^"]+)",?$/m)?.[1];
+    const folder = path.replace(/\/package\.json$/, "");
+    const dir = folder.split("/").at(-1)!;
+    const section = setups[`${folder}/storybook.tsx`]?.match(/^\s*section: "([^"]+)",?$/m)?.[1];
     if (!section) throw new Error(`src/skins/${dir}/storybook.tsx declares no section`);
+    const record = records[`${folder}/study.json`];
+    if (!record) throw new Error(`src/skins/${dir} is a study with no study.json`);
+    const reference = record.reference?.kind === "image" ? { image: references[`${folder}/${record.reference.file}`] } : record.reference ? { text: record.reference.text } : undefined;
     const name = section.split("/").at(-1)!;
     const { global, light, dark } = marker.theme;
-    return [{ dir, name, section, description: manifest.description, light: `${global}:${light}`, dark: `${global}:${dark}` }];
+    return [{ dir, name, section, description: manifest.description, run: record.made === "run", reference, light: `${global}:${light}`, dark: `${global}:${dark}` }];
   })
   .sort((a, b) => a.name.localeCompare(b.name));
 ---
@@ -39,6 +51,7 @@ const studies = Object.entries(manifests)
     <section class="study" aria-labelledby={`study-${study.dir}`}>
       <h2 id={`study-${study.dir}`}>{study.name}</h2>
       {study.description && <p>{study.description}</p>}
+      {study.reference?.image && <img class="study-reference" src={study.reference.image} alt={`The picture ${study.name} was built from`} />}
       <LiveStory
         id={`${idOf(`${study.section}/Dashboards/Examples`)}--phone`}
         title={`${study.name} on a phone`}
@@ -51,8 +64,9 @@ const studies = Object.entries(manifests)
       />
       <p class="study-links">
         <a href={`${storybook}?path=/docs/${idOf(`${study.section}/Read me first`)}--docs`} target="_blank" rel="noopener">Read me first, in Storybook</a>
+        {study.run && <>{" · "}<a href={`${repo}/blob/main/src/skins/${study.dir}/REPORT.md`} target="_blank" rel="noopener">The agent's report</a></>}
         {" · "}
-        <a href={`${repo}/tree/main/src/skins/${study.dir}`} target="_blank" rel="noopener">Its source and README</a>
+        <a href={`${repo}/tree/main/src/skins/${study.dir}`} target="_blank" rel="noopener">Its source</a>
       </p>
     </section>
   ))
@@ -65,5 +79,10 @@ const studies = Object.entries(manifests)
 
   .study-links {
     font-size: var(--sl-text-sm);
+  }
+
+  .study-reference {
+    max-width: min(16rem, 100%);
+    border-radius: 0.5rem;
   }
 </style>

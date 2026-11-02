@@ -126,6 +126,11 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
     const end = next === -1 ? source.length : next + 1;
     return `${source.slice(0, end).trimEnd()}\n\n### ${Section} ${words} Card\n\n\`${Skin}${Name}Card\` is the ${Section} skin's neutral drawing of the shared \`${Name}Entity\`; \`Ha${Skin}${Name}Card\` connects the same \`useHa${Name}\` hook. See [${skin}.md](${skin}.md#${words.replace(/ /g, "-")}).\n\n${source.slice(end)}`;
   });
+  // The Examples page draws every Card's seeds, a section each (a hand-composed page has no markers and is left alone).
+  const examples = `${SKIN}/dashboards/Examples.stories.tsx`;
+  change.edit(examples, after(markers.exampleImports, fill(`import __Name__Stories from "../cards/__name__/__Skin____Name__Card.stories";
+`)));
+  change.edit(examples, after(markers.exampleSections, fill(`  section("__Label__", __Name__Stories.argTypes.__name__.options, (seed, footprint) => <__Name__Stories.component __name__={seed} footprint={footprint} />),`)));
   const dashboardStory = `${SKIN}/lovelace/${Skin}Dashboard.stories.tsx`;
   change.edit(dashboardStory, after(markers.dashboardCards, `  { entity: "${entityId}", kind: "${name}" },`));
 

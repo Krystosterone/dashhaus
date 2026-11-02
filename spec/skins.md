@@ -70,51 +70,61 @@ package; `verify/skin-rules.test.ts` holds it to that.
 
 ## Studies
 
-A study is a skin an agent built with the generators, kept so people can see what they make, use it and build on it.
-It is not finished or polished, and it doesn't ship. Make one with:
+A study is a skin an agent built, kept so people can see what the packages and their scaffolder make, use it and build
+on it. It is not finished or polished, and it doesn't ship.
+
+A **study run** has an agent build one the way someone outside this repository would: the published scaffolder and the
+release tarballs, a picture or a description, a sandbox it can't see this repository from, and a deploy to a simulated
+Home Assistant. It exercises exactly what a skin author gets (`create-dashhaus-skin`, its `AGENTS.md`, `npm run add`,
+the deploy CLI), which share their skin and card templates with `new-skin` and `new-card`.
 
 ```sh
-npm run new-skin -- <name> --study
-npm run new-card -- <domain> --skin <name>
+npm run study -- <name> --image <path>          # or --describe "<what it should look like>"
+npm run study:keep -- <name>                    # once the agent is done, while the first is still serving
 ```
 
-`--study` runs the same generator and templates as any skin, so a study exercises them exactly as a real skin does. It
-differs in five places only, all from one marker:
+Kept, a study is a skin in this repository with the same shape as every other study, at `src/skins/<skin>/`:
 
-- **The marker:** its `package.json` carries `"dashhaus": { "study": { "theme": … } }` (the theme toolbar global the
-  docs site draws it with) and a description that says it is a study.
-- **What it says:** a `README.md` (what a study is, where things are, how it was made, how to take it further) that
-  Storybook draws as its first page, **Read me first**.
-- **Where it sits:** its Storybook section is `Studies/<Name>`, after every skin. `new-card` reads a skin's section
-  from its `storybook.tsx`, so a study's cards land there too.
-- **What it skips:** the Lovelace bundle, the deploy config and `spec/deploy.md`. No study reaches Home Assistant.
-- **Where its docs live:** in its own folder. Its design rules are `src/skins/<name>/design.md`, not `spec/<name>.md`,
-  and its cards get no entries in `spec/cards.md`: the specs, AGENTS.md and the docs pages describe the shipped skins
-  and studies in general, never one study by name.
+- the agent's skin over a shell from `new-skin <skin> --study` and `new-card <domain> --skin <skin>`, which add the
+  stories, tests and Connected cards every skin here has. Its standalone files (manifest, build, preview, guide) stay
+  behind: the repository builds and previews its skins itself.
+- `README.md`, drawn in Storybook as its **Read me first** page: what it is, where things are, how it was made (the run's
+  reference and task) and how to make it a real skin.
+- `design.md`: the design rules the agent wrote (`## Palette`, `## Parts`, `## Dashboards`, then one section per card),
+  drawn as Foundations → Design rules with the stories after their sections.
+- `REPORT.md`, the agent's own FRICTION and RESULT; the reference, when it was a picture.
+- `captures/`: its preview snapshots and `deployed.png`, the dashboard it deployed.
+- `study.json`: its name, when it was kept, the version and commit it was built from, how it was made (`made: "run"`,
+  or `"generators"` for one an agent built in this repository with `new-skin`), its reference and task.
 
-The docs site's Studies page is built from the markers, so a new study appears there with no edit. A study becomes a
-skin by removing the marker, moving its design rules into `spec/` and its stories out of `Studies/`, and adding the
-two registrations `new-skin` makes for any skin; that isn't automated. `verify/studies.test.ts` holds all of it.
+Its `package.json` marks it (`"dashhaus": { "study": … }`): its stories sit under `Studies/<Name>` after the Read me
+first page, with the same groups as every skin, and it never reaches the Lovelace bundle, the deploy config or
+`spec/deploy.md`. It is checked like any skin (typecheck, lint, its tests, every story rendering under axe), so it keeps
+working as the packages change; `study.json` records what it was first built from. The docs site's Studies page lists
+every study from its marker and `study.json`, with its phone Examples story drawn live. The specs, AGENTS.md and the
+docs pages describe studies in general, never one by name. `verify/studies.test.ts` holds all of it.
 
 ### Running a study
 
-A study run is how this repository tests its generators with an agent: the agent builds a skin end to end with
-`new-skin --study` and `new-card`, and gives it a look of its own. The skin is half the output. The other half, and the
-reason for the run, is what it teaches about the generators. Whoever started the run, an agent doing one keeps to this:
+A study run is how this repository tests its published surface with an agent: the skin is half the output, and what
+the run teaches is the other half.
 
-- **Report friction, don't fix it.** A generator step that fails or needs a hand-edit afterwards, a doc that points
-  nowhere, a guess the docs forced: list each as FRICTION in the hand-back, and leave the generators and their
-  templates as they are, so the run tests them as they are. Fixing them is the next change, not this one.
-- **Stay inside the study.** Edit only `src/skins/<name>/`, plus the registrations the generators make themselves; the
-  Lovelace bundle, the deploy config, `spec/`, AGENTS.md and the docs pages stay untouched.
-- **Leave a record in the study.** Its README's "How it was made" says what was done after the generators, its
-  `design.md` matches what was built, and the run's captures (full-page PNGs of its phone and tablet Examples and its
-  Parts) sit in `src/skins/<name>/captures/`, linked from the README.
-- **Check the environment first.** `corepack enable npm` (the repo refuses any npm but its pin), `npm install`, then
-  Chromium for `npm run test-storybook` (`npx playwright install chromium`, or `DASHHAUS_CHROMIUM` for one already on
-  the machine). A gate that can't run is reported as unrun, never as passed.
-
-[study-brief.md](study-brief.md) is the brief that starts a run.
+1. `npm run study -- <name> (--image <path> | --describe "<text>")` packs the release, writes the sandbox
+   (`$TMPDIR/dashhaus-study-<name>/agent/`: the tarballs, the reference and `TASK.md`), starts the fake Home Assistant
+   and prints how to hand over the task. Leave it running.
+2. Start a **fresh** agent in the sandbox's `agent/` folder, with no web access and no access to this repository, and
+   give it `TASK.md` as its whole prompt. The task is one line of request plus what a person would know (the Home
+   Assistant URL, a token, where its `www` is mounted, where the tarballs are), and asks for `DESIGN.md` (its design
+   rules) and `REPORT.md` with FRICTION (every guess, retry, workaround, or doc that pointed nowhere) and RESULT (what
+   is deployed and how it knows).
+   Don't help it: an answer it needed is FRICTION.
+3. Judge the result from Home Assistant, not from the agent's word: open the dashboard the run printed.
+4. `npm run study:keep -- <name>` while the fake Home Assistant still serves, then stop `npm run study`. It brings the
+   skin in as above, installs, and runs the study's typecheck, lint and tests. Fix what fails in the study, never in
+   the checks, and say what you changed under "How it was made" in its README, so the agent's work and the fix stay
+   apart. Then `npm run test-storybook`.
+5. Act on its FRICTION in a change of its own: a README, the scaffold's `AGENTS.md` or templates, the deploy CLI's
+   help.
 
 ## Make it its own skin
 

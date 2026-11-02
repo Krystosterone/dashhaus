@@ -60,7 +60,7 @@ describe("the generator package map", () => {
     const theme = { global: "canvasTheme", light: "light", dark: "dark" };
     const study = generatedManifest("canvas", { study: true, Section: "Canvas", theme });
     expect(study.dashhaus).toEqual({ study: { theme } });
-    expect(study.description).toMatch(/^A study: the Canvas skin/);
+    expect(study.description).toMatch(/^A study: the Canvas skin an agent built/);
     expect({ ...study, description: undefined, dashhaus: undefined }).toEqual({ ...generatedManifest("canvas"), description: undefined, dashhaus: undefined });
   });
 
