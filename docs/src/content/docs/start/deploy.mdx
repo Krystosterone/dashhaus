@@ -9,7 +9,7 @@ import Example from "../../../components/Example.astro";
 You don't need to clone or build anything. The prebuilt bundle holds both skins. A small command-line tool copies it
 into Home Assistant and creates a dashboard for each skin. After that you change layouts in Home Assistant itself.
 
-Every change to Dashhaus runs this page's steps: CI packs the release, installs only `@dashhaus/bundle` and
+CI runs these steps on every change to Dashhaus: it packs the release, installs only `@dashhaus/bundle` and
 `@dashhaus/deploy` into an empty folder, writes this config and deploys it into a simulated Home Assistant.
 
 <Aside type="caution" title="Not on npm yet">

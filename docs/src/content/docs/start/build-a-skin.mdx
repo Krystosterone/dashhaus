@@ -6,13 +6,13 @@ description: "Scaffold a skin with create-dashhaus-skin, add a domain, preview a
 import { Aside, FileTree, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 
-A skin is a whole look for a dashboard, drawn on the headless packages: its own cards, its own Lovelace card, its own
-bundle. `create-dashhaus-skin` writes a working one in a new folder, with a light you can switch and a room sensor you
+A skin is a whole look for a dashboard: cards, a Lovelace card and a bundle of its own, drawn on the headless
+packages. `create-dashhaus-skin` writes a working one in a new folder, with a light you can switch and a room sensor you
 can read, both on the real hooks. You change the drawing; the Home Assistant side is already done. It also writes an
 `AGENTS.md`: point an agent at it and it knows where the colours, type, parts and rules live, and how to restyle the
 skin from a screenshot.
 
-Every change to Dashhaus runs this page's steps: CI packs the release, installs `@dashhaus/core`,
+CI runs these steps on every change to Dashhaus: it packs the release, installs `@dashhaus/core`,
 `@dashhaus/dashboard`, `@dashhaus/deploy` and the scaffolder into an empty folder, scaffolds `my-skin`, runs its
 checks, builds it and deploys it into a simulated Home Assistant.
 

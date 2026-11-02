@@ -39,6 +39,7 @@
     "@dashhaus/core": "*",
     "@dashhaus/dashboard": "*",
     "@dashhaus/deploy": "*",
+    "@dashhaus/fake-home-assistant": "*",
     "@dashhaus/orb": "*",
     "@dashhaus/field": "*",
     "@dashhaus/bundle": "*"

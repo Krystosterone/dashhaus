@@ -8,14 +8,14 @@
  * Run the packed `create-dashhaus-skin my-skin --tarballs <dir>`; check the agent guide it writes against the files it
  * names; `npm install` inside the new project (its `@dashhaus` dependencies are the tarballs, the rest the registry);
  * `npm test`; `npm run build`; then `npm run deploy` (the packed `dashhaus-deploy` bin, reading `.env`) over a real
- * websocket into `fake-ha-server.js`, which also serves `/local/` so the deploy's served-file check runs for real.
+ * websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the deploy's served-file check runs for real.
  * `--screenshot <dir>` renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
  */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { startFakeHomeAssistant } from "./fake-ha-server.js";
+import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import {
   clean,
   createReport,
