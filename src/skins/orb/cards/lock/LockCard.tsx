@@ -144,7 +144,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
         {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} focusOnOpen={!pending} />}
       </header>
 
-      <div className="hd-slot">{bare ? <p className="hd-val">{alertLabel ? warning : word}</p> : slot}</div>
+      <div className="hd-slot">{bare ? <p className="hd-val">{jammed ? warning : word}</p> : slot}</div>
 
       {sheet && !unav && (pending || canOpen) && (
         <div className="hd-extra">

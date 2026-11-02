@@ -39,6 +39,7 @@ const KINDS = {
   sensor: ["orb-cards-sensor--comfortable", "field-cards-sensor--indoor"],
   weather: ["orb-cards-weather--partly-cloudy", "field-cards-weather--partly"],
   alarm: ["orb-cards-alarm--disarmed", "field-cards-alarm--disarmed"],
+  lock: ["orb-cards-lock--locked", "field-cards-lock--locked"],
   owlet: ["orb-cards-owlet--deep-sleep", "field-cards-owlet--deep-sleep"],
 };
 

@@ -13,8 +13,9 @@
 }
 .lk-st-x { font-weight: 500; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
 /* On its way: the words breathe, the one state motion that says it hasn't landed */
-.lk-st[data-moving] { color: var(--ink-2); animation: lk-wait 900ms var(--ease-in-out) infinite alternate; }
-@keyframes lk-wait { to { opacity: 0.45; } }
+.lk-st[data-moving] { animation: lk-wait 900ms var(--ease-in-out) infinite alternate; }
+/* The trough stays readable: the words never fade under text contrast */
+@keyframes lk-wait { to { opacity: 0.65; } }
 .hd--compact .lk-st { justify-content: flex-end; font-size: 13px; }
 
 /* ---------- Last change and battery: a readout for featured and the sheet ---------- */
@@ -37,8 +38,8 @@
 .lk-door svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .lk-door-x { font-weight: 500; font-size: 13.5px; color: var(--ink-2); }
 
-/* ---------- Sheet: the confirmation. Cancel raised, the action in the inverse ---------- */
-.lk-cf { display: grid; gap: 6px; padding: 16px; border-radius: 22px; background: var(--groove); box-shadow: var(--groove-shadow); }
+/* ---------- Sheet: the confirmation. No container (a groove would say "slide"); Cancel raised, the action in the inverse ---------- */
+.lk-cf { display: grid; gap: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .lk-cf-q { margin: 0; font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
 .lk-cf-d { margin: 0 0 10px; min-height: 1.45em; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
 .lk-cf-b { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

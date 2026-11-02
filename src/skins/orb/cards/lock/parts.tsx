@@ -20,13 +20,14 @@ export function Confirm({ id, question, detail, action, busy, error, onConfirm, 
 }) {
   const settled = useSettled();
   const cancel = useRef<HTMLButtonElement>(null);
-  useEffect(() => { cancel.current?.focus(); }, []);
+  // A sheet opening on the question focuses Cancel through data-autofocus; one already open is focused here.
+  useEffect(() => { if (cancel.current?.closest("dialog")?.open) cancel.current.focus(); }, []);
   return (
     <div className="lk-cf" role="group" aria-labelledby={`${id}-q`} aria-describedby={`${id}-d`}>
       <p className="lk-cf-q" id={`${id}-q`}>{question}</p>
       <p className="lk-cf-d" id={`${id}-d`} role="status">{busy ? "Waiting for the lock…" : error ? <span className="hd-warn">{error}</span> : detail}</p>
       <div className="lk-cf-b">
-        <button type="button" className="lk-cf-x" ref={cancel} onClick={onCancel}>Cancel</button>
+        <button type="button" className="lk-cf-x" ref={cancel} data-autofocus="" onClick={onCancel}>Cancel</button>
         <button type="button" className="lk-cf-ok" disabled={busy} onClick={() => { if (settled()) onConfirm(); }}>{action}</button>
       </div>
     </div>

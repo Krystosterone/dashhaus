@@ -42,7 +42,9 @@ describe("LockCard", () => {
     vi.useFakeTimers();
     const onUnlock = vi.fn(async () => "done" as const);
     render(<LockCard entity={locked} variant="sheet" action="unlock" onLock={() => {}} onUnlock={onUnlock} />);
-    expect(document.activeElement?.textContent).toBe("Cancel");
+    // The sheet's dialog focuses [data-autofocus] as it opens: Cancel, never the action.
+    expect(screen.getByRole("button", { name: "Cancel" }).hasAttribute("data-autofocus")).toBe(true);
+    expect(screen.getByRole("button", { name: "Unlock" }).hasAttribute("data-autofocus")).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Unlock" }));
     expect(onUnlock).not.toHaveBeenCalled();
     act(() => { vi.advanceTimersByTime(SETTLE_MS); });

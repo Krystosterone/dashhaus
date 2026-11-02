@@ -7,6 +7,7 @@ import { DemoWeatherTile as Weather } from "../cards/weather/demo/DemoWeatherTil
 import { DemoToggleTile as Toggle } from "../cards/toggle/demo/DemoToggleTile";
 import { DemoCoverTile as Cover } from "../cards/cover/demo/DemoCoverTile";
 import { DemoAlarmTile as Alarm } from "../cards/alarm/demo/DemoAlarmTile";
+import { DemoLockTile as Lock } from "../cards/lock/demo/DemoLockTile";
 
 /** Every card's compact row, with its control and without. */
 function Rows({ showControl, width }: { showControl: boolean; width: number }) {
@@ -22,6 +23,8 @@ function Rows({ showControl, width }: { showControl: boolean; width: number }) {
     <Toggle key="t2" mode="quiet" footprint="compact" showControl={showControl} />,
     <Alarm key="a1" alarm="away" footprint="compact" showControl={showControl} />,
     <Alarm key="a2" alarm="triggered" footprint="compact" showControl={showControl} />,
+    <Lock key="k1" seed="locked" footprint="compact" showControl={showControl} />,
+    <Lock key="k2" seed="jammed" footprint="compact" showControl={showControl} />,
     <Sensor key="s1" sensor="living" footprint="compact" showControl={showControl} />,
     <Weather key="h1" weather="partly" footprint="compact" showControl={showControl} />,
     <Light key="l4" light="unavailable" footprint="compact" showControl={showControl} />,
