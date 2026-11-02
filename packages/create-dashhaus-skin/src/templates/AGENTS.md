@@ -73,6 +73,8 @@ Work from the outside in, snapshotting after each step and comparing with the re
 - ✓ **Classes start with `__skin__-`** (the bundle shares a page with other cards); by convention a card's own start
   `__skin__-<CARD_CODE>-`.
 - ✓ **Hover only under `@media (hover: hover) and (pointer: fine)`**, so a tap on a phone never leaves it stuck.
+- ✓ **A theme attribute of its own.** Dark mode is keyed on `data-__skin__-theme`, which `lovelace/card.tsx` sets on
+  its host; no CSS reads the shared `data-theme`, which another skin on the page may set.
 - ✓ **Motion only on `transform`, `opacity`, `clip-path` and colours**, never on layout. Take easing and durations
   from tokens.
 - ✓ **Cards never touch Home Assistant.** A file in `cards/` imports `@dashhaus/core` entities, primitives and
@@ -146,7 +148,8 @@ What you may rely on, and what not to rewrite:
 
 - `@dashhaus/dashboard/skin`: `LovelaceDashboardElement` (implement `styles`, `parse`, `changed`, `draw`; optionally
   `mountClass`, `fontHref`, `paintHost`), `registerCard`, `scopeToHost` (turns `:root` into `:host`, so tokens
-  written for `:root` reach the shadow root), `autoInput`.
+  written for `:root` reach the shadow root), `autoInput`, and `useActionStatus`: the store's latest rejected command
+  for `lovelace/ActionStatus.tsx` (its words, `retry` and `dismiss`).
 - `@dashhaus/dashboard/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
   device), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
   `node_modules/@dashhaus/dashboard/dist/layout.d.ts`, and their signatures may still change before 1.0.
@@ -154,8 +157,6 @@ What you may rely on, and what not to rewrite:
   `DashboardConfigError` shows its problems in Home Assistant's card editor.
 - `@dashhaus/dashboard/card`: `CardProps`, `cardShape`, `useCardFrame`, `detailsSheet`, `detailsTile` and
   `CardDialog`: the frame every card derives its shape and ids from, and the details surface the tile opens.
-- `@dashhaus/dashboard`: `useActionStatus`, the store's latest rejected command for `lovelace/ActionStatus.tsx` (its
-  words, `retry` and `dismiss`). It is on the main entry, outside the frozen contract, and may change before 1.0.
 - `@dashhaus/core`: the `useHa<Name>` hooks; `@dashhaus/core/primitives`: `usePress`, `useSlider`, `useRangeSlider`,
   `useSheet`, `useKeypad` (behaviour, no markup).
 

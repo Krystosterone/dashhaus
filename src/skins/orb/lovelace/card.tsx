@@ -4,11 +4,10 @@ import type { BlockConfig, DashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
 import type { LovelaceHass } from "@dashhaus/dashboard/skin";
+import { ORB_FONT_HREF, ORB_THEME_ATTRIBUTE } from "../shared/surface";
 
 export const CARD_TYPE = "dashhaus-orb";
 
-/** Orb's typeface, Urbanist. */
-const FONT_HREF = "https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&display=swap";
 
 /** The card fills its view; tokens.css's dashboard surface paints the page behind it. Home Assistant's toolbar
     (`--header-height`, plus the notch) sits over the top of the view, so a nav jump stops below it. */
@@ -30,7 +29,7 @@ export function createDashhausCard(css: string): CustomElementConstructor {
   return class DashhausCard extends LovelaceDashboardElement<DashboardConfig> {
     protected readonly styles = styles;
     protected readonly mountClass = "ha-surface";
-    protected readonly fontHref = FONT_HREF;
+    protected readonly fontHref = ORB_FONT_HREF;
     #auto?: { key: unknown[]; blocks: BlockConfig[] };
 
     setConfig(raw: unknown) {
@@ -53,8 +52,8 @@ export function createDashhausCard(css: string): CustomElementConstructor {
 
     protected paintHost(config: DashboardConfig, hass: LovelaceHass) {
       const theme = config.theme === "home-assistant" ? (hass.themes?.darkMode ? "dark" : "light") : config.theme;
-      if (theme === "auto") this.removeAttribute("data-theme");
-      else this.setAttribute("data-theme", theme);
+      if (theme === "auto") this.removeAttribute(ORB_THEME_ATTRIBUTE);
+      else this.setAttribute(ORB_THEME_ATTRIBUTE, theme);
       if (config.accent) {
         this.style.setProperty("--brand-c", String(config.accent.chroma));
         this.style.setProperty("--brand-h", String(config.accent.hue));

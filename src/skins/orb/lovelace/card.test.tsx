@@ -23,7 +23,7 @@ adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
 const { createDashhausCard } = await import("./card");
 const { DashboardConfigError } = await import("./config");
 
-customElements.define("dashhaus-test", createDashhausCard(':root { --brand-h: 92; } :root[data-theme="dark"] { --ink: 0; }'));
+customElements.define("dashhaus-test", createDashhausCard(':root { --brand-h: 92; } :root[data-orb-theme="dark"] { --ink: 0; }'));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };
 const Element = customElements.get("dashhaus-test") as unknown as { new (): Card; getStubConfig(hass: unknown): Record<string, unknown> };
 
@@ -50,7 +50,7 @@ describe("dashhaus-orb card", () => {
   it("draws the configured sections inside its shadow root, with the tokens moved to the host", async () => {
     const card = await mount({ title: "Flat", sections: [{ title: "Lights", cards: ["light.kitchen"] }] });
     const shadow = card.shadowRoot!;
-    expect(shadow.querySelector("style")?.textContent).toContain(':host([data-theme="dark"])');
+    expect(shadow.querySelector("style")?.textContent).toContain(':host([data-orb-theme="dark"])');
     expect(shadow.querySelector("style")?.textContent).toContain("--dash-scroll-offset: calc(var(--header-height, 56px)");
     expect(shadow.querySelector(".dash-sec-h")?.textContent).toBe("Lights");
     expect(shadow.textContent).toContain("Kitchen");
@@ -67,9 +67,10 @@ describe("dashhaus-orb card", () => {
   });
 
   it("follows Home Assistant's dark mode unless the config picks a theme", async () => {
-    expect((await mount({}, true)).getAttribute("data-theme")).toBe("dark");
-    expect((await mount({}, false)).getAttribute("data-theme")).toBe("light");
-    expect((await mount({ theme: "auto" }, true)).hasAttribute("data-theme")).toBe(false);
+    expect((await mount({}, true)).getAttribute("data-orb-theme")).toBe("dark");
+    expect((await mount({}, false)).getAttribute("data-orb-theme")).toBe("light");
+    expect((await mount({ theme: "auto" }, true)).hasAttribute("data-orb-theme")).toBe(false);
+    expect((await mount({}, true)).hasAttribute("data-theme")).toBe(false);
   });
 
   it("applies the accent on the host", async () => {

@@ -12,7 +12,7 @@ journey from install to deploy. Until 1.0, a breaking change to this page is all
 
 ## `@dashhaus/dashboard/skin`
 
-The frozen skin-author runtime: the custom-element base, the card-picker registration, the token scoping and the automatic layout's `hass` input. A skin's Lovelace card imports this subpath and nothing else from the framework for its element.
+The frozen skin-author runtime: the custom-element base, the card-picker registration, the token scoping, the automatic layout's `hass` input and the rejected-command status every skin's page shows. A skin's Lovelace card imports this subpath and nothing else from the framework for its element.
 
 A skin may rely on:
 
@@ -20,9 +20,10 @@ A skin may rely on:
 - **`registerCard(type, element, name, description)`** — define the element and list it in the card picker. Safe to call twice.
 - **`scopeToHost(css)`** — move a skin's `:root` selectors onto the shadow host, including the theme attribute forms.
 - **`autoInput(hass)`** — the `states`, `entities`, `devices` and `areas` an automatic layout reads, in the shape `@dashhaus/dashboard/layout` takes.
+- **`useActionStatus()`** — the store's latest rejected service call for a page's recovery row, or null when there is none: `title` and `detail` (the words, `ActionMessage`), `canRetry` (repeating the call is safe), `retrying`, `retry()` and `dismiss()` (`ActionStatus`). It reads the `HaProvider` the element puts above `draw`, so a row mounted once anywhere in the page covers every card. A wrong alarm code gives null: its recovery stays in the keypad. The row's markup, and where it sits, are the skin's own.
 - **`LovelaceHass`** and **`AutoEntityEntry`** — the part of the frontend's `hass` object, and the registry facts per entity, that the element and its layout read.
 
-Not stable: the DOM and focus treatment inside the element, the ids it creates, and the order in which it connects the store relative to a render. Nav, `useDashboardNav`, room sensors, the main `@dashhaus/dashboard` entry and any internal module are outside this subpath.
+Not stable: the DOM and focus treatment inside the element, the ids it creates, the order in which it connects the store relative to a render, and the wording of a status's `title` and `detail`. Nav, `useDashboardNav`, room sensors, the main `@dashhaus/dashboard` entry and any internal module are outside this subpath.
 
 ## `@dashhaus/dashboard/card`
 
@@ -92,7 +93,7 @@ Not stable: the wording of a finding's `message`; the `card` and `rule` fields a
 
 ## What is not stable yet
 
-- **The main `@dashhaus/dashboard` entry** — the nav, `useDashboardNav`, room sensors, the token scoping, and `actionMessage` with `useActionStatus` (the store's latest rejected command, as a recovery row reads it; the scaffold's `lovelace/ActionStatus.tsx` uses it). A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.
+- **The main `@dashhaus/dashboard` entry** — the nav, `useDashboardNav`, room sensors, the token scoping and `actionMessage`. It re-exports `useActionStatus`, whose stable home is `./skin`. A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.
 - **`@dashhaus/dashboard/layout`** — the automatic layout, published for dashboard configs. Its signature may change with the layout work.
 - **`@dashhaus/dashboard/vite`** — does not exist. There is no build integration to depend on; the deploy config owns its `build()`, and no consumer has needed a shared one yet. A demonstrated need starts that cut.
 - **Storybook and generator templates** — the story set and the generated skin are this repo's conventions, not a package contract.

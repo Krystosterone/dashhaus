@@ -6,7 +6,8 @@
  *    and story file, its stories are titled `__Section__/Cards/<Name>`, its classes start with `__skin__-`, it
  *    declares a two-letter `CARD_CODE` no other card uses, and it imports nothing from the Home Assistant layer.
  * 2. The skin's own CSS rules (AGENTS.md → Rules): colours only from `styles/tokens.css`, whose blocks sit on `:root`,
- *    hover only under the hover media query, and motion only on transform, opacity, clip-path and colours.
+ *    the theme on the skin's own attribute, hover only under the hover media query, and motion only on transform,
+ *    opacity, clip-path and colours.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -42,6 +43,7 @@ function stylesheets(dir = root) {
 
 const COLOUR = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
 const LAYOUT_MOTION = /\b(?:transition(?:-property)?|will-change)\s*:[^;]*\b(?:width|height|top|left|right|bottom|margin[a-z-]*|padding[a-z-]*|inset|gap|font-size|all)\b/i;
+const SHARED_THEME = /\[data-theme\b/;
 const HOVER_MEDIA = /@media\s*\(hover:\s*hover\)\s*and\s*\(pointer:\s*fine\)/i;
 
 function cssFindings(file) {
@@ -57,6 +59,7 @@ function cssFindings(file) {
     const at = `${name}:${index + 1}`;
     if (!tokens && COLOUR.test(line)) findings.push(`${at}: [colour] a colour literal; add a token to styles/tokens.css and use var(--__skin__-…)`);
     if (LAYOUT_MOTION.test(line)) findings.push(`${at}: [motion] animate only transform, opacity, clip-path and colours, never layout or "all"`);
+    if (SHARED_THEME.test(line)) findings.push(`${at}: [theme] key the theme on [data-__skin__-theme], the skin's own attribute; another skin on the page may set data-theme`);
     for (const char of line) {
       if (char === "{") {
         if (tokens && !pending.trim().startsWith("@") && /(^|,)\s*(?!:root)[^,\s]/.test(pending.trim())) {

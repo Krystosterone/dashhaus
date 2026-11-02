@@ -41,7 +41,7 @@ registerCard("dashhaus-my-skin", MyCard, "Dashhaus My skin", "A Dashhaus skin.")
 | Subpath | What it is |
 | --- | --- |
 | `.` | The full Lovelace entry: element base, nav, room sensors and token scoping |
-| `./skin` | The frozen skin-author surface: `LovelaceDashboardElement`, `registerCard`, `scopeToHost`, `autoInput`, `LovelaceHass` and `AutoEntityEntry` |
+| `./skin` | The frozen skin-author surface: `LovelaceDashboardElement`, `registerCard`, `scopeToHost`, `autoInput`, `useActionStatus` (the rejected-command status a page shows), `LovelaceHass`, `AutoEntityEntry`, `ActionStatus` and `ActionMessage` |
 | `./card` | The frame every skin's card draws on: footprint flags, ids and aria, details state, tile/sheet composition |
 | `./schema` | The shared YAML reader, kind table, card reader and renderer dispatch. Pure |
 | `./layout` | The automatic layout: visibility, area resolution, name sort, grouping, placement. Pure |

@@ -4,11 +4,9 @@ import { mapModules, parseFieldConfig } from "./config";
 import type { BlockConfig, FieldConfig, ModuleConfig, PageConfig } from "./config";
 import { areaName, areaSections, autoModules } from "./auto";
 import { FieldDashboard } from "./FieldDashboard";
+import { FIELD_FONT_HREF } from "../shared/surface";
 
 export const FIELD_CARD_TYPE = "dashhaus-field";
-
-/** Field's typeface, Archivo, with its width axis (the skin sets it wide). */
-const FONT_HREF = "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,300..700&display=swap";
 
 /** The card fills its view, under Home Assistant's toolbar; the field surface paints the page behind it. The toolbar
     (`--header-height`, plus the notch) sits over the top of the view, so a nav jump stops below it. */
@@ -31,7 +29,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
   return class DashhausFieldCard extends LovelaceDashboardElement<FieldConfig> {
     protected readonly styles = styles;
     protected readonly mountClass = "fd-surface";
-    protected readonly fontHref = FONT_HREF;
+    protected readonly fontHref = FIELD_FONT_HREF;
     #layout?: { key: unknown[]; blocks: BlockConfig[]; pages?: PageConfig[] };
 
     setConfig(raw: unknown) {

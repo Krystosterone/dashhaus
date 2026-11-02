@@ -1,4 +1,4 @@
-import { useActionStatus } from "@dashhaus/dashboard";
+import { useActionStatus } from "@dashhaus/dashboard/skin";
 import "./__Skin__ActionStatus.css";
 
 /**

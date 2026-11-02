@@ -118,6 +118,17 @@ try {
         return "npm test names the file, line and fix";
       });
 
+      await report.stage("rules catch the shared theme attribute", async () => {
+        const css = join(skinApp, "styles/tokens.css");
+        const before = await read(css);
+        await writeFile(css, `${before}\n:root[data-theme="dark"] { --my-skin-ink: #ffffff; }\n`);
+        const result = run("npm", ["test", "--silent"], { cwd: skinApp, allowFailure: true });
+        await writeFile(css, before);
+        assert.notEqual(result.status, 0, "npm test must fail on CSS keyed on the shared data-theme");
+        assert.match(result.output, /tokens\.css:\d+: \[theme\]/, "the finding must name the file and line");
+        return "npm test refuses data-theme and names data-my-skin-theme";
+      });
+
       const bundleName = `dashhaus-${SKIN}.js`;
       const build = await report.stage("build", async () => {
         run("npm", ["run", "build", "--silent"], { cwd: skinApp });

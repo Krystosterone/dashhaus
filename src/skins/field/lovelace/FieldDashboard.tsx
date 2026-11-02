@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
-import { useActionStatus } from "@dashhaus/dashboard";
+import { useActionStatus } from "@dashhaus/dashboard/skin";
 import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
 import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
