@@ -17,7 +17,7 @@ function StorySensor({ sensor, ...props }: { sensor: SensorSeedName; width?: num
 }
 
 const meta = {
-  title: "Futura/Cards/Sensor",
+  title: "Studies/Futura/Cards/Sensor",
   component: StorySensor,
   parameters: { layout: "centered" },
   argTypes: {

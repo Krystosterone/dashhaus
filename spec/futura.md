@@ -1,5 +1,9 @@
 # Futura skin
 
+> **A study.** Futura is a skin an agent built with the generators, kept to learn from and build on: not finished
+> or polished, and not shipped in the Lovelace bundle or the deploy config. Its README says what that means and how
+> to take it further ([skins.md → Studies](skins.md#studies)).
+
 Futura draws the house as a dark instrument console lit by two neon signals: every card is a bezelled panel led by a
 ring gauge, with a mono readout and today as a segmented level meter. It lives in `src/skins/futura/`
 (`@dashhaus/futura`), was created by `npm run new-skin -- futura`, and keeps every generated contract: the shared

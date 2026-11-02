@@ -17,7 +17,7 @@ function StoryToggle({ toggle, ...props }: { toggle: ToggleSeedName; width?: num
 }
 
 const meta = {
-  title: "Futura/Cards/Toggle",
+  title: "Studies/Futura/Cards/Toggle",
   component: StoryToggle,
   parameters: { layout: "centered" },
   argTypes: {

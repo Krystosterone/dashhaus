@@ -52,6 +52,15 @@ describe("the generator package map", () => {
     for (const reserved of ["core", "dashboard", "deploy"]) expect(() => generatedManifest(reserved)).toThrow(/reserved/);
   });
 
+  it("marks a study in its manifest and nothing else", () => {
+    expect(generatedManifest("canvas")).not.toHaveProperty("dashhaus");
+    const theme = { global: "canvasTheme", light: "light", dark: "dark" };
+    const study = generatedManifest("canvas", { study: true, Section: "Canvas", theme });
+    expect(study.dashhaus).toEqual({ study: { theme } });
+    expect(study.description).toMatch(/^A study: the Canvas skin/);
+    expect({ ...study, description: undefined, dashhaus: undefined }).toEqual({ ...generatedManifest("canvas"), description: undefined, dashhaus: undefined });
+  });
+
   it("has generated Card templates importing only declared @dashhaus subpaths", () => {
     const declared = (specifier: string) => {
       const [, name, ...rest] = specifier.split("/");

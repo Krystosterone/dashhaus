@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { FuturaHeader } from "./Header";
 
 const meta = {
-  title: "Futura/Dashboards/Header",
+  title: "Studies/Futura/Dashboards/Header",
   component: FuturaHeader,
   parameters: { layout: "padded" },
   args: { title: "Home", showTime: true, now: new Date(2026, 9, 17, 11, 54) },

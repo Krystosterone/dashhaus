@@ -8,7 +8,7 @@ function Demo() {
   return <__Skin__NavBar items={items} />;
 }
 
-const meta = { title: "__Section__/Dashboards/Nav bar", parameters: { layout: "centered" } } satisfies Meta;
+const meta = { title: "__Stories__/Dashboards/Nav bar", parameters: { layout: "centered" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Pages: Story = { render: () => <Demo /> };

@@ -17,7 +17,7 @@ function StoryLight({ light, ...props }: { light: SeedName; width?: number; foot
 }
 
 const meta = {
-  title: "Futura/Cards/Light",
+  title: "Studies/Futura/Cards/Light",
   component: StoryLight,
   parameters: { layout: "centered" },
   argTypes: {

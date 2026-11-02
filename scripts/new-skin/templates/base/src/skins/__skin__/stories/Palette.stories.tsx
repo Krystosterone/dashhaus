@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-const meta = { title: "__Section__/Foundations/Palette", parameters: { layout: "padded" } } satisfies Meta;
+const meta = { title: "__Stories__/Foundations/Palette", parameters: { layout: "padded" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

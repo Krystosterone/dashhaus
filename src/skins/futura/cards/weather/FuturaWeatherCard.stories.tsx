@@ -17,7 +17,7 @@ function StoryWeather({ weather, ...props }: { weather: WeatherSeedName; width?:
 }
 
 const meta = {
-  title: "Futura/Cards/Weather",
+  title: "Studies/Futura/Cards/Weather",
   component: StoryWeather,
   parameters: { layout: "centered" },
   argTypes: {

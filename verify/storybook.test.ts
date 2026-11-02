@@ -12,7 +12,13 @@ const GROUPS = ["Cards", "Bundles", "Dashboards", "Foundations", "Connected"];
 
 /** Groups that belong to one skin's idea rather than to every skin: other skins leave them out, with no gap story. */
 const OWN: Record<string, string> = { Bundles: "Orb" };
-const groupsOf = (section: string) => GROUPS.filter((g) => !OWN[g] || OWN[g] === section);
+/** A study (spec/skins.md → Studies) sits under `Studies/<Name>` and opens on its README, before the usual groups. */
+const STUDIES = "Studies";
+const READ_ME = "Read me first";
+const groupsOf = (section: string) => [
+  ...(section.startsWith(`${STUDIES}/`) ? [READ_ME] : []),
+  ...GROUPS.filter((g) => !OWN[g] || OWN[g] === section),
+];
 
 /** The stories every card has, in this order, as [export, sidebar name]. A card's own states come first; it may add capability stories in between. */
 const STANDARD: [string, string][] = [
@@ -59,6 +65,7 @@ const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: tru
   .map(({ name: skin }) => {
     const dir = `src/skins/${skin}`;
     const section = read(`${dir}/storybook.tsx`).match(/section: "([^"]+)"/)?.[1] ?? "";
+    const study = Boolean(JSON.parse(read(`${dir}/package.json`)).dashhaus?.study);
     const files = readdirSync(join(process.cwd(), dir), { recursive: true, encoding: "utf8" })
       .filter((f) => f.endsWith(".stories.tsx") || f.endsWith(".mdx"))
       .map((f) => posix.join(dir, f))
@@ -66,7 +73,7 @@ const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: tru
       // A CSF file's title is in its meta, an MDX page's in its <Meta title="…" />.
       .map(({ path, source }) => ({ path, source, title: source.slice(Math.max(0, source.indexOf("const meta"))).match(/\btitle[:=]\s*"([^"]+)"/)?.[1] ?? "" }));
     const cards = readdirSync(join(process.cwd(), dir, "cards"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
-    return { skin, section, files, cards };
+    return { skin, section, study, files, cards };
   });
 
 describe("the Storybook tree", () => {
@@ -75,13 +82,21 @@ describe("the Storybook tree", () => {
   });
 
   it("orders every skin's groups the same in storySort", () => {
-    const order = storySort();
     for (const { section } of skins) {
-      const i = order.indexOf(section);
-      expect(i, `.storybook/preview.tsx: list ${section} in storySort`).toBeGreaterThanOrEqual(0);
-      const groups = (order[i + 1] as unknown[]).filter((g) => typeof g === "string");
-      expect(groups, `${section}'s groups in storySort`).toEqual(groupsOf(section));
+      // Follow the section's path through the nesting: `Studies/Futura` is "Futura" inside "Studies".
+      const groups = section.split("/").reduce<unknown[] | undefined>((level, part) => {
+        const i = level?.indexOf(part) ?? -1;
+        return i === -1 ? undefined : level![i + 1] as unknown[];
+      }, storySort());
+      expect(groups, `.storybook/preview.tsx: list ${section} in storySort`).toBeDefined();
+      expect(groups!.filter((g) => typeof g === "string"), `${section}'s groups in storySort`).toEqual(groupsOf(section));
     }
+  });
+
+  it("files a study under Studies, and only a study", () => {
+    expect(skins.filter(({ study, section }) => study !== section.startsWith(`${STUDIES}/`)).map(({ skin, section }) => `${skin}: "${section}"`)).toEqual([]);
+    const order = storySort();
+    expect(order.at(-2), "Studies come last in storySort, after every skin").toBe(STUDIES);
   });
 });
 
@@ -92,7 +107,7 @@ describe.each(skins)("the $section section", ({ section, files, cards, skin }) =
   });
 
   it("has every group, filled or saying why it is empty", () => {
-    const present = GROUPS.filter((g) => files.some(({ title }) => title === `${section}/${g}` || title.startsWith(`${section}/${g}/`)));
+    const present = [READ_ME, ...GROUPS].filter((g) => files.some(({ title }) => title === `${section}/${g}` || title.startsWith(`${section}/${g}/`)));
     expect(present).toEqual(groupsOf(section));
   });
 

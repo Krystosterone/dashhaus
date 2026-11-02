@@ -2,7 +2,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams } from "../packages.js";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, storySection, studies } from "../packages.js";
 import { after, changes, exists, fail, filler, names, orbKinds, read, root, skinDir } from "./lib.js";
 
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
@@ -43,6 +43,11 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   if (!change.exists(generatedSkin.file(skin, generatedSkin.files.manifest))) fail(`${skin} is not a generated skin package: ${generatedSkin.file(skin, generatedSkin.files.manifest)} is missing. Start it with npm run new-skin -- ${skin}`);
   if (!change.exists(registryPath)) fail(`${skin} is not a generated skin: ${registryPath} is missing. Start it with npm run new-skin -- ${skin}`);
   if (change.exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
+  // The skin's Storybook section is what its setup declares: its name, or `Studies/<Name>` for a study.
+  const storybookPath = generatedSkin.file(skin, generatedSkin.files.storybook);
+  const Stories = storySection(change.read(storybookPath));
+  if (!Stories) fail(`${storybookPath} declares no \`section: "…"\``);
+  const study = studies.is(JSON.parse(change.read(generatedSkin.file(skin, generatedSkin.files.manifest))));
 
   const typesPath = packageFile("core", `src/entities/${name}/types.ts`);
   if (!exists(typesPath)) fail(`${typesPath} doesn't exist. A generated skin draws a shared domain that already exists`);
@@ -129,7 +134,7 @@ ${actionRows}
   const commonLive = ["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)).map((key) => ` ${key}={item.${key}}`).join("") + (/^\s+loadHistory\?: /m.test(options) ? " loadHistory={item.history}" : "");
 
   const fill = filler({
-    __skin__: skin, __Skin__: Skin, __skinVar__: skinVar, __Section__: Section, __SKIN_CONST__: SKIN_CONST,
+    __skin__: skin, __Skin__: Skin, __skinVar__: skinVar, __Section__: Section, __Stories__: Stories, __SKIN_CONST__: SKIN_CONST,
     __Name__: Name, __name__: name, __CONST__: CONST, __Label__: Label, __label__: words,
     __actionProps__: actionProps, __actionArgs__: actionArgs, __actionImport__: actionImport,
     __unavailableConst__: unavailableConst, __actionsBlock__: actionsBlock, __actionsProp__: actionsProp,
@@ -157,10 +162,15 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
 
   // Static Storybook ordering and the design-rules page.
   change.edit(seams.preview, (source) => {
-    const start = source.indexOf(`"${Section}", [`);
+    // Walk the section's path through storySort's nesting: `Studies/Futura` is "Futura" inside "Studies".
+    const start = Stories.split("/").reduce((at, part) => at === -1 ? -1 : source.indexOf(`"${part}", [`, at), 0);
     if (start === -1) return source;
     const own = source.slice(start);
-    const insert = (marker) => after(marker, `              "${Name}",\n`);
+    const insert = (marker) => (text) => {
+      const at = text.indexOf(marker);
+      const indent = at === -1 ? "" : text.slice(text.lastIndexOf("\n", at) + 1, at);
+      return after(marker, `${indent}"${Name}",\n`)(text);
+    };
     return source.slice(0, start) + insert(markers.previewConnected)(insert(markers.previewCards)(own));
   });
   const rules = `${SKIN}/stories/DesignRules.mdx`;
@@ -176,12 +186,12 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
     if (at === -1) return source;
     const next = source.indexOf("\n## ", at + 1);
     const end = next === -1 ? source.length : next + 1;
-    return `${source.slice(0, end).trimEnd()}\n\n### ${Section} ${words} Card\n\n\`${Skin}${Name}Card\` is the ${Section} skin's neutral drawing of the shared \`${Name}Entity\`; \`Ha${Skin}${Name}Card\` connects the same \`useHa${Name}\` hook. See [${skin}.md](${skin}.md#${words.replace(/ /g, "-")}).\n\n${source.slice(end)}`;
+    return `${source.slice(0, end).trimEnd()}\n\n### ${Section} ${words} Card\n\n\`${Skin}${Name}Card\` is the ${Section} ${study ? "study" : "skin"}'s neutral drawing of the shared \`${Name}Entity\`; \`Ha${Skin}${Name}Card\` connects the same \`useHa${Name}\` hook. See [${skin}.md](${skin}.md#${words.replace(/ /g, "-")}).\n\n${source.slice(end)}`;
   });
   const dashboardStory = `${SKIN}/lovelace/${Skin}Dashboard.stories.tsx`;
   change.edit(dashboardStory, after(markers.dashboardCards, `  { entity: "${entityId}", kind: "${name}" },`));
 
   if (suppliedChange) return { Name, Skin, Section, writes: change.writes };
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in ${Section} as a neutral ${kind}: ${actions.length ? actions.join(", ") : "read-only"}.\n\nNext:\n  1. npm run storybook  →  ${Section}/Cards/${Name} and ${Section}/Connected/${Name}\n  2. Replace its glyph, summary, actions and Details with the domain's own design\n  3. npm run check && npm run test-storybook && npm run build:ha`);
+  console.log(`Drew ${words} in ${Section} as a neutral ${kind}: ${actions.length ? actions.join(", ") : "read-only"}.\n\nNext:\n  1. npm run storybook  →  ${Stories}/Cards/${Name} and ${Stories}/Connected/${Name}\n  2. Replace its glyph, summary, actions and Details with the domain's own design\n  3. npm run check && npm run test-storybook && npm run build:ha`);
 }

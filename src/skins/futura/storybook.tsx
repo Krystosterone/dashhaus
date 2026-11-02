@@ -10,7 +10,7 @@ import { FUTURA_FONT_HREF } from "./shared/fonts";
  * as the Lovelace card does on its page.
  */
 export const futuraStorybook = {
-  section: "Futura",
+  section: "Studies/Futura",
   surface: "futura-surface",
   fontHref: FUTURA_FONT_HREF,
   globalTypes: {

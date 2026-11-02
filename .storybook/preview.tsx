@@ -116,27 +116,33 @@ const preview: Preview = {
               // new-card: connected
             ],
           ],
-          "Futura", [
-            "Cards", [
-              "Light",
-              "Climate",
-              "Toggle",
-              "Sensor",
-              "Weather",
-              // new-card: cards
-            ],
-            "Dashboards", ["Examples", "Lovelace card", "Header", "Nav bar"],
-            "Foundations", ["Design rules", "Palette", "Parts"],
-            "Connected", [
-              "Light",
-              "Climate",
-              "Toggle",
-              "Sensor",
-              "Weather",
-              // new-card: connected
-            ],
-          ],
           // new-skin: section order
+          // Studies (spec/skins.md → Studies): skins an agent built with the generators, kept to learn from. Each has
+          // the usual groups after its Read me first page.
+          "Studies", [
+            "Futura", [
+              "Read me first",
+              "Cards", [
+                "Light",
+                "Climate",
+                "Toggle",
+                "Sensor",
+                "Weather",
+                // new-card: cards
+              ],
+              "Dashboards", ["Examples", "Lovelace card", "Header", "Nav bar"],
+              "Foundations", ["Design rules", "Palette", "Parts"],
+              "Connected", [
+                "Light",
+                "Climate",
+                "Toggle",
+                "Sensor",
+                "Weather",
+                // new-card: connected
+              ],
+            ],
+            // new-skin: study order
+          ],
         ],
       },
     },

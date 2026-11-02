@@ -97,7 +97,7 @@ function Parts() {
   );
 }
 
-const meta = { title: "Futura/Foundations/Parts", parameters: { layout: "fullscreen" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Foundations/Parts", parameters: { layout: "fullscreen" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const States: Story = { render: () => <Parts /> };

@@ -86,6 +86,7 @@ export default defineConfig({
               items: [
                 { label: "Repository and commands", slug: "develop/monorepo" },
                 { label: "Add a card or a skin", slug: "develop/cards-and-skins" },
+                { label: "Studies", slug: "develop/studies" },
               ],
             },
           ],

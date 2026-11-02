@@ -17,7 +17,7 @@ function StoryClimate({ climate, ...props }: { climate: ClimateSeedName; width?:
 }
 
 const meta = {
-  title: "Futura/Cards/Climate",
+  title: "Studies/Futura/Cards/Climate",
   component: StoryClimate,
   parameters: { layout: "centered" },
   argTypes: {

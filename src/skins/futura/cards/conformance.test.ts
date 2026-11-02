@@ -8,7 +8,7 @@ const cards = cardFolders(SKIN).map((name) => ({ name, Name: name[0].toUpperCase
 /** The generic checks, declared for Futura: its story section and its futura-<name>- classes. */
 const CHECKS = {
   skin: SKIN,
-  storyPrefix: "Futura/Cards",
+  storyPrefix: "Studies/Futura/Cards",
   component: (Name: string) => `Futura${Name}Card.tsx`,
   stories: (Name: string) => `Futura${Name}Card.stories.tsx`,
   allowedClass: (cls: string, card: { name: string }) => cls.startsWith("futura-") || cls.startsWith(`${card.name}-`),

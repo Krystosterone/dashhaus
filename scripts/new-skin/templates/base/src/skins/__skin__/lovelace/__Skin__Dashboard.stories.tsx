@@ -33,7 +33,7 @@ function Demo({ footprint = "standard", rejected = false }: { footprint?: __Skin
   return <HaProvider store={store}><__Skin__Dashboard title="Home" showTime blocks={areaSections(DEMO_CARDS)} footprint={footprint} now={new Date(2026, 9, 17, 11, 54)} /></HaProvider>;
 }
 
-const meta = { title: "__Section__/Dashboards/Lovelace card", component: Demo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Demo>;
+const meta = { title: "__Stories__/Dashboards/Lovelace card", component: Demo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Demo>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Automatic: Story = {};

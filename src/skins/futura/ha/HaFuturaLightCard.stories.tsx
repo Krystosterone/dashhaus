@@ -5,7 +5,7 @@ import { createHaStore } from "@dashhaus/core";
 import { createDemoHaTransport } from "@dashhaus/core/demo";
 import { HaFuturaLightCard } from "./HaFuturaLightCard";
 
-const meta = { title: "Futura/Connected/Light", parameters: { layout: "centered" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Connected/Light", parameters: { layout: "centered" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

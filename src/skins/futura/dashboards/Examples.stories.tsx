@@ -18,7 +18,7 @@ import { WEATHER_SEEDS } from "../cards/weather/demo/weather";
 import { FuturaCell, FuturaColumns, FuturaPage, FuturaSection } from "./layout";
 import { FuturaNavBar } from "./NavBar";
 
-const meta = { title: "Futura/Dashboards/Examples", parameters: { layout: "fullscreen" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Dashboards/Examples", parameters: { layout: "fullscreen" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

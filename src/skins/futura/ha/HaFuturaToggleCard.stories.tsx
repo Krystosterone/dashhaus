@@ -5,7 +5,7 @@ import { createHaStore } from "@dashhaus/core";
 import { createDemoToggleHaTransport } from "@dashhaus/core/demo";
 import { HaFuturaToggleCard } from "./HaFuturaToggleCard";
 
-const meta = { title: "Futura/Connected/Toggle", parameters: { layout: "centered" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Connected/Toggle", parameters: { layout: "centered" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

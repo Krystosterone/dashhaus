@@ -38,7 +38,7 @@ function Demo({ footprint = "standard", rejected = false }: { footprint?: Futura
   return <HaProvider store={store}><FuturaDashboard title="Home" showTime blocks={areaSections(DEMO_CARDS)} footprint={footprint} now={new Date(2026, 9, 17, 11, 54)} /></HaProvider>;
 }
 
-const meta = { title: "Futura/Dashboards/Lovelace card", component: Demo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Demo>;
+const meta = { title: "Studies/Futura/Dashboards/Lovelace card", component: Demo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Demo>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Automatic: Story = {};

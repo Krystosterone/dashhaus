@@ -5,7 +5,7 @@ import { createHaStore } from "@dashhaus/core";
 import { createDemoWeatherHaTransport } from "@dashhaus/core/demo";
 import { HaFuturaWeatherCard } from "./HaFuturaWeatherCard";
 
-const meta = { title: "Futura/Connected/Weather", parameters: { layout: "centered" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Connected/Weather", parameters: { layout: "centered" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

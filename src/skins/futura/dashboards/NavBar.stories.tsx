@@ -8,7 +8,7 @@ function Demo() {
   return <FuturaNavBar items={items} />;
 }
 
-const meta = { title: "Futura/Dashboards/Nav bar", parameters: { layout: "centered" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Dashboards/Nav bar", parameters: { layout: "centered" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Pages: Story = { render: () => <Demo /> };

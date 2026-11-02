@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import "./foundations.css";
 
-const meta = { title: "Futura/Foundations/Palette", parameters: { layout: "fullscreen" } } satisfies Meta;
+const meta = { title: "Studies/Futura/Foundations/Palette", parameters: { layout: "fullscreen" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

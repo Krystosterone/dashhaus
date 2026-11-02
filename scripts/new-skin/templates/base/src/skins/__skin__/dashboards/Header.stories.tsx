@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { __Skin__Header } from "./Header";
 
 const meta = {
-  title: "__Section__/Dashboards/Header",
+  title: "__Stories__/Dashboards/Header",
   component: __Skin__Header,
   parameters: { layout: "padded" },
   args: { title: "Home", showTime: true, now: new Date(2026, 9, 17, 11, 54) },

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { __Skin__CardFrame } from "../shared/ui";
 import { __Skin__Page, __Skin__Section } from "./layout";
 
-const meta = { title: "__Section__/Dashboards/Examples", parameters: { layout: "fullscreen" } } satisfies Meta;
+const meta = { title: "__Stories__/Dashboards/Examples", parameters: { layout: "fullscreen" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

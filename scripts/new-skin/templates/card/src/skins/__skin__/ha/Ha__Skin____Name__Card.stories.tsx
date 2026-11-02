@@ -5,7 +5,7 @@ import { createHaStore } from "@dashhaus/core";
 import { __transport__ } from "__transportPath__";
 import { Ha__Skin____Name__Card } from "./Ha__Skin____Name__Card";
 
-const meta = { title: "__Section__/Connected/__Name__", parameters: { layout: "centered" } } satisfies Meta;
+const meta = { title: "__Stories__/Connected/__Name__", parameters: { layout: "centered" } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

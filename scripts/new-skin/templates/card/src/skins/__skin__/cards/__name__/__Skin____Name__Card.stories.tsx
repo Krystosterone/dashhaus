@@ -17,7 +17,7 @@ function Story__Name__({ __name__, ...props }: { __name__: __seedNameType__; wid
 }
 
 const meta = {
-  title: "__Section__/Cards/__Name__",
+  title: "__Stories__/Cards/__Name__",
   component: Story__Name__,
   parameters: { layout: "centered" },
   argTypes: {

@@ -33,15 +33,37 @@ export const generated: {
 
 export function skinDir(skin: string): string;
 
-export function generatedManifest(skin: string): {
+/** The toolbar global a study's stories are drawn with in the site's light and dark look. */
+export interface StudyTheme {
+  global: string;
+  light: string;
+  dark: string;
+}
+
+export interface StudyMarker {
+  study: { theme: StudyTheme };
+}
+
+export const studies: {
+  group: "Studies";
+  section(Section: string): string;
+  marker(theme: StudyTheme): StudyMarker;
+  is(manifest: unknown): boolean;
+};
+
+export function storySection(storybookSource: string): string | undefined;
+
+export function generatedManifest(skin: string, options?: { study?: boolean; Section?: string; theme?: StudyTheme }): {
   name: string;
   version: string;
+  description?: string;
   private: boolean;
   type: "module";
   sideEffects: string[];
   exports: Record<string, string>;
   dependencies: Record<string, string>;
   peerDependencies: Record<string, string>;
+  dashhaus?: StudyMarker;
 };
 
 export const seams: {
