@@ -43,7 +43,8 @@ const SKIN_CONST = parts.join("_").toUpperCase();
 /** Its Storybook section: the skin's name, or under Studies for a study. */
 const Stories = study ? studies.section(Section) : Section;
 const dir = generated.dir(skin);
-const docs = seams.skinDoc(skin);
+/** Its design rules: spec/<skin>.md for a skin; a study keeps its own in its folder, so the specs name shipped skins only. */
+const docs = study ? studies.designDoc(skin) : seams.skinDoc(skin);
 try {
   generated.name(skin);
 } catch (error) {
@@ -63,6 +64,7 @@ const fill = filler({
   __skinVar__: skinVar,
   __Section__: Section,
   __Stories__: Stories,
+  __designDoc__: docs,
   __SKIN_CONST__: SKIN_CONST,
   __storybookSpecifier__: generated.specifier(skin, "storybook"),
   __tokensSpecifier__: generated.specifier(skin, "styles/tokens.css"),
@@ -71,6 +73,11 @@ const fill = filler({
 const templateRoot = fileURLToPath(new URL("./templates/", import.meta.url));
 const change = changes({ templateRoot, onFail: fail });
 change.fromTemplates(study ? ["base", "study"] : ["base"], fill);
+if (study) {
+  // The template writes the design rules to spec/; a study's move into its own folder.
+  change.create(docs, change.read(seams.skinDoc(skin)));
+  change.writes.delete(seams.skinDoc(skin));
+}
 // The skin is a private workspace package: `npm install` links its name and the root apps import its exports.
 const theme = { global: `${skinVar}Theme`, light: "light", dark: "dark" };
 change.create(generated.file(skin, generated.files.manifest), `${JSON.stringify(generatedManifest(skin, { study, Section, theme }), null, 2)}\n`);

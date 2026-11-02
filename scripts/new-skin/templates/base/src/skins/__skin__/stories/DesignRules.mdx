@@ -1,6 +1,6 @@
 import { Meta } from "@storybook/blocks";
 import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
-import rules from "../../../../spec/__skin__.md?raw";
+import rules from "../../../../__designDoc__?raw";
 import * as Palette from "./Palette.stories";
 import * as Parts from "./Parts.stories";
 import * as Examples from "../dashboards/Examples.stories";
@@ -10,7 +10,7 @@ import * as Examples from "../dashboards/Examples.stories";
 
 <MarkdownWithStories
   markdown={rules}
-  path="spec/__skin__.md"
+  path="__designDoc__"
   after={{
     "Baseline design": [Palette.Roles, Parts.States],
     Dashboards: [Examples.Phone, Examples.Tablet],

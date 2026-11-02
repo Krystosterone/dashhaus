@@ -119,9 +119,11 @@ export const studies = {
   marker: (theme) => ({ study: { theme } }),
   /** Whether a skin's manifest marks it a study. */
   is: (manifest) => Boolean(manifest?.dashhaus?.study),
+  /** A study's design rules live in its own folder, never in spec/: the specs describe the shipped skins only. */
+  designDoc: (skin) => `${generated.dir(skin)}/design.md`,
 };
 
-/** A skin's Storybook section, as its `storybook.tsx` declares it: `Field`, or `Studies/Futura` for a study. */
+/** A skin's Storybook section, as its `storybook.tsx` declares it: `Field`, or `Studies/Atelier` for a study. */
 export function storySection(storybookSource) {
   return storybookSource.match(/^\s*section: "([^"]+)",?$/m)?.[1];
 }
@@ -158,6 +160,7 @@ export const seams = {
   cardsDoc: "spec/cards.md",
   deployDoc: "spec/deploy.md",
   fieldDoc: "spec/field.md",
+  /** A shipped skin's design rules; a study keeps its own in its folder (`studies.designDoc`). */
   skinDoc: (skin) => `spec/${skin}.md`,
   orb: {
     config: `${referenceSkins.orb.dir}/lovelace/config.ts`,

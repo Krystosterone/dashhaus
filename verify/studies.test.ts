@@ -1,7 +1,8 @@
 /**
  * Studies (spec/skins.md → Studies): skins an agent built with the generators, kept to learn from and build on. A study
  * is marked in its package.json and that marker decides everything else: it says what it is (its README and Read me
- * first page), it sits under Studies in Storybook, it never ships, and the docs site lists it. Every other skin ships.
+ * first page), it sits under Studies in Storybook, it never ships, its docs stay in its folder, and the docs site lists
+ * it. Every other skin ships. The specs, AGENTS.md and the docs pages talk about studies in general, never one by name.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -42,6 +43,19 @@ describe.each(studySkins.map((s) => [s.skin, s] as const))("the %s study", (skin
     expect(GENERATED_SKINS.map((dashboard: { id: string }) => dashboard.id)).not.toContain(skin);
     expect(read("dashboard.config.mjs")).not.toContain(`dashhaus-${skin}`);
     expect(deployDoc).not.toContain(`custom:dashhaus-${skin}`);
+  });
+
+  it("keeps its docs in its own folder: no spec/ page, no spec/cards.md entries, no mention in AGENTS.md or the docs site", () => {
+    expect(existsSync(join(process.cwd(), dir, "design.md")), `${dir}/design.md holds its design rules`).toBe(true);
+    expect(existsSync(join(process.cwd(), `spec/${skin}.md`))).toBe(false);
+    const Name = section.split("/").at(-1)!;
+    const named = new RegExp(`\\b(?:${skin}|${Name})\\b`, "i");
+    const docs = [
+      "AGENTS.md",
+      ...readdirSync(join(process.cwd(), "spec"), { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".md")).map((f) => `spec/${f}`),
+      ...readdirSync(join(process.cwd(), "docs/src/content/docs"), { recursive: true, encoding: "utf8" }).filter((f) => /\.mdx?$/.test(f)).map((f) => `docs/src/content/docs/${f}`),
+    ];
+    expect(docs.filter((path) => named.test(read(path))), `files naming the ${Name} study`).toEqual([]);
   });
 
   it("sits under Studies in Storybook", () => {

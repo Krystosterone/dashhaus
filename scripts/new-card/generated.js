@@ -162,7 +162,7 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
 
   // Static Storybook ordering and the design-rules page.
   change.edit(seams.preview, (source) => {
-    // Walk the section's path through storySort's nesting: `Studies/Futura` is "Futura" inside "Studies".
+    // Walk the section's path through storySort's nesting: `Studies/Atelier` is "Atelier" inside "Studies".
     const start = Stories.split("/").reduce((at, part) => at === -1 ? -1 : source.indexOf(`"${part}", [`, at), 0);
     if (start === -1) return source;
     const own = source.slice(start);
@@ -180,13 +180,14 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
   if (change.exists(`${SKIN}/cards/Empty.stories.tsx`)) change.remove(`${SKIN}/cards/Empty.stories.tsx`);
   if (change.exists(`${SKIN}/ha/Empty.stories.tsx`)) change.remove(`${SKIN}/ha/Empty.stories.tsx`);
 
-  change.edit(seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
-  change.edit(seams.cardsDoc, (source) => {
+  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
+  // spec/cards.md describes the shipped skins' cards; a study's stay in its own design rules.
+  if (!study) change.edit(seams.cardsDoc, (source) => {
     const at = source.indexOf(`## Using the ${words} card`);
     if (at === -1) return source;
     const next = source.indexOf("\n## ", at + 1);
     const end = next === -1 ? source.length : next + 1;
-    return `${source.slice(0, end).trimEnd()}\n\n### ${Section} ${words} Card\n\n\`${Skin}${Name}Card\` is the ${Section} ${study ? "study" : "skin"}'s neutral drawing of the shared \`${Name}Entity\`; \`Ha${Skin}${Name}Card\` connects the same \`useHa${Name}\` hook. See [${skin}.md](${skin}.md#${words.replace(/ /g, "-")}).\n\n${source.slice(end)}`;
+    return `${source.slice(0, end).trimEnd()}\n\n### ${Section} ${words} Card\n\n\`${Skin}${Name}Card\` is the ${Section} skin's neutral drawing of the shared \`${Name}Entity\`; \`Ha${Skin}${Name}Card\` connects the same \`useHa${Name}\` hook. See [${skin}.md](${skin}.md#${words.replace(/ /g, "-")}).\n\n${source.slice(end)}`;
   });
   const dashboardStory = `${SKIN}/lovelace/${Skin}Dashboard.stories.tsx`;
   change.edit(dashboardStory, after(markers.dashboardCards, `  { entity: "${entityId}", kind: "${name}" },`));

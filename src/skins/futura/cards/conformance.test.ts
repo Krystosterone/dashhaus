@@ -35,6 +35,6 @@ describe.each(cards)("Futura $name Card", ({ name, Name }) => {
   it("is registered, exported and documented", () => {
     expect(read(`${SKIN}/lovelace/registry.tsx`)).toContain(`${name}: {`);
     expect(read(`${SKIN}/index.ts`)).toContain(component);
-    expect(read(`spec/futura.md`)).toMatch(new RegExp(`^## ${Name.replace(/([A-Z])/g, " $1").trim()}$`, "mi"));
+    expect(read(`src/skins/futura/design.md`)).toMatch(new RegExp(`^## ${Name.replace(/([A-Z])/g, " $1").trim()}$`, "mi"));
   });
 });

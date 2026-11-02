@@ -14,7 +14,7 @@ it. If you make it better, contributions back are welcome; open a pull request.
 
 - **Storybook:** Studies → Futura, with the same groups as every skin (Cards, Dashboards, Foundations, Connected).
 - **Source:** `src/skins/futura/`, the private workspace package `@dashhaus/futura`.
-- **Its design rules:** `spec/futura.md`, also drawn in Storybook as Foundations → Design rules.
+- **Its design rules:** `src/skins/futura/design.md`, also drawn in Storybook as Foundations → Design rules.
 - **Review captures** from the run: [phone](captures/examples-phone-390.png),
   [tablet](captures/examples-tablet-1280.png) and [parts](captures/foundations-parts-1280.png).
 
@@ -32,6 +32,7 @@ loudly on the wrong npm.
 
 ## Make it a real skin
 
-A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its stories
-from `Studies/Futura` to `Futura`, and register it in the Lovelace bundle and the deploy config as `new-skin` does for
-any skin (spec/skins.md → Studies).
+A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its design
+rules to `spec/futura.md` (and its cards' entries to `spec/cards.md`), move its stories from `Studies/Futura` to
+`Futura`, and register it in the Lovelace bundle and the deploy config as `new-skin` does for any skin (spec/skins.md →
+Studies).

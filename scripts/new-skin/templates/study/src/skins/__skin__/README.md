@@ -13,7 +13,7 @@ it. If you make it better, contributions back are welcome; open a pull request.
 
 - **Storybook:** Studies → __Section__, with the same groups as every skin (Cards, Dashboards, Foundations, Connected).
 - **Source:** `src/skins/__skin__/`, the private workspace package `@dashhaus/__skin__`.
-- **Its design rules:** `spec/__skin__.md`.
+- **Its design rules:** `__designDoc__`, also drawn in Storybook as Foundations → Design rules.
 
 ## How it was made
 
@@ -22,6 +22,7 @@ paragraph with what was done after that, and what the run taught about the gener
 
 ## Make it a real skin
 
-A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its stories
-from `Studies/__Section__` to `__Section__`, and register it in the Lovelace bundle and the deploy config as `new-skin`
-does for any skin (spec/skins.md → Studies).
+A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its design
+rules to `spec/__skin__.md` (and its cards' entries to `spec/cards.md`), move its stories from `Studies/__Section__` to
+`__Section__`, and register it in the Lovelace bundle and the deploy config as `new-skin` does for any skin (spec/skins.md →
+Studies).

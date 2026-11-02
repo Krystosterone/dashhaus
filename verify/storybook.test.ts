@@ -83,7 +83,7 @@ describe("the Storybook tree", () => {
 
   it("orders every skin's groups the same in storySort", () => {
     for (const { section } of skins) {
-      // Follow the section's path through the nesting: `Studies/Futura` is "Futura" inside "Studies".
+      // Follow the section's path through the nesting: `Studies/Atelier` is "Atelier" inside "Studies".
       const groups = section.split("/").reduce<unknown[] | undefined>((level, part) => {
         const i = level?.indexOf(part) ?? -1;
         return i === -1 ? undefined : level![i + 1] as unknown[];

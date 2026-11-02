@@ -3,7 +3,7 @@
  * generated skin in a temporary copy checks the package, registrations and build seams a real skin uses. The Field
  * reconstruction lives in `field.test.ts`; the three copies run at once.
  */
-import { lstatSync, readFileSync, rmSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -97,6 +97,10 @@ describe("new-skin", () => {
       expect(readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8")).toBe(entryBefore);
       expect(readFileSync(join(copy, "scripts/generated-skins.js"), "utf8")).toBe(deployedBefore);
       expect(readFileSync(join(copy, "spec/deploy.md"), "utf8")).toBe(deployDocBefore);
+      // Its docs stay in its folder: design rules beside it, and no spec/ page or spec/cards.md entry names it.
+      expect(studyFile("design.md")).toMatch(/^## Sensor$/m);
+      expect(readdirSync(join(copy, "spec")).filter((file) => /atelier/i.test(file))).toEqual([]);
+      expect(readFileSync(join(copy, "spec/cards.md"), "utf8")).not.toMatch(/Atelier/);
       const sorted = readFileSync(join(copy, ".storybook/preview.tsx"), "utf8");
       const studiesAt = sorted.indexOf('"Studies", [');
       expect(sorted.indexOf('"Atelier", [', studiesAt), "the study is ordered inside Studies").toBeGreaterThan(studiesAt);

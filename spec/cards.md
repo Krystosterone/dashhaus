@@ -50,10 +50,6 @@ import { HaLightTile } from "@dashhaus/orb";
 
 The connected container must be rendered below `HaProvider`; see [spec/home-assistant.md](home-assistant.md) for the transport/store setup.
 
-### Futura light Card
-
-`FuturaLightCard`, from the Futura [study](skins.md#studies), draws the shared `LightEntity` on Futura's console: an amber dial key whose arc is the brightness, the brightness level and today's meter; `HaFuturaLightCard` connects the same `useHaLight` hook. See [futura.md](futura.md#light).
-
 ## Using the climate card
 
 ```tsx
@@ -83,10 +79,6 @@ Temperature bounds remain reachable even when `(max_temp - min_temp)` is not an 
 
 `ClimateModule` is the same normalized climate entity and callbacks in the Field skin; `HaClimateModule` is its connected container. See [field.md](field.md#climate).
 
-### Futura climate Card
-
-`FuturaClimateCard`, from the Futura [study](skins.md#studies), draws the shared `ClimateEntity` on Futura's console: a dial key whose arc is the setpoint, the room as the readout, the target stepper and mode keys; `HaFuturaClimateCard` connects the same `useHaClimate` hook. See [futura.md](futura.md#climate).
-
 ## Using the sensor card
 
 ```tsx
@@ -110,10 +102,6 @@ Read-only: no toggle and no glow. The readings are a readout with no container: 
 ### Field sensor module
 
 `SensorModule` is the same normalized sensor entity and history in the Field skin; `HaSensorModule` is its connected container, taking the same `humidityEntityId`, `batteryEntityId` and `outdoor` options as `HaSensorTile`. See [field.md](field.md#sensor).
-
-### Futura sensor Card
-
-`FuturaSensorCard`, from the Futura [study](skins.md#studies), draws the shared `SensorEntity` as a Futura reading: the temperature readout, humidity on the dial's arc, the day's range on its meter and the battery in words; `HaFuturaSensorCard` connects the same `useHaSensor` hook. See [futura.md](futura.md#sensor).
 
 ## Using the weather card
 
@@ -163,10 +151,6 @@ Use `loadForecasts={false}` when the host supplies `hourly` and `daily` arrays t
 ```tsx
 <HaWeatherModule entityId="weather.home" aqiEntityId="sensor.home_aqi" aqiScale="US" sunEntityId="sun.sun" />
 ```
-
-### Futura weather Card
-
-`FuturaWeatherCard`, from the Futura [study](skins.md#studies), draws the shared `WeatherEntity` as a Futura reading: the sky in the dial, the temperature readout, feels-like and wind as telemetry; `HaFuturaWeatherCard` connects the same `useHaWeather` hook. See [futura.md](futura.md#weather).
 
 ## Using the alarm card
 
@@ -264,10 +248,6 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 ### Field toggle module
 
 `ToggleModule` is the same normalized toggle entity, history, `durations` and `onTurnOnFor` in the Field skin; `HaToggleModule` is its connected container, on the same `useHaToggle` hook as `HaToggleTile`, taking the same host's `icon` and `description`. See [field.md](field.md#toggle).
-
-### Futura toggle Card
-
-`FuturaToggleCard`, from the Futura [study](skins.md#studies), draws the shared `ToggleEntity` on Futura's console: a cyan dial key with the mode's glyph, `ON` or `OFF`, and today's meter; `HaFuturaToggleCard` connects the same `useHaToggle` hook. See [futura.md](futura.md#toggle).
 
 ## Using the owlet card
 

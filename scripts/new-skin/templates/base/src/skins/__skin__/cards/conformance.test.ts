@@ -35,6 +35,6 @@ describe.each(cards)("__Section__ $name Card", ({ name, Name }) => {
   it("is registered, exported and documented", () => {
     expect(read(`${SKIN}/lovelace/registry.tsx`)).toContain(`${name}: {`);
     expect(read(`${SKIN}/index.ts`)).toContain(component);
-    expect(read(`spec/__skin__.md`)).toMatch(new RegExp(`^## ${Name.replace(/([A-Z])/g, " $1").trim()}$`, "mi"));
+    expect(read(`__designDoc__`)).toMatch(new RegExp(`^## ${Name.replace(/([A-Z])/g, " $1").trim()}$`, "mi"));
   });
 });

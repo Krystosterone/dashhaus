@@ -1,6 +1,6 @@
 import { Meta } from "@storybook/blocks";
 import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
-import rules from "../../../../spec/futura.md?raw";
+import rules from "../design.md?raw";
 import * as Palette from "./Palette.stories";
 import * as Parts from "./Parts.stories";
 import * as Examples from "../dashboards/Examples.stories";
@@ -15,7 +15,7 @@ import * as Weather from "../cards/weather/FuturaWeatherCard.stories";
 
 <MarkdownWithStories
   markdown={rules}
-  path="spec/futura.md"
+  path="src/skins/futura/design.md"
   after={{
     Palette: [Palette.Roles],
     Parts: [Parts.States],

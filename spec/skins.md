@@ -74,12 +74,12 @@ A study is a skin an agent built with the generators, kept so people can see wha
 It is not finished or polished, and it doesn't ship. Make one with:
 
 ```sh
-npm run new-skin -- atelier --study
-npm run new-card -- sensor --skin atelier
+npm run new-skin -- <name> --study
+npm run new-card -- <domain> --skin <name>
 ```
 
 `--study` runs the same generator and templates as any skin, so a study exercises them exactly as a real skin does. It
-differs in four places only, all from one marker:
+differs in five places only, all from one marker:
 
 - **The marker:** its `package.json` carries `"dashhaus": { "study": { "theme": … } }` (the theme toolbar global the
   docs site draws it with) and a description that says it is a study.
@@ -88,10 +88,13 @@ differs in four places only, all from one marker:
 - **Where it sits:** its Storybook section is `Studies/<Name>`, after every skin. `new-card` reads a skin's section
   from its `storybook.tsx`, so a study's cards land there too.
 - **What it skips:** the Lovelace bundle, the deploy config and `spec/deploy.md`. No study reaches Home Assistant.
+- **Where its docs live:** in its own folder. Its design rules are `src/skins/<name>/design.md`, not `spec/<name>.md`,
+  and its cards get no entries in `spec/cards.md`: the specs, AGENTS.md and the docs pages describe the shipped skins
+  and studies in general, never one study by name.
 
 The docs site's Studies page is built from the markers, so a new study appears there with no edit. A study becomes a
-skin by removing the marker, moving its stories out of `Studies/` and adding the two registrations `new-skin` makes
-for any skin; that isn't automated. `verify/studies.test.ts` holds all of it.
+skin by removing the marker, moving its design rules into `spec/` and its stories out of `Studies/`, and adding the
+two registrations `new-skin` makes for any skin; that isn't automated. `verify/studies.test.ts` holds all of it.
 
 ## Make it its own skin
 
