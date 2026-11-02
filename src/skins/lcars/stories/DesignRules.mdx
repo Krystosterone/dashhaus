@@ -1,0 +1,24 @@
+import { Meta } from "@storybook/blocks";
+import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
+import rules from "../../../../src/skins/lcars/design.md?raw";
+import * as Palette from "./Palette.stories";
+import * as Parts from "./Parts.stories";
+import * as Examples from "../dashboards/Examples.stories";
+import * as Light from "../cards/light/LcarsLightCard.stories";
+import * as Sensor from "../cards/sensor/LcarsSensorCard.stories";
+// new-card: design rule imports
+
+<Meta title="Studies/Lcars/Foundations/Design rules" />
+
+<MarkdownWithStories
+  markdown={rules}
+  path="src/skins/lcars/design.md"
+  after={{
+    Palette: [Palette.Roles],
+    Parts: [Parts.States],
+    Dashboards: [Examples.Phone, Examples.Tablet],
+    Light: [Light.AllStates, Light.Footprints],
+    Sensor: [Sensor.AllStates, Sensor.Footprints],
+    // new-card: design rule stories
+  }}
+/>

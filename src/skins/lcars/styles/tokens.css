@@ -1,0 +1,113 @@
+/*
+ * Lcars's design tokens: every colour the skin draws comes from here, light and dark.
+ * The theme attribute is the skin's own, data-lcars-theme, so another skin's attribute on the same page never
+ * re-colours this one. The Lovelace card sets it on its host from Home Assistant's dark mode, and scopeToHost turns
+ * :root into that host; a page drawing the skin outside Home Assistant sets it on <html>. Without it, the system's
+ * colour scheme decides.
+ * Keep every block on :root only: a token set again on an element inside the page (the surface class) would
+ * override the dark values that element inherits.
+ *
+ * The look is Star Trek's LCARS: flat pastel bars and elbows on black, black condensed capitals on the bars.
+ * Dark mode is the classic black console. Light mode is a "daylight" console: a warm off-white page, deeper hues
+ * so black text on them stays readable, and darker text-hues (--lcars-text-*) for coloured words on the page.
+ */
+:root {
+  /* The page and its words. */
+  --lcars-page: #f2ede3;
+  --lcars-card: #f2ede3;
+  --lcars-card-muted: #e4ddd0;
+  --lcars-ink: #17130f;
+  --lcars-ink-muted: #5a5068;
+  --lcars-line: #b9afc4;
+  --lcars-accent: #d97a00;
+  --lcars-accent-ink: #000000;
+  --lcars-warn: #b3260f;
+  --lcars-shadow: rgb(26 20 10 / 0%);
+  --lcars-backdrop: rgb(20 14 6 / 55%);
+
+  /* The bars: black words sit on every one of these. */
+  --lcars-on-bar: #000000;
+  --lcars-orange: #e08300;
+  --lcars-peach: #e8875a;
+  --lcars-sunflower: #e8a860;
+  --lcars-lilac: #b67fb6;
+  --lcars-violet: #a77fe0;
+  --lcars-blue: #7f7fe6;
+  --lcars-ice: #6aa5dc;
+  --lcars-tan: #c8a27c;
+  --lcars-red: #d4553f;
+  --lcars-dim: #a39cae;
+  --lcars-off: #9f98c4;
+
+  /* Coloured words on the page. */
+  --lcars-text-orange: #9e4c00;
+  --lcars-text-blue: #3f3fa8;
+  --lcars-text-lilac: #7a3f7a;
+  --lcars-text-ice: #1d5c91;
+
+  --lcars-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lcars-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --lcars-press: 120ms;
+  --lcars-close: 220ms;
+  --lcars-sans: "Antonio", "Arial Narrow", "Roboto Condensed", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-lcars-theme="light"]) {
+    --lcars-page: #000000;
+    --lcars-card: #000000;
+    --lcars-card-muted: #14121c;
+    --lcars-ink: #ffdcb0;
+    --lcars-ink-muted: #a9a3d6;
+    --lcars-line: #4a4766;
+    --lcars-accent: #ff9900;
+    --lcars-accent-ink: #000000;
+    --lcars-warn: #ff5a3c;
+    --lcars-shadow: rgb(0 0 0 / 0%);
+    --lcars-backdrop: rgb(0 0 0 / 72%);
+    --lcars-orange: #ff9900;
+    --lcars-peach: #ff9966;
+    --lcars-sunflower: #ffcc99;
+    --lcars-lilac: #cc99cc;
+    --lcars-violet: #cc99ff;
+    --lcars-blue: #9999ff;
+    --lcars-ice: #99ccff;
+    --lcars-tan: #d9b28c;
+    --lcars-red: #ee5544;
+    --lcars-dim: #55526b;
+    --lcars-off: #8f8fc7;
+    --lcars-text-orange: #ff9900;
+    --lcars-text-blue: #9999ff;
+    --lcars-text-lilac: #cc99cc;
+    --lcars-text-ice: #99ccff;
+  }
+}
+
+:root[data-lcars-theme="dark"] {
+  --lcars-page: #000000;
+  --lcars-card: #000000;
+  --lcars-card-muted: #14121c;
+  --lcars-ink: #ffdcb0;
+  --lcars-ink-muted: #a9a3d6;
+  --lcars-line: #4a4766;
+  --lcars-accent: #ff9900;
+  --lcars-accent-ink: #000000;
+  --lcars-warn: #ff5a3c;
+  --lcars-shadow: rgb(0 0 0 / 0%);
+  --lcars-backdrop: rgb(0 0 0 / 72%);
+  --lcars-orange: #ff9900;
+  --lcars-peach: #ff9966;
+  --lcars-sunflower: #ffcc99;
+  --lcars-lilac: #cc99cc;
+  --lcars-violet: #cc99ff;
+  --lcars-blue: #9999ff;
+  --lcars-ice: #99ccff;
+  --lcars-tan: #d9b28c;
+  --lcars-red: #ee5544;
+  --lcars-dim: #55526b;
+  --lcars-off: #8f8fc7;
+  --lcars-text-orange: #ff9900;
+  --lcars-text-blue: #9999ff;
+  --lcars-text-lilac: #cc99cc;
+  --lcars-text-ice: #99ccff;
+}

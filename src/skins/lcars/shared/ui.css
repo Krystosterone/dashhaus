@@ -1,0 +1,137 @@
+/*
+ * The LCARS card: a bracket. The article is the coloured shape (rail on the left, bars along the top and bottom,
+ * an outer curve on the left), and the panel inside it is the black (or daylight) window, with the inner curve. The
+ * hue follows the state; an unavailable card is struck through with diagonal hazard stripes, says so in words and
+ * shows a dash.
+ */
+.lcars-card {
+  --lcars-hue: var(--lcars-ice);
+  --lcars-hue-text: var(--lcars-text-ice);
+  --lcars-rail: 40px;
+  --lcars-top: 24px;
+  --lcars-bottom: 10px;
+  position: relative;
+  box-sizing: border-box;
+  container-type: inline-size;
+  height: 176px;
+  padding: var(--lcars-top) 0 var(--lcars-bottom) var(--lcars-rail);
+  overflow: hidden;
+  border-radius: 34px 0 0 34px;
+  background: var(--lcars-hue);
+  color: var(--lcars-ink);
+  font-family: var(--lcars-sans);
+  transition: background-color var(--lcars-close) var(--lcars-ease-in-out);
+}
+/* Black slits cut the top and bottom bars into segments, as on the consoles. */
+.lcars-card::before, .lcars-card::after { content: ""; position: absolute; right: 30px; width: 6px; background: var(--lcars-page); }
+.lcars-card::before { top: 0; height: var(--lcars-top); }
+.lcars-card::after { right: 92px; bottom: 0; height: var(--lcars-bottom); }
+.lcars-card[data-card="light"] { --lcars-hue: var(--lcars-off); --lcars-hue-text: var(--lcars-text-blue); }
+.lcars-card[data-card="light"][data-state="on"] { --lcars-hue: var(--lcars-orange); --lcars-hue-text: var(--lcars-text-orange); }
+.lcars-card[data-card="sensor"] { --lcars-hue: var(--lcars-ice); --lcars-hue-text: var(--lcars-text-ice); }
+.lcars-card[data-state="unavailable"] {
+  --lcars-hue: var(--lcars-dim);
+  background: repeating-linear-gradient(135deg, var(--lcars-dim) 0 10px, var(--lcars-page) 10px 16px);
+}
+
+.lcars-card-code, .lcars-card-tag { position: absolute; z-index: 1; color: var(--lcars-on-bar); font: 600 11px/1 var(--lcars-sans); letter-spacing: 0.04em; text-transform: uppercase; pointer-events: none; }
+.lcars-card-code { left: 0; bottom: 18px; width: var(--lcars-rail); padding-right: 5px; box-sizing: border-box; text-align: right; }
+.lcars-card-tag { top: 0; right: 44px; max-width: calc(100% - 140px); padding: 0 8px; overflow: hidden; font-size: 17px; line-height: var(--lcars-top); text-overflow: ellipsis; white-space: nowrap; }
+.lcars-card[data-state="unavailable"] .lcars-card-tag { background: var(--lcars-dim); }
+.lcars-card[data-state="unavailable"] .lcars-card-code { display: none; }
+
+.lcars-card-panel {
+  box-sizing: border-box;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "copy summary" "extra extra" "actions actions";
+  gap: 4px 12px;
+  padding: 10px 12px 8px 18px;
+  border-radius: 20px 0 0 20px;
+  background: var(--lcars-card);
+}
+.lcars-copy { grid-area: copy; min-width: 0; display: grid; gap: 2px; align-content: start; }
+.lcars-title { appearance: none; width: fit-content; max-width: 100%; min-height: 32px; padding: 0; overflow: hidden; border: 0; background: transparent; color: var(--lcars-ink); font: 600 22px/1.15 var(--lcars-sans); letter-spacing: 0.03em; text-align: left; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: color var(--lcars-press) var(--lcars-ease-in-out); }
+.lcars-title:active { color: var(--lcars-accent); }
+.lcars-area, .lcars-state, .lcars-summary { margin: 0; }
+/* The area is in the top bar's cut-out on a standard card; here it stays for screen readers and compact cards. */
+.lcars-area { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lcars-state { overflow: hidden; color: var(--lcars-ink-muted); font: 400 14px/1.2 var(--lcars-sans); letter-spacing: 0.08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.lcars-summary { grid-area: summary; align-self: start; color: var(--lcars-hue-text); font: 600 42px/0.95 var(--lcars-sans); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; text-transform: uppercase; white-space: nowrap; transition: color var(--lcars-close) var(--lcars-ease-in-out); }
+.lcars-card[data-state="unavailable"] .lcars-summary { color: var(--lcars-ink-muted); }
+.lcars-extra { grid-area: extra; min-width: 0; align-self: center; }
+.lcars-actions { grid-area: actions; display: flex; justify-content: flex-end; gap: 6px; min-width: 0; }
+
+/* The LCARS button: a flat pill, black capitals at its bottom right. */
+.lcars-action {
+  flex: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-width: 112px;
+  min-height: 44px;
+  padding: 0 18px 7px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--lcars-off);
+  color: var(--lcars-on-bar);
+  font: 600 16px/1 var(--lcars-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--lcars-press) var(--lcars-ease-out), background-color var(--lcars-press) var(--lcars-ease-in-out), opacity var(--lcars-press) var(--lcars-ease-in-out);
+}
+.lcars-action[aria-pressed="true"] { background: var(--lcars-orange); }
+.lcars-action:active { transform: scale(0.96); background: var(--lcars-sunflower); }
+.lcars-action[aria-disabled="true"], .lcars-action:disabled { cursor: not-allowed; background: var(--lcars-dim); opacity: 0.7; }
+
+.lcars-card[data-footprint="compact"] { --lcars-rail: 22px; --lcars-top: 8px; --lcars-bottom: 8px; height: 72px; border-radius: 20px 0 0 20px; }
+.lcars-card[data-footprint="compact"]::after { display: none; }
+.lcars-card[data-footprint="compact"] .lcars-card-panel { grid-template-rows: 1fr; grid-template-areas: "copy summary"; align-items: center; padding: 4px 10px 4px 12px; border-radius: 10px 0 0 10px; }
+.lcars-card[data-footprint="compact"] .lcars-title { min-height: 0; font-size: 18px; }
+.lcars-card[data-footprint="compact"] .lcars-area { position: static; width: auto; height: auto; clip-path: none; color: var(--lcars-ink-muted); font: 400 12px/1.2 var(--lcars-sans); letter-spacing: 0.08em; text-overflow: ellipsis; text-transform: uppercase; }
+.lcars-card[data-footprint="compact"] .lcars-summary { align-self: center; font-size: 30px; }
+.lcars-card[data-footprint="compact"] :is(.lcars-state, .lcars-actions, .lcars-extra, .lcars-card-tag, .lcars-card-code) { display: none; }
+
+/* The details: a bar for the name, a pill to close, and a bracket down the left of the body. */
+.lcars-dialog { width: min(540px, calc(100vw - 32px)); max-height: min(720px, calc(100dvh - 32px)); box-sizing: border-box; padding: 14px; overflow: hidden; border: 0; border-radius: 0; background: var(--lcars-page); color: var(--lcars-ink); font-family: var(--lcars-sans); opacity: 1; transition: transform var(--lcars-close) var(--lcars-ease-out), opacity var(--lcars-close) var(--lcars-ease-in-out); }
+.lcars-dialog::backdrop { background: var(--lcars-backdrop); }
+.lcars-dialog[data-closing] { opacity: 0; transform: translateY(12px); }
+.lcars-dialog-head { display: flex; gap: 6px; align-items: stretch; }
+.lcars-dialog-name { flex: 1; min-width: 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 0 16px 6px 28px; border-radius: 30px 0 0 0; background: var(--lcars-orange); color: var(--lcars-on-bar); text-transform: uppercase; }
+.lcars-dialog-name strong { min-width: 0; overflow: hidden; font-size: 24px; font-weight: 600; letter-spacing: 0.03em; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.lcars-dialog-name span { flex: none; font-size: 14px; letter-spacing: 0.08em; }
+.lcars-dialog-head button { flex: none; min-width: 96px; min-height: 52px; padding: 0 16px 7px; display: inline-flex; align-items: flex-end; justify-content: flex-end; border: 0; border-radius: 0 26px 26px 0; background: var(--lcars-peach); color: var(--lcars-on-bar); font: 600 16px/1 var(--lcars-sans); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform var(--lcars-press) var(--lcars-ease-out), background-color var(--lcars-press) var(--lcars-ease-in-out); }
+.lcars-dialog-head button:active { transform: scale(0.96); background: var(--lcars-sunflower); }
+.lcars-title:focus-visible, .lcars-action:focus-visible, .lcars-dialog-head button:focus-visible { outline: 3px solid var(--lcars-ink); outline-offset: 3px; }
+.lcars-dialog-body { margin-top: 6px; padding: 16px 18px 20px; overflow: auto; border-left: 28px solid var(--lcars-lilac); border-bottom: 10px solid var(--lcars-lilac); border-bottom-left-radius: 30px; font: 400 16px/1.45 var(--lcars-sans); letter-spacing: 0.02em; }
+.lcars-dialog-state { margin: 0 0 14px; color: var(--lcars-text-orange); font-size: 30px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.lcars-empty { margin: 0; padding: 24px; color: var(--lcars-ink-muted); font: 16px/1.5 var(--lcars-sans); text-transform: uppercase; }
+
+/* Facts in a card's details: an LCARS readout table. */
+.lcars-facts { margin: 0; display: grid; gap: 8px; }
+.lcars-facts div { display: grid; grid-template-columns: minmax(96px, 0.45fr) minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.lcars-facts dt { color: var(--lcars-text-blue); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
+.lcars-facts dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.lcars-facts-note { margin: 16px 0 0; color: var(--lcars-ink-muted); font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+@media (hover: hover) and (pointer: fine) {
+  .lcars-title:hover { color: var(--lcars-text-orange); }
+  .lcars-action:hover:not([aria-disabled="true"]):not(:disabled) { background: var(--lcars-sunflower); }
+  .lcars-action[aria-pressed="true"]:hover:not([aria-disabled="true"]) { background: var(--lcars-peach); }
+  .lcars-dialog-head button:hover { background: var(--lcars-sunflower); }
+}
+@media (max-width: 600px) {
+  .lcars-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; }
+  .lcars-dialog[data-closing] { transform: translateY(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lcars-card, .lcars-summary, .lcars-title, .lcars-action, .lcars-dialog, .lcars-dialog-head button { transition-duration: 1ms; }
+  .lcars-action:active, .lcars-dialog-head button:active { transform: none; }
+}
