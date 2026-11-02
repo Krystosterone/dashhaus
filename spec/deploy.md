@@ -79,7 +79,7 @@ sections:
 
 **Storybook → Orb / Dashboards / Lovelace card** shows this exact config on the demo data.
 
-The entity's domain picks the card. One card shows one entity, though some cards also read the device's other entities:
+The entity's domain picks the card. One card shows one normalized model, built from the named entity and, for a composed card, its companions:
 
 - `light`: light
 - `climate`: climate
