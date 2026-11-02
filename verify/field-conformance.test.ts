@@ -63,7 +63,7 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
   });
 
   it("lists its class prefix in AGENTS.md", () => {
-    expect(read("AGENTS.md"), "AGENTS.md → Layout, src/skins/field/: add it to the card class prefixes").toContain(`\`fd-${code}-\``);
+    expect(read("AGENTS.md"), "AGENTS.md → Hard rules, the field skin: add it to the card class prefixes").toContain(`\`fd-${code}-\``);
   });
 
   it("is exported from the field skin's entry", () => {

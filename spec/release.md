@@ -134,7 +134,7 @@ Record on the release candidate: date and operator, Home Assistant version, cand
 
 ## CI
 
-`.github/workflows/ci.yml` is the pipeline, summarized in AGENTS.md → Layout. The reasons behind its shape:
+`.github/workflows/ci.yml` is the pipeline: `unit_checks` (typecheck, lint, `build:ha`, then `release:pack` and `verify:packages`), two unit shards, two generator jobs, the `dx` clean-room journeys over the packed tarballs, and two Storybook shards. The required `check` job gathers the unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. The reasons behind its shape:
 
 - `--maxWorkers=2` gives a two-core runner both cores, for Vitest and for the Storybook runner, which otherwise leaves one idle. The generator lane needs no worker override: on a two-core runner Vitest already runs its three copy suites one at a time, and a copy is a serial chain of the repo's tools.
 - The unit suites are split by file across two runners because one runner spent 160s on them. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
