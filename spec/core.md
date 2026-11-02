@@ -169,6 +169,19 @@ expect(fake.calls).toContainEqual({ domain: "light", service: "toggle", data: { 
 
 Both are additive: a test may use them, and their seeds can change.
 
+## Interaction primitives
+
+`./primitives` holds the headless interaction primitives every skin draws its controls on: behaviour and semantics, never markup or styles. Each is a hook whose result a skin spreads onto its own elements.
+
+- `usePress` (`press.ts`) is a button: tap, optional press and hold (the click that ends a hold doesn't also press), optional latch (`aria-pressed`), and unavailable (`aria-disabled`, still focusable) or disabled. Every latching or holding control goes through it; a plain one-shot button stays a native `<button>`.
+- `useSlider` and `useRangeSlider` (`slider.ts`) are a horizontal track: pointer input on a hit layer (mouse jumps on press, touch on a tap or the first sideways move, so a scroll never sets a value; `data-anim` only on a jump), and a hidden native range input for keyboard and screen readers, with its value text. A range keeps its reported ends: pointer steps count from `min`, keys step from the value, and the hidden input keeps its native `step` only while `min`, `max` and the value sit on the step's grid (otherwise `step="any"`, or the browser rounds the value it shows).
+- `useSheet` (`sheet.ts`) is a native modal `<dialog>`: mount, show, scroll lock, `data-closing` exit, Escape and backdrop close, and drag down to close on phones.
+- `useKeypad` (`keypad.ts`) is a code keypad: the code typed so far, digits, delete and enter from its keys or a physical keyboard, and the answer (busy, a wrong code cleared, a failed call kept for another try).
+
+A primitive used in a list goes in a small skin component (`Chip`, `Segment`), not a hand-written `aria-pressed` per item. A one-of-several group of latching keys (`ChoiceChips`, alarm segments, Field's mode keys) uses `usePress` per key, not a radiogroup primitive: roving focus and radio semantics would be new behaviour and a restyle of the chosen key. Radix was weighed and not adopted: its slider sets a value on a touch press and its dialog's focus trap fails in the card's shadow root, so each primitive is the repo's own hook. Add one only when a skin needs it.
+
+Primitives have no Storybook stories. A primitive is behaviour without markup, so a story would have to invent markup and styles that belong to no skin, and what it showed would be wrong in the ways that matter: a track's scroll-or-set on touch depends on the skin's `touch-action: pan-y`, a press on its `:active` feedback, the sheet's motion on its CSS. That story would pass axe and still prove nothing about either skin. The contracts are pinned by the unit tests beside each hook (`press.test.tsx`, `slider.test.tsx`, `sheet.test.tsx`, `keypad.test.tsx`), and every skin exercises them in its card stories: `usePress` on any card's orb or key, `useSlider` on Light → Sizes, `useRangeSlider` on Climate → Heat/cool range (orb) or Auto range (field), `useSheet` on any card's Details, phone, `useKeypad` on Alarm → Details, keypad. Feel a primitive there, on a phone. If a third skin ever wants to try one before it has cards, revisit this.
+
 ## What is not stable
 
 - The dashboard package's surface: [contract.md](contract.md) freezes that separately.
