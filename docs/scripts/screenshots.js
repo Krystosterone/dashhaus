@@ -16,6 +16,7 @@ import { mkdir, readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import { chromiumLaunchOptions } from "../../scripts/chromium.js";
 import sharp from "sharp";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -57,7 +58,7 @@ const story = (id, globals) => `http://127.0.0.1:${port}/iframe.html?id=${id}&vi
 await mkdir(join(assets, "skins"), { recursive: true });
 await mkdir(join(assets, "kinds"), { recursive: true });
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(chromiumLaunchOptions());
 try {
   const page = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: 2, reducedMotion: "reduce" });
   /** Opens a story once its fonts are in. */

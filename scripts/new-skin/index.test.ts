@@ -62,11 +62,25 @@ describe("new-skin", () => {
       expect(readFileSync(join(copy, "src/skins/canvas/lovelace/registry.tsx"), "utf8")).toContain("light: { domains: [\"light\"]");
       expect(readFileSync(join(copy, "src/skins/canvas/index.ts"), "utf8")).toContain("CanvasLightCard");
 
+      // The page around the cards: the skin's own theme attribute, its font seam, a named article and the rejected-command row.
+      const skinFile = (path: string) => readFileSync(join(copy, "src/skins/canvas", path), "utf8");
+      expect(skinFile("styles/tokens.css")).toContain('[data-canvas-theme="dark"]');
+      expect(skinFile("styles/tokens.css")).not.toMatch(/\[data-theme\b/);
+      expect(skinFile("shared/surface.ts")).toContain('CANVAS_THEME_ATTRIBUTE = "data-canvas-theme"');
+      expect(skinFile("lovelace/card.tsx")).toContain("setAttribute(CANVAS_THEME_ATTRIBUTE,");
+      expect(skinFile("lovelace/card.tsx")).toContain("protected readonly fontHref = CANVAS_FONT_HREF;");
+      expect(skinFile("storybook.tsx")).toContain("fontHref: CANVAS_FONT_HREF,");
+      expect(skinFile("storybook.tsx")).toContain("canvasTheme: {");
+      expect(skinFile("shared/ui.tsx")).toContain("<article {...frame.article}");
+      expect(skinFile("shared/ui.tsx")).toContain('id={frame.nameId} className="canvas-title" aria-haspopup="dialog"');
+      expect(skinFile("lovelace/CanvasDashboard.tsx")).toContain("<CanvasActionStatus />");
+      expect(skinFile("lovelace/CanvasActionStatus.tsx")).toContain("useActionStatus()");
+
       const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);
       const lint = await run(copy, "npx", ["eslint", "src/skins/canvas", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/canvas", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/canvas", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts", "verify/skin-surface.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const bundle = await run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);

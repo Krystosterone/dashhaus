@@ -10,7 +10,7 @@
 .__skin__-grid[data-footprint="compact"] { gap: 8px; }
 .__skin__-columns { display: grid; grid-template-columns: repeat(var(--__skin__-section-columns), minmax(0, 1fr)); gap: 18px; }
 .__skin__-cell { min-width: 0; grid-column: span var(--__skin__-span); }
-.__skin__-dashboard-dock { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; justify-items: center; padding: 12px max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); pointer-events: none; }
+.__skin__-dashboard-dock { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; gap: 8px; justify-items: center; padding: 12px max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); pointer-events: none; }
 .__skin__-header { width: min(1240px, 100%); margin: 0 auto 26px; display: flex; justify-content: space-between; gap: 20px; align-items: end; }
 .__skin__-header h1, .__skin__-header p { margin: 0; }
 .__skin__-header h1 { overflow-wrap: anywhere; font-size: clamp(28px, 5vw, 52px); letter-spacing: -0.04em; }

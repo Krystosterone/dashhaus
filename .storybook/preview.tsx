@@ -4,19 +4,43 @@ import { fieldStorybook } from "@dashhaus/field/storybook";
 // new-skin: storybook imports
 
 /**
- * Every skin brings its own Storybook setup (src/skins/<skin>/storybook.tsx): a section its story titles start with,
- * its toolbar, the class its page surface puts on <body>, and a decorator. A new skin adds itself here, and its
- * section to storySort below; its decorator and surface apply to its stories only.
+ * What a skin's Storybook setup declares (src/skins/<skin>/storybook.tsx): a section its story titles start with, its
+ * toolbar, the class its page surface puts on <body>, a decorator and, optionally, its web font's stylesheet URL.
  */
-const SKINS = [
+interface SkinStorybook {
+  section: string;
+  surface: string;
+  /** Linked from <head> once, the first time one of the skin's stories renders, as its Lovelace card links it. */
+  fontHref?: string;
+  globalTypes: Preview["globalTypes"];
+  initialGlobals: Preview["initialGlobals"];
+  decorator: Decorator;
+}
+
+/**
+ * Every skin brings its own Storybook setup. A new skin adds itself here, and its section to storySort below; its
+ * decorator, surface and font apply to its stories only. Orb's and Field's fonts are in preview-head.html, linked
+ * before the first story paints.
+ */
+const SKINS: SkinStorybook[] = [
   orbStorybook,
   fieldStorybook,
   // new-skin: storybook setups
 ];
 
+/** The skin's font stylesheet, linked once: the same href is never added twice. */
+function linkFont(href: string) {
+  if (document.head.querySelector(`link[rel="stylesheet"][href="${href}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.append(link);
+}
+
 const withSkin: Decorator = (Story, ctx) => {
   const skin = SKINS.find((s) => ctx.title.startsWith(`${s.section}/`));
   for (const s of SKINS) document.body.classList.toggle(s.surface, s === skin);
+  if (skin?.fontHref) linkFont(skin.fontHref);
   return skin ? skin.decorator(Story, ctx) : <Story />;
 };
 

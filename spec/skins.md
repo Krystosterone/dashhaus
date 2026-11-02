@@ -18,6 +18,16 @@ The baseline is intentionally neutral. It proves the architecture before visual 
 
 `npm install` links the skin through the root `src/skins/*` workspace glob. The root apps import its package exports; they never reach into `src/skins/canvas/` by relative path. A Card added later stays inside the package: its components, tests, demo seeds, registry row and entry exports. The only writes outside it are declared registration seams: the Storybook section order, the shared card documentation and the skin's design document. `scripts/packages.js` is the one map of package locations and specifiers for both generators, and `verify/generator-packages.test.ts` holds it to the root workspaces and the generated manifest.
 
+## The page around the cards
+
+Three things a skin gets right outside its cards, which the generated shell already has and `verify/skin-surface.test.ts` holds every skin in this repo (and the scaffold's templates) to:
+
+- **A theme attribute of its own.** `styles/tokens.css` keys its dark values on `data-canvas-theme`, never the shared `data-theme`: skins share one Storybook `<html>`, and Orb's toolbar leaves `data-theme` there (Orb keeps it, from before skins shared a page). The Lovelace card's `paintHost` sets the attribute on its host from Home Assistant's dark mode (`scopeToHost` turns `:root` into that host), Storybook's **Canvas theme** toolbar sets it on `<html>`, and without it the system's scheme decides. Every token block sits on `:root` alone: a token set again on the surface class would override the dark values the page inherits.
+- **One font seam.** `shared/surface.ts` names the theme attribute and the skin's web font (`CANVAS_FONT_HREF`, undefined for the system stack). The Lovelace card links it as its `fontHref`; the Storybook setup names it as `fontHref`, and `.storybook/preview.tsx` links it once when one of the skin's stories renders. A skin never injects a font link from its decorator. Orb's and Field's fonts stay in `.storybook/preview-head.html`, linked before the first story paints, which the docs screenshots rely on.
+- **A rejected command shows on the page.** Every Connected Card's action goes through the shared store, which keeps the latest rejection; `useActionStatus()` from `@dashhaus/dashboard` turns it into a title, a detail, Retry when repeating the call is safe, and Dismiss. The generated `lovelace/CanvasActionStatus.tsx` draws it once for the page, above the NavBar or as the last block, so no Card or adapter wires an error of its own and a refused tap never fails silently. Restyle the row; keep its `alert` role and both buttons.
+
+The generated Card frame also names its `<article>` after its title (`useCardFrame`'s `article` points at `nameId`), and the title button carries `aria-haspopup="dialog"`.
+
 ## Add real Cards
 
 A generated skin is recognized by its package manifest and its skin-local `lovelace/registry.tsx`. That registry is the only runtime seam joining Card kinds to Connected adapters; it stays under `lovelace/` so presentational Card code remains provider-agnostic. Add any existing shared domain through the normal Card command:

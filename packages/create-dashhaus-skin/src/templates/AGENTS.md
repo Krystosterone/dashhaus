@@ -51,10 +51,11 @@ Work from the outside in, snapshotting after each step and comparing with the re
 
 | Path | What it is | Change it? |
 | --- | --- | --- |
-| `styles/tokens.css` | every colour, font stack, easing and duration, light and dark | yes: the palette |
+| `styles/tokens.css` | every colour, font stack, easing and duration, light and dark (dark keyed on the host's `data-__skin__-theme`) | yes: the palette |
 | `shared/ui.css`, `shared/ui.tsx` | the page, area headings, grid, the `Action` button, card parts and the details `Sheet` | yes |
 | `cards/<domain>/` | one card per domain: component, CSS, stories (sample props) and its two-letter `CARD_CODE` | yes |
 | `lovelace/card.tsx` | the custom element: page layout in `draw()`, `FONT_HREF`, host CSS | the layout and font, yes |
+| `lovelace/ActionStatus.tsx` | the rejected-command row: what Home Assistant refused, Retry when safe, Dismiss; drawn once at the end of the page | restyle in `shared/ui.css`; keep it on the page |
 | `lovelace/config.ts` | the YAML the card takes, and which domain draws which card (`kindOf`) | when adding a domain |
 | `lovelace/registry.tsx` | entity → connected card | when adding a domain |
 | `lovelace/entry.tsx` | the bundle's entry: imports every stylesheet `?inline` | when adding a stylesheet |
@@ -153,6 +154,8 @@ What you may rely on, and what not to rewrite:
   `DashboardConfigError` shows its problems in Home Assistant's card editor.
 - `@dashhaus/dashboard/card`: `CardProps`, `cardShape`, `useCardFrame`, `detailsSheet`, `detailsTile` and
   `CardDialog`: the frame every card derives its shape and ids from, and the details surface the tile opens.
+- `@dashhaus/dashboard`: `useActionStatus`, the store's latest rejected command for `lovelace/ActionStatus.tsx` (its
+  words, `retry` and `dismiss`). It is on the main entry, outside the frozen contract, and may change before 1.0.
 - `@dashhaus/core`: the `useHa<Name>` hooks; `@dashhaus/core/primitives`: `usePress`, `useSlider`, `useRangeSlider`,
   `useSheet`, `useKeypad` (behaviour, no markup).
 

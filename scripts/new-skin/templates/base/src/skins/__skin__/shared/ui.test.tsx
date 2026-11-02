@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { __Skin__Action, __Skin__CardFrame } from "./ui";
 
 describe("__Section__ generated parts", () => {
+  it("names the Card's article after its title, which says it opens a dialog", () => {
+    const { getByRole } = render(<__Skin__CardFrame name="Ceiling" area="Living room" state="on" summary="80%" />);
+    expect(getByRole("article", { name: "Ceiling" })).toBeTruthy();
+    expect(getByRole("button", { name: "Ceiling" }).getAttribute("aria-haspopup")).toBe("dialog");
+  });
+
   it("opens a Card's details from its name and closes from the dialog", () => {
     const { getByRole } = render(<__Skin__CardFrame name="Ceiling" area="Living room" state="on" summary="80%" />);
     fireEvent.click(getByRole("button", { name: "Ceiling" }));

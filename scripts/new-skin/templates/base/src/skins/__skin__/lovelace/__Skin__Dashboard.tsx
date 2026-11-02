@@ -3,6 +3,7 @@ import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
 import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
 import { render__Skin__Card } from "./registry";
+import { __Skin__ActionStatus } from "./__Skin__ActionStatus";
 import { __Skin__Cell, __Skin__Columns, __Skin__Page, __Skin__Section } from "../dashboards/layout";
 import { __Skin__NavBar } from "../dashboards/NavBar";
 import type { __Skin__Footprint } from "../shared/ui";
@@ -29,7 +30,10 @@ export interface __Skin__DashboardProps {
   navigate?: (path: string) => void;
 }
 
-/** The generated skin's whole Dashboard, from normalized Lovelace config and the skin-local Card registry. */
+/**
+ * The generated skin's whole Dashboard, from normalized Lovelace config and the skin-local Card registry. A rejected
+ * command shows once for the page: above the NavBar, or as the last block when there is no nav.
+ */
 export function __Skin__Dashboard({ title, subtitle, showTime, hourCycle, blocks, pages = [], nav: navConfig, footprint, panels, now, navigate }: __Skin__DashboardProps) {
   const root = useRef<HTMLDivElement>(null);
   const pageIds = useMemo(() => pages.map((page) => page.id), [pages]);
@@ -49,9 +53,10 @@ export function __Skin__Dashboard({ title, subtitle, showTime, hourCycle, blocks
     </__Skin__Section>
   );
   return (
-    <__Skin__Page pageRef={root} title={page?.title ?? title} subtitle={page ? undefined : subtitle} showTime={showTime} hourCycle={hourCycle} now={now} nav={showNav ? <__Skin__NavBar items={nav.buttons} /> : undefined}>
+    <__Skin__Page pageRef={root} title={page?.title ?? title} subtitle={page ? undefined : subtitle} showTime={showTime} hourCycle={hourCycle} now={now} nav={showNav ? <><__Skin__ActionStatus /><__Skin__NavBar items={nav.buttons} /></> : undefined}>
       {shown.map((block, index) => block.kind === "columns" ? <__Skin__Columns key={index} columns={block.columns}>{block.sections.map(section)}</__Skin__Columns> : section(block, index))}
       {cardsOf(shown).length === 0 && <p className="__skin__-dashboard-empty">No supported entities yet. Add a domain with the normal Card generator, then add that entity to Home Assistant.</p>}
+      {!showNav && <__Skin__ActionStatus />}
     </__Skin__Page>
   );
 }

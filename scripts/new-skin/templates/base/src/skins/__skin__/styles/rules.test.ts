@@ -14,6 +14,15 @@ describe("__Section__ generated design rules", () => {
     expect(custom.filter((name) => !name.startsWith("--__skin__-"))).toEqual([]);
   });
 
+  it("themes on the skin's own attribute, with every token block on :root", () => {
+    const source = css(TOKENS);
+    const attributes = [...source.matchAll(/\[(data-[\w-]+)/g)].map((match) => match[1]);
+    expect(attributes.length).toBeGreaterThan(0);
+    expect(attributes.filter((name) => name !== "data-__skin__-theme")).toEqual([]);
+    const selectors = [...source.matchAll(/([^{}]+)\{[^{}]*?--__skin__-[\w-]+\s*:/g)].map((match) => match[1].trim());
+    expect(selectors.filter((selector) => !selector.split(",").every((part) => part.trim().startsWith(":root")))).toEqual([]);
+  });
+
   it("sets footprint height independently of state and viewport", () => {
     const source = css(`${SKIN}/shared/ui.css`);
     expect(source).toMatch(/\.__skin__-card\s*\{[\s\S]*?height:\s*176px/);

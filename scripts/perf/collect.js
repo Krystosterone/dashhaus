@@ -19,6 +19,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import { chromiumLaunchOptions } from "../chromium.js";
 import { connectHomeAssistant, loadDashboards } from "@dashhaus/deploy";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -626,7 +627,7 @@ async function main() {
   if (!orbPath || !fieldPath) throw new Error("dashboard.config.mjs must declare the Orb and Field dashboards.");
 
   const ha = await connectHomeAssistant(base, token);
-  const browser = await chromium.launch({ headless: !options.headed });
+  const browser = await chromium.launch(chromiumLaunchOptions({ headless: !options.headed }));
   const startedAt = new Date().toISOString();
   try {
     for (const path of [orbPath, fieldPath]) {

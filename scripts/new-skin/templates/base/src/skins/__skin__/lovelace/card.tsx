@@ -4,6 +4,7 @@ import { mapCards, parse__Skin__Config } from "./config";
 import type { __Skin__Config, BlockConfig, CardConfig, PageConfig } from "./config";
 import { areaName, areaSections, autoCards } from "./auto";
 import { __Skin__Dashboard } from "./__Skin__Dashboard";
+import { __SKIN_CONST___FONT_HREF, __SKIN_CONST___THEME_ATTRIBUTE } from "../shared/surface";
 
 export const __SKIN_CONST___CARD_TYPE = "dashhaus-__skin__";
 const HOST_CSS = `
@@ -18,12 +19,14 @@ export function create__Skin__Card(css: string) {
   return class Dashhaus__Skin__Card extends LovelaceDashboardElement<__Skin__Config> {
     protected readonly styles = styles;
     protected readonly mountClass = "__skin__-surface";
+    protected readonly fontHref = __SKIN_CONST___FONT_HREF;
     #layout?: { key: unknown[]; blocks: BlockConfig[]; pages?: PageConfig[] };
 
     static getStubConfig() { return { type: `custom:${__SKIN_CONST___CARD_TYPE}` }; }
     protected parse(raw: unknown) { return parse__Skin__Config(raw); }
     protected changed(previous: LovelaceHass, next: LovelaceHass) { return previous.themes?.darkMode !== next.themes?.darkMode || previous.panels !== next.panels || this.#stale(next); }
-    protected paintHost(_config: __Skin__Config, hass: LovelaceHass) { this.setAttribute("data-theme", hass.themes?.darkMode ? "dark" : "light"); }
+    /** Home Assistant's dark mode, on the skin's own theme attribute (tokens.css). */
+    protected paintHost(_config: __Skin__Config, hass: LovelaceHass) { this.setAttribute(__SKIN_CONST___THEME_ATTRIBUTE, hass.themes?.darkMode ? "dark" : "light"); }
     protected draw(config: __Skin__Config, hass: LovelaceHass) {
       const layout = this.#layoutFor(config, hass);
       return <__Skin__Dashboard title={config.title} subtitle={config.subtitle} showTime={config.showTime} hourCycle={config.hourCycle} blocks={layout.blocks} pages={layout.pages} nav={config.nav} footprint={config.footprint} panels={hass.panels} />;

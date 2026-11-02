@@ -62,7 +62,7 @@ const hass = {
   panels: {},
 };
 
-document.documentElement.dataset.theme = dark ? "dark" : "light";
+document.documentElement.setAttribute("data-__skin__-theme", dark ? "dark" : "light");
 const element = document.createElement(CARD_TYPE) as HTMLElement & { setConfig(config: unknown): void; hass: unknown };
 try {
   element.setConfig(config);

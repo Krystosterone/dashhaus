@@ -92,7 +92,7 @@ Not stable: the wording of a finding's `message`; the `card` and `rule` fields a
 
 ## What is not stable yet
 
-- **The main `@dashhaus/dashboard` entry** — the nav, `useDashboardNav`, room sensors and the token scoping. A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.
+- **The main `@dashhaus/dashboard` entry** — the nav, `useDashboardNav`, room sensors, the token scoping, and `actionMessage` with `useActionStatus` (the store's latest rejected command, as a recovery row reads it; the scaffold's `lovelace/ActionStatus.tsx` uses it). A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.
 - **`@dashhaus/dashboard/layout`** — the automatic layout, published for dashboard configs. Its signature may change with the layout work.
 - **`@dashhaus/dashboard/vite`** — does not exist. There is no build integration to depend on; the deploy config owns its `build()`, and no consumer has needed a shared one yet. A demonstrated need starts that cut.
 - **Storybook and generator templates** — the story set and the generated skin are this repo's conventions, not a package contract.

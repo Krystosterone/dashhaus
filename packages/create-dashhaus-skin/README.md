@@ -39,7 +39,8 @@ AGENTS.md (+ CLAUDE.md)              the guide: the loop, where things live, the
 cards/light/__Skin__LightCard.tsx   the control card, its CSS, stories and two-letter code
 cards/sensor/__Skin__SensorCard.tsx the reading card
 ha/                                 the useHaLight and useHaSensor adapters
-lovelace/                           the custom element (page layout, fonts), YAML reader, card registry, bundle entry
+lovelace/                           the custom element (page layout, fonts, theme attribute), YAML reader, card registry,
+                                    rejected-command row, bundle entry
 shared/                             the page, card parts, details sheet and the action button
 styles/tokens.css                   every colour, font and easing, light and dark
 preview/                            the local preview, its sample house and the snapshot script

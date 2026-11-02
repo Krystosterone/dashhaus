@@ -18,6 +18,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { chromiumLaunchOptions } from "../../scripts/chromium.js";
 
 /** The repository root: this file sits at `verify/dx/`. */
 export const repoRoot = resolve(fileURLToPath(new URL("../..", import.meta.url)));
@@ -35,7 +36,7 @@ export const screenshotDir = screenshotArg === -1 ? undefined : resolve(argv[scr
  */
 export async function screenshotDashboard(url, file, { width = 1280, height = 900 } = {}) {
   const { chromium } = await import("playwright");
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(chromiumLaunchOptions());
   try {
     const page = await browser.newPage({ viewport: { width, height } });
     const errors = [];
@@ -63,7 +64,7 @@ export async function screenshotDashboard(url, file, { width = 1280, height = 90
  */
 export async function exerciseDetails(url, cards, { token, screenshot } = {}) {
   const { chromium } = await import("playwright");
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(chromiumLaunchOptions());
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const errors = [];

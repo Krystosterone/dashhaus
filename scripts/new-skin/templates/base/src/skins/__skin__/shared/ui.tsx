@@ -34,7 +34,10 @@ export interface __Skin__CardProps extends Omit<CardProps, "footprint"> {
 /** What a generated Card takes: the Card plus its details, opened from its name. */
 export type __Skin__CardFrameProps = TileProps<__Skin__CardProps>;
 
-/** The Card as it sits on the dashboard, or as the dialog's body while it is in its sheet. */
+/**
+ * The Card as it sits on the dashboard, or as the dialog's body while it is in its sheet. The frame names the article
+ * after the Card's title (`frame.article` points at `frame.nameId`), and the title says it opens a dialog.
+ */
 function __Skin__Card({ name, area, state, summary, icon, footprint, actions, children, variant, onOpenDetails, onClose }: __Skin__CardProps) {
   const frame = useCardFrame({ variant, footprint });
   const unavailable = state === "unavailable";
@@ -53,10 +56,10 @@ function __Skin__Card({ name, area, state, summary, icon, footprint, actions, ch
     );
   }
   return (
-    <article className="__skin__-card" data-footprint={frame.footprint} data-state={state}>
+    <article {...frame.article} className="__skin__-card" data-footprint={frame.footprint} data-state={state}>
       <div className="__skin__-identity" aria-hidden="true">{icon ?? name.slice(0, 1).toUpperCase()}</div>
       <div className="__skin__-copy">
-        <button type="button" className="__skin__-title" onClick={onOpenDetails}>{name}</button>
+        <button type="button" id={frame.nameId} className="__skin__-title" aria-haspopup="dialog" onClick={onOpenDetails}>{name}</button>
         <p className="__skin__-area">{area ?? "No area"}</p>
         <p className="__skin__-state">{unavailable ? "Unavailable" : state.replace(/[_-]+/g, " ")}</p>
       </div>

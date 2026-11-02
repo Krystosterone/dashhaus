@@ -1,19 +1,11 @@
-import { useState } from "react";
-import { useHaSelector, useHaStore } from "@dashhaus/core";
-import { actionMessage } from "@dashhaus/dashboard";
+import { useActionStatus } from "@dashhaus/dashboard";
 import "./ActionStatus.css";
 
 /** One dashboard-level recovery surface for the latest rejected Home Assistant action. */
 export function ActionStatus() {
-  const store = useHaStore();
-  const error = useHaSelector((snapshot) => snapshot.lastActionError);
-  const entity = useHaSelector((snapshot) => error?.entityId ? snapshot.entities[error.entityId] : undefined);
-  const [retrying, setRetrying] = useState(false);
-
-  const canRetry = store.canRetryLastAction?.() === true;
-  const message = actionMessage(error, entity, canRetry);
-  if (!message) return null;
-  const { title, detail } = message;
+  const status = useActionStatus();
+  if (!status) return null;
+  const { title, detail, canRetry, retrying } = status;
 
   return (
     <div className="ha-action-dock">
@@ -27,12 +19,9 @@ export function ActionStatus() {
         </span>
         <span className="ha-action-buttons">
           {canRetry && (
-            <button type="button" className="ha-action-b" disabled={retrying} onClick={() => {
-              setRetrying(true);
-              void store.retryLastAction?.().catch(() => undefined).finally(() => setRetrying(false));
-            }}>{retrying ? "Retrying…" : "Retry"}</button>
+            <button type="button" className="ha-action-b" disabled={retrying} onClick={status.retry}>{retrying ? "Retrying…" : "Retry"}</button>
           )}
-          <button type="button" className="ha-action-b" onClick={() => store.clearActionError?.()}>Dismiss</button>
+          <button type="button" className="ha-action-b" onClick={status.dismiss}>Dismiss</button>
         </span>
       </div>
     </div>
