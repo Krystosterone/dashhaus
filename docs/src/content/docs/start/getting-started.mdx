@@ -6,9 +6,9 @@ description: "Install the packages, put the store above your app, and draw a fir
 import { Aside, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 
-This page puts Dashhaus in a React app of yours: install, connect the store, then draw one light twice, once with your
-own markup on the headless hook and once with a skin's ready-made component. If you only want a finished dashboard in
-Home Assistant, [Deploy a dashboard](/dashhaus/start/deploy/) needs no React at all.
+Put Dashhaus in a React app of yours: install the packages, connect the store, then draw one light twice. The first
+uses your own markup on the headless hook; the second, a skin's ready-made component. If you only want a finished
+dashboard in Home Assistant, [Deploy a dashboard](/dashhaus/start/deploy/) needs no React at all.
 
 <Aside type="caution" title="Not on npm yet">
   The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
@@ -105,8 +105,8 @@ token there. [Connecting and auth](/dashhaus/errors/auth/) covers both, and a ki
   </TabItem>
 </Tabs>
 
-Swap `useHaLight` for any other hook and the pattern holds: every kind of entity has a hook, a headless component and
-a tile and a module. [Entities](/dashhaus/entities/) lists them all.
+Every kind of entity has a hook, a headless component and a tile and a module, so the same swap works for any of them.
+[Entities](/dashhaus/entities/) lists them all.
 
 ## Next
 
