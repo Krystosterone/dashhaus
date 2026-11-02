@@ -1,7 +1,7 @@
 // The command is JavaScript so the bin runs without Node's type stripping. These are its types.
 
 import type { DeployDashboard } from "./config.mjs";
-import type { DeployClient } from "./deploy.mjs";
+import type { DeployClient, DeployOptions } from "./deploy.mjs";
 
 export interface CliOptions {
   config?: string;
@@ -11,7 +11,10 @@ export interface CliOptions {
 
 export function parseArgs(argv: string[]): CliOptions;
 
-export function helpText(dashboards: DeployDashboard[], configFile: string): string;
+export function helpText(dashboards: DeployDashboard[] | undefined, configFile: string, problem?: string): string;
+
+export const ENV_HELP: string;
+export const STARTER_CONFIG: string;
 
 export interface MainOptions {
   argv?: string[];
@@ -20,6 +23,7 @@ export interface MainOptions {
   report?: (message: string) => void;
   error?: (message: string) => void;
   connect?: (url: string, token: string) => Promise<DeployClient>;
+  fetch?: DeployOptions["fetch"];
 }
 
 export function main(options?: MainOptions): Promise<number>;

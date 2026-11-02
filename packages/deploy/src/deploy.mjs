@@ -21,7 +21,7 @@ function settingsFrom(env) {
     !www && "HA_WWW      where /config/www is: root@homeassistant.local:/config/www over SSH, or a mounted folder",
   ].filter(Boolean);
   if (missing.length) {
-    throw new DeployConfigError(`Missing settings. Copy .env.example to .env beside the config and fill in:\n    ${missing.join("\n    ")}`);
+    throw new DeployConfigError(`Missing settings. Put them in .env beside the config (or the environment):\n    ${missing.join("\n    ")}\nRun dashhaus-deploy --help for a whole .env.`);
   }
   return { url, token, www, sshPort: env.HA_SSH_PORT ? String(env.HA_SSH_PORT) : undefined };
 }
@@ -138,6 +138,8 @@ export async function deploy({
   report = console.log,
   warn = console.warn,
   connect = connectHomeAssistant,
+  // A test that fakes the websocket fakes this HTTP check too, or leaves it out.
+  fetch = connect === connectHomeAssistant ? globalThis.fetch : undefined,
 } = {}) {
   if (!configFile) throw new DeployConfigError("the deploy CLI needs a config file");
   const file = resolve(configFile);
@@ -154,12 +156,42 @@ export async function deploy({
     report(`  ✓ Home Assistant ${ha.version}`);
     const resource = await registerResource(ha, target, version, report, warn);
     const results = await reconcileDashboards(ha, dashboards, pageTitle, report);
-    report(`\nDone. Open ${dashboards.map((dashboard) => `${settings.url}/${dashboard.path}/home`).join(" or ")} and reload the page once to pick up version ${version}.
-To edit one: ⋮ → Edit dashboard → the card's ✎ → Code editor. The formats are in spec/deploy.md.`);
+    await checkServed({ fetch, url: settings.url, resource: target.resourcePath, version, contents, www: settings.www, report, warn });
+    report(`\nDone. Open ${dashboards.map((dashboard) => `${settings.url}/${dashboard.path}`).join(" or ")} and reload the page once to pick up version ${version}.
+To change a layout: ⋮ → Edit dashboard → the card's ✎ → Show code editor. A mistake is listed with its path and a suggestion.`);
     return { version, resource, dashboards: results };
   } finally {
     ha.close();
   }
+}
+
+/**
+ * Fetch the registered file the way the browser will, from Home Assistant's `/local/`, and compare it with what was
+ * uploaded. A file that is missing or different means HA_WWW is not the folder Home Assistant serves, which is
+ * otherwise only visible as a "Custom element doesn't exist" on the dashboard.
+ */
+async function checkServed({ fetch, url, resource, version, contents, www, report, warn }) {
+  if (!fetch) return;
+  const address = `${url}${resource}?v=${version}`;
+  report("\n→ Checking that Home Assistant serves it");
+  let response;
+  try {
+    response = await fetch(address, { cache: "no-store" });
+  } catch (error) {
+    warn(`  ! Could not fetch ${address}: ${error?.message ?? String(error)}`);
+    return;
+  }
+  if (!response.ok) {
+    warn(`  ! ${address} answers HTTP ${response.status}. HA_WWW (${www}) must be the folder Home Assistant serves as /local/, its /config/www.
+    If that folder did not exist when Home Assistant started, restart Home Assistant once so /local/ is served.`);
+    return;
+  }
+  const served = Buffer.from(await response.arrayBuffer());
+  if (!served.equals(contents)) {
+    warn(`  ! ${address} serves a different file (${Math.round(served.length / 1024)} kB) than the one uploaded. Is HA_WWW Home Assistant's /config/www?`);
+    return;
+  }
+  report(`  ✓ ${address} (${Math.round(served.length / 1024)} kB, the uploaded file)`);
 }
 
 /**

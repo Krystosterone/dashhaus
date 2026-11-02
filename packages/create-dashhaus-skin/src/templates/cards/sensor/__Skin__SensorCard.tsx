@@ -10,7 +10,7 @@ export interface __Skin__SensorCardProps {
   unit: "°C" | "°F";
 }
 
-/** One room reading: a name, its room, the temperature and, when the device has one, the humidity. */
+/** One room reading: a name, its room, the temperature (or the humidity, for a humidity sensor) and the humidity under it. */
 export function __Skin__SensorCard({ name, area, temperature, humidity, unit }: __Skin__SensorCardProps) {
   const unavailable = temperature == null && humidity == null;
   return (
@@ -20,9 +20,9 @@ export function __Skin__SensorCard({ name, area, temperature, humidity, unit }: 
         <p className="__skin__-sn-area">{area ?? "No area"}</p>
       </header>
       <p className="__skin__-sn-reading">
-        {unavailable ? "—" : temperature == null ? "No reading" : `${fmt1(temperature)}${unit}`}
+        {unavailable ? "—" : temperature != null ? `${fmt1(temperature)}${unit}` : `${Math.round(humidity!)}%`}
       </p>
-      {humidity != null && !unavailable && <p className="__skin__-sn-humidity">{fmt1(humidity)}% humidity</p>}
+      {temperature != null && humidity != null && <p className="__skin__-sn-humidity">{Math.round(humidity)}% humidity</p>}
     </article>
   );
 }

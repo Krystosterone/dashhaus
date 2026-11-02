@@ -1,0 +1,7 @@
+# Copy to .env and fill in; npm run deploy reads it. Keep .env out of version control.
+HA_URL=http://homeassistant.local:8123
+# An admin's long-lived access token: Profile → Security → Long-lived access tokens.
+HA_TOKEN=
+# Home Assistant's /config/www, the folder it serves at /local/: user@host:/config/www over SSH, or a mounted folder.
+HA_WWW=root@homeassistant.local:/config/www
+# HA_SSH_PORT=22222

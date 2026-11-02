@@ -10,8 +10,9 @@ into Home Assistant and creates a dashboard for each skin. After that you change
 
 <Aside type="caution" title="Not on npm yet">
   The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
-  then, deploy from a clone of the [repository](https://github.com/Krystosterone/dashhaus) with `npm install` and
-  `npm run deploy`.
+  then, install the release tarballs by path in step 1 (`npm install ./dashhaus-bundle-0.2.0.tgz
+  ./dashhaus-deploy-0.2.0.tgz`), or deploy from a clone of the
+  [repository](https://github.com/Krystosterone/dashhaus) with `npm install` and `npm run deploy`.
 </Aside>
 
 ## What you need
@@ -88,7 +89,10 @@ into Home Assistant and creates a dashboard for each skin. After that you change
    ```
 
    The tool copies the bundle into `www/`, registers it as a dashboard resource, and creates each dashboard the first
-   time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build.
+   time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build. Every step ends in
+   ✓; the last one, `Checking that Home Assistant serves it`, fetches the file back from Home Assistant, so a wrong
+   `HA_WWW` shows up here instead of as a blank dashboard. `npx dashhaus-deploy --help` prints the options, a config
+   to start from and the `.env` keys.
 
 5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)** or **Home (Field)** in the sidebar.
 

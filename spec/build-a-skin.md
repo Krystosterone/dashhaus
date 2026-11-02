@@ -7,24 +7,38 @@ or its workspace. The repository's own generator reference is [skins.md](skins.m
 ## Start
 
 ```sh
-npm install @dashhaus/core @dashhaus/dashboard @dashhaus/deploy react@18 react-dom@18 home-assistant-js-websocket@9
-npm create dashhaus-skin@latest my-skin
+npm create dashhaus-skin@latest my-skin    # or, from release tarballs: create-dashhaus-skin my-skin --tarballs <dir>
 cd my-skin
 npm install
+npm run snapshot    # preview/snapshots/*.png; npm run preview serves the same page
 npm test
 npm run build
-npx dashhaus-deploy --skip-build
+npm run deploy      # after .env (from .env.example)
 ```
 
-`npm create` runs `create-dashhaus-skin`, which writes a complete standalone project. Its target must be new or
-empty; `--dry-run` lists the files instead of writing them.
+`npm create` runs `create-dashhaus-skin`, which writes a complete standalone project with its own dependencies; nothing
+is installed beside it first. Its target must be new or empty; `--dry-run` lists the files instead of writing them;
+`--tarballs <dir>` points its `@dashhaus` dependencies at the release tarballs in `<dir>`.
 
 Why `home-assistant-js-websocket` and React 18.3+ or 19 are required is in [contract.md](contract.md).
 
 ## What the scaffold writes
 
 [create-dashhaus-skin's README](../packages/create-dashhaus-skin/README.md#what-it-writes) lists the files; the
-scaffold's own sources are the reference for each.
+scaffold's own sources are the reference for each. The scaffold is agent-first: its `AGENTS.md` (with a `CLAUDE.md`
+that imports it) is the one document a consumer's agent reads, so an agent given only a screenshot or a description
+needs no second prompt. It must say where the tokens, fonts, page, cards and parts are, the
+[rules every skin keeps](skins.md#rules-every-skin-keeps) under their titles there and which of them `npm test` checks,
+how to see the result (`npm run snapshot`), what data each card gets, how to add a domain and how to deploy. A change
+to the scaffold's files or scripts updates it in the same change.
+
+## Preview
+
+`preview/` draws the real element from `lovelace/entry.tsx` (shadow root, scoped CSS, the store on a connection) on a
+sample house in `preview/house.ts`, through an in-page stand-in for Home Assistant's websocket connection; it is not
+part of the bundle. The house holds the worst cases a skin must survive. `npm run preview` serves it with Vite;
+`npm run snapshot` saves it at 1280 px light, 390 px light and 1280 px dark through Playwright, which the skin does
+not depend on: the script prints the two commands that install it.
 
 ## Cards and YAML
 
@@ -39,8 +53,10 @@ Add a domain by adding:
 3. a row in `lovelace/registry.tsx`;
 4. a kind in `lovelace/config.ts` when the YAML can select it explicitly.
 
-`npm test` runs the conformance preset: it checks each card's component and story title, its class prefix and that
-no presentational card imports the Home Assistant layer. Run it after every card change.
+`npm test` runs the conformance preset (each card's component and story title, its class prefix, a unique code and that
+no presentational card imports the Home Assistant layer) and the skin's CSS rules: no colour literal outside
+`styles/tokens.css`, `:hover` only under the hover media query, and no transition on a layout property. Each finding
+names its file, line and fix. Run it after every card change.
 
 ## Build
 
@@ -52,11 +68,12 @@ for CSS collection.
 
 ## Deploy
 
-`.env` beside the scaffold's `dashboard.config.mjs` holds `HA_URL`, `HA_TOKEN` and `HA_WWW`, as
-[Deploy a dashboard](../docs/src/content/docs/start/deploy.mdx) describes them; the config names the bundle and the dashboard.
+`.env` beside the scaffold's `dashboard.config.mjs` holds `HA_URL`, `HA_TOKEN` and `HA_WWW`; the scaffold writes
+`.env.example` with each one explained. The config names the bundle, its `build()` (`npm run build`) and the
+dashboard.
 
-Then `npx dashhaus-deploy --skip-build` uploads the bundle, registers the resource and creates the dashboard once.
-See [deploy.md](deploy.md) for `--config`, SSH and the deploy rules.
+Then `npm run deploy` builds, uploads the bundle, registers the resource, checks that Home Assistant serves it and
+creates the dashboard once. See [deploy.md](deploy.md) for `--config`, SSH and the deploy rules.
 
 ## Prebuilt versus composed
 

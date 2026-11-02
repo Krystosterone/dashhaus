@@ -2,6 +2,11 @@
 
 The framework a Dashhaus skin's Lovelace card draws on: the frozen skin-author runtime, the card frame, the YAML reader and card schema, the automatic layout, the conformance preset and the custom-element base. It imports `@dashhaus/core` and never a skin or a stylesheet.
 
+Where to start: to deploy the ready-made Orb and Field dashboards, install `@dashhaus/bundle` and `@dashhaus/deploy`
+(nothing is built). To build your own look, run `npm create dashhaus-skin@latest my-skin`: the project it writes
+depends on this package and its `AGENTS.md` covers the rest. Install this package directly only to compose a skin by
+hand.
+
 ## Install
 
 ```sh

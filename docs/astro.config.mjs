@@ -19,7 +19,7 @@ export default defineConfig({
       customCss: ["./src/styles/theme.css"],
       plugins: [starlightLlmsTxt()],
       sidebar: [
-        { label: "Start here", items: [{ label: "Deploy a dashboard", slug: "start/deploy" }] },
+        { label: "Start here", items: [{ label: "Deploy a dashboard", slug: "start/deploy" }, { label: "Build a skin", slug: "start/build-a-skin" }] },
         { label: "Skins", items: [{ label: "Orb and Field", slug: "skins" }] },
         {
           label: "Reference",
