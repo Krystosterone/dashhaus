@@ -61,6 +61,17 @@ theme never leaks into it. `shared/surface.ts` names its web font once: the Love
 page and Storybook links it for the skin's stories. And `CanvasActionStatus` shows a command Home Assistant refused,
 with Retry and Dismiss, so a failed tap never goes unnoticed.
 
+### A study
+
+```sh
+npm run new-skin -- canvas --study
+```
+
+`--study` makes the same skin from the same templates, kept to learn from rather than shipped: its stories sit under
+**Studies/Canvas**, opening on a Read me first page from its `README.md`, its `package.json` marks it, and it is
+left out of the Lovelace bundle and the deploy config. Add its cards with the same `new-card` command.
+[Studies](/dashhaus/develop/studies/) lists every one.
+
 For a skin outside the repository, with no Storybook or workspace, use the published scaffolder instead:
 [Build a skin](/dashhaus/start/build-a-skin/).
 

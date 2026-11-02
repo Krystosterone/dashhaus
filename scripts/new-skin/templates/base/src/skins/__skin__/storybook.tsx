@@ -8,7 +8,7 @@ import { __SKIN_CONST___FONT_HREF, __SKIN_CONST___THEME_ATTRIBUTE } from "./shar
  * `fontHref` is the skin's web font; .storybook/preview.tsx links it for this skin's stories.
  */
 export const __skinVar__Storybook = {
-  section: "__Section__",
+  section: "__Stories__",
   surface: "__skin__-surface",
   fontHref: __SKIN_CONST___FONT_HREF,
   globalTypes: {

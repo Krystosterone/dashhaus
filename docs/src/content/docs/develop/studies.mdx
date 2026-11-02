@@ -1,0 +1,21 @@
+---
+title: Studies
+description: "Skins an agent built with the repository's generators, kept so you can see what they make and build on them."
+---
+
+import Studies from "../../../components/Studies.astro";
+
+A study is a skin an agent built with this repository's generators, kept so you can see what they make and start from
+it. It is not finished or polished, and it doesn't ship: no study is in the Lovelace bundle, and `npm run deploy`
+creates no dashboard for one. In Storybook they sit under **Studies**, each opening on a Read me first page.
+
+Do what you want with them: take ideas, copy a part or a card, improve one, or build a skin of your own on top of it.
+If you make one better, contributions back are welcome.
+
+Make one with `npm run new-skin -- <name> --study`, then add its cards with `npm run new-card -- <domain> --skin
+<name>`. It is the same skin `new-skin` makes without the flag, filed under Studies and left out of what ships; the
+[skin generator](/dashhaus/develop/cards-and-skins/#a-new-skin) has the rest.
+
+This list is built from the repository: every skin marked as a study appears here.
+
+<Studies />

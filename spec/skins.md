@@ -68,6 +68,54 @@ package; `verify/skin-rules.test.ts` holds it to that.
 - **Controls feel like controls:** no text selection or tap highlight, `touch-action: manipulation`, press feedback
   on `:active`, built on the `@dashhaus/core/primitives` hooks rather than hand-written ARIA.
 
+## Studies
+
+A study is a skin an agent built with the generators, kept so people can see what they make, use it and build on it.
+It is not finished or polished, and it doesn't ship. Make one with:
+
+```sh
+npm run new-skin -- <name> --study
+npm run new-card -- <domain> --skin <name>
+```
+
+`--study` runs the same generator and templates as any skin, so a study exercises them exactly as a real skin does. It
+differs in five places only, all from one marker:
+
+- **The marker:** its `package.json` carries `"dashhaus": { "study": { "theme": … } }` (the theme toolbar global the
+  docs site draws it with) and a description that says it is a study.
+- **What it says:** a `README.md` (what a study is, where things are, how it was made, how to take it further) that
+  Storybook draws as its first page, **Read me first**.
+- **Where it sits:** its Storybook section is `Studies/<Name>`, after every skin. `new-card` reads a skin's section
+  from its `storybook.tsx`, so a study's cards land there too.
+- **What it skips:** the Lovelace bundle, the deploy config and `spec/deploy.md`. No study reaches Home Assistant.
+- **Where its docs live:** in its own folder. Its design rules are `src/skins/<name>/design.md`, not `spec/<name>.md`,
+  and its cards get no entries in `spec/cards.md`: the specs, AGENTS.md and the docs pages describe the shipped skins
+  and studies in general, never one study by name.
+
+The docs site's Studies page is built from the markers, so a new study appears there with no edit. A study becomes a
+skin by removing the marker, moving its design rules into `spec/` and its stories out of `Studies/`, and adding the
+two registrations `new-skin` makes for any skin; that isn't automated. `verify/studies.test.ts` holds all of it.
+
+### Running a study
+
+A study run is how this repository tests its generators with an agent: the agent builds a skin end to end with
+`new-skin --study` and `new-card`, and gives it a look of its own. The skin is half the output. The other half, and the
+reason for the run, is what it teaches about the generators. Whoever started the run, an agent doing one keeps to this:
+
+- **Report friction, don't fix it.** A generator step that fails or needs a hand-edit afterwards, a doc that points
+  nowhere, a guess the docs forced: list each as FRICTION in the hand-back, and leave the generators and their
+  templates as they are, so the run tests them as they are. Fixing them is the next change, not this one.
+- **Stay inside the study.** Edit only `src/skins/<name>/`, plus the registrations the generators make themselves; the
+  Lovelace bundle, the deploy config, `spec/`, AGENTS.md and the docs pages stay untouched.
+- **Leave a record in the study.** Its README's "How it was made" says what was done after the generators, its
+  `design.md` matches what was built, and the run's captures (full-page PNGs of its phone and tablet Examples and its
+  Parts) sit in `src/skins/<name>/captures/`, linked from the README.
+- **Check the environment first.** `corepack enable npm` (the repo refuses any npm but its pin), `npm install`, then
+  Chromium for `npm run test-storybook` (`npx playwright install chromium`, or `DASHHAUS_CHROMIUM` for one already on
+  the machine). A gate that can't run is reported as unrun, never as passed.
+
+[study-brief.md](study-brief.md) is the brief that starts a run.
+
 ## Make it its own skin
 
 1. Replace `styles/tokens.css` and the neutral Parts in `shared/`, within [Rules every skin keeps](#rules-every-skin-keeps).

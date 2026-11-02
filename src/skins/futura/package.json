@@ -1,0 +1,33 @@
+{
+  "name": "@dashhaus/futura",
+  "version": "0.0.0",
+  "description": "A study: Futura, a neon instrument-console skin an agent built with npm run new-skin and the card generator, then designed by hand. Not finished or polished; use it, build on it, contribute back.",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "./styles/tokens.css"
+  ],
+  "exports": {
+    ".": "./index.ts",
+    "./styles/tokens.css": "./styles/tokens.css",
+    "./lovelace/card": "./lovelace/card.tsx",
+    "./storybook": "./storybook.tsx"
+  },
+  "dependencies": {
+    "@dashhaus/core": "*",
+    "@dashhaus/dashboard": "*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
+  },
+  "dashhaus": {
+    "study": {
+      "theme": {
+        "global": "futuraTheme",
+        "light": "daylight",
+        "dark": "console"
+      }
+    }
+  }
+}

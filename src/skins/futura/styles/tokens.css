@@ -1,0 +1,75 @@
+/* Futura design tokens: a dark instrument console lit by two neon signals.
+   The console (dark) is the skin's default, on :root and on the surface class. The daylight values apply only
+   when asked for: data-futura-theme="light" on <html> (Storybook's Theme toolbar) or on the Lovelace host, which
+   sets it from Home Assistant's own theme. Every colour Futura draws is one of these tokens.
+
+   Two signals, one meaning each:
+   --futura-cyan   live: a switch that is on, cooling, a reading, the page's own chrome (clock, current nav).
+   --futura-amber  energy: something giving off light or heat (a lamp that is on, heating).
+   --futura-alert  a warning in words (low battery); never a state, never a glow. */
+:root,
+.futura-surface {
+  --futura-page: #04070d;
+  --futura-page-glow: rgb(20 64 112 / 34%);
+  --futura-grid: rgb(86 150 214 / 6%);
+  --futura-panel: #0a111d;
+  --futura-panel-raised: #0f1928;
+  --futura-panel-sunk: #060b14;
+  --futura-edge: #1b2a40;
+  --futura-edge-bright: #2c4262;
+  --futura-sheen: rgb(150 200 255 / 7%);
+  --futura-ink: #dce8f6;
+  --futura-ink-muted: #8395ae;
+  --futura-ink-faint: #33465f;
+  --futura-cyan: #3fd9ff;
+  --futura-cyan-dim: rgb(63 217 255 / 16%);
+  --futura-cyan-glow: rgb(63 217 255 / 42%);
+  --futura-cyan-ink: #021219;
+  --futura-amber: #ff9d3d;
+  --futura-amber-dim: rgb(255 157 61 / 16%);
+  --futura-amber-glow: rgb(255 140 40 / 44%);
+  --futura-amber-ink: #1c0b00;
+  --futura-alert: #ff6670;
+  --futura-shadow: rgb(0 0 0 / 55%);
+  --futura-backdrop: rgb(1 4 10 / 72%);
+
+  --futura-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --futura-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --futura-press: 120ms;
+  --futura-glow-in: 260ms;
+  --futura-close: 220ms;
+
+  --futura-sans: "Barlow", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --futura-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --futura-radius: 14px;
+  --futura-radius-small: 9px;
+}
+
+:root[data-futura-theme="light"],
+:root[data-futura-theme="light"] .futura-surface {
+  --futura-page: #dfe6ef;
+  --futura-page-glow: rgb(255 255 255 / 70%);
+  --futura-grid: rgb(30 70 120 / 7%);
+  --futura-panel: #f5f8fc;
+  --futura-panel-raised: #ffffff;
+  --futura-panel-sunk: #e8eef5;
+  --futura-edge: #c3cedc;
+  --futura-edge-bright: #8fa3bb;
+  --futura-sheen: rgb(255 255 255 / 80%);
+  --futura-ink: #0b1626;
+  --futura-ink-muted: #475870;
+  --futura-ink-faint: #b2bfcf;
+  --futura-cyan: #00739f;
+  --futura-cyan-dim: rgb(0 115 159 / 12%);
+  --futura-cyan-glow: rgb(0 150 210 / 24%);
+  --futura-cyan-ink: #ffffff;
+  --futura-amber: #b05200;
+  --futura-amber-dim: rgb(176 82 0 / 12%);
+  --futura-amber-glow: rgb(230 120 20 / 26%);
+  --futura-amber-ink: #ffffff;
+  --futura-alert: #c1272f;
+  --futura-shadow: rgb(20 40 70 / 14%);
+  --futura-backdrop: rgb(10 20 35 / 46%);
+}
+
+body.futura-surface { margin: 0; background: var(--futura-page); color: var(--futura-ink); font-family: var(--futura-sans); }

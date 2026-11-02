@@ -3,7 +3,7 @@
  * generated skin in a temporary copy checks the package, registrations and build seams a real skin uses. The Field
  * reconstruction lives in `field.test.ts`; the three copies run at once.
  */
-import { lstatSync, readFileSync, rmSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -26,11 +26,19 @@ describe("new-skin", () => {
     }, 120_000);
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
-    it("creates a linked workspace package that a Card lands in", async () => {
+    it("creates a linked workspace package that a Card lands in, and a study beside it", async () => {
       const skin = await run(copy, "node", ["scripts/new-skin/index.js", "canvas"]);
       expect(skin.status, skin.output).toBe(0);
       const card = await run(copy, "node", ["scripts/new-card/index.js", "light", "--skin", "canvas"]);
       expect(card.status, card.output).toBe(0);
+      // A study (spec/skins.md → Studies): the same generators with --study, in the same copy and the same install.
+      const entryBefore = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
+      const deployedBefore = readFileSync(join(copy, "scripts/generated-skins.js"), "utf8");
+      const deployDocBefore = readFileSync(join(copy, "spec/deploy.md"), "utf8");
+      const study = await run(copy, "node", ["scripts/new-skin/index.js", "atelier", "--study"]);
+      expect(study.status, study.output).toBe(0);
+      const studyCard = await run(copy, "node", ["scripts/new-card/index.js", "sensor", "--skin", "atelier"]);
+      expect(studyCard.status, studyCard.output).toBe(0);
       linkNodeModules(copy);
       const workspace = await recordWorkspace(copy);
       expect(workspace.status, workspace.output).toBe(0);
@@ -76,15 +84,43 @@ describe("new-skin", () => {
       expect(skinFile("lovelace/CanvasDashboard.tsx")).toContain("<CanvasActionStatus />");
       expect(skinFile("lovelace/CanvasActionStatus.tsx")).toContain("useActionStatus()");
 
+      // The study is the same skin, marked, filed under Studies and never shipped.
+      const studyFile = (path: string) => readFileSync(join(copy, "src/skins/atelier", path), "utf8");
+      const studyManifest = JSON.parse(studyFile("package.json"));
+      expect(studyManifest.dashhaus).toEqual({ study: { theme: { global: "atelierTheme", light: "light", dark: "dark" } } });
+      expect(studyManifest.description).toMatch(/^A study: the Atelier skin/);
+      expect(studyFile("storybook.tsx")).toContain('section: "Studies/Atelier",');
+      expect(studyFile("README.md")).toMatch(/^# Atelier, a study\n/);
+      expect(studyFile("stories/ReadMeFirst.mdx")).toContain('<Meta title="Studies/Atelier/Read me first" />');
+      expect(studyFile("cards/sensor/AtelierSensorCard.stories.tsx")).toContain('title: "Studies/Atelier/Cards/Sensor"');
+      expect(studyFile("ha/HaAtelierSensorCard.stories.tsx")).toContain('title: "Studies/Atelier/Connected/Sensor"');
+      expect(readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8")).toBe(entryBefore);
+      expect(readFileSync(join(copy, "scripts/generated-skins.js"), "utf8")).toBe(deployedBefore);
+      expect(readFileSync(join(copy, "spec/deploy.md"), "utf8")).toBe(deployDocBefore);
+      // Its docs stay in its folder: design rules beside it, and no spec/ page or spec/cards.md entry names it.
+      expect(studyFile("design.md")).toMatch(/^## Sensor$/m);
+      expect(readdirSync(join(copy, "spec")).filter((file) => /atelier/i.test(file))).toEqual([]);
+      expect(readFileSync(join(copy, "spec/cards.md"), "utf8")).not.toMatch(/Atelier/);
+      const sorted = readFileSync(join(copy, ".storybook/preview.tsx"), "utf8");
+      const studiesAt = sorted.indexOf('"Studies", [');
+      expect(sorted.indexOf('"Atelier", [', studiesAt), "the study is ordered inside Studies").toBeGreaterThan(studiesAt);
+      expect(sorted.slice(sorted.indexOf('"Atelier", [', studiesAt)).match(/"Sensor",/g)?.length).toBe(2);
+
       const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);
-      const lint = await run(copy, "npx", ["eslint", "src/skins/canvas", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
+      const lint = await run(copy, "npx", ["eslint", "src/skins/canvas", "src/skins/atelier", "scripts/new-card", "scripts/new-skin", "verify/generator-packages.test.ts"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/canvas", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts", "verify/skin-surface.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/canvas", "src/skins/atelier", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/generator-packages.test.ts", "verify/skin-surface.test.ts", "verify/studies.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const bundle = await run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);
-    }, 300_000);
+      expect(readFileSync(join(copy, "dist/dashhaus.js"), "utf8"), "the study never reaches the bundle").not.toContain("dashhaus-atelier");
+      // The study's Read me first page and nested sort order build: the static indexer reads both.
+      const storybook = await run(copy, "npm", ["run", "build-storybook", "--", "--quiet"]);
+      expect(storybook.status, storybook.output).toBe(0);
+      const index = JSON.parse(readFileSync(join(copy, "storybook-static/index.json"), "utf8"));
+      expect(Object.keys(index.entries)).toEqual(expect.arrayContaining(["studies-atelier-read-me-first--docs", "studies-atelier-cards-sensor--unavailable"]));
+    }, 420_000);
   });
 
 });

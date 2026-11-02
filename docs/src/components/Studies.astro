@@ -1,0 +1,69 @@
+---
+/**
+ * Every study in the repository (spec/skins.md → Studies), read at build time from the skins' own manifests: a skin
+ * whose package.json carries `dashhaus.study` appears here with its description, its phone Examples story drawn live
+ * in the site's look, and links to its Read me first page and its source. A new study needs no edit to this page.
+ */
+import LiveStory from "./LiveStory.astro";
+
+interface Manifest {
+  name: string;
+  description?: string;
+  dashhaus?: { study?: { theme: { global: string; light: string; dark: string } } };
+}
+
+const manifests = import.meta.glob<Manifest>("../../../src/skins/*/package.json", { eager: true, import: "default" });
+const setups = import.meta.glob<string>("../../../src/skins/*/storybook.tsx", { eager: true, query: "?raw", import: "default" });
+const repo = "https://github.com/Krystosterone/dashhaus";
+const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
+/** Storybook's id for a title: lower-case words joined by hyphens. */
+const idOf = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+const studies = Object.entries(manifests)
+  .flatMap(([path, manifest]) => {
+    const marker = manifest.dashhaus?.study;
+    if (!marker) return [];
+    const dir = path.match(/src\/skins\/([^/]+)\/package\.json$/)![1];
+    const section = setups[path.replace(/package\.json$/, "storybook.tsx")]?.match(/^\s*section: "([^"]+)",?$/m)?.[1];
+    if (!section) throw new Error(`src/skins/${dir}/storybook.tsx declares no section`);
+    const name = section.split("/").at(-1)!;
+    const { global, light, dark } = marker.theme;
+    return [{ dir, name, section, description: manifest.description, light: `${global}:${light}`, dark: `${global}:${dark}` }];
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+---
+
+{studies.length === 0 && <p>No studies yet.</p>}
+{
+  studies.map((study) => (
+    <section class="study" aria-labelledby={`study-${study.dir}`}>
+      <h2 id={`study-${study.dir}`}>{study.name}</h2>
+      {study.description && <p>{study.description}</p>}
+      <LiveStory
+        id={`${idOf(`${study.section}/Dashboards/Examples`)}--phone`}
+        title={`${study.name} on a phone`}
+        device="Phone"
+        width={390}
+        height={844}
+        light={study.light}
+        dark={study.dark}
+        link={false}
+      />
+      <p class="study-links">
+        <a href={`${storybook}?path=/docs/${idOf(`${study.section}/Read me first`)}--docs`} target="_blank" rel="noopener">Read me first, in Storybook</a>
+        {" · "}
+        <a href={`${repo}/tree/main/src/skins/${study.dir}`} target="_blank" rel="noopener">Its source and README</a>
+      </p>
+    </section>
+  ))
+}
+
+<style>
+  .study + .study {
+    margin-top: 2.5rem;
+  }
+
+  .study-links {
+    font-size: var(--sl-text-sm);
+  }
+</style>

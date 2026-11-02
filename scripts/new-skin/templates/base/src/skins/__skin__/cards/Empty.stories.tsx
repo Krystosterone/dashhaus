@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 const meta = {
-  title: "__Section__/Cards",
+  title: "__Stories__/Cards",
   parameters: { layout: "centered" },
 } satisfies Meta;
 export default meta;

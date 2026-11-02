@@ -231,11 +231,15 @@ Then `npm test`, `npm run build` and deploy again. The automatic layout now draw
   `npm test` enforces it.
 - Every colour comes from `styles/tokens.css`, under the skin's prefix, so another skin on the same page can't collide
   with it.
+- Dark mode keys on the skin's own attribute, `data-my-skin-theme`, never the shared `data-theme` another skin on the
+  page may set. `npm test` enforces it.
 - A skin never imports another skin.
 
 The scaffold's `AGENTS.md` repeats these beside the files they govern, with the rest of the look's rules.
 
 [Packages](/dashhaus/packages/#for-a-skin-author) lists what each `@dashhaus/dashboard` subpath promises a skin.
+
+For a skin drawn end to end with the generators, to take ideas from or build on, see [Studies](/dashhaus/develop/studies/).
 
 ## Orb and Field beside your skin
 

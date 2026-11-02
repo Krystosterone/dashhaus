@@ -1,6 +1,7 @@
 import type { Decorator, Loader, Preview } from "@storybook/react";
 import { orbStorybook } from "@dashhaus/orb/storybook";
 import { fieldStorybook } from "@dashhaus/field/storybook";
+import { futuraStorybook } from "@dashhaus/futura/storybook";
 // new-skin: storybook imports
 
 /**
@@ -24,6 +25,7 @@ interface SkinStorybook {
 const SKINS: SkinStorybook[] = [
   orbStorybook,
   fieldStorybook,
+  futuraStorybook,
   // new-skin: storybook setups
 ];
 
@@ -115,6 +117,32 @@ const preview: Preview = {
             ],
           ],
           // new-skin: section order
+          // Studies (spec/skins.md → Studies): skins an agent built with the generators, kept to learn from. Each has
+          // the usual groups after its Read me first page.
+          "Studies", [
+            "Futura", [
+              "Read me first",
+              "Cards", [
+                "Light",
+                "Climate",
+                "Toggle",
+                "Sensor",
+                "Weather",
+                // new-card: cards
+              ],
+              "Dashboards", ["Examples", "Lovelace card", "Header", "Nav bar"],
+              "Foundations", ["Design rules", "Palette", "Parts"],
+              "Connected", [
+                "Light",
+                "Climate",
+                "Toggle",
+                "Sensor",
+                "Weather",
+                // new-card: connected
+              ],
+            ],
+            // new-skin: study order
+          ],
         ],
       },
     },

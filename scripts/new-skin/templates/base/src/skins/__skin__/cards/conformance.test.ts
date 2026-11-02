@@ -8,7 +8,7 @@ const cards = cardFolders(SKIN).map((name) => ({ name, Name: name[0].toUpperCase
 /** The generic checks, declared for __Section__: its story section and its __skin__-<name>- classes. */
 const CHECKS = {
   skin: SKIN,
-  storyPrefix: "__Section__/Cards",
+  storyPrefix: "__Stories__/Cards",
   component: (Name: string) => `__Skin__${Name}Card.tsx`,
   stories: (Name: string) => `__Skin__${Name}Card.stories.tsx`,
   allowedClass: (cls: string, card: { name: string }) => cls.startsWith("__skin__-") || cls.startsWith(`${card.name}-`),
@@ -35,6 +35,6 @@ describe.each(cards)("__Section__ $name Card", ({ name, Name }) => {
   it("is registered, exported and documented", () => {
     expect(read(`${SKIN}/lovelace/registry.tsx`)).toContain(`${name}: {`);
     expect(read(`${SKIN}/index.ts`)).toContain(component);
-    expect(read(`spec/__skin__.md`)).toMatch(new RegExp(`^## ${Name.replace(/([A-Z])/g, " $1").trim()}$`, "mi"));
+    expect(read(`__designDoc__`)).toMatch(new RegExp(`^## ${Name.replace(/([A-Z])/g, " $1").trim()}$`, "mi"));
   });
 });
