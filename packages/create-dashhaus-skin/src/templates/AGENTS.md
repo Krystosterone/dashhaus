@@ -77,7 +77,8 @@ Work from the outside in, snapshotting after each step and comparing with the re
   `websocket` or `demo` subpaths; `ha/` adapters do that.
 - ✓ **Every card folder** has `__Skin__<Name>Card.tsx` and `__Skin__<Name>Card.stories.tsx` titled
   `__Section__/Cards/<Name>`, and a `CARD_CODE` no other card uses.
-- **One card, one entity.**
+- **One card, one model.** A card draws one normalized model: one entity, or that entity plus the companions its
+  hook composes (the sensor's humidity beside its temperature). A card never takes a second entity.
 - **A card's height never changes with its state**: turning a light on must not move the page.
 - **Unavailable reads as unavailable** without colour: a dash, a word or a dashed outline.
 - **Controls feel like controls:** `touch-action: manipulation`, no text selection or tap highlight, press feedback on

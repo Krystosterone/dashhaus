@@ -6,7 +6,9 @@ React + TypeScript skins for a custom Home Assistant dashboard, developed and sh
 
 One word per thing, the same in code, Storybook and the docs.
 
-- **Card** — one entity drawn on a dashboard, Home Assistant's word for it. Every skin keeps its cards in `src/skins/<skin>/cards/<name>/` and files their stories under `<Skin>/Cards/<Name>`. "Widget" is the old name; don't bring it back.
+- **Card** — one model drawn on a dashboard, Home Assistant's word for it. Every skin keeps its cards in `src/skins/<skin>/cards/<name>/` and files their stories under `<Skin>/Cards/<Name>`. "Widget" is the old name; don't bring it back.
+- **Model** — the normalized object a card draws, from `useHa<Name>`. A **direct model** is one Home Assistant entity (a light, a thermostat, a cover); a **composed model** is a primary entity plus companions the hook composes (found beside it, or given as options): a sensor with its device's humidity and battery, a sound machine's switch and volume, the weather with air quality and sun, an Owlet sock's sensors and base station. Composition lives in the entity type and the hook, never in the card: every card still takes one `entity` prop, so a dashboard, layout or YAML treats every card alike. "Device card" describes a composed model from one device; it is not a third card type.
+- **Interaction** — what a card lets you do: a **control** has a primary action, a **reading** only shows values. It is a trait of the props (an alarm can be view-only, a reading can carry a small action), never a third card type.
 - **Tile** — orb's card ready for a dashboard: the card in its size container with its details sheet wired in (`<Name>Tile`, from `detailsTile()`). `<Name>Card` draws the card itself, and draws it again as `variant="sheet"` inside the sheet.
 - **Module** — field's card: the plate with its key, screen and fader (a reading's glyph, screen and today), carrying its own detail panel (`<Name>Module`). It is to field what the tile is to orb; field's YAML lists them under `modules:`.
 - **Details** — what a card opens from its name or a press and hold: orb's sheet, field's panel. Stories say Details for both.
@@ -16,7 +18,7 @@ One word per thing, the same in code, Storybook and the docs.
 - **Dashboard** — a page of cards and what frames them: `DashboardPage`, `Section`, `CardGrid`, `Columns`, `Cell`, the `Header` and the `NavBar`. The header and the nav bar are page furniture, not cards.
 - **Foundation** — a story about a skin's rules rather than one card: its palette, colour temperature, compact rows, worst-case data side by side.
 - **Connected** — a card bound to the store: `Ha<Name>Tile` in orb, `Ha<Name>Module` in field, on the shared `useHa<Name>` hook. Its stories are under `<Skin>/Connected/<Name>`.
-- **Lovelace card** — the custom element Home Assistant loads (`custom:dashhaus-orb`, `custom:dashhaus-field`); it draws a whole dashboard from its YAML. Always say Lovelace card for it, so "card" alone keeps meaning one entity's card. Inside its YAML, `cards:` lists entity cards and `card:` picks which card draws an entity.
+- **Lovelace card** — the custom element Home Assistant loads (`custom:dashhaus-orb`, `custom:dashhaus-field`); it draws a whole dashboard from its YAML. Always say Lovelace card for it, so "card" alone keeps meaning one model's card. Inside its YAML, `cards:` lists cards and `card:` picks which card draws an entity.
 - **Primitive** — a headless interaction hook in `packages/core/src/primitives/`: behaviour, no markup.
 - **Part** — a skin's styled control in its `shared/`, drawn on a primitive where it has behaviour: orb's `Orb`, `TogglePill`, `Chip`, `Stepper`, `Track`; field's `Key`, `Fader`, `RangeFader`, `Screen`, `Meter`. A card is built from parts and brings only what is its own (a track's fill, a screen's figure). Each skin's **Foundations → Parts** story shows its parts across their states.
 - **Seed** — demo data for one example entity, in a card's `demo/`; `<NAME>_WORST_CASE` are its worst-case seeds.
@@ -131,7 +133,7 @@ Any other group a skin can't fill holds one **Not in <Skin>** story that says wh
 
 ## Hard rules
 
-For every skin, the rules in spec/skins.md → Rules every skin keeps: one card, one entity; colours come from tokens (no colour literal in a skin's CSS); a card's height never changes with its state; motion only on `transform`, `opacity`, `clip-path` and colours, with easing from tokens; hover only under `@media (hover: hover) and (pointer: fine)`; controls feel like controls (no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`). That section is their one home; the scaffold's `AGENTS.md` repeats them for consumers, and `verify/skin-rules.test.ts` keeps the two in step.
+For every skin, the rules in spec/skins.md → Rules every skin keeps: one card, one model (a direct one Home Assistant entity, or a composed one with the companions its hook composes); colours come from tokens (no colour literal in a skin's CSS); a card's height never changes with its state; motion only on `transform`, `opacity`, `clip-path` and colours, with easing from tokens; hover only under `@media (hover: hover) and (pointer: fine)`; controls feel like controls (no selection or tap highlight, `touch-action: manipulation`, press feedback on `:active`). That section is their one home; the scaffold's `AGENTS.md` repeats them for consumers, and `verify/skin-rules.test.ts` keeps the two in step.
 
 For the orb skin:
 

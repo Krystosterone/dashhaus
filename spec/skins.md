@@ -39,8 +39,10 @@ This section is their one home. A skin's own spec adds its numbers and names (fo
 accent), and the scaffold's `AGENTS.md` repeats each rule under the same bold title for an agent with only the
 package; `verify/skin-rules.test.ts` holds it to that.
 
-- **One card, one entity.** A card draws one Home Assistant entity; companions (a humidity sensor beside a
-  temperature) are that card's options, and several things on one card are a skin's bundle of cards.
+- **One card, one model.** A card draws one normalized model: a **direct model** is one Home Assistant entity, a
+  **composed model** is a primary entity plus the companions its hook composes (a sensor's device readings, an
+  Owlet's vitals). The model stays in the entity type and hook, so every card takes one `entity` prop; several
+  things on one page are a skin's bundle of cards.
 - **Colours come from tokens.** No colour literal in a skin's CSS: every colour is a token in the skin's
   `styles/tokens.css`, under the skin's namespace, with its light and dark values.
 - **A card's height never changes with its state.** Turning something on, a longer value or an unavailable entity

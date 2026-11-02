@@ -6,7 +6,7 @@ The attention, row identity and Home Assistant integration rules here have opera
 
 ## Orb design rules
 
-- **One card, one entity.**
+- **One card, one model.** A direct model is one Home Assistant entity; a composed model is a primary entity plus companions its hook composes (a sensor's device readings, a sound machine's volume, the weather's air quality and sun, an Owlet sock's sensors). Composition never reaches the card or the page: every card takes one `entity` prop and one footprint, and joining cards into one surface is the bundle's job.
 - **One modular footprint system.** Every card type and both bundle types use the same 60 px unit and 8 px gap: `compact` is 60 px, `standard` is 128 px, and `featured` is 264 px. In general, n units occupy n × 60 + (n − 1) × 8 pixels.
 - **Height never changes with state, entity type or width.** Set `footprint="compact" | "standard" | "featured"` on any tile; the default is `standard`. Width may simplify the internal arrangement, but it never changes the footprint or promotes a standard card to featured.
 - **Size from the container, not the viewport.** Container queries adapt the anatomy at 260 px and 440 px. Below 260 px a standard card keeps its orb, control and tappable name in the same places; a bare reading icon drops its empty orb-sized box so the name keeps its room. `featured` explicitly adds the Today strip and a large readout when that figure is not already printed on the control; below 260 px the readout yields to the orb. History remains in the sheet for smaller footprints.
