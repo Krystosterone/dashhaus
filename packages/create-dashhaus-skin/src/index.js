@@ -113,7 +113,7 @@ function withTarballs(body) {
 /** npm drops dotfiles like .gitignore from a package, so the templates carry them as _name. */
 const DOTFILES = { _gitignore: ".gitignore", "_env.example": ".env.example" };
 
-const templateRoot = fileURLToPath(new URL("./templates/", import.meta.url));
+const templateRoot = fileURLToPath(new URL("./templates/standalone/", import.meta.url));
 const fill = (text) => Object.entries(tokens).reduce((source, [token, value]) => source.replaceAll(token, value), text);
 
 function walk(dir, base = "") {

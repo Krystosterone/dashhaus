@@ -91,13 +91,13 @@ export default tseslint.config(
   {
     // Template placeholders (`__Name__Card`) don't start upper-case, so the hooks rule can't tell they're
     // components. Generated files are linted normally after their tokens are filled.
-    files: ["scripts/new-card/templates/**", "scripts/new-skin/templates/**"],
+    files: ["scripts/new-card/templates/**", "scripts/new-skin/templates/**", "packages/create-dashhaus-skin/src/templates/{skin,card}/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
   {
     // Skin adapters fill optional imports and props from the target domain, so template source can look unused.
     // The generated source under src/ is checked without this allowance.
-    files: ["scripts/new-card/templates/field/**", "scripts/new-skin/templates/**"],
+    files: ["scripts/new-card/templates/field/**", "scripts/new-skin/templates/**", "packages/create-dashhaus-skin/src/templates/{skin,card}/**"],
     rules: {
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-unused-expressions": "off",

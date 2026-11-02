@@ -23,7 +23,7 @@ import { fill, SKIN } from "../docs/src/lib/scaffold";
 const root = process.cwd();
 const pagesDir = join(root, "docs/src/content/docs");
 const examplesDir = join(root, "docs/examples");
-const templatesDir = join(root, "packages/create-dashhaus-skin/src/templates");
+const templatesDir = join(root, "packages/create-dashhaus-skin/src/templates/standalone");
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

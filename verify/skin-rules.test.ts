@@ -31,7 +31,7 @@ describe("rules every skin keeps", () => {
   });
 
   it("each appear in the scaffold's AGENTS.md under the same title", () => {
-    const guide = titles(section(read("packages/create-dashhaus-skin/src/templates/AGENTS.md"), "## Rules"));
+    const guide = titles(section(read("packages/create-dashhaus-skin/src/templates/standalone/AGENTS.md"), "## Rules"));
     expect(rules.filter((rule) => !guide.includes(rule))).toEqual([]);
   });
 

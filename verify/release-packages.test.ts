@@ -21,7 +21,7 @@ describe("public packages", () => {
     expect(version).not.toBe("0.0.0");
     for (const pkg of publicPackages) expect(manifests[pkg.key].version, pkg.name).toBe(version);
     expect(manifests.dashboard.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
-    const template = read("packages/create-dashhaus-skin/src/templates/package.json");
+    const template = read("packages/create-dashhaus-skin/src/templates/standalone/package.json");
     expect(template.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
     expect(template.dependencies?.["@dashhaus/dashboard"]).toBe(`^${version}`);
     expect(template.devDependencies?.["@dashhaus/deploy"]).toBe(`^${version}`);
@@ -34,7 +34,7 @@ describe("public packages", () => {
     for (const key of ["dashboard", "orb", "field"] as const) {
       expect(manifests[key].peerDependencies?.["react-dom"], `${manifests[key].name} accepts React 19`).toBe("^18.3.1 || ^19.0.0");
     }
-    const template = read("packages/create-dashhaus-skin/src/templates/package.json");
+    const template = read("packages/create-dashhaus-skin/src/templates/standalone/package.json");
     expect(template.peerDependencies?.react).toBe("^18.3.1 || ^19.0.0");
     expect(template.peerDependencies?.["react-dom"]).toBe("^18.3.1 || ^19.0.0");
   });

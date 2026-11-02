@@ -7,7 +7,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { generated, generatedManifest, packages, workspaces } from "../scripts/packages.js";
+import { generated, generatedManifest, packages, skinTemplates, workspaces } from "../scripts/packages.js";
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
@@ -61,6 +61,14 @@ describe("the generator package map", () => {
     expect({ ...study, description: undefined, dashhaus: undefined }).toEqual({ ...generatedManifest("canvas"), description: undefined, dashhaus: undefined });
   });
 
+  it("keeps one copy of every skin template: the in-repo overlays add files, never a second version of a shared one", () => {
+    const files = (dir: string) => readdirSync(join(root, dir), { recursive: true, withFileTypes: true }).filter((entry) => entry.isFile())
+      .map((entry) => join(entry.parentPath, entry.name).slice(join(root, dir).length + 1));
+    const shared = new Set([...files(skinTemplates.skin), ...files(skinTemplates.card)]);
+    const overlays = ["repo", "repo-card", "study"].flatMap((overlay) => files(`scripts/new-skin/templates/${overlay}`).map((file) => ({ overlay, file })));
+    expect(overlays.filter(({ file }) => shared.has(file)).map(({ overlay, file }) => `scripts/new-skin/templates/${overlay}/${file}`), "edit the shared template in packages/create-dashhaus-skin instead").toEqual([]);
+  });
+
   it("has generated Card templates importing only declared @dashhaus subpaths", () => {
     const declared = (specifier: string) => {
       const [, name, ...rest] = specifier.split("/");
@@ -69,7 +77,7 @@ describe("the generator package map", () => {
       const key = rest.length ? `./${rest.join("/")}` : ".";
       return Object.keys(entry.exports).some((exported) => exported === key || (exported.endsWith("/*") && key.startsWith(exported.slice(0, -1))));
     };
-    const templates = ["scripts/new-skin/templates", "scripts/new-card/templates"];
+    const templates = ["scripts/new-skin/templates", "scripts/new-card/templates", skinTemplates.skin, skinTemplates.card];
     const bad: string[] = [];
     for (const root of templates) {
       for (const file of readdirSync(join(process.cwd(), root), { recursive: true, encoding: "utf8" }).filter((path) => /\.(tsx?|js|mjs)$/.test(path))) {

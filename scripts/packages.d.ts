@@ -12,6 +12,8 @@ export const packages: Record<"core" | "dashboard" | "deploy", PackageEntry>;
 export function packageFile(packageName: keyof typeof packages, path?: string): string;
 export function packageSpecifier(packageName: keyof typeof packages, subpath?: string): string;
 
+/** The templates every skin starts from, owned by the scaffolder; each folder is laid out from a skin's root. */
+export const skinTemplates: { skin: string; card: string };
 export const referenceSkins: Record<"orb" | "field", { dir: string }>;
 
 export const generated: {

@@ -70,12 +70,12 @@ async function checkTarballs(manifests) {
             : pkg.key === "bundle"
               ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
               : pkg.key === "scaffold"
-                ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/package.json", "package/dist/templates/lovelace/card.tsx"]
+                ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/standalone/package.json", "package/dist/templates/standalone/lovelace/card.tsx", "package/dist/templates/skin/lovelace/card.tsx", "package/dist/templates/card/cards/__name__/__Skin____Name__Card.tsx"]
                 : ["package/README.md", "package/bin.js", "package/src/cli.js", "package/src/cli.d.ts", "package/src/config.js", "package/src/config.d.ts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
     if (pkg.key === "scaffold") {
-      const template = JSON.parse(execFileSync("tar", ["-xOzf", tarball, "package/dist/templates/package.json"], { encoding: "utf8" }));
+      const template = JSON.parse(execFileSync("tar", ["-xOzf", tarball, "package/dist/templates/standalone/package.json"], { encoding: "utf8" }));
       for (const name of ["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy"]) {
         const range = template.dependencies?.[name] ?? template.devDependencies?.[name];
         if (range !== `^${packed.version}`) {

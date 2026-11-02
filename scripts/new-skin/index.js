@@ -13,8 +13,10 @@
  * bundle, the deploy config or spec/deploy.md, so it never ships. Nothing else differs, so a study exercises the
  * generators exactly as a real skin does.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generated, generatedManifest, markers, seams, studies } from "../packages.js";
+import { generated, generatedManifest, markers, root, seams, skinTemplates, studies } from "../packages.js";
 import { after, changes, exists, filler, read } from "../new-card/lib.js";
 
 const fail = (message) => {
@@ -72,12 +74,11 @@ const fill = filler({
 });
 const templateRoot = fileURLToPath(new URL("./templates/", import.meta.url));
 const change = changes({ templateRoot, onFail: fail });
-change.fromTemplates(study ? ["base", "study"] : ["base"], fill);
-if (study) {
-  // The template writes the design rules to spec/; a study's move into its own folder.
-  change.create(docs, change.read(seams.skinDoc(skin)));
-  change.writes.delete(seams.skinDoc(skin));
-}
+// The core every skin shares, from the scaffolder's templates, then what a skin in this repository adds: its stories,
+// tests, Storybook setup and entry.
+change.fromTemplates([""], fill, join(root, skinTemplates.skin), dir);
+change.fromTemplates(study ? ["repo", "study"] : ["repo"], fill, templateRoot, dir);
+change.create(docs, fill(readFileSync(join(templateRoot, "design.md"), "utf8")));
 // The skin is a private workspace package: `npm install` links its name and the root apps import its exports.
 const theme = { global: `${skinVar}Theme`, light: "light", dark: "dark" };
 change.create(generated.file(skin, generated.files.manifest), `${JSON.stringify(generatedManifest(skin, { study, Section, theme }), null, 2)}\n`);
