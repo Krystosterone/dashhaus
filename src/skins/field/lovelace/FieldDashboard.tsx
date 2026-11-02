@@ -1,7 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
-import { useHaSelector, useHaStore } from "@dashhaus/core";
-import { actionMessage } from "@dashhaus/dashboard";
+import { useActionStatus } from "@dashhaus/dashboard/skin";
 import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
 import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
@@ -60,24 +59,17 @@ function LiveModule({ item, footprint }: LiveProps) {
 
 /** The latest command Home Assistant rejected, with Retry when repeating it is safe, and Dismiss. */
 function ActionNotice() {
-  const store = useHaStore();
-  const error = useHaSelector((snapshot) => snapshot.lastActionError);
-  const entity = useHaSelector((snapshot) => (error?.entityId ? snapshot.entities[error.entityId] : undefined));
-  const [retrying, setRetrying] = useState(false);
-  const canRetry = store.canRetryLastAction?.() === true;
-  const message = actionMessage(error, entity, canRetry);
-  if (!message) return null;
+  const status = useActionStatus();
+  if (!status) return null;
+  const { title, detail, canRetry, retrying } = status;
   return (
     <div className="fd-notice" role="alert" aria-label="Home Assistant action failed">
-      <p className="fd-notice-t"><strong>{message.title}</strong><span>{message.detail}</span></p>
+      <p className="fd-notice-t"><strong>{title}</strong><span>{detail}</span></p>
       <div className="fd-notice-keys">
         {canRetry && (
-          <Key label={retrying ? "Retrying" : "Retry"} caption={retrying ? "Retrying" : "Retry"} disabled={retrying} onPress={() => {
-            setRetrying(true);
-            void store.retryLastAction?.().catch(() => undefined).finally(() => setRetrying(false));
-          }}>{null}</Key>
+          <Key label={retrying ? "Retrying" : "Retry"} caption={retrying ? "Retrying" : "Retry"} disabled={retrying} onPress={status.retry}>{null}</Key>
         )}
-        <Key label="Dismiss" caption="Dismiss" onPress={() => store.clearActionError?.()}>{null}</Key>
+        <Key label="Dismiss" caption="Dismiss" onPress={status.dismiss}>{null}</Key>
       </div>
     </div>
   );

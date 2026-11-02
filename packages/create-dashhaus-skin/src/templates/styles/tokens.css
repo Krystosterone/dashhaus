@@ -1,7 +1,9 @@
 /*
  * __Section__'s design tokens: every colour the skin draws comes from here. The bundle turns `:root` into the card's
- * shadow host (`scopeToHost`), and the card sets `data-theme` on it from Home Assistant's dark mode. Keep every block on
- * `:root` only: a token set again on an element inside the card would override the dark values the host inherits.
+ * shadow host (`scopeToHost`), and the card sets `data-__skin__-theme` on it from Home Assistant's dark mode. The
+ * attribute is the skin's own, so another skin's theme attribute on the same page never re-colours this one. Keep every
+ * block on `:root` only: a token set again on an element inside the card would override the dark values the host
+ * inherits.
  */
 :root {
   --__skin__-page: #f4f5f7;
@@ -19,7 +21,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-__skin__-theme="light"]) {
     --__skin__-page: #121419;
     --__skin__-card: #1c2027;
     --__skin__-ink: #f4f6fa;
@@ -31,7 +33,7 @@
   }
 }
 
-:root[data-theme="dark"] {
+:root[data-__skin__-theme="dark"] {
   --__skin__-page: #121419;
   --__skin__-card: #1c2027;
   --__skin__-ink: #f4f6fa;

@@ -183,7 +183,9 @@ Field.
 
 `card.tsx` is the element, on `LovelaceDashboardElement` from `@dashhaus/dashboard/skin`: it builds the store on Home
 Assistant's own connection, puts the CSS in its shadow root and draws your page. `FONT_HREF` names the skin's web
-fonts. Without `cards` in the YAML it lays out every visible light and sensor by area with
+fonts, and `paintHost` puts Home Assistant's dark mode on the host as `data-my-skin-theme`, the attribute
+`styles/tokens.css` reads: the skin's own, so another skin on the same page never re-colours yours. The page ends with
+`ActionStatus`, the row that says when Home Assistant refused a command, with Retry and Dismiss. Without `cards` in the YAML it lays out every visible light and sensor by area with
 `@dashhaus/dashboard/layout`.
 
 <Example template="lovelace/card.tsx" />

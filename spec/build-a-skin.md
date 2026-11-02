@@ -50,7 +50,14 @@ Every card extends `CardProps` from `@dashhaus/dashboard/card`. `useCardFrame` g
 and the article's accessible name; `detailsTile(Card, detailsSheet(Card, Sheet, label))` owns the open state, so the
 card's name (or a bare compact row) opens its details and the dialog closes from its button, Escape or the backdrop.
 The card drawn as `variant="sheet"` is that details view, showing only the facts its props already carry; the `Sheet`
-is a `CardDialog` in `shared/ui.tsx`, and the adapter renders the tile rather than the bare card.
+is a `CardDialog` in `shared/ui.tsx`, and the adapter renders the tile rather than the bare card. The card's name says
+it opens a dialog (`aria-haspopup="dialog"`).
+
+The page around the cards follows [skins.md → The page around the cards](skins.md#the-page-around-the-cards): the
+tokens key dark mode on the skin's own `data-my-skin-theme`, which `paintHost` sets on the card's host (and the preview
+on its page), never the shared `data-theme`; `lovelace/card.tsx` names the web font as `FONT_HREF`; and
+`lovelace/ActionStatus.tsx` draws the store's latest rejected command at the end of the page, from `useActionStatus`
+in the frozen `@dashhaus/dashboard/skin` contract.
 
 Add a domain by adding:
 
@@ -62,7 +69,8 @@ Add a domain by adding:
 
 `npm test` runs the conformance preset (each card's component and story title, its class prefix, a unique code and that
 no presentational card imports the Home Assistant layer) and the skin's CSS rules: no colour literal outside
-`styles/tokens.css`, `:hover` only under the hover media query, and no transition on a layout property. Each finding
+`styles/tokens.css`, no selector on the shared `data-theme`, `:hover` only under the hover media query, and no
+transition on a layout property. Each finding
 names its file, line and fix. Run it after every card change.
 
 ## Build

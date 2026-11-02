@@ -15,7 +15,9 @@ npm install
 npm run storybook
 ```
 
-Node 22 (`.nvmrc`; 22.9 at least), and the npm version root `package.json` pins with `packageManager`. `npm install`
+Node 22 (`.nvmrc`; 22.9 at least), and the npm version root `package.json` pins with `packageManager`: run
+`corepack enable npm` once, so `npm` in the repository is that version. Another npm stops with `EBADDEVENGINES` (or,
+older than 10.9, fails its `preinstall`) instead of rewriting `package-lock.json`. `npm install`
 links every workspace package, so the root apps read each package's source, not a build. Storybook runs at
 `http://localhost:6006`.
 
@@ -56,6 +58,10 @@ folders do. ESLint and `verify/boundaries.test.ts` hold it.
 | `npm run release:check` | Packs the seven tarballs and installs them into a clean app |
 | `npm run new-card`, `npm run new-skin` | The generators ([Add a card or a skin](/dashhaus/develop/cards-and-skins/)) |
 | `npm run perf:collect` | Measures the deployed dashboards in Chromium against a live Home Assistant |
+
+The commands that drive Chromium (`test-storybook`, `perf:collect`, the docs screenshots and the release journeys'
+screenshots) launch the build the pinned Playwright installs (`npx playwright install chromium`). Where that build
+can't be fetched, `DASHHAUS_CHROMIUM=/path/to/chromium` points them at a Chromium already on the machine.
 
 ## What a change must pass
 

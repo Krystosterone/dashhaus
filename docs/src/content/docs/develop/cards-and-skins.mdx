@@ -55,6 +55,12 @@ npm run new-card -- light --skin canvas
 A generated skin's cards start read-only, or with the hook's zero-argument actions, rather than inventing behaviour.
 Give the skin its look by replacing its tokens and parts.
 
+The page around the cards comes with it. Its tokens key dark mode on `data-canvas-theme`, the skin's own attribute,
+which the Lovelace card sets from Home Assistant and the **Canvas theme** toolbar sets in Storybook, so another skin's
+theme never leaks into it. `shared/surface.ts` names its web font once: the Lovelace card links it on Home Assistant's
+page and Storybook links it for the skin's stories. And `CanvasActionStatus` shows a command Home Assistant refused,
+with Retry and Dismiss, so a failed tap never goes unnoticed.
+
 For a skin outside the repository, with no Storybook or workspace, use the published scaffolder instead:
 [Build a skin](/dashhaus/start/build-a-skin/).
 

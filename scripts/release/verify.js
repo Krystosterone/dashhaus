@@ -173,7 +173,7 @@ for (const key of ["window", "document", "HTMLElement", "customElements", "Custo
 const dashboard = await load("@dashhaus/dashboard");
 assert.equal(typeof dashboard.registerCard, "function");
 const skin = await load("@dashhaus/dashboard/skin");
-assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "registerCard", "scopeToHost"]);
+assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "registerCard", "scopeToHost", "useActionStatus"]);
 const card = await load("@dashhaus/dashboard/card");
 assert.equal(card.cardShape({ footprint: "compact" }).footprint, "compact");
 

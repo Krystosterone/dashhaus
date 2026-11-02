@@ -16,7 +16,7 @@ Home Assistant auth + connection
 
 The store is the source for current state. A successful service call means Home Assistant accepted the command; it is not proof that the entity reached the requested state. The next entity snapshot is the readback boundary.
 
-To surface a rejected action, read `useHaSnapshot()` or pass `onActionError` to an individual `Ha*Tile`. The Lovelace `ConfigDashboard` reads the shared store once and shows one page-level recovery row with the affected entity, Retry when repeating the call is safe, and Dismiss. The row floats at the bottom of the view, so it is in sight wherever the failed control was, and it never moves a card. Wrong alarm codes stay in the keypad, where the specific recovery already exists. The raw entity snapshot remains authoritative for readback.
+To surface a rejected action, read `useHaSnapshot()` or pass `onActionError` to an individual `Ha*Tile`; `useActionStatus()` from `@dashhaus/dashboard/skin` gives a recovery row its words, Retry and Dismiss. Every skin's Lovelace page (Orb's `ConfigDashboard`, Field's `FieldDashboard`, a generated skin's dashboard and the scaffold's page) reads the shared store once through it and shows one page-level recovery row with the affected entity, Retry when repeating the call is safe, and Dismiss. The row floats at the bottom of the view, so it is in sight wherever the failed control was, and it never moves a card. Wrong alarm codes stay in the keypad, where the specific recovery already exists. The raw entity snapshot remains authoritative for readback.
 
 ## Connected entity slices
 

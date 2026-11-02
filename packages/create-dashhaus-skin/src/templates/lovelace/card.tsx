@@ -5,8 +5,12 @@ import type { AutoInput } from "@dashhaus/dashboard/layout";
 import { kindOf, parse__Skin__Config } from "./config";
 import type { CardConfig, __Skin__Config } from "./config";
 import { renderCard } from "./registry";
+import { ActionStatus } from "./ActionStatus";
 
 export const __SKIN_CONST___CARD_TYPE = "__card_type__";
+
+/** The theme attribute styles/tokens.css reads, set on the card's host. It is the skin's own: never a shared `data-theme`. */
+export const __SKIN_CONST___THEME_ATTRIBUTE = "data-__skin__-theme";
 
 /**
  * The skin's web fonts, as one Google Fonts stylesheet URL, e.g.
@@ -60,7 +64,7 @@ export function create__Skin__Card(css: string): CustomElementConstructor {
     }
 
     protected paintHost(_config: __Skin__Config, hass: LovelaceHass) {
-      this.setAttribute("data-theme", hass.themes?.darkMode ? "dark" : "light");
+      this.setAttribute(__SKIN_CONST___THEME_ATTRIBUTE, hass.themes?.darkMode ? "dark" : "light");
     }
 
     protected draw(config: __Skin__Config, hass: LovelaceHass) {
@@ -79,6 +83,7 @@ export function create__Skin__Card(css: string): CustomElementConstructor {
             </section>
           ))}
           {cards.length === 0 && <p className="__skin__-empty">No supported entities yet. Add a light or a sensor in Home Assistant.</p>}
+          <ActionStatus />
         </main>
       );
     }

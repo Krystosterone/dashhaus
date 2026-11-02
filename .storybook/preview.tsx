@@ -1,21 +1,77 @@
-import type { Decorator, Preview } from "@storybook/react";
+import type { Decorator, Loader, Preview } from "@storybook/react";
 import { orbStorybook } from "@dashhaus/orb/storybook";
 import { fieldStorybook } from "@dashhaus/field/storybook";
 // new-skin: storybook imports
 
 /**
- * Every skin brings its own Storybook setup (src/skins/<skin>/storybook.tsx): a section its story titles start with,
- * its toolbar, the class its page surface puts on <body>, and a decorator. A new skin adds itself here, and its
- * section to storySort below; its decorator and surface apply to its stories only.
+ * What a skin's Storybook setup declares (src/skins/<skin>/storybook.tsx): a section its story titles start with, its
+ * toolbar, the class its page surface puts on <body>, a decorator and, optionally, its web font's stylesheet URL.
  */
-const SKINS = [
+interface SkinStorybook {
+  section: string;
+  surface: string;
+  /** Its web font's stylesheet, linked from <head> as its Lovelace card links it; its faces load before the story renders. */
+  fontHref?: string;
+  globalTypes: Preview["globalTypes"];
+  initialGlobals: Preview["initialGlobals"];
+  decorator: Decorator;
+}
+
+/**
+ * Every skin brings its own Storybook setup. A new skin adds itself here, and its section to storySort below; its
+ * decorator, surface and font apply to its stories only.
+ */
+const SKINS: SkinStorybook[] = [
   orbStorybook,
   fieldStorybook,
   // new-skin: storybook setups
 ];
 
+const skinOf = (title: string) => SKINS.find((s) => title.startsWith(`${s.section}/`));
+
+/** How long a story waits for its skin's font before it renders with the fallback stack (no network, a slow CDN). */
+const FONT_WAIT_MS = 4000;
+const fonts = new Map<string, Promise<void>>();
+
+/** The families a Google Fonts stylesheet URL asks for (`family=Barlow:wght@400&family=JetBrains+Mono…`). */
+const familiesOf = (href: string) => new URL(href).searchParams.getAll("family").map((family) => family.split(":")[0].replace(/\+/g, " "));
+
+/**
+ * The skin's font stylesheet, linked once, and every face of its families loaded: a story's first paint, a screenshot
+ * and an axe pass all see the real type, in every skin. A stylesheet whose URL
+ * names no family waits for `document.fonts.ready` instead. Settles, never throws; after FONT_WAIT_MS the story renders
+ * anyway, on the fallback stack.
+ */
+function loadFont(href: string): Promise<void> {
+  let loading = fonts.get(href);
+  if (!loading) {
+    loading = new Promise<void>((settle) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      link.onload = () => {
+        const families = new Set(familiesOf(href));
+        const faces = [...document.fonts].filter((face) => families.has(face.family.replace(/["']/g, "")));
+        const loaded = families.size ? Promise.allSettled(faces.map((face) => face.load())) : document.fonts.ready;
+        void loaded.then(() => settle(), () => settle());
+      };
+      link.onerror = () => settle();
+      document.head.append(link);
+    });
+    fonts.set(href, loading);
+  }
+  return Promise.race([loading, new Promise<void>((settle) => setTimeout(settle, FONT_WAIT_MS))]);
+}
+
+/** Loads the story's skin font before it renders. */
+const withSkinFont: Loader = async (ctx) => {
+  const href = skinOf(ctx.title)?.fontHref;
+  if (href) await loadFont(href);
+  return {};
+};
+
 const withSkin: Decorator = (Story, ctx) => {
-  const skin = SKINS.find((s) => ctx.title.startsWith(`${s.section}/`));
+  const skin = skinOf(ctx.title);
   for (const s of SKINS) document.body.classList.toggle(s.surface, s === skin);
   return skin ? skin.decorator(Story, ctx) : <Story />;
 };
@@ -24,6 +80,7 @@ const preview: Preview = {
   globalTypes: Object.assign({}, ...SKINS.map((s) => s.globalTypes)),
   initialGlobals: Object.assign({}, ...SKINS.map((s) => s.initialGlobals)),
   decorators: [withSkin],
+  loaders: [withSkinFont],
   parameters: {
     backgrounds: { disable: true },
     controls: { expanded: true },

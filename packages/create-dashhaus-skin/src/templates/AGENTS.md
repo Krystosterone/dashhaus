@@ -51,10 +51,11 @@ Work from the outside in, snapshotting after each step and comparing with the re
 
 | Path | What it is | Change it? |
 | --- | --- | --- |
-| `styles/tokens.css` | every colour, font stack, easing and duration, light and dark | yes: the palette |
+| `styles/tokens.css` | every colour, font stack, easing and duration, light and dark (dark keyed on the host's `data-__skin__-theme`) | yes: the palette |
 | `shared/ui.css`, `shared/ui.tsx` | the page, area headings, grid, the `Action` button, card parts and the details `Sheet` | yes |
 | `cards/<domain>/` | one card per domain: component, CSS, stories (sample props) and its two-letter `CARD_CODE` | yes |
 | `lovelace/card.tsx` | the custom element: page layout in `draw()`, `FONT_HREF`, host CSS | the layout and font, yes |
+| `lovelace/ActionStatus.tsx` | the rejected-command row: what Home Assistant refused, Retry when safe, Dismiss; drawn once at the end of the page | restyle in `shared/ui.css`; keep it on the page |
 | `lovelace/config.ts` | the YAML the card takes, and which domain draws which card (`kindOf`) | when adding a domain |
 | `lovelace/registry.tsx` | entity → connected card | when adding a domain |
 | `lovelace/entry.tsx` | the bundle's entry: imports every stylesheet `?inline` | when adding a stylesheet |
@@ -72,6 +73,8 @@ Work from the outside in, snapshotting after each step and comparing with the re
 - ✓ **Classes start with `__skin__-`** (the bundle shares a page with other cards); by convention a card's own start
   `__skin__-<CARD_CODE>-`.
 - ✓ **Hover only under `@media (hover: hover) and (pointer: fine)`**, so a tap on a phone never leaves it stuck.
+- ✓ **A theme attribute of its own.** Dark mode is keyed on `data-__skin__-theme`, which `lovelace/card.tsx` sets on
+  its host; no CSS reads the shared `data-theme`, which another skin on the page may set.
 - ✓ **Motion only on `transform`, `opacity`, `clip-path` and colours**, never on layout. Take easing and durations
   from tokens.
 - ✓ **Cards never touch Home Assistant.** A file in `cards/` imports `@dashhaus/core` entities, primitives and
@@ -145,7 +148,8 @@ What you may rely on, and what not to rewrite:
 
 - `@dashhaus/dashboard/skin`: `LovelaceDashboardElement` (implement `styles`, `parse`, `changed`, `draw`; optionally
   `mountClass`, `fontHref`, `paintHost`), `registerCard`, `scopeToHost` (turns `:root` into `:host`, so tokens
-  written for `:root` reach the shadow root), `autoInput`.
+  written for `:root` reach the shadow root), `autoInput`, and `useActionStatus`: the store's latest rejected command
+  for `lovelace/ActionStatus.tsx` (its words, `retry` and `dismiss`).
 - `@dashhaus/dashboard/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
   device), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
   `node_modules/@dashhaus/dashboard/dist/layout.d.ts`, and their signatures may still change before 1.0.

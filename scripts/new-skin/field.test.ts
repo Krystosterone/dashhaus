@@ -86,12 +86,18 @@ describe("new-skin", () => {
       expect(typecheck.status, typecheck.output).toBe(0);
       const lint = await run(copy, "npx", ["eslint", "src/skins/field", "scripts/new-skin", "scripts/new-card/generated.js"]);
       expect(lint.status, lint.output).toBe(0);
-      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts"]);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field", "verify/storybook.test.ts", "verify/boundaries.test.ts", "verify/skin-surface.test.ts"]);
       expect(tests.status, tests.output).toBe(0);
       const storybook = await run(copy, "npm", ["run", "build-storybook"]);
       expect(storybook.status, storybook.output).toBe(0);
       const bundle = await run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);
+
+      // The rebuilt Field gets the page around its cards from the templates: its own theme attribute, the font seam
+      // and the rejected-command row (its card tests prove the named article; its Lovelace tests, the row).
+      expect(readFileSync(join(copy, "src/skins/field/styles/tokens.css"), "utf8")).toContain('[data-field-theme="dark"]');
+      expect(readFileSync(join(copy, "src/skins/field/storybook.tsx"), "utf8")).toContain("fontHref: FIELD_FONT_HREF,");
+      expect(readFileSync(join(copy, "src/skins/field/lovelace/FieldDashboard.tsx"), "utf8")).toContain("<FieldActionStatus />");
 
       const index = readFileSync(join(copy, "src/skins/field/index.ts"), "utf8");
       const registry = readFileSync(join(copy, "src/skins/field/lovelace/registry.tsx"), "utf8");

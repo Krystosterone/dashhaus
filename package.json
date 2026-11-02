@@ -8,7 +8,15 @@
     "node": ">=22.9.0"
   },
   "packageManager": "npm@11.18.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.18.0",
+      "onFail": "error"
+    }
+  },
   "scripts": {
+    "preinstall": "node scripts/check-npm.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build:ha": "node scripts/build-bundle.js",

@@ -1,5 +1,13 @@
-:root,
-.__skin__-surface {
+/*
+ * __Section__'s design tokens: every colour the skin draws comes from here, light and dark.
+ * The theme attribute is the skin's own, data-__skin__-theme, so another skin's attribute on the same <html> (Orb's
+ * data-theme from its Storybook toolbar) never re-colours this one. Storybook's __Section__ theme toolbar sets it on
+ * <html>; the Lovelace card sets it on its host from Home Assistant's dark mode, and scopeToHost turns :root into
+ * that host. Without it, the system's colour scheme decides.
+ * Keep every block on :root only: a token set again on an element inside the page (the surface class) would
+ * override the dark values that element inherits.
+ */
+:root {
   --__skin__-page: #f4f5f7;
   --__skin__-card: #ffffff;
   --__skin__-card-muted: #eef0f3;
@@ -8,6 +16,7 @@
   --__skin__-line: #cbd0d8;
   --__skin__-accent: #245eea;
   --__skin__-accent-ink: #ffffff;
+  --__skin__-warn: #a33a17;
   --__skin__-shadow: rgb(26 31 43 / 12%);
   --__skin__-backdrop: rgb(17 20 27 / 48%);
   --__skin__-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -18,8 +27,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]),
-  .__skin__-surface {
+  :root:not([data-__skin__-theme="light"]) {
     --__skin__-page: #121419;
     --__skin__-card: #1c2027;
     --__skin__-card-muted: #262b34;
@@ -28,12 +36,13 @@
     --__skin__-line: #3c434f;
     --__skin__-accent: #80a7ff;
     --__skin__-accent-ink: #10141d;
+    --__skin__-warn: #ff9a72;
     --__skin__-shadow: rgb(0 0 0 / 32%);
     --__skin__-backdrop: rgb(0 0 0 / 66%);
   }
 }
 
-:root[data-theme="dark"] {
+:root[data-__skin__-theme="dark"] {
   --__skin__-page: #121419;
   --__skin__-card: #1c2027;
   --__skin__-card-muted: #262b34;
@@ -42,6 +51,7 @@
   --__skin__-line: #3c434f;
   --__skin__-accent: #80a7ff;
   --__skin__-accent-ink: #10141d;
+  --__skin__-warn: #ff9a72;
   --__skin__-shadow: rgb(0 0 0 / 32%);
   --__skin__-backdrop: rgb(0 0 0 / 66%);
 }
