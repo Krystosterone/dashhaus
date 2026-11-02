@@ -5,4 +5,4 @@ import { fileURLToPath } from "node:url";
 
 const packed = new URL("./dist/index.js", import.meta.url);
 const source = new URL("./src/index.js", import.meta.url);
-await import(existsSync(fileURLToPath(packed)) ? packed : source);
+await import(existsSync(fileURLToPath(source)) ? source : packed);

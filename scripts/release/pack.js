@@ -3,16 +3,16 @@
  *
  * npm packs a staged copy holding only the files the package ships and its release manifest (no `private`, no
  * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts; publishing is the
- * operator's call. The build output is `packages/{core,dashboard}/dist`; deploy already runs from its `.mjs` sources.
+ * operator's call. The build output is `packages/{core,dashboard}/dist`; deploy already runs from its `.js` sources.
  */
 import { execFileSync } from "node:child_process";
 import { copyFile, cp, mkdir, mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { buildBundlePackage } from "../build-bundle.mjs";
-import { buildPackages } from "../build-packages.mjs";
-import { publicPackages, publishManifest, readManifest, root } from "./manifest.mjs";
+import { buildBundlePackage } from "../build-bundle.js";
+import { buildPackages } from "../build-packages.js";
+import { publicPackages, publishManifest, readManifest, root } from "./manifest.js";
 
 const outIndex = process.argv.indexOf("--out");
 const out = resolve(root, outIndex === -1 ? "release" : process.argv[outIndex + 1] ?? "release");

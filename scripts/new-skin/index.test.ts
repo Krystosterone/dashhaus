@@ -11,9 +11,9 @@ import { copyRepo, linkNodeModules, recordWorkspace, root, run, typecheckCopy } 
 
 describe("new-skin", () => {
   it("finds every registration anchor without writing", async () => {
-    const result = await run(root, "node", ["scripts/new-skin/index.mjs", "probe-skin", "--dry-run"]);
+    const result = await run(root, "node", ["scripts/new-skin/index.js", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
-    for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.mjs", "spec/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.js", "spec/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
     expect(result.output).toContain("create src/skins/probe-skin/package.json");
     expect(result.output).toContain("create src/skins/probe-skin/index.ts");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");
@@ -27,9 +27,9 @@ describe("new-skin", () => {
     afterAll(() => rmSync(copy, { recursive: true, force: true }));
 
     it("creates a linked workspace package that a Card lands in", async () => {
-      const skin = await run(copy, "node", ["scripts/new-skin/index.mjs", "canvas"]);
+      const skin = await run(copy, "node", ["scripts/new-skin/index.js", "canvas"]);
       expect(skin.status, skin.output).toBe(0);
-      const card = await run(copy, "node", ["scripts/new-card/index.mjs", "light", "--skin", "canvas"]);
+      const card = await run(copy, "node", ["scripts/new-card/index.js", "light", "--skin", "canvas"]);
       expect(card.status, card.output).toBe(0);
       linkNodeModules(copy);
       const workspace = await recordWorkspace(copy);

@@ -5,7 +5,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": {
-    "create-dashhaus-skin": "./bin.mjs"
+    "create-dashhaus-skin": "./bin.js"
   },
   "exports": {
     ".": {
@@ -16,7 +16,7 @@
   },
   "files": [
     "dist",
-    "bin.mjs",
+    "bin.js",
     "README.md"
   ],
   "engines": {

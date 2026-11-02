@@ -6,9 +6,9 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
-import { DeployConfigError, panelView, readConfig, resolveBundle, resolveDashboards } from "./load.mjs";
+import { DeployConfigError, panelView, readConfig, resolveBundle, resolveDashboards } from "./load.js";
 
-export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.mjs";
+export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.js";
 
 /** The settings `.env` (or the environment) must carry; the config never holds a secret. */
 function settingsFrom(env) {

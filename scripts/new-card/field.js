@@ -15,8 +15,8 @@
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { markers, packageFile, packageSpecifier } from "../packages.mjs";
-import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.mjs";
+import { markers, packageFile, packageSpecifier } from "../packages.js";
+import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
 
 const SKIN = skinDir("field");
 const ORB = skinDir("orb");

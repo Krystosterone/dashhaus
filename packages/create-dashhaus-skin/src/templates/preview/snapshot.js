@@ -33,7 +33,7 @@ Then run npm run snapshot again. (npm run preview needs neither; it serves the s
 
 const server = await createServer({
   root,
-  configFile: fileURLToPath(new URL("../vite.config.mjs", import.meta.url)),
+  configFile: fileURLToPath(new URL("../vite.config.js", import.meta.url)),
   logLevel: "error",
   server: { port: 0, host: "127.0.0.1" },
 });

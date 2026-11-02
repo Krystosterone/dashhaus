@@ -1,7 +1,7 @@
 /**
  * The in-memory Home Assistant the DX drivers deploy into: the same shape as the fake in
  * `packages/deploy/src/deploy.test.ts`, kept here so both clean-room apps use one fake and no network.
- * `fake-ha-server.mjs` serves this same object over Home Assistant's real websocket API, for an agent run.
+ * `fake-ha-server.js` serves this same object over Home Assistant's real websocket API, for an agent run.
  *
  * It records every websocket command, the resource it registered, the dashboards it created and each saved layout.
  */

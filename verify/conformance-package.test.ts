@@ -9,7 +9,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { pack } from "../scripts/release/pack.mjs";
+import { pack } from "../scripts/release/pack.js";
 
 const writeFiles = async (root: string, files: Record<string, string>) => {
   for (const [path, body] of Object.entries(files)) {
@@ -62,7 +62,7 @@ describe("the packed conformance preset", () => {
         "skin/cards/bad/BadCard.tsx": `export const BadCard = () => <article>{useCard("bd")}</article>;\n`,
         "skin/cards/bad/BadCard.css": ".oops { display: block; }\n",
         "skin/cards/bad/Bad.stories.tsx": `export default { title: "Third/Cards/Bad" };\n`,
-        "check.mjs": `
+        "check.js": `
 import assert from "node:assert/strict";
 import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
 
@@ -81,7 +81,7 @@ console.log(JSON.stringify(findings));
 `,
       });
       execFileSync("npm", ["install", "--no-audit", "--no-fund", "--legacy-peer-deps"], { cwd: app, stdio: "pipe" });
-      const output = execFileSync(process.execPath, ["check.mjs"], { cwd: app, encoding: "utf8" });
+      const output = execFileSync(process.execPath, ["check.js"], { cwd: app, encoding: "utf8" });
       expect(output.trim()).toBe('[{"card":"bad","rule":"class-prefix","message":"skin/cards/bad/BadCard.css: .oops"}]');
     } finally {
       await rm(work, { recursive: true, force: true });

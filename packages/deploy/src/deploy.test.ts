@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { deploy } from "./deploy.mjs";
-import type { DeployClient } from "./deploy.mjs";
+import { deploy } from "./deploy.js";
+import type { DeployClient } from "./deploy.js";
 
 const directories: string[] = [];
 

@@ -1,7 +1,7 @@
 // The loader is JavaScript so the CLI runs without Node's type stripping. These are its types; the author-facing
-// config types live in ./config.mjs, which imports no Node builtin.
+// config types live in ./config.js, which imports no Node builtin.
 
-import type { DeployConfig, DeployDashboard } from "./config.mjs";
+import type { DeployConfig, DeployDashboard } from "./config.js";
 
 /** Where the bundle goes and the resource URL that serves it. */
 export interface BundleTarget {

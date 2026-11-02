@@ -2,8 +2,8 @@
  * The shared machinery for the two clean-room DX drivers:
  *
  *   npm run release:pack
- *   node verify/dx/author.mjs
- *   node verify/dx/user.mjs
+ *   node verify/dx/author.js
+ *   node verify/dx/user.js
  *
  * A driver creates a temporary app outside this repo, installs the packed tarballs by `file:` specifier, and runs the
  * consumer journey there. Nothing here imports a workspace package, and no app config sets the `source` condition.

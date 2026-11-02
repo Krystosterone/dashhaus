@@ -3,11 +3,11 @@
  * The skin user's clean-room journey, from packed tarballs only, the way the packages' READMEs walk it:
  *
  *   npm run release:pack
- *   node verify/dx/user.mjs [--tarballs <dir>] [--keep] [--screenshot <dir>]
+ *   node verify/dx/user.js [--tarballs <dir>] [--keep] [--screenshot <dir>]
  *
  * Install `@dashhaus/bundle` and `@dashhaus/deploy`; ask `dashhaus-deploy --help` in the empty folder for a config;
  * write the bundle README's `dashboard.config.mjs` and a `.env`; run `npx dashhaus-deploy --skip-build` (the packed bin)
- * over a real websocket into `fake-ha-server.mjs`, which also serves `/local/` so the served-file check runs for real;
+ * over a real websocket into `fake-ha-server.js`, which also serves `/local/` so the served-file check runs for real;
  * then deploy again and check nothing was recreated. No clone, no build, no React, core or dashboard in the app.
  */
 import assert from "node:assert/strict";
@@ -15,7 +15,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { startFakeHomeAssistant } from "./fake-ha-server.mjs";
+import { startFakeHomeAssistant } from "./fake-ha-server.js";
 import {
   clean,
   createReport,
@@ -32,7 +32,7 @@ import {
   shown,
   tarballs,
   tarballsDir,
-} from "./harness.mjs";
+} from "./harness.js";
 
 const report = createReport("DX user — install bundle and deploy, no build");
 console.log(`  tarballs: ${shown(tarballsDir)}`);

@@ -3,19 +3,19 @@
  * The skin author's clean-room journey, from packed tarballs only, the way the scaffold's own AGENTS.md walks it:
  *
  *   npm run release:pack
- *   node verify/dx/author.mjs [--tarballs <dir>] [--keep] [--screenshot <dir>]
+ *   node verify/dx/author.js [--tarballs <dir>] [--keep] [--screenshot <dir>]
  *
  * Run the packed `create-dashhaus-skin my-skin --tarballs <dir>`; check the agent guide it writes against the files it
  * names; `npm install` inside the new project (its `@dashhaus` dependencies are the tarballs, the rest the registry);
  * `npm test`; `npm run build`; then `npm run deploy` (the packed `dashhaus-deploy` bin, reading `.env`) over a real
- * websocket into `fake-ha-server.mjs`, which also serves `/local/` so the deploy's served-file check runs for real.
+ * websocket into `fake-ha-server.js`, which also serves `/local/` so the deploy's served-file check runs for real.
  * `--screenshot <dir>` renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
  */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { startFakeHomeAssistant } from "./fake-ha-server.mjs";
+import { startFakeHomeAssistant } from "./fake-ha-server.js";
 import {
   clean,
   createReport,
@@ -30,7 +30,7 @@ import {
   tarballs,
   tarballsDir,
   writeJson,
-} from "./harness.mjs";
+} from "./harness.js";
 
 const SKIN = "my-skin";
 const report = createReport("DX author — scaffold, read the guide, install, test, build, deploy");
@@ -57,7 +57,7 @@ try {
         const output = run(process.execPath, [join(directory, manifest.bin["create-dashhaus-skin"]), SKIN, "--tarballs", tarballsDir], { cwd: app }).output;
         assert.match(output, /AGENTS\.md/, "the scaffolder's closing words must point at the agent guide");
         const files = await readdir(skinApp);
-        for (const file of ["package.json", "AGENTS.md", "CLAUDE.md", ".env.example", ".gitignore", "vite.config.mjs", "conformance.mjs", "dashboard.config.mjs", "cards", "preview"]) {
+        for (const file of ["package.json", "AGENTS.md", "CLAUDE.md", ".env.example", ".gitignore", "vite.config.js", "conformance.js", "dashboard.config.mjs", "cards", "preview"]) {
           assert.ok(files.includes(file), `the scaffold wrote no ${file}`);
         }
         const manifestText = await read(join(skinApp, "package.json"));
@@ -73,7 +73,7 @@ try {
       const guide = await read(join(skinApp, "AGENTS.md"));
       assert.equal((await read(join(skinApp, "CLAUDE.md"))).trim(), "@AGENTS.md", "CLAUDE.md must import AGENTS.md");
       // Every path the guide names in backticks must exist, so the guide cannot drift from the files it describes.
-      const named = [...guide.matchAll(/`((?:styles|shared|cards|lovelace|ha|preview)\/[A-Za-z0-9_./-]*|[a-z.-]+\.(?:mjs|md|json)|\.env\.example)`/g)]
+      const named = [...guide.matchAll(/`((?:styles|shared|cards|lovelace|ha|preview)\/[A-Za-z0-9_./-]*|[a-z.-]+\.(?:js|md|json)|\.env\.example)`/g)]
         .map((match) => match[1].replace(/\/$/, ""))
         .filter((path) => !path.includes("<") && !path.includes("…"));
       const missing = [...new Set(named)].filter((path) => !existsSync(join(skinApp, path)));

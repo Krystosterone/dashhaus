@@ -58,8 +58,8 @@ Work from the outside in, snapshotting after each step and comparing with the re
 | `lovelace/entry.tsx` | the bundle's entry: imports every stylesheet `?inline` | when adding a stylesheet |
 | `ha/` | adapters: a `useHa<Name>` hook's result → a card's props; the only files that touch Home Assistant | when a card needs another fact |
 | `preview/` | the local preview, its sample house and the snapshot script; not part of the bundle | add sample entities |
-| `conformance.mjs`, `tsconfig.json` | `npm test`: the rules, after `tsc` | no |
-| `vite.config.mjs`, `dashboard.config.mjs` | the one-file build and the deploy | rarely |
+| `conformance.js`, `tsconfig.json` | `npm test`: the rules, after `tsc` | no |
+| `vite.config.js`, `dashboard.config.mjs` | the one-file build and the deploy | rarely |
 
 ## Rules
 

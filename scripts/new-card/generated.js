@@ -2,8 +2,8 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams } from "../packages.mjs";
-import { after, changes, exists, fail, filler, names, orbKinds, read, root, skinDir } from "./lib.mjs";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams } from "../packages.js";
+import { after, changes, exists, fail, filler, names, orbKinds, read, root, skinDir } from "./lib.js";
 
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];

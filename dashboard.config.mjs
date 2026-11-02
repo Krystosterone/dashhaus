@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { bundlePath } from "@dashhaus/bundle";
 import { generatedDashboards } from "@dashhaus/deploy/config";
-import { GENERATED_SKINS } from "./scripts/generated-skins.mjs";
+import { GENERATED_SKINS } from "./scripts/generated-skins.js";
 import { autoDashboard } from "@dashhaus/orb/lovelace/auto";
 
 // The page title each card prints in its header; the sidebar titles below tell the dashboards apart.
@@ -44,7 +44,7 @@ export default {
         return { card: { type: "custom:dashhaus-field", title: PAGE_TITLE }, made: "every light and climate entity by area" };
       },
     },
-    // `npm run new-skin` registers each generated skin in scripts/generated-skins.mjs.
+    // `npm run new-skin` registers each generated skin in scripts/generated-skins.js.
     ...generatedDashboards(GENERATED_SKINS, PAGE_TITLE),
   ],
 };

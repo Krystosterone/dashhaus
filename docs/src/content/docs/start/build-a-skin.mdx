@@ -72,7 +72,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
    and fix. Run it after every card change.
 
    ```text
-   conformance: 2 cards and 3 stylesheets, no findings
+   conformance: 2 cards and 4 stylesheets, no findings
    ```
 
 4. Build one file:
@@ -130,15 +130,15 @@ checks, builds it and deploys it into a simulated Home Assistant.
   - preview/
     - house.ts the sample house, worst cases included
     - main.ts the page that mounts the real element
-    - snapshot.mjs saves it as PNGs
+    - snapshot.js saves it as PNGs
   - AGENTS.md where the colours, type, parts and rules live
   - CLAUDE.md imports AGENTS.md
-  - conformance.mjs the card and CSS rules npm test runs
+  - conformance.js the card and CSS rules npm test runs
   - tsconfig.json the TypeScript program
   - dashboard.config.mjs the bundle to build and the dashboard to create
   - .env.example the three deploy settings
   - .gitignore keeps .env and the build out of git
-  - vite.config.mjs the one-file build
+  - vite.config.js the one-file build
   - package.json
 
 </FileTree>

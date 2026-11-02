@@ -4,20 +4,20 @@
   "private": true,
   "type": "module",
   "bin": {
-    "dashhaus-deploy": "./bin.mjs"
+    "dashhaus-deploy": "./bin.js"
   },
   "exports": {
-    ".": "./src/deploy.mjs",
+    ".": "./src/deploy.js",
     "./config": {
-      "types": "./src/config.d.mts",
-      "import": "./src/config.mjs",
-      "default": "./src/config.mjs"
+      "types": "./src/config.d.ts",
+      "import": "./src/config.js",
+      "default": "./src/config.js"
     }
   },
   "files": [
-    "bin.mjs",
-    "src/*.mjs",
-    "src/*.d.mts",
+    "bin.js",
+    "src/*.js",
+    "src/*.d.ts",
     "README.md"
   ],
   "engines": {

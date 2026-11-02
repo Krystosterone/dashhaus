@@ -43,8 +43,8 @@ lovelace/                           the custom element (page layout, fonts), YAM
 shared/                             the page styles and the action button
 styles/tokens.css                   every colour, font and easing, light and dark
 preview/                            the local preview, its sample house and the snapshot script
-conformance.mjs, tsconfig.json      npm test: tsc, then @dashhaus/dashboard/conformance plus the CSS rules
-vite.config.mjs                     one ES module, dist/dashhaus-<skin>.js, CSS inlined
+conformance.js, tsconfig.json      npm test: tsc, then @dashhaus/dashboard/conformance plus the CSS rules
+vite.config.js                     one ES module, dist/dashhaus-<skin>.js, CSS inlined
 dashboard.config.mjs, .env.example  the deploy: the dashboard, the bundle, the settings
 ```
 

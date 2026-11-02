@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generatedDashboards } from "./config.mjs";
+import { generatedDashboards } from "./config.js";
 
 describe("generatedDashboards", () => {
   it("registers a generated skin at its own path with its own card", async () => {

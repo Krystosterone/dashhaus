@@ -1,5 +1,5 @@
 // The author-facing deploy config surface, in a Node-only package with no React peers. The loader and its validation
-// live in ./load.mjs; a config imports this subpath for its types and generatedDashboards.
+// live in ./load.js; a config imports this subpath for its types and generatedDashboards.
 
 /** The websocket calls a config's card factory may make. The CLI passes its authenticated client. */
 export interface DeployHa {
@@ -33,7 +33,7 @@ export interface DeployConfig {
   dashboards: DeployDashboard[];
 }
 
-/** One entry in `scripts/generated-skins.mjs`. */
+/** One entry in `scripts/generated-skins.js`. */
 export interface GeneratedSkin {
   id: string;
   title: string;

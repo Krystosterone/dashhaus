@@ -53,8 +53,8 @@ describe("workspace projects", () => {
   });
 
   it("typechecks the root and every package from the one command", () => {
-    expect(read("package.json").scripts.typecheck, "npm run typecheck runs the program list").toBe("node scripts/typecheck.mjs");
-    const typecheck = readFileSync(join(root, "scripts/typecheck.mjs"), "utf8");
+    expect(read("package.json").scripts.typecheck, "npm run typecheck runs the program list").toBe("node scripts/typecheck.js");
+    const typecheck = readFileSync(join(root, "scripts/typecheck.js"), "utf8");
     for (const name of packages) expect(typecheck, `${name} is in npm run typecheck`).toContain(`packages/${name}/tsconfig.json`);
     expect(typecheck, "each package program is passed with -p").toContain('"-p"');
     expect(typecheck).toContain("node_modules/.cache/tsc/root.tsbuildinfo");

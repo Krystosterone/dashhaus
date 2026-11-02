@@ -92,7 +92,7 @@ describe("the author guide's scaffold", () => {
   it("is what create-dashhaus-skin writes, and typechecks with the added domain", () => {
     rmSync(skin, { recursive: true, force: true });
     mkdirSync(dirname(skin), { recursive: true });
-    const scaffold = spawnSync(process.execPath, [join(root, "packages/create-dashhaus-skin/bin.mjs"), skin], { encoding: "utf8" });
+    const scaffold = spawnSync(process.execPath, [join(root, "packages/create-dashhaus-skin/bin.js"), skin], { encoding: "utf8" });
     expect(scaffold.status, scaffold.stderr).toBe(0);
 
     for (const { file, value } of attributes("template")) {

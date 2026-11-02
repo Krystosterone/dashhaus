@@ -2,7 +2,7 @@
 /**
  * The fake Home Assistant as a server, for a clean-room agent run that uses the real `dashhaus-deploy` CLI:
  *
- *   node verify/dx/fake-ha-server.mjs [--port 8123] [--www <dir>] [--token <token>] [--state <file.json>]
+ *   node verify/dx/fake-ha-server.js [--port 8123] [--www <dir>] [--token <token>] [--state <file.json>]
  *
  * It prints the three `.env` settings a person would copy from their own Home Assistant (HA_URL, HA_TOKEN, HA_WWW) and
  * serves, with no dependency beyond Node:
@@ -24,7 +24,7 @@ import { mkdtemp } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize, resolve, sep } from "node:path";
-import { FakeHomeAssistant, houseRegistries } from "./fake-ha.mjs";
+import { FakeHomeAssistant, houseRegistries } from "./fake-ha.js";
 
 /** Start the server; resolves with its settings and a `close()`. */
 export async function startFakeHomeAssistant({ port = 8123, www, token = "fake-ha-token", stateFile, host = "127.0.0.1" } = {}) {

@@ -1,10 +1,10 @@
 // The orchestrator is JavaScript so the CLI runs without Node's type stripping. These are the types its callers and
 // its tests use.
 
-import type { DeployHa } from "./config.mjs";
+import type { DeployHa } from "./config.js";
 
-export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.mjs";
-export type { DeployCard, DeployConfig, DeployDashboard, DeployHa } from "./config.mjs";
+export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.js";
+export type { DeployCard, DeployConfig, DeployDashboard, DeployHa } from "./config.js";
 
 /** The authenticated Home Assistant client the CLI hands a config's card factory. */
 export interface DeployClient extends DeployHa {

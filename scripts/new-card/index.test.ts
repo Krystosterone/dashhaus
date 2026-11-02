@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { copyRepo, linkNodeModules, root, run, typecheckCopy } from "../repo-copy";
 
-const script = "scripts/new-card/index.mjs";
+const script = "scripts/new-card/index.js";
 const generatedField = existsSync(join(root, "src/skins/field/lovelace/registry.tsx"));
 const PROBES = [
   ["probeFan", "--code", "zf", "--domain", "probe_fan"],

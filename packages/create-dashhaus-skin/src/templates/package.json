@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "preview": "vite serve preview --config vite.config.mjs",
-    "snapshot": "node preview/snapshot.mjs",
-    "test": "tsc && node conformance.mjs",
+    "preview": "vite serve preview --config vite.config.js",
+    "snapshot": "node preview/snapshot.js",
+    "test": "tsc && node conformance.js",
     "build": "vite build",
     "deploy": "dashhaus-deploy"
   },

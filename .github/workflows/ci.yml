@@ -59,8 +59,8 @@ jobs:
         run: npm ci
       - run: npm run release:pack
       - run: npm run verify:packages
-      - run: node verify/dx/user.mjs
-      - run: node verify/dx/author.mjs
+      - run: node verify/dx/user.js
+      - run: node verify/dx/author.js
 
   # The unit suites, split by file across two runners; together they are the same 130 files and 1174 tests as before.
   unit_one:
