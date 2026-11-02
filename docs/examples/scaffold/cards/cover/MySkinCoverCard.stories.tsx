@@ -4,7 +4,7 @@ import { MySkinCoverCard } from "./MySkinCoverCard";
 export default {
   title: "My Skin/Cards/Cover",
   component: MySkinCoverCard,
-  args: { name: "Living room blinds", area: "Living room", state: "closed", onOpen: () => undefined, onClose: () => undefined },
+  args: { name: "Living room blinds", area: "Living room", state: "closed", onOpenCover: () => undefined, onCloseCover: () => undefined },
 };
 
 export const Closed = {};

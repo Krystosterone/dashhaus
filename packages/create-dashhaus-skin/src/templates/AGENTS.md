@@ -41,16 +41,18 @@ Work from the outside in, snapshotting after each step and comparing with the re
    grid goes here. `autoCards()` above it picks the cards when the YAML lists none: every light, then room air from
    `roomSensors`, which gives each temperature sensor the humidity sensor on the same Home Assistant device.
 4. **Cards:** `cards/light/` and `cards/sensor/`: the markup in `<Name>Card.tsx`, the look in `<Name>Card.css`. A
-   card can only show the facts its props carry (see Data). An on state can recolour the whole card.
-5. **Parts:** `shared/ui.tsx` and `shared/ui.css`: the `Action` button every control card uses. Restyle it once
-   there, not per card.
+   card's props extend `CardProps` and `useCardFrame` gives it its footprint flags, ids and accessible name; the same
+   card drawn as `variant="sheet"` is its details, opened and closed by the frame's tile. A card can only show the
+   facts its props carry (see Data). An on state can recolour the whole card.
+5. **Parts:** `shared/ui.tsx` and `shared/ui.css`: the `Action` button, the card head and row, the fact rows, and the
+   `Sheet` every card's details open in. Restyle them once there, not per card.
 
 ## Where things live
 
 | Path | What it is | Change it? |
 | --- | --- | --- |
 | `styles/tokens.css` | every colour, font stack, easing and duration, light and dark | yes: the palette |
-| `shared/ui.css`, `shared/ui.tsx` | the page, area headings, grid and the `Action` button | yes |
+| `shared/ui.css`, `shared/ui.tsx` | the page, area headings, grid, the `Action` button, card parts and the details `Sheet` | yes |
 | `cards/<domain>/` | one card per domain: component, CSS, stories (sample props) and its two-letter `CARD_CODE` | yes |
 | `lovelace/card.tsx` | the custom element: page layout in `draw()`, `FONT_HREF`, host CSS | the layout and font, yes |
 | `lovelace/config.ts` | the YAML the card takes, and which domain draws which card (`kindOf`) | when adding a domain |
@@ -79,6 +81,10 @@ Work from the outside in, snapshotting after each step and comparing with the re
   `__Section__/Cards/<Name>`, and a `CARD_CODE` no other card uses.
 - **One card, one model.** A card draws one normalized model: one entity, or that entity plus the companions its
   hook composes (the sensor's humidity beside its temperature). A card never takes a second entity.
+- **A card's shape and dialog come from the frame.** Its props extend `CardProps`; `useCardFrame` supplies the
+  footprint flags, the ids and the article's accessible name; `detailsTile(Card, detailsSheet(Card, Sheet, …))` owns
+  the open state and hands the card `onOpenDetails`. Its details show the facts its props already carry, never new
+  Home Assistant data.
 - **A card's height never changes with its state**: turning a light on must not move the page.
 - **Unavailable reads as unavailable** without colour: a dash, a word or a dashed outline.
 - **Controls feel like controls:** `touch-action: manipulation`, no text selection or tap highlight, press feedback on
@@ -95,6 +101,10 @@ Each card gets plain props from its adapter in `ha/`:
 | `__Skin__LightCard` | `name`, `area?`, `on`, `unavailable?`, `brightness?` (percent), `onToggle()` |
 | `__Skin__SensorCard` | `name`, `area?`, `temperature?`, `humidity?`, `unit` (`°C`/`°F`) |
 
+Both also take the frame's `variant`, `footprint`, `showControl`, `onOpenDetails` and `onClose` from `CardProps`; the
+tile wires them, so a card never holds its own open state. In the sheet the light shows Area, State and Brightness, and
+the sensor shows Area, Temperature, Humidity and Unit.
+
 The hooks know more. `useHaLight` also has colour temperature, colour, last-changed time and actions for brightness
 and colour. To show one of those facts, add a prop to the card and pass it in the adapter. The fields are typed in
 `node_modules/@dashhaus/core/dist/entities/<domain>/types.d.ts`, and the hooks and their actions in
@@ -106,8 +116,10 @@ and colour. To show one of those facts, add a prop to the card and pass it in th
 `humidifier`, switches and `input_boolean` (`useHaToggle`), sound machines (`useHaSound`) and Owlet socks
 (`useHaOwlet`). To draw one:
 
-1. `cards/<domain>/__Skin__<Name>Card.tsx`, `.css` and `.stories.tsx`, with a new two-letter `CARD_CODE`.
-2. `ha/Ha__Skin__<Name>Card.tsx`: call the hook and pass its facts to the card.
+1. `cards/<domain>/__Skin__<Name>Card.tsx`, `.css` and `.stories.tsx`, with a new two-letter `CARD_CODE`. Extend
+   `CardProps`, call `useCardFrame`, draw the sheet's facts, and export `<Name>Card`, `<Name>Sheet` and
+   `<Name>Tile` as the light does.
+2. `ha/Ha__Skin__<Name>Card.tsx`: call the hook and pass its facts to the card's tile, so its details open and close.
 3. `lovelace/registry.tsx`: a row for the kind. `lovelace/config.ts`: the kind in `CardKind` and `KINDS`, its domain
    in `kindOf` and in the domains `entityId` accepts.
 4. `lovelace/entry.tsx`: import its CSS `?inline` and add it to the list.
@@ -139,6 +151,8 @@ What you may rely on, and what not to rewrite:
   `node_modules/@dashhaus/dashboard/dist/layout.d.ts`, and their signatures may still change before 1.0.
 - `@dashhaus/dashboard/schema`: `Reader` and `DashboardConfigError`, used by `lovelace/config.ts`. A thrown
   `DashboardConfigError` shows its problems in Home Assistant's card editor.
+- `@dashhaus/dashboard/card`: `CardProps`, `cardShape`, `useCardFrame`, `detailsSheet`, `detailsTile` and
+  `CardDialog`: the frame every card derives its shape and ids from, and the details surface the tile opens.
 - `@dashhaus/core`: the `useHa<Name>` hooks; `@dashhaus/core/primitives`: `usePress`, `useSlider`, `useRangeSlider`,
   `useSheet`, `useKeypad` (behaviour, no markup).
 

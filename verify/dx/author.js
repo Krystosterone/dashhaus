@@ -8,8 +8,9 @@
  * Run the packed `create-dashhaus-skin my-skin --tarballs <dir>`; check the agent guide it writes against the files it
  * names; `npm install` inside the new project (its `@dashhaus` dependencies are the tarballs, the rest the registry);
  * `npm test`; `npm run build`; then `npm run deploy` (the packed `dashhaus-deploy` bin, reading `.env`) over a real
- * websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the deploy's served-file check runs for real.
- * `--screenshot <dir>` renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
+ * websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the deploy's served-file check runs
+ * for real, and open and close the light's and sensor's details in the deployed dashboard. `--screenshot <dir>`
+ * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
  */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -19,6 +20,7 @@ import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import {
   clean,
   createReport,
+  exerciseDetails,
   installedPackage,
   makeApp,
   read,
@@ -67,7 +69,7 @@ try {
     : { ok: false };
 
   if (!scaffold.ok) {
-    report.blocked(["agent guide", "install", "conformance", "build", "deploy"], "the scaffold failed");
+    report.blocked(["agent guide", "install", "conformance", "build", "deploy", "details"], "the scaffold failed");
   } else {
     await report.stage("agent guide", async () => {
       const guide = await read(join(skinApp, "AGENTS.md"));
@@ -96,7 +98,7 @@ try {
     });
 
     if (!installed.ok) {
-      report.blocked(["conformance", "build", "deploy"], "npm install failed in the skin");
+      report.blocked(["conformance", "build", "deploy", "details"], "npm install failed in the skin");
     } else {
       await report.stage("conformance", async () => {
         const result = run("npm", ["test", "--silent"], { cwd: skinApp });
@@ -128,9 +130,9 @@ try {
       });
 
       if (!build.ok) {
-        report.blocked("deploy", `no dist/${bundleName} to upload`);
+        report.blocked(["deploy", "details"], `no dist/${bundleName} to upload`);
       } else {
-        await report.stage("deploy", async () => {
+        const deployed = await report.stage("deploy", async () => {
           const www = join(app, "www");
           await mkdir(www, { recursive: true });
           server = await startFakeHomeAssistant({ port: 0, www });
@@ -156,6 +158,17 @@ try {
           }
           return `npm run deploy: 1 resource served back, 1 dashboard (${HA_URL})`;
         });
+        if (!deployed.ok) {
+          report.blocked("details", "the deploy failed");
+        } else {
+          await report.stage("details", async () => {
+            const result = await exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
+              { code: "lt", facts: ["Area", "State", "Brightness"], close: "button" },
+              { code: "sn", facts: ["Area", "Temperature", "Humidity", "Unit"], close: "escape" },
+            ], { screenshot: screenshotDir ? join(screenshotDir, "details.png") : undefined });
+            return result;
+          });
+        }
       }
     }
   }

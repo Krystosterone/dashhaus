@@ -55,6 +55,69 @@ export async function screenshotDashboard(url, file, { width = 1280, height = 90
   }
 }
 
+/**
+ * Open and close every card's details on a deployed dashboard: each card's name opens the frame's dialog, which shows
+ * the facts the card receives, and the close button or Escape closes it again. `cards` names each card by its
+ * `data-card-code` and the fact labels its details must show. A `token` gives a live Home Assistant's page its
+ * frontend session; it is never printed. `screenshot` saves each open dialog as `<file>-<code>.png`.
+ */
+export async function exerciseDetails(url, cards, { token, screenshot } = {}) {
+  const { chromium } = await import("playwright");
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    if (token) {
+      const origin = new URL(url).origin;
+      await page.addInitScript(({ token: access, origin: hassUrl }) => {
+        localStorage.setItem("hassTokens", JSON.stringify({
+          access_token: access,
+          token_type: "Bearer",
+          expires_in: 315360000,
+          refresh_token: "",
+          hassUrl,
+          clientId: `${hassUrl}/`,
+          expires: Date.now() + 315360000000,
+        }));
+      }, { token, origin });
+    }
+    await page.goto(url);
+    if (token) {
+      if (new URL(page.url()).pathname.startsWith("/auth/")) throw new Error(`${url}: the token was not accepted`);
+    } else {
+      await page.waitForFunction(() => window.__fakeHaReady || window.__fakeHaProblem, null, { timeout: 15000 });
+      const problem = await page.evaluate(() => window.__fakeHaProblem ?? null);
+      if (problem) throw new Error(`${url}: ${problem}`);
+    }
+    const results = [];
+    for (const { code, facts, close } of cards) {
+      const trigger = page.locator(`article[data-card-code="${code}"] button[aria-haspopup="dialog"]`).first();
+      await trigger.waitFor({ state: "visible", timeout: 10000 });
+      await trigger.click();
+      const dialog = page.locator("dialog[open]").first();
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      const text = (await dialog.innerText()).replace(/\s+/g, " ");
+      for (const fact of facts) if (!text.includes(fact)) throw new Error(`${code} details do not show "${fact}": ${text}`);
+      if (screenshot) {
+        const file = `${screenshot.replace(/\.png$/, "")}-${code}.png`;
+        await mkdir(dirname(file), { recursive: true });
+        // The sheet enters with a 160 ms transition; wait for its painted frame before capturing it.
+        await page.waitForTimeout(250);
+        await page.screenshot({ path: file });
+      }
+      if (close === "escape") await page.keyboard.press("Escape");
+      else await dialog.getByRole("button", { name: "Close details", exact: true }).click();
+      await dialog.waitFor({ state: "hidden", timeout: 5000 });
+      results.push(`${code}: ${facts.length} facts, closed with ${close === "escape" ? "Escape" : "the close button"}`);
+    }
+    if (errors.length) throw new Error(`${url} reported: ${errors.join("; ")}`);
+    return results.join("; ");
+  } finally {
+    await browser.close();
+  }
+}
+
 const repoManifest = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
 
 /** A version the repo already pins, so a clean-room app uses the same toolchain. */

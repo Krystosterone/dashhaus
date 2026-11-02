@@ -8,9 +8,9 @@ import Example from "../../../components/Example.astro";
 
 A skin is a whole look for a dashboard: cards, a Lovelace card and a bundle of its own, drawn on the headless
 packages. `create-dashhaus-skin` writes a working one in a new folder, with a light you can switch and a room sensor you
-can read, both on the real hooks. You change the drawing; the Home Assistant side is already done. It also writes an
-`AGENTS.md`: point an agent at it and it knows where the colours, type, parts and rules live, and how to restyle the
-skin from a screenshot.
+can read, both with details that open from the card, on the real hooks. You change the drawing; the Home Assistant side
+is already done. It also writes an `AGENTS.md`: point an agent at it and it knows where the colours, type, parts and
+rules live, and how to restyle the skin from a screenshot.
 
 CI runs these steps on every change to Dashhaus: it packs the release, installs `@dashhaus/core`,
 `@dashhaus/dashboard`, `@dashhaus/deploy` and the scaffolder into an empty folder, scaffolds `my-skin`, runs its
@@ -108,11 +108,11 @@ checks, builds it and deploys it into a simulated Home Assistant.
 - my-skin/
   - cards/
     - light/
-      - MySkinLightCard.tsx the control: a name, a reading and one button
+      - MySkinLightCard.tsx the control: a name, a reading, its details and tile
       - MySkinLightCard.css
       - MySkinLightCard.stories.tsx gallery metadata, read by the conformance check
     - sensor/
-      - MySkinSensorCard.tsx the reading: temperature and humidity
+      - MySkinSensorCard.tsx the reading: temperature, humidity and its details
       - …
   - ha/
     - HaMySkinLightCard.tsx useHaLight above the light card
@@ -123,7 +123,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
     - card.tsx the Lovelace card
     - entry.tsx the bundle's entry
   - shared/
-    - ui.tsx the action part, on usePress
+    - ui.tsx the action, card parts and the details sheet
     - ui.css
   - styles/
     - tokens.css every colour, under the skin's prefix
@@ -145,18 +145,24 @@ checks, builds it and deploys it into a simulated Home Assistant.
 
 ### A card and its connection
 
-A card takes plain props and draws them. It never imports the Home Assistant layer, so it can be drawn in a story with
-any data. Its `CARD_CODE` and its class prefix are what the conformance check reads.
+A card takes plain props and draws them. Its props extend `CardProps` from `@dashhaus/dashboard/card`, and
+`useCardFrame` derives its footprint flags, ids and accessible name. It never imports the Home Assistant layer, so it
+can be drawn in a story with any data. Its `CARD_CODE` and its class prefix are what the conformance check reads, and
+its name opens its details.
+
+The card exports its sheet (`detailsSheet`) and its tile (`detailsTile`): the frame owns the open state, so the tile is
+what a dashboard renders and the card itself never holds it.
 
 <Example template="cards/light/__Skin__LightCard.tsx" />
 
 The adapter in `ha/` is the one place the card meets Home Assistant: the shared hook above it, mapping the result to
-the card's props.
+the tile's props.
 
 <Example template="ha/Ha__Skin__LightCard.tsx" />
 
-The button is a part on the `usePress` primitive, so it has press and hold, `aria-pressed` and an unavailable state
-that stays focusable, with no markup decided for you.
+The shared parts are the action on the `usePress` primitive (press and hold, `aria-pressed`, an unavailable state that
+stays focusable), the card head and row, the fact rows, and the `Sheet`: a `CardDialog` from the frame, which is where
+the details open, close, trap focus and lock the page.
 
 <Example template="shared/ui.tsx" />
 
@@ -188,7 +194,8 @@ A cover, in four steps. Any entity on the [Entities](/dashhaus/entities/) pages 
 
 <Steps>
 
-1. The card, in `cards/cover/`, with its stylesheet and stories. It takes plain props and a new card code, `cv`.
+1. The card, in `cards/cover/`, with its stylesheet and stories. It extends `CardProps`, uses `useCardFrame`, exports
+   its card, sheet and tile, and takes a new card code, `cv`.
 
    <Example file="scaffold/cards/cover/MySkinCoverCard.tsx" title="cards/cover/MySkinCoverCard.tsx" />
 
