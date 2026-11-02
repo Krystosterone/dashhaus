@@ -36,9 +36,10 @@ jobs:
       - run: npm run verify:packages
 
   # The two consumer journeys from freshly packed tarballs, never the workspace: the skin user installs only the
-  # prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a standalone skin. Both
-  # run the packed deploy bin over a websocket into the fake Home Assistant in verify/dx/, so this lane needs no live
-  # instance; the skin's own install reaches the registry for React, Vite and TypeScript.
+  # prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a standalone skin, then
+  # opens and closes the generated cards' details in Chromium. Both run the packed deploy bin over a websocket into the
+  # fake Home Assistant in verify/dx/, so this lane needs no live instance; the skin's own install reaches the registry
+  # for React, Vite and TypeScript.
   dx:
     runs-on: ubuntu-latest
     steps:
@@ -57,6 +58,15 @@ jobs:
           key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
       - if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci
+      - name: Read the Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - run: npm run release:pack
       - run: npm run verify:packages
       - run: node verify/dx/user.js
