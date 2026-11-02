@@ -70,7 +70,7 @@ async function checkTarballs(manifests) {
             : pkg.key === "bundle"
               ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
               : pkg.key === "scaffold"
-                ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/standalone/package.json", "package/dist/templates/standalone/lovelace/card.tsx", "package/dist/templates/skin/lovelace/card.tsx", "package/dist/templates/card/cards/__name__/__Skin____Name__Card.tsx"]
+                ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/standalone/package.json", "package/dist/templates/standalone/lovelace/entry.tsx", "package/dist/card.js", "package/dist/domains.json", "package/dist/templates/skin/lovelace/card.tsx", "package/dist/templates/card/cards/__name__/__Skin____Name__Card.tsx"]
                 : ["package/README.md", "package/bin.js", "package/src/cli.js", "package/src/cli.d.ts", "package/src/config.js", "package/src/config.d.ts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);

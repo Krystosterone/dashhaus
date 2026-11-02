@@ -25,6 +25,7 @@ describe("public packages", () => {
     expect(template.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
     expect(template.dependencies?.["@dashhaus/dashboard"]).toBe(`^${version}`);
     expect(template.devDependencies?.["@dashhaus/deploy"]).toBe(`^${version}`);
+    expect(template.devDependencies?.["create-dashhaus-skin"], "npm run add uses the skin's own scaffolder").toBe(`^${version}`);
   });
 
   it("publishes the React 18 and 19 peer range the consumer test covered", () => {

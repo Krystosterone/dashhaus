@@ -38,5 +38,7 @@ for (const pkg of publicPackages) {
 
 const template = JSON.parse(await readFile(scaffoldTemplate, "utf8"));
 pinInternalRanges(template, version);
+// A skin runs `npm run add` from its own copy of the scaffolder, which moves with the other packages.
+if (template.devDependencies?.["create-dashhaus-skin"]) template.devDependencies["create-dashhaus-skin"] = `^${version}`;
 await writeFile(scaffoldTemplate, `${JSON.stringify(template, null, 2)}\n`);
 console.log(`create-dashhaus-skin template: @dashhaus ranges ^${version}`);

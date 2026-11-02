@@ -13,12 +13,13 @@
  *   - reading: a read-only number with a bare icon and a readout, no services.
  * Nothing is written unless every file and every registration can be made.
  */
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { generated as generatedSkin, markers, packageFile } from "../packages.js";
 import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
 import { newFieldCard } from "./field.js";
 import { newGeneratedCard } from "./generated.js";
+import { domainsFile, domainsJson } from "../domains.js";
 
 /** The skin a new card is drawn in; its logic goes outside it, in @dashhaus/core. */
 const SKIN = skinDir("orb");
@@ -195,6 +196,8 @@ if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | 
 
 // ---------- Write ----------
 if (!change.commit(dryRun)) process.exit(0);
+// A new shared domain: the scaffolder's add command can draw it too, once its description is in domains.json.
+writeFileSync(join(root, domainsFile), domainsJson());
 
 const created = [...writes.keys()].filter((p) => p.includes(`/${name}`) || p.includes(`${Name}`));
 console.log(`Created the ${words} ${kind} card (${code}-, ${domain}.*): ${created.length} files, registered in ${writes.size - created.length} more.

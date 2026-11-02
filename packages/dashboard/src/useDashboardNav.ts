@@ -26,7 +26,8 @@ export function useDashboardNav<T extends HTMLElement>({ items, pages, rootRef, 
   items: NavItem[];
   /** The card's page ids, besides the main page. */
   pages: readonly string[];
-  rootRef: RefObject<T>;
+  /** The page root. Nullable, as React 19's `useRef<HTMLDivElement>(null)` types it. */
+  rootRef: RefObject<T | null>;
   /** How a navigate item leaves: Home Assistant's router; a story passes its own. */
   navigate?: (path: string) => void;
 }) {

@@ -18,7 +18,7 @@ const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(pre
  * scrolls it: the window in Storybook, Home Assistant's view inside the frontend, through shadow roots. `key`
  * re-reads the sections when the page's content changes.
  */
-export function useScrollSpy<T extends HTMLElement>(rootRef: RefObject<T>, key?: unknown) {
+export function useScrollSpy<T extends HTMLElement>(rootRef: RefObject<T | null>, key?: unknown) {
   const [active, setActive] = useState<string | null>(null);
   const lockUntil = useRef(0);
 

@@ -6,7 +6,8 @@ import type { CardConfig, SectionConfig } from "./config";
 export type { AutoInput } from "@dashhaus/dashboard/layout";
 export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
 
-/** Every supported visible entity, with room sensors reduced to one Card per device and one weather Card. */
+/** Every supported visible entity, with room sensors reduced to one Card per device (its humidity and battery as
+ * companions) and one weather Card. */
 export function autoCards(input: AutoInput): CardConfig[] {
   const { states } = input;
   const visible = visibleEntities(input, (entity) => __skinVar__KindOf(entity) !== undefined);
@@ -16,7 +17,7 @@ export function autoCards(input: AutoInput): CardConfig[] {
   }), (card) => friendlyName(states, card.entity));
   const others = cards.filter((card) => card.kind !== "sensor" && card.kind !== "weather");
   const weather = cards.find((card) => card.kind === "weather");
-  const sensors = "sensor" in __SKIN_CONST___CARDS ? roomSensors(input).map(({ entity }) => ({ entity, kind: "sensor" })) : [];
+  const sensors = "sensor" in __SKIN_CONST___CARDS ? roomSensors(input).map(({ entity, ...companions }): CardConfig => ({ entity, kind: "sensor", ...(Object.keys(companions).length && { companions }) })) : [];
   return sortByName([...others, ...(weather ? [weather] : []), ...sensors], (card) => friendlyName(states, card.entity));
 }
 

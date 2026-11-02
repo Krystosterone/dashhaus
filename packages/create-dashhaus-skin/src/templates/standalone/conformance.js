@@ -3,8 +3,8 @@
  * `npm test`: the skin's checks, each finding printed with where it is and what to do.
  *
  * 1. The packed card preset (`@dashhaus/dashboard/conformance`) over `cards/`: every card folder has its component
- *    and story file, its stories are titled `__Section__/Cards/<Name>`, its classes start with `__skin__-`, it
- *    declares a two-letter `CARD_CODE` no other card uses, and it imports nothing from the Home Assistant layer.
+ *    and story file, its stories are titled `__Section__/Cards/<Name>`, its classes start with `__skin__-`, and it
+ *    imports nothing from the Home Assistant layer.
  * 2. The skin's own CSS rules (AGENTS.md → Rules): colours only from `styles/tokens.css`, whose blocks sit on `:root`,
  *    the theme on the skin's own attribute, hover only under the hover media query, and motion only on transform,
  *    opacity, clip-path and colours.
@@ -21,7 +21,6 @@ const cardFindings = checkCards(
     storyPrefix: "__Section__/Cards",
     component: (Name) => `__Skin__${Name}Card.tsx`,
     stories: (Name) => `__Skin__${Name}Card.stories.tsx`,
-    code: (source) => source.match(/const CARD_CODE = "([a-z]{2})"/)?.[1],
     allowedClass: (cls) => cls.startsWith("__skin__-"),
     forbiddenImport: (specifier) =>
       specifier === "@dashhaus/core" ||

@@ -12,7 +12,7 @@ restyle the skin from a screenshot or a description.
 ```sh
 npm install
 npm run preview     # the skin on a sample house, in the browser
-npm run snapshot    # the same page saved as preview/snapshots/*.png (installs nothing; says what it needs)
+npm run snapshot    # the same page saved as preview/snapshots/*.png (the first run says how to install Chromium)
 npm test            # TypeScript, then the card and CSS rules
 npm run build       # dist/dashhaus-__skin__.js: one ES module, its CSS included
 ```
