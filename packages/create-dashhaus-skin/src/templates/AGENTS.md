@@ -31,13 +31,15 @@ Work from the outside in, snapshotting after each step and comparing with the re
 1. **Palette:** `styles/tokens.css`. Name the reference's colours by role: page, card, card when on, ink, muted ink,
    line, accent and the ink on it, warning. Then set the tokens. Add tokens freely; keep the `--__skin__-` prefix. The
    light block is Home Assistant's light mode and the two dark blocks its dark mode, so give the dark mode a version
-   of the look too, even when the reference shows only one.
+   of the look too, even when the reference shows only one. Keep every token block on `:root`, which the bundle
+   turns into the card's host. A token set again on a class inside the card would hide the dark values.
 2. **Type:** set `FONT_HREF` in `lovelace/card.tsx` to a Google Fonts stylesheet URL, and name the families in
    tokens (`--__skin__-sans`; add `--__skin__-display`, `--__skin__-mono` as needed). Big numerals, letter-spacing
    and case belong in the card CSS.
 3. **Page:** `draw()` in `lovelace/card.tsx` lays out the header, one section per area and the grid of cards. Their
    styles are in `shared/ui.css` (`__skin__-page`, `-head`, `-area`, `-cards`). A greeting, a date or a different
-   grid goes here.
+   grid goes here. `autoCards()` above it picks the cards when the YAML lists none: every light, then room air from
+   `roomSensors`, which gives each temperature sensor the humidity sensor on the same Home Assistant device.
 4. **Cards:** `cards/light/` and `cards/sensor/`: the markup in `<Name>Card.tsx`, the look in `<Name>Card.css`. A
    card can only show the facts its props carry (see Data). An on state can recolour the whole card.
 5. **Parts:** `shared/ui.tsx` and `shared/ui.css`: the `Action` button every control card uses. Restyle it once
@@ -63,7 +65,8 @@ Work from the outside in, snapshotting after each step and comparing with the re
 
 `npm test` typechecks, then checks the ones marked ✓; keep the others by hand.
 
-- ✓ **Colours come from tokens.** No colour literal (`#…`, `rgb()`, `oklch()`, …) in any CSS but `styles/tokens.css`.
+- ✓ **Colours come from tokens.** No colour literal (`#…`, `rgb()`, `oklch()`, …) in any CSS but `styles/tokens.css`,
+  whose blocks sit on `:root`.
 - ✓ **Classes start with `__skin__-`** (the bundle shares a page with other cards); by convention a card's own start
   `__skin__-<CARD_CODE>-`.
 - ✓ **Hover only under `@media (hover: hover) and (pointer: fine)`**, so a tap on a phone never leaves it stuck.
@@ -130,8 +133,9 @@ What you may rely on, and what not to rewrite:
 - `@dashhaus/dashboard/skin`: `LovelaceDashboardElement` (implement `styles`, `parse`, `changed`, `draw`; optionally
   `mountClass`, `fontHref`, `paintHost`), `registerCard`, `scopeToHost` (turns `:root` into `:host`, so tokens
   written for `:root` reach the shadow root), `autoInput`.
-- `@dashhaus/dashboard/layout`: `visibleEntities`, `groupByArea`, `sortByName`, `areaName`, `friendlyName`, used by the
-  automatic layout in `draw()`.
+- `@dashhaus/dashboard/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
+  device), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
+  `node_modules/@dashhaus/dashboard/dist/layout.d.ts`, and their signatures may still change before 1.0.
 - `@dashhaus/dashboard/schema`: `Reader` and `DashboardConfigError`, used by `lovelace/config.ts`. A thrown
   `DashboardConfigError` shows its problems in Home Assistant's card editor.
 - `@dashhaus/core`: the `useHa<Name>` hooks; `@dashhaus/core/primitives`: `usePress`, `useSlider`, `useRangeSlider`,

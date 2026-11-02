@@ -8,7 +8,7 @@
  * Presses work: a light toggles, and the card redraws from the store, as it would in Home Assistant.
  */
 import "../lovelace/entry";
-import { AREAS, ENTITY_AREAS, STATES } from "./house";
+import { AREAS, ENTITY_AREAS, ENTITY_DEVICES, STATES } from "./house";
 import type { PreviewState } from "./house";
 
 const CARD_TYPE = "__card_type__";
@@ -55,8 +55,8 @@ const connection = {
 const hass = {
   connection,
   states,
-  entities: Object.fromEntries(Object.keys(states).map((id) => [id, { area_id: ENTITY_AREAS[id] ?? null, device_id: null, hidden: false, entity_category: null }])),
-  devices: {},
+  entities: Object.fromEntries(Object.keys(states).map((id) => [id, { area_id: ENTITY_AREAS[id] ?? null, device_id: ENTITY_DEVICES[id] ?? null, hidden: false, entity_category: null }])),
+  devices: Object.fromEntries(Object.entries(ENTITY_DEVICES).map(([id, device]) => [device, { area_id: ENTITY_AREAS[id] ?? null }])),
   areas: Object.fromEntries(Object.entries(AREAS).map(([area_id, name]) => [area_id, { area_id, name }])),
   themes: { darkMode: dark },
   panels: {},

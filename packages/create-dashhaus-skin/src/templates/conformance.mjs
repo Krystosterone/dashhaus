@@ -5,8 +5,8 @@
  * 1. The packed card preset (`@dashhaus/dashboard/conformance`) over `cards/`: every card folder has its component
  *    and story file, its stories are titled `__Section__/Cards/<Name>`, its classes start with `__skin__-`, it
  *    declares a two-letter `CARD_CODE` no other card uses, and it imports nothing from the Home Assistant layer.
- * 2. The skin's own CSS rules (AGENTS.md → Rules): colours only from `styles/tokens.css`, hover only under the
- *    hover media query, and motion only on transform, opacity, clip-path and colours.
+ * 2. The skin's own CSS rules (AGENTS.md → Rules): colours only from `styles/tokens.css`, whose blocks sit on `:root`,
+ *    hover only under the hover media query, and motion only on transform, opacity, clip-path and colours.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -59,6 +59,9 @@ function cssFindings(file) {
     if (LAYOUT_MOTION.test(line)) findings.push(`${at}: [motion] animate only transform, opacity, clip-path and colours, never layout or "all"`);
     for (const char of line) {
       if (char === "{") {
+        if (tokens && !pending.trim().startsWith("@") && /(^|,)\s*(?!:root)[^,\s]/.test(pending.trim())) {
+          findings.push(`${at}: [tokens] keep token blocks on :root (the card's host); a block on another selector hides the dark values`);
+        }
         stack.push(HOVER_MEDIA.test(pending));
         if (/:hover\b/.test(pending) && !stack.slice(0, -1).includes(true)) {
           findings.push(`${at}: [hover] put :hover rules inside @media (hover: hover) and (pointer: fine), so a tap never leaves one stuck`);

@@ -30,7 +30,8 @@ afterwards. Run it again after every change; the dashboard's layout is kept.
 
 ## YAML
 
-With no `cards`, the card lays out every light and sensor by Home Assistant area. To choose:
+With no `cards`, the card lays out every light and every room's air by Home Assistant area: a temperature sensor with
+the humidity sensor on its device. To choose:
 
 ```yaml
 type: custom:__card_type__
@@ -38,6 +39,7 @@ title: Home
 cards:
   - entity: light.kitchen
   - entity: sensor.office_temperature
+    humidity: sensor.office_humidity   # drawn under the temperature
     name: Office        # overrides the friendly name
     area: Upstairs      # overrides the area it is grouped under
 ```

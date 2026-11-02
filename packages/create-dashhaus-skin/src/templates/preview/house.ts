@@ -1,7 +1,9 @@
 /**
  * The house the preview draws: what Home Assistant would hand the card as `hass`. Add entities here to see more
  * cases (a new domain, a longer name); the worst cases the skin must survive are already in it: a light that is
- * unavailable, a sensor with no reading, a long name and an entity with no area.
+ * unavailable, a sensor with no reading, a long name and an entity with no area. Sensors sit on devices, as in Home
+ * Assistant: the automatic layout pairs a temperature sensor with the humidity sensor on its device, so give a new
+ * sensor a device to see it paired.
  */
 export interface PreviewState {
   entity_id: string;
@@ -49,4 +51,12 @@ export const ENTITY_AREAS: Record<string, string> = {
   "light.bedroom_bedside": "bedroom",
   "light.bedroom_ceiling": "bedroom",
   "sensor.bedroom_temperature": "bedroom",
+};
+
+/** Which device each entity belongs to (Home Assistant's device registry); a device's area is its entities'. */
+export const ENTITY_DEVICES: Record<string, string> = {
+  "sensor.kitchen_temperature": "kitchen_air",
+  "sensor.kitchen_humidity": "kitchen_air",
+  "sensor.living_room_temperature": "living_room_air",
+  "sensor.bedroom_temperature": "bedroom_air",
 };

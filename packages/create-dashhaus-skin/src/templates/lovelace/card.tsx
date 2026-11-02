@@ -1,6 +1,6 @@
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
 import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import { areaName, friendlyName, groupByArea, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
+import { areaName, friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
 import type { AutoInput } from "@dashhaus/dashboard/layout";
 import { kindOf, parse__Skin__Config } from "./config";
 import type { CardConfig, __Skin__Config } from "./config";
@@ -22,13 +22,15 @@ const HOST_CSS = `
 .hd-config-error { margin: 16px; padding: 16px; border: 1px solid var(--__skin__-line); border-radius: 12px; background: var(--__skin__-card); color: var(--__skin__-ink); font: 500 13px/1.5 var(--__skin__-sans); white-space: pre-wrap; }
 `;
 
-/** Every supported, visible entity as the card its domain picks, by name. */
+/**
+ * Every visible light, then room air: `roomSensors` gives one card per device, a temperature sensor with the humidity
+ * sensor on the same device as its companion (a humidity sensor alone gets its own card). Each sorted by name.
+ */
 function autoCards(input: AutoInput): CardConfig[] {
-  const cards = visibleEntities(input, (entity) => kindOf(entity) !== undefined).flatMap((entity): CardConfig[] => {
-    const card = kindOf(entity);
-    return card ? [{ entity, card }] : [];
-  });
-  return sortByName(cards, (card) => friendlyName(input.states, card.entity));
+  const lights = visibleEntities(input, (entity) => kindOf(entity) === "light").map((entity): CardConfig => ({ entity, card: "light" }));
+  const sensors = roomSensors(input).map(({ entity, humidity }): CardConfig => ({ entity, card: "sensor", ...(humidity && { humidity }) }));
+  const byName = (card: CardConfig) => friendlyName(input.states, card.entity);
+  return [...sortByName(lights, byName), ...sortByName(sensors, byName)];
 }
 
 /** `type: custom:__card_type__` on Home Assistant's own authenticated frontend connection. */

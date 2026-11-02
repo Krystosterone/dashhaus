@@ -50,6 +50,12 @@ const problems = [];
 try {
   browser = await chromium.launch();
   await mkdir(out, { recursive: true });
+  // A warm-up load: Vite finds a newly imported dependency on the first request and re-optimizes, which reloads the
+  // page and can briefly serve two copies of React ("Invalid hook call"). The shots start once that has settled.
+  const warmup = await browser.newPage();
+  await warmup.goto(base, { waitUntil: "networkidle" });
+  await warmup.waitForTimeout(1000);
+  await warmup.close();
   for (const shot of shots) {
     const page = await browser.newPage({ viewport: { width: shot.width, height: shot.height } });
     page.on("pageerror", (error) => problems.push(`${shot.name}: ${error.message}`));

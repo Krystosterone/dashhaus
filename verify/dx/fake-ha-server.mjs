@@ -13,6 +13,7 @@
  *   /                the sidebar: every dashboard deploy created
  *   /<url_path>[/<view>]  a dashboard: its registered resources loaded as modules and its saved panel card drawn on the
  *                    fake house, through an in-page connection, so a deployed skin can be looked at and screenshotted
+ *   /api/, /api/config, /api/states[/<id>]  the REST reads, with the bearer token
  *   /api/fake/state  what deploy left behind (resources, dashboards, saved layouts, the command log), as JSON
  *
  * `--state` also writes that JSON to a file after every command. The www folder defaults to a new temporary one.
@@ -43,6 +44,16 @@ export async function startFakeHomeAssistant({ port = 8123, www, token = "fake-h
     const url = new URL(request.url ?? "/", `http://${request.headers.host}`);
     const path = decodeURIComponent(url.pathname);
     if (path === "/favicon.ico") return send(response, 204, "image/x-icon", "");
+    if (path.startsWith("/api/") && path !== "/api/fake/state") {
+      // The REST API answers what a real one does for a read: a bearer token, then JSON.
+      if (request.headers.authorization !== `Bearer ${token}`) return send(response, 401, "text/plain", "401: Unauthorized");
+      if (path === "/api/") return send(response, 200, "application/json", JSON.stringify({ message: "API running." }));
+      if (path === "/api/config") return send(response, 200, "application/json", JSON.stringify({ version: ha.version, location_name: "Fake Home", unit_system: { temperature: "°C" } }));
+      if (path === "/api/states") return send(response, 200, "application/json", JSON.stringify(Object.values(ha.states)));
+      const state = path.startsWith("/api/states/") ? ha.states[path.slice("/api/states/".length)] : undefined;
+      if (state) return send(response, 200, "application/json", JSON.stringify(state));
+      return send(response, 404, "application/json", JSON.stringify({ message: "Entity not found." }));
+    }
     if (path === "/api/fake/state") return send(response, 200, "application/json", JSON.stringify(dump(), null, 2));
     if (path.startsWith("/local/")) return serveFile(response, folder, path.slice("/local/".length));
     if (path === "/" || path === "") return send(response, 200, "text/html", sidebar(ha));

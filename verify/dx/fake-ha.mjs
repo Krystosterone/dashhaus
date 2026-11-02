@@ -36,6 +36,9 @@ const HOUSE = [
   entity("weather.home", "partlycloudy", { friendly_name: "Home", temperature: 9, humidity: 71, wind_speed: 14, temperature_unit: "°C", wind_speed_unit: "km/h" }, null),
 ];
 
+/** A room's sensors sit on one device, as a climate sensor's do in Home Assistant, so layouts can pair them. */
+const deviceOf = ({ entity_id, area_id }) => (entity_id.startsWith("sensor.") && area_id ? `${area_id}_air` : null);
+
 /** The house as `get_states` returns it. */
 export function houseStates() {
   return HOUSE.map(({ entity_id, state, attributes }) => ({
@@ -50,14 +53,23 @@ export function houseStates() {
 
 /** The entity registry as `config/entity_registry/list_for_display` returns it. */
 export function houseEntityRegistry() {
-  return { entity_categories: {}, entities: HOUSE.map(({ entity_id, area_id }) => ({ ei: entity_id, ...(area_id ? { ai: area_id } : {}) })) };
+  return {
+    entity_categories: {},
+    entities: HOUSE.map((entry) => ({ ei: entry.entity_id, ...(entry.area_id ? { ai: entry.area_id } : {}), ...(deviceOf(entry) ? { di: deviceOf(entry) } : {}) })),
+  };
+}
+
+/** The device registry as `config/device_registry/list` returns it. */
+export function houseDevices() {
+  const devices = new Map(HOUSE.filter(deviceOf).map((entry) => [deviceOf(entry), entry.area_id]));
+  return [...devices].map(([id, area_id]) => ({ id, area_id, name: id.replaceAll("_", " ") }));
 }
 
 /** The registries as the frontend's `hass` carries them. */
 export function houseRegistries() {
   return {
-    entities: Object.fromEntries(HOUSE.map(({ entity_id, area_id }) => [entity_id, { entity_id, area_id, device_id: null, hidden: false, entity_category: null }])),
-    devices: {},
+    entities: Object.fromEntries(HOUSE.map((entry) => [entry.entity_id, { entity_id: entry.entity_id, area_id: entry.area_id, device_id: deviceOf(entry), hidden: false, entity_category: null }])),
+    devices: Object.fromEntries(houseDevices().map((device) => [device.id, device])),
     areas: Object.fromEntries(HOUSE_AREAS.map((area) => [area.area_id, area])),
   };
 }
@@ -144,7 +156,7 @@ export class FakeHomeAssistant {
     if (type === "get_states") return Object.values(this.states);
     if (type === "call_service") return this.callService(payload);
     if (type === "config/entity_registry/list_for_display") return houseEntityRegistry();
-    if (type === "config/device_registry/list") return [];
+    if (type === "config/device_registry/list") return houseDevices();
     if (type === "config/area_registry/list") return HOUSE_AREAS;
     throw new Error(`unexpected Home Assistant command ${type}`);
   }
