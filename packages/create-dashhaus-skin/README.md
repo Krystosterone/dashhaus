@@ -40,7 +40,7 @@ cards/light/__Skin__LightCard.tsx   the control card, its CSS, stories and two-l
 cards/sensor/__Skin__SensorCard.tsx the reading card
 ha/                                 the useHaLight and useHaSensor adapters
 lovelace/                           the custom element (page layout, fonts), YAML reader, card registry, bundle entry
-shared/                             the page styles and the action button
+shared/                             the page, card parts, details sheet and the action button
 styles/tokens.css                   every colour, font and easing, light and dark
 preview/                            the local preview, its sample house and the snapshot script
 conformance.js, tsconfig.json      npm test: tsc, then @dashhaus/dashboard/conformance plus the CSS rules

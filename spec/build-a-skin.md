@@ -46,10 +46,17 @@ A card receives its normalized entity facts from its `ha/` adapter; it never rea
 Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/dashboard/card`,
 but not the Home Assistant subpaths, the Lovelace entry or a stylesheet from another skin.
 
+Every card extends `CardProps` from `@dashhaus/dashboard/card`. `useCardFrame` gives it the footprint flags, the ids
+and the article's accessible name; `detailsTile(Card, detailsSheet(Card, Sheet, label))` owns the open state, so the
+card's name (or a bare compact row) opens its details and the dialog closes from its button, Escape or the backdrop.
+The card drawn as `variant="sheet"` is that details view, showing only the facts its props already carry; the `Sheet`
+is a `CardDialog` in `shared/ui.tsx`, and the adapter renders the tile rather than the bare card.
+
 Add a domain by adding:
 
-1. a card folder with its component, CSS and story metadata under `cards/<domain>/`;
-2. an adapter in `ha/` that calls the matching `useHa<Name>` hook;
+1. a card folder under `cards/<domain>/` with its component (extending `CardProps`, exporting its card, sheet and
+   tile), its CSS and its story metadata;
+2. an adapter in `ha/` that calls the matching `useHa<Name>` hook and passes the facts to the tile;
 3. a row in `lovelace/registry.tsx`;
 4. a kind in `lovelace/config.ts` when the YAML can select it explicitly.
 
