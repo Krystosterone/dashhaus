@@ -14,7 +14,7 @@ import ts from "typescript";
 const ENTRIES = [
   "@dashhaus/core",
   "@dashhaus/core/entities",
-  ...["light", "climate", "cover", "toggle", "humidifier", "sound", "alarm", "sensor", "weather", "owlet"].map((kind) => `@dashhaus/core/entities/${kind}/types`),
+  ...["light", "climate", "cover", "toggle", "humidifier", "sound", "alarm", "sensor", "weather", "owlet", "lock"].map((kind) => `@dashhaus/core/entities/${kind}/types`),
   "@dashhaus/core/hooks",
   "@dashhaus/core/primitives",
   "@dashhaus/core/testing",
