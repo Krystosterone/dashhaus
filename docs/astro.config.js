@@ -57,7 +57,7 @@ export default defineConfig({
             { label: "Controls", items: ["entities/light", "entities/toggle", "entities/cover", "entities/sound"] },
             { label: "Comfort", items: ["entities/climate", "entities/humidifier"] },
             { label: "Readings", items: ["entities/sensor", "entities/weather"] },
-            { label: "Safety", items: ["entities/alarm", "entities/owlet"] },
+            { label: "Safety", items: ["entities/alarm", "entities/lock", "entities/owlet"] },
           ],
         },
         {

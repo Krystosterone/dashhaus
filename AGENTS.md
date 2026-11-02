@@ -133,7 +133,7 @@ For the orb skin:
 
 For the field skin:
 
-- Shared classes use `fd-`; card classes add `fd-lt-` for light, `fd-cl-` for climate, `fd-sw-` for sensor, `fd-wx-` for weather, `fd-tw-` for toggle, `fd-hu-` for humidifier, `fd-sn-` for sound, `fd-cv-` for cover, `fd-al-` for alarm and `fd-ow-` for owlet<!-- new-card: field codes -->.
+- Shared classes use `fd-`; card classes add `fd-lt-` for light, `fd-cl-` for climate, `fd-sw-` for sensor, `fd-wx-` for weather, `fd-tw-` for toggle, `fd-hu-` for humidifier, `fd-sn-` for sound, `fd-cv-` for cover, `fd-al-` for alarm and `fd-ow-` for owlet, `fd-lk-` for lock<!-- new-card: field codes -->.
 
 ## Design review
 

@@ -80,9 +80,6 @@
 .lk-kp-x { padding: 8px 16px; border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 14px var(--font); cursor: pointer; }
 .lk-kp-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-/* Controls aren't selectable, and answer at once */
-:is(.lk-door, .lk-cf-x, .lk-cf-ok, .lk-key, .lk-kp-x) { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-
 @media (prefers-reduced-motion: reduce) {
   .lk-kp-dots[data-error] { animation: none; }
   /* Gentler, not gone: the waiting words fade slowly */
