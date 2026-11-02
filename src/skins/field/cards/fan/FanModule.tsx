@@ -1,7 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
-import { DIRECTION_LABEL, namedSpeeds, percentOf, presetLabel, speedOf } from "@dashhaus/core/entities/fan/speed";
+import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
+import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { fmtDuration } from "@dashhaus/core/entities/format";
 import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Option, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -53,7 +54,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
     : speed != null && named ? <><Digits value={speed} places={1} /><small aria-hidden="true">/{count}</small><span className="fd-sr"> of {count}</span></>
     : pct != null ? <><Digits value={pct} /><small>%</small></>
     : "ON";
-  const first = on ? (e.presetMode ? presetLabel(e.presetMode) : e.oscillating ? "Oscillating" : null) : null;
+  const first = fanMode(e);
   const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : undefined) : e.lastChanged ? `Since ${e.lastChanged}` : undefined;
   const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : first ? [first, since] : since ? [since] : undefined;
 
@@ -78,7 +79,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
           min={1}
           max={count}
           lit={on}
-          valueText={speedSaid(at, count, on)}
+          valueText={speedValueText(at, count, on)}
           onChange={(next) => onPercentageChange?.(percentOf(next, count))}
         />
       )}
@@ -104,12 +105,6 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   );
 }
 
-/** What the fader says: a stepped fan's speed by number, a stepless one's in percent. */
-function speedSaid(speed: number, count: number, on: boolean) {
-  const said = namedSpeeds(count) ? `speed ${speed} of ${count}` : `${percentOf(speed, count)} percent`;
-  return on ? said.charAt(0).toUpperCase() + said.slice(1) : `Off. Last set to ${said}`;
-}
-
 interface DetailsProps {
   e: FanEntity;
   read: ReactNode;
@@ -120,18 +115,6 @@ interface DetailsProps {
   onPresetChange?: (preset: string) => void;
   onOscillateChange?: (oscillating: boolean) => void;
   onDirectionChange?: (direction: FanDirection) => void;
-}
-
-/** What the fan can do, for the panel's facts: "3 speeds, presets, oscillates". */
-function abilities(e: FanEntity) {
-  const count = e.speedCount ?? 0;
-  const parts = [
-    e.supportsSpeed && count >= 2 ? (namedSpeeds(count) ? `${count} speeds` : "variable speed") : null,
-    e.supportsPreset ? "presets" : null,
-    e.supportsOscillate ? "oscillates" : null,
-    e.supportsDirection ? "reverses" : null,
-  ].filter(Boolean).join(", ");
-  return parts ? parts.charAt(0).toUpperCase() + parts.slice(1) : "On / off";
 }
 
 /**
@@ -200,7 +183,7 @@ function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, on
 
       <p className="fd-info">
         <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        <span>{abilities(e)}</span>
+        <span>{fanAbilities(e)}</span>
       </p>
     </div>
   );

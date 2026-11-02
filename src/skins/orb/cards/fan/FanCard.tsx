@@ -1,5 +1,6 @@
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
-import { DIRECTION_LABEL, namedSpeeds, percentOf, presetLabel, speedText } from "@dashhaus/core/entities/fan/speed";
+import { percentOf, speedText } from "@dashhaus/core/entities/fan/speed";
+import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel } from "@dashhaus/core/entities/fan/labels";
 import { FanIcon } from "./icons";
 import { SpeedBar } from "./parts";
 import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
@@ -25,18 +26,6 @@ export interface FanCardProps extends CardProps {
 const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;
 const DIRECTIONS = (["forward", "reverse"] as const).map((value) => ({ value, label: DIRECTION_LABEL[value] }));
 
-/** What the fan can do, for the sheet's footer: "3 speeds, presets, oscillates". */
-function abilities(e: FanEntity) {
-  const count = e.speedCount ?? 0;
-  const parts = [
-    e.supportsSpeed && count >= 2 ? (namedSpeeds(count) ? `${count} speeds` : "variable speed") : null,
-    e.supportsPreset ? "presets" : null,
-    e.supportsOscillate ? "oscillates" : null,
-    e.supportsDirection ? "reverses" : null,
-  ].filter(Boolean).join(", ");
-  return parts ? parts.charAt(0).toUpperCase() + parts.slice(1) : "On / off";
-}
-
 /**
  * One fan (`fan.*`). It uses the same card anatomy and footprint matrix as every other card: the orb switches it;
  * the slot is the light card's groove, counted in the fan's speeds, or an On/Off pill for a fan without speeds;
@@ -58,7 +47,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
   // The pill's second voice: what tapping does, or how long it has run.
   const cue = on ? (e.lastChanged ? `Since ${e.lastChanged}` : undefined) : "Turn on";
   // The status line names what it runs as, after the room: its preset, or that it sweeps.
-  const mode = on ? (e.presetMode ? presetLabel(e.presetMode) : e.oscillating ? "Oscillating" : null) : null;
+  const mode = fanMode(e);
   // With no room to name (a titled bundle's lid names it), the status line carries its own detail.
   const since = unav ? e.lastSeen : e.lastChanged;
   const detail = mode ?? (since ? `Since ${since}` : null);
@@ -116,7 +105,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
       {sheet && (
         <p className="hd-info">
           <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{abilities(e)}</span>
+          <span>{fanAbilities(e)}</span>
         </p>
       )}
     </article>

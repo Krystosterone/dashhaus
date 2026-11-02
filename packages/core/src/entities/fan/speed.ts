@@ -33,9 +33,3 @@ export const namedSpeeds = (count: number) => count >= 2 && count <= MAX_NAMED_S
 
 /** A speed in words, for the groove and its readout: "Speed 2" for a three-speed fan, "40%" for a stepless one. */
 export const speedText = (percent: number, count: number) => namedSpeeds(count) ? `Speed ${speedOf(percent, count)}` : `${Math.round(percent)}%`;
-
-/** A preset as a word: "breeze" → "Breeze", "smart_mode" → "Smart mode". */
-export const presetLabel = (preset: string) => preset.charAt(0).toUpperCase() + preset.slice(1).replace(/_/g, " ");
-
-/** The direction as a word. */
-export const DIRECTION_LABEL = { forward: "Forward", reverse: "Reverse" } as const;

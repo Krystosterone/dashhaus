@@ -1,6 +1,7 @@
 import { Track } from "../../shared/ui";
 import { useSlider } from "@dashhaus/core/primitives";
-import { namedSpeeds, percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
+import { percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
+import { speedValueText } from "@dashhaus/core/entities/fan/labels";
 
 /** Width of the filled end cap, in px. Matches --cap in FanCard.css. */
 const THUMB = 30;
@@ -12,14 +13,10 @@ const THUMB = 30;
  * a tap on the groove turns the fan on at that speed.
  */
 export function SpeedBar({ id, label, percent, count, on, onChange }: { id: string; label: string; percent: number; count: number; on: boolean; onChange: (percent: number) => void }) {
-  const named = namedSpeeds(count);
   const slider = useSlider<HTMLDivElement>({
     value: speedOf(percent, count), min: 1, max: count, inset: THUMB / 2, reportUnchanged: !on,
     onChange: (speed) => onChange(percentOf(speed, count)),
-    valueText: (speed) => {
-      const said = named ? `speed ${speed} of ${count}` : `${percentOf(speed, count)} percent`;
-      return on ? said.charAt(0).toUpperCase() + said.slice(1) : `Off. Last set to ${said}`;
-    },
+    valueText: (speed) => speedValueText(speed, count, on),
   });
   const speed = slider.value;
   return (

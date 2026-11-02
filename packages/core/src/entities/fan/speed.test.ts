@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { namedSpeeds, percentOf, presetLabel, speedCountOf, speedOf, speedText } from "./speed";
+import { namedSpeeds, percentOf, speedCountOf, speedOf, speedText } from "./speed";
 
 describe("fan speeds", () => {
   it("counts speeds from Home Assistant's percentage_step", () => {
@@ -40,7 +40,7 @@ describe("fan speeds", () => {
     }
   });
 
-  it("names few speeds, and words presets", () => {
+  it("names few speeds", () => {
     expect(namedSpeeds(3)).toBe(true);
     expect(namedSpeeds(10)).toBe(true);
     expect(namedSpeeds(20)).toBe(false);
@@ -48,6 +48,5 @@ describe("fan speeds", () => {
     expect(namedSpeeds(1)).toBe(false);
     expect(speedText(67, 3)).toBe("Speed 2");
     expect(speedText(40, 100)).toBe("40%");
-    expect(presetLabel("smart_mode")).toBe("Smart mode");
   });
 });
