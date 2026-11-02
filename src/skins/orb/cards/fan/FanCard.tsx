@@ -116,7 +116,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
       {sheet && (
         <p className="hd-info">
           <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{unav ? e.area ?? "" : abilities(e)}</span>
+          <span>{abilities(e)}</span>
         </p>
       )}
     </article>

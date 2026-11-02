@@ -1,5 +1,5 @@
 /** One blade from the hub at (12, 12), pointing up; the glyph turns it three times. */
-const BLADE = "M12 10C10.1 9 9.1 6.6 10.1 4.8a2.5 2.5 0 0 1 4-.5c1.2 1.6.5 4-1 5.5";
+const BLADE = "M11.9 10C9.2 9.2 7.6 5.7 9.2 3.5a3.5 3.5 0 0 1 5.5.2c1.6 2.4-.1 5.3-1.9 6.3";
 
 /** A fan, drawn on the power key: three blades round a hub, the fan's domain glyph and its switch in one. */
 export function IconFan() {
