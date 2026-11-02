@@ -20,41 +20,51 @@ follows urgency, not position).
 - **Validation status (2026-10-18):** blocked on participant scan metrics; no urgency-aware damping implementation or
   value change is authorized.
 
-## 2. Guarded actions — the confirmation and the code keypad as shared mechanism
+## 2. Cards compose shared mechanism — parts and primitives across a skin's cards
 
-**Contract:** AGENTS.md → Layout, "Skins never import each other. What two skins share moves to `@dashhaus/core`",
-and → Vocabulary, "A card is built from parts and brings only what is its own"; `spec/cards.md` → Using the lock card
-(a tap never unlocks: the sheet asks, or takes the code) and → Using the alarm card (whatever needs the code opens the
-keypad).
+**Contract:** AGENTS.md → Vocabulary, "**Part** — a skin's styled control in its `shared/` … A card is built from
+parts and brings only what is its own", and → Layout, "What two skins share moves to `@dashhaus/core`".
 
-- **Today:** the lock landed with about 1,100 lines of production code where most of a card should be composition.
-  Two pieces are written per card and per skin instead of once:
-  - **The code keypad.** `useKeypad` (`packages/core/src/primitives/keypad.ts`) is shared, but the keypad drawn on it
-    is private to each card: orb's in `cards/alarm/parts.tsx` and `cards/lock/parts.tsx` (`al-kp-*`, `lk-kp-*`), field's
-    inside `AlarmModule.tsx` and `LockModule.tsx` (`fd-al-pad`, `fd-lk-pad`). Four copies of one part, about 120 lines
-    of TSX and CSS added by the lock alone.
-  - **The confirmation flow.** The pending action, busy and failed, a `wrong_code` answer that moves to the keypad, the
-    question clearing when the entity reaches the asked state elsewhere, and the `useSettled` double-tap guard live in
-    both `LockCard.tsx` and `LockModule.tsx`, about 40–50 lines each. None of it is drawing. Each skin also draws its
-    own question (`Confirm` in orb's `cards/lock/parts.tsx` and field's `LockModule.tsx`) outside `shared/`.
-- **Gap:** the next guarded control repeats all of it. `binary_sensor` won't, but any card with a deliberate action
-  will (an alarm's mode change, a garage door, `vacuum`'s return, a future scene or script confirmation), and a third
-  skin would copy it again.
-- **Proposal:**
-  - A primitive in `packages/core/src/primitives/`, say `useGuardedAction`: given the handlers (answering `done`,
-    `wrong_code` or `failed`, as `createLockHandlers` does), whether the entity asks for a code, and when an asked
-    action counts as done, it owns the pending action, busy and failed, the move to the keypad, clearing, and the
-    settle guard on its confirm. Unit tests beside it, as for the other primitives.
-  - A **Keypad** part in each skin's `shared/` (orb's from `cards/alarm/parts.tsx`, field's from `AlarmModule.tsx`), and
-    the alarm and the lock both drawing it. Its classes move from `al-`/`lk-` and `fd-al-`/`fd-lk-` to `hd-kp-*` and
-    `fd-kp-*`.
-  - A **Confirm** part in each skin's `shared/`: the question, what it means, Cancel (`data-autofocus`) and the action.
-  - Both parts join each skin's Foundations → Parts story. The lock's own files then keep only what is the lock's: its
-    words, glyph, screen and states.
-- **Gate:** the alarm's and the lock's interaction tests and stories pass unchanged in both skins (`npm run check`,
-  `npm run test-storybook`); the alarm keypad and the lock keypad look and behave as today at every width; the lock's
-  orb and field production code shrinks by the duplicated lines (about 250 expected). It changes the alarm card, so it
-  is its own change, not part of a new card's.
-- **Validation status (2026-11-02):** not started; the lock shipped with the duplication rather than change the alarm
-  inside a new card's scope.
+- **Today:** a card is meant to be composition, but each skin re-implements mechanism per card. The lock made it
+  visible: about 1,100 lines of production code where most should have been composition. A first pass over both skins
+  (grep of the card folders, 2026-11-02) finds:
 
+  | Mechanism | Where it is written now | Copies |
+  | --- | --- | --- |
+  | Code keypad, drawn on `useKeypad` | orb `cards/alarm/parts.tsx`, `cards/lock/parts.tsx`; field `AlarmModule.tsx`, `LockModule.tsx` | 4 |
+  | Guarded action: pending action, busy and failed, `wrong_code` to the keypad, clearing when the entity gets there, the `useSettled` guard | orb `LockCard.tsx`, `AlarmCard.tsx` (part of it); field `LockModule.tsx`, `AlarmModule.tsx` (part of it) | 4 |
+  | The question: Cancel (`data-autofocus`) and the action | orb `cards/lock/parts.tsx`; field `LockModule.tsx` | 2 |
+  | A tile or module that opens its details on an action | orb `AlarmTile.tsx`, `LockTile.tsx`; field `AlarmModule.tsx`, `LockModule.tsx` | 4 |
+  | Field key group (a row of keys under a legend, n to a row, two on a phone) | `fd-lt-levels`, `fd-lt-colours`, `fd-cv-keys`, `fd-hu-modes`, `fd-cl-mode-keys`, `fd-cl-text-keys`, `fd-al-bank`, `fd-lk-keys`, each with its own grid CSS | 8 |
+  | Field temperature figure (`Digits` and its unit) | `SensorModule.tsx`, `WeatherModule.tsx`, `ClimateModule.tsx` | 3 |
+  | Facts in small print ("Last seen …", "Last changed … by …") | 11 `hd-info` rows in orb, 11 `fd-info` in field; the words written by hand 36 times | 22 |
+  | Orb slider wiring (`useSlider` into `Track`) | `cards/light/parts.tsx` (2), `cards/cover/parts.tsx`, `cards/sound/parts.tsx`, `cards/climate/RangeBar.tsx` | 5 |
+  | Field demo seeds copied from orb's (skins can't import each other) | every field card's `demo/` | per card |
+
+  Orb's `ChoiceChips`, `Track`, `TogglePill`, `TodayStrip` and field's `Key`, `Fader`, `Screen`, `Today` show the
+  intended shape: one part, many cards. The rows above are what hasn't reached it yet.
+- **Gap:** every new card copies the nearest card that has what it needs, so each copy drifts on its own (a keypad
+  fix lands in one card), and a new card costs far more than composition. Nothing checks for it: the conformance
+  tests hold a card's files, classes and registrations, not whether it re-implements a part.
+- **Proposal:** one pass per row, each its own change, each moving the mechanism to where it belongs and redrawing every
+  card on it:
+  - **Skin-free behaviour to `@dashhaus/core`:** a `useGuardedAction` primitive (the guarded-action row); the facts'
+    words (last seen, last changed and by whom, since when) as pure formatters in `entities/`, beside `format.ts`. If
+    the demo seeds are kept, move them to `@dashhaus/core/demo`, so field stops copying orb's.
+  - **Drawing to each skin's `shared/` as parts,** each added to that skin's Foundations → Parts:
+    - orb: `Keypad`, `Confirm`, `Facts`, and a slider part that wires `useSlider` into `Track` and leaves the card its fill;
+    - field: `Keypad`, `Confirm`, `KeyGroup`, `Facts`, and the temperature figure.
+  - **A details surface that opens on an action:** in `@dashhaus/dashboard/card`'s `useDetails` and `detailsTile`, so
+    the alarm's and the lock's own tiles go.
+  - **A check against regression:** in `verify/`, flag a component or a class block defined in two card folders of a
+    skin, so the next copy fails where it is written.
+  - **The generator templates** (`scripts/new-card/templates/`, the scaffolder's card template) draw on the new parts,
+    so new cards start from them.
+  - **Order:** the guarded-action rows first (keypad, guarded action, question, open on an action), before the next
+    card with a deliberate action; then field's key group and facts, which touch the most cards; then the rest.
+- **Gate:** per row, every affected card's interaction tests and stories pass unchanged in both skins (`npm run check`,
+  `npm run test-storybook`), its stories look the same at every width and footprint, and the card folders lose the
+  duplicated lines. The table is a grep, not a review: each row is confirmed against the cards before it moves, and a
+  copy that differs on purpose (a card's own figure) stays in the card.
+- **Validation status (2026-11-02):** not started. The lock shipped with the duplication rather than change the alarm
+  and other cards inside a new card's scope.
