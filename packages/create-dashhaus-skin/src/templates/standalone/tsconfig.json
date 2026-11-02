@@ -12,5 +12,5 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client"]
   },
-  "include": ["cards", "ha", "lovelace", "shared", "preview"]
+  "include": ["cards", "dashboards", "ha", "lovelace", "shared", "preview"]
 }

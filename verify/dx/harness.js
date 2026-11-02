@@ -92,25 +92,27 @@ export async function exerciseDetails(url, cards, { token, screenshot } = {}) {
       if (problem) throw new Error(`${url}: ${problem}`);
     }
     const results = [];
-    for (const { code, facts, close } of cards) {
-      const trigger = page.locator(`article[data-card-code="${code}"] button[aria-haspopup="dialog"]`).first();
+    // A card is found by its code (Orb, Field: data-card-code) or its domain (a skin from the shared core: data-card).
+    for (const { code, card, facts, close } of cards) {
+      const label = code ?? card;
+      const trigger = page.locator(code ? `article[data-card-code="${code}"] button[aria-haspopup="dialog"]` : `article[data-card="${card}"] button[aria-haspopup="dialog"]`).first();
       await trigger.waitFor({ state: "visible", timeout: 10000 });
       await trigger.click();
       const dialog = page.locator("dialog[open]").first();
       await dialog.waitFor({ state: "visible", timeout: 5000 });
       const text = (await dialog.innerText()).replace(/\s+/g, " ");
-      for (const fact of facts) if (!text.includes(fact)) throw new Error(`${code} details do not show "${fact}": ${text}`);
+      for (const fact of facts) if (!text.includes(fact)) throw new Error(`${label} details do not show "${fact}": ${text}`);
       if (screenshot) {
-        const file = `${screenshot.replace(/\.png$/, "")}-${code}.png`;
+        const file = `${screenshot.replace(/\.png$/, "")}-${label}.png`;
         await mkdir(dirname(file), { recursive: true });
         // The sheet enters with a 160 ms transition; wait for its painted frame before capturing it.
         await page.waitForTimeout(250);
         await page.screenshot({ path: file });
       }
       if (close === "escape") await page.keyboard.press("Escape");
-      else await dialog.getByRole("button", { name: "Close details", exact: true }).click();
+      else await dialog.getByRole("button", { name: /^Close (?:.+ )?details$/ }).click();
       await dialog.waitFor({ state: "hidden", timeout: 5000 });
-      results.push(`${code}: ${facts.length} facts, closed with ${close === "escape" ? "Escape" : "the close button"}`);
+      results.push(`${label}: ${facts.length} facts, closed with ${close === "escape" ? "Escape" : "the close button"}`);
     }
     if (errors.length) throw new Error(`${url} reported: ${errors.join("; ")}`);
     return results.join("; ");

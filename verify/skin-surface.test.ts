@@ -57,28 +57,29 @@ describe("Storybook's font seam", () => {
   });
 });
 
-describe("the scaffold's page", () => {
-  const T = "packages/create-dashhaus-skin/src/templates/standalone";
+describe("the page every skin starts from", () => {
+  // The shared core in the scaffolder's templates: what new-skin lays out here and create-dashhaus-skin writes outside.
+  const T = "packages/create-dashhaus-skin/src/templates";
 
-  it("themes on the skin's own attribute, and its npm test refuses the shared one", () => {
-    expect(read(`${T}/conformance.js`)).toContain("const SHARED_THEME = /\\[data-theme\\b/;");
-    expect(read(`${T}/styles/tokens.css`)).not.toMatch(/\[data-theme\b/);
-    expect(read(`${T}/styles/tokens.css`)).toContain('[data-__skin__-theme="dark"]');
-    expect(read(`${T}/lovelace/card.tsx`)).toContain('THEME_ATTRIBUTE = "data-__skin__-theme"');
-    expect(read(`${T}/lovelace/card.tsx`)).toMatch(/setAttribute\(__SKIN_CONST___THEME_ATTRIBUTE,/);
-    expect(read(`${T}/preview/main.ts`)).not.toContain("dataset.theme");
+  it("themes on the skin's own attribute, and a standalone skin's npm test refuses the shared one", () => {
+    expect(read(`${T}/standalone/conformance.js`)).toContain("const SHARED_THEME = /\\[data-theme\\b/;");
+    expect(read(`${T}/skin/styles/tokens.css`)).not.toMatch(/\[data-theme\b/);
+    expect(read(`${T}/skin/styles/tokens.css`)).toContain('[data-__skin__-theme="dark"]');
+    expect(read(`${T}/skin/shared/surface.ts`)).toContain('THEME_ATTRIBUTE = "data-__skin__-theme"');
+    expect(read(`${T}/skin/lovelace/card.tsx`)).toMatch(/setAttribute\(__SKIN_CONST___THEME_ATTRIBUTE,/);
+    expect(read(`${T}/standalone/preview/main.ts`)).not.toContain("dataset.theme");
   });
 
-  it("names each card's article and links its font", () => {
-    expect(read(`${T}/lovelace/card.tsx`)).toContain("protected readonly fontHref = FONT_HREF;");
-    const ui = read(`${T}/shared/ui.tsx`);
-    expect(ui.match(/aria-haspopup="dialog"/g)?.length).toBe(2);
-    expect(ui).toContain("<span id={id}>{name}</span>");
+  it("names each card's article after its title, which opens its details, and links its font", () => {
+    expect(read(`${T}/skin/lovelace/card.tsx`)).toContain("protected readonly fontHref = __SKIN_CONST___FONT_HREF;");
+    const ui = read(`${T}/skin/shared/ui.tsx`);
+    expect(ui).toContain("{...frame.article}");
+    expect(ui).toMatch(/id=\{frame\.nameId\}[^>]*aria-haspopup="dialog"/);
   });
 
   it("draws the rejected-command row on its page", () => {
-    expect(read(`${T}/lovelace/ActionStatus.tsx`)).toContain('import { useActionStatus } from "@dashhaus/dashboard/skin";');
-    expect(read(`${T}/lovelace/ActionStatus.tsx`)).toContain("useActionStatus()");
-    expect(read(`${T}/lovelace/card.tsx`)).toContain("<ActionStatus />");
+    expect(read(`${T}/skin/lovelace/__Skin__ActionStatus.tsx`)).toContain('import { useActionStatus } from "@dashhaus/dashboard/skin";');
+    expect(read(`${T}/skin/lovelace/__Skin__ActionStatus.tsx`)).toContain("useActionStatus()");
+    expect(read(`${T}/skin/lovelace/__Skin__Dashboard.tsx`)).toContain("<__Skin__ActionStatus />");
   });
 });

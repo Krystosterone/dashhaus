@@ -20,7 +20,7 @@ export interface __Skin__CardRegistration {
   render: (item: __Skin__CardItem, footprint: __Skin__Footprint) => ReactNode;
 }
 
-/** The generated skin's one Card seam. `new-card --skin __skin__` adds imports and one registration here. */
+/** The skin's one card seam: the card generator adds an import and one registration here for each domain. */
 export const __SKIN_CONST___CARDS = {
   // new-card: registry entries
 } satisfies Record<string, __Skin__CardRegistration>;

@@ -23,7 +23,7 @@ __unavailableConst__
   const lastSeen = "lastSeen" in e && typeof e.lastSeen === "string" ? e.lastSeen : undefined;
 __actionsBlock__
   return (
-    <__Skin__CardFrame name={e.name} area={area} state={e.state} summary={summary} icon={<Icon__Name__ />} footprint={footprint}__actionsProp__ defaultOpen={defaultOpen}>
+    <__Skin__CardFrame card="__name__" name={e.name} area={area} state={e.state} summary={summary} icon={<Icon__Name__ />} footprint={footprint}__actionsProp__ defaultOpen={defaultOpen}>
       <dl className="__skin__-__name__-facts">
         <div><dt>State</dt><dd>{stateWords(e.state)}</dd></div>
         <div><dt>Entity</dt><dd>{e.entityId}</dd></div>

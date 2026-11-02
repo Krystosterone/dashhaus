@@ -1,79 +1,146 @@
 #!/usr/bin/env node
 /**
- * Scaffold a standalone Dashhaus skin:
+ * Scaffold a standalone Dashhaus skin, and add cards to it:
  *
  *   npm create dashhaus-skin@latest my-skin
  *   cd my-skin
  *   npm install
+ *   npm run add -- climate   # one more domain's card (create-dashhaus-skin add, from the skin's own copy)
  *   npm test        # the packed conformance preset over this skin's cards
  *   npm run build   # dist/dashhaus-<skin>.js: one file, its CSS included
  *   npx dashhaus-deploy --skip-build
  *
  * `--tarballs <dir>` points the @dashhaus dependencies at release tarballs in <dir> instead of the registry.
  *
- * The output has no Storybook, no workspace and no repo script: one control card (light), one reading card
- * (sensor), the shared hooks behind them, a YAML reader, the custom element and a deploy config.
+ * A skin starts from the same templates as one made inside the Dashhaus repository: the shared core (`templates/skin`)
+ * and one card per domain (`templates/card`), written by `card.js` from the domain's description in `domains.json`.
+ * What only a standalone skin has (its manifest, build, preview, checks and guide) is `templates/standalone`.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { REGISTRY_MARKERS, beforeMarker, cardKind, cardTokens, filler, registryLines, skinNames, skinTokens } from "./card.js";
+
+const templates = (name) => fileURLToPath(new URL(`./templates/${name}/`, import.meta.url));
+const domains = JSON.parse(readFileSync(new URL("./domains.json", import.meta.url), "utf8"));
+/** The cards a new skin starts with: one control and one reading. */
+const STARTERS = ["light", "sensor"];
 
 const HELP = `usage: create-dashhaus-skin <directory> [--tarballs <dir>] [--dry-run]
+       create-dashhaus-skin add <domain> [--kind control|reading] [--dry-run]
 
   <directory>        a new, empty folder, or "." for the current one; its name is the skin's name
   --tarballs <dir>   install @dashhaus packages from the release tarballs in <dir>, not the registry
+  add <domain>       run inside a skin: add the card for one more domain, registered and ready to restyle
+                     (${Object.keys(domains).join(", ")})
+  --kind             a control (its actions as buttons) or a reading (none); the domain's own kind by default
   --dry-run          print the files that would be written
   --help             this message
 
-It writes a working skin (two cards, a preview, checks, a one-file build and a deploy config) and an AGENTS.md
-that says where its colours, type, parts and rules live.`;
+It writes a working skin (a light and a sensor card, a preview, checks, a one-file build and a deploy config) and an
+AGENTS.md that says where its colours, type, parts and rules live.`;
+
+const fail = (message) => {
+  console.error(`create-dashhaus-skin: ${message}`);
+  process.exit(1);
+};
 
 const args = process.argv.slice(2);
 if (args.includes("--help") || args.includes("-h")) {
   console.log(HELP);
   process.exit(0);
 }
-const dryRun = args.includes("--dry-run");
-const tarballFlag = args.indexOf("--tarballs");
-const tarballDir = tarballFlag === -1 ? undefined : args[tarballFlag + 1];
-if (tarballFlag !== -1 && !tarballDir) {
-  console.error("create-dashhaus-skin: --tarballs needs the folder holding the .tgz files");
-  process.exit(1);
-}
-const positional = args.filter((arg, index) => arg !== "--dry-run" && (tarballFlag === -1 || (index !== tarballFlag && index !== tarballFlag + 1)));
-if (positional.length !== 1) {
-  console.error(HELP);
-  process.exit(1);
-}
-
-const target = resolve(positional[0]);
-const slug = basename(target);
-if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(slug)) {
-  console.error(`create-dashhaus-skin: "${slug}" must be lower-case kebab-case, like "my-skin"`);
-  process.exit(1);
-}
-
-const parts = slug.split("-");
-const Skin = parts.map((part) => part[0].toUpperCase() + part.slice(1)).join("");
-const Section = parts.map((part) => part[0].toUpperCase() + part.slice(1)).join(" ");
-const SKIN_CONST = parts.join("_").toUpperCase();
-const tokens = {
-  __skin__: slug,
-  __Skin__: Skin,
-  __Section__: Section,
-  __SKIN_CONST__: SKIN_CONST,
-  __card_type__: `dashhaus-${slug}`,
+/** Take a flag, and its value when it has one, out of the arguments. */
+const take = (flag, withValue = false) => {
+  const at = args.indexOf(flag);
+  if (at === -1) return withValue ? undefined : false;
+  const [, value] = args.splice(at, withValue ? 2 : 1);
+  if (withValue && !value) fail(`${flag} needs a value`);
+  return withValue ? value : true;
 };
+const dryRun = take("--dry-run");
+
+/** Every file of a template folder, as a path from its root. */
+function walk(dir, base = "") {
+  return readdirSync(join(dir, base), { withFileTypes: true }).flatMap((entry) => {
+    const path = base ? `${base}/${entry.name}` : entry.name;
+    return entry.isDirectory() ? walk(dir, path) : [path];
+  });
+}
+
+/** npm drops dotfiles like .gitignore from a package, so the templates carry them as _name. */
+const DOTFILES = { _gitignore: ".gitignore", "_env.example": ".env.example" };
+
+/** The writes one domain's card makes in a skin: its files, and its two lines in the registry. */
+function cardWrites(names, name, askedKind, readRegistry) {
+  const domain = domains[name];
+  if (!domain) fail(`no shared card for "${name}". Domains: ${Object.keys(domains).join(", ")}`);
+  let drawn;
+  try {
+    drawn = cardKind(domain, askedKind);
+  } catch (error) {
+    fail(error.message);
+  }
+  const fill = filler(cardTokens(domain, names, drawn.actions));
+  const files = ["card", "standalone-card"].flatMap((folder) => walk(templates(folder)).map((file) => [fill(file), fill(readFileSync(join(templates(folder), file), "utf8"))]));
+  const lines = registryLines(domain, names);
+  const registry = beforeMarker(REGISTRY_MARKERS.entries, lines.entry)(beforeMarker(REGISTRY_MARKERS.imports, lines.import)(readRegistry()));
+  return { domain, kind: drawn.kind, files: [...files, ["lovelace/registry.tsx", registry]] };
+}
+
+function write(root, files) {
+  for (const [path, body] of files) {
+    const full = join(root, path);
+    mkdirSync(join(full, ".."), { recursive: true });
+    writeFileSync(full, body);
+  }
+}
+
+if (args[0] === "add") {
+  const kind = take("--kind", true);
+  const [, name, ...extra] = args;
+  if (!name || extra.length) fail(HELP);
+  const root = process.cwd();
+  const registryPath = join(root, "lovelace/registry.tsx");
+  const manifestPath = join(root, "package.json");
+  if (!existsSync(registryPath) || !existsSync(manifestPath)) fail("run add inside a skin's folder: it has no lovelace/registry.tsx");
+  const skin = /^dashhaus-skin-(.+)$/.exec(JSON.parse(readFileSync(manifestPath, "utf8")).name ?? "")?.[1];
+  if (!skin) fail(`package.json's name must be dashhaus-skin-<skin>, as create-dashhaus-skin wrote it`);
+  if (existsSync(join(root, "cards", name))) fail(`cards/${name} already exists`);
+  const names = skinNames(skin);
+  const { domain, kind: drawn, files } = cardWrites(names, name, kind, () => readFileSync(registryPath, "utf8"));
+  if (dryRun) {
+    console.log(`Would add the ${domain.words} card (${drawn}):`);
+    for (const [path] of files) console.log(`  ${path === "lovelace/registry.tsx" ? "edit  " : "create"} ${path}`);
+    process.exit(0);
+  }
+  write(root, files);
+  console.log(`Added the ${domain.words} card as a ${drawn}: ${files.length - 1} files, registered in lovelace/registry.tsx for ${domain.domains.join(", ")}.
+
+Next:
+  npm run snapshot     # it is on the sample house, in the Living room
+  npm test
+Then give it its own drawing in cards/${name}/; its facts are in node_modules/@dashhaus/core/dist/entities/${name}/types.d.ts.
+`);
+  process.exit(0);
+}
+
+const tarballDir = take("--tarballs", true);
+if (args.length !== 1) fail(HELP);
+const target = resolve(args[0]);
+let names;
+try {
+  names = skinNames(basename(target));
+} catch (error) {
+  fail(error.message);
+}
 
 try {
-  const existing = readdirSync(target);
   const allowed = new Set(["node_modules", "package-lock.json", ".git"]);
-  const blockers = existing.filter((entry) => !allowed.has(entry));
-  if (blockers.length) {
-    console.error(`create-dashhaus-skin: ${target} is not empty (${blockers.slice(0, 3).join(", ")}${blockers.length > 3 ? ", …" : ""})`);
-    process.exit(1);
-  }
-} catch {
+  const blockers = readdirSync(target).filter((entry) => !allowed.has(entry));
+  if (blockers.length) fail(`${target} is not empty (${blockers.slice(0, 3).join(", ")}${blockers.length > 3 ? ", …" : ""})`);
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
   // The folder does not exist yet; opening it is the first write.
 }
 
@@ -81,20 +148,15 @@ try {
 function tarballSpecifiers() {
   if (!tarballDir) return {};
   const dir = resolve(tarballDir);
-  if (!existsSync(dir)) {
-    console.error(`create-dashhaus-skin: --tarballs ${tarballDir} does not exist`);
-    process.exit(1);
-  }
+  if (!existsSync(dir)) fail(`--tarballs ${tarballDir} does not exist`);
   const files = readdirSync(dir).filter((file) => file.endsWith(".tgz")).sort();
   const found = {};
-  for (const name of ["core", "dashboard", "deploy"]) {
-    const file = files.filter((candidate) => candidate.startsWith(`dashhaus-${name}-`)).at(-1);
-    if (!file) {
-      console.error(`create-dashhaus-skin: no dashhaus-${name}-<version>.tgz in ${dir}`);
-      process.exit(1);
-    }
+  const packages = { "@dashhaus/core": "dashhaus-core-", "@dashhaus/dashboard": "dashhaus-dashboard-", "@dashhaus/deploy": "dashhaus-deploy-", "create-dashhaus-skin": "create-dashhaus-skin-" };
+  for (const [name, prefix] of Object.entries(packages)) {
+    const file = files.filter((candidate) => candidate.startsWith(prefix)).at(-1);
+    if (!file) fail(`no ${prefix}<version>.tgz in ${dir}`);
     const path = relative(target, join(dir, file)).split("\\").join("/");
-    found[`@dashhaus/${name}`] = `file:${path.startsWith(".") ? path : `./${path}`}`;
+    found[name] = `file:${path.startsWith(".") ? path : `./${path}`}`;
   }
   return found;
 }
@@ -110,45 +172,36 @@ function withTarballs(body) {
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
 
-/** npm drops dotfiles like .gitignore from a package, so the templates carry them as _name. */
-const DOTFILES = { _gitignore: ".gitignore", "_env.example": ".env.example" };
-
-const templateRoot = fileURLToPath(new URL("./templates/standalone/", import.meta.url));
-const fill = (text) => Object.entries(tokens).reduce((source, [token, value]) => source.replaceAll(token, value), text);
-
-function walk(dir, base = "") {
-  return readdirSync(join(dir, base), { withFileTypes: true }).flatMap((entry) => {
-    const path = base ? `${base}/${entry.name}` : entry.name;
-    return entry.isDirectory() ? walk(dir, path) : [path];
-  });
+const fill = filler(skinTokens(names));
+const files = new Map();
+for (const folder of ["skin", "standalone"]) {
+  for (const file of walk(templates(folder))) {
+    const output = fill(DOTFILES[file] ?? file);
+    const filled = fill(readFileSync(join(templates(folder), file), "utf8"));
+    files.set(output, output === "package.json" ? withTarballs(filled) : filled);
+  }
+}
+for (const name of STARTERS) {
+  for (const [path, body] of cardWrites(names, name, undefined, () => files.get("lovelace/registry.tsx")).files) files.set(path, body);
 }
 
-const written = [];
-for (const file of walk(templateRoot)) {
-  const output = fill(DOTFILES[file] ?? file);
-  const filled = fill(readFileSync(join(templateRoot, file), "utf8"));
-  const body = output === "package.json" ? withTarballs(filled) : filled;
-  written.push(output);
-  if (dryRun) continue;
-  const full = join(target, output);
-  mkdirSync(join(full, ".."), { recursive: true });
-  writeFileSync(full, body);
-}
 if (dryRun) {
-  console.log(`Would create ${written.length} files in ${target}:`);
-  for (const file of written) console.log(`  ${file}`);
+  console.log(`Would create ${files.size} files in ${target}:`);
+  for (const file of files.keys()) console.log(`  ${file}`);
   process.exit(0);
 }
+write(target, files);
 
-console.log(`Created the ${Section} skin in ${target}: ${written.length} files.
+console.log(`Created the ${names.Section} skin in ${target}: ${files.size} files.
 
 Next:
-  cd ${positional[0]}
+  cd ${args[0]}
   npm install
   npm run preview      # the skin on a sample house, in the browser; npm run snapshot saves PNGs
   npm test             # the card and CSS rules
-  npm run build        # dist/dashhaus-${slug}.js
+  npm run build        # dist/dashhaus-${names.skin}.js
   npm run deploy       # after filling .env (see .env.example)
+  npm run add -- climate   # another domain's card
 
 AGENTS.md says where the colours, type, parts and rules live, and how to restyle the skin from a picture.
 `);

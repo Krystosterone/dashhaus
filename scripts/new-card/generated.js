@@ -1,42 +1,30 @@
 /** Add one existing shared domain to a neutral skin created by `new-skin`. */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
-import { after, changes, exists, fail, filler, names, orbKinds, read, root, skinDir } from "./lib.js";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { generated as generatedSkin, markers, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
+import { describeDomain } from "../domains.js";
+import { after, changes, exists, fail, read, root, skinDir } from "./lib.js";
 
-const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
-const wordsOf = (name) => name.replace(/^on/, "").replace(/([A-Z])/g, " $1").trim().toLowerCase();
-const labelOf = (name) => { const words = wordsOf(name).replace(/ cover$/, ""); return words[0].toUpperCase() + words.slice(1); };
-const skinNames = (skin) => {
-  const parts = skin.split("-");
-  return {
-    Skin: parts.map((part) => part[0].toUpperCase() + part.slice(1)).join(""),
-    Section: parts.map((part) => part[0].toUpperCase() + part.slice(1)).join(" "),
-    skinVar: parts[0] + parts.slice(1).map((part) => part[0].toUpperCase() + part.slice(1)).join(""),
-    SKIN_CONST: parts.join("_").toUpperCase(),
-  };
-};
-
-const summaryFor = (entity) => {
-  const has = (field) => new RegExp(`^\\s+${field}\\??: `, "m").test(entity);
-  if (has("temperature") && has("unit")) return 'e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.unit}`';
-  if (has("temperature") && has("temperatureUnit")) return 'e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.temperatureUnit}`';
-  if (has("currentTemperature") && has("unit")) return 'e.currentTemperature == null ? stateWords(e.state) : `${e.currentTemperature}${e.unit}`';
-  if (has("currentHumidity")) return 'e.currentHumidity == null ? stateWords(e.state) : `${e.currentHumidity}%`';
-  if (has("heartRate")) return 'e.heartRate == null ? stateWords(e.state) : `${e.heartRate} bpm`';
-  if (has("position")) return 'e.position == null ? stateWords(e.state) : `${e.position}%`';
-  if (has("volume")) return 'e.volume == null ? stateWords(e.state) : `${e.volume}%`';
-  if (has("brightness")) return 'e.brightness == null ? stateWords(e.state) : `${e.brightness}%`';
-  if (has("targetHumidity")) return 'e.targetHumidity == null ? stateWords(e.state) : `${e.targetHumidity}%`';
-  return "stateWords(e.state)";
-};
+const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
+/** The card writer every skin shares, from the scaffolder that ships it. */
+const card = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
 
 /** Plan or write one Card in a generated skin. A supplied transaction lets another generator validate the whole operation before writing. */
 export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: suppliedChange }) {
-  const { Name, CONST, words, Label } = names(name, '"light"');
-  const { Skin, Section, skinVar, SKIN_CONST } = skinNames(skin);
+  let domain;
+  let drawn;
+  try {
+    domain = describeDomain(name);
+    drawn = card.cardKind(domain, askedKind);
+  } catch (error) {
+    fail(error.message);
+  }
+  const { Name, CONST, words, Label } = domain;
+  const { kind, actions } = drawn;
+  const skinNames = card.skinNames(skin);
+  const { Skin, Section } = skinNames;
   const SKIN = generatedSkin.dir(skin);
   const registryPath = generatedSkin.file(skin, generatedSkin.files.registry);
   const change = suppliedChange ?? changes();
@@ -48,29 +36,6 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   const Stories = storySection(change.read(storybookPath));
   if (!Stories) fail(`${storybookPath} declares no \`section: "…"\``);
   const study = studies.is(JSON.parse(change.read(generatedSkin.file(skin, generatedSkin.files.manifest))));
-
-  const typesPath = packageFile("core", `src/entities/${name}/types.ts`);
-  if (!exists(typesPath)) fail(`${typesPath} doesn't exist. A generated skin draws a shared domain that already exists`);
-  const types = read(typesPath);
-  const entity = shape(types, `${Name}Entity`);
-  const history = shape(types, `${Name}History`);
-  if (!entity || !history) fail(`${typesPath} must export ${Name}Entity and ${Name}History`);
-
-  const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
-  if (!exists(hookPath)) fail(`${hookPath} doesn't exist: generated skins reach Home Assistant through useHa${Name}`);
-  const hook = read(hookPath);
-  const options = shape(hook, `Ha${Name}Options`);
-  if (!new RegExp(`export function useHa${Name}\\b`).test(hook) || options == null) fail(`${hookPath} must export useHa${Name} and Ha${Name}Options`);
-  const required = [...options.matchAll(/^\s+(\w+): /gm)].map((match) => match[1]);
-  if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated Card can't know`);
-
-  const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
-  const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : "";
-  const zeroArg = [...handlers.matchAll(/^\s+(on\w+)\??:\s*\(\)\s*=>/gm)].map((match) => match[1]);
-  const kind = askedKind ?? (zeroArg.length ? "control" : "reading");
-  if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
-  if (kind === "control" && !zeroArg.length) fail(`${Name}Handlers has no zero-argument action a neutral Card can expose. Use --kind reading`);
-  const actions = kind === "control" ? zeroArg : [];
 
   const orbDir = `${skinDir("orb")}/cards/${name}`;
   const demoDir = `${orbDir}/demo`;
@@ -105,45 +70,17 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@dashhaus\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${orbStoryPath} must import a demo transport and draw an entityId`);
-  const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
-  if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist`);
-  const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
-  if (!fixtureId) fail(`${fixturePath} has no available entity`);
-
-  const orb = orbKinds();
-  const shared = orb.shared[name];
-  const domains = shared?.domains ?? Object.keys(orb.domainKind).filter((domain) => orb.domainKind[domain] === name);
-  if (!domains.length) fail(`${orb.path} gives ${name} no Home Assistant domain`);
-
-  const actionProps = actions.map((action) => `  ${action}?: () => void;`).join("\n");
-  const actionArgs = actions.map((action) => `, ${action}`).join("");
-  const actionRows = actions.map((action) => {
-    const pressed = action === "onToggle" ? ' pressed={e.state !== "off" && e.state !== "unavailable"}' : action === "onBaseToggle" ? ' {...("baseOn" in e ? { pressed: e.baseOn === true } : {})}' : "";
-    return `      {${action} && <${Skin}Action label="${labelOf(action)}"${pressed} unavailable={unavailable} onPress={${action}} />}`;
-  }).join("\n");
   const demoProps = hasHook ? actions.map((action) => ` ${action}={demo.${action}}`).join("") : "";
-  const liveProps = actions.map((action) => ` ${action}={result.actions.${action}}`).join("");
-  const actionImport = actions.length ? `${Skin}Action, ` : "";
-  const unavailableConst = actions.length ? '  const unavailable = e.state === "unavailable";' : "";
-  const actionsBlock = actions.length ? `  const actions = (
-    <>
-${actionRows}
-    </>
-  );` : "";
-  const actionsProp = actions.length ? ` actions={${actions.join(" || ")} ? actions : undefined}` : "";
-  const commonLive = ["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)).map((key) => ` ${key}={item.${key}}`).join("") + (/^\s+loadHistory\?: /m.test(options) ? " loadHistory={item.history}" : "");
+  const lines = card.registryLines(domain, skinNames);
 
-  const fill = filler({
-    __skin__: skin, __Skin__: Skin, __skinVar__: skinVar, __Section__: Section, __Stories__: Stories, __SKIN_CONST__: SKIN_CONST,
-    __Name__: Name, __name__: name, __CONST__: CONST, __Label__: Label, __label__: words,
-    __actionProps__: actionProps, __actionArgs__: actionArgs, __actionImport__: actionImport,
-    __unavailableConst__: unavailableConst, __actionsBlock__: actionsBlock, __actionsProp__: actionsProp,
-    __summary__: summaryFor(entity), __demoProps__: demoProps, __liveProps__: liveProps,
+  const fill = card.filler({
+    ...card.cardTokens(domain, skinNames, actions),
+    __Stories__: Stories, __demoProps__: demoProps,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed", __demoImport__: hasHook ? `, useDemo${Name}` : "",
     __testProps__: "", __seedConst__: seedConst, __worstConst__: worstConst, __seedType__: seedType,
     __seedNameType__: seedNameType, __seedFile__: seedFile.replace(/\.ts$/, ""), __firstSeed__: firstSeed,
     __unavailableSeed__: unavailableSeed, __transport__: transport[1], __transportPath__: transport[2],
-    __entityId__: entityId, __fixtureId__: fixtureId,
+    __entityId__: entityId, __fixtureId__: domain.fixtureId,
   });
   // The card every skin shares, from the scaffolder's templates, then its stories and tests in this repository.
   change.fromTemplates([""], fill, join(root, skinTemplates.card), SKIN);
@@ -151,9 +88,8 @@ ${actionRows}
   change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // The Card registry is the runtime and generator seam: routing plus the Connected adapter in one row.
-  change.edit(registryPath, after(markers.registryImports, fill(`import { Ha__Skin____Name__Card } from "../ha/Ha__Skin____Name__Card";
-`)));
-  change.edit(registryPath, after(markers.registryEntries, fill(`  __name__: { domains: [${domains.map((domain) => `"${domain}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""}, render: (item, footprint) => <Ha__Skin____Name__Card entityId={item.entity}${commonLive} footprint={footprint} /> },`)));
+  change.edit(registryPath, after(markers.registryImports, lines.import));
+  change.edit(registryPath, after(markers.registryEntries, lines.entry));
 
   change.edit(generatedSkin.file(skin, generatedSkin.files.entry), after(markers.skinCards, fill(`export { __Skin____Name__Card } from "./cards/__name__/__Skin____Name__Card";
 export type { __Skin____Name__CardProps } from "./cards/__name__/__Skin____Name__Card";
@@ -181,7 +117,7 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
   if (change.exists(`${SKIN}/cards/Empty.stories.tsx`)) change.remove(`${SKIN}/cards/Empty.stories.tsx`);
   if (change.exists(`${SKIN}/ha/Empty.stories.tsx`)) change.remove(`${SKIN}/ha/Empty.stories.tsx`);
 
-  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
+  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${card.labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
   // spec/cards.md describes the shipped skins' cards; a study's stay in its own design rules.
   if (!study) change.edit(seams.cardsDoc, (source) => {
     const at = source.indexOf(`## Using the ${words} card`);

@@ -64,12 +64,13 @@ try {
         }
         const manifestText = await read(join(skinApp, "package.json"));
         assert.match(manifestText, /"@dashhaus\/core": "file:/, "--tarballs must point @dashhaus/core at its tarball");
+        assert.match(manifestText, /"create-dashhaus-skin": "file:/, "--tarballs must point the skin's own scaffolder, which npm run add runs, at its tarball");
         return `${SKIN}: ${files.length} entries, @dashhaus dependencies on the tarballs`;
       })
     : { ok: false };
 
   if (!scaffold.ok) {
-    report.blocked(["agent guide", "install", "conformance", "build", "deploy", "details"], "the scaffold failed");
+    report.blocked(["agent guide", "install", "conformance", "build", "deploy", "details", "add a domain", "added card"], "the scaffold failed");
   } else {
     await report.stage("agent guide", async () => {
       const guide = await read(join(skinApp, "AGENTS.md"));
@@ -80,11 +81,11 @@ try {
         .filter((path) => !path.includes("<") && !path.includes("…"));
       const missing = [...new Set(named)].filter((path) => !existsSync(join(skinApp, path)));
       assert.deepEqual(missing, [], `AGENTS.md names files the scaffold did not write: ${missing.join(", ")}`);
-      for (const word of ["npm run snapshot", "npm test", "npm run build", "npm run deploy", "styles/tokens.css", "FONT_HREF"]) {
+      for (const word of ["npm run snapshot", "npm test", "npm run build", "npm run deploy", "npm run add", "styles/tokens.css", "FONT_HREF"]) {
         assert.ok(guide.includes(word), `AGENTS.md must say ${word}`);
       }
       const scripts = JSON.parse(await read(join(skinApp, "package.json"))).scripts;
-      for (const script of ["preview", "snapshot", "test", "build", "deploy"]) assert.ok(scripts[script], `package.json has no ${script} script`);
+      for (const script of ["preview", "snapshot", "test", "build", "deploy", "add"]) assert.ok(scripts[script], `package.json has no ${script} script`);
       return `${new Set(named).size} paths named, all present`;
     });
 
@@ -98,7 +99,7 @@ try {
     });
 
     if (!installed.ok) {
-      report.blocked(["conformance", "build", "deploy", "details"], "npm install failed in the skin");
+      report.blocked(["conformance", "build", "deploy", "details", "add a domain", "added card"], "npm install failed in the skin");
     } else {
       await report.stage("conformance", async () => {
         const result = run("npm", ["test", "--silent"], { cwd: skinApp });
@@ -141,7 +142,7 @@ try {
       });
 
       if (!build.ok) {
-        report.blocked(["deploy", "details"], `no dist/${bundleName} to upload`);
+        report.blocked(["deploy", "details", "add a domain", "added card"], `no dist/${bundleName} to upload`);
       } else {
         const deployed = await report.stage("deploy", async () => {
           const www = join(app, "www");
@@ -170,15 +171,35 @@ try {
           return `npm run deploy: 1 resource served back, 1 dashboard (${HA_URL})`;
         });
         if (!deployed.ok) {
-          report.blocked("details", "the deploy failed");
+          report.blocked(["details", "add a domain", "added card"], "the deploy failed");
         } else {
           await report.stage("details", async () => {
             const result = await exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
-              { code: "lt", facts: ["Area", "State", "Brightness"], close: "button" },
-              { code: "sn", facts: ["Area", "Temperature", "Humidity", "Unit"], close: "escape" },
+              { card: "light", facts: ["State", "Entity"], close: "button" },
+              { card: "sensor", facts: ["State", "Entity"], close: "escape" },
             ], { screenshot: screenshotDir ? join(screenshotDir, "details.png") : undefined });
             return result;
           });
+          // A second domain the way the guide says: npm run add, then the same checks, build and deploy.
+          const added = await report.stage("add a domain", async () => {
+            const output = run("npm", ["run", "add", "--silent", "--", "climate"], { cwd: skinApp }).output;
+            assert.match(output, /Added the climate card as a control/, `npm run add said:\n${output}`);
+            for (const file of ["cards/climate/MySkinClimateCard.tsx", "cards/climate/MySkinClimateCard.stories.tsx", "ha/HaMySkinClimateCard.tsx"]) {
+              assert.ok(existsSync(join(skinApp, file)), `npm run add wrote no ${file}`);
+            }
+            assert.match(await read(join(skinApp, "lovelace/registry.tsx")), /climate: \{ domains: \["climate"\]/);
+            run("npm", ["test", "--silent"], { cwd: skinApp });
+            const deploy = await runAsync("npm", ["run", "deploy", "--silent"], { cwd: skinApp });
+            assert.doesNotMatch(deploy.output, /^\s*!/m, `the deploy warned:\n${deploy.output}`);
+            return "npm run add -- climate: 3 files and a registry row; npm test and npm run deploy pass";
+          });
+          if (!added.ok) {
+            report.blocked("added card", "npm run add failed");
+          } else {
+            await report.stage("added card", () => exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
+              { card: "climate", facts: ["State", "Entity"], close: "button" },
+            ]));
+          }
         }
       }
     }

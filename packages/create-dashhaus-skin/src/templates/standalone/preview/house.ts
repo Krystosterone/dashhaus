@@ -1,6 +1,7 @@
 /**
- * The house the preview draws: what Home Assistant would hand the card as `hass`. Add entities here to see more
- * cases (a new domain, a longer name); the worst cases the skin must survive are already in it: a light that is
+ * Your part of the house the preview draws: what Home Assistant would hand the card as `hass`. A domain listed here
+ * comes only from here; every other one comes from @dashhaus/core's demo house (see main.ts). Add entities to see
+ * more cases (a longer name, another room); the worst cases the skin must survive are already in it: a light that is
  * unavailable, a sensor with no reading, a long name and an entity with no area. Sensors sit on devices, as in Home
  * Assistant: the automatic layout pairs a temperature sensor with the humidity sensor on its device, so give a new
  * sensor a device to see it paired.

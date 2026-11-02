@@ -8,6 +8,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { generated, generatedManifest, packages, skinTemplates, workspaces } from "../scripts/packages.js";
+import { domainsFile, domainsJson } from "../scripts/domains.js";
 
 const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
@@ -20,6 +21,7 @@ const GENERATORS = [
   "scripts/new-card/generated.js",
   "scripts/new-card/lib.js",
   "scripts/new-skin/index.js",
+  "scripts/domains.js",
 ];
 
 /** A string literal that names a package root or a bare @dashhaus specifier rather than going through the map. */
@@ -59,6 +61,10 @@ describe("the generator package map", () => {
     expect(study.dashhaus).toEqual({ study: { theme } });
     expect(study.description).toMatch(/^A study: the Canvas skin/);
     expect({ ...study, description: undefined, dashhaus: undefined }).toEqual({ ...generatedManifest("canvas"), description: undefined, dashhaus: undefined });
+  });
+
+  it("ships the scaffolder every shared domain as the repository describes it", () => {
+    expect(read(domainsFile), `${domainsFile} is behind @dashhaus/core: run npm run domains`).toBe(domainsJson());
   });
 
   it("keeps one copy of every skin template: the in-repo overlays add files, never a second version of a shared one", () => {

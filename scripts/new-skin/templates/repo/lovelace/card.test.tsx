@@ -22,7 +22,7 @@ describe("dashhaus-__skin__", () => {
     card.hass = { connection, states: {}, themes: { darkMode: false } };
     await act(async () => { document.body.append(card); await Promise.resolve(); });
     expect(card.shadowRoot?.querySelector(".__skin__-header h1")?.textContent).toBe("Home");
-    expect(card.shadowRoot?.querySelector(".__skin__-dashboard-empty")?.textContent).toContain("No supported entities");
+    expect(card.shadowRoot?.querySelector(".__skin__-dashboard-empty")?.textContent).toContain("No entities this skin can draw yet");
     card.hass = { connection, states: {}, themes: { darkMode: true } };
     expect(adapter.createHomeAssistantTransport).toHaveBeenCalledTimes(1);
   });

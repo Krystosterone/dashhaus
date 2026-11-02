@@ -58,6 +58,10 @@ export function packageSpecifier(packageName, subpath = "") {
  * the in-repo extras from their own templates. Each folder's files are laid out from a skin's root.
  */
 export const skinTemplates = {
+  /** The package that owns them. */
+  package: "packages/create-dashhaus-skin",
+  /** What turns a domain's description into its card's tokens and registry rows (`filler`, `cardTokens`, …). */
+  writer: "packages/create-dashhaus-skin/src/card.js",
   /** The core every skin shares: tokens, parts, the page and the Lovelace card. */
   skin: "packages/create-dashhaus-skin/src/templates/skin",
   /** One domain's card and its Home Assistant adapter. */

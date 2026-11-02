@@ -1,0 +1,209 @@
+{
+  "alarm": {
+    "name": "alarm",
+    "Name": "Alarm",
+    "CONST": "ALARM",
+    "words": "alarm",
+    "Label": "Alarm",
+    "domains": [
+      "alarm_control_panel"
+    ],
+    "kind": "reading",
+    "actions": [],
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "alarm_control_panel.disarmed"
+  },
+  "climate": {
+    "name": "climate",
+    "Name": "Climate",
+    "CONST": "CLIMATE",
+    "words": "climate",
+    "Label": "Climate",
+    "domains": [
+      "climate"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "e.currentTemperature == null ? stateWords(e.state) : `${e.currentTemperature}${e.unit}`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "climate.living_room"
+  },
+  "cover": {
+    "name": "cover",
+    "Name": "Cover",
+    "CONST": "COVER",
+    "words": "cover",
+    "Label": "Cover",
+    "domains": [
+      "cover"
+    ],
+    "kind": "control",
+    "actions": [
+      "onOpenCover",
+      "onCloseCover",
+      "onStopCover"
+    ],
+    "summary": "e.position == null ? stateWords(e.state) : `${e.position}%`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "cover.living_room"
+  },
+  "humidifier": {
+    "name": "humidifier",
+    "Name": "Humidifier",
+    "CONST": "HUMIDIFIER",
+    "words": "humidifier",
+    "Label": "Humidifier",
+    "domains": [
+      "humidifier"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "e.currentHumidity == null ? stateWords(e.state) : `${e.currentHumidity}%`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "humidifier.bedroom"
+  },
+  "light": {
+    "name": "light",
+    "Name": "Light",
+    "CONST": "LIGHT",
+    "words": "light",
+    "Label": "Light",
+    "domains": [
+      "light"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "e.brightness == null ? stateWords(e.state) : `${e.brightness}%`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "light.living_room"
+  },
+  "owlet": {
+    "name": "owlet",
+    "Name": "Owlet",
+    "CONST": "OWLET",
+    "words": "owlet",
+    "Label": "Owlet",
+    "domains": [
+      "sensor"
+    ],
+    "id": "/^sensor\\.\\w+_sleep_state$/",
+    "kind": "control",
+    "actions": [
+      "onBaseToggle"
+    ],
+    "summary": "e.heartRate == null ? stateWords(e.state) : `${e.heartRate} bpm`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "sensor.owlet_sock_ac000w0123_sleep_state"
+  },
+  "sensor": {
+    "name": "sensor",
+    "Name": "Sensor",
+    "CONST": "SENSOR",
+    "words": "sensor",
+    "Label": "Sensor",
+    "domains": [
+      "sensor"
+    ],
+    "kind": "reading",
+    "actions": [],
+    "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.unit}`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "sensor.living_room_temperature"
+  },
+  "sound": {
+    "name": "sound",
+    "Name": "Sound",
+    "CONST": "SOUND",
+    "words": "sound",
+    "Label": "Sound",
+    "domains": [
+      "switch"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "e.volume == null ? stateWords(e.state) : `${e.volume}%`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "switch.bedroom"
+  },
+  "toggle": {
+    "name": "toggle",
+    "Name": "Toggle",
+    "CONST": "TOGGLE",
+    "words": "toggle",
+    "Label": "Toggle",
+    "domains": [
+      "input_boolean",
+      "switch"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "fixtureId": "input_boolean.guest_mode"
+  },
+  "weather": {
+    "name": "weather",
+    "Name": "Weather",
+    "CONST": "WEATHER",
+    "words": "weather",
+    "Label": "Weather",
+    "domains": [
+      "weather"
+    ],
+    "kind": "reading",
+    "actions": [],
+    "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.temperatureUnit}`",
+    "options": [
+      "name",
+      "loadHistory"
+    ],
+    "fixtureId": "weather.home"
+  }
+}

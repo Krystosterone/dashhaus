@@ -8,8 +8,9 @@ import Example from "../../../components/Example.astro";
 
 A skin is a whole look for a dashboard: cards, a Lovelace card and a bundle of its own, drawn on the headless
 packages. `create-dashhaus-skin` writes a working one in a new folder, with a light you can switch and a room sensor you
-can read, both with details that open from the card, on the real hooks. You change the drawing; the Home Assistant side
-is already done. It also writes an `AGENTS.md`: point an agent at it and it knows where the colours, type, parts and
+can read, both with details that open from the card, on the real hooks. `npm run add` draws any other domain the same
+way. You change the drawing; the Home Assistant side is already done. It starts from the same templates as the skins
+built inside the Dashhaus repository. It also writes an `AGENTS.md`: point an agent at it and it knows where the colours, type, parts and
 rules live, and how to restyle the skin from a screenshot.
 
 CI runs these steps on every change to Dashhaus: it packs the release, installs `@dashhaus/core`,
@@ -66,13 +67,13 @@ checks, builds it and deploys it into a simulated Home Assistant.
    ```
 
    It typechecks the skin, then runs the conformance check from `@dashhaus/dashboard/conformance` over `cards/` and
-   the CSS rules: each card has its component and its stories under the skin's title, a two-letter card code and
-   classes under the skin's prefix, no presentational card imports the Home Assistant layer, every colour is a token,
+   the CSS rules: each card has its component and its stories under the skin's title and classes under the skin's
+   prefix, no presentational card imports the Home Assistant layer, every colour is a token,
    `:hover` sits under the hover media query and motion avoids layout properties. Each finding names its file, line
    and fix. Run it after every card change.
 
    ```text
-   conformance: 2 cards and 4 stylesheets, no findings
+   conformance: 2 cards and 6 stylesheets, no findings
    ```
 
 4. Build one file:
@@ -108,27 +109,37 @@ checks, builds it and deploys it into a simulated Home Assistant.
 - my-skin/
   - cards/
     - light/
-      - MySkinLightCard.tsx the control: a name, a reading, its details and tile
+      - MySkinLightCard.tsx the control: the light's model in the frame, with its Toggle action
       - MySkinLightCard.css
-      - MySkinLightCard.stories.tsx gallery metadata, read by the conformance check
+      - MySkinLightCard.stories.tsx story metadata, read by the conformance check
+      - icons.tsx its glyph
     - sensor/
-      - MySkinSensorCard.tsx the reading: temperature, humidity and its details
+      - MySkinSensorCard.tsx the reading: the sensor's model, no actions
       - …
   - ha/
     - HaMySkinLightCard.tsx useHaLight above the light card
     - HaMySkinSensorCard.tsx useHaSensor above the sensor card
-  - lovelace/
-    - config.ts the YAML reader for custom:dashhaus-my-skin
-    - registry.tsx entity kind → connected card
-    - card.tsx the Lovelace card
-    - entry.tsx the bundle's entry
   - shared/
-    - ui.tsx the action, card parts and the details sheet
+    - ui.tsx the card frame, its details dialog and the action button
     - ui.css
+    - surface.ts the theme attribute and the web font
+  - dashboards/
+    - layout.tsx the page, its sections and the card grid
+    - Header.tsx
+    - NavBar.tsx
+    - dashboard.css
+  - lovelace/
+    - card.tsx the Lovelace card
+    - config.ts the YAML reader for custom:dashhaus-my-skin
+    - auto.ts the automatic layout
+    - registry.tsx which card draws which entity
+    - MySkinDashboard.tsx the page drawn from the YAML
+    - MySkinActionStatus.tsx the rejected-command row
+    - entry.tsx the bundle's entry
   - styles/
     - tokens.css every colour, under the skin's prefix
   - preview/
-    - house.ts the sample house, worst cases included
+    - house.ts your sample house, worst cases included
     - main.ts the page that mounts the real element
     - snapshot.js saves it as PNGs
   - AGENTS.md where the colours, type, parts and rules live
@@ -145,32 +156,31 @@ checks, builds it and deploys it into a simulated Home Assistant.
 
 ### A card and its connection
 
-A card takes plain props and draws them. Its props extend `CardProps` from `@dashhaus/dashboard/card`, and
-`useCardFrame` derives its footprint flags, ids and accessible name. It never imports the Home Assistant layer, so it
-can be drawn in a story with any data. Its `CARD_CODE` and its class prefix are what the conformance check reads, and
-its name opens its details.
+A card takes its domain's normalized model as `entity`, today's `history`, its footprint, and one callback per action
+it shows. It draws inside the skin's card frame, so its shape, its name that opens its details and the details dialog
+are the frame's, and it never imports the Home Assistant layer: a card can be drawn with any data. The neutral card
+shows the name, the state, one headline reading and its actions; the model has every other fact the hook reads, typed
+in `@dashhaus/core/entities/<domain>/types`.
 
-The card exports its sheet (`detailsSheet`) and its tile (`detailsTile`): the frame owns the open state, so the tile is
-what a dashboard renders and the card itself never holds it.
+<Example template="cards/light/MySkinLightCard.tsx" />
 
-<Example template="cards/light/__Skin__LightCard.tsx" />
+The adapter in `ha/` is the one place the card meets Home Assistant: the shared hook above it, passing its model and
+actions to the card.
 
-The adapter in `ha/` is the one place the card meets Home Assistant: the shared hook above it, mapping the result to
-the tile's props.
+<Example template="ha/HaMySkinLightCard.tsx" />
 
-<Example template="ha/Ha__Skin__LightCard.tsx" />
-
-The shared parts are the action on the `usePress` primitive (press and hold, `aria-pressed`, an unavailable state that
-stays focusable), the card head and row, the fact rows, and the `Sheet`: a `CardDialog` from the frame, which is where
-the details open, close, trap focus and lock the page.
+The shared parts are the card frame, on `useCardFrame`, `detailsSheet` and `detailsTile` from
+`@dashhaus/dashboard/card`, which names each card's article after its title and opens the details in a `CardDialog`
+(open, close, focus and the page's scroll lock), and the action, on the `usePress` primitive (press and hold,
+`aria-pressed`, an unavailable state that stays focusable).
 
 <Example template="shared/ui.tsx" />
 
 ### The Lovelace card
 
-`registry.tsx` turns a configured entity into its connected card. `config.ts` reads the YAML through the shared
-`Reader` from `@dashhaus/dashboard/schema`, so every mistake is collected with its path and a suggestion, as in Orb and
-Field.
+`registry.tsx` routes an entity to its card by its Home Assistant domain. `config.ts` reads the YAML through the shared
+`Reader` from `@dashhaus/dashboard/schema`, so every mistake is collected with its path and a suggestion, as in Orb
+and Field; its card kinds are the registry's.
 
 <Tabs>
   <TabItem label="registry.tsx">
@@ -182,50 +192,40 @@ Field.
 </Tabs>
 
 `card.tsx` is the element, on `LovelaceDashboardElement` from `@dashhaus/dashboard/skin`: it builds the store on Home
-Assistant's own connection, puts the CSS in its shadow root and draws your page. `FONT_HREF` names the skin's web
-fonts, and `paintHost` puts Home Assistant's dark mode on the host as `data-my-skin-theme`, the attribute
-`styles/tokens.css` reads: the skin's own, so another skin on the same page never re-colours yours. The page ends with
-`ActionStatus`, the row that says when Home Assistant refused a command, with Retry and Dismiss. Without `cards` in the YAML it lays out every visible light and sensor by area with
+Assistant's own connection, puts the CSS in its shadow root and draws the page. `paintHost` puts Home Assistant's dark
+mode on the host as `data-my-skin-theme`, the attribute `styles/tokens.css` reads: the skin's own, so another skin on
+the same page never re-colours yours. The skin's web font is `MY_SKIN_FONT_HREF` in `shared/surface.ts`. The page ends
+with `MySkinActionStatus`, the row that says when Home Assistant refused a command, with Retry and Dismiss. Without
+`cards` in the YAML, `auto.ts` lays out every entity a card is registered for, by area, with
 `@dashhaus/dashboard/layout`.
 
 <Example template="lovelace/card.tsx" />
 
 ## Add a domain
 
-A cover, in four steps. Any entity on the [Entities](/dashhaus/entities/) pages goes the same way, with its own hook.
+A cover, in one command. Any entity on the [Entities](/dashhaus/entities/) pages goes the same way.
 
-<Steps>
+```sh
+npm run add -- cover
+```
 
-1. The card, in `cards/cover/`, with its stylesheet and stories. It extends `CardProps`, uses `useCardFrame`, exports
-   its card, sheet and tile, and takes a new card code, `cv`.
+It writes the card in `cards/cover/` with its stylesheet, glyph and story metadata, and its adapter on `useHaCover`.
+A cover is a control, so its actions are its buttons; `--kind reading` draws a domain without them.
 
-   <Example file="scaffold/cards/cover/MySkinCoverCard.tsx" title="cards/cover/MySkinCoverCard.tsx" />
+<Example template="cards/cover/MySkinCoverCard.tsx" added />
 
-   Give it a `MySkinCoverCard.css` with `my-skin-cv-` classes and a `MySkinCoverCard.stories.tsx` titled
-   `My Skin/Cards/Cover`, as the light's are; `npm test` says which is missing.
+It registers the card for Home Assistant's `cover` domain, so the YAML and the automatic layout pick it up, and the
+preview already has a cover on its demo house.
 
-2. The adapter, on `useHaCover`:
+<Example template="lovelace/registry.tsx" added ins={["HaMySkinCoverCard"]} />
 
-   <Example file="scaffold/ha/HaMySkinCoverCard.tsx" title="ha/HaMySkinCoverCard.tsx" />
-
-3. The registry row and the YAML kind:
-
-   <Example file="scaffold/lovelace/registry.tsx" title="lovelace/registry.tsx" ins={["HaMySkinCoverCard"]} />
-
-   <Example file="scaffold/lovelace/config.ts" title="lovelace/config.ts" ins={['"cover"', "cover."]} />
-
-4. The stylesheet in the bundle:
-
-   <Example file="scaffold/lovelace/entry.tsx" title="lovelace/entry.tsx" ins={["cover"]} />
-
-</Steps>
-
-Then `npm test`, `npm run build` and deploy again. The automatic layout now draws every cover too.
+Then `npm test`, `npm run snapshot`, and give it its own drawing. `npm run build` and `npm run deploy` put it in Home
+Assistant.
 
 ## The rules a skin keeps
 
-- One card, one model. A card draws one entity's facts, or that entity plus the companions its hook composes (a
-  temperature sensor with the humidity sensor on its device), as props from its adapter, never from Home Assistant.
+- One card, one model. A card draws one entity's model, or that entity plus the companions its hook composes (a
+  temperature sensor with the humidity sensor on its device), handed to it by its adapter, never from Home Assistant.
 - A card may import `@dashhaus/core`'s entity models, primitives and formatters, and `@dashhaus/dashboard/card`; never
   `@dashhaus/core` itself, `@dashhaus/core/websocket`, its demo or testing subpaths, or `@dashhaus/dashboard`.
   `npm test` enforces it.

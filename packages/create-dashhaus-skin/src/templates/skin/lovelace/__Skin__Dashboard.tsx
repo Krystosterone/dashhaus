@@ -55,7 +55,7 @@ export function __Skin__Dashboard({ title, subtitle, showTime, hourCycle, blocks
   return (
     <__Skin__Page pageRef={root} title={page?.title ?? title} subtitle={page ? undefined : subtitle} showTime={showTime} hourCycle={hourCycle} now={now} nav={showNav ? <><__Skin__ActionStatus /><__Skin__NavBar items={nav.buttons} /></> : undefined}>
       {shown.map((block, index) => block.kind === "columns" ? <__Skin__Columns key={index} columns={block.columns}>{block.sections.map(section)}</__Skin__Columns> : section(block, index))}
-      {cardsOf(shown).length === 0 && <p className="__skin__-dashboard-empty">No supported entities yet. Add a domain with the normal Card generator, then add that entity to Home Assistant.</p>}
+      {cardsOf(shown).length === 0 && <p className="__skin__-dashboard-empty">No entities this skin can draw yet. Add a card for their domain with the card generator.</p>}
       {!showNav && <__Skin__ActionStatus />}
     </__Skin__Page>
   );

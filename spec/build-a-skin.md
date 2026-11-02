@@ -11,6 +11,7 @@ npm create dashhaus-skin@latest my-skin    # or, from release tarballs: create-d
 cd my-skin
 npm install
 npm run snapshot    # preview/snapshots/*.png; npm run preview serves the same page
+npm run add -- climate   # another domain's card
 npm test
 npm run build
 npm run deploy      # after .env (from .env.example)
@@ -24,6 +25,12 @@ Why `home-assistant-js-websocket` and React 18.3+ or 19 are required is in [cont
 
 ## What the scaffold writes
 
+A standalone skin starts from the same templates as one made in this repository with `new-skin`: the shared core
+(`packages/create-dashhaus-skin/src/templates/skin`) and one card per domain (`templates/card`), written by the
+package's `src/card.js` from the domain's description in `src/domains.json` (`npm run domains` writes it from
+`@dashhaus/core`'s sources). `templates/standalone` is only what a skin outside the repository adds: its manifest,
+build, preview, checks and guide. A skin-level fix lands once, in the shared templates.
+
 [create-dashhaus-skin's README](../packages/create-dashhaus-skin/README.md#what-it-writes) lists the files; the
 scaffold's own sources are the reference for each. The scaffold is agent-first: its `AGENTS.md` (with a `CLAUDE.md`
 that imports it) is the one document a consumer's agent reads, so an agent given only a screenshot or a description
@@ -34,52 +41,50 @@ to the scaffold's files or scripts updates it in the same change.
 
 ## Preview
 
-`preview/` draws the real element from `lovelace/entry.tsx` (shadow root, scoped CSS, the store on a connection) on a
-sample house in `preview/house.ts`, through an in-page stand-in for Home Assistant's websocket connection; it is not
-part of the bundle. The house holds the worst cases a skin must survive. `npm run preview` serves it with Vite;
-`npm run snapshot` saves it at 1280 px light, 390 px light and 1280 px dark through Playwright, which the skin does
-not depend on: the script prints the two commands that install it.
+`preview/` draws the real element from `lovelace/entry.tsx` (shadow root, scoped CSS, the store on a connection)
+through an in-page stand-in for Home Assistant's websocket connection; it is not part of the bundle. The domains
+`preview/house.ts` lists (lights and sensors) come from it, with the worst cases a skin must survive; every other
+domain comes from `@dashhaus/core/demo`'s house, whose services behave, so a card `npm run add` writes is on the page
+with no edit. `npm run preview` serves it with Vite; `npm run snapshot` saves it at 1280 px light, 390 px light and
+1280 px dark through Playwright, which the skin does not depend on: the script prints the two commands that install
+it.
 
 ## Cards and YAML
 
-A card receives its normalized entity facts from its `ha/` adapter; it never reaches Home Assistant itself.
+A card takes its domain's normalized model as `entity` (with `history`, its footprint and one callback per action it
+shows) from its `ha/` adapter, which calls the shared `useHa<Name>` hook; it never reaches Home Assistant itself.
 Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/dashboard/card`,
 but not the Home Assistant subpaths, the Lovelace entry or a stylesheet from another skin.
 
-Every card extends `CardProps` from `@dashhaus/dashboard/card`. `useCardFrame` gives it the footprint flags, the ids
-and the article's accessible name; `detailsTile(Card, detailsSheet(Card, Sheet, label))` owns the open state, so the
-card's name (or a bare compact row) opens its details and the dialog closes from its button, Escape or the backdrop.
-The card drawn as `variant="sheet"` is that details view, showing only the facts its props already carry; the `Sheet`
-is a `CardDialog` in `shared/ui.tsx`, and the adapter renders the tile rather than the bare card. The card's name says
-it opens a dialog (`aria-haspopup="dialog"`).
+Every card draws inside the skin's frame, `<Skin>CardFrame` in `shared/ui.tsx`: `detailsTile` and `detailsSheet` from
+`@dashhaus/dashboard/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible
+name, its title. The title opens the details (`aria-haspopup="dialog"`), a `CardDialog` that closes from its button,
+Escape or the backdrop. The frame puts `data-card="<domain>"` on the article.
 
 The page around the cards follows [skins.md → The page around the cards](skins.md#the-page-around-the-cards): the
 tokens key dark mode on the skin's own `data-my-skin-theme`, which `paintHost` sets on the card's host (and the preview
-on its page), never the shared `data-theme`; `lovelace/card.tsx` names the web font as `FONT_HREF`; and
-`lovelace/ActionStatus.tsx` draws the store's latest rejected command at the end of the page, from `useActionStatus`
-in the frozen `@dashhaus/dashboard/skin` contract.
+on its page), never the shared `data-theme`; `shared/surface.ts` names the web font; and
+`lovelace/MySkinActionStatus.tsx` draws the store's latest rejected command on the page, from `useActionStatus` in the
+frozen `@dashhaus/dashboard/skin` contract.
 
-Add a domain by adding:
+`npm run add -- <domain> [--kind control|reading]` adds a domain: the card folder under `cards/<domain>/` (component,
+CSS, glyph and story metadata), its adapter in `ha/`, and its row in `lovelace/registry.tsx` for its Home Assistant
+domains, which the YAML reader and the automatic layout read. It runs the skin's own copy of the scaffolder (a dev
+dependency), offline.
 
-1. a card folder under `cards/<domain>/` with its component (extending `CardProps`, exporting its card, sheet and
-   tile), its CSS and its story metadata;
-2. an adapter in `ha/` that calls the matching `useHa<Name>` hook and passes the facts to the tile;
-3. a row in `lovelace/registry.tsx`;
-4. a kind in `lovelace/config.ts` when the YAML can select it explicitly.
-
-`npm test` runs the conformance preset (each card's component and story title, its class prefix, a unique code and that
-no presentational card imports the Home Assistant layer) and the skin's CSS rules: no colour literal outside
+`npm test` runs the conformance preset (each card's component and story title, its class prefix and that no
+presentational card imports the Home Assistant layer) and the skin's CSS rules: no colour literal outside
 `styles/tokens.css`, no selector on the shared `data-theme`, `:hover` only under the hover media query, and no
-transition on a layout property. Each finding
-names its file, line and fix. Run it after every card change.
+transition on a layout property. Each finding names its file, line and fix. Run it after every card change.
 
 ## Build
 
-The scaffold's `vite.config.js` emits the bundle. `lovelace/entry.tsx` imports the stylesheets with `?inline` and passes their text to `defineMySkinCard`. The emitted
+The scaffold's `vite.config.js` emits the bundle. Each component imports its own stylesheet, which the config turns
+into nothing, and `lovelace/entry.tsx` gathers every stylesheet `?inline` and passes their text to `defineMySkinCard`,
+so a card `npm run add` writes needs no edit there. The emitted
 `dist/dashhaus-my-skin.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one
 resource and no separate stylesheet. Name it for the skin: the prebuilt `@dashhaus/bundle` already owns
-`/local/dashhaus/dashhaus.js`, and a skin-specific name lets both live on one instance. No extra plugin is required
-for CSS collection.
+`/local/dashhaus/dashhaus.js`, and a skin-specific name lets both live on one instance.
 
 ## Deploy
 

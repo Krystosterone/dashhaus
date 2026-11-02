@@ -7,23 +7,22 @@
  * - every sample a page names exists, and every file in `docs/examples/` is shown somewhere;
  * - every Lovelace YAML sample reads cleanly through its skin's own parser;
  * - the user guide's deploy config loads through `@dashhaus/deploy` as `npx dashhaus-deploy` would load it;
- * - the author guide's scaffold is what `create-dashhaus-skin my-skin` writes today, and with the guide's added domain
- *   laid over it, the skin typechecks.
+ * - every scaffold file the author guide shows is one `create-dashhaus-skin my-skin` writes (before or after
+ *   `npm run add -- cover`), and that skin typechecks.
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import { loadDashboards } from "@dashhaus/deploy";
 import { parseDashboardConfig } from "../src/skins/orb/lovelace/config";
 import { parseFieldConfig } from "../src/skins/field/lovelace/config";
-import { fill, SKIN } from "../docs/src/lib/scaffold";
+import { ADDED, writeScaffold } from "../docs/src/lib/scaffold";
 
 const root = process.cwd();
 const pagesDir = join(root, "docs/src/content/docs");
 const examplesDir = join(root, "docs/examples");
-const templatesDir = join(root, "packages/create-dashhaus-skin/src/templates/standalone");
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -34,6 +33,10 @@ function walk(dir: string): string[] {
 
 const pages = walk(pagesDir).filter((file) => /\.mdx?$/.test(file));
 const page = (file: string) => readFileSync(file, "utf8");
+/** The author guide's `<Example template="…">`s: a scaffold path, from the skin after its added domain when `added`. */
+const templates = () =>
+  pages.flatMap((file) => [...page(file).matchAll(/<Example\b([^>]*)\btemplate="([^"]+)"([^>]*)>/g)]
+    .map((match) => ({ file, value: { path: match[2], added: /\badded\b/.test(match[1] + match[3]) } })));
 const attributes = (name: string) =>
   pages.flatMap((file) => [...page(file).matchAll(new RegExp(`<Example\\b[^>]*\\b${name}="([^"]+)"`, "g"))].map((match) => ({ file, value: match[1] })));
 
@@ -44,8 +47,6 @@ const CHECKED = /^\s*(?:```|~~~)\s*(?:ts|tsx|typescript|js|jsx|mjs|cjs|javascrip
 const UNSHOWN = new Set([
   "tsconfig.json",
   "api-types.ts",
-  "scaffold/cards/cover/MySkinCoverCard.css",
-  "scaffold/cards/cover/MySkinCoverCard.stories.tsx",
 ]);
 
 describe("documentation samples", () => {
@@ -59,7 +60,6 @@ describe("documentation samples", () => {
     const named = attributes("file");
     expect(named.length).toBeGreaterThan(0);
     for (const { file, value } of named) expect(existsSync(join(examplesDir, value)), `${relative(root, file)}: no docs/examples/${value}`).toBe(true);
-    for (const { file, value } of attributes("template")) expect(existsSync(join(templatesDir, value)), `${relative(root, file)}: no template ${value}`).toBe(true);
     const shown = new Set(named.map(({ value }) => value));
     for (const file of walk(examplesDir).map((path) => relative(examplesDir, path))) {
       if (UNSHOWN.has(file)) continue;
@@ -86,52 +86,23 @@ describe("documentation samples", () => {
 });
 
 describe("the author guide's scaffold", () => {
-  const skin = join(root, "node_modules/.cache/dashhaus-docs", SKIN);
-  const overlay = join(examplesDir, "scaffold");
+  const parent = join(root, "node_modules/.cache/dashhaus-docs");
 
-  it("is what create-dashhaus-skin writes, and typechecks with the added domain", () => {
-    rmSync(skin, { recursive: true, force: true });
-    mkdirSync(dirname(skin), { recursive: true });
-    const scaffold = spawnSync(process.execPath, [join(root, "packages/create-dashhaus-skin/bin.js"), skin], { encoding: "utf8" });
-    expect(scaffold.status, scaffold.stderr).toBe(0);
-
-    for (const { file, value } of attributes("template")) {
-      const written = join(skin, fill(value));
-      expect(readFileSync(written, "utf8"), `${relative(root, file)}: ${value} is not what the scaffold writes`).toBe(fill(readFileSync(join(templatesDir, value), "utf8")));
+  it("shows only files create-dashhaus-skin writes, and typechecks once npm run add has added a domain", () => {
+    const scaffolded = writeScaffold(root, join(parent, "scaffolded"));
+    const added = writeScaffold(root, join(parent, "added"), true);
+    for (const { file, value } of templates()) {
+      const skin = value.added ? added : scaffolded;
+      expect(existsSync(join(skin, value.path)), `${relative(root, file)}: create-dashhaus-skin writes no ${value.path}${value.added ? ` after add ${ADDED}` : ""}`).toBe(true);
     }
 
-    // The guide's edits to a scaffold file keep every line it had, in order: they add lines, or extend one (a union or
-    // a list gaining "cover"). A scaffold line the guide no longer has means the template moved on: update the guide.
-    const kept = (original: string) => (line: string) => {
-      if (line === original) return true;
-      // The original with text inserted at one place: its start, then the insertion, then the rest of it.
-      let common = 0;
-      while (common < original.length && line[common] === original[common]) common += 1;
-      return common >= 8 && line.length > original.length && line.endsWith(original.slice(common));
-    };
-    for (const file of walk(overlay)) {
-      const path = relative(overlay, file);
-      const target = join(skin, path);
-      if (existsSync(target)) {
-        const edited = readFileSync(file, "utf8").split("\n");
-        let at = 0;
-        for (const line of readFileSync(target, "utf8").split("\n")) {
-          const found = edited.slice(at).findIndex(kept(line));
-          at = found < 0 ? -1 : at + found;
-          expect(at, `docs/examples/scaffold/${path} lost the scaffold's line: ${line}`).toBeGreaterThanOrEqual(0);
-          at += 1;
-        }
-      }
-      mkdirSync(dirname(target), { recursive: true });
-      cpSync(file, target);
-    }
-
-    writeFileSync(join(skin, "inline.d.ts"), 'declare module "*.css?inline" {\n  const css: string;\n  export default css;\n}\n');
-    writeFileSync(join(skin, "tsconfig.json"), JSON.stringify({
-      extends: relative(skin, join(root, "config/tsconfig.base.json")),
+    // The skin's own tsconfig, against the repo's packages instead of an install.
+    writeFileSync(join(added, "tsconfig.json"), JSON.stringify({
+      extends: relative(added, join(root, "config/tsconfig.base.json")),
+      compilerOptions: { types: ["vite/client", "node"] },
       include: ["**/*.ts", "**/*.tsx"],
     }));
-    const tsc = spawnSync(process.execPath, [join(root, "node_modules/typescript/bin/tsc"), "-p", skin], { encoding: "utf8" });
+    const tsc = spawnSync(process.execPath, [join(root, "node_modules/typescript/bin/tsc"), "-p", added], { encoding: "utf8" });
     expect(tsc.status, tsc.stdout + tsc.stderr).toBe(0);
   }, 120_000);
 });

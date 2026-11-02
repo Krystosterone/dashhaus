@@ -47,5 +47,5 @@ export function create__Skin__Card(css: string) {
 }
 
 export function define__Skin__Card(css: string) {
-  registerCard(__SKIN_CONST___CARD_TYPE, create__Skin__Card(css), "Dashhaus __Section__", "The __Section__ dashboard. Add Cards with the normal Card generator; omit cards to group supported entities by area.");
+  registerCard(__SKIN_CONST___CARD_TYPE, create__Skin__Card(css), "Dashhaus __Section__", "The __Section__ dashboard. Without cards, it groups every entity it can draw by area.");
 }

@@ -1,9 +1,9 @@
 /*
  * __Section__'s design tokens: every colour the skin draws comes from here, light and dark.
- * The theme attribute is the skin's own, data-__skin__-theme, so another skin's attribute on the same <html> (Orb's
- * data-theme from its Storybook toolbar) never re-colours this one. Storybook's __Section__ theme toolbar sets it on
- * <html>; the Lovelace card sets it on its host from Home Assistant's dark mode, and scopeToHost turns :root into
- * that host. Without it, the system's colour scheme decides.
+ * The theme attribute is the skin's own, data-__skin__-theme, so another skin's attribute on the same page never
+ * re-colours this one. The Lovelace card sets it on its host from Home Assistant's dark mode, and scopeToHost turns
+ * :root into that host; a page drawing the skin outside Home Assistant sets it on <html>. Without it, the system's
+ * colour scheme decides.
  * Keep every block on :root only: a token set again on an element inside the page (the surface class) would
  * override the dark values that element inherits.
  */
@@ -56,4 +56,3 @@
   --__skin__-backdrop: rgb(0 0 0 / 66%);
 }
 
-body.__skin__-surface { margin: 0; background: var(--__skin__-page); color: var(--__skin__-ink); font-family: var(--__skin__-sans); }
