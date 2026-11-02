@@ -29,9 +29,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
+      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
+      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
       - name: Use the pinned npm
         run: corepack enable npm && npm --version
+      - name: Cache npm's downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
       - run: npm ci
       - run: npm run build:docs
       # Nothing reads this artifact until the deploy job below can run, and a private repository's artifact quota is small.

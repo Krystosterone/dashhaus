@@ -40,11 +40,16 @@ describe("the pinned npm", () => {
     expect(atLeast("12.0.0", "11.18.0")).toBe(true);
   });
 
-  it("is what CI enables with Corepack before npm ci", () => {
-    const workflows = [read(".github/workflows/ci.yml"), read(".github/workflows/docs.yml")];
-    for (const workflow of workflows) {
-      const enables = workflow.match(/corepack enable npm/g)?.length ?? 0;
-      expect(enables).toBe(workflow.match(/run: npm ci/g)?.length ?? 0);
+  it("is what CI enables with Corepack before anything runs npm", () => {
+    for (const path of [".github/workflows/ci.yml", ".github/workflows/docs.yml"]) {
+      const workflow = read(path);
+      // Every job that sets Node up enables the pinned npm, and nothing between the two runs Node's bundled npm:
+      // setup-node's `cache: npm` would (`npm config get cache`), and devEngines refuses it.
+      const setups = workflow.match(/uses: actions\/setup-node@/g)?.length ?? 0;
+      expect(setups, path).toBeGreaterThan(0);
+      expect(workflow.match(/run: corepack enable npm/g)?.length, path).toBe(setups);
+      expect(workflow, `${path}: setup-node's npm cache runs the bundled npm before Corepack`).not.toMatch(/^\s+cache: npm\s*$/m);
+      expect(workflow.match(/run: npm ci/g)?.length ?? 0, path).toBeLessThanOrEqual(setups);
     }
   });
 });
