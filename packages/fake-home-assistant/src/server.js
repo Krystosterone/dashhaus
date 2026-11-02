@@ -1,11 +1,10 @@
-#!/usr/bin/env node
 /**
- * The fake Home Assistant as a server, for a clean-room agent run that uses the real `dashhaus-deploy` CLI:
+ * The fake Home Assistant as a server, with no dependency beyond Node:
  *
- *   node verify/dx/fake-ha-server.js [--port 8123] [--www <dir>] [--token <token>] [--state <file.json>]
+ *   fake-home-assistant [--port 8123] [--host 127.0.0.1] [--www <dir>] [--token <token>] [--state <file.json>]
  *
  * It prints the three `.env` settings a person would copy from their own Home Assistant (HA_URL, HA_TOKEN, HA_WWW) and
- * serves, with no dependency beyond Node:
+ * serves:
  *
  *   /api/websocket   Home Assistant's websocket API: auth, `subscribe_entities` (the house, then each change),
  *                    `call_service` (toggles change the house), and `FakeHomeAssistant.send` for every other command
@@ -24,11 +23,11 @@ import { mkdtemp } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize, resolve, sep } from "node:path";
-import { FakeHomeAssistant, houseRegistries } from "./fake-ha.js";
+import { FakeHomeAssistant } from "./fake-home-assistant.js";
 
 /** Start the server; resolves with its settings and a `close()`. */
-export async function startFakeHomeAssistant({ port = 8123, www, token = "fake-ha-token", stateFile, host = "127.0.0.1" } = {}) {
-  const ha = new FakeHomeAssistant();
+export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", www, token = "fake-ha-token", stateFile, states, registries } = {}) {
+  const ha = new FakeHomeAssistant({ states, registries });
   const folder = resolve(www ?? (await mkdtemp(join(tmpdir(), "fake-ha-www-"))));
   const dump = () => ({
     resources: ha.resources,
@@ -110,6 +109,13 @@ export async function startFakeHomeAssistant({ port = 8123, www, token = "fake-h
     });
   });
 
+  // Keep the sockets so `close()` can end a websocket or a keep-alive request instead of waiting for the client.
+  const sockets = new Set();
+  server.on("connection", (socket) => {
+    sockets.add(socket);
+    socket.on("close", () => sockets.delete(socket));
+  });
+
   await new Promise((done, fail) => {
     server.once("error", fail);
     server.listen(port, host, done);
@@ -117,7 +123,12 @@ export async function startFakeHomeAssistant({ port = 8123, www, token = "fake-h
   const address = server.address();
   const settings = { HA_URL: `http://${host}:${address.port}`, HA_TOKEN: token, HA_WWW: folder };
   persist();
-  return { ha, settings, close: () => new Promise((done) => server.close(() => done())) };
+  let closing;
+  const close = () => (closing ??= new Promise((done, fail) => {
+    server.close((error) => (error ? fail(error) : done()));
+    for (const socket of sockets) socket.destroy();
+  }));
+  return { ha, settings, close };
 }
 
 /** A state as `subscribe_entities` sends it. */
@@ -219,7 +230,7 @@ function sidebar(ha) {
 function dashboardPage(ha, dashboard) {
   const saved = ha.saved.find((entry) => entry.url_path === dashboard.url_path)?.config;
   const card = saved?.views?.[0]?.cards?.[0];
-  const data = JSON.stringify({ card, resources: ha.resources.map((resource) => resource.url), states: Object.values(ha.states), registries: houseRegistries(), version: ha.version }).replace(/</g, "\\u003c");
+  const data = JSON.stringify({ card, resources: ha.resources.map((resource) => resource.url), states: Object.values(ha.states), registries: ha.registries, version: ha.version }).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(dashboard.title)} – Fake Home Assistant</title>
@@ -282,19 +293,4 @@ try {
   fail("Configuration error\\n" + (error?.message ?? String(error)));
 }
 </script></body></html>`;
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const argv = process.argv.slice(2);
-  const option = (name) => {
-    const index = argv.indexOf(name);
-    return index === -1 ? undefined : argv[index + 1];
-  };
-  const { settings } = await startFakeHomeAssistant({
-    port: Number(option("--port") ?? 8123),
-    www: option("--www"),
-    token: option("--token"),
-    stateFile: option("--state"),
-  });
-  console.log(`Fake Home Assistant listening.\nHA_URL=${settings.HA_URL}\nHA_TOKEN=${settings.HA_TOKEN}\nHA_WWW=${settings.HA_WWW}`);
 }
