@@ -6,12 +6,12 @@ const load = async () => {
 };
 
 /**
- * Node 26 defines a global `localStorage` that is unavailable without `--localstorage-file`, and it shadows
- * jsdom's, so `window.localStorage` is undefined there. Give the tests a Storage when the environment has none;
- * on Node 22 (CI's floor) jsdom's own storage is used.
+ * The tests install their own Storage: newer Node versions define a global `localStorage` that is unavailable
+ * without `--localstorage-file` (undefined on Node 26, a methodless stub on Node 25) and it shadows jsdom's, so
+ * the environment's own storage is not trustworthy. `perf` reads one key, which this in-memory Storage serves.
  */
 const storage = new Map<string, string>();
-const storageShim = {
+const storageShim: Storage = {
   get length() { return storage.size; },
   key: (index: number) => [...storage.keys()][index] ?? null,
   getItem: (key: string) => storage.get(key) ?? null,
@@ -22,8 +22,8 @@ const storageShim = {
 
 beforeEach(() => {
   window.history.replaceState(null, "", "/");
-  if (!globalThis.localStorage) vi.stubGlobal("localStorage", storageShim);
-  window.localStorage.clear();
+  storage.clear();
+  vi.stubGlobal("localStorage", storageShim);
   delete window.__dashhausPerf;
 });
 
