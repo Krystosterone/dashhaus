@@ -82,6 +82,29 @@ describe.each(studySkins.map((s) => [s.skin, s] as const))("the %s study", (skin
   });
 });
 
+describe("the study brief", () => {
+  it("asks for what the generator makes a study today, so starting a run can't send an agent somewhere stale", () => {
+    const brief = read("spec/study-brief.md");
+    for (const expected of [
+      "npm run new-skin -- <name> --study",
+      "npm run new-card -- <domain> --skin <name>",
+      "src/skins/<name>/design.md",
+      "src/skins/<name>/captures/",
+      `${studies.group}/<Name>`,
+      "Read me first",
+      "FRICTION",
+      "spec/skins.md → Running a study",
+    ]) expect(brief, `spec/study-brief.md names ${expected}`).toContain(expected);
+    expect(brief).not.toMatch(/artifacts\/|spec\/<name>\.md/);
+  });
+
+  it("is where AGENTS.md and spec/skins.md send an agent", () => {
+    expect(read("AGENTS.md")).toContain("[spec/study-brief.md](spec/study-brief.md)");
+    expect(read("spec/skins.md")).toContain("### Running a study");
+    expect(read("spec/skins.md")).toContain("[study-brief.md](study-brief.md)");
+  });
+});
+
 describe("the docs site's Studies page", () => {
   it("is built from the skins' manifests, so every study appears with no edit", () => {
     expect(read("docs/src/content/docs/develop/studies.mdx")).toContain("<Studies />");
