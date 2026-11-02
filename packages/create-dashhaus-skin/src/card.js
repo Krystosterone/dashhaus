@@ -88,13 +88,19 @@ ${actionRows}
 
 /**
  * The card's two lines in `lovelace/registry.tsx`: its import, and its row, which routes its Home Assistant domains
- * (and an entity-id pattern, for a card on another card's domain) to its connected card.
+ * (and an entity-id pattern, for a card on another card's domain) to its connected card, and reads its companions'
+ * YAML keys (a sensor's `humidity: sensor.x`) into `item.companions` for the hook.
  */
-export function registryLines(domain, { Skin }) {
-  const live = domain.options.map((key) => key === "loadHistory" ? " loadHistory={item.history}" : ` ${key}={item.${key}}`).join("");
+export function registryLines(domain, { Skin, skinVar }) {
+  const companions = domain.companions ?? [];
+  const live = [
+    ...domain.options.map((key) => key === "loadHistory" ? " loadHistory={item.history}" : ` ${key}={item.${key}}`),
+    ...companions.map(({ key, option }) => ` ${option}={item.companions?.${key}}`),
+  ].join("");
+  const keys = companions.length ? `, ...${skinVar}Companions([${companions.map(({ key }) => `"${key}"`).join(", ")}])` : "";
   return {
     import: `import { Ha${Skin}${domain.Name}Card } from "../ha/Ha${Skin}${domain.Name}Card";\n`,
-    entry: `  ${domain.name}: { domains: [${domain.domains.map((name) => `"${name}"`).join(", ")}]${domain.id ? `, id: ${domain.id}` : ""}, render: (item, footprint) => <Ha${Skin}${domain.Name}Card entityId={item.entity}${live} footprint={footprint} /> },`,
+    entry: `  ${domain.name}: { domains: [${domain.domains.map((name) => `"${name}"`).join(", ")}]${domain.id ? `, id: ${domain.id}` : ""}${keys}, render: (item, footprint) => <Ha${Skin}${domain.Name}Card entityId={item.entity}${live} footprint={footprint} /> },`,
   };
 }
 

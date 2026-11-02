@@ -16,6 +16,7 @@
       "area",
       "loadHistory"
     ],
+    "companions": [],
     "fixtureId": "alarm_control_panel.disarmed"
   },
   "climate": {
@@ -37,6 +38,7 @@
       "area",
       "loadHistory"
     ],
+    "companions": [],
     "fixtureId": "climate.living_room"
   },
   "cover": {
@@ -60,6 +62,7 @@
       "area",
       "loadHistory"
     ],
+    "companions": [],
     "fixtureId": "cover.living_room"
   },
   "humidifier": {
@@ -81,6 +84,7 @@
       "area",
       "loadHistory"
     ],
+    "companions": [],
     "fixtureId": "humidifier.bedroom"
   },
   "light": {
@@ -102,6 +106,7 @@
       "area",
       "loadHistory"
     ],
+    "companions": [],
     "fixtureId": "light.living_room"
   },
   "owlet": {
@@ -124,6 +129,24 @@
       "area",
       "loadHistory"
     ],
+    "companions": [
+      {
+        "key": "heart_rate",
+        "option": "heartRateEntityId"
+      },
+      {
+        "key": "oxygen",
+        "option": "oxygenEntityId"
+      },
+      {
+        "key": "charging",
+        "option": "chargingEntityId"
+      },
+      {
+        "key": "base",
+        "option": "baseEntityId"
+      }
+    ],
     "fixtureId": "sensor.owlet_sock_ac000w0123_sleep_state"
   },
   "sensor": {
@@ -142,6 +165,16 @@
       "name",
       "area",
       "loadHistory"
+    ],
+    "companions": [
+      {
+        "key": "humidity",
+        "option": "humidityEntityId"
+      },
+      {
+        "key": "battery",
+        "option": "batteryEntityId"
+      }
     ],
     "fixtureId": "sensor.living_room_temperature"
   },
@@ -163,6 +196,12 @@
       "name",
       "area",
       "loadHistory"
+    ],
+    "companions": [
+      {
+        "key": "volume",
+        "option": "volumeEntityId"
+      }
     ],
     "fixtureId": "switch.bedroom"
   },
@@ -186,6 +225,7 @@
       "area",
       "loadHistory"
     ],
+    "companions": [],
     "fixtureId": "input_boolean.guest_mode"
   },
   "weather": {
@@ -203,6 +243,16 @@
     "options": [
       "name",
       "loadHistory"
+    ],
+    "companions": [
+      {
+        "key": "aqi",
+        "option": "aqiEntityId"
+      },
+      {
+        "key": "sun",
+        "option": "sunEntityId"
+      }
     ],
     "fixtureId": "weather.home"
   }

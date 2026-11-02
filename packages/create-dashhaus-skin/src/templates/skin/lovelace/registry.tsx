@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { CardKindSpec } from "@dashhaus/dashboard/schema";
 import type { __Skin__Footprint } from "../shared/ui";
 // new-card: registry imports
 
@@ -11,14 +12,26 @@ export interface __Skin__CardItem {
   footprint?: __Skin__Footprint;
   span?: number;
   history?: boolean;
+  /** The companion entities its hook composes, by YAML key: a sensor's `humidity` and `battery`. */
+  companions?: Readonly<Record<string, string>>;
 }
 
-export interface __Skin__CardRegistration {
-  domains: readonly string[];
-  /** Picks this Card before its domain's default, without an explicit `card:`. */
-  id?: RegExp;
+/** `domains`, and `id` to pick this Card before its domain's default without an explicit `card:`. */
+export interface __Skin__CardRegistration extends CardKindSpec {
   render: (item: __Skin__CardItem, footprint: __Skin__Footprint) => ReactNode;
 }
+
+/** A Card's companion entities as YAML keys (`humidity: sensor.bedroom_humidity`), read into `item.companions`. */
+export const __skinVar__Companions = (keys: readonly string[]): Pick<CardKindSpec, "keys" | "options"> => ({
+  keys,
+  options: (read, raw, at) => {
+    const companions = Object.fromEntries(keys.flatMap((key) => {
+      const id = raw[key] == null ? undefined : read.entityId(raw[key], `${at}.${key}`);
+      return id ? [[key, id]] : [];
+    }));
+    return Object.keys(companions).length ? { companions } : {};
+  },
+});
 
 /** The skin's one card seam: the card generator adds an import and one registration here for each domain. */
 export const __SKIN_CONST___CARDS = {

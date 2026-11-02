@@ -70,6 +70,8 @@ export function describeDomain(name) {
     summary: summaryFor(entity),
     /** The hook's options a dashboard's YAML can fill, in the order a connected card passes them. */
     options: [...["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)), ...(/^\s+loadHistory\?: /m.test(options) ? ["loadHistory"] : [])],
+    /** The hook's companion entities (`humidityEntityId`), each with the YAML key that names it (`humidity`). */
+    companions: [...options.matchAll(/^\s+(\w+)EntityId\?: string;/gm)].map(([, key]) => ({ key: key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), option: `${key}EntityId` })),
     fixtureId,
   };
 }

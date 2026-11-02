@@ -5,8 +5,8 @@
  *   npm run snapshot                  # preview/snapshots/{desktop,phone,desktop-dark}.png
  *   npm run snapshot -- --yaml '{"cards":[{"entity":"light.porch"}]}'
  *
- * It serves `preview/` with Vite and drives Chromium through Playwright, which is not a dependency of the skin. The
- * first run tells you the two commands that install it. Page errors are printed, and fail the run.
+ * It serves `preview/` with Vite and drives Chromium through Playwright, a dev dependency. The first run tells you
+ * the command that installs Playwright's Chromium. Page errors are printed, and fail the run.
  */
 /* global document -- the waitForFunction and evaluate callbacks run in the page. */
 import { mkdir } from "node:fs/promises";
@@ -22,12 +22,8 @@ let chromium;
 try {
   ({ chromium } = await import("playwright"));
 } catch {
-  console.error(`npm run snapshot needs Playwright, which the skin does not install by default:
-
-  npm install --no-save playwright
-  npx playwright install chromium
-
-Then run npm run snapshot again. (npm run preview needs neither; it serves the same page to a browser.)`);
+  console.error(`npm run snapshot needs Playwright, a dev dependency: run npm install, then npm run snapshot again.
+(npm run preview doesn't need it; it serves the same page to a browser.)`);
   process.exit(1);
 }
 

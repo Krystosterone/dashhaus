@@ -46,8 +46,8 @@ through an in-page stand-in for Home Assistant's websocket connection; it is not
 `preview/house.ts` lists (lights and sensors) come from it, with the worst cases a skin must survive; every other
 domain comes from `@dashhaus/core/demo`'s house, whose services behave, so a card `npm run add` writes is on the page
 with no edit. `npm run preview` serves it with Vite; `npm run snapshot` saves it at 1280 px light, 390 px light and
-1280 px dark through Playwright, which the skin does not depend on: the script prints the two commands that install
-it.
+1280 px dark through Playwright, a dev dependency, so a fresh `npm install` has it; the first run prints the command
+that installs its Chromium.
 
 ## Cards and YAML
 
@@ -69,7 +69,9 @@ frozen `@dashhaus/dashboard/skin` contract.
 
 `npm run add -- <domain> [--kind control|reading]` adds a domain: the card folder under `cards/<domain>/` (component,
 CSS, glyph and story metadata), its adapter in `ha/`, and its row in `lovelace/registry.tsx` for its Home Assistant
-domains, which the YAML reader and the automatic layout read. It runs the skin's own copy of the scaffolder (a dev
+domains, which the YAML reader and the automatic layout read. A domain whose hook composes companions takes them as
+YAML keys, the hook's `<key>EntityId` options in snake case (a sensor's `humidity` and `battery`, a sound machine's
+`volume`), into `item.companions`; the automatic layout fills a sensor's from its device (`roomSensors`). It runs the skin's own copy of the scaffolder (a dev
 dependency), offline.
 
 `npm test` runs the conformance preset (each card's component and story title, its class prefix and that no

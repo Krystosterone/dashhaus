@@ -114,6 +114,10 @@ show another fact, read it from `entity` in the card. To expose an action that t
 temperature), add a prop to the card and pass `result.actions.<name>` in its adapter. Formatters are in
 `@dashhaus/core/entities/format`.
 
+A composed model's companions (a sensor's humidity and battery, a sound machine's volume) reach its hook from the
+YAML (`humidity: sensor.bedroom_humidity`) through `item.companions` in `lovelace/registry.tsx`. The automatic layout
+fills a sensor's from the sensors on its device, so its card already has them.
+
 ## Adding a domain
 
 ```sh

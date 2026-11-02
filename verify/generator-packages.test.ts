@@ -6,6 +6,7 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { generated, generatedManifest, packages, skinTemplates, workspaces } from "../scripts/packages.js";
 import { domainsFile, domainsJson } from "../scripts/domains.js";
@@ -65,6 +66,17 @@ describe("the generator package map", () => {
 
   it("ships the scaffolder every shared domain as the repository describes it", () => {
     expect(read(domainsFile), `${domainsFile} is behind @dashhaus/core: run npm run domains`).toBe(domainsJson());
+  });
+
+  it("hands a composed model's companions to its hook, from the YAML and from the automatic layout", async () => {
+    const { registryLines, skinNames } = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
+    const { sensor } = JSON.parse(read(domainsFile));
+    expect(sensor.companions).toEqual([{ key: "humidity", option: "humidityEntityId" }, { key: "battery", option: "batteryEntityId" }]);
+    const { entry } = registryLines(sensor, skinNames("my-skin"));
+    expect(entry).toContain('...mySkinCompanions(["humidity", "battery"])');
+    expect(entry).toContain("humidityEntityId={item.companions?.humidity} batteryEntityId={item.companions?.battery}");
+    expect(read(`${skinTemplates.skin}/lovelace/auto.ts`), "roomSensors finds a sensor's companions on its device; the layout must pass them on")
+      .toContain('roomSensors(input).map(({ entity, ...companions }): CardConfig => ({ entity, kind: "sensor", ...(Object.keys(companions).length && { companions }) }))');
   });
 
   it("keeps one copy of every skin template: the in-repo overlays add files, never a second version of a shared one", () => {

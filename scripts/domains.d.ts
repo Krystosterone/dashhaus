@@ -11,6 +11,7 @@ export interface DomainDescription {
   actions: string[];
   summary: string;
   options: string[];
+  companions: { key: string; option: string }[];
   fixtureId: string;
 }
 export function describeDomain(name: string): DomainDescription;
