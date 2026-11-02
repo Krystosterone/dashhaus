@@ -51,11 +51,14 @@ export const studies: {
   section(Section: string): string;
   marker(theme: StudyTheme): StudyMarker;
   is(manifest: unknown): boolean;
+  designDoc(skin: string): string;
+  record(skin: string): string;
+  captures(skin: string): string;
 };
 
 export function storySection(storybookSource: string): string | undefined;
 
-export function generatedManifest(skin: string): {
+export function generatedManifest(skin: string, options?: { study?: boolean; Section?: string; theme?: StudyTheme }): {
   name: string;
   version: string;
   description?: string;

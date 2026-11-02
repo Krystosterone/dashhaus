@@ -121,10 +121,11 @@ export function skinDir(skin) {
 }
 
 /**
- * An in-repo study: a skin an agent built with `new-skin` before study runs moved outside the repository (spec/skins.md
- * → Studies), kept so people can see it, use it and build on it. It doesn't ship: its manifest's marker files its
- * stories under `Studies/<Name>` and keeps it out of the Lovelace bundle and the deploy config. No generator makes a
- * new one; a study run is kept under `studies/` instead.
+ * A study: a skin an agent built, kept so people can see it, use it and build on it. It is not finished or polished
+ * and it doesn't ship: `new-skin --study` (which `npm run study:keep` runs) generates it like any skin, then marks it,
+ * files its stories under `Studies/<Name>` and leaves it out of the Lovelace bundle and the deploy config
+ * (spec/skins.md → Studies). Everything that treats a study differently reads the marker in its manifest; what the
+ * study's run was is its `study.json` (`studies.record`).
  */
 export const studies = {
   /** Storybook's top-level section every study sits under. */
@@ -137,6 +138,10 @@ export const studies = {
   is: (manifest) => Boolean(manifest?.dashhaus?.study),
   /** A study's design rules live in its own folder, never in spec/: the specs describe the shipped skins only. */
   designDoc: (skin) => `${generated.dir(skin)}/design.md`,
+  /** How it was made and from what (scripts/study/lib.js → StudyRecord), beside its README. */
+  record: (skin) => `${generated.dir(skin)}/study.json`,
+  /** What it looked like: the run's snapshots and the dashboard it deployed. */
+  captures: (skin) => `${generated.dir(skin)}/captures`,
 };
 
 /** A skin's Storybook section, as its `storybook.tsx` declares it: `Field`, or `Studies/Atelier` for a study. */
@@ -144,18 +149,23 @@ export function storySection(storybookSource) {
   return storybookSource.match(/^\s*section: "([^"]+)",?$/m)?.[1];
 }
 
-/** A generated skin's manifest content, filled by the skin template; the map owns the name and exports. */
-export function generatedManifest(skin) {
+/**
+ * A generated skin's manifest content, filled by the skin template; the map owns the name and exports. A study adds
+ * a description saying what it is, and the marker with its theme toolbar global (`{ global, light, dark }`).
+ */
+export function generatedManifest(skin, { study, Section, theme } = {}) {
   const name = generated.name(skin);
   return {
     name,
     version: "0.0.0",
+    ...(study && { description: `A study: the ${Section} skin an agent built. Not finished or polished; use it, build on it, contribute back.` }),
     private: true,
     type: "module",
     sideEffects: ["./styles/tokens.css"],
     exports: generated.exports,
     dependencies: { [packages.core.name]: "*", [packages.dashboard.name]: "*" },
     peerDependencies: { react: "^18.3.1 || ^19.0.0", "react-dom": "^18.3.1 || ^19.0.0" },
+    ...(study && { dashhaus: studies.marker(theme) }),
   };
 }
 
@@ -190,6 +200,7 @@ export const markers = {
   previewImports: "// new-skin: storybook imports",
   previewSetups: "// new-skin: storybook setups",
   previewSections: "// new-skin: section order",
+  previewStudies: "// new-skin: study order",
   previewCards: "// new-card: cards",
   previewConnected: "// new-card: connected",
   entryTokens: "// new-skin: token css",
@@ -202,6 +213,8 @@ export const markers = {
   designRuleImports: "// new-card: design rule imports",
   designRuleStories: "// new-card: design rule stories",
   dashboardCards: "// new-card: dashboard cards",
+  exampleImports: "// new-card: example imports",
+  exampleSections: "// new-card: example sections",
   coreExports: "// new-card: exports",
   headlessImports: "// new-card: headless imports",
   headlessComponents: "// new-card: headless components",

@@ -1,33 +1,11 @@
 ---
 /**
- * Every study in the repository (spec/skins.md → Studies), read at build time: each kept study run from its
- * `studies/<name>/study.json`, with its reference, the dashboard it deployed and links to its report and skin; and each
- * in-repo study from its skin's manifest (`dashhaus.study`), with its phone Examples story drawn live and a link to its
- * Read me first page. A new study needs no edit to this page.
+ * Every study in the repository (spec/skins.md → Studies), read at build time from each skin's manifest
+ * (`dashhaus.study`) and its `study.json`: its description and reference, its phone Examples story drawn live, and
+ * links to its Read me first page, the agent's report when the study is a kept run, and its source. Every study has
+ * the same shape, so a new one needs no edit to this page.
  */
 import LiveStory from "./LiveStory.astro";
-
-interface KeptStudy {
-  name: string;
-  kept: string;
-  version: string;
-  reference: { kind: "image"; file: string } | { kind: "description"; text: string };
-  captures: string[];
-}
-
-const keptFiles = import.meta.glob<KeptStudy>("../../../studies/*/study.json", { eager: true, import: "default" });
-const keptImages = import.meta.glob<string>("../../../studies/*/{captures/*.png,reference.*}", { eager: true, query: "?url", import: "default" });
-const kept = Object.entries(keptFiles)
-  .map(([path, study]) => {
-    const dir = path.replace(/\/study\.json$/, "");
-    const picture = ["deployed.png", "desktop.png", "phone.png"].find((file) => study.captures.includes(file));
-    return {
-      ...study,
-      picture: picture ? keptImages[`${dir}/captures/${picture}`] : undefined,
-      reference: study.reference.kind === "image" ? { image: keptImages[`${dir}/${study.reference.file}`] } : { text: study.reference.text },
-    };
-  })
-  .sort((a, b) => a.name.localeCompare(b.name));
 
 interface Manifest {
   name: string;
@@ -35,8 +13,15 @@ interface Manifest {
   dashhaus?: { study?: { theme: { global: string; light: string; dark: string } } };
 }
 
+interface StudyRecord {
+  made: "run" | "generators";
+  reference?: { kind: "image"; file: string } | { kind: "description"; text: string };
+}
+
 const manifests = import.meta.glob<Manifest>("../../../src/skins/*/package.json", { eager: true, import: "default" });
 const setups = import.meta.glob<string>("../../../src/skins/*/storybook.tsx", { eager: true, query: "?raw", import: "default" });
+const records = import.meta.glob<StudyRecord>("../../../src/skins/*/study.json", { eager: true, import: "default" });
+const references = import.meta.glob<string>("../../../src/skins/*/reference.*", { eager: true, query: "?url", import: "default" });
 const repo = "https://github.com/Krystosterone/dashhaus";
 const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
 /** Storybook's id for a title: lower-case words joined by hyphens. */
@@ -46,39 +31,27 @@ const studies = Object.entries(manifests)
   .flatMap(([path, manifest]) => {
     const marker = manifest.dashhaus?.study;
     if (!marker) return [];
-    const dir = path.match(/src\/skins\/([^/]+)\/package\.json$/)![1];
-    const section = setups[path.replace(/package\.json$/, "storybook.tsx")]?.match(/^\s*section: "([^"]+)",?$/m)?.[1];
+    const folder = path.replace(/\/package\.json$/, "");
+    const dir = folder.split("/").at(-1)!;
+    const section = setups[`${folder}/storybook.tsx`]?.match(/^\s*section: "([^"]+)",?$/m)?.[1];
     if (!section) throw new Error(`src/skins/${dir}/storybook.tsx declares no section`);
+    const record = records[`${folder}/study.json`];
+    if (!record) throw new Error(`src/skins/${dir} is a study with no study.json`);
+    const reference = record.reference?.kind === "image" ? { image: references[`${folder}/${record.reference.file}`] } : record.reference ? { text: record.reference.text } : undefined;
     const name = section.split("/").at(-1)!;
     const { global, light, dark } = marker.theme;
-    return [{ dir, name, section, description: manifest.description, light: `${global}:${light}`, dark: `${global}:${dark}` }];
+    return [{ dir, name, section, description: manifest.description, run: record.made === "run", reference, light: `${global}:${light}`, dark: `${global}:${dark}` }];
   })
   .sort((a, b) => a.name.localeCompare(b.name));
 ---
 
-{studies.length === 0 && kept.length === 0 && <p>No studies yet.</p>}
-{
-  kept.map((study) => (
-    <section class="study" aria-labelledby={`kept-${study.name}`}>
-      <h2 id={`kept-${study.name}`}>{study.name}</h2>
-      <p>
-        Built from @dashhaus {study.version} on {study.kept}, from {study.reference.text ? <>this description: <q>{study.reference.text}</q></> : "this picture:"}
-      </p>
-      {study.reference.image && <img class="study-reference" src={study.reference.image} alt={`The reference ${study.name} was built from`} />}
-      {study.picture && <img class="study-picture" src={study.picture} alt={`The ${study.name} dashboard as the agent deployed it`} />}
-      <p class="study-links">
-        <a href={`${repo}/blob/main/studies/${study.name}/REPORT.md`} target="_blank" rel="noopener">The agent's report</a>
-        {" · "}
-        <a href={`${repo}/tree/main/studies/${study.name}/skin`} target="_blank" rel="noopener">Its skin</a>
-      </p>
-    </section>
-  ))
-}
+{studies.length === 0 && <p>No studies yet.</p>}
 {
   studies.map((study) => (
     <section class="study" aria-labelledby={`study-${study.dir}`}>
       <h2 id={`study-${study.dir}`}>{study.name}</h2>
       {study.description && <p>{study.description}</p>}
+      {study.reference?.image && <img class="study-reference" src={study.reference.image} alt={`The picture ${study.name} was built from`} />}
       <LiveStory
         id={`${idOf(`${study.section}/Dashboards/Examples`)}--phone`}
         title={`${study.name} on a phone`}
@@ -91,8 +64,9 @@ const studies = Object.entries(manifests)
       />
       <p class="study-links">
         <a href={`${storybook}?path=/docs/${idOf(`${study.section}/Read me first`)}--docs`} target="_blank" rel="noopener">Read me first, in Storybook</a>
+        {study.run && <>{" · "}<a href={`${repo}/blob/main/src/skins/${study.dir}/REPORT.md`} target="_blank" rel="noopener">The agent's report</a></>}
         {" · "}
-        <a href={`${repo}/tree/main/src/skins/${study.dir}`} target="_blank" rel="noopener">Its source and README</a>
+        <a href={`${repo}/tree/main/src/skins/${study.dir}`} target="_blank" rel="noopener">Its source</a>
       </p>
     </section>
   ))
@@ -109,14 +83,6 @@ const studies = Object.entries(manifests)
 
   .study-reference {
     max-width: min(16rem, 100%);
-    border-radius: 0.5rem;
-  }
-
-  .study-picture {
-    display: block;
-    max-width: 100%;
-    margin-top: 1rem;
-    border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
   }
 </style>

@@ -83,22 +83,26 @@ npm run study -- <name> --image <path>          # or --describe "<what it should
 npm run study:keep -- <name>                    # once the agent is done, while the first is still serving
 ```
 
-A kept study is `studies/<name>/`, outside every workspace, check and Storybook glob:
+Kept, a study is a skin in this repository with the same shape as every other study, at `src/skins/<skin>/`:
 
-- `skin/`: the project as the agent left it, its `@dashhaus` tarball paths pinned to the version it was built against,
-  without its install, build, lockfile or `.env`. Anyone can copy it, `npm install` and use it.
-- `REPORT.md`: the agent's own FRICTION and RESULT.
+- the agent's skin over a shell from `new-skin <skin> --study` and `new-card <domain> --skin <skin>`, which add the
+  stories, tests and Connected cards every skin here has. Its standalone files (manifest, build, preview, guide) stay
+  behind: the repository builds and previews its skins itself.
+- `README.md`, drawn in Storybook as its **Read me first** page: what it is, where things are, how it was made (the run's
+  reference and task) and how to make it a real skin.
+- `design.md`: the design rules the agent wrote (`## Palette`, `## Parts`, `## Dashboards`, then one section per card),
+  drawn as Foundations → Design rules with the stories after their sections.
+- `REPORT.md`, the agent's own FRICTION and RESULT; the reference, when it was a picture.
 - `captures/`: its preview snapshots and `deployed.png`, the dashboard it deployed.
-- the reference, the fake Home Assistant's final state, `study.json` (the version, commit, reference and task) and a
-  README saying what it is.
+- `study.json`: its name, when it was kept, the version and commit it was built from, how it was made (`made: "run"`,
+  or `"generators"` for one an agent built in this repository with `new-skin`), its reference and task.
 
-The docs site's Studies page is built from `studies/*/study.json`, so a kept study appears there with no edit.
-
-An older kind of study is a skin an agent built inside this repository with `new-skin`, kept under `src/skins/` and
-marked in its `package.json` (`"dashhaus": { "study": … }`): its stories sit under `Studies/<Name>` after a Read me
-first page, it never reaches the Lovelace bundle, the deploy config or `spec/deploy.md`, its design rules stay in its
-`design.md`, and the docs site lists it from the marker. No generator makes a new one. The specs, AGENTS.md and the docs
-pages describe studies in general, never one by name. `verify/studies.test.ts` holds all of it.
+Its `package.json` marks it (`"dashhaus": { "study": … }`): its stories sit under `Studies/<Name>` after the Read me
+first page, with the same groups as every skin, and it never reaches the Lovelace bundle, the deploy config or
+`spec/deploy.md`. It is checked like any skin (typecheck, lint, its tests, every story rendering under axe), so it keeps
+working as the packages change; `study.json` records what it was first built from. The docs site's Studies page lists
+every study from its marker and `study.json`, with its phone Examples story drawn live. The specs, AGENTS.md and the
+docs pages describe studies in general, never one by name. `verify/studies.test.ts` holds all of it.
 
 ### Running a study
 
@@ -110,13 +114,17 @@ the run teaches is the other half.
    and prints how to hand over the task. Leave it running.
 2. Start a **fresh** agent in the sandbox's `agent/` folder, with no web access and no access to this repository, and
    give it `TASK.md` as its whole prompt. The task is one line of request plus what a person would know (the Home
-   Assistant URL, a token, where its `www` is mounted, where the tarballs are), and asks for `REPORT.md` with FRICTION
-   (every guess, retry, workaround, or doc that pointed nowhere) and RESULT (what is deployed and how it knows).
+   Assistant URL, a token, where its `www` is mounted, where the tarballs are), and asks for `DESIGN.md` (its design
+   rules) and `REPORT.md` with FRICTION (every guess, retry, workaround, or doc that pointed nowhere) and RESULT (what
+   is deployed and how it knows).
    Don't help it: an answer it needed is FRICTION.
 3. Judge the result from Home Assistant, not from the agent's word: open the dashboard the run printed.
-4. `npm run study:keep -- <name>` while the fake Home Assistant still serves, then stop `npm run study`.
+4. `npm run study:keep -- <name>` while the fake Home Assistant still serves, then stop `npm run study`. It brings the
+   skin in as above, installs, and runs the study's typecheck, lint and tests. Fix what fails in the study, never in
+   the checks, and say what you changed under "How it was made" in its README, so the agent's work and the fix stay
+   apart. Then `npm run test-storybook`.
 5. Act on its FRICTION in a change of its own: a README, the scaffold's `AGENTS.md` or templates, the deploy CLI's
-   help. The study stays as the agent left it.
+   help.
 
 ## Make it its own skin
 

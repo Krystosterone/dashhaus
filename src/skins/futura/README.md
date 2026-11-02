@@ -3,7 +3,8 @@
 Futura is a **study**: a skin an agent built with this repository's generators, kept so you can see what they make and
 start from it. It draws the house as a dark instrument console lit by two neon signals, cyan for live and amber for
 energy. It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and `npm run deploy`
-doesn't create its dashboard.
+doesn't create its dashboard. It is checked like every skin in this repository, so it keeps working as the packages
+change.
 
 ## Use it
 
@@ -15,8 +16,9 @@ it. If you make it better, contributions back are welcome; open a pull request.
 - **Storybook:** Studies → Futura, with the same groups as every skin (Cards, Dashboards, Foundations, Connected).
 - **Source:** `src/skins/futura/`, the private workspace package `@dashhaus/futura`.
 - **Its design rules:** `src/skins/futura/design.md`, also drawn in Storybook as Foundations → Design rules.
-- **Review captures** from the run: [phone](captures/examples-phone-390.png),
-  [tablet](captures/examples-tablet-1280.png) and [parts](captures/foundations-parts-1280.png).
+- **The run:** `study.json` records how it was made and what it was built from; `captures/` holds what it looked like:
+  [phone](captures/examples-phone-390.png), [tablet](captures/examples-tablet-1280.png) and
+  [parts](captures/foundations-parts-1280.png).
 
 ## How it was made
 

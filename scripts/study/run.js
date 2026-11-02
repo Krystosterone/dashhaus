@@ -12,7 +12,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFi
 import { extname, join, resolve } from "node:path";
 import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import { root } from "../packages.js";
-import { STUDIES, sandbox, studyName, taskText } from "./lib.js";
+import { sandbox, studyName, taskText } from "./lib.js";
 
 const fail = (message) => {
   console.error(`study: ${message}`);
@@ -37,7 +37,6 @@ try {
 }
 if (args.length !== 1 || (image == null) === (description == null)) fail('give a name and one of --image <path> or --describe "<text>"');
 if (image && !existsSync(image)) fail(`${image} doesn't exist`);
-if (existsSync(join(root, STUDIES, name))) fail(`${STUDIES}/${name} is already kept; pick another name`);
 const box = sandbox(name);
 if (existsSync(box.dir)) fail(`${box.dir} exists from an earlier run: keep it (npm run study:keep -- ${name}) or remove it`);
 
@@ -71,7 +70,8 @@ as its whole prompt, e.g.:
   cd ${box.agent} && claude "Read TASK.md and do it."
 
 Judge the result from Home Assistant, not from the agent's word: ${HA_URL}/<the dashboard's path>.
-When the agent is done, keep the study (this server must still be running, for the screenshot):
+When the agent is done (REPORT.md and DESIGN.md beside its skin), keep the study, which brings it into
+src/skins/<skin>/ (this server must still be running, for the screenshot):
 
   npm run study:keep -- ${name}
 

@@ -55,9 +55,13 @@ describe("the generator package map", () => {
     for (const reserved of ["core", "dashboard", "deploy"]) expect(() => generatedManifest(reserved)).toThrow(/reserved/);
   });
 
-  it("marks no new skin a study: study runs are kept under studies/, outside the generators", () => {
+  it("marks a study in its manifest and nothing else", () => {
     expect(generatedManifest("canvas")).not.toHaveProperty("dashhaus");
-    expect(generatedManifest("canvas")).not.toHaveProperty("description");
+    const theme = { global: "canvasTheme", light: "light", dark: "dark" };
+    const study = generatedManifest("canvas", { study: true, Section: "Canvas", theme });
+    expect(study.dashhaus).toEqual({ study: { theme } });
+    expect(study.description).toMatch(/^A study: the Canvas skin an agent built/);
+    expect({ ...study, description: undefined, dashhaus: undefined }).toEqual({ ...generatedManifest("canvas"), description: undefined, dashhaus: undefined });
   });
 
   it("ships the scaffolder every shared domain as the repository describes it", () => {
@@ -79,7 +83,7 @@ describe("the generator package map", () => {
     const files = (dir: string) => readdirSync(join(root, dir), { recursive: true, withFileTypes: true }).filter((entry) => entry.isFile())
       .map((entry) => join(entry.parentPath, entry.name).slice(join(root, dir).length + 1));
     const shared = new Set([...files(skinTemplates.skin), ...files(skinTemplates.card)]);
-    const overlays = ["repo", "repo-card"].flatMap((overlay) => files(`scripts/new-skin/templates/${overlay}`).map((file) => ({ overlay, file })));
+    const overlays = ["repo", "repo-card", "study"].flatMap((overlay) => files(`scripts/new-skin/templates/${overlay}`).map((file) => ({ overlay, file })));
     expect(overlays.filter(({ file }) => shared.has(file)).map(({ overlay, file }) => `scripts/new-skin/templates/${overlay}/${file}`), "edit the shared template in packages/create-dashhaus-skin instead").toEqual([]);
   });
 
