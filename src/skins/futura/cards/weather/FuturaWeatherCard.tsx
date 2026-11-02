@@ -17,7 +17,7 @@ export interface FuturaWeatherCardProps {
 
 /**
  * Outside on Futura's console: the sky in the dial (amber while the sun is up and out, cyan otherwise), the
- * temperature as the readout, the arc the humidity, and feels-like and wind as telemetry. A reading: no glow.
+ * temperature as the readout, the arc where it sits in today's range, and feels-like and wind as telemetry. A reading: no glow.
  */
 export function FuturaWeatherCard({ entity: e, history, footprint = "standard", defaultOpen = false }: FuturaWeatherCardProps) {
   const unavailable = e.state === "unavailable";
@@ -30,13 +30,16 @@ export function FuturaWeatherCard({ entity: e, history, footprint = "standard", 
   const wind = e.windSpeed != null ? `${Math.round(e.windSpeed)} ${e.windSpeedUnit}${e.windBearing != null ? ` ${compass(e.windBearing)}` : ""}` : null;
   const stats: FuturaStat[] = [
     ...(e.apparentTemperature != null ? [{ label: "Feels", value: deg0(e.apparentTemperature) }] : []),
-    ...(wind ? [{ label: "Wind", value: wind, alert: gustWarns(e) }] : []),
+    ...(wind ? [{ label: "Wind", value: gustWarns(e) ? `${wind} · gusty` : wind, alert: gustWarns(e) }] : []),
     ...(e.humidity != null ? [{ label: "Humidity", value: `${Math.round(e.humidity)}%` }] : []),
   ];
   const range = history ? normalizeReadings(history.temperature, 1) : null;
-  const meter = history && range ? { samples: range.samples, currentHour: history.currentHour, caption: range.min == null || range.max == null ? "No readings yet" : `Low ${deg0(range.min)} · high ${deg0(range.max)}`, tone } : undefined;
+  const meter = history && range ? { samples: range.samples, currentHour: history.currentHour, caption: range.min == null || range.max == null ? "No readings yet" : `Low ${deg0(range.min)} · high ${deg0(range.max)}`, tone, draw: "trace" as const } : undefined;
+  // The arc is where this hour sits between today's low and high (normalizeReadings maps to 0.12-1), as the trace draws.
+  const at = range && history ? range.samples[history.currentHour] : null;
+  const level = !unavailable && typeof at === "number" ? (at - 0.12) / 0.88 : null;
   return (
-    <FuturaCardFrame name={e.name} state={e.state} area="Outside" summary={summary} icon={<IconWeather condition={condition} night={night} />} level={e.humidity != null && !unavailable ? e.humidity / 100 : null} tone={tone} status={status} meter={meter} footprint={footprint} stats={stats} defaultOpen={defaultOpen}>
+    <FuturaCardFrame name={e.name} state={e.state} area="Outside" summary={summary} icon={<IconWeather condition={condition} night={night} />} level={level} tone={tone} status={status} meter={meter} footprint={footprint} stats={stats} defaultOpen={defaultOpen}>
       <FuturaStats facts items={[
         { label: "Temperature", value: e.temperature != null ? `${fmt1(e.temperature)}${unit}` : "—" },
         ...(e.apparentTemperature != null ? [{ label: "Feels like", value: `${fmt1(e.apparentTemperature)}${unit}` }] : []),
@@ -44,7 +47,7 @@ export function FuturaWeatherCard({ entity: e, history, footprint = "standard", 
         ...(e.humidity != null ? [{ label: "Humidity", value: `${Math.round(e.humidity)}%` }] : []),
         ...(e.pressure != null ? [{ label: "Pressure", value: `${Math.round(e.pressure)} ${e.pressureUnit}` }] : []),
         ...(wind ? [{ label: "Wind", value: wind }] : []),
-        ...(e.windGustSpeed != null ? [{ label: "Gusts", value: `${Math.round(e.windGustSpeed)} ${e.windSpeedUnit}`, alert: gustWarns(e) }] : []),
+        ...(e.windGustSpeed != null ? [{ label: "Gusts", value: `${Math.round(e.windGustSpeed)} ${e.windSpeedUnit}${gustWarns(e) ? " · strong" : ""}`, alert: gustWarns(e) }] : []),
         ...(e.uvIndex != null ? [{ label: "UV", value: `${Math.round(e.uvIndex)} · ${uvBand(e.uvIndex).label}`, alert: uvWarns(e) }] : []),
         ...(e.aqi != null ? [{ label: "Air", value: `${Math.round(e.aqi)} · ${aqiBand(e.aqi).label}`, alert: airWarns(e) }] : []),
         e.lastSeen ? { label: "Last seen", value: e.lastSeen } : { label: "Updated", value: e.lastUpdated ?? "—" },

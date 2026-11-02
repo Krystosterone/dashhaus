@@ -17,8 +17,8 @@ export interface FuturaToggleCardProps {
 export function FuturaToggleCard({ entity: e, history, footprint = "standard", defaultOpen = false, onToggle }: FuturaToggleCardProps) {
   const unavailable = e.state === "unavailable";
   const on = e.state === "on";
-  const status = on ? (e.until ? `On until ${e.until}` : "On") : "Off";
-  const lead = onToggle ? <FuturaDialKey label={`Power, ${e.name}`} pressed={on} onPress={onToggle} unavailable={unavailable} level={on ? 1 : 0} tone="cyan"><IconToggle icon={e.icon} /></FuturaDialKey> : undefined;
+  const status = on ? (e.until ? `On until ${e.until}` : e.lastChanged ? `On since ${e.lastChanged}` : "On") : e.lastChanged ? `Off since ${e.lastChanged}` : "Off";
+  const lead = onToggle ? (open?: () => void) => <FuturaDialKey label={`Power, ${e.name}`} pressed={on} onPress={onToggle} onHold={open} unavailable={unavailable} level={on ? 1 : 0} tone="cyan"><IconToggle icon={e.icon} /></FuturaDialKey> : undefined;
   const changed: FuturaStat = e.lastSeen ? { label: "Last seen", value: e.lastSeen } : { label: "Changed", value: e.lastChanged ?? "—" };
   const stats: FuturaStat[] = [...(history ? [{ label: "On today", value: fmtDuration(history.onMinutes) }] : []), ...(on && e.until ? [{ label: "Until", value: e.until }] : []), changed];
   const meter = history ? { samples: history.samples, currentHour: history.currentHour, caption: history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Off all day" } : undefined;

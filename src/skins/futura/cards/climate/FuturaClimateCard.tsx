@@ -34,12 +34,15 @@ export function FuturaClimateCard({ entity: e, history, footprint = "standard", 
   const unit = e.unit;
   const range = e.targetLow != null && e.targetHigh != null ? orderedRange(e.targetLow, e.targetHigh) : null;
   const target = range ? range[1] : e.targetTemperature;
-  const level = target == null || off ? 0 : (target - e.minTemp) / Math.max(e.step, e.maxTemp - e.minTemp);
+  const scale = (t: number) => (t - e.minTemp) / Math.max(e.step, e.maxTemp - e.minTemp);
+  // The arc is the setpoint across the unit's range; the needle is the room on the same scale, as on a thermostat.
+  const level = target == null || off ? 0 : scale(target);
+  const needle = e.currentTemperature != null ? scale(e.currentTemperature) : null;
   const setpoint = range ? `${fmtTarget(range[0])}–${fmtTarget(range[1])}°` : e.targetTemperature != null ? `${fmtTarget(e.targetTemperature)}°` : null;
   const action = e.hvacAction ? ACTION_LABEL[e.hvacAction] : off ? "Off" : MODE_META[e.state as HvacMode]?.label ?? e.state;
   const status = off ? "Off" : setpoint ? `${action} · ${range ? "holding" : "to"} ${setpoint}` : action;
   const summary = e.currentTemperature != null ? <FuturaReadout value={fmtCurrent(e.currentTemperature)} unit={unit} /> : <FuturaReadout value="—" unit={unit} />;
-  const lead = onToggle ? <FuturaDialKey label={`Power, ${e.name}`} pressed={!off && !unavailable} lit={lit} onPress={onToggle} unavailable={unavailable} level={level} tone={tone}><IconMode mode={e.state} /></FuturaDialKey> : undefined;
+  const lead = onToggle ? (open?: () => void) => <FuturaDialKey label={`Power, ${e.name}`} pressed={!off && !unavailable} lit={lit} onPress={onToggle} onHold={open} unavailable={unavailable} level={level} needle={needle} tone={tone}><IconMode mode={e.state} /></FuturaDialKey> : undefined;
   const step = (value: number, by: number) => Math.min(e.maxTemp, Math.max(e.minTemp, Number((value + by).toFixed(2))));
   const stepper = (name: string, value: number, set: (next: number) => void, low = e.minTemp, high = e.maxTemp) => (
     <FuturaStepper label={name} value={`${fmtTarget(value)}°`} tone={tone} unavailable={unavailable || off} canDown={value - e.step >= low} canUp={value + e.step <= high} onDown={() => set(step(value, -e.step))} onUp={() => set(step(value, e.step))} />

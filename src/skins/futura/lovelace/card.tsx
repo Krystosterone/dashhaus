@@ -4,6 +4,7 @@ import { mapCards, parseFuturaConfig } from "./config";
 import type { FuturaConfig, BlockConfig, CardConfig, PageConfig } from "./config";
 import { areaName, areaSections, autoCards } from "./auto";
 import { FuturaDashboard } from "./FuturaDashboard";
+import { FUTURA_FONT_HREF } from "../shared/fonts";
 
 export const FUTURA_CARD_TYPE = "dashhaus-futura";
 const HOST_CSS = `
@@ -18,6 +19,7 @@ export function createFuturaCard(css: string) {
   return class DashhausFuturaCard extends LovelaceDashboardElement<FuturaConfig> {
     protected readonly styles = styles;
     protected readonly mountClass = "futura-surface";
+    protected readonly fontHref = FUTURA_FONT_HREF;
     #layout?: { key: unknown[]; blocks: BlockConfig[]; pages?: PageConfig[] };
 
     static getStubConfig() { return { type: `custom:${FUTURA_CARD_TYPE}` }; }

@@ -55,8 +55,9 @@
   transition: opacity var(--futura-glow-in) var(--futura-ease-out);
 }
 .futura-card[data-lit]::before { background: var(--futura-tone); }
-.futura-card[data-lit]::after { opacity: 1; }
-.futura-card[data-state="unavailable"] { border-style: dashed; background: var(--futura-panel); box-shadow: none; }
+/* The halo follows the signal's strength (--futura-glow, a lamp's brightness): a 3 % night light barely glows. */
+.futura-card[data-lit]::after { opacity: calc(0.4 + 0.6 * var(--futura-glow, 1)); }
+.futura-card[data-state="unavailable"] { border-style: dashed; border-color: var(--futura-edge-bright); background: var(--futura-panel); box-shadow: none; }
 
 .futura-face {
   box-sizing: border-box;
@@ -69,7 +70,9 @@
   min-width: 0;
 }
 .futura-lead { grid-area: lead; width: 56px; height: 56px; }
-.futura-copy { grid-area: copy; min-width: 0; display: grid; align-content: center; gap: 1px; }
+.futura-copy { position: relative; grid-area: copy; min-width: 0; display: grid; align-content: center; gap: 1px; }
+/* The name's hit area covers the whole copy cell: details open from a 44-56 px target, not the 20 px line of text. */
+.futura-title::after { content: ""; position: absolute; inset: 0; }
 .futura-area, .futura-state, .futura-summary { margin: 0; }
 .futura-area, .futura-kicker { overflow: hidden; color: var(--futura-ink-muted); font: 500 10px/1.4 var(--futura-mono); letter-spacing: 0.14em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .futura-title { appearance: none; width: fit-content; max-width: 100%; padding: 0; overflow: hidden; border: 0; background: transparent; color: inherit; font: 600 15px/1.3 var(--futura-sans); text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: color var(--futura-press) var(--futura-ease-in-out); }
@@ -89,8 +92,8 @@
 .futura-card[data-footprint="compact"] :is(.futura-area, .futura-strip, .futura-actions, .futura-foot) { display: none; }
 .futura-card[data-footprint="compact"] .futura-readout-value { font-size: 20px; }
 .futura-card[data-footprint="compact"]::before { left: 14px; width: 18px; }
-/* Rows sit densely: a lit row keeps its lit edge but only a close halo, so a room of lit rows stays readable. */
-.futura-card[data-footprint="compact"]::after { box-shadow: 0 0 8px var(--futura-tone-dim), inset 0 0 14px var(--futura-tone-dim); }
+/* Rows sit densely: a lit row keeps its lit edge and an inner glow, no halo, so a room of lit rows stays readable. */
+.futura-card[data-footprint="compact"]::after { box-shadow: inset 0 0 14px var(--futura-tone-dim); }
 
 /* A narrow card keeps its keys and drops today's meter to the details. */
 @container (max-width: 250px) {
@@ -103,21 +106,33 @@
   .futura-card[data-footprint="compact"] .futura-area { display: none; }
 }
 
+/* A wide card (a wall panel's column) reads from across the room: larger figure, name and state, same rows. */
+@container (min-width: 380px) {
+  .futura-readout-value { font-size: 34px; }
+  .futura-title { font-size: 17px; }
+  .futura-state { font-size: 13px; }
+}
+
 /* ---------- Dial ---------- */
 .futura-dial { position: relative; display: grid; place-items: center; width: 100%; height: 100%; }
 .futura-dial > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.futura-dial-ticks { fill: none; stroke: var(--futura-ink-faint); stroke-width: 3; stroke-dasharray: 0.5 4.5; }
-.futura-dial-groove { fill: none; stroke: var(--futura-edge); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 75 100; }
-.futura-dial-arc { fill: none; stroke: var(--futura-tone); stroke-width: 7; stroke-linecap: round; opacity: 0.5; transition: opacity var(--futura-glow-in) var(--futura-ease-out), stroke var(--futura-glow-in) var(--futura-ease-out); }
+/* The scale: 25 ticks over the sweep, every sixth major; the ticks under the arc take its tone. */
+.futura-dial-scale line { stroke: var(--futura-ink-faint); stroke-width: 1.8; stroke-linecap: round; transition: stroke var(--futura-glow-in) var(--futura-ease-out); }
+.futura-dial-scale line[data-major] { stroke: var(--futura-ink-muted); stroke-width: 2.4; }
+.futura-dial-scale line[data-on] { stroke: var(--futura-tone); opacity: 0.6; }
+.futura-dial[data-lit] .futura-dial-scale line[data-on] { opacity: 1; }
+.futura-dial-groove { fill: none; stroke: var(--futura-edge); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 75 100; }
+.futura-dial-needle { stroke: var(--futura-ink); stroke-width: 2.6; stroke-linecap: round; }
+.futura-dial-arc { fill: none; stroke: var(--futura-tone); stroke-width: 6; stroke-linecap: round; opacity: 0.5; transition: opacity var(--futura-glow-in) var(--futura-ease-out), stroke var(--futura-glow-in) var(--futura-ease-out); }
 .futura-dial-core { fill: var(--futura-panel-raised); stroke: var(--futura-edge-bright); stroke-width: 1; transition: stroke var(--futura-press) var(--futura-ease-in-out); }
 .futura-dial-glyph { position: relative; display: grid; place-items: center; width: 38%; height: 38%; color: var(--futura-ink-muted); font: 600 13px/1 var(--futura-mono); transition: color var(--futura-glow-in) var(--futura-ease-out); }
 .futura-dial-glyph svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .futura-dial[data-lit] .futura-dial-arc { opacity: 1; filter: drop-shadow(0 0 3px var(--futura-tone-glow)); }
-.futura-dial[data-lit] .futura-dial-ticks { stroke: var(--futura-tone-dim); }
 .futura-dial[data-lit] .futura-dial-glyph { color: var(--futura-tone); filter: drop-shadow(0 0 4px var(--futura-tone-glow)); }
 .futura-dial[data-unavailable] .futura-dial-groove { stroke-width: 3; stroke-dasharray: 2.5 3.5; stroke-linecap: butt; }
 .futura-dial[data-unavailable] .futura-dial-core { stroke-dasharray: 3 3; }
-.futura-dial[data-unavailable] .futura-dial-glyph { color: var(--futura-ink-faint); }
+.futura-dial[data-unavailable] .futura-dial-glyph { color: var(--futura-ink-muted); }
+.futura-dial[data-unavailable] .futura-dial-scale { opacity: 0.45; }
 
 .futura-dial-key {
   appearance: none;
@@ -148,15 +163,24 @@
 /* ---------- Meter: today in 24 segments ---------- */
 .futura-meter { display: grid; gap: 4px; min-width: 0; }
 .futura-meter-head { display: flex; justify-content: space-between; gap: 10px; margin: 0; overflow: hidden; color: var(--futura-ink-muted); font: 500 9.5px/1.3 var(--futura-mono); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
-.futura-meter-caption { overflow: hidden; color: var(--futura-ink); text-overflow: ellipsis; letter-spacing: 0.08em; }
-.futura-meter-bars { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); align-items: end; gap: 2px; height: 16px; }
-.futura-meter-bar { height: 100%; border-radius: 1px; background: var(--futura-tone); transform: scaleY(var(--futura-level)); transform-origin: bottom; }
-.futura-meter-bar[data-kind="on"] { opacity: 0.78; }
-.futura-meter-bar[data-kind="off"] { background: var(--futura-ink-faint); transform: scaleY(0.16); }
-.futura-meter-bar[data-kind="ahead"] { background: var(--futura-edge); transform: scaleY(0.16); }
-.futura-meter-bar[data-kind="gap"] { background: transparent; border-bottom: 2px dotted var(--futura-ink-faint); transform: none; }
-.futura-meter-bar[data-now][data-kind="on"] { opacity: 1; box-shadow: 0 0 6px var(--futura-tone-glow); }
-.futura-meter-bar[data-now]:not([data-kind="on"]) { background: var(--futura-ink-muted); transform: none; opacity: 0.6; }
+.futura-meter-caption { overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.08em; }
+/* Segments: each hour a ladder of 2 px cells, lit from the floor to its level (clip-path), like a level meter. */
+.futura-meter-bars { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); align-items: end; gap: 2px; height: 18px; }
+.futura-meter-bar { height: 100%; background: repeating-linear-gradient(to top, var(--futura-tone) 0 2px, transparent 2px 3.5px); clip-path: inset(calc((1 - var(--futura-level)) * 100%) 0 0 0); }
+.futura-meter-bar[data-kind="on"] { opacity: 0.72; }
+.futura-meter-bar:is([data-kind="off"], [data-kind="ahead"]) { background: var(--futura-ink-faint); clip-path: inset(calc(100% - 2px) 0 0 0); }
+.futura-meter-bar[data-kind="ahead"] { background: var(--futura-edge); }
+.futura-meter-bar[data-kind="gap"] { background: transparent; border-bottom: 2px dotted var(--futura-ink-faint); clip-path: none; }
+.futura-meter-bar[data-now][data-kind="on"] { opacity: 1; }
+/* The current hour when nothing runs: a hollow cell, never a filled bar that reads as activity. */
+.futura-meter-bar[data-now]:not([data-kind="on"]) { background: linear-gradient(to top, var(--futura-ink-muted) 0 2px, transparent 2px); box-shadow: inset 0 0 0 1px var(--futura-edge-bright); clip-path: none; }
+/* Trace: a value over the day as a stepped line, the current hour a dashed cursor. */
+.futura-meter-trace { display: block; width: 100%; height: 18px; overflow: visible; }
+.futura-meter-trace line, .futura-meter-trace path { fill: none; vector-effect: non-scaling-stroke; }
+.futura-trace-base { stroke: var(--futura-edge); stroke-width: 1; }
+.futura-trace-gap { stroke: var(--futura-ink-muted); stroke-width: 1.5; stroke-dasharray: 1 3; }
+.futura-trace-line { stroke: var(--futura-tone); stroke-width: 1.8; stroke-linejoin: round; }
+.futura-trace-now { stroke: var(--futura-ink-muted); stroke-width: 1; stroke-dasharray: 2 2; }
 
 /* ---------- Keys ---------- */
 .futura-action {
@@ -186,14 +210,15 @@
 .futura-action svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .futura-action[aria-pressed="true"] { border-color: var(--futura-tone); background: var(--futura-tone-dim); color: var(--futura-tone); box-shadow: inset 0 0 12px var(--futura-tone-dim), 0 0 10px var(--futura-tone-dim); }
 .futura-action:active:not([aria-disabled="true"]) { transform: scale(0.95); background: var(--futura-panel-sunk); }
-.futura-action[aria-disabled="true"] { border-style: dashed; border-color: var(--futura-edge); background: transparent; box-shadow: none; color: var(--futura-ink-faint); cursor: not-allowed; }
+.futura-action[aria-disabled="true"] { border-style: dashed; border-color: var(--futura-edge-bright); background: transparent; box-shadow: none; color: var(--futura-ink-muted); cursor: not-allowed; }
+/* At a limit, not unavailable: the key keeps its solid bezel and only dims. */
+.futura-action[data-limit] { border-style: solid; background: linear-gradient(180deg, var(--futura-panel-raised), var(--futura-panel)); opacity: 0.45; cursor: default; }
 
 .futura-stepper { display: flex; align-items: center; gap: 6px; }
 .futura-stepper-value { min-width: 64px; color: var(--futura-ink); font: 400 15px/1 var(--futura-mono); font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
 
 /* ---------- Level: a recessed groove, its lit fill and a needle ---------- */
 .futura-level {
-
   position: relative;
   box-sizing: border-box;
   min-width: 96px;
@@ -245,6 +270,7 @@
 
 /* ---------- Details: a console dialog ---------- */
 .futura-dialog {
+  box-sizing: border-box;
   width: min(560px, calc(100vw - 32px));
   max-height: min(760px, calc(100dvh - 32px));
   padding: 0;
@@ -289,6 +315,8 @@
 @media (max-width: 600px) {
   .futura-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; border-radius: 18px 18px 0 0; }
   .futura-dialog[data-closing] { transform: translateY(100%); }
+  .futura-dialog-head { padding-top: 20px; }
+  .futura-dialog-head::before { content: ""; position: absolute; top: 7px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--futura-edge-bright); }
   .futura-hero { grid-template-columns: 104px minmax(0, 1fr); }
   .futura-hero-dial { width: 104px; height: 104px; }
   .futura-hero .futura-readout-value { font-size: 36px; }

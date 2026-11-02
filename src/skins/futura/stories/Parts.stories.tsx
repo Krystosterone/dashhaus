@@ -31,14 +31,14 @@ function Parts() {
   return (
     <div className="futura-board">
       <div className="futura-board-inner">
-        <Section title="Dial" note="Every card leads with one: 24 hour ticks, a 270° groove and the lit arc on it, the domain glyph in a raised core. Lit glows; unlit keeps the arc at half strength; unavailable breaks the ring.">
+        <Section title="Dial" note="Every card leads with one: a 270° scale of 25 ticks, major every sixth, the groove and its arc with the ticks under it lit, a needle for a second value, the glyph in a raised core. Lit glows; unlit keeps the arc at half strength; unavailable breaks the ring.">
           <div className="futura-board-row">
             <Specimen caption="Off"><span className="futura-specimen-dial"><FuturaDial level={0}><IconToggle /></FuturaDial></span></Specimen>
             <Specimen caption="Cyan · lit"><span className="futura-specimen-dial"><FuturaDial level={1} lit><IconToggle /></FuturaDial></span></Specimen>
             <Specimen caption="Amber · 30%"><span className="futura-specimen-dial"><FuturaDial level={0.3} tone="amber" lit><IconLight /></FuturaDial></span></Specimen>
             <Specimen caption="Amber · 80%"><span className="futura-specimen-dial"><FuturaDial level={0.8} tone="amber" lit><IconLight /></FuturaDial></span></Specimen>
-            <Specimen caption="Heating"><span className="futura-specimen-dial"><FuturaDial level={0.6} tone="amber" lit><IconHeat /></FuturaDial></span></Specimen>
-            <Specimen caption="Reading · 44%"><span className="futura-specimen-dial"><FuturaDial level={0.44}><IconSensor /></FuturaDial></span></Specimen>
+            <Specimen caption="Set 21.5 · room 20.4"><span className="futura-specimen-dial"><FuturaDial level={0.63} needle={0.59} tone="amber" lit><IconHeat /></FuturaDial></span></Specimen>
+            <Specimen caption="Reading · in day"><span className="futura-specimen-dial"><FuturaDial level={0.86}><IconSensor /></FuturaDial></span></Specimen>
             <Specimen caption="Unavailable"><span className="futura-specimen-dial"><FuturaDial level={0.7} unavailable><IconLight /></FuturaDial></span></Specimen>
           </div>
         </Section>
@@ -58,10 +58,10 @@ function Parts() {
             <Specimen caption="Telemetry" wide><FuturaStats items={[{ label: "Humidity", value: "44%" }, { label: "Battery", value: "8% · low", alert: true }, { label: "Updated", value: "11:52" }]} /></Specimen>
           </div>
         </Section>
-        <Section title="Meter" note="Today in 24 segments: lit hours in the tone at their strength, empty hours a faint stub, hours ahead dim, an unavailable hour a dotted gap, the current hour marked.">
+        <Section title="Meter" note="Today in 24 hours. Time running is a ladder of segments lit to its strength, the current hour a hollow cell when idle; a value over the day is a stepped trace between its low and high. Gaps are dotted.">
           <div className="futura-board-row">
             <Specimen caption="A lamp's day" wide><FuturaMeter samples={LAMP_DAY} currentHour={11} caption="Lit 4h 54m" tone="amber" /></Specimen>
-            <Specimen caption="A reading" wide><FuturaMeter samples={READING_DAY} currentHour={11} caption="Low 19.5° · high 21.4°" /></Specimen>
+            <Specimen caption="A reading · trace" wide><FuturaMeter samples={READING_DAY} currentHour={11} caption="Low 19.5° · high 21.4°" draw="trace" /></Specimen>
             <Specimen caption="Gone unavailable" wide><FuturaMeter samples={GAP_DAY} currentHour={11} caption="On 2h 36m" /></Specimen>
           </div>
         </Section>
@@ -71,7 +71,8 @@ function Parts() {
             <Specimen caption="Latched · cyan"><FuturaAction label="Cool" pressed={key} onPress={() => setKey(!key)} /></Specimen>
             <Specimen caption="Latched · amber"><FuturaAction label="Heat" tone="amber" pressed onPress={() => undefined} /></Specimen>
             <Specimen caption="Unavailable"><FuturaAction label="Auto" unavailable onPress={() => undefined} /></Specimen>
-            <Specimen caption="Stepper"><FuturaStepper label="Target temperature" value={`${target}°`} tone="amber" onDown={() => setTarget(target - 0.5)} onUp={() => setTarget(target + 0.5)} /></Specimen>
+            <Specimen caption="Stepper"><FuturaStepper label="Target temperature" value={`${target}°`} tone="amber" canUp={target < 30} onDown={() => setTarget(target - 0.5)} onUp={() => setTarget(target + 0.5)} /></Specimen>
+            <Specimen caption="Stepper · at top"><FuturaStepper label="Heater target" value="30°" tone="amber" canUp={false} onDown={() => undefined} onUp={() => undefined} /></Specimen>
           </div>
           <div className="futura-board-row" style={{ marginTop: 18 }}>
             <Specimen caption={`Level · ${level}%`} wide><FuturaLevel label="Brightness, Ceiling" value={level} min={1} max={100} tone="amber" valueText={(v) => `${v} percent`} onChange={setLevel} /></Specimen>
@@ -81,13 +82,13 @@ function Parts() {
         </Section>
         <Section title="Bezel" note="The card: a raised panel with a bright index tick. Lit, its edge and halo glow in its tone; unavailable, the bezel is dashed and the dial broken. 176 px standard, 72 px compact, whatever its state.">
           <div className="futura-board-grid">
-            <FuturaCardFrame name="Ceiling" area="Living room" state="on" tone="amber" lit level={0.8} icon={<IconLight />} status="On · 2700 K" summary={<FuturaReadout value="80" unit="%" />} meter={{ samples: LAMP_DAY, currentHour: 11, caption: "Lit 4h 54m" }} stats={[{ label: "Warmth", value: "2700 K" }, { label: "Changed", value: "10:31" }]} />
+            <FuturaCardFrame name="Ceiling" area="Living room" state="on" tone="amber" lit level={0.8} glow={0.8} icon={<IconLight />} status="On · 2700 K" summary={<FuturaReadout value="80" unit="%" />} meter={{ samples: LAMP_DAY, currentHour: 11, caption: "Lit 4h 54m" }} stats={[{ label: "Warmth", value: "2700 K" }, { label: "Changed", value: "10:31" }]} />
             <FuturaCardFrame name="Guest mode" area="Whole home" state="off" level={0} icon={<IconToggle icon="guest" />} status="Off" summary={<FuturaReadout value="OFF" />} meter={{ samples: READING_DAY.map((x) => (typeof x === "number" ? 0 : x)), currentHour: 11, caption: "Off all day" }} stats={[{ label: "Changed", value: "Fri 18:30" }]} />
             <FuturaCardFrame name="Shelf strip" area="Living room" state="unavailable" icon={<IconLight />} summary={<FuturaReadout value="—" />} meter={{ samples: GAP_DAY, currentHour: 11, caption: "Lit 2h 36m" }} stats={[{ label: "Last seen", value: "10:42" }]} />
           </div>
           <div className="futura-board-grid" style={{ marginTop: 12 }}>
             <FuturaCardFrame footprint="compact" name="Ceiling" area="Living room" state="on" tone="amber" lit level={0.8} icon={<IconLight />} status="On · 2700 K" summary={<FuturaReadout value="80" unit="%" />} />
-            <FuturaCardFrame footprint="compact" name="Living room" area="Living room" state="ok" level={0.44} icon={<IconSensor />} status="Steady · comfortable" summary={<FuturaReadout value="21.4" unit="°C" />} />
+            <FuturaCardFrame footprint="compact" name="Living room" area="Living room" state="ok" level={0.86} icon={<IconSensor />} status="Steady · comfortable" summary={<FuturaReadout value="21.4" unit="°C" />} />
             <FuturaCardFrame footprint="compact" name="Shelf strip" area="Living room" state="unavailable" icon={<IconLight />} summary={<FuturaReadout value="—" />} />
           </div>
         </Section>
