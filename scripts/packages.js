@@ -52,6 +52,18 @@ export function packageSpecifier(packageName, subpath = "") {
   return subpath ? `${entry.name}/${subpath}` : entry.name;
 }
 
+/**
+ * The templates every skin starts from. The published scaffolder owns them, so a skin made in this repository and one
+ * made outside it start from the same files; `new-skin` and `new-card` lay them out under `src/skins/<skin>/` and add
+ * the in-repo extras from their own templates. Each folder's files are laid out from a skin's root.
+ */
+export const skinTemplates = {
+  /** The core every skin shares: tokens, parts, the page and the Lovelace card. */
+  skin: "packages/create-dashhaus-skin/src/templates/skin",
+  /** One domain's card and its Home Assistant adapter. */
+  card: "packages/create-dashhaus-skin/src/templates/card",
+};
+
 /** The reference skins: fixed-version workspace packages beside the generated ones, named by folder. */
 export const referenceSkins = {
   orb: { dir: "src/skins/orb" },

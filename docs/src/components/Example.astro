@@ -13,7 +13,7 @@ import { fill } from "../lib/scaffold";
 interface Props {
   /** A path under docs/examples. */
   file?: string;
-  /** A path under packages/create-dashhaus-skin/src/templates, with its placeholders. */
+  /** A path under packages/create-dashhaus-skin/src/templates/standalone, with its placeholders. */
   template?: string;
   /** The frame's title; a template defaults to the path the scaffold writes. */
   title?: string;
@@ -29,7 +29,7 @@ const { file, template, title, ins, mark, wrap } = Astro.props;
 if ((file == null) === (template == null)) throw new Error("Example: give one of file or template");
 
 const LANGS: Record<string, string> = { ".sh": "sh", ".ts": "ts", ".tsx": "tsx", ".mjs": "js", ".js": "js", ".yaml": "yaml", ".json": "json", ".css": "css" };
-const path = file ? join(examplesDir(), file) : join(repoRoot(), "packages/create-dashhaus-skin/src/templates", template!);
+const path = file ? join(examplesDir(), file) : join(repoRoot(), "packages/create-dashhaus-skin/src/templates/standalone", template!);
 const raw = readFileSync(path, "utf8");
 const code = (template ? fill(raw) : raw).trimEnd();
 const lang = LANGS[extname(path)];

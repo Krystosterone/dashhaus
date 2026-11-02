@@ -109,11 +109,15 @@ export function changes({ templateRoot = templates, onFail = fail } = {}) {
     writes,
     exists: plannedExists,
     read: plannedRead,
-    /** Copy template folders into the repo, filling names and contents; later folders win. */
-    fromTemplates(dirs, fill, sourceRoot = templateRoot) {
+    /**
+     * Copy template folders into the repo, filling names and contents; later folders win. `into` is the folder the
+     * templates are laid out under, for templates laid out from a skin's root.
+     */
+    fromTemplates(dirs, fill, sourceRoot = templateRoot, into = "") {
       for (const base of dirs.map((dir) => join(sourceRoot, dir))) {
         for (const source of walk(base)) {
-          const target = fill(relative(base, source));
+          const path = fill(relative(base, source));
+          const target = into ? `${into}/${path}` : path;
           if (plannedExists(target)) onFail(`${target} already exists`);
           writes.set(target, fill(readFileSync(source, "utf8")));
         }

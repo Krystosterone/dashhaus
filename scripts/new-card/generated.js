@@ -2,7 +2,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, storySection, studies } from "../packages.js";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
 import { after, changes, exists, fail, filler, names, orbKinds, read, root, skinDir } from "./lib.js";
 
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
@@ -145,8 +145,9 @@ ${actionRows}
     __unavailableSeed__: unavailableSeed, __transport__: transport[1], __transportPath__: transport[2],
     __entityId__: entityId, __fixtureId__: fixtureId,
   });
-  const templateRoot = fileURLToPath(new URL("../new-skin/templates/", import.meta.url));
-  change.fromTemplates(["card"], fill, templateRoot);
+  // The card every skin shares, from the scaffolder's templates, then its stories and tests in this repository.
+  change.fromTemplates([""], fill, join(root, skinTemplates.card), SKIN);
+  change.fromTemplates(["repo-card"], fill, fileURLToPath(new URL("../new-skin/templates/", import.meta.url)), SKIN);
   change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // The Card registry is the runtime and generator seam: routing plus the Connected adapter in one row.

@@ -43,7 +43,7 @@ npm install --package-lock-only
 ```
 
 The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`,
-including the scaffolder's `src/templates/package.json` so a newly scaffolded skin installs the same line.
+including the scaffolder's `src/templates/standalone/package.json` so a newly scaffolded skin installs the same line.
 `scripts/release/manifest.js` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
 without `files`/`sideEffects`; `verify:packages` reads the packed template's ranges back.
 

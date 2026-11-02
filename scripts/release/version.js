@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { publicPackages, root, SEMVER } from "./manifest.js";
 
 const DEPENDENCY_FIELDS = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"];
-const scaffoldTemplate = join(root, "packages/create-dashhaus-skin/src/templates/package.json");
+const scaffoldTemplate = join(root, "packages/create-dashhaus-skin/src/templates/standalone/package.json");
 
 function pinInternalRanges(manifest, version) {
   for (const field of DEPENDENCY_FIELDS) {

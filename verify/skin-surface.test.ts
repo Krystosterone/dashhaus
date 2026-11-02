@@ -58,7 +58,7 @@ describe("Storybook's font seam", () => {
 });
 
 describe("the scaffold's page", () => {
-  const T = "packages/create-dashhaus-skin/src/templates";
+  const T = "packages/create-dashhaus-skin/src/templates/standalone";
 
   it("themes on the skin's own attribute, and its npm test refuses the shared one", () => {
     expect(read(`${T}/conformance.js`)).toContain("const SHARED_THEME = /\\[data-theme\\b/;");
