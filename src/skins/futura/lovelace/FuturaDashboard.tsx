@@ -3,6 +3,7 @@ import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
 import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
 import { renderFuturaCard } from "./registry";
+import { FuturaActionStatus } from "./FuturaActionStatus";
 import { FuturaCell, FuturaColumns, FuturaPage, FuturaSection } from "../dashboards/layout";
 import { FuturaNavBar } from "../dashboards/NavBar";
 import type { FuturaFootprint } from "../shared/ui";
@@ -29,7 +30,10 @@ export interface FuturaDashboardProps {
   navigate?: (path: string) => void;
 }
 
-/** The generated skin's whole Dashboard, from normalized Lovelace config and the skin-local Card registry. */
+/**
+ * Futura's whole Dashboard, from normalized Lovelace config and the skin-local Card registry. A rejected command shows
+ * once for the page: above the NavBar, or as the last block when there is no nav.
+ */
 export function FuturaDashboard({ title, subtitle, showTime, hourCycle, blocks, pages = [], nav: navConfig, footprint, panels, now, navigate }: FuturaDashboardProps) {
   const root = useRef<HTMLDivElement>(null);
   const pageIds = useMemo(() => pages.map((page) => page.id), [pages]);
@@ -49,9 +53,10 @@ export function FuturaDashboard({ title, subtitle, showTime, hourCycle, blocks, 
     </FuturaSection>
   );
   return (
-    <FuturaPage pageRef={root} title={page?.title ?? title} subtitle={page ? undefined : subtitle} showTime={showTime} hourCycle={hourCycle} now={now} nav={showNav ? <FuturaNavBar items={nav.buttons} /> : undefined}>
+    <FuturaPage pageRef={root} title={page?.title ?? title} subtitle={page ? undefined : subtitle} showTime={showTime} hourCycle={hourCycle} now={now} nav={showNav ? <><FuturaActionStatus /><FuturaNavBar items={nav.buttons} /></> : undefined}>
       {shown.map((block, index) => block.kind === "columns" ? <FuturaColumns key={index} columns={block.columns}>{block.sections.map(section)}</FuturaColumns> : section(block, index))}
       {cardsOf(shown).length === 0 && <p className="futura-dashboard-empty">No supported entities yet. Add a domain with the normal Card generator, then add that entity to Home Assistant.</p>}
+      {!showNav && <FuturaActionStatus />}
     </FuturaPage>
   );
 }

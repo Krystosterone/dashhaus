@@ -16,7 +16,7 @@ rounded bezels whose edges catch a glow, segment bar meters, and small technical
 - **Type:** Barlow, a low-contrast grotesk drawn after road and instrument lettering, for names and words;
   JetBrains Mono for every figure, label and key, in tracked capitals at 9.5-11 px for labels, as the reference's
   panel legends. Both come from Google Fonts (`shared/fonts.ts`): the Lovelace card links them as its `fontHref`,
-  Storybook's decorator links them once, and the token stacks fall back to system faces offline.
+  `.storybook/preview.tsx` links them for Futura's stories (the setup's `fontHref`), and the token stacks fall back to system faces offline.
 - **Part shapes:** the ring dial (a 270° gauge on a scale of 25 ticks, major every sixth), the bezel (a raised rounded
   panel with an index tick on its top edge), the segment-ladder meter and the waveform trace, raised bezel keys and a
   sunk groove.
@@ -129,6 +129,10 @@ glowing cyan mono on the right, over a hairline. A section head is a cyan index 
 hairline to the right and its note in muted mono. The nav bar is a docked panel strip of mono capitals; the current item
 turns cyan with a glowing underline that scales in. The Lovelace card is `custom:dashhaus-futura`; without explicit
 Cards or sections, it groups every supported entity by Home Assistant area.
+
+A rejected command rides the dock above the nav bar (or ends the page when there is none): a console panel with an
+`--futura-alert` rule on its left, the failure in alert mono capitals and what to do in muted words, with Retry when
+repeating the call is safe and Dismiss as Futura actions (`FuturaActionStatus`, on `useActionStatus`).
 
 Add a domain with:
 

@@ -1,0 +1,7 @@
+/* The rejected-command row: a console panel with an alert rule. Words carry the warning (--futura-alert is a warning
+   in words, never a glow); it docks above the nav, or is the page's last block, sticky to the view's bottom. */
+.futura-action-status { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 5; box-sizing: border-box; justify-self: center; width: min(560px, 100%); display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--futura-edge-bright); border-left: 3px solid var(--futura-alert); border-radius: var(--futura-radius); background: var(--futura-panel); color: var(--futura-ink); box-shadow: inset 0 1px 0 var(--futura-sheen), 0 14px 40px var(--futura-shadow); pointer-events: auto; }
+.futura-action-status-copy { min-width: 0; margin: 0; display: grid; gap: 4px; }
+.futura-action-status-copy strong { color: var(--futura-alert); font: 600 11px/1.3 var(--futura-mono); letter-spacing: 0.14em; overflow-wrap: anywhere; text-transform: uppercase; }
+.futura-action-status-copy span { color: var(--futura-ink-muted); font: 400 13px/1.4 var(--futura-sans); }
+.futura-action-status-buttons { display: flex; gap: 8px; }
