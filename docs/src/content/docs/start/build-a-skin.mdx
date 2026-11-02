@@ -1,0 +1,235 @@
+---
+title: Build a skin
+description: "Scaffold a skin with create-dashhaus-skin, add a domain, preview and test it, build one file and deploy it to Home Assistant."
+---
+
+import { Aside, FileTree, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import Example from "../../../components/Example.astro";
+
+A skin is a whole look for a dashboard, drawn on the headless packages: its own cards, its own Lovelace card, its own
+bundle. `create-dashhaus-skin` writes a working one in a new folder, with a light you can switch and a room sensor you
+can read, both on the real hooks. You change the drawing; the Home Assistant side is already done. It also writes an
+`AGENTS.md`: point an agent at it and it knows where the colours, type, parts and rules live, and how to restyle the
+skin from a screenshot.
+
+Every change to Dashhaus runs this page's steps: CI packs the release, installs `@dashhaus/core`,
+`@dashhaus/dashboard`, `@dashhaus/deploy` and the scaffolder into an empty folder, scaffolds `my-skin`, runs its
+checks, builds it and deploys it into a simulated Home Assistant.
+
+<Aside type="caution" title="Not on npm yet">
+  The packages are a `0.2.0` release candidate and haven't been published, so `npm create dashhaus-skin` won't find
+  the scaffolder yet. Until then, `npm run release:pack` in a clone of the
+  [repository](https://github.com/Krystosterone/dashhaus) packs the tarballs this page installs; pass their folder
+  with `--tarballs <dir>`, as step 1 shows.
+</Aside>
+
+## From nothing to a dashboard
+
+<Steps>
+
+1. Scaffold the skin. The folder's name is the skin's: lower-case kebab-case, new or empty.
+
+   ```sh
+   npm create dashhaus-skin@latest my-skin
+   cd my-skin
+   npm install
+   ```
+
+   From the release tarballs, in the folder that holds them:
+
+   ```sh
+   npx --yes --package ./create-dashhaus-skin-0.2.0.tgz create-dashhaus-skin my-skin --tarballs .
+   cd my-skin
+   npm install
+   ```
+
+   `--tarballs` points the `@dashhaus` dependencies at the tarballs instead of the registry; `--dry-run` lists the
+   files instead of writing them. `npm install` brings `@dashhaus/core` and `@dashhaus/dashboard`, React and
+   `home-assistant-js-websocket` as peers, and TypeScript, Vite and `@dashhaus/deploy` for the checks, the build and
+   the deploy.
+
+2. Look at it. The scaffold draws the real element on a sample house that already holds the worst cases: an
+   unavailable light, a sensor with no reading and a long name.
+
+   ```sh
+   npm run preview     # in the browser, at the URL it prints
+   npm run snapshot    # or as PNGs in preview/snapshots/
+   ```
+
+   Both use the same shadow root and CSS as Home Assistant. The first snapshot prints the commands that install
+   Playwright's Chromium if it's missing. Snapshot again after every change and compare with your reference.
+
+3. Check the cards:
+
+   ```sh
+   npm test
+   ```
+
+   It typechecks the skin, then runs the conformance check from `@dashhaus/dashboard/conformance` over `cards/` and
+   the CSS rules: each card has its component and its stories under the skin's title, a two-letter card code and
+   classes under the skin's prefix, no presentational card imports the Home Assistant layer, every colour is a token,
+   `:hover` sits under the hover media query and motion avoids layout properties. Each finding names its file, line
+   and fix. Run it after every card change.
+
+   ```text
+   conformance: 2 cards and 4 stylesheets, no findings
+   ```
+
+4. Build one file:
+
+   ```sh
+   npm run build
+   ```
+
+   `dist/dashhaus-my-skin.js` is one ES module carrying React, the cards and their CSS: Home Assistant loads one
+   resource and needs no stylesheet. Its name is the skin's, so it lives beside the prebuilt bundle on one Home
+   Assistant.
+
+5. Deploy it. Copy the scaffold's `.env.example` to `.env` and fill in `HA_URL`, `HA_TOKEN` and `HA_WWW` as
+   [Deploy a dashboard](/dashhaus/start/deploy/) describes, then:
+
+   ```sh
+   npm run deploy
+   ```
+
+   It builds, copies the bundle into Home Assistant, registers it as a resource and creates the **Home (My Skin)**
+   dashboard the first time, in a panel view. The last step fetches the file back from Home Assistant, so a wrong
+   `HA_WWW` shows up here instead of as a blank dashboard. `npx dashhaus-deploy --help` prints the options, a config
+   to start from and the `.env` keys.
+
+   <Example template="dashboard.config.mjs" />
+
+</Steps>
+
+## What it writes
+
+<FileTree>
+
+- my-skin/
+  - cards/
+    - light/
+      - MySkinLightCard.tsx the control: a name, a reading and one button
+      - MySkinLightCard.css
+      - MySkinLightCard.stories.tsx gallery metadata, read by the conformance check
+    - sensor/
+      - MySkinSensorCard.tsx the reading: temperature and humidity
+      - …
+  - ha/
+    - HaMySkinLightCard.tsx useHaLight above the light card
+    - HaMySkinSensorCard.tsx useHaSensor above the sensor card
+  - lovelace/
+    - config.ts the YAML reader for custom:dashhaus-my-skin
+    - registry.tsx entity kind → connected card
+    - card.tsx the Lovelace card
+    - entry.tsx the bundle's entry
+  - shared/
+    - ui.tsx the action part, on usePress
+    - ui.css
+  - styles/
+    - tokens.css every colour, under the skin's prefix
+  - preview/
+    - house.ts the sample house, worst cases included
+    - main.ts the page that mounts the real element
+    - snapshot.js saves it as PNGs
+  - AGENTS.md where the colours, type, parts and rules live
+  - CLAUDE.md imports AGENTS.md
+  - conformance.js the card and CSS rules npm test runs
+  - tsconfig.json the TypeScript program
+  - dashboard.config.mjs the bundle to build and the dashboard to create
+  - .env.example the three deploy settings
+  - .gitignore keeps .env and the build out of git
+  - vite.config.js the one-file build
+  - package.json
+
+</FileTree>
+
+### A card and its connection
+
+A card takes plain props and draws them. It never imports the Home Assistant layer, so it can be drawn in a story with
+any data. Its `CARD_CODE` and its class prefix are what the conformance check reads.
+
+<Example template="cards/light/__Skin__LightCard.tsx" />
+
+The adapter in `ha/` is the one place the card meets Home Assistant: the shared hook above it, mapping the result to
+the card's props.
+
+<Example template="ha/Ha__Skin__LightCard.tsx" />
+
+The button is a part on the `usePress` primitive, so it has press and hold, `aria-pressed` and an unavailable state
+that stays focusable, with no markup decided for you.
+
+<Example template="shared/ui.tsx" />
+
+### The Lovelace card
+
+`registry.tsx` turns a configured entity into its connected card. `config.ts` reads the YAML through the shared
+`Reader` from `@dashhaus/dashboard/schema`, so every mistake is collected with its path and a suggestion, as in Orb and
+Field.
+
+<Tabs>
+  <TabItem label="registry.tsx">
+    <Example template="lovelace/registry.tsx" />
+  </TabItem>
+  <TabItem label="config.ts">
+    <Example template="lovelace/config.ts" />
+  </TabItem>
+</Tabs>
+
+`card.tsx` is the element, on `LovelaceDashboardElement` from `@dashhaus/dashboard/skin`: it builds the store on Home
+Assistant's own connection, puts the CSS in its shadow root and draws your page. `FONT_HREF` names the skin's web
+fonts. Without `cards` in the YAML it lays out every visible light and sensor by area with
+`@dashhaus/dashboard/layout`.
+
+<Example template="lovelace/card.tsx" />
+
+## Add a domain
+
+A cover, in four steps. Any entity on the [Entities](/dashhaus/entities/) pages goes the same way, with its own hook.
+
+<Steps>
+
+1. The card, in `cards/cover/`, with its stylesheet and stories. It takes plain props and a new card code, `cv`.
+
+   <Example file="scaffold/cards/cover/MySkinCoverCard.tsx" title="cards/cover/MySkinCoverCard.tsx" />
+
+   Give it a `MySkinCoverCard.css` with `my-skin-cv-` classes and a `MySkinCoverCard.stories.tsx` titled
+   `My Skin/Cards/Cover`, as the light's are; `npm test` says which is missing.
+
+2. The adapter, on `useHaCover`:
+
+   <Example file="scaffold/ha/HaMySkinCoverCard.tsx" title="ha/HaMySkinCoverCard.tsx" />
+
+3. The registry row and the YAML kind:
+
+   <Example file="scaffold/lovelace/registry.tsx" title="lovelace/registry.tsx" ins={["HaMySkinCoverCard"]} />
+
+   <Example file="scaffold/lovelace/config.ts" title="lovelace/config.ts" ins={['"cover"', "cover."]} />
+
+4. The stylesheet in the bundle:
+
+   <Example file="scaffold/lovelace/entry.tsx" title="lovelace/entry.tsx" ins={["cover"]} />
+
+</Steps>
+
+Then `npm test`, `npm run build` and deploy again. The automatic layout now draws every cover too.
+
+## The rules a skin keeps
+
+- One card, one model. A card draws one entity's facts, or that entity plus the companions its hook composes (a
+  temperature sensor with the humidity sensor on its device), as props from its adapter, never from Home Assistant.
+- A card may import `@dashhaus/core`'s entity models, primitives and formatters, and `@dashhaus/dashboard/card`; never
+  `@dashhaus/core` itself, `@dashhaus/core/websocket`, its demo or testing subpaths, or `@dashhaus/dashboard`.
+  `npm test` enforces it.
+- Every colour comes from `styles/tokens.css`, under the skin's prefix, so another skin on the same page can't collide
+  with it.
+- A skin never imports another skin.
+
+The scaffold's `AGENTS.md` repeats these beside the files they govern, with the rest of the look's rules.
+
+[Packages](/dashhaus/packages/#for-a-skin-author) lists what each `@dashhaus/dashboard` subpath promises a skin.
+
+## Orb and Field beside your skin
+
+Your skin's bundle carries your skin only. To offer Orb and Field on the same Home Assistant, install
+`@dashhaus/bundle` too and deploy it as on [Deploy a dashboard](/dashhaus/start/deploy/): it uploads to its own
+folder, so the two bundles don't overwrite each other.

@@ -60,10 +60,10 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    // One module extension for Node-run ESM: `.js` under "type": "module", declarations as `.d.ts`. The deploy config
-    // is a public filename, so it stays `.mjs` here and in the scaffolder's template.
+    // One module extension for Node-run ESM: `.js` under "type": "module", declarations as `.d.ts`. A deploy config
+    // keeps its public `dashboard.config.mjs` filename: the root one, the scaffold's template and the guide's sample.
     files: ["**/*.mjs", "**/*.d.mts"],
-    ignores: ["dashboard.config.mjs", "packages/create-dashhaus-skin/src/templates/dashboard.config.mjs"],
+    ignores: ["dashboard.config.mjs", "packages/create-dashhaus-skin/src/templates/dashboard.config.mjs", "docs/examples/user/dashboard.config.mjs"],
     languageOptions: { parser: tseslint.parser },
     rules: {
       "no-restricted-syntax": ["error", {

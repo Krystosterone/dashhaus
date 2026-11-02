@@ -1,0 +1,49 @@
+---
+title: Testing and demo data
+description: "Test a connected control against a real store with no Home Assistant, and draw anything on the demo house."
+---
+
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+You never need a Home Assistant to work on a control. `@dashhaus/core/testing` puts a real store over a fake
+transport for tests, and `@dashhaus/core/demo` puts it over a whole demo house for stories and trying things out.
+
+## Test a connected control
+
+`renderConnected` renders your component under a real store and `HaProvider`, on a transport that serves the entities
+you give it and records every service call. Your component goes through the real hook, mapper and actions; only Home
+Assistant is fake.
+
+<Example file="testing/LightButton.tsx" title="LightButton.tsx" />
+
+<Example file="testing/LightButton.test.tsx" title="LightButton.test.tsx" />
+
+`calls` is every `callService` in order, as `{ domain, service, data }`. `emitEntity` patches one entity the way Home
+Assistant would report a change: top-level fields replace, `attributes` merge. `emit` replaces the whole set. These
+tests run with the rest of Dashhaus's on every change, so the sample above is known to pass.
+
+<ApiSignature from="@dashhaus/core/testing" name="fakeTransport" bare />
+<ApiSignature from="@dashhaus/core/testing" name="renderConnected" bare />
+
+`@dashhaus/core/testing` needs Vitest and Testing Library in your project; the rest of the package doesn't.
+`fakeTransport` on its own gives you the transport to put behind `createHaStore` when you render some other way.
+
+## Test a card on its own
+
+A skin's card takes plain props, so it needs no store at all: render it with an entity object you write. The raw
+Home Assistant states the package's own tests use are in `@dashhaus/core/fixtures/*`, if you'd rather start from real
+attribute shapes, and the mappers (`lightFromHass`) turn them into models.
+
+## The demo house
+
+`createDemoStore()` is the store over a demo house: every kind of entity, with an area, today's history, and actions
+that answer the way Home Assistant would. Storybook's connected stories run on these demo transports.
+
+<Example file="testing/DemoApp.tsx" />
+
+Each domain also has a smaller transport of its own (`createDemoHaTransport` for lights, `createDemoCoverHaTransport`,
+`createDemoAlarmHaTransport` and so on) for a story about one thing.
+
+The demo's entities and their states can change in any release. Test against entities you write, not against the
+demo.

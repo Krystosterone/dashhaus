@@ -1,5 +1,6 @@
 /**
- * The Vitest projects: one per public package, one for the app, one for the repo checks, and one for the generators.
+ * The Vitest projects: one per public package, one for the app (with the documentation site's example tests), one for
+ * the repo checks, and one for the generators.
  * Plain data, so the config and `verify/projects.test.ts` can share it without loading Vite into a jsdom test.
  *
  * The generator suites copy the repo and run its tools inside the copy; they are Node-only and keep their own project so
@@ -11,7 +12,7 @@ const project = (name: string, include: string[], environment: "jsdom" | "node" 
 });
 
 export const projects = [
-  project("root", ["src/**/*.test.{ts,tsx}", "verify/tokens.test.ts"]),
+  project("root", ["src/**/*.test.{ts,tsx}", "verify/tokens.test.ts", "docs/examples/**/*.test.{ts,tsx}"]),
   project("checks", ["verify/**/*.test.{ts,tsx}"], "node", { exclude: ["verify/tokens.test.ts"] }),
   project("generators", ["scripts/*/*.test.ts"], "node"),
   project("core", ["packages/core/src/**/*.test.{ts,tsx}"]),

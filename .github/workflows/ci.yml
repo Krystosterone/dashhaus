@@ -37,7 +37,8 @@ jobs:
 
   # The two consumer journeys from freshly packed tarballs, never the workspace: the skin user installs only the
   # prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a standalone skin. Both
-  # deploy into an in-memory Home Assistant, so this lane needs no live instance and no registry.
+  # run the packed deploy bin over a websocket into the fake Home Assistant in verify/dx/, so this lane needs no live
+  # instance; the skin's own install reaches the registry for React, Vite and TypeScript.
   dx:
     runs-on: ubuntu-latest
     steps:

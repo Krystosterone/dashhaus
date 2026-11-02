@@ -42,9 +42,10 @@ describe("workspace projects", () => {
     expect(project("core")?.include, "core's tests are in its project").toEqual(["packages/core/src/**/*.test.{ts,tsx}"]);
     expect(project("dashboard")?.include, "dashboard's tests are in its project").toEqual(["packages/dashboard/src/**/*.test.{ts,tsx}"]);
     expect(project("deploy")?.include, "deploy's tests are in its project").toEqual(["packages/deploy/src/**/*.test.ts"]);
-    expect(project("root")?.include, "the root project holds the app and the one check that needs a DOM").toEqual([
+    expect(project("root")?.include, "the root project holds the app, the one check that needs a DOM and the docs' example tests").toEqual([
       "src/**/*.test.{ts,tsx}",
       "verify/tokens.test.ts",
+      "docs/examples/**/*.test.{ts,tsx}",
     ]);
     expect(project("checks")?.include, "the repo checks read the repo, no DOM").toEqual(["verify/**/*.test.{ts,tsx}"]);
     expect((projects as Project[]).find((entry) => entry.test?.name === "checks")?.test?.exclude, "tokens loads the custom-element entry").toEqual(["verify/tokens.test.ts"]);
@@ -57,5 +58,6 @@ describe("workspace projects", () => {
     for (const name of packages) expect(typecheck, `${name} is in npm run typecheck`).toContain(`packages/${name}/tsconfig.json`);
     expect(typecheck, "each package program is passed with -p").toContain('"-p"');
     expect(typecheck).toContain("node_modules/.cache/tsc/root.tsbuildinfo");
+    expect(typecheck, "the documentation site's code samples are a program of their own").toContain("docs/examples/tsconfig.json");
   });
 });

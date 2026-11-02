@@ -1,0 +1,86 @@
+---
+title: Toggle
+description: "An input_boolean or a switch used as a mode: Guest mode, Do Not Disturb, a porch light's plug."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+One `input_boolean.*` or `switch.*`, used as a mode: Guest mode, Do Not Disturb, Away.
+
+## Quick example
+
+<Example file="entities/toggle/ModeSwitch.tsx" />
+
+`onToggle` calls `toggle` on the entity's own domain, `input_boolean.toggle` or `switch.toggle`.
+
+## Component
+
+`<HaToggle>` is `useHaToggle` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaToggleProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaToggle" />
+
+It reads the entity, its area and today's history. `icon`, `color` and `description` are yours to give: Home Assistant has no such attributes for a mode.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaToggleOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaToggleResult" />
+
+#### `entity`: ToggleEntity
+
+<ApiMembers from="@dashhaus/core/entities/toggle/types" name="ToggleEntity" notes={{"until": "The hook doesn't set it: Home Assistant has no timed-on service for these domains, so a host that times a mode supplies it.", "duration": "Host-owned, like `until`."}} />
+
+#### `history`: ToggleHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/toggle/types" name="ToggleHistory" />
+
+#### `actions`: ToggleHandlers
+
+<ApiMembers from="@dashhaus/core" name="ToggleHandlers" notes={{"onToggle": "Calls `input_boolean.toggle` or `switch.toggle`. An unavailable entity, or one from another domain, reports `unsupported`."}} />
+
+## Every mode
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string: `useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes. Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/toggle/AllModes.tsx" />
+
+## Tasks
+
+### On for an hour
+
+<Example file="entities/toggle/OnFor.tsx" />
+
+There is no `onTurnOnFor` in the actions on purpose: Home Assistant can't turn an `input_boolean` or a `switch` on for a while, so the timer belongs to whoever runs it. Orb's tile and Field's module take your `durations` and `onTurnOnFor` and draw the choices. A timer in Home Assistant itself, an automation or a `timer` helper, outlives the page; this one doesn't.
+
+## In a skin
+
+Orb's `HaToggleTile` and Field's `HaToggleModule` are `useHaToggle` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/toggle/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaToggleTileProps" except={{ from: "@dashhaus/core", name: "HaToggleOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaToggleModuleProps" except={{ from: "@dashhaus/core", name: "HaToggleOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-toggle--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-toggle--all-states).

@@ -1,0 +1,42 @@
+---
+title: Why Dashhaus
+description: "What Dashhaus was built to fix about Home Assistant dashboards, and the choices that follow from it."
+---
+
+Home Assistant's own dashboards are built from cards that each know Home Assistant: how to read an entity, which
+service to call, how to draw it. A new look means rewriting all three, card by card, and a wall panel, a phone and a
+tablet each tend to end up with a dashboard of their own, maintained by hand.
+
+Dashhaus splits those three apart, so each is written once.
+
+## One model per entity, drawn many ways
+
+Reading Home Assistant is written once per kind of entity: a mapper turns the raw state into a plain model
+(`LightEntity`, `ClimateEntity`), an action module turns a tap into the right service call, and a `useHa<Name>` hook
+hands both to whatever draws. Orb and Field are two drawings of the same ten models; neither contains a line of Home
+Assistant code. A third skin, or your own app, gets the same models and the same safety checks (an unavailable
+entity, a value out of range, a service Home Assistant refuses) without writing them.
+
+## Dashboards that hold still
+
+Each skin has rules a card can't break, held by tests: a card's height never changes with its state, so a dashboard
+doesn't reflow when a light turns on; nothing animates layout; colour is never the only signal; an unavailable device
+looks unavailable, never off. More detail opens in a sheet or a panel instead of growing the card. These are why the
+same dashboard reads on a phone in the hand and on a wall panel across the room.
+
+## Laid out by Home Assistant, edited in Home Assistant
+
+A skin is one Lovelace card. With no layout written, it groups your house by area from Home Assistant's registries and
+keeps up as you add devices. When you want your own order, you write YAML in Home Assistant's code editor; the preview
+redraws as you type and every mistake is listed at once, with its path and the probable fix.
+
+## Checked in a browser, not in production
+
+Every card, in every state and footprint, is a Storybook story on demo data, and every story must render and pass an
+accessibility check before a change lands. The live dashboards on [Orb and Field](/dashhaus/skins/) are those stories.
+
+## No credentials in the bundle
+
+In Home Assistant, a skin uses the frontend's own authenticated connection: the bundle carries no token. The deploy
+tool's token stays on the computer you deploy from. In an app of your own, login is yours too; the packages never
+store or refresh a token ([Connecting and auth](/dashhaus/errors/auth/)).

@@ -16,3 +16,16 @@
 :root:has([data-live-story]) {
   --sl-content-width: 64rem;
 }
+
+/* Two code samples side by side (the home page's one light, two ways); stacked on a narrow page. */
+.side-by-side {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.side-by-side > div {
+  min-width: 0;
+  margin: 0;
+}

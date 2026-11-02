@@ -19,6 +19,8 @@ export interface DeployOptions {
   report?: (message: string) => void;
   warn?: (message: string) => void;
   connect?: (url: string, token: string) => Promise<DeployClient>;
+  /** The HTTP check that Home Assistant serves the uploaded file; on by default with the real `connect`. */
+  fetch?: (url: string, init?: { cache?: string }) => Promise<{ ok: boolean; status: number; arrayBuffer(): Promise<ArrayBuffer> }>;
 }
 
 export interface DeployResult {

@@ -1,0 +1,95 @@
+---
+title: Hooks reference
+description: "Every hook in @dashhaus/core, with its signature and what it's for, read from the code."
+---
+
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+
+Every signature on this page is read from the package's own declarations when the site is built.
+
+## Entity hooks
+
+One per kind of entity, from `@dashhaus/core`. Each has its own page under [Entities](/dashhaus/entities/), with its
+options and what it returns.
+
+<ApiSignature from="@dashhaus/core" name="useHaLight" bare />
+<ApiSignature from="@dashhaus/core" name="useHaToggle" bare />
+<ApiSignature from="@dashhaus/core" name="useHaCover" bare />
+<ApiSignature from="@dashhaus/core" name="useHaSound" bare />
+<ApiSignature from="@dashhaus/core" name="useHaClimate" bare />
+<ApiSignature from="@dashhaus/core" name="useHaHumidifier" bare />
+<ApiSignature from="@dashhaus/core" name="useHaSensor" bare />
+<ApiSignature from="@dashhaus/core" name="useHaWeather" bare />
+<ApiSignature from="@dashhaus/core" name="useHaAlarm" bare />
+<ApiSignature from="@dashhaus/core" name="useHaOwlet" bare />
+
+## The store
+
+The provider and the hooks that read the store directly, from `@dashhaus/core`. [Raw state and
+selectors](/dashhaus/hooks/state/) shows when to use which.
+
+<ApiSignature from="@dashhaus/core" name="HaProvider" />
+<ApiMembers from="@dashhaus/core" name="HaProviderProps" notes={{ store: "The store from createHaStore. The provider connects it while mounted and disconnects it after the last provider using it unmounts; it never closes the transport.", children: "Your app." }} />
+
+<ApiSignature from="@dashhaus/core" name="useHaStore" />
+
+The store itself, for its actions and background reads. Throws outside an `HaProvider`.
+
+<ApiSignature from="@dashhaus/core" name="useHaSelector" />
+<ApiSignature from="@dashhaus/core" name="useHaEntity" />
+<ApiSignature from="@dashhaus/core" name="useHaEntities" />
+<ApiSignature from="@dashhaus/core" name="useHaStatus" />
+
+The connection's state: `idle`, `connecting`, `connected`, `disconnected` or `error`. See [Connection status](/dashhaus/errors/connection/).
+
+<ApiSignature from="@dashhaus/core" name="useHaGeneration" />
+
+A number that moves on every connect, disconnect, loss and recovery. A read or action that settles under another generation than it began under has an unknown outcome.
+
+<ApiSignature from="@dashhaus/core" name="useHaSnapshot" />
+
+## Areas, history and reads
+
+From `@dashhaus/core`. [Areas, history and requests](/dashhaus/hooks/areas-history/) has examples.
+
+<ApiSignature from="@dashhaus/core" name="useHaRegistry" />
+<ApiSignature from="@dashhaus/core" name="useHaAreas" />
+<ApiSignature from="@dashhaus/core" name="useHaArea" />
+<ApiSignature from="@dashhaus/core" name="useHaHistory" />
+<ApiSignature from="@dashhaus/core" name="useHaRequest" />
+
+## Hooks with no Home Assistant
+
+From `@dashhaus/core/hooks`, for any page.
+
+<ApiSignature from="@dashhaus/core/hooks" name="useNow" />
+<ApiSignature from="@dashhaus/core/hooks" name="useDelayLeft" />
+<ApiSignature from="@dashhaus/core/hooks" name="useScrollSpy" />
+<ApiSignature from="@dashhaus/core/hooks" name="useHashPage" />
+
+`useDemoClimate` is there too: the local climate state the skins' climate stories share, for stories only.
+
+## Interaction primitives
+
+From `@dashhaus/core/primitives`: behaviour and accessibility for controls you draw yourself.
+[Interaction primitives](/dashhaus/hooks/primitives/) shows each in use.
+
+<ApiSignature from="@dashhaus/core/primitives" name="usePress" />
+<ApiSignature from="@dashhaus/core/primitives" name="useSlider" />
+<ApiSignature from="@dashhaus/core/primitives" name="useRangeSlider" />
+<ApiSignature from="@dashhaus/core/primitives" name="useSheet" />
+<ApiSignature from="@dashhaus/core/primitives" name="useKeypad" />
+
+## Below the hooks
+
+Each entity hook is three pure functions you can call without React or a store, for a host that keeps Home
+Assistant's state its own way: a mapper from raw state to the model, history parsing, and an action factory over
+anything with a `callService`. For a light:
+
+<ApiSignature from="@dashhaus/core" name="lightFromHass" />
+<ApiSignature from="@dashhaus/core" name="lightHistoryFromHass" />
+<ApiSignature from="@dashhaus/core" name="createLightHandlers" />
+
+Every kind has the same three: `climateFromHass` and `createClimateHandlers`, `coverFromHass` and
+`createCoverHandlers`, and so on; a reading has no handlers.

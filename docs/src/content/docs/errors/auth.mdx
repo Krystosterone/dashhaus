@@ -1,0 +1,48 @@
+---
+title: Connecting and auth
+description: "Who logs in and who owns the connection, in a Lovelace card, in an app of your own and on a kiosk."
+---
+
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+The packages never log in. They have no login form, store no token and refresh none: whoever opens the connection owns
+it, and hands the store a transport.
+
+## In Home Assistant
+
+A skin's Lovelace card uses the frontend's own authenticated connection. The bundle carries no credentials, and the
+card never closes the frontend's connection. Nothing to set up.
+
+## In an app of your own
+
+Get an `Auth` from `home-assistant-js-websocket`, through Home Assistant's OAuth flow (`getAuth`) or a long-lived token
+your app manages, and open the connection with `connectHomeAssistant`:
+
+<Example file="start/main.tsx" title="main.tsx" />
+
+<ApiSignature from="@dashhaus/core/websocket" name="connectHomeAssistant" />
+<ApiSignature from="@dashhaus/core/websocket" name="createHomeAssistantTransport" />
+
+`createHomeAssistantTransport` wraps a `Connection` you already have. The transport is yours: call
+`transport.close()` when you're done. `HaProvider` connects and disconnects the store, but never closes the transport.
+`@dashhaus/core/websocket` is the only module that imports `home-assistant-js-websocket`.
+
+## On a kiosk or a wall panel
+
+Keep Home Assistant's credentials off the browser: run a small gateway on a server you trust, and give the page a
+transport that talks to it. The gateway is where security lives, so it should allowlist the entities, services and
+service fields the panel may use, refuse anything else, strip credentials and alarm codes from what it passes on,
+cap the size and rate of requests, and never log tokens.
+
+## Your own transport
+
+A transport is four functions. Anything that implements them can feed the store: a gateway, a recording, a test.
+
+<ApiMembers from="@dashhaus/core" name="HaTransport" />
+
+<ApiSignature from="@dashhaus/core" name="createHaStore" />
+
+`initialEntities` is a complete set of states you already hold, such as the Lovelace frontend's `hass.states`: the
+store starts connected from it, and the live subscription replaces it when it arrives.

@@ -1,0 +1,65 @@
+---
+title: Introduction
+description: "What Dashhaus is, the two ways to use it, and the words these pages use."
+---
+
+import { LinkCard, CardGrid } from "@astrojs/starlight/components";
+
+Dashhaus draws Home Assistant dashboards in React and TypeScript, for phones, tablets and wall panels. It is two things
+on one foundation:
+
+- **Two finished skins**, Orb and Field. Each is a whole look for a dashboard, shipped as a Lovelace card you add in
+  Home Assistant and lay out in YAML. You install them prebuilt; nothing to build.
+- **The headless packages under them.** The entity models, the Home Assistant store, a `useHa<Name>` hook and a
+  headless component for each kind of entity, the interaction primitives and the card frame. A skin is drawing on top
+  of these, so you can draw your own: in a React app of yours, or as a new skin with its own Lovelace card.
+
+## Two ways in
+
+<CardGrid>
+  <LinkCard
+    title="Use a skin"
+    description="Install @dashhaus/bundle and @dashhaus/deploy, deploy, then lay the dashboard out in YAML in Home Assistant."
+    href="/dashhaus/start/deploy/"
+  />
+  <LinkCard
+    title="Build a skin"
+    description="Scaffold one with create-dashhaus-skin: cards on the real hooks, a YAML reader, a one-file build and a deploy."
+    href="/dashhaus/start/build-a-skin/"
+  />
+</CardGrid>
+
+Between the two, you can also use the hooks and the skins' components in a React app of your own:
+[Getting started](/dashhaus/start/getting-started/) does that.
+
+## How the pieces stack
+
+```text
+Home Assistant
+  └─ a transport: Home Assistant's own connection in a Lovelace card, or one your app opens
+       └─ the store (createHaStore) and HaProvider: every entity, the connection status
+            └─ useHa<Name>(entityId): the mapped entity, today's history and its actions
+                 ├─ your own markup
+                 └─ a skin: Orb's <Name>Tile, Field's <Name>Module
+                      └─ its Lovelace card: custom:dashhaus-orb, custom:dashhaus-field
+```
+
+Each layer only knows the one above it. The entity models never see Home Assistant's raw state; the hooks never draw;
+a skin's cards never talk to Home Assistant, they take the hook's result as props.
+
+## Words
+
+These pages use one word per thing, the same as the code and Storybook.
+
+| Word | Means |
+| --- | --- |
+| Card | One entity drawn on a dashboard. |
+| Tile | Orb's card ready for a dashboard: the card in its size container with its details sheet (`LightTile`). |
+| Module | Field's card: a plate with its key, screen and fader, carrying its own detail panel (`LightModule`). |
+| Details | What a card opens from its name or a press and hold: Orb's sheet, Field's panel. |
+| Footprint | A card's fixed height: `compact`, `standard`, `featured` in Orb; `compact`, `standard` in Field. |
+| Connected | A card bound to the store: `HaLightTile` in Orb, `HaLightModule` in Field, on the shared `useHaLight` hook. |
+| Lovelace card | The custom element Home Assistant loads (`custom:dashhaus-orb`), which draws a whole dashboard from its YAML. |
+| Primitive | A headless interaction hook (`usePress`, `useSlider`): behaviour, no markup. |
+| Part | A skin's styled control built on a primitive: Orb's `TogglePill`, Field's `Key`. |
+| Dashboard | A page of cards and what frames them: the header, sections and the nav bar. |

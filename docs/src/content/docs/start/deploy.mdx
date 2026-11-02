@@ -1,17 +1,22 @@
 ---
 title: Deploy a dashboard
-description: Install the prebuilt bundle and add Orb and Field dashboards to your Home Assistant.
+description: "Install the prebuilt bundle and the deploy tool, and add Orb and Field dashboards to your Home Assistant without building anything."
 ---
 
 import { Aside, Steps } from "@astrojs/starlight/components";
+import Example from "../../../components/Example.astro";
 
 You don't need to clone or build anything. The prebuilt bundle holds both skins. A small command-line tool copies it
 into Home Assistant and creates a dashboard for each skin. After that you change layouts in Home Assistant itself.
 
+Every change to Dashhaus runs this page's steps: CI packs the release, installs only `@dashhaus/bundle` and
+`@dashhaus/deploy` into an empty folder, writes this config and deploys it into a simulated Home Assistant.
+
 <Aside type="caution" title="Not on npm yet">
   The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
-  then, deploy from a clone of the [repository](https://github.com/Krystosterone/dashhaus) with `npm install` and
-  `npm run deploy`.
+  then, install the release tarballs by path in step 1 (`npm install ./dashhaus-bundle-0.2.0.tgz
+  ./dashhaus-deploy-0.2.0.tgz`), or deploy from a clone of the
+  [repository](https://github.com/Krystosterone/dashhaus) with `npm install` and `npm run deploy`.
 </Aside>
 
 ## What you need
@@ -51,35 +56,10 @@ into Home Assistant and creates a dashboard for each skin. After that you change
 
 3. Create `dashboard.config.mjs` next to it. It names the bundle to upload and the dashboards to create:
 
-   ```js title="dashboard.config.mjs"
-   import { fileURLToPath } from "node:url";
-   import { bundlePath } from "@dashhaus/bundle";
+   <Example file="user/dashboard.config.mjs" title="dashboard.config.mjs" />
 
-   export default {
-     pageTitle: "Home",
-     bundle: fileURLToPath(bundlePath),
-     dashboards: [
-       {
-         path: "home-orb",
-         title: "Home (Orb)",
-         icon: "mdi:home-variant",
-         async card() {
-           return { card: { type: "custom:dashhaus-orb" }, made: "automatic" };
-         },
-       },
-       {
-         path: "home-field",
-         title: "Home (Field)",
-         icon: "mdi:knob",
-         async card() {
-           return { card: { type: "custom:dashhaus-field" }, made: "automatic" };
-         },
-       },
-     ],
-   };
-   ```
-
-   Each `path` needs a hyphen; Home Assistant requires one. Keep only the skin you want if you don't need both.
+   Each `path` needs a hyphen; Home Assistant requires one. Keep only the skin you want if you don't need both. The
+   `@type` comment lets your editor check the file against `@dashhaus/deploy/config`; the tool doesn't need it.
 
 4. Deploy:
 
@@ -88,7 +68,10 @@ into Home Assistant and creates a dashboard for each skin. After that you change
    ```
 
    The tool copies the bundle into `www/`, registers it as a dashboard resource, and creates each dashboard the first
-   time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build.
+   time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build. Every step ends in
+   ✓; the last one, `Checking that Home Assistant serves it`, fetches the file back from Home Assistant, so a wrong
+   `HA_WWW` shows up here instead of as a blank dashboard. `npx dashhaus-deploy --help` prints the options, a config
+   to start from and the `.env` keys.
 
 5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)** or **Home (Field)** in the sidebar.
 
@@ -111,6 +94,8 @@ Dashhaus config has 2 problems:
 
 To put a Dashhaus card on another dashboard, add **Dashhaus** from the card picker. It starts from the generated layout
 for your house. Put it in a **Panel** view so it gets the full width.
+
+[Lay it out in YAML](/dashhaus/start/yaml/) has both skins' keys, pages and the bottom nav.
 
 ## Update
 

@@ -247,4 +247,36 @@ export default {
       connect: async () => new FakeHomeAssistant(),
     })).rejects.toThrowError("HA_URL");
   });
+
+  it("checks that Home Assistant serves the uploaded file from /local/", async () => {
+    const directory = await project();
+    const fetched: string[] = [];
+    const run = async (serve: (url: string) => Promise<{ ok: boolean; status: number; arrayBuffer(): Promise<ArrayBuffer> }>) => {
+      const reports: string[] = [];
+      const warnings: string[] = [];
+      await deploy({
+        configFile: join(directory, "dashboard.config.mjs"),
+        env: settings(directory),
+        skipBuild: true,
+        report: (message) => reports.push(message),
+        warn: (message) => warnings.push(message),
+        connect: async () => new FakeHomeAssistant(),
+        fetch: async (url) => { fetched.push(url); return serve(url); },
+      });
+      return { reports, warnings };
+    };
+    const body = (text: string) => async () => new TextEncoder().encode(text).buffer as ArrayBuffer;
+
+    const served = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("console.log('bundle');") }));
+    expect(fetched[0]).toMatch(/^http:\/\/ha\.test\/local\/dashhaus\/dashhaus\.js\?v=[0-9a-f]{10}$/);
+    expect(served.warnings).toEqual([]);
+    expect(served.reports.join("\n")).toContain("the uploaded file");
+
+    const missing = await run(async () => ({ ok: false, status: 404, arrayBuffer: body("") }));
+    expect(missing.warnings.join("\n")).toContain("HTTP 404");
+    expect(missing.warnings.join("\n")).toContain("HA_WWW");
+
+    const stale = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("an older bundle") }));
+    expect(stale.warnings.join("\n")).toContain("serves a different file");
+  });
 });

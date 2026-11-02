@@ -1,42 +1,65 @@
 ---
 title: Dashhaus
-description: Home Assistant dashboards drawn in React, with two skins and room for your own.
+description: "Home Assistant dashboards drawn in React. Headless hooks for every entity, two finished skins, and room for your own."
 template: splash
 hero:
-  tagline: Home Assistant dashboards for phones, tablets and wall panels. Pick a skin, deploy it once, and lay out your house from Home Assistant.
+  tagline: Home Assistant dashboards in React. Use a finished skin from YAML, or draw your own on the same hooks.
   image:
     alt: The same house on a phone in each skin, Orb on the left and Field on the right
     dark: ../../assets/skins/hero-dark.webp
     light: ../../assets/skins/hero-light.webp
   actions:
+    - text: Get started
+      link: /dashhaus/start/getting-started/
+      icon: right-arrow
     - text: Deploy a dashboard
       link: /dashhaus/start/deploy/
-      icon: right-arrow
+      variant: minimal
     - text: See the skins
       link: /dashhaus/skins/
       variant: minimal
-    - text: Open Storybook
-      link: /dashhaus/storybook/
-      icon: external
-      variant: minimal
 ---
 
-import { Card, CardGrid } from "@astrojs/starlight/components";
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+import Example from "../../components/Example.astro";
 
 <CardGrid>
-  <Card title="Two skins, one house" icon="seti:image">
-    Orb is soft and glanceable. Field is a hardware panel with keys, faders and a dark screen. Both draw the same
-    entities, so you can switch between them or run both.
+  <Card title="A hook per entity" icon="seti:react">
+    Lights, climate, covers, modes, sound machines, humidifiers, sensors, the weather, alarm panels and Owlet socks.
+    Each `useHa<Name>` hook hands over the entity, today's history and what it can do.
   </Card>
-  <Card title="Lays out your house" icon="rocket">
-    With no layout written, each dashboard groups your lights, climate, covers, sensors and alarm by area. Write YAML
-    when you want your own order.
+  <Card title="Two finished skins" icon="seti:image">
+    Orb is soft and glanceable. Field is a hardware panel with keys, faders and a dark screen. Both draw every entity
+    from the same hooks.
   </Card>
-  <Card title="Edit in Home Assistant" icon="pencil">
-    Each dashboard is one Lovelace card. Change its layout in Home Assistant's code editor: the preview redraws as you
-    type, and every mistake is listed with a fix.
+  <Card title="One Lovelace card" icon="rocket">
+    Each skin is a Lovelace card that lays out your house by area, or follows the YAML you write in Home Assistant's
+    editor, with every mistake listed and a fix suggested.
   </Card>
-  <Card title="Build your own skin" icon="puzzle">
-    The entity models, Home Assistant hooks and card frame are packages. A new skin brings only its drawing.
+  <Card title="Your own skin" icon="puzzle">
+    `create-dashhaus-skin` scaffolds a skin with a control, a reading, its YAML reader, a one-file build and a deploy
+    config. You bring the drawing: hand an agent a screenshot and [Build a skin](/dashhaus/start/build-a-skin/) does
+    the rest.
   </Card>
+</CardGrid>
+
+## One light, two ways
+
+On the left, the light drawn your way from the headless hook. On the right, the same light as Orb's tile, with its
+round button, brightness track and details sheet. Both read the same store and call the same `light.toggle`.
+
+<div class="side-by-side">
+  <div>
+    <Example file="start/DeskLamp.tsx" title="Headless" wrap />
+  </div>
+  <div>
+    <Example file="start/DeskLampTile.tsx" title="With a skin" wrap />
+  </div>
+</div>
+
+<CardGrid>
+  <LinkCard title="Getting started" description="Install, set up the provider, draw a first control both ways." href="/dashhaus/start/getting-started/" />
+  <LinkCard title="Entities" description="Every kind of entity, its hook, its component and its tile and module." href="/dashhaus/entities/" />
+  <LinkCard title="Deploy a dashboard" description="The prebuilt bundle and the deploy tool, no build." href="/dashhaus/start/deploy/" />
+  <LinkCard title="Build a skin" description="Scaffold, test, build and deploy a skin of your own." href="/dashhaus/start/build-a-skin/" />
 </CardGrid>

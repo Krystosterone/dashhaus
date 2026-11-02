@@ -1,0 +1,52 @@
+---
+title: Interaction primitives
+description: "The headless hooks Orb and Field draw their controls on - press, slider, range slider, sheet and keypad - for controls of your own."
+---
+
+import ApiMembers from "../../../components/ApiMembers.astro";
+import Example from "../../../components/Example.astro";
+
+`@dashhaus/core/primitives` holds the behaviour every skin's controls share, without markup or styles. Each is a hook
+whose result you spread onto your own elements. Orb's round button and Field's key are both `usePress`; both skins'
+brightness tracks are `useSlider`.
+
+The feel of a primitive depends on its skin's CSS as much as its code: a track's scroll-or-set on touch needs
+`touch-action: pan-y`, a press needs its `:active` style. Try them on a phone in any card's story in
+[Storybook](/dashhaus/storybook/).
+
+## usePress
+
+A button: a tap, an optional press and hold, an optional latch, and an unavailable state. The click that ends a hold
+doesn't also press. An unavailable control stays focusable and says so with `aria-disabled`; a disabled one is out of
+reach. A plain one-shot button doesn't need it: use a `<button>`.
+
+<Example file="hooks/Press.tsx" />
+
+<ApiMembers from="@dashhaus/core/primitives" name="PressOptions" notes={{ onPress: "A tap, a click, or Enter or Space on the focused button." }} />
+
+## useSlider and useRangeSlider
+
+A horizontal track. Pointer input goes to a hit layer you draw over the track: a mouse sets the value on press, a
+touch only on a tap or once the finger moves sideways, so scrolling the page past a slider never changes it. A hidden
+native range input carries the keyboard and the screen reader, with the value text you give. `useRangeSlider` is the
+same with two thumbs, a low and a high, as for a heat and cool range.
+
+<Example file="hooks/Slider.tsx" />
+
+<ApiMembers from="@dashhaus/core/primitives" name="SliderOptions" notes={{ value: "The value the track shows.", min: "The low end.", max: "The high end.", step: "The step a pointer snaps to, counted from min.", disabled: "No input at all.", onChange: "Called with each new value." }} />
+
+## useSheet
+
+A native modal `<dialog>` for details: it mounts and shows, locks the page's scroll, holds a `data-closing` attribute
+while your exit transition runs, closes on Escape and on the backdrop, and on a phone drags down to close from its
+header. Orb's details sheet and Field's detail panel are both on it.
+
+<ApiMembers from="@dashhaus/core/primitives" name="SheetOptions" notes={{ open: "Whether the sheet is open.", onClose: "Called when the person closes it: Escape, the backdrop or a drag down." }} />
+
+## useKeypad
+
+A code keypad for an alarm: the code typed so far, digits, delete and enter from its keys or a physical keyboard, and
+the answer. It is busy until `onSubmit` answers; a wrong code (`false`) is cleared for another try, and a failed call
+(a throw) keeps the code so Enter tries again. That is the shape of an alarm hook's `onArm` and `onDisarm`.
+
+<ApiMembers from="@dashhaus/core/primitives" name="KeypadOptions" />

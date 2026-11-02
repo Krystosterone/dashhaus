@@ -2,6 +2,11 @@
 
 The headless Home Assistant foundation behind Dashhaus skins: entity models and their pure logic, the store and provider, mappers, actions, the `useHa<Name>` hooks, headless components, interaction primitives, shared hooks, demo transports and a testing helper. It ships no markup and no CSS.
 
+Where to start: to deploy the ready-made Orb and Field dashboards, install `@dashhaus/bundle` and `@dashhaus/deploy`
+(nothing is built). To build your own look, run `npm create dashhaus-skin@latest my-skin`: the project it writes
+depends on this package and its `AGENTS.md` covers the rest. Install this package directly only to compose a skin by
+hand.
+
 ## Install
 
 ```sh

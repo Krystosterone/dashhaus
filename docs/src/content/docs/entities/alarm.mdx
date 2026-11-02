@@ -1,0 +1,88 @@
+---
+title: Alarm
+description: "One alarm_control_panel.* entity: its state, its arm modes, the code and the exit and entry delays."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+One `alarm_control_panel.*` entity: its state, the modes it arms to, whether it wants a code, and its exit and entry delays.
+
+## Quick example
+
+<Example file="entities/alarm/ArmAway.tsx" />
+
+Arming and disarming answer, unlike the other actions: `true` when Home Assistant took the call, `false` for a wrong code, and a rejection when the call didn't go through. The store never keeps a call with a code in it, so a failed disarm is never offered again with the code.
+
+## Component
+
+`<HaAlarm>` is `useHaAlarm` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaAlarmProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaAlarm" />
+
+It reads the panel, its area and today's history. Home Assistant's alarm entity has no delay length, so `exitDelay` and `entryDelay` give it (Alarmo's `delay` attribute wins when it reports one). `openSensors` and `triggeredBy` are yours to compose from your door and window sensors.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaAlarmOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaAlarmResult" />
+
+#### `entity`: AlarmEntity
+
+<ApiMembers from="@dashhaus/core/entities/alarm/types" name="AlarmEntity" notes={{}} />
+
+#### `history`: AlarmHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/alarm/types" name="AlarmHistory" />
+
+#### `actions`: AlarmHandlers
+
+<ApiMembers from="@dashhaus/core" name="AlarmHandlers" notes={{"onArm": "Calls `alarm_control_panel.alarm_arm_<mode>` (`home`, `away`, `night`, `vacation`, `custom_bypass`) with the code when given. A mode the panel doesn't support rejects with `unsupported`.", "onDisarm": "Calls `alarm_control_panel.alarm_disarm` with the code when given."}} />
+
+A failure other than a wrong code also goes to `onActionError` before the promise rejects.
+
+## Every alarm panel
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string: `useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes. Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/alarm/AllAlarms.tsx" />
+
+## Tasks
+
+### Show the countdown
+
+<Example file="entities/alarm/AlarmState.tsx" />
+
+`useDelayLeft` from `@dashhaus/core/hooks` counts the delay down from `changedAt`, the moment the state began, and catches up at once when a sleeping tablet wakes.
+
+## In a skin
+
+Orb's `HaAlarmTile` and Field's `HaAlarmModule` are `useHaAlarm` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/alarm/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaAlarmTileProps" except={{ from: "@dashhaus/core", name: "HaAlarmOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaAlarmModuleProps" except={{ from: "@dashhaus/core", name: "HaAlarmOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-alarm--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-alarm--all-states).

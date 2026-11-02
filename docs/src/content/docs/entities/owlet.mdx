@@ -1,0 +1,88 @@
+---
+title: Owlet
+description: "An Owlet sock from the owlet custom integration: sleep state, heart rate, oxygen, alerts and the base station."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+
+One Owlet sock, from the custom `owlet` integration: its sleep state with its heart rate, oxygen, charging and alert sensors, and the base station's switch.
+
+## Quick example
+
+<Example file="entities/owlet/Vitals.tsx" />
+
+The entity id is the sleep state sensor. The heart rate, oxygen, charging and ten alert sensors and the base station switch are found beside it by the integration's names; give their ids when yours are named otherwise.
+
+## Component
+
+`<HaOwlet>` is `useHaOwlet` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="./api-types" name="HaOwletProps" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaOwlet" />
+
+It reads the sleep state, every companion, its area and today's history of sleep, heart rate and oxygen. `staleAfterMinutes` (default 3) is how long without a changed reading before `live` turns false.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaOwletOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaOwletResult" />
+
+#### `entity`: OwletEntity
+
+<ApiMembers from="@dashhaus/core/entities/owlet/types" name="OwletEntity" notes={{}} />
+
+#### `history`: OwletHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since. Pass `history` to supply your own, or
+`loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/owlet/types" name="OwletHistory" />
+
+#### `actions`: OwletHandlers
+
+<ApiMembers from="@dashhaus/core" name="OwletHandlers" notes={{"onBaseToggle": "Only when a base station switch is found and reports on or off. Calls `switch.turn_on` or `switch.turn_off` for the state shown, never `switch.toggle`, so a repeated tap on a stale screen repeats the request instead of undoing it."}} />
+
+The readings are read-only; the base station is the one thing to switch.
+
+## Every sock
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. The selector returns a string: `useHaSelector` re-renders only when its value changes, and a string of ids changes only when an entity comes or goes. Lists skip each item's history read with `loadHistory={false}`.
+
+<Example file="entities/owlet/AllSocks.tsx" />
+
+## Tasks
+
+### Switch the base station
+
+<Example file="entities/owlet/BaseStation.tsx" />
+
+With the base station off, the sock may still send readings but no alarm sounds, so say that on the control.
+
+## In a skin
+
+Orb's `HaOwletTile` and Field's `HaOwletModule` are `useHaOwlet` above each skin's card. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/owlet/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaOwletTileProps" except={{ from: "@dashhaus/core", name: "HaOwletOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaOwletModuleProps" except={{ from: "@dashhaus/core", name: "HaOwletOptions" }} />
+  </TabItem>
+</Tabs>
+
+Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-owlet--all-states) and
+[Field](/dashhaus/storybook/?path=/story/field-cards-owlet--all-states).

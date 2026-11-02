@@ -1,0 +1,53 @@
+---
+title: Raw state and selectors
+description: "Read any entity raw, select one value from the whole house, and keep re-renders to what changed."
+---
+
+import ApiMembers from "../../../components/ApiMembers.astro";
+import Example from "../../../components/Example.astro";
+
+The entity hooks cover the ten kinds Dashhaus models. For anything else, read the store directly. The store holds
+Home Assistant's raw state, every entity as `{ entity_id, state, attributes, last_changed, … }`, and keeps an
+unchanged entity's object the same across updates. The hooks below lean on that: each re-renders only when what it
+read has changed.
+
+## One entity, raw
+
+`useHaEntity` returns one entity as Home Assistant sent it, or `undefined` until it arrives. A `media_player` has no
+model here, so read its attributes yourself:
+
+<Example file="hooks/RawEntity.tsx" />
+
+Attributes are `unknown`: check their type before you use them. `useHaEntities` does the same for a list of ids, and
+keeps the array the same until one of those entities changes, so a card made of several entities re-renders for its
+own and not for the rest of the house.
+
+<ApiMembers from="@dashhaus/core" name="HassEntity" />
+
+## One value from the whole house
+
+`useHaSelector` runs a function over the whole snapshot and re-renders only when its result changes (compared with
+`Object.is`). Return a number, a string, a boolean, or an object the store already holds; a new array or object every
+time would re-render on every change in the house.
+
+<Example file="hooks/Selector.tsx" />
+
+The entity pages' "every entity" examples use the same rule: they select the ids as one string, which only changes
+when an entity comes or goes.
+
+## The snapshot
+
+<ApiMembers from="@dashhaus/core" name="HaSnapshot" />
+
+`useHaSnapshot` returns all of it and re-renders on every change in the house: for a diagnostics page, not for a
+dashboard.
+
+## The store
+
+`useHaStore` returns the store. Calling a service through it is what the entity hooks' actions do:
+
+<ApiMembers from="@dashhaus/core" name="HaStore" only={["callService", "query", "callApi", "getSnapshot", "subscribe"]} />
+
+`callService` is an action: it is ordered with the others, and a failure becomes the store's `lastActionError`.
+`query` and `callApi` are background reads that never do either. In a component, a read belongs in
+[`useHaRequest`](/dashhaus/hooks/areas-history/#any-other-read), which shares it and drops a stale answer.

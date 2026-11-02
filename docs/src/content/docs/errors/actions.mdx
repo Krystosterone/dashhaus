@@ -1,0 +1,54 @@
+---
+title: Action errors
+description: "Every refused or failed action is an HaActionError with a code, a category and whether a retry is safe."
+---
+
+import ApiMembers from "../../../components/ApiMembers.astro";
+import Example from "../../../components/Example.astro";
+
+An action that doesn't happen is never silent. Whether the hook refused it before sending (the entity is unavailable,
+the value is out of range) or Home Assistant refused it, it becomes an `HaActionError`, and the hook's `onActionError`
+option hears of it.
+
+## Codes
+
+| `code` | `category` | `retryable` | Means |
+| --- | --- | --- | --- |
+| `not_connected` | `connection` | yes | The store wasn't connected, so the call never reached Home Assistant. |
+| `service_failed` | `rejected` | yes | Home Assistant refused the call. |
+| `transport_unknown` | `connection` | no | The connection changed during the call, so it may or may not have happened. A repeat could do it twice. |
+| `unsupported` | `unsupported` | no | The entity, or the transport, can't do it: an unavailable light, a cover without a stop. |
+| `invalid_input` | `invalid_input` | no | The value was wrong before it was sent: a temperature out of range, a brightness that isn't a number. |
+
+`retryable` means a repeat is safe on the current connection, not that it will work.
+
+<ApiMembers from="@dashhaus/core" name="HaActionError" only={["code", "category", "retryable", "domain", "service", "entityId", "translationKey", "providerCode"]} notes={{ code: "One of the five codes above. Choose your words by this.", category: "The code's family.", retryable: "Whether repeating the same call is safe on this connection.", domain: "The service's domain, when known.", service: "The service, when known.", entityId: "The entity the action was for, when known." }} />
+
+An error never carries Home Assistant's own message or payload, which could echo an alarm code. Use `code`, not
+`message`: the message's wording can change.
+
+## One control
+
+<Example file="errors/ActionErrors.tsx" />
+
+## The whole dashboard
+
+The store keeps the latest failed action as `lastActionError` in its snapshot, whichever control made it. It keeps
+the call to offer again only when a repeat is safe, and never keeps a call that carries an alarm code.
+
+<Example file="errors/RetryBar.tsx" />
+
+A successful call means Home Assistant accepted the command, not that the device did it. The entity's next state is
+the answer: a light that didn't turn on still shows off.
+
+## Alarm panels
+
+`onArm` and `onDisarm` answer instead of only reporting: they resolve `true` when Home Assistant took the call and
+`false` for a wrong code, which isn't an error. Any other failure goes to `onActionError` and rejects the promise.
+[Alarm](/dashhaus/entities/alarm/#quick-example) shows all three.
+
+## Reads
+
+A failed background read, such as a forecast or the registries, is never an action error. A forecast failure goes to
+the weather hook's `onForecastError`; `useHaRequest` returns it as `error`; the history and registry hooks read as
+`undefined`.
