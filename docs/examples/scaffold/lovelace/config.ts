@@ -7,6 +7,8 @@ export interface CardConfig {
   card: CardKind;
   name?: string;
   area?: string;
+  /** A sensor card's humidity companion, drawn under its temperature. */
+  humidity?: string;
 }
 
 export interface MySkinConfig {
@@ -16,7 +18,7 @@ export interface MySkinConfig {
 
 const KINDS: readonly CardKind[] = ["light", "sensor", "cover"];
 const TOP_KEYS = ["type", "title", "cards", "view_layout", "grid_options", "visibility"];
-const CARD_KEYS = ["entity", "card", "name", "area"];
+const CARD_KEYS = ["entity", "card", "name", "area", "humidity"];
 
 /** Which card draws an entity, from its Home Assistant domain. */
 export function kindOf(entity: string): CardKind | undefined {
@@ -49,7 +51,8 @@ export function parseMySkinConfig(value: unknown): MySkinConfig {
         if (!entity) return [];
         const card = reader.choice(item, "card", at, KINDS) ?? kindOf(entity);
         if (!card) return [];
-        return [{ entity, card, name: reader.string(item, "name", at), area: reader.string(item, "area", at) }];
+        const humidity = reader.optionalEntity(item, "humidity", at, ["sensor"]);
+        return [{ entity, card, name: reader.string(item, "name", at), area: reader.string(item, "area", at), ...(humidity && { humidity }) }];
       });
     }
   }

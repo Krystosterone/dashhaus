@@ -2,6 +2,21 @@
 
 Per-card behaviour: what each card shows, how it interacts, and its props. The rules every card follows are in [spec/orb.md](orb.md) and [spec/field.md](field.md); folder layout, commands and the adding-a-card steps are in AGENTS.md.
 
+## What a card draws
+
+A card draws one normalized model, and every skin's card takes it as one `entity` prop.
+
+| Model | Cards | What it is |
+| --- | --- | --- |
+| Direct | light, climate, cover, toggle, humidifier, alarm | One Home Assistant entity and its attributes. |
+| Composed | sensor, sound, weather, owlet | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station. |
+
+Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
+
+Interaction is separate: a **control** has a primary action, a **reading** only shows values. A control can be read-only (an alarm with nothing to arm) and a reading can carry a small action (the Owlet's base station switch), so the two are traits of the props, not the model split.
+
+A card's YAML kind is its own identity: its domain's card by default, or a shared card picked with `card:` (`sound` on a `switch`, `owlet` on a `sensor`). The sections below follow that identity.
+
 ## Using the light card
 
 ```tsx

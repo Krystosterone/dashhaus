@@ -10,5 +10,6 @@ export interface ActionProps {
 
 export function Action({ label, onPress, pressed, unavailable }: ActionProps) {
   const press = usePress({ onPress, pressed, unavailable });
+  // usePress gives the button its type, aria-pressed and aria-disabled.
   return <button className="__skin__-action" {...press}>{label}</button>;
 }
