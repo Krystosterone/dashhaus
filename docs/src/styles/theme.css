@@ -3,29 +3,69 @@
   --sl-color-accent-low: oklch(0.3 0.06 92);
   --sl-color-accent: oklch(0.82 0.145 92);
   --sl-color-accent-high: oklch(0.93 0.09 92);
+
+  /* Headings across the site, and the home page's display type. Body text stays in Starlight's system face. */
+  --home-display: "Libre Franklin", var(--sl-font-system);
+  /* Surfaces one and two tone steps off the page, for the home page's fields and blocks. */
+  --home-tone: hsl(224, 12%, 14%);
+  --home-tone-2: hsl(224, 11%, 19%);
+  /* The one field that stays dark in both themes: the home page's closing choice. */
+  --home-night: hsl(224, 12%, 7%);
+  --home-ease: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 :root[data-theme="light"] {
   --sl-color-accent-low: oklch(0.95 0.06 92);
   --sl-color-accent: oklch(0.48 0.1 92);
   --sl-color-accent-high: oklch(0.36 0.08 92);
+
+  --home-tone: hsl(224, 20%, 96%);
+  --home-tone-2: hsl(224, 16%, 91%);
+  --home-night: hsl(224, 10%, 10%);
 }
 
+/* Headings in the display face, page titles and the site's name included. */
+.sl-markdown-content :is(h1, h2, h3, h4),
+h1#_top,
+.site-title {
+  font-family: var(--home-display);
+  letter-spacing: -0.02em;
+}
+
+.sl-markdown-content :is(h1, h2),
+h1#_top {
+  font-weight: 700;
+}
 
 /* A page of live stories gets a wider column, so a tablet story draws near its own size beside the sidebar. */
-:root:has([data-live-story]) {
+:root[data-has-sidebar]:has([data-live-story]) {
   --sl-content-width: 64rem;
 }
 
-/* Two code samples side by side (the home page's one light, two ways); stacked on a narrow page. */
-.side-by-side {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  gap: 1rem;
-  align-items: start;
+/* The home page's sections run edge to edge; nothing scrolls sideways. */
+:root:has(.home-hero) {
+  overflow-x: clip;
 }
 
-.side-by-side > div {
-  min-width: 0;
-  margin: 0;
+/* The home page's entrances: each part of a section rises in once, in order, as the section comes into view. Without
+   script (no .js-reveal) or with reduced motion, everything simply shows. */
+@media (prefers-reduced-motion: no-preference) {
+  .js-reveal [data-reveal] {
+    opacity: 0;
+    translate: 0 1.5rem;
+    transition:
+      opacity 640ms var(--home-ease),
+      translate 640ms var(--home-ease);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .js-reveal [data-reveal][data-shown] {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+/* The header sits one tone step off the page, so it needs no rule under it. */
+header.header {
+  border-bottom-color: transparent;
 }

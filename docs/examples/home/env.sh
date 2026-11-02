@@ -1,0 +1,3 @@
+HA_URL=http://homeassistant.local:8123
+HA_TOKEN=your-long-lived-access-token
+HA_WWW=root@homeassistant.local:/config/www

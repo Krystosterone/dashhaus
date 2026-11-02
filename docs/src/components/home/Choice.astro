@@ -1,0 +1,145 @@
+---
+/** The home page's close: the two ways in as one question, its two halves holding the two answers between them. */
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<section class="choice not-content" aria-labelledby="choice">
+  <h2 id="choice">
+    <span>Deploy one,</span>
+    <span class="second">or draw one?</span>
+  </h2>
+  <div class="answers">
+    <a class="solid" href={`${base}/start/deploy/`}>Deploy a dashboard</a>
+    <span class="or">or</span>
+    <a class="plain" href={`${base}/start/build-a-skin/`}>Build a skin</a>
+    <p>Both use the same packages and run on the same demo house.</p>
+  </div>
+</section>
+
+<style>
+  .choice {
+    --paper: oklch(0.97 0 0);
+    --ink: hsl(224, 10%, 10%);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    width: 100vw;
+    min-height: 100svh;
+    margin: clamp(6rem, 12vh, 10rem) calc(50% - 50vw) 0;
+    padding: 2rem clamp(1rem, 4vw, 3rem) 1.5rem;
+    background: var(--home-night);
+    color: var(--paper);
+    text-align: center;
+  }
+
+  h2 {
+    display: contents;
+  }
+
+  h2 span {
+    font-family: var(--home-display);
+    font-size: clamp(3.5rem, 1rem + 10vw, 10.5rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+  }
+
+  h2 .second {
+    grid-row: 3;
+  }
+
+  .answers {
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    gap: 1rem 2.5rem;
+    padding-block: 3rem;
+  }
+
+  .answers a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 13rem;
+    min-height: 3.5rem;
+    padding: 0 1.75rem;
+    border-radius: 999px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 160ms var(--home-ease),
+      transform 160ms var(--home-ease);
+  }
+
+  .answers a:active {
+    transform: scale(0.97);
+  }
+
+  .solid {
+    background: oklch(0.86 0.145 92);
+    color: var(--ink);
+  }
+
+  .plain {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .answers a:focus-visible {
+    outline: 2px solid var(--paper);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .solid:hover {
+      background: oklch(0.9 0.13 92);
+    }
+
+    .plain:hover {
+      background: oklch(1 0 0);
+    }
+  }
+
+  .or {
+    font-size: 1.25rem;
+    color: oklch(0.75 0.006 80);
+  }
+
+  .answers p {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 1rem;
+    color: oklch(0.75 0.006 80);
+  }
+
+  @media (max-width: 40rem) {
+    h2 span {
+      font-size: 12.5vw;
+    }
+
+    .answers {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .answers a {
+      width: 72%;
+    }
+
+    .answers p {
+      flex-basis: auto;
+      max-width: 28ch;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .answers a {
+      transition: none;
+    }
+  }
+</style>
