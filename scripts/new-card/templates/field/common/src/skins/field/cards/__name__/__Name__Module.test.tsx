@@ -5,7 +5,8 @@ import { __CONST___SEEDS } from "./demo/__seedFile__";
 
 /*
  * What every field module does, whatever it is: its keys (a control's; a reading has none) press, a lit LED says on,
- * and unavailable blanks the screen and lays every key flat. The frame (footprints, details) is ModuleFrame's, tested
+ * and unavailable blanks the screen and lays every key flat, still focusable so a hold opens the details
+ * (spec/field.md → Unavailable). The frame (footprints, details) is ModuleFrame's, tested
  * in shared/ui.test.tsx; test what this __label__ itself does here.
  */
 const draw = (seed: keyof typeof __CONST___SEEDS, footprint?: "compact" | "standard") => {
@@ -32,10 +33,16 @@ describe("__Name__Module", () => {
   });
 
   it("blanks the screen while unavailable, says when it was last seen, and lays every key flat with no state word", () => {
-    const { container, keys } = draw("__unavailableSeed__");
+    const { container, keys, onToggle } = draw("__unavailableSeed__");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
     expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
-    expect(keys.every((key) => key.disabled)).toBe(true);
+    // Flat, not disabled: it keeps its focus and its hold, so the details still open; a press does nothing.
+    for (const key of keys) {
+      expect(key.disabled).toBe(false);
+      expect(key.getAttribute("aria-disabled")).toBe("true");
+      fireEvent.click(key);
+    }
+    expect(onToggle).not.toHaveBeenCalled();
     expect(container.querySelector(".fd-key-cap")).toBeNull();
   });
 
