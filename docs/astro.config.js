@@ -17,6 +17,19 @@ export default defineConfig({
       social: [{ icon: "github", label: "GitHub", href: repo }],
       editLink: { baseUrl: `${repo}/edit/main/docs/` },
       customCss: ["./src/styles/theme.css"],
+      // Code frames sit on their own tone, with no outline, like the rest of the site's surfaces.
+      expressiveCode: { styleOverrides: { borderWidth: "0px" } },
+      // The home page's hero draws both skins live; every other page keeps Starlight's.
+      components: { Hero: "./src/components/home/Hero.astro" },
+      // Libre Franklin sets the site's headings (theme.css); body text stays in the system face.
+      head: [
+        { tag: "link", attrs: { rel: "preconnect", href: "https://fonts.googleapis.com" } },
+        { tag: "link", attrs: { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: true } },
+        {
+          tag: "link",
+          attrs: { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;700&display=swap" },
+        },
+      ],
       plugins: [starlightLlmsTxt()],
       sidebar: [
         {

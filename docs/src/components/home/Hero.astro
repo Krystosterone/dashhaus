@@ -1,0 +1,474 @@
+---
+/**
+ * Starlight's hero, replaced for the home page: the page's title and tagline from its frontmatter, the two ways in,
+ * and both skins' phone examples running live, each on its own shape (Orb's round button, Field's square key). Any
+ * other page with a `hero` keeps Starlight's own.
+ */
+import Default from "@astrojs/starlight/components/Hero.astro";
+import LiveStory from "../LiveStory.astro";
+import orbDark from "../../assets/skins/phone-orb-dark.webp";
+import orbLight from "../../assets/skins/phone-orb-light.webp";
+import fieldDark from "../../assets/skins/phone-field-dark.webp";
+import fieldLight from "../../assets/skins/phone-field-light.webp";
+
+const { entry } = Astro.locals.starlightRoute;
+const home = entry.id === "index" || entry.id === "";
+const { title = entry.data.title, tagline } = entry.data.hero ?? {};
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const PATHS = [
+  { href: `${base}/start/deploy/`, name: "Deploy a dashboard", text: "Install the prebuilt bundle, run one command, then lay out your rooms in YAML." },
+  { href: `${base}/start/build-a-skin/`, name: "Build a skin", text: "Scaffold your own on the same hooks, with tests, a one-file build and a deploy." },
+];
+
+/** Each skin's phone example: its Storybook globals, where its screen starts in the story and how it rounds. */
+const SKINS = [
+  {
+    skin: "orb",
+    name: "Orb",
+    text: "Soft and round, read at a glance.",
+    light: "theme:light",
+    dark: "theme:dark",
+    screen: { top: 47, radius: 36 },
+    poster: { light: orbLight, dark: orbDark },
+  },
+  {
+    skin: "field",
+    name: "Field",
+    text: "A hardware panel with keys, faders and a dark screen.",
+    light: "finish:alloy",
+    dark: "finish:black",
+    screen: { top: 44, radius: 28 },
+    poster: { light: fieldLight, dark: fieldDark },
+  },
+] as const;
+---
+
+{
+  home ? (
+    <section class="home-hero not-content" aria-labelledby="_top">
+      <div class="home-hero-inner">
+        <div class="copy">
+          <h1 id="_top" data-page-title set:html={title} />
+          {tagline && <p class="lede" set:html={tagline} />}
+          <ul class="paths">
+            {PATHS.map(({ href, name, text }) => (
+              <li>
+                <a href={href}>
+                  <span class="path-name">
+                    {name}
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+                      <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                  <span class="path-text">{text}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p class="note">Both skins run live on a demo house. Press, slide and scroll them.</p>
+        </div>
+
+        <div class="stage" data-skin-stage data-active="orb">
+          <div class="switch" role="group" aria-label="Skin to show">
+            {SKINS.map(({ skin, name }, index) => (
+              <button type="button" data-skin={skin} aria-pressed={index === 0 ? "true" : "false"}>
+                {name}
+              </button>
+            ))}
+          </div>
+          {SKINS.map(({ skin, name, text, light, dark, screen, poster }) => (
+            <figure class="phone" data-skin={skin}>
+              <figcaption>
+                <strong>{name}</strong> {text}
+              </figcaption>
+              <div class="screen">
+                <LiveStory
+                  id={`${skin}-dashboards-examples--phone`}
+                  title={`${name} on a phone, live on the demo house`}
+                  device="Phone"
+                  width={390}
+                  height={844}
+                  light={light}
+                  dark={dark}
+                  screen={screen}
+                  poster={{ ...poster, alt: "" }}
+                  link={false}
+                />
+              </div>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  ) : (
+    <Default />
+  )
+}
+
+<style>
+  .home-hero {
+    /* Orb's accent at each theme's lightness, and Field's parameter orange: the two skins' own colours. */
+    --orb: oklch(0.82 0.145 92);
+    --field: #ff5a1f;
+    --pad: clamp(1rem, 4vw, 3rem);
+    position: relative;
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    margin-top: -1.5rem;
+    overflow: clip;
+  }
+
+  :global(:root[data-theme="light"]) .home-hero {
+    --orb: oklch(0.89 0.145 92);
+  }
+
+  .home-hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: center;
+    max-width: 84rem;
+    min-height: calc(100svh - var(--sl-nav-height));
+    margin-inline: auto;
+    padding: clamp(2rem, 5vh, 4rem) var(--pad) 0;
+  }
+
+  .copy {
+    padding-bottom: clamp(2rem, 6vh, 5rem);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--home-display);
+    font-size: clamp(2.75rem, 1.6rem + 3.4vw, 4.25rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    color: var(--sl-color-white);
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 34ch;
+    margin: 2rem 0 0;
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--sl-color-white);
+  }
+
+  .paths {
+    display: grid;
+    gap: 0.75rem;
+    margin: 2.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .paths a {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1.125rem 1.5rem 1.25rem;
+    border-radius: 1.5rem;
+    background: var(--home-tone);
+    color: var(--sl-color-white);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 160ms var(--home-ease),
+      transform 160ms var(--home-ease);
+  }
+
+  .paths a:active {
+    transform: scale(0.98);
+  }
+
+  .path-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--home-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .path-name svg {
+    color: var(--sl-color-accent);
+    transition: transform 160ms var(--home-ease);
+  }
+
+  .path-text {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .paths a:hover {
+      background: var(--home-tone-2);
+    }
+
+    .paths a:hover .path-name svg {
+      transform: translateX(4px);
+    }
+  }
+
+  .paths a:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 3px;
+  }
+
+  .note {
+    margin: 1.5rem 0 0;
+    font-size: 1rem;
+    color: var(--sl-color-gray-2);
+  }
+
+  /* The stage: each phone on its skin's shape, the shapes cropped by the hero's right and bottom edges. */
+  .stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 18.75rem));
+    justify-content: end;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-self: end;
+    padding-bottom: 4rem;
+    isolation: isolate;
+  }
+
+  .switch {
+    display: none;
+  }
+
+  .phone {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+  }
+
+  .phone::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 58%;
+    translate: -50% -50%;
+    aspect-ratio: 1;
+  }
+
+  .phone[data-skin="orb"]::before {
+    left: 95%;
+    top: 62%;
+    width: 230%;
+    border-radius: 50%;
+    background: var(--orb);
+  }
+
+  .phone[data-skin="field"]::before {
+    left: 70%;
+    top: 74%;
+    width: 200%;
+    border-radius: 9%;
+    background: var(--field);
+  }
+
+  figcaption {
+    min-height: 3em;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+
+  figcaption strong {
+    display: block;
+    font-family: var(--home-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+
+  .screen {
+    position: relative;
+  }
+
+  /* A tablet: the copy over the two phones. */
+  @media (max-width: 64rem) {
+    .home-hero-inner {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+      padding-top: 3rem;
+    }
+
+    .copy {
+      max-width: 40rem;
+      padding-bottom: 0;
+    }
+
+    .stage {
+      margin-top: 1rem;
+    }
+  }
+
+  /* A phone: one skin at a time, chosen by the switch; without script both show, one under the other. */
+  @media (max-width: 40rem) {
+    .home-hero-inner {
+      padding-top: 2rem;
+    }
+
+    .home-hero-inner {
+      row-gap: 1.25rem;
+    }
+
+    .stage {
+      grid-template-columns: minmax(0, 20rem);
+      justify-content: center;
+      gap: 1rem;
+      padding-bottom: 3rem;
+    }
+
+    :global(.js-skins) .switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.25rem;
+      padding: 0.25rem;
+      border-radius: 999px;
+      background: var(--home-tone);
+    }
+
+    .switch button {
+      min-height: 2.75rem;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--sl-color-gray-2);
+      font: 700 1rem/1 var(--home-display);
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        background-color 160ms var(--home-ease),
+        color 160ms var(--home-ease);
+    }
+
+    .switch button[aria-pressed="true"] {
+      background: var(--sl-color-white);
+      color: var(--sl-color-black);
+    }
+
+    .switch button:focus-visible {
+      outline: 2px solid var(--sl-color-accent);
+      outline-offset: 2px;
+    }
+
+    :global(.js-skins) [data-active="orb"] .phone[data-skin="field"],
+    :global(.js-skins) [data-active="field"] .phone[data-skin="orb"] {
+      display: none;
+    }
+
+    .phone[data-skin="orb"]::before,
+    .phone[data-skin="field"]::before {
+      left: 50%;
+      top: 62%;
+      width: 130vw;
+    }
+
+    /* The phone comes up within the first screen: title, sentence, the two ways in as single lines, then the skin. */
+    .copy {
+      display: contents;
+    }
+
+    h1 {
+      order: 1;
+    }
+
+    .lede {
+      order: 2;
+      margin-top: 0;
+    }
+
+    .paths {
+      order: 3;
+      margin-top: 0;
+      gap: 0.5rem;
+    }
+
+    .paths a {
+      padding: 0.875rem 1.25rem;
+    }
+
+    .path-name {
+      font-size: 1.25rem;
+    }
+
+    .path-text {
+      display: none;
+    }
+
+    .stage {
+      order: 4;
+      margin-top: 0;
+    }
+
+    .note {
+      order: 5;
+      margin: 0 0 2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .paths a,
+    .path-name svg,
+    .switch button {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * The page's entrances: the parts of each section, in reading order, each a beat after the one before. Marked here
+   * rather than in each section, so the sections stay readable without script.
+   */
+  const GROUPS = [
+    ".home-hero h1, .home-hero .lede, .home-hero .paths li, .home-hero .note",
+    ".home-hero .phone",
+    ".stages .clause, .stages .sample, .stages .control",
+    ".fields .field > *",
+    ".kinds h2, .kinds .picture, .kinds li",
+    ".choice h2 span, .choice .answers > *",
+  ];
+  if (document.querySelector(".home-hero") && "IntersectionObserver" in window) {
+    const seen = new IntersectionObserver(
+      (entries) => {
+        for (const { target, isIntersecting } of entries) {
+          if (!isIntersecting) continue;
+          target.setAttribute("data-shown", "");
+          seen.unobserve(target);
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    for (const group of GROUPS) {
+      document.querySelectorAll<HTMLElement>(group).forEach((el, index) => {
+        el.setAttribute("data-reveal", "");
+        el.style.setProperty("--reveal-delay", `${Math.min(index, 6) * 70}ms`);
+        seen.observe(el);
+      });
+    }
+    document.documentElement.classList.add("js-reveal");
+  }
+
+  /** On a phone the switch picks the skin on screen; the other's story only loads once it is picked. */
+  for (const stage of document.querySelectorAll<HTMLElement>("[data-skin-stage]")) {
+    document.documentElement.classList.add("js-skins");
+    const buttons = [...stage.querySelectorAll<HTMLButtonElement>(".switch button")];
+    for (const button of buttons) {
+      button.addEventListener("click", () => {
+        stage.dataset.active = button.dataset.skin;
+        for (const other of buttons) other.setAttribute("aria-pressed", String(other === button));
+      });
+    }
+  }
+</script>
