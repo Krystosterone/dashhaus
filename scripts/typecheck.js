@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Typechecks the root program, each public package and the documentation site's code samples (docs/examples). The
+ * Typechecks the root program, each package with a program and the documentation site's code samples (docs/examples). The
  * programs share no output and read the same files, so they run side by side; each keeps its own incremental state
  * under `node_modules/.cache/tsc/`. A failure prints the program and its output before the command exits non-zero.
  */
@@ -14,6 +14,7 @@ const programs = [
   ["--noEmit", "-p", "packages/core/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/core.tsbuildinfo"],
   ["--noEmit", "-p", "packages/dashboard/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/dashboard.tsbuildinfo"],
   ["--noEmit", "-p", "packages/deploy/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/deploy.tsbuildinfo"],
+  ["--noEmit", "-p", "packages/fake-home-assistant/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/fake-home-assistant.tsbuildinfo"],
   ["--noEmit", "-p", "src/skins/orb/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/orb.tsbuildinfo"],
   ["--noEmit", "-p", "src/skins/field/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/field.tsbuildinfo"],
   // Every code sample the documentation site shows (docs/src/components/Example.astro reads them from here).

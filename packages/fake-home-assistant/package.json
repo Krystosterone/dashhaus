@@ -1,0 +1,35 @@
+{
+  "name": "@dashhaus/fake-home-assistant",
+  "version": "0.0.0",
+  "description": "A focused in-memory Home Assistant over its websocket, REST and /local APIs, for tests and clean-room runs.",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "fake-home-assistant": "./bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "bin.js",
+    "src/*.js",
+    "src/*.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "home-assistant",
+    "fake",
+    "mock",
+    "test",
+    "websocket",
+    "lovelace",
+    "dashhaus"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}

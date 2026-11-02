@@ -7,7 +7,7 @@
  *
  * Install `@dashhaus/bundle` and `@dashhaus/deploy`; ask `dashhaus-deploy --help` in the empty folder for a config;
  * write the bundle README's `dashboard.config.mjs` and a `.env`; run `npx dashhaus-deploy --skip-build` (the packed bin)
- * over a real websocket into `fake-ha-server.js`, which also serves `/local/` so the served-file check runs for real;
+ * over a real websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the served-file check runs for real;
  * then deploy again and check nothing was recreated. No clone, no build, no React, core or dashboard in the app.
  */
 import assert from "node:assert/strict";
@@ -15,7 +15,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { startFakeHomeAssistant } from "./fake-ha-server.js";
+import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import {
   clean,
   createReport,

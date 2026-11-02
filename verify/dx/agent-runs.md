@@ -10,7 +10,7 @@ errors).
 ```sh
 npm run release:pack
 mkdir -p /tmp/run/user/tarballs /tmp/run/user-www && cp release/*.tgz /tmp/run/user/tarballs/
-node verify/dx/fake-ha-server.js --port 8801 --www /tmp/run/user-www --state /tmp/run/user-ha.json
+npx fake-home-assistant --port 8801 --www /tmp/run/user-www --state /tmp/run/user-ha.json
 ```
 
 The server prints `HA_URL`, `HA_TOKEN` and `HA_WWW`. It speaks Home Assistant's websocket API (auth,
