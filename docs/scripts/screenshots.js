@@ -38,6 +38,7 @@ const KINDS = {
   toggle: ["orb-cards-toggle--do-not-disturb", "field-cards-toggle--on-until"],
   sound: ["orb-cards-sound--on", "field-cards-sound--playing"],
   humidifier: ["orb-cards-humidifier--on", "field-cards-humidifier--humidifying"],
+  fan: ["orb-cards-fan--on", "field-cards-fan--on"],
   sensor: ["orb-cards-sensor--comfortable", "field-cards-sensor--indoor"],
   weather: ["orb-cards-weather--partly-cloudy", "field-cards-weather--partly"],
   alarm: ["orb-cards-alarm--disarmed", "field-cards-alarm--disarmed"],

@@ -35,6 +35,9 @@ import type { SoundSeed } from "../cards/sound/demo/useDemoSound";
 import { DemoLockTile } from "../cards/lock/demo/DemoLockTile";
 import { LOCK_SEEDS, LOCK_WORST_CASE } from "../cards/lock/demo/useDemoLock";
 import type { LockSeed } from "../cards/lock/demo/useDemoLock";
+import { DemoFanTile } from "../cards/fan/demo/DemoFanTile";
+import { FAN_SEEDS, FAN_WORST_CASE } from "../cards/fan/demo/useDemoFan";
+import type { FanSeed } from "../cards/fan/demo/useDemoFan";
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its
@@ -94,6 +97,11 @@ const SOUNDS: Record<"demo" | "worst", SoundSeed[]> = {
 const LOCKS: Record<"demo" | "worst", LockSeed[]> = {
   demo: [LOCK_SEEDS.locked],
   worst: LOCK_WORST_CASE,
+};
+
+const FANS: Record<"demo" | "worst", FanSeed[]> = {
+  demo: [FAN_SEEDS.on],
+  worst: FAN_WORST_CASE,
 };
 
 function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: CardFootprint }) {
@@ -165,6 +173,7 @@ function WorstCasePage() {
       {SENSORS[data].map((seed, index) => <Row key={`s${index}`}>{(footprint) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} />}</Row>)}
       {HUMIDIFIERS[data].map((seed, index) => <Row key={`h${index}`}>{(footprint) => <DemoHumidifierTile seed={seed} footprint={footprint} />}</Row>)}
       {SOUNDS[data].map((seed, index) => <Row key={`n${index}`}>{(footprint) => <DemoSoundTile seed={seed} footprint={footprint} />}</Row>)}
+      {FANS[data].map((seed, index) => <Row key={`f${index}`}>{(footprint) => <DemoFanTile seed={seed} footprint={footprint} />}</Row>)}
       {OWLETS[data].map((seed, index) => <Row key={`o${index}`}>{(footprint) => <DemoOwletTile seed={seed} footprint={footprint} />}</Row>)}
       <DataToggle value={data} onChange={setData} />
     </div>

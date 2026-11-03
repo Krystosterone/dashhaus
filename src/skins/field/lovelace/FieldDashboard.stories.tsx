@@ -17,7 +17,7 @@ const stamp = "2026-10-19T11:20:00Z";
 const entity = (id: string, name: string, state: string, attributes: Record<string, unknown>) =>
   ({ [id]: { entity_id: id, state, attributes: { friendly_name: name, ...attributes }, last_changed: stamp, last_updated: stamp } });
 
-/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a sound machine and its volume, curtains and a garage door, the house alarm (code 1234), an Owlet sock and its base station, room sensors with their companions, the weather, and modes. */
+/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a desk fan, a sound machine and its volume, curtains and a garage door, the house alarm (code 1234), an Owlet sock and its base station, room sensors with their companions, the weather, and modes. */
 const ENTITIES: HassEntities = {
   ...entity("light.ceiling", "Ceiling", "on", { supported_color_modes: ["color_temp"], color_mode: "color_temp", brightness: 204, color_temp_kelvin: 2700, min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
   ...entity("light.reading_lamp", "Reading lamp", "off", { supported_color_modes: ["color_temp"], min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
@@ -37,7 +37,7 @@ const ENTITIES: HassEntities = {
   ...entity("input_boolean.guest_mode", "Guest mode", "on", {}),
   ...entity("switch.white_noise", "White noise", "on", {}),
   ...entity("number.white_noise_volume", "White noise volume", "62", { min: 0, max: 100, step: 1 }),
-  ...entity("switch.office_fan", "Desk fan", "off", {}),
+  ...entity("fan.office", "Desk fan", "on", { percentage: 67, percentage_step: 100 / 3, preset_modes: ["normal", "sleep"], oscillating: true, supported_features: 1 | 2 | 8 | 16 | 32 }),
   ...entity("cover.living_room_curtains", "Curtains", "open", { device_class: "curtain", current_position: 70, supported_features: 1 | 2 | 4 | 8 }),
   ...entity("cover.garage_door", "Garage door", "closed", { device_class: "garage", supported_features: 1 | 2 | 8 }),
   ...entity("alarm_control_panel.house", "Alarm", "disarmed", { code_format: "number", code_arm_required: true, supported_features: 1 | 2 | 4, changed_by: "Alex" }),
@@ -59,7 +59,7 @@ const ITEMS: ModuleConfig[] = [
   { entity: "humidifier.nursery", kind: "humidifier", area: "Nursery" },
   { entity: "sensor.nursery_temperature", kind: "sensor", area: "Nursery", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" },
   { entity: "light.desk_strip", kind: "light", area: "Office" },
-  { entity: "switch.office_fan", kind: "toggle", area: "Office", icon: "power" },
+  { entity: "fan.office", kind: "fan", area: "Office" },
   { entity: "light.porch", kind: "light", area: "Outside" },
   { entity: "cover.garage_door", kind: "cover", area: "Outside" },
   { entity: "sensor.outside_temperature", kind: "sensor", area: "Outside", battery: "sensor.outside_battery", outdoor: true },

@@ -186,8 +186,9 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
   edit(config, after(markers.fieldKinds, `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""} },`));
   const dashboard = seams.field.dashboard;
   edit(dashboard, after(markers.moduleImports, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
-  // The module's own name and area, where the hook takes them.
-  const passed = ["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)).map((key) => ` ${key}={item.${key}}`).join("");
+  // The module's own name and area, and whether it reads today, where the hook takes them (YAML `history` is `loadHistory`).
+  const passed = ["name", "area", "loadHistory"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options))
+    .map((key) => key === "loadHistory" ? " loadHistory={item.history}" : ` ${key}={item.${key}}`).join("");
   edit(dashboard, after(markers.liveModules, `  ${name}: (item, footprint) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
   const listed = read(seams.deployDoc).match(/^\| `cards` \| a list of ([^|]*?) entity ids/m)?.[1] ?? "";
   if (domains.some((d) => !listed.includes(`\`${d}.*\``))) edit(seams.deployDoc, (s) => s.replace(/^(\| `cards` \| a list of )([^|]*?)( entity ids)/m, (_, head, list, tail) => {

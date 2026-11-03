@@ -65,6 +65,28 @@
     "companions": [],
     "fixtureId": "cover.living_room"
   },
+  "fan": {
+    "name": "fan",
+    "Name": "Fan",
+    "CONST": "FAN",
+    "words": "fan",
+    "Label": "Fan",
+    "domains": [
+      "fan"
+    ],
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "fan.bedroom"
+  },
   "humidifier": {
     "name": "humidifier",
     "Name": "Humidifier",

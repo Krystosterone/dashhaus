@@ -1,0 +1,77 @@
+{
+  "fan.bedroom": {
+    "entity_id": "fan.bedroom",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Bedroom",
+      "percentage": 67,
+      "percentage_step": 33.333333333333336,
+      "preset_mode": "sleep",
+      "preset_modes": ["normal", "sleep", "nature"],
+      "oscillating": true,
+      "supported_features": 59
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "fan.living_room_ceiling": {
+    "entity_id": "fan.living_room_ceiling",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Living room ceiling",
+      "percentage": 40,
+      "percentage_step": 1,
+      "direction": "reverse",
+      "supported_features": 53
+    },
+    "last_changed": "2026-10-19T10:40:00+00:00",
+    "last_updated": "2026-10-19T10:40:00+00:00"
+  },
+  "fan.office": {
+    "entity_id": "fan.office",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Office",
+      "percentage": 0,
+      "percentage_step": 25,
+      "preset_mode": null,
+      "preset_modes": ["auto"],
+      "oscillating": false,
+      "supported_features": 59
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "fan.bathroom_extractor": {
+    "entity_id": "fan.bathroom_extractor",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Bathroom extractor",
+      "supported_features": 48
+    },
+    "last_changed": "2026-10-19T09:30:00+00:00",
+    "last_updated": "2026-10-19T09:30:00+00:00"
+  },
+  "fan.porch": {
+    "entity_id": "fan.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch",
+      "supported_features": 49
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "fan.garage": {
+    "entity_id": "fan.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "last_seen": "2026-10-19T08:20:00+00:00",
+      "supported_features": 49,
+      "restored": true
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}
