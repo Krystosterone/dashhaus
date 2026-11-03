@@ -19,6 +19,7 @@ export interface PackageManifest {
   name: string;
   version: string;
   private?: boolean;
+  license?: string;
   type?: string;
   sideEffects?: boolean | string[];
   files?: string[];
@@ -34,5 +35,6 @@ export interface PackageManifest {
 export const root: string;
 export const publicPackages: PublicPackage[];
 export const SEMVER: RegExp;
+export const LICENSE: string;
 export function readManifest(dir: string): Promise<PackageManifest>;
 export function publishManifest(manifest: PackageManifest): PackageManifest;

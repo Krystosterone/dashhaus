@@ -25,11 +25,13 @@ export const publicPackages = [
   { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.js", "src/*.js", "src/*.d.ts", "README.md"] },
   { key: "orb", name: "@dashhaus/orb", dir: "src/skins/orb", ship: ["dist", "README.md"] },
   { key: "field", name: "@dashhaus/field", dir: "src/skins/field", ship: ["dist", "README.md"] },
-  { key: "bundle", name: "@dashhaus/bundle", dir: "packages/bundle", ship: ["dist", "README.md"] },
+  { key: "bundle", name: "@dashhaus/bundle", dir: "packages/bundle", ship: ["dist", "README.md", "THIRD_PARTY_NOTICES.md"] },
   { key: "scaffold", name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", ship: ["dist", "bin.js", "README.md"] },
 ];
 
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+/** Every public package declares this license, and its tarball ships the root LICENSE. */
+export const LICENSE = "MIT";
 const DEPENDENCY_FIELDS = ["dependencies", "peerDependencies", "optionalDependencies"];
 
 export async function readManifest(dir) {
@@ -55,6 +57,7 @@ export function publishManifest(manifest) {
   if (!SEMVER.test(manifest.version) || manifest.version === "0.0.0") {
     throw new Error(`${manifest.name}: release version must be a real semver, not ${manifest.version}; run npm run release:version -- <version>`);
   }
+  if (manifest.license !== LICENSE) throw new Error(`${manifest.name}: package.json must declare "license": "${LICENSE}"`);
   const next = structuredClone(manifest);
   delete next.private;
   next.exports = withoutSource(next.exports);

@@ -61,6 +61,7 @@ export async function pack(outDir = out, buildRoot = root) {
       const stage = join(stageRoot, pkg.key);
       await mkdir(stage, { recursive: true });
       await writeFile(join(stage, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+      await copyFile(join(root, "LICENSE"), join(stage, "LICENSE"));
       await stageFiles(stage, pkg.dir, pkg.ship, buildRoot);
       execFileSync("npm", ["pack", "--pack-destination", outDir, "--silent"], { cwd: stage, stdio: "inherit" });
       const tarball = join(outDir, `${manifest.name.replace(/^@/, "").replace("/", "-")}-${manifest.version}.tgz`);

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "A focused in-memory Home Assistant over its websocket, REST and /local APIs, for tests and clean-room runs.",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "bin": {
     "fake-home-assistant": "./bin.js"

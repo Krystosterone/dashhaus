@@ -27,7 +27,7 @@ What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what
 Current candidate notes: [0.2.0](releases/0.2.0.md), including the publish order, the changes since `0.1.0` and the
 tarball inspection.
 
-Every package ships a non-empty `README.md`; `files` keeps it in the tarball and `npm run verify:packages` refuses an empty one. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
+Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
@@ -45,7 +45,7 @@ npm install --package-lock-only
 The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`,
 including the scaffolder's `src/templates/standalone/package.json` so a newly scaffolded skin installs the same line.
 `scripts/release/manifest.js` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
-without `files`/`sideEffects`; `verify:packages` reads the packed template's ranges back.
+without `files`/`sideEffects`, or without `license: MIT`; `verify:packages` reads the packed template's ranges back.
 
 If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.js` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
 
