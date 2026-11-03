@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it__vi__ } from "vitest";
 import { __Name__Module } from "./__Name__Module";
-import { __CONST___SEEDS } from "./demo/__seedFile__";
+import { __CONST___SEEDS } from "__seeds__";
 
 /*
  * What every field module does, whatever it is: its keys (a control's; a reading has none) press, a lit LED says on,

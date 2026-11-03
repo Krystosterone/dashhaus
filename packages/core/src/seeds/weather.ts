@@ -1,6 +1,5 @@
-// Copied from orb's card by `npm run new-card -- weather --skin field`: field's own seeds from here.
-import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@dashhaus/core/entities/weather/types";
-import type { Reading } from "@dashhaus/core/entities/history";
+import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "../entities/weather/types";
+import type { Reading } from "../entities/history";
 
 /** Example data for stories. The clock is fixed at 11:54 (the night example at 22:54). */
 export interface WeatherSeed { entity: WeatherEntity; history: WeatherHistory; hourly: HourlyForecast[]; daily: DailyForecast[] }
@@ -87,8 +86,8 @@ export type WeatherSeedName = keyof typeof WEATHER_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Long and compound names,
- * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. The card's
- * Worst case story and Orb → Foundations → Worst case both draw these.
+ * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. Every skin's
+ * Worst case story draws these.
  */
 const H = 11;
 export const WEATHER_WORST_CASE: WeatherSeed[] = [

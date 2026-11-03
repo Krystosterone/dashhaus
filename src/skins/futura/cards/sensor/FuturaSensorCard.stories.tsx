@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FuturaSensorCard } from "./FuturaSensorCard";
 import type { FuturaFootprint } from "../../shared/ui";
-import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "./demo/sensors";
-import type { SensorSeed, SensorSeedName } from "./demo/sensors";
+import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
+import type { SensorSeed, SensorSeedName } from "@dashhaus/core/seeds/sensor";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEED_NAMES = Object.keys(SENSOR_SEEDS) as SensorSeedName[];

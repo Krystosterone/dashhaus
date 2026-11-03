@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { LockModule } from "./LockModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { LOCK_SEEDS, LOCK_WORST_CASE, useDemoLock } from "./demo/useDemoLock";
-import type { LockSeed, LockSeedName } from "./demo/useDemoLock";
+import { LOCK_SEEDS, LOCK_WORST_CASE, useDemoLock } from "@dashhaus/core/seeds/lock";
+import type { LockSeed, LockSeedName } from "@dashhaus/core/seeds/lock";
 import type { LockAction } from "@dashhaus/core/entities/lock/types";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;

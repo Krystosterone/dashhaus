@@ -1,6 +1,6 @@
 import { AlarmTile } from "../AlarmTile";
-import { ALARM_SEEDS, useDemoAlarm } from "./useDemoAlarm";
-import type { AlarmSeedName, AlarmSeed } from "./useDemoAlarm";
+import { ALARM_SEEDS, useDemoAlarm } from "@dashhaus/core/seeds/alarm";
+import type { AlarmSeedName, AlarmSeed } from "@dashhaus/core/seeds/alarm";
 
 export interface DemoAlarmTileProps {
   /** Which example panel to show. */

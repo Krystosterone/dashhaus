@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OwletModule } from "./OwletModule";
 import type { OwletModuleProps } from "./OwletModule";
-import { OWLET_SEEDS } from "./demo/socks";
+import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
 
 /*
  * What every field module does, whatever it is: a reading has no keys, and unavailable blanks the screen. The frame

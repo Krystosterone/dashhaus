@@ -1,6 +1,6 @@
 import { __Name__Tile } from "../__Name__Tile";
-import { __CONST___SEEDS, useDemo__Name__ } from "./useDemo__Name__";
-import type { __Name__SeedName, __Name__Seed } from "./useDemo__Name__";
+import { __CONST___SEEDS, useDemo__Name__ } from "@dashhaus/core/seeds/__name__";
+import type { __Name__SeedName, __Name__Seed } from "@dashhaus/core/seeds/__name__";
 import type { CardFootprint } from "../../../shared/ui";
 
 export interface Demo__Name__TileProps {

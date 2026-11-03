@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoCoverTile as DemoTile } from "./demo/DemoCoverTile";
-import { COVER_WORST_CASE } from "./demo/useDemoCover";
+import { COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const COVERS = ["curtains", "blind", "shade", "moving", "garage", "unavailable"] as const;
+const COVERS = ["curtains", "blind", "shade", "moving", "garage", "gate", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Cover",

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LockModule } from "./LockModule";
-import { LOCK_SEEDS, LOCK_WORST_CASE } from "./demo/useDemoLock";
+import { LOCK_SEEDS, LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
 import { SETTLE_MS } from "@dashhaus/core/hooks";
 import type { LockEntity } from "@dashhaus/core/entities/lock/types";
 

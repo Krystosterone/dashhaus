@@ -1,6 +1,6 @@
 import { CoverTile } from "../CoverTile";
-import { COVER_SEEDS, useDemoCover } from "./useDemoCover";
-import type { CoverSeedName, CoverSeed } from "./useDemoCover";
+import { COVER_SEEDS, useDemoCover } from "@dashhaus/core/seeds/cover";
+import type { CoverSeedName, CoverSeed } from "@dashhaus/core/seeds/cover";
 
 export interface DemoCoverTileProps {
   /** Which example cover to show. */

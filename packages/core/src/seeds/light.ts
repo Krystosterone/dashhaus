@@ -1,17 +1,16 @@
-// Copied from Orb by `npm run new-card -- light --skin lcars`; this skin owns its Seeds from here.
 import { useMemo, useState } from "react";
-import type { LightEntity, LightHistory, HourSample } from "@dashhaus/core/entities/light/types";
+import type { LightEntity, LightHistory, HourSample } from "../entities/light/types";
 
 /** Example data for stories. Times are fixed so screenshots stay stable. */
 export const NOW = { hour: 11, minute: 54 };
 
-export interface DemoSeed {
+export interface LightSeed {
   entity: LightEntity;
   /** Hours 0 to NOW.hour - 1. */
   past: HourSample[];
 }
 
-export const SEEDS = {
+export const LIGHT_SEEDS = {
   dimmable: {
     entity: { entityId: "light.living_room_ceiling", name: "Ceiling", area: "Living room", state: "on", supportsBrightness: true, brightness: 80, supportsColorTemp: true, kelvin: 2700, lastChanged: "10:31" },
     past: [0, 0, 0, 0, 0, 0, 0.3, 0.6, 0.8, 0.8, 0.5],
@@ -40,18 +39,31 @@ export const SEEDS = {
     entity: { entityId: "light.bedside", name: "Bedside", area: "Bedroom", state: "on", supportsBrightness: true, brightness: 25, lastChanged: "07:02" },
     past: [0, 0, 0, 0, 0, 0, 0.2, 0.25, 0, 0, 0],
   },
-} satisfies Record<string, DemoSeed>;
+  whiteAndColour: {
+    entity: { entityId: "light.desk_strip", name: "Desk strip", area: "Office", state: "on", supportsBrightness: true, brightness: 60, supportsColorTemp: true, kelvin: 4000, supportsColor: true, lastChanged: "09:40" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0.6],
+  },
+  /** On, with no brightness reported yet. */
+  noReading: {
+    entity: { entityId: "light.hallway", name: "Hallway", state: "on", supportsBrightness: true },
+    past: [null, null, null, null, null, null, null, null, null, null, null],
+  },
+} satisfies Record<string, LightSeed>;
 
-export type SeedName = keyof typeof SEEDS;
+export type LightSeedName = keyof typeof LIGHT_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Long and compound names,
- * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. The card's
- * Worst case story and Orb → Foundations → Worst case both draw these.
+ * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. Every skin's
+ * Worst case story draws these.
  */
 const zeros = (n: number) => Array<number>(n).fill(0);
 const H = NOW.hour;
-export const LIGHT_WORST_CASE: DemoSeed[] = [
+export const LIGHT_WORST_CASE: LightSeed[] = [
+  { // A long name and area, full brightness, the coolest white
+    entity: { entityId: "light.kitchen_island_pendant_cluster", name: "Kitchen island pendant cluster over the breakfast bar", area: "Kitchen and dining, ground floor", state: "on", supportsBrightness: true, brightness: 100, supportsColorTemp: true, kelvin: 6500, lastChanged: "23:59" },
+    past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  },
   { // German compound name, long area, 1%, a Kelvin value below the bulb's own minimum
     entity: { entityId: "light.wohnzimmer", name: "Wohnzimmerdeckenleuchte", area: "Primary bedroom suite, upstairs", state: "on", supportsBrightness: true, brightness: 1, supportsColorTemp: true, kelvin: 2000, minKelvin: 2202, maxKelvin: 6535, lastChanged: "11:54" },
     past: zeros(H),
@@ -68,8 +80,8 @@ export const LIGHT_WORST_CASE: DemoSeed[] = [
 
 const stamp = () => `${NOW.hour}:${String(NOW.minute).padStart(2, "0")}`;
 
-/** Local state that behaves like a Home Assistant light, for stories and prototypes. */
-export function useDemoLight(seed: DemoSeed, overrides?: Partial<LightEntity>) {
+/** Local state that behaves like a Home Assistant light, with today's history, for every skin's stories. */
+export function useDemoLight(seed: LightSeed, overrides?: Partial<LightEntity>) {
   const [entity, setEntity] = useState<LightEntity>({ ...seed.entity, ...overrides });
 
   const history = useMemo<LightHistory>(() => {
@@ -89,7 +101,8 @@ export function useDemoLight(seed: DemoSeed, overrides?: Partial<LightEntity>) {
     history,
     onToggle: () => update({ state: entity.state === "on" ? "off" : "on" }),
     onBrightnessChange: (v: number) => update({ brightness: v, state: "on" }),
-    onKelvinChange: (k: number) => update({ kelvin: k }),
-    onColorChange: (hs: [number, number]) => update({ hs, state: "on" }),
+    // As Home Assistant reports it: a lamp shows a colour temperature or a colour, never both.
+    onKelvinChange: (k: number) => update({ kelvin: k, hs: undefined }),
+    onColorChange: (hs: [number, number]) => update({ hs, kelvin: undefined, state: "on" }),
   };
 }

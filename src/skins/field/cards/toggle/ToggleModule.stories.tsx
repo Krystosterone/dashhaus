@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ToggleModule } from "./ToggleModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "./demo/useDemoToggle";
-import type { ToggleSeed, ToggleSeedName } from "./demo/useDemoToggle";
+import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "@dashhaus/core/seeds/toggle";
+import type { ToggleSeed, ToggleSeedName } from "@dashhaus/core/seeds/toggle";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const TOGGLES = Object.keys(TOGGLE_SEEDS) as ToggleSeedName[];
@@ -50,7 +50,7 @@ export const OnUntil: Story = { name: "On, until", args: { toggle: "dnd" } };
 export const On: Story = { args: { toggle: "guest" } };
 export const Off: Story = { args: { toggle: "quiet" } };
 /** A switch rather than a helper: the same module, its power glyph. */
-export const Switch: Story = { args: { toggle: "power" } };
+export const Switch: Story = { args: { toggle: "soundMachine" } };
 /** Blank segments and when it was last seen; the key lies flat. */
 export const Unavailable: Story = { args: { toggle: "unavailable" } };
 

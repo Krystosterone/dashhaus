@@ -6,7 +6,7 @@
  *
  * The domain, its `useHa<Name>` hook and its orb card come first; this reads them and draws only field's side
  * (AGENTS.md → Adding an existing domain to another skin). It copies ./templates/field/common plus
- * ./templates/field/<kind>, copies orb's demo seeds into the card's own demo/ (a skin never imports another), and
+ * ./templates/field/<kind>, draws its stories from the domain's seeds in @dashhaus/core (every skin's, never a copy), and
  * registers the module everywhere verify/field-conformance.test.ts looks, the Lovelace card included:
  *   - control: one key per action the domain declares a press can give (`<NAME>_ACTIONS` beside its handlers): a tap
  *     acts (`onToggle` latches, its LED on while the entity is "on"); an action that asks first, or takes a code, opens
@@ -70,31 +70,23 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   }
   const pressed = kind === "control" ? [...taps, ...asked] : [];
 
-  // ---------- Orb's card: its code, its seeds, its connected story ----------
+  // ---------- Orb's card (its code, its connected story) and the domain's seeds in core ----------
   const orbDir = `${ORB}/cards/${name}`;
-  if (!exists(orbDir)) fail(`${orbDir} doesn't exist: field copies its demo seeds and card code from orb's card`);
+  if (!exists(orbDir)) fail(`${orbDir} doesn't exist: field takes its card code and connected story from orb's card`);
   const fieldCodes = readdirSync(join(root, SKIN, "cards")).map((d) => exists(`${SKIN}/cards/${d}/${d[0].toUpperCase()}${d.slice(1)}Module.tsx`) && read(`${SKIN}/cards/${d}/${d[0].toUpperCase()}${d.slice(1)}Module.tsx`).match(/<ModuleFrame\s+kind="fd-([a-z]{2})"/)?.[1]).filter(Boolean);
   const code = askedCode ?? (exists(`${orbDir}/${Name}Card.tsx`) ? read(`${orbDir}/${Name}Card.tsx`).match(/useCard\("([a-z]{2})"/)?.[1] : undefined);
   if (!code || !/^[a-z]{2}$/.test(code)) fail(`no card code: pass --code <xx>, two lower-case letters for its fd-<xx>- classes`);
   if (fieldCodes.includes(code)) fail(`fd-${code}- is taken; in use: ${fieldCodes.map((c) => `fd-${c}-`).join(", ")}. Pass --code <xx>`);
 
-  const demoDir = `${orbDir}/demo`;
-  const seedFile = exists(demoDir) && readdirSync(join(root, demoDir)).find((f) => /\.ts$/.test(f) && new RegExp(`export const ${CONST}_SEEDS\\b`).test(read(`${demoDir}/${f}`)));
-  if (!seedFile) fail(`${demoDir} has no .ts file exporting ${CONST}_SEEDS to copy`);
-  let seeds = read(`${demoDir}/${seedFile}`);
-  for (const needed of [`${CONST}_WORST_CASE`, `${Name}Seed`, `${Name}SeedName`]) {
-    if (!new RegExp(`export (const|interface|type) ${needed}\\b`).test(seeds)) fail(`${demoDir}/${seedFile} must export ${needed}`);
+  // The domain's seeds are every skin's, in @dashhaus/core: read them, never copy them.
+  const seedPath = packageFile("core", `src/seeds/${name}.ts`);
+  if (!exists(seedPath)) fail(`${seedPath} doesn't exist: a domain's demo seeds live in @dashhaus/core, for every skin's stories`);
+  const seeds = read(seedPath);
+  for (const needed of [`${CONST}_SEEDS`, `${CONST}_WORST_CASE`, `${Name}Seed`, `${Name}SeedName`]) {
+    if (!new RegExp(`export (const|interface|type) ${needed}\\b`).test(seeds)) fail(`${seedPath} must export ${needed}`);
   }
-  // Same depth in both skins, so a path to src/ stays right; orb's own modules can't come along.
-  seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
-    if (path.startsWith("../../../../../")) return line;
-    const imported = list.split(",").map((n) => n.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((n) => ["HourSample", "Reading"].includes(n))) return `import type {${list}} from "${packageSpecifier("core", "entities/history")}";`;
-    fail(`${demoDir}/${seedFile} imports ${path}, which is orb's own; move what it needs to ${packageFile("core", "src/entities")}/ first`);
-  });
-  seeds = `// Copied from orb's card by \`npm run new-card -- ${name} --skin field\`: field's own seeds from here.\n${seeds}`;
   const hasHook = new RegExp(`export function useDemo${Name}\\b`).test(seeds);
-  if (kind === "control" && !hasHook) fail(`${demoDir}/${seedFile} has no useDemo${Name} for a control's stories to press`);
+  if (kind === "control" && !hasHook) fail(`${seedPath} has no useDemo${Name} for a control's stories to press`);
   if (history && !hasHook && !/\bhistory\b/.test(shape(seeds, `${Name}Seed`) ?? "")) fail(`${Name}Seed has no history and there is no useDemo${Name} to make one`);
 
   const seedBody = objectBody(seeds, `${CONST}_SEEDS`) ?? "";
@@ -251,7 +243,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
         "",
       ].join("\n");
     })(),
-    __seedFile__: seedFile.replace(/\.ts$/, ""),
+    __seeds__: packageSpecifier("core", `seeds/${name}`),
     __firstSeed__: firstSeed,
     __unavailableSeed__: unavailableSeed,
     __transport__: transport[1],
@@ -268,7 +260,6 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const change = changes();
   const { edit } = change;
   change.fromTemplates(["field/common", `field/${kind}`], fill);
-  change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // ---------- Registrations ----------
   edit(`${SKIN}/index.ts`, after(markers.skinCards, fill(`export { __Name__Module } from "./cards/__name__/__Name__Module";
@@ -320,7 +311,7 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
 
   // ---------- Write ----------
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in field as a ${kind} (fd-${code}-, ${domains.map((d) => `${d}.*`).join(", ")}): seeds copied from ${demoDir}/${seedFile}.${kind === "control" ? `\nKeys: ${pressed.map(({ action, asks, takes }) => `${action}${asks ? " (asks first)" : takes === "code" ? " (takes a code)" : ""}`).join(", ")}.` : ""}${kind === "control" && leftOut.length ? `\nLeft out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give.` : ""}
+  console.log(`Drew ${words} in field as a ${kind} (fd-${code}-, ${domains.map((d) => `${d}.*`).join(", ")}), on the seeds in ${seedPath}.${kind === "control" ? `\nKeys: ${pressed.map(({ action, asks, takes }) => `${action}${asks ? " (asks first)" : takes === "code" ? " (takes a code)" : ""}`).join(", ")}.` : ""}${kind === "control" && leftOut.length ? `\nLeft out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give.` : ""}
 
 Next:
   1. npm run storybook  →  Field/Cards/${Name} and Field/Connected/${Name}

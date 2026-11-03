@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Demo__Name__Tile as DemoTile } from "./demo/Demo__Name__Tile";
-import { __CONST___WORST_CASE } from "./demo/useDemo__Name__";
+import { __CONST___WORST_CASE } from "@dashhaus/core/seeds/__name__";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["on", "off", "unavailable", "long"] as const;

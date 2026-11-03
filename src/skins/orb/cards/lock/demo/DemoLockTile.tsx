@@ -1,6 +1,6 @@
 import { LockTile } from "../LockTile";
-import { LOCK_SEEDS, useDemoLock } from "./useDemoLock";
-import type { LockSeedName, LockSeed } from "./useDemoLock";
+import { LOCK_SEEDS, useDemoLock } from "@dashhaus/core/seeds/lock";
+import type { LockSeedName, LockSeed } from "@dashhaus/core/seeds/lock";
 import type { LockAction } from "@dashhaus/core/entities/lock/types";
 import type { CardFootprint } from "../../../shared/ui";
 

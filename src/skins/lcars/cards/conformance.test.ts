@@ -25,9 +25,9 @@ describe.each(cards)("Lcars $name Card", ({ name, Name }) => {
   const component = `Lcars${Name}Card`;
   const dir = `${SKIN}/cards/${name}`;
 
-  it("has its presentational, story, test, demo and Connected files", () => {
+  it("has its presentational, story, test and Connected files, and the domain's seeds in @dashhaus/core", () => {
     expect([
-      `${dir}/${component}.tsx`, `${dir}/${component}.css`, `${dir}/${component}.stories.tsx`, `${dir}/${component}.test.tsx`, `${dir}/icons.tsx`, `${dir}/demo`,
+      `${dir}/${component}.tsx`, `${dir}/${component}.css`, `${dir}/${component}.stories.tsx`, `${dir}/${component}.test.tsx`, `${dir}/icons.tsx`, `packages/core/src/seeds/${name}.ts`,
       `${SKIN}/ha/Ha${component}.tsx`, `${SKIN}/ha/Ha${component}.stories.tsx`, `${SKIN}/ha/Ha${component}.test.tsx`,
     ].filter((path) => !exists(path))).toEqual([]);
   });

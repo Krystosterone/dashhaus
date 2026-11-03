@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { LockEntity, LockOutcome } from "@dashhaus/core/entities/lock/types";
-import { codeFits } from "@dashhaus/core/entities/lock/code";
+import type { LockEntity, LockOutcome } from "../entities/lock/types";
+import { codeFits } from "../entities/lock/code";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const stamp = "11:54";
@@ -50,7 +50,7 @@ export const LOCK_SEEDS = {
 
 export type LockSeedName = keyof typeof LOCK_SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: every skin's Worst case story draws these. */
 export const LOCK_WORST_CASE: LockSeed[] = [
   LOCK_SEEDS.long,
   { entity: { ...LOCK_SEEDS.long.entity, state: "unlocking", battery: 0 } },

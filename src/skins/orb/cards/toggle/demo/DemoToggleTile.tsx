@@ -1,6 +1,6 @@
 import { ToggleTile } from "../ToggleTile";
-import { TOGGLE_SEEDS, useDemoToggle } from "./useDemoToggle";
-import type { ToggleSeedName, ToggleSeed } from "./useDemoToggle";
+import { TOGGLE_SEEDS, useDemoToggle } from "@dashhaus/core/seeds/toggle";
+import type { ToggleSeedName, ToggleSeed } from "@dashhaus/core/seeds/toggle";
 
 export interface DemoToggleTileProps {
   /** Which example mode to show. */

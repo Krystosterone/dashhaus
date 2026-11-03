@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { SoundModule } from "./SoundModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { SOUND_SEEDS, SOUND_WORST_CASE, useDemoSound } from "./demo/useDemoSound";
-import type { SoundSeed, SoundSeedName } from "./demo/useDemoSound";
+import { SOUND_SEEDS, SOUND_WORST_CASE, useDemoSound } from "@dashhaus/core/seeds/sound";
+import type { SoundSeed, SoundSeedName } from "@dashhaus/core/seeds/sound";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(SOUND_SEEDS) as SoundSeedName[];

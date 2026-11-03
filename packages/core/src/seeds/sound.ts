@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import type { HourSample } from "../../../shared/ui";
-import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
+import type { HourSample } from "../entities/history";
+import type { SoundEntity, SoundHistory } from "../entities/sound/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };
@@ -40,7 +40,7 @@ export const SOUND_SEEDS = {
 
 export type SoundSeedName = keyof typeof SOUND_SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: every skin's Worst case story draws these. */
 export const SOUND_WORST_CASE: SoundSeed[] = [SOUND_SEEDS.long];
 
 /** Local state that behaves like a sound `switch` and its volume `number`, for stories and prototypes. */

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import type { HourSample } from "../../../shared/ui";
-import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
+import type { HourSample } from "../entities/history";
+import type { HumidifierEntity, HumidifierHistory } from "../entities/humidifier/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };
@@ -26,6 +26,11 @@ export const HUMIDIFIER_SEEDS = {
     entity: { entityId: "humidifier.basement", name: "Basement", area: "Lower level", kind: "dehumidifier", state: "on", action: "idle", currentHumidity: 49, targetHumidity: 50, minHumidity: 35, maxHumidity: 70, lastChanged: "09:12" },
     past: [0.6, 0.4, 0.3, 0.3, 0.2, 0.4, 0.5, 0.6, 0.8, 0.4, 0.1],
   },
+  /** No setpoint and no room reading: a unit that only runs in a mode. */
+  modeOnly: {
+    entity: { entityId: "humidifier.diffuser", name: "Diffuser", area: "Living room", state: "on", minHumidity: 0, maxHumidity: 100, mode: "sleep", modes: ["low", "sleep", "high"], lastChanged: "06:40" },
+    past: [0, 0, 0, 0, 0, 0, 0.3, 1, 1, 1, 1],
+  },
   unavailable: {
     entity: { entityId: "humidifier.nursery", name: "Nursery", area: "Upstairs", state: "unavailable", minHumidity: 0, maxHumidity: 100, lastSeen: "08:20" },
     past: [1, 1, 1, 1, 1, 1, 1, 1, "unavailable", "unavailable", "unavailable"],
@@ -39,7 +44,7 @@ export const HUMIDIFIER_SEEDS = {
 
 export type HumidifierSeedName = keyof typeof HUMIDIFIER_SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: every skin's Worst case story draws these. */
 export const HUMIDIFIER_WORST_CASE: HumidifierSeed[] = [HUMIDIFIER_SEEDS.long];
 
 /** Local state that behaves like a `humidifier` entity, for stories and prototypes. */

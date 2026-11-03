@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import type { FieldFootprint } from "../../shared/ui";
 import { ClimateModule } from "./ClimateModule";
-import { CLIMATE_SEEDS, useDemoClimate } from "./demo/useDemoClimate";
-import type { ClimateSeedName } from "./demo/useDemoClimate";
+import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "@dashhaus/core/seeds/climate";
+import type { ClimateSeed, ClimateSeedName } from "@dashhaus/core/seeds/climate";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const CLIMATES = Object.keys(CLIMATE_SEEDS) as ClimateSeedName[];
 
-function DemoClimate({ climate, width, footprint, defaultOpen }: { climate: ClimateSeedName; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
-  const demo = useDemoClimate(CLIMATE_SEEDS[climate]);
+function DemoClimate({ climate, seed, width, footprint, defaultOpen }: { climate: ClimateSeedName; seed?: ClimateSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
+  const demo = useDemoClimate(seed ?? CLIMATE_SEEDS[climate]);
   return (
     <div style={{ width, maxWidth: "100%" }}>
       <ClimateModule {...demo} footprint={footprint} defaultOpen={defaultOpen} />
@@ -50,7 +50,16 @@ export const Off: Story = { args: { climate: "off" } };
 export const Dry: Story = { args: { climate: "dry" } };
 export const FanOnly: Story = { name: "Fan only", args: { climate: "fan" } };
 export const Unavailable: Story = { args: { climate: "unavailable" } };
-export const WorstCase: Story = { name: "Worst case", args: { climate: "worstCase" } };
+/** Every slot at its widest: the worst-case seeds. */
+export const WorstCase: Story = {
+  name: "Worst case",
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ climate, width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {CLIMATE_WORST_CASE.map((seed) => <DemoClimate key={seed.entity.entityId} climate={climate} seed={seed} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 
 /** Every normalized climate state at one width. Module heights stay fixed. */
 export const AllStates: Story = {

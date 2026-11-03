@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoLockTile as DemoTile } from "./demo/DemoLockTile";
-import { LOCK_WORST_CASE } from "./demo/useDemoLock";
+import { LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["locked", "unlocked", "locking", "jammed", "code", "open", "unavailable", "long"] as const;

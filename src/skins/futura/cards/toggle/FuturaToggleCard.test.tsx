@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FuturaToggleCard } from "./FuturaToggleCard";
-import { TOGGLE_SEEDS } from "./demo/useDemoToggle";
+import { TOGGLE_SEEDS } from "@dashhaus/core/seeds/toggle";
 
 const draw = (seed: keyof typeof TOGGLE_SEEDS, defaultOpen = false) => render(<FuturaToggleCard entity={TOGGLE_SEEDS[seed].entity} defaultOpen={defaultOpen} />);
 

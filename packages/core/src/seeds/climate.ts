@@ -1,5 +1,5 @@
-import { useDemoClimate } from "@dashhaus/core/hooks";
-import type { ClimateSeed } from "@dashhaus/core/hooks";
+import { useDemoClimate } from "../hooks/useDemoClimate";
+import type { ClimateSeed } from "../hooks/useDemoClimate";
 
 export { useDemoClimate };
 export type { ClimateSeed };
@@ -9,7 +9,7 @@ export const CLIMATE_SEEDS = {
     entity: {
       entityId: "climate.living_room", name: "Thermostat", area: "Living room", state: "heat", hvacAction: "heating",
       hvacModes: ["off", "heat", "cool", "heat_cool"], currentTemperature: 20.4, currentHumidity: 41, targetTemperature: 21.5,
-      minTemp: 7, maxTemp: 30, step: 0.5, unit: "°C", presetMode: "home", presetModes: ["home", "away", "sleep", "eco"], lastChanged: "10:31",
+      minTemp: 7, maxTemp: 30, step: 0.5, unit: "°C", presetMode: "home", presetModes: ["home", "away", "sleep", "eco"], fanMode: "auto", fanModes: ["auto", "low", "high"], lastChanged: "10:31",
     },
     past: [0.2, 0.15, 0.1, 0.1, 0.15, 0.3, 0.8, 0.9, 0.5, 0.3, 0.4],
     activity: "heating",
@@ -30,6 +30,23 @@ export const CLIMATE_SEEDS = {
       minTemp: 10, maxTemp: 30, step: 0.5, unit: "°C", lastChanged: "07:40",
     },
     past: [0, 0, 0, 0, 0, 0, 0.4, 0.6, 0.2, 0, 0.1],
+    activity: "running",
+  },
+  dry: {
+    entity: {
+      entityId: "climate.sunroom", name: "Dehumidifying unit", area: "Sunroom", state: "dry", hvacAction: "drying",
+      hvacModes: ["off", "cool", "dry", "fan_only"], currentTemperature: 24.8, currentHumidity: 67, minTemp: 16, maxTemp: 30, step: 1, unit: "°C",
+      fanMode: "low", fanModes: ["low", "high"], lastChanged: "11:02",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0.2, 0.3, 0.6, 0.8, 0.7],
+    activity: "running",
+  },
+  fan: {
+    entity: {
+      entityId: "climate.studio_fan", name: "Studio ventilation", area: "Studio", state: "fan_only", hvacAction: "fan",
+      hvacModes: ["off", "fan_only"], currentTemperature: 23.6, minTemp: 16, maxTemp: 30, step: 1, unit: "°C", fanMode: "medium", fanModes: ["low", "medium", "high"], lastChanged: "10:47",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.5, 0.6, 0.8],
     activity: "running",
   },
   off: {
@@ -72,8 +89,8 @@ export type ClimateSeedName = keyof typeof CLIMATE_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Long and compound names,
- * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. The card's
- * Worst case story and Orb → Foundations → Worst case both draw these.
+ * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. Every skin's
+ * Worst case story draws these.
  */
 const H = 11;
 const zeros = (n: number) => Array<number>(n).fill(0);
@@ -83,6 +100,10 @@ const fullClimate: Pick<ClimateSeed["entity"], "hvacModes" | "presetModes" | "fa
   fanModes: ["auto", "low", "medium", "high", "top", "middle", "focus", "diffuse"],
 };
 export const CLIMATE_WORST_CASE: ClimateSeed[] = [
+  { // A long name and area in Fahrenheit, a room reading past its range, every mode, raw preset and fan names
+    entity: { entityId: "climate.north_east_multizone_heat_pump", name: "North-east open-plan living and dining heat pump", area: "Ground floor · Living, dining and kitchen", state: "heat_cool", hvacAction: "cooling", hvacModes: ["off", "heat", "cool", "heat_cool", "auto", "dry", "fan_only"], currentTemperature: 102.7, currentHumidity: 100, targetLow: 44.6, targetHigh: 95, minTemp: 44.6, maxTemp: 95, step: 0.5, unit: "°F", presetMode: "extended_absence_with_pets", presetModes: ["home", "sleep", "extended_absence_with_pets"], fanMode: "maximum_ventilation", fanModes: ["auto", "quiet_night", "maximum_ventilation"], lastChanged: "23:59" },
+    past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], activity: "cooling",
+  },
   { // Fahrenheit, whole-degree steps, both thresholds on the same value, no room reading, every mode
     entity: { entityId: "climate.zone_3", name: "Mitsubishi Hyper-Heat, zone 3", area: "Finished basement & guest suite", state: "heat_cool", hvacAction: "idle", ...fullClimate, currentHumidity: 45.333333, targetLow: 68, targetHigh: 68, minTemp: 45, maxTemp: 95, step: 1, unit: "°F", presetMode: "activity", fanMode: "diffuse", lastChanged: "11:02" },
     past: zeros(H), activity: "running",

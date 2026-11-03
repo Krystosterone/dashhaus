@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ToggleModule } from "./ToggleModule";
-import { TOGGLE_SEEDS, TOGGLE_WORST_CASE } from "./demo/useDemoToggle";
-import type { ToggleSeed } from "./demo/useDemoToggle";
+import { TOGGLE_SEEDS, TOGGLE_WORST_CASE } from "@dashhaus/core/seeds/toggle";
+import type { ToggleSeed } from "@dashhaus/core/seeds/toggle";
 
 const draw = ({ entity }: ToggleSeed, footprint?: "compact" | "standard") => {
   const onToggle = vi.fn();

@@ -1,7 +1,6 @@
-// Copied from orb's card: field's own seeds from here.
 import { useEffect, useMemo, useState } from "react";
-import type { HourSample } from "@dashhaus/core/entities/history";
-import type { AlarmEntity, AlarmHistory, AlarmMode } from "@dashhaus/core/entities/alarm/types";
+import type { HourSample } from "../entities/history";
+import type { AlarmEntity, AlarmHistory, AlarmMode } from "../entities/alarm/types";
 
 /** Example data for stories. The clock is fixed at 11:54. The demo code is 1234; the panel answers after a short wait, like HA. */
 const NOW = { hour: 11, minute: 54 };
@@ -15,7 +14,7 @@ export interface AlarmSeed {
   entity: AlarmEntity;
   /** Hours 0 to NOW.hour - 1: 1 armed, 0 disarmed. */
   past: HourSample[];
-  /** A panel Home Assistant can read but not control: the module draws it as a reading. */
+  /** A panel Home Assistant can read but not control: a skin draws it as a reading, with nothing to press. */
   readOnly?: boolean;
 }
 
@@ -45,7 +44,7 @@ export type AlarmSeedName = keyof typeof ALARM_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Long and compound names,
- * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. The module's
+ * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. Every skin's
  * Worst case story draws these.
  */
 export const ALARM_WORST_CASE: AlarmSeed[] = [

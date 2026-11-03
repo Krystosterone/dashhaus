@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CoverModule } from "./CoverModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "./demo/useDemoCover";
-import type { CoverSeed, CoverSeedName } from "./demo/useDemoCover";
+import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "@dashhaus/core/seeds/cover";
+import type { CoverSeed, CoverSeedName } from "@dashhaus/core/seeds/cover";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(COVER_SEEDS) as CoverSeedName[];

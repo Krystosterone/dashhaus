@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { HourSample } from "../../../shared/ui";
-import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
+import type { HourSample } from "../entities/history";
+import type { CoverEntity, CoverHistory } from "../entities/cover/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };
@@ -35,6 +35,11 @@ export const COVER_SEEDS = {
     entity: { entityId: "cover.garage_door", name: "Garage door", area: "Garage", state: "open", deviceClass: "garage", supportsPosition: false, supportsStop: true, lastChanged: "10:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0.6],
   },
+  /** No position, on its way shut: neither open nor shut, so the figure is blank and the key stops it. */
+  gate: {
+    entity: { entityId: "cover.driveway_gate", name: "Driveway gate", area: "Outside", state: "closing", deviceClass: "gate", supportsPosition: false, supportsStop: true, lastChanged: "11:53" },
+    past: [0, 0, 0, 0, 0, 0, 0, 0.2, 0, 0, 0.1],
+  },
   unavailable: {
     entity: { entityId: "cover.skylight", name: "Skylight", area: "Upstairs hall", state: "unavailable", deviceClass: "window", position: 30, supportsPosition: true, supportsStop: false, lastSeen: "08:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.3, "unavailable", "unavailable", "unavailable"],
@@ -45,8 +50,8 @@ export type CoverSeedName = keyof typeof COVER_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Long and compound names,
- * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. The card's
- * Worst case story and Orb → Foundations → Worst case both draw these.
+ * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. Every skin's
+ * Worst case story draws these.
  */
 export const COVER_WORST_CASE: CoverSeed[] = [
   { // A long name, curtains a hair from closed, moving, with no stop
@@ -56,6 +61,14 @@ export const COVER_WORST_CASE: CoverSeed[] = [
   { // A gate with no area and no history, left open, never reported when it changed
     entity: { entityId: "cover.gate", name: "Gate", state: "open", deviceClass: "gate", supportsPosition: false, supportsStop: false },
     past: [],
+  },
+  { // A long name and area, a raw float position, a door left open: its warning on the screen
+    entity: { entityId: "cover.garage_side", name: "Garage side door to the back garden", area: "Garage and workshop (north side)", state: "open", deviceClass: "door", position: 99.6, supportsPosition: true, supportsStop: true, lastChanged: "Fri 18:30" },
+    past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  },
+  { // Slats at their end, a raw float tilt
+    entity: { entityId: "cover.studio_blind", name: "Studio skylight blind", area: "Attic", state: "open", deviceClass: "blind", position: 100, tilt: 0.4, supportsPosition: true, supportsStop: false, supportsTilt: true, lastChanged: "06:02" },
+    past: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
   },
 ];
 

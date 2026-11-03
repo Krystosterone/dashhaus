@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CoverModule } from "./CoverModule";
 import type { CoverModuleProps } from "./CoverModule";
-import { COVER_SEEDS, COVER_WORST_CASE } from "./demo/useDemoCover";
+import { COVER_SEEDS, COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 import type { CoverEntity } from "@dashhaus/core/entities/cover/types";
 
 /*

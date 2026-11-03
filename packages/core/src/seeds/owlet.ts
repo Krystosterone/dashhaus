@@ -1,7 +1,6 @@
-// Copied from orb's card by `npm run new-card -- owlet --skin field`: field's own seeds from here.
-import type { HourSample } from "@dashhaus/core/entities/history";
-import type { OwletEntity, OwletHistory, Reading, SleepState } from "@dashhaus/core/entities/owlet/types";
-import { SLEEP_SAMPLE } from "@dashhaus/core/entities/owlet/sleep";
+import type { HourSample } from "../entities/history";
+import type { OwletEntity, OwletHistory, Reading, SleepState } from "../entities/owlet/types";
+import { SLEEP_SAMPLE } from "../entities/owlet/sleep";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };

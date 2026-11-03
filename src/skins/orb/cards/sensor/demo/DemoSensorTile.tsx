@@ -1,6 +1,6 @@
 import { SensorTile } from "../SensorTile";
-import { SENSOR_SEEDS } from "./sensors";
-import type { SensorSeedName, SensorSeed } from "./sensors";
+import { SENSOR_SEEDS } from "@dashhaus/core/seeds/sensor";
+import type { SensorSeedName, SensorSeed } from "@dashhaus/core/seeds/sensor";
 
 export interface DemoSensorTileProps {
   /** Which example sensor to show. */

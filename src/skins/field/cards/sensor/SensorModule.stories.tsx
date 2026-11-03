@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { SensorModule } from "./SensorModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "./demo/sensors";
-import type { SensorSeed, SensorSeedName } from "./demo/sensors";
+import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
+import type { SensorSeed, SensorSeedName } from "@dashhaus/core/seeds/sensor";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SENSORS = Object.keys(SENSOR_SEEDS) as SensorSeedName[];
@@ -37,7 +37,7 @@ const meta = {
     footprint: { control: "inline-radio", options: ["compact", "standard"], description: "Module height" },
     defaultOpen: { control: "boolean", description: "Open the detail panel on load" },
   },
-  args: { sensor: "indoor", width: SIZES.M, footprint: "standard" },
+  args: { sensor: "living", width: SIZES.M, footprint: "standard" },
   render: (args) => <DemoSensor key={`${args.sensor}-${args.defaultOpen}`} {...args} />,
 } satisfies Meta<typeof DemoSensor>;
 
@@ -46,17 +46,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Indoor: Story = {};
 /** Past the humid band: comfort says so in words, never in colour. */
-export const Humid: Story = { args: { sensor: "humid" } };
+export const Humid: Story = { args: { sensor: "bathroom" } };
 /** Outdoors there is no comfort to report, so the trend takes its line. */
 export const Outdoor: Story = { args: { sensor: "outdoor" } };
 /** 15% or less: the warning marker and the battery take the area's line under the name. */
-export const LowBattery: Story = { name: "Low battery", args: { sensor: "lowBattery" } };
+export const LowBattery: Story = { name: "Low battery", args: { sensor: "basement" } };
 /** No humidity companion: comfort and trend fill the meta lines. */
-export const TemperatureOnly: Story = { name: "Temperature only", args: { sensor: "temperatureOnly" } };
+export const TemperatureOnly: Story = { name: "Temperature only", args: { sensor: "office" } };
 /** No temperature: humidity becomes the figure, behind a drop. */
 export const HumidityOnly: Story = { name: "Humidity only", args: { sensor: "humidityOnly" } };
 /** Blank segments and when it was last seen; the meter dashes the hours it was gone. */
-export const Unavailable: Story = { args: { sensor: "unavailable" } };
+export const Unavailable: Story = { args: { sensor: "garage" } };
 
 /** Readings at their limits, raw floats, no reading yet, no area, long names: every slot at its widest. */
 export const WorstCase: Story = {
@@ -64,7 +64,7 @@ export const WorstCase: Story = {
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {SENSOR_WORST_CASE.map((seed) => <DemoSensor key={seed.entity.entityId} sensor="indoor" seed={seed} width={width} footprint={footprint} />)}
+      {SENSOR_WORST_CASE.map((seed) => <DemoSensor key={seed.entity.entityId} sensor="living" seed={seed} width={width} footprint={footprint} />)}
     </div>
   ),
 };
@@ -120,13 +120,13 @@ export const Compact: Story = {
 export const Details: Story = { args: { defaultOpen: true } };
 
 /** A low battery: the warning leads the facts, with what to do about it. */
-export const DetailsLowBattery: Story = { name: "Details, low battery", args: { sensor: "lowBattery", defaultOpen: true } };
+export const DetailsLowBattery: Story = { name: "Details, low battery", args: { sensor: "basement", defaultOpen: true } };
 
 /** No humidity: the screen keeps its meta lines, and there is one meter. */
-export const DetailsTemperatureOnly: Story = { name: "Details, temperature only", args: { sensor: "temperatureOnly", defaultOpen: true } };
+export const DetailsTemperatureOnly: Story = { name: "Details, temperature only", args: { sensor: "office", defaultOpen: true } };
 
 /** Unavailable: blank screen, the hours it was gone dashed on both meters. */
-export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { sensor: "unavailable", defaultOpen: true } };
+export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { sensor: "garage", defaultOpen: true } };
 
 /** On a phone the panel is a bottom sheet: drag its header down to close. */
 export const DetailsPhone: Story = {

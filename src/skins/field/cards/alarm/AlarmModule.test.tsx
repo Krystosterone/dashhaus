@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AlarmModule } from "./AlarmModule";
 import type { AlarmModuleProps } from "./AlarmModule";
-import { ALARM_SEEDS, ALARM_WORST_CASE } from "./demo/useDemoAlarm";
+import { ALARM_SEEDS, ALARM_WORST_CASE } from "@dashhaus/core/seeds/alarm";
 import type { AlarmEntity } from "@dashhaus/core/entities/alarm/types";
 
 /*

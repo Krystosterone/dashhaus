@@ -16,13 +16,14 @@ release notes; an additive change is a minor one.
 | `./entities`, `./entities/*` | The normalized, skin-free entity models and their pure logic. Raw Home Assistant state never enters them. |
 | `./primitives` | The headless interaction hooks: press, slider, range slider, sheet, keypad |
 | `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `useDemoClimate` |
+| `./seeds/*` | Every skin's demo seeds, one module per domain: `<NAME>_SEEDS`, `<NAME>_WORST_CASE`, their types and the domain's `useDemo<Name>` |
 | `./perf` | The opt-in marks; documented in [performance.md](performance.md) |
 | `./websocket` | The one module that imports `home-assistant-js-websocket`, plus `connectHomeAssistant(auth)` |
 
 React 18.3+ and React 19 are both supported peers; the repo's own suites run React 18, and a clean consumer install,
 typecheck and build on React 19 holds the wider range.
 
-`./demo`, `./testing` and `./fixtures/*` are for Storybook and tests. They are additive conveniences, not a production
+`./seeds/*`, `./demo`, `./testing` and `./fixtures/*` are for Storybook and tests. They are additive conveniences, not a production
 surface: their seeds and rendered output may change without a breaking release.
 
 Internal, and free to change without notice:
@@ -160,6 +161,11 @@ rate.
   typed service calls in `calls`, and can emit a whole map or patch one entity (`emitEntity(id, patch)`).
 - `./demo` exports `createDemoStore()`, the demo house behind the real store, and the per-domain demo transports used
   by Storybook.
+- `./seeds/<name>` is one domain's demo seeds for every skin's card stories: its examples (`<NAME>_SEEDS`, with an
+  unavailable one), its worst cases (`<NAME>_WORST_CASE`), their types, and `useDemo<Name>`, local state that behaves
+  like the entity for a story to press. A card's stories draw on them, so every skin shows the same examples; a skin
+  never keeps a copy, and the generators import them rather than write one. Unlike `./demo`, they reach no Home
+  Assistant layer, so a card folder may import them.
 
 ```tsx
 import { HaProvider } from "@dashhaus/core";

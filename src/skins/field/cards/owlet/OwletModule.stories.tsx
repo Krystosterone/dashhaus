@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { OwletModule } from "./OwletModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { OWLET_SEEDS, OWLET_WORST_CASE } from "./demo/socks";
-import type { OwletSeed, OwletSeedName } from "./demo/socks";
+import { OWLET_SEEDS, OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
+import type { OwletSeed, OwletSeedName } from "@dashhaus/core/seeds/owlet";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(OWLET_SEEDS) as OwletSeedName[];

@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FuturaClimateCard } from "./FuturaClimateCard";
-import { CLIMATE_SEEDS } from "./demo/useDemoClimate";
+import { CLIMATE_SEEDS } from "@dashhaus/core/seeds/climate";
 
 const draw = (seed: keyof typeof CLIMATE_SEEDS, defaultOpen = false) => render(<FuturaClimateCard entity={CLIMATE_SEEDS[seed].entity} defaultOpen={defaultOpen} />);
 

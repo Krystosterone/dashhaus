@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FuturaClimateCard } from "./FuturaClimateCard";
 import type { FuturaFootprint } from "../../shared/ui";
-import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "./demo/useDemoClimate";
-import type { ClimateSeed, ClimateSeedName } from "./demo/useDemoClimate";
+import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "@dashhaus/core/seeds/climate";
+import type { ClimateSeed, ClimateSeedName } from "@dashhaus/core/seeds/climate";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEED_NAMES = Object.keys(CLIMATE_SEEDS) as ClimateSeedName[];

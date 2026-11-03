@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { __Skin____Name__Card } from "./__Skin____Name__Card";
 import type { __Skin__Footprint } from "../../shared/ui";
-import { __seedConst__, __worstConst____demoImport__ } from "./demo/__seedFile__";
-import type { __seedType__, __seedNameType__ } from "./demo/__seedFile__";
+import { __seedConst__, __worstConst____demoImport__ } from "__seeds__";
+import type { __seedType__, __seedNameType__ } from "__seeds__";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEED_NAMES = Object.keys(__seedConst__) as __seedNameType__[];

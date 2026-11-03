@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { __Name__Module } from "./__Name__Module";
 import type { FieldFootprint } from "../../shared/ui";
-import { __CONST___SEEDS, __CONST___WORST_CASE__demoImport__ } from "./demo/__seedFile__";
-import type { __Name__Seed, __Name__SeedName } from "./demo/__seedFile__";
+import { __CONST___SEEDS, __CONST___WORST_CASE__demoImport__ } from "__seeds__";
+import type { __Name__Seed, __Name__SeedName } from "__seeds__";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(__CONST___SEEDS) as __Name__SeedName[];

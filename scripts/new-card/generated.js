@@ -1,8 +1,7 @@
 /** Add one existing shared domain to a neutral skin created by `new-skin`. */
-import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { generated as generatedSkin, markers, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
 import { describeDomain } from "../domains.js";
 import { after, changes, exists, fail, read, root, skinDir } from "./lib.js";
 
@@ -38,25 +37,15 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   if (!Stories) fail(`${storybookPath} declares no \`section: "…"\``);
   const study = studies.is(JSON.parse(change.read(generatedSkin.file(skin, generatedSkin.files.manifest))));
 
-  const orbDir = `${skinDir("orb")}/cards/${name}`;
-  const demoDir = `${orbDir}/demo`;
-  if (!exists(demoDir)) fail(`${demoDir} doesn't exist: generated skins copy skin-independent demo seeds from Orb`);
-  const candidates = readdirSync(join(root, demoDir)).filter((file) => file.endsWith(".ts"));
-  const seedFile = candidates.find((file) => /export const \w*SEEDS\s*=/.test(read(`${demoDir}/${file}`)));
-  if (!seedFile) fail(`${demoDir} has no .ts file exporting a SEEDS object`);
-  let seeds = read(`${demoDir}/${seedFile}`);
+  // The domain's seeds are every skin's, in @dashhaus/core: read them, never copy them.
+  const seedPath = packageFile("core", `src/seeds/${name}.ts`);
+  if (!exists(seedPath)) fail(`${seedPath} doesn't exist: a domain's demo seeds live in @dashhaus/core, for every skin's stories`);
+  const seeds = read(seedPath);
   const seedConst = seeds.match(/export const (\w*SEEDS)\s*=/)?.[1];
   const worstConst = seeds.match(new RegExp(`export const (${CONST}_WORST_CASE)\\b`))?.[1];
   const seedType = seeds.match(/satisfies Record<string,\s*(\w+)>/)?.[1] ?? seeds.match(/export (?:interface|type) (\w*Seed)\b/)?.[1];
   const seedNameType = seeds.match(/export type (\w*SeedName|SeedName)\b/)?.[1];
-  if (!seedConst || !worstConst || !seedType || !seedNameType) fail(`${demoDir}/${seedFile} must export seeds, a seed type, its key type and ${CONST}_WORST_CASE`);
-  seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
-    if (path.startsWith("../../../../../")) return line;
-    const imported = list.split(",").map((item) => item.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((item) => ["HourSample", "Reading"].includes(item))) return `import type {${list}} from "${packageSpecifier("core", "entities/history")}";`;
-    fail(`${demoDir}/${seedFile} imports ${path}, which belongs to Orb; move what it needs to a shared module first`);
-  });
-  seeds = `// Copied from Orb by \`npm run new-card -- ${name} --skin ${skin}\`; this skin owns its Seeds from here.\n${seeds}`;
+  if (!seedConst || !worstConst || !seedType || !seedNameType) fail(`${seedPath} must export seeds, a seed type, its key type and ${CONST}_WORST_CASE`);
   const hasHook = new RegExp(`export function useDemo${Name}\\b|export \\{ useDemo${Name} \\}`).test(seeds);
   const seedBody = objectBody(seeds, seedConst) ?? "";
   const seedKeys = [...seedBody.matchAll(/^ {2}(\w+): /gm)].map((match) => ({ key: match[1], index: match.index }));
@@ -80,14 +69,13 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
     __Stories__: Stories, __demoProps__: demoProps,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed", __demoImport__: hasHook ? `, useDemo${Name}` : "",
     __testProps__: "", __seedConst__: seedConst, __worstConst__: worstConst, __seedType__: seedType,
-    __seedNameType__: seedNameType, __seedFile__: seedFile.replace(/\.ts$/, ""), __firstSeed__: firstSeed,
+    __seedNameType__: seedNameType, __seeds__: packageSpecifier("core", `seeds/${name}`), __firstSeed__: firstSeed,
     __unavailableSeed__: unavailableSeed, __transport__: transport[1], __transportPath__: transport[2],
     __entityId__: entityId, __fixtureId__: domain.fixtureId,
   });
   // The card every skin shares, from the scaffolder's templates, then its stories and tests in this repository.
   change.fromTemplates([""], fill, join(root, skinTemplates.card), SKIN);
   change.fromTemplates(["repo-card"], fill, fileURLToPath(new URL("../new-skin/templates/", import.meta.url)), SKIN);
-  change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // The Card registry is the runtime and generator seam: routing plus the Connected adapter in one row.
   change.edit(registryPath, after(markers.registryImports, lines.import));

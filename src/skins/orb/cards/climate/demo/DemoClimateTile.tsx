@@ -1,6 +1,6 @@
 import { ClimateTile } from "../ClimateTile";
-import { CLIMATE_SEEDS, useDemoClimate } from "./useDemoClimate";
-import type { ClimateSeedName, ClimateSeed } from "./useDemoClimate";
+import { CLIMATE_SEEDS, useDemoClimate } from "@dashhaus/core/seeds/climate";
+import type { ClimateSeedName, ClimateSeed } from "@dashhaus/core/seeds/climate";
 
 export interface DemoClimateTileProps {
   /** Which example climate entity to show. */

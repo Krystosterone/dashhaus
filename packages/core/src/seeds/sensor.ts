@@ -1,22 +1,27 @@
-// Copied from Orb by `npm run new-card -- sensor --skin futura`; this skin owns its Seeds from here.
-import type { SensorEntity, SensorHistory, Reading } from "@dashhaus/core/entities/sensor/types";
+import type { Reading, SensorEntity, SensorHistory } from "../entities/sensor/types";
 
-/** Example data for stories. Times are fixed so screenshots stay stable. */
+/** Example time for stories, fixed so screenshots stay stable. */
 const HOUR = 11;
 const ahead = (n: number): Reading[] => Array(n).fill(null);
 const day = (past: Reading[], now: Reading): Reading[] => [...past, now, ...ahead(24 - past.length - 1)];
 
 export interface SensorSeed { entity: SensorEntity; history: SensorHistory }
 
-const seed = (entity: SensorEntity, temps: Reading[], hums?: Reading[]): SensorSeed => ({
-  entity,
-  history: {
-    temperature: day(temps, entity.state === "unavailable" ? "unavailable" : entity.temperature ?? null),
-    humidity: hums ? day(hums, entity.state === "unavailable" ? "unavailable" : entity.humidity ?? null) : undefined,
-    currentHour: HOUR,
-  },
-});
+const seed = (entity: SensorEntity, temps: Reading[], hums?: Reading[]): SensorSeed => {
+  const unav = entity.state === "unavailable";
+  // A humidity-only sensor's primary series is its humidity.
+  const primary = entity.temperature ?? entity.humidity ?? null;
+  return {
+    entity,
+    history: {
+      temperature: day(temps, unav ? "unavailable" : primary),
+      humidity: hums ? day(hums, unav ? "unavailable" : entity.humidity ?? null) : undefined,
+      currentHour: HOUR,
+    },
+  };
+};
 
+/** Example sensors for stories, every skin's. Read-only, so they need no local state. */
 export const SENSOR_SEEDS = {
   living: seed(
     { entityId: "sensor.living_room", name: "Living room", area: "Living room", state: "ok", temperature: 21.4, humidity: 44, unit: "°C", battery: 82, lastUpdated: "11:52" },
@@ -47,6 +52,10 @@ export const SENSOR_SEEDS = {
     { entityId: "sensor.office", name: "Office", area: "Office", state: "ok", temperature: 21.2, unit: "°C", lastUpdated: "11:51" },
     [19.0, 18.9, 18.8, 18.8, 18.7, 18.7, 19.8, 20.6, 20.9, 21.0, 21.1],
   ),
+  humidityOnly: seed(
+    { entityId: "sensor.closet_humidity", name: "Closet", area: "Bedroom", state: "ok", humidity: 52, unit: "°C", battery: 60, lastUpdated: "11:46" },
+    [50, 50, 51, 51, 51, 51, 52, 52, 52, 52, 52],
+  ),
   garage: seed(
     { entityId: "sensor.garage", name: "Garage", area: "Garage", state: "unavailable", unit: "°C", battery: 3, lastSeen: "08:20" },
     [9.1, 8.8, 8.6, 8.4, 8.3, 8.2, 8.3, 8.6, "unavailable", "unavailable", "unavailable"],
@@ -58,8 +67,8 @@ export type SensorSeedName = keyof typeof SENSOR_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Long and compound names,
- * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. The card's
- * Worst case story and Orb → Foundations → Worst case both draw these.
+ * missing areas, readings at and past their limits, raw floats from integrations, no readings yet. Every skin's
+ * Worst case story draws these.
  */
 const H = HOUR;
 const zeros = (n: number) => Array<number>(n).fill(0);
@@ -72,15 +81,15 @@ export const SENSOR_WORST_CASE: SensorSeed[] = [
     entity: { entityId: "sensor.sauna", name: "Sauna", area: "Spa", state: "ok", temperature: 92.4, humidity: 4, unit: "°C", lastUpdated: "11:54" },
     history: { temperature: day([21, 21, 21, 21, 21, 21, 21, 40, 75, 88, 91], 92.4), humidity: day([40, 40, 40, 40, 40, 40, 40, 20, 8, 5, 4], 4), currentHour: H },
   },
-  { // Paired at midnight, no reading has arrived yet
-    entity: { entityId: "sensor.crawlspace", name: "Crawlspace", area: "Basement", state: "ok", unit: "°C", battery: 100 },
+  { // Paired at midnight, no reading has arrived yet, and no area
+    entity: { entityId: "sensor.crawlspace", name: "Crawlspace", state: "ok", unit: "°C", battery: 100 },
     history: { temperature: day(Array<Reading>(H).fill("unavailable"), null), humidity: day(Array<Reading>(H).fill("unavailable"), null), currentHour: H },
   },
   { // A Fahrenheit winter night: the widest temperature beside the widest humidity
     entity: { entityId: "sensor.shed", name: "Shed", area: "Garden", state: "ok", temperature: -13.7, humidity: 100, unit: "°F", outdoor: true, battery: 40, lastUpdated: "11:50" },
     history: { temperature: day([-4, -6, -8, -10, -11, -12, -13, -13.5, -13.6, -13.7, -13.7], -13.7), humidity: day(Array<Reading>(H).fill(100), 100), currentHour: H },
   },
-  { // Long compound name, bone dry
+  { // Long compound name, bone dry, the battery at the warning line
     entity: { entityId: "sensor.arbeitszimmer", name: "Arbeitszimmer-Fensterbank", area: "Arbeitszimmer", state: "ok", temperature: 12.25, humidity: 0, unit: "°C", battery: 15, lastUpdated: "11:41" },
     history: { temperature: day([13, 13, 12.9, 12.8, 12.6, 12.5, 12.4, 12.3, 12.3, 12.3, 12.3], 12.25), humidity: day(zeros(H), 0), currentHour: H },
   },
