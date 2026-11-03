@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { TitledBundle } from "./Bundle";
+import { TitledBundle, joinedUnits } from "./Bundle";
 import { ToggleTile } from "../cards/toggle/ToggleTile";
 import { LightTile } from "../cards/light/LightTile";
 import { SoundTile } from "../cards/sound/SoundTile";
@@ -49,5 +49,18 @@ describe("TitledBundle", () => {
     const light = screen.getByRole("dialog", { name: "Night light details", hidden: true });
     // The colour after it is in the markup; the sheet hides it in CSS and names it over its chips.
     expect(light.querySelector(".hd-area")?.textContent).toMatch(/^Sound machine · Baby Room( · |$)/);
+  });
+});
+
+describe("joinedUnits", () => {
+  it("stacks at the widths Bundle.css stacks a joined bundle, so a row places it at the height it draws", async () => {
+    const { readFileSync } = await import("node:fs");
+    const css = readFileSync(`${process.cwd()}/src/skins/orb/bundles/Bundle.css`, "utf8");
+    const widths = [...css.matchAll(/@container hb \((?:min|max)-width: (\d+)px\)/g)].map((m) => Number(m[1]));
+    expect(widths).toEqual([339, 509, 449, 450]);
+    expect([joinedUnits(2, 339), joinedUnits(2, 340)]).toEqual([2, 1]);
+    expect([joinedUnits(3, 509), joinedUnits(3, 510)]).toEqual([3, 1]);
+    expect([joinedUnits(4, 449), joinedUnits(4, 450), joinedUnits(4, 599), joinedUnits(4, 600)]).toEqual([4, 2, 2, 1]);
+    expect([joinedUnits(5, 339), joinedUnits(5, 340), joinedUnits(2, undefined)]).toEqual([5, 1, 1]);
   });
 });

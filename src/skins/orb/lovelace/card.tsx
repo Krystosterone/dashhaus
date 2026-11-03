@@ -1,6 +1,6 @@
 import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
-import type { BlockConfig, DashboardConfig } from "./config";
+import type { DashboardConfig, RowLayoutConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
 import type { LovelaceHass } from "@dashhaus/dashboard/skin";
@@ -30,7 +30,7 @@ export function createDashhausCard(css: string): CustomElementConstructor {
     protected readonly styles = styles;
     protected readonly mountClass = "ha-surface";
     protected readonly fontHref = ORB_FONT_HREF;
-    #auto?: { key: unknown[]; blocks: BlockConfig[] };
+    #auto?: { key: unknown[]; rows: RowLayoutConfig[] };
 
     setConfig(raw: unknown) {
       this.#auto = undefined;
@@ -47,7 +47,7 @@ export function createDashhausCard(css: string): CustomElementConstructor {
     }
 
     protected changed(previous: LovelaceHass, next: LovelaceHass) {
-      return previous.themes?.darkMode !== next.themes?.darkMode || previous.panels !== next.panels || (!this.config?.blocks && this.#autoStale(next));
+      return previous.themes?.darkMode !== next.themes?.darkMode || previous.panels !== next.panels || (!this.config?.rows && this.#autoStale(next));
     }
 
     protected paintHost(config: DashboardConfig, hass: LovelaceHass) {
@@ -64,7 +64,7 @@ export function createDashhausCard(css: string): CustomElementConstructor {
     }
 
     protected draw(config: DashboardConfig, hass: LovelaceHass) {
-      return <ConfigDashboard config={{ ...config, blocks: this.#blocks(config, hass) }} panels={hass.panels} />;
+      return <ConfigDashboard config={{ ...config, rows: this.#rows(config, hass) }} panels={hass.panels} />;
     }
 
     #autoStale(hass: LovelaceHass) {
@@ -72,18 +72,18 @@ export function createDashhausCard(css: string): CustomElementConstructor {
       return !this.#auto || this.#auto.key.some((part, i) => part !== key[i]);
     }
 
-    #blocks(config: DashboardConfig, hass: LovelaceHass): BlockConfig[] {
-      if (config.blocks) return config.blocks;
+    #rows(config: DashboardConfig, hass: LovelaceHass): RowLayoutConfig[] {
+      if (config.rows) return config.rows;
       if (this.#autoStale(hass)) {
         const generated = parseDashboardConfig({ ...autoDashboard(autoInput(hass)), title: config.title });
-        this.#auto = { key: [hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length], blocks: generated.blocks ?? [] };
+        this.#auto = { key: [hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length], rows: generated.rows ?? [] };
       }
-      return this.#auto!.blocks;
+      return this.#auto!.rows;
     }
   };
 }
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineDashhausCard(css: string) {
-  registerCard(CARD_TYPE, createDashhausCard(css), "Dashhaus", "A whole dashboard page from one YAML card. Leave out `sections` to lay the house out automatically.");
+  registerCard(CARD_TYPE, createDashhausCard(css), "Dashhaus", "A whole dashboard page from one YAML card. Leave out `cards` and `rows` to lay the house out automatically.");
 }

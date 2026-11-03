@@ -121,7 +121,7 @@ if (!study) {
   change.edit(seams.generatedSkins, after(markers.generatedSkins, fill(`  { id: "__skin__", title: "Home (__Section__)", icon: "mdi:view-dashboard-outline" },`)));
 
   // The generated design contract and its Lovelace YAML are discoverable from the repository docs.
-  change.edit(seams.deployDoc, (source) => `${source.trimEnd()}\n\n## The ${Section} dashboard\n\nThe generated ${Section} skin ships as \`custom:dashhaus-${skin}\` from the private \`${generated.name(skin)}\` package. Without \`cards\` or \`sections\`, it draws every supported entity Card added with \`npm run new-card -- <domain> --skin ${skin}\`, grouped by Home Assistant area.\n\n\`\`\`yaml\ntype: custom:dashhaus-${skin}\ntitle: Home\n\`\`\`\n`);
+  change.edit(seams.deployDoc, (source) => `${source.trimEnd()}\n\n## The ${Section} dashboard\n\nThe generated ${Section} skin ships as \`custom:dashhaus-${skin}\` from the private \`${generated.name(skin)}\` package. Without \`cards\` or \`rows\`, it draws every supported entity Card added with \`npm run new-card -- <domain> --skin ${skin}\`, grouped by Home Assistant area.\n\n\`\`\`yaml\ntype: custom:dashhaus-${skin}\ntitle: Home\n\`\`\`\n`);
 }
 
 if (!change.commit(dryRun)) process.exit(0);

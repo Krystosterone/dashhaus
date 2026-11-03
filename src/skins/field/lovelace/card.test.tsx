@@ -90,10 +90,11 @@ describe("dashhaus-field card", () => {
     expect(clock?.textContent).toMatch(/^\d{2}:\d{2}$/);
   });
 
-  it("draws only the configured modules when given, with their own names and areas", async () => {
-    const card = await mount({ modules: [{ entity: "light.desk", name: "Desk lamp", area: "Study" }, "light.kitchen"] });
-    expect(names(card)).toEqual(["Kitchen", "Desk lamp"]);
-    expect(legends(card)).toEqual(["Kitchen", "Study"]);
+  it("draws only the configured cards when given, in YAML order as one plain grid, each plate with its own area", async () => {
+    const card = await mount({ cards: [{ entity: "light.desk", name: "Desk lamp", area: "Study" }, "light.kitchen"] });
+    expect(names(card)).toEqual(["Desk lamp", "Kitchen"]);
+    expect(legends(card)).toEqual([]);
+    expect([...card.shadowRoot!.querySelectorAll(".fd-area")].map((a) => a.textContent)).toEqual(["Study", "Kitchen"]);
   });
 
   it("follows Home Assistant's dark mode with the black finish by default, or takes a fixed one", async () => {
@@ -111,27 +112,33 @@ describe("dashhaus-field card", () => {
 
   it("throws every config problem for the YAML editor to show", () => {
     const card = document.createElement("dashhaus-field-test") as Card;
-    expect(() => card.setConfig({ modules: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
-    expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(DashboardConfigError);
-    expect(() => card.setConfig({ modules: ["input_text.note"] })).toThrow(/input_text\.note must be a light\.\* or .* entity/);
+    expect(() => card.setConfig({ cards: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
+    expect(() => card.setConfig({ cards: ["input_text.note"] })).toThrow(DashboardConfigError);
+    expect(() => card.setConfig({ cards: ["input_text.note"] })).toThrow(/input_text\.note must be a light\.\* or .* entity/);
   });
 
-  it("lays out its own sections, a note at a legend's end, and docks a nav to them", async () => {
+  it("lays out its own rows, a note at a legend's end, places each module, and docks a nav to them", async () => {
     const card = await mount({
       title: "Home",
       subtitle: "Everyone home",
-      sections: [
-        { title: "Quick", note: "Pressed most", modules: ["light.kitchen", { entity: "light.desk", span: 2 }] },
-        { columns: 2, sections: [{ title: "Comfort", modules: ["climate.living_room"] }, { title: "Air", modules: ["sensor.office_temperature"] }] },
+      rows: [
+        { title: "Quick", note: "Pressed most", columns: 3, cards: ["light.kitchen", { entity: "light.desk", width: 2 }] },
+        { title: "Comfort", columns: 2, cards: [{ entity: "climate.living_room", column: 2 }] },
+        { title: "Air", columns: 2, cards: [{ entity: "sensor.office_temperature", column: 1 }, { entity: "light.kitchen", column: 2, footprint: "compact" }] },
       ],
     });
     const shadow = card.shadowRoot!;
     expect(shadow.querySelector(".fd-hh-sub")?.textContent).toBe("Everyone home");
     expect(legends(card)).toEqual(["QuickPressed most", "Comfort", "Air"]);
     expect([...shadow.querySelectorAll("[data-section-id]")].map((s) => s.id)).toEqual(["section-quick", "section-comfort", "section-air"]);
-    expect(shadow.querySelector(".fd-dash-cell[data-span='2'] .fd-open-t")?.textContent).toBe("Desk");
-    // The plate names the module's own area, from the registries, whatever its section is called.
-    expect(shadow.querySelector(".fd-dash-cell .fd-area")?.textContent).toBe("Office");
+    const desk = shadow.querySelectorAll<HTMLElement>(".fd-dash-place")[1];
+    expect(desk.querySelector(".fd-open-t")?.textContent).toBe("Desk");
+    expect(desk.style.gridColumn).toBe("2 / span 2");
+    expect(shadow.querySelectorAll<HTMLElement>(".fd-dash-grid")[1].querySelector<HTMLElement>(".fd-dash-place")?.style.gridColumn).toBe("2 / span 1");
+    // Mixed footprints stack by column, each stack in its own track.
+    expect([...shadow.querySelectorAll<HTMLElement>(".fd-dash-stack")].map((stack) => stack.style.gridColumn)).toEqual(["1", "2"]);
+    // The plate names the module's own area, from the registries, whatever its row is called.
+    expect(desk.querySelector(".fd-area")?.textContent).toBe("Office");
     const keys = [...shadow.querySelectorAll<HTMLButtonElement>(".fd-nav-key")];
     expect(keys.map((k) => k.textContent)).toEqual(["Quick", "Comfort", "Air"]);
     await act(async () => keys[2].click());
@@ -149,8 +156,8 @@ describe("dashhaus-field card", () => {
   it("opens a page of its own from the nav, its title heading the page", async () => {
     const card = await mount({
       title: "Home",
-      modules: ["light.kitchen"],
-      pages: [{ id: "office", title: "Office", sections: [{ title: "Desk", modules: ["light.desk", "sensor.office_temperature"] }] }],
+      cards: ["light.kitchen"],
+      pages: [{ id: "office", title: "Office", rows: [{ title: "Desk", cards: ["light.desk", "sensor.office_temperature"] }] }],
     });
     const shadow = card.shadowRoot!;
     const keys = () => [...shadow.querySelectorAll<HTMLButtonElement>(".fd-nav-key")];
@@ -172,7 +179,7 @@ describe("dashhaus-field card", () => {
   });
 
   it("reads temperatures in the unit asked for", async () => {
-    const card = await mount({ modules: [{ entity: "climate.living_room", unit: "°F" }] });
+    const card = await mount({ cards: [{ entity: "climate.living_room", unit: "°F" }] });
     expect(card.shadowRoot!.querySelector(".fd-read")?.textContent).toContain("°F");
   });
 

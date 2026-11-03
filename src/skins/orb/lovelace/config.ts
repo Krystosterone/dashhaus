@@ -1,20 +1,23 @@
 import {
+  BODY_KEYS,
   DashboardConfigError,
+  PLACEMENT_KEYS,
   Reader as YamlReader,
   isRaw,
   oneOf,
   suggest,
   cardKindOrder,
+  readBody,
   readAlarmOptions,
   readCard,
-  readCards,
   readColor,
   readOwletOptions,
   readSensorOptions,
   readUnit,
   readWeatherOptions,
+  rowTitles,
 } from "@dashhaus/dashboard/schema";
-import type { CardKindSpec, CardReadSchema } from "@dashhaus/dashboard/schema";
+import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
 import { COLORS } from "../shared/ui";
 import type { ColorName, CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
@@ -26,8 +29,9 @@ import type { NavEntry } from "@dashhaus/dashboard";
 /*
  * The card's YAML, as Lovelace hands it over (already parsed), checked and normalized. Every mistake is
  * collected with its path and, for a misspelt key, the key that was probably meant, so the YAML editor shows
- * all of them at once instead of the first. The reading itself is the shared card schema (`@dashhaus/dashboard/schema`);
- * this file is the card's kind table and the bundles only orb has.
+ * all of them at once instead of the first. The reading itself is the shared card schema and layout
+ * (`@dashhaus/dashboard/schema`: `cards`, or `rows` of cards); this file is the card's kind table and the bundles only
+ * orb has.
  */
 
 export type Kind =
@@ -75,7 +79,6 @@ interface CardBase {
   name?: string;
   area?: string;
   footprint?: CardFootprint;
-  span: number;
   showControl?: boolean;
   /** False skips the Today history read. */
   history: boolean;
@@ -96,15 +99,17 @@ export type CardConfig = CardBase & (
   // new-card: card configs
 );
 
-export type ItemConfig =
-  | CardConfig
-  | { kind: "joined"; label?: string; span: number; members: CardConfig[] }
-  | { kind: "lead"; label?: string; sheetTitle?: string; span: number; lead: CardConfig; rows: CardConfig[] }
-  | { kind: "titled"; title: string; area?: string; span: number; rows: CardConfig[] };
+/** Several cards drawn as one outer card (spec/orb.md → Bundles), placed in its row as one. */
+export type BundleConfig =
+  | { kind: "joined"; label?: string; members: CardConfig[] }
+  | { kind: "lead"; label?: string; sheetTitle?: string; lead: CardConfig; rows: CardConfig[] }
+  | { kind: "titled"; title: string; area?: string; rows: CardConfig[] };
 
-export interface SectionConfig { kind: "section"; title?: string; note?: string; columns: number; gap?: number; items: ItemConfig[] }
-export interface ColumnsConfig { kind: "columns"; columns: number; gap?: number; sections: SectionConfig[] }
-export type BlockConfig = SectionConfig | ColumnsConfig;
+/** One entry of a row's `cards`: a card, or a bundle. */
+export type ItemConfig = CardConfig | BundleConfig;
+
+/** A row of the card's layout: its heading, its grid and its cards (`@dashhaus/dashboard/schema` → `readBody`). */
+export type RowLayoutConfig = RowConfig<ItemConfig>;
 
 export type ThemeSetting = "home-assistant" | "auto" | "light" | "dark";
 export interface Accent { chroma: number; hue: number }
@@ -118,20 +123,16 @@ export interface DashboardConfig {
   viewing?: "near" | "far";
   theme: ThemeSetting;
   accent?: Accent;
-  /** Absent: lay the house out automatically. */
-  blocks?: BlockConfig[];
-  /** The bottom nav's destinations; absent: the pages, or else the sections; false: no nav. */
+  /** The main page's rows (its `cards` are one untitled row). Absent: lay the house out automatically. */
+  rows?: RowLayoutConfig[];
+  /** The bottom nav's destinations; absent: the pages, or else the titled rows; false: no nav. */
   nav?: NavEntry[] | false;
-  /** More pages in this card, opened from the nav; the top-level sections are the main page, `home`. */
+  /** More pages in this card, opened from the nav; the top-level layout is the main page, `home`. */
   pages?: PageConfig[];
 }
 
-/** A page of the card's own: its id (for `page:` in the nav and the URL hash), its title, its sections. */
-export interface PageConfig { id: string; title: string; blocks: BlockConfig[] }
-
-/** The titled sections of a page, in order: what a nav can jump to. */
-export const sectionTitles = (blocks: readonly BlockConfig[] = []) =>
-  blocks.flatMap((b) => (b.kind === "columns" ? b.sections : [b])).flatMap((s) => (s.title ? [s.title] : []));
+/** A page of the card's own: its id (for `page:` in the nav and the URL hash), its title, its rows. */
+export interface PageConfig { id: string; title: string; rows: RowLayoutConfig[] }
 
 /** The accents tried in Storybook's toolbar; `yellow` is tokens.css's own. */
 export const ACCENTS: Record<string, Accent> = {
@@ -147,7 +148,9 @@ const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "
 const FOOTPRINTS: readonly CardFootprint[] = ["compact", "standard", "featured"];
 const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
 
-const COMMON_KEYS = ["entity", "card", "name", "area", "footprint", "span", "show_control", "history"];
+const COMMON_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT_KEYS, "show_control", "history"];
+/** The most columns a row may have. */
+const MAX_COLUMNS = 12;
 
 /** Each kind's own YAML keys and settings: the shared schema reads the rest. */
 const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
@@ -225,85 +228,90 @@ const CARD_SCHEMA: CardReadSchema<Kind, CardConfig> = {
     name: read.string(raw, "name", at),
     area: read.string(raw, "area", at),
     footprint: read.choice(raw, "footprint", at, FOOTPRINTS),
-    span: read.number(raw, "span", at, 1, 12) ?? 1,
     showControl: read.boolean(raw, "show_control", at),
     history: read.boolean(raw, "history", at) ?? true,
   }),
-  missing: (raw) => `a card needs an "entity"${raw.joined || raw.lead ? " (bundles use \"joined\", \"lead\" or \"title\" with \"rows\" at the section's card level)" : ""}`,
+  missing: () => "a card needs an \"entity\"",
   noKind: (entity, domain) => `${entity}: ${domain}.* entities have no card yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`,
 };
 
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "sections", "nav", "pages", "view_layout", "grid_options", "visibility"];
-const SECTION_KEYS = ["title", "note", "columns", "gap", "cards"];
-const GROUP_KEYS = ["columns", "gap", "sections"];
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", ...BODY_KEYS, "nav", "pages", "view_layout", "grid_options", "visibility"];
+const BUNDLES = ["joined", "lead", "titled"] as const;
+type BundleKind = (typeof BUNDLES)[number];
+/** Each bundle's keys, and the fewest cards it takes. */
+const BUNDLE_SPECS: Record<BundleKind, { keys: string[]; fewest: number; what: string }> = {
+  joined: { keys: ["bundle", "label", "cards", ...PLACEMENT_KEYS], fewest: 2, what: "a joined bundle shares one card between two or more compact cards" },
+  lead: { keys: ["bundle", "label", "sheet_title", "cards", ...PLACEMENT_KEYS], fewest: 2, what: "a lead bundle is its first card, standard, then one or more compact rows" },
+  titled: { keys: ["bundle", "title", "area", "cards", ...PLACEMENT_KEYS], fewest: 1, what: "a titled bundle is a lid naming one thing, then its parts" },
+};
 
 export { DashboardConfigError, suggest };
 
 class Reader extends YamlReader {
+  /** The shared layout, with orb's cards and bundles and its twelve columns. */
+  readonly layout: LayoutSchema<ItemConfig> = { noun: "card", maxColumns: MAX_COLUMNS, item: (_read, value, path) => this.item(value, path) };
+
   card(value: unknown, path: string): CardConfig | undefined {
     return readCard(this, CARD_SCHEMA, value, path);
   }
 
-  cards(value: unknown, path: string): CardConfig[] {
-    return readCards(this, CARD_SCHEMA, value, path);
+  /** A bundle's cards: the bundle places them and sets their footprints, so they take neither. */
+  members(value: unknown, path: string, spec: (typeof BUNDLE_SPECS)[BundleKind]): CardConfig[] {
+    if (!Array.isArray(value) || value.length < spec.fewest) {
+      this.problem(path, `${spec.what}: list ${spec.fewest === 1 ? "at least one card" : `at least ${spec.fewest} cards`}`);
+      if (!Array.isArray(value)) return [];
+    }
+    return (value as unknown[]).flatMap((member, i) => {
+      const at = `${path}[${i}]`;
+      if (isRaw(member)) {
+        const named = typeof member.entity === "string" ? `${at} (${member.entity})` : at;
+        if ("bundle" in member) {
+          this.problem(at, "bundles don't nest: put this bundle beside the other in the row's \"cards\"");
+          return [];
+        }
+        const own = ["footprint", ...PLACEMENT_KEYS].filter((key) => key in member);
+        for (const key of own) {
+          this.problem(named, key === "footprint"
+            ? "\"footprint\" is the bundle's to set: every card in it is compact (a lead bundle's first card, standard)"
+            : `"${key}" places the whole bundle: put it on the bundle, beside "bundle"`);
+        }
+        const rest: Raw = Object.fromEntries(Object.entries(member).filter(([key]) => !own.includes(key)));
+        const card = this.card(rest, at);
+        return card ? [card] : [];
+      }
+      const card = this.card(member, at);
+      return card ? [card] : [];
+    });
   }
 
   item(value: unknown, path: string): ItemConfig | undefined {
-    if (isRaw(value) && "joined" in value) {
-      this.keys(value, path, ["joined", "label", "span"]);
-      return { kind: "joined", label: this.string(value, "label", path), span: this.number(value, "span", path, 1, 12) ?? 1, members: this.cards(value.joined, `${path}.joined`) };
-    }
-    if (isRaw(value) && "lead" in value) {
-      this.keys(value, path, ["lead", "rows", "label", "sheet_title", "span"]);
-      const lead = this.card(value.lead, `${path}.lead`);
-      const rows = this.cards(value.rows, `${path}.rows`);
-      if (!lead) return undefined;
-      return { kind: "lead", label: this.string(value, "label", path), sheetTitle: this.string(value, "sheet_title", path), span: this.number(value, "span", path, 1, 12) ?? 1, lead, rows };
-    }
-    if (isRaw(value) && "rows" in value) {
-      this.keys(value, path, ["title", "area", "rows", "span"]);
-      const title = this.string(value, "title", path);
-      const rows = this.cards(value.rows, `${path}.rows`);
-      if (!title) {
-        this.problem(path, "a bundle with \"rows\" needs a \"lead\" card, or a \"title\" naming what its rows make up");
+    if (isRaw(value) && !("entity" in value) && ("cards" in value || "joined" in value || "lead" in value || "rows" in value)) {
+      if (!("bundle" in value)) {
+        this.problem(path, "a map of \"cards\" in a row is a bundle: say which with \"bundle\": joined, lead or titled");
         return undefined;
       }
-      return { kind: "titled", title, area: this.string(value, "area", path), span: this.number(value, "span", path, 1, 12) ?? 1, rows };
     }
-    return this.card(value, path);
-  }
-
-  section(value: unknown, path: string): SectionConfig | undefined {
-    if (!isRaw(value)) {
-      this.problem(path, "a section is a map with \"cards\" (and usually a \"title\")");
+    if (!isRaw(value) || !("bundle" in value)) return this.card(value, path);
+    const kind = this.choice(value, "bundle", path, BUNDLES);
+    if (!kind) return undefined;
+    const spec = BUNDLE_SPECS[kind];
+    this.keys(value, path, spec.keys);
+    const cards = this.members(value.cards, `${path}.cards`, spec);
+    if (kind === "joined") return { kind, label: this.string(value, "label", path), members: cards };
+    if (kind === "lead") {
+      const [lead, ...rows] = cards;
+      return lead && { kind, label: this.string(value, "label", path), sheetTitle: this.string(value, "sheet_title", path), lead, rows };
+    }
+    const title = this.string(value, "title", path);
+    if (!title) {
+      this.problem(path, "a titled bundle needs a \"title\" naming what its cards make up, like Sound machine");
       return undefined;
     }
-    this.keys(value, path, SECTION_KEYS);
-    if (!Array.isArray(value.cards) || value.cards.length === 0) {
-      this.problem(path, "\"cards\" must be a list of at least one card");
-    }
-    const items = Array.isArray(value.cards) ? value.cards.map((c, i) => this.item(c, `${path}.cards[${i}]`)).filter((c): c is ItemConfig => !!c) : [];
-    return {
-      kind: "section",
-      title: this.string(value, "title", path),
-      note: this.string(value, "note", path),
-      columns: this.number(value, "columns", path, 1, 12) ?? 1,
-      gap: this.number(value, "gap", path, 0, 64),
-      items,
-    };
+    return { kind, title, area: this.string(value, "area", path), rows: cards };
   }
 
-  block(value: unknown, path: string): BlockConfig | undefined {
-    if (isRaw(value) && "sections" in value) {
-      this.keys(value, path, GROUP_KEYS);
-      if (!Array.isArray(value.sections) || value.sections.length === 0) {
-        this.problem(path, "\"sections\" must be a list of at least one section");
-        return undefined;
-      }
-      const sections = value.sections.map((s, i) => this.section(s, `${path}.sections[${i}]`)).filter((s): s is SectionConfig => !!s);
-      return { kind: "columns", columns: this.number(value, "columns", path, 1, 12) ?? sections.length, gap: this.number(value, "gap", path, 0, 64), sections };
-    }
-    return this.section(value, path);
+  body(raw: Raw, path = ""): RowLayoutConfig[] | undefined {
+    return readBody(this, this.layout, raw, path);
   }
 }
 
@@ -329,15 +337,10 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     read.problem("accent", `must be one of ${oneOf(Object.keys(ACCENTS))}, or { chroma, hue }`);
   }
 
-  let blocks: BlockConfig[] | undefined;
-  if (value.sections != null) {
-    if (!Array.isArray(value.sections) || value.sections.length === 0) read.problem("sections", "must be a list of at least one section, or left out for the automatic layout");
-    else blocks = value.sections.map((s, i) => read.block(s, `sections[${i}]`)).filter((b): b is BlockConfig => !!b);
-  }
-
-  const pages: PageConfig[] | undefined = read.pages(value, (s, path) => read.block(s, path));
-  // Automatic sections can't be named ahead; authored ones can.
-  const nav = read.nav(value, pages ?? [], blocks ? sectionTitles(blocks) : undefined);
+  const rows = read.body(value);
+  const pages: PageConfig[] | undefined = read.pages(value, (raw, path) => read.body(raw, path))?.map(({ id, title, body }) => ({ id, title, rows: body }));
+  // An automatic layout's rows can't be named ahead; authored ones can.
+  const nav = read.nav(value, pages ?? [], rows ? rowTitles(rows) : undefined);
 
   const config: DashboardConfig = {
     title: read.string(value, "title", "") ?? "Home",
@@ -347,7 +350,7 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     viewing: read.choice(value, "viewing", "", ["near", "far"] as const),
     theme: read.choice(value, "theme", "", ["home-assistant", "auto", "light", "dark"] as const) ?? "home-assistant",
     accent,
-    blocks,
+    rows,
     nav,
     pages,
   };

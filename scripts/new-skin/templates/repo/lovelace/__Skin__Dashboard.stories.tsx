@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { HaProvider } from "@dashhaus/core";
 import { createHaStore } from "@dashhaus/core";
 import { createDemoHouseTransport } from "@dashhaus/core/demo";
-import { areaSections } from "./auto";
+import { areaRows } from "./auto";
 import { __Skin__Dashboard } from "./__Skin__Dashboard";
 import type { CardConfig } from "./config";
 import type { __Skin__Footprint } from "../shared/ui";
@@ -30,7 +30,7 @@ function Demo({ footprint = "standard", rejected = false }: { footprint?: __Skin
     send();
     return unsubscribe;
   }, [store, rejected]);
-  return <HaProvider store={store}><__Skin__Dashboard title="Home" showTime blocks={areaSections(DEMO_CARDS)} footprint={footprint} now={new Date(2026, 9, 17, 11, 54)} /></HaProvider>;
+  return <HaProvider store={store}><__Skin__Dashboard title="Home" showTime rows={areaRows(DEMO_CARDS)} footprint={footprint} now={new Date(2026, 9, 17, 11, 54)} /></HaProvider>;
 }
 
 const meta = { title: "__Stories__/Dashboards/Lovelace card", component: Demo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Demo>;

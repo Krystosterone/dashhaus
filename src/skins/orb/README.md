@@ -32,7 +32,7 @@ The browser bundle needs one more step: import `@dashhaus/orb/styles/tokens.css`
 | `./storybook` | The skin's Storybook section, toolbar and decorator (repo tooling) |
 | `./styles/tokens.css` | Orb's design tokens, the only source of its colours |
 
-The Lovelace card accepts `custom:dashhaus-orb` YAML with `title`, `sections`, `pages`, `nav`, `theme` and `accent`; without `sections` it lays the house out automatically.
+The Lovelace card accepts `custom:dashhaus-orb` YAML with `title`, `cards` or `rows`, `columns`, `flow`, `pages`, `nav`, `theme` and `accent`; without `cards` or `rows` it lays the house out automatically.
 
 ## Docs
 

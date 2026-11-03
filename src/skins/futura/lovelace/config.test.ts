@@ -14,9 +14,18 @@ describe("parseFuturaConfig", () => {
 
   it("collects malformed layout values", () => {
     expect(problems({ cards: [], footprint: "large", show_time: "yes" })).toEqual([
-      'cards must be a list of at least one item',
-      '"show_time" must be true or false',
       '"footprint" must be one of "standard", "compact"',
+      'cards: must be a list of at least one Card: entity ids like light.kitchen, or maps with an "entity" — each on its own line starting with "- "',
+      '"show_time" must be true or false',
+    ]);
+  });
+
+  it("reads rows of the shared layout, one footprint per row", () => {
+    expect(problems({ rows: [{ title: "A", columns: 5, cards: [] }, { sections: [] }] })).toEqual([
+      'rows[0]: "columns" must be a whole number from 1 to 4, or auto',
+      'rows[0]: "cards" must be a list of at least one Card',
+      'rows[1]: rows don\'t nest: list this row\'s cards under its own "cards", and put the inner sections beside it in the page\'s "rows"',
+      'rows[1]: "cards" must be a list of at least one Card',
     ]);
   });
 });

@@ -26,7 +26,7 @@ const NOW = new Date(2026, 9, 17, 11, 54);
 const YAML = {
   type: "custom:dashhaus-orb",
   title: "Home",
-  sections: [
+  rows: [
     { title: "Security", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }] },
     { title: "Outside", cards: [{ entity: "weather.home", aqi: "sensor.home_aqi", aqi_scale: "US" }] },
     {
@@ -35,15 +35,15 @@ const YAML = {
       cards: [
         { entity: "sensor.living_room_temperature", humidity: "sensor.living_room_humidity", battery: "sensor.living_room_battery" },
         "climate.living_room",
-        { entity: "light.living_room", span: 2 },
-        { entity: "cover.living_room", footprint: "compact", span: 2 },
+        { entity: "light.living_room", width: "full" },
+        { entity: "cover.living_room", footprint: "compact", width: "full" },
       ],
     },
     {
       title: "Modes",
       columns: 2,
       cards: [
-        { joined: ["input_boolean.guest_mode", "input_boolean.dnd"], label: "Modes", span: 2 },
+        { bundle: "joined", label: "Modes", width: "full", cards: ["input_boolean.guest_mode", "input_boolean.dnd"] },
         { entity: "switch.porch", footprint: "compact" },
         { entity: "switch.office", footprint: "compact" },
       ],
@@ -52,25 +52,58 @@ const YAML = {
   ],
 };
 
-function House({ children, transport }: { children: ReactNode; transport?: HaTransport }) {
+/**
+ * spec/deploy.md's power example: a featured hero with a bottom-aligned sidebar, then a dense row whose compact
+ * switch fills the hole under the cover, then a joined bundle across the row. The same YAML at every width.
+ */
+const COMPOSED_YAML = {
+  type: "custom:dashhaus-orb",
+  title: "Home",
+  rows: [
+    {
+      title: "At a glance",
+      columns: 3,
+      align: "bottom",
+      cards: [
+        { entity: "climate.living_room", column: 1, width: 2, footprint: "featured" },
+        { entity: "alarm_control_panel.house", column: 3 },
+        { entity: "light.living_room", column: 3, footprint: "compact" },
+      ],
+    },
+    {
+      title: "Around the house",
+      columns: 3,
+      flow: "dense",
+      cards: [
+        { entity: "weather.home", width: 2 },
+        { entity: "cover.living_room", column: 3, footprint: "compact" },
+        { entity: "sensor.living_room_temperature", width: 2 },
+        { entity: "switch.porch", footprint: "compact" },
+        { bundle: "joined", label: "Modes", width: "full", cards: ["input_boolean.guest_mode", "input_boolean.dnd", "switch.office"] },
+      ],
+    },
+  ],
+};
+
+function House({ children, transport, width = 430 }: { children: ReactNode; transport?: HaTransport; width?: number }) {
   const store = useMemo(() => createHaStore(transport ?? createDemoHouseTransport()), [transport]);
   return (
     <HaProvider store={store}>
-      <div style={{ maxWidth: 430, marginInline: "auto" }}>{children}</div>
+      <div style={{ maxWidth: width, marginInline: "auto" }}>{children}</div>
     </HaProvider>
   );
 }
 
-function Configured() {
-  const config = parseDashboardConfig(YAML);
-  return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} />;
+function Configured({ yaml = YAML }: { yaml?: Record<string, unknown> }) {
+  const config = parseDashboardConfig(yaml);
+  return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
 }
 
-/** The automatic layout, as the card draws it when `sections` is left out. */
+/** The automatic layout, as the card draws it when `cards` and `rows` are left out. */
 function Automatic() {
   const entities = useHaSelector((snapshot) => snapshot.entities);
   const config = useMemo(() => parseDashboardConfig(autoDashboard({ states: entities })), [entities]);
-  return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} />;
+  return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
 }
 
 function FailedAction() {
@@ -85,9 +118,9 @@ function FailedAction() {
   const config = parseDashboardConfig({
     type: "custom:dashhaus-orb",
     title: "Home",
-    sections: [{ title: "Living room", cards: [{ entity: "light.living_room" }] }],
+    cards: [{ entity: "light.living_room" }],
   });
-  return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} />;
+  return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
 }
 
 function ActionFailureExample() {
@@ -102,13 +135,13 @@ function ActionFailureExample() {
 const NAV_YAML = {
   type: "custom:dashhaus-orb",
   title: "Home",
-  sections: [
+  rows: [
     { title: "Quick actions", cards: [{ entity: "light.living_room", footprint: "compact" }, { entity: "switch.office", footprint: "compact" }] },
     { title: "Home status", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }, { entity: "climate.living_room", footprint: "compact" }] },
   ],
   pages: [
-    { id: "living", title: "Living room", sections: [{ title: "Comfort", cards: ["climate.living_room"] }, { title: "Lights and blinds", cards: ["light.living_room", { entity: "cover.living_room", footprint: "compact" }] }] },
-    { id: "nursery", title: "Nursery", sections: [{ title: "Baby", cards: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }] }] },
+    { id: "living", title: "Living room", rows: [{ title: "Comfort", cards: ["climate.living_room"] }, { title: "Lights and blinds", cards: ["light.living_room", { entity: "cover.living_room", footprint: "compact" }] }] },
+    { id: "nursery", title: "Nursery", cards: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }] },
   ],
   nav: [{ page: "home" }, { page: "living" }, { page: "nursery" }, { navigate: "/baby-view/0", label: "Baby view" }],
 };
@@ -116,10 +149,13 @@ const NAV_YAML = {
 /** In Home Assistant the Baby view pill would leave for that dashboard; here it stays put. */
 function WithNav() {
   const config = parseDashboardConfig(NAV_YAML);
-  return <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} now={NOW} navigate={() => undefined} />;
+  return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} navigate={() => undefined} />;
 }
 
 export const FromYaml: Story = { name: "From YAML", render: () => <House><Configured /></House> };
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <House><Automatic /></House> };
 export const ActionFailure: Story = { name: "Action failure and retry", render: () => <ActionFailureExample /> };
+export const CompositionPhone: Story = { name: "Composition, phone", render: () => <House width={390}><Configured yaml={COMPOSED_YAML} /></House> };
+export const CompositionTablet: Story = { name: "Composition, tablet", render: () => <House width={820}><Configured yaml={COMPOSED_YAML} /></House> };
+export const CompositionWall: Story = { name: "Composition, wall panel", render: () => <House width={1280}><Configured yaml={COMPOSED_YAML} /></House> };
 export const NavAndPages: Story = { name: "Nav and pages", render: () => <House><WithNav /></House> };

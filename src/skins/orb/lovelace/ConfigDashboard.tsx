@@ -1,11 +1,14 @@
 import { useMemo, useRef } from "react";
 import type { ReactElement } from "react";
-import { DashboardPage, Section, Columns, CardGrid, Cell } from "../dashboards/layout";
+import { DashboardPage } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
-import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
+import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/dashboard";
 import type { PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
-import { JoinedBundle, LeadBundle, TitledBundle } from "../bundles/Bundle";
+import type { TrackPolicy } from "@dashhaus/dashboard/layout";
+import { JoinedBundle, LeadBundle, TitledBundle, joinedUnits } from "../bundles/Bundle";
+import { CardHeadingLevelContext } from "../shared/ui";
+import type { CardFootprint } from "../shared/ui";
 import { HaLockTile } from "../ha/HaLockTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
@@ -20,7 +23,7 @@ import { HaHumidifierTile } from "../ha/HaHumidifierTile";
 import { HaSoundTile } from "../ha/HaSoundTile";
 import { renderCard } from "@dashhaus/dashboard/schema";
 import type { CardRenderers } from "@dashhaus/dashboard/schema";
-import type { BlockConfig, CardConfig, DashboardConfig, ItemConfig, Kind, SectionConfig } from "./config";
+import type { CardConfig, DashboardConfig, ItemConfig, Kind, RowLayoutConfig } from "./config";
 import { ActionStatus } from "./ActionStatus";
 
 /** Each kind's connected tile: the shared renderer dispatch picks the card's row. */
@@ -44,40 +47,63 @@ function tile(card: CardConfig, key?: string): ReactElement {
   return renderCard(TILES, card, key);
 }
 
-function item(entry: ItemConfig, index: number) {
-  const key = entry.span > 1 ? undefined : String(index);
-  const content = entry.kind === "joined"
-    ? <JoinedBundle key={key} label={entry.label}>{entry.members.map((m, i) => tile(m, `${i}:${m.entity}`))}</JoinedBundle>
-    : entry.kind === "lead"
-      ? <LeadBundle key={key} lead={tile(entry.lead)} label={entry.label} sheetTitle={entry.sheetTitle}>{entry.rows.map((r, i) => tile(r, `${i}:${r.entity}`))}</LeadBundle>
-      : entry.kind === "titled"
-        ? <TitledBundle key={key} title={entry.title} area={entry.area}>{entry.rows.map((r, i) => tile(r, `${i}:${r.entity}`))}</TitledBundle>
-        : tile(entry, key);
-  return entry.span > 1 ? <Cell key={index} span={entry.span}>{content}</Cell> : content;
+/** A card or a bundle as its connected tiles. */
+function item(entry: ItemConfig): ReactElement {
+  if (entry.kind === "joined") return <JoinedBundle label={entry.label}>{entry.members.map((m, i) => tile(m, `${i}:${m.entity}`))}</JoinedBundle>;
+  if (entry.kind === "lead") return <LeadBundle lead={tile(entry.lead)} label={entry.label} sheetTitle={entry.sheetTitle}>{entry.rows.map((r, i) => tile(r, `${i}:${r.entity}`))}</LeadBundle>;
+  if (entry.kind === "titled") return <TitledBundle title={entry.title} area={entry.area}>{entry.rows.map((r, i) => tile(r, `${i}:${r.entity}`))}</TitledBundle>;
+  return tile(entry);
 }
 
-/** A page's titled sections, in order, each with its id: two sections of one title still get one id each. */
-function anchorsOf(blocks: readonly BlockConfig[]) {
-  const titled = blocks.flatMap((b) => (b.kind === "columns" ? b.sections : [b])).filter((s): s is SectionConfig & { title: string } => !!s.title);
-  const anchors = sectionAnchors(titled.map((s) => s.title));
-  return { anchors, ids: new Map<SectionConfig, string>(titled.map((s, i) => [s, anchors[i].id])) };
+/**
+ * Orb's tracks: an explicit `columns` holds while a track is at least 156 px, so two columns hold from 320 px of row
+ * (the narrow-phone boundary); left out, a row takes as many 300 px tracks as fit, at most twelve.
+ */
+export const ORB_TRACKS: TrackPolicy = { gap: 8, min: 156, preferred: 300, max: 12 };
+
+/** A footprint's height in 60 px units: n units are n × 60 + (n − 1) × 8 px. */
+const FOOTPRINT_UNITS: Record<CardFootprint, number> = { compact: 1, standard: 2, featured: 4 };
+
+/** A card's or a bundle's height in units at `width` px: a bundle forces its members' footprints. */
+export function unitsOf(entry: ItemConfig, width: number | undefined): number {
+  if (entry.kind === "joined") return joinedUnits(entry.members.length, width);
+  if (entry.kind === "lead") return FOOTPRINT_UNITS.standard + entry.rows.length;
+  if (entry.kind === "titled") return 1 + entry.rows.length;
+  return FOOTPRINT_UNITS[entry.footprint ?? "standard"];
 }
 
-function section(s: SectionConfig, key: number, ids: Map<SectionConfig, string>) {
-  const items = s.items.map(item);
-  return s.title
-    ? <Section key={key} id={ids.get(s)} title={s.title} note={s.note} columns={s.columns} gap={s.gap}>{items}</Section>
-    : <CardGrid key={key} columns={s.columns} gap={s.gap}>{items}</CardGrid>;
+/**
+ * One row: an optional heading, then its cards on a grid of 60 px units with the 8 px gap, each where the shared
+ * placement put it. Every footprint is a whole number of units, so cards of every footprint share the grid without
+ * holes the YAML didn't ask for. The row measures itself, so a narrow one yields tracks like a phone.
+ */
+function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
+  const layout = useRowLayout(row, ORB_TRACKS, unitsOf);
+  const grid = (
+    <div ref={layout.ref} className="dash-row" data-tracks={layout.tracks} style={layout.style}>
+      {row.cards.map((entry, i) => (
+        <div key={`${i}:${"entity" in entry.item ? entry.item.entity : entry.item.kind}`} className="dash-place" style={layout.cells[i]?.style}>{item(entry.item)}</div>
+      ))}
+    </div>
+  );
+  if (!row.title) return grid;
+  return (
+    <section id={id} data-section-id={id} className="dash-sec" aria-label={row.title}>
+      <h2 className="dash-sec-h">{row.title}{row.note && <small>{row.note}</small>}</h2>
+      <CardHeadingLevelContext.Provider value={3}>{grid}</CardHeadingLevelContext.Provider>
+    </section>
+  );
 }
 
-function block(b: BlockConfig, key: number, ids: Map<SectionConfig, string>) {
-  return b.kind === "columns"
-    ? <Columns key={key} columns={b.columns} gap={b.gap}>{b.sections.map((s, i) => section(s, i, ids))}</Columns>
-    : section(b, key, ids);
+/** A page's titled rows, in order, each with its id: two rows of one title still get one id each. */
+function anchorsOf(rows: readonly RowLayoutConfig[]) {
+  const titled = rows.filter((r): r is RowLayoutConfig & { title: string } => !!r.title);
+  const anchors = sectionAnchors(titled.map((r) => r.title));
+  return { anchors, ids: new Map<RowLayoutConfig, string>(titled.map((r, i) => [r, anchors[i].id])) };
 }
 
 export interface ConfigDashboardProps {
-  config: DashboardConfig & { blocks: BlockConfig[] };
+  config: DashboardConfig & { rows: RowLayoutConfig[] };
   /** The frontend's `hass.panels`, which name the dashboards a `navigate:` item goes to. */
   panels?: Record<string, PanelInfo>;
   /** Fixed clock for screenshots; live otherwise. */
@@ -87,15 +113,15 @@ export interface ConfigDashboardProps {
 }
 
 /**
- * A whole dashboard drawn from the card's YAML: the main page (the top-level sections) or one of its `pages`, and a
- * bottom nav to its sections, its pages and other dashboards. A wall panel (`viewing: far`) has no nav unless the
+ * A whole dashboard drawn from the card's YAML: the main page (the top-level `cards` or `rows`) or one of its `pages`,
+ * and a bottom nav to its titled rows, its pages and other dashboards. A wall panel (`viewing: far`) has no nav unless the
  * YAML lists one; a nav with one destination isn't drawn. It needs an `HaProvider` above it.
  */
 export function ConfigDashboard({ config, panels, now, navigate }: ConfigDashboardProps) {
   const root = useRef<HTMLDivElement>(null);
   const pages = useMemo(() => config.pages ?? [], [config.pages]);
   const pageIds = useMemo(() => pages.map((p) => p.id), [pages]);
-  const main = useMemo(() => anchorsOf(config.blocks), [config.blocks]);
+  const main = useMemo(() => anchorsOf(config.rows), [config.rows]);
   const items = useMemo(() => (config.nav === false ? [] : resolveNav({
     entries: config.nav,
     mainTitle: config.title,
@@ -106,8 +132,8 @@ export function ConfigDashboard({ config, panels, now, navigate }: ConfigDashboa
   const nav = useDashboardNav({ items, pages: pageIds, rootRef: root, navigate });
   const page = nav.page === MAIN_PAGE ? undefined : pages.find((p) => p.id === nav.page);
   const showNav = nav.buttons.length > 1 && (config.viewing !== "far" || Array.isArray(config.nav));
-  const shown = page?.blocks ?? config.blocks;
-  const ids = page ? anchorsOf(page.blocks).ids : main.ids;
+  const shown = page?.rows ?? config.rows;
+  const ids = page ? anchorsOf(page.rows).ids : main.ids;
   return (
     <DashboardPage
       pageRef={root}
@@ -119,7 +145,7 @@ export function ConfigDashboard({ config, panels, now, navigate }: ConfigDashboa
       now={now}
       nav={showNav ? <><ActionStatus /><NavBar items={nav.buttons} /></> : undefined}
     >
-      {shown.map((b, i) => block(b, i, ids))}
+      {shown.map((row, i) => <Row key={`${page?.id ?? MAIN_PAGE}:${i}`} row={row} id={ids.get(row)} />)}
       {!showNav && <ActionStatus />}
     </DashboardPage>
   );

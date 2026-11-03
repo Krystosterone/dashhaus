@@ -82,14 +82,14 @@ CI runs these steps on every change to Dashhaus: it packs the release, installs 
 
 ## Change the layout
 
-A new dashboard lays out every supported entity by area. To choose your own sections and order, open the dashboard and
+A new dashboard lays out every supported entity by area. To choose your own cards, rows and order, open the dashboard and
 go to **⋮ → Edit dashboard**, then the card's pencil and **Show code editor**. The preview redraws as you type, and
 mistakes are listed all together with where they are and what you probably meant:
 
 ```text
 Dashhaus config has 2 problems:
-• sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
-• sections[2].cards[3]: media_player.tv: media_player.* entities have no card yet
+• rows[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
+• rows[2].cards[3]: media_player.tv: media_player.* entities have no card yet
 ```
 
 To put a Dashhaus card on another dashboard, add **Dashhaus** from the card picker. It starts from the generated layout

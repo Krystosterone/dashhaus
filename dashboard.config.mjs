@@ -13,7 +13,7 @@ import { autoDashboard } from "@dashhaus/orb/lovelace/auto";
 const PAGE_TITLE = "Home";
 
 /**
- * One dashboard per skin. Orb's layout is generated from the house once, to edit; Field's card, given no modules,
+ * One dashboard per skin. Orb's layout is generated from the house once, to edit; Field's card, given no cards or rows,
  * lays the house out itself every time it draws.
  */
 export default {
@@ -32,7 +32,7 @@ export default {
       env: { path: "HA_DASHBOARD", title: "HA_DASHBOARD_TITLE" },
       async card(ha) {
         const card = autoDashboard(await house(ha), PAGE_TITLE);
-        return { card, made: `${card.sections?.length ?? 0} generated sections` };
+        return { card, made: `${card.rows?.length ?? 0} generated rows` };
       },
     },
     {

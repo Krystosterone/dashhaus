@@ -118,22 +118,31 @@ describe("@dashhaus/dashboard", () => {
 
   it("exposes exactly the schema's public words", () => {
     expect(Object.keys(schema).sort()).toEqual([
+      "ALIGNS",
+      "BODY_KEYS",
       "DashboardConfigError",
+      "FLOWS",
       "MAIN_PAGE",
+      "PLACEMENT_KEYS",
       "Reader",
       "cardKindOrder",
       "cardKinds",
       "isRaw",
+      "mapRowItems",
       "oneOf",
       "readAlarmOptions",
+      "readBody",
       "readCard",
       "readCards",
       "readColor",
       "readOwletOptions",
+      "readRow",
       "readSensorOptions",
       "readUnit",
       "readWeatherOptions",
       "renderCard",
+      "rowItems",
+      "rowTitles",
       "suggest",
     ]);
   });
@@ -148,9 +157,12 @@ describe("@dashhaus/dashboard", () => {
       "domainOf",
       "friendlyName",
       "groupByArea",
+      "placeRow",
       "placeSection",
       "roomSensors",
       "sortByName",
+      "spanWidth",
+      "trackCount",
       "visibleEntities",
     ]);
   });

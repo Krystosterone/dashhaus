@@ -33,7 +33,7 @@ const meta = {
   component: Bar,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "The page's bottom nav: a plate of keys, one per destination, its word printed on it; where you are is the key that stays down, as a group's chosen key does, and a key that leaves the dashboard carries an arrow. The Lovelace card fills it from its sections, pages and `nav:` and docks it at the bottom (Field → Dashboards → Lovelace card → Sections and nav, Nav and pages)." } },
+    docs: { description: { component: "The page's bottom nav: a plate of keys, one per destination, its word printed on it; where you are is the key that stays down, as a group's chosen key does, and a key that leaves the dashboard carries an arrow. The Lovelace card fills it from its titled rows, pages and `nav:` and docks it at the bottom (Field → Dashboards → Lovelace card → Rows and nav, Nav and pages)." } },
   },
 } satisfies Meta<typeof Bar>;
 export default meta;

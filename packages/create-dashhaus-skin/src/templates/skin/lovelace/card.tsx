@@ -1,8 +1,9 @@
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
 import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import { mapCards, parse__Skin__Config } from "./config";
-import type { __Skin__Config, BlockConfig, CardConfig, PageConfig } from "./config";
-import { areaName, areaSections, autoCards } from "./auto";
+import { mapRowItems } from "@dashhaus/dashboard/schema";
+import { parse__Skin__Config } from "./config";
+import type { __Skin__Config, CardConfig, PageConfig, RowLayoutConfig } from "./config";
+import { areaName, areaRows, autoCards } from "./auto";
 import { __Skin__Dashboard } from "./__Skin__Dashboard";
 import { __SKIN_CONST___FONT_HREF, __SKIN_CONST___THEME_ATTRIBUTE } from "../shared/surface";
 
@@ -20,7 +21,7 @@ export function create__Skin__Card(css: string) {
     protected readonly styles = styles;
     protected readonly mountClass = "__skin__-surface";
     protected readonly fontHref = __SKIN_CONST___FONT_HREF;
-    #layout?: { key: unknown[]; blocks: BlockConfig[]; pages?: PageConfig[] };
+    #layout?: { key: unknown[]; rows: RowLayoutConfig[]; pages?: PageConfig[] };
 
     static getStubConfig() { return { type: `custom:${__SKIN_CONST___CARD_TYPE}` }; }
     protected parse(raw: unknown) { return parse__Skin__Config(raw); }
@@ -29,7 +30,7 @@ export function create__Skin__Card(css: string) {
     protected paintHost(_config: __Skin__Config, hass: LovelaceHass) { this.setAttribute(__SKIN_CONST___THEME_ATTRIBUTE, hass.themes?.darkMode ? "dark" : "light"); }
     protected draw(config: __Skin__Config, hass: LovelaceHass) {
       const layout = this.#layoutFor(config, hass);
-      return <__Skin__Dashboard title={config.title} subtitle={config.subtitle} showTime={config.showTime} hourCycle={config.hourCycle} blocks={layout.blocks} pages={layout.pages} nav={config.nav} footprint={config.footprint} panels={hass.panels} />;
+      return <__Skin__Dashboard title={config.title} subtitle={config.subtitle} showTime={config.showTime} hourCycle={config.hourCycle} rows={layout.rows} pages={layout.pages} nav={config.nav} footprint={config.footprint} panels={hass.panels} />;
     }
     #key(hass: LovelaceHass): unknown[] { return [this.config, hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length]; }
     #stale(hass: LovelaceHass) { const next = this.#key(hass); return !this.#layout || next.some((value, index) => value !== this.#layout!.key[index]); }
@@ -38,14 +39,13 @@ export function create__Skin__Card(css: string) {
       if (this.#layout && !key.some((value, index) => value !== this.#layout!.key[index])) return this.#layout;
       const input = autoInput(hass);
       const place = (card: CardConfig): CardConfig => ({ ...card, area: card.area ?? areaName(input, card.entity) });
-      const cards = (config.cards ?? autoCards(input)).map(place);
-      const blocks = config.sections ? mapCards(config.sections, place) : areaSections(cards);
-      const pages = config.pages?.map((page) => ({ ...page, blocks: mapCards(page.blocks, place) }));
-      return this.#layout = { key, blocks, pages };
+      const rows = config.rows ? mapRowItems(config.rows, place) : areaRows(autoCards(input).map(place));
+      const pages = config.pages?.map((page) => ({ ...page, rows: mapRowItems(page.rows, place) }));
+      return this.#layout = { key, rows, pages };
     }
   };
 }
 
 export function define__Skin__Card(css: string) {
-  registerCard(__SKIN_CONST___CARD_TYPE, create__Skin__Card(css), "Dashhaus __Section__", "The __Section__ dashboard. Without cards, it groups every entity it can draw by area.");
+  registerCard(__SKIN_CONST___CARD_TYPE, create__Skin__Card(css), "Dashhaus __Section__", "The __Section__ dashboard. Without cards or rows, it groups every entity it can draw by area.");
 }

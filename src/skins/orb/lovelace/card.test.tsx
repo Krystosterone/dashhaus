@@ -47,8 +47,8 @@ afterEach(async () => {
 });
 
 describe("dashhaus-orb card", () => {
-  it("draws the configured sections inside its shadow root, with the tokens moved to the host", async () => {
-    const card = await mount({ title: "Flat", sections: [{ title: "Lights", cards: ["light.kitchen"] }] });
+  it("draws the configured rows inside its shadow root, with the tokens moved to the host", async () => {
+    const card = await mount({ title: "Flat", rows: [{ title: "Lights", cards: ["light.kitchen"] }] });
     const shadow = card.shadowRoot!;
     expect(shadow.querySelector("style")?.textContent).toContain(':host([data-orb-theme="dark"])');
     expect(shadow.querySelector("style")?.textContent).toContain("--dash-scroll-offset: calc(var(--header-height, 56px)");
@@ -59,7 +59,7 @@ describe("dashhaus-orb card", () => {
   it("draws Home Assistant's states before its own subscription answers", async () => {
     adapter.emitOnSubscribe = false;
     try {
-      const card = await mount({ title: "Flat", sections: [{ title: "Lights", cards: ["light.kitchen"] }] });
+      const card = await mount({ title: "Flat", rows: [{ title: "Lights", cards: ["light.kitchen"] }] });
       expect(card.shadowRoot!.textContent).toContain("Kitchen");
     } finally {
       adapter.emitOnSubscribe = true;
@@ -78,7 +78,7 @@ describe("dashhaus-orb card", () => {
     expect(card.style.getPropertyValue("--brand-h")).toBe("200");
   });
 
-  it("lays the house out by itself without sections", async () => {
+  it("lays the house out by itself without cards or rows", async () => {
     const card = await mount({});
     const headings = [...card.shadowRoot!.querySelectorAll(".dash-sec-h")].map((h) => h.textContent);
     expect(headings).toEqual(["Modes", "Other"]);
@@ -93,11 +93,11 @@ describe("dashhaus-orb card", () => {
 
   it("throws every config problem for the YAML editor to show", () => {
     const card = document.createElement("dashhaus-test") as Card;
-    expect(() => card.setConfig({ sections: [{ cards: [{ entity: "light.a", footprnt: "compact" }] }] })).toThrow(DashboardConfigError);
-    expect(() => card.setConfig({ sections: [{ cards: [{ entity: "light.a", footprnt: "compact" }] }] })).toThrow('did you mean "footprint"?');
+    expect(() => card.setConfig({ cards: [{ entity: "light.a", footprnt: "compact" }] })).toThrow(DashboardConfigError);
+    expect(() => card.setConfig({ cards: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
   });
 
   it("pre-fills the card picker with the automatic layout spelled out", () => {
-    expect(Element.getStubConfig(hass())).toMatchObject({ type: "custom:dashhaus-orb", sections: [{ title: "Modes" }, { title: "Other" }] });
+    expect(Element.getStubConfig(hass())).toMatchObject({ type: "custom:dashhaus-orb", rows: [{ title: "Modes" }, { title: "Other" }] });
   });
 });

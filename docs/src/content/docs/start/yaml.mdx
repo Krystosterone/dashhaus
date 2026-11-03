@@ -1,6 +1,6 @@
 ---
 title: Lay it out in YAML
-description: "Each skin is one Lovelace card. Leave its YAML empty for the automatic layout, or write sections, pages and a nav."
+description: "Each skin is one Lovelace card. Leave its YAML empty for the automatic layout, or list cards, rows of cards, pages and a nav."
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
@@ -11,7 +11,7 @@ whole dashboard from its YAML.
 
 ## The automatic layout
 
-With nothing but its `type`, the card lays out every supported entity it can see, grouped by area from Home
+With nothing but its `type`, the card lays out every supported entity it can see, a row per area from Home
 Assistant's registries, and keeps up as you add devices. The dashboards the deploy tool creates start this way. Hidden,
 configuration and diagnostic entities are left out; room sensors are paired with the humidity and battery sensors on the same device.
 
@@ -22,26 +22,48 @@ type, and every mistake is listed at once, with where it is and what you probabl
 
 ```text
 Dashhaus config has 2 problems:
-• sections[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
-• sections[2].cards[3]: media_player.tv: media_player.* entities have no card yet
+• rows[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
+• rows[2].cards[3]: media_player.tv: media_player.* entities have no card yet
 ```
+
+The simplest layout is a list of `cards`, drawn in that order on one grid. `columns` sets how many fit across; leave
+it out and the card fits as many as the screen holds. Add, remove or move a line and the page follows:
+
+<Example file="user/cards.yaml" />
+
+For headings, write `rows` instead: one under another, each with its own `title`, `columns` and `cards`. A row is
+flat: it holds cards, never other rows. Each card can say where it sits in its row:
+
+- `width`: how many columns it spans, or `full` for all of them. Never pixels.
+- `column`: the column it starts in. Cards given the same column stack down it.
+- `footprint`: `compact`, `standard` or (Orb) `featured`: the card's fixed height.
+
+And each row how it packs them:
+
+- `flow: dense` lets a later card fill an earlier gap; the default keeps your order on screen.
+- `align: bottom` sets a row's shorter columns on its foot: a sidebar beside a tall hero ends where the hero does.
 
 <Tabs syncKey="skin">
   <TabItem label="Orb">
     <Example file="user/orb.yaml" />
 
-    A section's `cards` lists entities, either as the id alone or as a map with options. `joined` puts compact cards
-    side by side in one outer card, a bundle.
+    A row's `cards` lists entities, either as the id alone or as a map with options, and bundles: `bundle: joined`
+    puts compact cards side by side in one outer card (`lead` and `titled` are the others). Every footprint is a whole
+    number of Orb's 60 px units, so a compact card stacks beside a standard one without gaps.
 
   </TabItem>
   <TabItem label="Field">
     <Example file="user/field.yaml" />
 
-    Field lists `modules` where Orb lists `cards`, and a section's `columns` is a most, not a count: columns come from
-    the width, so a module never narrows below its own. A list item with its own `sections` puts them side by side.
+    Field's `columns` is a most, not a count: columns come from the width, so a module never narrows below its own.
+    A row holds one footprint, or stacks mixed ones by column: give each module a `column`, as Living room does.
 
   </TabItem>
 </Tabs>
+
+On a narrower screen a row keeps its cards and their heights and takes fewer columns: widths shrink to fit, and once
+a row has fewer columns than it was written for, its cards flow in your order instead of keeping their `column`. A
+row narrowed by its surroundings does the same. A state change never moves a card.
 
 ## Which card draws an entity
 
@@ -67,10 +89,11 @@ An entity with no card is an error that says so, rather than an empty space.
 
 | Where | Orb | Field |
 | --- | --- | --- |
-| The card | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `theme`, `accent`, `sections`, `pages`, `nav` | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `finish`, `footprint`, `quiet`, `modules`, `sections`, `pages`, `nav` |
-| A section | `title`, `note`, `columns`, `gap`, `cards` | `title`, `note`, `columns`, `modules` |
-| Side by side | `columns`, `gap`, `sections` | `columns`, `sections` |
-| Any card | `entity`, `card`, `name`, `area`, `footprint`, `span`, `show_control`, `history` | `entity`, `card`, `name`, `area`, `footprint`, `span`, `history` |
+| The card | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `theme`, `accent`, `pages`, `nav` | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `finish`, `footprint`, `quiet`, `pages`, `nav` |
+| The page (the card, or one of its `pages`) | `cards` or `rows`; `columns` (1 to 12, or `auto`) and `flow` for every row | `cards` or `rows`; `columns` (1 to 4, or `auto`) and `flow` for every row |
+| A row | `title`, `note`, `columns`, `flow`, `align`, `cards` | `title`, `note`, `columns`, `flow`, `align`, `cards` |
+| Any card | `entity`, `card`, `name`, `area`, `footprint`, `width`, `column`, `show_control`, `history` | `entity`, `card`, `name`, `area`, `footprint`, `width`, `column`, `history` |
+| A bundle | `bundle` (`joined`, `lead`, `titled`), `cards`, `label`, `sheet_title` (lead), `title` and `area` (titled), `width`, `column` | none |
 
 Each card adds its own: a sensor's `humidity`, `battery`, `outdoor` and `unit`; the weather's `aqi`, `aqi_scale`, `sun`
 and `forecasts`; a toggle's `icon` and `description`; a sound's `volume`; an alarm's `read_only`, `exit_delay`,
@@ -78,7 +101,7 @@ and `forecasts`; a toggle's `icon` and `description`; a sound's `volume`; an ala
 `stale_after`; a lock's `battery`; a climate entity's `unit`. In Orb, most cards also take a `color` for their orb.
 
 `viewing: far` is for a wall panel read from across the room: larger status lines and captions, heavier figures,
-the same card heights. A key Orb takes and Field doesn't (`theme`, `accent`, `color`, a section's `gap`, bundles) is
+the same card heights. A key Orb takes and Field doesn't (`theme`, `accent`, `color`, `show_control`, bundles) is
 refused with the reason, for YAML copied from one card to the other.
 
 The specification's [deploy page](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md#the-format)
@@ -87,13 +110,13 @@ has every value and default.
 ## Pages and the nav
 
 A nav docks at the bottom of the screen, one pill or key per destination. Without `nav`, it lists the card's pages,
-or else its sections. `pages` are more pages in the same card, each with its own `sections`; the URL keeps the page
-open (`#page=nursery`), so the back button returns.
+or else its titled rows. `pages` are more pages in the same card, each with its own `cards` or `rows`; the URL keeps
+the page open (`#page=nursery`), so the back button returns.
 
 <Example file="user/pages.yaml" />
 
-A destination is a `section:` of the main page by its title, a `page:` by its `id` (`home` is the main page), or
+A destination is a `section:` of the main page, a titled row by its title, a `page:` by its `id` (`home` is the main page), or
 `navigate:` to another Home Assistant dashboard by its path. `nav: false` turns the nav off; a wall panel has none
 unless `nav` lists one.
 
-Both skins take the same `pages` and `nav`; in Field a page's sections list `modules`.
+Both skins take the same `pages` and `nav`.

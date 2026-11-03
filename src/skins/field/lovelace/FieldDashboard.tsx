@@ -1,11 +1,12 @@
 import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import { useActionStatus } from "@dashhaus/dashboard/skin";
-import { MAIN_PAGE, resolveNav, sectionAnchors } from "@dashhaus/dashboard";
+import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/dashboard";
 import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
 import { useDashboardNav } from "@dashhaus/dashboard";
-import { renderCard } from "@dashhaus/dashboard/schema";
+import { renderCard, rowItems } from "@dashhaus/dashboard/schema";
 import type { CardRenderers } from "@dashhaus/dashboard/schema";
+import type { TrackPolicy } from "@dashhaus/dashboard/layout";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
@@ -19,11 +20,10 @@ import { HaAlarmModule } from "../ha/HaAlarmModule";
 import { HaOwletModule } from "../ha/HaOwletModule";
 import { HaLockModule } from "../ha/HaLockModule";
 import { Key } from "../shared/ui";
-import { Area, Areas, Cell, FieldPage } from "../dashboards/layout";
+import { Area, FieldPage, Place, Stack } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
 import type { FieldFootprint } from "../shared/ui";
-import { modulesOf, sectionsOf } from "./config";
-import type { BlockConfig, FieldKind, ModuleConfig, PageConfig, SectionConfig } from "./config";
+import type { FieldKind, FieldRow, ModuleConfig, PageConfig } from "./config";
 import "./dashboard.css";
 
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
@@ -77,11 +77,54 @@ function ActionNotice() {
   );
 }
 
-/** A page's titled sections, in order, each with its id: two sections of one title still get one id each. */
-function anchorsOf(blocks: readonly BlockConfig[]) {
-  const titled = sectionsOf(blocks).filter((s): s is SectionConfig & { title: string } => !!s.title);
-  const anchors = sectionAnchors(titled.map((s) => s.title));
-  return { anchors, ids: new Map<SectionConfig, string>(titled.map((s, i) => [s, anchors[i].id])) };
+/** A page's titled rows, in order, each with its id: two rows of one title still get one id each. */
+function anchorsOf(rows: readonly FieldRow[]) {
+  const titled = rows.filter((r): r is FieldRow & { title: string } => !!r.title);
+  const anchors = sectionAnchors(titled.map((r) => r.title));
+  return { anchors, ids: new Map<FieldRow, string>(titled.map((r, i) => [r, anchors[i].id])) };
+}
+
+/**
+ * Field's tracks: at least a module's width (260 px; a compact row's 300 px), with its gap; `columns` is only ever a
+ * most, so a module never narrows below its own, and four fit the page's 1240 px.
+ */
+export const FIELD_TRACKS: Record<FieldFootprint, TrackPolicy> = {
+  standard: { gap: 12, min: 260, preferred: 260, max: 4 },
+  compact: { gap: 8, min: 300, preferred: 300, max: 4 },
+};
+
+interface RowProps { row: FieldRow; id?: string; legend: boolean; label: string | null; footprint: FieldFootprint }
+
+/**
+ * One row under its legend. A row of one footprint is a grid placed by the shared layout (its tracks from its own
+ * width, each module on its grid lines). A row that mixes footprints draws a stack per column, so a short module
+ * never sits beside a tall one in a grid row; with fewer tracks than its columns, the stacks wrap in column order.
+ */
+function Row({ row, id, legend, label, footprint }: RowProps) {
+  const own = (item: ModuleConfig) => item.footprint ?? footprint;
+  const grid = row.stacks ? "standard" : own(row.cards[0]?.item ?? ({} as ModuleConfig));
+  const layout = useRowLayout(row, FIELD_TRACKS[grid]);
+  const drawn = (item: ModuleConfig, i: number) => <LiveModule key={`${i}:${item.entity}`} item={item} footprint={footprint} />;
+  let content;
+  if (row.stacks) {
+    const columns = row.columns ?? Math.max(...row.cards.map((entry) => entry.column ?? 1));
+    const placed = layout.tracks >= columns;
+    content = Array.from({ length: columns }, (_, c) => {
+      const stack = row.cards.flatMap((entry, i) => (entry.column === c + 1 ? [{ entry, i }] : []));
+      return stack.length ? (
+        <Stack key={c} column={placed ? c + 1 : undefined}>
+          {stack.map(({ entry, i }) => <Place key={`${i}:${entry.item.entity}`} footprint={own(entry.item)}>{drawn(entry.item, i)}</Place>)}
+        </Stack>
+      ) : null;
+    });
+  } else {
+    content = row.cards.map((entry, i) => <Place key={`${i}:${entry.item.entity}`} style={layout.cells[i]?.style} footprint={own(entry.item)}>{drawn(entry.item, i)}</Place>);
+  }
+  return (
+    <Area id={id} title={row.title} label={label} legend={legend} note={row.note} footprint={grid} grid={{ ref: layout.ref, style: layout.style, tracks: layout.tracks, stacks: row.stacks, align: row.align }}>
+      {content}
+    </Area>
+  );
 }
 
 export interface FieldDashboardProps {
@@ -94,10 +137,10 @@ export interface FieldDashboardProps {
   /** "far": a wall panel read from across the room (YAML `viewing`). */
   viewing?: "near" | "far";
   /**
-   * The main page: the YAML's `sections`, or its `modules` (or the automatic layout) as a section per area. Each module
-   * has its area from the YAML or, failing that, Home Assistant's registries.
+   * The main page: the YAML's rows (its `cards` are one), or the automatic layout's row per area. Each module has its
+   * area from the YAML or, failing that, Home Assistant's registries.
    */
-  blocks: BlockConfig[];
+  rows: FieldRow[];
   /** The card's other pages, opened from the nav. */
   pages?: PageConfig[];
   /** The nav's destinations; absent: the pages, or else the main page's sections; false: none. */
@@ -117,15 +160,15 @@ const NO_PAGES: PageConfig[] = [];
 
 /**
  * The field page drawn from the card's config (`FieldPage`): the main page or one of its `pages`, each an optional
- * header, the alert line with every alarm and urgent warning its modules report, then its sections, a legend printed
- * over each where there is more than one; and a nav docked at the bottom, to its sections, its pages and other
+ * header, the alert line with every alarm and urgent warning its modules report, then its rows, a legend printed over
+ * each titled one where there is more than one; and a nav docked at the bottom, to its sections, its pages and other
  * dashboards. A wall panel (`viewing: far`) has no nav unless the YAML lists one; a nav with one destination isn't
  * drawn. A rejected command docks at the bottom, above the nav. It needs an `HaProvider` above it.
  */
-export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, blocks, pages = NO_PAGES, nav: navConfig, footprint, quiet, panels, now, navigate }: FieldDashboardProps) {
+export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, rows, pages = NO_PAGES, nav: navConfig, footprint, quiet, panels, now, navigate }: FieldDashboardProps) {
   const root = useRef<HTMLDivElement>(null);
   const pageIds = useMemo(() => pages.map((p) => p.id), [pages]);
-  const main = useMemo(() => anchorsOf(blocks), [blocks]);
+  const main = useMemo(() => anchorsOf(rows), [rows]);
   const items = useMemo(() => (navConfig === false ? [] : resolveNav({
     entries: navConfig,
     mainTitle: title ?? "Home",
@@ -136,18 +179,9 @@ export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, 
   const nav = useDashboardNav({ items, pages: pageIds, rootRef: root, navigate });
   const page = nav.page === MAIN_PAGE ? undefined : pages.find((p) => p.id === nav.page);
   const showNav = nav.buttons.length > 1 && (viewing !== "far" || Array.isArray(navConfig));
-  const shown = page?.blocks ?? blocks;
-  const ids = page ? anchorsOf(page.blocks).ids : main.ids;
-  const legend = sectionsOf(shown).length > 1;
-
-  const area = (s: SectionConfig, key: number) => (
-    <Area key={key} id={ids.get(s)} title={s.title} legend={legend} note={s.note} columns={s.columns} footprint={footprint}>
-      {s.modules.map((item, i) => {
-        const live = <LiveModule key={`${i}:${item.entity}`} item={item} footprint={footprint} />;
-        return item.span && item.span > 1 ? <Cell key={`${i}:${item.entity}`} span={item.span}>{live}</Cell> : live;
-      })}
-    </Area>
-  );
+  const shown = page?.rows ?? rows;
+  const ids = page ? anchorsOf(page.rows).ids : main.ids;
+  const legend = shown.length > 1;
 
   return (
     <FieldPage
@@ -161,8 +195,8 @@ export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, 
       now={now}
       nav={showNav ? <><ActionNotice /><NavBar items={nav.buttons} /></> : undefined}
     >
-      {shown.map((b, i) => (b.kind === "columns" ? <Areas key={i} columns={b.columns}>{b.sections.map(area)}</Areas> : area(b, i)))}
-      {modulesOf(shown).length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>modules</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
+      {shown.map((row, i) => <Row key={`${page?.id ?? MAIN_PAGE}:${i}`} row={row} id={ids.get(row)} legend={legend} label={shown.length > 1 ? "Other" : null} footprint={footprint} />)}
+      {rowItems(shown).length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>cards</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
       {!showNav && <ActionNotice />}
     </FieldPage>
   );

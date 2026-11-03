@@ -138,3 +138,131 @@ export function roomSensors({ states, entities = {} }: RoomSensorInput): RoomSen
   }
   return rooms;
 }
+
+/*
+ * Placing a row's cards (spec/deploy.md → The format → Placement). A row is a grid of tracks across and, down, rows of
+ * the skin's unit: orb's 60 px, or one module in a skin whose rows hold one footprint. Every card is a block of whole
+ * tracks and units, so placing is exact and the same on every render: it depends on the YAML and the row's width,
+ * never on an entity's state.
+ */
+
+/** How a skin turns a row's width into tracks. */
+export interface TrackPolicy {
+  /** The space between tracks, in px. */
+  gap: number;
+  /** An explicit `columns` count yields a track whenever tracks would get narrower than this. */
+  min: number;
+  /** With `columns` left out, tracks are at least this wide. */
+  preferred: number;
+  /** The most tracks an automatic row takes. */
+  max: number;
+}
+
+/** How many tracks of at least `track` px fit in `width` px. Never fewer than one. */
+const fit = (width: number, track: number, gap: number) => Math.max(1, Math.floor((width + gap) / (track + gap)));
+
+/**
+ * A row's tracks at a width: its `columns`, or fewer where a track would be narrower than the skin's minimum; left out,
+ * as many as fit at the preferred width. An unknown width (not yet measured, or hidden) draws the columns as written.
+ */
+export function trackCount(width: number | undefined, columns: number | undefined, policy: TrackPolicy): number {
+  if (!width || width <= 0) return columns ?? 1;
+  return columns ? Math.min(columns, fit(width, policy.min, policy.gap)) : Math.min(policy.max, fit(width, policy.preferred, policy.gap));
+}
+
+/** The width in px of a block `span` tracks wide, in a row `width` px wide with `tracks` tracks. */
+export const spanWidth = (width: number | undefined, tracks: number, span: number, gap: number) =>
+  width && width > 0 ? ((width - (tracks - 1) * gap) / tracks) * span + (span - 1) * gap : undefined;
+
+/** One card to place: its width in columns, its anchor, and its height in units at the span it is given. */
+export interface PlaceEntry {
+  width: number | "full";
+  column?: number;
+  height: number | ((span: number) => number);
+}
+
+/** Where one card goes, in grid lines counted from 1: `column` / span `span`, `row` / span `height`. */
+export interface Placed {
+  column: number;
+  span: number;
+  row: number;
+  height: number;
+}
+
+export interface RowPlacement {
+  tracks: number;
+  /** One per entry, in the entries' order (the reading order). */
+  cells: Placed[];
+  /** The row's height in units. */
+  rows: number;
+  /** Whether the entries' `column` anchors held: the row has as many tracks as it was written for. */
+  anchored: boolean;
+}
+
+/**
+ * Place a row's entries on `tracks` tracks.
+ *
+ * - A `width` wider than the tracks is clamped to them; `full` is every track.
+ * - Anchors hold only while the row has the tracks it was written for (its `columns`, or, left out, the last column
+ *   an anchor reaches); with fewer, every entry flows by the rules below, in order.
+ * - `normal` flow keeps a cursor: each entry takes the first free place at or after the previous entry's, reading
+ *   left to right, then down, so the visual order is the YAML's. An anchored entry looks only in its column.
+ * - `dense` flow starts every entry from the top left, so a later entry may fill an earlier hole.
+ * - `bottom` alignment moves each group of columns no entry spans out of (a stack, or a stack and the cards spanning
+ *   it) down to the row's bottom, by whole units, keeping the spacing inside it. Nothing stretches.
+ */
+export function placeRow(entries: readonly PlaceEntry[], { tracks, columns, flow = "normal", align = "top" }: {
+  tracks: number;
+  columns?: number;
+  flow?: "normal" | "dense";
+  align?: "top" | "bottom";
+}): RowPlacement {
+  const across = Math.max(1, Math.floor(tracks));
+  const spanOf = (entry: PlaceEntry) => (entry.width === "full" ? across : Math.min(Math.max(1, Math.floor(entry.width)), across));
+  const reach = Math.max(0, ...entries.map((entry) => (entry.column ? entry.column + (entry.width === "full" ? 1 : entry.width) - 1 : 0)));
+  const written = columns ?? reach;
+  const anchored = entries.some((entry) => entry.column) && across >= written;
+  const taken: boolean[][] = [];
+  const free = (row: number, column: number, span: number, height: number) => {
+    for (let r = row; r < row + height; r++) for (let c = column; c < column + span; c++) if (taken[r]?.[c]) return false;
+    return true;
+  };
+  let cursor = { row: 0, column: 0 };
+  const cells = entries.map((entry): Placed => {
+    const span = spanOf(entry);
+    const height = Math.max(1, Math.floor(typeof entry.height === "function" ? entry.height(span) : entry.height));
+    const start = flow === "dense" ? { row: 0, column: 0 } : cursor;
+    const anchor = anchored && entry.column ? Math.min(entry.column - 1, across - span) : undefined;
+    let place: { row: number; column: number } | undefined;
+    for (let row = start.row; !place; row++) {
+      const first = row === start.row ? start.column : 0;
+      if (anchor !== undefined) {
+        if (anchor >= first && free(row, anchor, span, height)) place = { row, column: anchor };
+        continue;
+      }
+      for (let column = first; column + span <= across; column++) {
+        if (free(row, column, span, height)) { place = { row, column }; break; }
+      }
+    }
+    for (let r = place.row; r < place.row + height; r++) {
+      taken[r] ??= [];
+      for (let c = place.column; c < place.column + span; c++) taken[r][c] = true;
+    }
+    cursor = { row: place.row, column: place.column + span };
+    return { column: place.column + 1, span, row: place.row + 1, height };
+  });
+  const rows = Math.max(0, ...cells.map((cell) => cell.row - 1 + cell.height));
+  if (align === "bottom" && cells.length) {
+    // Columns joined by a card that spans them move together.
+    const group = Array.from({ length: across }, (_, i) => i);
+    const root = (i: number): number => (group[i] === i ? i : (group[i] = root(group[i])));
+    for (const cell of cells) for (let c = cell.column; c < cell.column - 1 + cell.span; c++) group[root(c)] = root(cell.column - 1);
+    const bottom = new Map<number, number>();
+    for (const cell of cells) {
+      const key = root(cell.column - 1);
+      bottom.set(key, Math.max(bottom.get(key) ?? 0, cell.row - 1 + cell.height));
+    }
+    for (const cell of cells) cell.row += rows - bottom.get(root(cell.column - 1))!;
+  }
+  return { tracks: across, cells, rows, anchored };
+}

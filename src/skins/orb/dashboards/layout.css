@@ -11,6 +11,12 @@
    are damped — the glow budget scales with composition, not just entity state. */
 .dash-grid--1 > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-damp: 0.5; }
 
+/* The Lovelace card's rows: tracks from the row's own width (useRowLayout), down a grid of 60 px units with the 8 px
+   gap, so each footprint is a whole number of rows. Every card is placed by its inline grid lines. */
+.dash-row { display: grid; gap: 8px; grid-auto-rows: 60px; align-items: start; min-width: 0; }
+.dash-place { min-width: 0; }
+.dash-row[data-tracks="1"] > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-damp: 0.5; }
+
 /* At the narrow phone boundary, identity wins over columns: footprints stay fixed while rows reflow. */
 @container dash (max-width: 319px) {
   .dash-grid { grid-template-columns: minmax(0, 1fr); }

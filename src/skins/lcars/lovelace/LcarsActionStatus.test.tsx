@@ -13,7 +13,7 @@ describe("Lcars rejected commands", () => {
     let fail = true;
     const callService = vi.fn(async () => { if (fail) throw new Error("rejected"); return undefined; });
     const store = createHaStore({ subscribeEntities(listener) { queueMicrotask(() => listener(entities)); return () => undefined; }, callService });
-    render(<HaProvider store={store}><LcarsDashboard title="Home" blocks={[]} footprint="standard" /></HaProvider>);
+    render(<HaProvider store={store}><LcarsDashboard title="Home" rows={[]} footprint="standard" /></HaProvider>);
     await waitFor(() => expect(store.getSnapshot().status).toBe("connected"));
     expect(screen.queryByRole("alert")).toBeNull();
 

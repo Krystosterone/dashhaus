@@ -8,6 +8,19 @@ type Tile = ReactElement<{ footprint?: CardFootprint }>;
 const tiles = (children: ReactNode) => Children.toArray(children).filter(isValidElement) as Tile[];
 
 /**
+ * How many 60 px units a joined bundle of `n` members is at `width` px: one row while each member gets about 170 px,
+ * else stacked (four go two by two from 450 through 599 px). It mirrors Bundle.css's container queries, which draw
+ * it; Bundle.test.ts holds the two to the same widths. An unknown width is one row.
+ */
+export function joinedUnits(n: number, width: number | undefined): number {
+  if (n <= 1 || width === undefined) return 1;
+  if (width < 340) return n;
+  if (n === 3 && width < 510) return 3;
+  if (n === 4) return width < 450 ? 4 : width < 600 ? 2 : 1;
+  return 1;
+}
+
+/**
  * Joined: equal compact members sharing one card. Members can be any card type; the bundle owns
  * their footprint so a horizontal bundle is 60px and a stacked bundle follows the 60px + 8px rhythm.
  */
