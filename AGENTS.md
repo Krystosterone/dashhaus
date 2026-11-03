@@ -26,11 +26,11 @@ One word per thing, the same in code, Storybook and the docs.
 ## Commands
 
 - `npm install`
-- `npm run check` — typecheck + lint + test, the one-shot gate. Run it before every change is finished.
+- `npm run check` — typecheck + lint + test side by side (`scripts/check.js`; one after another below four cores), the one-shot gate. Run it before every change is finished.
 - `npm run typecheck` — `tsc --noEmit` over the root, every public package and the docs' samples
 - `npm run lint` — `eslint .` (`eslint.config.js`)
 - `npm run test` — Vitest (`config/vitest.config.ts`), one project per public package plus the root app; `test:unit` (everything but the generator copies) and `test:generators` are CI's split of it
-- `npm run test-storybook` — every story renders and passes axe in Chromium; failures name the rule, impact and elements
+- `npm run test-storybook` — builds Storybook in test mode (no docs pages), then every story renders and passes axe in Chromium; failures name the rule, impact and elements
 - `npm run storybook` — dev server at http://localhost:6006; `build-storybook` builds it to `storybook-static/`
 - `npm run build:ha` — the Lovelace card as one file, `dist/dashhaus.js`, also copied to `packages/bundle/dist/`
 - `npm run build:packages` — every public package's `dist`; the workspace keeps reading source (`spec/release.md`)
@@ -58,7 +58,7 @@ Node-run ESM is `.js` under `"type": "module"`. The only first-party `.mjs` is a
 4. `npm run build:docs` — when `docs/` or the scaffolder's templates change.
 5. `npm run release:check` — when a package manifest, bin, export or module filename changes; packs the seven tarballs and installs them into a clean app.
 
-CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request; the Docs workflow runs step 4. Why its lanes are shaped as they are is in `spec/release.md` → CI.
+CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request, each lane installing through `.github/actions/setup`; the Docs workflow runs step 4. Why its lanes are shaped as they are is in `spec/release.md` → CI.
 
 Unit tests cover pure logic, the interaction primitives, the shared hooks and the deploy CLI; stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/skins/orb/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
 

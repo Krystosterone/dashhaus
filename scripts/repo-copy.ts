@@ -39,14 +39,20 @@ export const run = (cwd: string, command: string, args: string[]) =>
 /**
  * The copy's own node_modules: each dependency linked from the repo, and every workspace package linked from the copy,
  * so a generated skin resolves by its manifest name without re-installing the dependency tree.
+ *
+ * The tool caches are the copy's own, never a link: suites run side by side and each would otherwise write its
+ * typecheck state over the repo's, and over each other's. The copy starts from a snapshot of the repo's typecheck
+ * state instead, which TypeScript can reuse because a copy has the same layout and its unchanged files hash the same.
  */
 export const linkNodeModules = (copy: string) => {
   const modules = join(copy, "node_modules");
   mkdirSync(modules);
   for (const entry of readdirSync(join(root, "node_modules"))) {
-    if (entry === "@dashhaus") continue;
+    if (entry === "@dashhaus" || entry === ".cache") continue;
     symlinkSync(join(root, "node_modules", entry), join(modules, entry));
   }
+  const tsc = join(root, "node_modules", ".cache", "tsc");
+  if (existsSync(tsc)) cpSync(tsc, join(modules, ".cache", "tsc"), { recursive: true });
   mkdirSync(join(modules, "@dashhaus"));
   for (const scope of readdirSync(join(copy, "packages"))) symlinkSync(join(copy, "packages", scope), join(modules, "@dashhaus", scope), "dir");
   for (const skin of readdirSync(join(copy, "src/skins"))) {
