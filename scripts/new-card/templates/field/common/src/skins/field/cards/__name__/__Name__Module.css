@@ -1,5 +1,5 @@
-/* __Label__ module (fd-__code__). Its own layout goes here; the plate, key, screen, fader and meter are shared. */
-.fd-__code__-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+/* __Label__ module (fd-__code__). Its own layout goes here; the plate, key, screen, fader, meter, row (ModuleRow) and
+   panel body (PanelBody) are shared. */
 
 /* Narrow modules keep one meta line on the screen. */
 @container (max-width: 239px) {
@@ -12,6 +12,3 @@
   .fd-__code__[data-footprint="compact"] .fd-pict { display: none; }
   .fd-__code__[data-footprint="compact"] .fd-screen { width: 80px; }
 }
-
-/* The detail panel's __label__ content. */
-.fd-__code__-panel { display: grid; gap: 16px; min-width: 0; }

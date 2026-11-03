@@ -4,7 +4,7 @@ import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entitie
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
 import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconHumidifier } from "./icons";
 import "./HumidifierModule.css";
@@ -67,7 +67,7 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
   // The power key and the target fader, the same in the module and the panel. Without a target to set, the key
   // spans the row with what it does.
   const controls = (where: string) => (
-    <div className="fd-hu-row" data-adjustable={adjustable}>
+    <ModuleRow className="fd-hu-row" solo={!adjustable}>
       <Key label={keyLabel} led={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!adjustable} caption={adjustable || unav ? undefined : on ? "Turn off" : "Turn on"}>
         <IconHumidifier kind={e.kind} />
       </Key>
@@ -85,7 +85,7 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
           onChange={onTargetChange}
         />
       )}
-    </div>
+    </ModuleRow>
   );
 
   return (
@@ -161,7 +161,7 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
   const modes = e.modes ?? [];
 
   return (
-    <div className="fd-hu-panel" data-state={e.state}>
+    <PanelBody className="fd-hu-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {controls}
 
@@ -192,6 +192,6 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
 
       {/* Unavailable, the bounds are the mapper's defaults rather than the unit's, so only its kind is printed. */}
       <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={`${e.kind === "dehumidifier" ? "Dehumidifier" : "Humidifier"}${unav ? "" : ` · ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`}`} />
-    </div>
+    </PanelBody>
   );
 }

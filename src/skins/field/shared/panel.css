@@ -89,6 +89,16 @@
 
 .fd-info { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-ink-3); }
 
+/* A detail panel's content (PanelBody): the screen, then each block, as the container its key groups read. */
+.fd-panel-body { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
+
+/* What the panel prints under its screen (Notices): every warning, then the state in words, in full. */
+.fd-notices { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 14px; text-transform: uppercase; color: var(--fd-ink-2); }
+.fd-notices > li { min-width: 0; overflow-wrap: anywhere; }
+.fd-notices .fd-warn { align-items: flex-start; }
+.fd-notices .fd-warn svg { margin-top: 2px; }
+.fd-notices .fd-warn-t { white-space: normal; }
+
 /* A sentence under a block: what a press does, what a question means. It keeps its case and wraps. */
 .fd-hint { margin: 0; min-height: 17px; font-size: 12px; font-weight: 400; line-height: 17px; color: var(--fd-ink-2); }
 .fd-hint .fd-warn-t { white-space: normal; }

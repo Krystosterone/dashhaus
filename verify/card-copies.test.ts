@@ -2,7 +2,7 @@
  * A card is composition: what two cards of one skin both need is a part in the skin's `shared/` (or behaviour in
  * `@dashhaus/core`), never a copy in each card folder (research/mechanism-backlog.md → 2). This finds the copies a grep
  * can: a component whose source is the same in two card folders of a skin once each card's class code is set aside
- * (a keypad pasted from the alarm into the lock), and a CSS rule of four or more declarations, on one card class, that
+ * (a keypad pasted from the alarm into the lock), and a CSS rule of three or more declarations, on one card class, that
  * another card of the skin writes again (a key group's grid). A name two cards share isn't a copy (orb's alarm and
  * climate both have a `ModeIcon`, of different modes); only the same body is.
  *
@@ -16,15 +16,11 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 const skinsDir = join(root, "src/skins");
 
-/** The copies there are today: `<skin>: <kind> <what> in <cards>`. Each is a part waiting to be made. */
-const KNOWN: Record<string, string> = {
-  "field: css align-items: center; display: grid; gap: 12px; grid-template-columns: 44px minmax(0, 1fr) in alarm, climate, cover, humidifier, light, owlet, sensor, weather":
-    "a module's row: the glyph or key, then today's meter or the fader",
-  "field: css container-type: inline-size; display: grid; gap: 16px; min-width: 0 in alarm, climate, cover, humidifier, light, lock, sound, toggle":
-    "a detail panel's content, as a container",
-  "field: css color: var(--fd-ink-2); display: grid; font-size: 10.5px; font-weight: 600; gap: 4px; letter-spacing: 0.06em; line-height: 14px; list-style: none; margin: 0; padding: 0; text-transform: uppercase in owlet, weather":
-    "a printed list of readings in the panel",
-};
+/**
+ * The copies there are today, each `<skin>: <kind> <what> in <cards>` with what it is: a part waiting to be made.
+ * None now; a copy that has to stay for a while is listed here with its reason, never left to pass unseen.
+ */
+const KNOWN: Record<string, string> = {};
 
 const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
   const path = join(dir, name);
@@ -41,13 +37,16 @@ function components(source: string): [string, string][] {
     .filter(([, body]) => body.split("\n").length >= 5);
 }
 
-/** A rule's declarations, sorted and joined, for rules on one class with at least four of them. */
+/** The fewest declarations a copied rule has to have to count: fewer is a coincidence, not a part. */
+const MIN_DECLARATIONS = 3;
+
+/** A rule's declarations, sorted and joined, for rules on one class with at least `MIN_DECLARATIONS` of them. */
 function blocks(css: string): string[] {
   const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
   return [...bare.matchAll(/(?<=^|\})\s*([^{}@]+?)\s*\{([^{}]+)\}/g)]
     .filter(([, selector]) => /^\.[\w-]+$/.test(selector.trim()))
     .map(([, , body]) => body.split(";").map((d) => d.trim().replace(/\s+/g, " ")).filter(Boolean).sort())
-    .filter((decls) => decls.length >= 4)
+    .filter((decls) => decls.length >= MIN_DECLARATIONS)
     .map((decls) => decls.join("; "));
 }
 

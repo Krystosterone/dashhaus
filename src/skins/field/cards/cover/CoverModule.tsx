@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, KeyGroup } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, KeyGroup, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconCover, IconDown, IconStop, IconUp, SLATS, WINDOW } from "./icons";
 import "./CoverModule.css";
@@ -94,7 +94,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   };
   // The key and the position fader, the same in the module and the panel. Without a position to set, the key spans the row with what it does.
   const controls = (where: "m" | "p") => (
-    <div className="fd-cv-row" data-settable={settable}>
+    <ModuleRow className="fd-cv-row" solo={!settable}>
       {key(!settable, where)}
       {settable && (
         <Fader
@@ -110,7 +110,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
           onChange={onSetPosition}
         />
       )}
-    </div>
+    </ModuleRow>
   );
 
   return (
@@ -176,7 +176,7 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
   ) : undefined;
 
   return (
-    <div className="fd-cv-panel" data-state={e.state}>
+    <PanelBody className="fd-cv-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {controls}
 
@@ -214,6 +214,6 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
 
       {/* Unavailable, what it can do isn't known, so only its kind is printed. */}
       <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}`} />
-    </div>
+    </PanelBody>
   );
 }

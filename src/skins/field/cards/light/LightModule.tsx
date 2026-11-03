@@ -6,7 +6,7 @@ import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
 import type { Hs } from "@dashhaus/core/entities/light/color";
 import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup } from "../../shared/ui";
+import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -68,7 +68,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   // known, so the fader goes and the key spans the row, as every field control's does.
   const faded = dimmable && !unav;
   const controls = (where: string) => (
-    <div className="fd-lt-row" data-dimmable={faded}>
+    <ModuleRow className="fd-lt-row" solo={!faded}>
       <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!dimmable && !unav ? (on ? "On" : "Off") : undefined}>
         <IconBulb />
       </Key>
@@ -85,7 +85,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
           onChange={onBrightnessChange}
         />
       )}
-    </div>
+    </ModuleRow>
   );
 
   return (
@@ -155,7 +155,7 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
   ) : undefined;
 
   return (
-    <div className="fd-lt-panel" data-state={e.state}>
+    <PanelBody className="fd-lt-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {controls}
 
@@ -203,6 +203,6 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
       {history && <Today summary={today} label="Brightness by hour today." samples={history.samples} currentHour={history.currentHour} />}
 
       <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off"} />
-    </div>
+    </PanelBody>
   );
 }

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
 import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails, Facts } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails, Facts, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconSound, SPEAKER } from "./icons";
 import "./SoundModule.css";
@@ -89,7 +89,7 @@ function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }:
   ) : undefined;
 
   return (
-    <div className="fd-sn-panel" data-state={e.state}>
+    <PanelBody className="fd-sn-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {control}
 
@@ -110,6 +110,6 @@ function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }:
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
       <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav ? "" : volume != null ? "On / off, volume" : "On / off"} />
-    </div>
+    </PanelBody>
   );
 }

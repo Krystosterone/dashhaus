@@ -7,7 +7,7 @@ import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useNow } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts } from "../../shared/ui";
+import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMode, IconShield, SHIELD_PICT } from "./icons";
 import "./AlarmModule.css";
@@ -151,15 +151,15 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   const glyph = <Glyph unavailable={unav}>{shield}</Glyph>;
   const today = history && (unav ? unavailableSince(e.lastSeen) : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today");
   const row = ro ? (
-    <div className="fd-al-row">
+    <ModuleRow className="fd-al-row">
       {glyph}
       <Today summary={today} label="Armed by hour today." tone="neutral" samples={history?.samples} currentHour={history?.currentHour} />
-    </div>
+    </ModuleRow>
   ) : steady && !unav ? (
-    <div className="fd-al-row" data-bank data-n={choices.length}>
+    <ModuleRow className="fd-al-row" solo data-n={choices.length}>
       {bank("m")}
       <div className="fd-al-alt">{key(true)}</div>
-    </div>
+    </ModuleRow>
   ) : key(true);
 
   return (
@@ -181,7 +181,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       lead={ro ? glyph : key(false)}
       row={row}
     >
-      <div className="fd-al-panel" data-state={e.state}>
+      <PanelBody className="fd-al-panel" state={e.state}>
         <Screen pict={pict} meta={meta}>{read}</Screen>
         {pending ? (
           <Keypad
@@ -194,7 +194,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
         ) : (
           <AlarmDetails e={e} ro={ro} history={history} today={today} control={ro ? null : steady && !unav ? bank("p") : key(true)} />
         )}
-      </div>
+      </PanelBody>
     </ModuleFrame>
   );
 }

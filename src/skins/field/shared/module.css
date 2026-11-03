@@ -332,3 +332,8 @@
 @container (max-width: 419px) {
   .fd-keys[data-narrow][data-narrow-at] { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
 }
+
+/* A standard module's row (ModuleRow): the key or glyph in its 44 px column, then its fader or today; solo, the key
+   spans the row. */
+.fd-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+.fd-row[data-solo] { grid-template-columns: minmax(0, 1fr); }

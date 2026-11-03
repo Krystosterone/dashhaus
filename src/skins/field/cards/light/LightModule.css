@@ -1,10 +1,5 @@
 /* Light module (fd-lt): the power key, then the brightness fader across the rest of the row. */
-.fd-lt-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
-/* On/off only: the key spans the row, its caption beside the bulb. */
-.fd-lt-row[data-dimmable="false"] { grid-template-columns: minmax(0, 1fr); }
 
-/* The detail panel's light content. */
-.fd-lt-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 /* Quick levels, four in a row, and seven colours in a row (a swatch on each key, its name printed under it; four and
    three on a phone, so each name fits) are KeyGroups. The colours sit a little closer. */
 .fd-lt-colours { gap: 6px; }

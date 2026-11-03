@@ -3,7 +3,7 @@ import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup } from "../../shared/ui";
+import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
 import "./ToggleModule.css";
@@ -87,7 +87,7 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
   ) : undefined;
 
   return (
-    <div className="fd-tw-panel" data-state={e.state}>
+    <PanelBody className="fd-tw-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {control}
       {e.description && <p className="fd-hint">{e.description}</p>}
@@ -105,6 +105,6 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
       <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.entityId.startsWith("switch.") ? "Switch" : "Toggle helper"} />
-    </div>
+    </PanelBody>
   );
 }

@@ -1,6 +1,4 @@
 /* Climate module (fd-cl): a thermostat power key, then the target or ordered heat/cool range. */
-.fd-cl-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
-.fd-cl-row[data-adjustable="false"] { grid-template-columns: minmax(0, 1fr); }
 
 /* A narrow module keeps one meta line (module.css): with a fader, its legend prints the target, so what the unit is
    doing stays instead. */
@@ -9,7 +7,6 @@
   .fd-cl.fd-module:has(.fd-fader) .fd-meta-2 { display: block; }
 }
 
-.fd-cl-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 .fd-cl-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
 
 /* Exact steps: a target's one row, or an ordered range's two. */

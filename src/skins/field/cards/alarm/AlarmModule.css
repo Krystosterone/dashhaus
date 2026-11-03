@@ -1,7 +1,5 @@
 /* Alarm module (fd-al): Off and each arm mode as choice keys, or one key through a delay. A view-only alarm is a
    reading: its glyph, then today's meter. */
-.fd-al-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
-.fd-al-row[data-bank] { grid-template-columns: minmax(0, 1fr); }
 /* Disarmed is a reading, not a blank, so OFF keeps its places in the dim ink. */
 :is(.fd-al, .fd-al-panel)[data-state="disarmed"] .fd-read-fig { color: var(--fd-screen-ink-2); }
 
@@ -29,8 +27,6 @@
   .fd-al-row[data-n="6"] .fd-al-alt { display: block; }
 }
 
-/* The detail panel's alarm content. */
-.fd-al-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 /* In the panel every mode key keeps its word: four in a row, or three to a row from five; two on a narrow phone. */
 .fd-al-bank[data-where="p"] { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .fd-al-bank[data-where="p"]:is([data-n="2"], [data-n="4"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }

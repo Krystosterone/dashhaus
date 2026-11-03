@@ -1,7 +1,5 @@
 /* Toggle module (fd-tw): a mode. Its key spans the row, with the mode's glyph and its state word. */
 
-/* The detail panel's toggle content. */
-.fd-tw-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 /* Ways to turn it on: a key each with its word, and what it ends at printed under it. Two by two on a phone. */
 @container (min-width: 400px) {
   .fd-tw-durations.fd-keys { grid-template-columns: repeat(4, minmax(0, 1fr)); }

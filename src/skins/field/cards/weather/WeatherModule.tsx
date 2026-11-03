@@ -6,7 +6,7 @@ import { normalizeReadings } from "@dashhaus/core/entities/history";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature } from "../../shared/ui";
+import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconWeather, conditionPict } from "./icons";
 import "./WeatherModule.css";
@@ -98,10 +98,10 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
       meta={meta}
       lead={glyph}
       row={(
-        <div className="fd-wx-row">
+        <ModuleRow className="fd-wx-row">
           {glyph}
           <Today summary={rangeText(range) ?? undefined} label="Temperature by hour today." tone="neutral" samples={day?.samples} currentHour={history?.currentHour} />
-        </div>
+        </ModuleRow>
       )}
     >
       <WeatherDetails e={e} cond={cond} night={night} read={read} pict={pict} meta={meta} feels={feels} warnings={warnings} precip={precip} range={range} day={day?.samples} history={history} hourly={hourly} daily={daily} />
@@ -151,13 +151,10 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
   const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
 
   return (
-    <div className="fd-wx-panel" data-state={e.state}>
+    <PanelBody className="fd-wx-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {!unav && (warnings.length > 0 || words) && (
-        <ul className="fd-wx-say">
-          {warnings.map((w) => <li key={w}><Warn>{w}</Warn></li>)}
-          {words && <li>{words}</li>}
-        </ul>
+        <Notices className="fd-wx-say" warnings={warnings} words={words} />
       )}
       {history && (
         <Today
@@ -173,7 +170,7 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
       {!unav && days.length > 0 && <Days days={days} />}
       {!unav && <Readings e={e} />}
       <Facts start={reported} />
-    </div>
+    </PanelBody>
   );
 }
 

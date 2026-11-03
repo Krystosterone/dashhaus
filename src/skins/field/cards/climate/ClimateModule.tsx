@@ -4,7 +4,7 @@ import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/ent
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
 import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
-import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature } from "../../shared/ui";
+import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
@@ -84,7 +84,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
     // The key says what pressing it does; the screen says the mode it runs in.
     const caption = unavailable ? undefined : on ? "Turn off" : "Turn on";
     return (
-      <div className="fd-cl-row" data-adjustable={adjustable}>
+      <ModuleRow className="fd-cl-row" solo={!adjustable}>
         <Key
           label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`}
           led={on}
@@ -125,7 +125,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
             onChange={setRange}
           />
         )}
-      </div>
+      </ModuleRow>
     );
   };
 
@@ -207,7 +207,7 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
     : `Not ${history.activity} today`;
 
   return (
-    <div className="fd-cl-panel" data-state={e.state}>
+    <PanelBody className="fd-cl-panel" state={e.state}>
       <Screen pict={pict} aside={aside}>{read}</Screen>
       {controls}
 
@@ -240,7 +240,7 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
       {history && <Today summary={today} label="Climate activity by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
       <Facts start={unavailable ? lastSeenFact(e.lastSeen) : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : ""} end={unavailable ? "" : [lastChangedFact(e.lastChanged), `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`].filter(Boolean).join(" · ")} />
-    </div>
+    </PanelBody>
   );
 }
 

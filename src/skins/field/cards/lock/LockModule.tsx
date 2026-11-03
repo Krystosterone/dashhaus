@@ -3,7 +3,7 @@ import type { LockAction, LockEntity, LockResult } from "@dashhaus/core/entities
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Screen, Warn, useDetails, Facts, KeyGroup } from "../../shared/ui";
+import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Screen, Warn, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconDoor, IconLock, LOCK_PICT } from "./icons";
 import "./LockModule.css";
@@ -118,7 +118,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       lead={key(false)}
       row={key(true)}
     >
-      <div className="fd-lk-panel" data-state={e.state}>
+      <PanelBody className="fd-lk-panel" state={e.state}>
         <Screen pict={pict} meta={meta}>{read}</Screen>
         {pending ? (needsCode
           ? <Keypad key={pending} prompt={`Code to ${pending === "open" ? "open the door" : pending}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
@@ -144,7 +144,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
             <Facts start={unav ? lastSeenFact(e.lastSeen) : changed} end={<>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</>} />
           </>
         )}
-      </div>
+      </PanelBody>
     </ModuleFrame>
   );
 }

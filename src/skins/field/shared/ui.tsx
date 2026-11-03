@@ -156,6 +156,36 @@ export interface KeyGroupProps {
 }
 
 /**
+ * A standard module's row under its screen: the key, or a reading's glyph, in its 44 px column, then its fader or
+ * today. `solo` when there is nothing beside the key (no level to set): the key spans the row. The card's own class
+ * goes beside the row's, for what only it does there.
+ */
+export function ModuleRow({ solo, className, children, ...data }: { solo?: boolean; className?: string; children: ReactNode; [data: `data-${string}`]: string | number | boolean | undefined }) {
+  return <div className={className ? `fd-row ${className}` : "fd-row"} data-solo={solo || undefined} {...data}>{children}</div>;
+}
+
+/**
+ * A detail panel's content under its header: the screen, then each block, a column 16 px apart. It is the container
+ * its key groups and blocks read their width from. `state` is the entity's, for the card's styling hooks.
+ */
+export function PanelBody({ className, state, children }: { className?: string; state: string; children: ReactNode }) {
+  return <div className={className ? `fd-panel-body ${className}` : "fd-panel-body"} data-state={state}>{children}</div>;
+}
+
+/**
+ * What the panel prints under its screen in full: every warning sounding, behind its marker, then what it is in words
+ * (the sky, a sock's sleep). Wrapped, never cut.
+ */
+export function Notices({ warnings = [], words, className }: { warnings?: string[]; words?: ReactNode; className?: string }) {
+  return (
+    <ul className={className ? `fd-notices ${className}` : "fd-notices"}>
+      {warnings.map((w) => <li key={w}><Warn>{w}</Warn></li>)}
+      {words != null && words !== "" && <li>{words}</li>}
+    </ul>
+  );
+}
+
+/**
  * A row of keys under a printed legend: a mode, a preset, quick levels, a door's Lock and Open. Each key fills its
  * cell, `columns` to a row (every key on one row without it), `narrow` to a row on a narrow panel. `choices` gives the
  * usual count for n choices: three to a row, four rather than three and an orphan.

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleRow, Notices, PanelBody, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
@@ -127,6 +127,24 @@ function AllParts() {
         <State label="Second parameter" width={150}><ScreenAt><Screen pict={<Pictogram level={0.6} lit param="b">{BULB}</Pictogram>}><Digits value={60} /><small>%</small></Screen></ScreenAt></State>
         <State label="A colour lamp" width={150}><ScreenAt><Screen pict={<Pictogram lit lamp="Amber">{BULB}</Pictogram>}><Digits value={80} /><small>%</small></Screen></ScreenAt></State>
         <State label="Unlit" width={150}><ScreenAt><Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>}><Digits value={0} /><small>%</small></Screen></ScreenAt></State>
+      </Part>
+
+      <Part name="Module row" rule="A standard module's row under its screen: the key, or a reading's glyph, in its 44 px column, then its fader or today. Solo, with nothing to set, the key spans the row with its word.">
+        <State label="A key and its fader" width={300}><ModuleRow><Key label="Ceiling" pressed onPress={() => {}}><IconBulb /></Key><Fader id="parts-row" label="Ceiling brightness" legend="Brightness" value={64} min={0} max={100} lit valueText="64 percent" onChange={() => {}} /></ModuleRow></State>
+        <State label="A glyph and today" width={300}><ModuleRow><Glyph><IconThermo /></Glyph><Today summary="19.5°–21.4°" label="Temperature by hour today." samples={DAY} currentHour={18} tone="neutral" /></ModuleRow></State>
+        <State label="Solo" width={300}><ModuleRow solo><Key label="Porch light" pressed wide caption="On" onPress={() => {}}><IconBulb /></Key></ModuleRow></State>
+      </Part>
+
+      <Part name="Panel body and notices" rule="A detail panel's content: the screen, then each block, 16 px apart, the container its key groups read. Under the screen, what the panel prints in full: every warning behind its marker, then the state in words.">
+        <State label="A panel's content" width={300}>
+          <Plate>
+            <PanelBody state="ok">
+              <ScreenAt><Screen pict={<Pictogram lit param="neutral">{THERMO}</Pictogram>} meta={["48% RH"]}><Digits text="21.4" places={4} /><small>°</small></Screen></ScreenAt>
+              <Notices warnings={["Wind gusts 90 km/h", "Ice on the roads"]} words="Partly cloudy, then rain" />
+              <Facts start="Updated 10:42" />
+            </PanelBody>
+          </Plate>
+        </State>
       </Part>
 
       <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash.">

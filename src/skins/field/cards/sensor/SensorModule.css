@@ -1,5 +1,2 @@
 /* Sensor module (fd-sw): a reading. Its glyph where a key would be, then today's meter where a fader would be. */
-.fd-sw-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
 
-/* The detail panel's sensor content. */
-.fd-sw-panel { display: grid; gap: 16px; min-width: 0; }

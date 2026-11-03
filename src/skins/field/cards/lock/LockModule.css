@@ -4,6 +4,4 @@
 /* Unlocked is a state, not a blank: OPEN keeps its places in the dim ink. */
 :is(.fd-lk, .fd-lk-panel):is([data-state="unlocked"], [data-state="open"]) .fd-read-fig { color: var(--fd-screen-ink-2); }
 
-/* The detail panel's lock content. */
-.fd-lk-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 /* The hint, the question and the keypad are the shared .fd-hint, Confirm and Keypad (shared/panel.css). */
