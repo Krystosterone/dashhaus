@@ -26,7 +26,7 @@ One word per thing, the same in code, Storybook and the docs.
 ## Commands
 
 - `npm install`
-- `npm run check` — typecheck + lint + test side by side (`scripts/check.js`; one after another below four cores), the one-shot gate. Run it before every change is finished.
+- `npm run check` — typecheck + lint + test, the one-shot gate. Run it before every change is finished.
 - `npm run typecheck` — `tsc --noEmit` over the root, every public package and the docs' samples
 - `npm run lint` — `eslint .` (`eslint.config.js`)
 - `npm run test` — Vitest (`config/vitest.config.ts`), one project per public package plus the root app; `test:unit` (everything but the generator copies) and `test:generators` are CI's split of it

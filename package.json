@@ -32,7 +32,7 @@
     "test:generators": "vitest run --config config/vitest.config.ts scripts",
     "test-storybook": "storybook build --test --quiet && node scripts/test-storybook.js",
     "perf:collect": "node scripts/perf/collect.js",
-    "check": "node scripts/check.js",
+    "check": "npm run typecheck && npm run lint && npm run test",
     "new-card": "node scripts/new-card/index.js",
     "new-skin": "node scripts/new-skin/index.js",
     "domains": "node scripts/domains.js",

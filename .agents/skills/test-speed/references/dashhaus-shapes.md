@@ -220,13 +220,12 @@ the test-runner with `--config-dir .storybook --url http://127.0.0.1:6006`
 followed by the caller's arguments. CI passes `--shard=N/2 --maxWorkers=2`, so
 the same local command is the sharded CI command.
 
-## Local gate: side by side on 4+ cores (open)
+## Local gate: one after another
 
-`scripts/check.js` runs `typecheck`, `lint` and `test` concurrently when
-`os.availableParallelism() >= 4`, one after another below that, holding each
-command's output until it ends. This is unproven where it matters: the first pass
-measured concurrency on the 8-core Mac as 53s vs 41s sequential. Re-measure there
-before keeping it.
+`npm run check` stays `npm run typecheck && npm run lint && npm run test`. Running the
+three side by side was tried twice and lost both times on the 8-core Mac (see the
+evidence's Rejected tables): warm, typecheck takes about 3s and lint about 1s, so
+the tests are nearly the whole gate and the other two only take cores from them.
 
 ## CI: one setup action
 

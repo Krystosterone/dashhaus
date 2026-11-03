@@ -362,16 +362,16 @@ each other's. Fixed by skipping `.cache` when linking and copying a snapshot of
 | `--no-isolate` | 183–209 failures | Mocks and module state leak across files |
 | `threads` / `vmThreads` | 2 deploy failures | Those tests depend on the process's cwd |
 | One generator lane at `--maxWorkers=3` | 173s, the slowest CI job | Local oversubscription win did not hold on CI; split back to two lanes |
+| Parallel `npm run check` (`scripts/check.js`, side by side on 4+ cores) | 8-core Mac, warm, four alternating rounds: 49–67s (mean 58s) vs 48–63s (mean 56s) sequential | No faster than sequential: warm typecheck is ~3s and lint ~1s, so the tests are the gate. Dropped before merge, as the first pass also found |
 | `storybook build --test` inside generator copies | Not adopted | The copies' builds prove a generated study's MDX page compiles |
 | Skip duplicate `pull_request` runs with `if:` | Not adopted | A later skipped job named like a required check can mask a failed push run |
 
-### Open
+### Settled before merge
 
-- **Parallel `npm run check`.** PR #20 runs typecheck, lint and test side by side
-  on 4+ cores. The first pass measured that on the 8-core Mac as 53s vs 41s
-  sequential and rejected it. The second pass only measured a 2-core sandbox,
-  where the script runs sequentially. Re-measure on the Mac with the new `vmForks`
-  suite before keeping it.
-- **Docs pages out of the required Storybook lane.** With `--test`, only the Docs
-  workflow compiles the MDX pages. Make that build required, or drop `--test`
-  (about 10s per shard).
+- **Docs pages out of the Storybook lane.** With `--test`, the CI Storybook lane no
+  longer compiles the six MDX pages; the Docs workflow's `build:docs` still builds
+  them in full on every pull request and every push to main, with no path filter.
+  The repository is private on a plan with no branch protection, so no check is
+  required in GitHub's sense and neither lane outranks the other: a failed MDX page
+  still turns the pull request red. `--test` stays. If checks ever become
+  required, require Docs `build` alongside the CI lanes.
