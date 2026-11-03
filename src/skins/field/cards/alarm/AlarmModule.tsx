@@ -1,14 +1,14 @@
-import { useEffect, useId, useState } from "react";
+import { useId } from "react";
 import type { ReactNode } from "react";
 import type { AlarmAction, AlarmEntity, AlarmHistory, AlarmMode, AlarmResult } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, alarmSeverity, mmss, modeChoices, needsCode } from "@dashhaus/core/entities/alarm/modes";
 import { fmtAgo, fmtDuration } from "@dashhaus/core/entities/format";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useNow } from "@dashhaus/core/hooks";
-import { useKeypad } from "@dashhaus/core/primitives";
-import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { useGuardedAction } from "@dashhaus/core/primitives";
+import { Blank, Digits, Glyph, Key, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
-import { IconDelete, IconEnter, IconMode, IconShield, SHIELD_PICT } from "./icons";
+import { IconMode, IconShield, SHIELD_PICT } from "./icons";
 import "./AlarmModule.css";
 
 export interface AlarmModuleProps {
@@ -48,8 +48,6 @@ const listOf = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, 
 export function AlarmModule({ entity: e, footprint = "standard", history, onArm, onDisarm, readOnly, defaultOpen = false, defaultAction }: AlarmModuleProps) {
   const ro = readOnly ?? (!onArm && !onDisarm);
   const details = useDetails(defaultOpen || (!ro && defaultAction != null));
-  // The keypad's action, while the panel asks for the code.
-  const [pending, setPending] = useState<AlarmAction | null>(ro ? null : defaultAction ?? null);
   const unav = e.state === "unavailable";
   const armedMode = ARMED_MODE[e.state];
   const current = armedMode ?? "off";
@@ -60,17 +58,21 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   const left = useDelayLeft(e.delay, e.changedAt, moving);
   const now = useNow();
   const level = unav ? undefined : alarmSeverity(e);
-  // A disarm that's no longer needed (it disarmed from elsewhere) leaves the keypad.
-  useEffect(() => { if (e.state === "disarmed" && pending?.kind === "disarm") setPending(null); }, [e.state, pending]);
-
-  const run = async (a: AlarmAction, code?: string) => (await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) !== false;
-  const openPanel = () => { setPending(null); details.openDetails(); };
+  // The keypad's action, while the panel asks for the code. No code: nothing to wait for on screen; the state change
+  // is the answer. A disarm that's no longer needed (it disarmed from elsewhere) leaves the keypad.
+  const guard = useGuardedAction<AlarmAction>({
+    run: async (a, code) => ((await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) === false ? "wrong_code" : "done"),
+    needsCode: (a) => needsCode(e, a),
+    settled: (a) => a.kind === "disarm" && e.state === "disarmed",
+    initial: defaultAction,
+    disabled: ro,
+  });
+  const pending = guard.pending;
+  const openPanel = () => { guard.close(); details.openDetails(); };
   const act = (a: AlarmAction) => {
     if (ro) return;
-    // No code: nothing to wait for on screen; the state change is the answer.
-    if (!needsCode(e, a)) { run(a).catch(() => undefined); return; }
-    setPending(a);
-    details.openDetails();
+    void guard.attempt(a).then((result) => { if (result === "wrong_code") details.openDetails(); });
+    if (needsCode(e, a)) details.openDetails();
   };
   const pick = (m: AlarmMode | "off") => act(m === "off" ? { kind: "disarm" } : { kind: "arm", mode: m });
 
@@ -182,11 +184,11 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
         <Screen pict={pict} meta={meta}>{read}</Screen>
         {pending ? (
           <Keypad
-            key={JSON.stringify(pending)}
+            key={guard.pendingKey}
             prompt={pending.kind === "disarm" ? (e.state === "arming" ? "Code to cancel arming" : "Code to disarm") : `Code to arm ${MODE_LABEL[pending.mode].toLowerCase()}`}
             text={e.codeFormat === "text"}
-            onSubmit={async (code) => { const ok = await run(pending, code); if (ok) setPending(null); return ok; }}
-            onCancel={() => setPending(null)}
+            onSubmit={guard.submit}
+            onCancel={guard.close}
           />
         ) : (
           <AlarmDetails e={e} ro={ro} history={history} today={today} control={ro ? null : steady && !unav ? bank("p") : key(true)} />
@@ -233,39 +235,5 @@ function AlarmDetails({ e, ro, history, today, control }: DetailsProps) {
         <span>{ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"}</span>
       </p>
     </>
-  );
-}
-
-const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-/**
- * The code keypad, in the panel: what the code is for, the code on a strip of screen (a dot per place, unlit to
- * four), digits, delete and enter, then Cancel. A physical keyboard types too. While Home Assistant answers it says
- * Checking; a wrong code clears for another try, and one that didn't go through stays for Enter to try again.
- */
-function Keypad({ prompt, text, onSubmit, onCancel }: { prompt: string; text?: boolean; onSubmit: (code: string) => boolean | Promise<boolean>; onCancel: () => void }) {
-  const uid = useId();
-  const { code, error, busy, press, back, submit, rootProps } = useKeypad({ text, onSubmit });
-  const places = Math.max(4, code.length);
-  const status = busy ? "Checking"
-    : error === "wrong" ? <Warn>Wrong code. Try again</Warn>
-    : error === "failed" ? <Warn>Didn’t go through. Try again</Warn>
-    : code.length ? `${code.length} entered` : "Enter the code";
-  return (
-    <div className="fd-al-pad" {...rootProps} role="group" aria-labelledby={`${uid}-p`}>
-      <Legend id={`${uid}-p`}>{prompt}</Legend>
-      <div className="fd-al-code" role="status">
-        <Screen meta={[status]}>
-          <span className="fd-al-dots" aria-hidden="true">{Array.from({ length: places }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}</span>
-        </Screen>
-      </div>
-      <div className="fd-al-keys">
-        {DIGITS.map((d) => <Key key={d} label={d} wide disabled={busy} onPress={() => press(d)}><span className="fd-key-fig">{d}</span></Key>)}
-        <Key label="Delete" wide disabled={busy} unavailable={!code} onPress={back}><IconDelete /></Key>
-        <Key label="0" wide disabled={busy} onPress={() => press("0")}><span className="fd-key-fig">0</span></Key>
-        <Key label="Enter code" wide disabled={busy} unavailable={!code} onPress={() => void submit()}><IconEnter /></Key>
-      </div>
-      <Key label="Cancel" wide caption="Cancel" onPress={onCancel}>{null}</Key>
-    </div>
   );
 }

@@ -7,3 +7,5 @@ export { useSheet } from "./sheet";
 export type { SheetOptions } from "./sheet";
 export { rangeKeyValue, trackPos, useRangeSlider, useSlider } from "./slider";
 export type { RangeSliderOptions, SliderOptions } from "./slider";
+export { actionKey, guardedOutcome, useGuardedAction } from "./guarded";
+export type { GuardedActionOptions, GuardedOutcome, GuardedResult } from "./guarded";

@@ -47,13 +47,4 @@
 .fd-al-open .fd-warn svg { margin-top: 3px; }
 .fd-al-open .fd-warn-t { white-space: normal; }
 
-/* The keypad: what the code is for, the code on a strip of screen, the keys three by four, then Cancel. */
-.fd-al-pad { display: grid; gap: 12px; min-width: 0; }
-.fd-al-pad:focus { outline: none; }
-.fd-panel .fd-al-code .fd-screen { height: 44px; }
-.fd-al-dots { display: inline-flex; gap: 8px; }
-.fd-al-dots i { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--fd-screen-unlit); transition: background-color 120ms var(--fd-ease-out); }
-.fd-al-dots i[data-on] { background: var(--fd-screen-ink); }
-.fd-al-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.fd-al-keys .fd-key { height: 52px; }
-.fd-al-keys .fd-key-fig { font-size: 20px; font-weight: 300; }
+/* The keypad is the shared Keypad (shared/panel.css). */

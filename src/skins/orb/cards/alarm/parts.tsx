@@ -1,6 +1,5 @@
 import type { Vars } from "../../shared/ui";
 import { usePress } from "@dashhaus/core/primitives";
-import { useKeypad } from "@dashhaus/core/primitives";
 import type { AlarmMode } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_LABEL, MODE_LABEL, mmss, modeChoices } from "@dashhaus/core/entities/alarm/modes";
 import { ModeIcon } from "./icons";
@@ -79,41 +78,6 @@ export function AlarmStatus({ mode, by, onOpen }: { mode: AlarmMode | "off"; by?
       <span className="al-st-l">{label}</span>
       <span className="al-st-s">{armed ? MODE_LABEL[mode] : label}</span>
       {by && <span className="al-st-x">by {by}</span>}
-    </div>
-  );
-}
-
-/**
- * The code keypad, in the sheet. Digits, delete and enter; a physical keyboard works too.
- * `onSubmit` may answer later (Home Assistant does): the keypad waits, then closes on true.
- * False is a wrong code: the dots shake and clear for another try. A throw means it didn't go through:
- * the code stays, so Enter tries again.
- */
-export function Keypad({ prompt, text, onSubmit, onCancel }: { prompt: string; text?: boolean; onSubmit: (code: string) => boolean | Promise<boolean>; onCancel: () => void }) {
-  // Focuses itself when it appears, so typing and Enter go to it (not to a button behind it).
-  const { code, error, busy, press, back, submit, rootProps } = useKeypad({ text, onSubmit });
-
-  const dots = Math.max(4, code.length);
-  return (
-    <div className="al-kp" {...rootProps} aria-label={prompt}>
-      <p className="al-kp-p" id="al-kp-p">{busy ? "Checking…"
-        : error === "wrong" ? <span className="hd-warn">Wrong code. Try again.</span>
-        : error === "failed" ? <span className="hd-warn">Didn’t go through. Try again.</span>
-        : prompt}</p>
-      <div className="al-kp-dots" data-error={error === "wrong" || undefined} data-busy={busy || undefined} aria-label={`${code.length} digits entered`} role="status">
-        {Array.from({ length: dots }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}
-      </div>
-      <div className="al-kp-keys" role="group" aria-labelledby="al-kp-p">
-        {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => <button key={d} type="button" className="al-key" onClick={() => press(d)} disabled={busy}>{d}</button>)}
-        <button type="button" className="al-key al-key--fn" aria-label="Delete" onClick={back} disabled={!code || busy}>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 5h8.5v10H7.5L3.5 10ZM9.5 8l4 4M13.5 8l-4 4" /></svg>
-        </button>
-        <button type="button" className="al-key" onClick={() => press("0")} disabled={busy}>0</button>
-        <button type="button" className="al-key al-key--ok" aria-label="Enter code" onClick={submit} disabled={!code || busy}>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10.5 8.5 14 15 6.5" /></svg>
-        </button>
-      </div>
-      <button type="button" className="al-kp-x" onClick={onCancel}>Cancel</button>
     </div>
   );
 }

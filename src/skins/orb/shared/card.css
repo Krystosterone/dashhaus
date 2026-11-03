@@ -468,11 +468,59 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   .hd-sheet .hd--sheet > .hd-head::before { content: ""; position: absolute; top: 8px; left: 50%; translate: -50% 0; width: 38px; height: 5px; border-radius: 3px; background: var(--tick); }
 }
 
+/* ---------- Guarded actions, in the sheet: the question and the keypad (Confirm, Keypad) ----------
+   The question has no container (a groove would say "slide"): Cancel raised, the action in the inverse. The keypad's
+   digits are raised round keys; enter is the inverse. A wrong code shakes the dots. */
+.hd-cf { display: grid; gap: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.hd-cf-q { margin: 0; font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.hd-cf-d { margin: 0 0 10px; min-height: 1.45em; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
+.hd-cf-b { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hd-cf-x, .hd-cf-ok {
+  height: 52px; padding: 0 16px; border: 0; border-radius: 99px; font: 600 15px var(--font); cursor: pointer;
+  transition: background-color 200ms var(--ease-out), opacity 200ms var(--ease-out), scale var(--press) var(--ease-out);
+}
+.hd-cf-x { background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink); }
+.hd-cf-ok { background: var(--inv-bg); color: var(--inv-fg); }
+.hd-cf-x:active, .hd-cf-ok:active:not(:disabled) { scale: 0.97; }
+.hd-cf-x:focus-visible, .hd-cf-ok:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.hd-cf-ok:disabled { opacity: 0.45; cursor: default; }
+
+.hd-kp { display: grid; justify-items: center; gap: 16px; padding: 6px 0 2px; border-radius: 18px; }
+.hd-kp:focus { outline: none; }
+.hd-kp:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.hd-kp-p { margin: 0; font-size: 15px; font-weight: 600; text-align: center; }
+.hd-kp-dots { display: flex; align-items: center; gap: 12px; height: 14px; }
+.hd-kp-dots i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); transition: background-color 120ms var(--ease-out); }
+.hd-kp-dots i[data-on] { background: var(--ink); box-shadow: none; }
+/* A wrong code shakes the dots: feedback the eye catches without reading */
+.hd-kp-dots[data-error] { animation: hd-kp-shake 360ms var(--ease-out); }
+/* Waiting for the answer: the entered dots breathe */
+.hd-kp-dots[data-busy] i[data-on] { animation: hd-kp-wait 700ms var(--ease-in-out) infinite alternate; }
+@keyframes hd-kp-wait { to { opacity: 0.35; } }
+@keyframes hd-kp-shake { 20% { translate: -7px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 2px 0; } }
+.hd-kp-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 20px; }
+.hd-key {
+  display: grid; place-items: center; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink);
+  font: 400 28px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color 120ms var(--ease-out), scale var(--press) var(--ease-out);
+}
+.hd-key:active:not(:disabled) { scale: 0.93; background: var(--fill); }
+.hd-key:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hd-key svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.hd-key--fn { background: none; box-shadow: none; }
+.hd-key--ok { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.hd-key:disabled { opacity: 0.35; cursor: default; }
+.hd-kp-x { padding: 8px 16px; border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 14px var(--font); cursor: pointer; }
+.hd-kp-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
 /* Reduced motion: fewer, gentler animations, not none. Colour and opacity fades stay; movement and scaling go. */
 @media (prefers-reduced-motion: reduce) {
   .hd :is(.hd-orb-i, .hd-circ-i, .hd-pill, .hd-chip, .hd-read-i) { scale: none !important; }
   .hd--compact { scale: none !important; }
   .hd-chev { translate: none !important; }
+  .hd-kp-dots[data-error] { animation: none; }
+  .hd-cf-x, .hd-cf-ok, .hd-key { scale: none !important; }
   .hd-sheet { transition: opacity 200ms var(--ease-out); }
   @starting-style { .hd-sheet[open] { opacity: 0; scale: none; translate: none; } }
   .hd-sheet[data-closing] { opacity: 0; scale: none; translate: none; transition-duration: 150ms; }

@@ -9,18 +9,4 @@
 .fd-lk-keys { display: grid; grid-template-columns: repeat(var(--fd-lk-n, 1), minmax(0, 1fr)); gap: 8px; }
 .fd-lk-keys[data-n="2"] { --fd-lk-n: 2; }
 .fd-lk-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* What a press does, and what the question means: sentences, so they keep their case and wrap. */
-.fd-lk-hint, .fd-lk-note { margin: 0; min-height: 17px; font-size: 12px; font-weight: 400; line-height: 17px; color: var(--fd-ink-2); }
-.fd-lk-note .fd-warn-t { white-space: normal; }
-.fd-lk-cf { display: grid; gap: 8px; min-width: 0; }
-
-/* The keypad: what the code is for, the code on a strip of screen, the keys three by four, then Cancel. */
-.fd-lk-pad { display: grid; gap: 12px; min-width: 0; }
-.fd-lk-pad:focus { outline: none; }
-.fd-panel .fd-lk-code .fd-screen { height: 44px; }
-.fd-lk-dots { display: inline-flex; gap: 8px; }
-.fd-lk-dots i { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--fd-screen-unlit); transition: background-color 120ms var(--fd-ease-out); }
-.fd-lk-dots i[data-on] { background: var(--fd-screen-ink); }
-.fd-lk-pad-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.fd-lk-pad-keys .fd-key { height: 52px; }
-.fd-lk-pad-keys .fd-key-fig { font-size: 20px; font-weight: 300; }
+/* The hint, the question and the keypad are the shared .fd-hint, Confirm and Keypad (shared/panel.css). */

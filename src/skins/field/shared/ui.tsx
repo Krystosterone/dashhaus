@@ -1,5 +1,7 @@
+import { useEffect, useId, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { usePress } from "@dashhaus/core/primitives";
+import { useKeypad, usePress } from "@dashhaus/core/primitives";
+import { useSettled } from "@dashhaus/core/hooks";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
 import { CardDialog, cardShape, useCardFrame } from "@dashhaus/dashboard/card";
 import type { Details } from "@dashhaus/dashboard/card";
@@ -25,6 +27,9 @@ const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 
 const STEP_STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" } as const;
 const IconMinus = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE}><path d="M6 12h12" /></svg>;
 const IconPlus = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE}><path d="M6 12h12M12 6v12" /></svg>;
+const IconCancel = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE} strokeLinejoin="round"><path d="M7 7l10 10M17 7 7 17" /></svg>;
+const IconDelete = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE} strokeLinejoin="round"><path d="M9 6h10.5v12H9l-5-6ZM11.5 9.5l5 5M16.5 9.5l-5 5" /></svg>;
+const IconEnter = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE} strokeLinejoin="round"><path d="M6 12.5 10 16.5 18 8" /></svg>;
 const IconWarn = () => <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5 11 10.5H1Z" /><path d="M6 5v2.5M6 8.75v.25" /></svg>;
 
 export interface ModuleProps {
@@ -396,6 +401,102 @@ export function Today({ legend = "Today", summary, label, samples = NO_HOURS, cu
     <div className="fd-block fd-today">
       <Legend value={summary}>{legend}</Legend>
       <Meter label={summary ? `${label} ${summary}.` : label} samples={samples} currentHour={currentHour} tone={tone} />
+    </div>
+  );
+}
+
+/* ---------- Guarded actions, in the panel: the question and the keypad ----------
+   An action that asks first (a lock's unlock, an alarm's disarm) is answered in the panel, on useGuardedAction: by a
+   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. */
+
+export interface ConfirmProps {
+  /** The question, as the block's legend: "Unlock Front door?" */
+  question: string;
+  /** What it means, under the question: "Anyone at the door can open it." */
+  detail: string;
+  /** The action key's printed word: "Unlock". */
+  action: string;
+  /** The action key's spoken label: "Unlock, Front door". Default the word. */
+  actionLabel?: string;
+  /** The action key's glyph. */
+  icon: ReactNode;
+  /** The answer is on its way: the action takes no press, and the line says so. */
+  busy?: boolean;
+  /** What the line says while busy. Default "Waiting". */
+  waiting?: string;
+  /** The last try didn't go through: said behind the warning marker, in the line's place. */
+  error?: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+/**
+ * The panel's question, for a guarded action that takes no code: the question as its legend, what it means, then
+ * Cancel and the action as two keys. Focus lands on Cancel, so Enter never acts, and the action takes no press for a
+ * moment after it appears, so the second tap of the press that asked can't land on it.
+ */
+export function Confirm({ question, detail, action, actionLabel = action, icon, busy, waiting = "Waiting", error, onConfirm, onCancel }: ConfirmProps) {
+  const uid = useId();
+  const settled = useSettled();
+  // Cancel takes focus: marked for a panel that opens on the question, focused for one already open.
+  const keys = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const cancel = keys.current?.querySelector("button");
+    cancel?.setAttribute("data-autofocus", "");
+    if (cancel?.closest("dialog")?.open) cancel.focus();
+  }, []);
+  return (
+    <div className="fd-cf" role="group" aria-labelledby={`${uid}-q`} aria-describedby={`${uid}-d`}>
+      <Legend id={`${uid}-q`}>{question}</Legend>
+      <p className="fd-hint" id={`${uid}-d`} role="status">{busy ? waiting : error ? <Warn>{error}</Warn> : detail}</p>
+      <div className="fd-cf-keys" ref={keys}>
+        <Key label="Cancel" wide caption="Cancel" onPress={onCancel}><IconCancel /></Key>
+        <Key label={actionLabel} wide caption={action} disabled={busy} onPress={() => { if (settled() && !busy) onConfirm(); }}>{icon}</Key>
+      </div>
+    </div>
+  );
+}
+
+export interface KeypadProps {
+  /** What the code is for, as the block's legend: "Code to disarm". */
+  prompt: string;
+  /** Letters as well as digits (Home Assistant's `code_format: text`). */
+  text?: boolean;
+  /** `useKeypad`'s: true accepted, false a wrong code, a throw a call that didn't go through. */
+  onSubmit: (code: string) => boolean | Promise<boolean>;
+  onCancel: () => void;
+}
+
+const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+/**
+ * The code keypad, in the panel, on `useKeypad`: what the code is for, the code on a strip of screen (a dot per place,
+ * unlit to four), digits, delete and enter, then Cancel. A physical keyboard types too. While the answer is on its way
+ * it says Checking; a wrong code clears for another try, and one that didn't go through stays for Enter to try again.
+ */
+export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
+  const uid = useId();
+  const { code, error, busy, press, back, submit, rootProps } = useKeypad({ text, onSubmit });
+  const places = Math.max(4, code.length);
+  const status = busy ? "Checking"
+    : error === "wrong" ? <Warn>Wrong code. Try again</Warn>
+    : error === "failed" ? <Warn>Didn’t go through. Try again</Warn>
+    : code.length ? `${code.length} entered` : "Enter the code";
+  return (
+    <div className="fd-pad" {...rootProps} role="group" aria-labelledby={`${uid}-p`}>
+      <Legend id={`${uid}-p`}>{prompt}</Legend>
+      <div className="fd-pad-code" role="status">
+        <Screen meta={[status]}>
+          <span className="fd-pad-dots" aria-hidden="true">{Array.from({ length: places }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}</span>
+        </Screen>
+      </div>
+      <div className="fd-pad-keys">
+        {DIGITS.map((d) => <Key key={d} label={d} wide disabled={busy} onPress={() => press(d)}><span className="fd-key-fig">{d}</span></Key>)}
+        <Key label="Delete" wide disabled={busy} unavailable={!code} onPress={back}><IconDelete /></Key>
+        <Key label="0" wide disabled={busy} onPress={() => press("0")}><span className="fd-key-fig">0</span></Key>
+        <Key label="Enter code" wide disabled={busy} unavailable={!code} onPress={() => void submit()}><IconEnter /></Key>
+      </div>
+      <Key label="Cancel" wide caption="Cancel" onPress={onCancel}>{null}</Key>
     </div>
   );
 }

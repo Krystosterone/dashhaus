@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
 import { useDelayLeft } from "@dashhaus/core/hooks";
+import { useGuardedAction } from "@dashhaus/core/primitives";
 import { ShieldIcon } from "./icons";
-import { ModeSwitch, Countdown, AlarmPill, AlarmStatus, Keypad } from "./parts";
-import { AlertStatus, CardTitle, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
-import type { CardProps, SheetProps } from "../../shared/ui";
+import { ModeSwitch, Countdown, AlarmPill, AlarmStatus } from "./parts";
+import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./AlarmCard.css";
 
 export type { AlarmResult };
 
-export interface AlarmCardProps extends CardProps {
+export interface AlarmCardProps extends ActionCardProps<AlarmAction> {
   entity: AlarmEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: AlarmHistory;
@@ -32,11 +32,6 @@ export interface AlarmCardProps extends CardProps {
    * Default: on when neither onArm nor onDisarm is given.
    */
   readOnly?: boolean;
-  /** Card only: the name opens the sheet; with an action when it needs the code. */
-  onOpenDetails?: (action?: AlarmAction) => void;
-  onClose?: () => void;
-  /** Sheet only: start with the keypad for this action. */
-  action?: AlarmAction;
 }
 
 /**
@@ -58,20 +53,18 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   const codeToArm = !!e.codeFormat && (e.codeArmRequired ?? true);
   const left = useDelayLeft(e.delay, e.changedAt, moving);
 
-  // The keypad (sheet only), for an action that needs the code.
-  const [pending, setPending] = useState<AlarmAction | null>(ro ? null : action ?? null);
-  useEffect(() => { setPending(ro ? null : action ?? null); }, [action, ro]);
-  useEffect(() => { if (!sheet) return; if (e.state === "disarmed" && pending?.kind === "disarm") setPending(null); }, [e.state, sheet, pending]);
-
-  const needsCode = (a: AlarmAction) => codeFor(e, a);
-  const run = async (a: AlarmAction, code?: string) => (await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) !== false;
-  const act = (a: AlarmAction) => {
-    if (ro) return;
-    // No code: nothing to wait for on screen; the state change is the answer.
-    if (!needsCode(a)) { run(a).catch(() => undefined); return; }
-    if (sheet) setPending(a);
-    else onOpenDetails?.(a);
-  };
+  // The keypad (sheet only), for an action that needs the code. No code: nothing to wait for on screen; the state
+  // change is the answer.
+  const guard = useGuardedAction<AlarmAction>({
+    run: async (a, code) => ((await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) === false ? "wrong_code" : "done"),
+    needsCode: (a) => codeFor(e, a),
+    settled: (a) => a.kind === "disarm" && e.state === "disarmed",
+    initial: action,
+    disabled: ro,
+    askElsewhere: sheet ? undefined : (a) => onOpenDetails?.(a),
+  });
+  const pending = guard.pending;
+  const act = (a: AlarmAction) => { void guard.attempt(a); };
   const pick = (m: AlarmMode | "off") => act(m === "off" ? { kind: "disarm" } : { kind: "arm", mode: m });
 
   const open = e.openSensors ?? [];
@@ -137,9 +130,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
             <p className="al-open"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (
-            <Keypad key={JSON.stringify(pending)} prompt={promptFor(pending)} text={e.codeFormat === "text"}
-              onSubmit={async (code) => { const ok = await run(pending, code); if (ok) setPending(null); return ok; }}
-              onCancel={() => setPending(null)} />
+            <Keypad key={guard.pendingKey} prompt={promptFor(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
           )}
         </div>
       )}

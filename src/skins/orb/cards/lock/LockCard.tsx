@@ -1,15 +1,14 @@
-import { useEffect, useState } from "react";
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
 import { isLowBattery } from "@dashhaus/core/entities/battery";
+import { useGuardedAction } from "@dashhaus/core/primitives";
 import { DoorIcon, LockIcon } from "./icons";
-import { Confirm, Keypad } from "./parts";
-import { AlertStatus, CardTitle, Orb, SheetClose, TogglePill, UnavailableSlot, paint, useCard, detailsSheet } from "../../shared/ui";
-import type { CardProps, SheetProps } from "../../shared/ui";
+import { AlertStatus, CardTitle, Confirm, Keypad, Orb, SheetClose, TogglePill, UnavailableSlot, paint, useCard, detailsSheet } from "../../shared/ui";
+import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./LockCard.css";
 
 export type { LockAction, LockOutcome, LockResult };
 
-export interface LockCardProps extends CardProps {
+export interface LockCardProps extends ActionCardProps<LockAction> {
   entity: LockEntity;
   /**
    * Lock it, with the code when the lock asks for one. A tap does this. Answer `wrong_code` when the lock wants a
@@ -22,11 +21,6 @@ export interface LockCardProps extends CardProps {
   onOpenDoor?: (code?: string) => LockResult;
   /** View only: the lock's state and last change with nothing to press. Default: on when neither onLock nor onUnlock is given. */
   readOnly?: boolean;
-  /** Card only: the name opens the sheet; with an action when that action needs confirming or a code. */
-  onOpenDetails?: (action?: LockAction) => void;
-  onClose?: () => void;
-  /** Sheet only: start on this action's confirmation or keypad. */
-  action?: LockAction;
 }
 
 const WORD: Record<LockEntity["state"], string> = {
@@ -42,11 +36,6 @@ const WORD: Record<LockEntity["state"], string> = {
 
 const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open: "Open" };
 
-/** A handler's answer, whatever it returned; a throw is a call that didn't go through. */
-async function outcome(result: LockResult): Promise<LockOutcome> {
-  try { return (await result) ?? "done"; } catch { return "failed"; }
-}
-
 /**
  * A door lock (one `lock.*`, with its device's battery). Locking is one tap on the orb or the pill. Unlocking never
  * is: a tap on a locked lock opens the sheet on its confirmation, or on the keypad when the lock asks for a code, and
@@ -55,7 +44,7 @@ async function outcome(result: LockResult): Promise<LockOutcome> {
  * glows at all. It shows its last change, not a day's history.
  */
 export function LockCard({ entity: e, variant, footprint, showControl, onLock, onUnlock, onOpenDoor, readOnly, onOpenDetails, onClose, action, color }: LockCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("lk", { variant, footprint, showControl, area: e.area });
+  const { nameId, sheet, compact, bare, article, area } = useCard("lk", { variant, footprint, showControl, area: e.area });
   const unav = e.state === "unavailable";
   const locked = e.state === "locked";
   const moving = e.state === "locking" || e.state === "unlocking" || e.state === "opening";
@@ -64,47 +53,25 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const colors = paint("state", 0, null, color);
   const word = WORD[e.state];
 
-  // The confirmation or keypad (sheet only), for the action waiting on it.
-  const [pending, setPending] = useState<LockAction | null>(ro ? null : action ?? null);
-  // A lock that turned out to want a code for an action the card thought needed none.
-  const [askCode, setAskCode] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setPending(ro ? null : action ?? null); setAskCode(false); setFailed(false); }, [action, ro]);
-  // Done elsewhere (another panel, the door itself): the question no longer stands.
-  useEffect(() => {
-    if (!pending) return;
-    if ((pending === "unlock" && e.state === "unlocked") || (pending === "open" && e.state === "open") || (pending === "lock" && e.state === "locked") || unav) setPending(null);
-  }, [e.state, pending, unav]);
-
+  // The question or keypad (sheet only), for the action waiting on it. A lock is only asked for in the sheet when it
+  // turned out to want a code: a tap locks everywhere else.
   const handler = (a: LockAction) => (a === "lock" ? onLock : a === "unlock" ? onUnlock : onOpenDoor);
-  const run = (a: LockAction, code?: string) => outcome(handler(a)?.(code));
-  // A lock is only asked for in the sheet when it turned out to want a code (a tap locks everywhere else).
-  const needsCode = !!e.codeFormat || askCode || pending === "lock";
+  const guard = useGuardedAction<LockAction>({
+    run: (a, code) => handler(a)?.(code),
+    needsCode: () => !!e.codeFormat,
+    settled: (a) => unav || (a === "unlock" && e.state === "unlocked") || (a === "open" && e.state === "open") || (a === "lock" && e.state === "locked"),
+    initial: action,
+    disabled: ro,
+    askElsewhere: sheet ? undefined : (a) => onOpenDetails?.(a),
+  });
+  const pending = guard.pending;
+  const needsCode = guard.code || pending === "lock";
 
-  /** Ask for an action: in the sheet, show its confirmation; on the card, open the sheet on it. */
-  const ask = (a: LockAction) => {
-    if (ro) return;
-    setFailed(false);
-    if (sheet) setPending(a);
-    else onOpenDetails?.(a);
-  };
   /** The tap: lock an unlocked (or jammed, or open) lock at once; ask before unlocking a locked one. */
   const tap = () => {
     if (ro || unav || moving) return;
-    if (locked) { ask("unlock"); return; }
-    // No code needed: the state change is the answer. A lock that wants one to lock too asks in the sheet.
-    void run("lock").then((result) => { if (result === "wrong_code") { setAskCode(true); ask("lock"); } });
-  };
-  const close = () => { setPending(null); setAskCode(false); setFailed(false); };
-  const confirm = async () => {
-    if (!pending) return;
-    setBusy(true);
-    const result = await run(pending);
-    setBusy(false);
-    if (result === "done") close();
-    else if (result === "wrong_code") setAskCode(true);
-    else setFailed(true);
+    if (locked) guard.ask("unlock");
+    else void guard.attempt("lock");
   };
 
   const lowBattery = !unav && isLowBattery(e.battery);
@@ -149,21 +116,14 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
       {sheet && !unav && (pending || canOpen) && (
         <div className="hd-extra">
           {pending && (needsCode
-            ? <Keypad key={pending} id={`${uid}-kp`} prompt={prompt(pending)} text={e.codeFormat === "text"}
-                onSubmit={async (code) => {
-                  const result = await run(pending, code);
-                  if (result === "failed") throw new Error("not sent");
-                  if (result === "done") close();
-                  return result === "done";
-                }}
-                onCancel={close} />
-            : <Confirm key={pending} id={`${uid}-cf`} busy={busy} error={failed ? "Didn’t go through. Try again." : null}
+            ? <Keypad key={pending} prompt={prompt(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
+            : <Confirm key={pending} busy={guard.busy} waiting="Waiting for the lock…" error={guard.failed ? "Didn’t go through. Try again." : null}
                 question={`${VERB[pending]} ${pending === "open" ? "the door" : e.name}?`}
                 detail={pending === "open" ? `${e.name} unlatches, and the door can be pushed open.` : pending === "unlock" ? "Anyone at the door can open it." : "It locks now."}
                 action={pending === "open" ? "Open door" : VERB[pending]}
-                onConfirm={confirm} onCancel={close} />)}
+                onConfirm={() => void guard.confirm()} onCancel={guard.close} />)}
           {!pending && canOpen && (
-            <button type="button" className="lk-door" onClick={() => ask("open")}>
+            <button type="button" className="lk-door" onClick={() => guard.ask("open")}>
               <DoorIcon />
               <span>Open door</span>
               <span className="lk-door-x">Unlatch it</span>

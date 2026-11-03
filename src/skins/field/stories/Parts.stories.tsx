@@ -2,10 +2,11 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Digits, Fader, Glyph, Key, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Fader, Glyph, Key, Keypad, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
+import { IconLock } from "../cards/lock/icons";
 
 const meta = {
   title: "Field/Foundations/Parts",
@@ -127,6 +128,13 @@ function AllParts() {
         <State label="First parameter" width={300}><Today summary="4h 10m" label="Brightness today." samples={DAY} currentHour={18} /></State>
         <State label="Neutral, an activity" width={300}><Today summary="2h" label="Heating today." samples={DAY} currentHour={18} tone="neutral" /></State>
         <State label="No history" width={300}><Today label="No history today." /></State>
+      </Part>
+
+      <Part name="Confirm and Keypad" rule="A guarded action's answer, in the panel, on useGuardedAction: the question as a legend when no code is asked for (Cancel and the action as two keys, Cancel focused, the action taking no press for a moment), or the keypad when one is (the code on a strip of screen, the keys three by four).">
+        <State label="The question" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Waiting for the answer" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} busy waiting="Waiting for the lock" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Didn't go through" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} error="Didn’t go through. Try again" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="The keypad (1234)" width={300}><Keypad prompt="Code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 
       <Part name="Legend and warning" rule="A printed label with its rule, for a group of keys or a meter. A warning is an outlined marker before its words: field has no warning colour.">
