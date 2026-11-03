@@ -53,8 +53,9 @@ const YAML = {
 };
 
 /**
- * spec/deploy.md's power example: a featured hero with a bottom-aligned sidebar, then a dense row whose compact
- * switch fills the hole under the cover, then a joined bundle across the row. The same YAML at every width.
+ * spec/deploy.md's power example, and the docs' Orb sample (docs/examples/user/orb.yaml, whose pictures are these
+ * stories): a featured hero with a bottom-aligned sidebar, then a dense row whose compact switch fills the hole under the
+ * cover, then a joined bundle across the row. The same YAML at every width.
  */
 const COMPOSED_YAML = {
   type: "custom:dashhaus-orb",

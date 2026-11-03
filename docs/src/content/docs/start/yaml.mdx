@@ -4,7 +4,12 @@ description: "Each skin is one Lovelace card. Leave its YAML empty for the autom
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
 import Example from "../../../components/Example.astro";
+import tabletLight from "../../../assets/layout/composition-tablet-light.webp";
+import tabletDark from "../../../assets/layout/composition-tablet-dark.webp";
+import phoneLight from "../../../assets/layout/composition-phone-light.webp";
+import phoneDark from "../../../assets/layout/composition-phone-dark.webp";
 
 Each skin is one Lovelace card: `custom:dashhaus-orb` for Orb, `custom:dashhaus-field` for Field. The card draws the
 whole dashboard from its YAML.
@@ -64,6 +69,58 @@ And each row how it packs them:
 On a narrower screen a row keeps its cards and their heights and takes fewer columns: widths shrink to fit, and once
 a row has fewer columns than it was written for, its cards flow in your order instead of keeping their `column`. A
 row narrowed by its surroundings does the same. A state change never moves a card.
+
+<figure>
+  <Image class="light:sl-hidden" src={tabletDark} alt="On a tablet: a large thermostat across two columns, the alarm and a light stacked beside it and ending where it ends; then the weather and a room sensor two columns wide, with the blinds and the porch switch stacked beside them, and three modes in one card across the row." />
+  <Image class="dark:sl-hidden" src={tabletLight} alt="On a tablet: a large thermostat across two columns, the alarm and a light stacked beside it and ending where it ends; then the weather and a room sensor two columns wide, with the blinds and the porch switch stacked beside them, and three modes in one card across the row." />
+  <figcaption>The Orb sample above, on a tablet: the thermostat spans two, the alarm and the light stack in the third and end where it ends (`align: bottom`), and the porch switch fills the space under the blinds (`flow: dense`).</figcaption>
+</figure>
+
+<figure>
+  <Image class="light:sl-hidden" src={phoneDark} width={310} alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
+  <Image class="dark:sl-hidden" src={phoneLight} width={310} alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
+  <figcaption>The same YAML on a phone: two columns fit, so the anchors let go and the cards flow in order, at their own heights.</figcaption>
+</figure>
+
+## When the YAML is wrong
+
+The card checks the whole YAML before it draws, and lists every problem at once: where it is, what's wrong, and what to
+write instead. This Orb card has five of the mistakes people make most:
+
+<Example file="mistakes/orb.yaml" />
+
+```text
+Dashhaus config has 5 problems:
+• "cards" and "rows" both lay out this page: keep "cards" for one plain grid, or move those cards into a row under "rows"
+• rows[0] (climate.living_room): this is a card, not a row: put it in a row's "cards", or list the cards under "cards" at the top for one plain grid
+• rows[1].cards[0] (climate.living_room): "width: 3" is wider than this row's 2 columns: use width: full, or raise the row's columns to 3
+• rows[1].cards[1] (light.living_room): "span" isn't a key: a card spans columns with "width", a whole number or full
+• rows[2]: "columns" must be a whole number from 1 to 12, or auto — write columns: 3, without quotes
+```
+
+- **`cards` and `rows` together.** A page is one or the other: `cards` for one plain grid, `rows` for titled groups.
+  Move the loose cards into a row of their own.
+- **A card where a row belongs.** Every entry under `rows` is a map with its own `cards`; an entity id there is a
+  card. Indent it under a row's `cards`.
+- **A card wider than its row.** `width` counts the row's columns, so it can't be more than the row's `columns`. Use
+  `width: full` for all of them.
+- **`span`.** A card's columns are `width`.
+- **A number in quotes.** `"3"` is text to YAML; write `columns: 3`.
+
+In Field, a row holds one footprint, so a compact module beside standard ones needs either a row of its own or a
+`column` on every module of the row, which stacks them by column:
+
+<Example file="mistakes/field.yaml" />
+
+```text
+Dashhaus config has 2 problems:
+• rows[0].cards[0] (light.ceiling): this row mixes standard and compact modules, so each stacks in a column: give it a "column", or move the compact ones into a row of their own
+• rows[0].cards[1] (cover.living_room): this row mixes standard and compact modules, so each stacks in a column: give it a "column", or move the compact ones into a row of their own
+```
+
+Home Assistant reads the YAML before the card does, so it reports a broken file itself (a bad indent, a tab, an
+unclosed quote) and the card never sees it. A mistake that is still valid YAML, such as a missing `- ` that turns a
+list into one map, reaches the card as whatever it parsed to.
 
 ## Which card draws an entity
 

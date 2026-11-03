@@ -1,6 +1,5 @@
 type: custom:dashhaus-orb
 title: Home
-show_time: true
 rows:
   - title: At a glance
     columns: 3
@@ -16,19 +15,19 @@ rows:
         column: 3
         footprint: compact
   - title: Around the house
-    columns: 2
+    columns: 3
+    flow: dense
     cards:
       - entity: weather.home
-        aqi: sensor.home_aqi
-        aqi_scale: US
-        width: full
+        width: 2
       - entity: cover.living_room
+        column: 3
+        footprint: compact
+      - entity: sensor.living_room_temperature
+        width: 2
+      - entity: switch.porch
         footprint: compact
       - bundle: joined
         label: Modes
-        cards: [input_boolean.guest_mode, input_boolean.dnd]
-  - title: Rooms
-    cards:
-      - entity: sensor.living_room_temperature
-        humidity: sensor.living_room_humidity
-        battery: sensor.living_room_battery
+        width: full
+        cards: [input_boolean.guest_mode, input_boolean.dnd, switch.office]
