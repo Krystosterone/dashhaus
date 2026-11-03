@@ -60,6 +60,8 @@ Node-run ESM is `.js` under `"type": "module"`. The only first-party `.mjs` is a
 
 CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request, each lane installing through `.github/actions/setup`; the Docs workflow runs step 4. Why its lanes are shaped as they are is in `spec/release.md` → CI.
 
+When a check or CI lane is slow, follow the repo's `test-speed` skill (`.agents/skills/test-speed/`): it measures before changing anything, keeps coverage identical, and its `references/` hold every measured speedup and rejected option in this repository. Read its Rejected tables before proposing a change.
+
 Unit tests cover pure logic, the interaction primitives, the shared hooks and the deploy CLI; stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/skins/orb/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
 
 Checks that execute a package's binary resolve it from that package's `package.json` (`bin`, `exports`); never hard-code a module filename, so a rename cannot leave a test pointing at a missing entry.

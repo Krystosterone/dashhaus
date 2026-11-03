@@ -145,3 +145,5 @@ Record on the release candidate: date and operator, Home Assistant version, cand
 - A newer commit cancels the run in progress on the same branch or pull request; main keeps every run.
 - The `dx` journeys install only the packed tarballs and import nothing from this repository; a failure in either is a failure of the public surface, not a flaky integration.
 - CI has no publish, tag or release step, and needs no secrets.
+
+The measurements behind each of these, and the options measured and rejected, are in `.agents/skills/test-speed/references/dashhaus-evidence.md`.
