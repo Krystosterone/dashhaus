@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Fader, Glyph, Key, Keypad, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
@@ -45,6 +45,11 @@ function State({ label, width, children }: { label: string; width?: number; chil
       <figcaption style={{ fontSize: 12, color: "var(--fd-ink-2)" }}>{label}</figcaption>
     </figure>
   );
+}
+
+/** A panel's plate, for what is drawn on it rather than on the page (its small print). */
+function Plate({ children }: { children: ReactNode }) {
+  return <div style={{ background: "var(--fd-module)", padding: 12, borderRadius: 6 }}>{children}</div>;
 }
 
 /** A screen at a module's standard height, outside a module. */
@@ -128,6 +133,16 @@ function AllParts() {
         <State label="First parameter" width={300}><Today summary="4h 10m" label="Brightness today." samples={DAY} currentHour={18} /></State>
         <State label="Neutral, an activity" width={300}><Today summary="2h" label="Heating today." samples={DAY} currentHour={18} tone="neutral" /></State>
         <State label="No history" width={300}><Today label="No history today." /></State>
+      </Part>
+
+      <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, under a printed legend where it has one.">
+        <State label="One row" width={300}><KeyGroup label="Cover"><Key label="Open" wide caption="Open" onPress={() => {}}><IconBulb /></Key><Key label="Stop" wide caption="Stop" onPress={() => {}}><IconBulb /></Key><Key label="Close" wide caption="Close" onPress={() => {}}><IconBulb /></Key></KeyGroup></State>
+        <State label="Two to a row, with a legend" width={300}><KeyGroup legend="Mode" columns={2}>{["Off", "Home", "Away", "Night"].map((m, i) => <Key key={m} label={m} chosen={i === 1} wide caption={m} onPress={() => {}}><IconBulb /></Key>)}</KeyGroup></State>
+      </Part>
+
+      <Part name="Facts" rule="The panel's small print: a fact at its start and, where there is one, its end, in the words @dashhaus/core/entities/facts gives every module.">
+        <State label="Last changed" width={300}><Plate><Facts start="Last changed 10:58 by Keypad" end="Code to unlock" /></Plate></State>
+        <State label="Unavailable" width={300}><Plate><Facts start="Last seen 10:42" /></Plate></State>
       </Part>
 
       <Part name="Confirm and Keypad" rule="A guarded action's answer, in the panel, on useGuardedAction: the question as a legend when no code is asked for (Cancel and the action as two keys, Cancel focused, the action taking no press for a moment), or the keypad when one is (the code on a strip of screen, the keys three by four).">

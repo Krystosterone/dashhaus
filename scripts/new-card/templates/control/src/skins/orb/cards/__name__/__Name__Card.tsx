@@ -1,6 +1,7 @@
 import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
+import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { __Name__Icon } from "./icons";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./__Name__Card.css";
 
@@ -24,7 +25,7 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
   // The control carries the state word; the status line never repeats it.
   const word = unav ? "Unavailable" : on ? "On" : "Off";
   // The pill's second voice: what tapping does, or how long it has been on.
-  const cue = on ? (e.lastChanged ? `Since ${e.lastChanged}` : undefined) : "Turn on";
+  const cue = on ? sinceFact(e.lastChanged) : "Turn on";
 
   return (
     <article {...article} data-state={e.state} {...colors}>
@@ -50,15 +51,12 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{unav && e.area ? e.area : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav && e.area ? e.area : ""} />
       )}
     </article>
   );

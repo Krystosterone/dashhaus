@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "@dashhaus/core/entities/sensor/readings";
-import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconThermo, THERMO } from "./icons";
 import "./SensorModule.css";
@@ -14,11 +15,6 @@ export interface SensorModuleProps {
   history?: SensorHistory;
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
-}
-
-/** A fixed-place temperature: the leading place is an unlit segment ("06.2"), heard as the real value. */
-function Temperature({ value, unit }: { value: number; unit: SensorEntity["unit"] }) {
-  return <><Digits text={fmtTemp(value)} places={4} /><small>{unit}</small></>;
 }
 
 /** The thermometer fills from its bulb: lit to the bulb at -10 °C, to the top at 40 °C. */
@@ -132,7 +128,7 @@ function SensorDetails({ e, read, pict, meta, history, day, range, what, battery
     </p>
   ) : undefined;
 
-  const reported = unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `Updated ${e.lastUpdated}` : "";
+  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
   const power = e.battery != null && !battery ? `Battery ${e.battery}%` : "";
 
   return (
@@ -158,10 +154,7 @@ function SensorDetails({ e, read, pict, meta, history, day, range, what, battery
           currentHour={history!.currentHour}
         />
       )}
-      <p className="fd-info">
-        <span>{battery ? <Warn>{battery}, replace soon</Warn> : unav ? "" : context}</span>
-        <span>{[power, reported].filter(Boolean).join(" · ")}</span>
-      </p>
+      <Facts start={battery ? <Warn>{battery}, replace soon</Warn> : unav ? "" : context} end={[power, reported].filter(Boolean).join(" · ")} />
     </div>
   );
 }

@@ -147,7 +147,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   });
   const askedKeys = asked.map(({ action }) => `"${keyOf(action)}"`);
   const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
-  const since = has("lastChanged") ? "e.lastChanged ? `Since ${e.lastChanged}` : undefined" : "undefined";
+  const since = has("lastChanged") ? "sinceFact(e.lastChanged)" : "undefined";
   /** Today's meter at an indent, or nothing for a domain without history. */
   const todayAt = (indent) => history ? [
     "<Today",
@@ -175,8 +175,10 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       : `A reading, so nothing on it is pressed: its glyph lies flat where a key would be${history ? ", and today's meter takes the fader's place" : ""}. Tap the name for the detail panel.`,
     __areaProp__: has("area") ? " area={e.area}" : "",
     // Since when it has been as it is, on the screen and in the panel's facts, where the entity says.
-    __meta__: toggle ? (has("lastChanged") ? "e.lastChanged ? [`Since ${e.lastChanged}`] : undefined" : "undefined") : `[words(e.state), ${since}]`,
-    __changed__: has("lastChanged") ? "e.lastChanged ? `Last changed ${e.lastChanged}` : \"\"" : "\"\"",
+    __meta__: toggle ? (has("lastChanged") ? "e.lastChanged ? [sinceFact(e.lastChanged)] : undefined" : "undefined") : `[words(e.state), ${since}]`,
+    __changed__: has("lastChanged") ? "lastChangedFact(e.lastChanged)" : "\"\"",
+    // The facts' words, from core: what this module prints.
+    __factsImport__: ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact", "sinceFact"] : [])].sort().join(", "),
     // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
     __samplesProp__: history && /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
     __historyType__: history ? `, ${Name}History` : "",

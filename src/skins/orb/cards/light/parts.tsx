@@ -1,6 +1,5 @@
-import { Chip, Track } from "../../shared/ui";
+import { Chip, SliderTrack } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
-import { useSlider } from "@dashhaus/core/primitives";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { warmGradient } from "./kelvin";
 import { LAMP_COLORS, swatchColor } from "./color";
@@ -23,19 +22,14 @@ export const IconBulbOff = () => (
 /** Brightness bar: the light fills the track; the label inverts where it passes. */
 export function BrightnessBar({ id, label, value, on, onChange }: { id: string; label: string; value: number; on: boolean; onChange: (v: number) => void }) {
   // Setting the level the thumb already shows still reports it while off, so it turns the light on.
-  const slider = useSlider<HTMLDivElement>({
-    value: Math.round(value), min: 1, max: 100, inset: THUMB / 2, reportUnchanged: !on, onChange,
-    valueText: (v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`),
-  });
-  const pct = slider.value;
   return (
-    <Track
-      slider={slider}
-      inputs={[{ id, "aria-label": label, ...slider.inputProps }]}
+    <SliderTrack
+      id={id}
+      label={label}
+      slider={{ value: Math.round(value), min: 1, max: 100, inset: THUMB / 2, reportUnchanged: !on, onChange, valueText: (v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`) }}
       className="lw-bar"
-      text={on ? `${pct}%` : "Off"}
+      text={(pct) => (on ? `${pct}%` : "Off")}
       lit={on}
-      style={{ "--v": slider.fraction(pct).toFixed(4) }}
     />
   );
 }
@@ -53,32 +47,29 @@ export const QUICK_LEVELS = [
 export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, onChange }: { id: string; kelvin: number; min?: number; max?: number; disabled?: boolean; onChange: (k: number) => void }) {
   const intervals = Math.max(1, Math.round(Math.max(100, max - min) / 100));
   // The pointer lands on whole hundreds of kelvin, whatever the lamp's own ends.
-  const slider = useSlider<HTMLDivElement>({
-    value: kelvin, min, max, step: 100, inset: 12, disabled, snap: (raw) => Math.round(raw / 100) * 100, onChange,
-    valueText: (v) => `${v} kelvin, ${kelvinName(v)}`,
-  });
-  const k = slider.value;
+  // A scale, not a groove: the warm-to-cool gradient is its fill, and the focus ring goes on the mark.
   return (
-    <div className="hd-blk">
-      <p className="hd-blk-h"><label htmlFor={id}>Warmth</label><span className="hd-blk-v">{kelvinName(k)}</span></p>
-      {/* A scale, not a groove: the warm-to-cool gradient is its fill, and the focus ring goes on the mark. */}
-      <Track
-        slider={slider}
-        inputs={[{ id, ...slider.inputProps }]}
-        className="lw-ruler"
-        groove={false}
-        focus="thumb"
-        disabled={disabled}
-        style={{ "--v": slider.fraction(k).toFixed(4), "--warm-grad": warmGradient(min, Math.max(max, min + 100)) }}
-      >
-        <div className="lw-ruler-ticks" style={{ background: `repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px calc(100% / ${intervals}))` }} />
-        <div className="lw-ruler-line" />
-        <div className="lw-ruler-rail" aria-hidden="true">
-          <div className="lw-ruler-at lw-ruler-at--mark"><div className="lw-ruler-mark" /></div>
-          <div className="lw-ruler-at lw-ruler-at--tip"><div className="lw-ruler-tip">{k} K</div></div>
-        </div>
-      </Track>
-    </div>
+    <SliderTrack
+      id={id}
+      slider={{ value: kelvin, min, max, step: 100, inset: 12, disabled, snap: (raw) => Math.round(raw / 100) * 100, onChange, valueText: (v) => `${v} kelvin, ${kelvinName(v)}` }}
+      heading={(k) => <><label htmlFor={id}>Warmth</label><span className="hd-blk-v">{kelvinName(k)}</span></>}
+      className="lw-ruler"
+      groove={false}
+      focus="thumb"
+      disabled={disabled}
+      style={{ "--warm-grad": warmGradient(min, Math.max(max, min + 100)) }}
+    >
+      {(k) => (
+        <>
+          <div className="lw-ruler-ticks" style={{ background: `repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px calc(100% / ${intervals}))` }} />
+          <div className="lw-ruler-line" />
+          <div className="lw-ruler-rail" aria-hidden="true">
+            <div className="lw-ruler-at lw-ruler-at--mark"><div className="lw-ruler-mark" /></div>
+            <div className="lw-ruler-at lw-ruler-at--tip"><div className="lw-ruler-tip">{k} K</div></div>
+          </div>
+        </>
+      )}
+    </SliderTrack>
   );
 }
 

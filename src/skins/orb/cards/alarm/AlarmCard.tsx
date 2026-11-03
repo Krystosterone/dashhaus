@@ -2,9 +2,10 @@ import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } f
 import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
+import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus } from "./parts";
-import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./AlarmCard.css";
 
@@ -127,7 +128,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
       {sheet && !unav && (pending || open.length > 0) && (
         <div className="hd-extra">
           {open.length > 0 && !pending && (
-            <p className="al-open"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
+            <p className="hd-note"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (
             <Keypad key={guard.pendingKey} prompt={promptFor(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
@@ -139,15 +140,12 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today"}
+          summary={unav ? unavailableSince(e.lastSeen) : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today"}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `${e.changedBy ? `${e.changedBy}, ` : ""}${e.lastChanged}` : ""}</span>
-          <span>{ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : e.lastChanged ? `${e.changedBy ? `${e.changedBy}, ` : ""}${e.lastChanged}` : ""} end={ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"} />
       )}
     </article>
   );

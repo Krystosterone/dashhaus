@@ -41,4 +41,3 @@
 
 /* The base station's key, and what it being on or off means, in a sentence beside it. */
 .fd-ow-base { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: center; }
-.fd-ow-hint { margin: 0; font-size: 12px; font-weight: 400; line-height: 17px; color: var(--fd-ink-2); }

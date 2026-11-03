@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useId, useRef } from "react";
 import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
-import { useKeypad, usePress } from "@dashhaus/core/primitives";
+import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
+import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
-import type { useSlider } from "@dashhaus/core/primitives";
 import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/dashboard/card";
 import type { CardFootprint, CardProps as FrameProps, SheetProps, TileProps } from "@dashhaus/dashboard/card";
 import type { ColorName } from "@dashhaus/core/entities/color";
@@ -203,6 +203,19 @@ export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { l
   );
 }
 
+/**
+ * The small print at the foot of a card's sheet: two facts, at its start and its end (when it last changed, what it
+ * can do). Their words come from `@dashhaus/core/entities/facts`, the same on every card; `warn` marks the start's.
+ */
+export function Facts({ start, end, warn }: { start?: ReactNode; end?: ReactNode; warn?: boolean }) {
+  return (
+    <p className="hd-info">
+      <span className={warn ? "hd-warn" : undefined}>{start}</span>
+      <span>{end}</span>
+    </p>
+  );
+}
+
 export function UnavailableSlot({ lastSeen }: { lastSeen?: string }) {
   return (
     <div className="hd-unav">
@@ -305,6 +318,45 @@ export function Track({ slider, inputs, className, text, lit = true, focus = "gr
       {inputs.map(({ className: own, ...input }) => <input key={input.id} className={own ? `hd-track-in ${own}` : "hd-track-in"} {...input} />)}
     </div>
   );
+}
+
+export interface SliderTrackProps extends Omit<TrackProps, "slider" | "inputs" | "text" | "children"> {
+  /** The hidden range input's id: a `<label htmlFor>` in the heading names it, or `label` does. */
+  id: string;
+  /** The input's spoken name, where no heading's label names it. */
+  label?: string;
+  /** `useSlider`'s options: the card's ends, snap, how a pointer reads along it, and what the value says. */
+  slider: SliderOptions<HTMLDivElement>;
+  /** The value on the groove, from the slider's live value (it moves under the finger before the entity answers). */
+  text?: (value: number) => ReactNode;
+  /** A heading over the track, `hd-blk-h`, from the live value: its label and what the value means. */
+  heading?: (value: number) => ReactNode;
+  /** Places of `--v`. Default 4. */
+  precision?: number;
+  /** The card's fill and marks, from the live value. */
+  children?: (value: number) => ReactNode;
+}
+
+/**
+ * A slider on a track: `useSlider` wired into `Track`, the live value set on the track as `--v` (0-1) and handed to
+ * the text, the heading and the card's own fill. A card brings what only it knows, its ends, snap and fill; the
+ * groove, the hit layer, the hidden input and the focus ring are the track's.
+ */
+export function SliderTrack({ id, label, slider: options, text, heading, precision = 4, style, children, ...track }: SliderTrackProps) {
+  const slider = useSlider<HTMLDivElement>(options);
+  const v = slider.value;
+  const bar = (
+    <Track
+      slider={slider}
+      inputs={[{ id, ...(label ? { "aria-label": label } : {}), ...slider.inputProps }]}
+      text={text?.(v)}
+      style={{ "--v": slider.fraction(v).toFixed(precision), ...style }}
+      {...track}
+    >
+      {children?.(v)}
+    </Track>
+  );
+  return heading ? <div className="hd-blk"><p className="hd-blk-h">{heading(v)}</p>{bar}</div> : bar;
 }
 
 /* ---------- Today strip ---------- */

@@ -10,10 +10,5 @@
 
 /* The detail panel's cover content. */
 .fd-cv-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
-/* Quick positions, four in a row; a cover with no position's close, stop and open, three. */
-.fd-cv-keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.fd-cv-keys[data-transport] { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-.fd-cv-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@container (max-width: 300px) {
-  .fd-cv-keys:not([data-transport]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+/* Quick positions, four in a row, two on a narrow panel; a cover with no position's close, stop and open in one
+   row. Both are KeyGroups. */

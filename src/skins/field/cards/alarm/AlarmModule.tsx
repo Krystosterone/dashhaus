@@ -6,7 +6,8 @@ import { fmtAgo, fmtDuration } from "@dashhaus/core/entities/format";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useNow } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { Blank, Digits, Glyph, Key, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMode, IconShield, SHIELD_PICT } from "./icons";
 import "./AlarmModule.css";
@@ -96,7 +97,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
     : e.state === "triggered" ? (footprint === "compact" ? (ago != null ? <><span className="fd-sr">Alarm, </span>{ago < 1 ? "NOW" : fmtAgo(ago)}</> : <Blank label="Alarm" />) : "ALARM")
     : moving ? (left != null ? <Digits text={mmss(left)} places={4} /> : <Blank places={4} label={word} />)
     : on ? "ON" : "OFF";
-  const since = e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = sinceFact(e.lastChanged);
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
     // The figure says ALARM: its lines say what set it off, if known, and since when.
     : e.state === "triggered" ? (e.triggeredBy ? [e.triggeredBy, since] : [since ?? "Triggered"])
@@ -138,17 +139,17 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   // Off and each mode, the current one chosen. Captions where every one fits, glyphs below; where even the glyphs
   // don't, AlarmModule.css hands the row to the one key.
   const bank = (where: "m" | "p") => (
-    <div className="fd-al-bank" role="group" aria-label={`${e.name} mode`} data-n={choices.length} data-where={where}>
+    <KeyGroup className="fd-al-bank" label={`${e.name} mode`} data-n={choices.length} data-where={where}>
       {choices.map((m) => (
         <Key key={m} label={m === "off" ? "Disarm" : `Arm ${MODE_LABEL[m].toLowerCase()}`} chosen={m === current} onPress={() => pick(m)} onHold={where === "m" ? details.openDetails : undefined} wide caption={MODE_LABEL[m]}>
           <IconMode mode={m} />
         </Key>
       ))}
-    </div>
+    </KeyGroup>
   );
 
   const glyph = <Glyph unavailable={unav}>{shield}</Glyph>;
-  const today = history && (unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today");
+  const today = history && (unav ? unavailableSince(e.lastSeen) : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today");
   const row = ro ? (
     <div className="fd-al-row">
       {glyph}
@@ -213,27 +214,24 @@ function AlarmDetails({ e, ro, history, today, control }: DetailsProps) {
   const armedMode = ARMED_MODE[e.state];
   const open = unav ? [] : e.openSensors ?? [];
   const codeToArm = !!e.codeFormat && (e.codeArmRequired ?? true);
-  const changed = e.lastChanged ? `Last changed ${e.lastChanged}${e.changedBy ? ` by ${e.changedBy}` : ""}` : "";
+  const changed = lastChangedFact(e.lastChanged, e.changedBy);
   return (
     <>
       {control && (
         <div className="fd-block">
           <Legend id={`${uid}-m`}>Mode</Legend>
           {control}
-          {armedMode && <p className="fd-al-hint">Watches {MODE_HINT[armedMode].toLowerCase()}.</p>}
+          {armedMode && <p className="fd-hint">Watches {MODE_HINT[armedMode].toLowerCase()}.</p>}
         </div>
       )}
       {open.length > 0 && (
-        <p className="fd-al-open">
+        <p className="fd-hint fd-al-open">
           <Warn>{listOf(open)} {open.length > 1 ? "are" : "is"} open.</Warn>
           {!ro && e.state === "disarmed" && <span> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</span>}
         </p>
       )}
       {history && <Today summary={today} label="Armed by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : changed}</span>
-        <span>{ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"}</span>
-      </p>
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : changed} end={ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"} />
     </>
   );
 }

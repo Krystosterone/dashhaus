@@ -2,7 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, KeyGroup } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconCover, IconDown, IconStop, IconUp, SLATS, WINDOW } from "./icons";
 import "./CoverModule.css";
@@ -62,7 +63,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
     : withPos ? <Percent value={pos} />
     : moving ? <Blank places={4} label={travel} />
     : open ? "OPEN" : "SHUT";
-  const since = !moving && e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = !moving && sinceFact(e.lastChanged);
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
     : warning ? [<Warn key="w">{warning}</Warn>]
     : [word, since];
@@ -180,24 +181,18 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
       {controls}
 
       {onSetPosition && (
-        <div className="fd-block">
-          <Legend id={`${uid}-q`}>Quick positions</Legend>
-          <div className="fd-cv-keys" role="group" aria-labelledby={`${uid}-q`}>
-            {QUICK_POSITIONS.map((q) => <Key key={q.value} label={positionText(q.value)} wide caption={q.label} chosen={!moving && q.value === pos} onPress={() => onSetPosition(q.value)}>{null}</Key>)}
-          </div>
-        </div>
+        <KeyGroup legend="Quick positions" columns={4} narrow={2}>
+          {QUICK_POSITIONS.map((q) => <Key key={q.value} label={positionText(q.value)} wide caption={q.label} chosen={!moving && q.value === pos} onPress={() => onSetPosition(q.value)}>{null}</Key>)}
+        </KeyGroup>
       )}
 
       {/* A cover with no position: explicit transport, each key acting once; the one that can't act lies flat. */}
       {!unav && !withPos && (
-        <div className="fd-block">
-          <Legend id={`${uid}-mv`}>Move</Legend>
-          <div className="fd-cv-keys" data-transport role="group" aria-labelledby={`${uid}-mv`}>
-            <Key label={`${e.name}, close`} wide caption="Close" unavailable={!open && !moving} onPress={onCloseCover}><IconDown /></Key>
-            {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving} onPress={onStopCover}><IconStop /></Key>}
-            <Key label={`${e.name}, open`} wide caption="Open" unavailable={open && !moving} onPress={onOpenCover}><IconUp /></Key>
-          </div>
-        </div>
+        <KeyGroup legend="Move">
+          <Key label={`${e.name}, close`} wide caption="Close" unavailable={!open && !moving} onPress={onCloseCover}><IconDown /></Key>
+          {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving} onPress={onStopCover}><IconStop /></Key>}
+          <Key label={`${e.name}, open`} wide caption="Open" unavailable={open && !moving} onPress={onOpenCover}><IconUp /></Key>
+        </KeyGroup>
       )}
 
       {tilt != null && onSetTilt && (
@@ -217,11 +212,8 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
 
       {history && <Today summary={today} label="Open by hour today." tone={withPos ? "a" : "neutral"} samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        {/* Unavailable, what it can do isn't known, so only its kind is printed. */}
-        <span>{unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}`}</span>
-      </p>
+      {/* Unavailable, what it can do isn't known, so only its kind is printed. */}
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}`} />
     </div>
   );
 }

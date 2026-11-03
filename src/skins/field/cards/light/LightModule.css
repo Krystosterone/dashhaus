@@ -5,9 +5,9 @@
 
 /* The detail panel's light content. */
 .fd-lt-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
-.fd-lt-levels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-/* Seven colours in a row: a swatch on each key, its name printed under it; four and three on a phone, so each name fits. */
-.fd-lt-colours { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+/* Quick levels, four in a row, and seven colours in a row (a swatch on each key, its name printed under it; four and
+   three on a phone, so each name fits) are KeyGroups. The colours sit a little closer. */
+.fd-lt-colours { gap: 6px; }
 @container (max-width: 419px) {
-  .fd-lt-colours { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .fd-lt-colours { gap: 8px; }
 }

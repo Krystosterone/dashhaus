@@ -2,7 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails, Facts } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconSound, SPEAKER } from "./icons";
 import "./SoundModule.css";
@@ -38,7 +39,7 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
   // The speaker fills to the volume and lights only while it plays; a sound without one has no parameter, so it is neutral.
   const pict = <Pictogram level={volume == null ? 1 : volume / 100} lit={on} param={volume != null ? "a" : "neutral"}>{SPEAKER}</Pictogram>;
   const read: ReactNode = unav ? <Blank label="Unavailable" /> : !on ? "OFF" : volume != null ? <Volume value={volume} /> : "ON";
-  const since = e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = sinceFact(e.lastChanged);
   const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
     : on && volume != null ? ["Playing", since]
     : !on && volume != null ? [`Volume ${volume}%`, since]
@@ -108,10 +109,7 @@ function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }:
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        <span>{unav ? "" : volume != null ? "On / off, volume" : "On / off"}</span>
-      </p>
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav ? "" : volume != null ? "On / off, volume" : "On / off"} />
     </div>
   );
 }

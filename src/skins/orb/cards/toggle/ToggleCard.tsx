@@ -1,7 +1,8 @@
 import type { ToggleEntity, ToggleHistory, DurationOption } from "@dashhaus/core/entities/toggle/types";
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
+import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { ToggleIconSvg } from "./icons";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleCard.css";
 
@@ -37,13 +38,13 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
   // A mode is a state, not energy: on is the accent, with no bloom and no glow. A colour only if one was chosen.
   const colors = paint("state", 0, null, color ?? e.color);
 
-  const ends = on ? (e.until ? `Until ${e.until}` : e.lastChanged ? `Since ${e.lastChanged}` : "On") : null;
+  const ends = on ? (e.until ? `Until ${e.until}` : sinceFact(e.lastChanged) ?? "On") : null;
   // Where it applies; when it ends takes its place in compact cards, where the pill has no room to say so.
   // On and Off are the control's words: the status line never repeats them.
   const status = on && e.until && !unav
     ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{area}</span></>
     // With no room to name (a titled bundle's lid names it), since when it has been as it is (last seen, unavailable).
-    : area ?? (!sheet && (unav ? e.lastSeen : e.lastChanged) ? `Since ${unav ? e.lastSeen : e.lastChanged}` : null);
+    : area ?? (!sheet && (unav ? e.lastSeen : e.lastChanged) ? sinceFact(unav ? e.lastSeen : e.lastChanged) : null);
   const valueText = unav ? "Unavailable" : on ? (e.until ? `On until ${e.until}` : "On") : "Off";
 
   // The compact value appears under the name, or in place of a hidden control.
@@ -72,7 +73,7 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
 
       {sheet && !unav && (
         <div className="hd-extra">
-          {e.description && <p className="tw-desc">{e.description}</p>}
+          {e.description && <p className="hd-note">{e.description}</p>}
           {onTurnOnFor && durations.length > 0 && (
             <ChoiceChips id={`${uid}-d`} label={on ? "Keep on" : "Turn on for"} options={durations} value={on ? e.duration ?? null : null} onChange={onTurnOnFor} />
           )}
@@ -83,15 +84,12 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{e.area && unav ? e.area : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.area && unav ? e.area : ""} />
       )}
     </article>
   );

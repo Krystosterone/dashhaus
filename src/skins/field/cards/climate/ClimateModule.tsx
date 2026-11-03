@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
@@ -21,11 +22,6 @@ export interface ClimateModuleProps {
   onFanChange?: (fan: string) => void;
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
-}
-
-/** A fixed-place temperature: visual leading zeroes are CSS-only, while assistive technology hears the real value. */
-function Temperature({ value, unit }: { value: number; unit: ClimateEntity["unit"] }) {
-  return <><Digits text={fmtCurrent(value)} places={4} /><small>{unit}</small></>;
 }
 
 function targetCopy(e: ClimateEntity, mode: HvacMode) {
@@ -190,7 +186,6 @@ interface ClimateDetailsProps {
 }
 
 function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls, history, setRange, onTargetChange, onModeChange, onPresetChange, onFanChange }: ClimateDetailsProps) {
-  const uid = useId();
   const targetPictMode = on ? mode : (e.hvacModes.find((candidate) => candidate !== "off") ?? "heat");
   const aside = unavailable ? (
     <p className="fd-chan"><span><Blank places={4} label="Unavailable" /><span className="fd-chan-sub">Unavailable</span></span></p>
@@ -233,21 +228,18 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
       )}
 
       {!unavailable && onModeChange && modeOptions.length > 0 && (
-        <ModeKeys id={`${uid}-mode`} current={mode} options={modeOptions} onChange={onModeChange} />
+        <ModeKeys current={mode} options={modeOptions} onChange={onModeChange} />
       )}
       {!unavailable && onPresetChange && e.presetModes && e.presetModes.length > 0 && (
-        <TextKeys id={`${uid}-preset`} label="Preset" current={e.presetMode} options={e.presetModes} onChange={onPresetChange} />
+        <TextKeys label="Preset" current={e.presetMode} options={e.presetModes} onChange={onPresetChange} />
       )}
       {!unavailable && onFanChange && e.fanModes && e.fanModes.length > 0 && (
-        <TextKeys id={`${uid}-fan`} label="Fan" current={e.fanMode} options={e.fanModes} onChange={onFanChange} />
+        <TextKeys label="Fan" current={e.fanMode} options={e.fanModes} onChange={onFanChange} />
       )}
 
       {history && <Today summary={today} label="Climate activity by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unavailable ? `Last seen ${e.lastSeen ?? "unknown"}` : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : ""}</span>
-        <span>{unavailable ? "" : e.lastChanged ? `Last changed ${e.lastChanged} · ${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}` : `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`}</span>
-      </p>
+      <Facts start={unavailable ? lastSeenFact(e.lastSeen) : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : ""} end={unavailable ? "" : [lastChangedFact(e.lastChanged), `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`].filter(Boolean).join(" · ")} />
     </div>
   );
 }
@@ -313,31 +305,25 @@ function RangeFine({ name, low, high, min, max, step, onChange }: { name: string
   );
 }
 
-function ModeKeys({ id, current, options, onChange }: { id: string; current: HvacMode; options: HvacMode[]; onChange: (mode: HvacMode) => void }) {
+function ModeKeys({ current, options, onChange }: { current: HvacMode; options: HvacMode[]; onChange: (mode: HvacMode) => void }) {
   return (
-    <div className="fd-block">
-      <Legend id={id} value={MODE_META[current].label}>Mode</Legend>
-      <div className="fd-cl-mode-keys" role="group" aria-labelledby={id}>
-        {options.map((option) => (
-          <Option key={option} name={MODE_META[option].label}>
-            <Key label={`Set mode to ${MODE_META[option].label}`} wide chosen={option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
-          </Option>
-        ))}
-      </div>
-    </div>
+    <KeyGroup legend="Mode" value={MODE_META[current].label} columns={choices(options.length)} narrow={2}>
+      {options.map((option) => (
+        <Option key={option} name={MODE_META[option].label}>
+          <Key label={`Set mode to ${MODE_META[option].label}`} wide chosen={option === current} onPress={() => onChange(option)}><ModeIcon mode={option} /></Key>
+        </Option>
+      ))}
+    </KeyGroup>
   );
 }
 
-function TextKeys({ id, label, current, options, onChange }: { id: string; label: string; current?: string; options: string[]; onChange: (value: string) => void }) {
+function TextKeys({ label, current, options, onChange }: { label: string; current?: string; options: string[]; onChange: (value: string) => void }) {
   return (
-    <div className="fd-block">
-      <Legend id={id} value={current ? titleCase(current) : undefined}>{label}</Legend>
-      <div className="fd-cl-text-keys" role="group" aria-labelledby={id}>
-        {options.map((option) => {
-          const text = titleCase(option);
-          return <Key key={option} label={`Set ${label.toLowerCase()} to ${text}`} wide caption={text} chosen={option === current} onPress={() => onChange(option)}>{null}</Key>;
-        })}
-      </div>
-    </div>
+    <KeyGroup legend={label} value={current ? titleCase(current) : undefined} columns={choices(options.length)} narrow={2}>
+      {options.map((option) => {
+        const text = titleCase(option);
+        return <Key key={option} label={`Set ${label.toLowerCase()} to ${text}`} wide caption={text} chosen={option === current} onPress={() => onChange(option)}>{null}</Key>;
+      })}
+    </KeyGroup>
   );
 }

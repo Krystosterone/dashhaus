@@ -190,7 +190,6 @@
 .hd--compact .al-alarm { justify-content: flex-end; }
 
 /* ---------- Sheet: open doors and windows ---------- */
-.al-open { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
 /* The keypad is the shared Keypad (shared/card.css). */
 
 /* An unknown delay's wait, under reduced motion: a slow fade in place */

@@ -1,7 +1,8 @@
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
+import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
-import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
 
@@ -154,7 +155,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
           title={sheet ? "Sleep today" : "Today"}
           samples={history.sleep}
           currentHour={history.currentHour}
-          summary={offline ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.asleepMinutes > 0 ? `Asleep ${fmtDuration(history.asleepMinutes)}` : "Not asleep today"}
+          summary={offline ? unavailableSince(e.lastSeen) : history.asleepMinutes > 0 ? `Asleep ${fmtDuration(history.asleepMinutes)}` : "Not asleep today"}
         />
       )}
 
@@ -166,10 +167,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{offline ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `${e.live ? "Live · u" : "U"}pdated ${e.lastUpdated}` : ""}</span>
-          <span>{offline ? [e.charging ? "Charging" : null, e.area].filter(Boolean).join(" · ") : ""}</span>
-        </p>
+        <Facts start={offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live)} end={offline ? [e.charging ? "Charging" : null, e.area].filter(Boolean).join(" · ") : ""} />
       )}
     </article>
   );

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
-import { Blank, Glyph, ModuleFrame, Pictogram, Screen, __todayImport__useDetails } from "../../shared/ui";
+import { lastSeenFact } from "@dashhaus/core/entities/facts";
+import { Blank, Facts, Glyph, ModuleFrame, Pictogram, Screen, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
 import "./__Name__Module.css";
@@ -37,9 +38,7 @@ __readingTodayConst__
       <div className="fd-__code__-panel" data-state={e.state}>
         <Screen pict={pict} meta={meta}>{read}</Screen>
         __readingToday__
-        <p className="fd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : ""} />
       </div>
     </ModuleFrame>
   );

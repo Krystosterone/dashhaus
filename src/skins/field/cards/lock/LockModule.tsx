@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { LockAction, LockEntity, LockResult } from "@dashhaus/core/entities/lock/types";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { Blank, Confirm, Key, Keypad, Legend, ModuleFrame, Pictogram, Screen, Warn, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Screen, Warn, useDetails, Facts, KeyGroup } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconDoor, IconLock, LOCK_PICT } from "./icons";
 import "./LockModule.css";
@@ -66,7 +67,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
     void guard.attempt("lock").then((result) => { if (result === "wrong_code") details.openDetails(); });
   };
 
-  const since = e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = sinceFact(e.lastChanged);
   const word = WORD[e.state];
   const pict = <Pictogram param="neutral" lit={locked}>{LOCK_PICT}</Pictogram>;
   const figure = FIGURE[e.state];
@@ -98,7 +99,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
 
   const canOpen = e.supportsOpen && !!onOpenDoor && !ro && !unav && !moving && e.state !== "open";
   const needsCode = guard.code || pending === "lock";
-  const changed = e.lastChanged ? `Last changed ${e.lastChanged}${e.changedBy ? ` by ${e.changedBy}` : ""}` : "";
+  const changed = lastChangedFact(e.lastChanged, e.changedBy);
 
   return (
     <ModuleFrame
@@ -132,19 +133,15 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
           <>
             {!ro && (
               <div className="fd-block">
-                <Legend>Lock</Legend>
-                <div className="fd-lk-keys" data-n={canOpen ? 2 : 1}>
+                <KeyGroup legend="Lock" columns={canOpen ? 2 : 1}>
                   {key(true)}
                   {canOpen && <Key label={`Open ${e.name}: asks first`} wide caption="Open door" onPress={() => guard.ask("open")}><IconDoor /></Key>}
-                </div>
+                </KeyGroup>
                 <p className="fd-hint">{locked ? "Unlocking asks first." : jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? "Waiting for the lock." : "Locking takes one press."}</p>
               </div>
             )}
             {battery && <p className="fd-hint"><Warn>{battery}. Replace it soon.</Warn></p>}
-            <p className="fd-info">
-              <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : changed}</span>
-              <span>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</span>
-            </p>
+            <Facts start={unav ? lastSeenFact(e.lastSeen) : changed} end={<>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</>} />
           </>
         )}
       </div>

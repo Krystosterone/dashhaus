@@ -6,7 +6,4 @@
 
 /* The detail panel's lock content. */
 .fd-lk-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
-.fd-lk-keys { display: grid; grid-template-columns: repeat(var(--fd-lk-n, 1), minmax(0, 1fr)); gap: 8px; }
-.fd-lk-keys[data-n="2"] { --fd-lk-n: 2; }
-.fd-lk-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The hint, the question and the keypad are the shared .fd-hint, Confirm and Keypad (shared/panel.css). */

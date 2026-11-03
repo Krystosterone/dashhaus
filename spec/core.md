@@ -49,8 +49,18 @@ the application boundary; a card never connects or disconnects the store itself.
 
 The `useHa<Name>` hooks return `{ entity, history, actions }`; a read-only domain returns `{ entity, history }` (weather
 also returns `hourly` and `daily`). `entity` is the normalized model, `history` is today's parsed slice, and `actions`
-is the domain's handlers. The hook accepts the options its `Ha<Name>Options` type declares; `name`, `loadHistory={false}`
-and `onActionError` are the common ones.
+is the domain's handlers (a lock has no history: its day is its last change). The hook accepts the options its
+`Ha<Name>Options` type declares; `name`, `loadHistory={false}` and `onActionError` are the common ones.
+
+Beside its handlers each domain declares what its actions are, `<NAME>_ACTIONS: ActionKinds<<Name>Handlers>`
+(`ha/actions/kinds.ts`): what a press gives the handler (`takes`: `nothing`, a `code`, or a `value` a press can't give)
+and whether it asks first (`asks: true`). The type covers every handler, optional ones included, so a new one can't go
+undeclared. The generators read it (`scripts/domains.js`) to draw a tap as a button, an action that asks first or takes
+a code through the skin's Confirm and Keypad on `useGuardedAction`, and to leave a value out; a skin's own card reads it
+when it wants to know the same.
+
+The words of a card's small print are `entities/facts.ts`, the same on every card and in every skin: `lastSeenFact`,
+`unavailableSince`, `sinceFact`, `lastChangedFact` (with who changed it) and `updatedFact`.
 
 ### Headless components and hooks
 

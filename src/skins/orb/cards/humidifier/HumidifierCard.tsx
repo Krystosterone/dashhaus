@@ -1,7 +1,8 @@
 import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
+import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { HumidifierIcon } from "./icons";
-import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./HumidifierCard.css";
 
@@ -52,7 +53,7 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = cur != null ? `${fmtHumidity(cur)}% · ${setText}` : setText;
-  const summary = !history ? "" : unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today";
+  const summary = !history ? "" : unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today";
 
   return (
     <article {...article} data-state={e.state} data-action={action ?? (on ? "on" : "off")} {...colors}>
@@ -79,10 +80,7 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
       {history && <TodayStrip samples={history.samples} currentHour={history.currentHour} summary={summary} />}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : `Target range ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`}</span>
-          <span>{unav ? "" : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : `Target range ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`} end={unav ? "" : lastChangedFact(e.lastChanged)} />
       )}
     </article>
   );

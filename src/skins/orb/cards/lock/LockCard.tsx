@@ -1,8 +1,9 @@
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
 import { isLowBattery } from "@dashhaus/core/entities/battery";
 import { useGuardedAction } from "@dashhaus/core/primitives";
+import { lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { DoorIcon, LockIcon } from "./icons";
-import { AlertStatus, CardTitle, Confirm, Keypad, Orb, SheetClose, TogglePill, UnavailableSlot, paint, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Confirm, Keypad, Orb, SheetClose, TogglePill, UnavailableSlot, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./LockCard.css";
 
@@ -77,7 +78,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const lowBattery = !unav && isLowBattery(e.battery);
   const warning = unav ? null : jammed ? "Jammed" : lowBattery ? `Battery ${e.battery}%` : null;
   const alertLabel = warning ? `Warning: ${e.name}: ${jammed ? "jammed, it may not be locked" : `battery ${e.battery}%, replace soon`}` : null;
-  const since = e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = sinceFact(e.lastChanged);
   const status = alertLabel ? <AlertStatus label={alertLabel}>{warning}</AlertStatus> : area ?? (unav ? "Unavailable" : since);
   // What a tap does, in the pill's second voice; while it waits, nothing.
   const cue = locked ? "Unlock…" : jammed ? undefined : "Lock";
@@ -140,10 +141,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}</span>
-          <span>{unav ? area ?? "" : e.supportsOpen ? "Lock · opens the door" : "Lock"}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"} end={unav ? area ?? "" : e.supportsOpen ? "Lock · opens the door" : "Lock"} />
       )}
     </article>
   );

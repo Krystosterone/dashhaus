@@ -1,5 +1,4 @@
-import { Track } from "../../shared/ui";
-import { useSlider } from "@dashhaus/core/primitives";
+import { SliderTrack } from "../../shared/ui";
 import { snapEnds } from "@dashhaus/core/entities/cover/position";
 
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverCard.css. */
@@ -14,28 +13,27 @@ const STUB = 14;
 export function PositionBar({ id, label, kind, position, moving, text, onChange }: {
   id: string; label: string; kind: "curtain" | "shade"; position: number; moving: boolean; text: string; onChange: (v: number) => void;
 }) {
-  const slider = useSlider<HTMLDivElement>({
-    value: Math.round(position),
-    min: 0,
-    max: 100,
-    inset: 0,
-    // Curtains open from the middle: the distance from it, out to a drawn-back panel, is how far open.
-    along: kind === "curtain" ? (x, r) => Math.min(1, Math.abs(x - (r.left + r.width / 2)) / Math.max(1, r.width / 2 - STUB)) : undefined,
-    snap: (raw) => snapEnds(Math.round(raw)),
-    valueText: (v) => (v === 0 ? "Closed" : v === 100 ? "Open" : `${v} percent open`),
-    onChange,
-  });
-  const pos = slider.value;
   // The track's fill is the daylight, and carries its own copy of the label, so the text flips where daylight passes.
   return (
-    <Track
-      slider={slider}
-      inputs={[{ id, "aria-label": label, ...slider.inputProps }]}
+    <SliderTrack
+      id={id}
+      label={label}
+      slider={{
+        value: Math.round(position),
+        min: 0,
+        max: 100,
+        inset: 0,
+        // Curtains open from the middle: the distance from it, out to a drawn-back panel, is how far open.
+        along: kind === "curtain" ? (x, r) => Math.min(1, Math.abs(x - (r.left + r.width / 2)) / Math.max(1, r.width / 2 - STUB)) : undefined,
+        snap: (raw) => snapEnds(Math.round(raw)),
+        valueText: (v) => (v === 0 ? "Closed" : v === 100 ? "Open" : `${v} percent open`),
+        onChange,
+      }}
       className="cv-bar"
-      text={text}
+      text={() => text}
+      precision={3}
       data-kind={kind}
       data-moving={moving || undefined}
-      style={{ "--v": slider.fraction(pos).toFixed(3) }}
     />
   );
 }

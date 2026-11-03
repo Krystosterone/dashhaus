@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconHumidifier } from "./icons";
 import "./HumidifierModule.css";
@@ -131,7 +132,6 @@ interface DetailsProps {
  * exact target steps, the unit's modes, today, and facts.
  */
 function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetChange, onModeChange }: DetailsProps) {
-  const uid = useId();
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const verb = targetVerb(e.kind);
@@ -183,21 +183,15 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
       )}
 
       {!unav && onModeChange && modes.length > 1 && (
-        <div className="fd-block">
-          <Legend id={`${uid}-mode`} value={e.mode ? modeLabel(e.mode) : undefined}>Mode</Legend>
-          <div className="fd-hu-modes" role="group" aria-labelledby={`${uid}-mode`}>
-            {modes.map((m) => <Key key={m} label={`Set mode to ${modeLabel(m)}`} wide caption={modeLabel(m)} chosen={m === e.mode} onPress={() => onModeChange(m)}>{null}</Key>)}
-          </div>
-        </div>
+        <KeyGroup legend="Mode" value={e.mode ? modeLabel(e.mode) : undefined} columns={choices(modes.length)} narrow={2}>
+          {modes.map((m) => <Key key={m} label={`Set mode to ${modeLabel(m)}`} wide caption={modeLabel(m)} chosen={m === e.mode} onPress={() => onModeChange(m)}>{null}</Key>)}
+        </KeyGroup>
       )}
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        {/* Unavailable, the bounds are the mapper's defaults rather than the unit's, so only its kind is printed. */}
-        <span>{`${e.kind === "dehumidifier" ? "Dehumidifier" : "Humidifier"}${unav ? "" : ` · ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`}`}</span>
-      </p>
+      {/* Unavailable, the bounds are the mapper's defaults rather than the unit's, so only its kind is printed. */}
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={`${e.kind === "dehumidifier" ? "Dehumidifier" : "Humidifier"}${unav ? "" : ` · ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`}`} />
     </div>
   );
 }

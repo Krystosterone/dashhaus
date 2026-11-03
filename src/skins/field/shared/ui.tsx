@@ -6,6 +6,7 @@ import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
 import { CardDialog, cardShape, useCardFrame } from "@dashhaus/dashboard/card";
 import type { Details } from "@dashhaus/dashboard/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
+import { fmt1 } from "@dashhaus/core/entities/format";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -136,19 +137,52 @@ export function Key({ label, pressed, led, chosen, disabled, unavailable, onPres
   );
 }
 
+export interface KeyGroupProps {
+  /** The printed legend over the keys, which names the group; without it, `label` does. */
+  legend?: string;
+  /** Printed at the legend's end: the current choice. */
+  value?: ReactNode;
+  /** The group's spoken name where it has no legend. */
+  label?: string;
+  /** Keys to a row. Omit and every key shares one row. */
+  columns?: number;
+  /** Keys to a row on a narrow panel (300 px and under; with `narrowAt` 420, under 420 px). */
+  narrow?: number;
+  narrowAt?: 300 | 420;
+  /** The card's own class, for what only it does with its keys. */
+  className?: string;
+  children: ReactNode;
+  [data: `data-${string}`]: string | number | boolean | undefined;
+}
+
 /**
- * A row of keys: n to a row (`columns`, default every key on one row), each filling its cell, under a printed legend
- * where it has one. `label` names the group for a screen reader where it has no legend.
+ * A row of keys under a printed legend: a mode, a preset, quick levels, a door's Lock and Open. Each key fills its
+ * cell, `columns` to a row (every key on one row without it), `narrow` to a row on a narrow panel. `choices` gives the
+ * usual count for n choices: three to a row, four rather than three and an orphan.
  */
-export function KeyGroup({ legend, label, columns, className, children }: { legend?: string; label?: string; columns?: number; className?: string; children: ReactNode }) {
+export function KeyGroup({ legend, value, label, columns, narrow, narrowAt, className, children, ...data }: KeyGroupProps) {
   const uid = useId();
+  const style = { ...(columns ? { "--fd-keys-n": columns } : {}), ...(narrow ? { "--fd-keys-narrow": narrow } : {}) } as Vars;
   const keys = (
-    <div className={className ? `fd-keys ${className}` : "fd-keys"} role="group" aria-label={legend ? undefined : label} aria-labelledby={legend ? `${uid}-l` : undefined} data-columns={columns} style={columns ? ({ "--fd-keys-n": columns } as Vars) : undefined}>
+    <div
+      className={className ? `fd-keys ${className}` : "fd-keys"}
+      role="group"
+      aria-label={legend ? undefined : label}
+      aria-labelledby={legend ? `${uid}-l` : undefined}
+      data-columns={columns}
+      data-narrow={narrow}
+      data-narrow-at={narrow && narrowAt === 420 ? 420 : undefined}
+      style={columns || narrow ? style : undefined}
+      {...data}
+    >
       {children}
     </div>
   );
-  return legend ? <div className="fd-block"><Legend id={`${uid}-l`}>{legend}</Legend>{keys}</div> : keys;
+  return legend ? <div className="fd-block"><Legend id={`${uid}-l`} value={value}>{legend}</Legend>{keys}</div> : keys;
 }
+
+/** Keys to a row for n choices: three, or four rather than three and an orphan. */
+export const choices = (n: number) => (n === 4 ? 4 : 3);
 
 /**
  * A key with its name printed under it, as on a quick level, a colour or a mode: the key carries the figure or glyph,
@@ -233,6 +267,14 @@ export function Digits({ value, text: formatted, places = 3 }: { value?: number;
   const text = formatted ?? String(Math.round(value ?? 0));
   const pad = "0".repeat(Math.max(0, places - text.length));
   return <span className="fd-digits" data-pad={pad || undefined}>{text}</span>;
+}
+
+/**
+ * A temperature on the screen, in four places and its unit: the leading place is an unlit segment ("06.2°"), heard as
+ * the real value. Sensors, the weather and a thermostat's reading draw it the same.
+ */
+export function Temperature({ value, unit }: { value: number; unit: string }) {
+  return <><Digits text={fmt1(value)} places={4} /><small>{unit}</small></>;
 }
 
 /**
@@ -365,6 +407,19 @@ export function Legend({ id, children, value, as: Tag = "p" }: { id?: string; ch
       <span id={id}>{children}</span>
       {value != null && <span className="fd-legend-v">{value}</span>}
     </Tag>
+  );
+}
+
+/**
+ * The small print at the foot of a detail panel: a fact at its start and, where there is one, at its end (when it last
+ * changed, what it can do). Their words come from `@dashhaus/core/entities/facts`, the same on every module.
+ */
+export function Facts({ start, end }: { start?: ReactNode; end?: ReactNode }) {
+  return (
+    <p className="fd-info">
+      <span>{start}</span>
+      {end !== undefined && <span>{end}</span>}
+    </p>
   );
 }
 

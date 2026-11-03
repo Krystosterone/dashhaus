@@ -321,7 +321,14 @@
 .fd-dash[data-viewing="far"] .fd-module[data-footprint="compact"] .fd-name { line-height: 15px; white-space: normal; }
 .fd-dash[data-viewing="far"] .fd-module[data-footprint="compact"] .fd-open-t { display: -webkit-box; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 
-/* A row of keys (KeyGroup): every key on one row unless the group says how many, each filling its cell. */
+/* A row of keys (KeyGroup): every key on one row unless the group says how many, each filling its cell; on a narrow
+   panel, as many as it says. Its container is the panel or module around it. */
 .fd-keys { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
 .fd-keys[data-columns] { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-n), minmax(0, 1fr)); }
 .fd-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 300px) {
+  .fd-keys[data-narrow]:not([data-narrow-at]) { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
+}
+@container (max-width: 419px) {
+  .fd-keys[data-narrow][data-narrow-at] { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
+}

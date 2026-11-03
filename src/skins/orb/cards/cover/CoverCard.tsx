@@ -1,8 +1,9 @@
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
+import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
-import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
 
@@ -102,15 +103,12 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""}
+          summary={unav ? unavailableSince(e.lastSeen) : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{[CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={[CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")} />
       )}
     </article>
   );

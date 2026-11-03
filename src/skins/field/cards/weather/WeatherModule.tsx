@@ -5,7 +5,8 @@ import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText,
 import { normalizeReadings } from "@dashhaus/core/entities/history";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconWeather, conditionPict } from "./icons";
 import "./WeatherModule.css";
@@ -31,11 +32,6 @@ const DAYS = 5;
 const RAIN_SHOWN = 20;
 
 const rainText = (p?: number) => (p != null && p >= RAIN_SHOWN ? `${Math.round(p)}%` : "");
-
-/** A fixed-place temperature: the leading place is an unlit segment ("06.2"), heard as the real value. */
-function Temperature({ value, unit }: { value: number; unit: WeatherEntity["temperatureUnit"] }) {
-  return <><Digits text={fmt1(value)} places={4} /><small>{unit}</small></>;
-}
 
 /**
  * The home's outdoor conditions as a field module: a reading, so nothing on it is pressed but its name. Its glyph
@@ -152,7 +148,7 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
 
   const hours = (hourly ?? []).filter((h) => h.hour > hour).slice(0, HOURS);
   const days = (daily ?? []).slice(0, DAYS);
-  const reported = unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `Updated ${e.lastUpdated}` : "";
+  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
 
   return (
     <div className="fd-wx-panel" data-state={e.state}>
@@ -176,9 +172,7 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
       {!unav && <Hours hours={hours} />}
       {!unav && days.length > 0 && <Days days={days} />}
       {!unav && <Readings e={e} />}
-      <p className="fd-info">
-        <span>{reported}</span>
-      </p>
+      <Facts start={reported} />
     </div>
   );
 }

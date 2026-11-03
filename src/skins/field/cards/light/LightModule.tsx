@@ -5,7 +5,8 @@ import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
 import type { Hs } from "@dashhaus/core/entities/light/color";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Legend, Swatch, Today, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -57,7 +58,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   const warmth = on && e.supportsColorTemp && e.kelvin != null ? `${Math.round(e.kelvin / 100) * 100}K`
     : on && e.supportsColor && e.hs ? lampColorOf(e.hs).name
     : null;
-  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : null) : e.lastChanged ? `Since ${e.lastChanged}` : null;
+  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : null) : sinceFact(e.lastChanged) ?? null;
   const meta: [string, string?] | undefined = unav ? ["Unavailable", since ?? undefined] : warmth ? [warmth, since ?? undefined] : since ? [since] : undefined;
 
   // The bulb's base always lights while on, so a lamp at 3% still reads lit; the rest fills with brightness.
@@ -159,18 +160,15 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
       {controls}
 
       {e.supportsBrightness && (
-        <div className="fd-block">
-          <Legend id={`${uid}-lv`}>Quick levels</Legend>
-          <div className="fd-lt-levels" role="group" aria-labelledby={`${uid}-lv`}>
-            {LEVELS.map((l) => (
-              <Option key={l.value} name={l.name}>
-                <Key label={`${l.name}, ${l.value}%`} wide disabled={unav} onPress={() => onBrightnessChange(l.value)}>
-                  <span className="fd-key-fig">{l.value}</span>
-                </Key>
-              </Option>
-            ))}
-          </div>
-        </div>
+        <KeyGroup legend="Quick levels" columns={4}>
+          {LEVELS.map((l) => (
+            <Option key={l.value} name={l.name}>
+              <Key label={`${l.name}, ${l.value}%`} wide disabled={unav} onPress={() => onBrightnessChange(l.value)}>
+                <span className="fd-key-fig">{l.value}</span>
+              </Key>
+            </Option>
+          ))}
+        </KeyGroup>
       )}
 
       {e.supportsColorTemp && onKelvinChange && (
@@ -191,26 +189,20 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
       )}
 
       {e.supportsColor && onColorChange && (
-        <div className="fd-block">
-          <Legend id={`${uid}-c`} value={lamp?.name}>Colour</Legend>
-          <div className="fd-lt-colours" role="group" aria-labelledby={`${uid}-c`}>
-            {LAMP_COLORS.map((c) => (
-              <Option key={c.name} name={c.name}>
-                <Key label={c.name} pressed={lamp?.name === c.name} wide disabled={unav} onPress={() => onColorChange(c.hs)}>
-                  <Swatch lamp={c.name} />
-                </Key>
-              </Option>
-            ))}
-          </div>
-        </div>
+        <KeyGroup legend="Colour" value={lamp?.name} columns={7} narrow={4} narrowAt={420} className="fd-lt-colours">
+          {LAMP_COLORS.map((c) => (
+            <Option key={c.name} name={c.name}>
+              <Key label={c.name} pressed={lamp?.name === c.name} wide disabled={unav} onPress={() => onColorChange(c.hs)}>
+                <Swatch lamp={c.name} />
+              </Key>
+            </Option>
+          ))}
+        </KeyGroup>
       )}
 
       {history && <Today summary={today} label="Brightness by hour today." samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        <span>{e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off"}</span>
-      </p>
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off"} />
     </div>
   );
 }

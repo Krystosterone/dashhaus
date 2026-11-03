@@ -312,6 +312,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 
 /* Sheet-only blocks */
 .hd-extra { display: none; gap: 18px; }
+/* A sentence in the sheet: what a toggle is for, what arming would leave open. */
+.hd-note { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
 .hd-blk { display: grid; gap: 10px; min-width: 0; }
 .hd-blk-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }
 .hd-blk-v { font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
