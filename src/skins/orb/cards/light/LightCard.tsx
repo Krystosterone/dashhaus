@@ -1,9 +1,10 @@
 import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/types";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { lampColorOf } from "./color";
 import type { Hs } from "./color";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, ColorChips, QUICK_LEVELS } from "./parts";
 import "./LightCard.css";
@@ -96,7 +97,7 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
         />
       )}
 

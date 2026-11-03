@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core/entities/toggle/types";
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
-import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
@@ -74,7 +74,7 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const chosen = on ? durations.find((d) => d.value === e.duration) : undefined;
-  const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
+  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
   const aside = on && e.until ? (
     <p className="fd-chan">

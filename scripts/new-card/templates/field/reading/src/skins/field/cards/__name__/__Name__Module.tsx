@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
-import { lastSeenFact } from "@dashhaus/core/entities/facts";
+import { lastSeenFact } from "@dashhaus/core/entities/facts";__todaySummaryImport__
 import { Blank, Facts, Glyph, ModuleFrame, ModuleRow, PanelBody, Pictogram, Screen, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";

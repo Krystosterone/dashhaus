@@ -3,9 +3,10 @@ import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/ent
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus } from "./parts";
-import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./AlarmCard.css";
 
@@ -140,7 +141,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today"}
+          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("armed", history.armedMinutes)}
         />
       )}
 

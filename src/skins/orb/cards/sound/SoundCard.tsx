@@ -1,8 +1,9 @@
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
 import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { SoundIcon } from "./icons";
 import { VolumeBar } from "./parts";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./SoundCard.css";
 
@@ -69,7 +70,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
         />
       )}
 

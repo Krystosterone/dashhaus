@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
-import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Facts, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, PanelBody, Pictogram, Screen, Today, choices, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { FAN_PICT, IconFan, IconSweep, IconTurn } from "./icons";
@@ -124,7 +124,7 @@ interface DetailsProps {
  */
 function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, onOscillateChange, onDirectionChange }: DetailsProps) {
   const unav = e.state === "unavailable";
-  const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
+  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
   const presets = e.supportsPreset ? e.presetModes ?? [] : [];
 
   // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.

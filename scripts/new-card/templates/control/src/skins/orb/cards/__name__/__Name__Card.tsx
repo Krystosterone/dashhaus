@@ -1,7 +1,8 @@
 import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
 import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { __Name__Icon } from "./icons";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./__Name__Card.css";
 
@@ -51,7 +52,7 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
         />
       )}
 

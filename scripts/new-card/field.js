@@ -140,9 +140,12 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const askedKeys = asked.map(({ action }) => `"${keyOf(action)}"`);
   const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
   const since = has("lastChanged") ? "sinceFact(e.lastChanged)" : "undefined";
+  // Today's summary in words, where the history counts the minutes in a state (`onMinutes`): "On 2h 36m", "Not on today".
+  const minutesIn = history?.match(/^\s+(\w+)Minutes\??: number/m)?.[1];
   /** Today's meter at an indent, or nothing for a domain without history. */
   const todayAt = (indent) => history ? [
     "<Today",
+    minutesIn ? `  summary={history && (unav ? "Unavailable" : todaySummary("${minutesIn}", history.${minutesIn}Minutes))}` : "",
     `  label="${Label} by hour today."`,
     '  tone="neutral"',
     /^\s+samples: /m.test(history) ? "  samples={history?.samples}" : "",
@@ -181,6 +184,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __historyDestructure__: history ? ", history" : "",
     __loadHistory__: history ? " loadHistory={false}" : "",
     __todayImport__: history ? "Today, " : "",
+    __todaySummaryImport__: minutesIn ? `\nimport { todaySummary } from "${packageSpecifier("core", "entities/today")}";` : "",
     __todayBlock__: today,
     __readingToday__: history ? "{today}" : "",
     __readingTodayConst__: history ? ["  const today = (", todayAt("    "), "  );"].join("\n") : "",

@@ -2,8 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
-import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";
@@ -203,8 +203,7 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
   const modeOptions = e.hvacModes.filter((candidate) => candidate !== "off");
   const today = !history ? undefined
     : unavailable ? "Unavailable"
-    : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}`
-    : `Not ${history.activity} today`;
+    : todaySummary(history.activity, history.activeMinutes);
 
   return (
     <PanelBody className="fd-cl-panel" state={e.state}>

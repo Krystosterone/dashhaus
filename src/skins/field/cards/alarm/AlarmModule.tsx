@@ -2,11 +2,12 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { AlarmAction, AlarmEntity, AlarmHistory, AlarmMode, AlarmResult } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_LABEL, ARMED_MODE, MODE_HINT, MODE_LABEL, alarmSeverity, mmss, modeChoices, needsCode } from "@dashhaus/core/entities/alarm/modes";
-import { fmtAgo, fmtDuration } from "@dashhaus/core/entities/format";
+import { fmtAgo } from "@dashhaus/core/entities/format";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useNow } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMode, IconShield, SHIELD_PICT } from "./icons";
@@ -149,7 +150,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   );
 
   const glyph = <Glyph unavailable={unav}>{shield}</Glyph>;
-  const today = history && (unav ? unavailableSince(e.lastSeen) : history.armedMinutes > 0 ? `Armed ${fmtDuration(history.armedMinutes)}` : "Not armed today");
+  const today = history && (unav ? unavailableSince(e.lastSeen) : todaySummary("armed", history.armedMinutes));
   const row = ro ? (
     <ModuleRow className="fd-al-row">
       {glyph}

@@ -2,8 +2,9 @@ import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@dashhaus/core/entities/climate/modes";
 import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateCard.css";
@@ -103,7 +104,7 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
   const slotKind = bare ? "bare" : unav ? "unavailable" : !on ? "off" : range ? "range" : single ? "setpoint" : "mode";
   const slotRef = useSlotTransition(slotKind);
 
-  const summary = !history ? "" : unav ? unavailableSince(e.lastSeen) : history.activeMinutes > 0 ? `${titleCase(history.activity)} ${fmtDuration(history.activeMinutes)}` : `Not ${history.activity} today`;
+  const summary = !history ? "" : unav ? unavailableSince(e.lastSeen) : todaySummary(history.activity, history.activeMinutes);
 
   // The compact value appears under the name, or in place of a hidden control.
   // The status line already gives the room temperature: the replacement value is just the setpoint.

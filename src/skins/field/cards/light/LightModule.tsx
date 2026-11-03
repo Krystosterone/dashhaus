@@ -4,8 +4,8 @@ import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/ty
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
 import type { Hs } from "@dashhaus/core/entities/light/color";
-import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
@@ -130,7 +130,7 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
   const min = e.minKelvin ?? K_MIN;
   const max = Math.max(e.maxKelvin ?? K_MAX, min + 100);
   const k = e.kelvin == null ? null : Math.min(max, Math.max(min, Math.round(e.kelvin / 100) * 100));
-  const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
+  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
   // The colour it shows now: only while on, since Home Assistant reports none while off or on a colour temperature.
   const lamp = on && e.supportsColor && e.hs ? lampColorOf(e.hs) : null;
