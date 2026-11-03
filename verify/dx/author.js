@@ -219,7 +219,7 @@ try {
                 card: "lock",
                 action: "Unlock",
                 question: "Unlock Front door?",
-                sent: () => server.ha.calls.filter(({ type, payload }) => type === "call_service" && payload.domain === "lock" && payload.service === "unlock").length,
+                service: { domain: "lock", service: "unlock" },
               }));
             }
           }

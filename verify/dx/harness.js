@@ -127,9 +127,10 @@ const repoManifest = JSON.parse(readFileSync(join(repoRoot, "package.json"), "ut
 /**
  * A guarded action, end to end on a deployed dashboard: a press on the card's action never sends it, but opens its
  * details on the question; Cancel sends nothing; the question's own button, pressed once it has settled, sends it.
- * `sent()` reads the calls Home Assistant received for it (the fake's `calls`), so the check is what reached the house.
+ * `service` is the call it must send (`{ domain: "lock", service: "unlock" }`), counted from the page's fake connection
+ * (`window.__fakeHaCalls`), so the check is what the card sent to Home Assistant.
  */
-export async function exerciseGuarded(url, { card, action, question, sent }) {
+export async function exerciseGuarded(url, { card, action, question, service }) {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch(chromiumLaunchOptions());
   try {
@@ -140,20 +141,25 @@ export async function exerciseGuarded(url, { card, action, question, sent }) {
     await page.waitForFunction(() => window.__fakeHaReady || window.__fakeHaProblem, null, { timeout: 15000 });
     const problem = await page.evaluate(() => window.__fakeHaProblem ?? null);
     if (problem) throw new Error(`${url}: ${problem}`);
+    const count = () => page.evaluate(({ domain, name }) => (window.__fakeHaCalls ?? []).filter((call) => call.type === "call_service" && call.domain === domain && call.service === name).length, { domain: service.domain, name: service.service });
     const ask = page.locator(`article[data-card="${card}"]`).getByRole("button", { name: `${action}…`, exact: true }).first();
     await ask.waitFor({ state: "visible", timeout: 10000 });
     const dialog = page.locator("dialog[open]").first();
     await ask.click();
     await dialog.waitFor({ state: "visible", timeout: 5000 });
     if (!(await dialog.innerText()).includes(question)) throw new Error(`${card}: ${action} opened no "${question}"`);
-    if (sent() !== 0) throw new Error(`${card}: a press on ${action} sent it without asking`);
+    if (await count() !== 0) throw new Error(`${card}: a press on ${action} sent it without asking`);
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
-    if (sent() !== 0) throw new Error(`${card}: Cancel sent ${action}`);
-    // The question takes no press until it has settled (useSettled, 400 ms), so a double tap can't confirm it.
+    if (await count() !== 0) throw new Error(`${card}: Cancel sent ${action}`);
+    // Cancel leaves the details on their buttons: ask again there. The question takes no press until it has settled
+    // (useSettled, 400 ms), so a double tap can't confirm it.
+    await dialog.getByRole("button", { name: `${action}…`, exact: true }).click();
+    if (!(await dialog.innerText()).includes(question)) throw new Error(`${card}: ${action} in the details asked no "${question}"`);
     await page.waitForTimeout(450);
     await dialog.getByRole("button", { name: action, exact: true }).click();
-    for (let tries = 0; sent() === 0 && tries < 50; tries++) await page.waitForTimeout(100);
-    if (sent() !== 1) throw new Error(`${card}: the question's ${action} sent it ${sent()} times, not once`);
+    for (let tries = 0; await count() === 0 && tries < 50; tries++) await page.waitForTimeout(100);
+    const sent = await count();
+    if (sent !== 1) throw new Error(`${card}: the question's ${action} sent it ${sent} times, not once`);
     if (errors.length) throw new Error(`${url} reported: ${errors.join("; ")}`);
     return `${card}: ${action} asked "${question}", Cancel sent nothing, ${action} sent it once`;
   } finally {
