@@ -1,5 +1,4 @@
-import { Track } from "../../shared/ui";
-import { useSlider } from "@dashhaus/core/primitives";
+import { SliderTrack } from "../../shared/ui";
 import { percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { speedValueText } from "@dashhaus/core/entities/fan/labels";
 
@@ -13,20 +12,18 @@ const THUMB = 30;
  * a tap on the groove turns the fan on at that speed.
  */
 export function SpeedBar({ id, label, percent, count, on, onChange }: { id: string; label: string; percent: number; count: number; on: boolean; onChange: (percent: number) => void }) {
-  const slider = useSlider<HTMLDivElement>({
-    value: speedOf(percent, count), min: 1, max: count, inset: THUMB / 2, reportUnchanged: !on,
-    onChange: (speed) => onChange(percentOf(speed, count)),
-    valueText: (speed) => speedValueText(speed, count, on),
-  });
-  const speed = slider.value;
   return (
-    <Track
-      slider={slider}
-      inputs={[{ id, "aria-label": label, ...slider.inputProps }]}
+    <SliderTrack
+      id={id}
+      label={label}
+      slider={{
+        value: speedOf(percent, count), min: 1, max: count, inset: THUMB / 2, reportUnchanged: !on,
+        onChange: (speed) => onChange(percentOf(speed, count)),
+        valueText: (speed) => speedValueText(speed, count, on),
+      }}
       className="fn-bar"
-      text={on ? speedText(percentOf(speed, count), count) : "Off"}
+      text={(speed) => (on ? speedText(percentOf(speed, count), count) : "Off")}
       lit={on}
-      style={{ "--v": slider.fraction(speed).toFixed(4) }}
     />
   );
 }

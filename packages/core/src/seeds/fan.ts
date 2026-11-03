@@ -1,7 +1,6 @@
-// Copied from orb's card by `npm run new-card -- fan --skin field`: field's own seeds from here.
 import { useMemo, useState } from "react";
-import type { HourSample } from "@dashhaus/core/entities/history";
-import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
+import type { HourSample } from "../entities/history";
+import type { FanDirection, FanEntity, FanHistory } from "../entities/fan/types";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };
@@ -58,7 +57,7 @@ export const FAN_SEEDS = {
 
 export type FanSeedName = keyof typeof FAN_SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: every skin's Worst case story draws these. */
 export const FAN_WORST_CASE: FanSeed[] = [FAN_SEEDS.long, FAN_SEEDS.longOnOff];
 
 /** Local state that behaves like a `fan` entity, for stories and prototypes. */

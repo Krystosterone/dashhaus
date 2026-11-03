@@ -36,8 +36,8 @@ import { DemoLockTile } from "../cards/lock/demo/DemoLockTile";
 import { LOCK_SEEDS, LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
 import type { LockSeed } from "@dashhaus/core/seeds/lock";
 import { DemoFanTile } from "../cards/fan/demo/DemoFanTile";
-import { FAN_SEEDS, FAN_WORST_CASE } from "../cards/fan/demo/useDemoFan";
-import type { FanSeed } from "../cards/fan/demo/useDemoFan";
+import { FAN_SEEDS, FAN_WORST_CASE } from "@dashhaus/core/seeds/fan";
+import type { FanSeed } from "@dashhaus/core/seeds/fan";
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its

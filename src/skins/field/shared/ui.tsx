@@ -188,7 +188,7 @@ export function Notices({ warnings = [], words, className }: { warnings?: string
 /**
  * A row of keys under a printed legend: a mode, a preset, quick levels, a door's Lock and Open. Each key fills its
  * cell, `columns` to a row (every key on one row without it), `narrow` to a row on a narrow panel. `choices` gives the
- * usual count for n choices: three to a row, four rather than three and an orphan.
+ * usual count for n choices.
  */
 export function KeyGroup({ legend, value, label, columns, narrow, narrowAt, className, children, ...data }: KeyGroupProps) {
   const uid = useId();
@@ -211,8 +211,11 @@ export function KeyGroup({ legend, value, label, columns, narrow, narrowAt, clas
   return legend ? <div className="fd-block"><Legend id={`${uid}-l`} value={value}>{legend}</Legend>{keys}</div> : keys;
 }
 
-/** Keys to a row for n choices: three, or four rather than three and an orphan. */
-export const choices = (n: number) => (n === 4 ? 4 : 3);
+/**
+ * Keys to a row for n choices: three, or four rather than three and an orphan, and four from seven, so the last row
+ * never holds one key alone.
+ */
+export const choices = (n: number) => (n === 4 || n >= 7 ? 4 : 3);
 
 /**
  * A key with its name printed under it, as on a quick level, a colour or a mode: the key carries the figure or glyph,

@@ -136,7 +136,7 @@ npm run add -- --help                  # the domains it knows
 ```
 
 `@dashhaus/core` has hooks for lights, sensors, climate, covers, weather, alarm panels, humidifiers, switches and
-`input_boolean` (toggle), sound machines (sound), Owlet socks (owlet) and locks (lock). `npm run add` writes `cards/<domain>/` and
+`input_boolean` (toggle), sound machines (sound), Owlet socks (owlet), locks (lock) and fans (fan). `npm run add` writes `cards/<domain>/` and
 its adapter in `ha/`, and registers it in `lovelace/registry.tsx` for its Home Assistant domains, so the automatic
 layout and the YAML pick it up. The preview already has entities for it. Then `npm test`, `npm run snapshot`, and give
 it its own drawing.

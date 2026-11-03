@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { FanModule } from "./FanModule";
-import { FAN_SEEDS } from "./demo/useDemoFan";
+import { FAN_SEEDS } from "@dashhaus/core/seeds/fan";
 import type { FanEntity } from "@dashhaus/core/entities/fan/types";
 
 const handlers = () => ({

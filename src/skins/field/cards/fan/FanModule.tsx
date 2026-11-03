@@ -4,7 +4,8 @@ import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entitie
 import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Option, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Facts, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, PanelBody, Pictogram, Screen, Today, choices, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { FAN_PICT, IconFan, IconSweep, IconTurn } from "./icons";
 import "./FanModule.css";
@@ -55,7 +56,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
     : pct != null ? <><Digits value={pct} /><small>%</small></>
     : "ON";
   const first = fanMode(e);
-  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : undefined) : e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : undefined) : sinceFact(e.lastChanged);
   const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : first ? [first, since] : since ? [since] : undefined;
 
   // The hub always lights while on, so the first of three speeds still reads lit; the blades fill with the speed.
@@ -66,7 +67,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   const faded = speedy && !unav && !!onPercentageChange;
   const at = speed ?? 1;
   const controls = (where: string) => (
-    <div className="fd-fn-row" data-speeds={faded}>
+    <ModuleRow className="fd-fn-row" solo={!faded}>
       <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? (on ? "On" : "Off") : undefined}>
         <IconFan />
       </Key>
@@ -83,7 +84,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
           onChange={(next) => onPercentageChange?.(percentOf(next, count))}
         />
       )}
-    </div>
+    </ModuleRow>
   );
 
   return (
@@ -122,7 +123,6 @@ interface DetailsProps {
  * the oscillation key, the direction keys, today, and facts.
  */
 function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, onOscillateChange, onDirectionChange }: DetailsProps) {
-  const uid = useId();
   const unav = e.state === "unavailable";
   const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
   const presets = e.supportsPreset ? e.presetModes ?? [] : [];
@@ -138,53 +138,42 @@ function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, on
   ) : undefined;
 
   return (
-    <div className="fd-fn-panel" data-state={e.state}>
+    <PanelBody className="fd-fn-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {controls}
 
       {presets.length > 0 && onPresetChange && (
-        <div className="fd-block">
-          <Legend id={`${uid}-p`} value={e.presetMode ? presetLabel(e.presetMode) : undefined}>Preset</Legend>
-          <div className="fd-fn-keys" role="group" aria-labelledby={`${uid}-p`}>
-            {presets.map((p) => (
-              <Key key={p} label={`Set preset to ${presetLabel(p)}`} wide caption={presetLabel(p)} chosen={p === e.presetMode} disabled={unav} onPress={() => onPresetChange(p)}>{null}</Key>
-            ))}
-          </div>
-        </div>
+        <KeyGroup legend="Preset" value={e.presetMode ? presetLabel(e.presetMode) : undefined} columns={choices(presets.length)} narrow={2}>
+          {presets.map((p) => (
+            <Key key={p} label={`Set preset to ${presetLabel(p)}`} wide caption={presetLabel(p)} chosen={p === e.presetMode} disabled={unav} onPress={() => onPresetChange(p)}>{null}</Key>
+          ))}
+        </KeyGroup>
       )}
 
+      {/* The oscillation key latches, half the panel's width, so it reads as one key and not a bar. */}
       {e.supportsOscillate && onOscillateChange && (
-        <div className="fd-block">
-          <Legend id={`${uid}-o`}>Oscillation</Legend>
-          <div className="fd-fn-latch" role="group" aria-labelledby={`${uid}-o`}>
-            <Key label="Oscillate" pressed={e.oscillating === true} unavailable={unav || e.oscillating == null} wide caption={unav || e.oscillating == null ? undefined : e.oscillating ? "On" : "Off"} onPress={() => onOscillateChange(!e.oscillating)}>
-              <IconSweep />
-            </Key>
-          </div>
-        </div>
+        <KeyGroup legend="Oscillation" columns={2}>
+          <Key label="Oscillate" pressed={e.oscillating === true} unavailable={unav || e.oscillating == null} wide caption={unav || e.oscillating == null ? undefined : e.oscillating ? "On" : "Off"} onPress={() => onOscillateChange(!e.oscillating)}>
+            <IconSweep />
+          </Key>
+        </KeyGroup>
       )}
 
       {e.supportsDirection && onDirectionChange && (
-        <div className="fd-block">
-          <Legend id={`${uid}-d`} value={e.direction ? DIRECTION_LABEL[e.direction] : undefined}>Direction</Legend>
-          <div className="fd-fn-keys fd-fn-keys--two" role="group" aria-labelledby={`${uid}-d`}>
-            {DIRECTIONS.map((d) => (
-              <Option key={d} name={DIRECTION_LABEL[d]}>
-                <Key label={`Turn ${DIRECTION_LABEL[d].toLowerCase()}`} wide chosen={d === e.direction} disabled={unav} onPress={() => onDirectionChange(d)}>
-                  <IconTurn direction={d} />
-                </Key>
-              </Option>
-            ))}
-          </div>
-        </div>
+        <KeyGroup legend="Direction" value={e.direction ? DIRECTION_LABEL[e.direction] : undefined} columns={2}>
+          {DIRECTIONS.map((d) => (
+            <Option key={d} name={DIRECTION_LABEL[d]}>
+              <Key label={`Turn ${DIRECTION_LABEL[d].toLowerCase()}`} wide chosen={d === e.direction} disabled={unav} onPress={() => onDirectionChange(d)}>
+                <IconTurn direction={d} />
+              </Key>
+            </Option>
+          ))}
+        </KeyGroup>
       )}
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        <span>{fanAbilities(e)}</span>
-      </p>
-    </div>
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={fanAbilities(e)} />
+    </PanelBody>
   );
 }

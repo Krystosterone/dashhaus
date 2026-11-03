@@ -1,6 +1,7 @@
 import type { FanDirection, FanEntity } from "../../entities/fan/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 export interface FanHandlers {
   /** `fan.toggle`. */
@@ -14,6 +15,15 @@ export interface FanHandlers {
   /** `fan.set_direction`. */
   onDirectionChange: (direction: FanDirection) => void;
 }
+
+/** What each handler is, for a card drawing fan without knowing it (`ActionKind`). */
+export const FAN_ACTIONS = {
+  onToggle: { takes: "nothing" },
+  onPercentageChange: { takes: "value" }, // a level, 1-100
+  onPresetChange: { takes: "value" }, // one of the fan's presets
+  onOscillateChange: { takes: "value" },
+  onDirectionChange: { takes: "value" },
+} as const satisfies ActionKinds<FanHandlers>;
 
 export interface FanHandlerOptions {
   onError?: (error: HaActionError) => void;

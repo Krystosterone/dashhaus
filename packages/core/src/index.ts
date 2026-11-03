@@ -119,7 +119,7 @@ export type { HaLockOptions, HaLockResult } from "./ha/hooks/lock";
 export { HaLock } from "./ha/headless";
 export { fanFromHass } from "./ha/mappers/fan";
 export type { FanMapOptions } from "./ha/mappers/fan";
-export { createFanHandlers } from "./ha/actions/fan";
+export { createFanHandlers, FAN_ACTIONS } from "./ha/actions/fan";
 export type { FanHandlers, FanHandlerOptions } from "./ha/actions/fan";
 export { useHaFan } from "./ha/hooks/fan";
 export type { HaFanOptions, HaFanResult } from "./ha/hooks/fan";

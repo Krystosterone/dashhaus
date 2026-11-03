@@ -107,6 +107,15 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onPercentageChange",
+      "onPresetChange",
+      "onOscillateChange",
+      "onDirectionChange"
+    ],
+    "history": true,
+    "code": false,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
