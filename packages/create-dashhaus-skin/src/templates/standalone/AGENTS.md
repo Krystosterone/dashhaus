@@ -45,8 +45,9 @@ the outside in, snapshotting after each step and comparing with the reference:
    width, each card on its grid lines), and `lovelace/auto.ts` picks the cards when the YAML lists none: every entity a
    card is registered for, a row per area, with room air from `roomSensors` (one sensor card per device).
 4. **Parts:** `shared/ui.tsx` and `shared/ui.css`: `__Skin__CardFrame`, the frame every card is drawn in (its
-   footprints, its name that opens its details, its details dialog), and `__Skin__Action`, the button a card's
-   actions are drawn with. Restyle them once there, not per card. The frame puts `data-card="<domain>"`,
+   footprints, its name that opens its details, its details dialog), `__Skin__Action`, the button a card's
+   actions are drawn with, and `__Skin__Confirm` and `__Skin__Keypad`, the question and the code keypad a guarded
+   action is answered with in the details. Restyle them once there, not per card. The frame puts `data-card="<domain>"`,
    `data-state` and `data-footprint` on each card's article, so CSS can tell a light from a sensor, and on from off.
 5. **Cards:** `cards/<domain>/`: the markup in `__Skin__<Name>Card.tsx`, the look in its `.css`, the glyph in
    `icons.tsx`. A card takes its domain's model as `entity` and draws whatever of it you choose (see Data). An on
@@ -108,6 +109,13 @@ A card takes its domain's normalized model as `entity`, today's `history` when t
 one optional callback per action it shows (a light's `onToggle`, a cover's `onOpenCover`, `onCloseCover` and
 `onStopCover`). Its adapter in `ha/` calls the domain's `useHa<Name>` hook and passes them on.
 
+What each action is, its domain declares beside its handlers in `@dashhaus/core` (`LOCK_ACTIONS`, `ActionKind`): a
+tap, a code, or a value, and whether it asks first. A tap is a button. An action that asks first (a lock's unlock) or
+takes a code (an alarm's disarm) goes to the frame's `guarded` list: its button opens the details on the question, or
+on the keypad when the entity wants a code, through `useGuardedAction` from `@dashhaus/core/primitives`. Never wire
+one of them to a button that does it on one tap. An action that takes a value is left out by `npm run add`, which says
+so.
+
 The model has every fact the hook reads, and the neutral card shows only a few of them. The fields are typed in
 `node_modules/@dashhaus/core/dist/entities/<domain>/types.d.ts` (`LightEntity` has `brightness`, `colorTempKelvin`,
 `color` and more), and the hooks and their actions in `node_modules/@dashhaus/core/dist/ha/hooks/<domain>.d.ts`. To
@@ -128,7 +136,7 @@ npm run add -- --help                  # the domains it knows
 ```
 
 `@dashhaus/core` has hooks for lights, sensors, climate, covers, weather, alarm panels, humidifiers, switches and
-`input_boolean` (toggle), sound machines (sound) and Owlet socks (owlet). `npm run add` writes `cards/<domain>/` and
+`input_boolean` (toggle), sound machines (sound), Owlet socks (owlet) and locks (lock). `npm run add` writes `cards/<domain>/` and
 its adapter in `ha/`, and registers it in `lovelace/registry.tsx` for its Home Assistant domains, so the automatic
 layout and the YAML pick it up. The preview already has entities for it. Then `npm test`, `npm run snapshot`, and give
 it its own drawing.

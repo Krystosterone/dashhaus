@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from "react";
  */
 export type GuardedOutcome = "done" | "wrong_code" | "failed";
 
-/** A guarded action's answer, now or later; nothing means `done`, and a throw is `failed`. */
-export type GuardedResult = GuardedOutcome | void | Promise<GuardedOutcome | void>;
+/**
+ * A guarded action's answer, now or later; nothing (or `true`) means `done`, `false` a wrong code (an alarm's
+ * handlers answer that way), and a throw is `failed`.
+ */
+export type GuardedResult = GuardedOutcome | boolean | void | Promise<GuardedOutcome | boolean | void>;
 
 export interface GuardedActionOptions<A> {
   /** Run the action, with the code where one was typed. */
@@ -35,7 +38,12 @@ export const actionKey = (action: unknown): string => (typeof action === "string
 
 /** The answer as an outcome, whatever the handler returned; a throw is a call that didn't go through. */
 export async function guardedOutcome(result: GuardedResult | (() => GuardedResult)): Promise<GuardedOutcome> {
-  try { return (await (typeof result === "function" ? result() : result)) ?? "done"; } catch { return "failed"; }
+  try {
+    const answer = await (typeof result === "function" ? result() : result);
+    return answer === false ? "wrong_code" : answer == null || answer === true ? "done" : answer;
+  } catch {
+    return "failed";
+  }
 }
 
 /**

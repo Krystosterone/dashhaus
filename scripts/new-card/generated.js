@@ -22,7 +22,8 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
     fail(error.message);
   }
   const { Name, CONST, words, Label } = domain;
-  const { kind, actions } = drawn;
+  const { kind, actions, guarded, leftOut } = drawn;
+  const pressed = [...actions, ...guarded.map(({ action }) => action)];
   const skinNames = card.skinNames(skin);
   const { Skin, Section } = skinNames;
   const SKIN = generatedSkin.dir(skin);
@@ -70,11 +71,12 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@dashhaus\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${orbStoryPath} must import a demo transport and draw an entityId`);
-  const demoProps = hasHook ? actions.map((action) => ` ${action}={demo.${action}}`).join("") : "";
+  // The demo hook's handlers, where it has the domain's (a demo may name one its own way, and leaves it unpressed).
+  const demoProps = hasHook ? pressed.filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => ` ${action}={demo.${action}}`).join("") : "";
   const lines = card.registryLines(domain, skinNames);
 
   const fill = card.filler({
-    ...card.cardTokens(domain, skinNames, actions),
+    ...card.cardTokens(domain, skinNames, drawn),
     __Stories__: Stories, __demoProps__: demoProps,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed", __demoImport__: hasHook ? `, useDemo${Name}` : "",
     __testProps__: "", __seedConst__: seedConst, __worstConst__: worstConst, __seedType__: seedType,
@@ -117,7 +119,7 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
   if (change.exists(`${SKIN}/cards/Empty.stories.tsx`)) change.remove(`${SKIN}/cards/Empty.stories.tsx`);
   if (change.exists(`${SKIN}/ha/Empty.stories.tsx`)) change.remove(`${SKIN}/ha/Empty.stories.tsx`);
 
-  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${card.labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
+  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${pressed.length ? `Its neutral actions are ${pressed.map((action) => `\`${card.labelOf(action)}\``).join(", ")}${guarded.length ? `; ${guarded.map(({ action }) => `\`${card.labelOf(action)}\``).join(", ")} ${guarded.some(({ asks }) => asks) ? "ask first or take a code" : "take a code"}, answered in Details` : ""}.` : "It starts read-only because its shared actions need domain-specific input."}${leftOut.length ? ` ${leftOut.map((action) => `\`${action}\``).join(", ")} ${leftOut.length > 1 ? "take values" : "takes a value"} a press can't give, so ${leftOut.length > 1 ? "they are" : "it is"} left out.` : ""} Replace the placeholder glyph and detail facts during bespoke design.\n`);
   // spec/cards.md describes the shipped skins' cards; a study's stay in its own design rules.
   if (!study) change.edit(seams.cardsDoc, (source) => {
     const at = source.indexOf(`## Using the ${words} card`);
@@ -136,5 +138,5 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
 
   if (suppliedChange) return { Name, Skin, Section, writes: change.writes };
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in ${Section} as a neutral ${kind}: ${actions.length ? actions.join(", ") : "read-only"}.\n\nNext:\n  1. npm run storybook  →  ${Stories}/Cards/${Name} and ${Stories}/Connected/${Name}\n  2. Replace its glyph, summary, actions and Details with the domain's own design\n  3. npm run check && npm run test-storybook && npm run build:ha`);
+  console.log(`Drew ${words} in ${Section} as a neutral ${kind}: ${pressed.length ? pressed.join(", ") : "read-only"}${leftOut.length ? ` (left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give)` : ""}.\n\nNext:\n  1. npm run storybook  →  ${Stories}/Cards/${Name} and ${Stories}/Connected/${Name}\n  2. Replace its glyph, summary, actions and Details with the domain's own design\n  3. npm run check && npm run test-storybook && npm run build:ha`);
 }

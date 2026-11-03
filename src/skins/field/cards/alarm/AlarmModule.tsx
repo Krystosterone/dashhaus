@@ -61,7 +61,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   // The keypad's action, while the panel asks for the code. No code: nothing to wait for on screen; the state change
   // is the answer. A disarm that's no longer needed (it disarmed from elsewhere) leaves the keypad.
   const guard = useGuardedAction<AlarmAction>({
-    run: async (a, code) => ((await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) === false ? "wrong_code" : "done"),
+    run: (a, code) => (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code)),
     needsCode: (a) => needsCode(e, a),
     settled: (a) => a.kind === "disarm" && e.state === "disarmed",
     initial: defaultAction,

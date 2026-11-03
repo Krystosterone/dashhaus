@@ -9,7 +9,7 @@ const SEED_NAMES = Object.keys(__seedConst__) as __seedNameType__[];
 
 function Demo__Name__({ seed, width, footprint, defaultOpen }: { seed: __seedType__; width?: number; footprint?: __Skin__Footprint; defaultOpen?: boolean }) {
   const demo = __DEMO__;
-  return <div style={{ width, maxWidth: "100%" }}><__Skin____Name__Card entity={demo.entity} history={demo.history}__demoProps__ footprint={footprint} defaultOpen={defaultOpen} /></div>;
+  return <div style={{ width, maxWidth: "100%" }}><__Skin____Name__Card entity={demo.entity}__historyDemo____demoProps__ footprint={footprint} defaultOpen={defaultOpen} /></div>;
 }
 
 function Story__Name__({ __name__, ...props }: { __name__: __seedNameType__; width?: number; footprint?: __Skin__Footprint; defaultOpen?: boolean }) {

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * What a skin's card generator needs to know about one shared domain, read from @dashhaus/core's sources: its entity
- * fields, the hook's options, the actions a neutral card can expose, and which Home Assistant domains it draws.
+ * fields, the hook's options, its actions as the domain declares them beside its handlers (`<NAME>_ACTIONS`: a tap, a
+ * code or a value, and whether it asks first), whether it has today's history, and which Home Assistant domains it
+ * draws.
  *
  * `new-card --skin <skin>` describes a domain live. The published scaffolder can't read the repository, so
  * `npm run domains` writes every describable domain to the scaffolder's `src/domains.json`, and
@@ -14,6 +16,26 @@ import { packageFile, root, skinTemplates } from "./packages.js";
 import { exists, names, orbKinds, read } from "./new-card/lib.js";
 
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
+const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
+
+/**
+ * A domain's declared actions (`<NAME>_ACTIONS` in its actions file), each `{ action, takes, asks }`. Every handler
+ * must be declared: a generator never guesses what an action is from its signature.
+ */
+export function declaredActions(source, Name, CONST) {
+  const handlers = shape(source, `${Name}Handlers`);
+  if (handlers == null) return [];
+  const names = [...handlers.matchAll(/^\s+(on\w+)\??:/gm)].map((match) => match[1]);
+  const body = objectBody(source, `${CONST}_ACTIONS`);
+  if (body == null) throw new Error(`${Name}Handlers has no ${CONST}_ACTIONS beside it saying what each action is (ActionKinds)`);
+  const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{([^}]*)\}/gm)].map(([, action, kind]) => [action, {
+    takes: kind.match(/takes: "(\w+)"/)?.[1],
+    asks: /asks: true/.test(kind),
+  }]));
+  const missing = names.filter((action) => !declared[action]?.takes);
+  if (missing.length) throw new Error(`${CONST}_ACTIONS doesn't say what ${missing.join(", ")} ${missing.length > 1 ? "are" : "is"}`);
+  return names.map((action) => ({ action, ...declared[action] }));
+}
 
 /** The expression a neutral card shows as its summary: the domain's headline number, or its state in words. */
 function summaryFor(entity) {
@@ -37,7 +59,9 @@ export function describeDomain(name) {
   if (!exists(typesPath)) throw new Error(`${typesPath} doesn't exist. A generated skin draws a shared domain that already exists`);
   const types = read(typesPath);
   const entity = shape(types, `${Name}Entity`);
-  if (!entity || !shape(types, `${Name}History`)) throw new Error(`${typesPath} must export ${Name}Entity and ${Name}History`);
+  if (!entity) throw new Error(`${typesPath} must export ${Name}Entity`);
+  // Today's history is optional: a lock's day is its last change.
+  const history = shape(types, `${Name}History`) != null;
 
   const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
   if (!exists(hookPath)) throw new Error(`${hookPath} doesn't exist: generated skins reach Home Assistant through useHa${Name}`);
@@ -48,8 +72,11 @@ export function describeDomain(name) {
   if (required.length) throw new Error(`useHa${Name} requires ${required.join(", ")}, which a generated Card can't know`);
 
   const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
-  const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : "";
-  const actions = [...handlers.matchAll(/^\s+(on\w+)\??:\s*\(\)\s*=>/gm)].map((match) => match[1]);
+  const declared = exists(actionsPath) ? declaredActions(read(actionsPath), Name, CONST) : [];
+  // A tap: a button. Asks first, or takes a code: through the skin's question and keypad. A value: left out.
+  const actions = declared.filter(({ takes, asks }) => takes === "nothing" && !asks).map(({ action }) => action);
+  const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks }) => ({ action, asks, code: takes === "code" }));
+  const leftOut = declared.filter(({ takes }) => takes === "value").map(({ action }) => action);
 
   const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) throw new Error(`${fixturePath} doesn't exist`);
@@ -65,8 +92,13 @@ export function describeDomain(name) {
     name, Name, CONST, words, Label,
     domains,
     ...(shared?.id && { id: shared.id }),
-    kind: actions.length ? "control" : "reading",
+    kind: actions.length || guarded.length ? "control" : "reading",
     actions,
+    guarded,
+    leftOut,
+    history,
+    /** The entity says whether it wants a code (`codeFormat`, Home Assistant's `code_format`). */
+    code: /^\s+codeFormat\??: /m.test(entity),
     summary: summaryFor(entity),
     /** The hook's options a dashboard's YAML can fill, in the order a connected card passes them. */
     options: [...["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)), ...(/^\s+loadHistory\?: /m.test(options) ? ["loadHistory"] : [])],

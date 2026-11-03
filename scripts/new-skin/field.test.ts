@@ -45,7 +45,7 @@ const removeField = (copy: string) => {
   writeChanged(copy, "scripts/generated-skins.js", (source) => source.replace(/^ {2}\{ id: "field".*\n/m, ""));
 };
 
-const FIELD_DOMAINS = ["light", "climate", "sensor", "weather", "toggle", "humidifier", "sound", "cover", "alarm", "owlet"];
+const FIELD_DOMAINS = ["light", "climate", "sensor", "weather", "toggle", "humidifier", "sound", "cover", "alarm", "owlet", "lock"];
 
 describe("new-skin", () => {
   describe("reconstructing Field in a copy", () => {

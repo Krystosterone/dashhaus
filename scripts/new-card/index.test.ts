@@ -28,6 +28,7 @@ const REFUSED = [
   ["sound", /src\/skins\/field\/cards\/sound already exists/],
   ["cover", /src\/skins\/field\/cards\/cover already exists/],
   ["alarm", /src\/skins\/field\/cards\/alarm already exists/],
+  ["lock", /src\/skins\/field\/cards\/lock already exists/],
 ] as const;
 
 describe("new-card", () => {
@@ -79,21 +80,50 @@ describe("new-card", () => {
       expect(lint.status, lint.output).toBe(0);
     }, 240_000);
 
-    it("refuses a control domain with no onToggle, unless it starts as a reading", async () => {
+    it("draws a control from the actions its domain declares, not only onToggle, and refuses one with none a press can give", async () => {
       const orb = await run(copy, "node", [script, "probeDial", "--code", "zd", "--domain", "probe_dial"]);
       expect(orb.status, orb.output).toBe(0);
       const actions = join(copy, "packages/core/src/ha/actions/probeDial.ts");
-      writeFileSync(actions, readFileSync(actions, "utf8").replaceAll("onToggle", "onSpin"));
+      const source = readFileSync(actions, "utf8");
+      writeFileSync(actions, source.replaceAll("onToggle", "onSpin"));
       const control = await run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
-      if (generatedField) {
-        expect(control.status, control.output).toBe(0);
-      } else {
-        expect(control.status).toBe(1);
-        expect(control.output).toMatch(/has no onToggle[\s\S]*--kind reading/);
-      }
-      const reading = await run(copy, "node", [script, "probeDial", "--skin", "field", "--kind", "reading", "--dry-run"]);
+      expect(control.status, control.output).toBe(0);
+      // Undeclared, an action is never guessed from its signature.
+      writeFileSync(actions, source.replace('  onToggle: { takes: "nothing" },\n', ""));
+      const undeclared = await run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
+      expect(undeclared.status).toBe(1);
+      expect(undeclared.output).toMatch(/PROBE_DIAL_ACTIONS doesn't say what onToggle is/);
+      // Only a value to set: nothing a press can give, so it starts as a reading, and a control is refused.
+      writeFileSync(actions, source.replace('onToggle: { takes: "nothing" }', 'onToggle: { takes: "value" }'));
+      const reading = await run(copy, "node", [script, "probeDial", "--skin", "field", "--dry-run"]);
       expect(reading.status, reading.output).toBe(0);
+      const valueOnly = await run(copy, "node", [script, "probeDial", "--skin", "field", "--kind", "control", "--dry-run"]);
+      expect(valueOnly.status).toBe(1);
+      expect(valueOnly.output).toMatch(/no action a press can give[\s\S]*--kind reading/);
     });
+
+    it("draws an action that asks first through the panel's question, never one press, even when it takes no code", async () => {
+      const orb = await run(copy, "node", [script, "probeLatch", "--code", "zl", "--domain", "probe_latch"]);
+      expect(orb.status, orb.output).toBe(0);
+      const actions = join(copy, "packages/core/src/ha/actions/probeLatch.ts");
+      writeFileSync(actions, readFileSync(actions, "utf8")
+        .replace("  onToggle: () => void;\n}", "  onToggle: () => void;\n  onUnlatch: (code?: string) => void;\n  onPurge: () => void;\n  onLevel?: (level: number) => void;\n}")
+        .replace('  onToggle: { takes: "nothing" },\n', '  onToggle: { takes: "nothing" },\n  onUnlatch: { takes: "code", asks: true },\n  onPurge: { takes: "nothing", asks: true },\n  onLevel: { takes: "value" },\n')
+        .replace('      if (actionable()) run("toggle");\n    },\n', '      if (actionable()) run("toggle");\n    },\n    onUnlatch: (code) => {\n      if (actionable()) run("unlatch", code ? { code } : {});\n    },\n    onPurge: () => {\n      if (actionable()) run("purge");\n    },\n'));
+      const types = join(copy, "packages/core/src/entities/probeLatch/types.ts");
+      writeFileSync(types, readFileSync(types, "utf8").replace("  lastChanged?: string;", '  lastChanged?: string;\n  codeFormat?: "number" | "text" | null;'));
+      const field = await run(copy, "node", [script, "probeLatch", "--skin", "field"]);
+      expect(field.status, field.output).toBe(0);
+      expect(field.output).toMatch(/onUnlatch \(asks first\), onPurge \(asks first\)/);
+      expect(field.output).toMatch(/Left out onLevel/);
+      const module = readFileSync(join(copy, "src/skins/field/cards/probeLatch/ProbeLatchModule.tsx"), "utf8");
+      expect(module).toContain('onPress={() => ask("purge")}');
+      expect(module).not.toMatch(/onPress=\{\(\) => onPurge/);
+      const typecheck = await typecheckCopy(copy);
+      expect(typecheck.status, typecheck.output).toBe(0);
+      const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field/cards/probeLatch", "src/skins/field/ha/HaProbeLatchModule.test.tsx", "verify/field-conformance.test.ts"]);
+      expect(tests.status, tests.output).toBe(0);
+    }, 240_000);
 
     it("refuses a domain whose hook needs an option a generated module can't know, and says which", async () => {
       const orb = await run(copy, "node", [script, "probeHub", "--code", "zh", "--domain", "probe_hub"]);

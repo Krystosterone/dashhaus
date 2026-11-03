@@ -1,12 +1,20 @@
 import type { HumidifierEntity } from "../../entities/humidifier/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 export interface HumidifierHandlers {
   onToggle: () => void;
   onTargetChange?: (humidity: number) => void;
   onModeChange?: (mode: string) => void;
 }
+
+/** What each handler is, for a card drawing humidifier without knowing it (`ActionKind`). */
+export const HUMIDIFIER_ACTIONS = {
+  onToggle: { takes: "nothing" },
+  onTargetChange: { takes: "value" },
+  onModeChange: { takes: "value" },
+} as const satisfies ActionKinds<HumidifierHandlers>;
 
 export interface HumidifierHandlerOptions {
   onError?: (error: HaActionError) => void;

@@ -115,8 +115,10 @@ describe("actionKey and guardedOutcome", () => {
     expect(actionKey({ kind: "arm", mode: "away" })).toBe(actionKey({ kind: "arm", mode: "away" }));
   });
 
-  it("reads nothing as done and a throw as failed", async () => {
+  it("reads nothing or true as done, false as a wrong code and a throw as failed", async () => {
     expect(await guardedOutcome(undefined)).toBe("done");
+    expect(await guardedOutcome(true)).toBe("done");
+    expect(await guardedOutcome(Promise.resolve(false))).toBe("wrong_code");
     expect(await guardedOutcome(Promise.resolve("wrong_code" as const))).toBe("wrong_code");
     expect(await guardedOutcome(() => { throw new Error("x"); })).toBe("failed");
     expect(await guardedOutcome(Promise.reject(new Error("x")))).toBe("failed");

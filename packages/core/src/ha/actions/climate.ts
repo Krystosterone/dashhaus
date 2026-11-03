@@ -1,6 +1,7 @@
 import type { ClimateEntity, HvacMode } from "../../entities/climate/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
  type ClimateServiceCaller = Pick<HaStore, "callService">;
 
@@ -12,6 +13,16 @@ export interface ClimateHandlers {
   onPresetChange?: (preset: string) => void;
   onFanChange?: (fan: string) => void;
 }
+
+/** What each handler is, for a card drawing climate without knowing it (`ActionKind`). */
+export const CLIMATE_ACTIONS = {
+  onToggle: { takes: "nothing" },
+  onTargetChange: { takes: "value" },
+  onRangeChange: { takes: "value" },
+  onModeChange: { takes: "value" },
+  onPresetChange: { takes: "value" },
+  onFanChange: { takes: "value" },
+} as const satisfies ActionKinds<ClimateHandlers>;
 
 export interface ClimateHandlerOptions {
   onError?: (error: HaActionError) => void;

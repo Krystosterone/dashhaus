@@ -1,6 +1,7 @@
 import type { ToggleEntity } from "../../entities/toggle/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 type ToggleServiceCaller = Pick<HaStore, "callService">;
 
@@ -12,6 +13,11 @@ const DOMAINS: readonly string[] = ["input_boolean", "switch"] satisfies ToggleD
 export interface ToggleHandlers {
   onToggle: () => void;
 }
+
+/** What each handler is, for a card drawing toggle without knowing it (`ActionKind`). */
+export const TOGGLE_ACTIONS = {
+  onToggle: { takes: "nothing" },
+} as const satisfies ActionKinds<ToggleHandlers>;
 
 export interface ToggleHandlerOptions {
   onError?: (error: HaActionError) => void;

@@ -51,10 +51,16 @@ that installs its Chromium.
 
 ## Cards and YAML
 
-A card takes its domain's normalized model as `entity` (with `history`, its footprint and one callback per action it
-shows) from its `ha/` adapter, which calls the shared `useHa<Name>` hook; it never reaches Home Assistant itself.
+A card takes its domain's normalized model as `entity` (with `history` where the domain has one, its footprint and one
+callback per action it shows) from its `ha/` adapter, which calls the shared `useHa<Name>` hook; it never reaches Home Assistant itself.
 Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/dashboard/card`,
 but not the Home Assistant subpaths, the Lovelace entry or a stylesheet from another skin.
+
+Each domain declares its actions' kinds beside its handlers (`<NAME>_ACTIONS: ActionKinds<Handlers>` in
+`@dashhaus/core`): `takes` a press's `nothing`, a `code` or a `value`, and `asks: true` for one that asks first. The
+scaffolder's `domains.json` carries them. `npm run add` draws a tap as a `MySkinAction`; an action that asks first or
+takes a code as an entry in the frame's `guarded` list, answered in the details by `MySkinConfirm` or `MySkinKeypad` on
+`useGuardedAction`, so it is never one tap; and leaves an action that takes a value out, saying so.
 
 Every card draws inside the skin's frame, `<Skin>CardFrame` in `shared/ui.tsx`: `detailsTile` and `detailsSheet` from
 `@dashhaus/dashboard/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible

@@ -8,15 +8,19 @@
  * (AGENTS.md → Adding an existing domain to another skin). It copies ./templates/field/common plus
  * ./templates/field/<kind>, copies orb's demo seeds into the card's own demo/ (a skin never imports another), and
  * registers the module everywhere verify/field-conformance.test.ts looks, the Lovelace card included:
- *   - control: one key over the handlers' `onToggle`, its LED on while the entity is "on". The default when the
- *     domain has actions.
+ *   - control: one key per action the domain declares a press can give (`<NAME>_ACTIONS` beside its handlers): a tap
+ *     acts (`onToggle` latches, its LED on while the entity is "on"); an action that asks first, or takes a code, opens
+ *     the panel on the skin's Confirm or Keypad instead, never one tap. An action that takes a value is left out,
+ *     saying so. The default when the domain has one.
  *   - reading: the glyph on a flat plate and today's meter, nothing pressed. The default when it has none.
+ * Today's meter is drawn only for a domain with a `<Name>History`: a lock's day is its last change.
  * Nothing is written unless every file and every registration can be made.
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
 import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
+import { declaredActions } from "../domains.js";
 
 const SKIN = skinDir("field");
 const ORB = skinDir("orb");
@@ -38,7 +42,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const types = read(typesPath);
   const entity = shape(types, `${Name}Entity`);
   const history = shape(types, `${Name}History`);
-  if (!entity || !history) fail(`${typesPath} must export ${Name}Entity and ${Name}History`);
+  if (!entity) fail(`${typesPath} must export ${Name}Entity`);
 
   const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
   if (!exists(hookPath)) fail(`${hookPath} doesn't exist: field reaches Home Assistant through useHa${Name} (${step(1)})`);
@@ -48,18 +52,23 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const required = [...options.matchAll(/^\s+(\w+): /gm)].map((m) => m[1]);
   if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated module can't know. Draw ${words} in field by hand, from ${SKIN}/cards/light/`);
 
+  // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
   const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
-  const handlers = exists(actionsPath) ? shape(read(actionsPath), `${Name}Handlers`) ?? "" : null;
-  const kind = askedKind ?? (handlers == null ? "reading" : "control");
-  if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
-  if (kind === "control") {
-    if (handlers == null) fail(`${words} has no actions (${actionsPath}), so it can only be a reading`);
-    if (!/^\s+onToggle: /m.test(handlers)) {
-      const names = [...handlers.matchAll(/^\s+(on\w+)\??: /gm)].map((m) => m[1]).join(", ");
-      fail(`${Name}Handlers (${names}) has no onToggle, the one key a generated control drives. Pass --kind reading for a read-only start and add its keys by hand, or draw it from ${SKIN}/cards/light/`);
-    }
-    if (!/^\s+state: [^;]*"on"/m.test(entity)) fail(`${Name}Entity's state has no "on" for its key's LED. Draw ${words} in field by hand`);
+  let declared = [];
+  try {
+    declared = exists(actionsPath) ? declaredActions(read(actionsPath), Name, CONST) : [];
+  } catch (error) {
+    fail(`${error.message} (${actionsPath})`);
   }
+  const taps = declared.filter(({ takes, asks }) => takes === "nothing" && !asks);
+  const asked = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks));
+  const leftOut = declared.filter(({ takes }) => takes === "value").map(({ action }) => action);
+  const kind = askedKind ?? (taps.length || asked.length ? "control" : "reading");
+  if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
+  if (kind === "control" && !taps.length && !asked.length) {
+    fail(`${words} has no action a press can give${leftOut.length ? ` (${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value)` : ` (${actionsPath})`}, so it starts as a reading: pass --kind reading and add its controls by hand, or draw it from ${SKIN}/cards/light/`);
+  }
+  const pressed = kind === "control" ? [...taps, ...asked] : [];
 
   // ---------- Orb's card: its code, its seeds, its connected story ----------
   const orbDir = `${ORB}/cards/${name}`;
@@ -86,7 +95,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   seeds = `// Copied from orb's card by \`npm run new-card -- ${name} --skin field\`: field's own seeds from here.\n${seeds}`;
   const hasHook = new RegExp(`export function useDemo${Name}\\b`).test(seeds);
   if (kind === "control" && !hasHook) fail(`${demoDir}/${seedFile} has no useDemo${Name} for a control's stories to press`);
-  if (!hasHook && !/\bhistory\b/.test(shape(seeds, `${Name}Seed`) ?? "")) fail(`${Name}Seed has no history and there is no useDemo${Name} to make one`);
+  if (history && !hasHook && !/\bhistory\b/.test(shape(seeds, `${Name}Seed`) ?? "")) fail(`${Name}Seed has no history and there is no useDemo${Name} to make one`);
 
   const seedBody = objectBody(seeds, `${CONST}_SEEDS`) ?? "";
   const seedKeys = [...seedBody.matchAll(/^ {2}(\w+): /gm)].map((m) => ({ key: m[1], index: m.index }));
@@ -102,7 +111,8 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
 
   const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist, for its connected module's test`);
-  const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, e]) => !["unavailable", "unknown"].includes(e.state))?.[0];
+  const fixture = JSON.parse(read(fixturePath));
+  const fixtureId = Object.entries(fixture).find(([, e]) => !["unavailable", "unknown"].includes(e.state))?.[0];
   if (!fixtureId) fail(`${fixturePath} has no available entity for its connected module's test`);
 
   // The Home Assistant domains it draws, as orb's Lovelace card has them.
@@ -112,23 +122,133 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   if (!domains.length) fail(`${orb.path} gives ${name} no domain in DOMAIN_KIND or SHARED_KINDS`);
 
   // ---------- Files from the templates ----------
+  const has = (field) => new RegExp(`^\\s+${field}\\??: `, "m").test(entity);
+  const toggle = taps.some(({ action }) => action === "onToggle") && /^\s+state: [^;]*"on"/m.test(entity);
+  const wantsCode = has("codeFormat");
+  const keyOf = (action) => action.replace(/^on/, "").replace(/[A-Z]/g, (c, at) => `${at ? "-" : ""}${c.toLowerCase()}`);
+  const labelOf = (action) => {
+    const spaced = action.replace(/^on/, "").replace(/([A-Z])/g, " $1").trim().toLowerCase().replace(/ cover$/, "");
+    return spaced[0].toUpperCase() + spaced.slice(1);
+  };
+  const hold = asked.length ? "openPanel" : "details.openDetails";
+  const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
+  /** What asks first, and what takes a code, in words: "Unlock and Open ask first, and Lock takes a code where the lock wants one". */
+  const guardedWords = (() => {
+    const verb = (xs, one, many) => `${andList(xs.map(({ action }) => labelOf(action)))} ${xs.length > 1 ? many : one}`;
+    const asks = asked.filter(({ asks }) => asks);
+    const codes = asked.filter(({ asks }) => !asks);
+    return [asks.length && `${verb(asks, "asks", "ask")} first, on the panel's question or keypad`, codes.length && `${verb(codes, "takes", "take")} a code where the ${words} wants one`].filter(Boolean).join(", and ");
+  })();
+  const keyLines = pressed.map(({ action, takes, asks }) => {
+    const label = labelOf(action);
+    if (action === "onToggle" && toggle) return `    <Key key="${action}" label={e.name} pressed={on} unavailable={unav} onPress={() => ${action}?.()} onHold={${hold}} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}><Icon${Name} /></Key>,`;
+    if (asks || takes === "code") return `    <Key key="${action}" label={\`${label} \${e.name}${asks ? ": asks first" : ""}\`} unavailable={unav} onPress={() => ${asks ? "ask" : "attempt"}("${keyOf(action)}")} onHold={${hold}} wide={wide} caption={wide && !unav ? "${label}" : undefined}><Icon${Name} /></Key>,`;
+    return `    <Key key="${action}" label={\`${label} \${e.name}\`} unavailable={unav} onPress={() => ${action}?.()} onHold={${hold}} wide={wide} caption={wide && !unav ? "${label}" : undefined}><Icon${Name} /></Key>,`;
+  });
+  const askedKeys = asked.map(({ action }) => `"${keyOf(action)}"`);
+  const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
+  const since = has("lastChanged") ? "e.lastChanged ? `Since ${e.lastChanged}` : undefined" : "undefined";
+  /** Today's meter at an indent, or nothing for a domain without history. */
+  const todayAt = (indent) => history ? [
+    "<Today",
+    `  label="${Label} by hour today."`,
+    '  tone="neutral"',
+    /^\s+samples: /m.test(history) ? "  samples={history?.samples}" : "",
+    "  currentHour={history?.currentHour}",
+    "/>",
+  ].filter(Boolean).map((line) => indent + line).join("\n") : "";
+  const today = todayAt("      ");
+  // The connected test's count: what one press of each key sends at once. What asks first sends nothing; what takes
+  // a code sends only while the entity asks for none.
+  const fixtureCode = !!fixture[fixtureId]?.attributes?.code_format;
+  const sentAtOnce = pressed.filter(({ takes, asks }) => !asks && !(takes === "code" && fixtureCode)).length;
   const fill = filler({
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",
-    // A control's one press, in its stories and from its hook's actions; a line of its own, gone for a reading.
-    __demoProps__: kind === "control" ? "onToggle={demo.onToggle}" : "",
-    __liveProps__: kind === "control" ? "onToggle={actions.onToggle}" : "",
+    // A control's presses, in its stories and from its hook's actions; a line of their own, gone for a reading. A
+    // demo that names a handler its own way leaves that key unpressed.
+    __demoProps__: pressed.filter(({ action }) => new RegExp(`\\b${action}\\b`).test(seeds)).map(({ action }) => `${action}={demo.${action}}`).join(" "),
+    __liveProps__: pressed.map(({ action }) => `${action}={actions.${action}}`).join(" "),
     __actions__: kind === "control" ? ", actions" : "",
     __about__: kind === "control"
-      ? "Press the key to switch it; its LED is lit while it's on. Tap the name, or press and hold the key, for the detail panel with today."
-      : "A reading, so nothing on it is pressed: its glyph lies flat where a key would be, and today's meter takes the fader's place. Tap the name for the detail panel.",
-    __areaProp__: /^\s+area\?: /m.test(entity) ? " area={e.area}" : "",
+      ? `${toggle ? "Press the key to switch it; its LED is lit while it's on." : "One key per action it takes."}${guardedWords ? ` ${guardedWords[0].toUpperCase()}${guardedWords.slice(1)}, so a press never does it alone.` : ""} Tap the name, or press and hold a key, for the detail panel${history ? " with today" : ""}.`
+      : `A reading, so nothing on it is pressed: its glyph lies flat where a key would be${history ? ", and today's meter takes the fader's place" : ""}. Tap the name for the detail panel.`,
+    __areaProp__: has("area") ? " area={e.area}" : "",
     // Since when it has been as it is, on the screen and in the panel's facts, where the entity says.
-    __meta__: /^\s+lastChanged\??: /m.test(entity) ? "e.lastChanged ? [`Since ${e.lastChanged}`] : undefined" : "undefined",
-    __changed__: /^\s+lastChanged\??: /m.test(entity) ? "e.lastChanged ? `Last changed ${e.lastChanged}` : \"\"" : "\"\"",
+    __meta__: toggle ? (has("lastChanged") ? "e.lastChanged ? [`Since ${e.lastChanged}`] : undefined" : "undefined") : `[words(e.state), ${since}]`,
+    __changed__: has("lastChanged") ? "e.lastChanged ? `Last changed ${e.lastChanged}` : \"\"" : "\"\"",
     // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
-    __samplesProp__: /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
-    __testProps__: kind === "control" ? "onToggle={onToggle}" : "",
+    __samplesProp__: history && /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
+    __historyType__: history ? `, ${Name}History` : "",
+    __historyProp__: history ? "  /** Today, for the detail panel. Omit to leave its meter dark. */\n  history?: " + `${Name}History;` : "",
+    __historyArg__: history ? ", history" : "",
+    __historyLive__: history ? "      history={history}" : "",
+    __historyDemo__: history ? "        history={demo.history}" : "",
+    __historyDestructure__: history ? ", history" : "",
+    __loadHistory__: history ? " loadHistory={false}" : "",
+    __todayImport__: history ? "Today, " : "",
+    __todayBlock__: today,
+    __readingToday__: history ? "{today}" : "",
+    __readingTodayConst__: history ? ["  const today = (", todayAt("    "), "  );"].join("\n") : "",
+    __onConst__: toggle ? '  const on = e.state === "on";' : "",
+    __lit__: toggle ? "on" : "!unav",
+    __read__: toggle ? 'on ? "ON" : "OFF"' : "<Blank label={words(e.state)} />",
+    __keys__: keyLines.join("\n"),
+    __actionProps__: pressed.map(({ action, takes, asks }) => `  /** ${asks ? "Asks first: the panel's question, or its keypad where the entity wants a code. Never one press." : takes === "code" ? "A press does it, asking for the code where the entity wants one." : "A press does it."} */\n  ${action}?: (${takes === "code" ? "code?: string" : ""}) => ${asks || takes === "code" ? "GuardedResult" : "void"};`).join("\n"),
+    __actionArgs__: pressed.map(({ action }) => `, ${action}`).join(""),
+    __partsImport__: asked.length ? "Confirm, Keypad, " : "",
+    __guardImports__: asked.length ? `import { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
+    __defaultActionProp__: asked.length ? `  /** Open the detail panel on this action's question or keypad (stories). */\n  defaultAction?: ${askedKeys.join(" | ")};` : "",
+    __defaultActionArg__: asked.length ? ", defaultAction" : "",
+    __defaultActionOpen__: asked.length ? " || defaultAction != null" : "",
+    __guardBlock__: asked.length ? [
+      "  // What asks first, or takes a code, is answered in the panel: its question, or its keypad where the entity wants one.",
+      `  const asked: Record<${askedKeys.join(" | ")}, { label: string; run?: (code?: string) => GuardedResult }> = {`,
+      ...asked.map(({ action }) => `    "${keyOf(action)}": { label: "${labelOf(action)}", run: ${action} },`),
+      "  };",
+      `  const guard = useGuardedAction<keyof typeof asked>({`,
+      "    run: (a, code) => asked[a].run?.(code),",
+      `    needsCode: (a) => ${wantsCode && codeKeys.length ? `([${codeKeys.join(", ")}] as string[]).includes(a) && !!e.codeFormat` : "false"},`,
+      "    settled: () => unav,",
+      "    initial: defaultAction,",
+      "  });",
+      "  const openPanel = () => { guard.close(); details.openDetails(); };",
+      ...(asked.some(({ asks }) => asks) ? ["  const ask = (a: keyof typeof asked) => { guard.ask(a); details.openDetails(); };"] : []),
+      // A tap that takes a code: done at once, or the panel opens on the keypad where the entity wants a code (asked, or refused).
+      ...(asked.some(({ asks }) => !asks) ? ["  const attempt = (a: keyof typeof asked) => { void guard.attempt(a).then((result) => { if (result === undefined || result === \"wrong_code\") details.openDetails(); }); };"] : []),
+    ].join("\n") : "",
+    __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with field's own control (a fader, a key group).` : "",
+    __panelFocus__: asked.length ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
+    __details__: asked.length ? "{ ...details, openDetails: openPanel }" : "details",
+    __panelBody__: asked.length ? [
+      "        {guard.pending ? (guard.code",
+      `          ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
+      `          : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again" : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
+      "        ) : panel}",
+    ].join("\n") : "        {panel}",
+    __guardedAbout__: guardedWords ? `; ${guardedWords}, never one press` : "",
+    __wordsConst__: toggle ? "" : '/** A state as words: "deep_sleep" becomes "deep sleep". */\nconst words = (state: string) => state.replace(/[_-]+/g, " ");\n',
+    // The module test's presses: each action once, and what asks first never on one press.
+    __vi__: pressed.length ? ", vi" : "",
+    __testHandlers__: pressed.map(({ action }) => `${action}: vi.fn()`).join(", "),
+    __testExpect__: pressed.map(({ action, takes, asks }) => asks
+      ? `    expect(handlers.${action}, "${labelOf(action)} asks first: never one press").not.toHaveBeenCalled();`
+      : takes === "code" ? "" : `    expect(handlers.${action}).toHaveBeenCalledTimes(1);`).filter(Boolean).join("\n"),
+    __sentAtOnce__: String(sentAtOnce),
+    // What asks first opens the panel on its question (or keypad), and a press alone never does it.
+    __guardedTest__: (() => {
+      const first = pressed.find(({ asks }) => asks);
+      if (!first) return "";
+      return [
+        `  it("opens the panel on ${labelOf(first.action)}'s question or keypad, and doesn't ${labelOf(first.action).toLowerCase()} on the press", () => {`,
+        `    const { keys, handlers } = draw("${firstSeed}");`,
+        `    fireEvent.click(keys.find((key) => key.getAttribute("aria-label")?.startsWith("${labelOf(first.action)} "))!);`,
+        `    expect(handlers.${first.action}).not.toHaveBeenCalled();`,
+        '    expect(document.querySelector(".fd-cf, .fd-pad")).not.toBeNull();',
+        "  });",
+        "",
+      ].join("\n");
+    })(),
     __seedFile__: seedFile.replace(/\.ts$/, ""),
     __firstSeed__: firstSeed,
     __unavailableSeed__: unavailableSeed,
@@ -198,7 +318,7 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
 
   // ---------- Write ----------
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in field as a ${kind} (fd-${code}-, ${domains.map((d) => `${d}.*`).join(", ")}): seeds copied from ${demoDir}/${seedFile}.
+  console.log(`Drew ${words} in field as a ${kind} (fd-${code}-, ${domains.map((d) => `${d}.*`).join(", ")}): seeds copied from ${demoDir}/${seedFile}.${kind === "control" ? `\nKeys: ${pressed.map(({ action, asks, takes }) => `${action}${asks ? " (asks first)" : takes === "code" ? " (takes a code)" : ""}`).join(", ")}.` : ""}${kind === "control" && leftOut.length ? `\nLeft out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give.` : ""}
 
 Next:
   1. npm run storybook  →  Field/Cards/${Name} and Field/Connected/${Name}

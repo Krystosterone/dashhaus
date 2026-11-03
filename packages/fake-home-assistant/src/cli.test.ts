@@ -47,7 +47,7 @@ describe("the fake-home-assistant command", () => {
 
       const response = await fetch(`${url}/api/states`, { headers: { authorization: "Bearer cli-token" } });
       expect(response.status).toBe(200);
-      expect((await response.json()) as unknown[]).toHaveLength(15);
+      expect((await response.json()) as unknown[]).toHaveLength(16);
     } finally {
       child.kill();
       if (child.exitCode === null && child.signalCode === null) await once(child, "exit");

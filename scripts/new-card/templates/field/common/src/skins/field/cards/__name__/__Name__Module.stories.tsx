@@ -13,7 +13,7 @@ function Demo__Name__({ seed, width, footprint, defaultOpen }: { seed: __Name__S
     <div style={{ width, maxWidth: "100%" }}>
       <__Name__Module
         entity={demo.entity}
-        history={demo.history}
+__historyDemo__
         __demoProps__
         footprint={footprint}
         defaultOpen={defaultOpen}

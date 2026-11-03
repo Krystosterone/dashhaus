@@ -56,7 +56,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   // The keypad (sheet only), for an action that needs the code. No code: nothing to wait for on screen; the state
   // change is the answer.
   const guard = useGuardedAction<AlarmAction>({
-    run: async (a, code) => ((await (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code))) === false ? "wrong_code" : "done"),
+    run: (a, code) => (a.kind === "disarm" ? onDisarm?.(code) : onArm?.(a.mode, code)),
     needsCode: (a) => codeFor(e, a),
     settled: (a) => a.kind === "disarm" && e.state === "disarmed",
     initial: action,

@@ -137,6 +137,20 @@ export function Key({ label, pressed, led, chosen, disabled, unavailable, onPres
 }
 
 /**
+ * A row of keys: n to a row (`columns`, default every key on one row), each filling its cell, under a printed legend
+ * where it has one. `label` names the group for a screen reader where it has no legend.
+ */
+export function KeyGroup({ legend, label, columns, className, children }: { legend?: string; label?: string; columns?: number; className?: string; children: ReactNode }) {
+  const uid = useId();
+  const keys = (
+    <div className={className ? `fd-keys ${className}` : "fd-keys"} role="group" aria-label={legend ? undefined : label} aria-labelledby={legend ? `${uid}-l` : undefined} data-columns={columns} style={columns ? ({ "--fd-keys-n": columns } as Vars) : undefined}>
+      {children}
+    </div>
+  );
+  return legend ? <div className="fd-block"><Legend id={`${uid}-l`}>{legend}</Legend>{keys}</div> : keys;
+}
+
+/**
  * A key with its name printed under it, as on a quick level, a colour or a mode: the key carries the figure or glyph,
  * the plate the word. `name` is printed only; the key's label says it.
  */

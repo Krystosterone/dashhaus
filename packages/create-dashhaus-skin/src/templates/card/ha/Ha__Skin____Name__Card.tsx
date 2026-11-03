@@ -8,5 +8,5 @@ export interface Ha__Skin____Name__CardProps extends Ha__Name__Options, Pick<__S
 /** The shared useHa__Name__ hook above __Section__'s presentational Card. */
 export function Ha__Skin____Name__Card({ entityId, footprint, defaultOpen, ...options }: Ha__Skin____Name__CardProps) {
   const result = useHa__Name__(entityId, options);
-  return <__Skin____Name__Card entity={result.entity} history={result.history}__liveProps__ footprint={footprint} defaultOpen={defaultOpen} />;
+  return <__Skin____Name__Card entity={result.entity}__historyLive____liveProps__ footprint={footprint} defaultOpen={defaultOpen} />;
 }

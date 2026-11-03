@@ -81,11 +81,11 @@ function cardWrites(names, name, askedKind, readRegistry) {
   } catch (error) {
     fail(error.message);
   }
-  const fill = filler(cardTokens(domain, names, drawn.actions));
+  const fill = filler(cardTokens(domain, names, drawn));
   const files = ["card", "standalone-card"].flatMap((folder) => walk(templates(folder)).map((file) => [fill(file), fill(readFileSync(join(templates(folder), file), "utf8"))]));
   const lines = registryLines(domain, names);
   const registry = beforeMarker(REGISTRY_MARKERS.entries, lines.entry)(beforeMarker(REGISTRY_MARKERS.imports, lines.import)(readRegistry()));
-  return { domain, kind: drawn.kind, files: [...files, ["lovelace/registry.tsx", registry]] };
+  return { domain, kind: drawn.kind, leftOut: drawn.leftOut, files: [...files, ["lovelace/registry.tsx", registry]] };
 }
 
 function write(root, files) {
@@ -108,14 +108,15 @@ if (args[0] === "add") {
   if (!skin) fail(`package.json's name must be dashhaus-skin-<skin>, as create-dashhaus-skin wrote it`);
   if (existsSync(join(root, "cards", name))) fail(`cards/${name} already exists`);
   const names = skinNames(skin);
-  const { domain, kind: drawn, files } = cardWrites(names, name, kind, () => readFileSync(registryPath, "utf8"));
+  const { domain, kind: drawn, leftOut, files } = cardWrites(names, name, kind, () => readFileSync(registryPath, "utf8"));
   if (dryRun) {
     console.log(`Would add the ${domain.words} card (${drawn}):`);
     for (const [path] of files) console.log(`  ${path === "lovelace/registry.tsx" ? "edit  " : "create"} ${path}`);
     process.exit(0);
   }
   write(root, files);
-  console.log(`Added the ${domain.words} card as a ${drawn}: ${files.length - 1} files, registered in lovelace/registry.tsx for ${domain.domains.join(", ")}.
+  console.log(`Added the ${domain.words} card as a ${drawn}: ${files.length - 1} files, registered in lovelace/registry.tsx for ${domain.domains.join(", ")}.${leftOut.length ? `
+Left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take" : "it takes"} a value a press can't give, so draw ${leftOut.length > 1 ? "them" : "it"} with your own control.` : ""}
 
 Next:
   npm run snapshot     # it is on the sample house, in the Living room

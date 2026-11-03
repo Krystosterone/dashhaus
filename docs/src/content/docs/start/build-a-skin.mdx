@@ -210,7 +210,10 @@ npm run add -- cover
 ```
 
 It writes the card in `cards/cover/` with its stylesheet, glyph and story metadata, and its adapter on `useHaCover`.
-A cover is a control, so its actions are its buttons; `--kind reading` draws a domain without them.
+A cover is a control, so its actions are its buttons; `--kind reading` draws a domain without them. An action that
+asks first, as a lock's unlock does, is never one tap: `npm run add -- lock` draws its button to open the details on
+the question, or on the code keypad when the lock wants a code. An action that takes a value, a brightness or an
+alarm's mode, is left out for your own control, and the command says so.
 
 <Example template="cards/cover/MySkinCoverCard.tsx" added />
 
