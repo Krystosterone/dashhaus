@@ -131,8 +131,9 @@ no selection and no tap highlight.
 tablet and wall-panel pages. The header puts the title over the date or subtitle in mono capitals, the clock in
 glowing cyan mono on the right, over a hairline. A section head is a cyan index tick, its title in mono capitals, a
 hairline to the right and its note in muted mono. The nav bar is a docked panel strip of mono capitals; the current item
-turns cyan with a glowing underline that scales in. The Lovelace card is `custom:dashhaus-futura`; without explicit
-Cards or sections, it groups every supported entity by Home Assistant area.
+turns cyan with a glowing underline that scales in. The Lovelace card is `custom:dashhaus-futura`; its YAML is the
+shared layout (`cards`, or `rows` of cards, one footprint per row), and without either it draws a row per Home
+Assistant area.
 
 A rejected command rides the dock above the nav bar (or ends the page when there is none): a console panel with an
 `--futura-alert` rule on its left, the failure in alert mono capitals and what to do in muted words, with Retry when

@@ -1,0 +1,8 @@
+type: custom:dashhaus-field
+title: Home
+rows:
+  - title: Living room
+    cards:
+      - light.ceiling
+      - entity: cover.living_room
+        footprint: compact

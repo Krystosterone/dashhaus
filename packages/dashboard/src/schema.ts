@@ -139,8 +139,8 @@ export class Reader {
 
   /**
    * The card's `nav` (spec/deploy.md → Navigation): a list of destinations, `false` for none, or left out. A page must
-   * be one of `pages` or the main page; a section, one of `titles`, the main page's titled sections, when the YAML
-   * lays them out (an automatic layout's can't be named ahead), and the only one of its title.
+   * be one of `pages` or the main page; a `section:`, one of `titles`, the main page's titled rows, when the YAML lays
+   * them out (an automatic layout's can't be named ahead), and the only one of its title.
    */
   nav(raw: Raw, pages: readonly { id: string }[], titles?: readonly string[]): NavEntry[] | false | undefined {
     if (raw.nav === false) return false;
@@ -158,48 +158,283 @@ export class Reader {
       }
       if (n.kind === "section" && titles && !titles.includes(n.title)) {
         const near = titles.find((t) => t.toLowerCase() === n.title.toLowerCase()) ?? suggest(n.title, titles);
-        this.problem(`nav[${i}]`, `no section titled "${n.title}" in the top-level sections${near ? ` — did you mean "${near}"?` : ""}`);
+        this.problem(`nav[${i}]`, `no row titled "${n.title}" on the main page${near ? ` — did you mean "${near}"?` : ""}`);
       }
       if (n.kind === "section" && titles && titles.filter((t) => t === n.title).length > 1) {
-        this.problem(`nav[${i}]`, `${titles.filter((t) => t === n.title).length} sections are titled "${n.title}"; give each its own title so the nav can tell them apart`);
+        this.problem(`nav[${i}]`, `${titles.filter((t) => t === n.title).length} rows are titled "${n.title}"; give each its own title so the nav can tell them apart`);
       }
     });
     return nav;
   }
 
-  /** One of the card's `pages`: its id, its title and its `sections`, each read by the skin's `block`. */
-  page<B>(value: unknown, path: string, block: (value: unknown, path: string) => B | undefined): { id: string; title: string; blocks: B[] } | undefined {
+  /**
+   * One of the card's `pages`: its id, its title and its body (`cards`, or `rows`), read by `body`, which returns
+   * undefined when the page has neither.
+   */
+  page<B>(value: unknown, path: string, body: (raw: Raw, path: string) => B | undefined, keys: readonly string[] = BODY_KEYS): { id: string; title: string; body: B } | undefined {
     if (!isRaw(value)) {
-      this.problem(path, "a page is a map with \"id\", \"title\" and \"sections\"");
+      this.problem(path, "a page is a map with \"id\", \"title\" and \"cards\" (or \"rows\")");
       return undefined;
     }
-    this.keys(value, path, ["id", "title", "sections"]);
+    this.keys(value, path, ["id", "title", ...keys]);
     const id = this.string(value, "id", path);
     const title = this.string(value, "title", path);
     if (id == null || !PAGE_ID.test(id)) this.problem(path, "\"id\" is required: lower-case letters, digits, - and _, like living-room");
-    else if (id === MAIN_PAGE) this.problem(path, `"id" can't be "${MAIN_PAGE}": that is the top-level sections`);
+    else if (id === MAIN_PAGE) this.problem(path, `"id" can't be "${MAIN_PAGE}": that is the main page`);
     if (title == null) this.problem(path, "\"title\" is required");
-    if (!Array.isArray(value.sections) || value.sections.length === 0) {
-      this.problem(path, "\"sections\" must be a list of at least one section");
+    const read = body(value, path);
+    if (read === undefined) {
+      if (value.cards == null && value.rows == null) this.problem(path, "a page needs \"cards\", or \"rows\" of cards");
       return undefined;
     }
-    const blocks = value.sections.map((s, i) => block(s, `${path}.sections[${i}]`)).filter((b): b is B => !!b);
-    return id && title && PAGE_ID.test(id) && id !== MAIN_PAGE ? { id, title, blocks } : undefined;
+    return id && title && PAGE_ID.test(id) && id !== MAIN_PAGE ? { id, title, body: read } : undefined;
   }
 
   /** The card's `pages`, more pages opened by its nav, each id its own; left out, none. */
-  pages<B>(raw: Raw, block: (value: unknown, path: string) => B | undefined): { id: string; title: string; blocks: B[] }[] | undefined {
+  pages<B>(raw: Raw, body: (raw: Raw, path: string) => B | undefined, keys: readonly string[] = BODY_KEYS): { id: string; title: string; body: B }[] | undefined {
     if (raw.pages == null) return undefined;
     if (!Array.isArray(raw.pages) || raw.pages.length === 0) {
       this.problem("pages", "must be a list of at least one page, or left out");
       return undefined;
     }
-    const pages = raw.pages.map((p, i) => this.page(p, `pages[${i}]`, block)).filter((p): p is { id: string; title: string; blocks: B[] } => !!p);
+    const pages = raw.pages.map((p, i) => this.page(p, `pages[${i}]`, body, keys)).filter((p): p is { id: string; title: string; body: B } => !!p);
     const ids = pages.map((p) => p.id);
     for (const id of new Set(ids.filter((id, i) => ids.indexOf(id) !== i))) this.problem("pages", `two pages have the id "${id}"`);
     return pages;
   }
 }
+
+/*
+ * The layout every skin's Lovelace card shares (spec/deploy.md → The format): a page is `cards`, one plain grid, or
+ * `rows`, one under another, each with its own `title`, `columns` and `cards`. Rows never nest. A card places itself
+ * in its row with `width` and `column`; how the row packs them is `flow` and `align`. The skin says what a card is,
+ * how many columns a row may have, and how its footprints may mix.
+ */
+
+/** How a row packs its cards: in YAML order (`normal`), or with a later card filling an earlier hole (`dense`). */
+export type Flow = "normal" | "dense";
+/** Where a row's shorter column stacks sit: at the row's top, or its bottom. Cards never stretch. */
+export type Align = "top" | "bottom";
+export const FLOWS: readonly Flow[] = ["normal", "dense"];
+export const ALIGNS: readonly Align[] = ["top", "bottom"];
+
+/** One entry of a row: the skin's card (or bundle) and where it sits. */
+export interface RowEntry<I> {
+  item: I;
+  /** Columns it spans, clamped to the row's tracks when it draws; `full` is every one. */
+  width: number | "full";
+  /** The column it starts in, counted from 1; left out, it is placed by the row's flow. */
+  column?: number;
+}
+
+/** One row of a page: an optional heading, then its cards on a grid of its own. */
+export interface RowConfig<I> {
+  title?: string;
+  /** Printed beside the title. */
+  note?: string;
+  /** At most this many columns; left out (`auto`), as many as fit. */
+  columns?: number;
+  flow: Flow;
+  align: Align;
+  cards: RowEntry<I>[];
+  /** The row mixes footprints in a skin that stacks them by column (field): each card is in its own column's stack. */
+  stacks?: boolean;
+}
+
+/** How a skin's footprints may share a row. */
+export type FootprintMix =
+  /** Any mix, on a grid of fixed units (orb). */
+  | "lattice"
+  /** One footprint per row, or every card in a column stack (field). */
+  | "stacks"
+  /** One footprint per row. */
+  | "uniform";
+
+/** What the shared layout needs from a skin. */
+export interface LayoutSchema<I> {
+  /** What a card is called in messages: "card", "module". */
+  readonly noun: string;
+  /** The most columns a row may have. */
+  readonly maxColumns: number;
+  /** Read one entry of a `cards` list (a card, or a skin's bundle); its `width` and `column` are read here. */
+  item(read: Reader, value: unknown, path: string): I | undefined;
+  /** How footprints may share a row, and an item's footprint as drawn. Left out: any mix. */
+  readonly footprints?: { readonly mix: FootprintMix; of(item: I): string };
+}
+
+/** The keys a page's body takes, at the top of the card or on a page. */
+export const BODY_KEYS: readonly string[] = ["cards", "rows", "columns", "flow", "align", "sections", "modules"];
+/** The keys a card takes to place itself in its row; a skin adds them to its cards' common keys. */
+export const PLACEMENT_KEYS: readonly string[] = ["width", "column"];
+const ROW_KEYS = ["title", "note", "columns", "flow", "align", "cards"];
+/** Keys that look like layout but aren't, each with what to write instead. */
+const ROW_HINTS = (noun: string): Record<string, string> => ({
+  rows: "rows don't nest: list this row's cards under its own \"cards\", and put the inner rows beside it in the page's \"rows\"",
+  sections: "rows don't nest: list this row's cards under its own \"cards\", and put the inner sections beside it in the page's \"rows\"",
+  modules: `a row lists its ${noun}s under "cards"`,
+  gap: "the skin spaces its grid: leave out \"gap\"",
+  width: `"width" places one ${noun} inside a row: put it on the ${noun}`,
+  column: `"column" places one ${noun} inside a row: put it on the ${noun}`,
+});
+
+const join = (path: string, key: string) => (path ? `${path}.${key}` : key);
+/** An entry's path with its entity id, as a card's own problems name it. */
+const named = (path: string, value: unknown) => {
+  const entity = typeof value === "string" ? value : isRaw(value) && typeof value.entity === "string" ? value.entity : undefined;
+  return entity ? `${path} (${entity})` : path;
+};
+
+/** `columns`: a whole number up to the skin's most, or `auto`. Undefined is auto; null, not given. */
+function readColumns(read: Reader, raw: Raw, path: string, max: number): number | undefined | null {
+  const value = raw.columns;
+  if (value == null) return null;
+  if (value === "auto") return undefined;
+  if (typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= max) return value;
+  read.problem(path, `"columns" must be a whole number from 1 to ${max}, or auto${typeof value === "string" && /^\d+$/.test(value) ? ` — write columns: ${value}, without quotes` : ""}`);
+  return null;
+}
+
+function readEntry<I>(read: Reader, schema: LayoutSchema<I>, value: unknown, path: string, columns: number | undefined): RowEntry<I> | undefined {
+  const max = schema.maxColumns;
+  let raw = value;
+  let width: number | "full" = 1;
+  let column: number | undefined;
+  if (isRaw(value)) {
+    const at = named(path, value);
+    if ("span" in value) {
+      read.problem(at, `"span" isn't a key: a ${schema.noun} spans columns with "width", a whole number or full`);
+      raw = Object.fromEntries(Object.entries(value).filter(([key]) => key !== "span"));
+    }
+    if (value.width != null) {
+      const w = value.width;
+      if (w === "full") width = "full";
+      else if (typeof w === "number" && Number.isInteger(w) && w >= 1 && w <= max) width = w;
+      else read.problem(at, `"width" is how many columns the ${schema.noun} spans: a whole number from 1 to ${max}, or full${typeof w === "string" && /px$/.test(w) ? " — not pixels" : ""}`);
+    }
+    if (value.column != null) {
+      const c = value.column;
+      if (typeof c === "number" && Number.isInteger(c) && c >= 1 && c <= max) column = c;
+      else read.problem(at, `"column" is the column it starts in: a whole number from 1 to ${max}`);
+    }
+    if (column !== undefined && width === "full") {
+      read.problem(at, "\"width: full\" spans the whole row from column 1: leave out \"column\", or give a number of columns");
+      column = undefined;
+    }
+    if (columns !== undefined) {
+      if (typeof width === "number" && width > columns) {
+        read.problem(at, `"width: ${width}" is wider than this row's ${columns} column${columns === 1 ? "" : "s"}: use width: full, or raise the row's columns to ${width}`);
+        width = columns;
+      }
+      if (column !== undefined && column > columns) {
+        read.problem(at, `"column: ${column}" is past this row's ${columns} column${columns === 1 ? "" : "s"}: use column: ${columns}, or raise the row's columns to ${column}`);
+        column = undefined;
+      } else if (column !== undefined && typeof width === "number" && column + width - 1 > columns) {
+        read.problem(at, `starts in column ${column} and spans ${width}, past this row's ${columns} columns: use column: ${columns - width + 1}, or raise the row's columns to ${column + width - 1}`);
+        column = undefined;
+      }
+    }
+  }
+  const item = schema.item(read, raw, path);
+  return item === undefined ? undefined : { item, width, column };
+}
+
+/** The row's footprint rule: one per row, or column stacks; problems at each entry that breaks it. */
+function checkFootprints<I>(read: Reader, schema: LayoutSchema<I>, row: RowConfig<I>, raw: Raw, path: string, read_: { path: string; raw: unknown }[]): void {
+  const rule = schema.footprints;
+  if (!rule || rule.mix === "lattice") return;
+  const footprints = row.cards.map((entry) => rule.of(entry.item));
+  const kinds = [...new Set(footprints)];
+  if (kinds.length < 2) return;
+  const count = (f: string) => footprints.filter((x) => x === f).length;
+  // The footprint to move out: the rarer one, or on a tie the one that differs from the row's first card.
+  const fewest = [...kinds].sort((a, b) => count(a) - count(b) || footprints.indexOf(b) - footprints.indexOf(a))[0];
+  const mix = kinds.map((k) => `${k}`).join(" and ");
+  if (rule.mix === "uniform") {
+    read.problem(join(path, "cards"), `this skin draws one footprint per row, and this row mixes ${mix}: move the ${fewest} ${schema.noun}s into a row of their own`);
+    return;
+  }
+  row.stacks = true;
+  if (raw.flow === "dense") read.problem(path, "\"flow: dense\" fills holes in a grid, and this row stacks its mixed footprints by column, so it has none: leave out \"flow\"");
+  row.cards.forEach((entry, i) => {
+    const given = read_[i].raw;
+    // A column given but wrong already has its own problem.
+    if (isRaw(given) && given.column != null && entry.column === undefined) return;
+    if (entry.column === undefined) read.problem(read_[i].path, `this row mixes ${mix} ${schema.noun}s, so each stacks in a column: give it a "column", or move the ${fewest} ones into a row of their own`);
+    else if (entry.width !== 1) read.problem(read_[i].path, `a ${schema.noun} in a column stack is one column wide: leave out "width"`);
+  });
+}
+
+/** One row of `rows`, with the page's `columns` and `flow` where it sets none. */
+export function readRow<I>(read: Reader, schema: LayoutSchema<I>, value: unknown, path: string, inherit: { columns?: number; flow: Flow } = { flow: "normal" }): RowConfig<I> | undefined {
+  if (!isRaw(value) || "entity" in value || "bundle" in value) {
+    const what = typeof value === "string" || isRaw(value) ? `this is a ${schema.noun}, not a row` : "a row is a map with \"cards\" (and usually a \"title\")";
+    read.problem(named(path, value), typeof value === "string" || isRaw(value)
+      ? `${what}: put it in a row's "cards", or list the ${schema.noun}s under "cards" at the top for one plain grid`
+      : what);
+    return undefined;
+  }
+  const hints = ROW_HINTS(schema.noun);
+  for (const key of Object.keys(hints)) if (key in value) read.problem(path, hints[key]);
+  read.keys(value, path, [...ROW_KEYS, ...Object.keys(hints)]);
+  const own = readColumns(read, value, path, schema.maxColumns);
+  const columns = own === null ? inherit.columns : own;
+  const flow = read.choice(value, "flow", path, FLOWS) ?? inherit.flow;
+  const align = read.choice(value, "align", path, ALIGNS) ?? "top";
+  const row: RowConfig<I> = { title: read.string(value, "title", path), note: read.string(value, "note", path), columns, flow, align, cards: [] };
+  const list = value.cards;
+  if (!Array.isArray(list) || list.length === 0) {
+    read.problem(path, `"cards" must be a list of at least one ${schema.noun}`);
+    return row;
+  }
+  const given: { path: string; raw: unknown }[] = [];
+  list.forEach((entry, i) => {
+    const at = join(path, `cards[${i}]`);
+    const placed = readEntry(read, schema, entry, at, columns);
+    if (placed) { row.cards.push(placed); given.push({ path: named(at, entry), raw: entry }); }
+  });
+  checkFootprints(read, schema, row, value, path, given);
+  return row;
+}
+
+/**
+ * A page's body: its `cards`, as one untitled row, or its `rows`. Undefined when it has neither, for a skin's
+ * automatic layout. `columns` and `flow` here are the default for every row.
+ */
+export function readBody<I>(read: Reader, schema: LayoutSchema<I>, raw: Raw, path = ""): RowConfig<I>[] | undefined {
+  if (raw.sections != null) read.problem(join(path, "sections"), "isn't a key: list the page's cards under \"cards\" for one plain grid, or under \"rows\" in titled groups (each row: title, columns, cards)");
+  if (raw.modules != null) read.problem(join(path, "modules"), `isn't a key: list the page's ${schema.noun}s under "cards", or under "rows" in titled groups`);
+  if (raw.align != null) read.problem(join(path, "align"), "lines up one row's columns: put it on a row under \"rows\"");
+  if (raw.cards != null && raw.rows != null) read.problem(path, "\"cards\" and \"rows\" both lay out this page: keep \"cards\" for one plain grid, or move those cards into a row under \"rows\"");
+  const own = readColumns(read, raw, path, schema.maxColumns);
+  const inherit = { columns: own ?? undefined, flow: read.choice(raw, "flow", path, FLOWS) ?? "normal" };
+  const rows: RowConfig<I>[] = [];
+  if (raw.cards != null) {
+    if (!Array.isArray(raw.cards) || raw.cards.length === 0) read.problem(join(path, "cards"), `must be a list of at least one ${schema.noun}: entity ids like light.kitchen, or maps with an "entity" — each on its own line starting with "- "`);
+    else {
+      // The page's own cards are one untitled row; `flow: dense` comes along so a stacked row can say it has no holes.
+      const row = readRow(read, schema, { cards: raw.cards, ...(raw.flow === "dense" && { flow: "dense" }) }, path, inherit);
+      if (row) rows.push(row);
+    }
+  }
+  if (raw.rows != null) {
+    if (!Array.isArray(raw.rows) || raw.rows.length === 0) read.problem(join(path, "rows"), "must be a list of at least one row, each a map with its own \"cards\" — each row on its own line starting with \"- \"");
+    else raw.rows.forEach((value, i) => {
+      const row = readRow(read, schema, value, join(path, `rows[${i}]`), inherit);
+      if (row) rows.push(row);
+    });
+  }
+  return raw.cards == null && raw.rows == null ? undefined : rows;
+}
+
+/** The titles of a page's titled rows, in order: what a nav's `section:` can name. */
+export const rowTitles = (rows: readonly RowConfig<unknown>[] = []) => rows.flatMap((row) => (row.title ? [row.title] : []));
+
+/** Every item of some rows, in order. */
+export const rowItems = <I>(rows: readonly RowConfig<I>[]): I[] => rows.flatMap((row) => row.cards.map((entry) => entry.item));
+
+/** Some rows with every item changed by `fn`. */
+export const mapRowItems = <I>(rows: readonly RowConfig<I>[], fn: (item: I) => I): RowConfig<I>[] =>
+  rows.map((row) => ({ ...row, cards: row.cards.map((entry) => ({ ...entry, item: fn(entry.item) })) }));
 
 /** A card as a schema reads it: the entity, and the kind that draws it. */
 export interface CardShape<K extends string = string> {

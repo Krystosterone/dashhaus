@@ -11,7 +11,6 @@ export interface LcarsCardItem {
   name?: string;
   area?: string;
   footprint?: LcarsFootprint;
-  span?: number;
   history?: boolean;
   /** A room sensor's companions on its device, found by the automatic layout. */
   humidity?: string;

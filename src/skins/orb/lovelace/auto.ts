@@ -7,7 +7,7 @@ import type { AutoInput as LayoutInput } from "@dashhaus/dashboard/layout";
 export type { AutoInput, AutoState } from "@dashhaus/dashboard/layout";
 
 type Card = string | Record<string, unknown>;
-interface Section { title: string; columns?: number; cards: Card[] }
+interface Row { title: string; columns?: number; cards: Card[] }
 
 /**
  * An Owlet sock's sleep state sensor: config.ts's SHARED_KINDS draws it as the owlet card. This file imports only
@@ -17,7 +17,7 @@ interface Section { title: string; columns?: number; cards: Card[] }
 const OWLET = /^sensor\.\w+_sleep_state$/;
 
 /**
- * A starting dashboard config for a house: actionable sections first, then household status, then
+ * A starting dashboard config for a house, as titled `rows`: actionable rows first, then household status, then
  * the outside and room glance. Automatic discovery cannot know which controls a person uses most,
  * so it keeps all discovered actions in deterministic domain/area order for the person to refine.
  * No featured hero is chosen; compact rows carry secondary controls.
@@ -32,10 +32,10 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   const sorted = (ids: string[]) => ids.sort(byName(states));
   const ofDomain = (...domains: string[]) => sorted(visible.filter((id) => domains.includes(domainOf(id))));
 
-  const sections: Section[] = [];
-  // One section per title: a section that would repeat one (an area called Nursery or Outside) joins it, so the
-  // page never shows two sections of one name, and a nav to one never lands on the other.
-  const place = (section: Section) => placeSection(sections, section);
+  const rows: Row[] = [];
+  // One row per title: a row that would repeat one (an area called Nursery or Outside) joins it, so the page never
+  // shows two rows of one name, and a nav to one never lands on the other.
+  const place = (row: Row) => placeSection(rows, row);
   const alarms = ofDomain("alarm_control_panel");
   // Locks join the alarm under Security, each with its device's battery where it has one.
   const locks: Card[] = ofDomain("lock").map((entity) => {
@@ -60,7 +60,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
 
   const socks = sorted(visible.filter((id) => OWLET.test(id)));
 
-  // Controls, one section per area, then whatever has no area.
+  // Controls, one row per area, then whatever has no area.
   const controls = ofDomain(
     "cover",
     "light",
@@ -96,5 +96,5 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   if (air.length) place({ title: "Rooms", cards: air });
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
-  return sections.length ? { type: "custom:dashhaus-orb", title, sections } : { type: "custom:dashhaus-orb", title };
+  return rows.length ? { type: "custom:dashhaus-orb", title, rows } : { type: "custom:dashhaus-orb", title };
 }

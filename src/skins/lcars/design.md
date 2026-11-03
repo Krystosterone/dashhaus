@@ -168,8 +168,8 @@ All in `lcars/shared/ui.tsx` and `ui.css`. Restyle them there, never per card.
     runs to a rounded right end. A section note goes to the far right.
   - Colours cycle per section: peach, violet, blue, ice, each with its matching text hue.
   - A section without a title is labelled "Other", so the console never has an unlabelled bar.
-  - The card grid auto-fits columns of at least 280 px with 10 px gaps. `columns:` and `span:` from the YAML still
-    apply.
+  - The card grid fits columns of at least 280 px with 10 px gaps. The YAML's `columns:` is a most, and each card's
+    `width:` and `column:` place it on those tracks (the shared layout).
 - **Phone vs desktop.** Under 640 px:
   - The rail narrows from 168 px to 26 px and becomes pure decoration (labels and stardate hidden).
   - The elbows shrink (30 px outer, 18 px inner, 14 px bars).

@@ -135,11 +135,8 @@ describe("the page's nav: page furniture in the module's parts", () => {
     expect(c).not.toMatch(/var\(--fd-(led|param|lamp)/);
   });
 
-  it("a span never makes a track of its own: it applies only inside the area's width queries", () => {
-    const c = css(`${SKIN}/dashboards/layout.css`);
-    const outside = c.replace(/@container fd-area[^{]*\{[^{}]*\{[^}]*\}\s*\}/g, "");
-    expect(outside).not.toMatch(/grid-column:\s*span/);
-    expect(c).toMatch(/@container fd-area[^{]*\{[^{}]*\{[^}]*grid-column: span 2/);
+  it("a width never makes a track of its own: the stylesheet spans nothing, the shared layout clamps each width to the row's tracks", () => {
+    expect(css(`${SKIN}/dashboards/layout.css`)).not.toMatch(/grid-column:\s*span/);
   });
 });
 

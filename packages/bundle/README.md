@@ -67,19 +67,22 @@ and what each error means are in `@dashhaus/deploy`'s README.
 
 ## The two cards
 
-Each card lays out the house itself when its YAML has no `sections` (Orb) or `modules` (Field): every supported
-entity, grouped by area, kept up to date as devices are added. To choose your own, edit the dashboard in Home
+Each card lays out the house itself when its YAML has no `cards` or `rows`: every supported entity, a row per area,
+kept up to date as devices are added. Both cards read one layout: `cards` for one plain grid in your order, or `rows`
+of cards, each with its own `title` and `columns`; a card sets its `width` (columns, or `full`), `column` and
+`footprint`. To choose your own, edit the dashboard in Home
 Assistant (⋮ → Edit dashboard → the card's ✎ → Show code editor). Problems are listed together, each at its path,
 with the key it probably meant.
 
 ```yaml
 type: custom:dashhaus-orb
 title: Home
-sections:
+rows:
   - title: Living room
     columns: 2
     cards:
-      - climate.living_room
+      - entity: climate.living_room
+        width: full               # both columns
       - entity: light.floor_lamp
         footprint: compact        # compact, standard or featured
       - entity: sensor.living_room_temperature
@@ -89,7 +92,7 @@ sections:
 ```yaml
 type: custom:dashhaus-field
 title: Home
-modules:
+cards:
   - light.ceiling
   - entity: sensor.bedroom_temperature
     humidity: sensor.bedroom_humidity

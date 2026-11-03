@@ -31,7 +31,7 @@ Import `@dashhaus/field/styles/tokens.css` in the browser bundle so its styleshe
 | `./storybook` | The skin's Storybook section, toolbar and decorator (repo tooling) |
 | `./styles/tokens.css` | Field's design tokens, the only source of its colours |
 
-The Lovelace card accepts `custom:dashhaus-field` YAML with `title`, `modules`, `sections`, `pages`, `nav` and `finish`; without `modules` or `sections` it draws every supported entity by Home Assistant area.
+The Lovelace card accepts `custom:dashhaus-field` YAML with `title`, `cards` or `rows`, `columns`, `flow`, `pages`, `nav` and `finish`; without `cards` or `rows` it draws every supported entity, a row per Home Assistant area.
 
 ## Docs
 

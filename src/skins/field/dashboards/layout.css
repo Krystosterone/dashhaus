@@ -32,27 +32,15 @@
   .fd-dash-areas { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* A module's `span`: as many tracks as it asks for, where the area is wide enough to have them, so it never makes a
-   track of its own. Each width is that many tracks and their gaps. */
-.fd-dash-cell { min-width: 0; }
-@container fd-area (min-width: 532px) {
-  .fd-dash-grid[data-footprint="standard"] > .fd-dash-cell:is([data-span="2"], [data-span="3"], [data-span="4"]) { grid-column: span 2; }
-}
-@container fd-area (min-width: 804px) {
-  .fd-dash-grid[data-footprint="standard"] > .fd-dash-cell:is([data-span="3"], [data-span="4"]) { grid-column: span 3; }
-}
-@container fd-area (min-width: 1076px) {
-  .fd-dash-grid[data-footprint="standard"] > .fd-dash-cell[data-span="4"] { grid-column: span 4; }
-}
-@container fd-area (min-width: 608px) {
-  .fd-dash-grid[data-footprint="compact"] > .fd-dash-cell:is([data-span="2"], [data-span="3"], [data-span="4"]) { grid-column: span 2; }
-}
-@container fd-area (min-width: 916px) {
-  .fd-dash-grid[data-footprint="compact"] > .fd-dash-cell:is([data-span="3"], [data-span="4"]) { grid-column: span 3; }
-}
-@container fd-area (min-width: 1224px) {
-  .fd-dash-grid[data-footprint="compact"] > .fd-dash-cell[data-span="4"] { grid-column: span 4; }
-}
+/* The Lovelace card's rows: tracks from the row's own width (the inline grid-template-columns), each module on its
+   own grid lines. A row that mixes footprints holds column stacks instead: each stack is one track, its modules 12 px
+   apart and two rows 8 px apart, and a bottom-aligned row sets each stack's foot on the row's. */
+.fd-dash-place, .fd-dash-stack { min-width: 0; }
+.fd-dash-grid[data-align="bottom"] { align-items: end; }
+.fd-dash-grid[data-footprint="mixed"] { align-items: start; }
+.fd-dash-grid[data-footprint="mixed"][data-align="bottom"] { align-items: end; }
+.fd-dash-stack { display: grid; gap: 12px; align-content: start; }
+.fd-dash-stack > .fd-dash-place[data-footprint="compact"] + .fd-dash-place[data-footprint="compact"] { margin-top: -4px; }
 
 /* `quiet` (a nursery's panel at night): an alarm holds its inversion from the start, with no flash. */
 .fd-dash[data-quiet] :is(.fd-module[data-level="alarm"] .fd-screen, .fd-module[data-level="alarm"] .fd-led, .fd-alerts-tag) { animation: none; }

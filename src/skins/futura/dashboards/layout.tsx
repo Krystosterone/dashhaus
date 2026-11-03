@@ -29,15 +29,17 @@ export interface FuturaSectionProps {
   id?: string;
   columns?: number;
   footprint?: FuturaFootprint;
+  /** The Lovelace card's placed grid: its element (measured for its tracks) and its tracks as an inline style. */
+  grid?: { ref: Ref<HTMLDivElement>; style: CSSProperties; tracks: number };
   children: ReactNode;
 }
 
 /** One titled Dashboard section and its responsive Card grid. */
-export function FuturaSection({ title, note, id, columns, footprint = "standard", children }: FuturaSectionProps) {
+export function FuturaSection({ title, note, id, columns, footprint = "standard", grid, children }: FuturaSectionProps) {
   return (
     <section id={id} data-section-id={id} className="futura-section" aria-label={title ?? "Other"}>
       {(title || note) && <div className="futura-section-head">{title && <h2>{title}</h2>}{note && <p>{note}</p>}</div>}
-      <div className="futura-grid" data-footprint={footprint} style={columns ? { "--futura-columns": columns } as Vars : undefined}>{children}</div>
+      <div ref={grid?.ref} className="futura-grid" data-footprint={footprint} data-tracks={grid?.tracks} style={grid ? grid.style : columns ? { "--futura-columns": columns } as Vars : undefined}>{children}</div>
     </section>
   );
 }

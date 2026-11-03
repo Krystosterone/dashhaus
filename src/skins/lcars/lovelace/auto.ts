@@ -1,7 +1,7 @@
 import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
 import type { AutoInput } from "@dashhaus/dashboard/layout";
 import { lcarsKindOf, LCARS_CARDS } from "./registry";
-import type { CardConfig, SectionConfig } from "./config";
+import type { CardConfig, RowLayoutConfig } from "./config";
 
 export type { AutoInput } from "@dashhaus/dashboard/layout";
 export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
@@ -20,5 +20,6 @@ export function autoCards(input: AutoInput): CardConfig[] {
   return sortByName([...others, ...(weather ? [weather] : []), ...sensors], (card) => friendlyName(states, card.entity));
 }
 
-export const areaSections = (cards: readonly CardConfig[]): SectionConfig[] =>
-  groupByArea(cards).map((group) => ({ kind: "section", title: group.area, cards: group.modules }));
+/** The automatic layout: a row per area, titled with its name, Cards by name. */
+export const areaRows = (cards: readonly CardConfig[]): RowLayoutConfig[] =>
+  groupByArea(cards).map((group) => ({ title: group.area, flow: "normal", align: "top", cards: group.modules.map((item) => ({ item, width: 1 })) }));

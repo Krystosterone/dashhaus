@@ -41,6 +41,8 @@ export function FieldPage({ title, quiet, viewing, nav, pageRef, children, ...he
 export interface AreaProps {
   /** The area's name, printed as its legend and naming the section. */
   title?: string;
+  /** Names an untitled area for a screen reader; none leaves it unnamed (a page's one plain grid). */
+  label?: string | null;
   /** False keeps the name for a screen reader but prints no legend: a page with one area. */
   legend?: boolean;
   /** Printed at the legend's end. */
@@ -51,15 +53,30 @@ export interface AreaProps {
   columns?: number;
   /** The grid's spacing: modules, or a column of 64 px rows with the rows' tighter gap. */
   footprint?: FieldFootprint;
+  /**
+   * The Lovelace card's placed grid: its element (measured for its tracks), its tracks as an inline style, and
+   * whether it holds column stacks. Left out, the grid fills itself from its width.
+   */
+  grid?: { ref: Ref<HTMLDivElement>; style: CSSProperties; tracks: number; stacks?: boolean; align?: "top" | "bottom" };
   children: ReactNode;
 }
 
 /** One area's modules under its printed legend, in a grid whose columns come from its own width. */
-export function Area({ title, legend = true, note, id, columns, footprint = "standard", children }: AreaProps) {
+export function Area({ title, label = "Other", legend = true, note, id, columns, footprint = "standard", grid, children }: AreaProps) {
   return (
-    <section id={id} data-section-id={id} className="fd-dash-area" aria-label={title ?? "Other"}>
+    <section id={id} data-section-id={id} className="fd-dash-area" aria-label={title ?? label ?? undefined}>
       {title && legend && <Legend as="h2" value={note}>{title}</Legend>}
-      <div className="fd-dash-grid" data-footprint={footprint} data-columns={columns} style={columns ? { "--fd-cols-max": columns } as Vars : undefined}>{children}</div>
+      <div
+        ref={grid?.ref}
+        className="fd-dash-grid"
+        data-footprint={grid?.stacks ? "mixed" : footprint}
+        data-columns={grid ? undefined : columns}
+        data-tracks={grid?.tracks}
+        data-align={grid?.align === "bottom" ? "bottom" : undefined}
+        style={grid ? grid.style : columns ? { "--fd-cols-max": columns } as Vars : undefined}
+      >
+        {children}
+      </div>
     </section>
   );
 }
@@ -69,10 +86,12 @@ export function Areas({ columns, children }: { columns: number; children: ReactN
   return <div className="fd-dash-areas" style={{ "--fd-cols": columns } as Vars}>{children}</div>;
 }
 
-/**
- * A module across more than one of its area's columns, where the area has that many; across all of them where it
- * has fewer. Up to four.
- */
-export function Cell({ span, children }: { span: number; children: ReactNode }) {
-  return <div className="fd-dash-cell" data-span={Math.min(Math.max(Math.round(span), 1), 4)}>{children}</div>;
+/** One module where the Lovelace card's layout placed it: its grid lines. */
+export function Place({ style, footprint, children }: { style?: CSSProperties; footprint?: FieldFootprint; children: ReactNode }) {
+  return <div className="fd-dash-place" data-footprint={footprint} style={style}>{children}</div>;
+}
+
+/** One column of a row that mixes footprints: its modules stacked, in YAML order. */
+export function Stack({ column, children }: { column?: number; children: ReactNode }) {
+  return <div className="fd-dash-stack" style={column ? { gridColumn: column } : undefined}>{children}</div>;
 }

@@ -1,0 +1,7 @@
+type: custom:dashhaus-orb
+title: Home
+columns: 2
+cards:
+  - light.living_room
+  - climate.living_room
+  - cover.living_room

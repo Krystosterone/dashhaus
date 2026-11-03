@@ -1,8 +1,9 @@
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
 import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import { mapModules, parseFieldConfig } from "./config";
-import type { BlockConfig, FieldConfig, ModuleConfig, PageConfig } from "./config";
-import { areaName, areaSections, autoModules } from "./auto";
+import { mapRowItems } from "@dashhaus/dashboard/schema";
+import { parseFieldConfig } from "./config";
+import type { FieldConfig, FieldRow, ModuleConfig, PageConfig } from "./config";
+import { areaName, areaRows, autoModules } from "./auto";
 import { FieldDashboard } from "./FieldDashboard";
 import { FIELD_FONT_HREF } from "../shared/surface";
 
@@ -20,8 +21,8 @@ const HOST_CSS = `
 
 /**
  * `type: custom:dashhaus-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
- * connection like `custom:dashhaus-orb`. Without `modules` or `sections` it draws every supported entity, grouped by
- * Home Assistant's areas.
+ * connection like `custom:dashhaus-orb`. Without `cards` or `rows` it draws every supported entity, a row per Home
+ * Assistant area.
  */
 export function createFieldCard(css: string): CustomElementConstructor {
   const styles = scopeToHost(css) + HOST_CSS;
@@ -30,7 +31,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
     protected readonly styles = styles;
     protected readonly mountClass = "fd-surface";
     protected readonly fontHref = FIELD_FONT_HREF;
-    #layout?: { key: unknown[]; blocks: BlockConfig[]; pages?: PageConfig[] };
+    #layout?: { key: unknown[]; rows: FieldRow[]; pages?: PageConfig[] };
 
     setConfig(raw: unknown) {
       this.#layout = undefined;
@@ -57,7 +58,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
     }
 
     protected draw(config: FieldConfig, hass: LovelaceHass) {
-      const { blocks, pages } = this.#layoutFor(config, hass);
+      const { rows, pages } = this.#layoutFor(config, hass);
       return (
         <FieldDashboard
           title={config.title}
@@ -65,7 +66,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
           showTime={config.showTime}
           hourCycle={config.hourCycle}
           viewing={config.viewing}
-          blocks={blocks}
+          rows={rows}
           pages={pages}
           nav={config.nav}
           footprint={config.footprint}
@@ -86,16 +87,16 @@ export function createFieldCard(css: string): CustomElementConstructor {
     }
 
     /**
-     * The main page, its `sections` or its modules by area, and the pages, every module with its area from the YAML
-     * or, failing that, the registries.
+     * The main page, its rows or the automatic layout's row per area, and the pages, every module with its area from
+     * the YAML or, failing that, the registries.
      */
     #layoutFor(config: FieldConfig, hass: LovelaceHass) {
       if (this.#layoutStale(hass)) {
         const input = autoInput(hass);
         const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
-        const blocks = config.sections ? mapModules(config.sections, place) : areaSections((config.modules ?? autoModules(input)).map(place));
-        const pages = config.pages?.map((p) => ({ ...p, blocks: mapModules(p.blocks, place) }));
-        this.#layout = { key: this.#key(hass), blocks, pages };
+        const rows = config.rows ? mapRowItems(config.rows, place) : areaRows(autoModules(input).map(place));
+        const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, place) }));
+        this.#layout = { key: this.#key(hass), rows, pages };
       }
       return this.#layout!;
     }
@@ -104,5 +105,5 @@ export function createFieldCard(css: string): CustomElementConstructor {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineFieldCard(css: string) {
-  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Dashhaus Field", "The field dashboard: hardware-style light, climate and sensor modules by room. Leave out `modules` to show every supported entity.");
+  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Dashhaus Field", "The field dashboard: hardware-style light, climate and sensor modules by room. Leave out `cards` and `rows` to show every supported entity by area.");
 }
