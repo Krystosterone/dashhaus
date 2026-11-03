@@ -27,7 +27,7 @@ What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what
 Current candidate notes: [0.2.0](releases/0.2.0.md), including the publish order, the changes since `0.1.0` and the
 tarball inspection.
 
-Every package ships a non-empty `README.md`; `files` keeps it in the tarball and `npm run verify:packages` refuses an empty one. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
+Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
@@ -45,7 +45,7 @@ npm install --package-lock-only
 The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`,
 including the scaffolder's `src/templates/standalone/package.json` so a newly scaffolded skin installs the same line.
 `scripts/release/manifest.js` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
-without `files`/`sideEffects`; `verify:packages` reads the packed template's ranges back.
+without `files`/`sideEffects`, or without `license: MIT`; `verify:packages` reads the packed template's ranges back.
 
 If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.js` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
 
@@ -134,10 +134,16 @@ Record on the release candidate: date and operator, Home Assistant version, cand
 
 ## CI
 
-`.github/workflows/ci.yml` is the pipeline: `unit_checks` (typecheck, lint, `build:ha`, then `release:pack` and `verify:packages`), two unit shards, two generator jobs, the `dx` clean-room journeys over the packed tarballs, and two Storybook shards. The required `check` job gathers the unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. The reasons behind its shape:
+`.github/workflows/ci.yml` is the pipeline: `checks` (typecheck, lint, `build:ha`), `unit` (every suite but the generator copies), two generator shards, `dx` (`release:pack`, `verify:packages`, then the clean-room journeys over the packed tarballs) and two Storybook shards. The required `check` job gathers the checks, unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. Every lane checks out and installs through `.github/actions/setup`, and the Docs workflow does too. The reasons behind its shape:
 
-- `--maxWorkers=2` gives a two-core runner both cores, for Vitest and for the Storybook runner, which otherwise leaves one idle. The generator lane needs no worker override: on a two-core runner Vitest already runs its three copy suites one at a time, and a copy is a serial chain of the repo's tools.
-- The unit suites are split by file across two runners because one runner spent 160s on them. The generator tests keep their own runner because they copy the repo and run its tools inside each copy. `npm run check` still runs typecheck, lint and every test locally, generators included.
+- Each lane is one runner's install (about 15s on a cache hit) plus its work, and the Storybook shards are the longest, so a lane is split only when it would outlast them. The release proof runs once, in `dx`, whose journeys need its tarballs anyway.
+- `node_modules` is cached whole, keyed on the manifests, and installed only on a miss; npm's download cache is restored only then. A cache hit still leaves the workspace links pointing at the same paths, because the checkout path is fixed.
+- `node_modules/.cache` is a cache of its own, saved per commit by `checks` and restored from the newest on the branch or main: TypeScript's incremental state (it hashes file contents) and ESLint's cache (`--cache-strategy content`, so a fresh checkout's timestamps don't invalidate it). The generator shards only restore it, so each repo copy's typecheck starts warm.
+- Vitest runs every project but the generators in the `vmForks` pool: a test file still gets its own module graph and globals, but jsdom loads once per worker instead of once per file, which was most of the suite's wall time. `--maxWorkers=2` gives a two-core runner both cores, for Vitest and for the Storybook runner.
+- The generator suites run on two runners: the new-skin copy alone, and the new-card and Field copies side by side, since each copy is a serial chain of the repo's tools. All three on one runner took longer than a Storybook shard. `verify/projects.test.ts` holds every suite to exactly one shard.
+- `test-storybook` builds Storybook in test mode (`storybook build --test`), which leaves out the docs pages it never visits; the Docs workflow's `build:docs` builds them in full. Its axe pass is injected once per page, not per story, and collects violations only. The Storybook and `dx` lanes install only Playwright's headless shell, cached per Playwright version; the runner image already has Chrome's system libraries.
+- A newer commit cancels the run in progress on the same branch or pull request; main keeps every run.
 - The `dx` journeys install only the packed tarballs and import nothing from this repository; a failure in either is a failure of the public surface, not a flaky integration.
-- A cache hit still leaves the workspace links pointing at the same paths, because the checkout path is fixed.
 - CI has no publish, tag or release step, and needs no secrets.
+
+The measurements behind each of these, and the options measured and rejected, are in `.agents/skills/test-speed/references/dashhaus-evidence.md`.

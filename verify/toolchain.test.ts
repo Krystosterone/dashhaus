@@ -41,15 +41,22 @@ describe("the pinned npm", () => {
   });
 
   it("is what CI enables with Corepack before anything runs npm", () => {
+    // Every lane installs through the one setup action, and it enables the pinned npm straight after setting Node up:
+    // nothing between the two runs Node's bundled npm. setup-node's `cache: npm` would (`npm config get cache`), and
+    // devEngines refuses it.
+    const setup = read(".github/actions/setup/action.yml");
+    const steps = setup.split(/^\s+- /m).slice(1);
+    expect(steps[0], "the setup action sets Node up first").toMatch(/uses: actions\/setup-node@/);
+    expect(steps[1], "and enables the pinned npm next").toMatch(/run: corepack enable npm/);
+    expect(setup.match(/uses: actions\/setup-node@/g)?.length).toBe(1);
+    expect(setup, "setup-node's npm cache runs the bundled npm before Corepack").not.toMatch(/^\s+cache: npm\s*$/m);
+    expect(setup.match(/run: npm ci\b/g)?.length, "one install, after Corepack").toBe(1);
+
     for (const path of [".github/workflows/ci.yml", ".github/workflows/docs.yml"]) {
       const workflow = read(path);
-      // Every job that sets Node up enables the pinned npm, and nothing between the two runs Node's bundled npm:
-      // setup-node's `cache: npm` would (`npm config get cache`), and devEngines refuses it.
-      const setups = workflow.match(/uses: actions\/setup-node@/g)?.length ?? 0;
-      expect(setups, path).toBeGreaterThan(0);
-      expect(workflow.match(/run: corepack enable npm/g)?.length, path).toBe(setups);
-      expect(workflow, `${path}: setup-node's npm cache runs the bundled npm before Corepack`).not.toMatch(/^\s+cache: npm\s*$/m);
-      expect(workflow.match(/run: npm ci/g)?.length ?? 0, path).toBeLessThanOrEqual(setups);
+      expect(workflow.match(/uses: \.\/\.github\/actions\/setup$/gm)?.length ?? 0, `${path} installs through the setup action`).toBeGreaterThan(0);
+      expect(workflow, `${path} sets Node up only through the setup action`).not.toMatch(/uses: actions\/setup-node@/);
+      expect(workflow, `${path} installs only through the setup action`).not.toMatch(/run: npm (?:ci|install)\b/);
     }
   });
 });

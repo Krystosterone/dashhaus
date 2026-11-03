@@ -107,3 +107,8 @@ humidifiers, sound machines and Owlet socks; Field draws the same domains as har
 | Export | What it is |
 | --- | --- |
 | `bundlePath` | `dashhaus.js` as a file `URL`; pass it through `fileURLToPath` to the deploy config |
+
+## License
+
+MIT — see `LICENSE`, shipped with this package. `dashhaus.js` also opens with the MIT notice for the React and
+ReactDOM it bundles; the same text ships as [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -2,11 +2,13 @@
   "name": "@dashhaus/bundle",
   "version": "0.2.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "sideEffects": false,
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "exports": {
     ".": {

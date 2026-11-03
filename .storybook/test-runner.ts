@@ -40,9 +40,14 @@ const config: TestRunnerConfig = {
       const lines = overflows.map(({ name, clientWidth, scrollWidth }) => `  ${name}: ${scrollWidth}px content in ${clientWidth}px module`);
       throw new Error(`Field module horizontal overflow\n${lines.join("\n")}`);
     }
-    await injectAxe(page);
+    // The runner renders every story of a file in the same page, so axe (half a megabyte of script) is injected once
+    // per page rather than once per story; a page that was reloaded has lost it and gets it again.
+    if (!(await page.evaluate(() => "axe" in window))) await injectAxe(page);
     const results = await getAxeResults(page, "#storybook-root", {
       runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+      // Only violations fail a story, so axe skips collecting every passing and inapplicable node, which is most of a
+      // run's work and of the result sent back from the page. Violations are reported in full either way.
+      resultTypes: ["violations"],
       rules: {
         ...(parameters.a11y?.config?.rules ?? {}),
         // axe's experimental label-content-name-mismatch demands the visible text appear verbatim

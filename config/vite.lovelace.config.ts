@@ -1,7 +1,11 @@
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+
+/** The bundled React and ReactDOM require their notice in every copy, including the deployed file. */
+const notice = readFileSync("packages/bundle/THIRD_PARTY_NOTICES.md", "utf8").trim();
 
 /** Fold every emitted stylesheet into the JS, where the card puts it in its shadow root. */
 function inlineCss(): Plugin {
@@ -45,6 +49,6 @@ export default defineConfig({
     cssCodeSplit: false,
     target: "es2022",
     lib: { entry: "apps/lovelace/entry.ts", formats: ["es"], fileName: () => "dashhaus.js" },
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    rollupOptions: { output: { inlineDynamicImports: true, banner: `/*!\n${notice}\n*/` } },
   },
 });
