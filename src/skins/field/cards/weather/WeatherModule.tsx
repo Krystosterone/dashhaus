@@ -5,7 +5,8 @@ import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText,
 import { normalizeReadings } from "@dashhaus/core/entities/history";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconWeather, conditionPict } from "./icons";
 import "./WeatherModule.css";
@@ -31,11 +32,6 @@ const DAYS = 5;
 const RAIN_SHOWN = 20;
 
 const rainText = (p?: number) => (p != null && p >= RAIN_SHOWN ? `${Math.round(p)}%` : "");
-
-/** A fixed-place temperature: the leading place is an unlit segment ("06.2"), heard as the real value. */
-function Temperature({ value, unit }: { value: number; unit: WeatherEntity["temperatureUnit"] }) {
-  return <><Digits text={fmt1(value)} places={4} /><small>{unit}</small></>;
-}
 
 /**
  * The home's outdoor conditions as a field module: a reading, so nothing on it is pressed but its name. Its glyph
@@ -102,10 +98,10 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
       meta={meta}
       lead={glyph}
       row={(
-        <div className="fd-wx-row">
+        <ModuleRow className="fd-wx-row">
           {glyph}
           <Today summary={rangeText(range) ?? undefined} label="Temperature by hour today." tone="neutral" samples={day?.samples} currentHour={history?.currentHour} />
-        </div>
+        </ModuleRow>
       )}
     >
       <WeatherDetails e={e} cond={cond} night={night} read={read} pict={pict} meta={meta} feels={feels} warnings={warnings} precip={precip} range={range} day={day?.samples} history={history} hourly={hourly} daily={daily} />
@@ -152,16 +148,13 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
 
   const hours = (hourly ?? []).filter((h) => h.hour > hour).slice(0, HOURS);
   const days = (daily ?? []).slice(0, DAYS);
-  const reported = unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `Updated ${e.lastUpdated}` : "";
+  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
 
   return (
-    <div className="fd-wx-panel" data-state={e.state}>
+    <PanelBody className="fd-wx-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {!unav && (warnings.length > 0 || words) && (
-        <ul className="fd-wx-say">
-          {warnings.map((w) => <li key={w}><Warn>{w}</Warn></li>)}
-          {words && <li>{words}</li>}
-        </ul>
+        <Notices className="fd-wx-say" warnings={warnings} words={words} />
       )}
       {history && (
         <Today
@@ -176,10 +169,8 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
       {!unav && <Hours hours={hours} />}
       {!unav && days.length > 0 && <Days days={days} />}
       {!unav && <Readings e={e} />}
-      <p className="fd-info">
-        <span>{reported}</span>
-      </p>
-    </div>
+      <Facts start={reported} />
+    </PanelBody>
   );
 }
 

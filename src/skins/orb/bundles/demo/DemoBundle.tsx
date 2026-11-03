@@ -3,11 +3,11 @@ import { ToggleTile } from "../../cards/toggle/ToggleTile";
 import { LightTile } from "../../cards/light/LightTile";
 import { ClimateTile } from "../../cards/climate/ClimateTile";
 import { SoundTile } from "../../cards/sound/SoundTile";
-import { TOGGLE_SEEDS, useDemoToggle } from "../../cards/toggle/demo/useDemoToggle";
-import { SEEDS as LIGHT_SEEDS, useDemoLight } from "../../cards/light/demo/useDemoLight";
-import { CLIMATE_SEEDS, useDemoClimate } from "../../cards/climate/demo/useDemoClimate";
-import { SOUND_SEEDS, useDemoSound } from "../../cards/sound/demo/useDemoSound";
-import type { ToggleSeedName } from "../../cards/toggle/demo/useDemoToggle";
+import { TOGGLE_SEEDS, useDemoToggle } from "@dashhaus/core/seeds/toggle";
+import { LIGHT_SEEDS as LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
+import { CLIMATE_SEEDS, useDemoClimate } from "@dashhaus/core/seeds/climate";
+import { SOUND_SEEDS, useDemoSound } from "@dashhaus/core/seeds/sound";
+import type { ToggleSeedName } from "@dashhaus/core/seeds/toggle";
 import type { CardFootprint } from "../../shared/ui";
 
 export type BundleName = "sleep" | "nursery" | "upstairs" | "stressJoined" | "stressLead" | "stressTitled";

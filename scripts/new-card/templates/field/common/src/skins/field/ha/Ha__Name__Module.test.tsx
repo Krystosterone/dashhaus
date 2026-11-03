@@ -7,10 +7,10 @@ import fixture from "@dashhaus/core/fixtures/__name__.json";
 
 const raw = fixture as HassEntities;
 const ID = "__fixtureId__";
-const renderLive = () => renderConnected(<Ha__Name__Module entityId={ID} loadHistory={false} />, raw);
+const renderLive = () => renderConnected(<Ha__Name__Module entityId={ID}__loadHistory__ />, raw);
 
 describe("Ha__Name__Module", () => {
-  it("sends each of its keys' presses to Home Assistant (a reading has none, so its presses call nothing)", async () => {
+  it("sends each of its keys' presses to Home Assistant, but none that asks first (a reading has none, so its presses call nothing)", async () => {
     const live = renderLive();
     await waitFor(() => expect(live.container.querySelector(".fd-module")?.getAttribute("data-state")).not.toBe("unavailable"));
     const keys = [...live.container.querySelectorAll<HTMLButtonElement>(".fd-key")];
@@ -20,7 +20,9 @@ describe("Ha__Name__Module", () => {
       for (const key of keys) fireEvent.click(key);
       await Promise.resolve();
     });
-    expect(live.callService.mock.calls.length - before).toBe(keys.length);
+    // A key that asks first opens the panel on its question instead; one that takes a code asks for it where the entity wants one.
+    expect(keys.length).toBeGreaterThanOrEqual(__sentAtOnce__);
+    expect(live.callService.mock.calls.length - before).toBe(__sentAtOnce__);
   });
 
   it("follows the store when the entity stops responding", async () => {

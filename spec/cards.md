@@ -178,6 +178,8 @@ import { HaAlarmTile } from "@dashhaus/orb";
 - **Codes.** When the code is needed, the sheet opens on a keypad.
   - Disarming needs it whenever `codeFormat` is set. Arming needs it too unless `codeArmRequired` is `false`; like Home Assistant, it defaults to required.
   - A physical keyboard works too: digits, Backspace, Enter.
+  - A text code (`codeFormat: "text"`) is typed into a real field in the dots' place, which takes the focus, so a phone or a wall panel brings up its own keyboard; its placeholder says letters work, and the digit keys still type into it. Enter in it submits.
+  - Arming with doors or windows open keeps the warning above the keypad ("Back door is open. Arming will leave it unguarded."), so it is still there at the moment of commitment. In both skins.
   - `onArm` and `onDisarm` may return a promise. The keypad waits ("Checking…", the dots breathe), then closes when the call is accepted.
   - Resolving `false` means a wrong code: the dots shake and clear. Rejecting means the call didn't go through: the keypad says so and keeps the code, so Enter tries again.
   - Some integrations accept a wrong code silently and just don't change state; the keypad then closes as if accepted, and the state stays as it was.
@@ -352,10 +354,10 @@ A door lock: one `lock.*`, composed with the battery `sensor.*` on its device. A
 - **Open door.** A lock with `supportsOpen` (Home Assistant's `LockEntityFeature.OPEN`) adds Open door to its sheet, behind the same question or keypad. Never on the card.
 - **A code to lock.** A lock that answers `wrong_code` to a tap (it wants a code to lock too) opens the sheet on the keypad for locking.
 - **Moving.** Locking, unlocking and opening replace the pill with the verb as a readout (no container), its words breathing; nothing is pressable until it lands, and a hold still opens the sheet.
-- **Warnings** lead the status line behind the shared warn marker, never brightness: Jammed first (the pill then offers Lock again), then a low battery (`Battery 12%`, at or under 15%, shared with the sensor through `@dashhaus/core/entities/battery`). Unlocked is a state, not a warning, however long it lasts.
+- **Warnings** lead the status line behind the shared warn marker, never brightness: Jammed first, saying what it means (`Jammed · may not be locked`; the pill then offers Lock again), then a low battery (`Battery 12%`, at or under 15%, shared with the sensor through `@dashhaus/core/entities/battery`). Unlocked is a state, not a warning, however long it lasts.
 - **Status line:** the area, or since when where there is none. The pill carries the state word and what a tap does (`Unlock…`, `Lock`).
-- **Featured and sheet:** the last change ("Locked at 10:58 by Keypad") and the battery, as a readout. No hourly history: a lock's day is its last change.
-- **Compact:** the padlock (its shackle shut or lifted, a mark when jammed), the name, and the state word; the pill from 320 px.
+- **Featured and sheet:** the battery, as a readout, and the small print every card has: the last change ("Last changed 10:58 by Keypad", `@dashhaus/core/entities/facts`) and whether it needs a code. No hourly history: a lock's day is its last change. The question names the lock, whatever it asks: "Unlock Front door?", "Open Front door?".
+- **Compact:** the padlock (its shackle shut or lifted, a mark when jammed), the name, and the state word; the pill from 320 px, with its verb (Unlocked · Lock) from 400 px.
 - **View only** (`readOnly`, or no `onLock` and `onUnlock`): the badge is static, the slot a readout ("Locked by Keypad"), and the sheet has nothing to press.
 
 The handlers never reject: `createLockHandlers` answers `"done"`, `"wrong_code"` or `"failed"` and reports failures through `onActionError`.

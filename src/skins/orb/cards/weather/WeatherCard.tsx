@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "@dashhaus/core/entities/weather/types";
 import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "@dashhaus/core/entities/weather/conditions";
 import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
+import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { ConditionIcon } from "./conditions";
-import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherCard.css";
 
@@ -135,7 +136,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
   else slot = <Reading now={t} feels={feels} label={readLabel} onOpen={sheet ? undefined : onOpenDetails} />;
 
   const nextHours = (hourly ?? []).filter((h) => h.hour > hour && h.hour <= hour + HOURS_AHEAD);
-  const hoursEmpty = unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : "No forecast yet";
+  const hoursEmpty = unav ? unavailableSince(e.lastSeen) : "No forecast yet";
 
   const now = t != null ? `${fmt1(t)}°` : null;
   const feelsText = feels != null ? `Feels ${deg0(feels)}` : null;
@@ -200,10 +201,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ""}</span>
-          <span>{!unav && e.lastUpdated ? `Updated ${e.lastUpdated}` : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : ""} end={!unav && updatedFact(e.lastUpdated)} />
       )}
     </article>
   );

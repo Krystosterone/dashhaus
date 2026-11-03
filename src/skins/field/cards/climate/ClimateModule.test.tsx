@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ClimateEntity } from "@dashhaus/core/entities/climate/types";
 import { ClimateModule } from "./ClimateModule";
-import { CLIMATE_SEEDS } from "./demo/useDemoClimate";
+import { CLIMATE_SEEDS, CLIMATE_WORST_CASE } from "@dashhaus/core/seeds/climate";
 
 function draw(entity: ClimateEntity, footprint?: "compact" | "standard") {
   return render(
@@ -58,7 +58,7 @@ describe("ClimateModule", () => {
 
   it("keeps an irregular Fahrenheit endpoint available to keyboard input", () => {
     const onRangeChange = vi.fn();
-    render(<ClimateModule entity={CLIMATE_SEEDS.worstCase.entity} onToggle={vi.fn()} onTargetChange={vi.fn()} onRangeChange={onRangeChange} />);
+    render(<ClimateModule entity={CLIMATE_WORST_CASE[0].entity} onToggle={vi.fn()} onTargetChange={vi.fn()} onRangeChange={onRangeChange} />);
     const high = screen.getByRole("slider", { name: "North-east open-plan living and dining heat pump, cool above" }) as HTMLInputElement;
     expect(high.value).toBe("95");
 

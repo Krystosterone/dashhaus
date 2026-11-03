@@ -1,7 +1,7 @@
 import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CardDialog, cardShape, detailsSheet, detailsTile, useCardFrame, useDetails } from "./card";
-import type { CardProps, CardSheetProps } from "./card";
+import type { ActionCardProps, CardProps, CardSheetProps } from "./card";
 
 describe("cardShape", () => {
   it("defaults to a standard card with its inline control", () => {
@@ -52,6 +52,25 @@ describe("useDetails", () => {
   it("starts open with defaultOpen", () => {
     const { result } = renderHook(() => useDetails(true));
     expect(result.current.open).toBe(true);
+  });
+
+  it("opens on an action, and forgets it when it closes", () => {
+    const { result } = renderHook(() => useDetails<"unlock">());
+    act(() => result.current.openDetails("unlock"));
+    expect(result.current).toMatchObject({ open: true, action: "unlock" });
+    act(() => result.current.closeDetails());
+    expect(result.current).toMatchObject({ open: false, action: undefined });
+  });
+
+  it("starts open on defaultAction", () => {
+    const { result } = renderHook(() => useDetails(false, "unlock"));
+    expect(result.current).toMatchObject({ open: true, action: "unlock" });
+  });
+
+  it("takes no action from a click handed straight through", () => {
+    const { result } = renderHook(() => useDetails<{ kind: string }>());
+    act(() => result.current.openDetails(new MouseEvent("click") as unknown as { kind: string }));
+    expect(result.current).toMatchObject({ open: true, action: undefined });
   });
 });
 
@@ -118,6 +137,18 @@ function TestSheet({ open, onClose, label, children }: CardSheetProps) {
 }
 
 const ProbeSheet = detailsSheet(Probe, TestSheet, (props) => `${props.entity.name} details`);
+
+/** A card with a guarded action: its Unlock opens the details on it, and its sheet says which. */
+function Ask({ entity, variant, onOpenDetails, action }: ActionCardProps<"unlock"> & { entity: { name: string } }) {
+  const frame = useCardFrame({ variant });
+  return (
+    <article {...frame.article} data-action={action}>
+      <button type="button" onClick={() => onOpenDetails?.()}>{entity.name}</button>
+      {!frame.sheet && <button type="button" onClick={() => onOpenDetails?.("unlock")}>Unlock</button>}
+    </article>
+  );
+}
+const AskTile = detailsTile(Ask, detailsSheet(Ask, TestSheet, (props) => `${props.entity.name} details`));
 const ProbeTile = detailsTile(Probe, ProbeSheet);
 const WrappedTile = detailsTile(Probe, ProbeSheet, "probe-c");
 
@@ -145,6 +176,20 @@ describe("detailsSheet and detailsTile", () => {
   it("wraps the card when the skin gives the tile its container", () => {
     const { container } = render(<WrappedTile entity={{ name: "Fan" }} />);
     expect(container.querySelector(".probe-c > article")).not.toBeNull();
+  });
+
+  it("opens the sheet on the action the card asks for, and starts on defaultAction", () => {
+    render(<AskTile entity={{ name: "Door" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Unlock" }));
+    expect(screen.getByRole("dialog", { name: "Door details" }).querySelector("[data-action]")?.getAttribute("data-action")).toBe("unlock");
+    fireEvent.click(screen.getByRole("button", { name: "close" }));
+    fireEvent.click(screen.getByRole("button", { name: "Door" }));
+    expect(screen.getByRole("dialog", { name: "Door details" }).querySelector("[data-action]")).toBeNull();
+  });
+
+  it("starts the sheet on defaultAction with defaultOpen", () => {
+    render(<AskTile entity={{ name: "Door" }} defaultOpen defaultAction="unlock" />);
+    expect(screen.getByRole("dialog", { name: "Door details" }).querySelector("[data-action]")?.getAttribute("data-action")).toBe("unlock");
   });
 
   it("names the wrappers after the card", () => {

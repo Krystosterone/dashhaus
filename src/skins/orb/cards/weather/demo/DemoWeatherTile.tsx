@@ -1,6 +1,6 @@
 import { WeatherTile } from "../WeatherTile";
-import { WEATHER_SEEDS } from "./weather";
-import type { WeatherSeedName, WeatherSeed } from "./weather";
+import { WEATHER_SEEDS } from "@dashhaus/core/seeds/weather";
+import type { WeatherSeedName, WeatherSeed } from "@dashhaus/core/seeds/weather";
 
 export interface DemoWeatherTileProps {
   /** Which example weather to show. */

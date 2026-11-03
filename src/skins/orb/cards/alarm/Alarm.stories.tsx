@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoAlarmTile as DemoTile } from "./demo/DemoAlarmTile";
-import { ALARM_WORST_CASE } from "./demo/useDemoAlarm";
+import { ALARM_WORST_CASE } from "@dashhaus/core/seeds/alarm";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const ALARMS = ["disarmed", "openDoor", "away", "custom", "arming", "armingUnknown", "pending", "disarming", "triggered", "armFree", "noCode", "ring", "unavailable"] as const;

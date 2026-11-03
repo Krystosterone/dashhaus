@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { WeatherModule } from "./WeatherModule";
-import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "./demo/weather";
-import type { WeatherSeed } from "./demo/weather";
+import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
+import type { WeatherSeed } from "@dashhaus/core/seeds/weather";
 
 const draw = ({ entity, history, hourly, daily }: WeatherSeed, footprint?: "compact" | "standard") =>
   render(<WeatherModule entity={entity} history={history} hourly={hourly} daily={daily} footprint={footprint} />).container;

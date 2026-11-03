@@ -7,13 +7,13 @@ export interface Ha__Name__ModuleProps extends Ha__Name__Options, Pick<__Name__M
   entityId: string;
 }
 
-/** A live __label__ module: the useHa__Name__ hook above field's module, with today's history. */
+/** A live __label__ module: the useHa__Name__ hook above field's module. */
 export function Ha__Name__Module({ entityId, footprint, defaultOpen, ...options }: Ha__Name__ModuleProps) {
-  const { entity, history__actions__ } = useHa__Name__(entityId, options);
+  const { entity__historyDestructure____actions__ } = useHa__Name__(entityId, options);
   return (
     <__Name__Module
       entity={entity}
-      history={history}
+__historyLive__
       __liveProps__
       footprint={footprint}
       defaultOpen={defaultOpen}

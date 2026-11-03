@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoLightTile as DemoTile } from "./demo/DemoLightTile";
-import { LIGHT_WORST_CASE } from "./demo/useDemoLight";
+import { LIGHT_WORST_CASE } from "@dashhaus/core/seeds/light";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 
@@ -20,7 +20,7 @@ const meta = {
   argTypes: {
     light: {
       control: "select",
-      options: ["dimmable", "dimmableOff", "dimmableNoWarmth", "onOff", "unavailable"],
+      options: ["dimmable", "dimmableOff", "dimmableNoWarmth", "whiteAndColour", "noReading", "onOff", "unavailable"],
       description: "Example light",
     },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
@@ -63,7 +63,7 @@ export const AllStates: Story = {
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {(["dimmable", "nightLight", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
+      {(["dimmable", "nightLight", "whiteAndColour", "dimmableOff", "onOff", "noReading", "unavailable"] as const).map((light) => (
         <DemoTile key={light} light={light} width={width} footprint={footprint} />
       ))}
     </div>

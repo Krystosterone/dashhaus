@@ -64,6 +64,16 @@ describe("UI language: one meaning per signal", () => {
     expect(bad).toEqual([]);
   });
 
+  it("dashed is unavailable and nothing else: only an outline is dashed, never a border or separator", () => {
+    const bad: string[] = [];
+    for (const f of cssFiles) {
+      for (const m of css(f).matchAll(/(?:^|;|\{)\s*([a-z-]+)\s*:\s*[^;}]*\bdashed\b/g)) {
+        if (m[1] !== "outline") bad.push(`${f}: ${m[1]} is dashed`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
   it("buttons and grooves come from the shared surface tokens", () => {
     const t = css(`${SKIN}/styles/tokens.css`);
     for (const name of ["--btn", "--btn-shadow", "--groove", "--groove-shadow"]) expect(t, name).toContain(`${name}:`);

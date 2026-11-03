@@ -16,13 +16,14 @@ release notes; an additive change is a minor one.
 | `./entities`, `./entities/*` | The normalized, skin-free entity models and their pure logic. Raw Home Assistant state never enters them. |
 | `./primitives` | The headless interaction hooks: press, slider, range slider, sheet, keypad |
 | `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `useDemoClimate` |
+| `./seeds/*` | Every skin's demo seeds, one module per domain: `<NAME>_SEEDS`, `<NAME>_WORST_CASE`, their types and the domain's `useDemo<Name>` |
 | `./perf` | The opt-in marks; documented in [performance.md](performance.md) |
 | `./websocket` | The one module that imports `home-assistant-js-websocket`, plus `connectHomeAssistant(auth)` |
 
 React 18.3+ and React 19 are both supported peers; the repo's own suites run React 18, and a clean consumer install,
 typecheck and build on React 19 holds the wider range.
 
-`./demo`, `./testing` and `./fixtures/*` are for Storybook and tests. They are additive conveniences, not a production
+`./seeds/*`, `./demo`, `./testing` and `./fixtures/*` are for Storybook and tests. They are additive conveniences, not a production
 surface: their seeds and rendered output may change without a breaking release.
 
 Internal, and free to change without notice:
@@ -49,8 +50,18 @@ the application boundary; a card never connects or disconnects the store itself.
 
 The `useHa<Name>` hooks return `{ entity, history, actions }`; a read-only domain returns `{ entity, history }` (weather
 also returns `hourly` and `daily`). `entity` is the normalized model, `history` is today's parsed slice, and `actions`
-is the domain's handlers. The hook accepts the options its `Ha<Name>Options` type declares; `name`, `loadHistory={false}`
-and `onActionError` are the common ones.
+is the domain's handlers (a lock has no history: its day is its last change). The hook accepts the options its
+`Ha<Name>Options` type declares; `name`, `loadHistory={false}` and `onActionError` are the common ones.
+
+Beside its handlers each domain declares what its actions are, `<NAME>_ACTIONS: ActionKinds<<Name>Handlers>`
+(`ha/actions/kinds.ts`): what a press gives the handler (`takes`: `nothing`, a `code`, or a `value` a press can't give)
+and whether it asks first (`asks: true`). The type covers every handler, optional ones included, so a new one can't go
+undeclared. The generators read it (`scripts/domains.js`) to draw a tap as a button, an action that asks first or takes
+a code through the skin's Confirm and Keypad on `useGuardedAction`, and to leave a value out; a skin's own card reads it
+when it wants to know the same.
+
+The words of a card's small print are `entities/facts.ts`, the same on every card and in every skin: `lastSeenFact`,
+`unavailableSince`, `sinceFact`, `lastChangedFact` (with who changed it) and `updatedFact`.
 
 ### Headless components and hooks
 
@@ -150,6 +161,11 @@ rate.
   typed service calls in `calls`, and can emit a whole map or patch one entity (`emitEntity(id, patch)`).
 - `./demo` exports `createDemoStore()`, the demo house behind the real store, and the per-domain demo transports used
   by Storybook.
+- `./seeds/<name>` is one domain's demo seeds for every skin's card stories: its examples (`<NAME>_SEEDS`, with an
+  unavailable one), its worst cases (`<NAME>_WORST_CASE`), their types, and `useDemo<Name>`, local state that behaves
+  like the entity for a story to press. A card's stories draw on them, so every skin shows the same examples; a skin
+  never keeps a copy, and the generators import them rather than write one. Unlike `./demo`, they reach no Home
+  Assistant layer, so a card folder may import them.
 
 ```tsx
 import { HaProvider } from "@dashhaus/core";
@@ -177,10 +193,11 @@ Both are additive: a test may use them, and their seeds can change.
 - `useSlider` and `useRangeSlider` (`slider.ts`) are a horizontal track: pointer input on a hit layer (mouse jumps on press, touch on a tap or the first sideways move, so a scroll never sets a value; `data-anim` only on a jump), and a hidden native range input for keyboard and screen readers, with its value text. A range keeps its reported ends: pointer steps count from `min`, keys step from the value, and the hidden input keeps its native `step` only while `min`, `max` and the value sit on the step's grid (otherwise `step="any"`, or the browser rounds the value it shows).
 - `useSheet` (`sheet.ts`) is a native modal `<dialog>`: mount, show, scroll lock, `data-closing` exit, Escape and backdrop close, and drag down to close on phones.
 - `useKeypad` (`keypad.ts`) is a code keypad: the code typed so far, digits, delete and enter from its keys or a physical keyboard, and the answer (busy, a wrong code cleared, a failed call kept for another try).
+- `useGuardedAction` (`guarded.ts`) is an action that asks first (a lock's unlock, an alarm's disarm): the action waiting on its answer, answered by a question (`confirm`) or a code (`submit`, shaped for `useKeypad`), busy and failed, a refused code moving the question to the keypad, `attempt` for a tap that runs at once unless the entity wants a code, and the question closing when the entity gets there by itself (`settled`). A card on the dashboard hands the action to its details (`askElsewhere`); the details surface holds it. Each skin draws it with its own `Confirm` and `Keypad` parts, whose question guards its press with `useSettled`.
 
 A primitive used in a list goes in a small skin component (`Chip`, `Segment`), not a hand-written `aria-pressed` per item. A one-of-several group of latching keys (`ChoiceChips`, alarm segments, Field's mode keys) uses `usePress` per key, not a radiogroup primitive: roving focus and radio semantics would be new behaviour and a restyle of the chosen key. Radix was weighed and not adopted: its slider sets a value on a touch press and its dialog's focus trap fails in the card's shadow root, so each primitive is the repo's own hook. Add one only when a skin needs it.
 
-Primitives have no Storybook stories. A primitive is behaviour without markup, so a story would have to invent markup and styles that belong to no skin, and what it showed would be wrong in the ways that matter: a track's scroll-or-set on touch depends on the skin's `touch-action: pan-y`, a press on its `:active` feedback, the sheet's motion on its CSS. That story would pass axe and still prove nothing about either skin. The contracts are pinned by the unit tests beside each hook (`press.test.tsx`, `slider.test.tsx`, `sheet.test.tsx`, `keypad.test.tsx`), and every skin exercises them in its card stories: `usePress` on any card's orb or key, `useSlider` on Light → Sizes, `useRangeSlider` on Climate → Heat/cool range (orb) or Auto range (field), `useSheet` on any card's Details, phone, `useKeypad` on Alarm → Details, keypad. Feel a primitive there, on a phone. If a third skin ever wants to try one before it has cards, revisit this.
+Primitives have no Storybook stories. A primitive is behaviour without markup, so a story would have to invent markup and styles that belong to no skin, and what it showed would be wrong in the ways that matter: a track's scroll-or-set on touch depends on the skin's `touch-action: pan-y`, a press on its `:active` feedback, the sheet's motion on its CSS. That story would pass axe and still prove nothing about either skin. The contracts are pinned by the unit tests beside each hook (`press.test.tsx`, `slider.test.tsx`, `sheet.test.tsx`, `keypad.test.tsx`, `guarded.test.tsx`), and every skin exercises them in its card stories: `usePress` on any card's orb or key, `useSlider` on Light → Sizes, `useRangeSlider` on Climate → Heat/cool range (orb) or Auto range (field), `useSheet` on any card's Details, phone, `useKeypad` on Alarm → Details, keypad, `useGuardedAction` on Lock → Details, unlock and Details, code. Feel a primitive there, on a phone. If a third skin ever wants to try one before it has cards, revisit this.
 
 ## What is not stable
 

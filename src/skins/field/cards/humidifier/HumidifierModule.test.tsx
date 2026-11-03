@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HumidifierModule } from "./HumidifierModule";
 import type { HumidifierModuleProps } from "./HumidifierModule";
-import { HUMIDIFIER_SEEDS } from "./demo/useDemoHumidifier";
+import { HUMIDIFIER_SEEDS } from "@dashhaus/core/seeds/humidifier";
 
 /*
  * What every field module does, whatever it is: its keys (a control's; a reading has none) press, a lit LED says on,

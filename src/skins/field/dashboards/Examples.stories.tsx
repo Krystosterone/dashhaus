@@ -4,35 +4,35 @@ import type { ReactNode } from "react";
 import { FieldPage, Area, Areas } from "./layout";
 import type { FieldFootprint } from "../shared/ui";
 import { LightModule } from "../cards/light/LightModule";
-import { useDemoLight } from "../cards/light/demo/useDemoLight";
-import type { SeedName as LightSeedName } from "../cards/light/demo/useDemoLight";
+import { LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
+import type { LightSeedName as LightSeedName } from "@dashhaus/core/seeds/light";
 import { ClimateModule } from "../cards/climate/ClimateModule";
-import { CLIMATE_SEEDS, useDemoClimate } from "../cards/climate/demo/useDemoClimate";
-import type { ClimateSeedName } from "../cards/climate/demo/useDemoClimate";
+import { CLIMATE_SEEDS, useDemoClimate } from "@dashhaus/core/seeds/climate";
+import type { ClimateSeedName } from "@dashhaus/core/seeds/climate";
 import { SensorModule } from "../cards/sensor/SensorModule";
-import { SENSOR_SEEDS } from "../cards/sensor/demo/sensors";
-import type { SensorSeedName } from "../cards/sensor/demo/sensors";
+import { SENSOR_SEEDS } from "@dashhaus/core/seeds/sensor";
+import type { SensorSeedName } from "@dashhaus/core/seeds/sensor";
 import { WeatherModule } from "../cards/weather/WeatherModule";
-import { WEATHER_SEEDS } from "../cards/weather/demo/weather";
-import type { WeatherSeedName } from "../cards/weather/demo/weather";
+import { WEATHER_SEEDS } from "@dashhaus/core/seeds/weather";
+import type { WeatherSeedName } from "@dashhaus/core/seeds/weather";
 import { ToggleModule } from "../cards/toggle/ToggleModule";
-import { TOGGLE_SEEDS, useDemoToggle } from "../cards/toggle/demo/useDemoToggle";
-import type { ToggleSeedName } from "../cards/toggle/demo/useDemoToggle";
+import { TOGGLE_SEEDS, useDemoToggle } from "@dashhaus/core/seeds/toggle";
+import type { ToggleSeedName } from "@dashhaus/core/seeds/toggle";
 import { HumidifierModule } from "../cards/humidifier/HumidifierModule";
-import { HUMIDIFIER_SEEDS, useDemoHumidifier } from "../cards/humidifier/demo/useDemoHumidifier";
-import type { HumidifierSeedName } from "../cards/humidifier/demo/useDemoHumidifier";
+import { HUMIDIFIER_SEEDS, useDemoHumidifier } from "@dashhaus/core/seeds/humidifier";
+import type { HumidifierSeedName } from "@dashhaus/core/seeds/humidifier";
 import { SoundModule } from "../cards/sound/SoundModule";
-import { SOUND_SEEDS, useDemoSound } from "../cards/sound/demo/useDemoSound";
-import type { SoundSeedName } from "../cards/sound/demo/useDemoSound";
+import { SOUND_SEEDS, useDemoSound } from "@dashhaus/core/seeds/sound";
+import type { SoundSeedName } from "@dashhaus/core/seeds/sound";
 import { CoverModule } from "../cards/cover/CoverModule";
-import { COVER_SEEDS, useDemoCover } from "../cards/cover/demo/useDemoCover";
-import type { CoverSeedName } from "../cards/cover/demo/useDemoCover";
+import { COVER_SEEDS, useDemoCover } from "@dashhaus/core/seeds/cover";
+import type { CoverSeedName } from "@dashhaus/core/seeds/cover";
 import { AlarmModule } from "../cards/alarm/AlarmModule";
-import { ALARM_SEEDS, useDemoAlarm } from "../cards/alarm/demo/useDemoAlarm";
-import type { AlarmSeedName } from "../cards/alarm/demo/useDemoAlarm";
+import { ALARM_SEEDS, useDemoAlarm } from "@dashhaus/core/seeds/alarm";
+import type { AlarmSeedName } from "@dashhaus/core/seeds/alarm";
 import { OwletModule } from "../cards/owlet/OwletModule";
-import { OWLET_SEEDS } from "../cards/owlet/demo/socks";
-import type { OwletSeedName } from "../cards/owlet/demo/socks";
+import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
+import type { OwletSeedName } from "@dashhaus/core/seeds/owlet";
 
 /*
  * Examples of composing a field page, one per device. They show the composition rules (spec/field.md → Dashboards),
@@ -63,7 +63,7 @@ const placed = <T extends { area?: string; name: string }>(entity: T, { area, na
   ({ ...entity, ...(area ? { area } : {}), ...(name ? { name } : {}) });
 
 function Light({ seed, footprint, ...own }: Placed & { seed: LightSeedName }) {
-  const demo = useDemoLight(seed);
+  const demo = useDemoLight(LIGHT_SEEDS[seed]);
   return <LightModule {...demo} entity={placed(demo.entity, own)} footprint={footprint} />;
 }
 function Climate({ seed, footprint, ...own }: Placed & { seed: ClimateSeedName }) {
@@ -140,14 +140,14 @@ function PhonePage({ footprint, sock }: { footprint: FieldFootprint; sock: Owlet
       </Area>
       <Area title="Nursery" {...f}>
         <Owlet seed={sock} area="Nursery" {...f} />
-        <Light seed="colour" area="Nursery" {...f} />
+        <Light seed="nightLight" area="Nursery" {...f} />
         <Sound seed="on" area="Nursery" {...f} />
         <Humidifier seed="on" area="Nursery" name="Humidifier" {...f} />
       </Area>
       <Area title="Rooms" {...f}>
-        <Sensor seed="indoor" {...f} />
-        <Sensor seed="humid" {...f} />
-        <Sensor seed="lowBattery" {...f} />
+        <Sensor seed="living" {...f} />
+        <Sensor seed="bathroom" {...f} />
+        <Sensor seed="basement" {...f} />
         <Sensor seed="outdoor" {...f} />
       </Area>
     </FieldPage>
@@ -172,13 +172,13 @@ export const Tablet: Story = {
       <FieldPage title="Home" now={NOW} showTime>
         <Area title="Living room">
           <Light seed="dimmable" area="Living room" />
-          <Light seed="off" area="Living room" />
+          <Light seed="dimmableOff" area="Living room" />
           <Climate seed="heating" area="Living room" />
           <Cover seed="curtains" area="Living room" />
         </Area>
         <Area title="Nursery">
           <Owlet seed="deep" area="Nursery" />
-          <Light seed="colour" area="Nursery" />
+          <Light seed="nightLight" area="Nursery" />
           <Sound seed="on" area="Nursery" />
           <Humidifier seed="on" area="Nursery" name="Humidifier" />
         </Area>
@@ -202,11 +202,11 @@ function WallPage({ viewing }: { viewing?: "far" }) {
           <Light seed="dimmable" area="Living room" />
           <Climate seed="heating" area="Living room" />
           <Cover seed="curtains" area="Living room" footprint="compact" />
-          <Sensor seed="indoor" name="Air" footprint="compact" />
+          <Sensor seed="living" name="Air" footprint="compact" />
         </Area>
         <Area title="Nursery">
           <Owlet seed="deep" area="Nursery" />
-          <Light seed="colour" area="Nursery" />
+          <Light seed="nightLight" area="Nursery" />
           <Sound seed="on" area="Nursery" footprint="compact" />
           <Humidifier seed="on" area="Nursery" name="Humidifier" footprint="compact" />
         </Area>

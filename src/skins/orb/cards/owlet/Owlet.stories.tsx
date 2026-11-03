@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoOwletTile as DemoTile } from "./demo/DemoOwletTile";
-import { OWLET_WORST_CASE } from "./demo/socks";
+import { OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["deep", "light", "awake", "unknown", "baseOff", "stale", "lowOxygen", "critical", "sockOff", "lowBattery", "charging", "unavailable", "long"] as const;

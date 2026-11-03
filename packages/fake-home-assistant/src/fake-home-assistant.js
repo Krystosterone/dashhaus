@@ -69,13 +69,18 @@ export class FakeHomeAssistant {
     return Object.values(this.registries.areas);
   }
 
-  /** `light`/`switch`/`input_boolean` turn_on, turn_off and toggle, and a light's brightness; anything else is accepted unchanged. */
+  /**
+   * `light`/`switch`/`input_boolean` turn_on, turn_off and toggle, a light's brightness, and a lock's lock, unlock and
+   * open; anything else is accepted unchanged.
+   */
   callService({ domain, service, service_data: data = {}, target = {} }) {
     const ids = [].concat(target.entity_id ?? data.entity_id ?? []);
     for (const id of ids) {
       const state = this.states[id];
       if (!state) throw new Error(`Entity ${id} not found`);
-      const next = service === "turn_on" ? "on" : service === "turn_off" ? "off" : service === "toggle" ? (state.state === "on" ? "off" : "on") : state.state;
+      const LOCK = { lock: "locked", unlock: "unlocked", open: "open" };
+      const next = service === "turn_on" ? "on" : service === "turn_off" ? "off" : service === "toggle" ? (state.state === "on" ? "off" : "on")
+        : domain === "lock" && service in LOCK ? LOCK[service] : state.state;
       const attributes = { ...state.attributes };
       if (domain === "light") {
         if (data.brightness_pct != null) attributes.brightness = Math.round(data.brightness_pct * 2.55);

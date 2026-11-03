@@ -57,7 +57,7 @@ export interface FakeEntityRegistryDisplay {
   entities: FakeEntityRegistryDisplayEntry[];
 }
 
-/** A small house: four areas, lights, room sensors, a switch, a thermostat and the weather. */
+/** A small house: four areas, lights, room sensors, a switch, a thermostat, a front-door lock and the weather. */
 export const HOUSE_AREAS: FakeArea[];
 
 /** The sample house as `get_states` returns it. */

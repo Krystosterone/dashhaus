@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { __Skin____Name__Card } from "./__Skin____Name__Card";
-import { __seedConst__ } from "./demo/__seedFile__";
+import { __seedConst__ } from "__seeds__";
 
 const draw = (seed: keyof typeof __seedConst__, defaultOpen = false) => render(<__Skin____Name__Card entity={__seedConst__[seed].entity}__testProps__ defaultOpen={defaultOpen} />);
 

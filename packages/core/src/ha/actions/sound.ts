@@ -2,11 +2,18 @@ import type { SoundEntity } from "../../entities/sound/types";
 import type { SoundVolumeRange } from "../mappers/sound";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 export interface SoundHandlers {
   onToggle: () => void;
   onVolumeChange?: (percent: number) => void;
 }
+
+/** What each handler is, for a card drawing sound without knowing it (`ActionKind`). */
+export const SOUND_ACTIONS = {
+  onToggle: { takes: "nothing" },
+  onVolumeChange: { takes: "value" },
+} as const satisfies ActionKinds<SoundHandlers>;
 
 export interface SoundHandlerOptions {
   onError?: (error: HaActionError) => void;

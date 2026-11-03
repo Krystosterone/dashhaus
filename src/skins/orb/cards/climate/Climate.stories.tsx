@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoClimateTile as DemoTile } from "./demo/DemoClimateTile";
-import { CLIMATE_WORST_CASE } from "./demo/useDemoClimate";
+import { CLIMATE_WORST_CASE } from "@dashhaus/core/seeds/climate";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const UNITS = ["heating", "cooling", "range", "off", "unavailable"] as const;
+const UNITS = ["heating", "cooling", "range", "dry", "fan", "off", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Climate",

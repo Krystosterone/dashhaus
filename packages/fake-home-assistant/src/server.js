@@ -264,7 +264,9 @@ const connection = {
       const id = message.target?.entity_id ?? message.service_data?.entity_id;
       const state = states[id];
       if (!state) throw { code: "not_found", message: "Entity " + id + " not found" };
-      const next = message.service === "turn_on" ? "on" : message.service === "turn_off" ? "off" : message.service === "toggle" ? (state.state === "on" ? "off" : "on") : state.state;
+      const LOCK = { lock: "locked", unlock: "unlocked", open: "open" };
+      const next = message.service === "turn_on" ? "on" : message.service === "turn_off" ? "off" : message.service === "toggle" ? (state.state === "on" ? "off" : "on")
+        : message.domain === "lock" && message.service in LOCK ? LOCK[message.service] : state.state;
       const attributes = { ...state.attributes, ...(message.service_data?.brightness != null ? { brightness: message.service_data.brightness } : {}) };
       if (message.service_data?.brightness_pct != null) attributes.brightness = Math.round(message.service_data.brightness_pct * 2.55);
       states[id] = { ...state, state: next, attributes, last_changed: new Date().toISOString() };

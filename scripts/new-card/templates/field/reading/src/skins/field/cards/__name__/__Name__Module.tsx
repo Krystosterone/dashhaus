@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
-import { Blank, Glyph, ModuleFrame, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
+import { lastSeenFact } from "@dashhaus/core/entities/facts";
+import { Blank, Facts, Glyph, ModuleFrame, ModuleRow, PanelBody, Pictogram, Screen, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
 import "./__Name__Module.css";
@@ -8,8 +9,7 @@ import "./__Name__Module.css";
 export interface __Name__ModuleProps {
   entity: __Name__Entity;
   footprint?: FieldFootprint;
-  /** Today, on the module's meter and in the panel. Omit and the meter's hours stay dark. */
-  history?: __Name__History;
+__historyProp__
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
 }
@@ -23,7 +23,7 @@ const words = (state: string) => state.replace(/[_-]+/g, " ");
  * --skin field`: the screen's figure is blank segments and its meta line the state, until you give it the
  * __label__'s own reading.
  */
-export function __Name__Module({ entity: e, footprint = "standard", history, defaultOpen = false }: __Name__ModuleProps) {
+export function __Name__Module({ entity: e__historyArg__, footprint = "standard", defaultOpen = false }: __Name__ModuleProps) {
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
 
@@ -31,24 +31,15 @@ export function __Name__Module({ entity: e, footprint = "standard", history, def
   const read: ReactNode = <Blank label={unav ? "Unavailable" : "No figure yet"} />;
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : [words(e.state)];
   const glyph = <Glyph unavailable={unav}><Icon__Name__ /></Glyph>;
-  const today = (
-    <Today
-      label="__Label__ by hour today."
-      tone="neutral"
-      __samplesProp__
-      currentHour={history?.currentHour}
-    />
-  );
+__readingTodayConst__
 
   return (
-    <ModuleFrame kind="fd-__code__" name={e.name}__areaProp__ footprint={footprint} state={e.state} details={details} pict={pict} read={read} meta={meta} lead={glyph} row={<div className="fd-__code__-row">{glyph}{today}</div>}>
-      <div className="fd-__code__-panel" data-state={e.state}>
+    <ModuleFrame kind="fd-__code__" name={e.name}__areaProp__ footprint={footprint} state={e.state} details={details} pict={pict} read={read} meta={meta} lead={glyph} row={<ModuleRow className="fd-__code__-row">{glyph}__readingToday__</ModuleRow>}>
+      <PanelBody className="fd-__code__-panel" state={e.state}>
         <Screen pict={pict} meta={meta}>{read}</Screen>
-        {today}
-        <p className="fd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : ""}</span>
-        </p>
-      </div>
+        __readingToday__
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : ""} />
+      </PanelBody>
     </ModuleFrame>
   );
 }

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoToggleTile as DemoTile } from "./demo/DemoToggleTile";
-import { TOGGLE_WORST_CASE } from "./demo/useDemoToggle";
+import { TOGGLE_WORST_CASE } from "@dashhaus/core/seeds/toggle";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const MODES = ["dnd", "quiet", "guest", "away", "unavailable"] as const;

@@ -1,9 +1,12 @@
+import { useEffect, useId, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { usePress } from "@dashhaus/core/primitives";
+import { useKeypad, usePress } from "@dashhaus/core/primitives";
+import { useSettled } from "@dashhaus/core/hooks";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
 import { CardDialog, cardShape, useCardFrame } from "@dashhaus/dashboard/card";
 import type { Details } from "@dashhaus/dashboard/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
+import { fmt1 } from "@dashhaus/core/entities/format";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -25,6 +28,9 @@ const IconClose = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 
 const STEP_STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" } as const;
 const IconMinus = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE}><path d="M6 12h12" /></svg>;
 const IconPlus = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE}><path d="M6 12h12M12 6v12" /></svg>;
+const IconCancel = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE} strokeLinejoin="round"><path d="M7 7l10 10M17 7 7 17" /></svg>;
+const IconDelete = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE} strokeLinejoin="round"><path d="M9 6h10.5v12H9l-5-6ZM11.5 9.5l5 5M16.5 9.5l-5 5" /></svg>;
+const IconEnter = () => <svg viewBox="0 0 24 24" aria-hidden="true" {...STEP_STROKE} strokeLinejoin="round"><path d="M6 12.5 10 16.5 18 8" /></svg>;
 const IconWarn = () => <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5 11 10.5H1Z" /><path d="M6 5v2.5M6 8.75v.25" /></svg>;
 
 export interface ModuleProps {
@@ -131,6 +137,86 @@ export function Key({ label, pressed, led, chosen, disabled, unavailable, onPres
   );
 }
 
+export interface KeyGroupProps {
+  /** The printed legend over the keys, which names the group; without it, `label` does. */
+  legend?: string;
+  /** Printed at the legend's end: the current choice. */
+  value?: ReactNode;
+  /** The group's spoken name where it has no legend. */
+  label?: string;
+  /** Keys to a row. Omit and every key shares one row. */
+  columns?: number;
+  /** Keys to a row on a narrow panel (300 px and under; with `narrowAt` 420, under 420 px). */
+  narrow?: number;
+  narrowAt?: 300 | 420;
+  /** The card's own class, for what only it does with its keys. */
+  className?: string;
+  children: ReactNode;
+  [data: `data-${string}`]: string | number | boolean | undefined;
+}
+
+/**
+ * A standard module's row under its screen: the key, or a reading's glyph, in its 44 px column, then its fader or
+ * today. `solo` when there is nothing beside the key (no level to set): the key spans the row. The card's own class
+ * goes beside the row's, for what only it does there.
+ */
+export function ModuleRow({ solo, className, children, ...data }: { solo?: boolean; className?: string; children: ReactNode; [data: `data-${string}`]: string | number | boolean | undefined }) {
+  return <div className={className ? `fd-row ${className}` : "fd-row"} data-solo={solo || undefined} {...data}>{children}</div>;
+}
+
+/**
+ * A detail panel's content under its header: the screen, then each block, a column 16 px apart. It is the container
+ * its key groups and blocks read their width from. `state` is the entity's, for the card's styling hooks.
+ */
+export function PanelBody({ className, state, children }: { className?: string; state: string; children: ReactNode }) {
+  return <div className={className ? `fd-panel-body ${className}` : "fd-panel-body"} data-state={state}>{children}</div>;
+}
+
+/**
+ * What the panel prints under its screen in full: every warning sounding, behind its marker, then what it is in words
+ * (the sky, a sock's sleep). Wrapped, never cut.
+ */
+export function Notices({ warnings = [], words, className }: { warnings?: string[]; words?: ReactNode; className?: string }) {
+  return (
+    <ul className={className ? `fd-notices ${className}` : "fd-notices"}>
+      {warnings.map((w) => <li key={w}><Warn>{w}</Warn></li>)}
+      {words != null && words !== "" && <li>{words}</li>}
+    </ul>
+  );
+}
+
+/**
+ * A row of keys under a printed legend: a mode, a preset, quick levels, a door's Lock and Open. Each key fills its
+ * cell, `columns` to a row (every key on one row without it), `narrow` to a row on a narrow panel. `choices` gives the
+ * usual count for n choices.
+ */
+export function KeyGroup({ legend, value, label, columns, narrow, narrowAt, className, children, ...data }: KeyGroupProps) {
+  const uid = useId();
+  const style = { ...(columns ? { "--fd-keys-n": columns } : {}), ...(narrow ? { "--fd-keys-narrow": narrow } : {}) } as Vars;
+  const keys = (
+    <div
+      className={className ? `fd-keys ${className}` : "fd-keys"}
+      role="group"
+      aria-label={legend ? undefined : label}
+      aria-labelledby={legend ? `${uid}-l` : undefined}
+      data-columns={columns}
+      data-narrow={narrow}
+      data-narrow-at={narrow && narrowAt === 420 ? 420 : undefined}
+      style={columns || narrow ? style : undefined}
+      {...data}
+    >
+      {children}
+    </div>
+  );
+  return legend ? <div className="fd-block"><Legend id={`${uid}-l`} value={value}>{legend}</Legend>{keys}</div> : keys;
+}
+
+/**
+ * Keys to a row for n choices: three, or four rather than three and an orphan, and four from seven, so the last row
+ * never holds one key alone.
+ */
+export const choices = (n: number) => (n === 4 || n >= 7 ? 4 : 3);
+
 /**
  * A key with its name printed under it, as on a quick level, a colour or a mode: the key carries the figure or glyph,
  * the plate the word. `name` is printed only; the key's label says it.
@@ -217,6 +303,14 @@ export function Digits({ value, text: formatted, places = 3 }: { value?: number;
 }
 
 /**
+ * A temperature on the screen, in four places and its unit: the leading place is an unlit segment ("06.2°"), heard as
+ * the real value. Sensors, the weather and a thermostat's reading draw it the same.
+ */
+export function Temperature({ value, unit }: { value: number; unit: string }) {
+  return <><Digits text={fmt1(value)} places={4} /><small>{unit}</small></>;
+}
+
+/**
  * A screen pictogram, after a segment display's: the shape is always there unlit, and lights in its parameter's
  * colour up to `level` (0-1) from the bottom while `lit`, or in a colour lamp's own colour (`lamp`, its name). A
  * reading's pictogram is neutral, in the figure's ink. Decorative: the figure beside it says the same.
@@ -269,6 +363,15 @@ export interface FaderProps {
 const THUMB_HALF = 9;
 
 /**
+ * The dotted scale's steps: one dot per stop when a fader has ten or fewer (a three-speed fan shows three), else
+ * eleven dots in tens, for a fader whose stops are too many to print.
+ */
+const scaleSteps = (min: number, max: number, step: number) => {
+  const stops = Math.round((max - min) / step);
+  return stops >= 1 && stops <= 10 ? stops : 10;
+};
+
+/**
  * A linear fader: a printed legend, a thin slot with a dotted scale, and a round thumb in its parameter's colour.
  * A tap jumps the thumb (animated); a drag follows the finger, on a hit layer that leaves vertical swipes to the
  * page; a hidden range input carries the keyboard and screen readers.
@@ -277,7 +380,7 @@ export function Fader({ id, label, legend, value, min, max, step = 1, lit, disab
   const known = value != null && Number.isFinite(value);
   const inactive = disabled || !known;
   const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, snap, onChange });
-  const style = (known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) as Vars;
+  const style = { "--fd-steps": scaleSteps(min, max, step), ...(known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
   return (
     <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>
       <p className="fd-legend" aria-hidden="true">{legend}</p>
@@ -322,7 +425,7 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
       className="fd-fader fd-range"
       {...range.rootProps}
       data-disabled={disabled || undefined}
-      style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4) } as Vars}
+      style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4), "--fd-steps": scaleSteps(min, max, step) } as Vars}
     >
       <p className="fd-legend" aria-hidden="true">{legend}</p>
       <div className="fd-slot" aria-hidden="true" />
@@ -346,6 +449,19 @@ export function Legend({ id, children, value, as: Tag = "p" }: { id?: string; ch
       <span id={id}>{children}</span>
       {value != null && <span className="fd-legend-v">{value}</span>}
     </Tag>
+  );
+}
+
+/**
+ * The small print at the foot of a detail panel: a fact at its start and, where there is one, at its end (when it last
+ * changed, what it can do). Their words come from `@dashhaus/core/entities/facts`, the same on every module.
+ */
+export function Facts({ start, end }: { start?: ReactNode; end?: ReactNode }) {
+  return (
+    <p className="fd-info">
+      <span>{start}</span>
+      {end !== undefined && <span>{end}</span>}
+    </p>
   );
 }
 
@@ -396,6 +512,113 @@ export function Today({ legend = "Today", summary, label, samples = NO_HOURS, cu
     <div className="fd-block fd-today">
       <Legend value={summary}>{legend}</Legend>
       <Meter label={summary ? `${label} ${summary}.` : label} samples={samples} currentHour={currentHour} tone={tone} />
+    </div>
+  );
+}
+
+/* ---------- Guarded actions, in the panel: the question and the keypad ----------
+   An action that asks first (a lock's unlock, an alarm's disarm) is answered in the panel, on useGuardedAction: by a
+   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. */
+
+export interface ConfirmProps {
+  /** The question, as the block's legend: "Unlock Front door?" */
+  question: string;
+  /** What it means, under the question: "Anyone at the door can open it." */
+  detail: string;
+  /** The action key's printed word: "Unlock". */
+  action: string;
+  /** The action key's spoken label: "Unlock, Front door". Default the word. */
+  actionLabel?: string;
+  /** The action key's glyph. */
+  icon: ReactNode;
+  /** The answer is on its way: the action takes no press, and the line says so. */
+  busy?: boolean;
+  /** What the line says while busy. Default "Waiting". */
+  waiting?: string;
+  /** The last try didn't go through: said behind the warning marker, in the line's place. */
+  error?: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+/**
+ * The panel's question, for a guarded action that takes no code: the question as its legend, what it means, then
+ * Cancel and the action as two keys. Focus lands on Cancel, so Enter never acts, and the action takes no press for a
+ * moment after it appears, so the second tap of the press that asked can't land on it.
+ */
+export function Confirm({ question, detail, action, actionLabel = action, icon, busy, waiting = "Waiting", error, onConfirm, onCancel }: ConfirmProps) {
+  const uid = useId();
+  const settled = useSettled();
+  // Cancel takes focus: marked for a panel that opens on the question, focused for one already open.
+  const keys = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const cancel = keys.current?.querySelector("button");
+    cancel?.setAttribute("data-autofocus", "");
+    if (cancel?.closest("dialog")?.open) cancel.focus();
+  }, []);
+  return (
+    <div className="fd-cf" role="group" aria-labelledby={`${uid}-q`} aria-describedby={`${uid}-d`}>
+      <Legend id={`${uid}-q`}>{question}</Legend>
+      <p className="fd-hint" id={`${uid}-d`} role="status">{busy ? waiting : error ? <Warn>{error}</Warn> : detail}</p>
+      <div className="fd-cf-keys" ref={keys}>
+        <Key label="Cancel" wide caption="Cancel" onPress={onCancel}><IconCancel /></Key>
+        <Key label={actionLabel} wide caption={action} disabled={busy} onPress={() => { if (settled() && !busy) onConfirm(); }}>{icon}</Key>
+      </div>
+    </div>
+  );
+}
+
+export interface KeypadProps {
+  /** What the code is for, as the block's legend: "Code to disarm". */
+  prompt: string;
+  /** Letters as well as digits (Home Assistant's `code_format: text`). */
+  text?: boolean;
+  /** `useKeypad`'s: true accepted, false a wrong code, a throw a call that didn't go through. */
+  onSubmit: (code: string) => boolean | Promise<boolean>;
+  onCancel: () => void;
+}
+
+const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+/**
+ * The code keypad, in the panel, on `useKeypad`: what the code is for, the code on a strip of screen (a dot per place,
+ * unlit to four), digits, delete and enter, then Cancel. A physical keyboard types too. A text code (letters as well)
+ * is typed on the strip itself, a real field that takes the focus so a phone brings up its keyboard; the digit keys
+ * still type into it. While the answer is on its way it says Checking; a wrong code clears for another try, and one
+ * that didn't go through stays for Enter to try again.
+ */
+export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
+  const uid = useId();
+  const { code, error, busy, press, back, submit, rootProps, inputProps } = useKeypad({ text, onSubmit });
+  const places = Math.max(4, code.length);
+  const status = busy ? "Checking"
+    : error === "wrong" ? <Warn>Wrong code. Try again</Warn>
+    : error === "failed" ? <Warn>Didn’t go through. Try again</Warn>
+    : code.length ? `${code.length} entered` : inputProps ? "Letters or digits" : "Enter the code";
+  return (
+    <div className="fd-pad" {...rootProps} role="group" aria-labelledby={`${uid}-p`}>
+      <Legend id={`${uid}-p`}>{prompt}</Legend>
+      {inputProps ? (
+        // The field sits outside the status, so typing isn't read back key by key; the status below it still is.
+        <div className="fd-pad-code">
+          <Screen meta={[<span key="s" role="status">{status}</span>]}>
+            <input className="fd-pad-in" {...inputProps} aria-labelledby={`${uid}-p`} />
+          </Screen>
+        </div>
+      ) : (
+        <div className="fd-pad-code" role="status">
+          <Screen meta={[status]}>
+            <span className="fd-pad-dots" aria-hidden="true">{Array.from({ length: places }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}</span>
+          </Screen>
+        </div>
+      )}
+      <div className="fd-pad-keys">
+        {DIGITS.map((d) => <Key key={d} label={d} wide disabled={busy} onPress={() => press(d)}><span className="fd-key-fig">{d}</span></Key>)}
+        <Key label="Delete" wide disabled={busy} unavailable={!code} onPress={back}><IconDelete /></Key>
+        <Key label="0" wide disabled={busy} onPress={() => press("0")}><span className="fd-key-fig">0</span></Key>
+        <Key label="Enter code" wide disabled={busy} unavailable={!code} onPress={() => void submit()}><IconEnter /></Key>
+      </div>
+      <Key label="Cancel" wide caption="Cancel" onPress={onCancel}>{null}</Key>
     </div>
   );
 }

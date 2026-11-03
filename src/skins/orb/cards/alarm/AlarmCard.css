@@ -189,41 +189,16 @@
 .al-alarm:not(:has(.al-alarm-b)) { padding-right: 16px; }
 .hd--compact .al-alarm { justify-content: flex-end; }
 
-/* ---------- Sheet: open doors and windows, and the keypad ---------- */
-.al-open { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
-.al-kp { display: grid; justify-items: center; gap: 16px; padding: 6px 0 2px; border-radius: 18px; }
-.al-kp:focus { outline: none; }
-.al-kp:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
-.al-kp-p { margin: 0; font-size: 15px; font-weight: 600; text-align: center; }
-.al-kp-dots { display: flex; align-items: center; gap: 12px; height: 14px; }
-.al-kp-dots i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); transition: background-color 120ms var(--ease-out); }
-.al-kp-dots i[data-on] { background: var(--ink); box-shadow: none; }
-/* A wrong code shakes the dots: feedback the eye catches without reading */
-.al-kp-dots[data-error] { animation: al-shake 360ms var(--ease-out); }
-/* Waiting for the alarm to answer: the entered dots breathe */
-.al-kp-dots[data-busy] i[data-on] { animation: al-wait 700ms var(--ease-in-out) infinite alternate; }
+/* ---------- Sheet: open doors and windows ---------- */
+/* The keypad is the shared Keypad (shared/card.css). */
+
+/* An unknown delay's wait, under reduced motion: a slow fade in place */
 @keyframes al-wait { to { opacity: 0.35; } }
-@keyframes al-shake { 20% { translate: -7px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 2px 0; } }
-.al-kp-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 20px; }
-.al-key {
-  display: grid; place-items: center; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 50%;
-  background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink);
-  font: 400 28px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
-  transition: background-color 120ms var(--ease-out), scale var(--press) var(--ease-out);
-}
-.al-key:active:not(:disabled) { scale: 0.93; background: var(--fill); }
-.al-key:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.al-key svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.al-key--fn { background: none; box-shadow: none; }
-.al-key--ok { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
-.al-key:disabled { opacity: 0.35; cursor: default; }
-.al-kp-x { padding: 8px 16px; border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 14px var(--font); cursor: pointer; }
-.al-kp-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .al-alarm::before, .al-kp-dots[data-error] { animation: none; }
+  .al-alarm::before { animation: none; }
   /* Gentler, not gone: the sweep becomes a slow fade in place */
   .al-cd-wait { left: 30%; animation: al-wait 1.4s var(--ease-in-out) infinite alternate; }
   .al-thumb { transition: background-color 200ms var(--ease-out); }
-  .al-seg, .al-cd-b, .al-key { scale: none !important; }
+  .al-seg, .al-cd-b { scale: none !important; }
 }

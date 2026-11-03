@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { OwletTile } from "../OwletTile";
-import { OWLET_SEEDS } from "./socks";
-import type { OwletSeedName, OwletSeed } from "./socks";
+import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
+import type { OwletSeedName, OwletSeed } from "@dashhaus/core/seeds/owlet";
 import type { CardFootprint } from "../../../shared/ui";
 
 export interface DemoOwletTileProps {

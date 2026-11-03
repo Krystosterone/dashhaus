@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FanModule } from "./FanModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { FAN_SEEDS, FAN_WORST_CASE, useDemoFan } from "./demo/useDemoFan";
-import type { FanSeed, FanSeedName } from "./demo/useDemoFan";
+import { FAN_SEEDS, FAN_WORST_CASE, useDemoFan } from "@dashhaus/core/seeds/fan";
+import type { FanSeed, FanSeedName } from "@dashhaus/core/seeds/fan";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(FAN_SEEDS) as FanSeedName[];

@@ -26,13 +26,5 @@ export function IconMode({ mode }: { mode: AlarmMode | "off" }) {
   return <svg viewBox="0 0 24 24" {...STROKE}><path d={MODE_PATH[mode]} /></svg>;
 }
 
-/** Delete and enter, on the keypad. */
-export function IconDelete() {
-  return <svg viewBox="0 0 24 24" {...STROKE}><path d="M9 6h10.5v12H9l-5-6ZM11.5 9.5l5 5M16.5 9.5l-5 5" /></svg>;
-}
-export function IconEnter() {
-  return <svg viewBox="0 0 24 24" {...STROKE}><path d="M6 12.5 10 16.5 18 8" /></svg>;
-}
-
 /** A shield, as a solid shape for the screen's pictogram (20 x 26): lit while armed, in the figure's ink. */
 export const SHIELD_PICT = <path d="M10 1.5 18.5 5v7.2c0 5.6-3.6 9.9-8.5 12.3-4.9-2.4-8.5-6.7-8.5-12.3V5Z" />;

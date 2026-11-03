@@ -30,6 +30,20 @@ export interface CardProps {
   onClose?: () => void;
 }
 
+/**
+ * The props of a card with a guarded action (a lock's unlock, an alarm's disarm): its details open on the action they
+ * ask for. The card hands the action to `onOpenDetails`; its sheet starts on it through `action`.
+ */
+export interface ActionCardProps<A> extends CardProps {
+  /** Card only: the name opens the details; with an action, they open on that action's question. */
+  onOpenDetails?: (action?: A) => void;
+  /** Sheet only: start on this action's question. */
+  action?: A;
+}
+
+/** The action a card's details open on, from its props: never for a card with none. */
+export type DetailsAction<P> = P extends { action?: infer A } ? NonNullable<A> : never;
+
 export type CardFrameOptions = Pick<CardProps, "variant" | "footprint" | "showControl">;
 
 /** What a card derives from its variant and footprint, before any skin's markup. */
@@ -80,23 +94,45 @@ export function useCardFrame(options: CardFrameOptions = {}): CardFrame {
   return { ...cardShape(options), uid, nameId, article: { "aria-labelledby": nameId } };
 }
 
-/** Whether a card's details are open, with what opens and closes them. */
-export interface Details {
+/** Whether a card's details are open, and on which action, with what opens and closes them. */
+export interface Details<A = never> {
   open: boolean;
-  openDetails: () => void;
+  /** The action the details opened on, for a card with a guarded action; cleared when they close. */
+  action?: A;
+  /** Open them; on an action, for a card with one. A card with none can hand this straight to `onClick`. */
+  openDetails: [A] extends [never] ? () => void : (action?: A) => void;
   closeDetails: () => void;
 }
 
-/** A card's details state, open on first render with `defaultOpen` (stories). */
-export function useDetails(defaultOpen = false): Details {
-  const [open, setOpen] = useState(defaultOpen);
+/**
+ * An action, or nothing when what arrived is an event: a click handler handed straight to `onClick` passes its
+ * event, and a click is no action.
+ */
+function asAction<A>(value: A | undefined): A | undefined {
+  if (value == null || typeof value !== "object") return value;
+  return "nativeEvent" in value || (typeof Event !== "undefined" && value instanceof Event) ? undefined : value;
+}
+
+/**
+ * A card's details state, open on first render with `defaultOpen` (stories). `defaultAction` opens them on an action
+ * (a story of a lock's unlock question); `openDetails(action)` does the same later.
+ */
+export function useDetails<A = never>(defaultOpen = false, defaultAction?: A): Details<A> {
+  const [open, setOpen] = useState(defaultOpen || defaultAction != null);
+  const [action, setAction] = useState<A | undefined>(defaultAction);
+  const openDetails = (next?: A) => {
+    perfMark("details:request");
+    setAction(asAction(next));
+    setOpen(true);
+  };
   return {
     open,
-    openDetails: () => {
-      perfMark("details:request");
-      setOpen(true);
+    action,
+    openDetails: openDetails as Details<A>["openDetails"],
+    closeDetails: () => {
+      setOpen(false);
+      setAction(undefined);
     },
-    closeDetails: () => setOpen(false),
   };
 }
 
@@ -139,8 +175,11 @@ export function CardDialog({ open, onClose, label, className, handle, snapBack, 
 
 /** A card's sheet props: everything but the card-only ones, plus whether it is open. */
 export type SheetProps<P> = Omit<P, "variant" | "footprint" | "onOpenDetails" | "onClose"> & { open: boolean; onClose: () => void };
-/** A card's tile props: the card's, with the sheet wired in. */
-export type TileProps<P> = Omit<P, "variant" | "onOpenDetails" | "onClose"> & { defaultOpen?: boolean };
+/**
+ * A card's tile props: the card's, with the sheet wired in. `defaultAction`, for a card with a guarded action, opens
+ * the sheet on that action's question (stories).
+ */
+export type TileProps<P> = Omit<P, "variant" | "onOpenDetails" | "onClose" | "action"> & { defaultOpen?: boolean; defaultAction?: DetailsAction<P> };
 
 /**
  * The details sheet for a card: the card itself as `variant="sheet"`, inside the skin's `Sheet`. `label` names the
@@ -157,23 +196,19 @@ export function detailsSheet<P extends CardProps>(Card: ComponentType<P>, Sheet:
 
 /**
  * A dashboard-ready tile for a card: the card, in `className` when the skin sizes cards from their container, plus
- * its details sheet. The tile owns the details' open state and hands the card `onOpenDetails` and the sheet
- * `open` and `onClose`.
+ * its details sheet. The tile owns the details' state and hands the card `onOpenDetails` and the sheet `open` and
+ * `onClose`. A card with a guarded action opens its details on one (`onOpenDetails(action)`), and the sheet gets it
+ * as `action`, so no card writes a tile of its own for it.
  */
 export function detailsTile<P extends CardProps>(Card: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>, className?: string) {
-  function Tile({ defaultOpen = false, ...props }: TileProps<P>) {
-    const [open, setOpen] = useState(defaultOpen);
-    const card = createElement(Card, {
-      ...props,
-      onOpenDetails: () => {
-        perfMark("details:request");
-        setOpen(true);
-      },
-    } as unknown as P);
+  function Tile({ defaultOpen = false, defaultAction, ...props }: TileProps<P>) {
+    const details = useDetails<DetailsAction<P>>(defaultOpen, defaultOpen ? defaultAction : undefined);
+    const card = createElement(Card, { ...props, onOpenDetails: details.openDetails } as unknown as P);
+    const sheet = { ...props, ...(details.action != null && { action: details.action }), open: details.open, onClose: details.closeDetails };
     return (
       <>
         {className ? <div className={className}>{card}</div> : card}
-        {createElement(DetailsSheet, { ...props, open, onClose: () => setOpen(false) } as unknown as SheetProps<P>)}
+        {createElement(DetailsSheet, sheet as unknown as SheetProps<P>)}
       </>
     );
   }

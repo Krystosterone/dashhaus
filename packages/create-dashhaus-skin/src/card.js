@@ -47,19 +47,33 @@ export const labelOf = (action) => {
 };
 
 /**
- * What a domain's card exposes: a control's zero-argument actions, or none for a reading. Refuses a kind the domain
- * can't be drawn as, with the reason.
+ * What a domain's card exposes, from the kinds the domain declares beside its handlers: a control's taps as buttons
+ * and its guarded actions (one that asks first, or takes a code) through the skin's question and keypad, or none for a
+ * reading. An action that takes a value a press can't give is left out, and `leftOut` says which. Refuses a kind the
+ * domain can't be drawn as, with the reason.
  */
 export function cardKind(domain, asked) {
   const kind = asked ?? domain.kind;
   if (kind !== "control" && kind !== "reading") throw new Error(`kind "${kind}" must be "control" or "reading"`);
-  if (kind === "control" && !domain.actions.length) throw new Error(`${domain.Name}Handlers has no zero-argument action a neutral card can expose. Use --kind reading`);
-  return { kind, actions: kind === "control" ? domain.actions : [] };
+  const guarded = domain.guarded ?? [];
+  if (kind === "control" && !domain.actions.length && !guarded.length) throw new Error(`${domain.Name}Handlers has no action a neutral card can press: ${domain.leftOut?.length ? `${domain.leftOut.join(", ")} take${domain.leftOut.length > 1 ? "" : "s"} a value` : "it has none"}. Use --kind reading`);
+  const control = kind === "control";
+  return { kind, actions: control ? domain.actions : [], guarded: control ? guarded : [], leftOut: control ? domain.leftOut ?? [] : [] };
 }
 
-/** The tokens one domain's card templates need, for a skin. */
-export function cardTokens(domain, names, actions) {
+/** A guarded action's key, what a card's details open on: `onUnlock` → "unlock". */
+const keyOf = (action) => wordsOf(action).replace(/ /g, "-");
+
+/**
+ * The tokens one domain's card templates need, for a skin. `drawn` is `cardKind`'s answer; a bare list of actions is
+ * the taps alone.
+ */
+export function cardTokens(domain, names, drawn) {
   const { Skin } = names;
+  const { actions, guarded = [], leftOut = [] } = Array.isArray(drawn) ? { actions: drawn } : drawn;
+  const history = domain.history !== false;
+  const code = domain.code ? "!!e.codeFormat" : "false";
+  const guardedRows = guarded.map(({ action, asks, code: takesCode }) => `    ...(${action} ? [{ key: "${keyOf(action)}", label: "${labelOf(action)}"${asks ? ", asks: true" : ""}${takesCode ? `, code: ${code}${domain.code ? ', text: e.codeFormat === "text"' : ""}` : ""}, run: ${action} }] : []),`);
   const actionRows = actions.map((action) => {
     const pressed = action === "onToggle" ? ' pressed={e.state !== "off" && e.state !== "unavailable"}' : action === "onBaseToggle" ? ' {...("baseOn" in e ? { pressed: e.baseOn === true } : {})}' : "";
     return `      {${action} && <${Skin}Action label="${labelOf(action)}"${pressed} unavailable={unavailable} onPress={${action}} />}`;
@@ -71,9 +85,24 @@ export function cardTokens(domain, names, actions) {
     __CONST__: domain.CONST,
     __Label__: domain.Label,
     __label__: domain.words,
-    __actionProps__: actions.map((action) => `  ${action}?: () => void;`).join("\n"),
-    __actionArgs__: actions.map((action) => `, ${action}`).join(""),
+    __actionProps__: [
+      ...actions.map((action) => `  ${action}?: () => void;`),
+      ...guarded.map(({ action, asks, code: takesCode }) => `  /** ${asks ? "Asks first: the question, or the keypad where the entity wants a code; never one tap." : "Runs at once, and asks for the code where the entity wants one."} */\n  ${action}?: (${takesCode ? "code?: string" : ""}) => GuardedResult;`),
+    ].join("\n"),
+    __actionArgs__: [...actions, ...guarded.map(({ action }) => action)].map((action) => `, ${action}`).join(""),
     __actionImport__: actions.length ? `${Skin}Action, ` : "",
+    __guardedTypeImport__: guarded.length ? `${Skin}GuardedAction, ` : "",
+    __guardedResultImport__: guarded.length ? 'import type { GuardedResult } from "@dashhaus/core/primitives";' : "",
+    __guardedBlock__: guarded.length ? `  const guarded: ${Skin}GuardedAction[] = [\n${guardedRows.join("\n")}\n  ];` : "",
+    __guardedProp__: guarded.length ? " guarded={guarded}" : "",
+    __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with this skin's own control.` : "",
+    __historyType__: history ? `, ${domain.Name}History` : "",
+    __historyProp__: history ? `  history?: ${domain.Name}History;` : "",
+    __historyArg__: history ? ", history" : "",
+    __historyNote__: history ? `      {history && <p className="${names.skin}-${domain.name}-history">Today’s history is connected and ready for a domain-specific drawing.</p>}` : "",
+    __historyLive__: history ? " history={result.history}" : "",
+    __historyDemo__: history ? " history={demo.history}" : "",
+    __loadHistory__: domain.options.includes("loadHistory") ? " loadHistory={false}" : "",
     __unavailableConst__: actions.length ? '  const unavailable = e.state === "unavailable";' : "",
     __actionsBlock__: actions.length ? `  const actions = (
     <>
@@ -82,7 +111,7 @@ ${actionRows}
   );` : "",
     __actionsProp__: actions.length ? ` actions={${actions.join(" || ")} ? actions : undefined}` : "",
     __summary__: domain.summary,
-    __liveProps__: actions.map((action) => ` ${action}={result.actions.${action}}`).join(""),
+    __liveProps__: [...actions, ...guarded.map(({ action }) => action)].map((action) => ` ${action}={result.actions.${action}}`).join(""),
   };
 }
 

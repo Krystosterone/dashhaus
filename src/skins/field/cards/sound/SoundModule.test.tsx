@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { SoundModule } from "./SoundModule";
 import type { SoundModuleProps } from "./SoundModule";
-import { SOUND_SEEDS } from "./demo/useDemoSound";
+import { SOUND_SEEDS } from "@dashhaus/core/seeds/sound";
 
 /*
  * What every field module does, whatever it is: its keys (a control's; a reading has none) press, a lit LED says on,

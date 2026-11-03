@@ -8,7 +8,7 @@ describe("FakeHomeAssistant", () => {
     const ha = new FakeHomeAssistant();
     expect(ha.version).toBe("2026.10.0");
     expect(ha.closed).toBe(false);
-    expect((await ha.send("get_states")) as FakeState[]).toHaveLength(15);
+    expect((await ha.send("get_states")) as FakeState[]).toHaveLength(16);
   });
 
   it("records the Lovelace resources and can fail the read", async () => {
@@ -72,6 +72,11 @@ describe("FakeHomeAssistant", () => {
     expect(ha.states["switch.office_fan"]?.state).toBe("on");
     expect(seen).toHaveLength(2);
 
+    await ha.send("call_service", { domain: "lock", service: "unlock", target: { entity_id: "lock.front_door" } });
+    expect(ha.states["lock.front_door"]?.state).toBe("unlocked");
+    await ha.send("call_service", { domain: "lock", service: "lock", target: { entity_id: "lock.front_door" } });
+    expect(ha.states["lock.front_door"]?.state).toBe("locked");
+
     await ha.send("call_service", { domain: "climate", service: "set_temperature", target: { entity_id: "climate.living_room" }, service_data: { temperature: 22 } });
     expect(ha.states["climate.living_room"]?.state).toBe("heat");
 
@@ -81,7 +86,7 @@ describe("FakeHomeAssistant", () => {
   it("answers the registry commands", async () => {
     const ha = new FakeHomeAssistant();
     const display = (await ha.send("config/entity_registry/list_for_display")) as FakeEntityRegistryDisplay;
-    expect(display.entities).toHaveLength(15);
+    expect(display.entities).toHaveLength(16);
     expect(display.entities).toContainEqual({ ei: "sensor.kitchen_temperature", ai: "kitchen", di: "kitchen_air" });
     expect(await ha.send("config/device_registry/list")).toHaveLength(4);
     expect(await ha.send("config/area_registry/list")).toHaveLength(4);

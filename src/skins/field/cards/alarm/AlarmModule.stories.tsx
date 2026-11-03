@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { AlarmModule } from "./AlarmModule";
 import type { AlarmAction } from "@dashhaus/core/entities/alarm/types";
 import type { FieldFootprint } from "../../shared/ui";
-import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "./demo/useDemoAlarm";
-import type { AlarmSeed, AlarmSeedName } from "./demo/useDemoAlarm";
+import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "@dashhaus/core/seeds/alarm";
+import type { AlarmSeed, AlarmSeedName } from "@dashhaus/core/seeds/alarm";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(ALARM_SEEDS) as AlarmSeedName[];

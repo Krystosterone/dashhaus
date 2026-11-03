@@ -65,7 +65,7 @@ describe("the websocket API", () => {
 
     expect(await ask(client, 1, "subscribe_entities")).toMatchObject({ success: true, result: null });
     const initial = await client.next((message) => message.id === 1 && message.type === "event" && message.event?.a !== undefined);
-    expect(Object.keys(initial.event?.a ?? {})).toHaveLength(15);
+    expect(Object.keys(initial.event?.a ?? {})).toHaveLength(16);
     expect(initial.event?.a?.["light.kitchen_ceiling"]).toMatchObject({ s: "on", a: { brightness: 230 }, c: "fake" });
 
     client.send({ id: 2, type: "call_service", domain: "light", service: "toggle", target: { entity_id: "light.kitchen_ceiling" } });
@@ -148,7 +148,7 @@ describe("the HTTP server", () => {
     expect(config).toMatchObject({ version: "2026.10.0", location_name: "Fake Home" });
 
     const states = (await (await fetch(`${settings.HA_URL}/api/states`, { headers })).json()) as FakeState[];
-    expect(states).toHaveLength(15);
+    expect(states).toHaveLength(16);
     const one = (await (await fetch(`${settings.HA_URL}/api/states/light.kitchen_ceiling`, { headers })).json()) as FakeState;
     expect(one).toMatchObject({ entity_id: "light.kitchen_ceiling", state: "on" });
     expect((await fetch(`${settings.HA_URL}/api/states/light.missing`, { headers })).status).toBe(404);

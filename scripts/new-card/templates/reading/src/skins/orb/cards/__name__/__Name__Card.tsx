@@ -1,6 +1,7 @@
 import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
+import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { __Name__Icon } from "./icons";
-import { CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
+import { CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmt1, normalizeReadings, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./__Name__Card.css";
 
@@ -63,15 +64,12 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
         <TodayStrip
           samples={series.samples}
           currentHour={history!.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : series.min == null || series.max == null ? "No readings yet today" : `Low ${withUnit(series.min, e.unit)} · High ${withUnit(series.max, e.unit)}`}
+          summary={unav ? unavailableSince(e.lastSeen) : series.min == null || series.max == null ? "No readings yet today" : `Low ${withUnit(series.min, e.unit)} · High ${withUnit(series.max, e.unit)}`}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `Updated ${e.lastUpdated}` : ""}</span>
-          <span>{unav && e.area ? e.area : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated)} end={unav && e.area ? e.area : ""} />
       )}
     </article>
   );

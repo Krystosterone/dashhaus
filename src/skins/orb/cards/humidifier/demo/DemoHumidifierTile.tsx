@@ -1,6 +1,6 @@
 import { HumidifierTile } from "../HumidifierTile";
-import { HUMIDIFIER_SEEDS, useDemoHumidifier } from "./useDemoHumidifier";
-import type { HumidifierSeedName, HumidifierSeed } from "./useDemoHumidifier";
+import { HUMIDIFIER_SEEDS, useDemoHumidifier } from "@dashhaus/core/seeds/humidifier";
+import type { HumidifierSeedName, HumidifierSeed } from "@dashhaus/core/seeds/humidifier";
 import type { CardFootprint } from "../../../shared/ui";
 
 export interface DemoHumidifierTileProps {

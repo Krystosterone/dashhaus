@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FuturaToggleCard } from "./FuturaToggleCard";
 import type { FuturaFootprint } from "../../shared/ui";
-import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "./demo/useDemoToggle";
-import type { ToggleSeed, ToggleSeedName } from "./demo/useDemoToggle";
+import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "@dashhaus/core/seeds/toggle";
+import type { ToggleSeed, ToggleSeedName } from "@dashhaus/core/seeds/toggle";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEED_NAMES = Object.keys(TOGGLE_SEEDS) as ToggleSeedName[];

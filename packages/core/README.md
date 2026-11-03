@@ -40,10 +40,11 @@ const store = createHaStore(createHomeAssistantTransport(connection));
 | --- | --- |
 | `.` | Store, provider, mappers, actions, `useHa<Name>` hooks and headless components, and the registry hooks (`useHaRegistry`, `useHaAreas`, `useHaArea`) |
 | `./entities`, `./entities/*` | The pure entity models and their logic |
-| `./primitives` | Headless interaction hooks: press, slider, range slider, sheet, keypad |
+| `./primitives` | Headless interaction hooks: press, slider, range slider, sheet, keypad, and `useGuardedAction` for an action that asks first or takes a code |
 | `./hooks` | Shared hooks with no UI: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `useDemoClimate` |
 | `./perf` | The opt-in performance marks the deployed bundle records |
 | `./websocket` | The one module that imports `home-assistant-js-websocket` |
+| `./seeds/*` | One domain's demo data per module (`./seeds/lock`): its `<NAME>_SEEDS`, `<NAME>_WORST_CASE` and `useDemo<Name>` hook, the same for every skin's stories |
 | `./demo` | Demo transports for Storybook and tests, and `createDemoStore()` for the whole house |
 | `./testing` | A fake transport (with `calls`, `emit` and `emitEntity`) and a render under a real store, for connected-card tests |
 | `./fixtures/*` | Raw Home Assistant state fixtures |

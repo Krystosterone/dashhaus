@@ -117,7 +117,7 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
 
 edit(packageFile("core", "src/index.ts"), after(markers.coreExports, fill(`export { __name__FromHass } from "./ha/mappers/__name__";
 export type { __Name__MapOptions } from "./ha/mappers/__name__";
-${reading ? "" : `export { create__Name__Handlers } from "./ha/actions/__name__";
+${reading ? "" : `export { create__Name__Handlers, __CONST___ACTIONS } from "./ha/actions/__name__";
 export type { __Name__Handlers, __Name__HandlerOptions } from "./ha/actions/__name__";
 `}export { useHa__Name__ } from "./ha/hooks/__name__";
 export type { Ha__Name__Options, Ha__Name__Result } from "./ha/hooks/__name__";

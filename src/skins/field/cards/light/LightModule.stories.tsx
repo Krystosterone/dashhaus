@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { LightModule } from "./LightModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { SEEDS, useDemoLight } from "./demo/useDemoLight";
-import type { SeedName } from "./demo/useDemoLight";
+import { LIGHT_SEEDS, LIGHT_WORST_CASE, useDemoLight } from "@dashhaus/core/seeds/light";
+import type { LightSeed, LightSeedName } from "@dashhaus/core/seeds/light";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
-const LIGHTS = Object.keys(SEEDS) as SeedName[];
+const LIGHTS = Object.keys(LIGHT_SEEDS) as LightSeedName[];
 
-function DemoLight({ light, width, footprint, defaultOpen }: { light: SeedName; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
-  const demo = useDemoLight(light);
+function DemoLight({ light, seed, width, footprint, defaultOpen }: { light: LightSeedName; seed?: LightSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
+  const demo = useDemoLight(seed ?? LIGHT_SEEDS[light]);
   return (
     <div style={{ width, maxWidth: "100%" }}>
       <LightModule {...demo} footprint={footprint} defaultOpen={defaultOpen} />
@@ -44,15 +44,23 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Dimmable: Story = {};
-export const Off: Story = { args: { light: "off" } };
+export const Off: Story = { args: { light: "dimmableOff" } };
 /** A colour lamp at 3%: the screen says Colour where a white lamp gives its warmth. */
-export const Colour: Story = { args: { light: "colour" } };
+export const Colour: Story = { args: { light: "nightLight" } };
 /** No brightness: the key spans the row and carries the state word. */
 export const OnOffOnly: Story = { name: "On / off only", args: { light: "onOff" } };
 /** Blank segments on the screen, the key and fader lie flat. */
 export const Unavailable: Story = { args: { light: "unavailable" } };
-/** A long name and area at full brightness and the coolest white: every slot at its widest. */
-export const WorstCase: Story = { name: "Worst case", args: { light: "worstCase" } };
+/** Every slot at its widest: the worst-case seeds, a long name and area at full brightness and the coolest white first. */
+export const WorstCase: Story = {
+  name: "Worst case",
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ light, width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {LIGHT_WORST_CASE.map((seed) => <DemoLight key={seed.entity.entityId} light={light} seed={seed} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 
 /** Every light at one width. Heights match, whatever the type or state. */
 export const AllStates: Story = {
@@ -105,10 +113,10 @@ export const Compact: Story = {
 export const Details: Story = { args: { defaultOpen: true } };
 
 /** Off: the warmth fader lies flat until the light is on; quick levels turn it on. */
-export const DetailsOff: Story = { name: "Details, off", args: { light: "off", defaultOpen: true } };
+export const DetailsOff: Story = { name: "Details, off", args: { light: "dimmableOff", defaultOpen: true } };
 
 /** A colour lamp: a key per colour, the lamp's own lit; the screen names it beside a lens in that colour. */
-export const DetailsColour: Story = { name: "Details, colour", args: { light: "colour", defaultOpen: true } };
+export const DetailsColour: Story = { name: "Details, colour", args: { light: "nightLight", defaultOpen: true } };
 
 /** A lamp with both: warmth and colour. Choosing one replaces the other on the screen, as Home Assistant reports it. */
 export const DetailsWhiteAndColour: Story = { name: "Details, white and colour", args: { light: "whiteAndColour", defaultOpen: true } };

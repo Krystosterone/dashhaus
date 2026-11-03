@@ -1,7 +1,8 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useId, useRef } from "react";
 import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
-import { usePress } from "@dashhaus/core/primitives";
-import type { useSlider } from "@dashhaus/core/primitives";
+import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
+import type { SliderOptions } from "@dashhaus/core/primitives";
+import { useSettled } from "@dashhaus/core/hooks";
 import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/dashboard/card";
 import type { CardFootprint, CardProps as FrameProps, SheetProps, TileProps } from "@dashhaus/dashboard/card";
 import type { ColorName } from "@dashhaus/core/entities/color";
@@ -44,6 +45,17 @@ export const CardHeadingLevelContext = createContext<2 | 3>(2);
 export interface CardProps extends FrameProps {
   /** Opt-in colour for the orb. */
   color?: ColorProp;
+}
+
+/**
+ * A card with a guarded action (a lock's unlock, an alarm's disarm): its details open on the action they ask for, and
+ * its sheet starts on it. `detailsTile` wires both, so the card needs no tile of its own.
+ */
+export interface ActionCardProps<A> extends CardProps {
+  /** Card only: the name opens the sheet; with an action, on that action's question or keypad. */
+  onOpenDetails?: (action?: A) => void;
+  /** Sheet only: start on this action's question or keypad. */
+  action?: A;
 }
 
 /** A titled bundle's lid: what the members make up, and its room. Members don't repeat what it says. */
@@ -191,6 +203,19 @@ export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { l
   );
 }
 
+/**
+ * The small print at the foot of a card's sheet: two facts, at its start and its end (when it last changed, what it
+ * can do). Their words come from `@dashhaus/core/entities/facts`, the same on every card; `warn` marks the start's.
+ */
+export function Facts({ start, end, warn }: { start?: ReactNode; end?: ReactNode; warn?: boolean }) {
+  return (
+    <p className="hd-info">
+      <span className={warn ? "hd-warn" : undefined}>{start}</span>
+      <span>{end}</span>
+    </p>
+  );
+}
+
 export function UnavailableSlot({ lastSeen }: { lastSeen?: string }) {
   return (
     <div className="hd-unav">
@@ -295,6 +320,45 @@ export function Track({ slider, inputs, className, text, lit = true, focus = "gr
   );
 }
 
+export interface SliderTrackProps extends Omit<TrackProps, "slider" | "inputs" | "text" | "children"> {
+  /** The hidden range input's id: a `<label htmlFor>` in the heading names it, or `label` does. */
+  id: string;
+  /** The input's spoken name, where no heading's label names it. */
+  label?: string;
+  /** `useSlider`'s options: the card's ends, snap, how a pointer reads along it, and what the value says. */
+  slider: SliderOptions<HTMLDivElement>;
+  /** The value on the groove, from the slider's live value (it moves under the finger before the entity answers). */
+  text?: (value: number) => ReactNode;
+  /** A heading over the track, `hd-blk-h`, from the live value: its label and what the value means. */
+  heading?: (value: number) => ReactNode;
+  /** Places of `--v`. Default 4. */
+  precision?: number;
+  /** The card's fill and marks, from the live value. */
+  children?: (value: number) => ReactNode;
+}
+
+/**
+ * A slider on a track: `useSlider` wired into `Track`, the live value set on the track as `--v` (0-1) and handed to
+ * the text, the heading and the card's own fill. A card brings what only it knows, its ends, snap and fill; the
+ * groove, the hit layer, the hidden input and the focus ring are the track's.
+ */
+export function SliderTrack({ id, label, slider: options, text, heading, precision = 4, style, children, ...track }: SliderTrackProps) {
+  const slider = useSlider<HTMLDivElement>(options);
+  const v = slider.value;
+  const bar = (
+    <Track
+      slider={slider}
+      inputs={[{ id, ...(label ? { "aria-label": label } : {}), ...slider.inputProps }]}
+      text={text?.(v)}
+      style={{ "--v": slider.fraction(v).toFixed(precision), ...style }}
+      {...track}
+    >
+      {children?.(v)}
+    </Track>
+  );
+  return heading ? <div className="hd-blk"><p className="hd-blk-h">{heading(v)}</p>{bar}</div> : bar;
+}
+
 /* ---------- Today strip ---------- */
 /** `forecastFrom`: hours from this index on are forecasts, drawn as lighter sticks. */
 export function TodayStrip({ samples, currentHour, summary, title = "Today", tone, forecastFrom }: { samples: HourSample[]; currentHour: number; summary: string; title?: string; tone?: string; forecastFrom?: number }) {
@@ -344,6 +408,104 @@ export function ChoiceChips<T extends string | number>({ id, label, options, val
           </Chip>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ---------- Guarded actions: the question and the keypad ----------
+   An action that asks first (a lock's unlock, an alarm's disarm) is answered in the sheet, on useGuardedAction: by a
+   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. */
+
+export interface ConfirmProps {
+  /** The question: "Unlock Front door?" */
+  question: string;
+  /** What it means, under the question: "Anyone at the door can open it." */
+  detail: string;
+  /** The action's button: "Unlock". */
+  action: string;
+  /** The answer is on its way: the action takes no press, and the detail says so. */
+  busy?: boolean;
+  /** What the detail says while busy. Default "Waiting…". */
+  waiting?: string;
+  /** The last try didn't go through: said in the detail's place. */
+  error?: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+/**
+ * The question, in the sheet, for a guarded action that takes no code: what is asked, what it means, and two buttons.
+ * Cancel takes focus, so Enter never acts; the action, in the inverse, is the one urgent action on the sheet. The
+ * action takes no press for a moment after it appears, so the second tap of a double tap that asked can't land on it.
+ */
+export function Confirm({ question, detail, action, busy, waiting = "Waiting…", error, onConfirm, onCancel }: ConfirmProps) {
+  const id = useId();
+  const settled = useSettled();
+  const cancel = useRef<HTMLButtonElement>(null);
+  // A sheet opening on the question focuses Cancel through data-autofocus; one already open is focused here.
+  useEffect(() => { if (cancel.current?.closest("dialog")?.open) cancel.current.focus(); }, []);
+  return (
+    <div className="hd-cf" role="group" aria-labelledby={`${id}-q`} aria-describedby={`${id}-d`}>
+      <p className="hd-cf-q" id={`${id}-q`}>{question}</p>
+      <p className="hd-cf-d" id={`${id}-d`} role="status">{busy ? waiting : error ? <span className="hd-warn">{error}</span> : detail}</p>
+      <div className="hd-cf-b">
+        <button type="button" className="hd-cf-x" ref={cancel} data-autofocus="" onClick={onCancel}>Cancel</button>
+        <button type="button" className="hd-cf-ok" disabled={busy} onClick={() => { if (settled()) onConfirm(); }}>{action}</button>
+      </div>
+    </div>
+  );
+}
+
+export interface KeypadProps {
+  /** What the code is for: "Enter the code to disarm". */
+  prompt: string;
+  /** Letters as well as digits (Home Assistant's `code_format: text`). */
+  text?: boolean;
+  /** `useKeypad`'s: true accepted, false a wrong code, a throw a call that didn't go through. */
+  onSubmit: (code: string) => boolean | Promise<boolean>;
+  onCancel: () => void;
+}
+
+const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+/**
+ * The code keypad, in the sheet, on `useKeypad`: typing the code is the confirmation. Digits, delete and enter; a
+ * physical keyboard types too. A text code (letters as well) is typed into a recessed field in the dots' place, which
+ * takes the focus so a phone brings up its keyboard; the digit keys still type into it. It may answer later: the dots
+ * breathe while it checks. A wrong code shakes the dots and clears; one that didn't go through stays, so Enter tries
+ * again. The prompt line is the status: what is asked, then Checking, then what went wrong, read out as it changes.
+ */
+export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
+  const id = useId();
+  // Focuses itself (or, for a text code, its field) when it appears, so typing and Enter go to it.
+  const { code, error, busy, press, back, submit, rootProps, inputProps } = useKeypad({ text, onSubmit });
+  const dots = Math.max(4, code.length);
+  const entered = `${code.length} ${text ? "characters" : "digits"} entered`;
+  return (
+    <div className="hd-kp" {...rootProps} aria-label={prompt}>
+      <p className="hd-kp-p" id={`${id}-p`} role="status">{busy ? "Checking…"
+        : error === "wrong" ? <span className="hd-warn">Wrong code. Try again.</span>
+        : error === "failed" ? <span className="hd-warn">Didn’t go through. Try again.</span>
+        : prompt}</p>
+      {inputProps ? (
+        // The placeholder is the hint that letters work; the prompt above is its label.
+        <input className="hd-kp-in" {...inputProps} aria-labelledby={`${id}-p`} data-error={error === "wrong" || undefined} placeholder="Letters or digits" />
+      ) : (
+        <div className="hd-kp-dots" data-error={error === "wrong" || undefined} data-busy={busy || undefined} role="img" aria-label={entered}>
+          {Array.from({ length: dots }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}
+        </div>
+      )}
+      <div className="hd-kp-keys" role="group" aria-labelledby={`${id}-p`}>
+        {DIGITS.map((d) => <button key={d} type="button" className="hd-key" onClick={() => press(d)} disabled={busy}>{d}</button>)}
+        <button type="button" className="hd-key" aria-label="Delete" onClick={back} disabled={!code || busy}>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 5h8.5v10H7.5L3.5 10ZM9.5 8l4 4M13.5 8l-4 4" /></svg>
+        </button>
+        <button type="button" className="hd-key" onClick={() => press("0")} disabled={busy}>0</button>
+        <button type="button" className="hd-key hd-key--ok" aria-label="Enter code" onClick={submit} disabled={!code || busy}>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10.5 8.5 14 15 6.5" /></svg>
+        </button>
+      </div>
+      <button type="button" className="hd-cf-x hd-kp-x" onClick={onCancel}>Cancel</button>
     </div>
   );
 }

@@ -2,10 +2,11 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Digits, Fader, Glyph, Key, Legend, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleRow, Notices, PanelBody, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
+import { IconLock } from "../cards/lock/icons";
 
 const meta = {
   title: "Field/Foundations/Parts",
@@ -44,6 +45,11 @@ function State({ label, width, children }: { label: string; width?: number; chil
       <figcaption style={{ fontSize: 12, color: "var(--fd-ink-2)" }}>{label}</figcaption>
     </figure>
   );
+}
+
+/** A panel's plate, for what is drawn on it rather than on the page (its small print). */
+function Plate({ children }: { children: ReactNode }) {
+  return <div style={{ background: "var(--fd-module)", padding: 12, borderRadius: 6 }}>{children}</div>;
 }
 
 /** A screen at a module's standard height, outside a module. */
@@ -123,10 +129,45 @@ function AllParts() {
         <State label="Unlit" width={150}><ScreenAt><Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>}><Digits value={0} /><small>%</small></Screen></ScreenAt></State>
       </Part>
 
+      <Part name="Module row" rule="A standard module's row under its screen: the key, or a reading's glyph, in its 44 px column, then its fader or today. Solo, with nothing to set, the key spans the row with its word.">
+        <State label="A key and its fader" width={300}><ModuleRow><Key label="Ceiling" pressed onPress={() => {}}><IconBulb /></Key><Fader id="parts-row" label="Ceiling brightness" legend="Brightness" value={64} min={0} max={100} lit valueText="64 percent" onChange={() => {}} /></ModuleRow></State>
+        <State label="A glyph and today" width={300}><ModuleRow><Glyph><IconThermo /></Glyph><Today summary="19.5°–21.4°" label="Temperature by hour today." samples={DAY} currentHour={18} tone="neutral" /></ModuleRow></State>
+        <State label="Solo" width={300}><ModuleRow solo><Key label="Porch light" pressed wide caption="On" onPress={() => {}}><IconBulb /></Key></ModuleRow></State>
+      </Part>
+
+      <Part name="Panel body and notices" rule="A detail panel's content: the screen, then each block, 16 px apart, the container its key groups read. Under the screen, what the panel prints in full: every warning behind its marker, then the state in words.">
+        <State label="A panel's content" width={300}>
+          <Plate>
+            <PanelBody state="ok">
+              <ScreenAt><Screen pict={<Pictogram lit param="neutral">{THERMO}</Pictogram>} meta={["48% RH"]}><Digits text="21.4" places={4} /><small>°</small></Screen></ScreenAt>
+              <Notices warnings={["Wind gusts 90 km/h", "Ice on the roads"]} words="Partly cloudy, then rain" />
+              <Facts start="Updated 10:42" />
+            </PanelBody>
+          </Plate>
+        </State>
+      </Part>
+
       <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash.">
         <State label="First parameter" width={300}><Today summary="4h 10m" label="Brightness today." samples={DAY} currentHour={18} /></State>
         <State label="Neutral, an activity" width={300}><Today summary="2h" label="Heating today." samples={DAY} currentHour={18} tone="neutral" /></State>
         <State label="No history" width={300}><Today label="No history today." /></State>
+      </Part>
+
+      <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, under a printed legend where it has one.">
+        <State label="One row" width={300}><KeyGroup label="Cover"><Key label="Open" wide caption="Open" onPress={() => {}}><IconBulb /></Key><Key label="Stop" wide caption="Stop" onPress={() => {}}><IconBulb /></Key><Key label="Close" wide caption="Close" onPress={() => {}}><IconBulb /></Key></KeyGroup></State>
+        <State label="Two to a row, with a legend" width={300}><KeyGroup legend="Mode" columns={2}>{["Off", "Home", "Away", "Night"].map((m, i) => <Key key={m} label={m} chosen={i === 1} wide caption={m} onPress={() => {}}><IconBulb /></Key>)}</KeyGroup></State>
+      </Part>
+
+      <Part name="Facts" rule="The panel's small print: a fact at its start and, where there is one, its end, in the words @dashhaus/core/entities/facts gives every module.">
+        <State label="Last changed" width={300}><Plate><Facts start="Last changed 10:58 by Keypad" end="Code to unlock" /></Plate></State>
+        <State label="Unavailable" width={300}><Plate><Facts start="Last seen 10:42" /></Plate></State>
+      </Part>
+
+      <Part name="Confirm and Keypad" rule="A guarded action's answer, in the panel, on useGuardedAction: the question as a legend when no code is asked for (Cancel and the action as two keys, Cancel focused, the action taking no press for a moment), or the keypad when one is (the code on a strip of screen, the keys three by four).">
+        <State label="The question" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Waiting for the answer" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} busy waiting="Waiting for the lock" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Didn't go through" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} error="Didn’t go through. Try again" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="The keypad (1234)" width={300}><Keypad prompt="Code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 
       <Part name="Legend and warning" rule="A printed label with its rule, for a group of keys or a meter. A warning is an outlined marker before its words: field has no warning colour.">

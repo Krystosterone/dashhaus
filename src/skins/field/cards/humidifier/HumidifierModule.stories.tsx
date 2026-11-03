@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { HumidifierModule } from "./HumidifierModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE, useDemoHumidifier } from "./demo/useDemoHumidifier";
-import type { HumidifierSeed, HumidifierSeedName } from "./demo/useDemoHumidifier";
+import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE, useDemoHumidifier } from "@dashhaus/core/seeds/humidifier";
+import type { HumidifierSeed, HumidifierSeedName } from "@dashhaus/core/seeds/humidifier";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(HUMIDIFIER_SEEDS) as HumidifierSeedName[];

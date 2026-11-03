@@ -1,5 +1,4 @@
 /* Owlet module (fd-ow): a reading. Its sock where a key would be, then today's sleep where a fader would be. */
-.fd-ow-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
 
 /* The heart beats while readings arrive, as a pulse oximeter's segment does: it rests in the dimmer ink and flashes to the
    figure's on each beat, every 2.4 s, a sign of life and not the measured rate. Only its colour changes (the lit layer's
@@ -29,16 +28,5 @@
   .fd-ow.fd-module[data-footprint="standard"] .fd-screen { padding: 0 6px; gap: 6px; }
 }
 
-/* The detail panel's owlet content. */
-.fd-ow-panel { display: grid; gap: 16px; min-width: 0; }
-
-/* Every alert sounding, and readings that stopped, printed under the screen in full. */
-.fd-ow-say { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 14px; text-transform: uppercase; color: var(--fd-ink-2); }
-.fd-ow-say > li { min-width: 0; overflow-wrap: anywhere; }
-.fd-ow-say .fd-warn { align-items: flex-start; }
-.fd-ow-say .fd-warn svg { margin-top: 2px; }
-.fd-ow-say .fd-warn-t { white-space: normal; }
-
 /* The base station's key, and what it being on or off means, in a sentence beside it. */
 .fd-ow-base { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: center; }
-.fd-ow-hint { margin: 0; font-size: 12px; font-weight: 400; line-height: 17px; color: var(--fd-ink-2); }

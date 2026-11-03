@@ -1,8 +1,9 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
+import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, lowBattery as isLowBattery, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
-import { AlertStatus, CardTitle, Readout, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./SensorCard.css";
 
@@ -104,7 +105,7 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
           title={sheet ? "Temperature today" : "Today"}
           samples={tempSeries.samples}
           currentHour={history!.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
+          summary={unav ? unavailableSince(e.lastSeen) : tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
         />
       )}
 
@@ -115,10 +116,7 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span className={lowBattery ? "hd-warn" : undefined}>{e.battery != null ? `Battery ${e.battery}%${lowBattery ? ", replace soon" : ""}` : ""}</span>
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `Updated ${e.lastUpdated}` : ""}</span>
-        </p>
+        <Facts start={e.battery != null ? `Battery ${e.battery}%${lowBattery ? ", replace soon" : ""}` : ""} end={unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated)} warn={lowBattery} />
       )}
     </article>
   );

@@ -41,6 +41,15 @@
 .__skin__-title:focus-visible, .__skin__-action:focus-visible, .__skin__-dialog-head button:focus-visible { outline: 3px solid var(--__skin__-accent); outline-offset: 3px; }
 .__skin__-dialog-body { padding: 20px; overflow: auto; font: 14px/1.5 var(--__skin__-sans); }
 .__skin__-dialog-state { text-transform: capitalize; }
+.__skin__-ask { display: grid; gap: 10px; margin: 0 0 18px; }
+.__skin__-ask:focus { outline: none; }
+.__skin__-ask-q { margin: 0; font-weight: 650; }
+.__skin__-ask-d { margin: 0; color: var(--__skin__-ink-muted); }
+.__skin__-ask-b { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.__skin__-ask .__skin__-ask-b { margin: 0; }
+.__skin__-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.__skin__-ask-b .__skin__-action:first-child, .__skin__-keys .__skin__-action:first-child { margin-left: 0; }
+.__skin__-action:disabled { cursor: not-allowed; opacity: 0.5; }
 .__skin__-empty { margin: 0; padding: 24px; color: var(--__skin__-ink-muted); font: 14px/1.5 var(--__skin__-sans); }
 @media (hover: hover) and (pointer: fine) { .__skin__-title:hover { color: var(--__skin__-accent); } .__skin__-action:hover:not([aria-disabled="true"]) { border-color: var(--__skin__-accent); } }
 @media (max-width: 600px) { .__skin__-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; border-radius: 18px 18px 0 0; } .__skin__-dialog[data-closing] { transform: translateY(100%); } }

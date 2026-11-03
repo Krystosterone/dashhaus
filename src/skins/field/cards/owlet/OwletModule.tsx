@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
 import { ALERT_SHORT, ALERT_WORD, SLEEP_WORD, URGENT_PROBLEMS, fmtOxygen, normalize, owletSeverity, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails } from "../../shared/ui";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";
 import "./OwletModule.css";
@@ -112,10 +113,10 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
       meta={meta}
       lead={glyph}
       row={(
-        <div className="fd-ow-row">
+        <ModuleRow className="fd-ow-row">
           {glyph}
           <Today summary={asleep} label="Sleep by hour today." tone="neutral" samples={history?.sleep} currentHour={history?.currentHour} />
-        </div>
+        </ModuleRow>
       )}
     >
       <OwletDetails e={e} state={offline ? "unavailable" : stale ? "stale" : sleep ?? "unknown"} offline={offline} stale={stale} pict={heart} read={heartRead} meta={reading} history={history} asleep={asleep} onBaseToggle={onBaseToggle} />
@@ -154,16 +155,16 @@ function OwletDetails({ e, state, offline, stale, pict, read, meta, history, asl
   const base = e.baseOn != null && onBaseToggle;
 
   return (
-    <div className="fd-ow-panel" data-state={state}>
+    <PanelBody className="fd-ow-panel" state={state}>
       <Screen pict={pict} meta={meta}>{read}</Screen>
-      {said.length > 0 && <ul className="fd-ow-say">{said.map((w) => <li key={w}><Warn>{w}</Warn></li>)}</ul>}
+      {said.length > 0 && <Notices className="fd-ow-say" warnings={said} />}
 
       {base && (
         <div className="fd-block">
           <Legend id={`${uid}-b`}>Base station</Legend>
           <div className="fd-ow-base">
             <Key label="Base station" pressed={e.baseOn} wide caption={e.baseOn ? "On" : "Off"} onPress={onBaseToggle}><IconBase /></Key>
-            <p className="fd-ow-hint">{e.baseOn ? "Sounds the alarm on an alert." : "Sounds no alarm. The sock still reads."}</p>
+            <p className="fd-hint">{e.baseOn ? "Sounds the alarm on an alert." : "Sounds no alarm. The sock still reads."}</p>
           </div>
         </div>
       )}
@@ -176,10 +177,7 @@ function OwletDetails({ e, state, offline, stale, pict, read, meta, history, asl
         </>
       )}
 
-      <p className="fd-info">
-        <span>{offline ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastUpdated ? `${e.live ? "Live · updated" : "Updated"} ${e.lastUpdated}` : ""}</span>
-        <span>{offline && e.charging ? "On its charger" : ""}</span>
-      </p>
-    </div>
+      <Facts start={offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live)} end={offline && e.charging ? "On its charger" : ""} />
+    </PanelBody>
   );
 }

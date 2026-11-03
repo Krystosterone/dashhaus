@@ -89,6 +89,45 @@
 
 .fd-info { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-ink-3); }
 
+/* A detail panel's content (PanelBody): the screen, then each block, as the container its key groups read. */
+.fd-panel-body { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
+
+/* What the panel prints under its screen (Notices): every warning, then the state in words, in full. */
+.fd-notices { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; line-height: 14px; text-transform: uppercase; color: var(--fd-ink-2); }
+.fd-notices > li { min-width: 0; overflow-wrap: anywhere; }
+.fd-notices .fd-warn { align-items: flex-start; }
+.fd-notices .fd-warn svg { margin-top: 2px; }
+.fd-notices .fd-warn-t { white-space: normal; }
+
+/* A sentence under a block: what a press does, what a question means. It keeps its case and wraps. */
+.fd-hint { margin: 0; min-height: 17px; font-size: 12px; font-weight: 400; line-height: 17px; color: var(--fd-ink-2); }
+.fd-hint .fd-warn-t { white-space: normal; }
+
+/* Guarded actions: the question, Cancel and the action as two keys; the keypad, the code on a strip of screen, the
+   keys three by four, then Cancel. */
+.fd-cf { display: grid; gap: 8px; min-width: 0; }
+.fd-cf-keys { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.fd-cf-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-pad { display: grid; gap: 12px; min-width: 0; }
+.fd-pad:focus { outline: none; }
+.fd-panel .fd-pad-code .fd-screen { height: 44px; }
+.fd-pad-dots { display: inline-flex; gap: 8px; }
+.fd-pad-dots i { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--fd-screen-unlit); transition: background-color 120ms var(--fd-ease-out); }
+.fd-pad-dots i[data-on] { background: var(--fd-screen-ink); }
+/* A text code is typed on the strip itself: no box of its own, the screen's ink, a caret in it. It stays narrow, so
+   the status beside it ("Wrong code. Try again") fits on a phone; a longer code scrolls inside it. */
+.fd-pad-in {
+  box-sizing: border-box; width: 7em; max-width: 100%; height: 28px; padding: 0 4px; border: 0; border-radius: 2px;
+  background: transparent; color: var(--fd-screen-ink); caret-color: var(--fd-screen-ink);
+  font: 500 16px var(--fd-sans); letter-spacing: 0.1em;
+}
+.fd-pad-in:focus { outline: none; }
+/* On the screen the ring is the screen's ink: the plate's focus colour is dark, and would vanish on the strip. */
+.fd-pad-in:focus-visible { outline: 1.5px solid var(--fd-screen-ink); outline-offset: 2px; }
+.fd-pad-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.fd-pad-keys .fd-key { height: 52px; }
+.fd-pad-keys .fd-key-fig { font-size: 20px; font-weight: 300; }
+
 @media (max-width: 600px) {
   .fd-panel {
     width: 100%;

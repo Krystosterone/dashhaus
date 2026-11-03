@@ -1,6 +1,6 @@
 import { FanTile } from "../FanTile";
-import { FAN_SEEDS, useDemoFan } from "./useDemoFan";
-import type { FanSeedName, FanSeed } from "./useDemoFan";
+import { FAN_SEEDS, useDemoFan } from "@dashhaus/core/seeds/fan";
+import type { FanSeedName, FanSeed } from "@dashhaus/core/seeds/fan";
 import type { CardFootprint } from "../../../shared/ui";
 
 export interface DemoFanTileProps {

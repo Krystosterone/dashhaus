@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoLockTile as DemoTile } from "./demo/DemoLockTile";
-import { LOCK_WORST_CASE } from "./demo/useDemoLock";
+import { LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["locked", "unlocked", "locking", "jammed", "code", "open", "unavailable", "long"] as const;
@@ -110,6 +110,8 @@ export const Details: Story = { name: "Details", args: { defaultOpen: true } };
 export const DetailsUnlock: Story = { name: "Details, unlock", args: { defaultOpen: true, defaultAction: "unlock" } };
 /** A lock that asks for a code: typing it is the confirmation. The demo's code is 1234. */
 export const DetailsCode: Story = { name: "Details, code", args: { seed: "code", defaultOpen: true, defaultAction: "unlock" } };
+/** A text code: letters work too, so the keypad types into a field that brings up a touch screen's keyboard. The demo's code is 1234. */
+export const DetailsTextCode: Story = { name: "Details, text code", args: { seed: "textCode", defaultOpen: true, defaultAction: "unlock" } };
 /** Open door, for a lock that can unlatch it, behind the same confirmation. */
 export const DetailsOpenDoor: Story = { name: "Details, open door", args: { defaultOpen: true, defaultAction: "open" } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };

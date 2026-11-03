@@ -262,7 +262,7 @@
 .fd-legend-v { order: 2; color: var(--fd-ink-2); }
 .fd-legend::after { content: ""; flex: 1; height: 5px; border-top: 1px solid var(--fd-print); border-right: 1px solid var(--fd-print); align-self: flex-end; margin-bottom: -1px; }
 .fd-slot { position: absolute; left: 9px; right: 9px; top: 25px; height: 4px; border-radius: 2px; background: var(--fd-slot); }
-/* Eleven dots, 0 to 100 in tens, on the thumb's centre line. */
+/* A dot per stop on the thumb's centre line (--fd-steps, set by the fader): eleven dots in tens by default. */
 .fd-scale {
   position: absolute;
   left: 8px;
@@ -271,7 +271,7 @@
   height: 2px;
   background:
     radial-gradient(circle at calc(100% - 1px) 50%, var(--fd-dot) 1px, transparent 1.2px) no-repeat,
-    radial-gradient(circle at 1px 50%, var(--fd-dot) 1px, transparent 1.2px) 0 0 / 10% 100% repeat-x;
+    radial-gradient(circle at 1px 50%, var(--fd-dot) 1px, transparent 1.2px) 0 0 / calc(100% / var(--fd-steps, 10)) 100% repeat-x;
 }
 .fd-rail { position: absolute; inset: 0 18px 0 0; transform: translateX(calc(var(--v, 0) * 100%)); pointer-events: none; }
 .fd-fader[data-anim] .fd-rail { transition: transform 180ms var(--fd-ease-out); }
@@ -320,3 +320,20 @@
    leading tightens so the name and the area line still fit the row's 64 px. */
 .fd-dash[data-viewing="far"] .fd-module[data-footprint="compact"] .fd-name { line-height: 15px; white-space: normal; }
 .fd-dash[data-viewing="far"] .fd-module[data-footprint="compact"] .fd-open-t { display: -webkit-box; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+
+/* A row of keys (KeyGroup): every key on one row unless the group says how many, each filling its cell; on a narrow
+   panel, as many as it says. Its container is the panel or module around it. */
+.fd-keys { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.fd-keys[data-columns] { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-n), minmax(0, 1fr)); }
+.fd-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 300px) {
+  .fd-keys[data-narrow]:not([data-narrow-at]) { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
+}
+@container (max-width: 419px) {
+  .fd-keys[data-narrow][data-narrow-at] { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
+}
+
+/* A standard module's row (ModuleRow): the key or glyph in its 44 px column, then its fader or today; solo, the key
+   spans the row. */
+.fd-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
+.fd-row[data-solo] { grid-template-columns: minmax(0, 1fr); }

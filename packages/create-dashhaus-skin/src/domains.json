@@ -8,8 +8,20 @@
     "domains": [
       "alarm_control_panel"
     ],
-    "kind": "reading",
+    "kind": "control",
     "actions": [],
+    "guarded": [
+      {
+        "action": "onDisarm",
+        "asks": false,
+        "code": true
+      }
+    ],
+    "leftOut": [
+      "onArm"
+    ],
+    "history": true,
+    "code": true,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -32,6 +44,16 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onTargetChange",
+      "onRangeChange",
+      "onModeChange",
+      "onPresetChange",
+      "onFanChange"
+    ],
+    "history": true,
+    "code": false,
     "summary": "e.currentTemperature == null ? stateWords(e.state) : `${e.currentTemperature}${e.unit}`",
     "options": [
       "name",
@@ -56,6 +78,13 @@
       "onCloseCover",
       "onStopCover"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onSetPosition",
+      "onSetTilt"
+    ],
+    "history": true,
+    "code": false,
     "summary": "e.position == null ? stateWords(e.state) : `${e.position}%`",
     "options": [
       "name",
@@ -78,6 +107,15 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onPercentageChange",
+      "onPresetChange",
+      "onOscillateChange",
+      "onDirectionChange"
+    ],
+    "history": true,
+    "code": false,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -100,6 +138,13 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onTargetChange",
+      "onModeChange"
+    ],
+    "history": true,
+    "code": false,
     "summary": "e.currentHumidity == null ? stateWords(e.state) : `${e.currentHumidity}%`",
     "options": [
       "name",
@@ -122,6 +167,14 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onBrightnessChange",
+      "onKelvinChange",
+      "onColorChange"
+    ],
+    "history": true,
+    "code": false,
     "summary": "e.brightness == null ? stateWords(e.state) : `${e.brightness}%`",
     "options": [
       "name",
@@ -130,6 +183,50 @@
     ],
     "companions": [],
     "fixtureId": "light.living_room"
+  },
+  "lock": {
+    "name": "lock",
+    "Name": "Lock",
+    "CONST": "LOCK",
+    "words": "lock",
+    "Label": "Lock",
+    "domains": [
+      "lock"
+    ],
+    "kind": "control",
+    "actions": [],
+    "guarded": [
+      {
+        "action": "onLock",
+        "asks": false,
+        "code": true
+      },
+      {
+        "action": "onUnlock",
+        "asks": true,
+        "code": true
+      },
+      {
+        "action": "onOpen",
+        "asks": true,
+        "code": true
+      }
+    ],
+    "leftOut": [],
+    "history": false,
+    "code": true,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area"
+    ],
+    "companions": [
+      {
+        "key": "battery",
+        "option": "batteryEntityId"
+      }
+    ],
+    "fixtureId": "lock.front_door"
   },
   "owlet": {
     "name": "owlet",
@@ -145,6 +242,10 @@
     "actions": [
       "onBaseToggle"
     ],
+    "guarded": [],
+    "leftOut": [],
+    "history": true,
+    "code": false,
     "summary": "e.heartRate == null ? stateWords(e.state) : `${e.heartRate} bpm`",
     "options": [
       "name",
@@ -182,6 +283,10 @@
     ],
     "kind": "reading",
     "actions": [],
+    "guarded": [],
+    "leftOut": [],
+    "history": true,
+    "code": false,
     "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.unit}`",
     "options": [
       "name",
@@ -213,6 +318,12 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [
+      "onVolumeChange"
+    ],
+    "history": true,
+    "code": false,
     "summary": "e.volume == null ? stateWords(e.state) : `${e.volume}%`",
     "options": [
       "name",
@@ -241,6 +352,10 @@
     "actions": [
       "onToggle"
     ],
+    "guarded": [],
+    "leftOut": [],
+    "history": true,
+    "code": false,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -261,6 +376,10 @@
     ],
     "kind": "reading",
     "actions": [],
+    "guarded": [],
+    "leftOut": [],
+    "history": true,
+    "code": false,
     "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.temperatureUnit}`",
     "options": [
       "name",

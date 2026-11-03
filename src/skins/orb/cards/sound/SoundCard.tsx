@@ -1,7 +1,8 @@
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
+import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { SoundIcon } from "./icons";
 import { VolumeBar } from "./parts";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./SoundCard.css";
 
@@ -29,7 +30,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
   // The control carries the state word; the status line never repeats it.
   const word = unav ? "Unavailable" : on ? "On" : "Off";
   // The pill's second voice: what tapping does, or how long it has been on.
-  const cue = on ? (e.lastChanged ? `Since ${e.lastChanged}` : undefined) : "Turn on";
+  const cue = on ? sinceFact(e.lastChanged) : "Turn on";
   // With no room to name (a titled bundle's lid names it), the status line carries the volume instead.
   const volume = !unav && e.volume != null ? `Volume ${e.volume}%` : null;
   // Unavailable, since when it was last seen.
@@ -42,7 +43,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
           <SoundIcon />
         </Orb>
         <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={area}>{area ? <>{area}{volume && <span className="sn-vol"> · {volume}</span>}</> : !sheet && (volume ?? (since ? `Since ${since}` : null))}</p>
+          <p className="hd-area" title={area}>{area ? <>{area}{volume && <span className="sn-vol"> · {volume}</span>}</> : !sheet && (volume ?? (sinceFact(since) ?? null))}</p>
           {compact && <p className="hd-sub">{word}</p>}
         </CardTitle>
         {/* The large readout is the volume, which no card control prints; without one it repeats the pill's word. */}
@@ -68,15 +69,12 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{unav && e.area ? e.area : ""}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav && e.area ? e.area : ""} />
       )}
     </article>
   );

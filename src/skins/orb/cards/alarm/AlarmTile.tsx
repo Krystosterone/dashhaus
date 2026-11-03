@@ -1,22 +1,10 @@
-import { useState } from "react";
+import { detailsTile } from "../../shared/ui";
+import type { TileProps } from "../../shared/ui";
 import { AlarmCard, AlarmSheet } from "./AlarmCard";
 import type { AlarmCardProps } from "./AlarmCard";
-import type { AlarmAction } from "@dashhaus/core/entities/alarm/types";
 
-export interface AlarmTileProps extends Omit<AlarmCardProps, "variant" | "onOpenDetails" | "onClose" | "action"> {
-  defaultOpen?: boolean;
-}
+/** `defaultOpen`: start with the sheet open; with `defaultAction`, on that action's keypad. */
+export type AlarmTileProps = TileProps<AlarmCardProps>;
 
 /** A dashboard-ready alarm: the card, plus its sheet, which opens on the keypad when an action needs the code. */
-export function AlarmTile({ defaultOpen = false, footprint, ...props }: AlarmTileProps) {
-  const [open, setOpen] = useState(defaultOpen);
-  const [action, setAction] = useState<AlarmAction | undefined>(undefined);
-  return (
-    <>
-      <div className="hd-c">
-        <AlarmCard {...props} footprint={footprint} onOpenDetails={(a) => { setAction(a); setOpen(true); }} />
-      </div>
-      <AlarmSheet {...props} action={action} open={open} onClose={() => { setOpen(false); setAction(undefined); }} />
-    </>
-  );
-}
+export const AlarmTile = detailsTile(AlarmCard, AlarmSheet);

@@ -1,6 +1,7 @@
 import type { CoverEntity } from "../../entities/cover/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 type CoverServiceCaller = Pick<HaStore, "callService">;
 
@@ -11,6 +12,15 @@ export interface CoverHandlers {
   onSetPosition?: (position: number) => void;
   onSetTilt?: (tilt: number) => void;
 }
+
+/** What each handler is, for a card drawing cover without knowing it (`ActionKind`). */
+export const COVER_ACTIONS = {
+  onOpenCover: { takes: "nothing" },
+  onCloseCover: { takes: "nothing" },
+  onStopCover: { takes: "nothing" },
+  onSetPosition: { takes: "value" },
+  onSetTilt: { takes: "value" },
+} as const satisfies ActionKinds<CoverHandlers>;
 
 export interface CoverHandlerOptions {
   onError?: (error: HaActionError) => void;

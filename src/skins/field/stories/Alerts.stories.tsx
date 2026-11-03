@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 import type { FieldFootprint } from "../shared/ui";
 import { AlertLine, AlertsProvider } from "../shared/alerts";
 import { OwletModule } from "../cards/owlet/OwletModule";
-import { OWLET_SEEDS } from "../cards/owlet/demo/socks";
-import type { OwletSeedName } from "../cards/owlet/demo/socks";
+import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
+import type { OwletSeedName } from "@dashhaus/core/seeds/owlet";
 import { AlarmModule } from "../cards/alarm/AlarmModule";
-import { ALARM_SEEDS, useDemoAlarm } from "../cards/alarm/demo/useDemoAlarm";
-import type { AlarmSeed } from "../cards/alarm/demo/useDemoAlarm";
+import { ALARM_SEEDS, useDemoAlarm } from "@dashhaus/core/seeds/alarm";
+import type { AlarmSeed } from "@dashhaus/core/seeds/alarm";
 import { SensorModule } from "../cards/sensor/SensorModule";
-import { SENSOR_SEEDS } from "../cards/sensor/demo/sensors";
+import { SENSOR_SEEDS } from "@dashhaus/core/seeds/sensor";
 
 const meta = {
   title: "Field/Foundations/Alerts",
@@ -98,13 +98,13 @@ export const OnADashboard: Story = {
       <div style={{ padding: 16, display: "grid", alignContent: "start", gap: 16, background: "var(--fd-page)", minHeight: "100vh", boxSizing: "border-box" }}>
         <AlertLine />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: 12, alignItems: "start" }}>
-          <SensorModule entity={SENSOR_SEEDS.indoor.entity} history={SENSOR_SEEDS.indoor.history} />
+          <SensorModule entity={SENSOR_SEEDS.living.entity} history={SENSOR_SEEDS.living.history} />
           <DemoAlarm seed={ALARM_SEEDS.triggered} />
-          <SensorModule entity={SENSOR_SEEDS.humid.entity} history={SENSOR_SEEDS.humid.history} />
+          <SensorModule entity={SENSOR_SEEDS.bathroom.entity} history={SENSOR_SEEDS.bathroom.history} />
           <OwletModule entity={{ ...OWLET_SEEDS.sockOff.entity, name: "Ben", area: "Kids' room" }} history={OWLET_SEEDS.sockOff.history} />
           <SensorModule entity={SENSOR_SEEDS.outdoor.entity} history={SENSOR_SEEDS.outdoor.history} />
           {sock("critical")}
-          <SensorModule entity={SENSOR_SEEDS.lowBattery.entity} history={SENSOR_SEEDS.lowBattery.history} />
+          <SensorModule entity={SENSOR_SEEDS.basement.entity} history={SENSOR_SEEDS.basement.history} />
         </div>
       </div>
     </AlertsProvider>

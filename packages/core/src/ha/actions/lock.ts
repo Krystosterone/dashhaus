@@ -2,6 +2,7 @@ import { codeFits } from "../../entities/lock/code";
 import type { LockEntity, LockOutcome } from "../../entities/lock/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 export interface LockHandlers {
   /** `lock.lock`. A tap does this: locking is the safe direction. */
@@ -11,6 +12,13 @@ export interface LockHandlers {
   /** `lock.open` (unlatch the door), only where the lock supports it. Same confirmation as unlock. */
   onOpen: (code?: string) => Promise<LockOutcome>;
 }
+
+/** What each handler is, for a card drawing lock without knowing it (`ActionKind`). */
+export const LOCK_ACTIONS = {
+  onLock: { takes: "code" }, // a tap locks: the safe direction
+  onUnlock: { takes: "code", asks: true },
+  onOpen: { takes: "code", asks: true },
+} as const satisfies ActionKinds<LockHandlers>;
 
 export interface LockHandlerOptions {
   onError?: (error: HaActionError) => void;

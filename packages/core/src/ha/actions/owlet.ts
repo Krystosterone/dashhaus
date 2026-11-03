@@ -1,10 +1,16 @@
 import type { OwletEntity } from "../../entities/owlet/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 export interface OwletHandlers {
   onBaseToggle?: () => void;
 }
+
+/** What each handler is, for a card drawing owlet without knowing it (`ActionKind`). */
+export const OWLET_ACTIONS = {
+  onBaseToggle: { takes: "nothing" },
+} as const satisfies ActionKinds<OwletHandlers>;
 
 export interface OwletHandlerOptions {
   onError?: (error: HaActionError) => void;

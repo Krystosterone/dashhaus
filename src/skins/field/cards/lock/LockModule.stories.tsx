@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { LockModule } from "./LockModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { LOCK_SEEDS, LOCK_WORST_CASE, useDemoLock } from "./demo/useDemoLock";
-import type { LockSeed, LockSeedName } from "./demo/useDemoLock";
+import { LOCK_SEEDS, LOCK_WORST_CASE, useDemoLock } from "@dashhaus/core/seeds/lock";
+import type { LockSeed, LockSeedName } from "@dashhaus/core/seeds/lock";
 import type { LockAction } from "@dashhaus/core/entities/lock/types";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -134,6 +134,8 @@ export const Details: Story = { args: { defaultOpen: true } };
 export const DetailsUnlock: Story = { name: "Details, unlock", args: { defaultAction: "unlock" } };
 /** A lock that asks for a code: typing it is the confirmation. The demo's code is 1234. */
 export const DetailsCode: Story = { name: "Details, code", args: { lock: "code", defaultAction: "unlock" } };
+/** A text code: letters work too, typed on the strip itself, a field that brings up a touch screen's keyboard. The demo's code is 1234. */
+export const DetailsTextCode: Story = { name: "Details, text code", args: { lock: "textCode", defaultAction: "unlock" } };
 /** Open door, behind the same question. */
 export const DetailsOpenDoor: Story = { name: "Details, open door", args: { defaultAction: "open" } };
 /** Unavailable: blank segments, and when it was last seen. */

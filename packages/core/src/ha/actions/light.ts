@@ -1,6 +1,7 @@
 import type { LightEntity } from "../../entities/light/types";
 import type { HaActionError, HaStore } from "../types";
 import { serviceRunner } from "./run";
+import type { ActionKinds } from "./kinds";
 
 type LightServiceCaller = Pick<HaStore, "callService">;
 
@@ -10,6 +11,14 @@ export interface LightHandlers {
   onKelvinChange?: (kelvin: number) => void;
   onColorChange?: (hs: [number, number]) => void;
 }
+
+/** What each handler is, for a card drawing light without knowing it (`ActionKind`). */
+export const LIGHT_ACTIONS = {
+  onToggle: { takes: "nothing" },
+  onBrightnessChange: { takes: "value" },
+  onKelvinChange: { takes: "value" },
+  onColorChange: { takes: "value" },
+} as const satisfies ActionKinds<LightHandlers>;
 
 export interface LightHandlerOptions {
   onError?: (error: HaActionError) => void;

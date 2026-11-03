@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { __Skin____Name__Card } from "./__Skin____Name__Card";
 import type { __Skin__Footprint } from "../../shared/ui";
-import { __seedConst__, __worstConst____demoImport__ } from "./demo/__seedFile__";
-import type { __seedType__, __seedNameType__ } from "./demo/__seedFile__";
+import { __seedConst__, __worstConst____demoImport__ } from "__seeds__";
+import type { __seedType__, __seedNameType__ } from "__seeds__";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEED_NAMES = Object.keys(__seedConst__) as __seedNameType__[];
 
 function Demo__Name__({ seed, width, footprint, defaultOpen }: { seed: __seedType__; width?: number; footprint?: __Skin__Footprint; defaultOpen?: boolean }) {
   const demo = __DEMO__;
-  return <div style={{ width, maxWidth: "100%" }}><__Skin____Name__Card entity={demo.entity} history={demo.history}__demoProps__ footprint={footprint} defaultOpen={defaultOpen} /></div>;
+  return <div style={{ width, maxWidth: "100%" }}><__Skin____Name__Card entity={demo.entity}__historyDemo____demoProps__ footprint={footprint} defaultOpen={defaultOpen} /></div>;
 }
 
 function Story__Name__({ __name__, ...props }: { __name__: __seedNameType__; width?: number; footprint?: __Skin__Footprint; defaultOpen?: boolean }) {

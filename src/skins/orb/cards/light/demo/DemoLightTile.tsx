@@ -1,10 +1,10 @@
 import { LightTile } from "../LightTile";
-import { SEEDS, useDemoLight } from "./useDemoLight";
-import type { SeedName, DemoSeed } from "./useDemoLight";
+import { LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
+import type { LightSeedName, LightSeed } from "@dashhaus/core/seeds/light";
 
 export interface DemoLightTileProps {
   /** Which example light to show. */
-  light: SeedName | DemoSeed;
+  light: LightSeedName | LightSeed;
   /** Container width in px. Width changes anatomy; the selected footprint keeps its height. */
   width?: number;
   /** Shared card footprint. */
@@ -20,7 +20,7 @@ export interface DemoLightTileProps {
 
 /** A LightTile wired to local demo state. */
 export function DemoLightTile({ light, width, footprint, showControl, name, area, defaultOpen }: DemoLightTileProps) {
-  const seed = (typeof light === "string" ? SEEDS[light] : light);
+  const seed = (typeof light === "string" ? LIGHT_SEEDS[light] : light);
   const demo = useDemoLight(seed, { ...(name ? { name } : {}), ...(area ? { area } : {}) });
   return (
     <div style={{ width, maxWidth: "100%" }}>

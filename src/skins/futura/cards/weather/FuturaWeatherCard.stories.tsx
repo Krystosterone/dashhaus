@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FuturaWeatherCard } from "./FuturaWeatherCard";
 import type { FuturaFootprint } from "../../shared/ui";
-import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "./demo/weather";
-import type { WeatherSeed, WeatherSeedName } from "./demo/weather";
+import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
+import type { WeatherSeed, WeatherSeedName } from "@dashhaus/core/seeds/weather";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEED_NAMES = Object.keys(WEATHER_SEEDS) as WeatherSeedName[];

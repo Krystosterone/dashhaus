@@ -1,19 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { LcarsLightCard } from "./LcarsLightCard";
 import type { LcarsFootprint } from "../../shared/ui";
-import { SEEDS, LIGHT_WORST_CASE, useDemoLight } from "./demo/useDemoLight";
-import type { DemoSeed, SeedName } from "./demo/useDemoLight";
+import { LIGHT_SEEDS, LIGHT_WORST_CASE, useDemoLight } from "@dashhaus/core/seeds/light";
+import type { LightSeed, LightSeedName } from "@dashhaus/core/seeds/light";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
-const SEED_NAMES = Object.keys(SEEDS) as SeedName[];
+const SEED_NAMES = Object.keys(LIGHT_SEEDS) as LightSeedName[];
 
-function DemoLight({ seed, width, footprint, defaultOpen }: { seed: DemoSeed; width?: number; footprint?: LcarsFootprint; defaultOpen?: boolean }) {
+function DemoLight({ seed, width, footprint, defaultOpen }: { seed: LightSeed; width?: number; footprint?: LcarsFootprint; defaultOpen?: boolean }) {
   const demo = useDemoLight(seed);
   return <div style={{ width, maxWidth: "100%" }}><LcarsLightCard entity={demo.entity} history={demo.history} onToggle={demo.onToggle} footprint={footprint} defaultOpen={defaultOpen} /></div>;
 }
 
-function StoryLight({ light, ...props }: { light: SeedName; width?: number; footprint?: LcarsFootprint; defaultOpen?: boolean }) {
-  return <DemoLight seed={SEEDS[light]} {...props} />;
+function StoryLight({ light, ...props }: { light: LightSeedName; width?: number; footprint?: LcarsFootprint; defaultOpen?: boolean }) {
+  return <DemoLight seed={LIGHT_SEEDS[light]} {...props} />;
 }
 
 const meta = {

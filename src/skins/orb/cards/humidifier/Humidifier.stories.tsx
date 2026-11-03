@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoHumidifierTile as DemoTile } from "./demo/DemoHumidifierTile";
-import { HUMIDIFIER_WORST_CASE } from "./demo/useDemoHumidifier";
+import { HUMIDIFIER_WORST_CASE } from "@dashhaus/core/seeds/humidifier";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["on", "off", "dehumidifier", "unavailable", "long"] as const;
+const SEEDS = ["on", "off", "dehumidifier", "modeOnly", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/Humidifier",

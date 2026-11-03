@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoFanTile as DemoTile } from "./demo/DemoFanTile";
-import { FAN_WORST_CASE } from "./demo/useDemoFan";
+import { FAN_WORST_CASE } from "@dashhaus/core/seeds/fan";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["on", "ceiling", "off", "onOff", "unavailable", "long"] as const;

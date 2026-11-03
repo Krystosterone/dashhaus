@@ -1,9 +1,10 @@
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { percentOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel } from "@dashhaus/core/entities/fan/labels";
+import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { FanIcon } from "./icons";
 import { SpeedBar } from "./parts";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Facts, fmtDuration, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./FanCard.css";
 
@@ -45,12 +46,12 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
   // The state word, once: the groove or the pill carries it, the compact row says it under the name.
   const word = unav ? "Unavailable" : !on ? "Off" : speed ?? "On";
   // The pill's second voice: what tapping does, or how long it has run.
-  const cue = on ? (e.lastChanged ? `Since ${e.lastChanged}` : undefined) : "Turn on";
+  const cue = on ? sinceFact(e.lastChanged) : "Turn on";
   // The status line names what it runs as, after the room: its preset, or that it sweeps.
   const mode = fanMode(e);
   // With no room to name (a titled bundle's lid names it), the status line carries its own detail.
   const since = unav ? e.lastSeen : e.lastChanged;
-  const detail = mode ?? (since ? `Since ${since}` : null);
+  const detail = mode ?? sinceFact(since) ?? null;
 
   const extras = !unav && (
     (e.supportsPreset && e.presetModes && onPresetChange) || (e.supportsOscillate && onOscillateChange) || (e.supportsDirection && onDirectionChange)
@@ -98,15 +99,12 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? `Unavailable since ${e.lastSeen ?? "earlier"}` : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
         />
       )}
 
       {sheet && (
-        <p className="hd-info">
-          <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-          <span>{fanAbilities(e)}</span>
-        </p>
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={fanAbilities(e)} />
       )}
     </article>
   );

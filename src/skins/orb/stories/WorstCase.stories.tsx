@@ -3,49 +3,49 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { LightTile } from "../cards/light/LightTile";
-import { LIGHT_WORST_CASE, SEEDS, useDemoLight } from "../cards/light/demo/useDemoLight";
-import type { DemoSeed } from "../cards/light/demo/useDemoLight";
+import { LIGHT_WORST_CASE, LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
+import type { LightSeed } from "@dashhaus/core/seeds/light";
 import { ClimateTile } from "../cards/climate/ClimateTile";
-import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "../cards/climate/demo/useDemoClimate";
-import type { ClimateSeed } from "../cards/climate/demo/useDemoClimate";
+import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "@dashhaus/core/seeds/climate";
+import type { ClimateSeed } from "@dashhaus/core/seeds/climate";
 import { SensorTile } from "../cards/sensor/SensorTile";
-import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "../cards/sensor/demo/sensors";
-import type { SensorSeed } from "../cards/sensor/demo/sensors";
+import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
+import type { SensorSeed } from "@dashhaus/core/seeds/sensor";
 import { WeatherTile } from "../cards/weather/WeatherTile";
-import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "../cards/weather/demo/weather";
-import type { WeatherSeed } from "../cards/weather/demo/weather";
+import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
+import type { WeatherSeed } from "@dashhaus/core/seeds/weather";
 import { ToggleTile } from "../cards/toggle/ToggleTile";
-import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "../cards/toggle/demo/useDemoToggle";
-import type { ToggleSeed } from "../cards/toggle/demo/useDemoToggle";
+import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "@dashhaus/core/seeds/toggle";
+import type { ToggleSeed } from "@dashhaus/core/seeds/toggle";
 import { CoverTile } from "../cards/cover/CoverTile";
-import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "../cards/cover/demo/useDemoCover";
-import type { CoverSeed } from "../cards/cover/demo/useDemoCover";
+import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "@dashhaus/core/seeds/cover";
+import type { CoverSeed } from "@dashhaus/core/seeds/cover";
 import { AlarmTile } from "../cards/alarm/AlarmTile";
-import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "../cards/alarm/demo/useDemoAlarm";
-import type { AlarmSeed } from "../cards/alarm/demo/useDemoAlarm";
+import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "@dashhaus/core/seeds/alarm";
+import type { AlarmSeed } from "@dashhaus/core/seeds/alarm";
 import { DemoHumidifierTile } from "../cards/humidifier/demo/DemoHumidifierTile";
-import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE } from "../cards/humidifier/demo/useDemoHumidifier";
-import type { HumidifierSeed } from "../cards/humidifier/demo/useDemoHumidifier";
+import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE } from "@dashhaus/core/seeds/humidifier";
+import type { HumidifierSeed } from "@dashhaus/core/seeds/humidifier";
 import { DemoOwletTile } from "../cards/owlet/demo/DemoOwletTile";
-import { OWLET_SEEDS, OWLET_WORST_CASE } from "../cards/owlet/demo/socks";
-import type { OwletSeed } from "../cards/owlet/demo/socks";
+import { OWLET_SEEDS, OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
+import type { OwletSeed } from "@dashhaus/core/seeds/owlet";
 import { DemoSoundTile } from "../cards/sound/demo/DemoSoundTile";
-import { SOUND_SEEDS, SOUND_WORST_CASE } from "../cards/sound/demo/useDemoSound";
-import type { SoundSeed } from "../cards/sound/demo/useDemoSound";
+import { SOUND_SEEDS, SOUND_WORST_CASE } from "@dashhaus/core/seeds/sound";
+import type { SoundSeed } from "@dashhaus/core/seeds/sound";
 import { DemoLockTile } from "../cards/lock/demo/DemoLockTile";
-import { LOCK_SEEDS, LOCK_WORST_CASE } from "../cards/lock/demo/useDemoLock";
-import type { LockSeed } from "../cards/lock/demo/useDemoLock";
+import { LOCK_SEEDS, LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
+import type { LockSeed } from "@dashhaus/core/seeds/lock";
 import { DemoFanTile } from "../cards/fan/demo/DemoFanTile";
-import { FAN_SEEDS, FAN_WORST_CASE } from "../cards/fan/demo/useDemoFan";
-import type { FanSeed } from "../cards/fan/demo/useDemoFan";
+import { FAN_SEEDS, FAN_WORST_CASE } from "@dashhaus/core/seeds/fan";
+import type { FanSeed } from "@dashhaus/core/seeds/fan";
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its
  * demo seeds (`<NAME>_WORST_CASE`), which its Worst case story also draws; this page runs them all side by side.
  */
 
-const LIGHTS: Record<"demo" | "worst", DemoSeed[]> = {
-  demo: [SEEDS.dimmable, SEEDS.onOff],
+const LIGHTS: Record<"demo" | "worst", LightSeed[]> = {
+  demo: [LIGHT_SEEDS.dimmable, LIGHT_SEEDS.onOff],
   worst: LIGHT_WORST_CASE,
 };
 
@@ -136,7 +136,7 @@ function Row({ children }: { children: (footprint: CardFootprint) => ReactNode }
   );
 }
 
-function Light({ seed, footprint }: { seed: DemoSeed; footprint: CardFootprint }) {
+function Light({ seed, footprint }: { seed: LightSeed; footprint: CardFootprint }) {
   const demo = useDemoLight(seed);
   return <LightTile {...demo} footprint={footprint} />;
 }

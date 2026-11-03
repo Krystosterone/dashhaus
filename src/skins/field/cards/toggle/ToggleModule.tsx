@@ -1,9 +1,9 @@
-import { useId } from "react";
 import type { ReactNode } from "react";
 import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core/entities/toggle/types";
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { fmtDuration } from "@dashhaus/core/entities/format";
-import { Blank, Key, Legend, ModuleFrame, Option, Pictogram, Screen, Today, useDetails } from "../../shared/ui";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
 import "./ToggleModule.css";
@@ -36,7 +36,7 @@ export function ToggleModule({ entity: e, footprint = "standard", history, onTog
 
   const pict = <Pictogram param="neutral" lit={on}>{modePict(e.icon)}</Pictogram>;
   const read: ReactNode = unav ? <Blank label="Unavailable" /> : on ? "ON" : "OFF";
-  const since = e.lastChanged ? `Since ${e.lastChanged}` : undefined;
+  const since = sinceFact(e.lastChanged);
   const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
     : on && e.until ? [`Until ${e.until}`, since]
     : since ? [since]
@@ -71,7 +71,6 @@ interface DetailsProps {
  * mode does; a key per way to turn it on, the one it was turned on with chosen; today; and facts.
  */
 function ToggleDetails({ e, read, pict, meta, control, history, durations, onTurnOnFor }: DetailsProps) {
-  const uid = useId();
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const chosen = on ? durations.find((d) => d.value === e.duration) : undefined;
@@ -88,30 +87,24 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
   ) : undefined;
 
   return (
-    <div className="fd-tw-panel" data-state={e.state}>
+    <PanelBody className="fd-tw-panel" state={e.state}>
       <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {control}
-      {e.description && <p className="fd-tw-desc">{e.description}</p>}
+      {e.description && <p className="fd-hint">{e.description}</p>}
 
       {onTurnOnFor && durations.length > 0 && (
-        <div className="fd-block">
-          <Legend id={`${uid}-d`} value={chosen?.label}>{on ? "Keep on" : "Turn on for"}</Legend>
-          <div className="fd-tw-durations" role="group" aria-labelledby={`${uid}-d`}>
-            {durations.map((d) => (
-              <Option key={d.value} name={d.sub}>
-                <Key label={d.sub ? `${d.label}, ${d.sub}` : d.label} wide caption={d.label} chosen={d === chosen} disabled={unav} onPress={() => onTurnOnFor(d.value)}>{null}</Key>
-              </Option>
-            ))}
-          </div>
-        </div>
+        <KeyGroup legend={on ? "Keep on" : "Turn on for"} value={chosen?.label} columns={2} className="fd-tw-durations">
+          {durations.map((d) => (
+            <Option key={d.value} name={d.sub}>
+              <Key label={d.sub ? `${d.label}, ${d.sub}` : d.label} wide caption={d.label} chosen={d === chosen} disabled={unav} onPress={() => onTurnOnFor(d.value)}>{null}</Key>
+            </Option>
+          ))}
+        </KeyGroup>
       )}
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
 
-      <p className="fd-info">
-        <span>{unav ? `Last seen ${e.lastSeen ?? "unknown"}` : e.lastChanged ? `Last changed ${e.lastChanged}` : ""}</span>
-        <span>{e.entityId.startsWith("switch.") ? "Switch" : "Toggle helper"}</span>
-      </p>
-    </div>
+      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.entityId.startsWith("switch.") ? "Switch" : "Toggle helper"} />
+    </PanelBody>
   );
 }

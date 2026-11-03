@@ -9,7 +9,9 @@
  * names; `npm install` inside the new project (its `@dashhaus` dependencies are the tarballs, the rest the registry);
  * `npm test`; `npm run build`; then `npm run deploy` (the packed `dashhaus-deploy` bin, reading `.env`) over a real
  * websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the deploy's served-file check runs
- * for real, and open and close the light's and sensor's details in the deployed dashboard. `--screenshot <dir>`
+ * for real, and open and close the light's and sensor's details in the deployed dashboard; then add a climate card and
+ * a lock, and check the lock's unlock asks first, sends nothing on Cancel and sends once on its question's Unlock.
+ * `--screenshot <dir>`
  * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
  */
 import assert from "node:assert/strict";
@@ -21,6 +23,7 @@ import {
   clean,
   createReport,
   exerciseDetails,
+  exerciseGuarded,
   installedPackage,
   makeApp,
   read,
@@ -70,7 +73,7 @@ try {
     : { ok: false };
 
   if (!scaffold.ok) {
-    report.blocked(["agent guide", "install", "conformance", "build", "deploy", "details", "add a domain", "added card"], "the scaffold failed");
+    report.blocked(["agent guide", "install", "conformance", "build", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], "the scaffold failed");
   } else {
     await report.stage("agent guide", async () => {
       const guide = await read(join(skinApp, "AGENTS.md"));
@@ -99,7 +102,7 @@ try {
     });
 
     if (!installed.ok) {
-      report.blocked(["conformance", "build", "deploy", "details", "add a domain", "added card"], "npm install failed in the skin");
+      report.blocked(["conformance", "build", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], "npm install failed in the skin");
     } else {
       await report.stage("conformance", async () => {
         const result = run("npm", ["test", "--silent"], { cwd: skinApp });
@@ -142,7 +145,7 @@ try {
       });
 
       if (!build.ok) {
-        report.blocked(["deploy", "details", "add a domain", "added card"], `no dist/${bundleName} to upload`);
+        report.blocked(["deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], `no dist/${bundleName} to upload`);
       } else {
         const deployed = await report.stage("deploy", async () => {
           const www = join(app, "www");
@@ -171,7 +174,7 @@ try {
           return `npm run deploy: 1 resource served back, 1 dashboard (${HA_URL})`;
         });
         if (!deployed.ok) {
-          report.blocked(["details", "add a domain", "added card"], "the deploy failed");
+          report.blocked(["details", "add a domain", "added card", "add a guarded action", "guarded action"], "the deploy failed");
         } else {
           await report.stage("details", async () => {
             const result = await exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
@@ -194,11 +197,31 @@ try {
             return "npm run add -- climate: 3 files and a registry row; npm test and npm run deploy pass";
           });
           if (!added.ok) {
-            report.blocked("added card", "npm run add failed");
+            report.blocked(["added card", "add a guarded action", "guarded action"], "npm run add failed");
           } else {
             await report.stage("added card", () => exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
               { card: "climate", facts: ["State", "Entity"], close: "button" },
             ]));
+            // A domain with a guarded action: the lock's unlock asks first, in the generated skin as in orb and field.
+            const guarded = await report.stage("add a guarded action", async () => {
+              const output = run("npm", ["run", "add", "--silent", "--", "lock"], { cwd: skinApp }).output;
+              assert.match(output, /Added the lock card as a control/, `npm run add said:\n${output}`);
+              const card = await read(join(skinApp, "cards/lock/MySkinLockCard.tsx"));
+              assert.match(card, /key: "unlock", label: "Unlock", asks: true/, "the lock's unlock must ask first");
+              run("npm", ["test", "--silent"], { cwd: skinApp });
+              const deploy = await runAsync("npm", ["run", "deploy", "--silent"], { cwd: skinApp });
+              assert.doesNotMatch(deploy.output, /^\s*!/m, `the deploy warned:\n${deploy.output}`);
+              return "npm run add -- lock: unlock and open ask first; npm test and npm run deploy pass";
+            });
+            if (!guarded.ok) report.blocked("guarded action", "npm run add -- lock failed");
+            else {
+              await report.stage("guarded action", () => exerciseGuarded(`${server.settings.HA_URL}/dashhaus-${SKIN}`, {
+                card: "lock",
+                action: "Unlock",
+                question: "Unlock Front door?",
+                service: { domain: "lock", service: "unlock" },
+              }));
+            }
           }
         }
       }

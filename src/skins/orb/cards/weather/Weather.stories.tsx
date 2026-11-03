@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoWeatherTile as DemoTile } from "./demo/DemoWeatherTile";
-import { WEATHER_WORST_CASE } from "./demo/weather";
+import { WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const WEATHER = ["partly", "rain", "night", "snow", "summer", "unavailable"] as const;

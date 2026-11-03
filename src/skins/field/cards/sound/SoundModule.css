@@ -1,4 +1,2 @@
 /* Sound module (fd-sn): the key spans the row with its state word; the volume is set in the panel only. */
 
-/* The detail panel's sound content. */
-.fd-sn-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }

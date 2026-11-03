@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoSoundTile as DemoTile } from "./demo/DemoSoundTile";
-import { SOUND_WORST_CASE } from "./demo/useDemoSound";
+import { SOUND_WORST_CASE } from "@dashhaus/core/seeds/sound";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["on", "off", "noVolume", "unavailable", "long"] as const;

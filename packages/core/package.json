@@ -40,6 +40,12 @@
       "import": "./dist/hooks/index.js",
       "default": "./dist/hooks/index.js"
     },
+    "./seeds/*": {
+      "source": "./src/seeds/*.ts",
+      "types": "./dist/seeds/*.d.ts",
+      "import": "./dist/seeds/*.js",
+      "default": "./dist/seeds/*.js"
+    },
     "./perf": {
       "source": "./src/perf.ts",
       "types": "./dist/perf.d.ts",

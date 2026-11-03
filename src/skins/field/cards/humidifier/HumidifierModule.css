@@ -1,7 +1,5 @@
 /* Humidifier module (fd-hu): the power key, then the target fader across the rest of the row. */
-.fd-hu-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
-/* No target to set (off, or a unit without one): the key spans the row with what it does. */
-.fd-hu-row[data-adjustable="false"] { grid-template-columns: minmax(0, 1fr); }
+/* A solo row (no target to set: off, or a unit without one) prints what the key does on one line. */
 .fd-hu-row .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /*
@@ -13,15 +11,7 @@
   .fd-hu.fd-module:is([data-state="off"], :has(.fd-fader)) .fd-meta-2 { display: block; }
 }
 
-/* The detail panel's humidifier content. */
-.fd-hu-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
 .fd-hu-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
 
-/* Modes put their full word on the key; three in a row, two on a narrow panel. */
-.fd-hu-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.fd-hu-modes .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* Four modes sit four in a row rather than three and an orphan. */
-.fd-hu-modes:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@container (max-width: 300px) {
-  .fd-hu-modes, .fd-hu-modes:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+/* Modes put their full word on the key, a KeyGroup: three in a row, four rather than three and an orphan, two on a
+   narrow panel. */

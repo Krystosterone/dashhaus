@@ -54,8 +54,13 @@ describe("the generic card checks", () => {
 
 describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, words }) => {
   it("has the standard files", () => {
-    const missing = [moduleFile, `${dir}/${Name}Module.css`, `${dir}/${Name}Module.stories.tsx`, `${dir}/${Name}Module.test.tsx`, `${dir}/icons.tsx`, `${dir}/demo`, `packages/core/src/entities/${name}/types.ts`].filter((p) => !exists(p));
+    const missing = [moduleFile, `${dir}/${Name}Module.css`, `${dir}/${Name}Module.stories.tsx`, `${dir}/${Name}Module.test.tsx`, `${dir}/icons.tsx`, `packages/core/src/seeds/${name}.ts`, `packages/core/src/entities/${name}/types.ts`].filter((p) => !exists(p));
     expect(missing, `${STEP}, step 2`).toEqual([]);
+  });
+
+  it("draws its stories from the domain's seeds in @dashhaus/core, never a copy of its own", () => {
+    expect(exists(`${dir}/demo`), `${dir}/demo: the seeds are @dashhaus/core/seeds/${name}, shared by every skin`).toBe(false);
+    expect(read(`${dir}/${Name}Module.stories.tsx`)).toContain(`"@dashhaus/core/seeds/${name}"`);
   });
 
   it("is drawn in the shared frame, with its details in its panel", () => {

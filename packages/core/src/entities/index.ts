@@ -5,3 +5,4 @@ export * from "./format";
 export * from "./history";
 export * from "./severity";
 export * from "./battery";
+export * from "./facts";

@@ -1,8 +1,7 @@
 /** Add one existing shared domain to a neutral skin created by `new-skin`. */
-import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { generated as generatedSkin, markers, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
 import { describeDomain } from "../domains.js";
 import { after, changes, exists, fail, read, root, skinDir } from "./lib.js";
 
@@ -22,7 +21,8 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
     fail(error.message);
   }
   const { Name, CONST, words, Label } = domain;
-  const { kind, actions } = drawn;
+  const { kind, actions, guarded, leftOut } = drawn;
+  const pressed = [...actions, ...guarded.map(({ action }) => action)];
   const skinNames = card.skinNames(skin);
   const { Skin, Section } = skinNames;
   const SKIN = generatedSkin.dir(skin);
@@ -37,25 +37,15 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   if (!Stories) fail(`${storybookPath} declares no \`section: "…"\``);
   const study = studies.is(JSON.parse(change.read(generatedSkin.file(skin, generatedSkin.files.manifest))));
 
-  const orbDir = `${skinDir("orb")}/cards/${name}`;
-  const demoDir = `${orbDir}/demo`;
-  if (!exists(demoDir)) fail(`${demoDir} doesn't exist: generated skins copy skin-independent demo seeds from Orb`);
-  const candidates = readdirSync(join(root, demoDir)).filter((file) => file.endsWith(".ts"));
-  const seedFile = candidates.find((file) => /export const \w*SEEDS\s*=/.test(read(`${demoDir}/${file}`)));
-  if (!seedFile) fail(`${demoDir} has no .ts file exporting a SEEDS object`);
-  let seeds = read(`${demoDir}/${seedFile}`);
+  // The domain's seeds are every skin's, in @dashhaus/core: read them, never copy them.
+  const seedPath = packageFile("core", `src/seeds/${name}.ts`);
+  if (!exists(seedPath)) fail(`${seedPath} doesn't exist: a domain's demo seeds live in @dashhaus/core, for every skin's stories`);
+  const seeds = read(seedPath);
   const seedConst = seeds.match(/export const (\w*SEEDS)\s*=/)?.[1];
   const worstConst = seeds.match(new RegExp(`export const (${CONST}_WORST_CASE)\\b`))?.[1];
   const seedType = seeds.match(/satisfies Record<string,\s*(\w+)>/)?.[1] ?? seeds.match(/export (?:interface|type) (\w*Seed)\b/)?.[1];
   const seedNameType = seeds.match(/export type (\w*SeedName|SeedName)\b/)?.[1];
-  if (!seedConst || !worstConst || !seedType || !seedNameType) fail(`${demoDir}/${seedFile} must export seeds, a seed type, its key type and ${CONST}_WORST_CASE`);
-  seeds = seeds.replace(/^import (type )?\{([^}]*)\} from "(\.[^"]+)";$/gm, (line, isType, list, path) => {
-    if (path.startsWith("../../../../../")) return line;
-    const imported = list.split(",").map((item) => item.trim()).filter(Boolean);
-    if (path === "../../../shared/ui" && isType && imported.every((item) => ["HourSample", "Reading"].includes(item))) return `import type {${list}} from "${packageSpecifier("core", "entities/history")}";`;
-    fail(`${demoDir}/${seedFile} imports ${path}, which belongs to Orb; move what it needs to a shared module first`);
-  });
-  seeds = `// Copied from Orb by \`npm run new-card -- ${name} --skin ${skin}\`; this skin owns its Seeds from here.\n${seeds}`;
+  if (!seedConst || !worstConst || !seedType || !seedNameType) fail(`${seedPath} must export seeds, a seed type, its key type and ${CONST}_WORST_CASE`);
   const hasHook = new RegExp(`export function useDemo${Name}\\b|export \\{ useDemo${Name} \\}`).test(seeds);
   const seedBody = objectBody(seeds, seedConst) ?? "";
   const seedKeys = [...seedBody.matchAll(/^ {2}(\w+): /gm)].map((match) => ({ key: match[1], index: match.index }));
@@ -70,22 +60,22 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
   const transport = orbStory.match(/import \{ (createDemo\w*HaTransport)\b[^}]*\} from "(@dashhaus\/core\/demo)"/);
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${orbStoryPath} must import a demo transport and draw an entityId`);
-  const demoProps = hasHook ? actions.map((action) => ` ${action}={demo.${action}}`).join("") : "";
+  // The demo hook's handlers, where it has the domain's (a demo may name one its own way, and leaves it unpressed).
+  const demoProps = hasHook ? pressed.filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => ` ${action}={demo.${action}}`).join("") : "";
   const lines = card.registryLines(domain, skinNames);
 
   const fill = card.filler({
-    ...card.cardTokens(domain, skinNames, actions),
+    ...card.cardTokens(domain, skinNames, drawn),
     __Stories__: Stories, __demoProps__: demoProps,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed", __demoImport__: hasHook ? `, useDemo${Name}` : "",
     __testProps__: "", __seedConst__: seedConst, __worstConst__: worstConst, __seedType__: seedType,
-    __seedNameType__: seedNameType, __seedFile__: seedFile.replace(/\.ts$/, ""), __firstSeed__: firstSeed,
+    __seedNameType__: seedNameType, __seeds__: packageSpecifier("core", `seeds/${name}`), __firstSeed__: firstSeed,
     __unavailableSeed__: unavailableSeed, __transport__: transport[1], __transportPath__: transport[2],
     __entityId__: entityId, __fixtureId__: domain.fixtureId,
   });
   // The card every skin shares, from the scaffolder's templates, then its stories and tests in this repository.
   change.fromTemplates([""], fill, join(root, skinTemplates.card), SKIN);
   change.fromTemplates(["repo-card"], fill, fileURLToPath(new URL("../new-skin/templates/", import.meta.url)), SKIN);
-  change.create(`${SKIN}/cards/${name}/demo/${seedFile}`, seeds);
 
   // The Card registry is the runtime and generator seam: routing plus the Connected adapter in one row.
   change.edit(registryPath, after(markers.registryImports, lines.import));
@@ -117,7 +107,7 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
   if (change.exists(`${SKIN}/cards/Empty.stories.tsx`)) change.remove(`${SKIN}/cards/Empty.stories.tsx`);
   if (change.exists(`${SKIN}/ha/Empty.stories.tsx`)) change.remove(`${SKIN}/ha/Empty.stories.tsx`);
 
-  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${actions.length ? `Its neutral actions are ${actions.map((action) => `\`${card.labelOf(action)}\``).join(", ")}.` : "It starts read-only because its shared actions need domain-specific input."} Replace the placeholder glyph and detail facts during bespoke design.\n`);
+  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${pressed.length ? `Its neutral actions are ${pressed.map((action) => `\`${card.labelOf(action)}\``).join(", ")}${guarded.length ? `; ${guarded.map(({ action }) => `\`${card.labelOf(action)}\``).join(", ")} ${guarded.some(({ asks }) => asks) ? "ask first or take a code" : "take a code"}, answered in Details` : ""}.` : "It starts read-only because its shared actions need domain-specific input."}${leftOut.length ? ` ${leftOut.map((action) => `\`${action}\``).join(", ")} ${leftOut.length > 1 ? "take values" : "takes a value"} a press can't give, so ${leftOut.length > 1 ? "they are" : "it is"} left out.` : ""} Replace the placeholder glyph and detail facts during bespoke design.\n`);
   // spec/cards.md describes the shipped skins' cards; a study's stay in its own design rules.
   if (!study) change.edit(seams.cardsDoc, (source) => {
     const at = source.indexOf(`## Using the ${words} card`);
@@ -136,5 +126,5 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
 
   if (suppliedChange) return { Name, Skin, Section, writes: change.writes };
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in ${Section} as a neutral ${kind}: ${actions.length ? actions.join(", ") : "read-only"}.\n\nNext:\n  1. npm run storybook  →  ${Stories}/Cards/${Name} and ${Stories}/Connected/${Name}\n  2. Replace its glyph, summary, actions and Details with the domain's own design\n  3. npm run check && npm run test-storybook && npm run build:ha`);
+  console.log(`Drew ${words} in ${Section} as a neutral ${kind}: ${pressed.length ? pressed.join(", ") : "read-only"}${leftOut.length ? ` (left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give)` : ""}.\n\nNext:\n  1. npm run storybook  →  ${Stories}/Cards/${Name} and ${Stories}/Connected/${Name}\n  2. Replace its glyph, summary, actions and Details with the domain's own design\n  3. npm run check && npm run test-storybook && npm run build:ha`);
 }

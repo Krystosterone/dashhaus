@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { useSlider } from "@dashhaus/core/primitives";
 import {
-  AlertStatus, CardTitle, ChoiceChips, CircleButton, IconClose, Orb, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
+  AlertStatus, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
 } from "../shared/ui";
 import type { HourSample } from "../shared/ui";
 import { BrightnessBar, IconBulb, WarmthRuler } from "../cards/light/parts";
@@ -158,6 +158,19 @@ function AllParts() {
 
       <Part name="Today strip" surface="hd--featured" rule="24 hourly sticks: height is that hour's level, the current hour is the accent. Hours not yet come are a short line; unavailable hours are dashed.">
         <State label="A day so far" width={340}><TodayStrip samples={DAY} currentHour={18} summary="On 4h 10m" /></State>
+      </Part>
+
+      <Part name="Confirm and Keypad" cardRole="state" rule="A guarded action's answer, in the sheet, on useGuardedAction: the question when no code is asked for (Cancel raised and focused, the action in the inverse, taking no press for a moment), or the keypad when one is (raised digits, enter in the inverse; a wrong code shakes the dots).">
+        <State label="The question" width={340}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Waiting for the answer" width={340}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" busy waiting="Waiting for the lock…" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Didn't go through" width={340}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" error="Didn’t go through. Try again." onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="The keypad (1234)" width={340}><Keypad prompt="Enter the code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
+      </Part>
+
+      <Part name="Facts" rule="The sheet's small print: two facts, at its start and end, in the words @dashhaus/core/entities/facts gives every card. Under a hairline, in the faint ink; a warning keeps its colour.">
+        <State label="Last changed" width={340}><Facts start="Last changed 10:58" end="Dimmable, warmth" /></State>
+        <State label="Unavailable" width={340}><Facts start="Last seen 10:42" end="Kitchen" /></State>
+        <State label="A warning" width={340}><Facts start="Battery 8%, replace soon" warn end="Updated 10:42" /></State>
       </Part>
 
       <Part name="Circle button" rule="The sheet's close button: round and raised. A card has no other.">

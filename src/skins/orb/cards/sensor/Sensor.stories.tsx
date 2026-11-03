@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoSensorTile as DemoTile } from "./demo/DemoSensorTile";
-import { SENSOR_WORST_CASE } from "./demo/sensors";
+import { SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SENSORS = ["living", "bathroom", "outdoor", "basement", "office", "garage"] as const;
+const SENSORS = ["living", "bathroom", "outdoor", "basement", "office", "humidityOnly", "garage"] as const;
 
 const meta = {
   title: "Orb/Cards/Sensor",

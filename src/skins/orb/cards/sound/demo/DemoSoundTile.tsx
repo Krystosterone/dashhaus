@@ -1,6 +1,6 @@
 import { SoundTile } from "../SoundTile";
-import { SOUND_SEEDS, useDemoSound } from "./useDemoSound";
-import type { SoundSeedName, SoundSeed } from "./useDemoSound";
+import { SOUND_SEEDS, useDemoSound } from "@dashhaus/core/seeds/sound";
+import type { SoundSeedName, SoundSeed } from "@dashhaus/core/seeds/sound";
 import type { CardFootprint } from "../../../shared/ui";
 
 export interface DemoSoundTileProps {

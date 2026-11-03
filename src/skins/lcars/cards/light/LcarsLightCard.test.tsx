@@ -1,14 +1,14 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { LcarsLightCard } from "./LcarsLightCard";
-import { SEEDS } from "./demo/useDemoLight";
+import { LIGHT_SEEDS } from "@dashhaus/core/seeds/light";
 
-const draw = (seed: keyof typeof SEEDS, defaultOpen = false) => render(<LcarsLightCard entity={SEEDS[seed].entity} defaultOpen={defaultOpen} />);
+const draw = (seed: keyof typeof LIGHT_SEEDS, defaultOpen = false) => render(<LcarsLightCard entity={LIGHT_SEEDS[seed].entity} defaultOpen={defaultOpen} />);
 
 describe("LcarsLightCard", () => {
   it("keeps the entity identity and unavailable state explicit", () => {
     const available = draw("dimmable");
-    expect(available.getByRole("button", { name: SEEDS.dimmable.entity.name })).toBeTruthy();
+    expect(available.getByRole("button", { name: LIGHT_SEEDS.dimmable.entity.name })).toBeTruthy();
     const unavailable = draw("unavailable");
     expect(unavailable.container.querySelector(".lcars-card")?.getAttribute("data-state")).toBe("unavailable");
     expect(unavailable.getByText("Unavailable")).toBeTruthy();
@@ -16,7 +16,7 @@ describe("LcarsLightCard", () => {
 
   it("opens its domain facts in Details", () => {
     const view = draw("dimmable");
-    fireEvent.click(view.getByRole("button", { name: SEEDS.dimmable.entity.name }));
-    expect(view.getByRole("dialog").textContent).toContain(SEEDS.dimmable.entity.entityId);
+    fireEvent.click(view.getByRole("button", { name: LIGHT_SEEDS.dimmable.entity.name }));
+    expect(view.getByRole("dialog").textContent).toContain(LIGHT_SEEDS.dimmable.entity.entityId);
   });
 });

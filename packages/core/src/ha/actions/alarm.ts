@@ -1,6 +1,7 @@
 import type { AlarmEntity, AlarmMode } from "../../entities/alarm/types";
 import { HaActionError } from "../types";
 import type { HaStore } from "../types";
+import type { ActionKinds } from "./kinds";
 
 type AlarmServiceCaller = Pick<HaStore, "callService">;
 
@@ -8,6 +9,12 @@ export interface AlarmHandlers {
   onArm: (mode: AlarmMode, code?: string) => Promise<boolean>;
   onDisarm: (code?: string) => Promise<boolean>;
 }
+
+/** What each handler is, for a card drawing alarm without knowing it (`ActionKind`). */
+export const ALARM_ACTIONS = {
+  onArm: { takes: "value" }, // a mode, and the code where it is asked for
+  onDisarm: { takes: "code" },
+} as const satisfies ActionKinds<AlarmHandlers>;
 
 export interface AlarmHandlerOptions {
   onError?: (error: HaActionError) => void;
