@@ -1,0 +1,90 @@
+name: Set up the workspace
+description: >-
+  Node from .nvmrc, the pinned npm, node_modules (restored whole, installed only on a miss), and optionally the tool
+  caches and Chromium. Every CI lane starts here after its checkout, so they all install the same way.
+
+inputs:
+  tool-cache:
+    description: >-
+      node_modules/.cache (TypeScript's incremental state and ESLint's cache): "true" restores it and saves it after a
+      green job, "restore" only restores it (for a lane that reads it but doesn't refresh it), "false" leaves it out.
+    default: "false"
+  chromium:
+    description: Install the pinned Playwright's Chromium headless shell.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+    # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the packageManager
+    # pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache folder) can't be used;
+    # npm's download cache is restored below instead, and only when node_modules has to be installed.
+    - name: Use the pinned npm
+      shell: bash
+      run: corepack enable npm && npm --version
+
+    # The tool caches live under node_modules/.cache but change on every commit, so they are left out of this cache,
+    # whose key only moves with the manifests, and kept in their own below.
+    - name: Restore node_modules
+      id: modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          !node_modules/.cache
+        key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
+    - name: Restore npm's downloads
+      if: steps.modules.outputs.cache-hit != 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-${{ runner.os }}-
+    - name: Install
+      if: steps.modules.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --no-audit --no-fund
+
+    # A new entry per commit, restored from the newest on this branch or, failing that, main's. TypeScript's incremental
+    # state hashes file contents and ESLint's cache uses its content strategy, so a fresh checkout's timestamps don't
+    # invalidate either.
+    - name: Restore the tool caches
+      if: inputs.tool-cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: node_modules/.cache
+        key: tools-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+        restore-keys: |
+          tools-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          tools-${{ runner.os }}-
+    - name: Restore the tool caches (read-only)
+      if: inputs.tool-cache == 'restore'
+      uses: actions/cache/restore@v4
+      with:
+        path: node_modules/.cache
+        key: tools-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+        restore-keys: |
+          tools-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          tools-${{ runner.os }}-
+
+    - name: Read the Playwright version
+      if: inputs.chromium == 'true'
+      id: playwright
+      shell: bash
+      run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+    - name: Restore Chromium
+      if: inputs.chromium == 'true'
+      id: chromium
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ms-playwright-shell-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+    # Headless runs only need the headless shell, a third of the full browser's download. The runner image already
+    # carries Chrome's system libraries, so there is no apt step.
+    - name: Install Chromium
+      if: inputs.chromium == 'true' && steps.chromium.outputs.cache-hit != 'true'
+      shell: bash
+      run: npx playwright install --only-shell chromium
