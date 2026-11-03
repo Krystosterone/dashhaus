@@ -11,20 +11,20 @@ const raw: HassEntities = { "light.a": light("light.a", "Desk"), "light.b": ligh
 function draw(yaml: Record<string, unknown>) {
   const config = parseDashboardConfig(yaml);
   return renderConnected(
-    <ConfigDashboard config={{ ...config, blocks: config.blocks ?? [] }} panels={{ "baby-view": { url_path: "baby-view", title: "Baby View" } }} now={new Date(2026, 9, 17, 11, 54)} />,
+    <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} panels={{ "baby-view": { url_path: "baby-view", title: "Baby View" } }} now={new Date(2026, 9, 17, 11, 54)} />,
     raw,
   );
 }
 
 const nav = () => screen.queryByRole("navigation", { name: "Dashboard" });
-const sections = [{ title: "Quick actions", cards: ["light.a"] }, { title: "Home status", cards: ["light.b"] }];
+const rows = [{ title: "Quick actions", cards: ["light.a"] }, { title: "Home status", cards: ["light.b"] }];
 
 beforeEach(() => { Element.prototype.scrollIntoView = vi.fn(); });
 afterEach(() => history.replaceState(null, "", "/"));
 
 describe("ConfigDashboard nav", () => {
-  it("lists the sections by default, and jumps to one", async () => {
-    draw({ sections });
+  it("lists the titled rows by default, and jumps to one", async () => {
+    draw({ rows });
     const bar = nav()!;
     expect(within(bar).getAllByRole("button").map((b) => b.textContent)).toEqual(["Quick actions", "Home status"]);
 
@@ -34,8 +34,8 @@ describe("ConfigDashboard nav", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
   });
 
-  it("sends each of two same-titled sections' pills to its own section", async () => {
-    draw({ sections: [{ title: "Nursery", cards: ["light.a"] }, { title: "Status", cards: ["light.b"] }, { title: "Nursery", cards: ["light.b"] }] });
+  it("sends each of two same-titled rows' pills to its own row", async () => {
+    draw({ rows: [{ title: "Nursery", cards: ["light.a"] }, { title: "Status", cards: ["light.b"] }, { title: "Nursery", cards: ["light.b"] }] });
     const pills = within(nav()!).getAllByRole("button", { name: "Nursery" });
     expect(pills).toHaveLength(2);
     fireEvent.click(pills[1]);
@@ -48,7 +48,7 @@ describe("ConfigDashboard nav", () => {
   });
 
   it("opens the card's own pages, keeps them in the URL, and follows back", async () => {
-    draw({ title: "Home", sections, pages: [{ id: "living", title: "Living room", sections: [{ title: "Lights", cards: ["light.b"] }] }] });
+    draw({ title: "Home", rows, pages: [{ id: "living", title: "Living room", rows: [{ title: "Lights", cards: ["light.b"] }] }] });
     const bar = nav()!;
     expect(within(bar).getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Living room"]);
 
@@ -68,16 +68,16 @@ describe("ConfigDashboard nav", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
   });
 
-  it("returns to the main page for a section picked from another page", async () => {
+  it("returns to the main page for a row picked from another page", async () => {
     history.replaceState(null, "", "/#page=living");
-    draw({ sections, pages: [{ id: "living", title: "Living room", sections: [{ title: "Lights", cards: ["light.b"] }] }], nav: [{ page: "living" }, { section: "Home status" }] });
+    draw({ rows, pages: [{ id: "living", title: "Living room", rows: [{ title: "Lights", cards: ["light.b"] }] }], nav: [{ page: "living" }, { section: "Home status" }] });
     fireEvent.click(within(nav()!).getByRole("button", { name: "Home status" }));
     expect(location.hash).toBe("");
     await waitFor(() => expect(document.querySelector("[data-section-id=section-home-status]")?.scrollIntoView).toHaveBeenCalled());
   });
 
   it("leaves for another dashboard through Home Assistant's router, named from its panels", () => {
-    draw({ sections, nav: [{ section: "Quick actions" }, { navigate: "/baby-view/0" }] });
+    draw({ rows, nav: [{ section: "Quick actions" }, { navigate: "/baby-view/0" }] });
     const heard = vi.fn();
     addEventListener("location-changed", heard);
     const leave = within(nav()!).getByRole("button", { name: "Baby View, another dashboard" });
@@ -88,15 +88,42 @@ describe("ConfigDashboard nav", () => {
   });
 
   it("has no nav when told so, on a wall panel by default, or with one place to go", async () => {
-    const cases = [{ sections, nav: false }, { sections, viewing: "far" }, { sections: [sections[0]] }];
+    const cases = [{ rows, nav: false }, { rows, viewing: "far" }, { rows: [rows[0]] }];
     for (const yaml of cases) {
       const view = draw(yaml);
       expect(nav()).toBeNull();
       await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
       view.unmount();
     }
-    draw({ sections, viewing: "far", nav: [{ section: "Quick actions" }, { section: "Home status" }] });
+    draw({ rows, viewing: "far", nav: [{ section: "Quick actions" }, { section: "Home status" }] });
     expect(nav()).not.toBeNull();
     await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
+  });
+});
+
+describe("ConfigDashboard layout", () => {
+  const cellOf = (name: string) => screen.getByRole("heading", { name }).closest(".dash-place") as HTMLElement;
+
+  it("places each card on the row's unit grid where the YAML puts it, in YAML order", async () => {
+    draw({ rows: [{ title: "Glance", columns: 3, align: "bottom", cards: [
+      { entity: "light.a", column: 1, width: 2, footprint: "featured" },
+      { entity: "light.b", column: 3 },
+    ] }] });
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
+    const grid = document.querySelector(".dash-row") as HTMLElement;
+    expect(grid.dataset.tracks).toBe("3");
+    expect(grid.style.gridTemplateColumns).toBe("repeat(3, minmax(0, 1fr))");
+    // The featured hero is four units; the standard card beside it two, moved down to the row's bottom.
+    expect([cellOf("Desk").style.gridColumn, cellOf("Desk").style.gridRow]).toEqual(["1 / span 2", "1 / span 4"]);
+    expect([cellOf("Pendant").style.gridColumn, cellOf("Pendant").style.gridRow]).toEqual(["3 / span 1", "3 / span 2"]);
+    expect([...grid.children].map((cell) => cell.querySelector("h3")?.textContent)).toEqual(["Desk", "Pendant"]);
+  });
+
+  it("draws plain cards as one untitled grid, with no heading", async () => {
+    draw({ cards: ["light.a", "light.b"] });
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Desk" })).toBeTruthy());
+    expect(document.querySelectorAll(".dash-row")).toHaveLength(1);
+    expect(document.querySelector(".dash-sec")).toBeNull();
+    expect(nav()).toBeNull();
   });
 });

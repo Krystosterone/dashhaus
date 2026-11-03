@@ -29,15 +29,17 @@ export interface __Skin__SectionProps {
   id?: string;
   columns?: number;
   footprint?: __Skin__Footprint;
+  /** The Lovelace card's placed grid: its element (measured for its tracks) and its tracks as an inline style. */
+  grid?: { ref: Ref<HTMLDivElement>; style: CSSProperties; tracks: number };
   children: ReactNode;
 }
 
 /** One titled Dashboard section and its responsive Card grid. */
-export function __Skin__Section({ title, note, id, columns, footprint = "standard", children }: __Skin__SectionProps) {
+export function __Skin__Section({ title, note, id, columns, footprint = "standard", grid, children }: __Skin__SectionProps) {
   return (
     <section id={id} data-section-id={id} className="__skin__-section" aria-label={title ?? "Other"}>
       {(title || note) && <div className="__skin__-section-head">{title && <h2>{title}</h2>}{note && <p>{note}</p>}</div>}
-      <div className="__skin__-grid" data-footprint={footprint} style={columns ? { "--__skin__-columns": columns } as Vars : undefined}>{children}</div>
+      <div ref={grid?.ref} className="__skin__-grid" data-footprint={footprint} data-tracks={grid?.tracks} style={grid ? grid.style : columns ? { "--__skin__-columns": columns } as Vars : undefined}>{children}</div>
     </section>
   );
 }

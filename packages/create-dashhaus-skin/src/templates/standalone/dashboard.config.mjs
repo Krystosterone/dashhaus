@@ -15,7 +15,7 @@ export default {
       title: "Home (__Section__)",
       icon: "mdi:view-dashboard-outline",
       async card() {
-        // No `cards`: the card lays out every light and sensor by area, each time it draws.
+        // No `cards` or `rows`: the card lays out every light and sensor, a row per area, each time it draws.
         return { card: { type: "custom:__card_type__" }, made: "automatic" };
       },
     },

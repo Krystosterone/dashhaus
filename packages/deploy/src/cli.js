@@ -51,7 +51,7 @@ export default {
       title: "Home (Orb)",                       // the sidebar title
       icon: "mdi:home-variant",
       async card() {
-        // A card with no sections lays out every supported entity by area.
+        // A card with no cards or rows lays out every supported entity by area.
         return { card: { type: "custom:dashhaus-orb" }, made: "automatic" };
       },
     },

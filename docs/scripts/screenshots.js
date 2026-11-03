@@ -6,9 +6,11 @@
  *   while the live story loads, and in its place where the story can't run.
  * - `src/assets/kinds/<kind>-<look>.webp`: one card of each kind of entity, Orb's tile over Field's module, for the
  *   home page's list of what the skins draw.
+ * - `src/assets/layout/composition-<device>-<look>.webp`: the Orb Lovelace card's Composition stories on a tablet and a
+ *   phone, the same YAML at two widths, for the YAML page's account of how a row collapses.
  *
  * Run `npm run build-storybook` at the root first, then `npm run screenshots -w docs [-- <storybook-static dir>]`. Rerun
- * it when a skin's phone example or one of the cards below changes.
+ * it when a skin's phone example, one of the cards below or the Composition stories change.
  */
 /* global document */
 import { createServer } from "node:http";
@@ -61,6 +63,7 @@ const story = (id, globals) => `http://127.0.0.1:${port}/iframe.html?id=${id}&vi
 
 await mkdir(join(assets, "skins"), { recursive: true });
 await mkdir(join(assets, "kinds"), { recursive: true });
+await mkdir(join(assets, "layout"), { recursive: true });
 
 const browser = await chromium.launch(chromiumLaunchOptions());
 try {
@@ -89,6 +92,18 @@ try {
       const screen = await page.locator("#storybook-root figure > div").first().screenshot({ animations: "disabled" });
       await sharp(screen).resize({ width: 600 }).webp({ quality: 80 }).toFile(join(assets, "skins", `phone-${skin}-${look}.webp`));
       console.log(`wrote skins/phone-${skin}-${look}.webp`);
+    }
+  }
+
+  /** The same YAML drawn at two widths: the story's page, as wide as its device, down to its last row. */
+  for (const device of ["tablet", "phone"]) {
+    for (const look of ["light", "dark"]) {
+      await open(`orb-dashboards-lovelace-card--composition-${device}`, LOOKS.orb[look]);
+      // The nav docks to the bottom of the screen, over whatever is there when the whole page is shot: leave it out.
+      await page.addStyleTag({ content: ".dash-dock { display: none !important; }" });
+      const shot = await page.locator("#storybook-root > *").first().screenshot({ animations: "disabled" });
+      await sharp(shot).resize({ width: device === "tablet" ? 1240 : 620 }).webp({ quality: 80 }).toFile(join(assets, "layout", `composition-${device}-${look}.webp`));
+      console.log(`wrote layout/composition-${device}-${look}.webp`);
     }
   }
 

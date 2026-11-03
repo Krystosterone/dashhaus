@@ -40,15 +40,17 @@ export interface LcarsSectionProps {
   id?: string;
   columns?: number;
   footprint?: LcarsFootprint;
+  /** The Lovelace card's placed grid: its element (measured for its tracks) and its tracks as an inline style. */
+  grid?: { ref: Ref<HTMLDivElement>; style: CSSProperties; tracks: number };
   children: ReactNode;
 }
 
 /** One titled Dashboard section, headed by an LCARS bar with its name cut in, and its responsive Card grid. */
-export function LcarsSection({ title, note, id, columns, footprint = "standard", children }: LcarsSectionProps) {
+export function LcarsSection({ title, note, id, columns, footprint = "standard", grid, children }: LcarsSectionProps) {
   return (
     <section id={id} data-section-id={id} className="lcars-section" aria-label={title ?? "Other"}>
       <div className="lcars-section-head">{title ? <h2>{title}</h2> : <h2>Other</h2>}{note && <p>{note}</p>}</div>
-      <div className="lcars-grid" data-footprint={footprint} style={columns ? { "--lcars-columns": columns } as Vars : undefined}>{children}</div>
+      <div ref={grid?.ref} className="lcars-grid" data-footprint={footprint} data-tracks={grid?.tracks} style={grid ? grid.style : columns ? { "--lcars-columns": columns } as Vars : undefined}>{children}</div>
     </section>
   );
 }

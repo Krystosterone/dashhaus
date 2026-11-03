@@ -1,16 +1,20 @@
 import {
+  BODY_KEYS,
   DashboardConfigError,
+  PLACEMENT_KEYS,
   Reader,
   isRaw,
   cardKinds,
+  readBody,
   readAlarmOptions,
   readCard,
   readOwletOptions,
   readSensorOptions,
   readUnit,
   readWeatherOptions,
+  rowTitles,
 } from "@dashhaus/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, Raw } from "@dashhaus/dashboard/schema";
+import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
 import type { NavEntry } from "@dashhaus/dashboard";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
@@ -19,7 +23,8 @@ import type { FieldFootprint } from "../shared/ui";
 
 /*
  * The field card's YAML (spec/deploy.md → The field dashboard), checked with the reader every card shares, so
- * every mistake shows at once with its path. Field draws lights, climate entities, humidifiers, room sensors, the
+ * every mistake shows at once with its path, and laid out with the layout every card shares (`cards`, or `rows` of
+ * cards), its footprints mixed by column. Field draws lights, climate entities, humidifiers, room sensors, the
  * weather, modes, sound machines, covers, alarms and Owlet socks. The reading itself is the shared card schema
  * (`@dashhaus/dashboard/schema`); this file is the field card's kind table and the words it refuses.
  */
@@ -31,11 +36,9 @@ export interface ModuleConfig {
   /** The card that draws it: from `card:`, else the entity id (`kindOf`). */
   kind: FieldKind;
   name?: string;
-  /** Overrides the area Home Assistant's registries give it; modules are grouped by area. */
+  /** Overrides the area Home Assistant's registries give it; the automatic layout groups modules by area. */
   area?: string;
   footprint?: FieldFootprint;
-  /** Grid tracks it spans where its section has that many; one when left out. */
-  span?: number;
   /** False skips the Today history read. */
   history?: boolean;
   /** A climate entity's or a sensor's temperatures in this unit, whatever Home Assistant's is. */
@@ -72,22 +75,11 @@ export interface ModuleConfig {
   staleAfter?: number;
 }
 
-/** A titled group of modules under its legend (`Area`); an area of the automatic layout is one. */
-export interface SectionConfig {
-  kind: "section";
-  title?: string;
-  /** Printed at the legend's end. */
-  note?: string;
-  /** At most this many modules across; fewer where the section is narrower. */
-  columns?: number;
-  modules: ModuleConfig[];
-}
-/** Sections side by side, one column each (`Areas`), for a tablet or a wall panel. */
-export interface ColumnsConfig { kind: "columns"; columns: number; sections: SectionConfig[] }
-export type BlockConfig = SectionConfig | ColumnsConfig;
+/** A row of the page: its legend, its grid (or column stacks, for mixed footprints) and its modules. */
+export type FieldRow = RowConfig<ModuleConfig>;
 
-/** A page of the card's own: its id (for `page:` in the nav and the URL hash), its title, its sections. */
-export interface PageConfig { id: string; title: string; blocks: BlockConfig[] }
+/** A page of the card's own: its id (for `page:` in the nav and the URL hash), its title, its rows. */
+export interface PageConfig { id: string; title: string; rows: FieldRow[] }
 
 export interface FieldConfig {
   title?: string;
@@ -105,27 +97,16 @@ export interface FieldConfig {
   footprint: FieldFootprint;
   /** An alarm holds its inverted screen from the start, with no flash: a panel in a nursery at night. */
   quiet: boolean;
-  /** Absent, with no `sections`: every supported light, climate, weather, humidifier, cover, alarm, input_boolean and switch entity, Owlet sock and room sensor, grouped by area. */
-  modules?: ModuleConfig[];
-  /** The main page laid out by hand, in place of `modules` grouped by area. */
-  sections?: BlockConfig[];
+  /**
+   * The main page's rows (its `cards` are one untitled row). Absent: every supported light, climate, weather,
+   * humidifier, cover, alarm, input_boolean and switch entity, Owlet sock and room sensor, a row per area.
+   */
+  rows?: FieldRow[];
   /** More pages in this card, opened from the nav; the main page is `home`. */
   pages?: PageConfig[];
-  /** The bottom nav's destinations; absent: the pages, or else the main page's sections; false: no nav. */
+  /** The bottom nav's destinations; absent: the pages, or else the main page's titled rows; false: no nav. */
   nav?: NavEntry[] | false;
 }
-
-/** Every module in some blocks, in order. */
-export const modulesOf = (blocks: readonly BlockConfig[]) => sectionsOf(blocks).flatMap((s) => s.modules);
-
-/** The sections of some blocks, a column group's in order. */
-export const sectionsOf = (blocks: readonly BlockConfig[]) => blocks.flatMap((b) => (b.kind === "columns" ? b.sections : [b]));
-
-/** Every module in some blocks, changed by `fn`: its area filled in from Home Assistant's registries. */
-export const mapModules = (blocks: readonly BlockConfig[], fn: (m: ModuleConfig) => ModuleConfig): BlockConfig[] => {
-  const section = (s: SectionConfig): SectionConfig => ({ ...s, modules: s.modules.map(fn) });
-  return blocks.map((b) => (b.kind === "columns" ? { ...b, sections: b.sections.map(section) } : section(b)));
-};
 
 /** Field's cards, by the name they share with their domain model (`packages/core/src/entities/<kind>/`). */
 export type FieldKind =
@@ -175,11 +156,9 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "finish", "footprint", "quiet", "modules", "sections", "pages", "nav", "view_layout", "grid_options", "visibility"];
-const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", "span", "history"];
-const SECTION_KEYS = ["title", "note", "columns", "modules"];
-const GROUP_KEYS = ["columns", "sections"];
-/** A field page is at most 1240 px wide: four modules across, or four areas side by side. */
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "finish", "footprint", "quiet", ...BODY_KEYS, "pages", "nav", "view_layout", "grid_options", "visibility"];
+const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT_KEYS, "history"];
+/** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
 const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"] };
@@ -223,10 +202,6 @@ const ORB_ONLY = {
     theme: "field's finish is \"finish\": home-assistant, auto, alloy or black",
     accent: "field has no accent: colour names a parameter (spec/field.md)",
   },
-  section: {
-    cards: "a field section lists \"modules\"",
-    gap: "field spaces its grid by footprint: 12 px between modules, 8 px between rows",
-  },
   module: {
     color: "field keeps colour for what a control sets (spec/field.md)",
     show_control: "a field row shows its screen in place of a control",
@@ -248,11 +223,10 @@ const MODULE_SCHEMA: CardReadSchema<FieldKind, ModuleConfig> = {
     name: read.string(raw, "name", at),
     area: read.string(raw, "area", at),
     footprint: read.choice(raw, "footprint", at, FOOTPRINTS),
-    span: read.number(raw, "span", at, 1, MAX_ACROSS),
     history: read.boolean(raw, "history", at),
   }),
   before: (read, raw, path) => {
-    if ("joined" in raw || "lead" in raw || "rows" in raw) {
+    if ("bundle" in raw || "cards" in raw) {
       read.problem(path, "bundles are the main card's: list each module on its own");
       return false;
     }
@@ -262,49 +236,36 @@ const MODULE_SCHEMA: CardReadSchema<FieldKind, ModuleConfig> = {
 };
 
 class FieldReader extends Reader {
+  /** The shared layout with field's modules: at most four across, footprints mixed by column. */
+  readonly layout: LayoutSchema<ModuleConfig>;
+
+  constructor(footprint: () => FieldFootprint) {
+    super();
+    this.layout = {
+      noun: "module",
+      maxColumns: MAX_ACROSS,
+      item: (_read, value, path) => this.module(value, path),
+      footprints: { mix: "stacks", of: (module) => module.footprint ?? footprint() },
+    };
+  }
+
   module(value: unknown, path: string): ModuleConfig | undefined {
     return readCard(this, MODULE_SCHEMA, value, path);
   }
 
-  section(value: unknown, path: string): SectionConfig | undefined {
-    if (!isRaw(value)) {
-      this.problem(path, "a section is a map with \"modules\" (and usually a \"title\")");
-      return undefined;
-    }
-    fieldKeys(this, value, path, SECTION_KEYS, ORB_ONLY.section);
-    if (!Array.isArray(value.modules) || value.modules.length === 0) this.problem(path, "\"modules\" must be a list of at least one module");
-    const modules = Array.isArray(value.modules) ? value.modules.flatMap((m, i) => this.module(m, `${path}.modules[${i}]`) ?? []) : [];
-    const columns = this.number(value, "columns", path, 1, MAX_ACROSS);
-    return {
-      kind: "section",
-      title: this.string(value, "title", path),
-      note: this.string(value, "note", path),
-      columns,
-      // A module spans no more tracks than its section can have.
-      modules: columns ? modules.map((m) => (m.span && m.span > columns ? { ...m, span: columns } : m)) : modules,
-    };
-  }
-
-  block(value: unknown, path: string): BlockConfig | undefined {
-    if (isRaw(value) && "sections" in value) {
-      fieldKeys(this, value, path, GROUP_KEYS, { gap: ORB_ONLY.section.gap });
-      if (!Array.isArray(value.sections) || value.sections.length === 0) {
-        this.problem(path, "\"sections\" must be a list of at least one section");
-        return undefined;
-      }
-      const sections = value.sections.flatMap((s, i) => this.section(s, `${path}.sections[${i}]`) ?? []);
-      return { kind: "columns", columns: this.number(value, "columns", path, 1, MAX_ACROSS) ?? Math.min(sections.length, MAX_ACROSS), sections };
-    }
-    return this.section(value, path);
+  body(raw: Raw, path = ""): FieldRow[] | undefined {
+    return readBody(this, this.layout, raw, path);
   }
 }
 
 /** Check and normalize the card's YAML; throws a DashboardConfigError listing every problem. */
 export function parseFieldConfig(raw: unknown): FieldConfig {
-  const read = new FieldReader();
+  let footprint: FieldFootprint = "standard";
+  const read = new FieldReader(() => footprint);
   const top: Raw = isRaw(raw) ? raw : {};
   if (raw != null && !isRaw(raw)) read.problem("", "the card's config must be a map");
   fieldKeys(read, top, "", TOP_KEYS, ORB_ONLY.top);
+  footprint = read.choice(top, "footprint", "", FOOTPRINTS) ?? "standard";
   const config: FieldConfig = {
     title: read.string(top, "title", ""),
     subtitle: read.string(top, "subtitle", ""),
@@ -312,22 +273,13 @@ export function parseFieldConfig(raw: unknown): FieldConfig {
     hourCycle: read.choice(top, "hour_cycle", "", ["h12", "h23"] as const),
     viewing: read.choice(top, "viewing", "", ["near", "far"] as const),
     finish: read.choice(top, "finish", "", FINISHES) ?? "home-assistant",
-    footprint: read.choice(top, "footprint", "", FOOTPRINTS) ?? "standard",
+    footprint,
     quiet: read.boolean(top, "quiet", "") ?? false,
   };
-  if (top.modules != null && top.sections != null) read.problem("", "\"modules\" and \"sections\" both lay out the main page: keep one (sections take modules of their own)");
-  if (top.modules != null) {
-    if (!Array.isArray(top.modules)) read.problem("modules", "must be a list of entity ids or modules");
-    else config.modules = top.modules.flatMap((m, i) => read.module(m, `modules[${i}]`) ?? []);
-  }
-  if (top.sections != null) {
-    if (!Array.isArray(top.sections) || top.sections.length === 0) read.problem("sections", "must be a list of at least one section, or left out for the automatic layout");
-    else config.sections = top.sections.flatMap((s, i) => read.block(s, `sections[${i}]`) ?? []);
-  }
-  config.pages = read.pages(top, (s, path) => read.block(s, path));
-  // Areas come from Home Assistant's registries, so only sections the YAML titles can be checked.
-  const titles = config.sections && sectionsOf(config.sections).flatMap((s) => (s.title ? [s.title] : []));
-  config.nav = read.nav(top, config.pages ?? [], titles);
+  config.rows = read.body(top);
+  config.pages = read.pages(top, (body, path) => read.body(body, path))?.map(({ id, title, body }) => ({ id, title, rows: body }));
+  // Areas come from Home Assistant's registries, so only rows the YAML titles can be checked.
+  config.nav = read.nav(top, config.pages ?? [], config.rows && rowTitles(config.rows));
   if (read.problems.length) throw new DashboardConfigError(read.problems);
   return config;
 }

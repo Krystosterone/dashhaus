@@ -8,308 +8,123 @@ env:
   # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
+permissions:
+  contents: read
+
+# A newer commit on the same branch or pull request supersedes the run in progress. Push and pull_request runs keep
+# separate groups, so one never cancels the other, and main keeps every run.
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# Every lane checks out, then installs through .github/actions/setup. Why the lanes are shaped as they are is in
+# spec/release.md → CI.
 jobs:
-  # Typecheck, lint and the release proof. They share one install and one runner; `check` below requires this lane,
-  # both unit shards, the generators and the clean-room DX journeys.
-  unit_checks:
+  # Typecheck, lint and the Lovelace bundle, on the tool caches so an unchanged file isn't checked again.
+  checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
+          tool-cache: "true"
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build:ha
-      - run: npm run release:pack
-      - run: npm run verify:packages
 
-  # The two consumer journeys from freshly packed tarballs, never the workspace: the skin user installs only the
-  # prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a standalone skin, then
-  # opens and closes the generated cards' details in Chromium. Both run the packed deploy bin over a websocket into the
-  # fake Home Assistant in verify/dx/, so this lane needs no live instance; the skin's own install reaches the registry
-  # for React, Vite and TypeScript.
-  dx:
+  # Every unit suite but the generator copies, one runner: Vitest's vmForks pool loads jsdom once per worker.
+  unit:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
+      - run: npm run test:unit -- --maxWorkers=2
+
+  # The generator suites copy the repo and run its tools inside each copy, mostly one process at a time. All three on
+  # one runner took longer than a Storybook shard, so they run on two: the new-skin copy, which builds two skins and
+  # Storybook, alone, and the new-card and Field copies side by side. Each copy's typecheck starts from the restored
+  # incremental state.
+  generators_shard:
+    name: generators (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: new-skin
+            files: scripts/new-skin/index.test.ts
+          - name: new-card, field
+            files: scripts/new-card/index.test.ts scripts/new-skin/field.test.ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
         with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
+          tool-cache: restore
+      # verify/projects.test.ts holds every generator suite to exactly one shard, so a new one can't be left out.
+      - run: npx vitest run --config config/vitest.config.ts --maxWorkers=2 ${{ matrix.files }}
+
+  # The release proof and the two consumer journeys from freshly packed tarballs, never the workspace: the skin user
+  # installs only the prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a
+  # standalone skin, then opens and closes the generated cards' details in Chromium. Both run the packed deploy bin over
+  # a websocket into the fake Home Assistant in verify/dx/, so this lane needs no live instance; the skin's own install
+  # reaches the registry for React, Vite and TypeScript.
+  dx:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
         with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Read the Playwright version
-        id: playwright-version
-        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+          chromium: "true"
       - run: npm run release:pack
       - run: npm run verify:packages
       - run: node verify/dx/user.js
       - run: node verify/dx/author.js
 
-  # The unit suites, split by file across two runners; together they are the same 130 files and 1174 tests as before.
-  unit_one:
+  # The runner splits by suite; each shard builds the same static site (in Storybook's test mode, without the docs
+  # pages, which the Docs workflow builds) and runs its half.
+  storybook_shard:
+    name: storybook (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - run: npm run test:unit -- --shard=1/2 --maxWorkers=2
+          chromium: "true"
+      - run: npm run test-storybook -- --shard=${{ matrix.shard }}/2 --maxWorkers=2
 
-  unit_two:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - run: npm run test:unit -- --shard=2/2 --maxWorkers=2
-
-  # The generator suites copy the repo and run its tools inside each copy: a serial chain per copy. Two runners run
-  # the two halves side by side instead of one runner running all three files (157s). Together they are the same 15 tests.
-  generators_one:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/index.test.ts scripts/new-card/index.test.ts
-
-  generators_two:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - run: npx vitest run --config config/vitest.config.ts scripts/new-skin/field.test.ts
-
-  # The required status check: green only when the checks, both unit shards, both generator halves and both
-  # clean-room journeys are green.
+  # The required status check: green only when the checks, the unit and generator suites and the DX journeys are green.
   check:
-    needs: [unit_checks, unit_one, unit_two, generators_one, generators_two, dx]
+    needs: [checks, unit, generators_shard, dx]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Require the unit lanes, the generators and the DX journeys
+      - name: Require the checks, the unit and generator suites and the DX journeys
         run: |
-          echo "unit_checks: ${{ needs.unit_checks.result }}"
-          echo "unit_one: ${{ needs.unit_one.result }}"
-          echo "unit_two: ${{ needs.unit_two.result }}"
-          echo "generators_one: ${{ needs.generators_one.result }}"
-          echo "generators_two: ${{ needs.generators_two.result }}"
+          echo "checks: ${{ needs.checks.result }}"
+          echo "unit: ${{ needs.unit.result }}"
+          echo "generators: ${{ needs.generators_shard.result }}"
           echo "dx: ${{ needs.dx.result }}"
-          test "${{ needs.unit_checks.result }}" = "success"
-          test "${{ needs.unit_one.result }}" = "success"
-          test "${{ needs.unit_two.result }}" = "success"
-          test "${{ needs.generators_one.result }}" = "success"
-          test "${{ needs.generators_two.result }}" = "success"
+          test "${{ needs.checks.result }}" = "success"
+          test "${{ needs.unit.result }}" = "success"
+          test "${{ needs.generators_shard.result }}" = "success"
           test "${{ needs.dx.result }}" = "success"
-
-  # The runner splits by suite; each shard builds the same static site and runs its half. The `storybook` job below
-  # is the required check for both.
-  storybook_one:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Read the Playwright version
-        id: playwright-version
-        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook -- --shard=1/2 --maxWorkers=2
-
-  storybook_two:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the
-      # packageManager pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache
-      # folder) can't be used; npm's download cache is restored by actions/cache below instead.
-      - name: Use the pinned npm
-        run: corepack enable npm && npm --version
-      - name: Cache npm's downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
-      - name: Cache node_modules
-        id: modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-      - if: steps.modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Read the Playwright version
-        id: playwright-version
-        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ms-playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - run: npm run test-storybook -- --shard=2/2 --maxWorkers=2
 
   # The required status check: green only when both Storybook shards are green.
   storybook:
-    needs: [storybook_one, storybook_two]
+    needs: [storybook_shard]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require both Storybook shards
         run: |
-          echo "storybook_one: ${{ needs.storybook_one.result }}"
-          echo "storybook_two: ${{ needs.storybook_two.result }}"
-          test "${{ needs.storybook_one.result }}" = "success"
-          test "${{ needs.storybook_two.result }}" = "success"
+          echo "storybook shards: ${{ needs.storybook_shard.result }}"
+          test "${{ needs.storybook_shard.result }}" = "success"

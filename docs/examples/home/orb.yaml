@@ -1,15 +1,12 @@
 type: custom:dashhaus-orb
 title: Home
-sections:
-  - title: Living room
-    columns: 2
-    cards:
-      - entity: climate.living_room
-        span: 2
-      - entity: light.living_room
-        footprint: compact
-      - entity: cover.living_room
-        footprint: compact
-  - title: Outside
-    cards:
-      - entity: weather.home
+columns: 2
+cards:
+  - entity: climate.living_room
+    width: full
+  - entity: light.living_room
+    footprint: compact
+  - entity: cover.living_room
+    footprint: compact
+  - entity: weather.home
+    width: full

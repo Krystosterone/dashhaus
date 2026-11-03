@@ -1,13 +1,13 @@
 import { deviceCompanion, friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
 import type { AutoInput } from "@dashhaus/dashboard/layout";
 import { kindOf } from "./config";
-import type { ModuleConfig, SectionConfig } from "./config";
+import type { FieldRow, ModuleConfig } from "./config";
 
 export type { AutoInput } from "@dashhaus/dashboard/layout";
 export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
 
 /**
- * Every supported entity Field can draw, for a card without `modules`, as the card its entity id picks: hidden and
+ * Every supported entity Field can draw, for a card without `cards` or `rows`, as the card its entity id picks: hidden and
  * config or diagnostic entities left out, sorted by name. The sensor card takes only room air: one per device, its
  * humidity and battery as companions (`roomSensors`). The weather card takes the first weather entity by name, as
  * orb's does, with `sun.sun` for night. Every input_boolean and switch is a toggle, every humidifier a humidifier, every
@@ -29,6 +29,6 @@ export function autoModules(input: AutoInput): ModuleConfig[] {
   return sortByName([...others, ...(weather ? [{ ...weather, sun: "sun.sun" }] : []), ...sensors], (module) => friendlyName(states, module.entity));
 }
 
-/** The automatic layout's sections, and a `modules` list's: one per area, titled with its name (`groupByArea`). */
-export const areaSections = (modules: readonly ModuleConfig[]): SectionConfig[] =>
-  groupByArea(modules).map((group) => ({ kind: "section", title: group.area, modules: group.modules }));
+/** The automatic layout's rows: one per area, titled with its name (`groupByArea`), modules by name. */
+export const areaRows = (modules: readonly ModuleConfig[]): FieldRow[] =>
+  groupByArea(modules).map((group) => ({ title: group.area, flow: "normal", align: "top", cards: group.modules.map((item) => ({ item, width: 1 })) }));

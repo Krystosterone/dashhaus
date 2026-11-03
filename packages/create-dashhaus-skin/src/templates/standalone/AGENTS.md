@@ -39,10 +39,11 @@ the outside in, snapshotting after each step and comparing with the reference:
 2. **Type:** set `__SKIN_CONST___FONT_HREF` in `shared/surface.ts` to a Google Fonts stylesheet URL, and name the
    families in tokens (`--__skin__-sans`; add `--__skin__-display`, `--__skin__-mono` as needed). Big numerals,
    letter-spacing and case belong in the CSS.
-3. **Page:** `dashboards/`: `layout.tsx` (the page, its sections and the card grid), `Header.tsx`, `NavBar.tsx` and
+3. **Page:** `dashboards/`: `layout.tsx` (the page, its titled rows and the card grid), `Header.tsx`, `NavBar.tsx` and
    their `dashboard.css`. A greeting, a date or a different grid goes here. `lovelace/__Skin__Dashboard.tsx` draws
-   the page from the YAML, and `lovelace/auto.ts` picks the cards when the YAML lists none: every entity a card is
-   registered for, by area, with room air from `roomSensors` (one sensor card per device).
+   the page from the YAML (each row placed by `useRowLayout` from `@dashhaus/dashboard`: its tracks from its own
+   width, each card on its grid lines), and `lovelace/auto.ts` picks the cards when the YAML lists none: every entity a
+   card is registered for, a row per area, with room air from `roomSensors` (one sensor card per device).
 4. **Parts:** `shared/ui.tsx` and `shared/ui.css`: `__Skin__CardFrame`, the frame every card is drawn in (its
    footprints, its name that opens its details, its details dialog), and `__Skin__Action`, the button a card's
    actions are drawn with. Restyle them once there, not per card. The frame puts `data-card="<domain>"`,
@@ -61,7 +62,7 @@ the outside in, snapshotting after each step and comparing with the reference:
 | `dashboards/` | the page: its layout and grid, header and nav bar | yes |
 | `cards/<domain>/` | one card per domain: component, CSS, glyph and story metadata | yes |
 | `ha/` | adapters: a `useHa<Name>` hook's result → a card's props; the only files that touch Home Assistant | when a card needs an action |
-| `lovelace/__Skin__Dashboard.tsx` | the page drawn from the YAML: sections, pages, nav and the rejected-command row | rarely |
+| `lovelace/__Skin__Dashboard.tsx` | the page drawn from the YAML: rows, pages, nav and the rejected-command row | rarely |
 | `lovelace/__Skin__ActionStatus.tsx` | the rejected-command row: what Home Assistant refused, Retry when safe, Dismiss | restyle in its `.css`; keep it on the page |
 | `lovelace/card.tsx` | the custom element: theme attribute, font link, host CSS | rarely |
 | `lovelace/config.ts`, `lovelace/auto.ts` | the YAML the card takes, and the automatic layout | rarely |
@@ -157,7 +158,8 @@ What you may rely on, and what not to rewrite:
 - `@dashhaus/dashboard/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
   device), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
   `node_modules/@dashhaus/dashboard/dist/layout.d.ts`, and their signatures may still change before 1.0.
-- `@dashhaus/dashboard/schema`: `Reader`, `readCard` and `DashboardConfigError`, used by `lovelace/config.ts`. A
+- `@dashhaus/dashboard/schema`: `Reader`, `readCard`, `readBody` (the shared layout: `cards`, or `rows` of cards,
+  with `columns`, `width`, `column`, `flow` and `align`) and `DashboardConfigError`, used by `lovelace/config.ts`. A
   thrown `DashboardConfigError` shows its problems in Home Assistant's card editor.
 - `@dashhaus/dashboard/card`: `CardProps`, `useCardFrame`, `detailsSheet`, `detailsTile` and `CardDialog`: the frame
   `__Skin__CardFrame` derives its shape and ids from, and the details surface it opens.

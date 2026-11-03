@@ -3,7 +3,6 @@ import { autoDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { roomSensors } from "@dashhaus/dashboard";
-import type { SectionConfig } from "./config";
 
 const state = (entity_id: string, attributes: Record<string, unknown> = {}): AutoState => ({ entity_id, state: "on", attributes });
 const states = Object.fromEntries([
@@ -44,7 +43,7 @@ const input = {
 
 describe("autoDashboard", () => {
   it("finds the same room sensors as the shared roomSensors, which auto.ts repeats because it may only import types", () => {
-    const rooms = (autoDashboard(input).sections as { title: string; cards: unknown[] }[]).find((s) => s.title === "Rooms")!.cards;
+    const rooms = (autoDashboard(input).rows as { title: string; cards: unknown[] }[]).find((s) => s.title === "Rooms")!.cards;
     expect(rooms).toEqual(roomSensors(input).map((r) => (r.humidity || r.battery ? r : r.entity)));
   });
 
@@ -52,7 +51,7 @@ describe("autoDashboard", () => {
     expect(autoDashboard(input)).toEqual({
       type: "custom:dashhaus-orb",
       title: "Home",
-      sections: [
+      rows: [
         { title: "Comfort", cards: ["climate.attic", { entity: "climate.hall", footprint: "compact" }] },
         { title: "Modes", columns: 2, cards: [{ entity: "input_boolean.guest", footprint: "compact" }] },
         { title: "Bedroom", cards: [{ entity: "cover.bed", footprint: "compact" }, { entity: "light.bed", footprint: "compact" }] },
@@ -75,7 +74,7 @@ describe("autoDashboard", () => {
       ].map((s) => [s.entity_id, s])) },
       entities: { ...input.entities, "lock.front": { device_id: "front" }, "sensor.front_battery": { device_id: "front", entity_category: "diagnostic" } },
     };
-    const security = (autoDashboard(withLocks).sections as { title: string; cards: unknown[] }[]).find((s) => s.title === "Security");
+    const security = (autoDashboard(withLocks).rows as { title: string; cards: unknown[] }[]).find((s) => s.title === "Security");
     expect(security?.cards).toEqual([
       { entity: "alarm_control_panel.house", footprint: "compact" },
       { entity: "lock.back", footprint: "compact" },
@@ -90,12 +89,12 @@ describe("autoDashboard", () => {
   });
 
   it("places sleep state sensors that the card draws as owlet socks", () => {
-    const blocks = parseDashboardConfig(autoDashboard(input)).blocks ?? [];
-    const nursery = blocks.find((b): b is SectionConfig => b.kind === "section" && b.title === "Nursery");
-    expect(nursery?.items.map((item) => item.kind)).toEqual(["owlet", "owlet"]);
+    const rows = parseDashboardConfig(autoDashboard(input)).rows ?? [];
+    const nursery = rows.find((row) => row.title === "Nursery");
+    expect(nursery?.cards.map((entry) => entry.item.kind)).toEqual(["owlet", "owlet"]);
   });
 
-  it("never repeats a section title: an area called Nursery or Outside takes the sock or the weather", () => {
+  it("never repeats a row title: an area called Nursery or Outside takes the sock or the weather", () => {
     const card = autoDashboard({
       states: {
         "light.nursery": state("light.nursery"),
@@ -106,19 +105,19 @@ describe("autoDashboard", () => {
       entities: { "light.nursery": { area_id: "nursery" }, "light.patio": { area_id: "outside" } },
       areas: { nursery: { name: "Nursery" }, outside: { name: "Outside" } },
     });
-    const sections = card.sections as { title: string; cards: unknown[] }[];
-    expect(sections.map((s) => s.title)).toEqual(["Nursery", "Outside"]);
-    expect(sections[0].cards).toEqual([{ entity: "light.nursery", footprint: "compact" }, "sensor.owlet_sock_a_sleep_state"]);
-    expect(sections[1].cards).toEqual([{ entity: "light.patio", footprint: "compact" }, "weather.home"]);
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title)).toEqual(["Nursery", "Outside"]);
+    expect(rows[0].cards).toEqual([{ entity: "light.nursery", footprint: "compact" }, "sensor.owlet_sock_a_sleep_state"]);
+    expect(rows[1].cards).toEqual([{ entity: "light.patio", footprint: "compact" }, "weather.home"]);
   });
 
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });
-    expect(parseDashboardConfig(empty).blocks).toBeUndefined();
+    expect(parseDashboardConfig(empty).rows).toBeUndefined();
   });
 
   it("works from states alone, as on a frontend without registries", () => {
-    expect(autoDashboard({ states: { "light.a": state("light.a") } }).sections).toEqual([{ title: "Other", cards: [{ entity: "light.a", footprint: "compact" }] }]);
+    expect(autoDashboard({ states: { "light.a": state("light.a") } }).rows).toEqual([{ title: "Other", cards: [{ entity: "light.a", footprint: "compact" }] }]);
   });
 });

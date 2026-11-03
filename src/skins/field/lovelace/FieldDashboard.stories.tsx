@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FieldDashboard } from "./FieldDashboard";
-import { mapModules, parseFieldConfig } from "./config";
+import { mapRowItems } from "@dashhaus/dashboard/schema";
+import { parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
-import { areaSections } from "./auto";
+import { areaRows } from "./auto";
 import { HaProvider } from "@dashhaus/core";
 import { createHaStore } from "@dashhaus/core";
 import { createDemoHaTransport } from "@dashhaus/core/demo";
@@ -85,10 +86,10 @@ function House({ alerting, children }: { alerting?: boolean; children: ReactNode
 }
 
 function Demo({ title, showTime, hourCycle, footprint, quiet, alerting }: { title?: string; showTime?: boolean; hourCycle?: "h12" | "h23"; footprint: FieldFootprint; quiet?: boolean; alerting?: boolean }) {
-  const blocks = useMemo(() => areaSections(ITEMS), []);
+  const rows = useMemo(() => areaRows(ITEMS), []);
   return (
     <House alerting={alerting}>
-      <FieldDashboard title={title} showTime={showTime} hourCycle={hourCycle} blocks={blocks} footprint={footprint} quiet={quiet} />
+      <FieldDashboard title={title} showTime={showTime} hourCycle={hourCycle} rows={rows} footprint={footprint} quiet={quiet} />
     </House>
   );
 }
@@ -99,8 +100,8 @@ function Demo({ title, showTime, hourCycle, footprint, quiet, alerting }: { titl
  */
 function Yaml({ yaml }: { yaml: Record<string, unknown> }) {
   const config = useMemo(() => parseFieldConfig(yaml), [yaml]);
-  const blocks = useMemo(() => (config.sections ? mapModules(config.sections, placed) : areaSections((config.modules ?? ITEMS).map(placed))), [config]);
-  const pages = useMemo(() => config.pages?.map((p) => ({ ...p, blocks: mapModules(p.blocks, placed) })), [config]);
+  const rows = useMemo(() => (config.rows ? mapRowItems(config.rows, placed) : areaRows(ITEMS.map(placed))), [config]);
+  const pages = useMemo(() => config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, placed) })), [config]);
   return (
     <House>
       <FieldDashboard
@@ -109,7 +110,7 @@ function Yaml({ yaml }: { yaml: Record<string, unknown> }) {
         showTime={config.showTime}
         hourCycle={config.hourCycle}
         viewing={config.viewing}
-        blocks={blocks}
+        rows={rows}
         pages={pages}
         nav={config.nav}
         footprint={config.footprint}
@@ -121,26 +122,26 @@ function Yaml({ yaml }: { yaml: Record<string, unknown> }) {
   );
 }
 
-/** Sections laid out by hand, as on a phone: the keys pressed most as rows, then a room at a time. */
-const SECTIONS_YAML = {
+/** Rows laid out by hand, as on a phone: the keys pressed most as rows, then a room at a time. */
+const ROWS_YAML = {
   type: "custom:dashhaus-field",
   title: "Home",
   subtitle: "Everyone home",
-  sections: [
+  rows: [
     {
       title: "Quick",
       note: "Pressed most",
-      modules: [
+      cards: [
         { entity: "input_boolean.do_not_disturb", footprint: "compact", icon: "bell-off" },
         { entity: "alarm_control_panel.house", footprint: "compact" },
         { entity: "cover.garage_door", footprint: "compact" },
         { entity: "input_boolean.guest_mode", footprint: "compact", icon: "guest" },
       ],
     },
-    { title: "Living room", modules: ["light.ceiling", "climate.living_room", "light.reading_lamp", "cover.living_room_curtains"] },
+    { title: "Living room", cards: ["light.ceiling", "climate.living_room", "light.reading_lamp", "cover.living_room_curtains"] },
     {
       title: "Nursery",
-      modules: [
+      cards: [
         { entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" },
         "light.night_light",
         { entity: "switch.white_noise", card: "sound" },
@@ -149,8 +150,8 @@ const SECTIONS_YAML = {
     },
     {
       title: "Outside",
-      modules: [
-        { entity: "weather.home", name: "Weather", span: 2, aqi: "sensor.home_aqi", aqi_scale: "US" },
+      cards: [
+        { entity: "weather.home", name: "Weather", width: 2, aqi: "sensor.home_aqi", aqi_scale: "US" },
         { entity: "sensor.outside_temperature", name: "Air", battery: "sensor.outside_battery", outdoor: true },
         "light.porch",
       ],
@@ -163,31 +164,74 @@ const PAGES_YAML = {
   type: "custom:dashhaus-field",
   title: "Home",
   footprint: "compact",
-  sections: [
-    { title: "Quick", modules: ["input_boolean.do_not_disturb", "alarm_control_panel.house", "cover.garage_door", "light.porch"] },
-    { title: "Rooms", modules: [{ entity: "sensor.nursery_temperature", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" }, { entity: "sensor.outside_temperature", battery: "sensor.outside_battery", outdoor: true }] },
+  rows: [
+    { title: "Quick", cards: ["input_boolean.do_not_disturb", "alarm_control_panel.house", "cover.garage_door", "light.porch"] },
+    { title: "Rooms", cards: [{ entity: "sensor.nursery_temperature", humidity: "sensor.nursery_humidity", battery: "sensor.nursery_battery" }, { entity: "sensor.outside_temperature", battery: "sensor.outside_battery", outdoor: true }] },
   ],
   pages: [
-    { id: "living", title: "Living room", sections: [{ title: "Comfort", modules: ["climate.living_room"] }, { title: "Lights and curtains", modules: ["light.ceiling", "light.reading_lamp", "cover.living_room_curtains"] }] },
-    { id: "nursery", title: "Nursery", sections: [{ title: "Baby", modules: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }, "light.night_light", { entity: "switch.white_noise", card: "sound" }, "humidifier.nursery"] }] },
+    { id: "living", title: "Living room", rows: [{ title: "Comfort", cards: ["climate.living_room"] }, { title: "Lights and curtains", cards: ["light.ceiling", "light.reading_lamp", "cover.living_room_curtains"] }] },
+    { id: "nursery", title: "Nursery", cards: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }, "light.night_light", { entity: "switch.white_noise", card: "sound" }, "humidifier.nursery"] },
   ],
   nav: [{ page: "home" }, { page: "living" }, { page: "nursery" }, { navigate: "/baby-view/0", label: "Baby view" }],
 };
 
-/** A wall panel read from across the room: one column per place, its leads whole modules and the rest rows. */
+/**
+ * A wall panel read from across the room: one column per place, footprints mixed by column. Each column leads with
+ * whole modules and stacks rows under them; every plate names its own area.
+ */
 const WALL_YAML = {
   type: "custom:dashhaus-field",
   title: "Home",
   show_time: true,
   viewing: "far",
-  sections: [
+  rows: [
     {
       columns: 4,
-      sections: [
-        { title: "Living room", modules: ["light.ceiling", "climate.living_room", { entity: "cover.living_room_curtains", footprint: "compact" }, { entity: "light.reading_lamp", footprint: "compact" }] },
-        { title: "Nursery", modules: [{ entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova" }, "light.night_light", { entity: "switch.white_noise", card: "sound", footprint: "compact" }, { entity: "humidifier.nursery", footprint: "compact" }] },
-        { title: "Whole home", modules: ["alarm_control_panel.house", { entity: "input_boolean.do_not_disturb", footprint: "compact" }, { entity: "input_boolean.guest_mode", footprint: "compact" }, { entity: "cover.garage_door", footprint: "compact" }] },
-        { title: "Outside", modules: [{ entity: "weather.home", name: "Weather" }, { entity: "light.porch", footprint: "compact" }, { entity: "sensor.outside_temperature", name: "Air", outdoor: true, footprint: "compact" }] },
+      cards: [
+        { entity: "light.ceiling", column: 1 },
+        { entity: "climate.living_room", column: 1 },
+        { entity: "cover.living_room_curtains", column: 1, footprint: "compact" },
+        { entity: "light.reading_lamp", column: 1, footprint: "compact" },
+        { entity: "sensor.owlet_sock_ac000w0123_sleep_state", name: "Nova", column: 2 },
+        { entity: "light.night_light", column: 2 },
+        { entity: "switch.white_noise", card: "sound", column: 2, footprint: "compact" },
+        { entity: "humidifier.nursery", column: 2, footprint: "compact" },
+        { entity: "alarm_control_panel.house", column: 3 },
+        { entity: "input_boolean.do_not_disturb", column: 3, footprint: "compact" },
+        { entity: "input_boolean.guest_mode", column: 3, footprint: "compact" },
+        { entity: "cover.garage_door", column: 3, footprint: "compact" },
+        { entity: "weather.home", name: "Weather", column: 4 },
+        { entity: "light.porch", column: 4, footprint: "compact" },
+        { entity: "sensor.outside_temperature", name: "Air", outdoor: true, column: 4, footprint: "compact" },
+      ],
+    },
+  ],
+};
+
+/** spec/deploy.md's power example for field: a hero across two tracks, an anchored column beside it, dense flow. */
+const COMPOSED_YAML = {
+  type: "custom:dashhaus-field",
+  title: "Home",
+  rows: [
+    {
+      title: "At a glance",
+      columns: 3,
+      flow: "dense",
+      cards: [
+        { entity: "weather.home", name: "Weather", width: 2 },
+        { entity: "alarm_control_panel.house", column: 3 },
+        { entity: "climate.living_room", width: 2 },
+        "light.ceiling",
+      ],
+    },
+    {
+      title: "Living room",
+      columns: 2,
+      align: "bottom",
+      cards: [
+        { entity: "light.reading_lamp", column: 1 },
+        { entity: "cover.living_room_curtains", column: 1, footprint: "compact" },
+        { entity: "input_boolean.do_not_disturb", column: 2, footprint: "compact" },
       ],
     },
   ],
@@ -198,7 +242,7 @@ const meta = {
   component: Demo,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "What `custom:dashhaus-field` draws: a section per area under its printed legend, or the `sections` and `pages` its YAML lays out, with a nav docked at the bottom; live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
+    docs: { description: { component: "What `custom:dashhaus-field` draws: a row per area under its printed legend, or the `cards`, `rows` and `pages` its YAML lays out, with a nav docked at the bottom; live light, climate, humidifier, sound, cover, alarm, owlet, sensor, weather and toggle modules over the demo transport. Every control works; open a module's panel from its name." } },
   },
   argTypes: {
     footprint: { control: "inline-radio", options: ["standard", "compact"] },
@@ -227,11 +271,13 @@ export const Phone: Story = { parameters: { viewport: { defaultViewport: "mobile
 export const WithAlerts: Story = { name: "With alerts", args: { alerting: true } };
 
 /**
- * `sections:` laid out by hand, with a `subtitle` and a `note`, the weather spanning two tracks where its area has them.
- * With no `nav:`, the nav lists the titled sections: a tap scrolls there, and the key of the area being read stays down.
+ * `rows:` laid out by hand, with a `subtitle` and a `note`, the weather two tracks wide where its row has them.
+ * With no `nav:`, the nav lists the titled rows: a tap scrolls there, and the key of the row being read stays down.
  */
-export const SectionsAndNav: Story = { name: "Sections and nav", render: () => <Yaml yaml={SECTIONS_YAML} /> };
+export const RowsAndNav: Story = { name: "Rows and nav", render: () => <Yaml yaml={ROWS_YAML} /> };
 /** `pages:` and `nav:`: the main page, two pages of the card's own (kept in the URL hash), and another dashboard. */
 export const NavAndPages: Story = { name: "Nav and pages", render: () => <Yaml yaml={PAGES_YAML} /> };
 /** `viewing: far` on a wall panel: print and screens a step up, areas side by side, and no nav unless `nav:` lists one. */
 export const WallPanelFar: Story = { name: "Wall panel, far", render: () => <Yaml yaml={WALL_YAML} /> };
+
+export const Composition: Story = { name: "Composition", render: () => <Yaml yaml={COMPOSED_YAML} /> };

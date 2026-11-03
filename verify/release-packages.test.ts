@@ -7,7 +7,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { publicPackages, publishManifest } from "../scripts/release/manifest.js";
+import { LICENSE, publicPackages, publishManifest } from "../scripts/release/manifest.js";
 import type { PackageManifest } from "../scripts/release/manifest.js";
 
 const root = process.cwd();
@@ -81,6 +81,7 @@ describe("public packages", () => {
     }
     expect(manifests.orb.exports?.["./lovelace/auto"]?.source).toBe("./lovelace/auto.ts");
     expect(manifests.bundle.dependencies).toBeUndefined();
+    expect(manifests.bundle.files, "the bundle ships its bundled-React notice").toContain("THIRD_PARTY_NOTICES.md");
     expect(manifests.bundle.exports?.["."]?.source).toBe("./index.js");
     expect(manifests.scaffold.bin).toEqual({ "create-dashhaus-skin": "./bin.js" });
     expect(manifests.scaffold.exports?.["."]?.source).toBe("./src/index.js");
@@ -111,5 +112,13 @@ describe("public packages", () => {
     expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
     expect(() => publishManifest({ ...manifests.core, exports: { ".": { import: "./src/index.ts", default: "./src/index.ts" } } }))
       .toThrow(/built dist files/);
+  });
+
+  it("declares MIT in every public manifest", () => {
+    for (const pkg of publicPackages) {
+      expect(manifests[pkg.key].license, pkg.name).toBe(LICENSE);
+      expect(publishManifest(manifests[pkg.key]).license, pkg.name).toBe(LICENSE);
+    }
+    expect(() => publishManifest({ ...manifests.core, license: undefined })).toThrow(/license/);
   });
 });

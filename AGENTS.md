@@ -10,7 +10,7 @@ One word per thing, the same in code, Storybook and the docs.
 - **Model** — the normalized object a card draws, from `useHa<Name>`. A **direct model** is one Home Assistant entity (a light, a thermostat, a cover); a **composed model** is a primary entity plus companions the hook composes (found beside it, or given as options): a sensor with its device's humidity and battery, a sound machine's switch and volume, the weather with air quality and sun, an Owlet sock's sensors and base station. Composition lives in the entity type and the hook, never in the card: every card still takes one `entity` prop, so a dashboard, layout or YAML treats every card alike. "Device card" describes a composed model from one device; it is not a third card type.
 - **Interaction** — what a card lets you do: a **control** has a primary action, a **reading** only shows values. It is a trait of the props (an alarm can be view-only, a reading can carry a small action), never a third card type.
 - **Tile** — orb's card ready for a dashboard: the card in its size container with its details sheet wired in (`<Name>Tile`, from `detailsTile()`). `<Name>Card` draws the card itself, and draws it again as `variant="sheet"` inside the sheet.
-- **Module** — field's card: the plate with its key, screen and fader (a reading's glyph, screen and today), carrying its own detail panel (`<Name>Module`). It is to field what the tile is to orb; field's YAML lists them under `modules:`.
+- **Module** — field's card: the plate with its key, screen and fader (a reading's glyph, screen and today), carrying its own detail panel (`<Name>Module`). It is to field what the tile is to orb; field's YAML lists them under `cards:`, as orb's does.
 - **Details** — what a card opens from its name or a press and hold: orb's sheet, field's panel. Stories say Details for both.
 - **Footprint** — a card's fixed height: `compact`, `standard`, `featured` in orb; `compact`, `standard` in field.
 - **Card code** — the two letters that prefix a card's CSS classes (`lw-`), and the `code` `useCard` takes.
@@ -18,7 +18,8 @@ One word per thing, the same in code, Storybook and the docs.
 - **Dashboard** — a page of cards and what frames them: `DashboardPage`, `Section`, `CardGrid`, `Columns`, `Cell`, the `Header` and the `NavBar`. The header and the nav bar are page furniture, not cards.
 - **Foundation** — a story about a skin's rules rather than one card: its palette, colour temperature, compact rows, worst-case data side by side.
 - **Connected** — a card bound to the store: `Ha<Name>Tile` in orb, `Ha<Name>Module` in field, on the shared `useHa<Name>` hook. Its stories are under `<Skin>/Connected/<Name>`.
-- **Lovelace card** — the custom element Home Assistant loads (`custom:dashhaus-orb`, `custom:dashhaus-field`); it draws a whole dashboard from its YAML. Always say Lovelace card for it, so "card" alone keeps meaning one model's card. Inside its YAML, `cards:` lists cards and `card:` picks which card draws an entity.
+- **Lovelace card** — the custom element Home Assistant loads (`custom:dashhaus-orb`, `custom:dashhaus-field`); it draws a whole dashboard from its YAML. Always say Lovelace card for it, so "card" alone keeps meaning one model's card. Inside its YAML, `cards:` lists cards, `rows:` lists rows of them and `card:` picks which card draws an entity.
+- **Row** — one band of a Lovelace card's page: an optional title (a titled row is a section the nav can jump to), its `columns`, and its `cards`, each placed by `width` and `column`. Rows never nest. The shared reader and placement are `readBody` (`@dashhaus/dashboard/schema`), `placeRow` (`/layout`) and `useRowLayout` (`@dashhaus/dashboard`); spec/deploy.md → The format.
 - **Primitive** — a headless interaction hook in `packages/core/src/primitives/`: behaviour, no markup.
 - **Part** — a skin's styled control in its `shared/`, drawn on a primitive where it has behaviour: orb's `Orb`, `TogglePill`, `Chip`, `Stepper`, `Track`; field's `Key`, `Fader`, `RangeFader`, `Screen`, `Meter`. A card is built from parts and brings only what is its own (a track's fill, a screen's figure). Each skin's **Foundations → Parts** story shows its parts across their states.
 - **Seed** — demo data for one example entity, in a card's `demo/`; `<NAME>_WORST_CASE` are its worst-case seeds.
@@ -30,7 +31,7 @@ One word per thing, the same in code, Storybook and the docs.
 - `npm run typecheck` — `tsc --noEmit` over the root, every public package and the docs' samples
 - `npm run lint` — `eslint .` (`eslint.config.js`)
 - `npm run test` — Vitest (`config/vitest.config.ts`), one project per public package plus the root app; `test:unit` (everything but the generator copies) and `test:generators` are CI's split of it
-- `npm run test-storybook` — every story renders and passes axe in Chromium; failures name the rule, impact and elements
+- `npm run test-storybook` — builds Storybook in test mode (no docs pages), then every story renders and passes axe in Chromium; failures name the rule, impact and elements
 - `npm run storybook` — dev server at http://localhost:6006; `build-storybook` builds it to `storybook-static/`
 - `npm run build:ha` — the Lovelace card as one file, `dist/dashhaus.js`, also copied to `packages/bundle/dist/`
 - `npm run build:packages` — every public package's `dist`; the workspace keeps reading source (`spec/release.md`)
@@ -58,7 +59,9 @@ Node-run ESM is `.js` under `"type": "module"`. The only first-party `.mjs` is a
 4. `npm run build:docs` — when `docs/` or the scaffolder's templates change.
 5. `npm run release:check` — when a package manifest, bin, export or module filename changes; packs the seven tarballs and installs them into a clean app.
 
-CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request; the Docs workflow runs step 4. Why its lanes are shaped as they are is in `spec/release.md` → CI.
+CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request, each lane installing through `.github/actions/setup`; the Docs workflow runs step 4. Why its lanes are shaped as they are is in `spec/release.md` → CI.
+
+When a check or CI lane is slow, follow the repo's `test-speed` skill (`.agents/skills/test-speed/`): it measures before changing anything, keeps coverage identical, and its `references/` hold every measured speedup and rejected option in this repository. Read its Rejected tables before proposing a change.
 
 Unit tests cover pure logic, the interaction primitives, the shared hooks and the deploy CLI; stories are the documentation and the visual check. New pure logic gets a `*.test.ts` beside it. `src/skins/orb/styles/rules.test.ts` encodes the CSS design rules — colour tokens, the UI language (no hatching or soft accent), compositor-only motion, `--ease-*` easing, hover under the capability media query, track `touch-action` — so changing one of those rules means updating the test. Do not add another test runner or linter.
 

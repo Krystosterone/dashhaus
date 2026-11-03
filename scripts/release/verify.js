@@ -15,7 +15,7 @@ import { existsSync, statSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { publicPackages, root, SEMVER } from "./manifest.js";
+import { LICENSE, publicPackages, root, SEMVER } from "./manifest.js";
 
 const outIndex = process.argv.indexOf("--tarballs");
 const tarballsDir = outIndex === -1 ? join(root, "release") : process.argv[outIndex + 1] ?? join(root, "release");
@@ -51,6 +51,8 @@ async function checkTarballs(manifests) {
 
     const packed = tarManifest(tarball);
     if (packed.private) throw new Error(`${manifest.name}: packed manifest is still private`);
+    if (packed.license !== LICENSE) throw new Error(`${manifest.name}: packed manifest declares ${packed.license}, expected ${LICENSE}`);
+    if (!files.includes("package/LICENSE")) throw new Error(`${manifest.name}: tarball misses package/LICENSE`);
     if (!SEMVER.test(packed.version) || packed.version === "0.0.0") throw new Error(`${manifest.name}: packed version is ${packed.version}`);
     if (JSON.stringify(packed.exports).includes('"source"')) throw new Error(`${manifest.name}: packed exports declare a source condition`);
     if (["core", "dashboard", "orb", "field"].includes(pkg.key) && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
@@ -68,7 +70,7 @@ async function checkTarballs(manifests) {
           : pkg.key === "field"
             ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
             : pkg.key === "bundle"
-              ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
+              ? ["package/README.md", "package/THIRD_PARTY_NOTICES.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
               : pkg.key === "scaffold"
                 ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/standalone/package.json", "package/dist/templates/standalone/lovelace/entry.tsx", "package/dist/card.js", "package/dist/domains.json", "package/dist/templates/skin/lovelace/card.tsx", "package/dist/templates/card/cards/__name__/__Skin____Name__Card.tsx"]
                 : ["package/README.md", "package/bin.js", "package/src/cli.js", "package/src/cli.d.ts", "package/src/config.js", "package/src/config.d.ts"];
@@ -164,6 +166,8 @@ assert.ok(existsSync(fileURLToPath(bundle.bundlePath)), "the bundle package ship
 const bundleCode = await (await import("node:fs/promises")).readFile(fileURLToPath(bundle.bundlePath), "utf8");
 assert.match(bundleCode, /dashhaus-orb/);
 assert.match(bundleCode, /dashhaus-field/);
+assert.match(bundleCode, /Copyright \\(c\\) Facebook, Inc\\. and its affiliates\\./, "the bundle carries React's copyright notice");
+assert.match(bundleCode, /Permission is hereby granted, free of charge/, "the bundle carries React's MIT permission text");
 
 const { JSDOM } = await import("jsdom");
 const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });

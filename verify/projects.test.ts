@@ -3,7 +3,7 @@
  * `npm run check` pass while its tests stopped running, so the root config, the package tsconfigs and the typecheck
  * script are pinned here.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { projects } from "../config/vitest.projects";
@@ -52,6 +52,26 @@ describe("workspace projects", () => {
     expect(project("checks")?.include, "the repo checks read the repo, no DOM").toEqual(["verify/**/*.test.{ts,tsx}"]);
     expect((projects as Project[]).find((entry) => entry.test?.name === "checks")?.test?.exclude, "tokens loads the custom-element entry").toEqual(["verify/tokens.test.ts"]);
     expect(project("generators")?.include, "the generators are Node-only, in their own project").toEqual(["scripts/*/*.test.ts"]);
+    // jsdom loads once per worker, not once per file; the generators spawn the repo's tools and keep plain forks.
+    expect(Object.fromEntries((projects as { test: { name: string; pool?: string } }[]).map(({ test }) => [test.name, test.pool]))).toEqual({
+      root: "vmForks",
+      checks: "vmForks",
+      generators: "forks",
+      core: "vmForks",
+      dashboard: "vmForks",
+      deploy: "vmForks",
+      "fake-home-assistant": "vmForks",
+    });
+  });
+
+  it("runs every generator suite in exactly one CI shard", () => {
+    const suites = readdirSync(join(root, "scripts"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .flatMap((dir) => readdirSync(join(root, "scripts", dir.name)).filter((file) => file.endsWith(".test.ts")).map((file) => `scripts/${dir.name}/${file}`))
+      .sort();
+    const shards = [...readFileSync(join(root, ".github/workflows/ci.yml"), "utf8").matchAll(/^\s+files: (.+)$/gm)].map(([, files]) => files.trim().split(/\s+/));
+    expect(shards.length, "the generators run in shards").toBeGreaterThan(1);
+    expect(shards.flat().sort(), "each suite on disk is in one shard, and each shard names a suite on disk").toEqual(suites);
   });
 
   it("typechecks the root and every package from the one command", () => {

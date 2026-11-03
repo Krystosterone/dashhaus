@@ -125,9 +125,9 @@ describe("@dashhaus/deploy", () => {
       card: {
         type: "custom:dashhaus-orb",
         title: "Home",
-        sections: [{ title: "Other", cards: [{ entity: "light.bed", footprint: "compact" }] }],
+        rows: [{ title: "Other", cards: [{ entity: "light.bed", footprint: "compact" }] }],
       },
-      made: "1 generated sections",
+      made: "1 generated rows",
     });
     expect(await field.card(fakeHa)).toEqual({
       card: { type: "custom:dashhaus-field", title: "Home" },

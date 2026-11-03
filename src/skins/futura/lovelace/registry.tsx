@@ -14,7 +14,6 @@ export interface FuturaCardItem {
   name?: string;
   area?: string;
   footprint?: FuturaFootprint;
-  span?: number;
   history?: boolean;
 }
 

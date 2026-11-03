@@ -74,4 +74,7 @@ Ask questions and agree proposed changes in [GitHub Issues](https://github.com/K
 
 ## License
 
-UNLICENSED.
+MIT — see [LICENSE](LICENSE).
+
+Third-party material keeps its own terms: the skills under `.agents/skills/` and `.agents/design/` are installed
+from their upstream projects, named in `skills-lock.json`, and are not covered by this repository's license.

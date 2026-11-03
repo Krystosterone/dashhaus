@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DashboardConfigError } from "@dashhaus/dashboard";
-import { mapModules, modulesOf, parseFieldConfig } from "./config";
+import { mapRowItems, rowItems } from "@dashhaus/dashboard/schema";
+import { parseFieldConfig } from "./config";
 
 const problems = (raw: unknown) => {
   try {
@@ -27,94 +28,114 @@ describe("parseFieldConfig: the page", () => {
   });
 });
 
+/** The modules of the main page, in order. */
+const modulesOf = (raw: Record<string, unknown>) => rowItems(parseFieldConfig(raw).rows ?? []);
+
 describe("parseFieldConfig: a module's keys", () => {
-  it("takes span and history on any module, and unit on a climate entity or a sensor", () => {
-    const { modules } = parseFieldConfig({
-      modules: [
+  it("takes history on any module, and unit on a climate entity or a sensor", () => {
+    expect(modulesOf({
+      cards: [
         { entity: "climate.hall", unit: "°F", history: false },
-        { entity: "sensor.bed_temperature", unit: "°C", span: 2 },
-        { entity: "light.lamp", span: 4 },
+        { entity: "sensor.bed_temperature", unit: "°C" },
+        "light.lamp",
       ],
-    });
-    expect(modules).toEqual([
+    })).toEqual([
       expect.objectContaining({ entity: "climate.hall", kind: "climate", unit: "°F", history: false }),
-      expect.objectContaining({ entity: "sensor.bed_temperature", kind: "sensor", unit: "°C", span: 2 }),
-      expect.objectContaining({ entity: "light.lamp", kind: "light", span: 4 }),
+      expect.objectContaining({ entity: "sensor.bed_temperature", kind: "sensor", unit: "°C" }),
+      expect.objectContaining({ entity: "light.lamp", kind: "light" }),
     ]);
   });
 
-  it("names each mistake: a unit on a light, a span past four, a history that isn't true or false", () => {
-    expect(problems({ modules: [{ entity: "light.lamp", unit: "°C" }, { entity: "light.desk", span: 5 }, { entity: "climate.hall", history: "no", unit: "K" }] })).toEqual([
-      'modules[0] (light.lamp): unknown key "unit"',
-      'modules[1] (light.desk): "span" must be a whole number from 1 to 4',
-      'modules[2] (climate.hall): "history" must be true or false',
-      'modules[2] (climate.hall): "unit" must be one of "°C", "°F" — did you mean "°C"?',
+  it("names each mistake: a unit on a light, a width past four, a history that isn't true or false", () => {
+    expect(problems({ cards: [{ entity: "light.lamp", unit: "°C" }, { entity: "light.desk", width: 5 }, { entity: "climate.hall", history: "no", unit: "K" }] })).toEqual([
+      'cards[0] (light.lamp): unknown key "unit"',
+      'cards[1] (light.desk): "width" is how many columns the module spans: a whole number from 1 to 4, or full',
+      'cards[2] (climate.hall): "history" must be true or false',
+      'cards[2] (climate.hall): "unit" must be one of "°C", "°F" — did you mean "°C"?',
     ]);
   });
 
   it("says why color, show_control and a bundle are the main card's", () => {
-    expect(problems({ modules: [{ entity: "light.lamp", color: "amber", show_control: true }, { joined: ["light.a"] }] })).toEqual([
-      'modules[0] (light.lamp): "color" is the main card\'s: field keeps colour for what a control sets (spec/field.md)',
-      'modules[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',
-      "modules[1]: bundles are the main card's: list each module on its own",
+    expect(problems({ cards: [{ entity: "light.lamp", color: "amber", show_control: true }, { bundle: "joined", cards: ["light.a", "light.b"] }] })).toEqual([
+      'cards[0] (light.lamp): "color" is the main card\'s: field keeps colour for what a control sets (spec/field.md)',
+      'cards[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',
+      "cards[1]: bundles are the main card's: list each module on its own",
     ]);
   });
 });
 
-describe("parseFieldConfig: sections", () => {
-  it("reads titled sections of modules, and column groups of them", () => {
+describe("parseFieldConfig: the layout", () => {
+  it("reads plain cards as one row, and titled rows with their own columns, widths and anchors", () => {
     const config = parseFieldConfig({
-      sections: [
-        { title: "Quick", note: "Pressed most", columns: 2, modules: ["light.a", { entity: "input_boolean.dnd", span: 3 }] },
-        { columns: 3, sections: [{ title: "Living room", modules: ["light.b"] }, { title: "Outside", modules: ["weather.home"] }] },
-        { sections: [{ modules: ["light.c"] }] },
+      rows: [
+        { title: "Quick", note: "Pressed most", columns: 2, cards: ["light.a", { entity: "input_boolean.dnd", width: 2 }] },
+        { title: "Living room", columns: 3, flow: "dense", align: "bottom", cards: [{ entity: "light.b", column: 3 }, "weather.home"] },
       ],
     });
-    expect(config.sections).toEqual([
-      { kind: "section", title: "Quick", note: "Pressed most", columns: 2, modules: [expect.objectContaining({ entity: "light.a" }), expect.objectContaining({ entity: "input_boolean.dnd", span: 2 })] },
-      { kind: "columns", columns: 3, sections: [expect.objectContaining({ title: "Living room" }), expect.objectContaining({ title: "Outside" })] },
-      { kind: "columns", columns: 1, sections: [expect.objectContaining({ title: undefined })] },
+    expect(config.rows).toEqual([
+      { title: "Quick", note: "Pressed most", columns: 2, flow: "normal", align: "top", cards: [
+        { item: expect.objectContaining({ entity: "light.a" }), width: 1, column: undefined },
+        { item: expect.objectContaining({ entity: "input_boolean.dnd" }), width: 2, column: undefined },
+      ] },
+      { title: "Living room", note: undefined, columns: 3, flow: "dense", align: "bottom", cards: [
+        { item: expect.objectContaining({ entity: "light.b" }), width: 1, column: 3 },
+        { item: expect.objectContaining({ entity: "weather.home" }), width: 1, column: undefined },
+      ] },
     ]);
-    expect(modulesOf(config.sections!).map((m) => m.entity)).toEqual(["light.a", "input_boolean.dnd", "light.b", "weather.home", "light.c"]);
   });
 
-  it("fills in every module, a column group's too", () => {
-    const { sections } = parseFieldConfig({ sections: [{ title: "A", modules: ["light.a"] }, { sections: [{ title: "B", modules: ["light.b"] }] }] });
-    const placed = mapModules(sections!, (m) => ({ ...m, area: `Area of ${m.entity}` }));
-    expect(modulesOf(placed).map((m) => m.area)).toEqual(["Area of light.a", "Area of light.b"]);
+  it("mixes footprints by column: a row of them stacks each module in its column", () => {
+    const config = parseFieldConfig({ rows: [{ title: "Living room", columns: 2, cards: [
+      { entity: "light.living_room", column: 1 },
+      { entity: "cover.living_room", column: 1, footprint: "compact" },
+      { entity: "climate.living_room", column: 2 },
+      { entity: "input_boolean.dnd", column: 2, footprint: "compact" },
+    ] }] });
+    expect(config.rows?.[0].stacks).toBe(true);
+    // Against the page's own footprint: a compact page with one standard module mixes too.
+    expect(problems({ footprint: "compact", cards: ["light.a", { entity: "light.b", footprint: "standard" }] })).toEqual([
+      'cards[0] (light.a): this row mixes compact and standard modules, so each stacks in a column: give it a "column", or move the standard ones into a row of their own',
+      'cards[1] (light.b): this row mixes compact and standard modules, so each stacks in a column: give it a "column", or move the standard ones into a row of their own',
+    ]);
   });
 
-  it("names each mistake with its path, and the main card's words for what field says otherwise", () => {
+  it("fills in every module of every row", () => {
+    const { rows } = parseFieldConfig({ rows: [{ title: "A", cards: ["light.a"] }, { title: "B", cards: ["light.b"] }] });
+    const placed = mapRowItems(rows!, (m) => ({ ...m, area: `Area of ${m.entity}` }));
+    expect(rowItems(placed).map((m) => m.area)).toEqual(["Area of light.a", "Area of light.b"]);
+  });
+
+  it("names each mistake with its path and the fix", () => {
     expect(problems({
       modules: ["light.a"],
-      sections: [
-        { title: "Quick", cards: ["light.a"] },
-        { title: "Gaps", gap: 4, columns: 6, modules: ["light.b"] },
-        { sections: [] },
+      rows: [
+        { title: "Quick", modules: ["light.a"], cards: ["light.a"] },
+        { title: "Gaps", gap: 4, columns: 6, cards: ["light.b"] },
+        { rows: [] },
         "light.c",
-        { title: "Living", modules: [{ entity: "light.d", footprnt: "compact" }] },
+        { title: "Living", cards: [{ entity: "light.d", footprnt: "compact" }] },
       ],
     })).toEqual([
-      '"modules" and "sections" both lay out the main page: keep one (sections take modules of their own)',
-      'sections[0]: "cards" is the main card\'s: a field section lists "modules"',
-      'sections[0]: "modules" must be a list of at least one module',
-      'sections[1]: "gap" is the main card\'s: field spaces its grid by footprint: 12 px between modules, 8 px between rows',
-      'sections[1]: "columns" must be a whole number from 1 to 4',
-      'sections[2]: "sections" must be a list of at least one section',
-      'sections[3]: a section is a map with "modules" (and usually a "title")',
-      'sections[4].modules[0] (light.d): unknown key "footprnt" — did you mean "footprint"?',
+      'modules: isn\'t a key: list the page\'s modules under "cards", or under "rows" in titled groups',
+      'rows[0]: a row lists its modules under "cards"',
+      'rows[1]: the skin spaces its grid: leave out "gap"',
+      'rows[1]: "columns" must be a whole number from 1 to 4, or auto',
+      'rows[2]: rows don\'t nest: list this row\'s cards under its own "cards", and put the inner rows beside it in the page\'s "rows"',
+      'rows[2]: "cards" must be a list of at least one module',
+      'rows[3] (light.c): this is a module, not a row: put it in a row\'s "cards", or list the modules under "cards" at the top for one plain grid',
+      'rows[4].cards[0] (light.d): unknown key "footprnt" — did you mean "footprint"?',
     ]);
   });
 });
 
 describe("parseFieldConfig: nav and pages", () => {
-  it("reads pages and a nav of sections, pages and other dashboards", () => {
+  it("reads pages and a nav of titled rows, pages and other dashboards", () => {
     const config = parseFieldConfig({
-      sections: [{ title: "Quick", modules: ["light.a"] }],
-      pages: [{ id: "nursery", title: "Nursery", sections: [{ title: "Baby", modules: ["sensor.owlet_sock_ac000w0123_sleep_state"] }] }],
+      rows: [{ title: "Quick", cards: ["light.a"] }],
+      pages: [{ id: "nursery", title: "Nursery", rows: [{ title: "Baby", cards: ["sensor.owlet_sock_ac000w0123_sleep_state"] }] }],
       nav: [{ page: "home" }, { section: "Quick", label: "Now" }, { page: "nursery" }, { navigate: "/baby-view/0", label: "Baby view" }],
     });
-    expect(config.pages).toEqual([{ id: "nursery", title: "Nursery", blocks: [expect.objectContaining({ kind: "section", title: "Baby", modules: [expect.objectContaining({ kind: "owlet" })] })] }]);
+    expect(config.pages).toEqual([{ id: "nursery", title: "Nursery", rows: [expect.objectContaining({ title: "Baby", cards: [expect.objectContaining({ item: expect.objectContaining({ kind: "owlet" }) })] })] }]);
     expect(config.nav).toEqual([
       { kind: "page", id: "home", label: undefined },
       { kind: "section", title: "Quick", label: "Now" },
@@ -130,20 +151,20 @@ describe("parseFieldConfig: nav and pages", () => {
 
   it("names every nav and page mistake, with the probable fix", () => {
     expect(problems({
-      sections: [{ title: "Living room", modules: ["light.a"] }],
-      pages: [{ id: "home", title: "Home", sections: [{ modules: ["light.b"] }] }, { title: "Nursery", sections: [] }],
+      rows: [{ title: "Living room", cards: ["light.a"] }],
+      pages: [{ id: "home", title: "Home", cards: ["light.b"] }, { title: "Nursery", rows: [] }],
       nav: [{ section: "living room" }, { page: "nursry" }, { navigate: "baby-view" }],
     })).toEqual([
-      'pages[0]: "id" can\'t be "home": that is the top-level sections',
+      'pages[0]: "id" can\'t be "home": that is the main page',
       'pages[1]: "id" is required: lower-case letters, digits, - and _, like living-room',
-      'pages[1]: "sections" must be a list of at least one section',
+      'pages[1].rows: must be a list of at least one row, each a map with its own "cards" — each row on its own line starting with "- "',
       'nav[2]: "navigate" is a Home Assistant path like /baby-view/0',
-      'nav[0]: no section titled "living room" in the top-level sections — did you mean "Living room"?',
+      'nav[0]: no row titled "living room" on the main page — did you mean "Living room"?',
       'nav[1]: no page "nursry" (pages: "home")',
     ]);
   });
 
-  it("can't check a section named by area: the registries name those", () => {
-    expect(problems({ modules: ["light.a"], nav: [{ section: "Kitchen" }] })).toEqual([]);
+  it("can't check a row named by area: the registries name those", () => {
+    expect(problems({ nav: [{ section: "Kitchen" }] })).toEqual([]);
   });
 });

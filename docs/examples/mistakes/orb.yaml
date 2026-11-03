@@ -1,0 +1,17 @@
+type: custom:dashhaus-orb
+title: Home
+cards:
+  - light.living_room
+rows:
+  - climate.living_room
+  - title: Comfort
+    columns: 2
+    cards:
+      - entity: climate.living_room
+        width: 3
+      - entity: light.living_room
+        span: 2
+  - title: Outside
+    columns: "3"
+    cards:
+      - weather.home

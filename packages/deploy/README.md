@@ -113,7 +113,7 @@ Settings live only in `.env` or the environment.
 
 ## Change a layout
 
-A new dashboard lays out every supported entity by area. To choose your own sections, open it in Home Assistant,
+A new dashboard lays out every supported entity by area. To choose your own cards and rows, open it in Home Assistant,
 then ⋮ → Edit dashboard → the card's ✎ → Show code editor. Mistakes are listed together, each at its path with a
 suggestion. The YAML each card takes is in its own package: `@dashhaus/bundle`'s README for Orb and Field, the
 skin's README for a skin you built.

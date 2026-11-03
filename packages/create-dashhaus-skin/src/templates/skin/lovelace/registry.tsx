@@ -10,7 +10,6 @@ export interface __Skin__CardItem {
   name?: string;
   area?: string;
   footprint?: __Skin__Footprint;
-  span?: number;
   history?: boolean;
   /** The companion entities its hook composes, by YAML key: a sensor's `humidity` and `battery`. */
   companions?: Readonly<Record<string, string>>;

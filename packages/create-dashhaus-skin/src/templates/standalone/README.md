@@ -30,19 +30,25 @@ afterwards. Run it again after every change; the dashboard's layout is kept.
 
 ## YAML
 
-With no `cards`, the card lays out every light and every room's air by Home Assistant area: a temperature sensor with
-the humidity sensor on its device. To choose:
+With no `cards` or `rows`, the card lays out every light and every room's air, a row per Home Assistant area: a
+temperature sensor with the humidity sensor on its device. To choose, list `cards` for one plain grid in that order,
+or `rows` of them, each with its own `title` and `columns`:
 
 ```yaml
 type: custom:__card_type__
 title: Home
+columns: 2              # at most this many across; fewer where the screen is narrower
 cards:
   - entity: light.kitchen
+    width: full         # every column of the row
   - entity: sensor.office_temperature
     humidity: sensor.office_humidity   # drawn under the temperature
     name: Office        # overrides the friendly name
-    area: Upstairs      # overrides the area it is grouped under
+    area: Upstairs      # overrides the area printed on it
 ```
+
+A row holds one footprint; put compact cards in a row of their own. `column: 2` starts a card in that column,
+`flow: dense` lets a later card fill an earlier hole, and `align: bottom` sets a row's shorter columns on its foot.
 
 ## Layout
 

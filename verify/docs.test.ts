@@ -68,7 +68,7 @@ describe("documentation samples", () => {
   });
 
   it("reads every Lovelace YAML sample through its skin's parser", () => {
-    const yaml = walk(examplesDir).filter((file) => file.endsWith(".yaml"));
+    const yaml = walk(examplesDir).filter((file) => file.endsWith(".yaml") && !relative(examplesDir, file).startsWith("mistakes/"));
     expect(yaml.length).toBeGreaterThan(0);
     for (const file of yaml) {
       const config = parse(readFileSync(file, "utf8")) as { type?: string };
@@ -76,6 +76,23 @@ describe("documentation samples", () => {
       if (config.type === "custom:dashhaus-orb") expect(() => parseDashboardConfig(config), at).not.toThrow();
       else if (config.type === "custom:dashhaus-field") expect(() => parseFieldConfig(config), at).not.toThrow();
       else throw new Error(`${at}: no parser for type ${config.type}`);
+    }
+  });
+
+  it("quotes each mistake sample's problems exactly as its skin's parser reports them, on the page that shows it", () => {
+    const mistakes = walk(join(examplesDir, "mistakes")).filter((file) => file.endsWith(".yaml"));
+    expect(mistakes.length).toBeGreaterThan(0);
+    for (const file of mistakes) {
+      const name = relative(examplesDir, file);
+      const config = parse(readFileSync(file, "utf8")) as { type?: string };
+      const parser = config.type === "custom:dashhaus-orb" ? parseDashboardConfig : config.type === "custom:dashhaus-field" ? parseFieldConfig : undefined;
+      if (!parser) throw new Error(`${name}: no parser for type ${config.type}`);
+      let message = "";
+      try { parser(config); } catch (error) { message = (error as Error).message; }
+      expect(message, `${name} must fail: it shows mistakes`).not.toBe("");
+      const page = attributes("file").find(({ value }) => value === name)?.file;
+      expect(page, `${name} is on a page`).toBeDefined();
+      expect(readFileSync(page!, "utf8"), `${relative(root, page!)} quotes ${name}'s problems as the parser words them`).toContain(message);
     }
   });
 
