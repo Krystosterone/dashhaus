@@ -6,7 +6,7 @@ import { fmtAgo } from "@dashhaus/core/entities/format";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useNow } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -150,7 +150,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
   );
 
   const glyph = <Glyph unavailable={unav}>{shield}</Glyph>;
-  const today = history && (unav ? unavailableSince(e.lastSeen) : todaySummary("armed", history.armedMinutes));
+  const today = history && (unav ? "Unavailable" : todaySummary("armed", history.armedMinutes));
   const row = ro ? (
     <ModuleRow className="fd-al-row">
       {glyph}

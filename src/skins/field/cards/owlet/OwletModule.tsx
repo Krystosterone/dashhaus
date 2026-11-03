@@ -47,7 +47,8 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
   const oxygen = o2 != null ? `${fmtOxygen(o2)}% O₂` : undefined;
   const seen = e.lastSeen ? `Seen ${e.lastSeen}` : undefined;
   const glyph = <Glyph unavailable={offline}><IconSock /></Glyph>;
-  const asleep = history && todaySummary("asleep", history.asleepMinutes);
+  // Offline, the meter keeps the sleep so far and its legend says why there is no more, as the screen does.
+  const asleep = history && (offline ? (e.charging ? "Charging" : "Unavailable") : todaySummary("asleep", history.asleepMinutes));
 
   // Lit while there is a heart rate that hasn't stopped; beating while readings are known to arrive, once every 2.4 s, a
   // sign of life rather than the measured rate. Where the host can't tell, it stays lit and still.
