@@ -1,6 +1,6 @@
 ---
 title: Entities
-description: "The ten kinds of entity Dashhaus draws, with each one's hook, headless component, Orb tile and Field module."
+description: "The eleven kinds of entity Dashhaus draws, with each one's hook, headless component, Orb tile and Field module."
 ---
 
 Each kind of entity has the same four things: a hook and a headless component in `@dashhaus/core`, a tile in
@@ -18,6 +18,7 @@ or not.
 | [Sensor](/dashhaus/entities/sensor/) | `sensor.*` | `useHaSensor` | `HaSensor` | `HaSensorTile` | `HaSensorModule` |
 | [Weather](/dashhaus/entities/weather/) | `weather.*` | `useHaWeather` | `HaWeather` | `HaWeatherTile` | `HaWeatherModule` |
 | [Alarm](/dashhaus/entities/alarm/) | `alarm_control_panel.*` | `useHaAlarm` | `HaAlarm` | `HaAlarmTile` | `HaAlarmModule` |
+| [Lock](/dashhaus/entities/lock/) | `lock.*` and its device's battery `sensor.*` | `useHaLock` | `HaLock` | `HaLockTile` | `HaLockModule` |
 | [Owlet](/dashhaus/entities/owlet/) | `sensor.*_sleep_state` | `useHaOwlet` | `HaOwlet` | `HaOwletTile` | `HaOwletModule` |
 
 ## What every hook returns
@@ -26,7 +27,8 @@ or not.
 
 - `entity`: the normalized model. It is always there, even before Home Assistant has delivered the entity or while it
   is unavailable: its `state` is then `"unavailable"`, and its fields are what's known.
-- `history`: today, hour by hour, from Home Assistant's recorder and every change since.
+- `history`: today, hour by hour, from Home Assistant's recorder and every change since. A lock has none: it shows
+  its last change.
 - `actions`: what the entity can do, for a control. An optional handler (a light's `onKelvinChange`, a cover's
   `onSetPosition`) is left out when the entity can't use it, so test the handler before drawing its control. Sensors
   and the weather have no actions; the weather adds `hourly` and `daily` forecasts.

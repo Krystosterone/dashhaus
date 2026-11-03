@@ -1,0 +1,89 @@
+/* Lock card. Shell, orb, pill and sheet come from src/skins/orb/shared/card.css.
+   Classes here start with lk-; colours only from tokens.css. A lock is a state: it never glows. */
+
+/* The readout says the state in words, a little smaller than a number */
+.lk .hd-num { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; }
+.hd--sheet.lk .hd-num { font-size: 30px; }
+.lk[data-state="unlocked"] .hd-num, .lk[data-state="open"] .hd-num { color: var(--ink-2); }
+
+/* ---------- While it turns, and view only: a readout, no container (nothing to press) ---------- */
+.lk-st {
+  display: flex; align-items: center; gap: 6px; height: var(--slot-h); min-width: 0; margin: 0; padding: 0 var(--pad-in);
+  font-size: 15px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lk-st-x { font-weight: 500; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
+/* On its way: the words breathe, the one state motion that says it hasn't landed */
+.lk-st[data-moving] { animation: lk-wait 900ms var(--ease-in-out) infinite alternate; }
+/* The trough stays readable: the words never fade under text contrast */
+@keyframes lk-wait { to { opacity: 0.65; } }
+.hd--compact .lk-st { justify-content: flex-end; font-size: 13px; }
+
+/* ---------- Last change and battery: a readout for featured and the sheet ---------- */
+.lk-last { display: none; align-content: end; gap: 10px; margin: 0; min-width: 0; }
+.hd--featured .lk-last, .hd--sheet .lk-last { display: grid; }
+.lk-last > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; padding-top: 10px; border-top: 1px dashed var(--line); }
+.lk-last dt { flex: none; font-size: 14px; font-weight: 600; }
+.lk-last dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 500; color: var(--ink-2); text-align: right; }
+.hd--sheet .lk-last dd { white-space: normal; overflow-wrap: anywhere; }
+
+/* ---------- Sheet: Open door, a raised button that only asks ---------- */
+.lk-door {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px;
+  border: 0; border-radius: 99px; background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink);
+  font: 600 15px var(--font); text-align: left; cursor: pointer;
+  transition: background-color 200ms var(--ease-out), scale var(--press) var(--ease-out);
+}
+.lk-door:active { scale: 0.98; }
+.lk-door:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.lk-door svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.lk-door-x { font-weight: 500; font-size: 13.5px; color: var(--ink-2); }
+
+/* ---------- Sheet: the confirmation. No container (a groove would say "slide"); Cancel raised, the action in the inverse ---------- */
+.lk-cf { display: grid; gap: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.lk-cf-q { margin: 0; font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.lk-cf-d { margin: 0 0 10px; min-height: 1.45em; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
+.lk-cf-b { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lk-cf-x, .lk-cf-ok {
+  height: 52px; padding: 0 16px; border: 0; border-radius: 99px; font: 600 15px var(--font); cursor: pointer;
+  transition: background-color 200ms var(--ease-out), opacity 200ms var(--ease-out), scale var(--press) var(--ease-out);
+}
+.lk-cf-x { background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink); }
+.lk-cf-ok { background: var(--inv-bg); color: var(--inv-fg); }
+.lk-cf-x:active, .lk-cf-ok:active:not(:disabled) { scale: 0.97; }
+.lk-cf-x:focus-visible, .lk-cf-ok:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.lk-cf-ok:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- Sheet: the keypad, for a lock that asks for a code ---------- */
+.lk-kp { display: grid; justify-items: center; gap: 16px; padding: 6px 0 2px; border-radius: 18px; }
+.lk-kp:focus { outline: none; }
+.lk-kp:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.lk-kp-p { margin: 0; font-size: 15px; font-weight: 600; text-align: center; }
+.lk-kp-dots { display: flex; align-items: center; gap: 12px; height: 14px; }
+.lk-kp-dots i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); transition: background-color 120ms var(--ease-out); }
+.lk-kp-dots i[data-on] { background: var(--ink); box-shadow: none; }
+/* A wrong code shakes the dots: feedback the eye catches without reading */
+.lk-kp-dots[data-error] { animation: lk-shake 360ms var(--ease-out); }
+.lk-kp-dots[data-busy] i[data-on] { animation: lk-wait 700ms var(--ease-in-out) infinite alternate; }
+@keyframes lk-shake { 20% { translate: -7px 0; } 40% { translate: 6px 0; } 60% { translate: -4px 0; } 80% { translate: 2px 0; } }
+.lk-kp-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px 20px; }
+.lk-key {
+  display: grid; place-items: center; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink);
+  font: 400 28px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color 120ms var(--ease-out), scale var(--press) var(--ease-out);
+}
+.lk-key:active:not(:disabled) { scale: 0.93; background: var(--fill); }
+.lk-key:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.lk-key svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.lk-key--fn { background: none; box-shadow: none; }
+.lk-key--ok { background: var(--inv-bg); color: var(--inv-fg); box-shadow: none; }
+.lk-key:disabled { opacity: 0.35; cursor: default; }
+.lk-kp-x { padding: 8px 16px; border: 0; border-radius: 99px; background: none; color: var(--ink-2); font: 600 14px var(--font); cursor: pointer; }
+.lk-kp-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-kp-dots[data-error] { animation: none; }
+  /* Gentler, not gone: the waiting words fade slowly */
+  .lk-st[data-moving] { animation-duration: 1.6s; }
+  .lk-door, .lk-cf-x, .lk-cf-ok, .lk-key { scale: none !important; }
+}

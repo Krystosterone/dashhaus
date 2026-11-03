@@ -1,7 +1,7 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/dashboard/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, byName, domainOf, placeSection, roomSensors, visibleEntities } from "@dashhaus/dashboard/layout";
+import { areaId, byName, deviceCompanion, domainOf, placeSection, roomSensors, visibleEntities } from "@dashhaus/dashboard/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/dashboard/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/dashboard/layout";
@@ -37,6 +37,11 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // page never shows two sections of one name, and a nav to one never lands on the other.
   const place = (section: Section) => placeSection(sections, section);
   const alarms = ofDomain("alarm_control_panel");
+  // Locks join the alarm under Security, each with its device's battery where it has one.
+  const locks: Card[] = ofDomain("lock").map((entity) => {
+    const battery = deviceCompanion(input, entity, "battery");
+    return { entity, footprint: "compact", ...(battery && { battery }) };
+  });
 
   const weather = ofDomain("weather")[0];
 
@@ -85,7 +90,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
 
   // Automatic discovery cannot infer true frequency. It puts every action first, then stable household
   // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
-  if (alarms.length) place({ title: "Security", cards: alarms.map((entity) => ({ entity, footprint: "compact" })) });
+  if (alarms.length || locks.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks] });
   if (socks.length) place({ title: "Nursery", cards: socks });
   if (weather) place({ title: "Outside", cards: [weather] });
   if (air.length) place({ title: "Rooms", cards: air });

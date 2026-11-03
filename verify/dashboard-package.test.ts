@@ -144,6 +144,7 @@ describe("@dashhaus/dashboard", () => {
       "areaName",
       "byName",
       "deviceClass",
+      "deviceCompanion",
       "domainOf",
       "friendlyName",
       "groupByArea",

@@ -59,6 +59,7 @@ The entity's domain picks its card. Where two cards draw one domain, `card:` pic
 | `switch.*` with `card: sound` | sound, with its volume `number.*` found beside it |
 | `alarm_control_panel.*` | alarm |
 | `humidifier.*` | humidifier |
+| `lock.*` | lock, with its device's battery sensor |
 
 An entity with no card is an error that says so, rather than an empty space.
 
@@ -74,7 +75,7 @@ An entity with no card is an error that says so, rather than an empty space.
 Each card adds its own: a sensor's `humidity`, `battery`, `outdoor` and `unit`; the weather's `aqi`, `aqi_scale`, `sun`
 and `forecasts`; a toggle's `icon` and `description`; a sound's `volume`; an alarm's `read_only`, `exit_delay`,
 `entry_delay` and `open_sensors`; an Owlet sock's `heart_rate`, `oxygen`, `charging`, `base_station`, `alerts` and
-`stale_after`; a climate entity's `unit`. In Orb, most cards also take a `color` for their orb.
+`stale_after`; a lock's `battery`; a climate entity's `unit`. In Orb, most cards also take a `color` for their orb.
 
 `viewing: far` is for a wall panel read from across the room: larger status lines and captions, heavier figures,
 the same card heights. A key Orb takes and Field doesn't (`theme`, `accent`, `color`, a section's `gap`, bundles) is

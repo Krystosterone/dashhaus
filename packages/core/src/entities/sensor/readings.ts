@@ -1,4 +1,5 @@
 import { fmt1 } from "../format";
+import { LOW_BATTERY, isLowBattery } from "../battery";
 import { normalizeReadings } from "../history";
 import type { Reading } from "../history";
 import type { SensorEntity } from "./types";
@@ -28,11 +29,11 @@ export function trendOf(series: Reading[] | undefined, hour: number, threshold =
   return d > threshold ? "rising" : d < -threshold ? "falling" : "steady";
 }
 
-/** At or under this battery percentage a sensor asks for a new battery. */
-export const LOW_BATTERY = 15;
+/** At or under this battery percentage a sensor asks for a new battery; shared with every same-device battery. */
+export { LOW_BATTERY };
 
 /** A reachable sensor whose battery is at or under LOW_BATTERY. */
-export const lowBattery = (e: SensorEntity) => e.state !== "unavailable" && e.battery != null && e.battery <= LOW_BATTERY;
+export const lowBattery = (e: SensorEntity) => e.state !== "unavailable" && isLowBattery(e.battery);
 
 /** Scale readings for a Today strip; a temperature or humidity day spans at least half a unit. */
 export const normalize = (series: Reading[]) => normalizeReadings(series, 0.5);

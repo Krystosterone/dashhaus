@@ -95,6 +95,14 @@ export type { SoundTileProps } from "./cards/sound/SoundTile";
 export { HaSoundTile } from "./ha/HaSoundTile";
 export type { HaSoundTileProps } from "./ha/HaSoundTile";
 
+// Lock
+export { LockCard, LockSheet } from "./cards/lock/LockCard";
+export type { LockCardProps, LockSheetProps } from "./cards/lock/LockCard";
+export { LockTile } from "./cards/lock/LockTile";
+export type { LockTileProps } from "./cards/lock/LockTile";
+export { HaLockTile } from "./ha/HaLockTile";
+export type { HaLockTileProps } from "./ha/HaLockTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

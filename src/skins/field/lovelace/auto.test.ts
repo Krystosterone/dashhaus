@@ -61,6 +61,15 @@ describe("autoModules", () => {
     expect(modules).toEqual([{ entity: "light.lamp", kind: "light" }, { entity: "sensor.owlet_sock_a_sleep_state", kind: "owlet" }]);
   });
 
+  it("takes every visible lock, with the battery sensor on its device", () => {
+    expect(autoModules({
+      states: { "lock.front": state("lock.front", "Front door"), "sensor.front_battery": { attributes: { friendly_name: "Front door battery", device_class: "battery" } }, "lock.back": state("lock.back", "Back door") },
+      entities: { "lock.front": { device_id: "front" }, "sensor.front_battery": { device_id: "front", entity_category: "diagnostic" } },
+    })).toEqual([{ entity: "lock.back", kind: "lock" }, { entity: "lock.front", kind: "lock", battery: "sensor.front_battery" }]);
+    expect(parseFieldConfig({ modules: [{ entity: "lock.front", battery: "sensor.front_battery" }] }).modules?.[0]).toMatchObject({ kind: "lock", battery: "sensor.front_battery" });
+    expect(() => parseFieldConfig({ modules: [{ entity: "lock.front", battery: "light.lamp" }] })).toThrow();
+  });
+
   it("takes every visible alarm panel", () => {
     expect(autoModules({ states: { "alarm_control_panel.house": state("alarm_control_panel.house", "House alarm") } })).toEqual([{ entity: "alarm_control_panel.house", kind: "alarm" }]);
   });

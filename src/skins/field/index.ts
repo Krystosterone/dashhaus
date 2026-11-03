@@ -62,5 +62,9 @@ export type { OwletModuleProps } from "./cards/owlet/OwletModule";
 export { HaOwletModule } from "./ha/HaOwletModule";
 export type { HaOwletModuleProps } from "./ha/HaOwletModule";
 
+export { LockModule } from "./cards/lock/LockModule";
+export type { LockModuleProps } from "./cards/lock/LockModule";
+export { HaLockModule } from "./ha/HaLockModule";
+export type { HaLockModuleProps } from "./ha/HaLockModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

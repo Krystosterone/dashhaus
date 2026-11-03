@@ -39,6 +39,7 @@ const KINDS = {
   sensor: ["orb-cards-sensor--comfortable", "field-cards-sensor--indoor"],
   weather: ["orb-cards-weather--partly-cloudy", "field-cards-weather--partly"],
   alarm: ["orb-cards-alarm--disarmed", "field-cards-alarm--disarmed"],
+  lock: ["orb-cards-lock--locked", "field-cards-lock--locked"],
   owlet: ["orb-cards-owlet--deep-sleep", "field-cards-owlet--deep-sleep"],
 };
 
@@ -46,7 +47,9 @@ const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/cs
 const server = createServer(async (req, res) => {
   const path = join(storybook, decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname));
   try {
-    res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" }).end(await readFile(path));
+    // Read before the head goes out, so a missing file can still answer 404.
+    const body = await readFile(path);
+    res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" }).end(body);
   } catch {
     res.writeHead(404).end();
   }

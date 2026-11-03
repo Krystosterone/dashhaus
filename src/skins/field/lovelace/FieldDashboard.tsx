@@ -17,6 +17,7 @@ import { HaSoundModule } from "../ha/HaSoundModule";
 import { HaCoverModule } from "../ha/HaCoverModule";
 import { HaAlarmModule } from "../ha/HaAlarmModule";
 import { HaOwletModule } from "../ha/HaOwletModule";
+import { HaLockModule } from "../ha/HaLockModule";
 import { Key } from "../shared/ui";
 import { Area, Areas, Cell, FieldPage } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
@@ -49,6 +50,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   owlet: (item, footprint) => (
     <HaOwletModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} heartRateEntityId={item.heartRate} oxygenEntityId={item.oxygen} chargingEntityId={item.charging} baseEntityId={item.baseStation} alertEntityIds={item.alerts} staleAfterMinutes={item.staleAfter} />
   ),
+  lock: (item, footprint) => <HaLockModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} batteryEntityId={item.battery} />,
   // new-card: live modules
 };
 

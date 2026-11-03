@@ -337,6 +337,33 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 
 `SoundModule` is the same normalized sound entity in the Field skin; `HaSoundModule` is its connected container, on the same `useHaSound` hook as `HaSoundTile`, so it finds the volume the same way (or takes `volumeEntityId`) and takes the same `onToggle` and `onVolumeChange`. See [field.md](field.md#sound).
 
+## Using the lock card
+
+A door lock: one `lock.*`, composed with the battery `sensor.*` on its device. A control whose one deliberate action is the unlock.
+
+```tsx
+<LockTile entity={door} onLock={(code) => lock(code)} onUnlock={(code) => unlock(code)} onOpenDoor={(code) => open(code)} />
+<HaLockTile entityId="lock.front_door" batteryEntityId="sensor.front_door_battery" />
+```
+
+- **States:** Locked, Unlocked, Locking…, Unlocking…, Jammed, Open (unlatched, Home Assistant's `open`), Opening… and Unavailable. `unknown`, a state Home Assistant doesn't define and a missing entity are unavailable, never a safe-looking locked.
+- **Locking takes a tap.** The orb and the pill lock an unlocked, open or jammed lock at once: locking is the safe direction. Locked is the accent, as armed is; unlocked is the plain raised surface. A lock is a state, so it never glows (`paint("state", 0)`).
+- **Unlocking never takes a tap.** A tap on a locked lock's orb or pill opens the sheet on the question ("Unlock Front door?", what it means, Cancel and Unlock), or on the keypad when the lock asks for a code: typing the code is the confirmation. A press and hold opens the sheet as on every card, never on the question. In the sheet, focus lands on Cancel, so Enter never unlocks, and Unlock (the inverse, the one urgent action) takes no press for 400 ms after it appears (`useSettled`), so the second tap of a double tap can't land on it. While it waits for Home Assistant it says so; a call that didn't go through says "Didn't go through. Try again." and keeps the question; a refused code shakes the dots and clears.
+- **Open door.** A lock with `supportsOpen` (Home Assistant's `LockEntityFeature.OPEN`) adds Open door to its sheet, behind the same question or keypad. Never on the card.
+- **A code to lock.** A lock that answers `wrong_code` to a tap (it wants a code to lock too) opens the sheet on the keypad for locking.
+- **Moving.** Locking, unlocking and opening replace the pill with the verb as a readout (no container), its words breathing; nothing is pressable until it lands, and a hold still opens the sheet.
+- **Warnings** lead the status line behind the shared warn marker, never brightness: Jammed first (the pill then offers Lock again), then a low battery (`Battery 12%`, at or under 15%, shared with the sensor through `@dashhaus/core/entities/battery`). Unlocked is a state, not a warning, however long it lasts.
+- **Status line:** the area, or since when where there is none. The pill carries the state word and what a tap does (`Unlock…`, `Lock`).
+- **Featured and sheet:** the last change ("Locked at 10:58 by Keypad") and the battery, as a readout. No hourly history: a lock's day is its last change.
+- **Compact:** the padlock (its shackle shut or lifted, a mark when jammed), the name, and the state word; the pill from 320 px.
+- **View only** (`readOnly`, or no `onLock` and `onUnlock`): the badge is static, the slot a readout ("Locked by Keypad"), and the sheet has nothing to press.
+
+The handlers never reject: `createLockHandlers` answers `"done"`, `"wrong_code"` or `"failed"` and reports failures through `onActionError`.
+
+### Field lock module
+
+`LockModule` is the same normalized lock entity in the Field skin; `HaLockModule` is its connected container, on the same `useHaLock` hook as `HaLockTile`, and takes the same `onLock`, `onUnlock`, `onOpenDoor` and `readOnly`. See [field.md](field.md#lock).
+
 <!-- new-card: cards -->
 ## The dashboard header
 

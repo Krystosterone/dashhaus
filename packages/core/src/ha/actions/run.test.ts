@@ -46,4 +46,17 @@ describe("serviceRunner", () => {
     expect(serviceRunner(caller, "fan", { ...entity, state: "unavailable" }, onError).actionable()).toBe(false);
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported", entityId: "fan.bedroom" }));
   });
+
+  it("attempts a service and answers with the sanitized error, never rejecting or reporting it itself", async () => {
+    const onError = vi.fn();
+    const ok = serviceRunner({ callService: vi.fn(async () => undefined) }, "fan", entity, onError);
+    await expect(ok.attempt("turn_on")).resolves.toBeUndefined();
+    const failing = serviceRunner({ callService: vi.fn(async () => { throw new Error("raw provider detail"); }) }, "fan", entity, onError);
+    const error = await failing.attempt("turn_on");
+    expect(error).toMatchObject({ code: "service_failed", domain: "fan", service: "turn_on", entityId: "fan.bedroom" });
+    expect(error?.message).not.toContain("raw provider detail");
+    expect(onError).not.toHaveBeenCalled();
+    failing.report(error!);
+    expect(onError).toHaveBeenCalledWith(error);
+  });
 });

@@ -40,7 +40,7 @@ export interface ModuleConfig {
   history?: boolean;
   /** A climate entity's or a sensor's temperatures in this unit, whatever Home Assistant's is. */
   unit?: "°C" | "°F";
-  /** A sensor's companions on the same device, and whether it is outside (no comfort reading). */
+  /** A sensor's companions on the same device, and whether it is outside (no comfort reading); a lock's battery. */
   humidity?: string;
   battery?: string;
   outdoor?: boolean;
@@ -139,6 +139,7 @@ export type FieldKind =
   | "cover"
   | "alarm"
   | "owlet"
+  | "lock"
   // new-card: kinds
   ;
 
@@ -166,6 +167,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   cover: { domains: ["cover"] },
   alarm: { domains: ["alarm_control_panel"] },
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
+  lock: { domains: ["lock"] },
   // new-card: field kinds
 };
 
@@ -178,7 +180,7 @@ const GROUP_KEYS = ["columns", "sections"];
 /** A field page is at most 1240 px wide: four modules across, or four areas side by side. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
@@ -191,6 +193,7 @@ const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: strin
   sound: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }),
   alarm: readAlarmOptions,
   owlet: (read, raw, at) => readOwletOptions(read, raw, at, OWLET_ALERTS),
+  lock: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
 };
 
 /** Field's kind table: the domains above, plus the keys and options each card takes. */

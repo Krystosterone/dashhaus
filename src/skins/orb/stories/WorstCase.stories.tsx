@@ -32,6 +32,9 @@ import type { OwletSeed } from "../cards/owlet/demo/socks";
 import { DemoSoundTile } from "../cards/sound/demo/DemoSoundTile";
 import { SOUND_SEEDS, SOUND_WORST_CASE } from "../cards/sound/demo/useDemoSound";
 import type { SoundSeed } from "../cards/sound/demo/useDemoSound";
+import { DemoLockTile } from "../cards/lock/demo/DemoLockTile";
+import { LOCK_SEEDS, LOCK_WORST_CASE } from "../cards/lock/demo/useDemoLock";
+import type { LockSeed } from "../cards/lock/demo/useDemoLock";
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its
@@ -86,6 +89,11 @@ const OWLETS: Record<"demo" | "worst", OwletSeed[]> = {
 const SOUNDS: Record<"demo" | "worst", SoundSeed[]> = {
   demo: [SOUND_SEEDS.on],
   worst: SOUND_WORST_CASE,
+};
+
+const LOCKS: Record<"demo" | "worst", LockSeed[]> = {
+  demo: [LOCK_SEEDS.locked],
+  worst: LOCK_WORST_CASE,
 };
 
 function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: CardFootprint }) {
@@ -151,6 +159,7 @@ function WorstCasePage() {
       {CLIMATES[data].map((seed, index) => <Row key={`c${index}`}>{(footprint) => <Climate seed={seed} footprint={footprint} />}</Row>)}
       {WEATHERS[data].map((seed, index) => <Row key={`w${index}`}>{(footprint) => <WeatherTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />}</Row>)}
       {ALARMS[data].map((seed, index) => <Row key={`a${index}`}>{(footprint) => <Alarm seed={seed} footprint={footprint} />}</Row>)}
+      {LOCKS[data].map((seed, index) => <Row key={`k${index}`}>{(footprint) => <DemoLockTile seed={seed} footprint={footprint} />}</Row>)}
       {COVERS[data].map((seed, index) => <Row key={`v${index}`}>{(footprint) => <Cover seed={seed} footprint={footprint} />}</Row>)}
       {TOGGLES[data].map((seed, index) => <Row key={`t${index}`}>{(footprint) => <Toggle seed={seed} footprint={footprint} />}</Row>)}
       {SENSORS[data].map((seed, index) => <Row key={`s${index}`}>{(footprint) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} />}</Row>)}
