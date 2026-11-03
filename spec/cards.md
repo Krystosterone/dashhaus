@@ -356,7 +356,7 @@ A door lock: one `lock.*`, composed with the battery `sensor.*` on its device. A
 - **Moving.** Locking, unlocking and opening replace the pill with the verb as a readout (no container), its words breathing; nothing is pressable until it lands, and a hold still opens the sheet.
 - **Warnings** lead the status line behind the shared warn marker, never brightness: Jammed first, saying what it means (`Jammed · may not be locked`; the pill then offers Lock again), then a low battery (`Battery 12%`, at or under 15%, shared with the sensor through `@dashhaus/core/entities/battery`). Unlocked is a state, not a warning, however long it lasts.
 - **Status line:** the area, or since when where there is none. The pill carries the state word and what a tap does (`Unlock…`, `Lock`).
-- **Featured and sheet:** the last change ("Locked at 10:58 by Keypad") and the battery, as a readout. No hourly history: a lock's day is its last change.
+- **Featured and sheet:** the battery, as a readout, and the small print every card has: the last change ("Last changed 10:58 by Keypad", `@dashhaus/core/entities/facts`) and whether it needs a code. No hourly history: a lock's day is its last change. The question names the lock, whatever it asks: "Unlock Front door?", "Open Front door?".
 - **Compact:** the padlock (its shackle shut or lifted, a mark when jammed), the name, and the state word; the pill from 320 px, with its verb (Unlocked · Lock) from 400 px.
 - **View only** (`readOnly`, or no `onLock` and `onUnlock`): the badge is static, the slot a readout ("Locked by Keypad"), and the sheet has nothing to press.
 

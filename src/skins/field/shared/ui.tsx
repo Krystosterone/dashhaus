@@ -363,6 +363,15 @@ export interface FaderProps {
 const THUMB_HALF = 9;
 
 /**
+ * The dotted scale's steps: one dot per stop when a fader has ten or fewer (a three-speed fan shows three), else
+ * eleven dots in tens, for a fader whose stops are too many to print.
+ */
+const scaleSteps = (min: number, max: number, step: number) => {
+  const stops = Math.round((max - min) / step);
+  return stops >= 1 && stops <= 10 ? stops : 10;
+};
+
+/**
  * A linear fader: a printed legend, a thin slot with a dotted scale, and a round thumb in its parameter's colour.
  * A tap jumps the thumb (animated); a drag follows the finger, on a hit layer that leaves vertical swipes to the
  * page; a hidden range input carries the keyboard and screen readers.
@@ -371,7 +380,7 @@ export function Fader({ id, label, legend, value, min, max, step = 1, lit, disab
   const known = value != null && Number.isFinite(value);
   const inactive = disabled || !known;
   const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, snap, onChange });
-  const style = (known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) as Vars;
+  const style = { "--fd-steps": scaleSteps(min, max, step), ...(known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
   return (
     <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>
       <p className="fd-legend" aria-hidden="true">{legend}</p>
@@ -416,7 +425,7 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
       className="fd-fader fd-range"
       {...range.rootProps}
       data-disabled={disabled || undefined}
-      style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4) } as Vars}
+      style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4), "--fd-steps": scaleSteps(min, max, step) } as Vars}
     >
       <p className="fd-legend" aria-hidden="true">{legend}</p>
       <div className="fd-slot" aria-hidden="true" />

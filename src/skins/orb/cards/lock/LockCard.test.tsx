@@ -67,7 +67,7 @@ describe("LockCard", () => {
   it("offers Open door in the sheet only where the lock can, behind the same confirmation", () => {
     const { rerender } = render(<LockCard entity={locked} variant="sheet" onLock={() => {}} onUnlock={() => {}} onOpenDoor={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: /Open door/ }));
-    expect(screen.getByText("Open the door?")).toBeTruthy();
+    expect(screen.getByText(`Open ${locked.name}?`), "the question names the lock, as every other one does").toBeTruthy();
     rerender(<LockCard entity={{ ...locked, supportsOpen: false }} variant="sheet" onLock={() => {}} onUnlock={() => {}} onOpenDoor={() => {}} />);
     expect(screen.queryByText("Unlatch it")).toBeNull();
   });

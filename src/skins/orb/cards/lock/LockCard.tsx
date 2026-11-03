@@ -1,7 +1,7 @@
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
 import { isLowBattery } from "@dashhaus/core/entities/battery";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { DoorIcon, LockIcon } from "./icons";
 import { AlertStatus, CardTitle, Confirm, Keypad, Orb, SheetClose, TogglePill, UnavailableSlot, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
@@ -95,7 +95,6 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   );
 
   const prompt = (a: LockAction) => `Enter the code to ${a === "open" ? "open the door" : a}`;
-  const lastChange = [e.lastChanged && `${WORD[e.state].replace("…", "")} ${moving ? "since" : "at"} ${e.lastChanged}`, e.changedBy && `by ${e.changedBy}`].filter(Boolean).join(" ");
   const icon = <LockIcon open={!unav && !locked && e.state !== "locking"} alert={jammed} />;
   const canOpen = e.supportsOpen && !!onOpenDoor && !ro && !unav && !moving && e.state !== "open";
 
@@ -120,7 +119,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
           {pending && (needsCode
             ? <Keypad key={pending} prompt={prompt(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
             : <Confirm key={pending} busy={guard.busy} waiting="Waiting for the lock…" error={guard.failed ? "Didn’t go through. Try again." : null}
-                question={`${VERB[pending]} ${pending === "open" ? "the door" : e.name}?`}
+                question={`${VERB[pending]} ${e.name}?`}
                 detail={pending === "open" ? `${e.name} unlatches, and the door can be pushed open.` : pending === "unlock" ? "Anyone at the door can open it." : "It locks now."}
                 action={pending === "open" ? "Open door" : VERB[pending]}
                 onConfirm={() => void guard.confirm()} onCancel={guard.close} />)}
@@ -134,15 +133,14 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
         </div>
       )}
 
-      {!unav && !pending && (lastChange || e.battery != null) && (
+      {!unav && !pending && e.battery != null && (
         <dl className="lk-last">
-          {lastChange && <div><dt>Last change</dt><dd>{lastChange}</dd></div>}
           {e.battery != null && <div><dt>Battery</dt><dd>{lowBattery ? <span className="hd-warn">{e.battery}% · replace soon</span> : `${e.battery}%`}</dd></div>}
         </dl>
       )}
 
       {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"} end={unav ? area ?? "" : e.supportsOpen ? "Lock · opens the door" : "Lock"} />
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy)} end={ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"} />
       )}
     </article>
   );

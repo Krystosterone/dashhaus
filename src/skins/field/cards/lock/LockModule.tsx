@@ -101,6 +101,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
   );
 
   const canOpen = e.supportsOpen && !!onOpenDoor && !ro && !unav && !moving && e.state !== "open";
+  const openKey = <Key label={`Open ${e.name}: asks first`} wide caption="Open door" onPress={() => guard.ask("open")}><IconDoor /></Key>;
   const needsCode = guard.code || pending === "lock";
   const changed = lastChangedFact(e.lastChanged, e.changedBy);
 
@@ -136,11 +137,17 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
           <>
             {!ro && (
               <div className="fd-block">
-                <KeyGroup legend="Lock" columns={canOpen ? 2 : 1}>
+                {/* Jammed, Lock again is the one key for securing the door: Open door steps out of its row, to a group of its own. */}
+                <KeyGroup legend="Lock" columns={canOpen && !jammed ? 2 : 1}>
                   {key(true)}
-                  {canOpen && <Key label={`Open ${e.name}: asks first`} wide caption="Open door" onPress={() => guard.ask("open")}><IconDoor /></Key>}
+                  {canOpen && !jammed && openKey}
                 </KeyGroup>
                 <p className="fd-hint">{locked ? "Unlocking asks first." : jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? "Waiting for the lock." : "Locking takes one press."}</p>
+              </div>
+            )}
+            {!ro && canOpen && jammed && (
+              <div className="fd-block">
+                <KeyGroup legend="Door" columns={1}>{openKey}</KeyGroup>
               </div>
             )}
             {lowBattery && <p className="fd-hint"><Warn>{lowBattery}. Replace it soon.</Warn></p>}

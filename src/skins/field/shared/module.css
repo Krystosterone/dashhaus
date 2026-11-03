@@ -262,7 +262,7 @@
 .fd-legend-v { order: 2; color: var(--fd-ink-2); }
 .fd-legend::after { content: ""; flex: 1; height: 5px; border-top: 1px solid var(--fd-print); border-right: 1px solid var(--fd-print); align-self: flex-end; margin-bottom: -1px; }
 .fd-slot { position: absolute; left: 9px; right: 9px; top: 25px; height: 4px; border-radius: 2px; background: var(--fd-slot); }
-/* Eleven dots, 0 to 100 in tens, on the thumb's centre line. */
+/* A dot per stop on the thumb's centre line (--fd-steps, set by the fader): eleven dots in tens by default. */
 .fd-scale {
   position: absolute;
   left: 8px;
@@ -271,7 +271,7 @@
   height: 2px;
   background:
     radial-gradient(circle at calc(100% - 1px) 50%, var(--fd-dot) 1px, transparent 1.2px) no-repeat,
-    radial-gradient(circle at 1px 50%, var(--fd-dot) 1px, transparent 1.2px) 0 0 / 10% 100% repeat-x;
+    radial-gradient(circle at 1px 50%, var(--fd-dot) 1px, transparent 1.2px) 0 0 / calc(100% / var(--fd-steps, 10)) 100% repeat-x;
 }
 .fd-rail { position: absolute; inset: 0 18px 0 0; transform: translateX(calc(var(--v, 0) * 100%)); pointer-events: none; }
 .fd-fader[data-anim] .fd-rail { transition: transform 180ms var(--fd-ease-out); }

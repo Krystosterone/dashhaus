@@ -2,7 +2,7 @@ import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } f
 import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus } from "./parts";
 import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
@@ -145,7 +145,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
       )}
 
       {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : e.lastChanged ? `${e.changedBy ? `${e.changedBy}, ` : ""}${e.lastChanged}` : ""} end={ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"} />
+        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy)} end={ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"} />
       )}
     </article>
   );
