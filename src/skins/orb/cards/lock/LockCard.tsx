@@ -79,7 +79,8 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const warning = unav ? null : jammed ? "Jammed" : lowBattery ? `Battery ${e.battery}%` : null;
   const alertLabel = warning ? `Warning: ${e.name}: ${jammed ? "jammed, it may not be locked" : `battery ${e.battery}%, replace soon`}` : null;
   const since = sinceFact(e.lastChanged);
-  const status = alertLabel ? <AlertStatus label={alertLabel}>{warning}</AlertStatus> : area ?? (unav ? "Unavailable" : since);
+  // A jam is urgent and a low battery advisory: both are a warn marker, so the jam says what it means (attention-budget: words, not brightness); a compact row has room only for the word.
+  const status = alertLabel ? <AlertStatus label={alertLabel}>{jammed && !compact ? "Jammed · may not be locked" : warning}</AlertStatus> : area ?? (unav ? "Unavailable" : since);
   // What a tap does, in the pill's second voice; while it waits, nothing.
   const cue = locked ? "Unlock…" : jammed ? undefined : "Lock";
   const orbLabel = unav ? `${e.name}: Unavailable` : moving ? `${e.name}: ${word}` : locked ? `Unlock ${e.name}…` : `Lock ${e.name}`;

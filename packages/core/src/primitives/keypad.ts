@@ -19,6 +19,10 @@ export interface KeypadOptions {
  * code), Backspace, and Enter, which submits unless it lands on a button outside the keypad with nothing typed.
  * Spread `rootProps` onto the keypad's root: it takes focus when it appears inside an open dialog, and a dialog
  * that is opening focuses it through `data-autofocus`.
+ *
+ * A text code can't be typed on the digit keys, and a touch screen has no physical keyboard, so a text keypad also
+ * draws a real input: spread `inputProps` onto an `<input>`. It takes the focus in the root's place, so a phone or a
+ * wall panel brings up its own keyboard, and Enter in it submits. The digit keys still type into the same code.
  */
 export function useKeypad({ text, onSubmit }: KeypadOptions) {
   const [code, setCode] = useState("");
@@ -27,7 +31,11 @@ export function useKeypad({ text, onSubmit }: KeypadOptions) {
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const root = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (root.current?.closest("dialog")?.open) root.current.focus(); }, []);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const target = input.current ?? root.current;
+    if (target?.closest("dialog")?.open) target.focus();
+  }, []);
 
   const submit = async () => {
     if (!code || busy) return;
@@ -42,6 +50,8 @@ export function useKeypad({ text, onSubmit }: KeypadOptions) {
   };
   const press = (k: string) => { if (busy) return; setError(null); setCode((c) => (c.length >= MAX ? c : c + k)); };
   const back = () => { if (busy) return; setError(null); setCode((c) => c.slice(0, -1)); };
+  /** The whole code, as a text input has it after a keystroke or a paste. */
+  const type = (value: string) => { if (busy) return; setError(null); setCode(value.slice(0, MAX)); };
 
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
@@ -56,5 +66,24 @@ export function useKeypad({ text, onSubmit }: KeypadOptions) {
     return () => document.removeEventListener("keydown", onKey);
   });
 
-  return { code, error, busy, press, back, submit, rootProps: { ref: root, tabIndex: -1, "data-autofocus": true } as const };
+  const inputProps = text ? {
+    ref: input,
+    type: "password",
+    value: code,
+    readOnly: busy,
+    autoComplete: "off",
+    autoCapitalize: "off",
+    autoCorrect: "off",
+    spellCheck: false,
+    enterKeyHint: "go",
+    maxLength: MAX,
+    "data-autofocus": true,
+    onChange: (ev: { currentTarget: HTMLInputElement }) => type(ev.currentTarget.value),
+    onKeyDown: (ev: { key: string; preventDefault: () => void }) => { if (ev.key === "Enter") { ev.preventDefault(); void submit(); } },
+  } as const : undefined;
+
+  return {
+    code, error, busy, press, back, type, submit, inputProps,
+    rootProps: { ref: root, tabIndex: -1, "data-autofocus": text ? undefined : true } as const,
+  };
 }

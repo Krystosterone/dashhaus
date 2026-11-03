@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { LockAction, LockEntity, LockResult } from "@dashhaus/core/entities/lock/types";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
+import { isLowBattery } from "@dashhaus/core/entities/battery";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Screen, Warn, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
@@ -78,6 +79,8 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
     : jammed ? [<Warn key="w" block>Jammed</Warn>, "May not be locked"]
     : [word, e.changedBy && !moving ? `${since ? `${since} · ` : ""}${e.changedBy}` : since];
   const battery = level === "advisory" ? `Battery ${e.battery}%` : undefined;
+  // The plate shows one warning, and a jam outranks the battery there; the panel still lists a low battery (spec/field.md).
+  const lowBattery = !unav && isLowBattery(e.battery) ? `Battery ${e.battery}%` : undefined;
   // A row has no meta lines: the jam takes the area's line, in its block.
   const warning = jammed ? "Jammed" : battery;
 
@@ -140,7 +143,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
                 <p className="fd-hint">{locked ? "Unlocking asks first." : jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? "Waiting for the lock." : "Locking takes one press."}</p>
               </div>
             )}
-            {battery && <p className="fd-hint"><Warn>{battery}. Replace it soon.</Warn></p>}
+            {lowBattery && <p className="fd-hint"><Warn>{lowBattery}. Replace it soon.</Warn></p>}
             <Facts start={unav ? lastSeenFact(e.lastSeen) : changed} end={<>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</>} />
           </>
         )}

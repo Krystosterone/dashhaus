@@ -470,26 +470,34 @@ const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 /**
  * The code keypad, in the sheet, on `useKeypad`: typing the code is the confirmation. Digits, delete and enter; a
- * physical keyboard types too (letters as well, for a text code). It may answer later: the dots breathe while it
- * checks. A wrong code shakes the dots and clears; one that didn't go through stays, so Enter tries again.
+ * physical keyboard types too. A text code (letters as well) is typed into a recessed field in the dots' place, which
+ * takes the focus so a phone brings up its keyboard; the digit keys still type into it. It may answer later: the dots
+ * breathe while it checks. A wrong code shakes the dots and clears; one that didn't go through stays, so Enter tries
+ * again. The prompt line is the status: what is asked, then Checking, then what went wrong, read out as it changes.
  */
 export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
   const id = useId();
-  // Focuses itself when it appears, so typing and Enter go to it (not to a button behind it).
-  const { code, error, busy, press, back, submit, rootProps } = useKeypad({ text, onSubmit });
+  // Focuses itself (or, for a text code, its field) when it appears, so typing and Enter go to it.
+  const { code, error, busy, press, back, submit, rootProps, inputProps } = useKeypad({ text, onSubmit });
   const dots = Math.max(4, code.length);
+  const entered = `${code.length} ${text ? "characters" : "digits"} entered`;
   return (
     <div className="hd-kp" {...rootProps} aria-label={prompt}>
-      <p className="hd-kp-p" id={`${id}-p`}>{busy ? "Checking…"
+      <p className="hd-kp-p" id={`${id}-p`} role="status">{busy ? "Checking…"
         : error === "wrong" ? <span className="hd-warn">Wrong code. Try again.</span>
         : error === "failed" ? <span className="hd-warn">Didn’t go through. Try again.</span>
         : prompt}</p>
-      <div className="hd-kp-dots" data-error={error === "wrong" || undefined} data-busy={busy || undefined} aria-label={`${code.length} ${text ? "characters" : "digits"} entered`} role="status">
-        {Array.from({ length: dots }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}
-      </div>
+      {inputProps ? (
+        // The placeholder is the hint that letters work; the prompt above is its label.
+        <input className="hd-kp-in" {...inputProps} aria-labelledby={`${id}-p`} data-error={error === "wrong" || undefined} placeholder="Letters or digits" />
+      ) : (
+        <div className="hd-kp-dots" data-error={error === "wrong" || undefined} data-busy={busy || undefined} role="img" aria-label={entered}>
+          {Array.from({ length: dots }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}
+        </div>
+      )}
       <div className="hd-kp-keys" role="group" aria-labelledby={`${id}-p`}>
         {DIGITS.map((d) => <button key={d} type="button" className="hd-key" onClick={() => press(d)} disabled={busy}>{d}</button>)}
-        <button type="button" className="hd-key hd-key--fn" aria-label="Delete" onClick={back} disabled={!code || busy}>
+        <button type="button" className="hd-key" aria-label="Delete" onClick={back} disabled={!code || busy}>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 5h8.5v10H7.5L3.5 10ZM9.5 8l4 4M13.5 8l-4 4" /></svg>
         </button>
         <button type="button" className="hd-key" onClick={() => press("0")} disabled={busy}>0</button>
@@ -497,7 +505,7 @@ export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10.5 8.5 14 15 6.5" /></svg>
         </button>
       </div>
-      <button type="button" className="hd-kp-x" onClick={onCancel}>Cancel</button>
+      <button type="button" className="hd-cf-x hd-kp-x" onClick={onCancel}>Cancel</button>
     </div>
   );
 }

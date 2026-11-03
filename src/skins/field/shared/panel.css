@@ -114,6 +114,16 @@
 .fd-pad-dots { display: inline-flex; gap: 8px; }
 .fd-pad-dots i { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--fd-screen-unlit); transition: background-color 120ms var(--fd-ease-out); }
 .fd-pad-dots i[data-on] { background: var(--fd-screen-ink); }
+/* A text code is typed on the strip itself: no box of its own, the screen's ink, a caret in it. It stays narrow, so
+   the status beside it ("Wrong code. Try again") fits on a phone; a longer code scrolls inside it. */
+.fd-pad-in {
+  box-sizing: border-box; width: 7em; max-width: 100%; height: 28px; padding: 0 4px; border: 0; border-radius: 2px;
+  background: transparent; color: var(--fd-screen-ink); caret-color: var(--fd-screen-ink);
+  font: 500 16px var(--fd-sans); letter-spacing: 0.1em;
+}
+.fd-pad-in:focus { outline: none; }
+/* On the screen the ring is the screen's ink: the plate's focus colour is dark, and would vanish on the strip. */
+.fd-pad-in:focus-visible { outline: 1.5px solid var(--fd-screen-ink); outline-offset: 2px; }
 .fd-pad-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .fd-pad-keys .fd-key { height: 52px; }
 .fd-pad-keys .fd-key-fig { font-size: 20px; font-weight: 300; }

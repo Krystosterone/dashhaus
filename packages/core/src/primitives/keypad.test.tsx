@@ -63,4 +63,24 @@ describe("useKeypad", () => {
     await act(async () => { fireEvent.keyDown(document, { key: "Enter" }); await Promise.resolve(); });
     expect(onSubmit).toHaveBeenCalledWith("a");
   });
+
+  it("gives a text code a real input, so a touch screen brings up its keyboard", async () => {
+    const onSubmit = vi.fn(() => true);
+    expect(typed(onSubmit).result.current.inputProps, "a digit code needs no input").toBeUndefined();
+
+    const { result } = typed(onSubmit, true);
+    const input = result.current.inputProps!;
+    expect(input).toMatchObject({ type: "password", autoComplete: "off", autoCapitalize: "off", "data-autofocus": true });
+    expect(result.current.rootProps["data-autofocus"], "the input takes the focus, not the root").toBeUndefined();
+
+    act(() => input.onChange({ currentTarget: { value: "Open Sesame 12345" } as HTMLInputElement }));
+    expect(result.current.code, "as long as the longest code").toBe("Open Sesame ");
+    act(() => result.current.press("1"));
+    expect(result.current.code, "the digit keys type into the same code").toBe("Open Sesame ");
+    act(() => result.current.type("door1"));
+    const keyDown = { key: "Enter", preventDefault: vi.fn() };
+    await act(async () => { result.current.inputProps!.onKeyDown(keyDown); await Promise.resolve(); });
+    expect(keyDown.preventDefault).toHaveBeenCalled();
+    expect(onSubmit).toHaveBeenCalledWith("door1");
+  });
 });

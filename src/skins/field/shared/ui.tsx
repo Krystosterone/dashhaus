@@ -573,25 +573,36 @@ const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 /**
  * The code keypad, in the panel, on `useKeypad`: what the code is for, the code on a strip of screen (a dot per place,
- * unlit to four), digits, delete and enter, then Cancel. A physical keyboard types too. While the answer is on its way
- * it says Checking; a wrong code clears for another try, and one that didn't go through stays for Enter to try again.
+ * unlit to four), digits, delete and enter, then Cancel. A physical keyboard types too. A text code (letters as well)
+ * is typed on the strip itself, a real field that takes the focus so a phone brings up its keyboard; the digit keys
+ * still type into it. While the answer is on its way it says Checking; a wrong code clears for another try, and one
+ * that didn't go through stays for Enter to try again.
  */
 export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
   const uid = useId();
-  const { code, error, busy, press, back, submit, rootProps } = useKeypad({ text, onSubmit });
+  const { code, error, busy, press, back, submit, rootProps, inputProps } = useKeypad({ text, onSubmit });
   const places = Math.max(4, code.length);
   const status = busy ? "Checking"
     : error === "wrong" ? <Warn>Wrong code. Try again</Warn>
     : error === "failed" ? <Warn>Didn’t go through. Try again</Warn>
-    : code.length ? `${code.length} entered` : "Enter the code";
+    : code.length ? `${code.length} entered` : inputProps ? "Letters or digits" : "Enter the code";
   return (
     <div className="fd-pad" {...rootProps} role="group" aria-labelledby={`${uid}-p`}>
       <Legend id={`${uid}-p`}>{prompt}</Legend>
-      <div className="fd-pad-code" role="status">
-        <Screen meta={[status]}>
-          <span className="fd-pad-dots" aria-hidden="true">{Array.from({ length: places }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}</span>
-        </Screen>
-      </div>
+      {inputProps ? (
+        // The field sits outside the status, so typing isn't read back key by key; the status below it still is.
+        <div className="fd-pad-code">
+          <Screen meta={[<span key="s" role="status">{status}</span>]}>
+            <input className="fd-pad-in" {...inputProps} aria-labelledby={`${uid}-p`} />
+          </Screen>
+        </div>
+      ) : (
+        <div className="fd-pad-code" role="status">
+          <Screen meta={[status]}>
+            <span className="fd-pad-dots" aria-hidden="true">{Array.from({ length: places }, (_, i) => <i key={i} data-on={i < code.length || undefined} />)}</span>
+          </Screen>
+        </div>
+      )}
       <div className="fd-pad-keys">
         {DIGITS.map((d) => <Key key={d} label={d} wide disabled={busy} onPress={() => press(d)}><span className="fd-key-fig">{d}</span></Key>)}
         <Key label="Delete" wide disabled={busy} unavailable={!code} onPress={back}><IconDelete /></Key>

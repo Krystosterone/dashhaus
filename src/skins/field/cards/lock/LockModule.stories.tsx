@@ -134,6 +134,8 @@ export const Details: Story = { args: { defaultOpen: true } };
 export const DetailsUnlock: Story = { name: "Details, unlock", args: { defaultAction: "unlock" } };
 /** A lock that asks for a code: typing it is the confirmation. The demo's code is 1234. */
 export const DetailsCode: Story = { name: "Details, code", args: { lock: "code", defaultAction: "unlock" } };
+/** A text code: letters work too, typed on the strip itself, a field that brings up a touch screen's keyboard. The demo's code is 1234. */
+export const DetailsTextCode: Story = { name: "Details, text code", args: { lock: "textCode", defaultAction: "unlock" } };
 /** Open door, behind the same question. */
 export const DetailsOpenDoor: Story = { name: "Details, open door", args: { defaultAction: "open" } };
 /** Unavailable: blank segments, and when it was last seen. */

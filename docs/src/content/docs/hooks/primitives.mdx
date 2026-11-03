@@ -49,4 +49,9 @@ A code keypad for an alarm: the code typed so far, digits, delete and enter from
 the answer. It is busy until `onSubmit` answers; a wrong code (`false`) is cleared for another try, and a failed call
 (a throw) keeps the code so Enter tries again. That is the shape of an alarm hook's `onArm` and `onDisarm`.
 
+A text code (`text: true`, for a `codeFormat` of `text`) can't be typed on digit keys, and a phone or wall panel has
+no physical keyboard. For one, the hook also returns `inputProps`: spread them onto an `<input>` and it becomes the
+field the code is typed into. It takes the focus in the keypad's place, so a touch screen brings up its own keyboard,
+and Enter in it submits; your digit keys still type into the same code.
+
 <ApiMembers from="@dashhaus/core/primitives" name="KeypadOptions" />

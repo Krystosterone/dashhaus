@@ -21,7 +21,7 @@
 /* ---------- Last change and battery: a readout for featured and the sheet ---------- */
 .lk-last { display: none; align-content: end; gap: 10px; margin: 0; min-width: 0; }
 .hd--featured .lk-last, .hd--sheet .lk-last { display: grid; }
-.lk-last > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; padding-top: 10px; border-top: 1px dashed var(--line); }
+.lk-last > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; padding-top: 10px; border-top: 1px solid var(--line); }
 .lk-last dt { flex: none; font-size: 14px; font-weight: 600; }
 .lk-last dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 500; color: var(--ink-2); text-align: right; }
 .hd--sheet .lk-last dd { white-space: normal; overflow-wrap: anywhere; }
@@ -44,4 +44,10 @@
   /* Gentler, not gone: the waiting words fade slowly */
   .lk-st[data-moving] { animation-duration: 1.6s; }
   .lk-door { scale: none !important; }
+}
+
+/* A wide compact row has room for the pill's verb as well: a tap on Unlocked locks at once, so it says Lock. */
+@container hd (min-width: 400px) {
+  .lk.hd--compact .hd-pill-x { display: inline; }
+  .lk.hd--compact .hd-pill { justify-content: space-between; }
 }

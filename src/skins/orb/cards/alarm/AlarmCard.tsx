@@ -127,7 +127,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
 
       {sheet && !unav && (pending || open.length > 0) && (
         <div className="hd-extra">
-          {open.length > 0 && !pending && (
+          {open.length > 0 && (!pending || pending.kind === "arm") && (
             <p className="hd-note"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (

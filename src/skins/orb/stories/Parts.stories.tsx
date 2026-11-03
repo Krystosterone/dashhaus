@@ -167,7 +167,7 @@ function AllParts() {
         <State label="The keypad (1234)" width={340}><Keypad prompt="Enter the code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 
-      <Part name="Facts" rule="The sheet's small print: two facts, at its start and end, in the words @dashhaus/core/entities/facts gives every card. Under a dashed rule, in the faint ink; a warning keeps its colour.">
+      <Part name="Facts" rule="The sheet's small print: two facts, at its start and end, in the words @dashhaus/core/entities/facts gives every card. Under a hairline, in the faint ink; a warning keeps its colour.">
         <State label="Last changed" width={340}><Facts start="Last changed 10:58" end="Dimmable, warmth" /></State>
         <State label="Unavailable" width={340}><Facts start="Last seen 10:42" end="Kitchen" /></State>
         <State label="A warning" width={340}><Facts start="Battery 8%, replace soon" warn end="Updated 10:42" /></State>

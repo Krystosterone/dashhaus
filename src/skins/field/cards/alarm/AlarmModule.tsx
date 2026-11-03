@@ -183,7 +183,11 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
     >
       <PanelBody className="fd-al-panel" state={e.state}>
         <Screen pict={pict} meta={meta}>{read}</Screen>
-        {pending ? (
+        {pending ? (<>
+          {/* Arming with something open: the warning stays while the code is entered, the moment it matters. */}
+          {pending.kind === "arm" && open.length > 0 && (
+            <p className="fd-hint fd-al-open"><Warn>{listOf(open)} {open.length > 1 ? "are" : "is"} open.</Warn> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</p>
+          )}
           <Keypad
             key={guard.pendingKey}
             prompt={pending.kind === "disarm" ? (e.state === "arming" ? "Code to cancel arming" : "Code to disarm") : `Code to arm ${MODE_LABEL[pending.mode].toLowerCase()}`}
@@ -191,7 +195,7 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
             onSubmit={guard.submit}
             onCancel={guard.close}
           />
-        ) : (
+        </>) : (
           <AlarmDetails e={e} ro={ro} history={history} today={today} control={ro ? null : steady && !unav ? bank("p") : key(true)} />
         )}
       </PanelBody>

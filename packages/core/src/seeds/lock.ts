@@ -32,6 +32,10 @@ export const LOCK_SEEDS = {
   code: {
     entity: { entityId: "lock.porch", name: "Porch", area: "Entrance", state: "locked", supportsOpen: true, codeFormat: "number", codePattern: "^\\d{4}$", lastChanged: "08:02", changedBy: "Manual", battery: 12 },
   },
+  /** Asks for a text code (`code_format: text`): letters work too, so the keypad draws a field a touch screen can type into. */
+  textCode: {
+    entity: { ...base, entityId: "lock.studio", name: "Studio", area: "Garden", state: "locked", codeFormat: "text", codePattern: "^\\w{4,12}$", lastChanged: "07:40", changedBy: "Manual", battery: 64 },
+  },
   /** Supports open, and is open: the door unlatched. */
   open: {
     entity: { entityId: "lock.apartment", name: "Apartment door", area: "Hall", state: "open", supportsOpen: true, codeFormat: null, lastChanged: "11:50", changedBy: "Nuki app", battery: 81 },
