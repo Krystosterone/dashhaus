@@ -5,7 +5,7 @@ import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/spe
 import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Facts, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, PanelBody, Pictogram, Screen, Today, choices, useDetails } from "../../shared/ui";
+import { Blank, Digits, Facts, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, PanelBody, Pictogram, Screen, Today, choices, useDetails, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { FAN_PICT, IconFan, IconSweep, IconTurn } from "./icons";
 import "./FanModule.css";
@@ -129,12 +129,7 @@ function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, on
 
   // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
   const aside = !unav && e.supportsDirection ? (
-    <p className="fd-chan">
-      <span>
-        <span className="fd-chan-name">{e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label="Direction not reported" />}</span>
-        <span className="fd-chan-sub">Direction</span>
-      </span>
-    </p>
+    <Channel name={e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label="Direction not reported" />} sub="Direction" />
   ) : undefined;
 
   return (

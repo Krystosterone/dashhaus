@@ -292,6 +292,22 @@ export function Screen({ pict, children, meta, aside }: { pict?: ReactNode; chil
 }
 
 /**
+ * The panel screen's second channel, its `aside`: a pictogram, then a value over what it is ("44%" over "Humidity").
+ * The value is a figure (`children`), or a word in the screen's lettering (`name`: a lamp's colour, a mode).
+ */
+export function Channel({ pict, name, sub, children }: { pict?: ReactNode; name?: ReactNode; sub: ReactNode; children?: ReactNode }) {
+  return (
+    <p className="fd-chan">
+      {pict}
+      <span>
+        {name != null ? <span className="fd-chan-name">{name}</span> : children}
+        <span className="fd-chan-sub">{sub}</span>
+      </span>
+    </p>
+  );
+}
+
+/**
  * A number in a fixed count of digits. The leading digits are unlit segments, drawn by CSS so a screen reader
  * hears "80" rather than "080", and so the unlit glyphs are no text to be read. `text` is a number already
  * formatted ("6.2", "-13.7"); its characters count as places.

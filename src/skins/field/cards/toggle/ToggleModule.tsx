@@ -3,7 +3,7 @@ import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
+import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
 import "./ToggleModule.css";
@@ -77,13 +77,7 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
   const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
   const aside = on && e.until ? (
-    <p className="fd-chan">
-      <Pictogram lit param="neutral">{CLOCK}</Pictogram>
-      <span>
-        {e.until}
-        <span className="fd-chan-sub">Turns off</span>
-      </span>
-    </p>
+    <Channel pict={<Pictogram lit param="neutral">{CLOCK}</Pictogram>} sub="Turns off">{e.until}</Channel>
   ) : undefined;
 
   return (

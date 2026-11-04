@@ -359,6 +359,57 @@ export function SliderTrack({ id, label, slider: options, text, heading, precisi
   return heading ? <div className="hd-blk"><p className="hd-blk-h">{heading(v)}</p>{bar}</div> : bar;
 }
 
+/* ---------- Level bar: one level in a groove ---------- */
+
+/** Width of a level groove's lit end cap, in px. Matches --cap on `.hd-level` in card.css. */
+const LEVEL_CAP = 30;
+
+export interface LevelBarProps {
+  /** The hidden range input's id. */
+  id: string;
+  /** The input's spoken name, where no heading names it ("Kitchen brightness"). */
+  label?: string;
+  /** A label over the groove, naming its input ("Volume"). */
+  heading?: string;
+  /** The level, in the card's own steps (a percent, a speed), between `min` and `max`. */
+  value: number;
+  min: number;
+  max: number;
+  /** Whether the entity is on: the fill shows, and `text` is the groove's words. */
+  on: boolean;
+  /**
+   * Setting the level switches the entity on (a light, a fan): setting the level the thumb already shows still
+   * reports it while off, so a tap on the groove turns it on there. Without it, the level is set and the state kept.
+   */
+  wakes?: boolean;
+  /** The groove's words while on, from the live level: "40%", "Speed 2". */
+  text: (value: number) => ReactNode;
+  /** The groove's words while off. Default "Off". */
+  offText?: (value: number) => ReactNode;
+  /** What a screen reader hears for the level, on and off: the card's words. */
+  valueText: (value: number) => string;
+  onChange: (value: number) => void;
+}
+
+/**
+ * A level in a groove: a light's brightness, a sound's volume, a fan's speed. The accent fills the groove up to the
+ * level while the entity is on, keeping a lit end cap at the bottom; the words on it invert where the fill passes,
+ * and say Off while it is off. A card brings its words, its ends and what setting it does.
+ */
+export function LevelBar({ id, label, heading, value, min, max, on, wakes, text, offText = () => "Off", valueText, onChange }: LevelBarProps) {
+  return (
+    <SliderTrack
+      id={id}
+      label={label}
+      slider={{ value: Math.round(value), min, max, inset: LEVEL_CAP / 2, reportUnchanged: wakes && !on, onChange, valueText }}
+      heading={heading ? () => <label htmlFor={id}>{heading}</label> : undefined}
+      className="hd-level"
+      text={(v) => (on ? text(v) : offText(v))}
+      lit={on}
+    />
+  );
+}
+
 /* ---------- Today strip ---------- */
 /** `forecastFrom`: hours from this index on are forecasts, drawn as lighter sticks. */
 export function TodayStrip({ samples, currentHour, summary, title = "Today", tone, forecastFrom }: { samples: HourSample[]; currentHour: number; summary: string; title?: string; tone?: string; forecastFrom?: number }) {

@@ -295,6 +295,9 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 .hd-track[data-disabled] .hd-track-hit { cursor: default; }
 /* The range inputs stay for keyboard and screen readers, out of the pointer's way. */
 .hd-track-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+/* Level bar: one level in a groove (LevelBar in ui.tsx), the fill keeping a 30px lit end cap at its lowest. */
+.hd-level { --cap: 30px; }
+.hd--compact .hd-level .hd-track-lab { font-size: 13px; }
 
 /* Today: 24 hourly sticks. Height = intensity that hour; the current hour is the accent. */
 .hd-tl { display: none; gap: 8px; }

@@ -6,7 +6,7 @@ import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
 import type { Hs } from "@dashhaus/core/entities/light/color";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup, ModuleRow, PanelBody } from "../../shared/ui";
+import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup, ModuleRow, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -137,21 +137,11 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
 
   // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
   const aside = unav ? undefined : lamp ? (
-    <p className="fd-chan">
-      <Pictogram lit lamp={lamp.name}>{LENS}</Pictogram>
-      <span>
-        <span className="fd-chan-name">{lamp.name}</span>
-        <span className="fd-chan-sub">Colour</span>
-      </span>
-    </p>
+    <Channel pict={<Pictogram lit lamp={lamp.name}>{LENS}</Pictogram>} name={lamp.name} sub="Colour" />
   ) : e.supportsColorTemp ? (
-    <p className="fd-chan">
-      <Pictogram lit={on && k != null} param="b">{SUN}</Pictogram>
-      <span>
-        {k != null ? <>{k}<small>K</small></> : <Blank places={4} label="No warmth" />}
-        <span className="fd-chan-sub">{k != null ? kelvinName(k) : "Warmth"}</span>
-      </span>
-    </p>
+    <Channel pict={<Pictogram lit={on && k != null} param="b">{SUN}</Pictogram>} sub={k != null ? kelvinName(k) : "Warmth"}>
+      {k != null ? <>{k}<small>K</small></> : <Blank places={4} label="No warmth" />}
+    </Channel>
   ) : undefined;
 
   return (

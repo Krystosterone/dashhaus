@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails, Facts, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails, Facts, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconSound, SPEAKER } from "./icons";
 import "./SoundModule.css";
@@ -82,10 +82,7 @@ function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }:
 
   // Playing, the figure is the volume already; off, it says OFF, so the volume moves to the second channel.
   const aside = !on && volume != null ? (
-    <p className="fd-chan">
-      <Pictogram lit={false} level={volume / 100}>{SPEAKER}</Pictogram>
-      <span><Volume value={volume} /><span className="fd-chan-sub">Volume</span></span>
-    </p>
+    <Channel pict={<Pictogram lit={false} level={volume / 100}>{SPEAKER}</Pictogram>} sub="Volume"><Volume value={volume} /></Channel>
   ) : undefined;
 
   return (

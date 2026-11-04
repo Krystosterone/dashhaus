@@ -4,7 +4,7 @@ import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/ent
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature, ModuleRow, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
@@ -188,17 +188,17 @@ interface ClimateDetailsProps {
 function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls, history, setRange, onTargetChange, onModeChange, onPresetChange, onFanChange }: ClimateDetailsProps) {
   const targetPictMode = on ? mode : (e.hvacModes.find((candidate) => candidate !== "off") ?? "heat");
   const aside = unavailable ? (
-    <p className="fd-chan"><span><Blank places={4} label="Unavailable" /><span className="fd-chan-sub">Unavailable</span></span></p>
+    <Channel sub="Unavailable"><Blank places={4} label="Unavailable" /></Channel>
   ) : !on ? (
-    <p className="fd-chan">
-      <Pictogram lit={false}><ModeShape mode={targetPictMode} /></Pictogram>
-      <span>{e.currentTemperature != null ? <Temperature value={e.currentTemperature} unit={e.unit} /> : <Blank places={4} label="No room temperature" />}<span className="fd-chan-sub">Room</span></span>
-    </p>
+    <Channel pict={<Pictogram lit={false}><ModeShape mode={targetPictMode} /></Pictogram>} sub="Room">
+      {e.currentTemperature != null ? <Temperature value={e.currentTemperature} unit={e.unit} /> : <Blank places={4} label="No room temperature" />}
+    </Channel>
   ) : (
-    <p className="fd-chan">
-      <Pictogram lit={target != null} param={mode === "heat_cool" ? "b" : "a"}><ModeShape mode={targetPictMode} /></Pictogram>
-      <span><span className="fd-chan-name">{target?.value ?? MODE_META[mode].label}</span><span className="fd-chan-sub">{target ? `${target.label} target` : "Mode"}</span></span>
-    </p>
+    <Channel
+      pict={<Pictogram lit={target != null} param={mode === "heat_cool" ? "b" : "a"}><ModeShape mode={targetPictMode} /></Pictogram>}
+      name={target?.value ?? MODE_META[mode].label}
+      sub={target ? `${target.label} target` : "Mode"}
+    />
   );
   const modeOptions = e.hvacModes.filter((candidate) => candidate !== "off");
   const today = !history ? undefined

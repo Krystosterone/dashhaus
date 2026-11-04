@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, KeyGroup, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, KeyGroup, ModuleRow, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconCover, IconDown, IconStop, IconUp, SLATS, WINDOW } from "./icons";
 import "./CoverModule.css";
@@ -169,10 +169,7 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
   const today = history && (unav ? "Unavailable" : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : undefined);
 
   const aside = tilt != null ? (
-    <p className="fd-chan">
-      <Pictogram lit param="b">{SLATS}</Pictogram>
-      <span><Percent value={tilt} /><span className="fd-chan-sub">Slats</span></span>
-    </p>
+    <Channel pict={<Pictogram lit param="b">{SLATS}</Pictogram>} sub="Slats"><Percent value={tilt} /></Channel>
   ) : undefined;
 
   return (

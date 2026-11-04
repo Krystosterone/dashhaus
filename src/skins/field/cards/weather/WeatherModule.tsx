@@ -6,7 +6,7 @@ import { normalizeReadings } from "@dashhaus/core/entities/history";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody, Notices } from "../../shared/ui";
+import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody, Notices, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconWeather, conditionPict } from "./icons";
 import "./WeatherModule.css";
@@ -138,12 +138,7 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
   const words = cond ? [precip && isWet(cond) ? null : conditionLabel(cond, night), precip].filter(Boolean).join(" · ") : "";
 
   const aside = feels != null ? (
-    <p className="fd-chan">
-      <span>
-        <Digits value={Math.round(feels) || 0} places={2} /><small>°</small>
-        <span className="fd-chan-sub">Feels like</span>
-      </span>
-    </p>
+    <Channel sub="Feels like"><Digits value={Math.round(feels) || 0} places={2} /><small>°</small></Channel>
   ) : undefined;
 
   const hours = (hourly ?? []).filter((h) => h.hour > hour).slice(0, HOURS);

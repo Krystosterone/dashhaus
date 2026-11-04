@@ -4,7 +4,7 @@ import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entitie
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, ModuleRow, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconHumidifier } from "./icons";
 import "./HumidifierModule.css";
@@ -139,21 +139,15 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
   const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
   const aside = unav ? (
-    <p className="fd-chan"><span><Blank label="Unavailable" /><span className="fd-chan-sub">Unavailable</span></span></p>
+    <Channel sub="Unavailable"><Blank label="Unavailable" /></Channel>
   ) : !on ? (
-    <p className="fd-chan">
-      <Pictogram lit={false}>{DROP}</Pictogram>
-      <span>{e.currentHumidity != null ? <Humidity value={e.currentHumidity} /> : <Blank label="No room humidity" />}<span className="fd-chan-sub">Room</span></span>
-    </p>
+    <Channel pict={<Pictogram lit={false}>{DROP}</Pictogram>} sub="Room">
+      {e.currentHumidity != null ? <Humidity value={e.currentHumidity} /> : <Blank label="No room humidity" />}
+    </Channel>
   ) : target != null ? (
-    <p className="fd-chan">
-      <Pictogram lit level={target / 100}>{DROP}</Pictogram>
-      <span><Humidity value={target} /><span className="fd-chan-sub">{verb}</span></span>
-    </p>
+    <Channel pict={<Pictogram lit level={target / 100}>{DROP}</Pictogram>} sub={verb}><Humidity value={target} /></Channel>
   ) : e.mode ? (
-    <p className="fd-chan">
-      <span><span className="fd-chan-name">{modeLabel(e.mode)}</span><span className="fd-chan-sub">Mode</span></span>
-    </p>
+    <Channel name={modeLabel(e.mode)} sub="Mode" />
   ) : undefined;
 
   const down = target == null ? undefined : Math.max(e.minHumidity, Math.round(target) - STEP);

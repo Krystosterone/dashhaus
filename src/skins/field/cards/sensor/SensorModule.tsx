@@ -3,7 +3,7 @@ import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "@dashhaus/core/entities/sensor/readings";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconThermo, THERMO } from "./icons";
 import "./SensorModule.css";
@@ -119,13 +119,7 @@ function SensorDetails({ e, read, pict, meta, history, day, range, what, battery
   const humidityRange = humidity && humidity.min != null && humidity.max != null ? `Low ${fmtHum(humidity.min)}% · High ${fmtHum(humidity.max)}%` : undefined;
 
   const aside = channel ? (
-    <p className="fd-chan">
-      <Pictogram param="neutral" lit level={h / 100}>{DROP}</Pictogram>
-      <span>
-        <Digits value={h} /><small>%</small>
-        <span className="fd-chan-sub">Humidity</span>
-      </span>
-    </p>
+    <Channel pict={<Pictogram param="neutral" lit level={h / 100}>{DROP}</Pictogram>} sub="Humidity"><Digits value={h} /><small>%</small></Channel>
   ) : undefined;
 
   const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
