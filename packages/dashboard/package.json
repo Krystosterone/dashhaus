@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/dashboard",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "license": "MIT",
   "description": "The framework a Dashhaus skin's Lovelace card draws on: the skin runtime, card frame, YAML schema, automatic layout and conformance preset.",
@@ -69,7 +69,7 @@
     }
   },
   "dependencies": {
-    "@dashhaus/core": "^0.2.0"
+    "@dashhaus/core": "^0.2.1"
   },
   "peerDependencies": {
     "home-assistant-js-websocket": "^9.7.1",

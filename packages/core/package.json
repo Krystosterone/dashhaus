@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "license": "MIT",
   "description": "The headless Home Assistant foundation behind Dashhaus skins: entity models, the store, mappers, actions, useHa hooks and interaction primitives. No markup, no CSS.",
