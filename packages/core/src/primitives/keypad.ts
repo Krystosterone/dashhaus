@@ -55,12 +55,15 @@ export function useKeypad({ text, onSubmit }: KeypadOptions) {
 
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
-      if (ev.target instanceof HTMLInputElement) return;
-      const onButton = ev.target instanceof HTMLButtonElement;
+      // Inside Home Assistant the keypad is in a shadow root, where `target` is its host at the document: the path says
+      // which element the key really went to, or the input's Enter submits twice.
+      const target = ev.composedPath()[0] ?? ev.target;
+      if (target instanceof HTMLInputElement) return;
+      const onButton = target instanceof HTMLButtonElement;
       if (/^[0-9]$/.test(ev.key) || (text && /^[a-z]$/i.test(ev.key))) { ev.preventDefault(); press(ev.key); }
       else if (ev.key === "Backspace") { ev.preventDefault(); back(); }
       else if (ev.key === "Enter" && !onButton) { ev.preventDefault(); void submit(); }
-      else if (ev.key === "Enter" && onButton && !root.current?.contains(ev.target as Node) && code) { ev.preventDefault(); void submit(); }
+      else if (ev.key === "Enter" && onButton && !root.current?.contains(target as Node) && code) { ev.preventDefault(); void submit(); }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

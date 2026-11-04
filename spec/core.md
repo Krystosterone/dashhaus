@@ -109,7 +109,8 @@ Every code has one category and one retryability answer, from the single table i
 
 `retryable` means "safe to repeat on the current connection", not "will succeed". The store applies the same rule: it
 retains the latest failed non-sensitive action for `retryLastAction()` only when the error is retryable, and never
-retains a call that contains an alarm code. A successful call means Home Assistant accepted the command; the next
+retains a call that contains a code, nor a lock's or an alarm's call, which asks first on its card. A retained call is
+dropped once its entity changes, so Retry never undoes what happened since. A successful call means Home Assistant accepted the command; the next
 entity snapshot is the readback boundary, not proof that the entity reached the requested state.
 
 The store's `lastActionError` is the latest settled action failure. `clearActionError()` dismisses it, and

@@ -107,6 +107,14 @@ describe("CoverModule", () => {
     vi.useRealTimers();
   });
 
+  it("gives a door with a position no fader on the module, where one tap would skip its hold; the panel keeps it", () => {
+    const door = COVER_WORST_CASE.find(({ entity }) => entity.deviceClass === "door" && entity.supportsPosition)!.entity;
+    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) { this.setAttribute("open", ""); };
+    const { container } = draw(door, undefined, { defaultOpen: true });
+    expect(container.querySelector(".fd-module .fd-fader")).toBeNull();
+    expect(screen.getAllByRole("slider", { name: `${door.name} position`, hidden: true })).toHaveLength(1);
+  });
+
   it("puts a door's warning in place of the area on a compact row", () => {
     const { container } = draw("garage", "compact");
     expect(container.querySelector(".fd-area")?.textContent).toBe("Warning: Open since 10:20");

@@ -16,6 +16,15 @@ describe("useKeypad", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("leaves a key typed in its input to the input, inside a shadow root as in Home Assistant", () => {
+    const host = document.body.appendChild(document.createElement("div"));
+    const field = host.attachShadow({ mode: "open" }).appendChild(document.createElement("input"));
+    const { result } = typed(vi.fn(() => true), true);
+    act(() => { field.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true, composed: true })); });
+    expect(result.current.code).toBe("");
+    host.remove();
+  });
+
   it("submits nothing empty", async () => {
     const onSubmit = vi.fn(() => true);
     const { result } = typed(onSubmit);
