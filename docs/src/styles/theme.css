@@ -12,6 +12,18 @@
   /* The one field that stays dark in both themes: the home page's closing choice. */
   --home-night: hsl(224, 12%, 7%);
   --home-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* The two skins' own materials, for the home page's sections drawn in their language. Orb: its yellow button and
+     the ink on it. Field: its plate, raised key, printed label, always-dark screen and the orange mark of what a
+     control sets; Black finish here, Alloy in the light theme. */
+  --home-orb: oklch(0.86 0.145 92);
+  --home-orb-ink: oklch(0.22 0.006 80);
+  --home-field-plate: hsl(220, 6%, 16%);
+  --home-field-key: hsl(220, 5%, 23%);
+  --home-field-print: hsl(220, 6%, 86%);
+  --home-field-print-2: hsl(220, 5%, 66%);
+  --home-field-screen: hsl(220, 10%, 4%);
+  --home-field-mark: oklch(0.68 0.2 40);
 }
 
 :root[data-theme="light"] {
@@ -22,6 +34,12 @@
   --home-tone: hsl(224, 20%, 96%);
   --home-tone-2: hsl(224, 16%, 91%);
   --home-night: hsl(224, 10%, 10%);
+
+  --home-field-plate: hsl(40, 5%, 86%);
+  --home-field-key: hsl(40, 12%, 97%);
+  --home-field-print: hsl(220, 10%, 12%);
+  --home-field-print-2: hsl(220, 6%, 34%);
+  --home-field-screen: hsl(220, 10%, 8%);
 }
 
 /* Headings in the display face, page titles and the site's name included. */

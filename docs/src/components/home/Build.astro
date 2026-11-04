@@ -1,0 +1,237 @@
+---
+/**
+ * The three ways in after the user's, in spec/journeys.md's order (the author, the developer, the contributor), drawn
+ * as one Field panel: a plate of three modules, each a raised key with Field's orange mark, a printed label, and an
+ * always-dark screen reading the one command that starts it. Each module is a link to its page; the code lives there.
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/** Icons on a 24-unit grid at a 2-unit round stroke, as the site's arrows are. */
+const WAYS = [
+  {
+    href: `${base}/start/build-a-skin/`,
+    name: "Build a skin",
+    who: "For authors",
+    screen: "npm create dashhaus-skin",
+    text: "A whole look of your own on the same hooks: scaffolded with tests, built to one file and deployed like Orb and Field.",
+    icon: `<path d="m12 4-9 5 9 5 9-5z" /><path d="m3 14 9 5 9-5" />`,
+  },
+  {
+    href: `${base}/start/getting-started/`,
+    name: "Use the hooks",
+    who: "For developers",
+    screen: "useHaLight(\"light.living_room\")",
+    text: "@dashhaus/core in your own React app: every entity as a plain model and its actions, no skin needed.",
+    icon: `<path d="m8 8-4 4 4 4M16 8l4 4-4 4" />`,
+  },
+  {
+    href: `${base}/develop/monorepo/`,
+    name: "Contribute",
+    who: "For contributors",
+    screen: "npm run check",
+    text: "Change Orb or Field, draw a new kind of entity for both, or improve the packages.",
+    icon: `<circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><circle cx="18" cy="8" r="2" /><path d="M6 8v8M18 10c0 4-4 4-10 7" />`,
+  },
+] as const;
+---
+
+<section class="build not-content" aria-labelledby="build">
+  <h2 id="build">Build on it</h2>
+  <ul class="plate">
+    {
+      WAYS.map(({ href, name, who, screen, text, icon }) => (
+        <li>
+          <a href={href}>
+            <span class="row">
+              <span class="key" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={icon} />
+              </span>
+              <span class="label">
+                <span class="name">
+                  {name}
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <span class="who">{who}</span>
+              </span>
+            </span>
+            <code class="screen">{screen}</code>
+            <span class="text">{text}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .build {
+    --pad: clamp(1rem, 4vw, 3rem);
+    width: min(100vw, 84rem);
+    margin: clamp(6rem, 12vh, 10rem) calc(50% - min(50vw, 42rem)) 0;
+    padding-inline: var(--pad);
+  }
+
+  h2 {
+    margin: 0 0 2.5rem;
+    font-family: var(--home-display);
+    font-size: clamp(2rem, 1rem + 2.6vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--sl-color-white);
+  }
+
+  /* Field's plate: one panel, its modules divided by grooves rather than floating apart. */
+  .plate {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 14px;
+    background: var(--home-field-plate);
+    list-style: none;
+  }
+
+  li + li {
+    box-shadow: inset 1px 0 0 oklch(0 0 0 / 0.14);
+  }
+
+  a {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    height: 100%;
+    padding: 1.25rem 1.25rem 1.5rem;
+    border-radius: 10px;
+    color: var(--home-field-print);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 160ms var(--home-ease);
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+  }
+
+  /* The key: square, raised, with the orange mark of what it sets. Pressing the module presses it. */
+  .key {
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 8px;
+    background: var(--home-field-key);
+    color: var(--home-field-print);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.35),
+      0 2px 0 oklch(0 0 0 / 0.18),
+      0 6px 12px -6px oklch(0 0 0 / 0.4);
+    transition: transform 120ms var(--home-ease), box-shadow 120ms var(--home-ease);
+  }
+
+  .key::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--home-field-mark);
+  }
+
+  a:active .key {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.25),
+      0 0 0 oklch(0 0 0 / 0.18),
+      0 2px 4px -2px oklch(0 0 0 / 0.4);
+  }
+
+  .label {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  /* Printed on the plate, in capitals, as Field labels its modules. */
+  .name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .name svg {
+    color: var(--home-field-mark);
+    transition: transform 160ms var(--home-ease);
+  }
+
+  .who {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--home-field-print-2);
+  }
+
+  /* Field's always-dark screen, reading the command that starts this way in. */
+  .screen {
+    display: block;
+    overflow: hidden;
+    padding: 0.75rem 0.875rem;
+    border-radius: 6px;
+    background: var(--home-field-screen);
+    color: oklch(0.96 0 0);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .text {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--home-field-print-2);
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--home-field-mark);
+    outline-offset: -2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      background: oklch(0 0 0 / 0.04);
+    }
+
+    a:hover .name svg {
+      transform: translateX(4px);
+    }
+  }
+
+  @media (max-width: 50rem) {
+    .plate {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    li + li {
+      box-shadow: inset 0 1px 0 oklch(0 0 0 / 0.14);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    a,
+    .key,
+    .name svg {
+      transition: none;
+    }
+  }
+</style>

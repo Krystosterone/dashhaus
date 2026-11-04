@@ -1,7 +1,7 @@
 ---
 /**
- * Starlight's hero, replaced for the home page: the page's title and tagline from its frontmatter, the two ways in,
- * and both skins' phone examples running live, each on its own shape (Orb's round button, Field's square key). Any
+ * Starlight's hero, replaced for the home page: the page's title and tagline from its frontmatter, the two ways in
+ * (installing first, in Install's yellow; building a skin second), and both skins' phone examples running live, each on its own shape (Orb's round button, Field's square key). Any
  * other page with a `hero` keeps Starlight's own.
  */
 import Default from "@astrojs/starlight/components/Hero.astro";
@@ -17,8 +17,8 @@ const { title = entry.data.title, tagline } = entry.data.hero ?? {};
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const PATHS = [
-  { href: `${base}/start/install/`, name: "Install a dashboard", text: "From the Marketplace in Home Assistant, no terminal: add the setup card once and press Create." },
-  { href: `${base}/start/build-a-skin/`, name: "Build a skin", text: "Scaffold your own on the same hooks, with tests, a one-file build and a deploy." },
+  { href: `${base}/start/install/`, name: "Install a dashboard", text: "From the Marketplace in Home Assistant: add the setup card once and press Create.", primary: true },
+  { href: `${base}/start/build-a-skin/`, name: "Build a skin", text: "For developers: design a dashboard of your own, scaffolded with tests and deployed the same way.", primary: false },
 ];
 
 /** Each skin's phone example: its Storybook globals, where its screen starts in the story and how it rounds. */
@@ -52,9 +52,9 @@ const SKINS = [
           <h1 id="_top" data-page-title set:html={title} />
           {tagline && <p class="lede" set:html={tagline} />}
           <ul class="paths">
-            {PATHS.map(({ href, name, text }) => (
+            {PATHS.map(({ href, name, text, primary }) => (
               <li>
-                <a href={href}>
+                <a href={href} data-primary={primary || undefined}>
                   <span class="path-name">
                     {name}
                     <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
@@ -66,11 +66,11 @@ const SKINS = [
               </li>
             ))}
           </ul>
-          <p class="note">Both skins run live on a demo house. Press, slide and scroll them.</p>
+          <p class="note">Both run live on a demo house. Try one, then press, slide and scroll it.</p>
         </div>
 
         <div class="stage" data-skin-stage data-active="orb">
-          <div class="switch" role="group" aria-label="Skin to show">
+          <div class="switch" role="group" aria-label="Dashboard to show">
             {SKINS.map(({ skin, name }, index) => (
               <button type="button" data-skin={skin} aria-pressed={index === 0 ? "true" : "false"}>
                 {name}
@@ -94,6 +94,7 @@ const SKINS = [
                   screen={screen}
                   poster={{ ...poster, alt: "" }}
                   link={false}
+                  arm={`Try ${name} live`}
                 />
               </div>
             </figure>
@@ -183,6 +184,18 @@ const SKINS = [
     transform: scale(0.98);
   }
 
+  /* Installing is the front door (spec/journeys.md): Install's yellow, as in the install section and the closing choice. */
+  .paths a[data-primary] {
+    --ink: oklch(0.22 0.006 80);
+    background: oklch(0.86 0.145 92);
+    color: var(--ink);
+  }
+
+  .paths a[data-primary] .path-name svg,
+  .paths a[data-primary] .path-text {
+    color: var(--ink);
+  }
+
   .path-name {
     display: flex;
     align-items: center;
@@ -207,6 +220,10 @@ const SKINS = [
   @media (hover: hover) and (pointer: fine) {
     .paths a:hover {
       background: var(--home-tone-2);
+    }
+
+    .paths a[data-primary]:hover {
+      background: oklch(0.9 0.13 92);
     }
 
     .paths a:hover .path-name svg {
@@ -434,10 +451,11 @@ const SKINS = [
   const GROUPS = [
     ".home-hero h1, .home-hero .lede, .home-hero .paths li, .home-hero .note",
     ".home-hero .phone",
-    ".stages .clause, .stages .sample, .stages .control",
-    ".fields .field > *",
-    ".kinds h2, .kinds .picture, .kinds li",
-    ".choice h2 span, .choice .answers > *",
+    ".install h2, .install .lead > p, .install .links, .install .steps li",
+    ".kinds h2, .kinds .picture, .kinds h3, .kinds li",
+    ".why h2, .why li",
+    ".build h2, .build li",
+    ".choice h2, .choice .answers > *",
   ];
   if (document.querySelector(".home-hero") && "IntersectionObserver" in window) {
     const seen = new IntersectionObserver(

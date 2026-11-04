@@ -22,8 +22,7 @@ The front door, and the only journey whose reader may never open a second page. 
 file copy: the Marketplace installs the bundle and registers it, and the setup card (`custom:dashhaus-setup`,
 [deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards from the person's own signed-in session.
 Its page is written so a browser agent can follow it alone and quotes its steps as a prompt; `llms.txt` carries the
-same steps. Until the first public release the Marketplace finds nothing, and the page says so
-([release.md → The Marketplace](release.md#the-marketplace)).
+same steps.
 
 The command-line row is the same person with a terminal, or a machine. It is the advanced page of the same section,
 never a second front door, and both pages say to pick one: each way registers its own copy of the bundle.
