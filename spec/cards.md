@@ -15,6 +15,11 @@ Composition stops at the hook. The card still takes one `entity`, one footprint 
 
 Interaction is separate: a **control** has a primary action, a **reading** only shows values. A control can be read-only (an alarm with nothing to arm) and a reading can carry a small action (the Owlet's base station switch), so the two are traits of the props, not the model split.
 
+Some domains get no card, by decision: **`todo`** (an editable list of any length is the content, and a fixed
+footprint would hide it), **`number`** (a raw setpoint belongs to its device's card, as sound composes its volume
+`number.*`; a slider card would duplicate it) and **`scene`** (no state to draw, and a one-shot activation is a
+button, not a card). The domains still to draw are GitHub issues labelled `new card`.
+
 A card's YAML kind is its own identity: its domain's card by default, or a shared card picked with `card:` (`sound` on a `switch`, `owlet` on a `sensor`). The sections below follow that identity.
 
 ## Using the light card

@@ -152,7 +152,21 @@ release serves both. What the repository holds:
   install, and the site's [Install from the Marketplace](../docs/src/content/docs/start/install.mdx) page, with its
   My link and `llms.txt`'s copy of its steps, is the way in.
 
-What only the operator can do, in order, each once:
+Decided, and why:
+
+- **The Marketplace and HACS are one target.** From Home Assistant 2026.11 the Marketplace is HACS in core, with the
+  same catalog, `hacs.json` and action. One `hacs_repository` My link opens HACS before 2026.11 and the Marketplace
+  after, so nobody chooses.
+- **A setup card, not a companion integration.** A repository holds one item of one type, so an integration that
+  creates dashboards would be a second repository in Python, on Home Assistant's internal Lovelace collections. The
+  price is one card placement.
+- **A button, not an automatic run.** The setup card creates only what is missing when pressed, and never overwrites.
+- **No token for agents.** An agent installing Dashhaus uses the person's own session through the setup card, never
+  a long-lived token handed to a model.
+- **The command line stays**, for CI, automation and dashboards in YAML mode. Installing both ways loads two copies of
+  the bundle, so the install page says to pick one.
+
+What only the operator can do, in order, each once (GitHub issues #29 to #32 track them):
 
 1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
 2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;

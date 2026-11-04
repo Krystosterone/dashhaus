@@ -1,7 +1,7 @@
 /**
  * Scaffolding for the generator integration tests: the repo root, a throwaway copy of it, and the commands that run
  * inside the copy. The copies leave out everything a nested run doesn't need (installed modules, build output, the
- * agent and research folders), so a copy is cheap and each suite gets its own.
+ * agent folders), so a copy is cheap and each suite gets its own.
  */
 import { spawn } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, symlinkSync } from "node:fs";
@@ -13,7 +13,7 @@ export const root = process.cwd();
 /** Children run outside this vitest run: without its variables a nested `vitest run` acts as a fresh one. */
 export const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("VITEST") && key !== "NODE_OPTIONS"));
 
-const skip = ["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude", "research"];
+const skip = ["node_modules", ".git", "dist", "storybook-static", ".agents", ".claude"];
 
 /** A source-only copy of the repo in a fresh temporary directory. */
 export const copyRepo = (prefix: string) => {

@@ -243,7 +243,7 @@ counts and the runner's own output.
 
 ## Links
 
-The repository was deleted and recreated on 2026-11-01 (`docs/research/2026-10-31-pii-audit.md`), so PR #6 and
+The repository was deleted and recreated on 2026-11-01, so PR #6 and
 the first-pass runs below no longer resolve; their numbers stand as recorded. The second pass's PR and runs are in
 the current repository.
 

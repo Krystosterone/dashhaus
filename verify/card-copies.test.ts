@@ -1,6 +1,6 @@
 /**
  * A card is composition: what two cards of one skin both need is a part in the skin's `shared/` (or behaviour in
- * `@dashhaus/core`), never a copy in each card folder (research/mechanism-backlog.md → 2). This finds the copies a grep
+ * `@dashhaus/core`), never a copy in each card folder (AGENTS.md → Vocabulary, Part). This finds the copies a grep
  * can: a component whose source is the same in two card folders of a skin once each card's class code is set aside
  * (a keypad pasted from the alarm into the lock), and a CSS rule of three or more declarations, on one card class, that
  * another card of the skin writes again (a key group's grid). A name two cards share isn't a copy (orb's alarm and

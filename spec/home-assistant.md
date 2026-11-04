@@ -77,4 +77,9 @@ Auth is a host concern: `@dashhaus/core` has no auth provider, auth hook, login 
 
 In development only, every `useHa<Name>` hook checks its entity ID once: a malformed ID or one from the wrong domain warns once in the console with the hook's name and expected domain. Production builds are silent, a warning never throws, and a missing entity is not warned about — a dashboard may legitimately render one before its entity loads. The behavior is pinned by `packages/core/src/ha/dev.test.ts`.
 
-What is still unverified against a live Home Assistant is tracked in [research/README.md](../research/README.md).
+## What has and hasn't been verified
+
+Everything above is verified on injected transports and the fake Home Assistant (`packages/fake-home-assistant/`). A
+real authenticated connection, a service action per domain with its readback, a reconnect and the YAML layout's error
+list in Home Assistant's own editor are not yet: GitHub issue #43. Record each here as run or unrun once it is, never
+inferred from the fake.
