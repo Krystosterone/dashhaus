@@ -44,8 +44,17 @@ export const HUMIDIFIER_SEEDS = {
 
 export type HumidifierSeedName = keyof typeof HUMIDIFIER_SEEDS;
 
+/**
+ * Worst case: a unit with no setpoint whose device names its own mode at length, so the mode itself is what a screen
+ * shows, and must truncate (break-ui skill).
+ */
+export const HUMIDIFIER_LONG_MODE: HumidifierSeed = {
+  entity: { entityId: "humidifier.hallway_diffuser", name: "Hallway diffuser", area: "Upstairs", state: "on", minHumidity: 0, maxHumidity: 100, mode: "comfort_continuous_night_quiet", modes: ["comfort_continuous_night_quiet", "auto", "boost"], lastChanged: "Fri 22:10" },
+  past: [0, 0, 0, 0, 0, 0, 0.3, 1, 1, 1, 1],
+};
+
 /** Worst-case data: every skin's Worst case story draws these. */
-export const HUMIDIFIER_WORST_CASE: HumidifierSeed[] = [HUMIDIFIER_SEEDS.long];
+export const HUMIDIFIER_WORST_CASE: HumidifierSeed[] = [HUMIDIFIER_SEEDS.long, HUMIDIFIER_LONG_MODE];
 
 /** Local state that behaves like a `humidifier` entity, for stories and prototypes. */
 export function useDemoHumidifier(seed: HumidifierSeed) {

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { HumidifierModule } from "./HumidifierModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE, useDemoHumidifier } from "@dashhaus/core/seeds/humidifier";
+import { HUMIDIFIER_LONG_MODE, HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE, useDemoHumidifier } from "@dashhaus/core/seeds/humidifier";
 import type { HumidifierSeed, HumidifierSeedName } from "@dashhaus/core/seeds/humidifier";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -127,6 +127,13 @@ export const Details: Story = { args: { defaultOpen: true } };
 
 /** A dehumidifier's panel: "Dry to", and no mode keys for a unit without modes. */
 export const DetailsDehumidifier: Story = { name: "Details, dehumidifier", args: { humidifier: "dehumidifier", defaultOpen: true } };
+
+/** A device's own long mode name, with no setpoint: the screen's channel shows the mode and ends it in an ellipsis. */
+export const DetailsLongMode: Story = {
+  name: "Details, long mode",
+  parameters: { controls: { include: ["width"] } },
+  render: ({ width }) => <DemoHumidifier seed={HUMIDIFIER_LONG_MODE} width={width} defaultOpen />,
+};
 
 /** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { humidifier: "unavailable", defaultOpen: true } };

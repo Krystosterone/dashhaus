@@ -1,3 +1,2 @@
 /* Fan module (fd-fn): the power key, then the speed fader across the rest of the row (ModuleRow, solo on a fan
    without speeds); in the panel, its presets, oscillation and direction as KeyGroups. */
-.fd-fn-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
