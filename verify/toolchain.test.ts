@@ -59,6 +59,18 @@ describe("the pinned npm", () => {
       expect(workflow, `${path} installs only through the setup action`).not.toMatch(/run: npm (?:ci|install)\b/);
     }
   });
+
+  it("builds the release from the lockfile, restoring no cache", () => {
+    // Any job on main can save an Actions cache entry a later run restores; the shipped dashhaus.js must not come from one.
+    const release = read(".github/workflows/release.yml");
+    expect(release, "the release build passes cache: \"false\" to the setup action").toMatch(
+      /uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+cache: "false"/,
+    );
+    const steps = read(".github/actions/setup/action.yml").split(/^\s+- /m).slice(1);
+    const restores = steps.filter((step) => /^name: Restore (?:node_modules|npm's downloads)/.test(step));
+    expect(restores).toHaveLength(2);
+    for (const step of restores) expect(step, "each install cache is skipped when cache is false").toMatch(/if: inputs\.cache != 'false'/);
+  });
 });
 
 /** Whether Node `version` (`22.23.4`) satisfies an `engines.node` range, in the forms the lockfile uses. */

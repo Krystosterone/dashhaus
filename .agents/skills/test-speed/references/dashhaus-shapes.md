@@ -230,12 +230,15 @@ the tests are nearly the whole gate and the other two only take cores from them.
 ## CI: one setup action
 
 `.github/actions/setup/action.yml` (composite), used by every job in `ci.yml` and
-`docs.yml` right after `actions/checkout`:
+`docs.yml` right after `actions/checkout`, and by `release.yml`'s build with `cache: "false"`:
+that build restores neither install cache, so the shipped `dashhaus.js` never comes from an
+entry another job saved. Its uncached `npm ci` is deliberate; don't speed it up.
 
 ```yaml
 inputs:
   tool-cache: { default: "false" }   # "true" restore + save, "restore" read-only
   chromium:   { default: "false" }
+  cache:      { default: "true" }    # "false" skips both install caches below (the release build)
 runs:
   using: composite
   steps:
@@ -244,13 +247,14 @@ runs:
     - run: corepack enable npm && npm --version
       shell: bash
     - id: modules
+      if: inputs.cache != 'false'
       uses: actions/cache@v4
       with:
         path: |
           node_modules
           !node_modules/.cache
         key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
-    - if: steps.modules.outputs.cache-hit != 'true'
+    - if: inputs.cache != 'false' && steps.modules.outputs.cache-hit != 'true'
       uses: actions/cache@v4
       with: { path: ~/.npm, key: "npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}", restore-keys: "npm-${{ runner.os }}-" }
     - if: steps.modules.outputs.cache-hit != 'true'

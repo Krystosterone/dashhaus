@@ -36,7 +36,11 @@ jobs:
           # git describe names the build in the bundle's console line.
           fetch-depth: 0
           persist-credentials: false
+      # No cache: the file every Home Assistant installs is built from the tag and the lockfile, not from a node_modules
+      # another workflow's job may have saved.
       - uses: ./.github/actions/setup
+        with:
+          cache: "false"
       - run: npm run build:ha
       # The Marketplace takes the release's tag as the version and the asset named after the repository as the file.
       - name: Check the tag is the packages' version

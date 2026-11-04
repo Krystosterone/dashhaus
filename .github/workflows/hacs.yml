@@ -20,9 +20,11 @@ jobs:
     if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     steps:
-      # main as of 2026-11-04, pinned so a push there can't change what runs here. HACS publishes no current release
-      # (its last tag, 22.5.0, is from 2022) and asks for @main, so Dependabot may not move a commit on a branch: bump
-      # it by hand when the check starts failing on rules HACS has since changed.
+      # The action is a wrapper around the Docker image ghcr.io/hacs/action:main, which HACS rebuilds from its integration
+      # as its rules change. The pin, main as of 2026-11-04, holds only the wrapper, like every action here; the checks
+      # and their rules always come from that image, so they are the ones the Marketplace and the HACS catalog apply
+      # today, and the pin needs no bump to stay current. Dependabot doesn't move it (HACS tags no current release; its
+      # last, 22.5.0, is from 2022); bump it by hand only if the wrapper itself changes.
       - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
         with:
           category: plugin
