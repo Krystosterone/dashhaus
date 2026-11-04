@@ -16,14 +16,16 @@ env:
   # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
+# Read-only by default: the build runs the repository's install and scripts, so only the job that uploads the built
+# file gets to write, and it runs none of them.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.event.release.tag_name || inputs.tag }}
 
 jobs:
-  asset:
+  build:
     runs-on: ubuntu-latest
     env:
       TAG: ${{ github.event.release.tag_name || inputs.tag }}
@@ -33,12 +35,31 @@ jobs:
           ref: ${{ github.event.release.tag_name || inputs.tag }}
           # git describe names the build in the bundle's console line.
           fetch-depth: 0
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: npm run build:ha
       # The Marketplace takes the release's tag as the version and the asset named after the repository as the file.
       - name: Check the tag is the packages' version
         run: test "${TAG#v}" = "$(node -p "require('./packages/bundle/package.json').version")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashhaus.js
+          path: dist/dashhaus.js
+          if-no-files-found: error
+
+  attach:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dashhaus.js
+          path: dist
       - name: Attach dashhaus.js
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$TAG" dist/dashhaus.js --clobber
+        run: gh release upload "$TAG" dist/dashhaus.js --clobber --repo "$GITHUB_REPOSITORY"

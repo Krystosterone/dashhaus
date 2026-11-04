@@ -141,10 +141,11 @@ release serves both. What the repository holds:
 - `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
   `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
 - `.github/workflows/release.yml` builds `dist/dashhaus.js` from a published release's tag, checks the tag is
-  `v<version>` of the packages, and attaches the file to the release. Publishing the release stays the operator's
-  step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
+  `v<version>` of the packages, and attaches the file to the release. The build runs read-only; only the job that
+  uploads the file may write to the repository, and it runs none of the repository's scripts. Publishing the release
+  stays the operator's step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
   committed build.
-- `.github/workflows/hacs.yml` runs `hacs/action` with `category: plugin` and no ignored checks on every pull request,
+- `.github/workflows/hacs.yml` runs `hacs/action`, pinned to a commit, with `category: plugin` and no ignored checks on every pull request,
   push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
   repository is private, like the Docs deploy.
 - The bundle's setup card ([deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards after the
