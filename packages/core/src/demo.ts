@@ -1,5 +1,11 @@
-import type { HaServiceCallOptions, HaTransport, HassEntity, HassEntities } from "./ha/types";
-import { fanService } from "./demo/fanService";
+import type { HaTransport, HassEntity, HassEntities } from "./ha/types";
+import { ALARM_SERVICES } from "./demo/alarm";
+import { COVER_SERVICES } from "./demo/cover";
+import { fanServices } from "./demo/fan";
+import { HUMIDIFIER_SERVICES } from "./demo/humidifier";
+import { VOLUME_SERVICES } from "./demo/sound";
+import { createDemoTransport, onOffServices } from "./demo/transport";
+import type { DemoCall, DemoChange, DemoService, DemoServices } from "./demo/transport";
 
 const stamp = "2026-10-19T11:20:00Z";
 const initial: HassEntities = {
@@ -130,110 +136,68 @@ const weatherForecasts = {
   ],
 };
 
-/** Storybook-only transport that exercises the real store, mapper, and action path without a server. */
-export function createDemoHaTransport(seed: HassEntities = initial): HaTransport {
-  let entities = clone(seed);
-  const listeners = new Set<(next: HassEntities) => void>();
-  const publish = () => listeners.forEach((listener) => listener({ ...entities }));
+/** What a light's services do: a level, and a colour temperature or a colour, by its color_mode, as a real lamp reports it. */
+const LIGHT_SERVICES: DemoServices = {
+  ...onOffServices("light", ["toggle"]),
+  "light.turn_on": ({ data }) => {
+    const attributes: HassEntity["attributes"] = {};
+    if (typeof data.brightness_pct === "number") attributes.brightness = Math.round(data.brightness_pct * 2.55);
+    if (typeof data.color_temp_kelvin === "number") Object.assign(attributes, { color_temp_kelvin: data.color_temp_kelvin, color_mode: "color_temp" });
+    if (Array.isArray(data.hs_color)) Object.assign(attributes, { hs_color: data.hs_color, color_mode: "hs" });
+    return { state: "on", attributes };
+  },
+};
 
-  return {
-    subscribeEntities(listener) {
-      listeners.add(listener);
-      queueMicrotask(() => listener({ ...entities }));
-      return () => { listeners.delete(listener); };
+/** A thermostat's change, with the action it reads back: off while off, else idle. */
+const reading = (change: (call: DemoCall) => DemoChange): DemoService => (call) => {
+  const { state = call.entity.state, attributes } = change(call);
+  return { state, attributes: { ...attributes, hvac_action: state === "off" ? "off" : "idle" } };
+};
+
+/** What a thermostat's services do. */
+const CLIMATE_SERVICES: DemoServices = {
+  "climate.turn_on": reading(({ entity }) => {
+    const modes = Array.isArray(entity.attributes.hvac_modes) ? entity.attributes.hvac_modes : [];
+    const mode = modes.find((m): m is string => typeof m === "string" && m !== "off");
+    return { state: mode ?? "heat" };
+  }),
+  "climate.turn_off": reading(() => ({ state: "off" })),
+  "climate.set_hvac_mode": reading(({ data }) => (typeof data.hvac_mode === "string" ? { state: data.hvac_mode } : {})),
+  "climate.set_temperature": reading(({ data }) => ({
+    attributes: Object.fromEntries(["temperature", "target_temp_low", "target_temp_high"].filter((key) => typeof data[key] === "number").map((key) => [key, data[key]])),
+  })),
+  "climate.set_preset_mode": reading(({ data }) => (typeof data.preset_mode === "string" ? { attributes: { preset_mode: data.preset_mode } } : {})),
+  "climate.set_fan_mode": reading(({ data }) => (typeof data.fan_mode === "string" ? { attributes: { fan_mode: data.fan_mode } } : {})),
+};
+
+/** The weather answers its forecasts, hourly or daily. */
+const WEATHER_SERVICES: DemoServices = {
+  "weather.get_forecasts": ({ entity, data }) => {
+    const type = data.type === "hourly" || data.type === "daily" ? data.type : "daily";
+    return { response: { [entity.entity_id]: { forecast: weatherForecasts[type] } } };
+  },
+};
+
+/**
+ * Storybook-only transport that exercises the real store, mapper, and action path without a server: it answers every
+ * domain's services, so any entity it is seeded with works.
+ */
+export function createDemoHaTransport(seed: HassEntities = initial): HaTransport {
+  return createDemoTransport({
+    seed,
+    services: {
+      ...LIGHT_SERVICES,
+      ...CLIMATE_SERVICES,
+      ...WEATHER_SERVICES,
+      ...onOffServices("input_boolean"),
+      ...onOffServices("switch"),
+      ...VOLUME_SERVICES,
+      ...COVER_SERVICES,
+      ...ALARM_SERVICES,
+      ...fanServices(),
+      ...HUMIDIFIER_SERVICES,
     },
-    async callService(domain, service, serviceData = {}, options: HaServiceCallOptions = {}) {
-      if (domain === "weather") {
-        const entityId = options.target?.entity_id;
-        const type = serviceData.type === "hourly" || serviceData.type === "daily" ? serviceData.type : "daily";
-        if (service !== "get_forecasts" || typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo weather target not found");
-        return { response: { [entityId]: { forecast: weatherForecasts[type] } } };
-      }
-      if (domain !== "light" && domain !== "climate" && domain !== "input_boolean" && domain !== "switch" && domain !== "humidifier" && domain !== "number" && domain !== "cover" && domain !== "alarm_control_panel" && domain !== "fan") throw new Error(`Unsupported demo domain: ${domain}`);
-      const entityId = serviceData.entity_id;
-      if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
-      const current = entities[entityId];
-      const next: HassEntity = { ...current, attributes: { ...current.attributes }, last_updated: new Date().toISOString() };
-      if (domain === "input_boolean" || domain === "switch") {
-        if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
-        if (service === "turn_on" || service === "turn_off") next.state = service === "turn_on" ? "on" : "off";
-        next.last_changed = next.last_updated;
-      } else if (domain === "number") {
-        // A volume beside a sound switch: setting it never switches the sound.
-        if (service === "set_value" && typeof serviceData.value === "number") next.state = String(serviceData.value);
-        if (next.state !== current.state) next.last_changed = next.last_updated;
-      } else if (domain === "cover") {
-        // It arrives at once: the demo has no travel.
-        if (service === "open_cover" || service === "close_cover") {
-          next.state = service === "open_cover" ? "open" : "closed";
-          next.attributes.current_position = service === "open_cover" ? 100 : 0;
-        }
-        if (service === "stop_cover") next.state = current.state === "opening" ? "open" : current.state === "closing" ? "closed" : current.state;
-        if (service === "set_cover_position" && typeof serviceData.position === "number") {
-          next.attributes.current_position = serviceData.position;
-          next.state = serviceData.position === 0 ? "closed" : "open";
-        }
-        if (service === "set_cover_tilt_position" && typeof serviceData.tilt_position === "number") next.attributes.current_tilt_position = serviceData.tilt_position;
-        if (next.state !== current.state) next.last_changed = next.last_updated;
-      } else if (domain === "alarm_control_panel") {
-        // As the manual alarm: code 1234, asked to disarm and, unless code_arm_required is false, to arm. It arms at once.
-        const disarm = service === "alarm_disarm";
-        const asked = current.attributes.code_format != null && (disarm || current.attributes.code_arm_required !== false);
-        if (asked && serviceData.code !== "1234") throw { translation_key: "invalid_code" };
-        next.state = disarm ? "disarmed" : service.replace("alarm_arm_", "armed_");
-        next.attributes.changed_by = null;
-        if (next.state !== current.state) next.last_changed = next.last_updated;
-      } else if (domain === "fan") {
-        const [state, changed] = fanService(current, service, serviceData);
-        next.state = state;
-        Object.assign(next.attributes, changed);
-        if (next.state !== current.state) next.last_changed = next.last_updated;
-      } else if (domain === "humidifier") {
-        if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
-        if (service === "set_humidity" && typeof serviceData.humidity === "number") next.attributes.humidity = serviceData.humidity;
-        if (service === "set_mode" && typeof serviceData.mode === "string") next.attributes.mode = serviceData.mode;
-        next.attributes.action = next.state === "on" ? "humidifying" : "off";
-        if (next.state !== current.state) next.last_changed = next.last_updated;
-      } else if (domain === "light") {
-        if (service === "toggle") next.state = current.state === "on" ? "off" : "on";
-        if (service === "turn_on") {
-          next.state = "on";
-          if (typeof serviceData.brightness_pct === "number") next.attributes.brightness = Math.round(serviceData.brightness_pct * 2.55);
-          // As a real lamp reports it: a colour temperature or a colour, by its color_mode.
-          if (typeof serviceData.color_temp_kelvin === "number") {
-            next.attributes.color_temp_kelvin = serviceData.color_temp_kelvin;
-            next.attributes.color_mode = "color_temp";
-          }
-          if (Array.isArray(serviceData.hs_color)) {
-            next.attributes.hs_color = serviceData.hs_color;
-            next.attributes.color_mode = "hs";
-          }
-        }
-      } else {
-        const hvacModes = Array.isArray(current.attributes.hvac_modes) ? current.attributes.hvac_modes : [];
-        if (service === "turn_on") next.state = typeof hvacModes.find((mode): mode is string => typeof mode === "string" && mode !== "off") === "string"
-          ? hvacModes.find((mode): mode is string => typeof mode === "string" && mode !== "off")!
-          : "heat";
-        if (service === "turn_off") {
-          next.state = "off";
-          next.attributes.hvac_action = "off";
-        }
-        if (service === "set_hvac_mode" && typeof serviceData.hvac_mode === "string") next.state = serviceData.hvac_mode;
-        if (service === "set_temperature") {
-          if (typeof serviceData.temperature === "number") next.attributes.temperature = serviceData.temperature;
-          if (typeof serviceData.target_temp_low === "number") next.attributes.target_temp_low = serviceData.target_temp_low;
-          if (typeof serviceData.target_temp_high === "number") next.attributes.target_temp_high = serviceData.target_temp_high;
-        }
-        if (service === "set_preset_mode" && typeof serviceData.preset_mode === "string") next.attributes.preset_mode = serviceData.preset_mode;
-        if (service === "set_fan_mode" && typeof serviceData.fan_mode === "string") next.attributes.fan_mode = serviceData.fan_mode;
-        next.attributes.hvac_action = next.state === "off" ? "off" : "idle";
-      }
-      entities = { ...entities, [entityId]: next };
-      publish();
-      return { success: true };
-    },
-    sendMessage: (type, payload = {}) => demoSendMessage(entities, type, payload),
-  };
+  });
 }
 
 /** Storybook-only climate transport using the same store and service path as a host transport. */
@@ -251,137 +215,4 @@ export function createDemoWeatherHaTransport(seed: HassEntities = weatherInitial
   return createDemoHaTransport(seed);
 }
 
-function clone(entities: HassEntities): HassEntities {
-  return Object.fromEntries(Object.entries(entities).map(([id, entity]) => [id, {
-    ...entity,
-    attributes: { ...entity.attributes },
-  }]));
-}
-
-/** One compressed `history/history_during_period` row: state, attributes, last-updated epoch seconds. */
-export interface DemoHistoryRow {
-  s: string;
-  a: Record<string, unknown>;
-  lu: number;
-}
-
-/** Every seeded demo entity resolves to this one area, so `useHaArea` has a name to show. */
-export const DEMO_AREA_ID = "living_room";
-export const DEMO_AREA_NAME = "Living room";
-
-export function demoAreaRegistry(): Array<{ area_id: string; name: string; floor_id: string }> {
-  return [{ area_id: DEMO_AREA_ID, name: DEMO_AREA_NAME, floor_id: "ground" }];
-}
-
-/** `config/floor_registry/list`: the demo's one area sits on one floor. */
-export function demoFloorRegistry(): Array<{ floor_id: string; name: string; level: number }> {
-  return [{ floor_id: "ground", name: "Ground floor", level: 0 }];
-}
-
-export const DEMO_DEVICE_ID = "demo_device";
-
-/** `config/entity_registry/list_for_display`: every demo entity inherits its area from one device. */
-export function demoEntityRegistry(entities: HassEntities) {
-  return { entity_categories: {}, entities: Object.keys(entities).map((ei) => ({ ei, di: DEMO_DEVICE_ID, pl: "demo" })) };
-}
-
-export function demoDeviceRegistry(): Array<{ id: string; area_id: string }> {
-  return [{ id: DEMO_DEVICE_ID, area_id: DEMO_AREA_ID }];
-}
-
-/** Today's local date at a fixed morning hour, in epoch seconds. */
-function morningEpoch(hour: number, minute = 0): number {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute).getTime() / 1000;
-}
-
-function historyRecord(entity: HassEntity, state: string, when: number, attributes: Record<string, unknown> = {}): DemoHistoryRow {
-  return { s: state, a: { ...entity.attributes, ...attributes }, lu: when };
-}
-
-/** A small realistic day of 2-3 transitions spread across the local morning, per domain. */
-function synthesizeHistory(entity: HassEntity): DemoHistoryRow[] {
-  const domain = entity.entity_id.slice(0, entity.entity_id.indexOf("."));
-  if (domain === "light") {
-    return [
-      historyRecord(entity, "off", morningEpoch(6, 30)),
-      historyRecord(entity, "on", morningEpoch(8), { brightness: entity.attributes.brightness }),
-      historyRecord(entity, "on", morningEpoch(9, 30), { brightness: 96 }),
-    ];
-  }
-  if (domain === "cover") {
-    return [
-      historyRecord(entity, "closed", morningEpoch(6, 30), { current_position: 0 }),
-      historyRecord(entity, "opening", morningEpoch(8), { current_position: 45 }),
-      historyRecord(entity, "open", morningEpoch(9, 30), { current_position: 100 }),
-    ];
-  }
-  if (domain === "climate") {
-    return [
-      historyRecord(entity, "heat", morningEpoch(6), { hvac_action: "heating" }),
-      historyRecord(entity, "heat", morningEpoch(8), { hvac_action: "idle" }),
-      historyRecord(entity, entity.state, morningEpoch(9, 30), { hvac_action: "heating" }),
-    ];
-  }
-  if (domain === "sensor") {
-    const unit = typeof entity.attributes.unit_of_measurement === "string" ? entity.attributes.unit_of_measurement : "";
-    return [
-      historyRecord(entity, "20.1", morningEpoch(7), { unit_of_measurement: unit }),
-      historyRecord(entity, "20.8", morningEpoch(8, 30), { unit_of_measurement: unit }),
-      historyRecord(entity, entity.state, morningEpoch(9, 45), { unit_of_measurement: unit }),
-    ];
-  }
-  if (domain === "weather") {
-    return [
-      historyRecord(entity, "cloudy", morningEpoch(7), { temperature: 18.5 }),
-      historyRecord(entity, "partlycloudy", morningEpoch(8, 30), { temperature: 20 }),
-      historyRecord(entity, entity.state, morningEpoch(9, 45), { temperature: entity.attributes.temperature }),
-    ];
-  }
-  if (domain === "input_boolean" || domain === "switch" || entity.state === "on" || entity.state === "off") {
-    return [
-      historyRecord(entity, "off", morningEpoch(6, 30)),
-      historyRecord(entity, "on", morningEpoch(8)),
-      historyRecord(entity, entity.state, morningEpoch(9, 30)),
-    ];
-  }
-  if (domain === "alarm_control_panel") {
-    return [
-      historyRecord(entity, "disarmed", morningEpoch(6, 30)),
-      historyRecord(entity, "armed_home", morningEpoch(8)),
-      historyRecord(entity, entity.state, morningEpoch(9, 30)),
-    ];
-  }
-  return [
-    historyRecord(entity, entity.state, morningEpoch(8)),
-    historyRecord(entity, entity.state, morningEpoch(9, 30)),
-  ];
-}
-
-/** Rows keyed by entity id, like `history/history_during_period`; entities without history are left out. */
-export function demoHistoryDuringPeriod(entities: HassEntities, entityIds: readonly string[]): Record<string, DemoHistoryRow[]> {
-  const result: Record<string, DemoHistoryRow[]> = {};
-  for (const id of entityIds) {
-    const entity = entities[id];
-    if (entity) result[id] = synthesizeHistory(entity);
-  }
-  return result;
-}
-
-/** Handle the generic websocket commands a demo transport supports: history reads and the registries. */
-export async function demoSendMessage(
-  entities: HassEntities,
-  type: string,
-  payload: Record<string, unknown> = {},
-): Promise<unknown> {
-  if (type === "history/history_during_period") {
-    const entityIds = payload.entity_ids;
-    if (!Array.isArray(entityIds) || !entityIds.every((id) => typeof id === "string")) throw new Error("Demo history entity_ids missing");
-    return demoHistoryDuringPeriod(entities, entityIds);
-  }
-  if (type === "config/entity_registry/list_for_display") return demoEntityRegistry(entities);
-  if (type === "config/device_registry/list") return demoDeviceRegistry();
-  if (type === "config/area_registry/list") return demoAreaRegistry();
-  if (type === "config/floor_registry/list") return demoFloorRegistry();
-  throw new Error(`Unsupported demo command: ${type}`);
-}
+export * from "./demo/messages";

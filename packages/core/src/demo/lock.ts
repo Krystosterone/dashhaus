@@ -1,5 +1,6 @@
-import type { HaTransport, HassEntities, HassEntity } from "../ha/types";
-import { demoSendMessage } from "../demo";
+import type { HaTransport, HassEntities } from "../ha/types";
+import { createDemoTransport } from "./transport";
+import type { DemoService, DemoServices } from "./transport";
 
 const stamp = "2026-10-19T11:20:00Z";
 
@@ -42,45 +43,25 @@ export interface DemoLockOptions {
   travelMs?: number;
 }
 
+/** What a lock's services do: each turns through its `via` state for `travelMs`, or goes straight there at 0. */
+export function lockServices(travelMs = 900): DemoServices {
+  const turn = (service: string, { via, to }: { via: string; to: string }): DemoService => ({ entity: { attributes, state }, data, later }) => {
+    if (state === "unavailable" || state === "unknown") throw new Error("Demo lock is unavailable");
+    if (service === "open" && !((Number(attributes.supported_features) & 1) !== 0)) throw new Error("Demo lock can't open");
+    if (typeof attributes.code_format === "string" && data.code !== DEMO_LOCK_CODE) throw { translation_key: "add_default_code" };
+    const changedBy = { changed_by: "Dashboard" };
+    if (travelMs <= 0) return { state: to, attributes: changedBy };
+    later({ state: to, attributes: changedBy }, travelMs);
+    return { state: via, attributes: changedBy };
+  };
+  return Object.fromEntries(Object.entries(SERVICES).map(([service, way]) => [`lock.${service}`, turn(service, way)]));
+}
+
 /**
  * Storybook-only `lock` transport: the same store and service path as a host transport, answered locally. A lock
  * with a `code_format` takes DEMO_LOCK_CODE and refuses any other the way Home Assistant does (`translation_key:
  * add_default_code`); `open` is refused on a lock that doesn't support it.
  */
 export function createDemoLockHaTransport(seed: HassEntities = initial, { travelMs = 900 }: DemoLockOptions = {}): HaTransport {
-  let entities: HassEntities = Object.fromEntries(Object.entries(seed).map(([id, e]) => [id, { ...e, attributes: { ...e.attributes } }]));
-  const listeners = new Set<(next: HassEntities) => void>();
-  const publish = () => listeners.forEach((listener) => listener({ ...entities }));
-  const set = (entityId: string, state: string) => {
-    const current = entities[entityId];
-    const now = new Date().toISOString();
-    const next: HassEntity = { ...current, attributes: { ...current.attributes, changed_by: "Dashboard" }, state, last_changed: now, last_updated: now };
-    entities = { ...entities, [entityId]: next };
-    publish();
-  };
-
-  return {
-    subscribeEntities(listener) {
-      listeners.add(listener);
-      queueMicrotask(() => listener({ ...entities }));
-      return () => { listeners.delete(listener); };
-    },
-    async callService(domain, service, serviceData = {}) {
-      const step = SERVICES[service];
-      if (domain !== "lock" || !step) throw new Error(`Unsupported demo service: ${domain}.${service}`);
-      const entityId = serviceData.entity_id;
-      if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
-      const { attributes, state } = entities[entityId];
-      if (state === "unavailable" || state === "unknown") throw new Error("Demo lock is unavailable");
-      if (service === "open" && !((Number(attributes.supported_features) & 1) !== 0)) throw new Error("Demo lock can't open");
-      if (typeof attributes.code_format === "string" && serviceData.code !== DEMO_LOCK_CODE) throw { translation_key: "add_default_code" };
-      if (travelMs <= 0) set(entityId, step.to);
-      else {
-        set(entityId, step.via);
-        setTimeout(() => set(entityId, step.to), travelMs);
-      }
-      return { success: true };
-    },
-    sendMessage: (type, payload = {}) => demoSendMessage(entities, type, payload),
-  };
+  return createDemoTransport({ seed, services: lockServices(travelMs) });
 }

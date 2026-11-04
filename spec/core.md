@@ -162,7 +162,11 @@ rate.
 - `./testing` exports `fakeTransport(entities)` and `renderConnected(ui, entities)`. The fake serves the map, records
   typed service calls in `calls`, and can emit a whole map or patch one entity (`emitEntity(id, patch)`).
 - `./demo` exports `createDemoStore()`, the demo house behind the real store, and the per-domain demo transports used
-  by Storybook.
+  by Storybook. Each is `createDemoTransport({ seed, services })`: the helper holds the entities, delivers them,
+  routes a call by `domain.service` to its target, refuses any other, stamps `last_updated` on every change and
+  `last_changed` when the state changes, and answers the registries and history; a domain's transport is its seed and
+  its service table alone (`onOffServices` for switching), and the mixed `createDemoHaTransport` composes the
+  domains' tables.
 - `./seeds/<name>` is one domain's demo seeds for every skin's card stories: its examples (`<NAME>_SEEDS`, with an
   unavailable one), its worst cases (`<NAME>_WORST_CASE`), their types, and `useDemo<Name>`, local state that behaves
   like the entity for a story to press. A card's stories draw on them, so every skin shows the same examples; a skin

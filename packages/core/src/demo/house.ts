@@ -1,4 +1,5 @@
-import { createDemoClimateHaTransport, createDemoHaTransport, createDemoSensorHaTransport, createDemoWeatherHaTransport, demoSendMessage } from "../demo";
+import { createDemoClimateHaTransport, createDemoHaTransport, createDemoSensorHaTransport, createDemoWeatherHaTransport } from "../demo";
+import { demoSendMessage } from "./messages";
 import { createDemoAlarmHaTransport } from "./alarm";
 import { createDemoCoverHaTransport } from "./cover";
 import { createDemoFanHaTransport } from "./fan";
