@@ -61,13 +61,13 @@ function item(entry: ItemConfig): ReactElement {
  * Orb's tracks: an explicit `columns` holds while a track is at least 156 px, so two columns hold from 320 px of row
  * (the narrow-phone boundary); left out, a row takes as many 300 px tracks as fit, at most twelve.
  */
-export const ORB_TRACKS: TrackPolicy = { gap: 8, min: 156, preferred: 300, max: 12 };
+const ORB_TRACKS: TrackPolicy = { gap: 8, min: 156, preferred: 300, max: 12 };
 
 /** A footprint's height in 60 px units: n units are n × 60 + (n − 1) × 8 px. */
 const FOOTPRINT_UNITS: Record<CardFootprint, number> = { compact: 1, standard: 2, featured: 4 };
 
 /** A card's or a bundle's height in units at `width` px: a bundle forces its members' footprints. */
-export function unitsOf(entry: ItemConfig, width: number | undefined): number {
+function unitsOf(entry: ItemConfig, width: number | undefined): number {
   if (entry.kind === "joined") return joinedUnits(entry.members.length, width);
   if (entry.kind === "lead") return FOOTPRINT_UNITS.standard + entry.rows.length;
   if (entry.kind === "titled") return 1 + entry.rows.length;

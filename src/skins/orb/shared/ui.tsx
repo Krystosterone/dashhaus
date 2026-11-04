@@ -237,8 +237,8 @@ export function Readout({ label, onOpen, children }: { label: string; onOpen?: (
     : <div className="hd-read" role="img" aria-label={label}>{inner}</div>;
 }
 
-const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
-const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
+export const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
+export const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
 
 /**
  * Setpoint stepper: a groove with a minus and a plus button at its ends, the value between them.
