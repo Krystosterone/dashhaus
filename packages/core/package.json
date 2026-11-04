@@ -3,6 +3,27 @@
   "version": "0.2.0",
   "private": true,
   "license": "MIT",
+  "description": "The headless Home Assistant foundation behind Dashhaus skins: entity models, the store, mappers, actions, useHa hooks and interaction primitives. No markup, no CSS.",
+  "keywords": [
+    "home-assistant",
+    "react",
+    "hooks",
+    "headless",
+    "dashboard"
+  ],
+  "homepage": "https://krystosterone.github.io/dashhaus/",
+  "bugs": {
+    "url": "https://github.com/Krystosterone/dashhaus/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krystosterone/dashhaus.git",
+    "directory": "packages/core"
+  },
+  "author": "Krystian Czesak",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [

@@ -20,6 +20,13 @@ export interface PackageManifest {
   version: string;
   private?: boolean;
   license?: string;
+  description?: string;
+  keywords?: string[];
+  homepage?: string;
+  bugs?: { url: string };
+  repository?: { type?: string; url: string; directory?: string };
+  author?: string;
+  publishConfig?: { access?: "public" | "restricted" };
   type?: string;
   sideEffects?: boolean | string[];
   files?: string[];

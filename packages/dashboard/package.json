@@ -3,6 +3,27 @@
   "version": "0.2.0",
   "private": true,
   "license": "MIT",
+  "description": "The framework a Dashhaus skin's Lovelace card draws on: the skin runtime, card frame, YAML schema, automatic layout and conformance preset.",
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "react",
+    "dashboard",
+    "custom-card"
+  ],
+  "homepage": "https://krystosterone.github.io/dashhaus/",
+  "bugs": {
+    "url": "https://github.com/Krystosterone/dashhaus/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krystosterone/dashhaus.git",
+    "directory": "packages/dashboard"
+  },
+  "author": "Krystian Czesak",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [

@@ -3,6 +3,28 @@
   "version": "0.2.0",
   "private": true,
   "license": "MIT",
+  "description": "The Orb skin for Home Assistant: React cards, bundles and dashboard furniture, and custom:dashhaus-orb, a Lovelace card drawn from YAML.",
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "react",
+    "dashboard",
+    "custom-card",
+    "skin"
+  ],
+  "homepage": "https://krystosterone.github.io/dashhaus/",
+  "bugs": {
+    "url": "https://github.com/Krystosterone/dashhaus/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krystosterone/dashhaus.git",
+    "directory": "src/skins/orb"
+  },
+  "author": "Krystian Czesak",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
