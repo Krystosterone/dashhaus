@@ -145,7 +145,7 @@ release serves both. What the repository holds:
   uploads the file may write to the repository, and it runs none of the repository's scripts. Publishing the release
   stays the operator's step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
   committed build.
-- `.github/workflows/hacs.yml` runs `hacs/action`, pinned to a commit, with `category: plugin` and no ignored checks on every pull request,
+- `.github/workflows/hacs.yml` runs `hacs/action`, pinned to a commit on its `main` (HACS tags no current release, so it is bumped by hand), with `category: plugin` and no ignored checks on every pull request,
   push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
   repository is private, like the Docs deploy.
 - The bundle's setup card ([deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards after the
