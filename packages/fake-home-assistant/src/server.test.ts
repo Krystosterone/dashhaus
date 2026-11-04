@@ -114,6 +114,18 @@ describe("the websocket API", () => {
     expect(await (await fetch(`${settings.HA_URL}/`)).text()).toContain("Home");
   });
 
+  it("takes a dashboard page's lovelace commands, as the frontend's websocket would, and nothing else", async () => {
+    const { ha, settings } = await start();
+    const post = async (message: Record<string, unknown>) =>
+      (await (await fetch(`${settings.HA_URL}/api/fake/lovelace`, { method: "POST", body: JSON.stringify(message) })).json()) as { success: boolean; result?: unknown; error?: { code: string; message: string } };
+    expect(await post({ type: "lovelace/dashboards/create", url_path: "home-new", title: "New", icon: "mdi:home" })).toMatchObject({ success: true, result: { id: "dashboard-1", url_path: "home-new" } });
+    expect(await post({ type: "lovelace/dashboards/list" })).toMatchObject({ success: true, result: [{ url_path: "home-new" }] });
+    expect(await post({ type: "lovelace/dashboards/delete", dashboard_id: "missing" })).toMatchObject({ success: false, error: { code: "unknown_command" } });
+    expect(await post({ type: "call_service", domain: "light", service: "turn_off", target: { entity_id: "light.kitchen_ceiling" } })).toMatchObject({ success: false });
+    expect(ha.states["light.kitchen_ceiling"]?.state).toBe("on");
+    expect((await fetch(`${settings.HA_URL}/api/fake/lovelace`)).status).toBe(405);
+  });
+
   it("serves injected states and registries", async () => {
     const states: FakeState[] = [{ entity_id: "light.injected", state: "on", attributes: { friendly_name: "Injected" } }];
     const registries: FakeRegistries = {

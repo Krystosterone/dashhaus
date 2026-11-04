@@ -1,10 +1,14 @@
 ---
-title: Deploy a dashboard
-description: "Install the prebuilt bundle and the deploy tool, and add Orb and Field dashboards to your Home Assistant without building anything."
+title: Deploy from the command line
+description: "Install the prebuilt bundle and the deploy tool, and add Orb and Field dashboards to your Home Assistant from a terminal, for automation, CI or YAML mode."
 ---
 
 import { Aside, Steps } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
+
+If you only want the dashboards, [Install from the Marketplace](/dashhaus/start/install/) needs no terminal. This page
+is the other way in: for a deploy you script or run from CI, a Home Assistant that manages its resources in YAML, or
+the same steps you'll take later with a skin of your own. Pick one of the two; each registers its own copy.
 
 You don't need to clone or build anything. The prebuilt bundle holds both skins. A small command-line tool copies it
 into Home Assistant and creates a dashboard for each skin. After that you change layouts in Home Assistant itself.

@@ -1,9 +1,11 @@
 /**
- * The shared machinery for the two clean-room DX drivers:
+ * The shared machinery for the clean-room DX drivers, one per journey in spec/journeys.md:
  *
  *   npm run release:pack
- *   node verify/dx/author.js
- *   node verify/dx/user.js
+ *   node verify/dx/marketplace.js   the user: the release asset installed as the Marketplace does, then setup
+ *   node verify/dx/user.js          the user, from the command line
+ *   node verify/dx/author.js        the author
+ *   node verify/dx/developer.js     the developer
  *
  * A driver creates a temporary app outside this repo, installs the packed tarballs by `file:` specifier, and runs the
  * consumer journey there. Nothing here imports a workspace package, and no app config sets the `source` condition.
@@ -29,6 +31,29 @@ export const tarballsDir = resolve(tarballArg === -1 ? join(repoRoot, "release")
 export const keepApp = argv.includes("--keep");
 const screenshotArg = argv.indexOf("--screenshot");
 export const screenshotDir = screenshotArg === -1 ? undefined : resolve(argv[screenshotArg + 1] ?? ".");
+
+/**
+ * Open a page the fake Home Assistant serves in the repo's Chromium, wait until its card is drawn, and run `task` on
+ * it. A page that reports an error, or never draws its card, fails the stage.
+ */
+export async function inPage(url, task, { width = 1280, height = 900 } = {}) {
+  const { chromium } = await import("playwright");
+  const browser = await chromium.launch(chromiumLaunchOptions());
+  try {
+    const page = await browser.newPage({ viewport: { width, height } });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(url);
+    await page.waitForFunction(() => window.__fakeHaReady || window.__fakeHaProblem, null, { timeout: 15000 });
+    const problem = await page.evaluate(() => window.__fakeHaProblem ?? null);
+    if (problem) throw new Error(`${url}: ${problem}`);
+    const result = await task(page);
+    if (errors.length) throw new Error(`${url} reported: ${errors.join("; ")}`);
+    return result;
+  } finally {
+    await browser.close();
+  }
+}
 
 /**
  * Draw a dashboard page the fake Home Assistant serves and save it. Playwright is the repo's own (the clean app never

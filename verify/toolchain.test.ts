@@ -52,7 +52,7 @@ describe("the pinned npm", () => {
     expect(setup, "setup-node's npm cache runs the bundled npm before Corepack").not.toMatch(/^\s+cache: npm\s*$/m);
     expect(setup.match(/run: npm ci\b/g)?.length, "one install, after Corepack").toBe(1);
 
-    for (const path of [".github/workflows/ci.yml", ".github/workflows/docs.yml"]) {
+    for (const path of [".github/workflows/ci.yml", ".github/workflows/docs.yml", ".github/workflows/release.yml"]) {
       const workflow = read(path);
       expect(workflow.match(/uses: \.\/\.github\/actions\/setup$/gm)?.length ?? 0, `${path} installs through the setup action`).toBeGreaterThan(0);
       expect(workflow, `${path} sets Node up only through the setup action`).not.toMatch(/uses: actions\/setup-node@/);

@@ -40,6 +40,19 @@ describe("FakeHomeAssistant", () => {
     expect(await ha.send("lovelace/dashboards/list")).toMatchObject([{ url_path: "home-orb", title: "Renamed" }]);
   });
 
+  it("answers a create with the new item and deletes a dashboard with its layout, never reusing its id", async () => {
+    const ha = new FakeHomeAssistant();
+    const created = await ha.send("lovelace/dashboards/create", { url_path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", mode: "storage" });
+    expect(created).toMatchObject({ id: "dashboard-1", url_path: "home-orb", mode: "storage" });
+    await ha.send("lovelace/config/save", { url_path: "home-orb", config: { views: [] } });
+
+    await ha.send("lovelace/dashboards/delete", { dashboard_id: "dashboard-1" });
+    expect(ha.dashboards).toEqual([]);
+    expect(ha.saved).toEqual([]);
+    await expect(ha.send("lovelace/dashboards/delete", { dashboard_id: "dashboard-1" })).rejects.toThrow("Unable to find");
+    expect(await ha.send("lovelace/dashboards/create", { url_path: "home-orb", title: "Again" })).toMatchObject({ id: "dashboard-2" });
+  });
+
   it("saves and reads a layout, replacing the same url_path", async () => {
     const ha = new FakeHomeAssistant();
     const config = { views: [{ type: "panel", cards: [{ type: "custom:dashhaus-orb" }] }] };

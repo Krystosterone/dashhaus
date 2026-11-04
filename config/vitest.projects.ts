@@ -17,7 +17,7 @@ const project = (name: string, include: string[], environment: "jsdom" | "node" 
 });
 
 export const projects = [
-  project("root", ["src/**/*.test.{ts,tsx}", "verify/tokens.test.ts", "docs/examples/**/*.test.{ts,tsx}"]),
+  project("root", ["src/**/*.test.{ts,tsx}", "apps/**/*.test.ts", "verify/tokens.test.ts", "docs/examples/**/*.test.{ts,tsx}"]),
   project("checks", ["verify/**/*.test.{ts,tsx}"], "node", { exclude: ["verify/tokens.test.ts"] }),
   project("generators", ["scripts/*/*.test.ts"], "node", { pool: "forks" }),
   project("core", ["packages/core/src/**/*.test.{ts,tsx}"]),

@@ -33,7 +33,7 @@ packages/
 src/skins/
   orb/                   @dashhaus/orb: cards/, shared/, bundles/, dashboards/, ha/, lovelace/, styles/
   field/                 @dashhaus/field: the same shape, without bundles
-apps/lovelace/entry.ts   the bundle's entry: both skins' Lovelace cards in one file
+apps/lovelace/           the bundle: entry.ts (both skins' Lovelace cards in one file) and setup.ts (the setup card)
 verify/                  checks across packages and skins: boundaries, conformance, Storybook, releases, docs
 scripts/                 the generators (new-card, new-skin), builds, release and perf tooling
 spec/                    the specification the code is held to, for maintainers and agents
@@ -70,9 +70,11 @@ can't be fetched, `DASHHAUS_CHROMIUM=/path/to/chromium` points them at a Chromiu
 3. A look in Storybook at the cards you touched: their All states, Sizes, Footprints, Compact, Worst case and Details
    stories, at every width.
 
-CI runs the first two on every push and pull request, and packs the release to run the two clean-room journeys from
-the tarballs alone: [deploying the bundle](/dashhaus/start/deploy/) and [building a skin](/dashhaus/start/build-a-skin/),
-into a simulated Home Assistant.
+CI runs the first two on every push and pull request, and packs the release to run the clean-room journeys from the
+tarballs alone, one for each way in but this one: [installing from the Marketplace](/dashhaus/start/install/) and
+pressing the setup card's Create, [deploying from the command line](/dashhaus/start/deploy/),
+[building a skin](/dashhaus/start/build-a-skin/) and [using the hooks](/dashhaus/start/getting-started/), against a
+simulated Home Assistant. `spec/journeys.md` lists them, and a check fails when one loses its page or its proof.
 
 ## The docs' code samples
 

@@ -66,11 +66,12 @@ jobs:
       # verify/projects.test.ts holds every generator suite to exactly one shard, so a new one can't be left out.
       - run: npx vitest run --config config/vitest.config.ts --maxWorkers=2 ${{ matrix.files }}
 
-  # The release proof and the two consumer journeys from freshly packed tarballs, never the workspace: the skin user
-  # installs only the prebuilt bundle and the deploy CLI, the skin author scaffolds, tests, builds and deploys a
-  # standalone skin, then opens and closes the generated cards' details in Chromium. Both run the packed deploy bin over
-  # a websocket into the fake Home Assistant in verify/dx/, so this lane needs no live instance; the skin's own install
-  # reaches the registry for React, Vite and TypeScript.
+  # The release proof and the consumer journeys (spec/journeys.md) from freshly packed tarballs, never the workspace:
+  # the user installs the bundle's dashhaus.js as the Marketplace does and presses the setup card's Create in Chromium,
+  # or installs only the bundle and the deploy CLI; the skin author scaffolds, tests, builds and deploys a standalone
+  # skin, then opens and closes the generated cards' details in Chromium; the developer installs core alone and draws a
+  # light through its hook. All run against the fake Home Assistant in verify/dx/, so this lane needs no live instance;
+  # the skin's and the developer's installs reach the registry for React, Vite and TypeScript.
   dx:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -81,8 +82,10 @@ jobs:
           chromium: "true"
       - run: npm run release:pack
       - run: npm run verify:packages
+      - run: node verify/dx/marketplace.js
       - run: node verify/dx/user.js
       - run: node verify/dx/author.js
+      - run: node verify/dx/developer.js
 
   # The runner splits by suite; each shard builds the same static site (in Storybook's test mode, without the docs
   # pages, which the Docs workflow builds) and runs its half.

@@ -71,18 +71,21 @@ It prints `HA_URL`, `HA_TOKEN` and `HA_WWW` once listening.
 | `/api/` | `{"message":"API running."}` and `/api/config` the version and unit system |
 | `/api/states`, `/api/states/<entity_id>` | the house's states |
 | `/api/fake/state` | resources, dashboards, saved layouts and the command log, as JSON |
+| `/api/fake/lovelace` | `POST` one `lovelace/*` command from a dashboard page; anything else is refused |
 | `/local/<path>` | files under `www`, refusing a path outside it |
 | `/` | a sidebar listing the dashboards a deploy created |
 | `/<url_path>` | a dashboard: its resources loaded as modules, its saved first card configured on the fake house |
 
-The REST reads want `Authorization: Bearer <token>`. `/api/fake/state`, `/local/`, `/` and the dashboard pages are open.
+The REST reads want `Authorization: Bearer <token>`. `/api/fake/state`, `/api/fake/lovelace`, `/local/`, `/` and the
+dashboard pages are open.
 
 ### Websocket commands
 
 `FakeHomeAssistant.send` answers:
 
 - `lovelace/resources`, `lovelace/resources/create`, `lovelace/resources/update`
-- `lovelace/dashboards/list`, `lovelace/dashboards/create`, `lovelace/dashboards/update`
+- `lovelace/dashboards/list`, `lovelace/dashboards/create` (answering with the new item), `lovelace/dashboards/update`,
+  `lovelace/dashboards/delete`
 - `lovelace/config`, `lovelace/config/save`
 - `get_states`, `call_service`
 - `config/entity_registry/list_for_display`, `config/device_registry/list`, `config/area_registry/list`
@@ -129,5 +132,7 @@ that records what a driver asked for, for a test that injects the fake instead o
 - Auth is one long-lived token compared as a string; no users, refresh tokens or permissions.
 - The websocket implementation handles text frames and client close/ping, not binary, compression or server pings.
 - The dashboard page loads the saved first view's first card and serves `subscribe_entities`, light/switch
-  `call_service` and empty history/recorder answers from the page.
+  `call_service` and empty history/recorder answers from the page; its `lovelace/*` commands go to the server, so a
+  card such as Dashhaus's setup card can create dashboards. Its `hass.user` is an administrator unless the address
+  says `?admin=false`.
 - `/local/` serves files only; no directory listings, gzip or range requests. The REST API is read-only.

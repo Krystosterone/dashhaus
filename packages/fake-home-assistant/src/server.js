@@ -14,6 +14,8 @@
  *                    fake house, through an in-page connection, so a deployed skin can be looked at and screenshotted
  *   /api/, /api/config, /api/states[/<id>]  the REST reads, with the bearer token
  *   /api/fake/state  what deploy left behind (resources, dashboards, saved layouts, the command log), as JSON
+ *   /api/fake/lovelace  POST one `lovelace/*` command from a dashboard page, which the frontend would send over its
+ *                    authenticated websocket: how a card such as the setup card creates dashboards from the page
  *
  * `--state` also writes that JSON to a file after every command. The www folder defaults to a new temporary one.
  */
@@ -43,7 +45,8 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
     const url = new URL(request.url ?? "/", `http://${request.headers.host}`);
     const path = decodeURIComponent(url.pathname);
     if (path === "/favicon.ico") return send(response, 204, "image/x-icon", "");
-    if (path.startsWith("/api/") && path !== "/api/fake/state") {
+    if (path === "/api/fake/lovelace") return request.method === "POST" ? pageCommand(ha, request, response, persist) : send(response, 405, "text/plain", "POST a command");
+    if (path.startsWith("/api/") && !path.startsWith("/api/fake/")) {
       // The REST API answers what a real one does for a read: a bearer token, then JSON.
       if (request.headers.authorization !== `Bearer ${token}`) return send(response, 401, "text/plain", "401: Unauthorized");
       if (path === "/api/") return send(response, 200, "application/json", JSON.stringify({ message: "API running." }));
@@ -129,6 +132,34 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
     for (const socket of sockets) socket.destroy();
   }));
   return { ha, settings, close };
+}
+
+/**
+ * One `lovelace/*` command from a dashboard page, answered as the websocket would: `{ success, result }` or
+ * `{ success: false, error: { code, message } }`. Anything else is refused, so the page cannot change the house.
+ */
+function pageCommand(ha, request, response, persist) {
+  const chunks = [];
+  request.on("data", (chunk) => chunks.push(chunk));
+  request.on("end", async () => {
+    let message;
+    try {
+      message = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    } catch {
+      return send(response, 400, "application/json", JSON.stringify({ success: false, error: { code: "invalid_format", message: "Not JSON" } }));
+    }
+    const { type, ...payload } = message ?? {};
+    if (typeof type !== "string" || !type.startsWith("lovelace/")) {
+      return send(response, 200, "application/json", JSON.stringify({ success: false, error: { code: "unknown_command", message: `Unknown command ${type}` } }));
+    }
+    try {
+      const result = await ha.send(type, payload);
+      send(response, 200, "application/json", JSON.stringify({ success: true, result: result ?? null }));
+    } catch (error) {
+      send(response, 200, "application/json", JSON.stringify({ success: false, error: { code: "unknown_command", message: error?.message ?? String(error) } }));
+    }
+    persist();
+  });
 }
 
 /** A state as `subscribe_entities` sends it. */
@@ -224,8 +255,9 @@ function sidebar(ha) {
 
 /**
  * A dashboard as the frontend would draw a panel view: every module resource loaded, then the view's first card
- * created, configured and handed a `hass` whose connection answers `subscribe_entities` from the fake house and
- * applies `light/switch` toggles, so a press on a deployed card changes it.
+ * created, configured and handed a `hass` whose connection answers `subscribe_entities` from the fake house,
+ * applies `light/switch` toggles, so a press on a deployed card changes it, and sends `lovelace/*` commands to the
+ * server, as an administrator unless the address says `?admin=false`.
  */
 function dashboardPage(ha, dashboard) {
   const saved = ha.saved.find((entry) => entry.url_path === dashboard.url_path)?.config;
@@ -273,13 +305,20 @@ const connection = {
       for (const listener of listeners) listener({ c: { [id]: { "+": { s: next, a: attributes, lc: Date.now() / 1000 } } } });
       return { context: { id: "fake" } };
     }
+    if (message.type.startsWith("lovelace/")) {
+      const answer = await (await fetch("/api/fake/lovelace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(message) })).json();
+      if (!answer.success) throw answer.error;
+      return answer.result;
+    }
     if (message.type.startsWith("history/")) return {};
     if (message.type.startsWith("recorder/")) return {};
     return null;
   },
   close() {},
 };
-const hass = () => ({ connection, states: { ...states }, ...data.registries, themes: { darkMode: false }, panels: {} });
+// The person looking is an administrator unless the address says ?admin=false.
+const user = { id: "fake-user", name: "Fake", is_admin: new URLSearchParams(location.search).get("admin") !== "false" };
+const hass = () => ({ connection, states: { ...states }, ...data.registries, user, themes: { darkMode: false }, panels: {} });
 try {
   if (!data.card) throw new Error("This dashboard has no saved card.");
   for (const url of data.resources) await import(url);

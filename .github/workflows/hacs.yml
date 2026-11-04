@@ -1,0 +1,25 @@
+name: HACS
+
+# The Home Assistant Marketplace and HACS validate a dashboard plugin with the same action: hacs.json, the release
+# carrying dashhaus.js, the README, the repository's description and topics. It reads the repository through GitHub's
+# public API, so it can only pass once the repository is public; until then the job skips itself and the run stays
+# green, and making the repository public turns it on. spec/release.md → The Marketplace.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hacs:
+    if: github.event.repository.visibility == 'public'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hacs/action@main
+        with:
+          category: plugin

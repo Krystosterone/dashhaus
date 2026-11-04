@@ -1,0 +1,44 @@
+name: Release
+
+# A published GitHub release gets the Lovelace bundle as its asset, dashhaus.js, built from the release's tag: the file
+# the Home Assistant Marketplace and HACS install. Publishing the release (and its tag) stays the operator's step,
+# spec/release.md → The Marketplace; this only attaches what the tag builds, so the asset can never differ from it.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The existing release's tag to build and attach dashhaus.js to
+        required: true
+
+env:
+  # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  asset:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          # git describe names the build in the bundle's console line.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - run: npm run build:ha
+      # The Marketplace takes the release's tag as the version and the asset named after the repository as the file.
+      - name: Check the tag is the packages' version
+        run: test "${TAG#v}" = "$(node -p "require('./packages/bundle/package.json').version")"
+      - name: Attach dashhaus.js
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" dist/dashhaus.js --clobber
