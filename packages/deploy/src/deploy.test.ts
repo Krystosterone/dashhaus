@@ -263,6 +263,22 @@ export default {
     expect(ha.saved).toHaveLength(1);
   });
 
+  it("warns when another copy of the bundle is registered too, as a Marketplace install's", async () => {
+    const directory = await project();
+    const ha = new FakeHomeAssistant();
+    ha.resources.push({ id: "resource-hacs", url: "/local/community/dashhaus/dashhaus.js?hacstag=1" });
+    const messages: string[] = [];
+    await deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      warn: (message) => messages.push(message),
+      connect: async () => ha,
+    });
+    expect(messages.some((message) => message.includes("Another dashhaus.js is also registered (/local/community/dashhaus/dashhaus.js)"))).toBe(true);
+  });
+
   it("refuses a deploy without the settings .env must hold", async () => {
     const directory = await project();
     await expect(deploy({

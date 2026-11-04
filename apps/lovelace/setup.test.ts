@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SETUP_DASHBOARDS } from "./dashboards";
-import { NOT_ADMIN, YAML_MODE, defineSetupCard, panelView, provision } from "./setup";
+import { NOT_ADMIN, YAML_MODE, defineSetupCard, provision } from "./setup";
 import type { SetupDashboard, SetupHass } from "./setup";
 
 type Message = { type: string } & Record<string, unknown>;
@@ -58,8 +58,10 @@ describe("provision", () => {
       show_in_sidebar: true,
       require_admin: false,
     });
-    expect(ha.saved["setup-orb"]).toEqual(panelView({ type: "custom:setup-test-orb", title: "Flat" }, "Flat"));
-    expect(ha.saved["setup-field"]).toEqual(panelView({ type: "custom:setup-test-field", title: "Flat" }, "Flat"));
+    // The same panel view the deploy CLI saves (its test pins the same shape), so both installs end alike.
+    const panel = (type: string) => ({ views: [{ title: "Flat", path: "home", type: "panel", cards: [{ type, title: "Flat" }] }] });
+    expect(ha.saved["setup-orb"]).toEqual(panel("custom:setup-test-orb"));
+    expect(ha.saved["setup-field"]).toEqual(panel("custom:setup-test-field"));
   });
 
   it("leaves an existing dashboard alone: no rename, no save, no delete", async () => {

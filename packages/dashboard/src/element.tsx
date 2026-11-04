@@ -1,4 +1,3 @@
-import { Component } from "react";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
@@ -8,6 +7,7 @@ import { createHaStore } from "@dashhaus/core";
 import { createHomeAssistantTransport } from "@dashhaus/core/websocket";
 import type { HaStore, HassEntities } from "@dashhaus/core";
 import { perfMark, perfMarkAfterPaint } from "@dashhaus/core/perf";
+import { ErrorBoundary } from "./errorBoundary";
 
 /** Registry facts per entity: the shape of the frontend's `hass.entities`. */
 export interface AutoEntityEntry {
@@ -43,17 +43,6 @@ function loadFont(href: string) {
   link.rel = "stylesheet";
   link.href = href;
   document.head.append(link);
-}
-
-/** Shows what stopped the card instead of a blank page. */
-class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
-  state: { error?: Error } = {};
-  static getDerivedStateFromError(error: Error) { return { error }; }
-  render() {
-    return this.state.error
-      ? <div className="hd-config-error" role="alert">Dashhaus stopped: {this.state.error.message}</div>
-      : this.props.children;
-  }
 }
 
 /**
@@ -141,7 +130,7 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
     if (first) void this.#store.connect().catch(() => undefined);
     this.#root ??= createRoot(this.#mount);
     this.#root.render(
-      <ErrorBoundary>
+      <ErrorBoundary config={config}>
         <HaProvider store={this.#store}>{this.draw(config, hass)}</HaProvider>
       </ErrorBoundary>,
     );
