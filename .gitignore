@@ -6,6 +6,7 @@ dist/
 docs/.astro/
 storybook-static/
 /release/
+/registry/
 
 # Local performance reports (`npm run perf:collect`)
 /perf/reports/

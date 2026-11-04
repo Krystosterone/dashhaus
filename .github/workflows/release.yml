@@ -1,23 +1,25 @@
 name: Release
 
-# A published GitHub release gets the Lovelace bundle as its asset, dashhaus.js, built from the release's tag: the file
-# the Home Assistant Marketplace and HACS install. Publishing the release (and its tag) stays the operator's step,
-# spec/release.md → The Marketplace; this only attaches what the tag builds, so the asset can never differ from it.
+# A published GitHub release ships everything its tag builds: dashhaus.js as the release's asset, the file the Home
+# Assistant Marketplace and HACS install, and the seven public packages on npm. Publishing the release (and its tag)
+# stays the operator's step, spec/release.md → Publishing; this only ships what the tag builds, so neither can differ
+# from it. Rerunning it, or dispatching it for an existing tag, is safe: the asset is replaced with the same bytes and
+# a version already on npm is skipped.
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       tag:
-        description: The existing release's tag to build and attach dashhaus.js to
+        description: The existing release's tag to build, attach dashhaus.js to and publish to npm
         required: true
 
 env:
   # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
-# Read-only by default: the build runs the repository's install and scripts, so only the job that uploads the built
-# file gets to write, and it runs none of them.
+# Read-only by default: the build runs the repository's install and scripts, so only the jobs that ship what it built
+# get to write, and they run none of them.
 permissions:
   contents: read
 
@@ -27,6 +29,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
@@ -41,14 +44,28 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           cache: "false"
-      - run: npm run build:ha
-      # The Marketplace takes the release's tag as the version and the asset named after the repository as the file.
+      # The Marketplace takes the release's tag as the version and the asset named after the repository as the file;
+      # npm takes the manifests' version. They must be the same.
       - name: Check the tag is the packages' version
         run: test "${TAG#v}" = "$(node -p "require('./packages/bundle/package.json').version")"
+      - run: npm run build:ha
+      - run: npm run release:pack
+      # The tarballs about to be published, installed into a clean app, as CI's dx lane does on every push.
+      - run: npm run verify:packages
+      # One build for both stores: the Marketplace's dashhaus.js is the file inside @dashhaus/bundle.
+      - name: Check the asset is the bundle package's file
+        run: cmp dist/dashhaus.js packages/bundle/dist/dashhaus.js
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dashhaus.js
           path: dist/dashhaus.js
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: packages
+          path: |
+            release/*.tgz
+            release/publish.tsv
           if-no-files-found: error
 
   attach:
@@ -67,3 +84,71 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$TAG" dist/dashhaus.js --clobber --repo "$GITHUB_REPOSITORY"
+
+  # npm trusted publishing: npm accepts this workflow's OIDC identity in place of a token, so there is no npm token
+  # secret and no 2FA prompt, and every version carries a provenance attestation naming this repository, workflow and
+  # commit. Each package's trusted publisher on npmjs.com names this repository, `release.yml` and the `npm`
+  # environment (spec/release.md → Publishing). The job checks out the tag only for .nvmrc, the pinned npm and the
+  # setup action; it installs nothing and runs none of the repository's scripts, only `npm publish` on the tarballs the
+  # build packed.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          install: "false"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: packages
+          path: release
+      # In publish.tsv's order, so every internal range resolves the moment it is published. A version npm already has
+      # is skipped, so a run that stopped halfway finishes on a rerun; npm never lets a version be published twice.
+      - name: Publish to npm
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r name version file; do
+            if [ "$(npm view "$name@$version" version 2>/dev/null || true)" = "$version" ]; then
+              echo "$name@$version is already on npm; skipped"
+              continue
+            fi
+            # A prerelease never becomes what `npm install <name>` resolves.
+            tag=latest
+            case "$version" in *-*) tag=next ;; esac
+            npm publish "./release/$file" --provenance --ignore-scripts --tag "$tag"
+          done < release/publish.tsv
+
+  # The registry smoke: what npm now serves is byte for byte what the tag packed, and the clean-room journeys pass from
+  # it. Read-only, like the build.
+  registry:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          chromium: "true"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: packages
+          path: release
+      - run: npm run release:registry -- "$TAG" --out registry --compare release
+      - run: node verify/dx/marketplace.js --tarballs registry
+      - run: node verify/dx/user.js --tarballs registry
+      - run: node verify/dx/author.js --tarballs registry
+      - run: node verify/dx/developer.js --tarballs registry

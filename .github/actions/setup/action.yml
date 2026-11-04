@@ -12,6 +12,11 @@ inputs:
   chromium:
     description: Install the pinned Playwright's Chromium headless shell.
     default: "false"
+  install:
+    description: >-
+      "false" sets up Node and the pinned npm only: no cache, no install, none of the repository's scripts. The release's
+      publish job passes it, since it only runs `npm publish` on tarballs another job built.
+    default: "true"
   cache:
     description: >-
       "false" restores no cache and installs from the lockfile alone. The release build passes it: any job that runs
@@ -35,7 +40,7 @@ runs:
     # The tool caches live under node_modules/.cache but change on every commit, so they are left out of this cache,
     # whose key only moves with the manifests, and kept in their own below.
     - name: Restore node_modules
-      if: inputs.cache != 'false'
+      if: inputs.cache != 'false' && inputs.install != 'false'
       id: modules
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
@@ -44,14 +49,14 @@ runs:
           !node_modules/.cache
         key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
     - name: Restore npm's downloads
-      if: inputs.cache != 'false' && steps.modules.outputs.cache-hit != 'true'
+      if: inputs.cache != 'false' && inputs.install != 'false' && steps.modules.outputs.cache-hit != 'true'
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/.npm
         key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
         restore-keys: npm-${{ runner.os }}-
     - name: Install
-      if: steps.modules.outputs.cache-hit != 'true'
+      if: inputs.install != 'false' && steps.modules.outputs.cache-hit != 'true'
       shell: bash
       run: npm ci --no-audit --no-fund
 

@@ -42,7 +42,8 @@
     "release:version": "node scripts/release/version.js",
     "release:pack": "node scripts/release/pack.js",
     "release:check": "npm run release:pack && npm run verify:packages",
-    "verify:packages": "node scripts/release/verify.js"
+    "verify:packages": "node scripts/release/verify.js",
+    "release:registry": "node scripts/release/registry.js"
   },
   "dependencies": {
     "home-assistant-js-websocket": "9.7.1",

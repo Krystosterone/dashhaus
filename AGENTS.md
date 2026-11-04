@@ -38,7 +38,7 @@ One word per thing, the same in code, Storybook and the docs.
 - `npm run build:ha` — the Lovelace card as one file, `dist/dashhaus.js`, also copied to `packages/bundle/dist/`
 - `npm run build:packages` — every public package's `dist`; the workspace keeps reading source (`spec/release.md`)
 - `npm run docs` — the documentation site's dev server; `build:docs` builds it to `docs/dist/` with Storybook under `docs/dist/storybook/`
-- `npm run release:version -- <x.y.z>` (then `npm install --package-lock-only`), `release:pack`, `verify:packages`, and `release:check` for pack then verify (`spec/release.md`)
+- `npm run release:version -- <x.y.z>` (then `npm install --package-lock-only`), `release:pack`, `verify:packages`, `release:check` for pack then verify, and `release:registry -- <x.y.z>` to check what npm serves; publishing a GitHub release publishes the packages (`spec/release.md` → Publishing)
 - `npm run deploy [-- …]` — the `@dashhaus/deploy` CLI over `dashboard.config.mjs` and the `.env` beside it (`spec/deploy.md`)
 - `npm run perf:collect` — measure the deployed dashboards against the live Home Assistant (`spec/performance.md`)
 - `npm run new-card -- <name> --code <xx> --domain <ha_domain> [--kind control|reading]` — scaffold and register a new card (see Adding a card)

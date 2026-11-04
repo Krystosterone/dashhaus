@@ -71,6 +71,32 @@ describe("the pinned npm", () => {
     expect(restores).toHaveLength(2);
     for (const step of restores) expect(step, "each install cache is skipped when cache is false").toMatch(/if: inputs\.cache != 'false'/);
   });
+
+  it("publishes to npm with no token, from the build's tarballs, running none of the repository's scripts", () => {
+    // spec/release.md → Publishing: trusted publishing, so the only credential is the publish job's own OIDC identity.
+    const release = read(".github/workflows/release.yml");
+    const jobs = Object.fromEntries(
+      release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
+    );
+    expect(Object.keys(jobs)).toEqual(["build", "attach", "publish", "registry"]);
+    expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./);
+    for (const [name, job] of Object.entries(jobs)) {
+      expect(job.includes("id-token: write"), `${name} ${name === "publish" ? "is" : "is not"} the job npm trusts`).toBe(name === "publish");
+      expect(job.includes("contents: write"), `${name} ${name === "attach" ? "is" : "is not"} the job that writes the release`).toBe(name === "attach");
+    }
+    const publish = jobs.publish;
+    expect(publish, "npm's trusted publisher names this environment").toMatch(/^ {4}environment: npm$/m);
+    expect(publish, "the publish job only needs Node and npm").toMatch(/uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+install: "false"/);
+    expect(publish, "it publishes in the pack's order").toContain("done < release/publish.tsv");
+    expect(publish, "a tarball's own lifecycle scripts never run").toMatch(/npm publish "\.\/release\/\$file" [^\n]*--ignore-scripts/);
+    expect(publish, "its only run step is the publish").not.toMatch(/run: (?!\|)/);
+    expect(jobs.registry, "the registry smoke checks npm against the build's tarballs").toContain("--compare release");
+
+    const setup = read(".github/actions/setup/action.yml").split(/^\s+- /m).slice(1);
+    for (const step of setup.filter((step) => /^name: (?:Restore node_modules|Restore npm's downloads|Install)$/m.test(step))) {
+      expect(step, "install: false skips every install step").toMatch(/inputs\.install != 'false'/);
+    }
+  });
 });
 
 /** Whether Node `version` (`22.23.4`) satisfies an `engines.node` range, in the forms the lockfile uses. */

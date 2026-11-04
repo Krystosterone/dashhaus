@@ -29,6 +29,22 @@ export const publicPackages = [
   { key: "scaffold", name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", ship: ["dist", "bin.js", "README.md"] },
 ];
 
+/** The file `npm pack` writes for a package version: `@dashhaus/core` 0.2.0 → `dashhaus-core-0.2.0.tgz`. */
+export function tarballName(name, version) {
+  return `${name.replace(/^@/, "").replace("/", "-")}-${version}.tgz`;
+}
+
+/**
+ * The publish order `release:pack` writes beside the tarballs, one `name\tversion\tfile` line per package in
+ * `publicPackages` order, so every internal range resolves. The Release workflow's publish job reads it with the shell
+ * alone, running none of the repository's scripts.
+ */
+export const PUBLISH_ORDER = "publish.tsv";
+
+export function publishOrder(packed) {
+  return packed.map(({ name, version }) => `${name}\t${version}\t${tarballName(name, version)}\n`).join("");
+}
+
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 /** Every public package declares this license, and its tarball ships the root LICENSE. */
 export const LICENSE = "MIT";

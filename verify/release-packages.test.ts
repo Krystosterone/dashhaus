@@ -7,7 +7,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LICENSE, publicPackages, publishManifest } from "../scripts/release/manifest.js";
+import { LICENSE, publicPackages, publishManifest, publishOrder, tarballName } from "../scripts/release/manifest.js";
 import type { PackageManifest } from "../scripts/release/manifest.js";
 
 const root = process.cwd();
@@ -120,6 +120,21 @@ describe("public packages", () => {
     expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
     expect(() => publishManifest({ ...manifests.core, exports: { ".": { import: "./src/index.ts", default: "./src/index.ts" } } }))
       .toThrow(/built dist files/);
+  });
+
+  it("names each tarball as npm pack does and orders the publish by dependency", () => {
+    expect(tarballName("@dashhaus/core", "0.3.0")).toBe("dashhaus-core-0.3.0.tgz");
+    expect(tarballName("create-dashhaus-skin", "0.3.0-rc.1")).toBe("create-dashhaus-skin-0.3.0-rc.1.tgz");
+    const lines = publishOrder(publicPackages.map(({ name }) => ({ name, version: "0.3.0" }))).trimEnd().split("\n");
+    expect(lines.map((line) => line.split("\t"))).toEqual(publicPackages.map(({ name }) => [name, "0.3.0", tarballName(name, "0.3.0")]));
+    // Every internal dependency is published before the package that ranges on it.
+    const order = publicPackages.map(({ name }) => name);
+    for (const pkg of publicPackages) {
+      const manifest = manifests[pkg.key];
+      for (const dependency of Object.keys({ ...manifest.dependencies, ...manifest.peerDependencies })) {
+        if (order.includes(dependency)) expect(order.indexOf(dependency), `${pkg.name} after ${dependency}`).toBeLessThan(order.indexOf(pkg.name));
+      }
+    }
   });
 
   it("declares MIT in every public manifest", () => {

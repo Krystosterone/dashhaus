@@ -2,8 +2,8 @@
  * Build and pack the seven public packages: `npm run release:pack [-- --out release]`.
  *
  * npm packs a staged copy holding only the files the package ships and its release manifest (no `private`, no
- * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts; publishing is the
- * operator's call. The build output is `packages/{core,dashboard}/dist`; deploy already runs from its `.js` sources.
+ * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts, and `publish.tsv`
+ * beside them is the order the Release workflow publishes them in (spec/release.md → Publishing). The build output is `packages/{core,dashboard}/dist`; deploy already runs from its `.js` sources.
  */
 import { execFileSync } from "node:child_process";
 import { copyFile, cp, mkdir, mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { buildBundlePackage } from "../build-bundle.js";
 import { buildPackages } from "../build-packages.js";
-import { publicPackages, publishManifest, readManifest, root } from "./manifest.js";
+import { PUBLISH_ORDER, publicPackages, publishManifest, publishOrder, readManifest, root, tarballName } from "./manifest.js";
 
 const outIndex = process.argv.indexOf("--out");
 const out = resolve(root, outIndex === -1 ? "release" : process.argv[outIndex + 1] ?? "release");
@@ -50,7 +50,7 @@ export async function pack(outDir = out, buildRoot = root) {
   await buildBundlePackage(buildRoot);
   await mkdir(outDir, { recursive: true });
   for (const file of await readdir(outDir)) {
-    if (file.endsWith(".tgz")) await rm(join(outDir, file), { force: true });
+    if (file.endsWith(".tgz") || file === PUBLISH_ORDER) await rm(join(outDir, file), { force: true });
   }
 
   const stageRoot = await mkdtemp(join(tmpdir(), "dashhaus-pack-"));
@@ -64,11 +64,12 @@ export async function pack(outDir = out, buildRoot = root) {
       await copyFile(join(root, "LICENSE"), join(stage, "LICENSE"));
       await stageFiles(stage, pkg.dir, pkg.ship, buildRoot);
       execFileSync("npm", ["pack", "--pack-destination", outDir, "--silent"], { cwd: stage, stdio: "inherit" });
-      const tarball = join(outDir, `${manifest.name.replace(/^@/, "").replace("/", "-")}-${manifest.version}.tgz`);
+      const tarball = join(outDir, tarballName(manifest.name, manifest.version));
       const { size } = await stat(tarball);
       packed.push({ package: manifest.name, version: manifest.version, tarball, size });
       console.log(`${manifest.name}@${manifest.version} → ${tarball} (${(size / 1024).toFixed(1)} KiB)`);
     }
+    await writeFile(join(outDir, PUBLISH_ORDER), publishOrder(packed.map(({ package: name, version }) => ({ name, version }))));
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
   }
