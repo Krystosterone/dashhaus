@@ -1,0 +1,132 @@
+---
+/**
+ * Why someone would pick Dashhaus over Home Assistant's own dashboards, in three claims the skins keep and their tests
+ * hold, said for the person installing it. The full case is the Why page.
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const REASONS = [
+  {
+    name: "It holds still",
+    text: "A card never changes height when its state changes, so nothing jumps when a light turns on. The same dashboard reads on a phone in your hand and a wall panel across the room.",
+  },
+  {
+    name: "It lays itself out",
+    text: "With no YAML at all, it groups your house by area and keeps up as you add devices. When you want your own order, you write it in Home Assistant's own editor.",
+  },
+  {
+    name: "It stays in your house",
+    text: "It uses Home Assistant's own signed-in connection: there's no token in it and no account to make. Free and open source, under the MIT licence.",
+  },
+] as const;
+---
+
+<section class="why not-content" aria-labelledby="why">
+  <h2 id="why">Why Dashhaus</h2>
+  <ul>
+    {
+      REASONS.map(({ name, text }) => (
+        <li>
+          <strong>{name}</strong>
+          <p>{text}</p>
+        </li>
+      ))
+    }
+  </ul>
+  <a class="more" href={`${base}/why/`}>
+    The whole case
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+      <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </a>
+</section>
+
+<style>
+  .why {
+    --pad: clamp(1rem, 4vw, 3rem);
+    width: min(100vw, 84rem);
+    margin: clamp(6rem, 12vh, 10rem) calc(50% - min(50vw, 42rem)) 0;
+    padding-inline: var(--pad);
+  }
+
+  h2 {
+    margin: 0 0 2.5rem;
+    font-family: var(--home-display);
+    font-size: clamp(2rem, 1rem + 2.6vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--sl-color-white);
+  }
+
+  ul {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 3rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    padding-top: 1.25rem;
+    border-top: 3px solid var(--sl-color-accent);
+  }
+
+  strong {
+    display: block;
+    font-family: var(--home-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    color: var(--sl-color-white);
+  }
+
+  p {
+    max-width: 40ch;
+    margin: 0.5rem 0 0;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--sl-color-gray-2);
+  }
+
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 2.5rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+    text-decoration: none;
+  }
+
+  .more svg {
+    color: var(--sl-color-accent);
+    transition: transform 160ms var(--home-ease);
+  }
+
+  .more:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .more:hover svg {
+      transform: translateX(4px);
+    }
+  }
+
+  @media (max-width: 50rem) {
+    ul {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .more svg {
+      transition: none;
+    }
+  }
+</style>

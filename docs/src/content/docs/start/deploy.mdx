@@ -16,13 +16,6 @@ into Home Assistant and creates a dashboard for each skin. After that you change
 CI runs these steps on every change to Dashhaus: it packs the release, installs only `@dashhaus/bundle` and
 `@dashhaus/deploy` into an empty folder, writes this config and deploys it into a simulated Home Assistant.
 
-<Aside type="caution" title="Not on npm yet">
-  The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
-  then, install the release tarballs by path in step 1 (`npm install ./dashhaus-bundle-0.2.0.tgz
-  ./dashhaus-deploy-0.2.0.tgz`), or deploy from a clone of the
-  [repository](https://github.com/Krystosterone/dashhaus) with `npm install` and `npm run deploy`.
-</Aside>
-
 ## What you need
 
 - Home Assistant with an admin user.

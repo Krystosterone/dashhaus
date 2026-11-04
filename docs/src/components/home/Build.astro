@@ -1,0 +1,144 @@
+---
+/**
+ * The three ways in after the user's, in spec/journeys.md's order: the author, the developer and the contributor. One
+ * line each and a link; the code is on their own pages, never on this one.
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const WAYS = [
+  {
+    href: `${base}/start/build-a-skin/`,
+    name: "Build a skin",
+    text: "A whole look of your own on the same hooks: scaffolded with tests, built to one file and deployed like Orb and Field.",
+  },
+  {
+    href: `${base}/start/getting-started/`,
+    name: "Use the hooks in your app",
+    text: "@dashhaus/core in your own React app: every entity as a plain model and its actions, no skin needed.",
+  },
+  {
+    href: `${base}/develop/monorepo/`,
+    name: "Contribute",
+    text: "Change Orb or Field, draw a new kind of entity for both, or improve the packages.",
+  },
+] as const;
+---
+
+<section class="build not-content" aria-labelledby="build">
+  <h2 id="build">Make it yours</h2>
+  <ul>
+    {
+      WAYS.map(({ href, name, text }) => (
+        <li>
+          <a href={href}>
+            <span class="name">
+              {name}
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span class="text">{text}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .build {
+    --pad: clamp(1rem, 4vw, 3rem);
+    width: min(100vw, 84rem);
+    margin: clamp(6rem, 12vh, 10rem) calc(50% - min(50vw, 42rem)) 0;
+    padding-inline: var(--pad);
+  }
+
+  h2 {
+    margin: 0 0 2.5rem;
+    font-family: var(--home-display);
+    font-size: clamp(2rem, 1rem + 2.6vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--sl-color-white);
+  }
+
+  ul {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 1.5rem 1.5rem 1.75rem;
+    border-radius: 1.5rem;
+    background: var(--home-tone);
+    color: var(--sl-color-white);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 160ms var(--home-ease),
+      transform 160ms var(--home-ease);
+  }
+
+  a:active {
+    transform: scale(0.98);
+  }
+
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--home-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .name svg {
+    flex: none;
+    color: var(--sl-color-accent);
+    transition: transform 160ms var(--home-ease);
+  }
+
+  .text {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      background: var(--home-tone-2);
+    }
+
+    a:hover .name svg {
+      transform: translateX(4px);
+    }
+  }
+
+  @media (max-width: 50rem) {
+    ul {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    a,
+    .name svg {
+      transition: none;
+    }
+  }
+</style>

@@ -13,7 +13,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Dashhaus",
-      description: "Home Assistant dashboards drawn in React: headless hooks for every entity, two skins, and room for your own.",
+      description: "Two finished dashboards for Home Assistant, Orb and Field, installed from the Marketplace, and the headless hooks under them to draw your own.",
       social: [{ icon: "github", label: "GitHub", href: repo }],
       editLink: { baseUrl: `${repo}/edit/main/docs/` },
       customCss: ["./src/styles/theme.css"],

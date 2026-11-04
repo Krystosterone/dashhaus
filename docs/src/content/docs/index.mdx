@@ -1,44 +1,25 @@
 ---
 title: Dashboards for Home Assistant
-description: "Home Assistant dashboards drawn in React. Install one of two finished skins from the Marketplace, or draw your own on the same hooks."
+description: "Two finished dashboards for Home Assistant, Orb and Field. Install them from the Marketplace and press Create: no terminal, no YAML."
 template: splash
 editUrl: false
 hero:
   title: Dashboards for Home Assistant
-  tagline: Dashhaus draws your house in React. Install one of its two finished skins from the Marketplace, or draw your own on the same hooks.
+  tagline: Two finished looks for your house, Orb and Field. Install them from the Marketplace and press Create. No terminal, no YAML.
 ---
 
-import Example from "../../components/Example.astro";
-import Stages from "../../components/home/Stages.astro";
-import Stage from "../../components/home/Stage.astro";
-import Fields from "../../components/home/Fields.astro";
+import Install from "../../components/home/Install.astro";
 import Kinds from "../../components/home/Kinds.astro";
+import Why from "../../components/home/Why.astro";
+import Build from "../../components/home/Build.astro";
 import Choice from "../../components/home/Choice.astro";
 
-<Stages label="Or deploy from the command line, in five steps" names={["Install", "Connect", "Configure", "Deploy", "Lay out"]}>
-  <Stage clause="First, install two packages" line="The prebuilt bundle with both skins, and the tool that deploys it.">
-    <Example file="home/install.sh" title="Terminal" wrap />
-  </Stage>
-  <Stage clause="Then point it at Home Assistant" line="Three settings in a .env file. The token stays on your computer and never goes into the bundle.">
-    <Example file="home/env.sh" title=".env" />
-  </Stage>
-  <Stage clause="Next, name your dashboards" line="One for each skin here. Keep only the one you want.">
-    <Example file="user/dashboard.config.mjs" title="dashboard.config.mjs" wrap />
-  </Stage>
-  <Stage clause="Then deploy them" line="There is nothing to build. It copies the bundle into Home Assistant, registers it and creates each dashboard the first time.">
-    <Example file="home/deploy.sh" title="Terminal" />
-  </Stage>
-  <Stage clause="Last, lay out your rooms" line="In YAML, in Home Assistant's own dashboard editor. Or leave the YAML out, and it lays out your house by area.">
-    <Example file="home/orb.yaml" title="Home Assistant's dashboard editor" />
-  </Stage>
-  <p slot="foot">No terminal? <a href="/dashhaus/start/install/">Install from the Marketplace</a> instead. Not on npm yet: the packages are a 0.2.0 release candidate, and <a href="/dashhaus/start/deploy/">the command-line guide</a> shows how to install them from the release tarballs.</p>
-</Stages>
-
-<Fields>
-  <Example slot="yours" file="start/LivingRoomLight.tsx" title="LivingRoomLight.tsx" wrap />
-  <Example slot="orb" file="start/LivingRoomLightTile.tsx" title="LivingRoomLightTile.tsx" wrap />
-</Fields>
+<Install />
 
 <Kinds />
+
+<Why />
+
+<Build />
 
 <Choice />
