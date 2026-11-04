@@ -53,12 +53,17 @@ also returns `hourly` and `daily`). `entity` is the normalized model, `history` 
 is the domain's handlers (a lock has no history: its day is its last change). The hook accepts the options its
 `Ha<Name>Options` type declares; `name`, `loadHistory={false}` and `onActionError` are the common ones.
 
-Beside its handlers each domain declares what its actions are, `<NAME>_ACTIONS: ActionKinds<<Name>Handlers>`
-(`ha/actions/kinds.ts`): what a press gives the handler (`takes`: `nothing`, a `code`, or a `value` a press can't give)
-and whether it asks first (`asks: true`). The type covers every handler, optional ones included, so a new one can't go
-undeclared. The generators read it (`scripts/domains.js`) to draw a tap as a button, an action that asks first or takes
-a code through the skin's Confirm and Keypad on `useGuardedAction`, and to leave a value out; a skin's own card reads it
-when it wants to know the same.
+Beside its handlers each domain declares what its actions are, `<NAME>_ACTIONS: ActionKinds<<Name>Handlers, <Name>Entity>`
+(`ha/actions/kinds.ts`): what a press gives the handler (`takes`: `nothing`, a `code`), or the value it sets, said as
+what it is: a `level` the entity reports in `field` (a percent, or a range its `min` and `max` give as numbers or as
+the entity's fields; `wakes` when setting it turns the entity on), a `choice` of the entity's own list (`options`, a
+field) or a fixed one, the chosen one in `field`, or a `switch`, a boolean `field`; and a `value` none of these says.
+`asks: true` marks an action that asks first. The type covers every handler, optional ones included, so a new one can't
+go undeclared, and a value's `field` must be one of the entity's. The generators read it (`scripts/domains.js`) to draw a
+tap as a button, an action that asks first or takes a code through the skin's Confirm and Keypad on
+`useGuardedAction`, a level on the skin's level part (orb's `LevelBar`, field's `Fader`), a choice or a switch on its
+chips or keys (`ChoiceChips`, a `KeyGroup`), and to leave the rest out; a skin's own card reads it when it wants to know
+the same.
 
 The words of a card's small print are `entities/facts.ts`, the same on every card and in every skin: `lastSeenFact`,
 `unavailableSince`, `sinceFact`, `lastChangedFact` (with who changed it) and `updatedFact`. Today's summary is

@@ -46,13 +46,18 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
   const taps = domain.actions.map((action) => ({ action, takes: "nothing", asks: false }));
   const asked = domain.guarded.map(({ action, asks, code: takesCode }) => ({ action, takes: takesCode ? "code" : "nothing", asks }));
-  const { leftOut } = domain;
+  // A level, a choice or a switch: on field's own parts (a fader, keys in a group); the rest is left out.
+  const { levels, choices: chosen, switches } = domain;
+  const valueActions = [...levels, ...chosen, ...switches].map(({ action }) => action);
+  const leftOut = domain.leftOut.filter((action) => !valueActions.includes(action));
   const kind = askedKind ?? domain.kind;
   if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
-  if (kind === "control" && !taps.length && !asked.length) {
+  if (kind === "control" && !taps.length && !asked.length && !valueActions.length) {
     fail(`${words} has no action a press can give${leftOut.length ? ` (${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value)` : ""}, so it starts as a reading: pass --kind reading and add its controls by hand, or draw it from ${SKIN}/cards/light/`);
   }
   const pressed = kind === "control" ? [...taps, ...asked] : [];
+  const values = kind === "control" ? { levels, choices: chosen, switches } : { levels: [], choices: [], switches: [] };
+  const drawnValues = [...values.levels, ...values.choices, ...values.switches].map(({ action }) => action);
   const { history } = domain;
 
   // ---------- Orb's card (its code, its connected story) and the domain's seeds in core ----------
@@ -131,13 +136,49 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   // a code sends only while the entity asks for none.
   const fixtureCode = !!fixture[fixtureId]?.attributes?.code_format;
   const sentAtOnce = pressed.filter(({ takes, asks }) => !asks && !(takes === "code" && fixtureCode)).length;
+  // ---------- Values on field's parts ----------
+  // A value's words, from its field: "presetMode" → "Preset mode".
+  const fieldWords = (field) => labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
+  const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
+  const isPercent = ({ min, max }) => typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
+  const fader = ({ action, field, min, max }, id) => `<Fader id={${id}} label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`} legend="${fieldWords(field)}" value={unav ? undefined : e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} lit={${toggle ? "on" : "!unav"}} disabled={unav} valueText={${isPercent({ min, max }) ? `\`\${e.${field} ?? ${bound(min)}} percent\`` : `String(e.${field} ?? ${bound(min)})`}} onChange={(v) => ${action}?.(v)} />`;
+  // The first level beside the one key, in the module's row and again in the panel; with more keys, in the panel.
+  const [rowLevel, ...panelLevels] = pressed.length <= 1 ? values.levels : [undefined, ...values.levels];
+  const choiceKeys = ({ action, field, options }) => {
+    const list = Array.isArray(options) ? `([${options.map((o) => `"${o}"`).join(", ")}] as const)` : `(e.${options.field} ?? [])`;
+    const group = [
+      `<KeyGroup legend="${fieldWords(field)}" value={e.${field} ? optionWords(e.${field}) : undefined} columns={choices(${list}.length)} narrow={2}>`,
+      `  {${list}.map((option) => <Key key={option} label={\`${fieldWords(field)} \${optionWords(option)}\`} wide caption={optionWords(option)} chosen={option === e.${field}} disabled={unav} onPress={() => ${action}?.(option)}>{null}</Key>)}`,
+      "</KeyGroup>",
+    ];
+    return Array.isArray(options) ? group : [`{${list}.length > 0 && (`, ...group.map((line) => `  ${line}`), ")}"];
+  };
+  const switchKey = ({ action, field }) => [
+    `<KeyGroup legend="${fieldWords(field)}" columns={2}>`,
+    `  <Key label="${fieldWords(field)}" pressed={e.${field} === true} unavailable={unav || e.${field} == null} wide caption={unav || e.${field} == null ? undefined : e.${field} ? "On" : "Off"} onPress={() => ${action}?.(!e.${field})}>{null}</Key>`,
+    "</KeyGroup>",
+  ];
+  const valueBlocks = [
+    ...panelLevels.map((level) => [fader(level, `\`\${uid}-${level.field}\``)]),
+    ...values.choices.map(choiceKeys),
+    ...values.switches.map(switchKey),
+  ].map((lines) => lines.map((line) => `      ${line}`).join("\n")).join("\n");
+  /** What each value hands its handler, as the module's own prop type: it can't import the domain's handlers. */
+  const handed = (action) => {
+    if (values.levels.some((v) => v.action === action)) return "value: number";
+    const choice = values.choices.find((v) => v.action === action);
+    if (choice) return Array.isArray(choice.options) ? `value: ${choice.options.map((o) => `"${o}"`).join(" | ")}` : "value: string";
+    return "value: boolean";
+  };
+  const valueParts = [values.choices.length && "choices", (rowLevel || panelLevels.length) && "Fader", rowLevel && "ModuleRow"].filter(Boolean);
+
   const fill = filler({
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",
     // A control's presses, in its stories and from its hook's actions; a line of their own, gone for a reading. A
     // demo that names a handler its own way leaves that key unpressed.
-    __demoProps__: pressed.filter(({ action }) => new RegExp(`\\b${action}\\b`).test(seeds)).map(({ action }) => `${action}={demo.${action}}`).join(" "),
-    __liveProps__: pressed.map(({ action }) => `${action}={actions.${action}}`).join(" "),
+    __demoProps__: [...pressed.map(({ action }) => action), ...drawnValues].filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" "),
+    __liveProps__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `${action}={actions.${action}}`).join(" "),
     __actions__: kind === "control" ? ", actions" : "",
     __about__: kind === "control"
       ? `${toggle ? "Press the key to switch it; its LED is lit while it's on." : "One key per action it takes."}${guardedWords ? ` ${guardedWords[0].toUpperCase()}${guardedWords.slice(1)}, so a press never does it alone.` : ""} Tap the name, or press and hold a key, for the detail panel${history ? " with today" : ""}.`
@@ -167,8 +208,26 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __read__: toggle ? 'on ? "ON" : "OFF"' : "<Blank label={words(e.state)} />",
     __keys__: keyLines.join("\n"),
     __actionProps__: pressed.map(({ action, takes, asks }) => `  /** ${asks ? "Asks first: the panel's question, or its keypad where the entity wants a code. Never one press." : takes === "code" ? "A press does it, asking for the code where the entity wants one." : "A press does it."} */\n  ${action}?: (${takes === "code" ? "code?: string" : ""}) => ${asks || takes === "code" ? "GuardedResult" : "void"};`).join("\n"),
-    __actionArgs__: pressed.map(({ action }) => `, ${action}`).join(""),
+    __actionArgs__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `, ${action}`).join(""),
     __partsImport__: asked.length ? "Confirm, Keypad, " : "",
+    __valuesProps__: drawnValues.map((action) => `  /** Drawn from its declaration (\`${CONST}_ACTIONS\`). */\n  ${action}?: (${handed(action)}) => void;`).join("\n"),
+    __valuePartsImport__: valueParts.map((part) => `${part}, `).join(""),
+    __reactImport__: rowLevel || panelLevels.length ? 'import { useId } from "react";' : "",
+    __uidConst__: rowLevel || panelLevels.length ? "  const uid = useId();" : "",
+    __controlsConst__: rowLevel ? [
+      `  // The key and its ${fieldWords(rowLevel.field).toLowerCase()} fader, the same in the module and the panel. Unavailable, the fader goes and the key`,
+      "  // spans the row, as every field control's does.",
+      "  const controls = (where: \"m\" | \"p\") => (",
+      `    <ModuleRow className="fd-${code}-row" solo={unav}>`,
+      "      {keys(unav)[0]}",
+      `      {!unav && ${fader(rowLevel, "`${uid}-${where}`")}}`,
+      "    </ModuleRow>",
+      "  );",
+    ].join("\n") : "",
+    __rowProp__: rowLevel ? "controls={controls}" : "row={<KeyGroup label={e.name}>{keys(true)}</KeyGroup>}",
+    __panelKeys__: rowLevel ? "" : '      <KeyGroup legend="__Label__">{keys(true)}</KeyGroup>',
+    __valueBlocks__: valueBlocks,
+    __optionWordsConst__: values.choices.length ? '/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const spaced = option.replace(/[_-]+/g, " "); return spaced[0].toUpperCase() + spaced.slice(1); };\n' : "",
     __guardImports__: asked.length ? `import { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
     __defaultActionProp__: asked.length ? `  /** Open the detail panel on this action's question or keypad (stories). */\n  defaultAction?: ${askedKeys.join(" | ")};` : "",
     __defaultActionArg__: asked.length ? ", defaultAction" : "",

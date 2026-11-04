@@ -28,9 +28,21 @@ export function declaredActions(source, Name, CONST) {
   const names = [...handlers.matchAll(/^\s+(on\w+)\??:/gm)].map((match) => match[1]);
   const body = objectBody(source, `${CONST}_ACTIONS`);
   if (body == null) throw new Error(`${Name}Handlers has no ${CONST}_ACTIONS beside it saying what each action is (ActionKinds)`);
-  const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{([^}]*)\}/gm)].map(([, action, kind]) => [action, {
+  const bound = (kind, key) => {
+    const raw = kind.match(new RegExp(`\\b${key}: (-?[\\d.]+|"\\w+")`))?.[1];
+    return raw == null ? undefined : raw.startsWith('"') ? { field: raw.slice(1, -1) } : Number(raw);
+  };
+  const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{(.*)\},?(?:\s*\/\/.*)?$/gm)].map(([, action, kind]) => [action, {
     takes: kind.match(/takes: "(\w+)"/)?.[1],
     asks: /asks: true/.test(kind),
+    // A value said as what it is: the entity field it lives in, and a level's range or a choice's options.
+    ...(/takes: "(level|choice|switch)"/.test(kind) && { field: kind.match(/\bfield: "(\w+)"/)?.[1] }),
+    ...(/takes: "level"/.test(kind) && { min: bound(kind, "min") ?? 0, max: bound(kind, "max") ?? 100, wakes: /wakes: true/.test(kind) }),
+    ...(/takes: "choice"/.test(kind) && {
+      options: kind.match(/\boptions: "(\w+)"/)?.[1] != null
+        ? { field: kind.match(/\boptions: "(\w+)"/)[1] }
+        : [...(kind.match(/\boptions: \[([^\]]*)\]/)?.[1] ?? "").matchAll(/"([^"]+)"/g)].map(([, option]) => option),
+    }),
   }]));
   const missing = names.filter((action) => !declared[action]?.takes);
   if (missing.length) throw new Error(`${CONST}_ACTIONS doesn't say what ${missing.join(", ")} ${missing.length > 1 ? "are" : "is"}`);
@@ -77,7 +89,12 @@ export function describeDomain(name) {
   // A tap: a button. Asks first, or takes a code: through the skin's question and keypad. A value: left out.
   const actions = declared.filter(({ takes, asks }) => takes === "nothing" && !asks).map(({ action }) => action);
   const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks }) => ({ action, asks, code: takes === "code" }));
-  const leftOut = declared.filter(({ takes }) => takes === "value").map(({ action }) => action);
+  // A level, a choice or a switch: drawn on a skin's own parts where it has them (orb's and field's), else left out.
+  const valued = (takes) => declared.filter((kind) => kind.takes === takes).map(({ action, field, min, max, wakes, options }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }) }));
+  const levels = valued("level");
+  const choices = valued("choice");
+  const switches = valued("switch");
+  const leftOut = declared.filter(({ takes }) => takes === "value" || takes === "level" || takes === "choice" || takes === "switch").map(({ action }) => action);
 
   const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) throw new Error(`${fixturePath} doesn't exist`);
@@ -103,6 +120,12 @@ export function describeDomain(name) {
     actions,
     guarded,
     leftOut,
+    /** Each declared level: its field, its range (a number, or `{ field }` holding it), whether setting it turns it on. */
+    levels,
+    /** Each declared choice: its field, and its options (a fixed list, or `{ field }` holding the entity's own). */
+    choices,
+    /** Each declared switch: its boolean field. */
+    switches,
     history,
     /** The entity says whether it wants a code (`codeFormat`, Home Assistant's `code_format`). */
     code: /^\s+codeFormat\??: /m.test(entity),

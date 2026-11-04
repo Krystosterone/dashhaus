@@ -20,6 +20,9 @@
     "leftOut": [
       "onArm"
     ],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": true,
     "fields": [
@@ -72,6 +75,24 @@
       "onPresetChange",
       "onFanChange"
     ],
+    "levels": [],
+    "choices": [
+      {
+        "action": "onPresetChange",
+        "field": "presetMode",
+        "options": {
+          "field": "presetModes"
+        }
+      },
+      {
+        "action": "onFanChange",
+        "field": "fanMode",
+        "options": {
+          "field": "fanModes"
+        }
+      }
+    ],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -129,6 +150,24 @@
       "onSetPosition",
       "onSetTilt"
     ],
+    "levels": [
+      {
+        "action": "onSetPosition",
+        "field": "position",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      },
+      {
+        "action": "onSetTilt",
+        "field": "tilt",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      }
+    ],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -176,6 +215,38 @@
       "onPresetChange",
       "onOscillateChange",
       "onDirectionChange"
+    ],
+    "levels": [
+      {
+        "action": "onPercentageChange",
+        "field": "percentage",
+        "min": 1,
+        "max": 100,
+        "wakes": true
+      }
+    ],
+    "choices": [
+      {
+        "action": "onPresetChange",
+        "field": "presetMode",
+        "options": {
+          "field": "presetModes"
+        }
+      },
+      {
+        "action": "onDirectionChange",
+        "field": "direction",
+        "options": [
+          "forward",
+          "reverse"
+        ]
+      }
+    ],
+    "switches": [
+      {
+        "action": "onOscillateChange",
+        "field": "oscillating"
+      }
     ],
     "history": true,
     "code": false,
@@ -227,6 +298,29 @@
       "onTargetChange",
       "onModeChange"
     ],
+    "levels": [
+      {
+        "action": "onTargetChange",
+        "field": "targetHumidity",
+        "min": {
+          "field": "minHumidity"
+        },
+        "max": {
+          "field": "maxHumidity"
+        },
+        "wakes": false
+      }
+    ],
+    "choices": [
+      {
+        "action": "onModeChange",
+        "field": "mode",
+        "options": {
+          "field": "modes"
+        }
+      }
+    ],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -276,6 +370,17 @@
       "onKelvinChange",
       "onColorChange"
     ],
+    "levels": [
+      {
+        "action": "onBrightnessChange",
+        "field": "brightness",
+        "min": 1,
+        "max": 100,
+        "wakes": true
+      }
+    ],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -335,6 +440,9 @@
       }
     ],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": false,
     "code": true,
     "fields": [
@@ -383,6 +491,9 @@
     ],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -442,6 +553,9 @@
     "actions": [],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -496,6 +610,17 @@
     "leftOut": [
       "onVolumeChange"
     ],
+    "levels": [
+      {
+        "action": "onVolumeChange",
+        "field": "volume",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      }
+    ],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -540,6 +665,9 @@
     ],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [
@@ -580,6 +708,9 @@
     "actions": [],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
     "fields": [

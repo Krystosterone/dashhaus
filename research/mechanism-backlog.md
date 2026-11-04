@@ -32,9 +32,10 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   slider wiring under light's, sound's, cover's and fan's fills) and `LevelBar` (the level groove of light, sound and
   fan, each card keeping its words), field's `Channel` (the panel screen's second channel), every domain's demo seeds in
   `@dashhaus/core/seeds/<name>` (spec/core.md → Testing and demo helpers; not `./demo`, which cards may not import),
-  the declared action kinds (`<NAME>_ACTIONS`: a tap, a code or a value, and whether it asks first; spec/core.md) and
-  the generators that read them (spec/build-a-skin.md: a guarded action through `Confirm` and `Keypad`, never one tap;
-  history optional; field's control from its declared actions), and the check against the next copy
+  the declared action kinds (`<NAME>_ACTIONS`: a tap, a code, a level, a choice, a switch or another value, and whether
+  it asks first; spec/core.md) and the generators that read them (spec/build-a-skin.md: a guarded action through
+  `Confirm` and `Keypad`, never one tap; history optional; field's control from its declared actions; a level on
+  `LevelBar` or `Fader`, a choice or a switch on `ChoiceChips` or a `KeyGroup`), and the check against the next copy
   (`verify/card-copies.test.ts`, which knows no copy), and today's summary in words (`todaySummary`,
   `entities/today.ts`; spec/core.md), and the demo transports' plumbing (`createDemoTransport`, spec/core.md → Testing
   and demo helpers: a domain's transport is its seed and its service table), and a frame per skin, which the templates
@@ -54,17 +55,11 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
 
 - **Gap:** `verify/card-copies.test.ts` catches a copied component or rule, not a copied shape of markup; the frames
   hold the anatomy and the module/panel split now, so the shape a new card would copy is the frame's props.
-- **The generators** draw on the frames, the parts, the facts and the declared action kinds now, but:
-  - **A value is left out.** The declaration says `takes: "value"` for a level or a choice, and the templates leave it
-    out, saying so: a regenerated fan has its key and no groove or presets.
-- **Proposal:** one pass per row, each its own change:
-  - the declaration grows a level (a percent or a range, the fan's `onPercentageChange`) and a list (a preset, a mode, a
-    direction), drawn on the level part (`LevelBar`, `Fader`) and on chips or `KeyGroup`.
 - **Gate:** per row, every affected card's interaction tests and stories pass unchanged in both skins (`npm run check`,
   `npm run test-storybook`), its stories and both skins' Foundations → Parts and Worst case look the same at every width
   and footprint in both themes and finishes, and the card folders lose the duplicated lines. For the generators,
   regenerated in a copy of the repository, `fan` draws its groove, sheet and panel from the parts, with only its words
   and icon written by hand.
-- **Validation status (2026-11-03):** the guarded action, the facts, the key groups, the temperature figure, the slider
-  wiring, the field row, panel body and notices, the seeds, the action kinds and today's summary are done; the rows
-  above are open.
+- **Validation status (2026-11-03):** every row above is done, its gate met (parts, demo transports, a frame per skin, one
+  generator path, the declaration's levels and lists); the climate range stays a single copy until a second card has a
+  range.

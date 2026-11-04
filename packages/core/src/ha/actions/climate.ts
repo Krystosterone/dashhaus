@@ -20,9 +20,9 @@ export const CLIMATE_ACTIONS = {
   onTargetChange: { takes: "value" },
   onRangeChange: { takes: "value" },
   onModeChange: { takes: "value" },
-  onPresetChange: { takes: "value" },
-  onFanChange: { takes: "value" },
-} as const satisfies ActionKinds<ClimateHandlers>;
+  onPresetChange: { takes: "choice", field: "presetMode", options: "presetModes" },
+  onFanChange: { takes: "choice", field: "fanMode", options: "fanModes" },
+} as const satisfies ActionKinds<ClimateHandlers, ClimateEntity>;
 
 export interface ClimateHandlerOptions {
   onError?: (error: HaActionError) => void;

@@ -12,9 +12,9 @@ export interface HumidifierHandlers {
 /** What each handler is, for a card drawing humidifier without knowing it (`ActionKind`). */
 export const HUMIDIFIER_ACTIONS = {
   onToggle: { takes: "nothing" },
-  onTargetChange: { takes: "value" },
-  onModeChange: { takes: "value" },
-} as const satisfies ActionKinds<HumidifierHandlers>;
+  onTargetChange: { takes: "level", field: "targetHumidity", min: "minHumidity", max: "maxHumidity" },
+  onModeChange: { takes: "choice", field: "mode", options: "modes" },
+} as const satisfies ActionKinds<HumidifierHandlers, HumidifierEntity>;
 
 export interface HumidifierHandlerOptions {
   onError?: (error: HaActionError) => void;

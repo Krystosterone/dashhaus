@@ -24,14 +24,19 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
   if (!code || !/^[a-z]{2}$/.test(code)) fail(`code "${code}" must be two lower-case letters: the card's CSS class prefix`);
   let domain;
-  let drawn;
   try {
     domain = describeDomain(name);
-    drawn = card.cardKind(domain, askedKind);
   } catch (error) {
     fail(error.message);
   }
-  const { kind, actions: taps, guarded, leftOut } = drawn;
+  // A tap, a level, a choice or a switch: each on orb's own part. What asks first or takes a code isn't drawn here.
+  const { actions: taps, guarded, levels, choices, switches } = domain;
+  const drawnValues = [...levels, ...choices, ...switches].map(({ action }) => action);
+  const leftOut = domain.leftOut.filter((action) => !drawnValues.includes(action));
+  const kind = askedKind ?? (taps.length || drawnValues.length ? "control" : "reading");
+  if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
+  if (kind === "control" && !taps.length && !drawnValues.length) fail(`${words} has no action orb can draw: pass --kind reading`);
+  const values = kind === "control" ? { levels, choices, switches } : { levels: [], choices: [], switches: [] };
   if (guarded.length) fail(`${guarded.map(({ action }) => action).join(", ")} ${guarded.length > 1 ? "ask" : "asks"} first or ${guarded.length > 1 ? "take" : "takes"} a code: draw ${words} in orb by hand, from ${SKIN}/cards/lock/ (its sheet answers on Confirm or Keypad)`);
 
   // ---------- The domain's seeds and its demo, in core ----------
@@ -62,27 +67,70 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   const slotTap = toggle ? "onToggle" : taps[0];
   const sheetTaps = taps.filter((action) => action !== slotTap);
   const pill = (action) => `<TogglePill label={\`${card.labelOf(action)} \${e.name}\`} on={false} onToggle={() => ${action}?.()}>${card.labelOf(action)}</TogglePill>`;
+  // A value's words, from its field: "presetMode" → "Preset mode".
+  const fieldWords = (field) => card.labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
+  const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
+  /** A level on orb's level groove: the first in the slot, named by the card; the others in the sheet, under a heading. */
+  const levelBar = ({ action, field, min, max, wakes }, slot) => {
+    const percent = typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
+    return `<LevelBar id={\`\${card.uid}-${field}\`} ${slot ? `label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`}` : `heading="${fieldWords(field)}"`} value={e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} on={on}${wakes ? " wakes" : ""} text={(v) => ${percent ? "`${v}%`" : "String(v)"}} valueText={(v) => ${percent ? "`${v} percent`" : "String(v)"}} onChange={(v) => ${action}?.(v)} />`;
+  };
+  /** A choice as chips: the entity's own list, or a fixed one. */
+  const choiceChips = ({ action, field, options }) => {
+    const list = Array.isArray(options) ? `([${options.map((o) => `"${o}"`).join(", ")}] as const)` : `(e.${options.field} ?? [])`;
+    const chips = `<ChoiceChips id={\`\${card.uid}-${field}\`} label="${fieldWords(field)}" options={${list}.map((o) => ({ value: o, label: optionWords(o) }))} value={e.${field} ?? null} onChange={(v) => ${action}?.(v)} />`;
+    return Array.isArray(options) ? chips : `{${list}.length > 0 && ${chips}}`;
+  };
+  /** A switch as two chips, On and Off. */
+  const switchChips = ({ action, field }) => `<ChoiceChips id={\`\${card.uid}-${field}\`} label="${fieldWords(field)}" options={[{ value: "on", label: "On" }, { value: "off", label: "Off" }]} value={e.${field} == null ? null : e.${field} ? "on" : "off"} onChange={(v) => ${action}?.(v === "on")} />`;
+  const [slotLevel, ...sheetLevels] = values.levels;
   const control = kind === "reading"
     ? "<Readout label={`${e.name}: ${word}`} onOpen={card.sheet ? undefined : onOpenDetails}>{word}</Readout>"
+    : slotLevel ? levelBar(slotLevel, true)
     : toggle ? "<TogglePill label={`${e.name}: ${word}`} on={on} onToggle={() => onToggle?.()}>{word}</TogglePill>"
     : pill(slotTap);
+  // Taps the slot doesn't hold: with a level in the slot, every tap but the orb's; else every tap but the slot's.
+  const otherTaps = slotLevel ? taps.filter((action) => action !== "onToggle") : sheetTaps;
+  const sheet = [
+    ...otherTaps.map(pill),
+    ...sheetLevels.map((level) => levelBar(level, false)),
+    ...values.choices.map(choiceChips),
+    ...values.switches.map(switchChips),
+  ];
   const today = domain.history && domain.samples;
-  const partsImport = [kind === "reading" && "Readout", sheetTaps.length && "SheetBlock", today && "Today", kind === "control" && "TogglePill"].filter(Boolean).map((part) => `${part}, `).join("");
+  const partsImport = [
+    values.choices.length + values.switches.length && "ChoiceChips",
+    values.levels.length && "LevelBar",
+    kind === "reading" && "Readout",
+    sheet.length && "SheetBlock",
+    today && "Today",
+    kind === "control" && (!slotLevel || otherTaps.length) && "TogglePill",
+  ].filter(Boolean).map((part) => `${part}, `).join("");
   const facts = ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact"] : [])].sort();
-  const demoProps = taps.filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" ");
+  const drawn = kind === "control" ? [...taps, ...drawnValues] : [];
+  const demoProps = drawn.filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" ");
+  /** What each drawn action is handed, as the card's own prop type: it can't import the domain's handlers. */
+  const handed = (action) => {
+    const level = values.levels.find((v) => v.action === action);
+    if (level) return "value: number";
+    const choice = values.choices.find((v) => v.action === action);
+    if (choice) return Array.isArray(choice.options) ? `value: ${choice.options.map((o) => `"${o}"`).join(" | ")}` : "value: string";
+    if (values.switches.some((v) => v.action === action)) return "value: boolean";
+    return "";
+  };
   const fixture = JSON.parse(read(packageFile("core", `src/ha/fixtures/${name}.json`)));
 
   const fill = filler({
     __Name__: Name, __name__: name, __CONST__: CONST, __Label__: Label, __label__: words, __code__: code,
     __domains__: domain.domains.map((d) => `${d}.*`).join("`, `"),
     __about__: kind === "control"
-      ? `${toggle ? "The orb and the pill switch it." : `${card.labelOf(slotTap)} is its pill.`}${sheetTaps.length ? ` The sheet has ${sheetTaps.map(card.labelOf).join(", ")}.` : ""} The name, or a press and hold on the orb, opens the sheet.`
+      ? `${slotLevel ? `${toggle ? "The orb switches it; t" : "T"}he groove sets its ${fieldWords(slotLevel.field).toLowerCase()}.` : toggle ? "The orb and the pill switch it." : `${card.labelOf(slotTap)} is its pill.`}${sheet.length ? ` The sheet has ${[...otherTaps.map(card.labelOf), ...[...sheetLevels, ...values.choices, ...values.switches].map(({ field }) => fieldWords(field).toLowerCase())].join(", ")}.` : ""} The name, or a press and hold on the orb, opens the sheet.`
       : "A reading: a bare icon and its state in words. The name, or the reading, opens the sheet.",
     __historyType__: domain.history ? `, ${Name}History` : "",
     __historyProp__: domain.history ? "  /** Shown in the featured footprint and in the sheet. */\n  history?: " + `${Name}History;` : "",
     __historyArg__: today ? ", history" : "",
-    __actionProps__: taps.map((action) => `  ${action}?: () => void;`).join("\n"),
-    __actionArgs__: taps.map((action) => `, ${action}`).join(""),
+    __actionProps__: drawn.map((action) => `  ${action}?: (${handed(action)}) => void;`).join("\n"),
+    __actionArgs__: drawn.map((action) => `, ${action}`).join(""),
     __factsImport__: facts.join(", "),
     __todaySummaryImport__: today && domain.minutes ? `\nimport { todaySummary } from "${packageSpecifier("core", "entities/today")}";` : "",
     __partsImport__: partsImport,
@@ -101,7 +149,8 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __status__: has("area") ? "card.area" : '""',
     __control__: control,
     __factsStart__: `unav ? lastSeenFact(${has("lastSeen") ? "e.lastSeen" : "undefined"}) : ${has("lastChanged") ? "lastChangedFact(e.lastChanged)" : '""'}`,
-    __sheetBlocks__: sheetTaps.length ? `      <SheetBlock>\n${sheetTaps.map((action) => `        ${pill(action)}`).join("\n")}\n      </SheetBlock>` : "",
+    __sheetBlocks__: sheet.length ? `      {!unav && (\n        <SheetBlock>\n${sheet.map((block) => `          ${block}`).join("\n")}\n        </SheetBlock>\n      )}` : "",
+    __optionWords__: values.choices.length ? '\n/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const words = stateWords(option); return words[0].toUpperCase() + words.slice(1); };' : "",
     __todayBlock__: today ? `      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={${domain.minutes ? `todaySummary("${domain.minutes}", history.${domain.minutes}Minutes)` : '""'}} />}` : "",
     // The stories, on the domain's seeds in core.
     __seeds__: packageSpecifier("core", `seeds/${name}`),
@@ -115,7 +164,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __historyDestructure__: today ? ", history" : "",
     __actions__: kind === "control" ? ", actions" : "",
     __historyLive__: today ? "      history={history}" : "",
-    __liveProps__: taps.map((action) => `${action}={actions.${action}}`).join(" "),
+    __liveProps__: drawn.map((action) => `${action}={actions.${action}}`).join(" "),
     __transport__: transport,
     __entityId__: entityId,
     __fixtureId__: domain.fixtureId,
@@ -186,7 +235,7 @@ One \`${domain.domains.join("`, `")}\` entity:
   }
 
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in orb as a ${kind}: ${taps.length ? taps.join(", ") : "read-only"}${leftOut.length ? ` (left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give)` : ""}.
+  console.log(`Drew ${words} in orb as a ${kind}: ${drawn.length ? drawn.join(", ") : "read-only"}${leftOut.length ? ` (left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give)` : ""}.
 
 Next:
   1. npm run storybook  →  Orb/Cards/${Name} and Orb/Connected/${Name}

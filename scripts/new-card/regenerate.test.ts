@@ -55,10 +55,19 @@ describe("new-card from a domain's description", () => {
     const field = await run(copy, "node", [script, "fan", "--skin", "field"]);
     expect(field.status, field.output).toBe(0);
 
+    // Its groove and its sheet in orb, its fader and its panel in field: the declared speed, presets, direction and
+    // oscillation, each on the skin's part, and nothing left out.
     const card = readFileSync(join(copy, "src/skins/orb/cards/fan/FanCard.tsx"), "utf8");
     expect(card).toContain("<CardFrame");
+    expect(card).toMatch(/control=\{<LevelBar [^\n]*value=\{e\.percentage \?\? 1\}[^\n]* wakes /);
+    expect(card).toMatch(/<SheetBlock>[\s\S]*label="Preset mode"[\s\S]*label="Direction"[\s\S]*label="Oscillating"[\s\S]*<\/SheetBlock>/);
+    expect(card).not.toContain("Left out");
     const module = readFileSync(join(copy, "src/skins/field/cards/fan/FanModule.tsx"), "utf8");
     expect(module).toContain("<ModuleFrame");
+    expect(module).toMatch(/const controls = \(where: "m" \| "p"\) => \([\s\S]*<Fader [^\n]*legend="Percentage"/);
+    expect(module).toContain("controls={controls}");
+    for (const legend of ["Preset mode", "Direction", "Oscillating"]) expect(module).toContain(`<KeyGroup legend="${legend}"`);
+    expect(module).not.toContain("Left out");
 
     const typecheck = await typecheckCopy(copy);
     expect(typecheck.status, typecheck.output).toBe(0);
