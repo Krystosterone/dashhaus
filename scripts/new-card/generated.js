@@ -118,9 +118,11 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
   });
   // The Examples page draws every Card's seeds, a section each (a hand-composed page has no markers and is left alone).
   const examples = `${SKIN}/dashboards/Examples.stories.tsx`;
-  change.edit(examples, after(markers.exampleImports, fill(`import __Name__Stories from "../cards/__name__/__Skin____Name__Card.stories";
+  if (change.read(examples).includes(markers.exampleImports)) {
+    change.edit(examples, after(markers.exampleImports, fill(`import __Name__Stories from "../cards/__name__/__Skin____Name__Card.stories";
 `)));
-  change.edit(examples, after(markers.exampleSections, fill(`  section("__Label__", __Name__Stories.argTypes.__name__.options, (seed, footprint) => <__Name__Stories.component __name__={seed} footprint={footprint} />),`)));
+    change.edit(examples, after(markers.exampleSections, fill(`  section("__Label__", __Name__Stories.argTypes.__name__.options, (seed, footprint) => <__Name__Stories.component __name__={seed} footprint={footprint} />),`)));
+  }
   const dashboardStory = `${SKIN}/lovelace/${Skin}Dashboard.stories.tsx`;
   change.edit(dashboardStory, after(markers.dashboardCards, `  { entity: "${entityId}", kind: "${name}" },`));
 

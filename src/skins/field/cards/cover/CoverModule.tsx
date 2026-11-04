@@ -92,11 +92,14 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       </Key>
     );
   };
-  // The key and the position fader, the same in the module and the panel. Without a position to set, the key spans the row with what it does.
-  const controls = (where: "m" | "p") => (
-    <ModuleRow className="fd-cv-row" solo={!settable}>
-      {key(!settable, where)}
-      {settable && (
+  // The key and the position fader, the same in the module and the panel. Without a position to set, the key spans the row
+  // with what it does. A garage door, door or gate has no fader on the module: one tap there would skip its press and hold.
+  const controls = (where: "m" | "p") => {
+    const fader = settable && !(isAccess(e.deviceClass) && where === "m");
+    return (
+    <ModuleRow className="fd-cv-row" solo={!fader}>
+      {key(!fader, where)}
+      {fader && (
         <Fader
           id={`${uid}-${where}`}
           label={`${e.name} position`}
@@ -111,7 +114,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
         />
       )}
     </ModuleRow>
-  );
+    );
+  };
 
   // The panel's content: the screen, with a blind's slats on its second channel; the controls; quick positions, or
   // close, stop and open for a cover with no position; the slats fader; today; and facts.

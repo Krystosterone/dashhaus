@@ -58,7 +58,7 @@ export const YAML_MODE =
   "This Home Assistant manages its dashboards in YAML, so they can't be created from here. Create the dashboard in your configuration and add the Dashhaus card to it.";
 
 /** The Lovelace config a dashboard is saved with: one panel view, so the card gets the full width. */
-export function panelView(card: Record<string, unknown>, title = "Home") {
+function panelView(card: Record<string, unknown>, title = "Home") {
   return { views: [{ title, path: "home", type: "panel", cards: [card] }] };
 }
 

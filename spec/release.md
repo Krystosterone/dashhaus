@@ -27,7 +27,7 @@ What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what
 Current candidate notes: [0.2.0](releases/0.2.0.md), including the publish order, the changes since `0.1.0` and the
 tarball inspection.
 
-Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, `research`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
+Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
@@ -141,17 +141,32 @@ release serves both. What the repository holds:
 - `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
   `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
 - `.github/workflows/release.yml` builds `dist/dashhaus.js` from a published release's tag, checks the tag is
-  `v<version>` of the packages, and attaches the file to the release. Publishing the release stays the operator's
-  step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
+  `v<version>` of the packages, and attaches the file to the release. The build runs read-only; only the job that
+  uploads the file may write to the repository, and it runs none of the repository's scripts. Publishing the release
+  stays the operator's step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
   committed build.
-- `.github/workflows/hacs.yml` runs `hacs/action` with `category: plugin` and no ignored checks on every pull request,
+- `.github/workflows/hacs.yml` runs `hacs/action`, pinned to a commit, with `category: plugin` and no ignored checks on every pull request,
   push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
   repository is private, like the Docs deploy.
 - The bundle's setup card ([deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards after the
   install, and the site's [Install from the Marketplace](../docs/src/content/docs/start/install.mdx) page, with its
   My link and `llms.txt`'s copy of its steps, is the way in.
 
-What only the operator can do, in order, each once:
+Decided, and why:
+
+- **The Marketplace and HACS are one target.** From Home Assistant 2026.11 the Marketplace is HACS in core, with the
+  same catalog, `hacs.json` and action. One `hacs_repository` My link opens HACS before 2026.11 and the Marketplace
+  after, so nobody chooses.
+- **A setup card, not a companion integration.** A repository holds one item of one type, so an integration that
+  creates dashboards would be a second repository in Python, on Home Assistant's internal Lovelace collections. The
+  price is one card placement.
+- **A button, not an automatic run.** The setup card creates only what is missing when pressed, and never overwrites.
+- **No token for agents.** An agent installing Dashhaus uses the person's own session through the setup card, never
+  a long-lived token handed to a model.
+- **The command line stays**, for CI, automation and dashboards in YAML mode. Installing both ways loads two copies of
+  the bundle, so the install page says to pick one.
+
+What only the operator can do, in order, each once (GitHub issues #29 to #32 track them):
 
 1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
 2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;

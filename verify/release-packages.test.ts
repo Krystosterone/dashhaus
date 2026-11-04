@@ -104,11 +104,19 @@ describe("public packages", () => {
     expect(publishManifest(manifests.deploy).bin).toEqual({ "dashhaus-deploy": "./bin.js" });
     expect(publishManifest(manifests.deploy).engines).toEqual({ node: ">=22" });
     for (const pkg of publicPackages) expect(publishManifest(manifests[pkg.key]).files, pkg.name).toContain("README.md");
+    for (const pkg of publicPackages) {
+      const packed = publishManifest(manifests[pkg.key]);
+      expect(packed.repository, pkg.name).toMatchObject({ url: "git+https://github.com/Krystosterone/dashhaus.git", directory: pkg.dir });
+      if (pkg.name.startsWith("@")) expect(packed.publishConfig, pkg.name).toEqual({ access: "public" });
+    }
   });
 
   it("refuses a package without a README in its files, a placeholder version, an unpinned internal range or a TypeScript export target", () => {
     expect(() => publishManifest({ ...manifests.core, files: ["dist"] })).toThrow(/README\.md/);
     expect(() => publishManifest({ ...manifests.core, version: "0.0.0" })).toThrow(/real semver/);
+    expect(() => publishManifest({ ...manifests.orb, publishConfig: undefined })).toThrow(/restricted/);
+    expect(() => publishManifest({ ...manifests.field, repository: { type: "git", url: "git+https://github.com/Krystosterone/dashhaus.git" } })).toThrow(/directory/);
+    expect(() => publishManifest({ ...manifests.deploy, description: "" })).toThrow(/description/);
     expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
     expect(() => publishManifest({ ...manifests.core, exports: { ".": { import: "./src/index.ts", default: "./src/index.ts" } } }))
       .toThrow(/built dist files/);

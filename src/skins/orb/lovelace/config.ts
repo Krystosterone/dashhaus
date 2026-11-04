@@ -337,6 +337,7 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     const chroma = read.number(value.accent, "chroma", "accent", 0, 0.37, false);
     const hue = read.number(value.accent, "hue", "accent", 0, 360, false);
     if (chroma !== undefined && hue !== undefined) accent = { chroma, hue };
+    else for (const key of ["chroma", "hue"]) if (value.accent[key] === undefined) read.problem(`accent.${key}`, "is required with the other");
   } else if (value.accent != null) {
     read.problem("accent", `must be one of ${oneOf(Object.keys(ACCENTS))}, or { chroma, hue }`);
   }

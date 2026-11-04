@@ -36,6 +36,9 @@ export function resolveSpecifier(spec: string, file: string): string | undefined
   if (spec.startsWith(".")) return posix.normalize(posix.join(posix.dirname(file), spec));
   if (spec.startsWith("/")) return posix.normalize(spec.slice(1));
   if (spec.startsWith("src/")) return spec;
+  // A skin by its package name: Node's resolver ignores the `source` condition, so it finds no built dist and throws.
+  const skin = /^@dashhaus\/([^/]+)/.exec(spec)?.[1];
+  if (skin && skins.includes(skin)) return `src/skins/${skin}/index.ts`;
   // A bare specifier: a package, or an alias that resolves into another skin.
   try {
     const resolved = require.resolve(spec);
@@ -81,6 +84,7 @@ describe("the import scanner", () => {
     expect(crossings(`${orb}/cards/x/X.tsx`, 'import { y } from "src/skins/field/cards/y/Y";')).toHaveLength(1);
     expect(crossings(`${orb}/cards/x/X.tsx`, 'import { y } from "@alias/field";', (spec) => spec === "@alias/field" ? "src/skins/field/index.ts" : undefined)).toHaveLength(1);
     expect(crossings(`${orb}/styles/tokens.css`, '@import "../../field/styles/tokens.css";')).toHaveLength(1);
+    expect(crossings(`${orb}/cards/x/X.tsx`, 'import { LightModule } from "@dashhaus/field";')).toHaveLength(1);
   });
 
   it("leaves @dashhaus/core, its own skin and a test's shared helper alone", () => {

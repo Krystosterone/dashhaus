@@ -47,6 +47,16 @@ describe("LockModule", () => {
     expect(onUnlock).toHaveBeenCalledWith("1234");
   });
 
+  it("locks a lock that wants a code from its key: the panel opens on the keypad", async () => {
+    const onLock = vi.fn(async (code?: string) => (code === "1234" ? "done" as const : "wrong_code" as const));
+    const { keys } = draw({ ...LOCK_SEEDS.code.entity, state: "unlocked" }, { onLock });
+    fireEvent.click(keys()[0]);
+    expect(onLock).not.toHaveBeenCalled();
+    for (const d of ["1", "2", "3", "4"]) fireEvent.click(screen.getByRole("button", { name: d, hidden: true }));
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Enter code", hidden: true })); });
+    expect(onLock).toHaveBeenCalledWith("1234");
+  });
+
   it("offers Open door in the panel only where the lock can", () => {
     draw(LOCK_SEEDS.locked.entity, { defaultOpen: true });
     expect(screen.getByRole("button", { name: "Open Front door: asks first", hidden: true })).toBeTruthy();

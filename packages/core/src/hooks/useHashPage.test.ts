@@ -12,6 +12,7 @@ describe("pageFromHash", () => {
     expect(pageFromHash("#x=1&page=nursery", PAGES, "home")).toBe("nursery");
     expect(pageFromHash("", PAGES, "home")).toBe("home");
     expect(pageFromHash("#page=attic", PAGES, "home")).toBe("home");
+    expect(pageFromHash("#page=100%", PAGES, "home")).toBe("home");
   });
 });
 

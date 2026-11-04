@@ -1,8 +1,9 @@
 /**
  * A card drawn from its domain's description, in both mature skins: in a copy of the repo, the fan's orb card and
  * field module go, with every registration they made, and the generators draw them again from the domain core already
- * has (`describeDomain`, the scaffolder's `domains.json` too). What comes back typechecks and passes each skin's
- * conformance and Storybook shape, with only its words and icon left to write by hand.
+ * has (`describeDomain`, the scaffolder's `domains.json` too). The lock's orb card goes too, and comes back with its
+ * guarded actions answered in the sheet. What comes back typechecks and passes each skin's conformance and Storybook
+ * shape, with only its words and icon left to write by hand.
  */
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -40,11 +41,25 @@ const removeFan = (copy: string) => {
   change(copy, "spec/cards.md", (source) => source.replace(/\n### Field fan module\n[\s\S]*?(?=\n## |\n### )/, ""));
 };
 
+/**
+ * Remove the lock's orb card, and what it registered in orb, leaving its domain in core and its field module. Orb's
+ * Foundations draw it through `DemoLockTile`'s seed, footprint and showControl, which the generated demo keeps.
+ */
+const removeOrbLock = (copy: string) => {
+  for (const path of ["src/skins/orb/cards/lock", "src/skins/orb/ha/HaLockTile.tsx", "src/skins/orb/ha/HaLockTile.stories.tsx", "src/skins/orb/ha/HaLockTile.test.tsx"]) {
+    rmSync(join(copy, path), { recursive: true, force: true });
+  }
+  change(copy, "src/skins/orb/index.ts", withoutLines(/^\/\/ Lock$|\.\/cards\/lock\/|\.\/ha\/HaLockTile"/));
+  change(copy, "src/skins/orb/lovelace/config.ts", (source) => withoutLines(/^ {2}\| "lock"$|^ {2}lock: "lock",$|kind: "lock"/)(source).replace(/\n {2}lock: \{\n[\s\S]*?\n {2}\},/, ""));
+  change(copy, "src/skins/orb/lovelace/ConfigDashboard.tsx", withoutLines(/HaLockTile/));
+};
+
 describe("new-card from a domain's description", () => {
   let copy = "";
   beforeAll(() => {
     copy = copyRepo("new-card-regenerate-");
     removeFan(copy);
+    removeOrbLock(copy);
     linkNodeModules(copy);
   }, 120_000);
   afterAll(() => process.env.KEEP_REGENERATE_COPY ? console.info(`REGENERATE_COPY=${copy}`) : rmSync(copy, { recursive: true, force: true }));
@@ -69,13 +84,23 @@ describe("new-card from a domain's description", () => {
     for (const legend of ["Preset mode", "Direction", "Oscillating"]) expect(module).toContain(`<KeyGroup legend="${legend}"`);
     expect(module).not.toContain("Left out");
 
+    // The lock in orb: lock is the slot's pill, unlock and open ask first in the sheet, and each is answered on the
+    // sheet's question, or its keypad where the lock wants a code. Nothing asks for a hand-drawn card.
+    const lock = await run(copy, "node", [script, "lock", "--code", "lk"]);
+    expect(lock.status, lock.output).toBe(0);
+    const lockCard = readFileSync(join(copy, "src/skins/orb/cards/lock/LockCard.tsx"), "utf8");
+    expect(lockCard).toContain("useGuardedAction<LockAction>");
+    expect(lockCard).toMatch(/control=\{<TogglePill [^\n]*guard\.attempt\("lock"\)/);
+    expect(lockCard).toMatch(/<SheetBlock>[\s\S]*<Keypad [\s\S]*<Confirm [\s\S]*guard\.ask\("unlock"\)[\s\S]*guard\.ask\("open"\)[\s\S]*<\/SheetBlock>/);
+    expect(lockCard).toContain("extends ActionCardProps<LockAction>");
+
     const typecheck = await typecheckCopy(copy);
     expect(typecheck.status, typecheck.output).toBe(0);
     const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts",
-      "src/skins/orb/cards/fan", "src/skins/orb/ha/HaFanTile.test.tsx", "src/skins/field/cards/fan", "src/skins/field/ha/HaFanModule.test.tsx",
+      "src/skins/orb/cards/fan", "src/skins/orb/ha/HaFanTile.test.tsx", "src/skins/orb/cards/lock", "src/skins/orb/ha/HaLockTile.test.tsx", "src/skins/field/cards/fan", "src/skins/field/ha/HaFanModule.test.tsx",
       "verify/orb-conformance.test.ts", "verify/field-conformance.test.ts", "verify/storybook.test.ts", "verify/card-copies.test.ts"]);
     expect(tests.status, tests.output).toBe(0);
-    const lint = await run(copy, "npx", ["eslint", "src/skins/orb/cards/fan", "src/skins/orb/ha", "src/skins/field/cards/fan", "src/skins/field/ha"]);
+    const lint = await run(copy, "npx", ["eslint", "src/skins/orb/cards/fan", "src/skins/orb/cards/lock", "src/skins/orb/ha", "src/skins/field/cards/fan", "src/skins/field/ha"]);
     expect(lint.status, lint.output).toBe(0);
   }, 300_000);
 });

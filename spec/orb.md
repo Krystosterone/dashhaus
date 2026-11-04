@@ -49,7 +49,7 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
 - **Every control gives press feedback on `:active`.** Scales are 0.92 to 0.98: small buttons go lower, wide pills stay near 1.
 - **Hover styles live under `@media (hover: hover) and (pointer: fine)`.**
 - **Reduced motion means gentler, not none.** Fades and color changes stay; scaling and sliding go.
-- **Tracks** (brightness, volume, cover position, warmth, heat/cool range) are one part, `Track` in `src/skins/orb/shared/ui.tsx`, and take pointer input on its hit layer with `touch-action: pan-y`. Each card brings only its fill.
+- **Tracks** (brightness, volume, cover position, warmth, heat/cool range) are one part, `Track` in `src/skins/orb/shared/ui.tsx`, and take pointer input on its hit layer with `touch-action: pan-y`. Each card brings only its fill. The heat/cool range's two-thumb wiring (`useRangeSlider` into `Track`) is the one exception, in `cards/climate/RangeBar.tsx`: it becomes a part when a second card has a range, not before.
   - Touch values change on a tap or a sideways drag, so a vertical scroll that starts on a track changes nothing.
   - A hidden range input stays for keyboard and screen readers. A native iOS range input only moves when you grab its thumb.
 - **Controls aren't selectable.** No selection, callout or tap highlight, and `touch-action: manipulation` is on. Visible compact controls keep a 44 px hit dimension; crowded alarm modes move to the sheet instead of shrinking their targets.

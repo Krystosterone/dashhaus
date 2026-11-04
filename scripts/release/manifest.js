@@ -58,6 +58,18 @@ export function publishManifest(manifest) {
     throw new Error(`${manifest.name}: release version must be a real semver, not ${manifest.version}; run npm run release:version -- <version>`);
   }
   if (manifest.license !== LICENSE) throw new Error(`${manifest.name}: package.json must declare "license": "${LICENSE}"`);
+  // What its npm page shows and links back to, and what provenance checks the repository against.
+  for (const field of ["description", "homepage", "author"]) {
+    if (typeof manifest[field] !== "string" || !manifest[field].trim()) throw new Error(`${manifest.name}: package.json must declare "${field}"`);
+  }
+  const dir = publicPackages.find((pkg) => pkg.name === manifest.name)?.dir;
+  if (!manifest.repository?.url || (dir && manifest.repository.directory !== dir)) {
+    throw new Error(`${manifest.name}: package.json must declare "repository" with its url and "directory": "${dir}"`);
+  }
+  if (!manifest.bugs?.url) throw new Error(`${manifest.name}: package.json must declare "bugs" with its url`);
+  if (manifest.name.startsWith("@") && manifest.publishConfig?.access !== "public") {
+    throw new Error(`${manifest.name}: a scoped package must declare "publishConfig": { "access": "public" }, or npm publishes it restricted`);
+  }
   const next = structuredClone(manifest);
   delete next.private;
   next.exports = withoutSource(next.exports);

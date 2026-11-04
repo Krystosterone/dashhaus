@@ -11,6 +11,8 @@ export interface ClimateMapOptions {
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
   lastSeen?: string;
   unit?: "°C" | "°F";
+  /** Home Assistant's own temperature unit (`get_config`'s `unit_system.temperature`): a climate entity carries none. */
+  systemUnit?: string;
 }
 
 const HVAC_MODES = new Set<HvacMode>(["off", "heat", "cool", "heat_cool", "auto", "dry", "fan_only"]);
@@ -84,6 +86,7 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     ?? temperatureUnit(attributes.temperature_unit)
     ?? temperatureUnit(attributes.native_temperature_unit)
     ?? temperatureUnit(attributes.unit_of_measurement)
+    ?? temperatureUnit(options.systemUnit)
     ?? "°C";
   const bounds = validBounds(
     firstNumber(attributes.min_temp, attributes.min_temperature, attributes.native_min_temp),

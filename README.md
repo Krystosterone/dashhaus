@@ -105,11 +105,12 @@ The specification the code is held to, written for maintainers and agents. Tests
 
 ## Contributing
 
-Ask questions and agree proposed changes in [GitHub Issues](https://github.com/Krystosterone/dashhaus/issues). Pull requests are accepted after that agreement. Before opening one, run `npm run check` and `npm run test-storybook`, document behavior changes, and preserve the domain → Home Assistant → skin import direction.
+Ask questions and agree proposed changes in [GitHub Issues](https://github.com/Krystosterone/dashhaus/issues). Pull requests are accepted after that agreement. Before opening one, run `npm run check` and `npm run test-storybook`, document behavior changes, and preserve the domain → Home Assistant → skin import direction. [CONTRIBUTING.md](CONTRIBUTING.md) has the steps, and [SECURITY.md](SECURITY.md) how to report a vulnerability privately.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
 
-Third-party material keeps its own terms: the skills under `.agents/skills/` and `.agents/design/` are installed
-from their upstream projects, named in `skills-lock.json`, and are not covered by this repository's license.
+Third-party material keeps its own terms: the agent skills and design roles under `.agents/` installed from upstream
+projects (Emil Kowalski's skills, Impeccable, agency-agents) are not covered by this repository's license. Each one's
+license sits beside it, and [.agents/skills/THIRD_PARTY.md](.agents/skills/THIRD_PARTY.md) lists which is which.

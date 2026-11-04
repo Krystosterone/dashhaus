@@ -83,7 +83,7 @@ const standaloneRoots = ["standalone", "standalone-card"].map((folder) => join(r
 const DOTFILES = { _gitignore: ".gitignore", "_env.example": ".env.example" };
 const walk = (dir) => readdirSync(dir, { recursive: true, withFileTypes: true }).filter((entry) => entry.isFile()).map((entry) => relative(dir, join(entry.parentPath, entry.name)));
 const standalone = standaloneRoots.flatMap((dir) => walk(dir)).map((path) => new RegExp(`^${(DOTFILES[path] ?? path).replace(/[.]/g, "\\.").replace(/__\w+?__/g, "[^/]+")}$`));
-const LEFT_OUT = /^(?:node_modules|dist|preview\/snapshots)\/|^(?:\.env|package-lock\.json)$/;
+const LEFT_OUT = /^(?:\.git|node_modules|dist|preview\/snapshots)\/|^(?:\.env|package-lock\.json)$/;
 const files = walk(from).filter((path) => !LEFT_OUT.test(path));
 const dropped = files.filter((path) => standalone.some((pattern) => pattern.test(path)));
 for (const path of files.filter((file) => !dropped.includes(file))) {

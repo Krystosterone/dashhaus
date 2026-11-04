@@ -3,6 +3,27 @@
   "version": "0.2.0",
   "private": true,
   "license": "MIT",
+  "description": "Deploy a Dashhaus dashboard into Home Assistant: copy the bundle, register the resource and create the dashboards from dashboard.config.mjs.",
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "deploy",
+    "cli",
+    "dashboard"
+  ],
+  "homepage": "https://krystosterone.github.io/dashhaus/",
+  "bugs": {
+    "url": "https://github.com/Krystosterone/dashhaus/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krystosterone/dashhaus.git",
+    "directory": "packages/deploy"
+  },
+  "author": "Krystian Czesak",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
     "dashhaus-deploy": "./bin.js"

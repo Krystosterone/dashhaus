@@ -349,10 +349,24 @@ describe("createHaStore actions", () => {
     expect(coded.store.canRetryLastAction?.()).toBe(false);
     await expect(coded.store.retryLastAction?.()).rejects.toMatchObject({ code: "unsupported" });
 
+    // A lock without a code still asks first on its card; Retry would unlock with one tap.
+    const lock = await connected({ callService: vi.fn(async () => { throw new Error("rejected"); }) });
+    await lock.store.callService("lock", "unlock", { entity_id: "lock.front" }).catch(() => undefined);
+    expect(lock.store.canRetryLastAction?.()).toBe(false);
+
     const unknown = await connected({ callService: vi.fn(async () => { throw 3; }) });
     await unknown.store.callService("cover", "open_cover", { entity_id: "cover.garage" }).catch(() => undefined);
     expect(unknown.store.getSnapshot().lastActionError).toMatchObject({ code: "transport_unknown", category: "connection", retryable: false });
     expect(unknown.store.canRetryLastAction?.()).toBe(false);
+  });
+
+  it("drops a retry once its entity has changed, so it can't undo what happened since", async () => {
+    const { store, emit } = await connected({ callService: vi.fn(async () => { throw new Error("rejected"); }) });
+    await store.callService("light", "toggle", { entity_id: "light.one" }).catch(() => undefined);
+    expect(store.canRetryLastAction?.()).toBe(true);
+    emit({ "light.one": { entity_id: "light.one", state: "off", attributes: {} } });
+    expect(store.canRetryLastAction?.()).toBe(false);
+    await expect(store.retryLastAction?.()).rejects.toMatchObject({ code: "unsupported" });
   });
 
   it("dismisses the latest action failure and its retry", async () => {

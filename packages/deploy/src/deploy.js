@@ -4,7 +4,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { copyFile, mkdir, readFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rename } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { DeployConfigError, panelView, readConfig, resolveBundle, resolveDashboards } from "./load.js";
 
@@ -52,9 +52,13 @@ async function readBundle({ config, configFile, target, skipBuild, report }) {
   return { contents, version };
 }
 
-/** Copy the bundle to Home Assistant's www folder: over SSH for `user@host:/path`, or into a mounted folder. */
+/**
+ * Copy the bundle to Home Assistant's www folder: over SSH for `user@host:/path`, or into a mounted folder (a Windows
+ * drive, `Z:\www`, is a folder). It lands under a temporary name and is renamed into place, so a copy cut off halfway
+ * leaves the bundle Home Assistant serves as it was.
+ */
 async function upload({ contents, target, www, sshPort, configFile, report }) {
-  const remote = /^(?:[^@/\s]+@)?[^:/\s]+:(.+)$/.exec(www);
+  const remote = /^[A-Za-z]:[\\/]/.test(www) ? null : /^(?:[^@/\s]+@)?[^:/\s]+:(.+)$/.exec(www);
   if (remote) {
     const host = www.slice(0, www.length - remote[1].length - 1);
     const dir = `${remote[1].replace(/\/+$/, "")}/${target.folder}`;
@@ -62,7 +66,7 @@ async function upload({ contents, target, www, sshPort, configFile, report }) {
     const quoted = (path) => `'${path.replaceAll("'", "'\\''")}'`;
     report(`\n→ Copying to ${www}/${target.folder}/`);
     // Streamed over plain ssh rather than scp: the Home Assistant SSH add-ons do not all offer SFTP.
-    const ssh = spawnSync("ssh", [...port, host, `mkdir -p ${quoted(dir)} && cat > ${quoted(`${dir}/${target.name}`)}`], { input: contents, stdio: ["pipe", "inherit", "inherit"] });
+    const ssh = spawnSync("ssh", [...port, host, `mkdir -p ${quoted(dir)} && cat > ${quoted(`${dir}/${target.name}.tmp`)} && mv ${quoted(`${dir}/${target.name}.tmp`)} ${quoted(`${dir}/${target.name}`)}`], { input: contents, stdio: ["pipe", "inherit", "inherit"] });
     if (ssh.status !== 0) {
       throw new DeployConfigError(`Copying over SSH to ${host} failed. Check that the SSH add-on is running and that \`ssh ${[...port, host].join(" ")}\` works without a password prompt.`);
     }
@@ -76,7 +80,8 @@ async function upload({ contents, target, www, sshPort, configFile, report }) {
   }
   const folder = join(directory, target.folder);
   await mkdir(folder, { recursive: true });
-  await copyFile(target.file, join(folder, target.name));
+  await copyFile(target.file, join(folder, `${target.name}.tmp`));
+  await rename(join(folder, `${target.name}.tmp`), join(folder, target.name));
   report(`  ✓ ${target.folder}/${target.name}`);
 }
 
@@ -90,6 +95,10 @@ async function registerResource(ha, target, version, report, warn) {
     if (existing) await ha.send("lovelace/resources/update", { resource_id: existing.id, res_type: "module", url });
     else await ha.send("lovelace/resources/create", { res_type: "module", url });
     report(`  ✓ ${url} ${existing ? "(updated)" : "(added)"}`);
+    // The same bundle from elsewhere (the Marketplace's /local/community/…) defines the same cards: whichever loads
+    // first wins, and the other is skipped without a word.
+    const other = resources.find((resource) => resource.url.split("?")[0] !== target.resourcePath && resource.url.split("?")[0].endsWith(`/${target.name}`));
+    if (other) warn(`  ! Another ${target.name} is also registered (${other.url.split("?")[0]}). Both define the same cards and only the first to load is used, so remove one under Settings → Dashboards → Resources.`);
     return { url, updated: Boolean(existing) };
   } catch (error) {
     const message = error?.message ?? String(error);
@@ -120,7 +129,15 @@ async function reconcileDashboards(ha, dashboards, pageTitle, report) {
     }
     const { card, made } = await dashboard.card(ha);
     await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
-    await ha.send("lovelace/config/save", { url_path: dashboard.path, config: panelView(card, pageTitle) });
+    try {
+      await ha.send("lovelace/config/save", { url_path: dashboard.path, config: panelView(card, pageTitle) });
+    } catch (error) {
+      // Delete what this run created, as the setup card does, so the next run creates it again rather than leaving
+      // it empty for good. The save's error is the one worth reporting.
+      const made = (await ha.send("lovelace/dashboards/list").catch(() => [])).find((item) => item.url_path === dashboard.path);
+      if (made) await ha.send("lovelace/dashboards/delete", { dashboard_id: made.id }).catch(() => {});
+      throw error;
+    }
     report(`  ✓ created with ${made}`);
     results.push({ path: dashboard.path, title: dashboard.title, status: "created" });
   }

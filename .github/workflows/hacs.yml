@@ -20,6 +20,7 @@ jobs:
     if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     steps:
-      - uses: hacs/action@main
+      # main as of 2026-11-04, pinned so a push there can't change what runs here; Dependabot moves it.
+      - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
         with:
           category: plugin

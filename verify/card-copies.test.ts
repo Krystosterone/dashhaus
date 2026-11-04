@@ -1,6 +1,6 @@
 /**
  * A card is composition: what two cards of one skin both need is a part in the skin's `shared/` (or behaviour in
- * `@dashhaus/core`), never a copy in each card folder (research/mechanism-backlog.md → 2). This finds the copies a grep
+ * `@dashhaus/core`), never a copy in each card folder (AGENTS.md → Vocabulary, Part). This finds the copies a grep
  * can: a component whose source is the same in two card folders of a skin once each card's class code is set aside
  * (a keypad pasted from the alarm into the lock), and a CSS rule of three or more declarations, on one card class, that
  * another card of the skin writes again (a key group's grid). A name two cards share isn't a copy (orb's alarm and
@@ -30,9 +30,12 @@ const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
 /** A card folder's own source: its components and stylesheets, not its stories, tests or demo seeds. */
 const own = (path: string) => !/\.(stories|test)\.tsx?$/.test(path) && !path.includes("/demo/");
 
-/** Each top-level component's source, by name: `function Name(` or `const Name = (` to the brace that closes it at the margin. */
+/**
+ * Each top-level component's source, by name: `function Name(` or `const Name = (` to the `}`, `};` or `);` that closes
+ * it at the margin. A blank line inside the body doesn't end it.
+ */
 function components(source: string): [string, string][] {
-  return [...source.matchAll(/^(?:export )?(?:function ([A-Z][a-z]\w*)\b|const ([A-Z][a-z]\w*) = (?:\([^)]*\)|\w+) =>)[\s\S]*?^\}?;?$/gm)]
+  return [...source.matchAll(/^(?:export )?(?:function ([A-Z][a-z]\w*)\b|const ([A-Z][a-z]\w*) = (?:\([^)]*\)|\w+) =>)[\s\S]*?^(?:\};?|\);)$/gm)]
     .map((match) => [match[1] ?? match[2], match[0]] as [string, string])
     .filter(([, body]) => body.split("\n").length >= 5);
 }
@@ -83,7 +86,7 @@ describe("card folders", () => {
   });
 
   it("finds a copied component and a copied rule", () => {
-    const keypad = "function Keypad({ prompt }: { prompt: string }) {\n  return (\n    <div className=\"al-kp\">\n      {prompt}\n    </div>\n  );\n}";
+    const keypad = "function Keypad({ prompt }: { prompt: string }) {\n  const shown = prompt;\n\n  return (\n    <div className=\"al-kp\">\n      {shown}\n    </div>\n  );\n}";
     expect(uncoded(components(keypad)[0][1])).toBe(uncoded(components(keypad.replace("al-kp", "lk-kp"))[0][1]));
     expect(blocks(".al-keys { display: grid; gap: 8px; min-width: 0; grid-auto-flow: column; }")).toEqual(blocks(".lk-keys { grid-auto-flow: column; display: grid; min-width: 0; gap: 8px; }"));
     expect(blocks(".al-keys { display: grid; gap: 8px; }")).toEqual([]);

@@ -11,7 +11,5 @@
   .fd-hu.fd-module:is([data-state="off"], :has(.fd-fader)) .fd-meta-2 { display: block; }
 }
 
-.fd-hu-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
-
 /* Modes put their full word on the key, a KeyGroup: three in a row, four rather than three and an orphan, two on a
    narrow panel. */

@@ -49,13 +49,16 @@ export function useHaHistory(entityIds: readonly string[], load = true, now: Dat
   const day = localMidnight(now).getTime();
   const idsRef = useRef(entityIds);
   idsRef.current = entityIds;
-  const { value: recorded } = useHaRequest(
+  const { value: recorded, error } = useHaRequest(
     load ? `history:${day}:${idsKey}` : undefined,
     (current) => fetchDay(current, idsRef.current, day),
   );
   const [live, setLive] = useState<HaHistoryRecord[]>([]);
   const until = useRef(0);
   until.current = recorded?.until ?? 0;
+  // A failed read draws nothing, so its changes are not kept: with no read to trim against they'd grow for weeks.
+  const failed = useRef(false);
+  failed.current = error !== undefined;
 
   useEffect(() => {
     setLive([]);
@@ -73,7 +76,7 @@ export function useHaHistory(entityIds: readonly string[], load = true, now: Dat
         if (record) added.push(record);
       }
       // Records the latest read already covers are dropped, so the tail stays short.
-      if (added.length) setLive((current) => [...current, ...added].filter((record) => record.changed.getTime() > until.current));
+      if (added.length) setLive((current) => failed.current ? [] : [...current, ...added].filter((record) => record.changed.getTime() > until.current));
     });
   }, [idsKey, load, store]);
 

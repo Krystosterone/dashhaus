@@ -52,7 +52,7 @@ describe("the generator package map", () => {
     expect(manifest.dependencies).toHaveProperty("@dashhaus/core");
     expect(manifest.dependencies).toHaveProperty("@dashhaus/dashboard");
     for (const target of Object.values(manifest.exports)) expect(target).toMatch(/^\.\//);
-    for (const reserved of ["core", "dashboard", "deploy"]) expect(() => generatedManifest(reserved)).toThrow(/reserved/);
+    for (const reserved of ["core", "dashboard", "deploy", "bundle", "fake-home-assistant"]) expect(() => generatedManifest(reserved)).toThrow(/reserved/);
   });
 
   it("marks a study in its manifest and nothing else", () => {

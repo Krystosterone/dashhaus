@@ -150,5 +150,10 @@ The runs' JSON reports were evidence at the time and are not tracked; the number
   URL, dashboard paths, card names and timings — environment detail, not a secret, but not something the repo tracks.
   It never contains the token or `.env`.
 
-The measured cut that acted on the first reports' findings is recorded in
-[2026-10-30-production-performance-brief.md](../docs/research/2026-10-30-production-performance-brief.md).
+The first reports' finding, and the cut it led to (2026-10-31): half of entry-to-ready was the bundle waiting on its
+own subscription's snapshot, after a cheaper placeholder frame. `LovelaceDashboardElement` now seeds the store from
+the frontend's `hass.states` before the first render (`store:connected` and `store:painted` carry `seeded: true`),
+and the live subscription replaces the seed. Median entry-to-ready fell from 126 to 76 ms on Orb and from 119 to
+48 ms on Field (five cold runs each); details and toggle timings stayed inside their baseline ranges. Weighed and
+not taken: per-skin chunks, Preact or a compressed loader (deploy uploads one file, and the bytes weren't the wait),
+and moving a mark earlier without the data (it would win the number and prove nothing).

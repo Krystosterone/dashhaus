@@ -13,6 +13,8 @@ import { perfEnabled, perfMark, perfMarkAfterPaint } from "../perf";
 
 /** `home-assistant-js-websocket`'s ERR_CONNECTION_LOST: in-flight commands are rejected with it when the socket drops. */
 const ERR_CONNECTION_LOST = 3;
+/** Domains whose actions ask first, or take a code, on their card: never repeated by a one-tap Retry. */
+const ASKS_FIRST = new Set(["lock", "alarm_control_panel"]);
 
 type ErrorDetails = { domain?: string; service?: string; entityId?: string };
 
@@ -38,6 +40,8 @@ export function createHaStore(transport: HaTransport, initialEntities?: HassEnti
   let attempt: { promise: Promise<void>; resolve: () => void; reject: (error: unknown) => void } | undefined;
   let actionSequence = 0;
   let failedAction: (() => Promise<unknown>) | undefined;
+  /** The entity the failed action was for, as it stood then: a retry only repeats it while nothing has changed it. */
+  let failedOn: { entityId: string; entity: unknown } | undefined;
   /** The action waiting for its entity update, only while performance marks are on. */
   let tracedAction: { seq: number; entityId?: string } | undefined;
 
@@ -178,6 +182,7 @@ export function createHaStore(transport: HaTransport, initialEntities?: HassEnti
       }
       if (action && actionId === actionSequence && generation === snapshot.generation) {
         failedAction = retry && error.retryable ? retry : undefined;
+        failedOn = details.entityId ? { entityId: details.entityId, entity: snapshot.entities[details.entityId] } : undefined;
         set({ lastActionError: error });
       }
       return error;
@@ -232,9 +237,14 @@ export function createHaStore(transport: HaTransport, initialEntities?: HassEnti
       : transport.callService(domain, serviceName, serviceData);
     let retry: (() => Promise<unknown>) | undefined;
     const execute = () => request(`${domain}.${serviceName}`, details, call, action, retry);
-    if (action && !Object.prototype.hasOwnProperty.call(serviceData, "code")) retry = execute;
+    // A code is never kept, and a lock's or an alarm's action asks first on its card: Retry would skip the question.
+    if (action && !Object.prototype.hasOwnProperty.call(serviceData, "code") && !ASKS_FIRST.has(domain)) retry = execute;
     return execute();
   };
+
+  /** Connected, with a failed action whose entity hasn't changed since: a toggle two hours on would undo someone. */
+  const canRetry = () => snapshot.status === "connected" && failedAction !== undefined
+    && (!failedOn || snapshot.entities[failedOn.entityId] === failedOn.entity);
 
   const callApi = (type: string, payload: Record<string, unknown> = {}) => {
     if (typeof type !== "string" || !isRecord(payload)) {
@@ -260,9 +270,9 @@ export function createHaStore(transport: HaTransport, initialEntities?: HassEnti
       failedAction = undefined;
       if (snapshot.lastActionError) set({ lastActionError: undefined });
     },
-    canRetryLastAction: () => snapshot.status === "connected" && failedAction !== undefined,
+    canRetryLastAction: () => canRetry(),
     retryLastAction() {
-      return failedAction
+      return failedAction && canRetry()
         ? failedAction()
         : Promise.reject(new HaActionError("unsupported", "No Home Assistant action is available to retry"));
     },

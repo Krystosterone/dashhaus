@@ -51,7 +51,7 @@ Auth is a host concern: `@dashhaus/core` has no auth provider, auth hook, login 
 - Treat `last_changed` as a state-transition timestamp, not as proof of last reachability. `lastSeen` is populated only from explicit adapter metadata.
 - Accept timestamps only when their ISO date/time components are valid; reject nonexistent timezone-less local times during DST gaps and do not let JavaScript date normalization turn impossible values into plausible display times. Display them relative to the tile's minute clock: the time for today, weekday and time within the last week, the date before that.
 - Reject non-finite brightness/Kelvin inputs and Kelvin values outside the entity's reported range before sending a service payload.
-- Climate modes/actions, current/target temperatures, ranges, limits, units, presets, and fans are mapped only from their raw attributes. Missing current or target readings stay absent, and stale measured values are suppressed while the raw entity is unknown or unavailable; documented Home Assistant defaults are used only for control metadata needed by the normalized card.
+- Climate modes/actions, current/target temperatures, ranges, limits, presets, and fans are mapped only from their raw attributes. A climate entity names no unit, so its unit is the card's `unit`, else Home Assistant's own unit system (`get_config`, read once per connection), else °C. Missing current or target readings stay absent, and stale measured values are suppressed while the raw entity is unknown or unavailable; documented Home Assistant defaults are used only for control metadata needed by the normalized card.
 - Climate range actions order `target_temp_low <= target_temp_high`, validate both values against the reported bounds, and use `climate.turn_on`/`climate.turn_off` rather than inventing a prior HVAC mode.
 - Sensor mappers parse numeric `sensor.*` states for the supported temperature, humidity, and battery device classes; when `device_class` is absent, a recognized temperature unit may provide the temperature fallback, but an explicit other class wins over a contradictory unit. Companion humidity/battery entities are optional, percentage values outside `0..100` are omitted, blank/invalid numeric states are omitted, and unknown/unavailable primary entities suppress normalized readings rather than exposing stale attributes.
 - Weather mappers accept the documented Home Assistant condition set, suppress current readings while the weather state is `unknown` or `unavailable`, reject invalid humidity/UV/wind/AQI values, and never infer `isDay` from a missing or unavailable `sun.sun` companion. Only an explicit AQI companion with `device_class: "aqi"`, a declared `aqiScale="US"`, and a `0..500` value is mapped into the repository's US-AQI model; without the scale assertion, AQI remains absent.
@@ -77,4 +77,9 @@ Auth is a host concern: `@dashhaus/core` has no auth provider, auth hook, login 
 
 In development only, every `useHa<Name>` hook checks its entity ID once: a malformed ID or one from the wrong domain warns once in the console with the hook's name and expected domain. Production builds are silent, a warning never throws, and a missing entity is not warned about — a dashboard may legitimately render one before its entity loads. The behavior is pinned by `packages/core/src/ha/dev.test.ts`.
 
-What is still unverified against a live Home Assistant is tracked in [research/README.md](../research/README.md).
+## What has and hasn't been verified
+
+Everything above is verified on injected transports and the fake Home Assistant (`packages/fake-home-assistant/`). A
+real authenticated connection, a service action per domain with its readback, a reconnect and the YAML layout's error
+list in Home Assistant's own editor are not yet: GitHub issue #43. Record each here as run or unrun once it is, never
+inferred from the fake.

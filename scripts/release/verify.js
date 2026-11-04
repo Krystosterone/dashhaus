@@ -42,7 +42,7 @@ async function checkTarballs(manifests) {
     const bad = files.filter((file) => {
       // The scaffolder ships story metadata as templates for the skin it writes, not stories of its own.
       if (pkg.key === "scaffold" && file.startsWith("package/dist/templates/")) return false;
-      return /(?:\.test\.|\.stories\.|^package\/(?:\.agents|research|docs|spec)\/|^package\/src\/.*\.test\.)/.test(file);
+      return /(?:\.test\.|\.stories\.|^package\/(?:\.agents|docs|spec)\/|^package\/src\/.*\.test\.)/.test(file);
     });
     if (bad.length) throw new Error(`${manifest.name}: tarball ships ${bad.join(", ")}`);
     if (pkg.key !== "deploy" && files.some((file) => file.startsWith("package/src/"))) {

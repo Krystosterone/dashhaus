@@ -84,7 +84,12 @@ function cardWrites(names, name, askedKind, readRegistry) {
   const fill = filler(cardTokens(domain, names, drawn));
   const files = ["card", "standalone-card"].flatMap((folder) => walk(templates(folder)).map((file) => [fill(file), fill(readFileSync(join(templates(folder), file), "utf8"))]));
   const lines = registryLines(domain, names);
-  const registry = beforeMarker(REGISTRY_MARKERS.entries, lines.entry)(beforeMarker(REGISTRY_MARKERS.imports, lines.import)(readRegistry()));
+  const source = readRegistry();
+  // Without its markers the card would be written but never drawn; say so rather than report it registered.
+  for (const marker of Object.values(REGISTRY_MARKERS)) {
+    if (!source.includes(marker)) fail(`lovelace/registry.tsx has lost its "${marker}" line; put it back where the registry's ${marker.includes("import") ? "imports" : "entries"} go, then run add again`);
+  }
+  const registry = beforeMarker(REGISTRY_MARKERS.entries, lines.entry)(beforeMarker(REGISTRY_MARKERS.imports, lines.import)(source));
   return { domain, kind: drawn.kind, leftOut: drawn.leftOut, files: [...files, ["lovelace/registry.tsx", registry]] };
 }
 

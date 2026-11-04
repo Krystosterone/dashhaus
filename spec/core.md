@@ -109,7 +109,8 @@ Every code has one category and one retryability answer, from the single table i
 
 `retryable` means "safe to repeat on the current connection", not "will succeed". The store applies the same rule: it
 retains the latest failed non-sensitive action for `retryLastAction()` only when the error is retryable, and never
-retains a call that contains an alarm code. A successful call means Home Assistant accepted the command; the next
+retains a call that contains a code, nor a lock's or an alarm's call, which asks first on its card. A retained call is
+dropped once its entity changes, so Retry never undoes what happened since. A successful call means Home Assistant accepted the command; the next
 entity snapshot is the readback boundary, not proof that the entity reached the requested state.
 
 The store's `lastActionError` is the latest settled action failure. `clearActionError()` dismisses it, and
@@ -209,6 +210,31 @@ Both are additive: a test may use them, and their seeds can change.
 A primitive used in a list goes in a small skin component (`Chip`, `Segment`), not a hand-written `aria-pressed` per item. A one-of-several group of latching keys (`ChoiceChips`, alarm segments, Field's mode keys) uses `usePress` per key, not a radiogroup primitive: roving focus and radio semantics would be new behaviour and a restyle of the chosen key. Radix was weighed and not adopted: its slider sets a value on a touch press and its dialog's focus trap fails in the card's shadow root, so each primitive is the repo's own hook. Add one only when a skin needs it.
 
 Primitives have no Storybook stories. A primitive is behaviour without markup, so a story would have to invent markup and styles that belong to no skin, and what it showed would be wrong in the ways that matter: a track's scroll-or-set on touch depends on the skin's `touch-action: pan-y`, a press on its `:active` feedback, the sheet's motion on its CSS. That story would pass axe and still prove nothing about either skin. The contracts are pinned by the unit tests beside each hook (`press.test.tsx`, `slider.test.tsx`, `sheet.test.tsx`, `keypad.test.tsx`, `guarded.test.tsx`), and every skin exercises them in its card stories: `usePress` on any card's orb or key, `useSlider` on Light → Sizes, `useRangeSlider` on Climate → Heat/cool range (orb) or Auto range (field), `useSheet` on any card's Details, phone, `useKeypad` on Alarm → Details, keypad, `useGuardedAction` on Lock → Details, unlock and Details, code. Feel a primitive there, on a phone. If a third skin ever wants to try one before it has cards, revisit this.
+
+## Decided against
+
+Weighed against the community's Home Assistant React libraries (`hass-react`, HAKit's `@hakit/core`, 2026-10-31) and
+not taken. Each is a decision, not an oversight; reopen one only with the need it lacked.
+
+- **Their domain logic.** An absent reading as zero, capability inferred from a possibly stale attribute, RGB-only
+  colour, raw validation errors, feature errors thrown from handlers. The normalized models, absent-reading rules and
+  non-throwing `serviceRunner()` handlers are safer.
+- **Automatic service retries.** A timeout doesn't prove a command failed (a toggle may have gone through), so a
+  retry can act twice. The store's generations, the `transport_unknown` outcome and an explicit retry are the contract.
+- **Provider messages in errors.** An `HaActionError` keeps only sanitized scalars (Error metadata, above), never the
+  provider's text or an alarm code.
+- **Auth in core**: OAuth, token storage, refresh, a login form, a `useAuth`, or a second auth surface beside the
+  store (Auth is host-owned, above). Before any of it, a security review.
+- **Presentation in core**: colours, relative times, icons and image URLs belong to a skin.
+- **An areas hook over the entity map.** It recomputes on every state change; the registry hooks read registry data
+  once per generation.
+- **Generated entity and service types, locale sync and a service proxy.** Build coupling to a live Home Assistant
+  with no consumer asking; hand-normalized models stay the source. Rejected for now, not forever.
+- **One entry with a large peer list, React 19 only.** Subpaths, optional peers and a React 18 baseline suit a skin
+  foundation better.
+- **Hand-written headless wrappers, and snapshot-first hook tests.** One `headless()` factory, and behaviour tests.
+
+`useHaUser` and `useHaConfig` (read-only, hook-only) wait for a skin that needs the person or the config.
 
 ## What is not stable
 

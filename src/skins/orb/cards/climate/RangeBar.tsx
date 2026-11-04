@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Track } from "../../shared/ui";
+import { Track, IconMinus, IconPlus } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
 import { useRangeSlider } from "@dashhaus/core/primitives";
 import { fmtTarget } from "@dashhaus/core/entities/climate/modes";
@@ -62,9 +62,6 @@ export function RangeBar({ id, name, low, high, current, modeCue, min, max, step
   );
 }
 
-const Minus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
-const Plus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
-
 /** Sheet only: exact half-degree steps for each threshold, keeping low <= high. */
 export function RangeFine({ low, high, min, max, step, onChange }: {
   low: number; high: number; min: number; max: number; step: number;
@@ -74,8 +71,8 @@ export function RangeFine({ low, high, min, max, step, onChange }: {
   const group = (kind: "heat" | "cool", label: string, value: number, down: number, up: number, set: (v: number) => void) => (
     <div className={`cw-fine-g cw-fine-g--${kind}`} role="group" aria-label={label}>
       <span className="cw-fine-l"><span>{label}</span><b>{fmtTarget(value)}°</b></span>
-      <button type="button" className="cw-fine-b" aria-label={`${label} ${fmtTarget(down)}°`} disabled={down === value} onClick={() => set(down)}><Minus /></button>
-      <button type="button" className="cw-fine-b" aria-label={`${label} ${fmtTarget(up)}°`} disabled={up === value} onClick={() => set(up)}><Plus /></button>
+      <button type="button" className="cw-fine-b" aria-label={`${label} ${fmtTarget(down)}°`} disabled={down === value} onClick={() => set(down)}><IconMinus /></button>
+      <button type="button" className="cw-fine-b" aria-label={`${label} ${fmtTarget(up)}°`} disabled={up === value} onClick={() => set(up)}><IconPlus /></button>
     </div>
   );
   return (

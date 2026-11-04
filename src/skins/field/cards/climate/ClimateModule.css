@@ -7,8 +7,6 @@
   .fd-cl.fd-module:has(.fd-fader) .fd-meta-2 { display: block; }
 }
 
-.fd-cl-panel .fd-chan-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
-
 /* Exact steps: a target's one row, or an ordered range's two. */
 .fd-cl-fine { display: grid; gap: 8px; }
 

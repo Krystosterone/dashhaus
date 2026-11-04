@@ -66,6 +66,8 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
     if (ro || unav || moving) return;
     if (locked) { ask("unlock"); return; }
     void guard.attempt("lock").then((result) => { if (result === "wrong_code") details.openDetails(); });
+    // A lock that wants a code to lock too takes it on the panel's keypad, as the alarm's keys do.
+    if (e.codeFormat) details.openDetails();
   };
 
   const since = sinceFact(e.lastChanged);

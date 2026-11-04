@@ -3,9 +3,8 @@
 Two passes over the same repository:
 
 - **First pass**: `TODOS.md` lines 14–21 at commit `8eabbc1` (merge of PR #6 from
-  `perf/gate-speedups`), plus the omp session transcript at
-  `/Users/krystosterone/.omp/agent/sessions/-Projects-dashhaus/2026-10-31T00-42-35-614Z_01a18f68-8ade-7129-97a2-8fa9ea7b1686.jsonl`
-  (PR summary at the end of the branch work and the final merge summary).
+  `perf/gate-speedups`), plus the agent session transcript of that work, kept locally by the operator (its PR
+  summary at the end of the branch work and the final merge summary).
 - **Second pass**: PR #20 (`ci/faster-checks`, commit `f746da6`, based on
   `0058687`), measured in a Claude Code cloud session on 2026-11-02. See
   § Second pass at the end. Some first-pass statements are corrected there.
@@ -244,7 +243,7 @@ counts and the runner's own output.
 
 ## Links
 
-The repository was deleted and recreated on 2026-11-01 (`docs/research/2026-10-31-pii-audit.md`), so PR #6 and
+The repository was deleted and recreated on 2026-11-01, so PR #6 and
 the first-pass runs below no longer resolve; their numbers stand as recorded. The second pass's PR and runs are in
 the current repository.
 

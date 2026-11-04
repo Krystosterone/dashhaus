@@ -52,7 +52,11 @@
 .fd-chan small { font-size: 10px; font-weight: 400; color: var(--fd-screen-ink-2); margin-left: 2px; align-self: flex-start; }
 [data-state="off"] .fd-chan { color: var(--fd-screen-ink-2); }
 .fd-chan .fd-pict { width: 16px; height: 21px; }
-.fd-chan-name { font-size: 18px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+/* A word longer than the screen has room for (a device's own mode name) ends in an ellipsis; the figure beside it keeps
+   its width, and the whole word is still read out. Its 22px line, letters 2px down, is the one the channel's figure
+   sits in, so a word and a figure stand at the same height. */
+.fd-chan > span { min-width: 0; }
+.fd-chan-name { display: block; overflow: hidden; text-overflow: ellipsis; padding-top: 2px; font-size: 18px; font-weight: 400; letter-spacing: 0.04em; line-height: 20px; text-transform: uppercase; }
 .fd-chan-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fd-screen-ink-2); }
 
 .fd-block { display: grid; gap: 8px; min-width: 0; }

@@ -43,7 +43,12 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
 
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? "/", `http://${request.headers.host}`);
-    const path = decodeURIComponent(url.pathname);
+    let path;
+    try {
+      path = decodeURIComponent(url.pathname);
+    } catch {
+      return send(response, 400, "text/plain", "400: Bad path");
+    }
     if (path === "/favicon.ico") return send(response, 204, "image/x-icon", "");
     if (path === "/api/fake/lovelace") return request.method === "POST" ? pageCommand(ha, request, response, persist) : send(response, 405, "text/plain", "POST a command");
     if (path.startsWith("/api/") && !path.startsWith("/api/fake/")) {
