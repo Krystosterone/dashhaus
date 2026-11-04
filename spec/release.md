@@ -141,7 +141,9 @@ release serves both. What the repository holds:
 - `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
   `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
 - `.github/workflows/release.yml` builds `dist/dashhaus.js` from a published release's tag, checks the tag is
-  `v<version>` of the packages, and attaches the file to the release. The build runs read-only; only the job that
+  `v<version>` of the packages, and attaches the file to the release. The build runs read-only and restores no cache
+  (the setup action's `cache: "false"`): any job that runs on main, a third-party action's included, can save an Actions
+  cache entry a later run restores, so the file is installed from the tag's lockfile alone. Only the job that
   uploads the file may write to the repository, and it runs none of the repository's scripts. Publishing the release
   stays the operator's step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
   committed build.
