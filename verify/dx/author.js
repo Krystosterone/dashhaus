@@ -135,9 +135,11 @@ try {
 
       const bundleName = `dashhaus-${SKIN}.js`;
       const build = await report.stage("build", async () => {
-        run("npm", ["run", "build", "--silent"], { cwd: skinApp });
-        const files = (await readdir(join(skinApp, "dist"))).filter((file) => file.endsWith(".js"));
-        assert.deepEqual(files, [bundleName], "the build must emit one JS file named for the skin");
+        const { output } = run("npm", ["run", "build", "--silent"], { cwd: skinApp });
+        // Every file, not only the .js ones: a stylesheet read as CSS once left an empty dist/style.css beside it.
+        const files = await readdir(join(skinApp, "dist"));
+        assert.deepEqual(files, [bundleName], "the build must emit one file, the JS bundle named for the skin");
+        assert.doesNotMatch(output, /css-syntax-error|warnings when minifying css/i, "the build must not warn about CSS");
         const bundle = await read(join(skinApp, "dist", bundleName));
         assert.match(bundle, /dashhaus-my-skin/, "the bundle must register the skin's card");
         assert.match(bundle, /--my-skin-/, "the bundle must carry the skin's CSS");
