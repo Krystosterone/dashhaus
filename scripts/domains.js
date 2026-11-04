@@ -61,7 +61,8 @@ export function describeDomain(name) {
   const entity = shape(types, `${Name}Entity`);
   if (!entity) throw new Error(`${typesPath} must export ${Name}Entity`);
   // Today's history is optional: a lock's day is its last change.
-  const history = shape(types, `${Name}History`) != null;
+  const historyShape = shape(types, `${Name}History`);
+  const history = historyShape != null;
 
   const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
   if (!exists(hookPath)) throw new Error(`${hookPath} doesn't exist: generated skins reach Home Assistant through useHa${Name}`);
@@ -80,17 +81,23 @@ export function describeDomain(name) {
 
   const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) throw new Error(`${fixturePath} doesn't exist`);
-  const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
+  const fixture = JSON.parse(read(fixturePath));
+  const fixtureId = Object.entries(fixture).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
   if (!fixtureId) throw new Error(`${fixturePath} has no available entity`);
 
+  // The Home Assistant domains it draws, as orb's Lovelace card routes them; a domain orb has no card for yet (its card
+  // being drawn now), the ones its fixture's entities are in.
   const orb = orbKinds();
   const shared = orb.shared[name];
-  const domains = shared?.domains ?? Object.keys(orb.domainKind).filter((domain) => orb.domainKind[domain] === name);
-  if (!domains.length) throw new Error(`${orb.path} gives ${name} no Home Assistant domain`);
+  const routed = shared?.domains ?? Object.keys(orb.domainKind).filter((domain) => orb.domainKind[domain] === name);
+  const domains = routed.length ? routed : [...new Set(Object.keys(fixture).map((id) => id.split(".")[0]))];
+  if (!domains.length) throw new Error(`${orb.path} gives ${name} no Home Assistant domain, and ${fixturePath} has no entity`);
 
   return {
     name, Name, CONST, words, Label,
     domains,
+    /** A card on another card's Home Assistant domain, picked with `card:` or its `id` pattern. */
+    ...(shared && { shared: true }),
     ...(shared?.id && { id: shared.id }),
     kind: actions.length || guarded.length ? "control" : "reading",
     actions,
@@ -99,6 +106,14 @@ export function describeDomain(name) {
     history,
     /** The entity says whether it wants a code (`codeFormat`, Home Assistant's `code_format`). */
     code: /^\s+codeFormat\??: /m.test(entity),
+    /** The entity's fields, by name. */
+    fields: [...entity.matchAll(/^\s+(\w+)\??: /gm)].map(([, field]) => field),
+    /** Its state can be "on": a toggle's key latches, its LED on while it is. */
+    onOff: /^\s+state: [^;]*"on"/m.test(entity),
+    /** Today's history counts the minutes in a state (`onMinutes` → "on"), for its summary in words; or null. */
+    minutes: historyShape?.match(/^\s+(\w+)Minutes\??: number/m)?.[1] ?? null,
+    /** Today's history has hourly samples, for a meter. */
+    samples: historyShape != null && /^\s+samples: /m.test(historyShape),
     summary: summaryFor(entity),
     /** The hook's options a dashboard's YAML can fill, in the order a connected card passes them. */
     options: [...["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)), ...(/^\s+loadHistory\?: /m.test(options) ? ["loadHistory"] : [])],

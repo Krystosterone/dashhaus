@@ -26,6 +26,17 @@ The generator writes the whole slice, the Home Assistant side included, and regi
 Then make it the real thing: the entity's fields, the card's drawing, the mapper's attributes and the actions' services,
 its section in `spec/cards.md`. `verify/orb-conformance.test.ts` says which step is missing.
 
+## An existing domain, in Orb
+
+```sh
+npm run new-card -- <name> --code <xx>
+```
+
+Without `--domain`, for a domain whose model and hook already exist, it writes only Orb's side: the card drawn in the
+card frame, its tile, stories on the domain's seeds in core, `src/skins/orb/ha/Ha<Name>Tile.tsx`, and its place in
+Orb's Lovelace card. Both generators read the domain from one description, the same one the standalone scaffolder's
+`add` command reads.
+
 ## An existing domain, in Field
 
 ```sh

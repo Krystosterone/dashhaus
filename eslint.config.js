@@ -97,7 +97,7 @@ export default tseslint.config(
   {
     // Skin adapters fill optional imports and props from the target domain, so template source can look unused.
     // The generated source under src/ is checked without this allowance.
-    files: ["scripts/new-card/templates/field/**", "scripts/new-skin/templates/**", "packages/create-dashhaus-skin/src/templates/{skin,card}/**"],
+    files: ["scripts/new-card/templates/{field,orb}/**", "scripts/new-skin/templates/**", "packages/create-dashhaus-skin/src/templates/{skin,card}/**"],
     rules: {
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-unused-expressions": "off",

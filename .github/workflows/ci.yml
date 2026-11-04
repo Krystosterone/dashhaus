@@ -42,10 +42,10 @@ jobs:
       - uses: ./.github/actions/setup
       - run: npm run test:unit -- --maxWorkers=2
 
-  # The generator suites copy the repo and run its tools inside each copy, mostly one process at a time. All three on
+  # The generator suites copy the repo and run its tools inside each copy, mostly one process at a time. All four on
   # one runner took longer than a Storybook shard, so they run on two: the new-skin copy, which builds two skins and
-  # Storybook, alone, and the new-card and Field copies side by side. Each copy's typecheck starts from the restored
-  # incremental state.
+  # Storybook, beside the short regeneration copy (the fan drawn again from its description), and the new-card and
+  # Field copies side by side. Each copy's typecheck starts from the restored incremental state.
   generators_shard:
     name: generators (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -54,8 +54,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: new-skin
-            files: scripts/new-skin/index.test.ts
+          - name: new-skin, regenerate
+            files: scripts/new-skin/index.test.ts scripts/new-card/regenerate.test.ts
           - name: new-card, field
             files: scripts/new-card/index.test.ts scripts/new-skin/field.test.ts
     steps:

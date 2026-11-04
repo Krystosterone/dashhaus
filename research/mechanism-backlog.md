@@ -40,8 +40,12 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   and demo helpers: a domain's transport is its seed and its service table), and a frame per skin, which the templates
   draw on too: orb's `CardFrame` (its head, slot and facts from props, the card's body in `SheetBlock` and `Today`;
   AGENTS.md → Adding a card) and field's `ModuleFrame`, which draws the panel too (its screen with the `aside` channel,
-  the module's `controls` again, the card's blocks and its `facts`). The lock, the alarm and the fan are drawn on all
-  of it.
+  the module's `controls` again, the card's blocks and its `facts`), and one generator path: orb's, field's and a
+  generated skin's `new-card` read a domain from `describeDomain` (`scripts/domains.js`, which writes the scaffolder's
+  `domains.json`) and fill with the scaffolder's one `filler`; orb draws a domain core already has from it
+  (`new-card <name> --code <xx>`), and `scripts/new-card/regenerate.test.ts` draws the fan again in both skins. A brand-new
+  domain still starts from orb's on/off or reading templates, its core files with it. The lock, the alarm and the fan are
+  drawn on all of it.
 - **Today:** what a grep of the card folders (2026-11-03) still finds, each a mechanism two or more cards write:
 
   | Mechanism | Where it is written now | Copies |
@@ -50,16 +54,10 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
 
 - **Gap:** `verify/card-copies.test.ts` catches a copied component or rule, not a copied shape of markup; the frames
   hold the anatomy and the module/panel split now, so the shape a new card would copy is the frame's props.
-- **The generators** draw on the parts, the facts and the declared action kinds now, but:
-  - **Two descriptions of one domain.** The field generator reads `useHa<Name>`'s options and handlers with regular
-    expressions (`scripts/new-card/field.js`), while the scaffolder and `new-card --skin <generated>` read
-    `domains.json`, written by `scripts/domains.js`; `filler` is copied word for word in `scripts/new-card/lib.js` and
-    `packages/create-dashhaus-skin/src/card.js`.
+- **The generators** draw on the frames, the parts, the facts and the declared action kinds now, but:
   - **A value is left out.** The declaration says `takes: "value"` for a level or a choice, and the templates leave it
     out, saying so: a regenerated fan has its key and no groove or presets.
 - **Proposal:** one pass per row, each its own change:
-  - one generator path: orb's and field's `new-card` draw through the scaffolder's `src/card.js` and `domains.json`,
-    with one `filler`, on the frames, parts and formatters;
   - the declaration grows a level (a percent or a range, the fan's `onPercentageChange`) and a list (a preset, a mode, a
     direction), drawn on the level part (`LevelBar`, `Fader`) and on chips or `KeyGroup`.
 - **Gate:** per row, every affected card's interaction tests and stories pass unchanged in both skins (`npm run check`,

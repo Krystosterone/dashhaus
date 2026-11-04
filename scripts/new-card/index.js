@@ -5,7 +5,8 @@
  *   npm run new-card -- fan --code fn --domain fan
  *   npm run new-card -- co2 --code co --domain sensor --kind reading --unit ppm
  *
- * With `--skin field` it draws a domain that already exists in the field skin instead (./field.js).
+ * Without `--domain`, for a domain core already has, it draws only orb's card, from the domain's description
+ * (./orb.js); with `--skin field` it draws one in the field skin instead (./field.js).
  *
  * It copies ./templates/common plus ./templates/<kind> with the names filled in, then registers the card
  * everywhere the conformance test (verify/orb-conformance.test.ts) looks, the Lovelace card included:
@@ -18,6 +19,7 @@ import { join } from "node:path";
 import { generated as generatedSkin, markers, packageFile } from "../packages.js";
 import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
 import { newFieldCard } from "./field.js";
+import { newOrbCard } from "./orb.js";
 import { newGeneratedCard } from "./generated.js";
 import { domainsFile, domainsJson } from "../domains.js";
 
@@ -50,9 +52,16 @@ if (skin !== "orb") {
 }
 const code = flag("code");
 const domain = flag("domain");
-const kind = flag("kind") ?? "control";
+const askedKind = flag("kind");
+const kind = askedKind ?? "control";
 const unit = flag("unit");
 const [name, ...extra] = args;
+// A domain core already has, with no --domain: orb draws it from its description, as field does.
+if (name && !domain && !extra.length && /^[a-z][a-zA-Z0-9]*$/.test(name) && existsSync(join(root, packageFile("core", "src/entities"), name))) {
+  if (unit != null) fail("--unit is for a new reading's domain");
+  newOrbCard({ name, code, kind: askedKind, dryRun });
+  process.exit(0);
+}
 const usage = "usage: npm run new-card -- <name> --code <xx> --domain <ha_domain> [--kind control|reading] [--unit <unit>] [--dry-run]\n" +
   "       e.g. npm run new-card -- fan --code fn --domain fan\n" +
   "            npm run new-card -- co2 --code co --domain sensor --kind reading --unit ppm";

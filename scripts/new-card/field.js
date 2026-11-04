@@ -19,8 +19,8 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
-import { declaredActions } from "../domains.js";
+import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir } from "./lib.js";
+import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("field");
 const ORB = skinDir("orb");
@@ -32,43 +32,28 @@ const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${na
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
 
 export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun }) {
-  // ---------- What the domain already has ----------
+  // ---------- What the domain already has: its one description, the scaffolder's too ----------
   const { Name, CONST, words, Label } = names(name, '"sound"');
-  const step = (n) => `AGENTS.md → Adding an existing domain to another skin, step ${n}`;
 
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
-  const typesPath = packageFile("core", `src/entities/${name}/types.ts`);
-  if (!exists(typesPath)) fail(`${typesPath} doesn't exist. Field draws a domain orb already has: npm run new-card -- ${name} --code <xx> --domain <ha_domain> first`);
-  const types = read(typesPath);
-  const entity = shape(types, `${Name}Entity`);
-  const history = shape(types, `${Name}History`);
-  if (!entity) fail(`${typesPath} must export ${Name}Entity`);
-
-  const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
-  if (!exists(hookPath)) fail(`${hookPath} doesn't exist: field reaches Home Assistant through useHa${Name} (${step(1)})`);
-  const hook = read(hookPath);
-  const options = shape(hook, `Ha${Name}Options`);
-  if (!new RegExp(`export function useHa${Name}\\b`).test(hook) || options == null) fail(`${hookPath} must export useHa${Name} and Ha${Name}Options`);
-  const required = [...options.matchAll(/^\s+(\w+): /gm)].map((m) => m[1]);
-  if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated module can't know. Draw ${words} in field by hand, from ${SKIN}/cards/light/`);
-
-  // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
-  const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
-  let declared = [];
+  if (!exists(packageFile("core", `src/entities/${name}/types.ts`))) fail(`${packageFile("core", `src/entities/${name}/types.ts`)} doesn't exist. Field draws a domain orb already has: npm run new-card -- ${name} --code <xx> --domain <ha_domain> first`);
+  let domain;
   try {
-    declared = exists(actionsPath) ? declaredActions(read(actionsPath), Name, CONST) : [];
+    domain = describeDomain(name);
   } catch (error) {
-    fail(`${error.message} (${actionsPath})`);
+    fail(`${error.message}. Draw ${words} in field by hand, from ${SKIN}/cards/light/ (AGENTS.md → Adding an existing domain to another skin)`);
   }
-  const taps = declared.filter(({ takes, asks }) => takes === "nothing" && !asks);
-  const asked = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks));
-  const leftOut = declared.filter(({ takes }) => takes === "value").map(({ action }) => action);
-  const kind = askedKind ?? (taps.length || asked.length ? "control" : "reading");
+  // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
+  const taps = domain.actions.map((action) => ({ action, takes: "nothing", asks: false }));
+  const asked = domain.guarded.map(({ action, asks, code: takesCode }) => ({ action, takes: takesCode ? "code" : "nothing", asks }));
+  const { leftOut } = domain;
+  const kind = askedKind ?? domain.kind;
   if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
   if (kind === "control" && !taps.length && !asked.length) {
-    fail(`${words} has no action a press can give${leftOut.length ? ` (${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value)` : ` (${actionsPath})`}, so it starts as a reading: pass --kind reading and add its controls by hand, or draw it from ${SKIN}/cards/light/`);
+    fail(`${words} has no action a press can give${leftOut.length ? ` (${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value)` : ""}, so it starts as a reading: pass --kind reading and add its controls by hand, or draw it from ${SKIN}/cards/light/`);
   }
   const pressed = kind === "control" ? [...taps, ...asked] : [];
+  const { history } = domain;
 
   // ---------- Orb's card (its code, its connected story) and the domain's seeds in core ----------
   const orbDir = `${ORB}/cards/${name}`;
@@ -101,27 +86,16 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${ORB}/ha/Ha${Name}Tile.stories.tsx must import a createDemo…HaTransport and draw an entityId, for field's connected story`);
 
-  const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
-  if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist, for its connected module's test`);
-  const fixture = JSON.parse(read(fixturePath));
-  const fixtureId = Object.entries(fixture).find(([, e]) => !["unavailable", "unknown"].includes(e.state))?.[0];
-  if (!fixtureId) fail(`${fixturePath} has no available entity for its connected module's test`);
-
-  // The Home Assistant domains it draws, as orb's Lovelace card has them.
-  const orb = orbKinds();
-  const shared = orb.shared[name];
-  const domains = shared?.domains ?? Object.keys(orb.domainKind).filter((d) => orb.domainKind[d] === name);
-  if (!domains.length) fail(`${orb.path} gives ${name} no domain in DOMAIN_KIND or SHARED_KINDS`);
+  // The connected test's entity, and whether it asks for a code.
+  const { fixtureId } = domain;
+  const fixture = JSON.parse(read(packageFile("core", `src/ha/fixtures/${name}.json`)));
+  const { domains } = domain;
 
   // ---------- Files from the templates ----------
-  const has = (field) => new RegExp(`^\\s+${field}\\??: `, "m").test(entity);
-  const toggle = taps.some(({ action }) => action === "onToggle") && /^\s+state: [^;]*"on"/m.test(entity);
-  const wantsCode = has("codeFormat");
-  const keyOf = (action) => action.replace(/^on/, "").replace(/[A-Z]/g, (c, at) => `${at ? "-" : ""}${c.toLowerCase()}`);
-  const labelOf = (action) => {
-    const spaced = action.replace(/^on/, "").replace(/([A-Z])/g, " $1").trim().toLowerCase().replace(/ cover$/, "");
-    return spaced[0].toUpperCase() + spaced.slice(1);
-  };
+  const has = (field) => domain.fields.includes(field);
+  const toggle = taps.some(({ action }) => action === "onToggle") && domain.onOff;
+  const wantsCode = domain.code;
+  const { keyOf, labelOf } = card;
   const hold = asked.length ? "openPanel" : "details.openDetails";
   const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
   /** What asks first, and what takes a code, in words: "Unlock and Open ask first, and Lock takes a code where the lock wants one". */
@@ -141,14 +115,14 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
   const since = has("lastChanged") ? "sinceFact(e.lastChanged)" : "undefined";
   // Today's summary in words, where the history counts the minutes in a state (`onMinutes`): "On 2h 36m", "Not on today".
-  const minutesIn = history?.match(/^\s+(\w+)Minutes\??: number/m)?.[1];
+  const minutesIn = domain.minutes;
   /** Today's meter at an indent, or nothing for a domain without history. */
   const todayAt = (indent) => history ? [
     "<Today",
     minutesIn ? `  summary={history && (unav ? "Unavailable" : todaySummary("${minutesIn}", history.${minutesIn}Minutes))}` : "",
     `  label="${Label} by hour today."`,
     '  tone="neutral"',
-    /^\s+samples: /m.test(history) ? "  samples={history?.samples}" : "",
+    domain.samples ? "  samples={history?.samples}" : "",
     "  currentHour={history?.currentHour}",
     "/>",
   ].filter(Boolean).map((line) => indent + line).join("\n") : "";
@@ -175,7 +149,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     // The facts' words, from core: what this module prints.
     __factsImport__: ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact", "sinceFact"] : [])].sort().join(", "),
     // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
-    __samplesProp__: history && /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
+    __samplesProp__: domain.samples ? "samples={history?.samples}" : "",
     __historyType__: history ? `, ${Name}History` : "",
     __historyProp__: history ? "  /** Today, for the detail panel. Omit to leave its meter dark. */\n  history?: " + `${Name}History;` : "",
     __historyArg__: history ? ", history" : "",
@@ -301,11 +275,11 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
   // The Lovelace card: its domains, and its connected module.
   const config = seams.field.config;
   edit(config, after(markers.kinds, `  | "${name}"\n`));
-  edit(config, after(markers.fieldKinds, `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""} },`));
+  edit(config, after(markers.fieldKinds, `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${domain.id ? `, id: ${domain.id}` : ""} },`));
   const dashboard = seams.field.dashboard;
   edit(dashboard, after(markers.moduleImports, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
   // The module's own name and area, and whether it reads today, where the hook takes them (YAML `history` is `loadHistory`).
-  const passed = ["name", "area", "loadHistory"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options))
+  const passed = domain.options
     .map((key) => key === "loadHistory" ? " loadHistory={item.history}" : ` ${key}={item.${key}}`).join("");
   edit(dashboard, after(markers.liveModules, `  ${name}: (item, footprint) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
   const listed = read(seams.deployDoc).match(/^\| `cards` \| a list of ([^|]*?) entity ids/m)?.[1] ?? "";
@@ -323,7 +297,7 @@ Next:
   2. Make it the ${words}: its screen and ${kind === "control" ? "panel controls" : "figure"} in ${SKIN}/cards/${name}/${Name}Module.tsx (spec/field.md → Design rules)
   3. Draw its glyph and pictogram in ${SKIN}/cards/${name}/icons.tsx
   4. Finish "## ${Label}" in spec/field.md and "### Field ${words} module" in spec/cards.md,
-     and name ${words} where spec/deploy.md lists what field draws${shared ? `
+     and name ${words} where spec/deploy.md lists what field draws${domain.shared ? `
   5. ${domains.join(", ")} already has a field card, so a module picks this one with \`card: ${name}\`` : ""}
-  ${shared ? 6 : 5}. npm run check && npm run test-storybook`);
+  ${domain.shared ? 6 : 5}. npm run check && npm run test-storybook`);
 }
