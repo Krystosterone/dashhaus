@@ -35,9 +35,15 @@ interface Props {
   poster?: { light: ImageMetadata; dark: ImageMetadata; alt: string };
   /** The "Open in Storybook" link under the frame. */
   link?: boolean;
+  /**
+   * Start the story inert, under a button with this label (`Try Orb live`), so a page can be scrolled past it and
+   * tabbed past it in one stop. A press, or a fine pointer coming over it, makes it live. Where the story is the page's
+   * subject (the skins page), leave it out.
+   */
+  arm?: string;
 }
 
-const { id, title, device, width, height, light, dark, screen, poster, link = true } = Astro.props;
+const { id, title, device, width, height, light, dark, screen, poster, link = true, arm } = Astro.props;
 /** A story wider than a phone (a tablet, a wall panel) would shrink past reading on one, so a narrow page links it. */
 const wide = width > 600;
 const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
@@ -49,7 +55,7 @@ const style = screen
   : `--w: ${width}; --h: ${frame}; --frame: ${frame}; --top: 0; max-width: ${width}px`;
 ---
 
-<div class="live-story" data-live-story data-screen={screen ? "" : undefined} data-wide={wide || undefined} style={style}>
+<div class="live-story" data-live-story data-screen={screen ? "" : undefined} data-wide={wide || undefined} data-arm={arm ? "" : undefined} style={style}>
   {
     poster && (
       <>
@@ -58,7 +64,14 @@ const style = screen
       </>
     )
   }
-  <iframe title={title} loading="lazy" width={width} height={frame} data-light={src(light)} data-dark={src(dark)}></iframe>
+  <iframe title={title} loading="lazy" width={width} height={frame} data-light={src(light)} data-dark={src(dark)} inert={arm ? true : undefined}></iframe>
+  {
+    arm && (
+      <button type="button" class="arm">
+        <span>{arm}</span>
+      </button>
+    )
+  }
 </div>
 {
   link && (
@@ -128,6 +141,47 @@ const style = screen
     opacity: 1;
   }
 
+  /* Over an inert story: the whole screen is the button, its label a pill at the foot. */
+  .arm {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 0 8%;
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .arm span {
+    padding: 0.625rem 1.125rem;
+    border-radius: 999px;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    box-shadow: 0 6px 20px -6px rgb(0 0 0 / 0.35);
+    transition: transform 160ms var(--home-ease, ease-out);
+  }
+
+  .arm:active span {
+    transform: scale(0.96);
+  }
+
+  .arm:focus-visible {
+    outline: 3px solid var(--sl-color-accent);
+    outline-offset: 3px;
+  }
+
+  [data-armed] .arm {
+    display: none;
+  }
+
   .live-story-link {
     font-size: var(--sl-text-sm);
   }
@@ -154,7 +208,8 @@ const style = screen
   }
 
   @media (prefers-reduced-motion: reduce) {
-    [data-screen] iframe {
+    [data-screen] iframe,
+    .arm span {
       transition: none;
     }
   }
@@ -207,10 +262,26 @@ const style = screen
     }
   };
 
+  /** An armed story starts inert: a press makes it live and hands it the focus; a fine pointer arriving does too. */
+  const fine = matchMedia("(hover: hover) and (pointer: fine)");
+  const arm = (frame: HTMLElement, iframe: HTMLIFrameElement, focus: boolean) => {
+    if (frame.hasAttribute("data-armed")) return;
+    frame.setAttribute("data-armed", "");
+    iframe.inert = false;
+    if (focus) iframe.focus();
+  };
+
   for (const frame of frames) {
     const iframe = frame.querySelector("iframe")!;
     iframe.addEventListener("load", () => reveal(frame, iframe));
     fit.observe(frame);
+    const button = frame.querySelector<HTMLButtonElement>(".arm");
+    if (button) {
+      button.addEventListener("click", () => arm(frame, iframe, true));
+      frame.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse" && fine.matches) arm(frame, iframe, false);
+      });
+    }
   }
   follow();
   new MutationObserver(follow).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

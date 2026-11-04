@@ -8,7 +8,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const MY_LINK = "https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin";
 
 const STEPS = [
-  { name: "Download it", text: "Open Dashhaus in your Home Assistant's Marketplace, or HACS before 2026.11, and download it." },
+  { name: "Download it", text: "Open Dashhaus in your Home Assistant's Marketplace and download it. Before Home Assistant 2026.11, install HACS first; it opens there instead." },
   { name: "Reload the tab", text: "So Home Assistant loads what it just installed." },
   { name: "Add the setup card", text: "On any dashboard: Edit dashboard, Add card, Dashhaus setup." },
   { name: "Press Create", text: "Home (Orb) and Home (Field) appear in the sidebar, laid out by area. Then remove the card." },
@@ -23,8 +23,8 @@ const STEPS = [
       to copy, and it never changes a dashboard you already have.
     </p>
     <div class="links">
-      <a class="solid" href={MY_LINK} rel="external">
-        Open in Home Assistant
+      <a class="solid" href={MY_LINK} target="_blank" rel="external noopener">
+        Open in Home Assistant<span class="sr-only"> (opens in a new tab, so these steps stay here)</span>
         <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
           <path d="M7 17 17 7m-8 0h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
@@ -32,7 +32,8 @@ const STEPS = [
       <a class="plain" href={`${base}/start/install/`}>The install guide</a>
     </div>
     <p class="aside">
-      Prefer a terminal, or deploying from CI? <a href={`${base}/start/deploy/`}>Deploy from the command line</a>.
+      Prefer a terminal, or deploying from CI? <a href={`${base}/start/deploy/`}>Deploy from the command line</a> instead.
+      Pick one way: both at once would load Dashhaus twice.
     </p>
   </div>
   <ol class="field steps">

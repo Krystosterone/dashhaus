@@ -18,7 +18,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const PATHS = [
   { href: `${base}/start/install/`, name: "Install a dashboard", text: "From the Marketplace in Home Assistant: add the setup card once and press Create.", primary: true },
-  { href: `${base}/start/build-a-skin/`, name: "Build a skin", text: "Your own look on the same hooks, scaffolded with tests and deployed the same way.", primary: false },
+  { href: `${base}/start/build-a-skin/`, name: "Build a skin", text: "For developers: design a dashboard of your own, scaffolded with tests and deployed the same way.", primary: false },
 ];
 
 /** Each skin's phone example: its Storybook globals, where its screen starts in the story and how it rounds. */
@@ -66,11 +66,11 @@ const SKINS = [
               </li>
             ))}
           </ul>
-          <p class="note">Both skins run live on a demo house. Press, slide and scroll them.</p>
+          <p class="note">Both run live on a demo house. Try one, then press, slide and scroll it.</p>
         </div>
 
         <div class="stage" data-skin-stage data-active="orb">
-          <div class="switch" role="group" aria-label="Skin to show">
+          <div class="switch" role="group" aria-label="Dashboard to show">
             {SKINS.map(({ skin, name }, index) => (
               <button type="button" data-skin={skin} aria-pressed={index === 0 ? "true" : "false"}>
                 {name}
@@ -94,6 +94,7 @@ const SKINS = [
                   screen={screen}
                   poster={{ ...poster, alt: "" }}
                   link={false}
+                  arm={`Try ${name} live`}
                 />
               </div>
             </figure>
@@ -450,10 +451,11 @@ const SKINS = [
   const GROUPS = [
     ".home-hero h1, .home-hero .lede, .home-hero .paths li, .home-hero .note",
     ".home-hero .phone",
-    ".stages .clause, .stages .sample, .stages .control",
-    ".fields .field > *",
+    ".install h2, .install .lead > p, .install .links, .install .steps li",
     ".kinds h2, .kinds .picture, .kinds li",
-    ".choice h2 span, .choice .answers > *",
+    ".why h2, .why li",
+    ".build h2, .build li",
+    ".choice h2, .choice .answers > *",
   ];
   if (document.querySelector(".home-hero") && "IntersectionObserver" in window) {
     const seen = new IntersectionObserver(
