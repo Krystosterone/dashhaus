@@ -20,6 +20,7 @@ class FakeHomeAssistant implements DeployClient {
   readonly saved: { url_path: string; config: Record<string, unknown> }[] = [];
   closed = false;
   failResources = false;
+  failSaves = 0;
 
   async send(type: string, payload: Record<string, unknown> = {}): Promise<unknown> {
     const data = payload as {
@@ -48,12 +49,17 @@ class FakeHomeAssistant implements DeployClient {
       this.dashboards.push({ id: `dashboard-${this.dashboards.length + 1}`, url_path: data.url_path!, title: data.title! });
       return null;
     }
+    if (type === "lovelace/dashboards/delete") {
+      this.dashboards.splice(this.dashboards.findIndex((candidate) => candidate.id === data.dashboard_id), 1);
+      return null;
+    }
     if (type === "lovelace/dashboards/update") {
       const dashboard = this.dashboards.find((candidate) => candidate.id === data.dashboard_id);
       if (dashboard) dashboard.title = data.title!;
       return null;
     }
     if (type === "lovelace/config/save") {
+      if (this.failSaves && this.failSaves--) throw new Error("connection lost");
       this.saved.push({ url_path: data.url_path!, config: data.config! });
       return null;
     }
@@ -129,6 +135,26 @@ describe("deploy", () => {
     expect(ha.saved).toHaveLength(1);
     expect(ha.resources).toHaveLength(1);
     expect(messages.some((message) => message.includes("its layout is yours and was left alone"))).toBe(true);
+  });
+
+  it("deletes a dashboard whose layout failed to save, so the next run creates it again", async () => {
+    const directory = await project();
+    const ha = new FakeHomeAssistant();
+    ha.failSaves = 1;
+    const run = () => deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      warn: () => {},
+      connect: async () => ha,
+    });
+
+    await expect(run()).rejects.toThrow(/connection lost/);
+    expect(ha.dashboards).toEqual([]);
+    const second = await run();
+    expect(second.dashboards).toEqual([{ path: "home-a", title: "Home A", status: "created" }]);
+    expect(ha.saved).toHaveLength(1);
   });
 
   it("renames an existing dashboard without saving its layout", async () => {
