@@ -1,11 +1,11 @@
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
-import { __factsImport__ } from "@dashhaus/core/entities/facts";__todaySummaryImport__
+import { __factsImport__ } from "@dashhaus/core/entities/facts";__todaySummaryImport____guardImports__
 import { CardFrame, __partsImport__detailsSheet, paint, useCard } from "../../shared/ui";
-import type { CardProps, SheetProps } from "../../shared/ui";
+import type { __propsBaseImport__, SheetProps } from "../../shared/ui";
 import { __Name__Icon } from "./icons";
 import "./__Name__Card.css";
-
-export interface __Name__CardProps extends CardProps {
+__actionType__
+export interface __Name__CardProps extends __propsBase__ {
   entity: __Name__Entity;
 __historyProp__
 __actionProps__
@@ -25,6 +25,7 @@ __onConst__
   // __roleWhy__
   const colors = paint("__role__", 0, null, color);
   const word = unav ? "Unavailable" : __summary__;
+__guardBlock__
 __leftOut__
 
   return (
@@ -35,11 +36,11 @@ __leftOut__
       __iconProp__
       unavailable={unav}
       lastSeen={__lastSeen__}
-      onOpen={onOpenDetails}
+      onOpen={__onOpen__}
       status={__status__}
       value={word}
       readout={{ value: unav ? null : word, duplicate: true }}
-      onClose={onClose}
+      onClose={onClose}__closeFocus__
       control={__control__}
       facts={{ start: __factsStart__ }}
     >

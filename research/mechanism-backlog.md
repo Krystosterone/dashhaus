@@ -44,7 +44,8 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   the module's `controls` again, the card's blocks and its `facts`), and one generator path: orb's, field's and a
   generated skin's `new-card` read a domain from `describeDomain` (`scripts/domains.js`, which writes the scaffolder's
   `domains.json`) and fill with the scaffolder's one `filler`; orb draws a domain core already has from it
-  (`new-card <name> --code <xx>`), and `scripts/new-card/regenerate.test.ts` draws the fan again in both skins. A brand-new
+  (`new-card <name> --code <xx>`), its guarded actions as pills answered in the sheet on `Confirm` or `Keypad`, and
+  `scripts/new-card/regenerate.test.ts` draws the fan again in both skins and the lock again in orb. A brand-new
   domain still starts from orb's on/off or reading templates, its core files with it. The lock, the alarm and the fan are
   drawn on all of it.
 - **Today:** what a grep of the card folders (2026-11-03) still finds, each a mechanism two or more cards write:

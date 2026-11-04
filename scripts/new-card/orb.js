@@ -6,9 +6,10 @@
  *
  * It is how orb's card for a shared domain starts when the domain came first (from another skin, or a card redrawn):
  * the card in the card frame, its tile, stories on the domain's seeds, its connected tile and its Lovelace card. A
- * control's taps go on the orb and the pill (`onToggle`), or on pills of their own; a reading is a bare icon and its
- * state in words. What asks first or takes a code is drawn by hand, from the lock's card; an action that takes a value
- * is left out, saying so. Nothing is written unless every file and every registration can be made.
+ * control's taps go on the orb and the pill (`onToggle`), or on pills of their own; what asks first or takes a code is
+ * a pill too, answered in the sheet on `Confirm` or `Keypad` (`useGuardedAction`, as the lock's card), never one press;
+ * a reading is a bare icon and its state in words. An action that takes a value it has no part for is left out,
+ * saying so. Nothing is written unless every file and every registration can be made.
  */
 import { markers, packageFile, packageSpecifier } from "../packages.js";
 import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir } from "./lib.js";
@@ -29,15 +30,16 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   } catch (error) {
     fail(error.message);
   }
-  // A tap, a level, a choice or a switch: each on orb's own part. What asks first or takes a code isn't drawn here.
+  // A tap, a guarded action, a level, a choice or a switch: each on orb's own part.
   const { actions: taps, guarded, levels, choices, switches } = domain;
   const drawnValues = [...levels, ...choices, ...switches].map(({ action }) => action);
   const leftOut = domain.leftOut.filter((action) => !drawnValues.includes(action));
-  const kind = askedKind ?? (taps.length || drawnValues.length ? "control" : "reading");
+  const kind = askedKind ?? (taps.length || guarded.length || drawnValues.length ? "control" : "reading");
   if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
-  if (kind === "control" && !taps.length && !drawnValues.length) fail(`${words} has no action orb can draw: pass --kind reading`);
+  if (kind === "control" && !taps.length && !guarded.length && !drawnValues.length) fail(`${words} has no action orb can draw: pass --kind reading`);
   const values = kind === "control" ? { levels, choices, switches } : { levels: [], choices: [], switches: [] };
-  if (guarded.length) fail(`${guarded.map(({ action }) => action).join(", ")} ${guarded.length > 1 ? "ask" : "asks"} first or ${guarded.length > 1 ? "take" : "takes"} a code: draw ${words} in orb by hand, from ${SKIN}/cards/lock/ (its sheet answers on Confirm or Keypad)`);
+  // What asks first, or takes a code: a pill that asks (or tries, and asks for the code where the entity wants one).
+  const asked = kind === "control" ? guarded : [];
 
   // ---------- The domain's seeds and its demo, in core ----------
   const seedPath = packageFile("core", `src/seeds/${name}.ts`);
@@ -67,6 +69,15 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   const slotTap = toggle ? "onToggle" : taps[0];
   const sheetTaps = taps.filter((action) => action !== slotTap);
   const pill = (action) => `<TogglePill label={\`${card.labelOf(action)} \${e.name}\`} on={false} onToggle={() => ${action}?.()}>${card.labelOf(action)}</TogglePill>`;
+  const { keyOf } = card;
+  /** A guarded action's pill: one that asks says so with an ellipsis ("Unlock…"), as the lock's card does. */
+  const guardPill = ({ action, asks }) => {
+    const label = card.labelOf(action);
+    const more = asks ? "…" : "";
+    return `<TogglePill label={\`${label} \${e.name}${more}\`} on={false} onToggle={() => ${asks ? `guard.ask("${keyOf(action)}")` : `void guard.attempt("${keyOf(action)}")`}}>${label}${more}</TogglePill>`;
+  };
+  // With no tap and no level for the slot, the first guarded action takes it.
+  const [slotGuard, ...sheetGuards] = !slotTap && !values.levels.length ? asked : [undefined, ...asked];
   // A value's words, from its field: "presetMode" → "Preset mode".
   const fieldWords = (field) => card.labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
   const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
@@ -88,11 +99,13 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     ? "<Readout label={`${e.name}: ${word}`} onOpen={card.sheet ? undefined : onOpenDetails}>{word}</Readout>"
     : slotLevel ? levelBar(slotLevel, true)
     : toggle ? "<TogglePill label={`${e.name}: ${word}`} on={on} onToggle={() => onToggle?.()}>{word}</TogglePill>"
-    : pill(slotTap);
+    : slotTap ? pill(slotTap)
+    : guardPill(slotGuard);
   // Taps the slot doesn't hold: with a level in the slot, every tap but the orb's; else every tap but the slot's.
   const otherTaps = slotLevel ? taps.filter((action) => action !== "onToggle") : sheetTaps;
   const sheet = [
     ...otherTaps.map(pill),
+    ...sheetGuards.map(guardPill),
     ...sheetLevels.map((level) => levelBar(level, false)),
     ...values.choices.map(choiceChips),
     ...values.switches.map(switchChips),
@@ -101,13 +114,15 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
   const partsImport = [
     values.choices.length + values.switches.length && "ChoiceChips",
     values.levels.length && "LevelBar",
+    asked.length && "Confirm",
+    asked.length && "Keypad",
     kind === "reading" && "Readout",
-    sheet.length && "SheetBlock",
+    (sheet.length || asked.length) && "SheetBlock",
     today && "Today",
-    kind === "control" && (!slotLevel || otherTaps.length) && "TogglePill",
+    kind === "control" && (!slotLevel || otherTaps.length || asked.length) && "TogglePill",
   ].filter(Boolean).map((part) => `${part}, `).join("");
   const facts = ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact"] : [])].sort();
-  const drawn = kind === "control" ? [...taps, ...drawnValues] : [];
+  const drawn = kind === "control" ? [...taps, ...asked.map(({ action }) => action), ...drawnValues] : [];
   const demoProps = drawn.filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" ");
   /** What each drawn action is handed, as the card's own prop type: it can't import the domain's handlers. */
   const handed = (action) => {
@@ -118,24 +133,79 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     if (values.switches.some((v) => v.action === action)) return "value: boolean";
     return "";
   };
+  /** What a drawn action answers: a guarded one, whether it was done (the guard's result); any other, nothing. */
+  const answers = (action) => (asked.some((g) => g.action === action) ? "GuardedResult" : "void");
+  const actionKeys = asked.map(({ action }) => `"${keyOf(action)}"`).join(" | ");
+  const codeKeys = asked.filter(({ code: takesCode }) => takesCode).map(({ action }) => `"${keyOf(action)}"`);
+  const asks = asked.filter(({ asks: a }) => a);
+  const guardBlock = asked.length ? [
+    "  // What asks first, or takes a code, is answered in the sheet: its question, or its keypad where the entity wants one.",
+    "  // On the dashboard a pill hands the action to the sheet, which opens on it; a stray press never does it.",
+    `  const asked: Record<${Name}Action, { label: string; run?: (code?: string) => GuardedResult }> = {`,
+    ...asked.map(({ action }) => `    ${/^[a-z]\w*$/.test(keyOf(action)) ? keyOf(action) : `"${keyOf(action)}"`}: { label: "${card.labelOf(action)}", run: ${action} },`),
+    "  };",
+    `  const guard = useGuardedAction<${Name}Action>({`,
+    "    run: (a, code) => asked[a].run?.(code),",
+    `    needsCode: ${!domain.code || !codeKeys.length ? "() => false" : codeKeys.length === asked.length ? "() => !!e.codeFormat" : `(a) => ([${codeKeys.join(", ")}] as string[]).includes(a) && !!e.codeFormat`},`,
+    "    settled: () => unav,",
+    "    initial: action,",
+    "    askElsewhere: card.sheet ? undefined : (a) => onOpenDetails?.(a),",
+    "  });",
+  ].join("\n") : "";
+  // The sheet: while an action waits on its answer, its question or keypad in the other blocks' place.
+  const answer = [
+    "guard.code",
+    `  ? <Keypad key={guard.pendingKey} prompt={\`Enter the code to \${asked[guard.pending].label.toLowerCase()}\`} text={${domain.code ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
+    `  : <Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again." : null} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
+  ];
+  const at = (indent, lines) => lines.map((line) => indent + line).join("\n");
+  const sheetBlocks = asked.length
+    ? `      {!unav && (\n        <SheetBlock>\n${sheet.length
+      ? `          {guard.pending ? (\n${at("            ", answer)}\n          ) : (\n            <>\n${sheet.map((block) => `              ${block}`).join("\n")}\n            </>\n          )}`
+      : `          {guard.pending && (\n${at("            ", answer)}\n          )}`}\n        </SheetBlock>\n      )}`
+    : sheet.length ? `      {!unav && (\n        <SheetBlock>\n${sheet.map((block) => `          ${block}`).join("\n")}\n        </SheetBlock>\n      )}` : "";
+  const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
+  const guardedWords = asked.length
+    ? ` ${[asks.length && `${andList(asks.map(({ action }) => card.labelOf(action)))} ${asks.length > 1 ? "ask" : "asks"} first, on the sheet's question or keypad`, asked.length > asks.length && `${andList(asked.filter((g) => !g.asks).map(({ action }) => card.labelOf(action)))} ${asked.length - asks.length > 1 ? "take" : "takes"} a code where the ${words} wants one`].filter(Boolean).join(", and ")}: never one press.`
+    : "";
   const fixture = JSON.parse(read(packageFile("core", `src/ha/fixtures/${name}.json`)));
 
   const fill = filler({
     __Name__: Name, __name__: name, __CONST__: CONST, __Label__: Label, __label__: words, __code__: code,
     __domains__: domain.domains.map((d) => `${d}.*`).join("`, `"),
     __about__: kind === "control"
-      ? `${slotLevel ? `${toggle ? "The orb switches it; t" : "T"}he groove sets its ${fieldWords(slotLevel.field).toLowerCase()}.` : toggle ? "The orb and the pill switch it." : `${card.labelOf(slotTap)} is its pill.`}${sheet.length ? ` The sheet has ${[...otherTaps.map(card.labelOf), ...[...sheetLevels, ...values.choices, ...values.switches].map(({ field }) => fieldWords(field).toLowerCase())].join(", ")}.` : ""} The name, or a press and hold on the orb, opens the sheet.`
+      ? `${slotLevel ? `${toggle ? "The orb switches it; t" : "T"}he groove sets its ${fieldWords(slotLevel.field).toLowerCase()}.` : toggle ? "The orb and the pill switch it." : `${card.labelOf(slotTap ?? slotGuard.action)} is its pill.`}${guardedWords}${sheet.length ? ` The sheet has ${andList([...otherTaps.map(card.labelOf), ...sheetGuards.map(({ action }) => card.labelOf(action)), ...[...sheetLevels, ...values.choices, ...values.switches].map(({ field }) => fieldWords(field).toLowerCase())])}.` : ""} The name, or a press and hold on the orb, opens the sheet.`
       : "A reading: a bare icon and its state in words. The name, or the reading, opens the sheet.",
     __historyType__: domain.history ? `, ${Name}History` : "",
     __historyProp__: domain.history ? "  /** Shown in the featured footprint and in the sheet. */\n  history?: " + `${Name}History;` : "",
     __historyArg__: today ? ", history" : "",
-    __actionProps__: drawn.map((action) => `  ${action}?: (${handed(action)}) => void;`).join("\n"),
-    __actionArgs__: drawn.map((action) => `, ${action}`).join(""),
+    __actionProps__: drawn.map((action) => `  ${action}?: (${answers(action) === "GuardedResult" ? "code?: string" : handed(action)}) => ${answers(action)};`).join("\n"),
+    __actionArgs__: drawn.map((action) => `, ${action}`).join("") + (asked.length ? ", action" : ""),
+    __guardImports__: asked.length ? `\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
+    __propsBase__: asked.length ? `ActionCardProps<${Name}Action>` : "CardProps",
+    __propsBaseImport__: asked.length ? "ActionCardProps" : "CardProps",
+    __actionType__: asked.length ? `\n/** What asks first, or takes a code: the sheet opens on its question or keypad. */\nexport type ${Name}Action = ${actionKeys};\n` : "",
+    __guardBlock__: guardBlock,
+    __testImports__: asks.length ? "fireEvent, render, screen" : "render",
+    __viImport__: asks.length ? ", vi" : "",
+    __guardTest__: asks.length ? [
+      "",
+      `  it("never does what asks first on one press: the sheet asks first", () => {`,
+      "    const run = vi.fn();",
+      `    const { entity } = ${CONST}_SEEDS.${firstSeed};`,
+      `    render(<${Name}Card entity={entity} variant="sheet" ${asks[0].action}={run} />);`,
+      `    fireEvent.click(screen.getByRole("button", { name: \`${card.labelOf(asks[0].action)} \${entity.name}…\` }));`,
+      "    expect(run).not.toHaveBeenCalled();",
+      `    expect(screen.getByText(\`${card.labelOf(asks[0].action)} \${entity.name}?\`)).toBeTruthy();`,
+      "  });",
+    ].join("\n") : "",
+    __onOpen__: asked.length ? "onOpenDetails && (() => onOpenDetails())" : "onOpenDetails",
+    __closeFocus__: asked.length ? "\n      closeFocus={!guard.pending}" : "",
     __factsImport__: facts.join(", "),
     __todaySummaryImport__: today && domain.minutes ? `\nimport { todaySummary } from "${packageSpecifier("core", "entities/today")}";` : "",
     __partsImport__: partsImport,
     __areaArg__: has("area") ? ", area: e.area" : "",
-    __onConst__: kind === "control" ? `  const on = ${domain.onOff ? 'e.state === "on"' : '!unav && e.state !== "off"'};` : "",
+    __onConst__: kind === "control" && (toggle || values.levels.length) ? `  const on = ${domain.onOff ? 'e.state === "on"' : '!unav && e.state !== "off"'};` : "",
     __roleWhy__: kind === "control"
       ? 'A state: on is the accent, with no glow. "energy" (bloom and glow) is for light, heat or daylight (attention-budget skill).'
       : "A reading: neutral, a bare icon and no glow.",
@@ -149,7 +219,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __status__: has("area") ? "card.area" : '""',
     __control__: control,
     __factsStart__: `unav ? lastSeenFact(${has("lastSeen") ? "e.lastSeen" : "undefined"}) : ${has("lastChanged") ? "lastChangedFact(e.lastChanged)" : '""'}`,
-    __sheetBlocks__: sheet.length ? `      {!unav && (\n        <SheetBlock>\n${sheet.map((block) => `          ${block}`).join("\n")}\n        </SheetBlock>\n      )}` : "",
+    __sheetBlocks__: sheetBlocks,
     __optionWords__: values.choices.length ? '\n/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const words = stateWords(option); return words[0].toUpperCase() + words.slice(1); };' : "",
     __todayBlock__: today ? `      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={${domain.minutes ? `todaySummary("${domain.minutes}", history.${domain.minutes}Minutes)` : '""'}} />}` : "",
     // The stories, on the domain's seeds in core.
@@ -207,7 +277,8 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
   edit(renderer, after(markers.tiles, `  ${name}: (card, key) => <Ha${Name}Tile key={key} entityId={card.entity}${passed} footprint={card.footprint} showControl={card.showControl} color={card.color} />,`));
   // The automatic layout: a control on domains of its own joins the compact controls per area.
   const auto = read(seams.orb.auto);
-  const placed = kind === "control" && !shared ? domain.domains.filter((d) => !auto.includes(`"${d}",`)) : [];
+  // A domain the layout already names (placed by hand, as the lock is under Security) is not placed again.
+  const placed = kind === "control" && !shared ? domain.domains.filter((d) => !auto.includes(`"${d}"`)) : [];
   for (const d of placed) {
     edit(seams.orb.auto, after(markers.autoControls, `    "${d}",\n`));
     edit(seams.orb.auto, after(markers.autoOrder, `    "${d}",\n`));
