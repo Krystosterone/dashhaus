@@ -1,9 +1,9 @@
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
-import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
-import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
 
@@ -30,7 +30,8 @@ export interface OwletCardProps extends CardProps {
  * a stray tap on a dashboard must never silence a baby monitor.
  */
 export function OwletCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color, onBaseToggle }: OwletCardProps) {
-  const { nameId, sheet, compact, bare, article, area } = useCard("ow", { variant, footprint, showControl, area: e.area });
+  const card = useCard("ow", { variant, footprint, showControl, area: e.area });
+  const { nameId, sheet, compact, area } = card;
   const sleep = e.state === "unavailable" ? undefined : e.state;
   const hr = e.heartRate, o2 = e.oxygen;
   // Off the network or charging: nothing to show. A sleep state or a reading alone still shows.
@@ -112,29 +113,28 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
 
   // "unknown" while the sock reads but has no sleep state: live readings, never dimmed like an unavailable card.
   return (
-    <article {...article} data-state={offline ? "unavailable" : sleep ?? "unknown"} data-alert={vital ? "alarm" : problemLabel ? "warn" : undefined} data-stale={stale || undefined} {...colors}>
-      <header className="hd-head">
-        <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={offline || undefined}>
-          <span className="hd-orb-i"><OwletIcon off={offline} /></span>
-        </span>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{sub}</p>}
-        </CardTitle>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">
-        {vital ? (
-          <div className="ow-alarm" role="alert">
-            <span className="ow-alarm-l"><b>{ALERT_WORD[vital]}</b>{vitals.length > 1 && <span className="ow-alarm-c"> · {vitals.slice(1).map((a) => ALERT_WORD[a]).join(" · ")}</span>}</span>
-            {vitalFigure && <span className="ow-alarm-v">{vitalFigure}</span>}
-          </div>
-        ) : bare ? <p className="hd-val">{offline ? subText : readings || "No reading yet"}</p> : offline ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
-          : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      </div>
-
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": offline ? "unavailable" : sleep ?? "unknown", "data-alert": vital ? "alarm" : problemLabel ? "warn" : undefined, "data-stale": stale ? "true" : undefined, ...colors }}
+      glyph={<OwletIcon off={offline} />}
+      unavailable={offline}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={status}
+      value={sub}
+      bareValue={offline ? subText : readings || "No reading yet"}
+      onClose={onClose}
+      urgent={vital ? (
+        <div className="ow-alarm" role="alert">
+          <span className="ow-alarm-l"><b>{ALERT_WORD[vital]}</b>{vitals.length > 1 && <span className="ow-alarm-c"> · {vitals.slice(1).map((a) => ALERT_WORD[a]).join(" · ")}</span>}</span>
+          {vitalFigure && <span className="ow-alarm-v">{vitalFigure}</span>}
+        </div>
+      ) : undefined}
+      control={sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
+        : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
+      facts={{ start: offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live), end: offline ? [e.charging ? "Charging" : null, e.area].filter(Boolean).join(" · ") : "" }}
+    >
       {sheet && alerts.length > 0 && (
         <section className="ow-alerts" aria-labelledby={`${nameId}-a`}>
           <h3 className="hd-blk-h" id={`${nameId}-a`}>Alerts</h3>
@@ -151,26 +151,13 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
         </section>
       )}
 
-      {history && (
-        <TodayStrip
-          title={sheet ? "Sleep today" : "Today"}
-          samples={history.sleep}
-          currentHour={history.currentHour}
-          summary={offline ? unavailableSince(e.lastSeen) : todaySummary("asleep", history.asleepMinutes)}
-        />
-      )}
+      {history && <Today title={sheet ? "Sleep today" : "Today"} samples={history.sleep} currentHour={history.currentHour} summary={todaySummary("asleep", history.asleepMinutes)} />}
 
-      {sheet && (hrSeries || o2Series) && (
-        <div className="hd-extra">
-          {hrSeries && <TodayStrip title="Heart rate today" samples={hrSeries.samples} currentHour={history!.currentHour} summary={lowHigh(hrSeries, " bpm")} />}
-          {o2Series && <TodayStrip title="Oxygen today" samples={o2Series.samples} currentHour={history!.currentHour} summary={lowHigh(o2Series, "%")} />}
-        </div>
-      )}
-
-      {sheet && (
-        <Facts start={offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live)} end={offline ? [e.charging ? "Charging" : null, e.area].filter(Boolean).join(" · ") : ""} />
-      )}
-    </article>
+      <SheetBlock>
+        {hrSeries && <TodayStrip title="Heart rate today" samples={hrSeries.samples} currentHour={history!.currentHour} summary={lowHigh(hrSeries, " bpm")} />}
+        {o2Series && <TodayStrip title="Oxygen today" samples={o2Series.samples} currentHour={history!.currentHour} summary={lowHigh(o2Series, "%")} />}
+      </SheetBlock>
+    </CardFrame>
   );
 }
 

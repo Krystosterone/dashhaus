@@ -4,7 +4,7 @@ import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/ent
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, Temperature, ModuleRow, PanelBody, Channel } from "../../shared/ui";
+import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Steps, Today, useDetails, KeyGroup, choices, Temperature, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { ModeIcon, ModeShape, ThermostatIcon } from "./icons";
 import "./ClimateModule.css";
@@ -79,7 +79,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
   } : undefined;
   const unitWord = e.unit === "°F" ? "degrees Fahrenheit" : "degrees Celsius";
 
-  const controls = (where: string) => {
+  const controls = (where: "m" | "p") => {
     const adjustable = hasSingle || hasRange;
     // The key says what pressing it does; the screen says the mode it runs in.
     const caption = unavailable ? undefined : on ? "Turn off" : "Turn on";
@@ -129,63 +129,6 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
     );
   };
 
-  return (
-    <ModuleFrame
-      kind="fd-cl"
-      name={e.name}
-      area={e.area}
-      footprint={footprint}
-      state={e.state}
-      details={details}
-      pict={pict}
-      read={read}
-      meta={meta}
-      lead={(
-        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} led={on} unavailable={unavailable} onPress={onToggle} onHold={openPanel}>
-          <ThermostatIcon />
-        </Key>
-      )}
-      row={controls("module")}
-    >
-      <ClimateDetails
-        e={e}
-        mode={mode}
-        on={on}
-        unavailable={unavailable}
-        read={read}
-        pict={pict}
-        target={target}
-        controls={controls("panel")}
-        history={history}
-        setRange={setRange}
-        onTargetChange={hasSingle ? onTargetChange : undefined}
-        onModeChange={onModeChange}
-        onPresetChange={onPresetChange}
-        onFanChange={onFanChange}
-      />
-    </ModuleFrame>
-  );
-}
-
-interface ClimateDetailsProps {
-  e: ClimateEntity;
-  mode: HvacMode;
-  on: boolean;
-  unavailable: boolean;
-  read: ReactNode;
-  pict: ReactNode;
-  target?: { value: string; label: string };
-  controls: ReactNode;
-  history?: ClimateHistory;
-  setRange?: (low: number, high: number) => void;
-  /** A single target's exact steps; omit while there is none to set. */
-  onTargetChange?: (temperature: number) => void;
-  onModeChange?: (mode: HvacMode) => void;
-  onPresetChange?: (preset: string) => void;
-  onFanChange?: (fan: string) => void;
-}
-
-function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls, history, setRange, onTargetChange, onModeChange, onPresetChange, onFanChange }: ClimateDetailsProps) {
   const targetPictMode = on ? mode : (e.hvacModes.find((candidate) => candidate !== "off") ?? "heat");
   const aside = unavailable ? (
     <Channel sub="Unavailable"><Blank places={4} label="Unavailable" /></Channel>
@@ -206,11 +149,26 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
     : todaySummary(history.activity, history.activeMinutes);
 
   return (
-    <PanelBody className="fd-cl-panel" state={e.state}>
-      <Screen pict={pict} aside={aside}>{read}</Screen>
-      {controls}
-
-      {onTargetChange && target && e.targetTemperature != null && (
+    <ModuleFrame
+      kind="fd-cl"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={(
+        <Key label={`${e.name}, ${unavailable ? "unavailable" : on ? "turn off" : "turn on"}`} led={on} unavailable={unavailable} onPress={onToggle} onHold={openPanel}>
+          <ThermostatIcon />
+        </Key>
+      )}
+      controls={controls}
+      aside={aside}
+      facts={{ start: unavailable ? lastSeenFact(e.lastSeen) : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : "", end: unavailable ? "" : [lastChangedFact(e.lastChanged), `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`].filter(Boolean).join(" · ") }}
+    >
+      {hasSingle && onTargetChange && target && e.targetTemperature != null && (
         <TargetFine name={e.name} label={target.label} value={e.targetTemperature} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />
       )}
 
@@ -237,9 +195,7 @@ function ClimateDetails({ e, mode, on, unavailable, read, pict, target, controls
       )}
 
       {history && <Today summary={today} label="Climate activity by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-
-      <Facts start={unavailable ? lastSeenFact(e.lastSeen) : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : ""} end={unavailable ? "" : [lastChangedFact(e.lastChanged), `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`].filter(Boolean).join(" · ")} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
 

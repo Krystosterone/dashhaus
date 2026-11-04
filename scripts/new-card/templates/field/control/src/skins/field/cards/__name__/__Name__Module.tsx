@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
 __guardImports__
 import { __factsImport__ } from "@dashhaus/core/entities/facts";__todaySummaryImport__
-import { Blank, __partsImport__Facts, Key, KeyGroup, ModuleFrame, PanelBody, Pictogram, Screen, __todayImport__useDetails } from "../../shared/ui";
+import { Blank, __partsImport__Key, KeyGroup, ModuleFrame, Pictogram, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
 import "./__Name__Module.css";
@@ -39,20 +39,29 @@ __leftOut__
 __keys__
   ];
 
+  // The panel, under its screen: the keys with their legend, and today.
   const panel = (
     <>
       <KeyGroup legend="__Label__">{keys(true)}</KeyGroup>
 __todayBlock__
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : __changed__} />
     </>
   );
 
   return (
-    <ModuleFrame kind="fd-__code__" name={e.name}__areaProp__ footprint={footprint} state={e.state}__panelFocus__ details={__details__} pict={pict} read={read} meta={meta} lead={keys(false)[0]} row={<KeyGroup label={e.name}>{keys(true)}</KeyGroup>}>
-      <PanelBody className="fd-__code__-panel" state={e.state}>
-        <Screen pict={pict} meta={meta}>{read}</Screen>
+    <ModuleFrame
+      kind="fd-__code__"
+      name={e.name}__areaProp__
+      footprint={footprint}
+      state={e.state}__panelFocus__
+      details={__details__}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={keys(false)[0]}
+      row={<KeyGroup label={e.name}>{keys(true)}</KeyGroup>}
+      facts={__factsWhen__({ start: unav ? lastSeenFact(e.lastSeen) : __changed__ })}
+    >
 __panelBody__
-      </PanelBody>
     </ModuleFrame>
   );
 }

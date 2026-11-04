@@ -1,9 +1,9 @@
 import type { ToggleEntity, ToggleHistory, DurationOption } from "@dashhaus/core/entities/toggle/types";
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
-import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ToggleIconSvg } from "./icons";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleCard.css";
 
@@ -33,7 +33,8 @@ export interface ToggleCardProps extends CardProps {
  * It uses the same card anatomy and footprint matrix as every other card.
  */
 export function ToggleCard({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("tw", { variant, footprint, showControl, area: e.area });
+  const card = useCard("tw", { variant, footprint, showControl, area: e.area });
+  const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A mode is a state, not energy: on is the accent, with no bloom and no glow. A colour only if one was chosen.
@@ -53,46 +54,32 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
   // The status line already says until when: the replacement value can stay short.
   const valText = unav ? "Unavailable" : on ? "On" : "Off";
   return (
-    <article {...article} data-state={e.state} {...colors}>
-      <header className="hd-head">
-        <Orb label={e.name} pressed={on} unavailable={unav} intensity={0.7} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          <ToggleIconSvg icon={e.icon} />
-        </Orb>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{sheet && area ? `${area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}</p>
-          {compact && <p className="hd-sub">{subText}</p>}
-        </CardTitle>
-        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : on ? "On" : "Off"}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">
-        {bare ? <p className="hd-val">{valText}</p> : unav
-          ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : <TogglePill label={`${e.name}: ${on ? "On" : "Off"} · ${on ? ends : "Turn on"}`} on={on} onToggle={onToggle} extra={on ? ends : "Turn on"}>{on ? "On" : "Off"}</TogglePill>}
-      </div>
-
-      {sheet && !unav && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, ...colors }}
+      orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle, children: <ToggleIconSvg icon={e.icon} /> }}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={sheet && area ? `${area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}
+      value={subText}
+      bareValue={valText}
+      readout={{ value: unav ? null : on ? "On" : "Off", duplicate: true }}
+      onClose={onClose}
+      control={<TogglePill label={`${e.name}: ${on ? "On" : "Off"} · ${on ? ends : "Turn on"}`} on={on} onToggle={onToggle} extra={on ? ends : "Turn on"}>{on ? "On" : "Off"}</TogglePill>}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.area && unav ? e.area : "" }}
+    >
+      {!unav && (
+        <SheetBlock>
           {e.description && <p className="hd-note">{e.description}</p>}
           {onTurnOnFor && durations.length > 0 && (
             <ChoiceChips id={`${uid}-d`} label={on ? "Keep on" : "Turn on for"} options={durations} value={on ? e.duration ?? null : null} onChange={onTurnOnFor} />
           )}
-        </div>
+        </SheetBlock>
       )}
-
-      {history && (
-        <TodayStrip
-          samples={history.samples}
-          currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
-        />
-      )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.area && unav ? e.area : ""} />
-      )}
-    </article>
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary("on", history.onMinutes)} />}
+    </CardFrame>
   );
 }
 

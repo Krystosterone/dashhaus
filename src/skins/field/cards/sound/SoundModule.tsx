@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, useDetails, Facts, PanelBody, Channel } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, useDetails, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconSound, SPEAKER } from "./icons";
 import "./SoundModule.css";
@@ -52,32 +52,9 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
     </Key>
   );
 
-  return (
-    <ModuleFrame kind="fd-sn" name={e.name} area={e.area} footprint={footprint} state={e.state} details={details} pict={pict} read={read} meta={meta} lead={key(false)} row={key(true)}>
-      <SoundDetails e={e} read={read} pict={pict} meta={meta} control={key(true)} history={history} onVolumeChange={onVolumeChange} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: SoundEntity;
-  read: ReactNode;
-  pict: ReactNode;
-  meta?: [ReactNode, ReactNode?];
-  control: ReactNode;
-  history?: SoundHistory;
-  onVolumeChange?: (percent: number) => void;
-}
-
-/**
- * The panel's content: the screen, with the volume on its second channel while the sound is off; the key; the
- * volume fader, which never switches the sound, so it stays unlit while off; today; and facts.
- */
-function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }: DetailsProps) {
+  // The panel's content: the screen, with the volume on its second channel while the sound is off; the key; the volume
+  // fader, which never switches the sound, so it stays unlit while off; today; and facts.
   const uid = useId();
-  const unav = e.state === "unavailable";
-  const on = e.state === "on";
-  const volume = unav ? undefined : e.volume;
   const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
   // Playing, the figure is the volume already; off, it says OFF, so the volume moves to the second channel.
@@ -86,10 +63,21 @@ function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }:
   ) : undefined;
 
   return (
-    <PanelBody className="fd-sn-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
-      {control}
-
+    <ModuleFrame
+      kind="fd-sn"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={key(false)}
+      controls={() => key(true)}
+      aside={aside}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : volume != null ? "On / off, volume" : "On / off" }}
+    >
       {volume != null && onVolumeChange && (
         <Fader
           id={`${uid}-vol`}
@@ -105,8 +93,7 @@ function SoundDetails({ e, read, pict, meta, control, history, onVolumeChange }:
       )}
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav ? "" : volume != null ? "On / off, volume" : "On / off"} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
+

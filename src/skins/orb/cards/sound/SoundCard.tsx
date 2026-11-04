@@ -1,9 +1,9 @@
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
-import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { SoundIcon } from "./icons";
 import { VolumeBar } from "./parts";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { CardFrame, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./SoundCard.css";
 
@@ -23,7 +23,8 @@ export interface SoundCardProps extends CardProps {
  * beside a sleeping baby would jump it.
  */
 export function SoundCard({ entity: e, history, variant, footprint, showControl, onToggle, onVolumeChange, onOpenDetails, onClose, color }: SoundCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("sn", { variant, footprint, showControl, area: e.area });
+  const card = useCard("sn", { variant, footprint, showControl, area: e.area });
+  const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. "energy" (bloom and glow) is for light, heat or daylight; see the attention-budget skill.
@@ -38,46 +39,30 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
   const since = unav ? e.lastSeen : e.lastChanged;
 
   return (
-    <article {...article} data-state={e.state} {...colors}>
-      <header className="hd-head">
-        <Orb label={e.name} pressed={on} unavailable={unav} intensity={0.7} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          <SoundIcon />
-        </Orb>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={area}>{area ? <>{area}{volume && <span className="sn-vol"> · {volume}</span>}</> : !sheet && (volume ?? (sinceFact(since) ?? null))}</p>
-          {compact && <p className="hd-sub">{word}</p>}
-        </CardTitle>
-        {/* The large readout is the volume, which no card control prints; without one it repeats the pill's word. */}
-        {e.volume != null && !unav
-          ? <p className="hd-num" aria-hidden="true">{e.volume}<span>%</span></p>
-          : <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : word}</p>}
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">
-        {bare ? <p className="hd-val">{word}</p> : unav
-          ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : <TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
-      </div>
-
-      {sheet && !unav && e.volume != null && onVolumeChange && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, ...colors }}
+      orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle, children: <SoundIcon /> }}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={area ? <>{area}{volume && <span className="sn-vol"> · {volume}</span>}</> : !sheet && (volume ?? (sinceFact(since) ?? null))}
+      statusTitle={area}
+      value={word}
+      // The large readout is the volume, which no card control prints; without one it repeats the pill's word.
+      readout={e.volume != null && !unav ? { value: <>{e.volume}<span>%</span></> } : { value: unav ? null : word, duplicate: true }}
+      onClose={onClose}
+      control={<TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav && e.area ? e.area : "" }}
+    >
+      {!unav && e.volume != null && onVolumeChange && (
+        <SheetBlock>
           <VolumeBar id={`${uid}-vol`} value={e.volume} on={on} onChange={onVolumeChange} />
-        </div>
+        </SheetBlock>
       )}
-
-      {history && (
-        <TodayStrip
-          samples={history.samples}
-          currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
-        />
-      )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav && e.area ? e.area : ""} />
-      )}
-    </article>
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary("on", history.onMinutes)} />}
+    </CardFrame>
   );
 }
 

@@ -218,12 +218,13 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with field's own control (a fader, a key group).` : "",
     __panelFocus__: asked.length ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
     __details__: asked.length ? "{ ...details, openDetails: openPanel }" : "details",
+    __factsWhen__: asked.length ? "guard.pending ? undefined : " : "",
     __panelBody__: asked.length ? [
-      "        {guard.pending ? (guard.code",
-      `          ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
-      `          : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again" : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
-      "        ) : panel}",
-    ].join("\n") : "        {panel}",
+      "      {guard.pending ? (guard.code",
+      `        ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
+      `        : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again" : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
+      "      ) : panel}",
+    ].join("\n") : "      {panel}",
     __guardedAbout__: guardedWords ? `; ${guardedWords}, never one press` : "",
     __wordsConst__: toggle ? "" : '/** A state as words: "deep_sleep" becomes "deep sleep". */\nconst words = (state: string) => state.replace(/[_-]+/g, " ");\n',
     // The module test's presses: each action once, and what asks first never on one press.

@@ -1,9 +1,9 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
-import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, lowBattery as isLowBattery, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
-import { AlertStatus, CardTitle, Readout, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./SensorCard.css";
 
@@ -28,7 +28,8 @@ export interface SensorCardProps extends CardProps {
  * A reading: neutral, a bare icon in place of an orb, and no glow because nothing is running.
  */
 export function SensorCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: SensorCardProps) {
-  const { nameId, sheet, compact, bare, article, area } = useCard("sw", { variant, footprint, showControl, area: e.area });
+  const card = useCard("sw", { variant, footprint, showControl, area: e.area });
+  const { sheet, compact, area } = card;
   const unav = e.state === "unavailable";
   const t = unav ? undefined : e.temperature;
   const h = unav ? undefined : e.humidity;
@@ -79,46 +80,38 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   // The compact value appears under the name, or in place of a hidden reading.
   const subText = unav ? "Unavailable" : batteryText ?? (empty ? "No reading yet" : readout);
   return (
-    <article {...article} data-state={unav ? "unavailable" : "ok"} data-alert={lowBattery ? "warn" : undefined} {...colors}>
-      <header className="hd-head">
-        <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
-          <span className="hd-orb-i">{unav ? <IconThermoOff /> : <IconThermo />}</span>
-        </span>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </CardTitle>
-        <p className="hd-num" {...(sheetFigure ? { role: "img", "aria-label": `${fmtTemp(t)} degrees` } : { "aria-hidden": true })}>{t != null ? <>{fmtTemp(t)}<span>°</span></> : null}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      {!(sheetFigure && h == null) && (
-        <div className="hd-slot">
-          {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-            : sheet || !onOpenDetails ? <Readout label={sheetFigure ? `humidity ${fmtHum(h!)} percent` : spoken}>{bar}</Readout>
-            : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-        </div>
-      )}
-
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": lowBattery ? "warn" : undefined, ...colors }}
+      glyph={unav ? <IconThermoOff /> : <IconThermo />}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={status}
+      value={subText}
+      alert={alertLabel}
+      readout={{ value: t != null ? <>{fmtTemp(t)}<span>°</span></> : null, label: sheetFigure ? `${fmtTemp(t)} degrees` : undefined }}
+      onClose={onClose}
+      slot={!(sheetFigure && h == null)}
+      control={sheet || !onOpenDetails ? <Readout label={sheetFigure ? `humidity ${fmtHum(h!)} percent` : spoken}>{bar}</Readout>
+        : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
+      facts={{ start: e.battery != null ? `Battery ${e.battery}%${lowBattery ? ", replace soon" : ""}` : "", end: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), warn: lowBattery }}
+    >
       {tempSeries && (
-        <TodayStrip
+        <Today
           title={sheet ? "Temperature today" : "Today"}
           samples={tempSeries.samples}
           currentHour={history!.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
+          summary={tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
         />
       )}
-
-      {sheet && humSeries && (
-        <div className="hd-extra">
+      {humSeries && (
+        <SheetBlock>
           <TodayStrip title="Humidity today" samples={humSeries.samples} currentHour={history!.currentHour} summary={humSeries.min == null || humSeries.max == null ? "No readings yet today" : `Low ${fmtHum(humSeries.min)}% · High ${fmtHum(humSeries.max)}%`} />
-        </div>
+        </SheetBlock>
       )}
-
-      {sheet && (
-        <Facts start={e.battery != null ? `Battery ${e.battery}%${lowBattery ? ", replace soon" : ""}` : ""} end={unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated)} warn={lowBattery} />
-      )}
-    </article>
+    </CardFrame>
   );
 }
 

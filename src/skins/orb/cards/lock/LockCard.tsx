@@ -3,7 +3,7 @@ import { isLowBattery } from "@dashhaus/core/entities/battery";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { DoorIcon, LockIcon } from "./icons";
-import { AlertStatus, CardTitle, Confirm, Keypad, Orb, SheetClose, TogglePill, UnavailableSlot, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardFrame, Confirm, Keypad, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./LockCard.css";
 
@@ -45,7 +45,8 @@ const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open:
  * glows at all. It shows its last change, not a day's history.
  */
 export function LockCard({ entity: e, variant, footprint, showControl, onLock, onUnlock, onOpenDoor, readOnly, onOpenDetails, onClose, action, color }: LockCardProps) {
-  const { nameId, sheet, compact, bare, article, area } = useCard("lk", { variant, footprint, showControl, area: e.area });
+  const card = useCard("lk", { variant, footprint, showControl, area: e.area });
+  const { sheet, compact, area } = card;
   const unav = e.state === "unavailable";
   const locked = e.state === "locked";
   const moving = e.state === "locking" || e.state === "unlocking" || e.state === "opening";
@@ -86,8 +87,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const orbLabel = unav ? `${e.name}: Unavailable` : moving ? `${e.name}: ${word}` : locked ? `Unlock ${e.name}…` : `Lock ${e.name}`;
 
   let slot;
-  if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (ro || moving) slot = <p className="lk-st" data-moving={moving || undefined}>{word}{ro && e.changedBy && !moving ? <span className="lk-st-x"> by {e.changedBy}</span> : null}</p>;
+  if (ro || moving) slot = <p className="lk-st" data-moving={moving || undefined}>{word}{ro && e.changedBy && !moving ? <span className="lk-st-x"> by {e.changedBy}</span> : null}</p>;
   else slot = (
     <TogglePill label={locked ? `${e.name}: Locked · Unlock…` : jammed ? `${e.name}: Jammed · Lock again` : `${e.name}: ${word} · Lock`} on={locked} onToggle={tap} extra={cue}>
       {jammed ? "Lock again" : word}
@@ -99,23 +99,27 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const canOpen = e.supportsOpen && !!onOpenDoor && !ro && !unav && !moving && e.state !== "open";
 
   return (
-    <article {...article} data-state={e.state} data-alert={alertLabel ? "warn" : undefined} {...colors}>
-      <header className="hd-head">
-        {ro
-          ? <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}><span className="hd-orb-i">{icon}</span></span>
-          : <Orb label={orbLabel} pressed={locked} unavailable={unav} intensity={0} onToggle={tap} onLongPress={sheet ? undefined : () => onOpenDetails?.()}>{icon}</Orb>}
-        <CardTitle id={nameId} name={e.name} onOpen={sheet || !onOpenDetails ? undefined : () => onOpenDetails()}>
-          <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{warning}</AlertStatus> : word}</p>}
-        </CardTitle>
-        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : word}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} focusOnOpen={!pending} />}
-      </header>
-
-      <div className="hd-slot">{bare ? <p className="hd-val">{jammed ? warning : word}</p> : slot}</div>
-
-      {sheet && !unav && (pending || canOpen) && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, "data-alert": alertLabel ? "warn" : undefined, ...colors }}
+      orb={ro ? undefined : { label: orbLabel, pressed: locked, intensity: 0, onToggle: tap, children: icon }}
+      glyph={ro ? icon : undefined}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails && (() => onOpenDetails())}
+      status={status}
+      value={alertLabel ? warning : word}
+      alert={alertLabel}
+      bareValue={jammed ? warning : word}
+      readout={{ value: unav ? null : word, duplicate: true }}
+      onClose={onClose}
+      closeFocus={!pending}
+      control={slot}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy), end: ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code" }}
+    >
+      {!unav && (
+        <SheetBlock>
           {pending && (needsCode
             ? <Keypad key={pending} prompt={prompt(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
             : <Confirm key={pending} busy={guard.busy} waiting="Waiting for the lock…" error={guard.failed ? "Didn’t go through. Try again." : null}
@@ -130,7 +134,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
               <span className="lk-door-x">Unlatch it</span>
             </button>
           )}
-        </div>
+        </SheetBlock>
       )}
 
       {!unav && !pending && e.battery != null && (
@@ -138,11 +142,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
           {e.battery != null && <div><dt>Battery</dt><dd>{lowBattery ? <span className="hd-warn">{e.battery}% · replace soon</span> : `${e.battery}%`}</dd></div>}
         </dl>
       )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy)} end={ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"} />
-      )}
-    </article>
+    </CardFrame>
   );
 }
 

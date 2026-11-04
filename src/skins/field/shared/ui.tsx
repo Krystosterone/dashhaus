@@ -669,10 +669,10 @@ export { useDetails } from "@dashhaus/dashboard/card";
 export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children"> {
   /** From `useDetails`: the name opens the panel. */
   details: Details;
-  /** The screen's pictogram and figure, in both footprints. */
+  /** The screen's pictogram and figure, in both footprints and the panel. */
   pict: ReactNode;
   read: ReactNode;
-  /** The screen's meta lines, in a standard module only. */
+  /** The screen's meta lines, in a standard module and the panel. */
   meta?: [ReactNode, ReactNode?];
   /**
    * A compact row's line in place of the area, for what its screen can't hold (an alarm's mode); the panel keeps the
@@ -681,10 +681,21 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   line?: string;
   /** First in a compact row: the key, or a reading's glyph. */
   lead: ReactNode;
-  /** Under the screen in a standard module: the key and its fader, or a reading's glyph and today. */
-  row: ReactNode;
-  /** The detail panel's content. */
-  children: ReactNode;
+  /**
+   * The module's controls, drawn the same under the screen in a standard module and again under the panel's screen;
+   * `where` keeps their ids apart. A card with controls brings them here, once.
+   */
+  controls?: (where: "m" | "p") => ReactNode;
+  /** Under the screen in a standard module, where it isn't `controls`: a reading's glyph and today. */
+  row?: ReactNode;
+  /** The panel screen's second channel (`Channel`), in place of its meta lines. */
+  aside?: ReactNode;
+  /** The panel's screen, where it says something else than the module's (an owlet's reading under its alarm). */
+  panelScreen?: { pict: ReactNode; read: ReactNode; meta?: [ReactNode, ReactNode?] };
+  /** The panel's small print, last. */
+  facts?: { start?: ReactNode; end?: ReactNode };
+  /** The panel's own blocks, between its controls and its facts. */
+  children?: ReactNode;
   /** The panel opens with focus in its content (its `[data-autofocus]`), not on its close key. */
   panelFocus?: "content";
   /**
@@ -697,11 +708,13 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
 
 /**
  * Every field card's frame: the module in its footprint, a compact row's lead and screen or a standard module's screen
- * and row, and the detail panel its name opens. A card brings what goes in it.
+ * and controls, and the detail panel its name opens: the screen again with its second channel, the controls again,
+ * the card's own blocks, and its facts. A card brings what goes in it.
  */
-export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelFocus, alert, children, ...module }: ModuleFrameProps) {
+export function ModuleFrame({ details, pict, read, meta, line, lead, controls, row = controls?.("m"), aside, panelScreen, facts, panelFocus, alert, children, ...module }: ModuleFrameProps) {
   const { compact } = cardShape({ footprint: module.footprint });
   useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what, startedAt: alert.startedAt }, details.openDetails);
+  const screen = panelScreen ?? { pict, read, meta };
   return (
     <>
       <Module {...module} area={compact ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say} since={alert?.startedAt}>
@@ -717,7 +730,14 @@ export function ModuleFrame({ details, pict, read, meta, line, lead, row, panelF
           </>
         )}
       </Module>
-      <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area} focusContent={panelFocus === "content"}>{children}</Panel>
+      <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area} focusContent={panelFocus === "content"}>
+        <PanelBody className={`${module.kind}-panel`} state={module.state}>
+          <Screen pict={screen.pict} meta={screen.meta} aside={aside}>{screen.read}</Screen>
+          {controls?.("p")}
+          {children}
+          {facts && <Facts {...facts} />}
+        </PanelBody>
+      </Panel>
     </>
   );
 }

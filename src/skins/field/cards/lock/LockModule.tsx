@@ -4,7 +4,7 @@ import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
 import { isLowBattery } from "@dashhaus/core/entities/battery";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Screen, Warn, useDetails, Facts, KeyGroup, PanelBody } from "../../shared/ui";
+import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Warn, useDetails, KeyGroup } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconDoor, IconLock, LOCK_PICT } from "./icons";
 import "./LockModule.css";
@@ -115,6 +115,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       warning={footprint === "compact" ? warning : battery}
       alert={level === "urgent" ? { level, what: "Jammed", startedAt: undefined } : undefined}
       panelFocus={pending ? "content" : undefined}
+      facts={pending ? undefined : { start: unav ? lastSeenFact(e.lastSeen) : changed, end: <>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</> }}
       details={{ ...details, openDetails: openPanel }}
       pict={pict}
       read={read}
@@ -122,39 +123,35 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       lead={key(false)}
       row={key(true)}
     >
-      <PanelBody className="fd-lk-panel" state={e.state}>
-        <Screen pict={pict} meta={meta}>{read}</Screen>
-        {pending ? (needsCode
-          ? <Keypad key={pending} prompt={`Code to ${pending === "open" ? "open the door" : pending}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
-          : <Confirm key={pending}
-              question={`${pending === "open" ? "Open" : VERB[pending]} ${e.name}?`}
-              detail={pending === "open" ? `${e.name} unlatches; the door can be pushed open.` : "Anyone at the door can open it."}
-              action={VERB[pending]} actionLabel={`${VERB[pending]}, ${e.name}`}
-              icon={pending === "open" ? <IconDoor /> : <IconLock open />}
-              busy={guard.busy} waiting="Waiting for the lock" error={guard.failed ? "Didn’t go through. Try again" : null}
-              onConfirm={() => void guard.confirm()} onCancel={guard.close} />
-        ) : (
-          <>
-            {!ro && (
-              <div className="fd-block">
-                {/* Jammed, Lock again is the one key for securing the door: Open door steps out of its row, to a group of its own. */}
-                <KeyGroup legend="Lock" columns={canOpen && !jammed ? 2 : 1}>
-                  {key(true)}
-                  {canOpen && !jammed && openKey}
-                </KeyGroup>
-                <p className="fd-hint">{locked ? "Unlocking asks first." : jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? "Waiting for the lock." : "Locking takes one press."}</p>
-              </div>
-            )}
-            {!ro && canOpen && jammed && (
-              <div className="fd-block">
-                <KeyGroup legend="Door" columns={1}>{openKey}</KeyGroup>
-              </div>
-            )}
-            {lowBattery && <p className="fd-hint"><Warn>{lowBattery}. Replace it soon.</Warn></p>}
-            <Facts start={unav ? lastSeenFact(e.lastSeen) : changed} end={<>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</>} />
-          </>
-        )}
-      </PanelBody>
+      {pending ? (needsCode
+        ? <Keypad key={pending} prompt={`Code to ${pending === "open" ? "open the door" : pending}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
+        : <Confirm key={pending}
+            question={`${pending === "open" ? "Open" : VERB[pending]} ${e.name}?`}
+            detail={pending === "open" ? `${e.name} unlatches; the door can be pushed open.` : "Anyone at the door can open it."}
+            action={VERB[pending]} actionLabel={`${VERB[pending]}, ${e.name}`}
+            icon={pending === "open" ? <IconDoor /> : <IconLock open />}
+            busy={guard.busy} waiting="Waiting for the lock" error={guard.failed ? "Didn’t go through. Try again" : null}
+            onConfirm={() => void guard.confirm()} onCancel={guard.close} />
+      ) : (
+        <>
+          {!ro && (
+            <div className="fd-block">
+              {/* Jammed, Lock again is the one key for securing the door: Open door steps out of its row, to a group of its own. */}
+              <KeyGroup legend="Lock" columns={canOpen && !jammed ? 2 : 1}>
+                {key(true)}
+                {canOpen && !jammed && openKey}
+              </KeyGroup>
+              <p className="fd-hint">{locked ? "Unlocking asks first." : jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? "Waiting for the lock." : "Locking takes one press."}</p>
+            </div>
+          )}
+          {!ro && canOpen && jammed && (
+            <div className="fd-block">
+              <KeyGroup legend="Door" columns={1}>{openKey}</KeyGroup>
+            </div>
+          )}
+          {lowBattery && <p className="fd-hint"><Warn>{lowBattery}. Replace it soon.</Warn></p>}
+        </>
+      )}
     </ModuleFrame>
   );
 }

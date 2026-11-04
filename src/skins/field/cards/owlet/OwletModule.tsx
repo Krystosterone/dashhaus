@@ -4,7 +4,7 @@ import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/ty
 import { ALERT_SHORT, ALERT_WORD, SLEEP_WORD, URGENT_PROBLEMS, fmtOxygen, normalize, owletSeverity, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody, Notices } from "../../shared/ui";
+import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, ModuleRow, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";
 import "./OwletModule.css";
@@ -97,6 +97,19 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
   }
   const compact = footprint === "compact";
 
+  // The panel's content: the screen as the module's, every alert sounding and whether readings stopped, the base
+  // station's key, today's sleep, heart rate and oxygen, then when it last updated.
+  const uid = useId();
+  const said = [
+    ...[...vitals, ...problems].map((a) => ALERT_WORD[a]),
+    ...(stale ? [`No new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}`] : []),
+  ];
+  const hrSeries = history?.heartRate ? normalize(history.heartRate) : null;
+  const o2Series = history?.oxygen ? normalize(history.oxygen) : null;
+  const lowHigh = (s: { min: number | null; max: number | null }, unit: string) =>
+    s.min == null || s.max == null ? "No readings yet" : `Low ${Math.round(s.min)}${unit} · High ${Math.round(s.max)}${unit}`;
+  const base = e.baseOn != null && onBaseToggle;
+
   return (
     <ModuleFrame
       kind="fd-ow"
@@ -119,45 +132,9 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
           <Today summary={asleep} label="Sleep by hour today." tone="neutral" samples={history?.sleep} currentHour={history?.currentHour} />
         </ModuleRow>
       )}
+      panelScreen={{ pict: heart, read: heartRead, meta: reading }}
+      facts={{ start: offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live), end: offline && e.charging ? "On its charger" : "" }}
     >
-      <OwletDetails e={e} state={offline ? "unavailable" : stale ? "stale" : sleep ?? "unknown"} offline={offline} stale={stale} pict={heart} read={heartRead} meta={reading} history={history} asleep={asleep} onBaseToggle={onBaseToggle} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: OwletEntity;
-  state: string;
-  offline: boolean;
-  stale: boolean;
-  pict: ReactNode;
-  read: ReactNode;
-  meta: [ReactNode, ReactNode?];
-  history?: OwletHistory;
-  asleep?: string;
-  onBaseToggle?: () => void;
-}
-
-/**
- * The panel's content: the screen as the module's, every alert sounding and whether readings stopped, the base
- * station's key, today's sleep, heart rate and oxygen, then when it last updated.
- */
-function OwletDetails({ e, state, offline, stale, pict, read, meta, history, asleep, onBaseToggle }: DetailsProps) {
-  const uid = useId();
-  const { vitals, problems } = rankAlerts(e.alerts);
-  const said = [
-    ...[...vitals, ...problems].map((a) => ALERT_WORD[a]),
-    ...(stale ? [`No new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}`] : []),
-  ];
-  const hrSeries = history?.heartRate ? normalize(history.heartRate) : null;
-  const o2Series = history?.oxygen ? normalize(history.oxygen) : null;
-  const lowHigh = (s: { min: number | null; max: number | null }, unit: string) =>
-    s.min == null || s.max == null ? "No readings yet" : `Low ${Math.round(s.min)}${unit} · High ${Math.round(s.max)}${unit}`;
-  const base = e.baseOn != null && onBaseToggle;
-
-  return (
-    <PanelBody className="fd-ow-panel" state={state}>
-      <Screen pict={pict} meta={meta}>{read}</Screen>
       {said.length > 0 && <Notices className="fd-ow-say" warnings={said} />}
 
       {base && (
@@ -177,8 +154,7 @@ function OwletDetails({ e, state, offline, stale, pict, read, meta, history, asl
           {o2Series && <Today legend="Oxygen today" summary={lowHigh(o2Series, "%")} label="Oxygen by hour today." tone="neutral" samples={o2Series.samples} currentHour={history.currentHour} />}
         </>
       )}
-
-      <Facts start={offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live)} end={offline && e.charging ? "On its charger" : ""} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
+

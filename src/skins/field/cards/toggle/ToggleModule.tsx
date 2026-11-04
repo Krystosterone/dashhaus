@@ -3,7 +3,7 @@ import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Key, ModuleFrame, Option, Pictogram, Screen, Today, useDetails, Facts, KeyGroup, PanelBody, Channel } from "../../shared/ui";
+import { Blank, Key, ModuleFrame, Option, Pictogram, Today, useDetails, KeyGroup, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CLOCK, IconMode, modePict } from "./icons";
 import "./ToggleModule.css";
@@ -48,31 +48,8 @@ export function ToggleModule({ entity: e, footprint = "standard", history, onTog
     </Key>
   );
 
-  return (
-    <ModuleFrame kind="fd-tw" name={e.name} area={e.area} footprint={footprint} state={e.state} details={details} pict={pict} read={read} meta={meta} lead={key(false)} row={key(true)}>
-      <ToggleDetails e={e} read={read} pict={pict} meta={meta} control={key(true)} history={history} durations={onTurnOnFor ? durations : []} onTurnOnFor={onTurnOnFor} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: ToggleEntity;
-  read: ReactNode;
-  pict: ReactNode;
-  meta?: [ReactNode, ReactNode?];
-  control: ReactNode;
-  history?: ToggleHistory;
-  durations: DurationOption[];
-  onTurnOnFor?: (value: string) => void;
-}
-
-/**
- * The panel's content: the screen, with when it switches itself off on its second channel; the key; what the
- * mode does; a key per way to turn it on, the one it was turned on with chosen; today; and facts.
- */
-function ToggleDetails({ e, read, pict, meta, control, history, durations, onTurnOnFor }: DetailsProps) {
-  const unav = e.state === "unavailable";
-  const on = e.state === "on";
+  // The panel's content: the screen, with when it switches itself off on its second channel; the key; what the mode
+  // does; a key per way to turn it on, the one it was turned on with chosen; today; and facts.
   const chosen = on ? durations.find((d) => d.value === e.duration) : undefined;
   const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
@@ -81,9 +58,21 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
   ) : undefined;
 
   return (
-    <PanelBody className="fd-tw-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
-      {control}
+    <ModuleFrame
+      kind="fd-tw"
+      name={e.name}
+      area={e.area}
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={key(false)}
+      controls={() => key(true)}
+      aside={aside}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.entityId.startsWith("switch.") ? "Switch" : "Toggle helper" }}
+    >
       {e.description && <p className="fd-hint">{e.description}</p>}
 
       {onTurnOnFor && durations.length > 0 && (
@@ -97,8 +86,7 @@ function ToggleDetails({ e, read, pict, meta, control, history, durations, onTur
       )}
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.entityId.startsWith("switch.") ? "Switch" : "Toggle helper"} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
+

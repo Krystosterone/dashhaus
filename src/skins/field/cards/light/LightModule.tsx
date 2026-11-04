@@ -1,12 +1,11 @@
 import { useId } from "react";
-import type { ReactNode } from "react";
 import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/types";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
 import type { Hs } from "@dashhaus/core/entities/light/color";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { ModuleFrame, Key, Screen, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, Facts, KeyGroup, ModuleRow, PanelBody, Channel } from "../../shared/ui";
+import { ModuleFrame, Key, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BULB, IconBulb, LENS, SUN } from "./icons";
 import "./LightModule.css";
@@ -67,7 +66,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   // The power key and the brightness fader, the same in the module and the panel. Unavailable, the brightness isn't
   // known, so the fader goes and the key spans the row, as every field control's does.
   const faded = dimmable && !unav;
-  const controls = (where: string) => (
+  const controls = (where: "m" | "p") => (
     <ModuleRow className="fd-lt-row" solo={!faded}>
       <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!dimmable && !unav ? (on ? "On" : "Off") : undefined}>
         <IconBulb />
@@ -88,6 +87,22 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
     </ModuleRow>
   );
 
+  // The panel's second channel: the colour it shows now (only while on, since Home Assistant reports none while off or
+  // on a colour temperature), else its warmth. Unavailable, the screen keeps the module's meta lines.
+  const min = e.minKelvin ?? K_MIN;
+  const max = Math.max(e.maxKelvin ?? K_MAX, min + 100);
+  const k = e.kelvin == null ? null : Math.min(max, Math.max(min, Math.round(e.kelvin / 100) * 100));
+  const lamp = on && e.supportsColor && e.hs ? lampColorOf(e.hs) : null;
+  const aside = unav ? undefined : lamp ? (
+    <Channel pict={<Pictogram lit lamp={lamp.name}>{LENS}</Pictogram>} name={lamp.name} sub="Colour" />
+  ) : e.supportsColorTemp ? (
+    <Channel pict={<Pictogram lit={on && k != null} param="b">{SUN}</Pictogram>} sub={k != null ? kelvinName(k) : "Warmth"}>
+      {k != null ? <>{k}<small>K</small></> : <Blank places={4} label="No warmth" />}
+    </Channel>
+  ) : undefined;
+  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
+
+  // The panel: the screen and the controls again, quick levels, warmth, colours, today, and facts.
   return (
     <ModuleFrame
       kind="fd-lt"
@@ -100,54 +115,10 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
       read={read}
       meta={meta}
       lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconBulb /></Key>}
-      row={controls("m")}
+      controls={controls}
+      aside={aside}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off" }}
     >
-      <LightDetails e={e} read={read} pict={pict} meta={meta} controls={controls("p")} history={history} onBrightnessChange={onBrightnessChange} onKelvinChange={onKelvinChange} onColorChange={onColorChange} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: LightEntity;
-  read: ReactNode;
-  pict: ReactNode;
-  meta?: [string, string?];
-  controls: ReactNode;
-  history?: LightHistory;
-  onBrightnessChange: (percent: number) => void;
-  onKelvinChange?: (kelvin: number) => void;
-  onColorChange?: (hs: Hs) => void;
-}
-
-/**
- * The panel's content: the screen with a second channel (the lamp's colour while it shows one, else its warmth),
- * the controls, quick levels, warmth, colours, today, and facts.
- */
-function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChange, onKelvinChange, onColorChange }: DetailsProps) {
-  const uid = useId();
-  const unav = e.state === "unavailable";
-  const on = e.state === "on";
-  const min = e.minKelvin ?? K_MIN;
-  const max = Math.max(e.maxKelvin ?? K_MAX, min + 100);
-  const k = e.kelvin == null ? null : Math.min(max, Math.max(min, Math.round(e.kelvin / 100) * 100));
-  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
-
-  // The colour it shows now: only while on, since Home Assistant reports none while off or on a colour temperature.
-  const lamp = on && e.supportsColor && e.hs ? lampColorOf(e.hs) : null;
-
-  // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
-  const aside = unav ? undefined : lamp ? (
-    <Channel pict={<Pictogram lit lamp={lamp.name}>{LENS}</Pictogram>} name={lamp.name} sub="Colour" />
-  ) : e.supportsColorTemp ? (
-    <Channel pict={<Pictogram lit={on && k != null} param="b">{SUN}</Pictogram>} sub={k != null ? kelvinName(k) : "Warmth"}>
-      {k != null ? <>{k}<small>K</small></> : <Blank places={4} label="No warmth" />}
-    </Channel>
-  ) : undefined;
-
-  return (
-    <PanelBody className="fd-lt-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
-      {controls}
 
       {e.supportsBrightness && (
         <KeyGroup legend="Quick levels" columns={4}>
@@ -191,8 +162,6 @@ function LightDetails({ e, read, pict, meta, controls, history, onBrightnessChan
       )}
 
       {history && <Today summary={today} label="Brightness by hour today." samples={history.samples} currentHour={history.currentHour} />}
-
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off"} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }

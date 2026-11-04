@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
 import { lastSeenFact } from "@dashhaus/core/entities/facts";__todaySummaryImport__
-import { Blank, Facts, Glyph, ModuleFrame, ModuleRow, PanelBody, Pictogram, Screen, __todayImport__useDetails } from "../../shared/ui";
+import { Blank, Glyph, ModuleFrame, ModuleRow, Pictogram, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
 import "./__Name__Module.css";
@@ -34,12 +34,20 @@ export function __Name__Module({ entity: e__historyArg__, footprint = "standard"
 __readingTodayConst__
 
   return (
-    <ModuleFrame kind="fd-__code__" name={e.name}__areaProp__ footprint={footprint} state={e.state} details={details} pict={pict} read={read} meta={meta} lead={glyph} row={<ModuleRow className="fd-__code__-row">{glyph}__readingToday__</ModuleRow>}>
-      <PanelBody className="fd-__code__-panel" state={e.state}>
-        <Screen pict={pict} meta={meta}>{read}</Screen>
-        __readingToday__
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : ""} />
-      </PanelBody>
+    <ModuleFrame
+      kind="fd-__code__"
+      name={e.name}__areaProp__
+      footprint={footprint}
+      state={e.state}
+      details={details}
+      pict={pict}
+      read={read}
+      meta={meta}
+      lead={glyph}
+      row={<ModuleRow className="fd-__code__-row">{glyph}__readingToday__</ModuleRow>}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : "" }}
+    >
+      __readingToday__
     </ModuleFrame>
   );
 }
