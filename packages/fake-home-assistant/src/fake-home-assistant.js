@@ -27,6 +27,8 @@ export class FakeHomeAssistant {
   calls = [];
   closed = false;
   failResources = false;
+  /** Dashboards ever created, so an id is never reused after a delete. */
+  #created = 0;
   /** The house's live states by entity id; `call_service` changes them and tells every `onStateChange` listener. */
   states;
   /** The registries the frontend's `hass` carries; `states` and these may be replaced at construction. */
@@ -113,17 +115,26 @@ export class FakeHomeAssistant {
     if (type === "lovelace/dashboards/list") return this.dashboards;
     if (type === "lovelace/dashboards/create") {
       if (this.dashboards.some((dashboard) => dashboard.url_path === payload.url_path)) throw new Error(`url_path ${payload.url_path} already exists`);
-      this.dashboards.push({
-        id: `dashboard-${this.dashboards.length + 1}`,
+      const dashboard = {
+        id: `dashboard-${++this.#created}`,
         url_path: payload.url_path,
         title: payload.title,
         icon: payload.icon,
-      });
-      return null;
+      };
+      this.dashboards.push(dashboard);
+      // Home Assistant answers a create with the new item, its id included.
+      return { ...dashboard, mode: payload.mode ?? "storage", require_admin: payload.require_admin ?? false, show_in_sidebar: payload.show_in_sidebar ?? true };
     }
     if (type === "lovelace/dashboards/update") {
       const dashboard = this.dashboards.find((candidate) => candidate.id === payload.dashboard_id);
       if (dashboard) dashboard.title = payload.title;
+      return null;
+    }
+    if (type === "lovelace/dashboards/delete") {
+      const dashboard = this.dashboards.find((candidate) => candidate.id === payload.dashboard_id);
+      if (!dashboard) throw new Error(`Unable to find dashboard_id ${payload.dashboard_id}`);
+      this.dashboards = this.dashboards.filter((candidate) => candidate !== dashboard);
+      this.saved = this.saved.filter((entry) => entry.url_path !== dashboard.url_path);
       return null;
     }
     if (type === "lovelace/config/save") {

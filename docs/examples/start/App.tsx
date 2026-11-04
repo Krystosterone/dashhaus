@@ -1,10 +1,10 @@
-import { DeskLamp } from "./DeskLamp";
+import { LivingRoomLight } from "./LivingRoomLight";
 
 export function App() {
   return (
     <main>
       <h1>Home</h1>
-      <DeskLamp />
+      <LivingRoomLight />
     </main>
   );
 }

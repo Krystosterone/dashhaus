@@ -78,8 +78,9 @@ npm publish release/dashhaus-bundle-0.2.0.tgz --access public
 npm publish release/create-dashhaus-skin-0.2.0.tgz
 ```
 
-After publishing, rerun `node verify/dx/user.js` and `node verify/dx/author.js` against the registry, not the
-tarballs, before announcing the release; both are the same clean-room journeys the release check runs.
+After publishing, rerun `node verify/dx/user.js`, `node verify/dx/author.js` and `node verify/dx/developer.js`
+against the registry, not the tarballs, before announcing the release; they are the same clean-room journeys CI runs
+([journeys.md](journeys.md)). The Marketplace journey's live counterpart is in The Marketplace, below.
 
 The tarball's manifest is already the release manifest; publishing the tarball, not the package folder, is what keeps `source` and `private` out. Tagging, GitHub releases and npm scope claims are separate operator decisions.
 
@@ -132,6 +133,39 @@ Observe, in this order:
 
 Record on the release candidate: date and operator, Home Assistant version, candidate commit, tarball version, the deploy output, pass/fail for each observation above, and where the screenshot or console excerpt lives. If credentials are not supplied, record "live smoke: unrun — no HA_URL/HA_TOKEN/HA_WWW" and do not mark it passed.
 
+## The Marketplace
+
+The Home Assistant Marketplace (built in from 2026.11) and HACS (before it) read one catalog and one contract, so one
+release serves both. What the repository holds:
+
+- `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
+  `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
+- `.github/workflows/release.yml` builds `dist/dashhaus.js` from a published release's tag, checks the tag is
+  `v<version>` of the packages, and attaches the file to the release. Publishing the release stays the operator's
+  step; the workflow only adds what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
+  committed build.
+- `.github/workflows/hacs.yml` runs `hacs/action` with `category: plugin` and no ignored checks on every pull request,
+  push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
+  repository is private, like the Docs deploy.
+- The bundle's setup card ([deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards after the
+  install, and the site's [Install from the Marketplace](../docs/src/content/docs/start/install.mdx) page, with its
+  My link and `llms.txt`'s copy of its steps, is the way in.
+
+What only the operator can do, in order, each once:
+
+1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
+2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;
+   the HACS action checks them.
+3. Publish the release `v<version>` from the tagged commit. The Release workflow attaches `dashhaus.js`; check it is
+   there and the HACS workflow is green.
+4. Live, on a scratch Home Assistant 2026.11 and on an older one with HACS: install from the
+   [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
+   as a custom repository, add the setup card, press Create, open both dashboards, edit one, press again and see
+   nothing overwritten, then open the card as a non-admin. Record it in `spec/releases/<version>.md`, as run or unrun.
+5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
+   alphabetical order, with the release and the green HACS action. Review takes months; the My link works before it,
+   so this is discovery, not the launch.
+
 ## CI
 
 `.github/workflows/ci.yml` is the pipeline: `checks` (typecheck, lint, `build:ha`), `unit` (every suite but the generator copies), two generator shards, `dx` (`release:pack`, `verify:packages`, then the clean-room journeys over the packed tarballs) and two Storybook shards. The required `check` job gathers the checks, unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. Every lane checks out and installs through `.github/actions/setup`, and the Docs workflow does too. The reasons behind its shape:
@@ -144,6 +178,7 @@ Record on the release candidate: date and operator, Home Assistant version, cand
 - `test-storybook` builds Storybook in test mode (`storybook build --test`), which leaves out the docs pages it never visits; the Docs workflow's `build:docs` builds them in full. Its axe pass is injected once per page, not per story, and collects violations only. The Storybook and `dx` lanes install only Playwright's headless shell, cached per Playwright version; the runner image already has Chrome's system libraries.
 - A newer commit cancels the run in progress on the same branch or pull request; main keeps every run.
 - The `dx` journeys install only the packed tarballs and import nothing from this repository; a failure in either is a failure of the public surface, not a flaky integration.
-- CI has no publish, tag or release step, and needs no secrets.
+- CI has no publish, tag or release step, and needs no secrets. The Release workflow is not CI: it runs only when the
+  operator publishes a release, and its only write is that release's asset, with the run's own token.
 
 The measurements behind each of these, and the options measured and rejected, are in `.agents/skills/test-speed/references/dashhaus-evidence.md`.

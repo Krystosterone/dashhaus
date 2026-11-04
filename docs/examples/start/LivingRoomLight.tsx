@@ -1,8 +1,8 @@
 import { useHaLight } from "@dashhaus/core";
 
 /** One light, drawn your way: the hook hands over the light and what it can do. */
-export function DeskLamp() {
-  const { entity, actions } = useHaLight("light.desk");
+export function LivingRoomLight() {
+  const { entity, actions } = useHaLight("light.living_room");
   const on = entity.state === "on";
 
   return (

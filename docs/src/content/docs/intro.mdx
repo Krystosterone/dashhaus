@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: "What Dashhaus is, the two ways to use it, and the words these pages use."
+description: "What Dashhaus is, the four ways to use it, and the words these pages use."
 ---
 
 import { LinkCard, CardGrid } from "@astrojs/starlight/components";
@@ -13,23 +13,35 @@ Dashhaus draws Home Assistant dashboards in React and TypeScript, for phones, ta
   headless component for each kind of entity, the interaction primitives and the card frame. A skin is drawing on top
   of these, so you can draw your own: in a React app of yours, or as a new skin with its own Lovelace card.
 
-## Two ways in
+## Four ways in
+
+Dashhaus is used four ways, and each has its own way in. Pick the one that matches what you want to end up with.
 
 <CardGrid>
   <LinkCard
-    title="Use a skin"
-    description="Install @dashhaus/bundle and @dashhaus/deploy, deploy, then lay the dashboard out in YAML in Home Assistant."
-    href="/dashhaus/start/deploy/"
+    title="Install a skin"
+    description="Orb or Field on your Home Assistant, from the Marketplace, with no terminal: add the setup card once and press Create."
+    href="/dashhaus/start/install/"
   />
   <LinkCard
     title="Build a skin"
-    description="Scaffold one with create-dashhaus-skin: cards on the real hooks, a YAML reader, a one-file build and a deploy."
+    description="A look of your own, scaffolded with create-dashhaus-skin: cards on the real hooks, a YAML reader, a one-file build and a deploy."
     href="/dashhaus/start/build-a-skin/"
+  />
+  <LinkCard
+    title="Use the hooks"
+    description="Home Assistant's entities in a React app of yours, drawn your way: @dashhaus/core alone, no skin and no generator."
+    href="/dashhaus/start/getting-started/"
+  />
+  <LinkCard
+    title="Contribute"
+    description="Change Dashhaus itself: fix Orb or Field, add a kind of entity to both, or start a skin in the repository."
+    href="/dashhaus/develop/monorepo/"
   />
 </CardGrid>
 
-Between the two, you can also use the hooks and the skins' components in a React app of your own:
-[Getting started](/dashhaus/start/getting-started/) does that.
+Deploying from the command line serves the first two: a [scripted deploy](/dashhaus/start/deploy/) of Orb and Field,
+and the last step of building a skin.
 
 ## How the pieces stack
 

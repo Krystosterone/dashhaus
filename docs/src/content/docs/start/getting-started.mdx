@@ -1,14 +1,15 @@
 ---
-title: Getting started
-description: "Install the packages, put the store above your app, and draw a first control headless and with a skin."
+title: Use the hooks in your app
+description: "Install @dashhaus/core, put the store above your React app, and draw a first control headless, then with a skin's component."
 ---
 
 import { Aside, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 
 Put Dashhaus in a React app of yours: install the packages, connect the store, then draw one light twice. The first
-uses your own markup on the headless hook; the second, a skin's ready-made component. If you only want a finished
-dashboard in Home Assistant, [Deploy a dashboard](/dashhaus/start/deploy/) needs no React at all.
+uses your own markup on the headless hook; the second, a skin's ready-made component. `@dashhaus/core` on its own is
+enough for the first: no skin, no generator and no Lovelace card come with it. If you only want a finished
+dashboard in Home Assistant, [Install from the Marketplace](/dashhaus/start/install/) needs no React at all.
 
 <Aside type="caution" title="Not on npm yet">
   The packages are a `0.2.0` release candidate and haven't been published, so `npm install` won't find them yet. Until
@@ -79,7 +80,7 @@ token there. [Connecting and auth](/dashhaus/errors/auth/) covers both, and a ki
   <TabItem label="Headless">
     `useHaLight` hands over the light as a plain `LightEntity`, today's history, and its actions. You draw it:
 
-    <Example file="start/DeskLamp.tsx" title="DeskLamp.tsx" />
+    <Example file="start/LivingRoomLight.tsx" title="LivingRoomLight.tsx" />
 
     A tap calls `light.toggle`. When Home Assistant reports the new state, the store updates and the button follows:
     the hook never assumes the call worked.
@@ -89,7 +90,7 @@ token there. [Connecting and auth](/dashhaus/errors/auth/) covers both, and a ki
     `HaLightTile` is the same hook above Orb's light tile: the round button, the brightness track, the colour and
     warmth controls in its details sheet, and today's history.
 
-    <Example file="start/DeskLampTile.tsx" title="DeskLampTile.tsx" />
+    <Example file="start/LivingRoomLightTile.tsx" title="LivingRoomLightTile.tsx" />
 
     A tile fills the width of its container and keeps a fixed height, its footprint. Put `class="ha-surface"` on
     `<body>` for Orb's page background and type.
@@ -98,7 +99,7 @@ token there. [Connecting and auth](/dashhaus/errors/auth/) covers both, and a ki
   <TabItem label="Field">
     `HaLightModule` is the same hook above Field's light module: a key, a fader and a screen, with a detail panel.
 
-    <Example file="start/DeskLampModule.tsx" title="DeskLampModule.tsx" />
+    <Example file="start/LivingRoomLightModule.tsx" title="LivingRoomLightModule.tsx" />
 
     Put `class="fd-surface"` on `<body>` for Field's page and type.
 

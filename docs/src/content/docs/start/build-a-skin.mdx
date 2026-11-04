@@ -87,7 +87,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
    Assistant.
 
 5. Deploy it. Copy the scaffold's `.env.example` to `.env` and fill in `HA_URL`, `HA_TOKEN` and `HA_WWW` as
-   [Deploy a dashboard](/dashhaus/start/deploy/) describes, then:
+   [Deploy from the command line](/dashhaus/start/deploy/) describes, then:
 
    ```sh
    npm run deploy
@@ -247,5 +247,5 @@ For a skin drawn end to end with the generators, to take ideas from or build on,
 ## Orb and Field beside your skin
 
 Your skin's bundle carries your skin only. To offer Orb and Field on the same Home Assistant, install
-`@dashhaus/bundle` too and deploy it as on [Deploy a dashboard](/dashhaus/start/deploy/): it uploads to its own
+`@dashhaus/bundle` too and deploy it as on [Deploy from the command line](/dashhaus/start/deploy/): it uploads to its own
 folder, so the two bundles don't overwrite each other.

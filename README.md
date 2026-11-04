@@ -2,27 +2,61 @@
 
 [![CI](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml)
 
-React and TypeScript skins for a custom Home Assistant dashboard, developed and verified in Storybook.
+Home Assistant dashboards drawn in React: two finished looks, Orb and Field, that you install from the Marketplace,
+and the headless hooks under them to draw your own.
 
-Dashhaus draws Home Assistant dashboards from React + TypeScript cards, composed into phone, tablet and wall-panel pages. Two skins, Orb and Field, sit on the same entity models and Home Assistant hooks; each brings its own cards, dashboard furniture and Lovelace card (`custom:dashhaus-orb`, `custom:dashhaus-field`). It is a component library, not a runnable app: Storybook is where the cards are developed and checked.
+<p>
+  <img src="docs/src/assets/skins/phone-orb-light.webp" alt="Orb on a phone: round buttons, sliders and big readings on a warm light page" width="280">
+  <img src="docs/src/assets/skins/phone-field-light.webp" alt="Field on a phone: a hardware panel of keys, faders and dark screens" width="280">
+</p>
 
-Documentation: **[krystosterone.github.io/dashhaus](https://krystosterone.github.io/dashhaus/)**, with Storybook at [/storybook](https://krystosterone.github.io/dashhaus/storybook/).
+Documentation: **[krystosterone.github.io/dashhaus](https://krystosterone.github.io/dashhaus/)**, with Storybook at
+[/storybook](https://krystosterone.github.io/dashhaus/storybook/).
 
 ## Install
 
+[![Open your Home Assistant instance and open Dashhaus in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
+
+No terminal needed, as a Home Assistant administrator:
+
+1. Open the link above. Home Assistant 2026.11 or newer opens the Marketplace; older versions need
+   [HACS](https://www.hacs.xyz/docs/use/). Add Dashhaus as a custom repository of type **Dashboard** if asked, then
+   download it.
+2. Reload the browser tab.
+3. On **Overview**: **⋮ → Edit dashboard → Add card → Dashhaus setup**, save, and press **Create dashboards**.
+4. Open **Home (Orb)** or **Home (Field)** from the card's links, then remove the setup card. It never changes a
+   dashboard that exists.
+
+Dashhaus hasn't had its first public release yet, so the link finds nothing until it does. Until then, deploy from the
+command line: [Deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
+
+## Four ways in
+
+| You want | Start at |
+| --- | --- |
+| Orb or Field on your Home Assistant | [Install from the Marketplace](https://krystosterone.github.io/dashhaus/start/install/), or [from the command line](https://krystosterone.github.io/dashhaus/start/deploy/) for a script or CI |
+| A look of your own | [Build a skin](https://krystosterone.github.io/dashhaus/start/build-a-skin/): `npm create dashhaus-skin@latest my-skin` |
+| Home Assistant's entities in your own React app | [Use the hooks in your app](https://krystosterone.github.io/dashhaus/start/getting-started/): `@dashhaus/core` alone |
+| To change Dashhaus itself | [Develop](#develop) below, and [AGENTS.md](AGENTS.md) |
+
+Each way in is proved from the packed release on every change; [spec/journeys.md](spec/journeys.md) lists them.
+
+## Develop
+
+This repository is a component library, developed and checked in Storybook: two skins, Orb and Field, on the same
+entity models and Home Assistant hooks, each with its own cards, dashboard furniture and Lovelace card
+(`custom:dashhaus-orb`, `custom:dashhaus-field`).
+
 ```sh
+corepack enable npm
 npm install
-```
-
-Requires Node 22.9 or later (`.nvmrc` pins 22).
-
-## Usage
-
-```sh
 npm run storybook
 ```
 
-Runs at http://localhost:6006. Storybook documents every card, supported footprint and skin, each skin under the same groups: Cards, Bundles (Orb only), Dashboards, Foundations, Connected. Use the Theme menu to switch between Auto (system), Light and Dark.
+Requires Node 22.9 or later (`.nvmrc` pins 22) and the npm `packageManager` pins. Storybook runs at
+http://localhost:6006 and documents every card, supported footprint and skin, each skin under the same groups: Cards,
+Bundles (Orb only), Dashboards, Foundations, Connected. Use the Theme menu to switch between Auto (system), Light and
+Dark.
 
 Create a new skin from the neutral shell:
 
@@ -30,9 +64,9 @@ Create a new skin from the neutral shell:
 npm run new-skin -- canvas
 ```
 
-It registers the skin's Foundations, Dashboard, its own entry and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [spec/skins.md](spec/skins.md). To build a skin in its own directory from the published packages, with no Storybook or workspace, use `npm create dashhaus-skin@latest my-skin` and [spec/build-a-skin.md](spec/build-a-skin.md).
+It registers the skin's Foundations, Dashboard, its own entry and Lovelace card; add real entity Cards with `npm run new-card -- light --skin canvas`. See [spec/skins.md](spec/skins.md).
 
-## Packages
+### Packages
 
 `@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` are the headless foundation, the framework and the
 deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins. `@dashhaus/bundle` ships the prebuilt one-file
@@ -40,7 +74,7 @@ Lovelace bundle: a deploy-only app installs it with the CLI, names `fileURLToPat
 `npx dashhaus-deploy --skip-build`. `create-dashhaus-skin` scaffolds a standalone skin. Package READMEs live in each
 package; the release policy is [spec/release.md](spec/release.md).
 
-## Running with Home Assistant
+### Running with Home Assistant
 
 Fill in `.env` and deploy:
 
@@ -48,7 +82,7 @@ Fill in `.env` and deploy:
 npm run deploy
 ```
 
-It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-field` (Field) and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [spec/deploy.md](spec/deploy.md). Measure the deployed pages with `npm run perf:collect`; see [spec/performance.md](spec/performance.md). The data boundary, the shared `useHa<Kind>` hooks and the injected transport are in [spec/home-assistant.md](spec/home-assistant.md).
+It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-field` (Field), the setup card and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [spec/deploy.md](spec/deploy.md). Measure the deployed pages with `npm run perf:collect`; see [spec/performance.md](spec/performance.md). The data boundary, the shared `useHa<Kind>` hooks and the injected transport are in [spec/home-assistant.md](spec/home-assistant.md).
 
 ## Spec
 
@@ -66,6 +100,7 @@ The specification the code is held to, written for maintainers and agents. Tests
 | [spec/skins.md](spec/skins.md) | Starting a skin in this repository |
 | [spec/build-a-skin.md](spec/build-a-skin.md) | Building a standalone skin from the published packages |
 | [spec/contract.md](spec/contract.md) | What a third-party skin may rely on |
+| [spec/journeys.md](spec/journeys.md) | The four ways in, and what proves each |
 | [spec/release.md](spec/release.md) | Building and releasing the public packages |
 
 ## Contributing
