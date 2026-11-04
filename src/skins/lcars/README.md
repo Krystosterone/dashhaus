@@ -4,6 +4,9 @@ Lcars is a **study**: a skin an agent built, kept so you can see what it made an
 It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and `npm run deploy` doesn't
 create its dashboard. It is checked like every skin in this repository, so it keeps working as the packages change.
 
+It is an unofficial homage, drawn after the look of a fictional interface; it is not affiliated with or endorsed by
+the owners of Star Trek, and LCARS is their name, used here only to say what it imitates.
+
 ## Use it
 
 Do what you want with it: take ideas from it, copy a part or a card, improve it, or build a skin of your own on top of
