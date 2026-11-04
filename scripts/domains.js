@@ -146,15 +146,19 @@ export function describeDomain(name) {
   };
 }
 
-/** Every shared domain a neutral card can draw, by name; the ones it can't are left out. */
+/**
+ * Every shared domain a neutral card can draw, by name. One whose hook needs an option a card can't know is left out;
+ * any other error stops the run, so a slip in core can't quietly drop a card from the scaffolder.
+ */
 export function describeDomains() {
   const entities = packageFile("core", "src/entities");
   const folders = readdirSync(join(root, entities), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
   return Object.fromEntries(folders.flatMap((name) => {
     try {
       return [[name, describeDomain(name)]];
-    } catch {
-      return [];
+    } catch (error) {
+      if (/a generated Card can't know/.test(error.message)) return [];
+      throw error;
     }
   }));
 }

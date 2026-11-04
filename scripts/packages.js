@@ -74,7 +74,8 @@ export const referenceSkins = {
   field: { dir: "src/skins/field" },
 };
 
-const RESERVED = ["core", "dashboard", "deploy"];
+/** Names a package in packages/ already takes: a skin by one would break `npm install`. */
+const RESERVED = ["core", "dashboard", "deploy", "bundle", "fake-home-assistant"];
 
 /**
  * What `npm run new-skin` creates: a private workspace package named `@dashhaus/<skin>` at `src/skins/<skin>`.
