@@ -1,8 +1,9 @@
 import type { ToggleEntity, ToggleHistory, DurationOption } from "@dashhaus/core/entities/toggle/types";
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
 import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { ToggleIconSvg } from "./icons";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleCard.css";
 
@@ -84,7 +85,7 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
         <TodayStrip
           samples={history.samples}
           currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today"}
+          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
         />
       )}
 

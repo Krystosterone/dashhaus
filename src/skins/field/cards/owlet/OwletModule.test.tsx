@@ -112,6 +112,8 @@ describe("OwletModule", () => {
     expect(meta).toEqual(["Charging", "Seen 07:12"]);
     expect(draw("unavailable").meta).toEqual(["Unavailable", "Seen 10:42"]);
     expect(container.querySelector(".fd-glyph")?.hasAttribute("data-unavailable")).toBe(true);
+    // Today's legend says why it stopped, not a sleep total that stopped counting; the meter keeps the sleep so far.
+    expect(screen.getByRole("img", { name: "Sleep by hour today. Charging." })).toBeTruthy();
     // A sock off its foot stops the monitoring: urgent, its block on the screen, when it was last seen beside it.
     expect(draw("sockOff").meta).toEqual(["Warning: Sock off", "Seen 11:41"]);
   });

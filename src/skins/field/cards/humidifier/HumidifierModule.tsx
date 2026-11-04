@@ -2,8 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
-import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Screen, Steps, Today, useDetails, Facts, KeyGroup, choices, ModuleRow, PanelBody } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconHumidifier } from "./icons";
@@ -136,7 +136,7 @@ function HumidifierDetails({ e, read, pict, meta, controls, history, onTargetCha
   const on = e.state === "on";
   const verb = targetVerb(e.kind);
   const target = on ? e.targetHumidity : undefined;
-  const today = history && (unav ? "Unavailable" : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today");
+  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
 
   const aside = unav ? (
     <p className="fd-chan"><span><Blank label="Unavailable" /><span className="fd-chan-sub">Unavailable</span></span></p>

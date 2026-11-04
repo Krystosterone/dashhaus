@@ -61,7 +61,9 @@ a code through the skin's Confirm and Keypad on `useGuardedAction`, and to leave
 when it wants to know the same.
 
 The words of a card's small print are `entities/facts.ts`, the same on every card and in every skin: `lastSeenFact`,
-`unavailableSince`, `sinceFact`, `lastChangedFact` (with who changed it) and `updatedFact`.
+`unavailableSince`, `sinceFact`, `lastChangedFact` (with who changed it) and `updatedFact`. Today's summary is
+`entities/today.ts`: `todaySummary(word, minutes)` says how long the entity spent in its state today ("On 2h 36m",
+"Armed 1h", "Heating 35m") or that it never did ("Not on today"). An unavailable entity's summary stays the skin's own.
 
 ### Headless components and hooks
 

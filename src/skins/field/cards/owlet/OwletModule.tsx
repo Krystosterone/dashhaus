@@ -2,8 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
 import { ALERT_SHORT, ALERT_WORD, SLEEP_WORD, URGENT_PROBLEMS, fmtOxygen, normalize, owletSeverity, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
-import { fmtDuration } from "@dashhaus/core/entities/format";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";
@@ -47,7 +47,8 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
   const oxygen = o2 != null ? `${fmtOxygen(o2)}% O₂` : undefined;
   const seen = e.lastSeen ? `Seen ${e.lastSeen}` : undefined;
   const glyph = <Glyph unavailable={offline}><IconSock /></Glyph>;
-  const asleep = history && (history.asleepMinutes > 0 ? `Asleep ${fmtDuration(history.asleepMinutes)}` : "Not asleep today");
+  // Offline, the meter keeps the sleep so far and its legend says why there is no more, as the screen does.
+  const asleep = history && (offline ? (e.charging ? "Charging" : "Unavailable") : todaySummary("asleep", history.asleepMinutes));
 
   // Lit while there is a heart rate that hasn't stopped; beating while readings are known to arrive, once every 2.4 s, a
   // sign of life rather than the measured rate. Where the host can't tell, it stays lit and still.

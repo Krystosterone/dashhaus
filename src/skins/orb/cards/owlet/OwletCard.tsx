@@ -1,8 +1,9 @@
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
 import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
-import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardTitle, Readout, SheetClose, TogglePill, UnavailableSlot, TodayStrip, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
 
@@ -155,7 +156,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
           title={sheet ? "Sleep today" : "Today"}
           samples={history.sleep}
           currentHour={history.currentHour}
-          summary={offline ? unavailableSince(e.lastSeen) : history.asleepMinutes > 0 ? `Asleep ${fmtDuration(history.asleepMinutes)}` : "Not asleep today"}
+          summary={offline ? unavailableSince(e.lastSeen) : todaySummary("asleep", history.asleepMinutes)}
         />
       )}
 

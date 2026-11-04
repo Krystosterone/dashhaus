@@ -34,12 +34,12 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   the declared action kinds (`<NAME>_ACTIONS`: a tap, a code or a value, and whether it asks first; spec/core.md) and
   the generators that read them (spec/build-a-skin.md: a guarded action through `Confirm` and `Keypad`, never one tap;
   history optional; field's control from its declared actions), and the check against the next copy
-  (`verify/card-copies.test.ts`, which knows no copy). The lock, the alarm and the fan are drawn on all of it.
+  (`verify/card-copies.test.ts`, which knows no copy), and today's summary in words (`todaySummary`,
+  `entities/today.ts`; spec/core.md). The lock, the alarm and the fan are drawn on all of it.
 - **Today:** what a grep of the card folders (2026-11-03) still finds, each a mechanism two or more cards write:
 
   | Mechanism | Where it is written now | Copies |
   | --- | --- | --- |
-  | Today's summary in words ("On 2h 36m", "Not on today", "Not armed today") | composed in each card and module file that has today | 14 |
   | Orb level groove: light's brightness, sound's volume and fan's speed, one groove with the same end cap, lit fill, label and off-state words, each on `SliderTrack` with its own copy of the rest | `cards/light/parts.tsx`, `cards/sound/parts.tsx`, `cards/fan/parts.tsx` | 3 |
   | Orb card anatomy: the `hd-head` (orb or bare icon, `CardTitle` with its status line and compact value, the readout, `SheetClose`), the slot switch (bare value, `UnavailableSlot`, the control) and the `TodayStrip` | every `<Name>Card.tsx` | 12 |
   | Field module/panel split: the controls drawn once in the module and again in the panel (`controls(where)`), then a `<Name>Details` body on `PanelBody` | `LightModule`'s split, in climate, cover, humidifier and fan; a `<Name>Details` in most modules | 5 / 12 |
@@ -49,7 +49,7 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
 
 - **Gap:** every new card still copies the nearest card for what these rows hold, and a new card costs more than
   composition. `verify/card-copies.test.ts` catches a copied component or rule, not a copied shape of markup (the
-  anatomy, the split) or a word composed by hand.
+  anatomy, the split).
 - **The generators** draw on the parts, the facts and the declared action kinds now, but:
   - **Two descriptions of one domain.** The field generator reads `useHa<Name>`'s options and handlers with regular
     expressions (`scripts/new-card/field.js`), while the scaffolder and `new-card --skin <generated>` read
@@ -60,7 +60,6 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   - **The templates write the anatomy out** (orb's control template is a whole card, field's a whole module), so a new
     card starts with every row above already copied.
 - **Proposal:** one pass per row, each its own change:
-  - today's summary as a pure formatter in `entities/`, beside `facts.ts`;
   - orb's `LevelBar` on `SliderTrack` for the one level groove, leaving each card its words; field's `Channel` for the
     screen's second channel;
   - a transport helper that takes a seed and a service table, so a domain's demo transport is its services alone;
@@ -78,4 +77,5 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   regenerated in a copy of the repository, `fan` draws its groove, sheet and panel from the parts, with only its words
   and icon written by hand.
 - **Validation status (2026-11-03):** the guarded action, the facts, the key groups, the temperature figure, the slider
-  wiring, the field row, panel body and notices, the seeds and the action kinds are done; the rows above are open.
+  wiring, the field row, panel body and notices, the seeds, the action kinds and today's summary are done; the rows
+  above are open.

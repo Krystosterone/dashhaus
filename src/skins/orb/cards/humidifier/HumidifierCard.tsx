@@ -1,8 +1,9 @@
 import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
 import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
 import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
 import { HumidifierIcon } from "./icons";
-import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, fmtDuration, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { Orb, CardTitle, SheetClose, Stepper, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./HumidifierCard.css";
 
@@ -53,7 +54,7 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
 
   // The compact value appears under the name, or in place of a hidden control.
   const subText = cur != null ? `${fmtHumidity(cur)}% · ${setText}` : setText;
-  const summary = !history ? "" : unav ? unavailableSince(e.lastSeen) : history.onMinutes > 0 ? `On ${fmtDuration(history.onMinutes)}` : "Not on today";
+  const summary = !history ? "" : unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes);
 
   return (
     <article {...article} data-state={e.state} data-action={action ?? (on ? "on" : "off")} {...colors}>
