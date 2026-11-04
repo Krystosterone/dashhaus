@@ -1,10 +1,10 @@
 import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@dashhaus/core/entities/climate/modes";
-import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, Stepper, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { CardFrame, ChoiceChips, SheetBlock, Stepper, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateCard.css";
@@ -66,7 +66,8 @@ function useSlotTransition(kind: string) {
  * The orb switches it off and back on; the slot sets the target; the sheet holds modes, presets and fan.
  */
 export function ClimateCard({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("cw", { variant, footprint, showControl, area: e.area });
+  const card = useCard("cw", { variant, footprint, showControl, area: e.area });
+  const { uid, sheet, compact, bare, area } = card;
   const unav = e.state === "unavailable";
   const mode: HvacMode = unav ? "off" : (e.state as HvacMode);
   const on = !unav && mode !== "off";
@@ -91,8 +92,7 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
   };
 
   let slot;
-  if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} turnOn>Turn on</TogglePill>;
+  if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} turnOn>Turn on</TogglePill>;
   else if (range) {
     slot = <RangeBar id={`${uid}-r`} name={e.name} low={e.targetLow!} high={e.targetHigh!} current={cur} modeCue={compact ? <ModeIcon mode="heat_cool" /> : undefined} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} onOpen={sheet ? undefined : onOpenDetails} />;
   } else if (single) {
@@ -104,36 +104,32 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
   const slotKind = bare ? "bare" : unav ? "unavailable" : !on ? "off" : range ? "range" : single ? "setpoint" : "mode";
   const slotRef = useSlotTransition(slotKind);
 
-  const summary = !history ? "" : unav ? unavailableSince(e.lastSeen) : todaySummary(history.activity, history.activeMinutes);
-
   // The compact value appears under the name, or in place of a hidden control.
   // The status line already gives the room temperature: the replacement value is just the setpoint.
   const valText = setText;
   return (
-    <article {...article} data-state={unav ? "unavailable" : on ? (active ? "active" : "idle") : "off"} data-action={action} {...colors}>
-      <header className="hd-head">
-        <Orb label={`${e.name}, ${on ? modeLabel(mode) : "off"}`} pressed={on} unavailable={unav} intensity={active ? 1 : 0.4} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          {compact
-            ? <ThermostatIcon />
-            : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />}
-        </Orb>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{sheet && area ? `${area} · ${status}` : status}</p>
-          {compact && (
-            <p className="hd-sub">
-              {cur != null && !unav && <span className="hd-sub-optional">{fmtCurrent(cur)}° · </span>}
-              {setText}
-            </p>
-          )}
-        </CardTitle>
-        <p className="hd-num" aria-hidden="true">{unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></>}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot"><div ref={slotRef} className="cw-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div></div>
-
-      {sheet && !unav && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": unav ? "unavailable" : on ? (active ? "active" : "idle") : "off", "data-action": action, ...colors }}
+      orb={{
+        label: `${e.name}, ${on ? modeLabel(mode) : "off"}`, pressed: on, intensity: active ? 1 : 0.4, onToggle,
+        children: compact ? <ThermostatIcon /> : <ModeIcon mode={on ? mode : (e.hvacModes.find((m) => m !== "off") ?? "heat")} unavailable={unav} />,
+      }}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={sheet && area ? `${area} · ${status}` : status}
+      value={<>{cur != null && !unav && <span className="hd-sub-optional">{fmtCurrent(cur)}° · </span>}{setText}</>}
+      bareValue={valText}
+      readout={{ value: unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></> }}
+      onClose={onClose}
+      control={slot}
+      slotInner={{ ref: slotRef, className: "cw-slot" }}
+      facts={{ start: e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : unav ? lastSeenFact(e.lastSeen) : "", end: unav ? "" : lastChangedFact(e.lastChanged) }}
+    >
+      {!unav && (
+        <SheetBlock>
           {range && onRangeChange && <RangeFine low={e.targetLow!} high={e.targetHigh!} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={setRange} />}
           {onModeChange && e.hvacModes.length > 1 && (
             <ChoiceChips id={`${uid}-m`} label="Mode" options={e.hvacModes.map((m) => ({ value: m, label: modeLabel(m) }))} value={mode} onChange={onModeChange} />
@@ -144,15 +140,10 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
           {onFanChange && e.fanModes && e.fanModes.length > 0 && (
             <ChoiceChips id={`${uid}-f`} label="Fan" options={e.fanModes.map((f) => ({ value: f, label: titleCase(f) }))} value={e.fanMode} onChange={onFanChange} />
           )}
-        </div>
+        </SheetBlock>
       )}
-
-      {history && <TodayStrip samples={history.samples} currentHour={history.currentHour} summary={summary} />}
-
-      {sheet && (
-        <Facts start={e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : unav ? lastSeenFact(e.lastSeen) : ""} end={unav ? "" : lastChangedFact(e.lastChanged)} />
-      )}
-    </article>
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary(history.activity, history.activeMinutes)} />}
+    </CardFrame>
   );
 }
 

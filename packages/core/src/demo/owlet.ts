@@ -1,6 +1,7 @@
 import type { HaTransport, HassEntities, HassEntity } from "../ha/types";
-import { demoSendMessage } from "../demo";
-import type { DemoHistoryRow } from "../demo";
+import type { DemoHistoryRow } from "./messages";
+import { createDemoTransport } from "./transport";
+import type { DemoService } from "./transport";
 
 const stamp = new Date().toISOString();
 const sensor = (entity_id: string, state: string, attributes: Record<string, unknown>): HassEntity => ({ entity_id, state, attributes, last_changed: stamp, last_updated: stamp });
@@ -61,48 +62,32 @@ function history(entities: HassEntities, entityIds: readonly string[]): Record<s
 /** A heart rate that wanders like a sleeping baby's, between 112 and 136 bpm. */
 const nextHeartRate = (bpm: number) => Math.min(136, Math.max(112, bpm + Math.round(Math.random() * 6 - 3)));
 
+/** The sock is read-only; only its base station's switch turns on and off. */
+const readOnly = (domain: string, service: string) => new Error(`The Owlet sock is read-only: ${domain}.${service}`);
+const base = (state: "on" | "off"): DemoService => ({ entity }) => {
+  if (!entity.entity_id.endsWith("_base_station_on")) throw readOnly("switch", state === "on" ? "turn_on" : "turn_off");
+  return { state };
+};
+
+/** The next heartbeat: the heart-rate sensor's next reading. */
+const beat = (entities: HassEntities): [string, { state: string }] | undefined => {
+  const id = Object.keys(entities).find((key) => key.endsWith("_heart_rate"));
+  const current = id ? entities[id] : undefined;
+  if (!id || !current || !Number.isFinite(Number(current.state))) return undefined;
+  return [id, { state: String(nextHeartRate(Number(current.state))) }];
+};
+
 /**
  * Storybook-only Owlet transport: one sock's three sensors through the real store, mapper and history path.
  * Like the integration, it sends a new heart rate every 5 s (`tickMs`; 0 to freeze), so the tile shows live.
  * Its one switch is the base station's: `switch.turn_on` and `turn_off` on it apply, every other call is refused.
  */
 export function createDemoOwletHaTransport(seed: HassEntities = OWLET_DEMO_ENTITIES, tickMs = 5000): HaTransport {
-  let entities: HassEntities = Object.fromEntries(Object.entries(seed).map(([id, e]) => [id, { ...e, attributes: { ...e.attributes } }]));
-  const listeners = new Set<(next: HassEntities) => void>();
-  let timer: ReturnType<typeof setInterval> | undefined;
-  const tick = () => {
-    const id = Object.keys(entities).find((key) => key.endsWith("_heart_rate"));
-    const current = id ? entities[id] : undefined;
-    if (!id || !current || !Number.isFinite(Number(current.state))) return;
-    const now = new Date().toISOString();
-    entities = { ...entities, [id]: { ...current, state: String(nextHeartRate(Number(current.state))), last_changed: now, last_updated: now } };
-    listeners.forEach((listener) => listener({ ...entities }));
-  };
-  return {
-    subscribeEntities(listener) {
-      listeners.add(listener);
-      queueMicrotask(() => listener({ ...entities }));
-      if (tickMs > 0 && !timer) timer = setInterval(tick, tickMs);
-      return () => {
-        listeners.delete(listener);
-        if (!listeners.size && timer) { clearInterval(timer); timer = undefined; }
-      };
-    },
-    async callService(domain, service, data = {}) {
-      const id = data.entity_id;
-      const current = typeof id === "string" ? entities[id] : undefined;
-      if (domain !== "switch" || (service !== "turn_on" && service !== "turn_off") || !current || !String(id).endsWith("_base_station_on")) {
-        throw new Error(`The Owlet sock is read-only: ${domain}.${service}`);
-      }
-      const now = new Date().toISOString();
-      entities = { ...entities, [String(id)]: { ...current, state: service === "turn_on" ? "on" : "off", last_changed: now, last_updated: now } };
-      listeners.forEach((listener) => listener({ ...entities }));
-    },
-    sendMessage: async (type, payload = {}) => {
-      if (type !== "history/history_during_period") return demoSendMessage(entities, type, payload);
-      const ids = payload.entity_ids;
-      if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string")) throw new Error("Demo history entity_ids missing");
-      return history(entities, ids);
-    },
-  };
+  return createDemoTransport({
+    seed,
+    services: { "switch.turn_on": base("on"), "switch.turn_off": base("off") },
+    refuse: readOnly,
+    history,
+    tick: { ms: tickMs, change: beat },
+  });
 }

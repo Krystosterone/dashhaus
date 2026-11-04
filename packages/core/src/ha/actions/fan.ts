@@ -19,11 +19,11 @@ export interface FanHandlers {
 /** What each handler is, for a card drawing fan without knowing it (`ActionKind`). */
 export const FAN_ACTIONS = {
   onToggle: { takes: "nothing" },
-  onPercentageChange: { takes: "value" }, // a level, 1-100
-  onPresetChange: { takes: "value" }, // one of the fan's presets
-  onOscillateChange: { takes: "value" },
-  onDirectionChange: { takes: "value" },
-} as const satisfies ActionKinds<FanHandlers>;
+  onPercentageChange: { takes: "level", field: "percentage", min: 1, wakes: true },
+  onPresetChange: { takes: "choice", field: "presetMode", options: "presetModes" },
+  onOscillateChange: { takes: "switch", field: "oscillating" },
+  onDirectionChange: { takes: "choice", field: "direction", options: ["forward", "reverse"] },
+} as const satisfies ActionKinds<FanHandlers, FanEntity>;
 
 export interface FanHandlerOptions {
   onError?: (error: HaActionError) => void;

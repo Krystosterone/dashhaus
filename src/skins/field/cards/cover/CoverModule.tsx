@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, KeyGroup, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, Warn, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconCover, IconDown, IconStop, IconUp, SLATS, WINDOW } from "./icons";
 import "./CoverModule.css";
@@ -113,6 +113,15 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
     </ModuleRow>
   );
 
+  // The panel's content: the screen, with a blind's slats on its second channel; the controls; quick positions, or
+  // close, stop and open for a cover with no position; the slats fader; today; and facts.
+  const tilt = !unav && e.supportsTilt && e.tilt != null ? Math.round(e.tilt) : undefined;
+  const today = history && (unav ? "Unavailable" : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : undefined);
+
+  const aside = tilt != null ? (
+    <Channel pict={<Pictogram lit param="b">{SLATS}</Pictogram>} sub="Slats"><Percent value={tilt} /></Channel>
+  ) : undefined;
+
   return (
     <ModuleFrame
       kind="fd-cv"
@@ -126,61 +135,11 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       read={read}
       meta={meta}
       lead={key(false, "m")}
-      row={controls("m")}
+      controls={controls}
+      aside={aside}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}` }}
     >
-      <CoverDetails
-        e={e}
-        read={read}
-        pict={pict}
-        meta={meta}
-        controls={controls("p")}
-        history={history}
-        onOpenCover={onOpenCover}
-        onCloseCover={onCloseCover}
-        onStopCover={onStopCover}
-        onSetPosition={settable ? onSetPosition : undefined}
-        onSetTilt={onSetTilt}
-      />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps extends Pick<CoverModuleProps, "onOpenCover" | "onCloseCover" | "onStopCover" | "onSetPosition" | "onSetTilt"> {
-  e: CoverEntity;
-  read: ReactNode;
-  pict: ReactNode;
-  meta: [ReactNode, ReactNode?];
-  controls: ReactNode;
-  history?: CoverHistory;
-}
-
-/**
- * The panel's content: the screen, with a blind's slats on its second channel; the controls; quick positions, or
- * close, stop and open for a cover with no position; the slats fader; today; and facts.
- */
-function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt }: DetailsProps) {
-  const uid = useId();
-  const unav = e.state === "unavailable";
-  const moving = isMoving(e);
-  const pos = Math.round(openness(e));
-  const open = !unav && (pos > 0 || e.state === "open");
-  const withPos = hasPosition(e);
-  const tilt = !unav && e.supportsTilt && e.tilt != null ? Math.round(e.tilt) : undefined;
-  const today = history && (unav ? "Unavailable" : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : undefined);
-
-  const aside = tilt != null ? (
-    <p className="fd-chan">
-      <Pictogram lit param="b">{SLATS}</Pictogram>
-      <span><Percent value={tilt} /><span className="fd-chan-sub">Slats</span></span>
-    </p>
-  ) : undefined;
-
-  return (
-    <PanelBody className="fd-cv-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
-      {controls}
-
-      {onSetPosition && (
+      {settable && onSetPosition && (
         <KeyGroup legend="Quick positions" columns={4} narrow={2}>
           {QUICK_POSITIONS.map((q) => <Key key={q.value} label={positionText(q.value)} wide caption={q.label} chosen={!moving && q.value === pos} onPress={() => onSetPosition(q.value)}>{null}</Key>)}
         </KeyGroup>
@@ -213,7 +172,7 @@ function CoverDetails({ e, read, pict, meta, controls, history, onOpenCover, onC
       {history && <Today summary={today} label="Open by hour today." tone={withPos ? "a" : "neutral"} samples={history.samples} currentHour={history.currentHour} />}
 
       {/* Unavailable, what it can do isn't known, so only its kind is printed. */}
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={unav ? CLASS_LABEL[e.deviceClass] : `${CLASS_LABEL[e.deviceClass]} · ${[withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")}`} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
+

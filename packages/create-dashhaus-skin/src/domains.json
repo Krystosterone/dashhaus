@@ -20,8 +20,31 @@
     "leftOut": [
       "onArm"
     ],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": true,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "modes",
+      "codeFormat",
+      "codeArmRequired",
+      "armingTo",
+      "delay",
+      "changedAt",
+      "changedBy",
+      "lastChanged",
+      "triggeredBy",
+      "openSensors",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "armed",
+    "samples": true,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -52,8 +75,52 @@
       "onPresetChange",
       "onFanChange"
     ],
+    "levels": [],
+    "choices": [
+      {
+        "action": "onPresetChange",
+        "field": "presetMode",
+        "options": {
+          "field": "presetModes"
+        }
+      },
+      {
+        "action": "onFanChange",
+        "field": "fanMode",
+        "options": {
+          "field": "fanModes"
+        }
+      }
+    ],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "hvacModes",
+      "hvacAction",
+      "currentTemperature",
+      "currentHumidity",
+      "targetTemperature",
+      "targetLow",
+      "targetHigh",
+      "minTemp",
+      "maxTemp",
+      "step",
+      "unit",
+      "presetMode",
+      "presetModes",
+      "fanMode",
+      "fanModes",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "active",
+    "samples": true,
     "summary": "e.currentTemperature == null ? stateWords(e.state) : `${e.currentTemperature}${e.unit}`",
     "options": [
       "name",
@@ -83,8 +150,43 @@
       "onSetPosition",
       "onSetTilt"
     ],
+    "levels": [
+      {
+        "action": "onSetPosition",
+        "field": "position",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      },
+      {
+        "action": "onSetTilt",
+        "field": "tilt",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      }
+    ],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "deviceClass",
+      "position",
+      "tilt",
+      "supportsPosition",
+      "supportsStop",
+      "supportsTilt",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": true,
     "summary": "e.position == null ? stateWords(e.state) : `${e.position}%`",
     "options": [
       "name",
@@ -114,8 +216,61 @@
       "onOscillateChange",
       "onDirectionChange"
     ],
+    "levels": [
+      {
+        "action": "onPercentageChange",
+        "field": "percentage",
+        "min": 1,
+        "max": 100,
+        "wakes": true
+      }
+    ],
+    "choices": [
+      {
+        "action": "onPresetChange",
+        "field": "presetMode",
+        "options": {
+          "field": "presetModes"
+        }
+      },
+      {
+        "action": "onDirectionChange",
+        "field": "direction",
+        "options": [
+          "forward",
+          "reverse"
+        ]
+      }
+    ],
+    "switches": [
+      {
+        "action": "onOscillateChange",
+        "field": "oscillating"
+      }
+    ],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "supportsSpeed",
+      "percentage",
+      "speedCount",
+      "supportsPreset",
+      "presetModes",
+      "presetMode",
+      "supportsOscillate",
+      "oscillating",
+      "supportsDirection",
+      "direction",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": true,
+    "minutes": "on",
+    "samples": true,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -143,8 +298,50 @@
       "onTargetChange",
       "onModeChange"
     ],
+    "levels": [
+      {
+        "action": "onTargetChange",
+        "field": "targetHumidity",
+        "min": {
+          "field": "minHumidity"
+        },
+        "max": {
+          "field": "maxHumidity"
+        },
+        "wakes": false
+      }
+    ],
+    "choices": [
+      {
+        "action": "onModeChange",
+        "field": "mode",
+        "options": {
+          "field": "modes"
+        }
+      }
+    ],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "kind",
+      "action",
+      "currentHumidity",
+      "targetHumidity",
+      "minHumidity",
+      "maxHumidity",
+      "mode",
+      "modes",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": true,
+    "minutes": "on",
+    "samples": true,
     "summary": "e.currentHumidity == null ? stateWords(e.state) : `${e.currentHumidity}%`",
     "options": [
       "name",
@@ -173,8 +370,38 @@
       "onKelvinChange",
       "onColorChange"
     ],
+    "levels": [
+      {
+        "action": "onBrightnessChange",
+        "field": "brightness",
+        "min": 1,
+        "max": 100,
+        "wakes": true
+      }
+    ],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "supportsBrightness",
+      "brightness",
+      "supportsColorTemp",
+      "kelvin",
+      "minKelvin",
+      "maxKelvin",
+      "supportsColor",
+      "hs",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "on",
+    "samples": true,
     "summary": "e.brightness == null ? stateWords(e.state) : `${e.brightness}%`",
     "options": [
       "name",
@@ -213,8 +440,27 @@
       }
     ],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": false,
     "code": true,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "supportsOpen",
+      "codeFormat",
+      "codePattern",
+      "changedBy",
+      "lastChanged",
+      "battery",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": false,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -237,6 +483,7 @@
     "domains": [
       "sensor"
     ],
+    "shared": true,
     "id": "/^sensor\\.\\w+_sleep_state$/",
     "kind": "control",
     "actions": [
@@ -244,8 +491,29 @@
     ],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "heartRate",
+      "oxygen",
+      "live",
+      "alerts",
+      "vitalsSince",
+      "charging",
+      "baseOn",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "asleep",
+    "samples": false,
     "summary": "e.heartRate == null ? stateWords(e.state) : `${e.heartRate} bpm`",
     "options": [
       "name",
@@ -285,8 +553,27 @@
     "actions": [],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "temperature",
+      "humidity",
+      "unit",
+      "outdoor",
+      "battery",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": false,
     "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.unit}`",
     "options": [
       "name",
@@ -314,6 +601,7 @@
     "domains": [
       "switch"
     ],
+    "shared": true,
     "kind": "control",
     "actions": [
       "onToggle"
@@ -322,8 +610,31 @@
     "leftOut": [
       "onVolumeChange"
     ],
+    "levels": [
+      {
+        "action": "onVolumeChange",
+        "field": "volume",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      }
+    ],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "volume",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": true,
+    "minutes": "on",
+    "samples": true,
     "summary": "e.volume == null ? stateWords(e.state) : `${e.volume}%`",
     "options": [
       "name",
@@ -354,8 +665,27 @@
     ],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "icon",
+      "color",
+      "until",
+      "duration",
+      "description",
+      "lastChanged",
+      "lastSeen"
+    ],
+    "onOff": true,
+    "minutes": "on",
+    "samples": true,
     "summary": "stateWords(e.state)",
     "options": [
       "name",
@@ -378,8 +708,35 @@
     "actions": [],
     "guarded": [],
     "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
     "history": true,
     "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "state",
+      "temperature",
+      "apparentTemperature",
+      "dewPoint",
+      "humidity",
+      "pressure",
+      "windSpeed",
+      "windGustSpeed",
+      "windBearing",
+      "uvIndex",
+      "temperatureUnit",
+      "windSpeedUnit",
+      "pressureUnit",
+      "aqi",
+      "isDay",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": false,
     "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.temperatureUnit}`",
     "options": [
       "name",

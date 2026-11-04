@@ -5,7 +5,7 @@ import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/spe
 import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Facts, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, PanelBody, Pictogram, Screen, Today, choices, useDetails } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, Pictogram, Today, choices, useDetails, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { FAN_PICT, IconFan, IconSweep, IconTurn } from "./icons";
 import "./FanModule.css";
@@ -66,7 +66,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   // the fader goes and the key spans the row, as every field control's does.
   const faded = speedy && !unav && !!onPercentageChange;
   const at = speed ?? 1;
-  const controls = (where: string) => (
+  const controls = (where: "m" | "p") => (
     <ModuleRow className="fd-fn-row" solo={!faded}>
       <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? (on ? "On" : "Off") : undefined}>
         <IconFan />
@@ -87,6 +87,16 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
     </ModuleRow>
   );
 
+  // The panel's content: the screen with a second channel (a ceiling fan's direction), the controls, the presets, the
+  // oscillation key, the direction keys, today, and facts.
+  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
+  const presets = e.supportsPreset ? e.presetModes ?? [] : [];
+
+  // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
+  const aside = !unav && e.supportsDirection ? (
+    <Channel name={e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label="Direction not reported" />} sub="Direction" />
+  ) : undefined;
+
   return (
     <ModuleFrame
       kind="fd-fn"
@@ -99,49 +109,10 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
       read={read}
       meta={meta}
       lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconFan /></Key>}
-      row={controls("m")}
+      controls={controls}
+      aside={aside}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: fanAbilities(e) }}
     >
-      <FanDetails e={e} read={read} pict={pict} meta={meta} controls={controls("p")} history={history} onPresetChange={onPresetChange} onOscillateChange={onOscillateChange} onDirectionChange={onDirectionChange} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: FanEntity;
-  read: ReactNode;
-  pict: ReactNode;
-  meta?: [string, string?];
-  controls: ReactNode;
-  history?: FanHistory;
-  onPresetChange?: (preset: string) => void;
-  onOscillateChange?: (oscillating: boolean) => void;
-  onDirectionChange?: (direction: FanDirection) => void;
-}
-
-/**
- * The panel's content: the screen with a second channel (a ceiling fan's direction), the controls, the presets,
- * the oscillation key, the direction keys, today, and facts.
- */
-function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, onOscillateChange, onDirectionChange }: DetailsProps) {
-  const unav = e.state === "unavailable";
-  const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
-  const presets = e.supportsPreset ? e.presetModes ?? [] : [];
-
-  // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
-  const aside = !unav && e.supportsDirection ? (
-    <p className="fd-chan">
-      <span>
-        <span className="fd-chan-name">{e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label="Direction not reported" />}</span>
-        <span className="fd-chan-sub">Direction</span>
-      </span>
-    </p>
-  ) : undefined;
-
-  return (
-    <PanelBody className="fd-fn-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
-      {controls}
-
       {presets.length > 0 && onPresetChange && (
         <KeyGroup legend="Preset" value={e.presetMode ? presetLabel(e.presetMode) : undefined} columns={choices(presets.length)} narrow={2}>
           {presets.map((p) => (
@@ -172,8 +143,7 @@ function FanDetails({ e, read, pict, meta, controls, history, onPresetChange, on
       )}
 
       {history && <Today summary={today} label="On by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={fanAbilities(e)} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
+

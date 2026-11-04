@@ -3,10 +3,9 @@ import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHi
 import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "@dashhaus/core/entities/weather/conditions";
 import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
 import { normalizeReadings } from "@dashhaus/core/entities/history";
-import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody, Notices } from "../../shared/ui";
+import { Blank, Digits, Glyph, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, Temperature, ModuleRow, Notices, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconWeather, conditionPict } from "./icons";
 import "./WeatherModule.css";
@@ -84,6 +83,19 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   const line = compact ? (unav ? "Unavailable" : sky ?? undefined) : undefined;
   const plateWarning = compact && warnings.length ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
 
+  // The panel's content: the screen with how it feels on its second channel, every warning and the sky in words,
+  // today, the next hours and the next days on strips of screen, then every reading printed on the plate.
+  // The condition, then the rain on its way; falling rain that stops soon already names itself ("Rain until 15:00").
+  const words = cond ? [precip && isWet(cond) ? null : conditionLabel(cond, night), precip].filter(Boolean).join(" · ") : "";
+
+  const aside = feels != null ? (
+    <Channel sub="Feels like"><Digits value={Math.round(feels) || 0} places={2} /><small>°</small></Channel>
+  ) : undefined;
+
+  const hours = (hourly ?? []).filter((h) => h.hour > hour).slice(0, HOURS);
+  const days = (daily ?? []).slice(0, DAYS);
+  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
+
   return (
     <ModuleFrame
       kind="fd-wx"
@@ -103,56 +115,9 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
           <Today summary={rangeText(range) ?? undefined} label="Temperature by hour today." tone="neutral" samples={day?.samples} currentHour={history?.currentHour} />
         </ModuleRow>
       )}
+      aside={aside}
+      facts={{ start: reported }}
     >
-      <WeatherDetails e={e} cond={cond} night={night} read={read} pict={pict} meta={meta} feels={feels} warnings={warnings} precip={precip} range={range} day={day?.samples} history={history} hourly={hourly} daily={daily} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: WeatherEntity;
-  cond: Condition | null;
-  night: boolean;
-  read: ReactNode;
-  pict: ReactNode;
-  meta: [ReactNode, ReactNode?];
-  feels?: number;
-  warnings: string[];
-  /** Rain or snow on its way, or when falling rain stops. */
-  precip: string | null;
-  range: { low: number; high: number } | null;
-  day?: HourSample[];
-  history?: WeatherHistory;
-  hourly?: HourlyForecast[];
-  daily?: DailyForecast[];
-}
-
-/**
- * The panel's content: the screen with how it feels on its second channel, every warning and the sky in words,
- * today, the next hours and the next days on strips of screen, then every reading printed on the plate.
- */
-function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, precip, range, day, history, hourly, daily }: DetailsProps) {
-  const unav = cond == null;
-  const hour = history?.currentHour ?? 0;
-  // The condition, then the rain on its way; falling rain that stops soon already names itself ("Rain until 15:00").
-  const words = cond ? [precip && isWet(cond) ? null : conditionLabel(cond, night), precip].filter(Boolean).join(" · ") : "";
-
-  const aside = feels != null ? (
-    <p className="fd-chan">
-      <span>
-        <Digits value={Math.round(feels) || 0} places={2} /><small>°</small>
-        <span className="fd-chan-sub">Feels like</span>
-      </span>
-    </p>
-  ) : undefined;
-
-  const hours = (hourly ?? []).filter((h) => h.hour > hour).slice(0, HOURS);
-  const days = (daily ?? []).slice(0, DAYS);
-  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
-
-  return (
-    <PanelBody className="fd-wx-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
       {!unav && (warnings.length > 0 || words) && (
         <Notices className="fd-wx-say" warnings={warnings} words={words} />
       )}
@@ -162,15 +127,14 @@ function WeatherDetails({ e, cond, night, read, pict, meta, feels, warnings, pre
           summary={range ? `Low ${deg0(range.low)} · High ${deg0(range.high)}` : unav ? undefined : "No readings yet"}
           label="Temperature by hour today."
           tone="neutral"
-          samples={day}
+          samples={day?.samples}
           currentHour={history.currentHour}
         />
       )}
       {!unav && <Hours hours={hours} />}
       {!unav && days.length > 0 && <Days days={days} />}
       {!unav && <Readings e={e} />}
-      <Facts start={reported} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
 

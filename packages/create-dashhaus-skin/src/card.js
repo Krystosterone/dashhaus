@@ -62,7 +62,7 @@ export function cardKind(domain, asked) {
 }
 
 /** A guarded action's key, what a card's details open on: `onUnlock` → "unlock". */
-const keyOf = (action) => wordsOf(action).replace(/ /g, "-");
+export const keyOf = (action) => wordsOf(action).replace(/ /g, "-");
 
 /**
  * The tokens one domain's card templates need, for a skin. `drawn` is `cardKind`'s answer; a bare list of actions is

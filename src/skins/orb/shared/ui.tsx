@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useId, useRef } from "react";
-import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
+import { Children, createContext, useContext, useEffect, useId, useRef } from "react";
+import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode, Ref } from "react";
 import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
@@ -8,6 +8,7 @@ import type { CardFootprint, CardProps as FrameProps, SheetProps, TileProps } fr
 import type { ColorName } from "@dashhaus/core/entities/color";
 import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
+import { unavailableSince } from "@dashhaus/core/entities/facts";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -359,6 +360,57 @@ export function SliderTrack({ id, label, slider: options, text, heading, precisi
   return heading ? <div className="hd-blk"><p className="hd-blk-h">{heading(v)}</p>{bar}</div> : bar;
 }
 
+/* ---------- Level bar: one level in a groove ---------- */
+
+/** Width of a level groove's lit end cap, in px. Matches --cap on `.hd-level` in card.css. */
+const LEVEL_CAP = 30;
+
+export interface LevelBarProps {
+  /** The hidden range input's id. */
+  id: string;
+  /** The input's spoken name, where no heading names it ("Kitchen brightness"). */
+  label?: string;
+  /** A label over the groove, naming its input ("Volume"). */
+  heading?: string;
+  /** The level, in the card's own steps (a percent, a speed), between `min` and `max`. */
+  value: number;
+  min: number;
+  max: number;
+  /** Whether the entity is on: the fill shows, and `text` is the groove's words. */
+  on: boolean;
+  /**
+   * Setting the level switches the entity on (a light, a fan): setting the level the thumb already shows still
+   * reports it while off, so a tap on the groove turns it on there. Without it, the level is set and the state kept.
+   */
+  wakes?: boolean;
+  /** The groove's words while on, from the live level: "40%", "Speed 2". */
+  text: (value: number) => ReactNode;
+  /** The groove's words while off. Default "Off". */
+  offText?: (value: number) => ReactNode;
+  /** What a screen reader hears for the level, on and off: the card's words. */
+  valueText: (value: number) => string;
+  onChange: (value: number) => void;
+}
+
+/**
+ * A level in a groove: a light's brightness, a sound's volume, a fan's speed. The accent fills the groove up to the
+ * level while the entity is on, keeping a lit end cap at the bottom; the words on it invert where the fill passes,
+ * and say Off while it is off. A card brings its words, its ends and what setting it does.
+ */
+export function LevelBar({ id, label, heading, value, min, max, on, wakes, text, offText = () => "Off", valueText, onChange }: LevelBarProps) {
+  return (
+    <SliderTrack
+      id={id}
+      label={label}
+      slider={{ value: Math.round(value), min, max, inset: LEVEL_CAP / 2, reportUnchanged: wakes && !on, onChange, valueText }}
+      heading={heading ? () => <label htmlFor={id}>{heading}</label> : undefined}
+      className="hd-level"
+      text={(v) => (on ? text(v) : offText(v))}
+      lit={on}
+    />
+  );
+}
+
 /* ---------- Today strip ---------- */
 /** `forecastFrom`: hours from this index on are forecasts, drawn as lighter sticks. */
 export function TodayStrip({ samples, currentHour, summary, title = "Today", tone, forecastFrom }: { samples: HourSample[]; currentHour: number; summary: string; title?: string; tone?: string; forecastFrom?: number }) {
@@ -554,4 +606,122 @@ export function detailsSheet<P extends CardProps & { entity: { name: string } }>
 /** A dashboard-ready tile for a card: the card in its size container, plus its details sheet. */
 export function detailsTile<P extends CardProps>(Card: ComponentType<P>, DetailsSheet: ComponentType<SheetProps<P>>) {
   return detailsTileOf(Card, DetailsSheet, "hd-c");
+}
+
+/* ---------- The card frame ----------
+   Every card is drawn in one frame: the article with its footprint and colour, the head (the orb a control is pressed
+   on or a reading's bare icon, the name with its status line and compact value, the large readout, the sheet's close
+   button), the slot (the bare value with no control, the unavailable slot, or the card's control), then the card's
+   body in its own order (`SheetBlock`, `Today`, anything of its own) and the sheet's facts. A card brings its words,
+   its control and its blocks; the frame draws where they go. */
+
+/** What the frame tells the blocks in it: whether they are in the sheet, and whether the entity is unavailable. */
+const FrameContext = createContext<{ sheet: boolean; unavailable: boolean; lastSeen?: string }>({ sheet: false, unavailable: false });
+
+/** The large readout in the head: a figure, or the control's own word repeated where the control isn't shown. */
+export interface CardReadout {
+  value: ReactNode;
+  /** It repeats the control's word ("On"), not a figure of its own: set smaller, and hidden while the control shows. */
+  duplicate?: boolean;
+  /** Spoken where it stands for a reading (the sheet's large figure); otherwise hidden from screen readers. */
+  label?: string;
+  /** The card's own class for it. */
+  className?: string;
+}
+
+export interface CardFrameProps {
+  /** `useCard`'s result. */
+  card: Pick<ReturnType<typeof useCard>, "article" | "nameId" | "sheet" | "compact" | "bare">;
+  name: string;
+  /** The article's own attributes: its state (`data-state`, `data-alert`…) and `paint()`'s colour. */
+  attrs: { [data: `data-${string}`]: string | undefined; style?: Vars };
+  /** A control's orb: what it says and does, its icon as children. The frame adds unavailable and press and hold. */
+  orb?: Omit<OrbProps, "unavailable" | "onLongPress">;
+  /** A reading's bare icon, in place of an orb. */
+  glyph?: ReactNode;
+  unavailable?: boolean;
+  /** When an unavailable entity was last seen: the slot and `Today` say so. */
+  lastSeen?: string;
+  /** Card only: the name, and a press and hold on the orb, open the details. */
+  onOpen?: () => void;
+  /** What the name's button adds to it for screen readers. Default "details". */
+  openHint?: string;
+  /** The status line under the name. */
+  status: ReactNode;
+  statusTitle?: string;
+  /** A compact row's value under the name. */
+  value: ReactNode;
+  /** A compact value that warns: its marker's spoken label. */
+  alert?: string | null;
+  /** The value in place of a hidden control. Default `value`. */
+  bareValue?: ReactNode;
+  readout?: CardReadout;
+  /** Sheet only. */
+  onClose?: () => void;
+  /** Default "Close <name>". */
+  closeLabel?: string;
+  /** Focus lands on the close button when the sheet opens. Default true. */
+  closeFocus?: boolean;
+  /** The card's control, or a reading's figures, in the slot while the entity is available. */
+  control?: ReactNode;
+  /** What can't wait, shown in the slot over everything else (an owlet's vital alarm). */
+  urgent?: ReactNode;
+  /** false: no slot (a sheet whose large figure already says it all). Default true. */
+  slot?: boolean;
+  /** A wrapper of the card's own inside the slot, around whatever it shows (climate's, which animates the change). */
+  slotInner?: { ref?: Ref<HTMLDivElement>; className: string };
+  /** The sheet's small print. */
+  facts?: { start?: ReactNode; end?: ReactNode; warn?: boolean };
+  /** The card's body after the slot, in its order: `SheetBlock`s, `Today`, and anything of its own. */
+  children?: ReactNode;
+}
+
+export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotInner, facts, children }: CardFrameProps) {
+  const { article, nameId, sheet, compact, bare } = card;
+  const open = sheet ? undefined : onOpen;
+  const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} /> : control);
+  return (
+    <FrameContext.Provider value={{ sheet, unavailable, lastSeen }}>
+      <article {...article} {...attrs}>
+        <header className="hd-head">
+          {orb
+            ? <Orb {...orb} unavailable={unavailable} onLongPress={open} />
+            : <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unavailable || undefined}><span className="hd-orb-i">{glyph}</span></span>}
+          <CardTitle id={nameId} name={name} onOpen={open} openHint={openHint}>
+            <p className="hd-area" title={statusTitle}>{status}</p>
+            {compact && <p className="hd-sub">{alert ? <AlertStatus label={alert}>{value}</AlertStatus> : value}</p>}
+          </CardTitle>
+          {readout && (
+            <p
+              className={["hd-num", readout.duplicate && "hd-num--control-duplicate", readout.className].filter(Boolean).join(" ")}
+              {...(readout.label ? { role: "img", "aria-label": readout.label } : { "aria-hidden": true })}
+            >{readout.value}</p>
+          )}
+          {sheet && <SheetClose label={closeLabel ?? `Close ${name}`} onClick={onClose} focusOnOpen={closeFocus} />}
+        </header>
+
+        {slot && (
+          <div className="hd-slot">
+            {slotInner ? <div ref={slotInner.ref} className={slotInner.className}>{shown}</div> : shown}
+          </div>
+        )}
+
+        {children}
+
+        {sheet && facts && <Facts {...facts} />}
+      </article>
+    </FrameContext.Provider>
+  );
+}
+
+/** A block of the sheet's own (presets, a keypad, a second strip): drawn in the sheet only, and only with content. */
+export function SheetBlock({ children }: { children?: ReactNode }) {
+  const { sheet } = useContext(FrameContext);
+  return sheet && Children.toArray(children).length > 0 ? <div className="hd-extra">{children}</div> : null;
+}
+
+/** The card's Today strip in its frame: while the entity is unavailable, its summary says since when. */
+export function Today({ summary, ...strip }: Parameters<typeof TodayStrip>[0]) {
+  const { unavailable, lastSeen } = useContext(FrameContext);
+  return <TodayStrip {...strip} summary={unavailable ? unavailableSince(lastSeen) : summary} />;
 }

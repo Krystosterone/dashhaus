@@ -18,9 +18,9 @@ export const COVER_ACTIONS = {
   onOpenCover: { takes: "nothing" },
   onCloseCover: { takes: "nothing" },
   onStopCover: { takes: "nothing" },
-  onSetPosition: { takes: "value" },
-  onSetTilt: { takes: "value" },
-} as const satisfies ActionKinds<CoverHandlers>;
+  onSetPosition: { takes: "level", field: "position" },
+  onSetTilt: { takes: "level", field: "tilt" },
+} as const satisfies ActionKinds<CoverHandlers, CoverEntity>;
 
 export interface CoverHandlerOptions {
   onError?: (error: HaActionError) => void;

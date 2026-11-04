@@ -7,6 +7,7 @@ export * from "./humidifier";
 export * from "./owlet";
 export * from "./sound";
 export * from "./store";
+export * from "./transport";
 export * from "./toggle";
 export * from "./lock";
 export * from "./fan";

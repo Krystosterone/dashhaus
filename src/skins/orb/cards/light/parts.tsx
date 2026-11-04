@@ -1,4 +1,4 @@
-import { Chip, SliderTrack } from "../../shared/ui";
+import { Chip, LevelBar, SliderTrack } from "../../shared/ui";
 import type { Vars } from "../../shared/ui";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { warmGradient } from "./kelvin";
@@ -19,22 +19,23 @@ export const IconBulbOff = () => (
   </svg>
 );
 
-/** Brightness bar: the light fills the track; the label inverts where it passes. */
+/** Brightness bar: the light's level groove, in percent. Setting it while off turns the light on there. */
 export function BrightnessBar({ id, label, value, on, onChange }: { id: string; label: string; value: number; on: boolean; onChange: (v: number) => void }) {
-  // Setting the level the thumb already shows still reports it while off, so it turns the light on.
   return (
-    <SliderTrack
+    <LevelBar
       id={id}
       label={label}
-      slider={{ value: Math.round(value), min: 1, max: 100, inset: THUMB / 2, reportUnchanged: !on, onChange, valueText: (v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`) }}
-      className="lw-bar"
-      text={(pct) => (on ? `${pct}%` : "Off")}
-      lit={on}
+      value={value}
+      min={1}
+      max={100}
+      on={on}
+      wakes
+      text={(pct) => `${pct}%`}
+      valueText={(v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`)}
+      onChange={onChange}
     />
   );
 }
-/** Width of the lit end cap, in px. Matches --cap in LightCard.css. */
-const THUMB = 30;
 
 export const QUICK_LEVELS = [
   { value: 5, label: "Night", sub: "5%" },

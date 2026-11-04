@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
-import type { HourSample } from "@dashhaus/core/entities/history";
 import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "@dashhaus/core/entities/sensor/readings";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, Temperature, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Today, Warn, useDetails, Temperature, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { DROP, IconThermo, THERMO } from "./icons";
 import "./SensorModule.css";
@@ -65,6 +64,19 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
 
   const glyph = <Glyph unavailable={unav}><IconThermo /></Glyph>;
 
+  // The panel's content: the screen with humidity on its second channel (or, without one, the module's meta lines),
+  // today's temperature and humidity, then the battery and when it last reported.
+  const channel = !unav && e.temperature != null && h != null;
+  const humidity = history?.humidity ? normalize(history.humidity) : null;
+  const humidityRange = humidity && humidity.min != null && humidity.max != null ? `Low ${fmtHum(humidity.min)}% · High ${fmtHum(humidity.max)}%` : undefined;
+
+  const aside = channel ? (
+    <Channel pict={<Pictogram param="neutral" lit level={h / 100}>{DROP}</Pictogram>} sub="Humidity"><Digits value={h} /><small>%</small></Channel>
+  ) : undefined;
+
+  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
+  const power = e.battery != null && !battery ? `Battery ${e.battery}%` : "";
+
   return (
     <ModuleFrame
       kind="fd-sw"
@@ -84,63 +96,16 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
           <Today summary={range?.short} label={`${what} by hour today.`} tone="neutral" samples={day?.samples} currentHour={history?.currentHour} />
         </ModuleRow>
       )}
+      aside={aside}
+      facts={{ start: battery ? <Warn>{battery}, replace soon</Warn> : unav ? "" : [comfort, trend && TREND_WORD[trend]].filter(Boolean).join(" · "), end: [power, reported].filter(Boolean).join(" · ") }}
     >
-      <SensorDetails e={e} read={read} pict={pict} meta={meta} history={history} day={day?.samples} range={range?.long} what={what} battery={battery} context={[comfort, trend && TREND_WORD[trend]].filter(Boolean).join(" · ")} />
-    </ModuleFrame>
-  );
-}
-
-interface DetailsProps {
-  e: SensorEntity;
-  read: ReactNode;
-  pict: ReactNode;
-  meta?: [ReactNode, ReactNode?];
-  history?: SensorHistory;
-  /** Today's figure reading, scaled for the meter. */
-  day?: HourSample[];
-  /** Today's low and high of the figure's reading. */
-  range?: string;
-  what: string;
-  /** The low battery warning, if any. */
-  battery?: string;
-  /** Comfort and trend, in words. */
-  context: string;
-}
-
-/**
- * The panel's content: the screen with humidity on its second channel (or, without one, the module's meta lines),
- * today's temperature and humidity, then the battery and when it last reported.
- */
-function SensorDetails({ e, read, pict, meta, history, day, range, what, battery, context }: DetailsProps) {
-  const unav = e.state === "unavailable";
-  const h = unav ? undefined : e.humidity;
-  const channel = !unav && e.temperature != null && h != null;
-  const humidity = history?.humidity ? normalize(history.humidity) : null;
-  const humidityRange = humidity && humidity.min != null && humidity.max != null ? `Low ${fmtHum(humidity.min)}% · High ${fmtHum(humidity.max)}%` : undefined;
-
-  const aside = channel ? (
-    <p className="fd-chan">
-      <Pictogram param="neutral" lit level={h / 100}>{DROP}</Pictogram>
-      <span>
-        <Digits value={h} /><small>%</small>
-        <span className="fd-chan-sub">Humidity</span>
-      </span>
-    </p>
-  ) : undefined;
-
-  const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
-  const power = e.battery != null && !battery ? `Battery ${e.battery}%` : "";
-
-  return (
-    <PanelBody className="fd-sw-panel" state={e.state}>
-      <Screen pict={pict} meta={meta} aside={aside}>{read}</Screen>
-      {history && day && (
+      {history && day?.samples && (
         <Today
           legend={`${what} today`}
-          summary={range ?? (unav ? undefined : "No readings yet")}
+          summary={range?.long ?? (unav ? undefined : "No readings yet")}
           label={`${what} by hour today.`}
           tone="neutral"
-          samples={day}
+          samples={day?.samples}
           currentHour={history.currentHour}
         />
       )}
@@ -154,7 +119,7 @@ function SensorDetails({ e, read, pict, meta, history, day, range, what, battery
           currentHour={history!.currentHour}
         />
       )}
-      <Facts start={battery ? <Warn>{battery}, replace soon</Warn> : unav ? "" : context} end={[power, reported].filter(Boolean).join(" · ")} />
-    </PanelBody>
+    </ModuleFrame>
   );
 }
+

@@ -12,8 +12,8 @@ export interface SoundHandlers {
 /** What each handler is, for a card drawing sound without knowing it (`ActionKind`). */
 export const SOUND_ACTIONS = {
   onToggle: { takes: "nothing" },
-  onVolumeChange: { takes: "value" },
-} as const satisfies ActionKinds<SoundHandlers>;
+  onVolumeChange: { takes: "level", field: "volume" },
+} as const satisfies ActionKinds<SoundHandlers, SoundEntity>;
 
 export interface SoundHandlerOptions {
   onError?: (error: HaActionError) => void;

@@ -15,10 +15,10 @@ export interface LightHandlers {
 /** What each handler is, for a card drawing light without knowing it (`ActionKind`). */
 export const LIGHT_ACTIONS = {
   onToggle: { takes: "nothing" },
-  onBrightnessChange: { takes: "value" },
-  onKelvinChange: { takes: "value" },
+  onBrightnessChange: { takes: "level", field: "brightness", min: 1, wakes: true },
+  onKelvinChange: { takes: "value" }, // a warmth, drawn on its own scale
   onColorChange: { takes: "value" },
-} as const satisfies ActionKinds<LightHandlers>;
+} as const satisfies ActionKinds<LightHandlers, LightEntity>;
 
 export interface LightHandlerOptions {
   onError?: (error: HaActionError) => void;

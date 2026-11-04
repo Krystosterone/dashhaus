@@ -1,11 +1,11 @@
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { percentOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel } from "@dashhaus/core/entities/fan/labels";
-import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { FanIcon } from "./icons";
 import { SpeedBar } from "./parts";
-import { Orb, CardTitle, SheetClose, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, Facts, paint, useCard, detailsSheet } from "../../shared/ui";
+import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./FanCard.css";
 
@@ -34,7 +34,8 @@ const DIRECTIONS = (["forward", "reverse"] as const).map((value) => ({ value, la
  * the name, or a press and hold on the orb, opens the sheet with its presets, oscillation, direction and today.
  */
 export function FanCard({ entity: e, history, variant, footprint, showControl, onToggle, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, onOpenDetails, onClose, color }: FanCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("fn", { variant, footprint, showControl, area: e.area });
+  const card = useCard("fn", { variant, footprint, showControl, area: e.area });
+  const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. Moving air is not light, heat or daylight, so a fan never claims the
@@ -59,31 +60,26 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
   );
 
   return (
-    <article {...article} data-state={e.state} {...colors}>
-      <header className="hd-head">
-        <Orb label={e.name} pressed={on} unavailable={unav} intensity={0.7} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          <FanIcon />
-        </Orb>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={area}>{area ? <>{area}{mode && <span className="fn-mode"> · {mode}</span>}</> : !sheet && detail}</p>
-          {compact && <p className="hd-sub">{word}</p>}
-        </CardTitle>
-        <p className={`hd-num hd-num--control-duplicate${speed?.endsWith("%") ? "" : " fn-word"}`} aria-hidden="true">
-          {unav ? null : speed?.endsWith("%") ? <>{speed.slice(0, -1)}<span>%</span></> : word}
-        </p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">
-        {bare ? <p className="hd-val">{word}</p> : unav
-          ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : groove
-            ? <SpeedBar id={`${uid}-speed`} label={`${e.name} speed`} percent={on && e.percentage != null ? e.percentage : percentOf(1, count)} count={count} on={on} onChange={onPercentageChange!} />
-            : <TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
-      </div>
-
-      {sheet && extras && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, ...colors }}
+      orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle, children: <FanIcon /> }}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={area ? <>{area}{mode && <span className="fn-mode"> · {mode}</span>}</> : !sheet && detail}
+      statusTitle={area}
+      value={word}
+      readout={{ value: unav ? null : speed?.endsWith("%") ? <>{speed.slice(0, -1)}<span>%</span></> : word, duplicate: true, className: speed?.endsWith("%") ? undefined : "fn-word" }}
+      onClose={onClose}
+      control={groove
+        ? <SpeedBar id={`${uid}-speed`} label={`${e.name} speed`} percent={on && e.percentage != null ? e.percentage : percentOf(1, count)} count={count} on={on} onChange={onPercentageChange!} />
+        : <TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: fanAbilities(e) }}
+    >
+      {extras && (
+        <SheetBlock>
           {e.supportsPreset && e.presetModes && onPresetChange && (
             <ChoiceChips id={`${uid}-p`} label="Preset" options={e.presetModes.map((p) => ({ value: p, label: presetLabel(p) }))} value={e.presetMode} onChange={onPresetChange} />
           )}
@@ -93,21 +89,10 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
           {e.supportsDirection && onDirectionChange && (
             <ChoiceChips id={`${uid}-d`} label="Direction" options={DIRECTIONS} value={e.direction} onChange={onDirectionChange} />
           )}
-        </div>
+        </SheetBlock>
       )}
-
-      {history && (
-        <TodayStrip
-          samples={history.samples}
-          currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
-        />
-      )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={fanAbilities(e)} />
-      )}
-    </article>
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary("on", history.onMinutes)} />}
+    </CardFrame>
   );
 }
 

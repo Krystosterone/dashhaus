@@ -1,10 +1,7 @@
 /* Light-specific parts. The card shell, header, orb, pills, today strip, chips and sheet come from src/shared/card.css. */
 
-/* Brightness bar: a track the light fills (Track in shared/ui.tsx), keeping a 30px lit end cap. */
-.lw-bar { --cap: 30px; }
 /* The warmth or colour name on the status line. Compact rows keep the room alone; the sheet names it over its ruler or chips. */
 .hd--compact .lw-k, .hd--sheet .lw-k { display: none; }
-.hd--compact .lw-bar .hd-track-lab { font-size: 13px; }
 
 /* Warmth ruler: ticks every 100 K over the warm-to-cool scale; an ink stick and a tag mark the value */
 .lw-ruler { --tw: 24px; height: 70px; }

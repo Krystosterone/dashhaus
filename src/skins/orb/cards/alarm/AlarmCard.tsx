@@ -2,11 +2,11 @@ import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } f
 import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ShieldIcon } from "./icons";
 import { ModeSwitch, Countdown, AlarmPill, AlarmStatus } from "./parts";
-import { AlertStatus, CardTitle, Keypad, UnavailableSlot, TodayStrip, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardFrame, Keypad, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./AlarmCard.css";
 
@@ -43,7 +43,8 @@ export interface AlarmCardProps extends ActionCardProps<AlarmAction> {
  * Exit and entry delays count down in the slot; a triggered alarm is the one warn-filled pill.
  */
 export function AlarmCard({ entity: e, history, variant, footprint, showControl, onArm, onDisarm, readOnly, onOpenDetails, onClose, action }: AlarmCardProps) {
-  const { nameId, sheet, compact, bare, article, area } = useCard("al", { variant, footprint, showControl, area: e.area });
+  const card = useCard("al", { variant, footprint, showControl, area: e.area });
+  const { sheet, area } = card;
   const unav = e.state === "unavailable";
   const armedMode = ARMED_MODE[e.state];
   const urgentState = e.state === "pending" || e.state === "triggered";
@@ -88,8 +89,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Disarmed";
 
   let slot;
-  if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (e.state === "triggered") slot = <AlarmPill cause={e.triggeredBy} onDisarm={ro ? undefined : () => act({ kind: "disarm" })} />;
+  if (e.state === "triggered") slot = <AlarmPill cause={e.triggeredBy} onDisarm={ro ? undefined : () => act({ kind: "disarm" })} />;
   else if (e.state === "pending") slot = ro
     ? <Countdown kind="pending" label={left == null ? "Entry delay…" : "Entry delay"} left={left} total={e.delay} />
     : <Countdown kind="pending" label={left == null ? "Entry delay · disarm now" : "Disarm now"} left={left} total={e.delay} action="Disarm" onAction={() => act({ kind: "disarm" })} />;
@@ -107,48 +107,35 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   // The compact value appears under the name, or in place of a hidden control.
   const subText = warningText ?? word;
   return (
-    <article
-      {...article}
-      data-state={e.state} data-armed={armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined} data-alert={alertLabel ? "warn" : undefined}
-      {...colors}
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, "data-armed": armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined, "data-alert": alertLabel ? "warn" : undefined, ...colors }}
+      glyph={<ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} />}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails && (() => onOpenDetails())}
+      status={status}
+      value={subText}
+      alert={alertLabel}
+      readout={{ value: word, duplicate: true }}
+      onClose={onClose}
+      closeFocus={!pending}
+      control={slot}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy), end: ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm" }}
     >
-      <header className="hd-head">
-        <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
-          <span className="hd-orb-i"><ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} /></span>
-        </span>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet || !onOpenDetails ? undefined : () => onOpenDetails()}>
-          <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </CardTitle>
-        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{word}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} focusOnOpen={!pending} />}
-      </header>
-
-      <div className="hd-slot">{bare ? <p className="hd-val">{subText}</p> : slot}</div>
-
-      {sheet && !unav && (pending || open.length > 0) && (
-        <div className="hd-extra">
+      {!unav && (
+        <SheetBlock>
           {open.length > 0 && (!pending || pending.kind === "arm") && (
             <p className="hd-note"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (
             <Keypad key={guard.pendingKey} prompt={promptFor(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
           )}
-        </div>
+        </SheetBlock>
       )}
-
-      {history && !pending && (
-        <TodayStrip
-          samples={history.samples}
-          currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("armed", history.armedMinutes)}
-        />
-      )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy)} end={ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"} />
-      )}
-    </article>
+      {history && !pending && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary("armed", history.armedMinutes)} />}
+    </CardFrame>
   );
 }
 

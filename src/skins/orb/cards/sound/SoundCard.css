@@ -11,6 +11,3 @@
 @container hd (max-width: 259px) {
   .hd--featured:not(.hd--sheet) .sn-vol { display: inline; }
 }
-
-/* Volume groove: a track the accent fills while the sound plays (Track in shared/ui.tsx), keeping a 30px end cap. */
-.sn-bar { --cap: 30px; }

@@ -28,9 +28,21 @@ export function declaredActions(source, Name, CONST) {
   const names = [...handlers.matchAll(/^\s+(on\w+)\??:/gm)].map((match) => match[1]);
   const body = objectBody(source, `${CONST}_ACTIONS`);
   if (body == null) throw new Error(`${Name}Handlers has no ${CONST}_ACTIONS beside it saying what each action is (ActionKinds)`);
-  const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{([^}]*)\}/gm)].map(([, action, kind]) => [action, {
+  const bound = (kind, key) => {
+    const raw = kind.match(new RegExp(`\\b${key}: (-?[\\d.]+|"\\w+")`))?.[1];
+    return raw == null ? undefined : raw.startsWith('"') ? { field: raw.slice(1, -1) } : Number(raw);
+  };
+  const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{(.*)\},?(?:\s*\/\/.*)?$/gm)].map(([, action, kind]) => [action, {
     takes: kind.match(/takes: "(\w+)"/)?.[1],
     asks: /asks: true/.test(kind),
+    // A value said as what it is: the entity field it lives in, and a level's range or a choice's options.
+    ...(/takes: "(level|choice|switch)"/.test(kind) && { field: kind.match(/\bfield: "(\w+)"/)?.[1] }),
+    ...(/takes: "level"/.test(kind) && { min: bound(kind, "min") ?? 0, max: bound(kind, "max") ?? 100, wakes: /wakes: true/.test(kind) }),
+    ...(/takes: "choice"/.test(kind) && {
+      options: kind.match(/\boptions: "(\w+)"/)?.[1] != null
+        ? { field: kind.match(/\boptions: "(\w+)"/)[1] }
+        : [...(kind.match(/\boptions: \[([^\]]*)\]/)?.[1] ?? "").matchAll(/"([^"]+)"/g)].map(([, option]) => option),
+    }),
   }]));
   const missing = names.filter((action) => !declared[action]?.takes);
   if (missing.length) throw new Error(`${CONST}_ACTIONS doesn't say what ${missing.join(", ")} ${missing.length > 1 ? "are" : "is"}`);
@@ -61,7 +73,8 @@ export function describeDomain(name) {
   const entity = shape(types, `${Name}Entity`);
   if (!entity) throw new Error(`${typesPath} must export ${Name}Entity`);
   // Today's history is optional: a lock's day is its last change.
-  const history = shape(types, `${Name}History`) != null;
+  const historyShape = shape(types, `${Name}History`);
+  const history = historyShape != null;
 
   const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
   if (!exists(hookPath)) throw new Error(`${hookPath} doesn't exist: generated skins reach Home Assistant through useHa${Name}`);
@@ -76,29 +89,54 @@ export function describeDomain(name) {
   // A tap: a button. Asks first, or takes a code: through the skin's question and keypad. A value: left out.
   const actions = declared.filter(({ takes, asks }) => takes === "nothing" && !asks).map(({ action }) => action);
   const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks }) => ({ action, asks, code: takes === "code" }));
-  const leftOut = declared.filter(({ takes }) => takes === "value").map(({ action }) => action);
+  // A level, a choice or a switch: drawn on a skin's own parts where it has them (orb's and field's), else left out.
+  const valued = (takes) => declared.filter((kind) => kind.takes === takes).map(({ action, field, min, max, wakes, options }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }) }));
+  const levels = valued("level");
+  const choices = valued("choice");
+  const switches = valued("switch");
+  const leftOut = declared.filter(({ takes }) => takes === "value" || takes === "level" || takes === "choice" || takes === "switch").map(({ action }) => action);
 
   const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
   if (!exists(fixturePath)) throw new Error(`${fixturePath} doesn't exist`);
-  const fixtureId = Object.entries(JSON.parse(read(fixturePath))).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
+  const fixture = JSON.parse(read(fixturePath));
+  const fixtureId = Object.entries(fixture).find(([, value]) => !["unavailable", "unknown"].includes(value.state))?.[0];
   if (!fixtureId) throw new Error(`${fixturePath} has no available entity`);
 
+  // The Home Assistant domains it draws, as orb's Lovelace card routes them; a domain orb has no card for yet (its card
+  // being drawn now), the ones its fixture's entities are in.
   const orb = orbKinds();
   const shared = orb.shared[name];
-  const domains = shared?.domains ?? Object.keys(orb.domainKind).filter((domain) => orb.domainKind[domain] === name);
-  if (!domains.length) throw new Error(`${orb.path} gives ${name} no Home Assistant domain`);
+  const routed = shared?.domains ?? Object.keys(orb.domainKind).filter((domain) => orb.domainKind[domain] === name);
+  const domains = routed.length ? routed : [...new Set(Object.keys(fixture).map((id) => id.split(".")[0]))];
+  if (!domains.length) throw new Error(`${orb.path} gives ${name} no Home Assistant domain, and ${fixturePath} has no entity`);
 
   return {
     name, Name, CONST, words, Label,
     domains,
+    /** A card on another card's Home Assistant domain, picked with `card:` or its `id` pattern. */
+    ...(shared && { shared: true }),
     ...(shared?.id && { id: shared.id }),
     kind: actions.length || guarded.length ? "control" : "reading",
     actions,
     guarded,
     leftOut,
+    /** Each declared level: its field, its range (a number, or `{ field }` holding it), whether setting it turns it on. */
+    levels,
+    /** Each declared choice: its field, and its options (a fixed list, or `{ field }` holding the entity's own). */
+    choices,
+    /** Each declared switch: its boolean field. */
+    switches,
     history,
     /** The entity says whether it wants a code (`codeFormat`, Home Assistant's `code_format`). */
     code: /^\s+codeFormat\??: /m.test(entity),
+    /** The entity's fields, by name. */
+    fields: [...entity.matchAll(/^\s+(\w+)\??: /gm)].map(([, field]) => field),
+    /** Its state can be "on": a toggle's key latches, its LED on while it is. */
+    onOff: /^\s+state: [^;]*"on"/m.test(entity),
+    /** Today's history counts the minutes in a state (`onMinutes` → "on"), for its summary in words; or null. */
+    minutes: historyShape?.match(/^\s+(\w+)Minutes\??: number/m)?.[1] ?? null,
+    /** Today's history has hourly samples, for a meter. */
+    samples: historyShape != null && /^\s+samples: /m.test(historyShape),
     summary: summaryFor(entity),
     /** The hook's options a dashboard's YAML can fill, in the order a connected card passes them. */
     options: [...["name", "area"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options)), ...(/^\s+loadHistory\?: /m.test(options) ? ["loadHistory"] : [])],

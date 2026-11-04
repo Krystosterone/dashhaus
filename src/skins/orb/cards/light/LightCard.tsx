@@ -1,10 +1,10 @@
 import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/types";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
-import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { lampColorOf } from "./color";
 import type { Hs } from "./color";
-import { Orb, CardTitle, TogglePill, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, ColorChips, QUICK_LEVELS } from "./parts";
 import "./LightCard.css";
@@ -35,7 +35,8 @@ export interface LightCardProps extends CardProps {
  * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
 export function LightCard({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose, color }: LightCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("lw", { variant, footprint, showControl, area: e.area });
+  const card = useCard("lw", { variant, footprint, showControl, area: e.area });
+  const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   const hasBrightness = e.supportsBrightness && e.brightness != null;
@@ -62,27 +63,25 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
   // The compact value appears under the name, or in place of a hidden control.
   const subText = valueText;
   return (
-    <article {...article} data-state={e.state} {...colors}>
-      <header className="hd-head">
-        <Orb label={e.name} pressed={on} unavailable={unav} intensity={intensity} onToggle={onToggle} onLongPress={sheet ? undefined : onOpenDetails}>
-          {unav ? <IconBulbOff /> : <IconBulb />}
-        </Orb>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area" title={area}>{area ? <>{area}{warmth && <span className="lw-k"> · {warmth}</span>}</> : !sheet && detail}</p>
-          {compact && <p className="hd-sub">{subText}</p>}
-        </CardTitle>
-        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{readout}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">
-        {bare ? <p className="hd-val">{subText}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : hasBrightness ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={pct} on={on} onChange={onBrightnessChange} />
-          : <TogglePill label={`${e.name}: ${on ? "On" : "Off"}`} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
-      </div>
-
-      {sheet && !unav && (hasBrightness || colorChips || (e.supportsColorTemp && e.kelvin != null && onKelvinChange)) && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, ...colors }}
+      orb={{ label: e.name, pressed: on, intensity, onToggle, children: unav ? <IconBulbOff /> : <IconBulb /> }}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={area ? <>{area}{warmth && <span className="lw-k"> · {warmth}</span>}</> : !sheet && detail}
+      statusTitle={area}
+      value={subText}
+      readout={{ value: readout, duplicate: true }}
+      onClose={onClose}
+      control={hasBrightness ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={pct} on={on} onChange={onBrightnessChange} />
+        : <TogglePill label={`${e.name}: ${on ? "On" : "Off"}`} on={on} onToggle={onToggle}>{on ? "On" : "Off"}</TogglePill>}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off" }}
+    >
+      {!unav && (
+        <SheetBlock>
           {hasBrightness && (
             <ChoiceChips id={`${uid}-lv`} label="Quick levels" options={QUICK_LEVELS} value={on ? pct : null} onChange={onBrightnessChange} />
           )}
@@ -90,21 +89,10 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
             <WarmthRuler id={`${uid}-k`} kelvin={e.kelvin} min={e.minKelvin ?? K_MIN} max={e.maxKelvin ?? K_MAX} disabled={!on} onChange={onKelvinChange} />
           )}
           {colorChips && <ColorChips id={`${uid}-c`} value={lamp} onChange={(c) => onColorChange?.(c.hs)} />}
-        </div>
+        </SheetBlock>
       )}
-
-      {history && (
-        <TodayStrip
-          samples={history.samples}
-          currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : todaySummary("on", history.onMinutes)}
-        />
-      )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off"} />
-      )}
-    </article>
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary("on", history.onMinutes)} />}
+    </CardFrame>
   );
 }
 

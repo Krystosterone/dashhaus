@@ -1,8 +1,8 @@
 /** What the Card and skin generators share: the repo, templates, and one fully planned set of file changes. */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
-import { root, packageFile, packageSpecifier, seams, skinDir } from "../packages.js";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { root, packageFile, packageSpecifier, seams, skinDir, skinTemplates } from "../packages.js";
 
 export { root, packageFile, packageSpecifier, seams, skinDir };
 export const templates = fileURLToPath(new URL("./templates/", import.meta.url));
@@ -15,16 +15,11 @@ export const fail = (message) => {
 };
 
 /**
- * Replace every token in a text: `{ __Name__: "Fan" }`. A line a token empties is dropped, so an optional prop
- * can stand on its own line in a template: `__pressProps__` on a JSX line, filled with `onToggle={…}` or nothing.
+ * The card writer every skin shares, from the scaffolder that ships it: its `filler` (a template's tokens filled, a line a
+ * token empties dropped) and the words it gives an action.
  */
-export const filler = (tokens) => (text) => text
-  .split("\n")
-  .flatMap((line) => {
-    const filled = Object.entries(tokens).reduce((s, [token, value]) => s.replaceAll(token, value), line);
-    return filled.trim() === "" && line.trim() !== "" ? [] : [filled];
-  })
-  .join("\n");
+export const card = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
+export const { filler } = card;
 
 /** A card's name in every form a template and a doc use, or a failure if it isn't camelCase. */
 export function names(name, example) {

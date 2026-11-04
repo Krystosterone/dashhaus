@@ -8,7 +8,7 @@ import { useNow } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Screen, Today, Warn, useDetails, Facts, ModuleRow, PanelBody } from "../../shared/ui";
+import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, ModuleRow } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMode, IconShield, SHIELD_PICT } from "./icons";
 import "./AlarmModule.css";
@@ -175,6 +175,10 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       alert={level === "alarm" ? { level, what: warning ?? "Triggered", startedAt: e.changedAt, say: `Alarm: ${e.name} triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}.` }
         : level === "urgent" ? { level, what: e.triggeredBy ? `Entry delay, ${e.triggeredBy}` : "Entry delay", startedAt: e.changedAt } : undefined}
       panelFocus={pending ? "content" : undefined}
+      facts={pending ? undefined : {
+        start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy),
+        end: ro ? "View only" : !e.codeFormat ? "No code" : e.codeArmRequired ?? true ? "Code to arm and disarm" : "Code to disarm",
+      }}
       details={{ ...details, openDetails: openPanel }}
       pict={pict}
       read={read}
@@ -182,24 +186,21 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       lead={ro ? glyph : key(false)}
       row={row}
     >
-      <PanelBody className="fd-al-panel" state={e.state}>
-        <Screen pict={pict} meta={meta}>{read}</Screen>
-        {pending ? (<>
-          {/* Arming with something open: the warning stays while the code is entered, the moment it matters. */}
-          {pending.kind === "arm" && open.length > 0 && (
-            <p className="fd-hint fd-al-open"><Warn>{listOf(open)} {open.length > 1 ? "are" : "is"} open.</Warn> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</p>
-          )}
-          <Keypad
-            key={guard.pendingKey}
-            prompt={pending.kind === "disarm" ? (e.state === "arming" ? "Code to cancel arming" : "Code to disarm") : `Code to arm ${MODE_LABEL[pending.mode].toLowerCase()}`}
-            text={e.codeFormat === "text"}
-            onSubmit={guard.submit}
-            onCancel={guard.close}
-          />
-        </>) : (
-          <AlarmDetails e={e} ro={ro} history={history} today={today} control={ro ? null : steady && !unav ? bank("p") : key(true)} />
+      {pending ? (<>
+        {/* Arming with something open: the warning stays while the code is entered, the moment it matters. */}
+        {pending.kind === "arm" && open.length > 0 && (
+          <p className="fd-hint fd-al-open"><Warn>{listOf(open)} {open.length > 1 ? "are" : "is"} open.</Warn> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</p>
         )}
-      </PanelBody>
+        <Keypad
+          key={guard.pendingKey}
+          prompt={pending.kind === "disarm" ? (e.state === "arming" ? "Code to cancel arming" : "Code to disarm") : `Code to arm ${MODE_LABEL[pending.mode].toLowerCase()}`}
+          text={e.codeFormat === "text"}
+          onSubmit={guard.submit}
+          onCancel={guard.close}
+        />
+      </>) : (
+        <AlarmDetails e={e} ro={ro} history={history} today={today} control={ro ? null : steady && !unav ? bank("p") : key(true)} />
+      )}
     </ModuleFrame>
   );
 }
@@ -212,14 +213,12 @@ interface DetailsProps {
   control: ReactNode;
 }
 
-/** The panel's content under its screen: the mode keys, or the one key through a delay; what's open; today; facts. */
+/** The panel's content under its screen: the mode keys, or the one key through a delay; what's open; today. */
 function AlarmDetails({ e, ro, history, today, control }: DetailsProps) {
   const uid = useId();
   const unav = e.state === "unavailable";
   const armedMode = ARMED_MODE[e.state];
   const open = unav ? [] : e.openSensors ?? [];
-  const codeToArm = !!e.codeFormat && (e.codeArmRequired ?? true);
-  const changed = lastChangedFact(e.lastChanged, e.changedBy);
   return (
     <>
       {control && (
@@ -236,7 +235,6 @@ function AlarmDetails({ e, ro, history, today, control }: DetailsProps) {
         </p>
       )}
       {history && <Today summary={today} label="Armed by hour today." tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-      <Facts start={unav ? lastSeenFact(e.lastSeen) : changed} end={ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm"} />
     </>
   );
 }

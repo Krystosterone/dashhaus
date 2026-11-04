@@ -1,6 +1,6 @@
 import type { HaTransport, HassEntities, HassEntity } from "../ha/types";
-import { demoSendMessage } from "../demo";
-import type { DemoHistoryRow } from "../demo";
+import type { DemoHistoryRow } from "./messages";
+import { createDemoTransport } from "./transport";
 
 const stamp = "2026-10-19T11:20:00Z";
 const reading = (entity_id: string, state: string, friendly_name: string): HassEntity => ({
@@ -38,20 +38,5 @@ function history(entities: HassEntities, entityIds: readonly string[]): Record<s
 
 /** Storybook-only `__domain__` transport: the real store, mapper and history path, answered locally. Read-only. */
 export function createDemo__Name__HaTransport(seed: HassEntities = initial): HaTransport {
-  const entities: HassEntities = Object.fromEntries(Object.entries(seed).map(([id, e]) => [id, { ...e, attributes: { ...e.attributes } }]));
-  return {
-    subscribeEntities(listener) {
-      queueMicrotask(() => listener({ ...entities }));
-      return () => {};
-    },
-    async callService(domain, service) {
-      throw new Error(`The __label__ is read-only: ${domain}.${service}`);
-    },
-    sendMessage: async (type, payload = {}) => {
-      if (type !== "history/history_during_period") return demoSendMessage(entities, type, payload);
-      const ids = payload.entity_ids;
-      if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string")) throw new Error("Demo history entity_ids missing");
-      return history(entities, ids);
-    },
-  };
+  return createDemoTransport({ seed, services: {}, refuse: (domain, service) => new Error(`The __label__ is read-only: ${domain}.${service}`), history });
 }

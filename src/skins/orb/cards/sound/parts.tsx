@@ -1,19 +1,20 @@
-import { SliderTrack } from "../../shared/ui";
+import { LevelBar } from "../../shared/ui";
 
-/** Width of the filled end cap, in px. Matches --cap in SoundCard.css. */
-const THUMB = 30;
-
-/** Volume groove: the accent fills the track while the sound plays; the label inverts where the fill passes.
- *  Setting it never switches the sound, so the groove stays empty while the sound is off and says so. */
+/** Volume groove: the sound's level, in percent. Setting it never switches the sound, so the groove stays empty
+ *  while the sound is off and says so. */
 export function VolumeBar({ id, value, on, onChange }: { id: string; value: number; on: boolean; onChange: (v: number) => void }) {
   return (
-    <SliderTrack
+    <LevelBar
       id={id}
-      slider={{ value: Math.round(value), min: 0, max: 100, inset: THUMB / 2, onChange, valueText: (v) => (on ? `${v} percent` : `${v} percent, sound off`) }}
-      heading={() => <label htmlFor={id}>Volume</label>}
-      className="sn-bar"
-      text={(pct) => (on ? `${pct}%` : `Off · ${pct}%`)}
-      lit={on}
+      heading="Volume"
+      value={value}
+      min={0}
+      max={100}
+      on={on}
+      text={(pct) => `${pct}%`}
+      offText={(pct) => `Off · ${pct}%`}
+      valueText={(v) => (on ? `${v} percent` : `${v} percent, sound off`)}
+      onChange={onChange}
     />
   );
 }

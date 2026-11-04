@@ -1,7 +1,7 @@
 import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
-import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
+import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { __Name__Icon } from "./icons";
-import { CardTitle, Readout, SheetClose, UnavailableSlot, TodayStrip, fmt1, normalizeReadings, paint, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { CardFrame, Readout, Today, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
 import "./__Name__Card.css";
 
@@ -25,7 +25,7 @@ const withUnit = (n: number, unit = "") => `${fmt(n)}${unit && !/^[%°]/.test(un
  * with no container, and no glow. The name or the reading opens the sheet with today's readings.
  */
 export function __Name__Card({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: __Name__CardProps) {
-  const { nameId, sheet, compact, bare, article } = useCard("__code__", { variant, footprint, showControl });
+  const card = useCard("__code__", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const value = unav ? undefined : e.value;
   const colors = paint("reading", 0, null, color);
@@ -42,36 +42,29 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
   );
 
   return (
-    <article {...article} data-state={unav ? "unavailable" : "ok"} {...colors}>
-      <header className="hd-head">
-        <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
-          <span className="hd-orb-i"><__Name__Icon /></span>
-        </span>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{text}</p>}
-        </CardTitle>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">
-        {bare ? <p className="hd-val">{text}</p> : unav ? <UnavailableSlot lastSeen={e.lastSeen} />
-          : sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
-          : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      </div>
-
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", ...colors }}
+      glyph={<__Name__Icon />}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={status}
+      value={text}
+      onClose={onClose}
+      control={card.sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
+        : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: unav && e.area ? e.area : "" }}
+    >
       {series && (
-        <TodayStrip
+        <Today
           samples={series.samples}
           currentHour={history!.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : series.min == null || series.max == null ? "No readings yet today" : `Low ${withUnit(series.min, e.unit)} · High ${withUnit(series.max, e.unit)}`}
+          summary={series.min == null || series.max == null ? "No readings yet today" : `Low ${withUnit(series.min, e.unit)} · High ${withUnit(series.max, e.unit)}`}
         />
       )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated)} end={unav && e.area ? e.area : ""} />
-      )}
-    </article>
+    </CardFrame>
   );
 }
 

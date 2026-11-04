@@ -4,7 +4,7 @@ import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "@dashhaus
 import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
 import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { ConditionIcon } from "./conditions";
-import { AlertStatus, CardTitle, Readout, UnavailableSlot, fmt1, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardFrame, Readout, SheetBlock, fmt1, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherCard.css";
 
@@ -94,7 +94,8 @@ function Stat({ label, value, sub, warn }: { label: string; value: ReactNode; su
  * the next hours and the next days.
  */
 export function WeatherCard({ entity: e, history, hourly, daily, variant, footprint, showControl, onOpenDetails, onClose, color }: WeatherCardProps) {
-  const { nameId, sheet, compact, featured, bare, article } = useCard("wx", { variant, footprint, showControl });
+  const card = useCard("wx", { variant, footprint, showControl });
+  const { sheet, featured } = card;
   const unav = e.state === "unavailable";
   const cond = unav ? null : (e.state as Condition);
   const night = isNight(e);
@@ -131,8 +132,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
 
   const readLabel = t == null ? "" : `${fmt1(t)} degrees now${feels != null ? `, feels like ${Math.round(feels) || 0}` : ""}`;
   let slot;
-  if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (t == null) slot = <div className="hd-unav"><span>No temperature yet</span></div>;
+  if (t == null) slot = <div className="hd-unav"><span>No temperature yet</span></div>;
   else slot = <Reading now={t} feels={feels} label={readLabel} onOpen={sheet ? undefined : onOpenDetails} />;
 
   const nextHours = (hourly ?? []).filter((h) => h.hour > hour && h.hour <= hour + HOURS_AHEAD);
@@ -145,29 +145,29 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
   // The status line already says the condition: the replacement value is the reading.
   const valText = unav ? "Unavailable" : now ? [now, feelsText].filter(Boolean).join(" · ") : label;
   return (
-    <article
-      {...article}
-      data-state={unav ? "unavailable" : "ok"} data-alert={warnings.length ? "warn" : undefined}
-      {...colors}
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": warnings.length ? "warn" : undefined, ...colors }}
+      glyph={<ConditionIcon condition={cond ?? "unavailable"} night={night} />}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      openHint="weather details"
+      status={status}
+      value={subText}
+      alert={alertLabel}
+      bareValue={valText}
+      // In the sheet the large figure stands in for the reading, so it is spoken there.
+      readout={{ value: t != null ? <>{fmt1(t)}<span>°</span></> : null, label: sheet && t != null ? readLabel : undefined }}
+      onClose={onClose}
+      // The sheet already says now (the large figure) and feels-like (its tile); its slot only reports a missing reading.
+      slot={!(sheet && t != null)}
+      control={slot}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : "", end: !unav && updatedFact(e.lastUpdated) }}
     >
-      <header className="hd-head">
-        <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unav || undefined}>
-          <span className="hd-orb-i"><ConditionIcon condition={cond ?? "unavailable"} night={night} /></span>
-        </span>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails} openHint="weather details">
-          <p className="hd-area">{status}</p>
-          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </CardTitle>
-        {/* In the sheet the large figure stands in for the reading, so it is spoken there. */}
-        <p className="hd-num" {...(sheet && t != null ? { role: "img", "aria-label": readLabel } : { "aria-hidden": true })}>{t != null ? <>{fmt1(t)}<span>°</span></> : null}</p>
-        {sheet && <SheetClose label={`Close ${e.name}`} onClick={onClose} />}
-      </header>
-
-      {/* The sheet already says now (the large figure) and feels-like (its tile); its slot only reports a missing reading. */}
-      {!(sheet && t != null) && <div className="hd-slot">{bare ? <p className="hd-val">{valText}</p> : slot}</div>}
-
-      {sheet && !unav && (
-        <div className="hd-extra">
+      {!unav && (
+        <SheetBlock>
           <div className="wx-stats">
             {e.apparentTemperature != null && <Stat label="Feels like" value={deg(e.apparentTemperature)} sub={e.dewPoint != null ? `Dew point ${deg(e.dewPoint)}` : undefined} />}
             {e.humidity != null && <Stat label="Humidity" value={<>{Math.round(e.humidity)}<small>%</small></>} />}
@@ -177,13 +177,13 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
             {e.uvIndex != null && <Stat label="UV index" value={Math.round(e.uvIndex)} sub={uvBand(e.uvIndex).label} warn={uvWarns(e)} />}
             {e.pressure != null && <Stat label="Pressure" value={<>{e.pressureUnit === "inHg" ? e.pressure.toFixed(2) : Math.round(e.pressure)}<small> {e.pressureUnit}</small></>} />}
           </div>
-        </div>
+        </SheetBlock>
       )}
 
       {(featured || sheet) && <NextHours hours={unav ? [] : nextHours} empty={hoursEmpty} />}
 
-      {sheet && daily && daily.length > 0 && !unav && (
-        <div className="hd-extra">
+      {daily && daily.length > 0 && !unav && (
+        <SheetBlock>
           <div className="hd-blk">
             <p className="hd-blk-h"><span>Next days</span></p>
             <ol className="wx-days">
@@ -197,13 +197,9 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
               ))}
             </ol>
           </div>
-        </div>
+        </SheetBlock>
       )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : ""} end={!unav && updatedFact(e.lastUpdated)} />
-      )}
-    </article>
+    </CardFrame>
   );
 }
 

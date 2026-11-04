@@ -1,9 +1,9 @@
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
-import { lastChangedFact, lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
-import { Orb, CardTitle, AlertStatus, UnavailableSlot, TodayStrip, ChoiceChips, paint, SheetClose, useCard, detailsSheet, Facts } from "../../shared/ui";
+import { AlertStatus, CardFrame, ChoiceChips, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
 
@@ -39,7 +39,8 @@ export interface CoverCardProps extends CardProps {
  * It shares the modular footprint matrix with every dashboard card.
  */
 export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverCardProps) {
-  const { uid, nameId, sheet, compact, bare, article, area } = useCard("cv", { variant, footprint, showControl, area: e.area });
+  const card = useCard("cv", { variant, footprint, showControl, area: e.area });
+  const { uid, sheet, compact, area } = card;
   const unav = e.state === "unavailable";
   const moving = isMoving(e);
   const pos = openness(e);
@@ -67,8 +68,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const areaText = sheet && area && !(access && open) ? `${area} · ${CLASS_LABEL[e.deviceClass]}` : status;
 
   let slot;
-  if (unav) slot = <UnavailableSlot lastSeen={e.lastSeen} />;
-  else if (withPos && onSetPosition) {
+  if (withPos && onSetPosition) {
     slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
   } else {
     slot = <OpenCloseControl name={e.name} open={open} moving={moving} text={text} canStop={e.supportsStop} onOpen={onOpenCover} onClose={onCloseCover} onStop={onStopCover} />;
@@ -77,40 +77,31 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // The compact value appears under the name, or in place of a hidden control.
   const subText = unav ? "Unavailable" : text;
   return (
-    <article {...article} data-state={e.state} data-alert={warnedOpen ? "warn" : undefined} {...colors}>
-      <header className="hd-head">
-        <Orb label={orbLabel} pressed={open && !unav} unavailable={unav} intensity={pos / 100} onToggle={orbAction} onLongPress={sheet ? undefined : onOpenDetails}>
-          <CoverIcon kind={e.deviceClass} open={open} stop={stopping} />
-        </Orb>
-        <CardTitle id={nameId} name={e.name} onOpen={sheet ? undefined : onOpenDetails}>
-          <p className="hd-area">{alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}</p>
-          {compact && <p className="hd-sub">{alertLabel ? <AlertStatus label={alertLabel}>{subText}</AlertStatus> : subText}</p>}
-        </CardTitle>
-        <p className="hd-num hd-num--control-duplicate" aria-hidden="true">{unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed"}</p>
-        {sheet && <SheetClose label={`Close ${e.name} details`} onClick={onClose} />}
-      </header>
-
-      <div className="hd-slot">{bare ? <p className="hd-val">{subText}</p> : slot}</div>
-
-      {sheet && !unav && (withPos || e.supportsTilt) && (
-        <div className="hd-extra">
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, "data-alert": warnedOpen ? "warn" : undefined, ...colors }}
+      orb={{ label: orbLabel, pressed: open && !unav, intensity: pos / 100, onToggle: orbAction, children: <CoverIcon kind={e.deviceClass} open={open} stop={stopping} /> }}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails}
+      status={alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}
+      value={subText}
+      alert={alertLabel}
+      readout={{ value: unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed", duplicate: true }}
+      onClose={onClose}
+      closeLabel={`Close ${e.name} details`}
+      control={slot}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: [CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ") }}
+    >
+      {!unav && (
+        <SheetBlock>
           {withPos && onSetPosition && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
           {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLATS} value={e.tilt} onChange={onSetTilt} />}
-        </div>
+        </SheetBlock>
       )}
-
-      {history && (
-        <TodayStrip
-          samples={history.samples}
-          currentHour={history.currentHour}
-          summary={unav ? unavailableSince(e.lastSeen) : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""}
-        />
-      )}
-
-      {sheet && (
-        <Facts start={unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged)} end={[CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ")} />
-      )}
-    </article>
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""} />}
+    </CardFrame>
   );
 }
 

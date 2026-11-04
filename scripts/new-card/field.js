@@ -19,8 +19,8 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
-import { declaredActions } from "../domains.js";
+import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir } from "./lib.js";
+import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("field");
 const ORB = skinDir("orb");
@@ -32,43 +32,33 @@ const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${na
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
 
 export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun }) {
-  // ---------- What the domain already has ----------
+  // ---------- What the domain already has: its one description, the scaffolder's too ----------
   const { Name, CONST, words, Label } = names(name, '"sound"');
-  const step = (n) => `AGENTS.md → Adding an existing domain to another skin, step ${n}`;
 
   if (exists(`${SKIN}/cards/${name}`)) fail(`${SKIN}/cards/${name} already exists`);
-  const typesPath = packageFile("core", `src/entities/${name}/types.ts`);
-  if (!exists(typesPath)) fail(`${typesPath} doesn't exist. Field draws a domain orb already has: npm run new-card -- ${name} --code <xx> --domain <ha_domain> first`);
-  const types = read(typesPath);
-  const entity = shape(types, `${Name}Entity`);
-  const history = shape(types, `${Name}History`);
-  if (!entity) fail(`${typesPath} must export ${Name}Entity`);
-
-  const hookPath = packageFile("core", `src/ha/hooks/${name}.ts`);
-  if (!exists(hookPath)) fail(`${hookPath} doesn't exist: field reaches Home Assistant through useHa${Name} (${step(1)})`);
-  const hook = read(hookPath);
-  const options = shape(hook, `Ha${Name}Options`);
-  if (!new RegExp(`export function useHa${Name}\\b`).test(hook) || options == null) fail(`${hookPath} must export useHa${Name} and Ha${Name}Options`);
-  const required = [...options.matchAll(/^\s+(\w+): /gm)].map((m) => m[1]);
-  if (required.length) fail(`useHa${Name} requires ${required.join(", ")}, which a generated module can't know. Draw ${words} in field by hand, from ${SKIN}/cards/light/`);
-
-  // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
-  const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
-  let declared = [];
+  if (!exists(packageFile("core", `src/entities/${name}/types.ts`))) fail(`${packageFile("core", `src/entities/${name}/types.ts`)} doesn't exist. Field draws a domain orb already has: npm run new-card -- ${name} --code <xx> --domain <ha_domain> first`);
+  let domain;
   try {
-    declared = exists(actionsPath) ? declaredActions(read(actionsPath), Name, CONST) : [];
+    domain = describeDomain(name);
   } catch (error) {
-    fail(`${error.message} (${actionsPath})`);
+    fail(`${error.message}. Draw ${words} in field by hand, from ${SKIN}/cards/light/ (AGENTS.md → Adding an existing domain to another skin)`);
   }
-  const taps = declared.filter(({ takes, asks }) => takes === "nothing" && !asks);
-  const asked = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks));
-  const leftOut = declared.filter(({ takes }) => takes === "value").map(({ action }) => action);
-  const kind = askedKind ?? (taps.length || asked.length ? "control" : "reading");
+  // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
+  const taps = domain.actions.map((action) => ({ action, takes: "nothing", asks: false }));
+  const asked = domain.guarded.map(({ action, asks, code: takesCode }) => ({ action, takes: takesCode ? "code" : "nothing", asks }));
+  // A level, a choice or a switch: on field's own parts (a fader, keys in a group); the rest is left out.
+  const { levels, choices: chosen, switches } = domain;
+  const valueActions = [...levels, ...chosen, ...switches].map(({ action }) => action);
+  const leftOut = domain.leftOut.filter((action) => !valueActions.includes(action));
+  const kind = askedKind ?? domain.kind;
   if (kind !== "control" && kind !== "reading") fail(`kind "${kind}" must be "control" or "reading"`);
-  if (kind === "control" && !taps.length && !asked.length) {
-    fail(`${words} has no action a press can give${leftOut.length ? ` (${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value)` : ` (${actionsPath})`}, so it starts as a reading: pass --kind reading and add its controls by hand, or draw it from ${SKIN}/cards/light/`);
+  if (kind === "control" && !taps.length && !asked.length && !valueActions.length) {
+    fail(`${words} has no action a press can give${leftOut.length ? ` (${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value)` : ""}, so it starts as a reading: pass --kind reading and add its controls by hand, or draw it from ${SKIN}/cards/light/`);
   }
   const pressed = kind === "control" ? [...taps, ...asked] : [];
+  const values = kind === "control" ? { levels, choices: chosen, switches } : { levels: [], choices: [], switches: [] };
+  const drawnValues = [...values.levels, ...values.choices, ...values.switches].map(({ action }) => action);
+  const { history } = domain;
 
   // ---------- Orb's card (its code, its connected story) and the domain's seeds in core ----------
   const orbDir = `${ORB}/cards/${name}`;
@@ -101,27 +91,16 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const entityId = orbStory.match(/entityId="([^"]+)"/)?.[1];
   if (!transport || !entityId) fail(`${ORB}/ha/Ha${Name}Tile.stories.tsx must import a createDemo…HaTransport and draw an entityId, for field's connected story`);
 
-  const fixturePath = packageFile("core", `src/ha/fixtures/${name}.json`);
-  if (!exists(fixturePath)) fail(`${fixturePath} doesn't exist, for its connected module's test`);
-  const fixture = JSON.parse(read(fixturePath));
-  const fixtureId = Object.entries(fixture).find(([, e]) => !["unavailable", "unknown"].includes(e.state))?.[0];
-  if (!fixtureId) fail(`${fixturePath} has no available entity for its connected module's test`);
-
-  // The Home Assistant domains it draws, as orb's Lovelace card has them.
-  const orb = orbKinds();
-  const shared = orb.shared[name];
-  const domains = shared?.domains ?? Object.keys(orb.domainKind).filter((d) => orb.domainKind[d] === name);
-  if (!domains.length) fail(`${orb.path} gives ${name} no domain in DOMAIN_KIND or SHARED_KINDS`);
+  // The connected test's entity, and whether it asks for a code.
+  const { fixtureId } = domain;
+  const fixture = JSON.parse(read(packageFile("core", `src/ha/fixtures/${name}.json`)));
+  const { domains } = domain;
 
   // ---------- Files from the templates ----------
-  const has = (field) => new RegExp(`^\\s+${field}\\??: `, "m").test(entity);
-  const toggle = taps.some(({ action }) => action === "onToggle") && /^\s+state: [^;]*"on"/m.test(entity);
-  const wantsCode = has("codeFormat");
-  const keyOf = (action) => action.replace(/^on/, "").replace(/[A-Z]/g, (c, at) => `${at ? "-" : ""}${c.toLowerCase()}`);
-  const labelOf = (action) => {
-    const spaced = action.replace(/^on/, "").replace(/([A-Z])/g, " $1").trim().toLowerCase().replace(/ cover$/, "");
-    return spaced[0].toUpperCase() + spaced.slice(1);
-  };
+  const has = (field) => domain.fields.includes(field);
+  const toggle = taps.some(({ action }) => action === "onToggle") && domain.onOff;
+  const wantsCode = domain.code;
+  const { keyOf, labelOf } = card;
   const hold = asked.length ? "openPanel" : "details.openDetails";
   const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
   /** What asks first, and what takes a code, in words: "Unlock and Open ask first, and Lock takes a code where the lock wants one". */
@@ -141,14 +120,14 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
   const since = has("lastChanged") ? "sinceFact(e.lastChanged)" : "undefined";
   // Today's summary in words, where the history counts the minutes in a state (`onMinutes`): "On 2h 36m", "Not on today".
-  const minutesIn = history?.match(/^\s+(\w+)Minutes\??: number/m)?.[1];
+  const minutesIn = domain.minutes;
   /** Today's meter at an indent, or nothing for a domain without history. */
   const todayAt = (indent) => history ? [
     "<Today",
     minutesIn ? `  summary={history && (unav ? "Unavailable" : todaySummary("${minutesIn}", history.${minutesIn}Minutes))}` : "",
     `  label="${Label} by hour today."`,
     '  tone="neutral"',
-    /^\s+samples: /m.test(history) ? "  samples={history?.samples}" : "",
+    domain.samples ? "  samples={history?.samples}" : "",
     "  currentHour={history?.currentHour}",
     "/>",
   ].filter(Boolean).map((line) => indent + line).join("\n") : "";
@@ -157,13 +136,49 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   // a code sends only while the entity asks for none.
   const fixtureCode = !!fixture[fixtureId]?.attributes?.code_format;
   const sentAtOnce = pressed.filter(({ takes, asks }) => !asks && !(takes === "code" && fixtureCode)).length;
+  // ---------- Values on field's parts ----------
+  // A value's words, from its field: "presetMode" → "Preset mode".
+  const fieldWords = (field) => labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
+  const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
+  const isPercent = ({ min, max }) => typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
+  const fader = ({ action, field, min, max }, id) => `<Fader id={${id}} label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`} legend="${fieldWords(field)}" value={unav ? undefined : e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} lit={${toggle ? "on" : "!unav"}} disabled={unav} valueText={${isPercent({ min, max }) ? `\`\${e.${field} ?? ${bound(min)}} percent\`` : `String(e.${field} ?? ${bound(min)})`}} onChange={(v) => ${action}?.(v)} />`;
+  // The first level beside the one key, in the module's row and again in the panel; with more keys, in the panel.
+  const [rowLevel, ...panelLevels] = pressed.length <= 1 ? values.levels : [undefined, ...values.levels];
+  const choiceKeys = ({ action, field, options }) => {
+    const list = Array.isArray(options) ? `([${options.map((o) => `"${o}"`).join(", ")}] as const)` : `(e.${options.field} ?? [])`;
+    const group = [
+      `<KeyGroup legend="${fieldWords(field)}" value={e.${field} ? optionWords(e.${field}) : undefined} columns={choices(${list}.length)} narrow={2}>`,
+      `  {${list}.map((option) => <Key key={option} label={\`${fieldWords(field)} \${optionWords(option)}\`} wide caption={optionWords(option)} chosen={option === e.${field}} disabled={unav} onPress={() => ${action}?.(option)}>{null}</Key>)}`,
+      "</KeyGroup>",
+    ];
+    return Array.isArray(options) ? group : [`{${list}.length > 0 && (`, ...group.map((line) => `  ${line}`), ")}"];
+  };
+  const switchKey = ({ action, field }) => [
+    `<KeyGroup legend="${fieldWords(field)}" columns={2}>`,
+    `  <Key label="${fieldWords(field)}" pressed={e.${field} === true} unavailable={unav || e.${field} == null} wide caption={unav || e.${field} == null ? undefined : e.${field} ? "On" : "Off"} onPress={() => ${action}?.(!e.${field})}>{null}</Key>`,
+    "</KeyGroup>",
+  ];
+  const valueBlocks = [
+    ...panelLevels.map((level) => [fader(level, `\`\${uid}-${level.field}\``)]),
+    ...values.choices.map(choiceKeys),
+    ...values.switches.map(switchKey),
+  ].map((lines) => lines.map((line) => `      ${line}`).join("\n")).join("\n");
+  /** What each value hands its handler, as the module's own prop type: it can't import the domain's handlers. */
+  const handed = (action) => {
+    if (values.levels.some((v) => v.action === action)) return "value: number";
+    const choice = values.choices.find((v) => v.action === action);
+    if (choice) return Array.isArray(choice.options) ? `value: ${choice.options.map((o) => `"${o}"`).join(" | ")}` : "value: string";
+    return "value: boolean";
+  };
+  const valueParts = [values.choices.length && "choices", (rowLevel || panelLevels.length) && "Fader", rowLevel && "ModuleRow"].filter(Boolean);
+
   const fill = filler({
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",
     // A control's presses, in its stories and from its hook's actions; a line of their own, gone for a reading. A
     // demo that names a handler its own way leaves that key unpressed.
-    __demoProps__: pressed.filter(({ action }) => new RegExp(`\\b${action}\\b`).test(seeds)).map(({ action }) => `${action}={demo.${action}}`).join(" "),
-    __liveProps__: pressed.map(({ action }) => `${action}={actions.${action}}`).join(" "),
+    __demoProps__: [...pressed.map(({ action }) => action), ...drawnValues].filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" "),
+    __liveProps__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `${action}={actions.${action}}`).join(" "),
     __actions__: kind === "control" ? ", actions" : "",
     __about__: kind === "control"
       ? `${toggle ? "Press the key to switch it; its LED is lit while it's on." : "One key per action it takes."}${guardedWords ? ` ${guardedWords[0].toUpperCase()}${guardedWords.slice(1)}, so a press never does it alone.` : ""} Tap the name, or press and hold a key, for the detail panel${history ? " with today" : ""}.`
@@ -175,7 +190,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     // The facts' words, from core: what this module prints.
     __factsImport__: ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact", "sinceFact"] : [])].sort().join(", "),
     // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
-    __samplesProp__: history && /^\s+samples: /m.test(history) ? "samples={history?.samples}" : "",
+    __samplesProp__: domain.samples ? "samples={history?.samples}" : "",
     __historyType__: history ? `, ${Name}History` : "",
     __historyProp__: history ? "  /** Today, for the detail panel. Omit to leave its meter dark. */\n  history?: " + `${Name}History;` : "",
     __historyArg__: history ? ", history" : "",
@@ -193,8 +208,26 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __read__: toggle ? 'on ? "ON" : "OFF"' : "<Blank label={words(e.state)} />",
     __keys__: keyLines.join("\n"),
     __actionProps__: pressed.map(({ action, takes, asks }) => `  /** ${asks ? "Asks first: the panel's question, or its keypad where the entity wants a code. Never one press." : takes === "code" ? "A press does it, asking for the code where the entity wants one." : "A press does it."} */\n  ${action}?: (${takes === "code" ? "code?: string" : ""}) => ${asks || takes === "code" ? "GuardedResult" : "void"};`).join("\n"),
-    __actionArgs__: pressed.map(({ action }) => `, ${action}`).join(""),
+    __actionArgs__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `, ${action}`).join(""),
     __partsImport__: asked.length ? "Confirm, Keypad, " : "",
+    __valuesProps__: drawnValues.map((action) => `  /** Drawn from its declaration (\`${CONST}_ACTIONS\`). */\n  ${action}?: (${handed(action)}) => void;`).join("\n"),
+    __valuePartsImport__: valueParts.map((part) => `${part}, `).join(""),
+    __reactImport__: rowLevel || panelLevels.length ? 'import { useId } from "react";' : "",
+    __uidConst__: rowLevel || panelLevels.length ? "  const uid = useId();" : "",
+    __controlsConst__: rowLevel ? [
+      `  // The key and its ${fieldWords(rowLevel.field).toLowerCase()} fader, the same in the module and the panel. Unavailable, the fader goes and the key`,
+      "  // spans the row, as every field control's does.",
+      "  const controls = (where: \"m\" | \"p\") => (",
+      `    <ModuleRow className="fd-${code}-row" solo={unav}>`,
+      "      {keys(unav)[0]}",
+      `      {!unav && ${fader(rowLevel, "`${uid}-${where}`")}}`,
+      "    </ModuleRow>",
+      "  );",
+    ].join("\n") : "",
+    __rowProp__: rowLevel ? "controls={controls}" : "row={<KeyGroup label={e.name}>{keys(true)}</KeyGroup>}",
+    __panelKeys__: rowLevel ? "" : '      <KeyGroup legend="__Label__">{keys(true)}</KeyGroup>',
+    __valueBlocks__: valueBlocks,
+    __optionWordsConst__: values.choices.length ? '/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const spaced = option.replace(/[_-]+/g, " "); return spaced[0].toUpperCase() + spaced.slice(1); };\n' : "",
     __guardImports__: asked.length ? `import { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
     __defaultActionProp__: asked.length ? `  /** Open the detail panel on this action's question or keypad (stories). */\n  defaultAction?: ${askedKeys.join(" | ")};` : "",
     __defaultActionArg__: asked.length ? ", defaultAction" : "",
@@ -218,12 +251,13 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with field's own control (a fader, a key group).` : "",
     __panelFocus__: asked.length ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
     __details__: asked.length ? "{ ...details, openDetails: openPanel }" : "details",
+    __factsWhen__: asked.length ? "guard.pending ? undefined : " : "",
     __panelBody__: asked.length ? [
-      "        {guard.pending ? (guard.code",
-      `          ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
-      `          : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again" : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
-      "        ) : panel}",
-    ].join("\n") : "        {panel}",
+      "      {guard.pending ? (guard.code",
+      `        ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
+      `        : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again" : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
+      "      ) : panel}",
+    ].join("\n") : "      {panel}",
     __guardedAbout__: guardedWords ? `; ${guardedWords}, never one press` : "",
     __wordsConst__: toggle ? "" : '/** A state as words: "deep_sleep" becomes "deep sleep". */\nconst words = (state: string) => state.replace(/[_-]+/g, " ");\n',
     // The module test's presses: each action once, and what asks first never on one press.
@@ -300,11 +334,11 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
   // The Lovelace card: its domains, and its connected module.
   const config = seams.field.config;
   edit(config, after(markers.kinds, `  | "${name}"\n`));
-  edit(config, after(markers.fieldKinds, `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${shared?.id ? `, id: ${shared.id}` : ""} },`));
+  edit(config, after(markers.fieldKinds, `  ${name}: { domains: [${domains.map((d) => `"${d}"`).join(", ")}]${domain.id ? `, id: ${domain.id}` : ""} },`));
   const dashboard = seams.field.dashboard;
   edit(dashboard, after(markers.moduleImports, `import { Ha${Name}Module } from "../ha/Ha${Name}Module";\n`));
   // The module's own name and area, and whether it reads today, where the hook takes them (YAML `history` is `loadHistory`).
-  const passed = ["name", "area", "loadHistory"].filter((key) => new RegExp(`^\\s+${key}\\?: `, "m").test(options))
+  const passed = domain.options
     .map((key) => key === "loadHistory" ? " loadHistory={item.history}" : ` ${key}={item.${key}}`).join("");
   edit(dashboard, after(markers.liveModules, `  ${name}: (item, footprint) => <Ha${Name}Module entityId={item.entity}${passed} footprint={footprint} />,`));
   const listed = read(seams.deployDoc).match(/^\| `cards` \| a list of ([^|]*?) entity ids/m)?.[1] ?? "";
@@ -322,7 +356,7 @@ Next:
   2. Make it the ${words}: its screen and ${kind === "control" ? "panel controls" : "figure"} in ${SKIN}/cards/${name}/${Name}Module.tsx (spec/field.md → Design rules)
   3. Draw its glyph and pictogram in ${SKIN}/cards/${name}/icons.tsx
   4. Finish "## ${Label}" in spec/field.md and "### Field ${words} module" in spec/cards.md,
-     and name ${words} where spec/deploy.md lists what field draws${shared ? `
+     and name ${words} where spec/deploy.md lists what field draws${domain.shared ? `
   5. ${domains.join(", ")} already has a field card, so a module picks this one with \`card: ${name}\`` : ""}
-  ${shared ? 6 : 5}. npm run check && npm run test-storybook`);
+  ${domain.shared ? 6 : 5}. npm run check && npm run test-storybook`);
 }

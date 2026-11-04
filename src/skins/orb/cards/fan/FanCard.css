@@ -14,7 +14,3 @@
 
 /* A preset's name keeps to two lines on its chip, so a long one doesn't stretch its row. */
 .fn .hd-chip > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-
-/* Speed groove: a track the accent fills while the fan runs (Track in shared/ui.tsx), keeping a 30px end cap. */
-.fn-bar { --cap: 30px; }
-.hd--compact .fn-bar .hd-track-lab { font-size: 13px; }

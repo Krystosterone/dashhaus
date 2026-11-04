@@ -1,6 +1,6 @@
 import type { HaTransport, HassEntities, HassEntity } from "../ha/types";
-import { demoSendMessage } from "../demo";
-import { fanService } from "./fanService";
+import { createDemoTransport } from "./transport";
+import type { DemoChange, DemoServices } from "./transport";
 
 const stamp = "2026-10-19T11:20:00Z";
 /** `FanEntityFeature`: speed 1, oscillate 2, direction 4, preset 8, turn off 16, turn on 32. */
@@ -28,36 +28,56 @@ const initial: HassEntities = {
   },
 };
 
+/** `FanEntityFeature.SET_SPEED`. */
+const SPEED = 1;
+type Fan = Pick<HassEntity, "entity_id" | "attributes">;
+
+/**
+ * What a fan's services do, as most integrations answer. Each fan remembers the speed it last ran at, so turning it
+ * back on resumes there. Data Home Assistant would refuse throws.
+ */
+export function fanServices(): DemoServices {
+  const last = new Map<string, number>();
+  const off = ({ entity_id, attributes: a }: Fan): DemoChange => {
+    if (typeof a.percentage === "number" && a.percentage > 0) last.set(entity_id, a.percentage);
+    return { state: "off", attributes: { percentage: 0, preset_mode: null } };
+  };
+  const running = (id: string, change: DemoChange): DemoChange => {
+    const percentage = change.attributes?.percentage;
+    if (typeof percentage === "number" && percentage > 0) last.set(id, percentage);
+    return change;
+  };
+  const on = (entity: Fan): DemoChange => {
+    const a = entity.attributes;
+    const was = last.get(entity.entity_id) ?? (typeof a.percentage === "number" && a.percentage > 0 ? a.percentage : undefined);
+    return running(entity.entity_id, { state: "on", attributes: (Number(a.supported_features) & SPEED) !== 0 ? { percentage: was ?? 100 } : {} });
+  };
+  return {
+    "fan.toggle": ({ entity }) => (entity.state === "on" ? off(entity) : on(entity)),
+    "fan.turn_on": ({ entity }) => on(entity),
+    "fan.turn_off": ({ entity }) => off(entity),
+    "fan.set_percentage": ({ entity, data }) => {
+      const percentage = data.percentage;
+      if (typeof percentage !== "number" || percentage < 0 || percentage > 100) throw new Error("percentage must be 0-100");
+      return percentage === 0 ? off(entity) : running(entity.entity_id, { state: "on", attributes: { percentage, preset_mode: null } });
+    },
+    "fan.set_preset_mode": ({ entity, data }) => {
+      const modes = Array.isArray(entity.attributes.preset_modes) ? entity.attributes.preset_modes : [];
+      if (typeof data.preset_mode !== "string" || !modes.includes(data.preset_mode)) throw new Error("preset_mode is not one of the fan's presets");
+      return { state: "on", attributes: { preset_mode: data.preset_mode } };
+    },
+    "fan.oscillate": ({ data }) => {
+      if (typeof data.oscillating !== "boolean") throw new Error("oscillating must be a boolean");
+      return { attributes: { oscillating: data.oscillating } };
+    },
+    "fan.set_direction": ({ data }) => {
+      if (data.direction !== "forward" && data.direction !== "reverse") throw new Error("direction must be forward or reverse");
+      return { attributes: { direction: data.direction } };
+    },
+  };
+}
+
 /** Storybook-only `fan` transport: the same store and service path as a host transport, answered locally. */
 export function createDemoFanHaTransport(seed: HassEntities = initial): HaTransport {
-  let entities: HassEntities = Object.fromEntries(Object.entries(seed).map(([id, e]) => [id, { ...e, attributes: { ...e.attributes } }]));
-  const listeners = new Set<(next: HassEntities) => void>();
-  const publish = () => listeners.forEach((listener) => listener({ ...entities }));
-  /** The speed each fan last ran at. */
-  const last = new Map<string, number>(Object.values(entities)
-    .filter((e) => typeof e.attributes.percentage === "number" && e.attributes.percentage > 0)
-    .map((e) => [e.entity_id, e.attributes.percentage as number]));
-
-  return {
-    subscribeEntities(listener) {
-      listeners.add(listener);
-      queueMicrotask(() => listener({ ...entities }));
-      return () => { listeners.delete(listener); };
-    },
-    async callService(domain, service, serviceData = {}) {
-      if (domain !== "fan") throw new Error(`Unsupported demo service: ${domain}.${service}`);
-      const entityId = serviceData.entity_id;
-      if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
-      const current = entities[entityId];
-      const now = new Date().toISOString();
-      const [state, changed] = fanService(current, service, serviceData, last.get(entityId));
-      const attributes = { ...current.attributes, ...changed };
-      if (typeof attributes.percentage === "number" && attributes.percentage > 0) last.set(entityId, attributes.percentage);
-      const next: HassEntity = { ...current, attributes, state, last_changed: state === current.state ? current.last_changed : now, last_updated: now };
-      entities = { ...entities, [entityId]: next };
-      publish();
-      return { success: true };
-    },
-    sendMessage: (type, payload = {}) => demoSendMessage(entities, type, payload),
-  };
+  return createDemoTransport({ seed, services: fanServices() });
 }

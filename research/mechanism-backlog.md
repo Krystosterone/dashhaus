@@ -29,53 +29,37 @@ parts and brings only what is its own", and → Layout, "What two skins share mo
   primitives), each skin's `Confirm` and `Keypad`, details that open on an action (`ActionCardProps`, `useDetails`,
   `detailsTile`; spec/contract.md), the facts' words (`entities/facts.ts`, `unavailableSince` among them) and each
   skin's `Facts`, field's `KeyGroup`, `Temperature`, `ModuleRow`, `PanelBody` and `Notices`, orb's `SliderTrack` (the
-  slider wiring under light's, sound's, cover's and fan's fills), every domain's demo seeds in
+  slider wiring under light's, sound's, cover's and fan's fills) and `LevelBar` (the level groove of light, sound and
+  fan, each card keeping its words), field's `Channel` (the panel screen's second channel), every domain's demo seeds in
   `@dashhaus/core/seeds/<name>` (spec/core.md → Testing and demo helpers; not `./demo`, which cards may not import),
-  the declared action kinds (`<NAME>_ACTIONS`: a tap, a code or a value, and whether it asks first; spec/core.md) and
-  the generators that read them (spec/build-a-skin.md: a guarded action through `Confirm` and `Keypad`, never one tap;
-  history optional; field's control from its declared actions), and the check against the next copy
+  the declared action kinds (`<NAME>_ACTIONS`: a tap, a code, a level, a choice, a switch or another value, and whether
+  it asks first; spec/core.md) and the generators that read them (spec/build-a-skin.md: a guarded action through
+  `Confirm` and `Keypad`, never one tap; history optional; field's control from its declared actions; a level on
+  `LevelBar` or `Fader`, a choice or a switch on `ChoiceChips` or a `KeyGroup`), and the check against the next copy
   (`verify/card-copies.test.ts`, which knows no copy), and today's summary in words (`todaySummary`,
-  `entities/today.ts`; spec/core.md). The lock, the alarm and the fan are drawn on all of it.
+  `entities/today.ts`; spec/core.md), and the demo transports' plumbing (`createDemoTransport`, spec/core.md → Testing
+  and demo helpers: a domain's transport is its seed and its service table), and a frame per skin, which the templates
+  draw on too: orb's `CardFrame` (its head, slot and facts from props, the card's body in `SheetBlock` and `Today`;
+  AGENTS.md → Adding a card) and field's `ModuleFrame`, which draws the panel too (its screen with the `aside` channel,
+  the module's `controls` again, the card's blocks and its `facts`), and one generator path: orb's, field's and a
+  generated skin's `new-card` read a domain from `describeDomain` (`scripts/domains.js`, which writes the scaffolder's
+  `domains.json`) and fill with the scaffolder's one `filler`; orb draws a domain core already has from it
+  (`new-card <name> --code <xx>`), and `scripts/new-card/regenerate.test.ts` draws the fan again in both skins. A brand-new
+  domain still starts from orb's on/off or reading templates, its core files with it. The lock, the alarm and the fan are
+  drawn on all of it.
 - **Today:** what a grep of the card folders (2026-11-03) still finds, each a mechanism two or more cards write:
 
   | Mechanism | Where it is written now | Copies |
   | --- | --- | --- |
-  | Orb level groove: light's brightness, sound's volume and fan's speed, one groove with the same end cap, lit fill, label and off-state words, each on `SliderTrack` with its own copy of the rest | `cards/light/parts.tsx`, `cards/sound/parts.tsx`, `cards/fan/parts.tsx` | 3 |
-  | Orb card anatomy: the `hd-head` (orb or bare icon, `CardTitle` with its status line and compact value, the readout, `SheetClose`), the slot switch (bare value, `UnavailableSlot`, the control) and the `TodayStrip` | every `<Name>Card.tsx` | 12 |
-  | Field module/panel split: the controls drawn once in the module and again in the panel (`controls(where)`), then a `<Name>Details` body on `PanelBody` | `LightModule`'s split, in climate, cover, humidifier and fan; a `<Name>Details` in most modules | 5 / 12 |
-  | Field screen channel (the panel screen's second channel, `fd-chan` markup) | 9 modules | 9 |
-  | Demo transport plumbing (copy the seed, subscribe, publish, route a service) | every `packages/core/src/demo/<domain>.ts` and the mixed `demo.ts` | 9 |
   | Orb's climate range: `useRangeSlider` into `Track` | `cards/climate/RangeBar.tsx` | 1 (a part only once a second card has a range) |
 
-- **Gap:** every new card still copies the nearest card for what these rows hold, and a new card costs more than
-  composition. `verify/card-copies.test.ts` catches a copied component or rule, not a copied shape of markup (the
-  anatomy, the split).
-- **The generators** draw on the parts, the facts and the declared action kinds now, but:
-  - **Two descriptions of one domain.** The field generator reads `useHa<Name>`'s options and handlers with regular
-    expressions (`scripts/new-card/field.js`), while the scaffolder and `new-card --skin <generated>` read
-    `domains.json`, written by `scripts/domains.js`; `filler` is copied word for word in `scripts/new-card/lib.js` and
-    `packages/create-dashhaus-skin/src/card.js`.
-  - **A value is left out.** The declaration says `takes: "value"` for a level or a choice, and the templates leave it
-    out, saying so: a regenerated fan has its key and no groove or presets.
-  - **The templates write the anatomy out** (orb's control template is a whole card, field's a whole module), so a new
-    card starts with every row above already copied.
-- **Proposal:** one pass per row, each its own change:
-  - orb's `LevelBar` on `SliderTrack` for the one level groove, leaving each card its words; field's `Channel` for the
-    screen's second channel;
-  - a transport helper that takes a seed and a service table, so a domain's demo transport is its services alone;
-  - a frame per skin, last, once its parts exist: orb's card frame (icon, status line, readout, slot, sheet blocks,
-    Today, facts from props); field's module/panel frame (one `controls` renderer drawn in the module and the panel, its
-    body on `PanelBody`); settled on toggle, sound, humidifier and fan before the readings (sensor, weather, owlet) and
-    then light, cover, climate, alarm and lock;
-  - one generator path: orb's and field's `new-card` draw through the scaffolder's `src/card.js` and `domains.json`,
-    with one `filler`, on the frames, parts and formatters;
-  - the declaration grows a level (a percent or a range, the fan's `onPercentageChange`) and a list (a preset, a mode, a
-    direction), drawn on the level part (`LevelBar`, `Fader`) and on chips or `KeyGroup`.
+- **Gap:** `verify/card-copies.test.ts` catches a copied component or rule, not a copied shape of markup; the frames
+  hold the anatomy and the module/panel split now, so the shape a new card would copy is the frame's props.
 - **Gate:** per row, every affected card's interaction tests and stories pass unchanged in both skins (`npm run check`,
   `npm run test-storybook`), its stories and both skins' Foundations → Parts and Worst case look the same at every width
   and footprint in both themes and finishes, and the card folders lose the duplicated lines. For the generators,
   regenerated in a copy of the repository, `fan` draws its groove, sheet and panel from the parts, with only its words
   and icon written by hand.
-- **Validation status (2026-11-03):** the guarded action, the facts, the key groups, the temperature figure, the slider
-  wiring, the field row, panel body and notices, the seeds, the action kinds and today's summary are done; the rows
-  above are open.
+- **Validation status (2026-11-03):** every row above is done, its gate met (parts, demo transports, a frame per skin, one
+  generator path, the declaration's levels and lists); the climate range stays a single copy until a second card has a
+  range.
