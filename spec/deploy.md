@@ -314,7 +314,7 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 | any card | `entity` | Required. |
 | any card | `card` | Picks one of the domain's cards (see above). |
 | any card | `footprint` | `compact` (60 px row), `standard` (default), `featured` (the one hero). |
-| any card | `name`, `area` | Override the friendly name and the registry area. |
+| any card | `name`, `area` | Override the friendly name and the registry area (a weather card shows no area, so it ignores `area`). |
 | any card | `width`, `column` | Its place in its row (The page and its rows, above). |
 | any card | `show_control` | `false` on a compact card: the value replaces the control and a tap opens details. |
 | any card | `history` | `false` skips today's history read. |

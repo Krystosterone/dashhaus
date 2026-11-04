@@ -79,6 +79,7 @@ describe("parseDashboardConfig", () => {
   });
 
   it("only offers card: the cards of the entity's domain", () => {
+    expect(problems({ accent: { hue: 200 } })).toEqual(["accent.chroma: is required with the other"]);
     expect(problems({ cards: [{ entity: "light.a", card: "owlet" }, { entity: "sensor.a", card: "owlett" }] })).toEqual([
       'cards[0] (light.a): "card" must be one of "light"',
       expect.stringMatching(/^cards\[1\] \(sensor\.a\): "card" must be one of "sensor", "owlet"(, .*)? — did you mean "owlet"\?$/),

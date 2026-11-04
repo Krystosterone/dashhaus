@@ -5,7 +5,12 @@ const PARAM = /(?:^#|&)page=([^&]*)/;
 /** The page a URL hash names (`#page=living`), if it is one of `pages`; otherwise `main`. */
 export function pageFromHash(hash: string, pages: readonly string[], main: string): string {
   const named = hash.match(PARAM)?.[1];
-  const id = named ? decodeURIComponent(named) : main;
+  let id = main;
+  try {
+    if (named) id = decodeURIComponent(named);
+  } catch {
+    // A malformed link (`#page=100%`) opens the main page rather than taking the dashboard down.
+  }
   return pages.includes(id) ? id : main;
 }
 

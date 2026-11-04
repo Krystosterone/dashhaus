@@ -42,7 +42,7 @@ const input = {
 };
 
 describe("autoDashboard", () => {
-  it("finds the same room sensors as the shared roomSensors, which auto.ts repeats because it may only import types", () => {
+  it("puts every room sensor in the Rooms row, with its humidity and battery where it has them", () => {
     const rooms = (autoDashboard(input).rows as { title: string; cards: unknown[] }[]).find((s) => s.title === "Rooms")!.cards;
     expect(rooms).toEqual(roomSensors(input).map((r) => (r.humidity || r.battery ? r : r.entity)));
   });
