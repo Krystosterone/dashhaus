@@ -66,16 +66,17 @@ Publishing is the operator's call; there is no publish job in CI. Before publish
 
 1. Own the `@dashhaus` npm scope: create or join that organization and confirm the account can publish `@dashhaus/*`. The scoped `name` fields and internal ranges already use it; `create-dashhaus-skin` is unscoped.
 2. Be logged in with the registry's required 2FA (`npm whoami`).
-3. Publish in dependency order so the internal ranges resolve:
+3. Publish in dependency order so the internal ranges resolve. Keep the `./`: npm 11.18 reads a bare `release/x.tgz` as
+   a GitHub repository.
 
 ```sh
-npm publish release/dashhaus-core-0.2.0.tgz --access public
-npm publish release/dashhaus-dashboard-0.2.0.tgz --access public
-npm publish release/dashhaus-deploy-0.2.0.tgz --access public
-npm publish release/dashhaus-orb-0.2.0.tgz --access public
-npm publish release/dashhaus-field-0.2.0.tgz --access public
-npm publish release/dashhaus-bundle-0.2.0.tgz --access public
-npm publish release/create-dashhaus-skin-0.2.0.tgz
+npm publish ./release/dashhaus-core-0.2.0.tgz --access public
+npm publish ./release/dashhaus-dashboard-0.2.0.tgz --access public
+npm publish ./release/dashhaus-deploy-0.2.0.tgz --access public
+npm publish ./release/dashhaus-orb-0.2.0.tgz --access public
+npm publish ./release/dashhaus-field-0.2.0.tgz --access public
+npm publish ./release/dashhaus-bundle-0.2.0.tgz --access public
+npm publish ./release/create-dashhaus-skin-0.2.0.tgz
 ```
 
 After publishing, rerun `node verify/dx/user.js`, `node verify/dx/author.js` and `node verify/dx/developer.js`
