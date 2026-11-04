@@ -112,7 +112,8 @@ app=$(mktemp -d); cd "$app"
 npm init -y && npm pkg set type=module
 npm install "$release"/dashhaus-core-<version>.tgz "$release"/dashhaus-dashboard-<version>.tgz \
   "$release"/dashhaus-deploy-<version>.tgz "$release"/create-dashhaus-skin-<version>.tgz \
-  react@18.3.1 react-dom@18.3.1 home-assistant-js-websocket@9.7.1 vite@5.4.19 @vitejs/plugin-react@4.3.4
+  react@18.3.1 react-dom@18.3.1 home-assistant-js-websocket@9.7.1 vite@5.4.19 @vitejs/plugin-react@4.3.4 \
+  typescript@5.6.3 @types/react@^19.0.0 @types/react-dom@^19.0.0   # the scaffold's own devDependencies, for npm test
 npx create-dashhaus-skin my-skin
 ln -s "$app/node_modules" my-skin/node_modules   # pre-publish stand-in for `npm install` in the scaffold
 cd my-skin

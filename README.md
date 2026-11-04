@@ -1,6 +1,8 @@
 # Dashhaus
 
 [![CI](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml)
+[![HACS](https://github.com/Krystosterone/dashhaus/actions/workflows/hacs.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/hacs.yml)
+[![License: MIT](https://img.shields.io/github/license/Krystosterone/dashhaus)](LICENSE)
 
 Home Assistant dashboards drawn in React: two finished looks, Orb and Field, that you install from the Marketplace,
 and the headless hooks under them to draw your own.
