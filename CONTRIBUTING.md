@@ -9,7 +9,7 @@ order is: talk first, then code.
    section of the docs is the guide for people. `AGENTS.md` is the full set of rules (vocabulary, layout, boundaries,
    generators, the Storybook tree), written for coding agents and maintainers alike, and `spec/` holds each skin's
    design rules and each card's behaviour.
-3. **Set up** with Node 22 (`.nvmrc`) and npm 11.18 (`corepack enable npm`), then `npm install`. Another npm version
+3. **Set up** with Node 22.23.4 (`.nvmrc`, `nvm install`) and npm 11.18 (`corepack enable npm`), then `npm install`. Another npm version
    rewrites `package-lock.json`, so the install refuses to run with one.
 4. **Start from the generators** when adding a card or a skin (`npm run new-card`, `npm run new-skin`) rather than
    copying the nearest one.

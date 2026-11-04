@@ -53,7 +53,7 @@ npm install
 npm run storybook
 ```
 
-Requires Node 22.9 or later (`.nvmrc` pins 22) and the npm `packageManager` pins. Storybook runs at
+Requires Node 22.23.4 or later (`.nvmrc` pins it) and the npm `packageManager` pins. Storybook runs at
 http://localhost:6006 and documents every card, supported footprint and skin, each skin under the same groups: Cards,
 Bundles (Orb only), Dashboards, Foundations, Connected. Use the Theme menu to switch between Auto (system), Light and
 Dark.

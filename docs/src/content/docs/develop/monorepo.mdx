@@ -15,7 +15,7 @@ npm install
 npm run storybook
 ```
 
-Node 22 (`.nvmrc`; 22.9 at least), and the npm version root `package.json` pins with `packageManager`: run
+Node 22.23.4 or later (`.nvmrc` pins it; `nvm install` fetches it), and the npm version root `package.json` pins with `packageManager`: run
 `corepack enable npm` once, so `npm` in the repository is that version. Another npm stops with `EBADDEVENGINES` (or,
 older than 10.9, fails its `preinstall`) instead of rewriting `package-lock.json`. `npm install`
 links every workspace package, so the root apps read each package's source, not a build. Storybook runs at

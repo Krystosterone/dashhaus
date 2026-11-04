@@ -61,6 +61,66 @@ describe("the pinned npm", () => {
   });
 });
 
+/** Whether Node `version` (`22.23.4`) satisfies an `engines.node` range, in the forms the lockfile uses. */
+function nodeSatisfies(version: string, range: string): boolean {
+  const have = version.split(".").map(Number);
+  const cmp = (want: number[]) => {
+    for (let i = 0; i < 3; i++) if ((have[i] ?? 0) !== (want[i] ?? 0)) return (have[i] ?? 0) - (want[i] ?? 0);
+    return 0;
+  };
+  const test = (token: string) => {
+    const [, op = "", raw] = /^(>=|<=|>|<|\^|~|=)?v?(.+)$/.exec(token) ?? [];
+    if (raw === undefined || raw === "*" || raw === "x") return true;
+    const parts = raw.split(".").filter((part) => part !== "*" && part !== "x").map(Number);
+    if (parts.some(Number.isNaN)) throw new Error(`unreadable engines.node "${range}"`);
+    const c = cmp(parts);
+    if (op === ">=") return c >= 0;
+    if (op === ">") return c > 0;
+    if (op === "<=") return c <= 0;
+    if (op === "<") return c < 0;
+    // ^X.Y.Z keeps the major (all the lockfile's ranges are past 0.x), ~ and a bare X or X.Y keep what they name.
+    const kept = op === "^" ? 1 : op === "~" ? Math.min(parts.length, 2) : parts.length;
+    return c >= 0 && parts.slice(0, kept).every((part, i) => have[i] === part);
+  };
+  return range.split("||").some((set) => set.trim().replace(/([<>=^~]+)\s+/g, "$1").split(/\s+/).every(test));
+}
+
+describe("the pinned Node", () => {
+  const nvmrc = read(".nvmrc").trim();
+  const lock = JSON.parse(read("package-lock.json")) as {
+    packages: Record<string, { engines?: { node?: string }; optional?: boolean }>;
+  };
+
+  it("is one exact version, the floor root and docs engines declare", () => {
+    // An exact pin: `nvm use` on a bare `22` takes whichever 22 is installed, older than the dependencies allow.
+    expect(nvmrc).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(manifest.engines).toEqual({ node: `>=${nvmrc}` });
+    expect(JSON.parse(read("docs/package.json")).engines).toEqual({ node: `>=${nvmrc}` });
+  });
+
+  it("satisfies every locked package's engines.node, so an install prints no EBADENGINE", () => {
+    // An optional package (another platform's binary) that doesn't fit is skipped without a warning.
+    const unmet = Object.entries(lock.packages)
+      .filter(([, entry]) => !entry.optional)
+      .filter(([, entry]) => typeof entry.engines?.node === "string" && !nodeSatisfies(nvmrc, entry.engines.node))
+      .map(([path, entry]) => `${path.replace(/^.*node_modules\//, "") || "dashhaus"} wants node ${entry.engines?.node}`);
+    expect(unmet, `raise .nvmrc and the engines floors to meet them`).toEqual([]);
+  });
+
+  it("reads the ranges the lockfile writes", () => {
+    expect(nodeSatisfies("22.23.4", "^22.22.2 || ^24.15.0 || >=26.0.0")).toBe(true);
+    expect(nodeSatisfies("22.20.0", "^22.22.2 || ^24.15.0 || >=26.0.0")).toBe(false);
+    expect(nodeSatisfies("22.20.0", ">=22.23.4")).toBe(false);
+    expect(nodeSatisfies("22.23.4", ">= 20.19.0")).toBe(true);
+    expect(nodeSatisfies("22.23.4", "^16.10.0 || ^18.0.0 || >=20.0.0")).toBe(true);
+    expect(nodeSatisfies("22.23.4", "^18.0.0 || ^20.0.0")).toBe(false);
+    expect(nodeSatisfies("22.23.4", "18 || 20 || >=22")).toBe(true);
+    expect(nodeSatisfies("22.23.4", "6.* || 8.* || >= 10.*")).toBe(true);
+    expect(nodeSatisfies("22.23.4", ">=16 || 14 >=14.17")).toBe(true);
+    expect(nodeSatisfies("22.23.4", "*")).toBe(true);
+  });
+});
+
 describe(CHROMIUM_ENV, () => {
   it("leaves Playwright's own build in place when unset or empty", () => {
     expect(chromiumExecutable({})).toBeUndefined();

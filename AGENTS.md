@@ -50,7 +50,7 @@ One word per thing, the same in code, Storybook and the docs.
 
 Commands that launch a browser use the pinned Playwright's Chromium unless `DASHHAUS_CHROMIUM` names a Chromium or Chrome executable (`scripts/chromium.js`).
 
-The toolchain is Node 22 (`.nvmrc`) and npm 11.18 (`packageManager`, enabled with `corepack enable npm`). Any other npm rewrites `package-lock.json`, so it fails before it installs; if an install already ran, `git checkout package-lock.json`.
+The toolchain is Node 22.23.4 (`.nvmrc`; the floor every dependency's `engines` allows, and root `engines.node`) and npm 11.18 (`packageManager`, enabled with `corepack enable npm`). Any other npm rewrites `package-lock.json`, so it fails before it installs; if an install already ran, `git checkout package-lock.json`.
 
 Node-run ESM is `.js` under `"type": "module"`. The only first-party `.mjs` is a file named `dashboard.config.mjs`, the public deploy config; ESLint rejects any other.
 
