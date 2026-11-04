@@ -74,7 +74,7 @@ because it ships in the same bundle.
 - `docs/astro.config.js` runs `starlight-llms-txt`, and `docs/dist/llms.txt`, `llms-small.txt` and `llms-full.txt` are
   generated.
 - `research/11-in-ha-setup-card.md` decides the setup card and lists the distribution gates.
-- `TODOS.md` tracks the setup card, the Pages gate and the npm release.
+- `TODOS.md` tracked the setup card, the Pages gate and the npm release; they are GitHub issues now (Krystosterone/dashhaus#29–#35).
 
 ## Gaps
 
