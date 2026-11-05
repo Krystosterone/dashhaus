@@ -1,12 +1,17 @@
 ---
 title: Alarm
 description: "One alarm_control_panel.* entity: its state, its arm modes, the code and the exit and entry delays."
+kind:
+  group: Safety
+  order: 1
+  summary: "Its state, arm modes, the code and the exit and entry delays."
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `alarm_control_panel.*` entity: its state, the modes it arms to, whether it wants a code, and its exit and entry delays.
 
@@ -21,7 +26,7 @@ Arming and disarming answer, unlike the other actions: `true` when Home Assistan
 `<HaAlarm>` is `useHaAlarm` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaAlarmProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaAlarm" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -39,7 +44,7 @@ It reads the panel, its area and today's history. Home Assistant's alarm entity 
 
 #### `entity`: AlarmEntity
 
-<ApiMembers from="@dashhaus/core/entities/alarm/types" name="AlarmEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/alarm/types" name="AlarmEntity" />
 
 #### `history`: AlarmHistory
 
@@ -50,7 +55,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: AlarmHandlers
 
-<ApiMembers from="@dashhaus/core" name="AlarmHandlers" notes={{"onArm": "Calls `alarm_control_panel.alarm_arm_<mode>` (`home`, `away`, `night`, `vacation`, `custom_bypass`) with the code when given. A mode the panel doesn't support rejects with `unsupported`.", "onDisarm": "Calls `alarm_control_panel.alarm_disarm` with the code when given."}} />
+<ApiMembers from="@dashhaus/core" name="AlarmHandlers" />
 
 A failure other than a wrong code also goes to `onActionError` before the promise rejects.
 
@@ -84,5 +89,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-alarm--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-alarm--all-states).
+<StoryLinks kind="alarm" />

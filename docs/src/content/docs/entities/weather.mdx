@@ -1,12 +1,19 @@
 ---
 title: Weather
 description: "The home's outdoor conditions from a weather.* entity, with its air quality, the sun and the forecasts."
+kind:
+  group: Readings
+  order: 2
+  summary: "Outdoor conditions, air quality, the sun and the forecast."
+  with: "its air-quality sensor and `sun.sun`"
+  reading: true
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 The home's outdoor conditions from one `weather.*` entity, with an air-quality sensor, `sun.sun` for day and night, and the hourly and daily forecasts. Read-only.
 
@@ -21,7 +28,7 @@ The home's outdoor conditions from one `weather.*` entity, with an air-quality s
 `<HaWeather>` is `useHaWeather` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaWeatherProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaWeather" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -41,7 +48,7 @@ It reads the weather entity, its companions, today's temperature history, and th
 
 #### `entity`: WeatherEntity
 
-<ApiMembers from="@dashhaus/core/entities/weather/types" name="WeatherEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/weather/types" name="WeatherEntity" />
 
 #### `history`: WeatherHistory
 
@@ -92,5 +99,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-weather--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-weather--all-states).
+<StoryLinks kind="weather" />

@@ -6,6 +6,7 @@
  * the same shape, so a new one needs no edit to this page.
  */
 import LiveStory from "./LiveStory.astro";
+import { docsId, story, storybookUrl, storyId } from "../lib/stories";
 
 interface Manifest {
   name: string;
@@ -23,9 +24,7 @@ const setups = import.meta.glob<string>("../../../src/skins/*/storybook.tsx", { 
 const records = import.meta.glob<StudyRecord>("../../../src/skins/*/study.json", { eager: true, import: "default" });
 const references = import.meta.glob<string>("../../../src/skins/*/reference.*", { eager: true, query: "?url", import: "default" });
 const repo = "https://github.com/Krystosterone/dashhaus";
-const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
-/** Storybook's id for a title: lower-case words joined by hyphens. */
-const idOf = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const storybook = storybookUrl();
 
 const studies = Object.entries(manifests)
   .flatMap(([path, manifest]) => {
@@ -53,7 +52,7 @@ const studies = Object.entries(manifests)
       {study.description && <p>{study.description}</p>}
       {study.reference?.image && <img class="study-reference" src={study.reference.image} alt={`The picture ${study.name} was built from`} />}
       <LiveStory
-        id={`${idOf(`${study.section}/Dashboards/Examples`)}--phone`}
+        id={storyId(`${study.section}/Dashboards/Examples`, "Phone")}
         title={`${study.name} on a phone`}
         device="Phone"
         width={390}
@@ -63,7 +62,7 @@ const studies = Object.entries(manifests)
         link={false}
       />
       <p class="study-links">
-        <a href={`${storybook}?path=/docs/${idOf(`${study.section}/Read me first`)}--docs`} target="_blank" rel="noopener">Read me first, in Storybook</a>
+        <a href={`${storybook}?path=/docs/${story(docsId(`${study.section}/Read me first`))}`} target="_blank" rel="noopener">Read me first, in Storybook</a>
         {study.run && <>{" · "}<a href={`${repo}/blob/main/src/skins/${study.dir}/REPORT.md`} target="_blank" rel="noopener">The agent's report</a></>}
         {" · "}
         <a href={`${repo}/tree/main/src/skins/${study.dir}`} target="_blank" rel="noopener">Its source</a>

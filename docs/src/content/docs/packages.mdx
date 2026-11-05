@@ -1,19 +1,13 @@
 ---
 title: Packages
-description: "The seven Dashhaus packages, what each is for, how they depend on each other and which path installs which."
+description: "Every Dashhaus package, what each is for, how they depend on each other and which path installs which."
 ---
 
-Dashhaus is seven packages that share one version, `0.2.1`, and move together.
+import Packages from "../../components/Packages.astro";
 
-| Package | What it is | Who installs it |
-| --- | --- | --- |
-| `@dashhaus/bundle` | The prebuilt Lovelace bundle: Orb and Field in one file, and `bundlePath` pointing at it. No dependencies. | Using a skin |
-| `@dashhaus/deploy` | The `dashhaus-deploy` command: uploads a bundle, registers it, creates dashboards. Node 22 or newer. | Using a skin, building a skin |
-| `@dashhaus/core` | The headless foundation: entity models, the store and provider, the `useHa<Name>` hooks and headless components, primitives, demo data and a testing helper. No markup, no CSS. | Your own app, building a skin |
-| `@dashhaus/dashboard` | What a skin's Lovelace card is built on: the element, the card frame, the YAML reader, the automatic layout and the conformance check. | Building a skin |
-| `@dashhaus/orb` | The Orb skin: its cards, tiles, bundles and dashboard furniture, and its Lovelace card. | Your own app |
-| `@dashhaus/field` | The Field skin: its modules and its Lovelace card. | Your own app |
-| `create-dashhaus-skin` | The scaffolder behind `npm create dashhaus-skin`. | Building a skin, once |
+Dashhaus is <Packages show="count" /> packages that share one version, <Packages show="version" />, and move together.
+
+<Packages show="list" />
 
 ## How they depend on each other
 
@@ -33,45 +27,26 @@ skin installs core and dashboard and deploys its own bundle with the same deploy
 
 ## `@dashhaus/core`
 
-| Import | What it holds |
-| --- | --- |
-| `@dashhaus/core` | The transport and store, `HaProvider` and its selectors, the `useHa<Name>` hooks and `Ha<Name>` components, the registry, history and request hooks, the mappers and action factories, `HaActionError` |
-| `@dashhaus/core/entities`, `@dashhaus/core/entities/*` | The entity models and their pure logic (`entities/light/types`, `entities/format`), with no React and no Home Assistant |
-| `@dashhaus/core/primitives` | `usePress`, `useSlider`, `useRangeSlider`, `useSheet`, `useKeypad` |
-| `@dashhaus/core/hooks` | `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, and `useDemoClimate` for stories |
-| `@dashhaus/core/websocket` | `connectHomeAssistant` and `createHomeAssistantTransport`: the one module that imports `home-assistant-js-websocket` |
-| `@dashhaus/core/perf` | Opt-in performance marks, off unless the page asks for them with `?dashhaus_perf=1` |
-| `@dashhaus/core/demo` | `createDemoStore()` and a demo transport per domain, for stories and trying things out |
-| `@dashhaus/core/testing` | `fakeTransport` and `renderConnected`, for tests (needs Vitest and Testing Library) |
-| `@dashhaus/core/fixtures/*` | Raw Home Assistant states, as JSON |
+<Packages show="subpaths" packages={["@dashhaus/core"]} />
 
 The demo, testing and fixture subpaths are for stories and tests: their data can change in any release.
 
 ## For a skin author
 
-| Import | What it holds | Stability |
-| --- | --- | --- |
-| `@dashhaus/dashboard/skin` | `LovelaceDashboardElement`, the base a skin's Lovelace card extends; `registerCard`, `scopeToHost`, `autoInput`, `useActionStatus` | The frozen contract |
-| `@dashhaus/dashboard/card` | The frame every card is drawn in: footprints, ids and the accessible name, the details state, the tile and sheet | The frozen contract |
-| `@dashhaus/dashboard/schema` | The YAML `Reader`, the card kind table, the shared option readers, `DashboardConfigError` | The frozen contract |
-| `@dashhaus/dashboard/layout` | The automatic layout: visible entities, areas, sorting, grouping, room sensors | May change with the layout work |
-| `@dashhaus/dashboard/conformance` | `checkCards`, the card checks a skin runs in its own test. Node only | The compatibility test |
-| `@dashhaus/dashboard` | The full Lovelace entry, nav included | Not part of the contract |
+<Packages show="subpaths" packages={["@dashhaus/dashboard"]} />
 
 Until 1.0 a breaking change to the contract is allowed, but it is announced as one; the conformance check is what
 says a skin still fits.
 
 ## The skins
 
-| Import | What it holds |
-| --- | --- |
-| `@dashhaus/orb` | The cards, the `Ha<Name>Tile` connected tiles, the bundles, `DashboardPage`, `Section`, `CardGrid`, `Columns`, `Cell`, the `Header`. Loads Orb's stylesheet. |
-| `@dashhaus/orb/lovelace/card` | `defineDashhausCard` and `createDashhausCard`: `custom:dashhaus-orb` |
-| `@dashhaus/orb/lovelace/auto` | `autoDashboard`, the automatic layout as data, for a deploy config. No React |
-| `@dashhaus/orb/styles/tokens.css` | Orb's design tokens |
-| `@dashhaus/field` | The modules and the `Ha<Name>Module` connected modules. Loads Field's stylesheet. |
-| `@dashhaus/field/lovelace/card` | `defineFieldCard` and `createFieldCard`: `custom:dashhaus-field` |
-| `@dashhaus/field/styles/tokens.css` | Field's design tokens, every one prefixed `--fd-` |
+<Packages show="subpaths" packages={["@dashhaus/orb", "@dashhaus/field"]} />
+
+## `@dashhaus/deploy`
+
+For a script that deploys from code rather than the `dashhaus-deploy` command:
+
+<Packages show="subpaths" packages={["@dashhaus/deploy"]} />
 
 ## Which path installs what
 

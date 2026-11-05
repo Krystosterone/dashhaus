@@ -1,12 +1,17 @@
 ---
 title: Light
 description: "One light.* entity: on and off, brightness, colour temperature and colour."
+kind:
+  group: Controls
+  order: 1
+  summary: "On and off, brightness, colour temperature and colour."
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `light.*` entity: whether it's on, how bright, and its warmth or colour when it has them.
 
@@ -21,7 +26,7 @@ The hook maps the raw light into a `LightEntity` and builds its actions. A tap c
 `<HaLight>` is `useHaLight` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaLightProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaLight" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -39,7 +44,7 @@ It reads the light, its area from Home Assistant's registries, and today's histo
 
 #### `entity`: LightEntity
 
-<ApiMembers from="@dashhaus/core/entities/light/types" name="LightEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/light/types" name="LightEntity" />
 
 #### `history`: LightHistory
 
@@ -50,7 +55,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: LightHandlers
 
-<ApiMembers from="@dashhaus/core" name="LightHandlers" notes={{"onToggle": "Calls `light.toggle`.", "onBrightnessChange": "Calls `light.turn_on` with `brightness_pct`, rounded and held between 1 and 100. A light without brightness reports `unsupported`.", "onKelvinChange": "Only for a light that takes a colour temperature. Calls `light.turn_on` with `color_temp_kelvin`; a value outside `minKelvin` to `maxKelvin` reports `invalid_input`.", "onColorChange": "Only for a colour light. Calls `light.turn_on` with `hs_color`: hue 0 to 360, saturation 0 to 100."}} />
+<ApiMembers from="@dashhaus/core" name="LightHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 
@@ -90,5 +95,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-light--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-light--all-states).
+<StoryLinks kind="light" />

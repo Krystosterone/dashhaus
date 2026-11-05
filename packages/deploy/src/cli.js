@@ -27,11 +27,30 @@ export function parseArgs(argv) {
   return options;
 }
 
-/** The `.env` a deploy reads, with what each setting is. Printed by `--help` and by the missing-settings error. */
-export const ENV_HELP = `HA_URL=http://homeassistant.local:8123   # the address you open Home Assistant at
-HA_TOKEN=<long-lived access token>        # an admin's token: Profile → Security → Long-lived access tokens
-HA_WWW=root@homeassistant.local:/config/www   # Home Assistant's /config/www: user@host:/path over SSH, or a mounted folder
-# HA_SSH_PORT=22222                       # only when SSH isn't on port 22`;
+/** The command's options, with what each does: `--help` prints them and the documentation site lists them. */
+export const OPTIONS = [
+  { flag: "--config <file>", text: "the config to read (default: dashboard.config.mjs in this folder)" },
+  { flag: "--skip-build", text: "upload the bundle as it is; use it for @dashhaus/bundle, which has nothing to build" },
+  { flag: "--help", text: "this text" },
+];
+
+/**
+ * The settings a deploy reads from `.env` (or the environment), with an example and what each is: `--help` and the
+ * missing-settings error print them, and the documentation site lists them.
+ */
+export const SETTINGS = [
+  { name: "HA_URL", example: "http://homeassistant.local:8123", text: "the address you open Home Assistant at" },
+  { name: "HA_TOKEN", example: "<long-lived access token>", text: "an admin's token: Profile → Security → Long-lived access tokens" },
+  { name: "HA_WWW", example: "root@homeassistant.local:/config/www", text: "Home Assistant's /config/www: user@host:/path over SSH, or a mounted folder" },
+  { name: "HA_SSH_PORT", example: "22222", text: "only when SSH isn't on port 22", optional: true },
+];
+
+/** The `.env` a deploy reads, with what each setting is: `SETTINGS` as lines to copy, the optional ones commented out. */
+export const ENV_HELP = (() => {
+  const lines = SETTINGS.map((setting) => [`${setting.optional ? "# " : ""}${setting.name}=${setting.example}`, setting.text]);
+  const width = Math.max(...lines.map(([line]) => line.length)) + 3;
+  return lines.map(([line, text]) => `${line.padEnd(width)}# ${text}`).join("\n");
+})();
 
 // The starter's import lines are text the user copies, not imports of this package: written with `q` so the
 // package's import-boundary check, which reads specifiers out of the source, doesn't take them for its own.
@@ -79,9 +98,7 @@ Builds the bundle the config names (unless --skip-build), copies it to $HA_WWW/<
 checks that Home Assistant serves it, and creates each dashboard the config declares if it does not exist
 yet. An existing dashboard keeps its layout; only its sidebar title follows the config.
 
-  --config <file>  the config to read (default: dashboard.config.mjs in this folder)
-  --skip-build     upload the bundle as it is; use it for @dashhaus/bundle, which has nothing to build
-  --help           this text
+${OPTIONS.map((option) => `  ${option.flag.padEnd(15)}  ${option.text}`).join("\n")}
 
 ${config}
 

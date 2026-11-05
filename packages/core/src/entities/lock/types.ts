@@ -7,7 +7,9 @@ export type LockState = "locked" | "unlocked" | "locking" | "unlocking" | "jamme
 
 /** Mirrors the parts of one Home Assistant `lock.*` entity, and its device's battery, that the card needs. */
 export interface LockEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
+  /** Its name: the `name` option, else Home Assistant's friendly name, else its entity id. */
   name: string;
   /** Where it is: "Front door". */
   area?: string;
@@ -27,6 +29,7 @@ export interface LockEntity {
   lastChanged?: string;
   /** The same device's battery, 0–100, where it has one. */
   battery?: number;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

@@ -12,13 +12,17 @@ import type { LightEntity, LightHistory } from "../../entities/light/types";
 import type { HaActionError } from "../types";
 
 export interface HaLightOptions {
+  /** Overrides Home Assistant's friendly name. */
   name?: string;
+  /** Overrides the area Home Assistant's registries resolve for the entity. */
   area?: string;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   /** Host-owned history override; when omitted, today's history is read from Home Assistant. */
   history?: LightHistory;
   /** Set false to skip the Home Assistant history read. */
   loadHistory?: boolean;
+  /** Called with an HaActionError when an action is refused or fails. */
   onActionError?: (error: HaActionError) => void;
 }
 

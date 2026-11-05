@@ -1,0 +1,34 @@
+---
+/**
+ * Every release's notes, newest first, after the changes not released yet: the `releases` collection
+ * (`content.config.ts`), drawn from the release records and the change notes.
+ */
+import { getCollection, render } from "astro:content";
+
+const repo = "https://github.com/Krystosterone/dashhaus";
+const TYPE_WORDS = { breaking: "Breaking", feature: "New", fix: "Fixed" } as const;
+const entries = (await getCollection("releases")).sort((a, b) => a.data.order - b.data.order);
+const drawn = await Promise.all(entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })));
+---
+
+{
+  drawn.map(({ entry, Content }) => (
+    <section class="release">
+      {entry.id === "next" ? (
+        <>
+          <h2 id="next">Not released yet</h2>
+          <p>On main, for the next release:</p>
+          <ul>
+            {entry.data.changes.map((change) => <li><strong>{TYPE_WORDS[change.type]}:</strong> {change.body}</li>)}
+          </ul>
+        </>
+      ) : (
+        <>
+          <h2 id={`v${entry.data.version}`}>{entry.data.version}</h2>
+          <p><a href={`${repo}/releases/tag/v${entry.data.version}`}>The release on GitHub</a>, with its tarballs.</p>
+        </>
+      )}
+      {entry.id !== "next" && (entry.body ? <Content /> : <p>Its notes are on GitHub.</p>)}
+    </section>
+  ))
+}

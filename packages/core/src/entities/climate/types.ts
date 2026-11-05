@@ -7,8 +7,11 @@ export type HvacAction = "heating" | "cooling" | "idle" | "off" | "drying" | "fa
 
 /** Mirrors the parts of a Home Assistant `climate.*` entity the card needs. */
 export interface ClimateEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
+  /** Its name: the `name` option, else Home Assistant's friendly name, else its entity id. */
   name: string;
+  /** Its area: the `area` option, else the one Home Assistant's registries resolve; none when neither has one. */
   area?: string;
   state: HvacMode | "unavailable";
   hvacModes: HvacMode[];
@@ -30,6 +33,7 @@ export interface ClimateEntity {
   fanMode?: string;
   fanModes?: string[];
   lastChanged?: string;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

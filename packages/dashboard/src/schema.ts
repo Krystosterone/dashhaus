@@ -262,11 +262,19 @@ export interface LayoutSchema<I> {
   readonly footprints?: { readonly mix: FootprintMix; of(item: I): string };
 }
 
-/** The keys a page's body takes, at the top of the card or on a page. */
-export const BODY_KEYS: readonly string[] = ["cards", "rows", "columns", "flow", "align", "sections", "modules"];
+/** The keys a page's body takes, at the top of the card or on a page: its cards, or its rows, and their defaults. */
+export const PAGE_KEYS: readonly string[] = ["cards", "rows", "columns", "flow"];
+/**
+ * The keys a skin adds to its page's allowed keys: `PAGE_KEYS`, and three it reads only to say what to write instead
+ * (`align` belongs on a row; `sections` and `modules` are other dashboards' words for `rows` and `cards`).
+ */
+export const BODY_KEYS: readonly string[] = [...PAGE_KEYS, "align", "sections", "modules"];
 /** The keys a card takes to place itself in its row; a skin adds them to its cards' common keys. */
 export const PLACEMENT_KEYS: readonly string[] = ["width", "column"];
-const ROW_KEYS = ["title", "note", "columns", "flow", "align", "cards"];
+/** The keys one row of `rows` takes. */
+export const ROW_KEYS: readonly string[] = ["title", "note", "columns", "flow", "align", "cards"];
+/** The keys Home Assistant itself reads on any Lovelace card, which a skin allows at the top of its YAML and ignores. */
+export const LOVELACE_KEYS: readonly string[] = ["type", "view_layout", "grid_options", "visibility"];
 /** Keys that look like layout but aren't, each with what to write instead. */
 const ROW_HINTS = (noun: string): Record<string, string> => ({
   rows: "rows don't nest: list this row's cards under its own \"cards\", and put the inner rows beside it in the page's \"rows\"",

@@ -1,9 +1,10 @@
 // @vitest-environment node
+import { readFileSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { helpText, main, parseArgs } from "./cli.js";
+import { OPTIONS, SETTINGS, helpText, main, parseArgs } from "./cli.js";
 import type { DeployClient } from "./deploy.js";
 
 const directories: string[] = [];
@@ -88,6 +89,22 @@ describe("helpText", () => {
     expect(text).toContain("custom:dashhaus-orb");
     expect(text).toMatch(/HA_URL=.*\n.*HA_TOKEN=.*\n.*HA_WWW=/);
     expect(text).not.toContain(".env.example");
+  });
+});
+
+describe("OPTIONS and SETTINGS", () => {
+  it("list every option the command takes, each of which it takes", () => {
+    for (const { flag } of OPTIONS) {
+      const [name, value] = flag.split(" ");
+      expect(() => parseArgs(value ? [name, "file"] : [name]), flag).not.toThrow();
+    }
+    expect(OPTIONS.map((option) => option.flag.split(" ")[0])).toEqual(["--config", "--skip-build", "--help"]);
+  });
+
+  it("list every setting the deploy reads from the environment", () => {
+    const source = readFileSync(new URL("./deploy.js", import.meta.url), "utf8");
+    const read = [...new Set([...source.matchAll(/\benv\.(HA_\w+)/g)].map((match) => match[1]))].sort();
+    expect(SETTINGS.map((setting) => setting.name).sort()).toEqual(read);
   });
 });
 

@@ -43,14 +43,14 @@ registerCard("dashhaus-my-skin", MyCard, "Dashhaus My skin", "A Dashhaus skin.")
 
 ## Subpaths
 
-| Subpath | What it is |
-| --- | --- |
-| `.` | The full Lovelace entry: element base, nav, room sensors and token scoping |
-| `./skin` | The frozen skin-author surface: `LovelaceDashboardElement`, `registerCard`, `scopeToHost`, `autoInput`, `useActionStatus` (the rejected-command status a page shows), `LovelaceHass`, `AutoEntityEntry`, `ActionStatus` and `ActionMessage` |
-| `./card` | The frame every skin's card draws on: footprint flags, ids and aria, details state, tile/sheet composition |
-| `./schema` | The shared YAML reader, kind table, card reader and renderer dispatch. Pure |
-| `./layout` | The automatic layout: visibility, area resolution, name sort, grouping, placement. Pure |
-| `./conformance` | The generic card preset a skin runs against its own cards. Node- and test-only |
+| Subpath | What it is | Stability |
+| --- | --- | --- |
+| `.` | The full Lovelace entry: element base, nav, room sensors and token scoping | Not part of the contract |
+| `./skin` | The frozen skin-author surface: `LovelaceDashboardElement`, `registerCard`, `scopeToHost`, `autoInput`, `useActionStatus` (the rejected-command status a page shows), `LovelaceHass`, `AutoEntityEntry`, `ActionStatus` and `ActionMessage` | The frozen contract |
+| `./card` | The frame every skin's card draws on: footprint flags, ids and aria, details state, tile/sheet composition | The frozen contract |
+| `./schema` | The shared YAML `Reader`, the card kind table and card reader, the shared option readers, the renderer dispatch and `DashboardConfigError`. Pure | The frozen contract |
+| `./layout` | The automatic layout: visibility, area resolution, name sort, grouping, placement. Pure | May change with the layout work |
+| `./conformance` | `checkCards`, the generic card preset a skin runs against its own cards. Node- and test-only | The compatibility test |
 
 ## Docs
 

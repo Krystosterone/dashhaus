@@ -6,11 +6,26 @@ import type { ActionKinds } from "./kinds";
  type ClimateServiceCaller = Pick<HaStore, "callService">;
 
 export interface ClimateHandlers {
+  /** Calls `climate.turn_on` when the unit is off, `climate.turn_off` otherwise. */
   onToggle: () => void;
+  /**
+   * Calls `climate.set_temperature` with `temperature`. A value outside `minTemp` to `maxTemp` reports
+   * `invalid_input`.
+   */
   onTargetChange: (temperature: number) => void;
+  /**
+   * Only for a unit with a `heat_cool` mode. Calls `climate.set_temperature` with `target_temp_low` and
+   * `target_temp_high`, in either order.
+   */
   onRangeChange?: (low: number, high: number) => void;
+  /**
+   * Only when Home Assistant lists HVAC modes. Calls `climate.set_hvac_mode`; a mode the unit doesn't list reports
+   * `unsupported`.
+   */
   onModeChange?: (mode: HvacMode) => void;
+  /** Only with preset modes. Calls `climate.set_preset_mode`. */
   onPresetChange?: (preset: string) => void;
+  /** Only with fan modes. Calls `climate.set_fan_mode`. */
   onFanChange?: (fan: string) => void;
 }
 

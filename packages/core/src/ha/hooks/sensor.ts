@@ -13,9 +13,12 @@ export interface HaSensorOptions {
   humidityEntityId?: string;
   /** Optional companion entity with `device_class: battery`. */
   batteryEntityId?: string;
+  /** Overrides Home Assistant's friendly name. */
   name?: string;
+  /** Overrides the area Home Assistant's registries resolve for the entity. */
   area?: string;
   outdoor?: boolean;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   unit?: "°C" | "°F";
   /** Host-owned history override; when omitted, today's history is read from Home Assistant. */

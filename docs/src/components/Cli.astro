@@ -1,0 +1,58 @@
+---
+/**
+ * The two commands' references, from the data their own `--help` prints (`@dashhaus/deploy`'s `OPTIONS` and
+ * `SETTINGS`, the scaffolder's `OPTIONS`), so the site and `--help` can't disagree:
+ *
+ * - `deploy`: `dashhaus-deploy`'s options;
+ * - `settings`: the `.env` settings a deploy reads;
+ * - `scaffold`: `create-dashhaus-skin`'s arguments and options;
+ * - `domains`: inline, the domains `npm run add` can draw.
+ */
+import { OPTIONS as DEPLOY, SETTINGS } from "../../../packages/deploy/src/cli.js";
+import { OPTIONS as SCAFFOLD } from "../../../packages/create-dashhaus-skin/src/help.js";
+import domains from "../../../packages/create-dashhaus-skin/src/domains.json";
+
+interface Props {
+  show: "deploy" | "settings" | "scaffold" | "domains";
+}
+
+const { show } = Astro.props;
+const names = Object.keys(domains);
+const options = show === "deploy" ? DEPLOY : SCAFFOLD;
+---
+
+{
+  (show === "deploy" || show === "scaffold") && (
+    <table>
+      <thead>
+        <tr><th>{show === "deploy" ? "Option" : "Argument or option"}</th><th>What it does</th></tr>
+      </thead>
+      <tbody>
+        {options.map((option: { flag: string; text: string }) => (
+          <tr><td><code>{option.flag}</code></td><td>{option.text}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+{
+  show === "settings" && (
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>What it is</th><th>For example</th></tr>
+      </thead>
+      <tbody>
+        {SETTINGS.map((setting) => (
+          <tr>
+            <td><code>{setting.name}</code>{setting.optional && " (optional)"}</td>
+            <td>{setting.text}</td>
+            <td><code>{setting.example}</code></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+{show === "domains" && names.map((name, index) => <>{index > 0 && (index === names.length - 1 ? " and " : ", ")}<code>{name}</code></>)}

@@ -9,8 +9,11 @@ export type AlarmState =
 
 /** Mirrors the parts of a Home Assistant `alarm_control_panel.*` entity the card needs. */
 export interface AlarmEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
+  /** Its name: the `name` option, else Home Assistant's friendly name, else its entity id. */
   name: string;
+  /** Its area: the `area` option, else the one Home Assistant's registries resolve; none when neither has one. */
   area?: string;
   state: AlarmState;
   /** The arm modes this panel supports, in the order to show them. */
@@ -36,6 +39,7 @@ export interface AlarmEntity {
   triggeredBy?: string;
   /** Doors and windows open right now (from their binary sensors). Arming would bypass them. */
   openSensors?: string[];
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

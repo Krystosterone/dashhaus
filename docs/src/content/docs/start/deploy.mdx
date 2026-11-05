@@ -5,6 +5,7 @@ description: "Install the prebuilt bundle and the deploy tool, and add Orb and F
 
 import { Aside, Steps } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
+import Cli from "../../../components/Cli.astro";
 
 If you only want the dashboards, [Install from the Marketplace](/dashhaus/start/install/) needs no terminal. This page
 is the other way in: for a deploy you script or run from CI, a Home Assistant that manages its resources in YAML, or
@@ -43,13 +44,10 @@ CI runs these steps on every change to Dashhaus: it packs the release, installs 
    HA_WWW=root@homeassistant.local:/config/www
    ```
 
-   - `HA_URL` is the address you open Home Assistant at.
-   - `HA_TOKEN` is a long-lived access token from an admin user (**Profile → Security → Long-lived access tokens**).
-     Only the deploy tool uses it. It never goes into the bundle.
-   - `HA_WWW` is where Home Assistant's `/config/www` folder is: an SSH address like the one above (add
-     `HA_SSH_PORT` if it isn't 22), or a local folder such as `/Volumes/config/www`.
+   <Cli show="settings" />
 
-   Keep `.env` out of version control.
+   `HA_WWW` is an SSH address like the one above, or a local folder such as `/Volumes/config/www`. Only the deploy
+   tool uses `HA_TOKEN`; it never goes into the bundle. Keep `.env` out of version control.
 
 3. Create `dashboard.config.mjs` next to it. It names the bundle to upload and the dashboards to create:
 
@@ -68,7 +66,9 @@ CI runs these steps on every change to Dashhaus: it packs the release, installs 
    time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build. Every step ends in
    ✓; the last one, `Checking that Home Assistant serves it`, fetches the file back from Home Assistant, so a wrong
    `HA_WWW` shows up here instead of as a blank dashboard. `npx dashhaus-deploy --help` prints the options, a config
-   to start from and the `.env` keys.
+   to start from and the `.env` keys:
+
+   <Cli show="deploy" />
 
 5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)** or **Home (Field)** in the sidebar.
 

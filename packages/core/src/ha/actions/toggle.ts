@@ -11,6 +11,10 @@ export type ToggleDomain = "input_boolean" | "switch";
 const DOMAINS: readonly string[] = ["input_boolean", "switch"] satisfies ToggleDomain[];
 
 export interface ToggleHandlers {
+  /**
+   * Calls `input_boolean.toggle` or `switch.toggle`. An unavailable entity, or one from another domain, reports
+   * `unsupported`.
+   */
   onToggle: () => void;
 }
 

@@ -1,12 +1,19 @@
 ---
 title: Sensor
 description: "A room's temperature and humidity: one sensor, read with the humidity and battery sensors on its device."
+kind:
+  group: Readings
+  order: 1
+  summary: "A room's temperature, read with its device's humidity and battery."
+  with: "its device's humidity and battery sensors"
+  reading: true
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 A room's reading: a temperature or humidity `sensor.*`, read with the humidity and battery sensors on the same device. Read-only.
 
@@ -21,7 +28,7 @@ Home Assistant gives each measurement its own entity. The hook reads the compani
 `<HaSensor>` is `useHaSensor` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaSensorProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaSensor" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -39,7 +46,7 @@ It reads the sensor and its companions, its area, and today's history of the tem
 
 #### `entity`: SensorEntity
 
-<ApiMembers from="@dashhaus/core/entities/sensor/types" name="SensorEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/sensor/types" name="SensorEntity" />
 
 #### `history`: SensorHistory
 
@@ -78,5 +85,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-sensor--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-sensor--all-states).
+<StoryLinks kind="sensor" />

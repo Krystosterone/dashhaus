@@ -5,7 +5,9 @@ export type FanDirection = "forward" | "reverse";
 
 /** Mirrors one Home Assistant `fan.*` entity: on and off, its speed, preset, oscillation and direction. */
 export interface FanEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
+  /** Its name: the `name` option, else Home Assistant's friendly name, else its entity id. */
   name: string;
   /** Where it is: "Bedroom". */
   area?: string;
@@ -29,6 +31,7 @@ export interface FanEntity {
   supportsDirection?: boolean;
   direction?: FanDirection;
   lastChanged?: string;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

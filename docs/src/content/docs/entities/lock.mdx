@@ -1,12 +1,18 @@
 ---
 title: Lock
 description: "One lock.* entity and its device's battery: locked or not, who changed it, and an unlock that always asks first."
+kind:
+  group: Safety
+  order: 2
+  summary: "A door lock and its battery: one tap locks, unlocking always asks first."
+  with: "its device's battery sensor"
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `lock.*` entity, with the battery sensor on its device: whether it is locked, on its way or jammed, who or what
 changed it last, whether it wants a code, and whether it can unlatch the door too.
@@ -28,7 +34,7 @@ refused or can't fit the lock's pattern, and `"failed"` when the call didn't go 
 `<HaLock>` is `useHaLock` as a component that draws nothing of its own. It takes every option of the hook as a prop,
 and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaLockProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaLock" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -47,14 +53,14 @@ change, not a day's history, so there is no history read and no `history` in the
 
 #### `entity`: LockEntity
 
-<ApiMembers from="@dashhaus/core/entities/lock/types" name="LockEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/lock/types" name="LockEntity" />
 
 Home Assistant's `code_format` for a lock is a pattern, such as `^\d{4}$`. `codeFormat` says which keyboard it wants:
 `number` when the pattern only takes digits, `text` otherwise.
 
 #### `actions`: LockHandlers
 
-<ApiMembers from="@dashhaus/core" name="LockHandlers" notes={{"onLock": "Calls `lock.lock`, with the code when given.", "onUnlock": "Calls `lock.unlock`, with the code when given. Ask before you call it.", "onOpen": "Calls `lock.open` to unlatch the door, only where `supportsOpen`; otherwise answers `failed` with an `unsupported` error and sends nothing."}} />
+<ApiMembers from="@dashhaus/core" name="LockHandlers" />
 
 ## Every lock
 
@@ -79,5 +85,4 @@ warning, never a glow. They take the hook's options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-lock--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-lock--all-states).
+<StoryLinks kind="lock" />

@@ -40,7 +40,9 @@ export interface HaWeatherOptions {
   /** Explicit host-owned assertion that the companion uses the US AQI scale. */
   aqiScale?: "US";
   sunEntityId?: string;
+  /** Overrides Home Assistant's friendly name. */
   name?: string;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   temperatureUnit?: WeatherEntity["temperatureUnit"];
   windSpeedUnit?: WeatherEntity["windSpeedUnit"];

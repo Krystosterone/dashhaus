@@ -5,6 +5,7 @@ import { HumidifierTile } from "../cards/humidifier/HumidifierTile";
 import type { HumidifierTileProps } from "../cards/humidifier/HumidifierTile";
 
 export interface HaHumidifierTileProps extends HaHumidifierOptions, Omit<HumidifierTileProps, "entity" | "history" | keyof HumidifierHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

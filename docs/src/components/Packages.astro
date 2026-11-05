@@ -1,0 +1,86 @@
+---
+/**
+ * The packages page's facts, read from what ships (`src/lib/packages.ts`):
+ *
+ * - `list`: every public package, its npm description and who installs it;
+ * - `subpaths`: the named packages' Subpaths tables from their READMEs, each subpath written as its import;
+ * - `count` and `version`: inline, how many packages there are and the version they share.
+ *
+ * Who installs which package is the site's own words (spec/journeys.md); a public package without them fails the build.
+ */
+import { publicPackageList, specifier } from "../lib/packages";
+
+interface Props {
+  show: "list" | "subpaths" | "count" | "version";
+  /** For `subpaths`: the packages whose tables to draw, as one table. */
+  packages?: string[];
+}
+
+/** Which journey installs each package, in the words of the site's sidebar, listed in the journeys' order. */
+const WHO: Record<string, string> = {
+  "@dashhaus/bundle": "Using a skin",
+  "@dashhaus/deploy": "Using a skin, building a skin",
+  "@dashhaus/core": "Your own app, building a skin",
+  "@dashhaus/dashboard": "Building a skin",
+  "@dashhaus/orb": "Your own app",
+  "@dashhaus/field": "Your own app",
+  "create-dashhaus-skin": "Building a skin, once",
+};
+const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+
+const { show, packages = [] } = Astro.props;
+const order = Object.keys(WHO);
+const all = publicPackageList();
+for (const pkg of all) if (!WHO[pkg.name]) throw new Error(`packages: say who installs ${pkg.name} in docs/src/components/Packages.astro`);
+all.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+const versions = [...new Set(all.map((pkg) => pkg.version))];
+if (versions.length !== 1) throw new Error(`packages: the public packages don't share one version (${versions.join(", ")})`);
+
+const tables = packages.map((name) => {
+  const pkg = all.find((entry) => entry.name === name);
+  if (!pkg?.subpaths) throw new Error(`packages: ${name} is not a public package with a Subpaths table in its README`);
+  return { name, table: pkg.subpaths };
+});
+const columns = tables[0]?.table.columns ?? [];
+for (const { name, table } of tables) {
+  if (table.columns.join() !== columns.join()) throw new Error(`packages: ${name}'s Subpaths table has other columns than ${tables[0].name}'s`);
+}
+/** Markdown with `code` spans, split so each odd part draws as `<code>`. */
+const spans = (text: string) => text.split("`");
+---
+
+{
+  show === "list" && (
+    <table>
+      <thead>
+        <tr><th>Package</th><th>What it is</th><th>Who installs it</th></tr>
+      </thead>
+      <tbody>
+        {all.map((pkg) => (
+          <tr><td><code>{pkg.name}</code></td><td>{pkg.description}</td><td>{WHO[pkg.name]}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+{
+  show === "subpaths" && (
+    <table>
+      <thead>
+        <tr><th>Import</th>{columns.map((column) => <th>{column}</th>)}</tr>
+      </thead>
+      <tbody>
+        {tables.flatMap(({ name, table }) => table.rows.map((row) => (
+          <tr>
+            <td>{row.subpaths.map((subpath, index) => <>{index > 0 && ", "}<code>{specifier(name, subpath)}</code></>)}</td>
+            {row.cells.map((cell) => <td>{spans(cell).map((part, index) => (index % 2 ? <code>{part}</code> : part))}</td>)}
+          </tr>
+        )))}
+      </tbody>
+    </table>
+  )
+}
+
+{show === "count" && WORDS[all.length]}
+{show === "version" && <code>{versions[0]}</code>}

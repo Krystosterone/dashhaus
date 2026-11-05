@@ -5,6 +5,7 @@ import { AlarmTile } from "../cards/alarm/AlarmTile";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 
 export interface HaAlarmTileProps extends HaAlarmOptions, Omit<AlarmTileProps, "entity" | "history" | keyof AlarmHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

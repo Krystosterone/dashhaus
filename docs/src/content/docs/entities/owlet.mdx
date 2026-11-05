@@ -1,12 +1,19 @@
 ---
 title: Owlet
 description: "An Owlet sock from the owlet custom integration: sleep state, heart rate, oxygen, alerts and the base station."
+kind:
+  group: Safety
+  order: 3
+  summary: "A sock's sleep state, heart rate, oxygen, alerts and base station."
+  with: "its heart rate, oxygen, charging and base station sensors"
+  reading: true
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One Owlet sock, from the custom `owlet` integration: its sleep state with its heart rate, oxygen, charging and alert sensors, and the base station's switch.
 
@@ -21,7 +28,7 @@ The entity id is the sleep state sensor. The heart rate, oxygen, charging and te
 `<HaOwlet>` is `useHaOwlet` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaOwletProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaOwlet" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -39,7 +46,7 @@ It reads the sleep state, every companion, its area and today's history of sleep
 
 #### `entity`: OwletEntity
 
-<ApiMembers from="@dashhaus/core/entities/owlet/types" name="OwletEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/owlet/types" name="OwletEntity" />
 
 #### `history`: OwletHistory
 
@@ -50,7 +57,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: OwletHandlers
 
-<ApiMembers from="@dashhaus/core" name="OwletHandlers" notes={{"onBaseToggle": "Only when a base station switch is found and reports on or off. Calls `switch.turn_on` or `switch.turn_off` for the state shown, never `switch.toggle`, so a repeated tap on a stale screen repeats the request instead of undoing it."}} />
+<ApiMembers from="@dashhaus/core" name="OwletHandlers" />
 
 The readings are read-only; the base station is the one thing to switch.
 
@@ -84,5 +91,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-owlet--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-owlet--all-states).
+<StoryLinks kind="owlet" />

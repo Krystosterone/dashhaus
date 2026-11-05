@@ -46,7 +46,6 @@ const CHECKED = /^\s*(?:```|~~~)\s*(?:ts|tsx|typescript|js|jsx|mjs|cjs|javascrip
 /** Shown by name on the page beside the file it supports, or read by the docs build rather than shown. */
 const UNSHOWN = new Set([
   "tsconfig.json",
-  "api-types.ts",
 ]);
 
 describe("documentation samples", () => {

@@ -12,8 +12,11 @@ import type { AlarmEntity, AlarmHistory } from "../../entities/alarm/types";
 import type { HaActionError } from "../types";
 
 export interface HaAlarmOptions {
+  /** Overrides Home Assistant's friendly name. */
   name?: string;
+  /** Overrides the area Home Assistant's registries resolve for the entity. */
   area?: string;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   exitDelay?: number;
   entryDelay?: number;
@@ -24,6 +27,7 @@ export interface HaAlarmOptions {
   history?: AlarmHistory;
   /** Set false to skip the Home Assistant history read. */
   loadHistory?: boolean;
+  /** Called with an HaActionError when an action is refused or fails. */
   onActionError?: (error: HaActionError) => void;
 }
 

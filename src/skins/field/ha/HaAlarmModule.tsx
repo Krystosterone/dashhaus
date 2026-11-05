@@ -4,6 +4,7 @@ import { AlarmModule } from "../cards/alarm/AlarmModule";
 import type { AlarmModuleProps } from "../cards/alarm/AlarmModule";
 
 export interface HaAlarmModuleProps extends HaAlarmOptions, Pick<AlarmModuleProps, "footprint" | "readOnly" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

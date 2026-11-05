@@ -5,6 +5,7 @@ import { LightTile } from "../cards/light/LightTile";
 import type { LightTileProps } from "../cards/light/LightTile";
 
 export interface HaLightTileProps extends HaLightOptions, Omit<LightTileProps, "entity" | "history" | keyof LightHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

@@ -4,8 +4,14 @@ import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
 export interface HumidifierHandlers {
+  /** Calls `humidifier.toggle`. */
   onToggle: () => void;
+  /**
+   * Only for a device that reports a target. Calls `humidifier.set_humidity`, rounded to a whole percent; outside
+   * `minHumidity` to `maxHumidity` reports `invalid_input`.
+   */
   onTargetChange?: (humidity: number) => void;
+  /** Only with modes. Calls `humidifier.set_mode`; a mode the device doesn't list reports `unsupported`. */
   onModeChange?: (mode: string) => void;
 }
 

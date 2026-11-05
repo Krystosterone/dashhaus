@@ -13,6 +13,20 @@ export function parseArgs(argv: string[]): CliOptions;
 
 export function helpText(dashboards: DeployDashboard[] | undefined, configFile: string, problem?: string): string;
 
+export interface CliOption {
+  flag: string;
+  text: string;
+}
+
+export interface CliSetting {
+  name: string;
+  example: string;
+  text: string;
+  optional?: boolean;
+}
+
+export const OPTIONS: CliOption[];
+export const SETTINGS: CliSetting[];
 export const ENV_HELP: string;
 export const STARTER_CONFIG: string;
 

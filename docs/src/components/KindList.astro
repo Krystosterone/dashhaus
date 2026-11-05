@@ -1,0 +1,73 @@
+---
+/**
+ * A list of every kind of entity, from `src/lib/kinds.ts`, so a new kind appears on every page that lists them:
+ *
+ * - `table`: the Entities overview's table, each kind's Home Assistant entities, hook, component, tile and module;
+ * - `hooks`: each kind's `useHa<Name>` signature, for the Hooks reference;
+ * - `lovelace`: which card a Lovelace card draws for an entity, for the YAML guide.
+ */
+import ApiSignature from "./ApiSignature.astro";
+import { kinds, spans } from "../lib/kinds";
+
+interface Props {
+  show: "table" | "hooks" | "lovelace";
+}
+
+const { show } = Astro.props;
+const list = await kinds();
+const none = "—";
+---
+
+{
+  show === "table" && (
+    <table>
+      <thead>
+        <tr><th>Kind</th><th>Home Assistant</th><th>Hook</th><th>Component</th><th>Orb</th><th>Field</th></tr>
+      </thead>
+      <tbody>
+        {list.map((kind) => (
+          <tr>
+            <td><a href={kind.href}>{kind.title}</a></td>
+            <td>
+              {kind.pattern ? <code>{kind.pattern}</code> : kind.domains.map((domain, index) => <>{index > 0 && ", "}<code>{domain}.*</code></>)}
+              {kind.with && <>, with {spans(kind.with).map((part, index) => (index % 2 ? <code>{part}</code> : part))}</>}
+            </td>
+            <td><code>{kind.hook}</code></td>
+            <td><code>{kind.component}</code></td>
+            <td>{kind.tile ? <code>{kind.tile}</code> : none}</td>
+            <td>{kind.module ? <code>{kind.module}</code> : none}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+{show === "hooks" && list.map((kind) => <ApiSignature from="@dashhaus/core" name={kind.hook} bare />)}
+
+{
+  show === "lovelace" && (
+    <table>
+      <thead>
+        <tr><th>Entity</th><th>Card</th></tr>
+      </thead>
+      <tbody>
+        {list.map((kind) => (
+          <tr>
+            <td>
+              {kind.pattern
+                ? <code>{kind.pattern}</code>
+                : kind.domains.map((domain, index) => <>{index > 0 && ", "}<code>{domain}.*</code></>)}
+              {!kind.own && !kind.pattern && <> with <code>card: {kind.name}</code></>}
+            </td>
+            <td>
+              {kind.name}
+              {kind.with && <>, with {spans(kind.with).map((part, index) => (index % 2 ? <code>{part}</code> : part))}</>}
+              {kind.pattern && <>; <code>card: {kind.name}</code> for one named otherwise</>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}

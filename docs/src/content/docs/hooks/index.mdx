@@ -5,6 +5,7 @@ description: "Every hook in @dashhaus/core, with its signature and what it's for
 
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
+import KindList from "../../../components/KindList.astro";
 
 Every signature on this page is read from the package's own declarations when the site is built.
 
@@ -13,17 +14,7 @@ Every signature on this page is read from the package's own declarations when th
 One per kind of entity, from `@dashhaus/core`. Each has its own page under [Entities](/dashhaus/entities/), with its
 options and what it returns.
 
-<ApiSignature from="@dashhaus/core" name="useHaLight" bare />
-<ApiSignature from="@dashhaus/core" name="useHaToggle" bare />
-<ApiSignature from="@dashhaus/core" name="useHaCover" bare />
-<ApiSignature from="@dashhaus/core" name="useHaSound" bare />
-<ApiSignature from="@dashhaus/core" name="useHaClimate" bare />
-<ApiSignature from="@dashhaus/core" name="useHaHumidifier" bare />
-<ApiSignature from="@dashhaus/core" name="useHaFan" bare />
-<ApiSignature from="@dashhaus/core" name="useHaSensor" bare />
-<ApiSignature from="@dashhaus/core" name="useHaWeather" bare />
-<ApiSignature from="@dashhaus/core" name="useHaAlarm" bare />
-<ApiSignature from="@dashhaus/core" name="useHaOwlet" bare />
+<KindList show="hooks" />
 
 ## The store
 
@@ -31,7 +22,7 @@ The provider and the hooks that read the store directly, from `@dashhaus/core`. 
 selectors](/dashhaus/hooks/state/) shows when to use which.
 
 <ApiSignature from="@dashhaus/core" name="HaProvider" />
-<ApiMembers from="@dashhaus/core" name="HaProviderProps" notes={{ store: "The store from createHaStore. The provider connects it while mounted and disconnects it after the last provider using it unmounts; it never closes the transport.", children: "Your app." }} />
+<ApiMembers from="@dashhaus/core" name="HaProviderProps" />
 
 <ApiSignature from="@dashhaus/core" name="useHaStore" />
 

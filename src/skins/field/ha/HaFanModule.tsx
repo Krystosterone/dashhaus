@@ -4,6 +4,7 @@ import { FanModule } from "../cards/fan/FanModule";
 import type { FanModuleProps } from "../cards/fan/FanModule";
 
 export interface HaFanModuleProps extends HaFanOptions, Pick<FanModuleProps, "footprint" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

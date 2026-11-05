@@ -12,10 +12,13 @@ import type { HaActionError } from "../types";
 export interface HaLockOptions {
   /** Optional companion on the same device, `device_class: battery` (the automatic layout finds it). */
   batteryEntityId?: string;
+  /** Overrides Home Assistant's friendly name. */
   name?: string;
-  /** Overrides the area Home Assistant's registries resolve. */
+  /** Overrides the area Home Assistant's registries resolve for the entity. */
   area?: string;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
+  /** Called with an HaActionError when an action is refused or fails. */
   onActionError?: (error: HaActionError) => void;
 }
 

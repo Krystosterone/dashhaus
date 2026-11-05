@@ -6,6 +6,7 @@ import type { ToggleTileProps } from "../cards/toggle/ToggleTile";
 
 /** `color` names the entity's colour (see useHaToggle); it replaces the tile's own `color` prop. */
 export interface HaToggleTileProps extends HaToggleOptions, Omit<ToggleTileProps, "entity" | "history" | "color" | keyof ToggleHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

@@ -5,6 +5,7 @@ import { CoverTile } from "../cards/cover/CoverTile";
 import type { CoverTileProps } from "../cards/cover/CoverTile";
 
 export interface HaCoverTileProps extends HaCoverOptions, Omit<CoverTileProps, "entity" | "history" | keyof CoverHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

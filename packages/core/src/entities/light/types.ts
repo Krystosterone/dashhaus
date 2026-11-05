@@ -5,7 +5,9 @@ export type { HourSample };
 export type LightState = "on" | "off" | "unavailable";
 
 export interface LightEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
+  /** Its name: the `name` option, else Home Assistant's friendly name, else its entity id. */
   name: string;
   /** Area name, shown under the light's name. */
   area?: string;

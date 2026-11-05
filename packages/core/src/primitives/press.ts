@@ -9,6 +9,7 @@ const HOLD_SLOP = 10;
 const GUARD_MS = 1000;
 
 export interface PressOptions {
+  /** A tap, a click, or Enter or Space on the focused button. */
   onPress: () => void;
   /** Press and hold. The click that ends the hold doesn't also press. */
   onHold?: () => void;

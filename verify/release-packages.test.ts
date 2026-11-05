@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { LICENSE, publicPackages, publishManifest, publishOrder, tarballName } from "../scripts/release/manifest.js";
 import type { PackageManifest } from "../scripts/release/manifest.js";
+import { publicPackageList } from "../docs/src/lib/packages";
 
 const root = process.cwd();
 const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8"));
@@ -134,6 +135,16 @@ describe("public packages", () => {
       for (const dependency of Object.keys({ ...manifest.dependencies, ...manifest.peerDependencies })) {
         if (order.includes(dependency)) expect(order.indexOf(dependency), `${pkg.name} after ${dependency}`).toBeLessThan(order.indexOf(pkg.name));
       }
+    }
+  });
+
+  it("lists every subpath a package exports in its README's Subpaths table, which the site's packages page draws", () => {
+    for (const pkg of publicPackageList(root)) {
+      if (pkg.exports.length === 1 && !pkg.subpaths) continue;
+      expect(pkg.subpaths, `${pkg.dir}/README.md: add a "| Subpath | What it is |" table for ${pkg.exports.join(", ")}`).toBeDefined();
+      const listed = pkg.subpaths!.rows.flatMap((row) => row.subpaths);
+      expect([...listed].sort(), `${pkg.dir}/README.md's Subpaths table against its package.json exports`).toEqual([...pkg.exports].sort());
+      for (const row of pkg.subpaths!.rows) expect(row.cells.length, `${pkg.dir}/README.md: a cell per column on ${row.subpaths.join(", ")}`).toBe(pkg.subpaths!.columns.length);
     }
   });
 

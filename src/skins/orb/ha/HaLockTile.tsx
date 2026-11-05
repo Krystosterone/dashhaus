@@ -4,6 +4,7 @@ import { LockTile } from "../cards/lock/LockTile";
 import type { LockTileProps } from "../cards/lock/LockTile";
 
 export interface HaLockTileProps extends HaLockOptions, Omit<LockTileProps, "entity" | "onLock" | "onUnlock" | "onOpenDoor"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

@@ -4,6 +4,7 @@ import { WeatherTile } from "../cards/weather/WeatherTile";
 import type { WeatherTileProps } from "../cards/weather/WeatherTile";
 
 export interface HaWeatherTileProps extends HaWeatherOptions, Omit<WeatherTileProps, "entity" | "history" | "hourly" | "daily"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

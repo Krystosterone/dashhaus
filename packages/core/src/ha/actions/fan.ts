@@ -4,15 +4,21 @@ import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
 export interface FanHandlers {
-  /** `fan.toggle`. */
+  /** Calls `fan.toggle`. */
   onToggle: () => void;
-  /** `fan.set_percentage`, 1-100: setting a speed while the fan is off turns it on. */
+  /**
+   * Calls `fan.set_percentage`, rounded to a whole percent from 1 to 100, so it never switches the fan off; setting a
+   * speed while it is off turns it on. A fan without speeds reports `unsupported`.
+   */
   onPercentageChange: (percent: number) => void;
-  /** `fan.set_preset_mode`, one of the fan's own presets. */
+  /**
+   * Calls `fan.set_preset_mode`, which turns the fan on. A fan without presets reports `unsupported`; a preset it
+   * doesn't list reports `invalid_input`.
+   */
   onPresetChange: (preset: string) => void;
-  /** `fan.oscillate`. */
+  /** Calls `fan.oscillate`. A fan that doesn't oscillate reports `unsupported`. */
   onOscillateChange: (oscillating: boolean) => void;
-  /** `fan.set_direction`. */
+  /** Calls `fan.set_direction` with `forward` or `reverse`. A fan that doesn't reverse reports `unsupported`. */
   onDirectionChange: (direction: FanDirection) => void;
 }
 

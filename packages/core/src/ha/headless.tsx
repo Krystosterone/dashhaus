@@ -16,7 +16,12 @@ import { useHaSound } from "./hooks/sound";
 type LiveHook = (entityId: string, options: never) => unknown;
 
 /** A headless component's props: the entity, the hook's options, and what to draw with its result. */
-export type HeadlessProps<H extends LiveHook> = NonNullable<Parameters<H>[1]> & { entityId: string; children: (live: ReturnType<H>) => ReactNode };
+export type HeadlessProps<H extends LiveHook> = NonNullable<Parameters<H>[1]> & {
+  /** The Home Assistant entity id. */
+  entityId: string;
+  /** Draws the hook's result. The component itself draws nothing. */
+  children: (live: ReturnType<H>) => ReactNode;
+};
 
 /**
  * A useHa<Kind> hook as a component that draws nothing of its own. A UI renders one per entity, which a

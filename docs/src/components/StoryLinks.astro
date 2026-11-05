@@ -1,0 +1,30 @@
+---
+/**
+ * An entity page's way into Storybook: a link to each skin's All states story of the kind's card, for every skin that
+ * draws it (`src/lib/kinds.ts`), each id checked against the story files (`src/lib/stories.ts`).
+ */
+import { kinds } from "../lib/kinds";
+import { story, storybookUrl, storyId } from "../lib/stories";
+
+interface Props {
+  kind: string;
+}
+
+const { kind: name } = Astro.props;
+const kind = (await kinds()).find((entry) => entry.name === name);
+if (!kind) throw new Error(`StoryLinks: no kind ${name}`);
+const skins = [
+  kind.tile && { skin: "Orb", id: story(storyId(`Orb/Cards/${kind.title}`, "AllStates")) },
+  kind.module && { skin: "Field", id: story(storyId(`Field/Cards/${kind.title}`, "AllStates")) },
+].filter((entry): entry is { skin: string; id: string } => Boolean(entry));
+const href = (id: string) => `${storybookUrl()}?path=/story/${id}`;
+---
+
+{
+  skins.length > 0 && (
+    <p>
+      Every state of {skins.length > 1 ? "both" : "it"} is in Storybook:{" "}
+      {skins.map((entry, index) => <>{index > 0 && " and "}<a href={href(entry.id)}>{entry.skin}</a></>)}.
+    </p>
+  )
+}

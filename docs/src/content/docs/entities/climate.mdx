@@ -1,12 +1,17 @@
 ---
 title: Climate
 description: "One climate.* entity: a thermostat, a heat pump or an air conditioner, its setpoints and modes."
+kind:
+  group: Comfort
+  order: 1
+  summary: "A thermostat, heat pump or air conditioner, its setpoints and modes."
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `climate.*` entity: a thermostat, heat pump or air conditioner, with its setpoint or range, modes, presets and fan.
 
@@ -21,7 +26,7 @@ One `climate.*` entity: a thermostat, heat pump or air conditioner, with its set
 `<HaClimate>` is `useHaClimate` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaClimateProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaClimate" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -39,7 +44,7 @@ It reads the unit, its area and today's history. `unit` overrides the temperatur
 
 #### `entity`: ClimateEntity
 
-<ApiMembers from="@dashhaus/core/entities/climate/types" name="ClimateEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/climate/types" name="ClimateEntity" />
 
 #### `history`: ClimateHistory
 
@@ -50,7 +55,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: ClimateHandlers
 
-<ApiMembers from="@dashhaus/core" name="ClimateHandlers" notes={{"onToggle": "Calls `climate.turn_on` when the unit is off, `climate.turn_off` otherwise.", "onTargetChange": "Calls `climate.set_temperature` with `temperature`. A value outside `minTemp` to `maxTemp` reports `invalid_input`.", "onRangeChange": "Only for a unit with a `heat_cool` mode. Calls `climate.set_temperature` with `target_temp_low` and `target_temp_high`, in either order.", "onModeChange": "Only when Home Assistant lists HVAC modes. Calls `climate.set_hvac_mode`; a mode the unit doesn't list reports `unsupported`.", "onPresetChange": "Only with preset modes. Calls `climate.set_preset_mode`.", "onFanChange": "Only with fan modes. Calls `climate.set_fan_mode`."}} />
+<ApiMembers from="@dashhaus/core" name="ClimateHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 
@@ -90,5 +95,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-climate--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-climate--all-states).
+<StoryLinks kind="climate" />

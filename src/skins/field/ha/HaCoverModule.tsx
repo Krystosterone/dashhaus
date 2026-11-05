@@ -4,6 +4,7 @@ import { CoverModule } from "../cards/cover/CoverModule";
 import type { CoverModuleProps } from "../cards/cover/CoverModule";
 
 export interface HaCoverModuleProps extends HaCoverOptions, Pick<CoverModuleProps, "footprint" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

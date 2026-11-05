@@ -6,7 +6,12 @@ import type { ActionKinds } from "./kinds";
 type AlarmServiceCaller = Pick<HaStore, "callService">;
 
 export interface AlarmHandlers {
+  /**
+   * Calls `alarm_control_panel.alarm_arm_<mode>` (`home`, `away`, `night`, `vacation`, `custom_bypass`) with the code
+   * when given. A mode the panel doesn't support rejects with `unsupported`.
+   */
   onArm: (mode: AlarmMode, code?: string) => Promise<boolean>;
+  /** Calls `alarm_control_panel.alarm_disarm` with the code when given. */
   onDisarm: (code?: string) => Promise<boolean>;
 }
 
