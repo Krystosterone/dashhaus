@@ -11,6 +11,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `cover.*` entity: curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and gates.
 
@@ -88,5 +89,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-cover--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-cover--all-states).
+<StoryLinks kind="cover" />

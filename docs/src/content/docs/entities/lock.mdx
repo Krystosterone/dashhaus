@@ -12,6 +12,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `lock.*` entity, with the battery sensor on its device: whether it is locked, on its way or jammed, who or what
 changed it last, whether it wants a code, and whether it can unlatch the door too.
@@ -84,5 +85,4 @@ warning, never a glow. They take the hook's options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-lock--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-lock--all-states).
+<StoryLinks kind="lock" />

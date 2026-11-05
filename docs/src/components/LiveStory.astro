@@ -16,6 +16,7 @@
  */
 import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
+import { story, storybookUrl } from "../lib/stories";
 
 interface Props {
   /** The story id, as in Storybook's URL (`orb-dashboards-examples--phone`). */
@@ -47,10 +48,12 @@ interface Props {
   arm?: string;
 }
 
-const { id, title, device, width, height, light, dark, screen, poster, link = true, arm } = Astro.props;
+const { id: given, title, device, width, height, light, dark, screen, poster, link = true, arm } = Astro.props;
+/** Checked against the story files, so a renamed story fails the build instead of drawing "story not found". */
+const id = story(given);
 /** A story wider than a phone (a tablet, a wall panel) would shrink past reading on one, so a narrow page links it. */
 const wide = width > 600;
-const storybook = import.meta.env.DEV ? "http://localhost:6006/" : `${import.meta.env.BASE_URL.replace(/\/$/, "")}/storybook/`;
+const storybook = storybookUrl();
 const src = (globals: string) => `${storybook}iframe.html?id=${id}&viewMode=story&globals=${globals}`;
 /** The Examples stories' `Device` adds its caption and margins around the screen. */
 const frame = height + 72;

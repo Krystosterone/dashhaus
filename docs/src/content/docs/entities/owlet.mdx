@@ -13,6 +13,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One Owlet sock, from the custom `owlet` integration: its sleep state with its heart rate, oxygen, charging and alert sensors, and the base station's switch.
 
@@ -90,5 +91,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-owlet--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-owlet--all-states).
+<StoryLinks kind="owlet" />

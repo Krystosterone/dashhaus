@@ -13,6 +13,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 The home's outdoor conditions from one `weather.*` entity, with an air-quality sensor, `sun.sun` for day and night, and the hourly and daily forecasts. Read-only.
 
@@ -98,5 +99,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-weather--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-weather--all-states).
+<StoryLinks kind="weather" />

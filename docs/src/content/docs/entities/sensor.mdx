@@ -13,6 +13,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 A room's reading: a temperature or humidity `sensor.*`, read with the humidity and battery sensors on the same device. Read-only.
 
@@ -84,5 +85,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-sensor--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-sensor--all-states).
+<StoryLinks kind="sensor" />

@@ -11,6 +11,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import ApiMembers from "../../../components/ApiMembers.astro";
 import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
 
 One `climate.*` entity: a thermostat, heat pump or air conditioner, with its setpoint or range, modes, presets and fan.
 
@@ -94,5 +95,4 @@ options as props, plus their own:
   </TabItem>
 </Tabs>
 
-Every state of both is in Storybook: [Orb](/dashhaus/storybook/?path=/story/orb-cards-climate--all-states) and
-[Field](/dashhaus/storybook/?path=/story/field-cards-climate--all-states).
+<StoryLinks kind="climate" />
