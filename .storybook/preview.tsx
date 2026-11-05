@@ -82,8 +82,16 @@ const withSkin: Decorator = (Story, ctx) => {
   return skin ? skin.decorator(Story, ctx) : <Story />;
 };
 
+/**
+ * Every skin's globals, each stamped with its skin's section: .storybook/manager.tsx draws a story's toolbar from its
+ * own skin's globals only.
+ */
+const globalTypes: Preview["globalTypes"] = Object.fromEntries(
+  SKINS.flatMap((s) => Object.entries(s.globalTypes ?? {}).map(([id, type]) => [id, { ...type, section: s.section }])),
+);
+
 const preview: Preview = {
-  globalTypes: Object.assign({}, ...SKINS.map((s) => s.globalTypes)),
+  globalTypes,
   initialGlobals: Object.assign({}, ...SKINS.map((s) => s.initialGlobals)),
   decorators: [withSkin],
   loaders: [withSkinFont],

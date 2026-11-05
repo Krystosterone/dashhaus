@@ -10,7 +10,7 @@ A neutral generated skin under `src/skins/__skin__/`. It is deliberately usable 
 - **Tokens:** every colour lives in `styles/tokens.css`; every custom property and class uses the `__skin__-` namespace.
 - **Motion:** only transform, opacity, and colour change; easing comes from `--__skin__-ease-*`; reduced motion removes press movement.
 - **Touch:** controls use the shared primitives, 44 px minimum targets, `touch-action: manipulation`, no selection or tap highlight.
-- **Theme:** dark values apply under `data-__skin__-theme` (the skin's own attribute, set by the Lovelace host and Storybook's __Section__ theme toolbar), or the system's scheme when it is absent.
+- **Theme:** dark values apply under `data-__skin__-theme` (the skin's own attribute, set by the Lovelace host and Storybook's Theme toolbar), or the system's scheme when it is absent.
 - **Fonts:** `shared/surface.ts` names the web font once; the Lovelace card and Storybook both link it.
 - **Rejected commands:** `__Skin__ActionStatus` says what Home Assistant refused, once for the page, with Retry when safe and Dismiss.
 

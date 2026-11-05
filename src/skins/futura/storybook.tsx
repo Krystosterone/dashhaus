@@ -17,7 +17,7 @@ export const futuraStorybook = {
     futuraTheme: {
       description: "Futura theme (futura skin only)",
       toolbar: {
-        title: "Futura theme",
+        title: "Theme",
         icon: "contrast",
         items: [
           { value: "console", title: "Console (dark)" },

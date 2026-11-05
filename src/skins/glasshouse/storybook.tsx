@@ -15,7 +15,7 @@ export const glasshouseStorybook = {
     glasshouseTheme: {
       description: "Glasshouse theme (Glasshouse skin only)",
       toolbar: {
-        title: "Glasshouse theme",
+        title: "Theme",
         icon: "contrast",
         items: [
           { value: "auto", title: "Auto (system)" },
