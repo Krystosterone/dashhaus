@@ -24,10 +24,27 @@ describe("LightModule", () => {
     expect(draw(LIGHT_SEEDS.dimmableOff.entity).querySelector<HTMLElement>(".fd-pict")?.dataset.lit).toBe("false");
   });
 
-  it("says OFF while off, and keeps the fader at the last level", () => {
+  it("says OFF while off, keeping the fader but no level Home Assistant didn't report", () => {
     const el = draw(LIGHT_SEEDS.dimmableOff.entity);
     expect(el.querySelector(".fd-read")?.textContent).toBe("OFF");
+    expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("Off");
+    document.body.innerHTML = "";
+    draw({ ...LIGHT_SEEDS.dimmableOff.entity, brightness: 70 });
     expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("Off. Last set to 70 percent");
+  });
+
+  it("draws an unknown light as drivable: blank segments and Unknown, a live key and fader", () => {
+    const onToggle = vi.fn();
+    const onBrightnessChange = vi.fn();
+    const { container } = render(<LightModule entity={LIGHT_SEEDS.unknown.entity} onToggle={onToggle} onBrightnessChange={onBrightnessChange} />);
+    expect(container.querySelector(".fd-read")?.textContent).toBe("Unknown");
+    expect(container.querySelector(".fd-meta")?.textContent).toContain("Unknown");
+    const key = screen.getByRole("button", { name: "String lights" });
+    expect(key.getAttribute("aria-disabled")).toBeNull();
+    expect(key.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(key);
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("Unknown");
   });
 
   it("gives an on/off light one wide key with its state word, and no fader", () => {

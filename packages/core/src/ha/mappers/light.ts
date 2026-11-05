@@ -30,8 +30,9 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
   const supportsBrightness = supportedModes.some((mode) => BRIGHTNESS_MODES.has(mode));
   const supportsColorTemp = supportedModes.includes("color_temp");
   const supportsColor = supportedModes.some((mode) => COLOR_MODES.has(mode));
-  const state = raw?.state === "on" ? "on" : raw?.state === "off" ? "off" : "unavailable";
-  const hasMeasuredState = state !== "unavailable";
+  const state = raw?.state === "on" || raw?.state === "off" || raw?.state === "unknown" ? raw.state : "unavailable";
+  // Unknown can be driven, but has no reading yet: its brightness, warmth and colour stay absent.
+  const hasMeasuredState = state === "on" || state === "off";
   const rawBrightness = finiteNumber(attributes.brightness);
   const brightness = hasMeasuredState && supportsBrightness && rawBrightness != null ? percent(rawBrightness) : undefined;
   const friendlyName = stringValue(attributes.friendly_name);

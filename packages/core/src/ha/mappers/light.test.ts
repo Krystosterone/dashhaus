@@ -53,12 +53,19 @@ describe("lightFromHass", () => {
     expect(lightFromHass({ ...both, attributes: { ...both.attributes, color_mode: "hs", hs_color: ["red", 50] } }, raw.entity_id).hs).toBeUndefined();
   });
 
-  it("keeps unknown, unavailable, and missing entities unavailable", () => {
-    const unknown = lightFromHass({ ...raw, state: "unknown" }, raw.entity_id);
+  it("keeps unknown apart from off and unavailable, with no reading", () => {
+    // A light group before its first state, or an optimistic light before its first command.
+    const unknown = lightFromHass({ ...raw, state: "unknown", attributes: { ...raw.attributes, brightness: 128, color_temp_kelvin: 3000 } }, raw.entity_id);
+    expect(unknown.state).toBe("unknown");
+    expect(unknown.brightness).toBeUndefined();
+    expect(unknown.kelvin).toBeUndefined();
+    expect(unknown.lastSeen).toBeUndefined();
+  });
+
+  it("keeps unavailable and missing entities unavailable", () => {
     const unavailable = lightFromHass({ ...raw, state: "unavailable" }, raw.entity_id);
     const missing = lightFromHass(undefined, "light.missing", { name: "Missing" });
 
-    expect(unknown.state).toBe("unavailable");
     expect(unavailable.state).toBe("unavailable");
     expect(missing).toMatchObject({ entityId: "light.missing", name: "Missing", state: "unavailable" });
     expect(missing.brightness).toBeUndefined();

@@ -18,7 +18,7 @@ const percentValue = (value: unknown) => {
   return number != null && number >= 0 && number <= 100 ? number : undefined;
 };
 
-const COVER_STATES = new Set<CoverEntity["state"]>(["open", "opening", "closed", "closing"]);
+const COVER_STATES = new Set<CoverEntity["state"]>(["open", "opening", "closed", "closing", "unknown"]);
 const COVER_CLASSES = new Set<CoverClass>(["curtain", "blind", "shade", "shutter", "awning", "window", "garage", "door", "gate"]);
 
 /** Home Assistant `CoverEntityFeature` bit values the card reads. */
@@ -33,7 +33,8 @@ export function coverFromHass(raw: HassEntity | undefined, entityId: string, opt
   const state: CoverEntity["state"] = rawState != null && COVER_STATES.has(rawState as CoverEntity["state"])
     ? rawState as CoverEntity["state"]
     : "unavailable";
-  const readable = state !== "unavailable";
+  // An unknown cover can still be driven, but whatever position it last held is stale.
+  const readable = state !== "unavailable" && state !== "unknown";
   const rawClass = stringValue(attributes.device_class);
   const deviceClass: CoverClass = rawClass != null && COVER_CLASSES.has(rawClass as CoverClass) ? rawClass as CoverClass : "shade";
   const features = finiteNumber(attributes.supported_features) ?? 0;

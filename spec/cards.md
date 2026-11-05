@@ -43,6 +43,10 @@ Pass `footprint="compact"` for a single 60 px row: bulb, name and control strip 
 
 Interaction: tap the bulb to switch the light, drag the bar to dim (dragging an off light turns it on), and press and hold the bulb or tap the name for quick levels, warmth or colour, today's history and when it last changed.
 
+A dimmable light keeps its bar in the slot whether it is on or off, so the control never changes under a finger. Home Assistant reports no brightness while a light is off, so the off bar has no fill and says Off ("Off" to a screen reader too, never a level it was last set to); a brush across it, or a quick level, turns the light on there. Only a lit light that hasn't reported a brightness yet shows the On pill instead, since a bar would claim a level it never reported.
+
+A light Home Assistant reports as `unknown` (a group before its first state, an optimistic MQTT or RF light before its first command) can still be driven, so it is never drawn as unavailable or as off: it is a light that isn't lit, saying Unknown in its readout, its bar's words or its pill, and the bulb, the bar and the quick levels act. Tapping the bulb calls `light.toggle`, which Home Assistant answers by turning it on.
+
 The bulb is the accent when lit, whatever its colour temperature or colour; the bar is a groove the light fills. A lit lamp with colour temperature names its warmth on the status line ("Office · Cool daylight") on standard and featured cards; compact rows keep the room alone, and the sheet names it over the warmth ruler, whose warm-to-cool scale is the one place the lamp's colour is drawn.
 
 A colour lamp (an `hs`, `xy` or RGB colour mode) names its colour the same way ("Nursery · Amber"). Its sheet has a chip per colour, warm to cool: Red, Amber, Yellow, Green, Blue, Purple, White. Each chip carries its swatch, the one place a colour lamp's hue is drawn; the lamp's own colour is selected, and choosing one while it is off turns it on in that colour. A colour set elsewhere, such as the device's own app, takes the name of the chip nearest its hue (any colour barely saturated is White), and choosing that chip sends the chip's own colour. Pass `onColorChange` to show the chips.
@@ -229,6 +233,7 @@ Curtains, blinds, shades, shutters, awnings, windows, garage doors, doors and ga
   - Covers that let in light are energy (daylight): their glow follows how open they are.
   - Garage doors, doors and gates are a state, with no glow, and the control never fills. Left open, standard/featured cards and sheets lead with a warning ("Open since 10:20"). Compact cards keep the area/class line and add the shared non-colour warning cue; under 320 px the cue sits beside the Open readout.
 - **Sheet:** quick positions (Closed, 25%, Half, Open), slat tilt for blinds that support it, and today's openness by hour.
+- **Unknown:** a cover Home Assistant reports as `unknown` still takes commands: a Somfy RTS or other RF blind, or a garage door with no position sensor, driven on an assumed state. It is never drawn as closed or as unavailable (nothing is dashed): its position is dropped as stale, so it gets the Close and Open buttons with Unknown in the middle, and both ends act. The middle stays Unknown rather than Stop, since an inverse Stop at rest would say it is moving. The orb opens it, as Home Assistant's own toggle does for a cover whose state it doesn't know, and today says "Unknown since …".
 
 ### Field cover module
 

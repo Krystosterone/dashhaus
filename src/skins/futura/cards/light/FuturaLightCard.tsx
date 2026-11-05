@@ -24,15 +24,17 @@ const percent = (value: number) => Math.round(value);
 export function FuturaLightCard({ entity: e, history, footprint = "standard", defaultOpen = false, onToggle, onBrightnessChange }: FuturaLightCardProps) {
   const unavailable = e.state === "unavailable";
   const on = e.state === "on";
+  // Unknown is reachable, not yet reported: it switches and dims, and says so rather than Off.
+  const off = e.state === "unknown" ? "Unknown" : "Off";
   const dims = e.supportsBrightness && e.brightness != null;
   const level = on ? (dims ? (e.brightness ?? 0) / 100 : 1) : 0;
   const warmth = e.supportsColorTemp && e.kelvin != null ? `${Math.round(e.kelvin)} K` : e.supportsColor && e.hs ? "Colour" : undefined;
-  const status = on ? (warmth ? `On · ${warmth}` : "On") : dims ? `Off · last ${percent(e.brightness ?? 0)}%` : "Off";
-  const summary = on && dims ? <FuturaReadout value={percent(e.brightness ?? 0)} unit="%" /> : <FuturaReadout value={on ? "ON" : "OFF"} />;
+  const status = on ? (warmth ? `On · ${warmth}` : "On") : dims ? `${off} · last ${percent(e.brightness ?? 0)}%` : off;
+  const summary = on && dims ? <FuturaReadout value={percent(e.brightness ?? 0)} unit="%" /> : <FuturaReadout value={on ? "ON" : off.toUpperCase()} />;
   const lead = onToggle ? (open?: () => void) => <FuturaDialKey label={`Power, ${e.name}`} pressed={on} onPress={onToggle} onHold={open} unavailable={unavailable} level={level} tone="amber"><IconLight /></FuturaDialKey> : undefined;
   // The card's level and the details' are never on screen together: the modal details make the page inert.
   const brightness = () => onBrightnessChange && e.supportsBrightness
-    ? <FuturaLevel label={`Brightness, ${e.name}`} value={e.brightness ?? 1} min={1} max={100} tone="amber" lit={on} unavailable={unavailable} valueText={(v) => on ? `${percent(v)} percent` : `Off. Last set to ${percent(v)} percent`} onChange={onBrightnessChange} />
+    ? <FuturaLevel label={`Brightness, ${e.name}`} value={e.brightness ?? 1} min={1} max={100} tone="amber" lit={on} unavailable={unavailable} valueText={(v) => on ? `${percent(v)} percent` : dims ? `${off}. Last set to ${percent(v)} percent` : off} onChange={onBrightnessChange} />
     : undefined;
   const changed: FuturaStat = e.lastSeen ? { label: "Last seen", value: e.lastSeen } : { label: "Changed", value: e.lastChanged ?? "—" };
   const stats: FuturaStat[] = [...(warmth ? [{ label: "Warmth", value: warmth }] : []), ...(history ? [{ label: "Today", value: fmtDuration(history.onMinutes) }] : []), changed];
@@ -40,7 +42,7 @@ export function FuturaLightCard({ entity: e, history, footprint = "standard", de
   const sheetLevel = brightness();
   return (
     <FuturaCardFrame name={e.name} area={e.area} state={e.state} summary={summary} icon={<IconLight />} level={level} glow={level} tone="amber" lit={on} lead={lead} status={status} meter={meter} footprint={footprint} actions={brightness()} stats={stats} defaultOpen={defaultOpen}>
-      {sheetLevel && <div className="futura-controls"><div className="futura-control"><span>Brightness</span><span className="light-value">{on ? `${percent(e.brightness ?? 0)}%` : "Off"}</span>{sheetLevel}</div></div>}
+      {sheetLevel && <div className="futura-controls"><div className="futura-control"><span>Brightness</span><span className="light-value">{on ? `${percent(e.brightness ?? 0)}%` : off}</span>{sheetLevel}</div></div>}
       <FuturaStats facts items={[
         { label: "Brightness", value: dims ? `${percent(e.brightness ?? 0)}%` : e.supportsBrightness ? "—" : "On/off only" },
         ...(e.supportsColorTemp ? [{ label: "Warmth", value: e.kelvin != null ? `${Math.round(e.kelvin)} K` : "—" }] : []),

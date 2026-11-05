@@ -3,7 +3,7 @@ import { DemoCoverTile as DemoTile } from "./demo/DemoCoverTile";
 import { COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const COVERS = ["curtains", "blind", "shade", "moving", "garage", "gate", "unavailable"] as const;
+const COVERS = ["curtains", "blind", "shade", "moving", "garage", "gate", "unknown", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Cover",
@@ -39,6 +39,11 @@ export const BlindWithTilt: Story = { name: "Blind with tilt", args: { cover: "b
 export const ShadeClosed: Story = { name: "Shade, closed", args: { cover: "shade" } };
 export const Moving: Story = { name: "Moving", args: { cover: "moving" } };
 export const GarageDoor: Story = { name: "Garage door, left open", args: { cover: "garage" } };
+/**
+ * Unknown: an RF blind Home Assistant drives on an assumed state, so it never says where it is. Not unavailable, so
+ * nothing is dashed: it says Unknown, both Close and Open act, and the orb opens it, as Home Assistant's own toggle does.
+ */
+export const Unknown: Story = { args: { cover: "unknown" } };
 export const Unavailable: Story = { args: { cover: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (COVER_WORST_CASE): long and compound names, missing areas, values at their limits. */
 export const WorstCase: Story = {
@@ -97,6 +102,8 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { cover: "blind", defaultOpen: true } };
+/** An unknown cover's sheet: Unknown in the readout and the slot, and Close and Open both act. */
+export const DetailsUnknown: Story = { name: "Details, unknown", args: { cover: "unknown", defaultOpen: true } };
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { cover: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {

@@ -40,6 +40,14 @@ export const COVER_SEEDS = {
     entity: { entityId: "cover.driveway_gate", name: "Driveway gate", area: "Outside", state: "closing", deviceClass: "gate", supportsPosition: false, supportsStop: true, lastChanged: "11:53" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.2, 0, 0, 0.1],
   },
+  /**
+   * Reachable, but never says where it is: a Somfy RTS blind, driven on an assumed state with no position. Home
+   * Assistant still opens, closes and stops it, and so does the card.
+   */
+  unknown: {
+    entity: { entityId: "cover.study_rts_blind", name: "Study blind", area: "Study", state: "unknown", deviceClass: "blind", supportsPosition: false, supportsStop: true, lastChanged: "06:00" },
+    past: [0, 0, 0, 0, 0, 0, "unavailable", "unavailable", "unavailable", "unavailable", "unavailable"],
+  },
   unavailable: {
     entity: { entityId: "cover.skylight", name: "Skylight", area: "Upstairs hall", state: "unavailable", deviceClass: "window", position: 30, supportsPosition: true, supportsStop: false, lastSeen: "08:20" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.3, "unavailable", "unavailable", "unavailable"],
@@ -107,14 +115,16 @@ export function useDemoCover(seed: CoverSeed) {
 
   const moveTo = (goal: number) => setEntity((e) => {
     if (e.state === "unavailable") return e;
-    const from = e.position ?? (e.state === "open" ? 100 : 0);
+    // Unknown, it could be anywhere, so it travels whichever way it's sent.
+    const from = e.position ?? (e.state === "unknown" ? 100 - goal : e.state === "open" ? 100 : 0);
     if (goal === from) return e;
     target.current = goal;
     return { ...e, state: goal > from ? "opening" : "closing" };
   });
 
   const history = useMemo<CoverHistory>(() => {
-    const now: HourSample = entity.state === "unavailable" ? "unavailable" : (entity.position ?? (entity.state === "open" ? 100 : 0)) / 100;
+    // Home Assistant's history reads an unknown hour as one with no reading.
+    const now: HourSample = entity.state === "unavailable" || entity.state === "unknown" ? "unavailable" : (entity.position ?? (entity.state === "open" ? 100 : 0)) / 100;
     return { samples: [...seed.past, now, ...Array(24 - seed.past.length - 1).fill(null)], currentHour: NOW.hour };
   }, [entity, seed.past]);
 
@@ -125,7 +135,7 @@ export function useDemoCover(seed: CoverSeed) {
     onCloseCover: () => moveTo(0),
     onStopCover: () => {
       target.current = null;
-      setEntity((e) => ({ ...e, state: (e.position ?? 100) > 0 ? "open" : "closed", lastChanged: stamp }));
+      setEntity((e) => (e.state !== "opening" && e.state !== "closing" ? e : { ...e, state: (e.position ?? 100) > 0 ? "open" : "closed", lastChanged: stamp }));
     },
     onSetPosition: (p: number) => moveTo(p),
     onSetTilt: (t: number) => setEntity((e) => ({ ...e, tilt: t, lastChanged: stamp })),

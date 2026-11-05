@@ -42,6 +42,9 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const card = useCard("cv", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, compact, area } = card;
   const unav = e.state === "unavailable";
+  // Reachable, but where it is isn't known (an RF blind, a garage door with no sensor): it is drawn as not open,
+  // says Unknown, and both ends of its control act.
+  const unknown = e.state === "unknown";
   const moving = isMoving(e);
   const pos = openness(e);
   const open = pos > 0 || e.state === "open";
@@ -53,6 +56,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const withPos = hasPosition(e);
   const text = moving
     ? `${e.state === "opening" ? "Opening" : "Closing"}${withPos ? ` · ${pos}%` : ""}`
+    : unknown ? "Unknown"
     : !open ? "Closed" : !withPos || pos === 100 ? "Open" : `Open · ${pos}%`;
   const stopping = moving && e.supportsStop;
   const orbAction = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
@@ -71,7 +75,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   if (withPos && onSetPosition) {
     slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
   } else {
-    slot = <OpenCloseControl name={e.name} open={open} moving={moving} text={text} canStop={e.supportsStop} onOpen={onOpenCover} onClose={onCloseCover} onStop={onStopCover} />;
+    slot = <OpenCloseControl name={e.name} open={open} moving={moving} either={unknown} text={text} canStop={e.supportsStop} onOpen={onOpenCover} onClose={onCloseCover} onStop={onStopCover} />;
   }
 
   // The compact value appears under the name, or in place of a hidden control.
@@ -88,7 +92,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       status={alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}
       value={subText}
       alert={alertLabel}
-      readout={{ value: unav ? null : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed", duplicate: true }}
+      readout={{ value: unav ? null : unknown ? "Unknown" : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed", duplicate: true }}
       onClose={onClose}
       closeLabel={`Close ${e.name} details`}
       control={slot}
@@ -100,7 +104,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
           {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLATS} value={e.tilt} onChange={onSetTilt} />}
         </SheetBlock>
       )}
-      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : ""} />}
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={e.lastChanged ? `${unknown ? "Unknown" : open ? "Open" : "Closed"} since ${e.lastChanged}` : ""} />}
     </CardFrame>
   );
 }

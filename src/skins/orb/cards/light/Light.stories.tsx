@@ -20,7 +20,7 @@ const meta = {
   argTypes: {
     light: {
       control: "select",
-      options: ["dimmable", "dimmableOff", "dimmableNoWarmth", "whiteAndColour", "noReading", "onOff", "unavailable"],
+      options: ["dimmable", "dimmableOff", "dimmableNoWarmth", "whiteAndColour", "noReading", "onOff", "unknown", "unavailable"],
       description: "Example light",
     },
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
@@ -38,11 +38,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Dimmable: Story = {};
+/** Off, as Home Assistant reports it, with no brightness: the bar keeps its slot and says Off, and sliding it turns the light on. */
 export const Off: Story = { args: { light: "dimmableOff" } };
 /** A colour lamp: the nursery night light, amber at 3%. The status line names the colour; the orb stays the accent. */
 export const Colour: Story = { args: { light: "nightLight" } };
 export const DimmableWithoutWarmth: Story = { name: "Dimmable, no warmth", args: { light: "dimmableNoWarmth" } };
 export const OnOffOnly: Story = { name: "On / off only", args: { light: "onOff" } };
+/**
+ * Unknown: reachable but not reported yet (an optimistic light before its first command, a group before its first
+ * state). Not unavailable, so nothing is dashed: it says Unknown, and the bulb and the bar still switch and dim it.
+ */
+export const Unknown: Story = { args: { light: "unknown" } };
 export const Unavailable: Story = { args: { light: "unavailable" } };
 
 /** Realistic worst-case data from the demo seeds (LIGHT_WORST_CASE): long and compound names, missing areas, values at their limits. */
@@ -63,7 +69,7 @@ export const AllStates: Story = {
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {(["dimmable", "nightLight", "whiteAndColour", "dimmableOff", "onOff", "noReading", "unavailable"] as const).map((light) => (
+      {(["dimmable", "nightLight", "whiteAndColour", "dimmableOff", "onOff", "noReading", "unknown", "unavailable"] as const).map((light) => (
         <DemoTile key={light} light={light} width={width} footprint={footprint} />
       ))}
     </div>
@@ -102,7 +108,7 @@ export const Compact: Story = {
   parameters: { layout: "padded", controls: { include: ["width"] } },
   render: ({ width }) => (
     <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
-      {(["dimmable", "nightLight", "dimmableOff", "onOff", "unavailable"] as const).map((light) => (
+      {(["dimmable", "nightLight", "dimmableOff", "onOff", "unknown", "unavailable"] as const).map((light) => (
         <DemoTile key={light} light={light} footprint="compact" />
       ))}
     </div>

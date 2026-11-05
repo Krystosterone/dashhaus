@@ -39,12 +39,16 @@ describe("coverFromHass", () => {
     }
   });
 
-  it("keeps unknown, unavailable, and missing entities unavailable", () => {
-    const unknown = coverFromHass({ ...raw, state: "unknown" }, raw.entity_id);
+  it("keeps unknown apart from closed and unavailable, with its stale position and tilt dropped", () => {
+    // An RF blind or a sensorless garage door: Home Assistant drives it on an assumed state it never reports.
+    const unknown = coverFromHass({ ...raw, state: "unknown", attributes: { ...raw.attributes, assumed_state: true } }, raw.entity_id);
+    expect(unknown).toMatchObject({ state: "unknown", supportsPosition: true, supportsStop: true, supportsTilt: true, position: undefined, tilt: undefined, lastSeen: undefined });
+  });
+
+  it("keeps unavailable and missing entities unavailable", () => {
     const unavailable = coverFromHass({ ...raw, state: "unavailable" }, raw.entity_id);
     const missing = coverFromHass(undefined, "cover.missing", { name: "Missing" });
 
-    expect(unknown.state).toBe("unavailable");
     expect(unavailable.state).toBe("unavailable");
     expect(missing).toMatchObject({ entityId: "cover.missing", name: "Missing", state: "unavailable" });
   });
