@@ -24,18 +24,27 @@ things look.
 
 ## Ask an agent to build it
 
+It takes two parts. **Making** the skin needs an agent that can run commands: one on your computer, such as the
+Claude Code app, or one in your browser, such as Claude Code on the web. **Putting it on Home Assistant** needs either
+that agent on your computer, on the same network as Home Assistant, or about five minutes of clicks in Home Assistant
+yourself. An agent in the browser can't reach your Home Assistant, so it hands you the skin as one file instead.
+
 ### What you need
 
-- A computer: Mac, Windows or Linux. The agent works there, not inside Home Assistant.
-- An AI coding agent that can run commands on that computer, such as Claude Code.
+- An AI coding agent that can run commands, on your computer (Mac, Windows or Linux) or in your browser. A chat that
+  can only write text, with no way to run commands, can't build it.
 - A picture of a look you like (a screenshot, a photo of a device or a room, a poster), or a few words about it.
-- For the last step only: an administrator account in Home Assistant.
+- To put it on Home Assistant: an administrator account in Home Assistant.
 
 You don't need to install anything else yourself. The agent installs what it needs and tells you what it's doing.
 
+### Make it
+
 <Steps>
 
-1. Make an empty folder for your skin, for example **My dashboard** in your Documents, and open it in your agent.
+1. Give the agent somewhere to keep your skin. On your computer, make an empty folder, for example **My dashboard** in
+   your Documents, and open it in your agent. In the browser, start a session on a new, empty repository, so the skin
+   is kept between sessions.
 
 2. Paste the prompt below. Replace the two lines in angle brackets with your own, and attach your picture if you have
    one.
@@ -49,34 +58,60 @@ You don't need to install anything else yourself. The agent installs what it nee
    1. In this folder, run `npm create dashhaus-skin@latest` with that name, then follow the AGENTS.md it writes. Install anything it needs first, such as Node.js 22 or newer, and tell me what you install.
    2. Restyle the skin to the look: palette, type, page and cards, at phone and desktop width, in light and dark mode. Keep `npm test` passing.
    3. Show me the snapshots, and change the skin until I say I like it.
-   4. When I say I'm ready, deploy it with `npm run deploy`. Ask me for my Home Assistant's address, walk me through creating a long-lived access token, and help me set up the Terminal & SSH add-on so you can copy files into /config/www: make an SSH key if there is none and give me only its public line to paste. Keep the token in .env.
+   4. When I say I'm ready, put it on my Home Assistant. If you run on my computer, deploy it with `npm run deploy`. Ask me for my Home Assistant's address, walk me through creating a long-lived access token, and help me set up the Terminal & SSH add-on so you can copy files into /config/www: make an SSH key if there is none and give me only its public line to paste. Keep the token in .env. If you can't reach my Home Assistant, follow the AGENTS.md's Install by hand instead: give me the file and walk me through installing it.
    ```
 
 3. Look at what it shows you: pictures of your skin on a sample house, on a phone and a desktop, light and dark. Say
    what you'd change in your own words: "warmer colours", "bigger numbers", "rounder buttons", "more like the
    picture". Repeat until you like it.
 
-4. Tell the agent you're ready to put it on Home Assistant. It asks for three things and walks you through each:
-
-   - **Your Home Assistant's address**, the one in your browser when you open it, such as
-     `http://homeassistant.local:8123`.
-   - **A long-lived access token.** In Home Assistant, open your profile (your name at the bottom of the sidebar), then
-     **Security**. Under **Long-lived access tokens**, press **Create token**, call it `Dashhaus` and give the agent
-     what it shows. It's shown only once.
-   - **A way to copy the skin into Home Assistant.** Open **Settings → Add-ons → Add-on store**, install
-     **Terminal & SSH**, and in its **Configuration** tab paste the line the agent gives you into
-     **Authorized keys**. Under **Network**, set the port to `22`. Save, then press **Start** on its **Info** tab.
-
-   The agent keeps the token in a file on your computer, `.env`, which never goes into the skin.
-
-5. Reload Home Assistant in your browser and open your skin's dashboard from the sidebar. It shows every light and
-   room sensor you have, grouped by area, and every other kind of entity the agent added a card for.
-
 </Steps>
+
+### Put it on Home Assistant
+
+Tell the agent you're ready. What happens next depends on where it runs.
+
+<Tabs>
+  <TabItem label="Agent on your computer">
+    It deploys the skin for you. It asks for three things and walks you through each:
+
+    - **Your Home Assistant's address**, the one in your browser when you open it, such as
+      `http://homeassistant.local:8123`.
+    - **A long-lived access token.** In Home Assistant, open your profile (your name at the bottom of the sidebar),
+      then **Security**. Under **Long-lived access tokens**, press **Create token**, call it `Dashhaus` and give the
+      agent what it shows. It's shown only once.
+    - **A way to copy the skin into Home Assistant.** Open **Settings → Add-ons → Add-on store**, install
+      **Terminal & SSH**, and in its **Configuration** tab paste the line the agent gives you into
+      **Authorized keys**. Under **Network**, set the port to `22`. Save, then press **Start** on its **Info** tab.
+
+    The agent keeps the token in a file on your computer, `.env`, which never goes into the skin.
+  </TabItem>
+  <TabItem label="By hand">
+    The agent gives you your skin as one file, such as `dashhaus-cosy-cabin.js`, and the project itself to keep for
+    the next change. Then it walks you through three steps in Home Assistant. No token and no terminal:
+
+    1. **Copy the file in.** Open **Settings → Add-ons → Add-on store**, install **File editor**, press **Start**,
+       then **Open web UI**. With its folder icon, make a folder `www` if there is none, a folder named after your
+       skin inside it, such as `dashhaus-cosy-cabin`, and upload the file into that. If you just made `www`, restart
+       Home Assistant once: it only serves that folder when it was there at startup.
+    2. **Load it.** Turn on **Advanced mode** in your profile, then open **Settings → Dashboards → ⋮ → Resources** and
+       add the line the agent gives you, such as `/local/dashhaus-cosy-cabin/dashhaus-cosy-cabin.js?v=1`, as a
+       **JavaScript module**.
+    3. **Make the dashboard.** **Settings → Dashboards → Add dashboard → New dashboard from scratch**, with the title
+       and URL the agent gives you. Open it, press the pencil, then **⋮ → Raw configuration editor**, and paste the
+       text the agent gives you in place of what's there. Save.
+  </TabItem>
+</Tabs>
+
+Reload Home Assistant in your browser and open your skin's dashboard from the sidebar. It shows every light and room
+sensor you have, grouped by area, and every other kind of entity the agent added a card for.
 
 ### Change it later
 
-Open the same folder in your agent and say what you want, then ask it to deploy again. Your dashboard's layout is kept.
+Open the same folder or repository in your agent (or give it back the project it handed you) and say what you want.
+Then ask it to deploy again, or, by hand, upload the new file in place of the old one and raise the number at the end
+of its line in **Resources**, `?v=2`, then `?v=3`, so your browser fetches the new file. Your dashboard's layout is
+kept.
 
 - "Add my blinds and my thermostat": it adds a card for any kind of entity on the
   [Entities](/dashhaus/entities/) pages.
