@@ -30,7 +30,7 @@ export default defineConfig({
           attrs: { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;700&display=swap" },
         },
       ],
-      // An agent that fetches only llms.txt still gets the one task most people bring: installing a skin.
+      // An agent that fetches only llms.txt still gets the task most people bring, installing a skin, and the next, building one.
       plugins: [
         starlightLlmsTxt({
           description: "Home Assistant dashboards drawn in React: two finished skins, Orb and Field, installed from the Marketplace, and headless hooks to draw your own.",
@@ -40,6 +40,8 @@ export default defineConfig({
             "2. Reload the browser tab.",
             "3. Overview → ⋮ → Edit dashboard → Add card → \"Dashhaus setup\" → Save, then press \"Create dashboards\".",
             "4. Open \"Home (Orb)\" and \"Home (Field)\" from its links, then remove the setup card. It never changes an existing dashboard.",
+            "",
+            "To build someone their own skin (a whole look for their dashboards) from a picture or a description: run `npm create dashhaus-skin@latest <name>`, follow the AGENTS.md it writes (restyle, `npm test`, `npm run snapshot` to show them), then `npm run deploy` with HA_URL, HA_TOKEN and HA_WWW in .env. start/build-a-skin has the prompt and the Home Assistant steps for a person with no terminal experience.",
             "",
             "The four ways in: install a skin (start/install), build a skin (start/build-a-skin), use the hooks in your own React app (start/getting-started), contribute to the repository (develop/monorepo).",
           ].join("\n"),
