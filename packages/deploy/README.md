@@ -12,6 +12,11 @@ Which packages you need:
 | The ready-made Orb and Field dashboards, nothing to build | `@dashhaus/bundle` and `@dashhaus/deploy` (below) |
 | Your own look, a skin you build | `npm create dashhaus-skin@latest my-skin`; the scaffold depends on this package and its `AGENTS.md` walks the rest |
 
+**Before 1.0.** Dashhaus is in its testing phase: until 1.0 a minor version may break what you use, and a caret
+range keeps you on one `0.x` minor until you move. Every `@dashhaus/` package shares one version; each
+[release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do, and an
+[issue](https://github.com/Krystosterone/dashhaus/issues/new/choose) saying how it went on your setup helps.
+
 ## Deploy the prebuilt dashboards
 
 ```sh

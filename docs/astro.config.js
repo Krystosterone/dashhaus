@@ -35,6 +35,8 @@ export default defineConfig({
         starlightLlmsTxt({
           description: "Home Assistant dashboards drawn in React: two finished skins, Orb and Field, installed from the Marketplace, and headless hooks to draw your own.",
           details: [
+            "Dashhaus is before 1.0 and in its testing phase: a minor version may break YAML keys, hooks or a card's look, so read a release's notes before updating, keep every @dashhaus/ package on one version, and report how it went at https://github.com/Krystosterone/dashhaus/issues.",
+            "",
             "To install Orb and Field in a Home Assistant, with no terminal, as an administrator:",
             "1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin and download Dashhaus (a Dashboard; add it as a custom repository if asked). Home Assistant 2026.11+ opens the Marketplace; older versions need HACS.",
             "2. Reload the browser tab.",

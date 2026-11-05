@@ -3,13 +3,18 @@ title: Use the hooks in your app
 description: "Install @dashhaus/core, put the store above your React app, and draw a first control headless, then with a skin's component."
 ---
 
-import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import { Aside, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 
 Put Dashhaus in a React app of yours: install the packages, connect the store, then draw one light twice. The first
 uses your own markup on the headless hook; the second, a skin's ready-made component. `@dashhaus/core` on its own is
 enough for the first: no skin, no generator and no Lovelace card come with it. If you only want a finished
 dashboard in Home Assistant, [Install from the Marketplace](/dashhaus/start/install/) needs no React at all.
+
+<Aside type="caution" title="Before 1.0">
+  Until 1.0, a minor version may change a hook or a type you use. A caret range keeps you on one `0.x` minor, every
+  `@dashhaus/` package shares one version, and each release says what to change. [More](/dashhaus/intro/#before-10).
+</Aside>
 
 ## 1. Install
 

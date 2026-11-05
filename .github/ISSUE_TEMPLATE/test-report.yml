@@ -1,0 +1,46 @@
+name: Test report
+description: You tried Dashhaus on your own setup. Tell us how it went, good or bad.
+labels: [test report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Dashhaus is before 1.0, and every house it runs on finds something new. A report that it simply works is
+        just as useful as one that it doesn't. For one specific thing that's wrong, a **Bug** is quicker to act on.
+  - type: dropdown
+    id: skins
+    attributes:
+      label: What you tried
+      multiple: true
+      options:
+        - Orb skin
+        - Field skin
+        - Setup card or Marketplace / HACS install
+        - "@dashhaus/deploy (command line)"
+        - create-dashhaus-skin
+        - "@dashhaus/core hooks in my own app"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Dashhaus version, Home Assistant version, and the browsers, apps or panels you looked at it on.
+      placeholder: Dashhaus 0.2.1, Home Assistant 2026.11, iOS companion app and a Fire tablet on the wall
+    validations:
+      required: true
+  - type: textarea
+    id: worked
+    attributes:
+      label: What worked
+      description: The cards and devices that drew and behaved as you expected. Integrations or device models help.
+  - type: textarea
+    id: rough
+    attributes:
+      label: What didn't, or felt rough
+      description: Anything wrong, confusing, slow or missing. A screenshot helps for anything you can see.
+  - type: textarea
+    id: missing
+    attributes:
+      label: Devices it didn't draw
+      description: Entities Dashhaus left out or drew with the wrong card, and their domain (from Developer tools → States).

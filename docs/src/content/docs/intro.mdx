@@ -13,6 +13,27 @@ Dashhaus draws Home Assistant dashboards in React and TypeScript, for phones, ta
   headless component for each kind of entity, the interaction primitives and the card frame. A skin is drawing on top
   of these, so you can draw your own: in a React app of yours, or as a new skin with its own Lovelace card.
 
+## Before 1.0
+
+Dashhaus is in its testing phase. It runs one real house every day, but few others yet, and while its version starts
+with `0.` it can change quickly.
+
+- **An update can ask something of you.** Until 1.0, a minor version (0.2 to 0.3) may rename a YAML key, change a hook
+  or redraw a card. Each [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to
+  do; read it before you update.
+- **Your existing dashboards are safe.** The setup card and the deploy command only create dashboards; they never
+  change one that exists. The ones they create follow Dashhaus as it updates.
+- **Real devices vary.** Every card is tested on Home Assistant's standard entities, but an integration may report its
+  device in a way no card expects yet. Locks, alarm panels and covers act on real things: try each one once while you
+  can see it.
+- **In your own code**, a caret range on a `0.x` version stays on that minor, so moving to the next is a step you take.
+  Every `@dashhaus/` package shares one version, so move them together.
+
+Testers are welcome. Put it on your house, a phone or a wall panel, and
+[say how it went](https://github.com/Krystosterone/dashhaus/issues/new/choose): a card that draws wrong, a device it
+misreads or leaves out, or simply that it works on your setup. Your Home Assistant and Dashhaus versions and a
+screenshot help most.
+
 ## Four ways in
 
 Dashhaus is used four ways, and each has its own way in. Pick the one that matches what you want to end up with.
