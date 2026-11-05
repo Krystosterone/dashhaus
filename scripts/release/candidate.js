@@ -112,7 +112,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const problems = digestProblems(parseDigests(await readFile(digestsPath(version), "utf8")), await packedDigests(version));
     if (problems.length) problems.push(`this commit doesn't pack the files spec/releases/${version}.sha256 records; run npm run release:digests and commit it`);
     if (!existsSync(recordPath(version))) problems.push(`spec/releases/${version}.md is missing`);
-    else for (const line of unfinished(await readFile(recordPath(version), "utf8"))) problems.push(`spec/releases/${version}.md is unfinished: ${line}`);
+    else {
+      const record = await readFile(recordPath(version), "utf8");
+      for (const line of unfinished(record)) problems.push(`spec/releases/${version}.md is unfinished: ${line}`);
+      // The Release workflow publishes this section as the GitHub release's body; without it the build stops after merge.
+      try {
+        releaseBody(record, version, bundle.repository.url);
+      } catch (error) {
+        problems.push(error instanceof Error ? error.message : String(error));
+      }
+    }
     problems.push(...lateNoteProblems(await readChanges(), version));
     for (const problem of problems) console.error(`✗ ${problem}`);
     if (problems.length) process.exit(1);

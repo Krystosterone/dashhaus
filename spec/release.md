@@ -24,9 +24,9 @@ Fixtures, demo transports and `testing` are shipped because they are declared pu
 
 What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `spec/contract.md`.
 
-Each release has its record in `releases/<version>.md`, written in its release PR (Releasing, below). The first two
-were written by hand: [0.2.0](releases/0.2.0.md), with the publish order and the tarball inspection, and
-[0.2.1](releases/0.2.1.md).
+Each release has its record in `releases/<version>.md`, written in its release PR (Releasing, below). The first,
+[0.2.0](releases/0.2.0.md), was written by hand and has the publish order and the tarball inspection;
+[0.2.1](releases/0.2.1.md) was started by hand and is the first the Release workflow ships.
 
 Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
