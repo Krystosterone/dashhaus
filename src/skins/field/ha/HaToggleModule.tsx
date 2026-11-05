@@ -8,6 +8,7 @@ import type { ToggleModuleProps } from "../cards/toggle/ToggleModule";
  * orb's tile: pass it with `durations` to give the panel its duration keys.
  */
 export interface HaToggleModuleProps extends HaToggleOptions, Pick<ToggleModuleProps, "footprint" | "defaultOpen" | "onTurnOnFor" | "durations"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

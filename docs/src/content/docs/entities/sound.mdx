@@ -26,7 +26,7 @@ Without `volumeEntityId`, the hook looks beside the switch: for `switch.nursery_
 `<HaSound>` is `useHaSound` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaSoundProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaSound" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -44,7 +44,7 @@ It reads the switch, the volume number, its area and today's history.
 
 #### `entity`: SoundEntity
 
-<ApiMembers from="@dashhaus/core/entities/sound/types" name="SoundEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/sound/types" name="SoundEntity" />
 
 #### `history`: SoundHistory
 
@@ -55,7 +55,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: SoundHandlers
 
-<ApiMembers from="@dashhaus/core" name="SoundHandlers" notes={{"onToggle": "Calls `switch.toggle`.", "onVolumeChange": "Only when a volume number with a usable range is found. Calls `number.set_value`, turning the percent back into the number's range and step. Setting the volume never switches the sound on or off."}} />
+<ApiMembers from="@dashhaus/core" name="SoundHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 

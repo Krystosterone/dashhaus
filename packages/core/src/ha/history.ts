@@ -18,6 +18,7 @@ import { finiteNumber, isRecord, stringList } from "./util";
  * ------------------------------------------------------------------ */
 
 export interface HaHistoryRecord {
+  /** The Home Assistant entity id the change is for. */
   entityId: string;
   state: string;
   changed: Date;

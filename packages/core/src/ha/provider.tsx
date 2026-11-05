@@ -24,7 +24,12 @@ function releaseStore(store: HaStore) {
 }
 
 export interface HaProviderProps {
+  /**
+   * The store from createHaStore. The provider connects it while mounted and disconnects it after the last provider
+   * using it unmounts; it never closes the transport.
+   */
   store: HaStore;
+  /** Your app. */
   children: ReactNode;
 }
 

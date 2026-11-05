@@ -26,7 +26,9 @@ export interface HaOwletOptions {
   alertEntityIds?: Partial<Record<OwletAlert, string>>;
   /** Usually the baby's name. Default: the sock's device name. */
   name?: string;
+  /** Overrides the area Home Assistant's registries resolve for the entity. */
   area?: string;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   /** Host-owned history override; when omitted, today's history is read from Home Assistant. */
   history?: OwletHistory;
@@ -34,6 +36,7 @@ export interface HaOwletOptions {
   loadHistory?: boolean;
   /** Minutes without a changed reading before the card warns that readings stopped. Default 3. */
   staleAfterMinutes?: number;
+  /** Called with an HaActionError when an action is refused or fails. */
   onActionError?: (error: HaActionError) => void;
 }
 

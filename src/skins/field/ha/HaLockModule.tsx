@@ -4,6 +4,7 @@ import { LockModule } from "../cards/lock/LockModule";
 import type { LockModuleProps } from "../cards/lock/LockModule";
 
 export interface HaLockModuleProps extends HaLockOptions, Pick<LockModuleProps, "footprint" | "readOnly" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

@@ -5,7 +5,12 @@ import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
 export interface SoundHandlers {
+  /** Calls `switch.toggle`. */
   onToggle: () => void;
+  /**
+   * Only when a volume number with a usable range is found. Calls `number.set_value`, turning the percent back into
+   * the number's range and step. Setting the volume never switches the sound on or off.
+   */
   onVolumeChange?: (percent: number) => void;
 }
 

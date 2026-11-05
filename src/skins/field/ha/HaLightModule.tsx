@@ -4,6 +4,7 @@ import { LightModule } from "../cards/light/LightModule";
 import type { LightModuleProps } from "../cards/light/LightModule";
 
 export interface HaLightModuleProps extends HaLightOptions, Pick<LightModuleProps, "footprint" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

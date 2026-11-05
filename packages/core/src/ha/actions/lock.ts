@@ -5,11 +5,17 @@ import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
 export interface LockHandlers {
-  /** `lock.lock`. A tap does this: locking is the safe direction. */
+  /** Calls `lock.lock`, with the code when given. A tap may do this: locking is the safe direction. */
   onLock: (code?: string) => Promise<LockOutcome>;
-  /** `lock.unlock`. Only after a deliberate confirmation, with the code where the lock asks for one. */
+  /**
+   * Calls `lock.unlock`, with the code when given. Ask before you call it: only after a deliberate confirmation, with
+   * the code where the lock asks for one.
+   */
   onUnlock: (code?: string) => Promise<LockOutcome>;
-  /** `lock.open` (unlatch the door), only where the lock supports it. Same confirmation as unlock. */
+  /**
+   * Calls `lock.open` to unlatch the door, only where `supportsOpen`; otherwise answers `failed` with an `unsupported`
+   * error and sends nothing. Ask first, as for an unlock.
+   */
   onOpen: (code?: string) => Promise<LockOutcome>;
 }
 

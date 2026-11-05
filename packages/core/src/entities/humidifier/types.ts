@@ -5,7 +5,9 @@ export type HumidifierAction = "humidifying" | "drying" | "idle" | "off";
 
 /** Mirrors one Home Assistant `humidifier.*` entity: on or off, a target humidity, and an optional mode. */
 export interface HumidifierEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
+  /** Its name: the `name` option, else Home Assistant's friendly name, else its entity id. */
   name: string;
   /** Where it is: "Bedroom". */
   area?: string;
@@ -24,6 +26,7 @@ export interface HumidifierEntity {
   /** HA `available_modes`: "normal", "eco", "sleep", "boost"… */
   modes?: string[];
   lastChanged?: string;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

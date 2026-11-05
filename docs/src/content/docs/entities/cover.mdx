@@ -25,7 +25,7 @@ Open and close work on every cover. Stop, a position and a tilt depend on what t
 `<HaCover>` is `useHaCover` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaCoverProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaCover" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -43,7 +43,7 @@ It reads the cover, its area and today's history. `deviceClass` is Home Assistan
 
 #### `entity`: CoverEntity
 
-<ApiMembers from="@dashhaus/core/entities/cover/types" name="CoverEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/cover/types" name="CoverEntity" />
 
 #### `history`: CoverHistory
 
@@ -54,7 +54,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: CoverHandlers
 
-<ApiMembers from="@dashhaus/core" name="CoverHandlers" notes={{"onOpenCover": "Calls `cover.open_cover`.", "onCloseCover": "Calls `cover.close_cover`.", "onStopCover": "Calls `cover.stop_cover`. A cover that can't stop reports `unsupported`.", "onSetPosition": "Only for a cover that reports a position. Calls `cover.set_cover_position`, held between 0 (closed) and 100 (open).", "onSetTilt": "Only for a cover with slats. Calls `cover.set_cover_tilt_position`, held between 0 and 100."}} />
+<ApiMembers from="@dashhaus/core" name="CoverHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 

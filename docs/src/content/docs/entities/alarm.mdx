@@ -25,7 +25,7 @@ Arming and disarming answer, unlike the other actions: `true` when Home Assistan
 `<HaAlarm>` is `useHaAlarm` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaAlarmProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaAlarm" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -43,7 +43,7 @@ It reads the panel, its area and today's history. Home Assistant's alarm entity 
 
 #### `entity`: AlarmEntity
 
-<ApiMembers from="@dashhaus/core/entities/alarm/types" name="AlarmEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/alarm/types" name="AlarmEntity" />
 
 #### `history`: AlarmHistory
 
@@ -54,7 +54,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: AlarmHandlers
 
-<ApiMembers from="@dashhaus/core" name="AlarmHandlers" notes={{"onArm": "Calls `alarm_control_panel.alarm_arm_<mode>` (`home`, `away`, `night`, `vacation`, `custom_bypass`) with the code when given. A mode the panel doesn't support rejects with `unsupported`.", "onDisarm": "Calls `alarm_control_panel.alarm_disarm` with the code when given."}} />
+<ApiMembers from="@dashhaus/core" name="AlarmHandlers" />
 
 A failure other than a wrong code also goes to `onActionError` before the promise rejects.
 

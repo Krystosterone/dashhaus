@@ -25,7 +25,7 @@ The hook maps the raw light into a `LightEntity` and builds its actions. A tap c
 `<HaLight>` is `useHaLight` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaLightProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaLight" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -43,7 +43,7 @@ It reads the light, its area from Home Assistant's registries, and today's histo
 
 #### `entity`: LightEntity
 
-<ApiMembers from="@dashhaus/core/entities/light/types" name="LightEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/light/types" name="LightEntity" />
 
 #### `history`: LightHistory
 
@@ -54,7 +54,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: LightHandlers
 
-<ApiMembers from="@dashhaus/core" name="LightHandlers" notes={{"onToggle": "Calls `light.toggle`.", "onBrightnessChange": "Calls `light.turn_on` with `brightness_pct`, rounded and held between 1 and 100. A light without brightness reports `unsupported`.", "onKelvinChange": "Only for a light that takes a colour temperature. Calls `light.turn_on` with `color_temp_kelvin`; a value outside `minKelvin` to `maxKelvin` reports `invalid_input`.", "onColorChange": "Only for a colour light. Calls `light.turn_on` with `hs_color`: hue 0 to 360, saturation 0 to 100."}} />
+<ApiMembers from="@dashhaus/core" name="LightHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 

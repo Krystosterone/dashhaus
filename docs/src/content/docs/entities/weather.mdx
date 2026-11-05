@@ -27,7 +27,7 @@ The home's outdoor conditions from one `weather.*` entity, with an air-quality s
 `<HaWeather>` is `useHaWeather` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaWeatherProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaWeather" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -47,7 +47,7 @@ It reads the weather entity, its companions, today's temperature history, and th
 
 #### `entity`: WeatherEntity
 
-<ApiMembers from="@dashhaus/core/entities/weather/types" name="WeatherEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/weather/types" name="WeatherEntity" />
 
 #### `history`: WeatherHistory
 

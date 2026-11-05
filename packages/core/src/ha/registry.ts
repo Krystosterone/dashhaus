@@ -57,7 +57,9 @@ export interface HaRegistry {
 
 /** One area with the entity ids that belong to it. */
 export interface HaAreaEntities {
+  /** The area, as Home Assistant's area registry has it. */
   area: HaAreaRegistryEntry;
+  /** The entities in it: their own area, else their device's. */
   entityIds: readonly string[];
 }
 

@@ -6,9 +6,11 @@ const FLICK = 0.4;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export interface SheetOptions {
+  /** Whether the sheet is open. */
   open: boolean;
   /** The dialog's accessible name, e.g. "Kitchen details". */
   label: string;
+  /** Called when the person closes it: Escape, the backdrop or a drag down. */
   onClose: () => void;
   /** The skin's longest exit transition plus a frame, in ms: how long `data-closing` stays before the dialog closes. */
   closeMs: number;

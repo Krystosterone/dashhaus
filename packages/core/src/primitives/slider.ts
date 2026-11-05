@@ -113,12 +113,17 @@ function rangeInput(value: number, valueText: string, min: number, max: number, 
 }
 
 export interface SliderOptions<T extends HTMLElement> {
+  /** The value the track shows. */
   value: number;
+  /** The low end. */
   min: number;
+  /** The high end. */
   max: number;
+  /** The step a pointer snaps to, counted from min. */
   step?: number;
   /** The thumb's half width: the track's usable length is its box less this on each side. */
   inset: Inset<T>;
+  /** No input at all. */
   disabled?: boolean;
   /** Where a pointer x lies along the track, 0-1. Default: left to right over the box less `inset` each side. */
   along?: (clientX: number, rect: DOMRect, inset: number) => number;
@@ -128,6 +133,7 @@ export interface SliderOptions<T extends HTMLElement> {
   reportUnchanged?: boolean;
   /** What the value means, read out for it ("Off. Last set to 40 percent"). */
   valueText: (value: number) => string;
+  /** Called with each new value. */
   onChange: (value: number) => void;
 }
 

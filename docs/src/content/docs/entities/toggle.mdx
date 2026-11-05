@@ -25,7 +25,7 @@ One `input_boolean.*` or `switch.*`, used as a mode: Guest mode, Do Not Disturb,
 `<HaToggle>` is `useHaToggle` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaToggleProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaToggle" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -43,7 +43,7 @@ It reads the entity, its area and today's history. `icon`, `color` and `descript
 
 #### `entity`: ToggleEntity
 
-<ApiMembers from="@dashhaus/core/entities/toggle/types" name="ToggleEntity" notes={{"until": "The hook doesn't set it: Home Assistant has no timed-on service for these domains, so a host that times a mode supplies it.", "duration": "Host-owned, like `until`."}} />
+<ApiMembers from="@dashhaus/core/entities/toggle/types" name="ToggleEntity" />
 
 #### `history`: ToggleHistory
 
@@ -54,7 +54,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: ToggleHandlers
 
-<ApiMembers from="@dashhaus/core" name="ToggleHandlers" notes={{"onToggle": "Calls `input_boolean.toggle` or `switch.toggle`. An unavailable entity, or one from another domain, reports `unsupported`."}} />
+<ApiMembers from="@dashhaus/core" name="ToggleHandlers" />
 
 ## Every mode
 

@@ -4,6 +4,7 @@ import { WeatherModule } from "../cards/weather/WeatherModule";
 import type { WeatherModuleProps } from "../cards/weather/WeatherModule";
 
 export interface HaWeatherModuleProps extends HaWeatherOptions, Pick<WeatherModuleProps, "footprint" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

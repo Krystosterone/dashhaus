@@ -4,6 +4,11 @@ import { serviceRunner } from "./run";
 import type { ActionKinds } from "./kinds";
 
 export interface OwletHandlers {
+  /**
+   * Only when a base station switch is found and reports on or off. Calls `switch.turn_on` or `switch.turn_off` for
+   * the state shown, never `switch.toggle`, so a repeated tap on a stale screen repeats the request instead of undoing
+   * it.
+   */
   onBaseToggle?: () => void;
 }
 

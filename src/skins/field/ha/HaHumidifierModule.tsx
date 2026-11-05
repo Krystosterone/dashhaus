@@ -4,6 +4,7 @@ import { HumidifierModule } from "../cards/humidifier/HumidifierModule";
 import type { HumidifierModuleProps } from "../cards/humidifier/HumidifierModule";
 
 export interface HaHumidifierModuleProps extends HaHumidifierOptions, Pick<HumidifierModuleProps, "footprint" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

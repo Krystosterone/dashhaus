@@ -5,9 +5,11 @@ import type { Reading } from "../history";
  * (device_class temperature and humidity) on one device; the card shows them together, read-only.
  */
 export interface SensorEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
   /** Usually the room it measures. */
   name: string;
+  /** Its area: the `area` option, else the one Home Assistant's registries resolve; none when neither has one. */
   area?: string;
   state: "ok" | "unavailable";
   temperature?: number;
@@ -19,6 +21,7 @@ export interface SensorEntity {
   /** Battery level in percent, for battery-powered sensors. */
   battery?: number;
   lastUpdated?: string;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

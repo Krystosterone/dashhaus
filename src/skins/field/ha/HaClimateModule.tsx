@@ -4,6 +4,7 @@ import { ClimateModule } from "../cards/climate/ClimateModule";
 import type { ClimateModuleProps } from "../cards/climate/ClimateModule";
 
 export interface HaClimateModuleProps extends HaClimateOptions, Pick<ClimateModuleProps, "footprint" | "defaultOpen"> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

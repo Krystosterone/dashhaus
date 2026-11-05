@@ -1,8 +1,9 @@
 ---
 /**
  * A type's members as a typed list: each name, whether it is optional, its type and its doc comment, all read from
- * the package's declaration (`docs/src/lib/api.ts`). `notes` adds words for a member whose declaration has none;
- * a few options every hook shares have them here.
+ * the package's declaration (`docs/src/lib/api.ts`). `name` is a type, or a component whose props are listed. The
+ * words belong in the declaration's doc comments, where an editor shows them too; `notes` is for a member whose words
+ * only make sense on one page.
  */
 import { members } from "../lib/api";
 
@@ -16,15 +17,6 @@ interface Props {
   notes?: Record<string, string>;
 }
 
-/** The options and props every entity hook and headless component shares, which their declarations leave bare. */
-const COMMON: Record<string, string> = {
-  entityId: "The Home Assistant entity id.",
-  children: "Draws the hook's result. The component itself draws nothing.",
-  name: "Overrides Home Assistant's friendly name.",
-  area: "Overrides the area Home Assistant's registries resolve for the entity.",
-  lastSeen: "Overrides when the entity was last reachable, shown while it is unavailable.",
-  onActionError: "Called with an HaActionError when an action is refused or fails.",
-};
 
 const { from, name, only, omit, except, notes = {} } = Astro.props;
 const skip = new Set(except ? members(except.from, except.name).map((member) => member.name) : []);
@@ -39,7 +31,7 @@ const list = members(from, name, { only, omit }).filter((member) => !skip.has(me
           <code class="api-name">{member.name}{member.optional ? "?" : ""}</code>
           <code class="api-type">{member.type}</code>
         </dt>
-        {(notes[member.name] ?? (member.doc || COMMON[member.name])) && <dd>{notes[member.name] ?? (member.doc || COMMON[member.name])}</dd>}
+        {(notes[member.name] ?? member.doc) && <dd>{notes[member.name] ?? member.doc}</dd>}
       </div>
     ))
   }

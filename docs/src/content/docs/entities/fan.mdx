@@ -27,7 +27,7 @@ stepless one. Its speed is always a percentage, so a three-speed fan runs at 33,
 `<HaFan>` is `useHaFan` as a component that draws nothing of its own. It takes every option of the hook as a prop, and
 hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaFanProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaFan" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -48,7 +48,7 @@ It reads the fan, its area and today's history.
 Each `supports…` flag comes from what the fan declares to Home Assistant. Its speed and preset are known only while it
 is on; a fan that is off reports neither.
 
-<ApiMembers from="@dashhaus/core/entities/fan/types" name="FanEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/fan/types" name="FanEntity" />
 
 #### `history`: FanHistory
 
@@ -59,7 +59,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: FanHandlers
 
-<ApiMembers from="@dashhaus/core" name="FanHandlers" notes={{"onToggle": "Calls `fan.toggle`.", "onPercentageChange": "Calls `fan.set_percentage`, rounded to a whole percent from 1 to 100, so it never switches the fan off; setting a speed while it is off turns it on. A fan without speeds reports `unsupported`.", "onPresetChange": "Calls `fan.set_preset_mode`, which turns the fan on. A fan without presets reports `unsupported`; a preset it doesn't list reports `invalid_input`.", "onOscillateChange": "Calls `fan.oscillate`. A fan that doesn't oscillate reports `unsupported`.", "onDirectionChange": "Calls `fan.set_direction` with `forward` or `reverse`. A fan that doesn't reverse reports `unsupported`."}} />
+<ApiMembers from="@dashhaus/core" name="FanHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 

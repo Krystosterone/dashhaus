@@ -6,10 +6,18 @@ import type { ActionKinds } from "./kinds";
 type CoverServiceCaller = Pick<HaStore, "callService">;
 
 export interface CoverHandlers {
+  /** Calls `cover.open_cover`. */
   onOpenCover: () => void;
+  /** Calls `cover.close_cover`. */
   onCloseCover: () => void;
+  /** Calls `cover.stop_cover`. A cover that can't stop reports `unsupported`. */
   onStopCover: () => void;
+  /**
+   * Only for a cover that reports a position. Calls `cover.set_cover_position`, held between 0 (closed) and 100
+   * (open).
+   */
   onSetPosition?: (position: number) => void;
+  /** Only for a cover with slats. Calls `cover.set_cover_tilt_position`, held between 0 and 100. */
   onSetTilt?: (tilt: number) => void;
 }
 

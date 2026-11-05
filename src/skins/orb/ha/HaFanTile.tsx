@@ -5,6 +5,7 @@ import { FanTile } from "../cards/fan/FanTile";
 import type { FanTileProps } from "../cards/fan/FanTile";
 
 export interface HaFanTileProps extends HaFanOptions, Omit<FanTileProps, "entity" | "history" | keyof FanHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

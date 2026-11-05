@@ -6,9 +6,19 @@ import type { ActionKinds } from "./kinds";
 type LightServiceCaller = Pick<HaStore, "callService">;
 
 export interface LightHandlers {
+  /** Calls `light.toggle`. */
   onToggle: () => void;
+  /**
+   * Calls `light.turn_on` with `brightness_pct`, rounded and held between 1 and 100. A light without brightness
+   * reports `unsupported`.
+   */
   onBrightnessChange: (percent: number) => void;
+  /**
+   * Only for a light that takes a colour temperature. Calls `light.turn_on` with `color_temp_kelvin`; a value outside
+   * `minKelvin` to `maxKelvin` reports `invalid_input`.
+   */
   onKelvinChange?: (kelvin: number) => void;
+  /** Only for a colour light. Calls `light.turn_on` with `hs_color`: hue 0 to 360, saturation 0 to 100. */
   onColorChange?: (hs: [number, number]) => void;
 }
 

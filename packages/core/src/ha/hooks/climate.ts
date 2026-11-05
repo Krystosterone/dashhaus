@@ -13,14 +13,18 @@ import type { ClimateEntity, ClimateHistory } from "../../entities/climate/types
 import type { HaActionError, HaStore } from "../types";
 
 export interface HaClimateOptions {
+  /** Overrides Home Assistant's friendly name. */
   name?: string;
+  /** Overrides the area Home Assistant's registries resolve for the entity. */
   area?: string;
+  /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   unit?: "°C" | "°F";
   /** Host-owned history override; when omitted, today's history is read from Home Assistant. */
   history?: ClimateHistory;
   /** Set false to skip the Home Assistant history read. */
   loadHistory?: boolean;
+  /** Called with an HaActionError when an action is refused or fails. */
   onActionError?: (error: HaActionError) => void;
 }
 

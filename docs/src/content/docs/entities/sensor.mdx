@@ -27,7 +27,7 @@ Home Assistant gives each measurement its own entity. The hook reads the compani
 `<HaSensor>` is `useHaSensor` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaSensorProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaSensor" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -45,7 +45,7 @@ It reads the sensor and its companions, its area, and today's history of the tem
 
 #### `entity`: SensorEntity
 
-<ApiMembers from="@dashhaus/core/entities/sensor/types" name="SensorEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/sensor/types" name="SensorEntity" />
 
 #### `history`: SensorHistory
 

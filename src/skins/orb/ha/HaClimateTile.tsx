@@ -5,6 +5,7 @@ import { ClimateTile } from "../cards/climate/ClimateTile";
 import type { ClimateTileProps } from "../cards/climate/ClimateTile";
 
 export interface HaClimateTileProps extends HaClimateOptions, Omit<ClimateTileProps, "entity" | "history" | keyof ClimateHandlers> {
+  /** The Home Assistant entity id. */
   entityId: string;
 }
 

@@ -22,6 +22,7 @@ export interface OwletEntity {
   entityId: string;
   /** Usually the baby's name. */
   name: string;
+  /** Its area: the `area` option, else the one Home Assistant's registries resolve; none when neither has one. */
   area?: string;
   /** "unavailable" while the sock charges, is off, or can't tell yet. */
   state: SleepState | "unavailable";
@@ -50,6 +51,7 @@ export interface OwletEntity {
   baseOn?: boolean;
   /** When the newest reading arrived ("11:54"). */
   lastUpdated?: string;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

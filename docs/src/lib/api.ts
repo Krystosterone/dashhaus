@@ -10,10 +10,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import ts from "typescript";
 
-/**
- * The module specifiers a page may read from: each kind's types beside the packages' entries. `./api-types` is the
- * examples' own file of named helper types.
- */
+/** The module specifiers a page may read from: each kind's types beside the packages' entries. */
 const entries = () => [
   "@dashhaus/core",
   "@dashhaus/core/entities",
@@ -73,7 +70,7 @@ function load(): Loaded {
   if (!parsed) throw new Error(`api: could not read ${configFile}`);
   const from = join(examples, "index.ts");
   const files = new Map<string, string>();
-  for (const specifier of [...entries(), "./api-types"]) {
+  for (const specifier of entries()) {
     const resolved = ts.resolveModuleName(specifier, from, parsed.options, ts.sys).resolvedModule;
     if (!resolved) throw new Error(`api: ${specifier} does not resolve from docs/examples`);
     files.set(specifier, resolve(resolved.resolvedFileName));
@@ -117,10 +114,25 @@ function docOf(checker: ts.TypeChecker, symbol: ts.Symbol): string {
   return ts.displayPartsToString(symbol.getDocumentationComment(checker)).replace(/\s+/g, " ").trim();
 }
 
-/** The members of an exported interface or type alias, in declaration order (own members before inherited ones). */
+/**
+ * The type a member list reads: an exported interface or type alias itself, or, for a component (`HaFan`), the props
+ * its call takes.
+ */
+function listed(checker: ts.TypeChecker, symbol: ts.Symbol, from: string, name: string): ts.Type {
+  if (symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeAlias | ts.SymbolFlags.Class)) return checker.getDeclaredTypeOfSymbol(symbol);
+  const declaration = symbol.valueDeclaration;
+  const props = declaration && checker.getTypeOfSymbolAtLocation(symbol, declaration).getCallSignatures()[0]?.parameters[0];
+  if (!declaration || !props) throw new Error(`api: ${from} ${name} is neither a type nor a component that takes props`);
+  return checker.getTypeOfSymbolAtLocation(props, declaration);
+}
+
+/**
+ * The members of an exported interface or type alias, or a component's props, in declaration order (own members before
+ * inherited ones).
+ */
 export function members(from: string, name: string, { only, omit }: { only?: string[]; omit?: string[] } = {}): Member[] {
   const { checker, symbol } = exported(from, name);
-  const type = checker.getDeclaredTypeOfSymbol(symbol);
+  const type = listed(checker, symbol, from, name);
   const all = checker.getPropertiesOfType(type).map((property): Member => {
     const declaration = property.valueDeclaration ?? property.declarations?.[0];
     const optional = (property.flags & ts.SymbolFlags.Optional) !== 0;

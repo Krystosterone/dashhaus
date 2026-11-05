@@ -11,6 +11,7 @@ export type Condition =
  * remains unknown so the card does not infer a daylight presentation.
  */
 export interface WeatherEntity {
+  /** The Home Assistant entity id. */
   entityId: string;
   /** Usually the home's name. */
   name: string;
@@ -34,6 +35,7 @@ export interface WeatherEntity {
   /** From sun.sun; omitted or unavailable means daylight is unknown, not day. */
   isDay?: boolean;
   lastUpdated?: string;
+  /** While it is unavailable, when it was last reachable: the `lastSeen` option, else what Home Assistant reports. */
   lastSeen?: string;
 }
 

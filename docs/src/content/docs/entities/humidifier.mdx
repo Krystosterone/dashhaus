@@ -25,7 +25,7 @@ One `humidifier.*` entity, a dehumidifier included: on and off, a target humidit
 `<HaHumidifier>` is `useHaHumidifier` as a component that draws nothing of its own. It takes every option of the hook as a
 prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
 
-<ApiMembers from="./api-types" name="HaHumidifierProps" only={["entityId", "children"]} />
+<ApiMembers from="@dashhaus/core" name="HaHumidifier" only={["entityId", "children"]} />
 
 ## Hook
 
@@ -43,7 +43,7 @@ It reads the device, its area and today's history.
 
 #### `entity`: HumidifierEntity
 
-<ApiMembers from="@dashhaus/core/entities/humidifier/types" name="HumidifierEntity" notes={{}} />
+<ApiMembers from="@dashhaus/core/entities/humidifier/types" name="HumidifierEntity" />
 
 #### `history`: HumidifierHistory
 
@@ -54,7 +54,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 #### `actions`: HumidifierHandlers
 
-<ApiMembers from="@dashhaus/core" name="HumidifierHandlers" notes={{"onToggle": "Calls `humidifier.toggle`.", "onTargetChange": "Only for a device that reports a target. Calls `humidifier.set_humidity`, rounded to a whole percent; outside `minHumidity` to `maxHumidity` reports `invalid_input`.", "onModeChange": "Only with modes. Calls `humidifier.set_mode`; a mode the device doesn't list reports `unsupported`."}} />
+<ApiMembers from="@dashhaus/core" name="HumidifierHandlers" />
 
 Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
 
