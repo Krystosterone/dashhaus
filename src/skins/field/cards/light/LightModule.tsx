@@ -48,7 +48,8 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   // Reachable but not reported yet: it switches and dims like an unlit light, and its screen has no reading.
   const unknown = e.state === "unknown";
   const dimmable = e.supportsBrightness;
-  // An absent reading keeps the thumb at full and the screen on its plain state word.
+  // An absent reading leaves the fader without a thumb and the screen on its plain state word; the hidden level only
+  // says where the keyboard starts.
   const pct = e.brightness == null ? 100 : Math.min(100, Math.max(1, Math.round(e.brightness)));
   const known = dimmable && e.brightness != null;
   const word = unknown ? "Unknown" : on ? "On" : "Off";
@@ -86,7 +87,8 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
           min={1}
           max={100}
           lit={on}
-          valueText={on ? `${pct} percent` : known ? `${word}. Last set to ${pct} percent` : word}
+          empty={!known}
+          valueText={!known ? word : on ? `${pct} percent` : `${word}. Last set to ${pct} percent`}
           onChange={onBrightnessChange}
         />
       )}

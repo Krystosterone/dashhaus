@@ -11,10 +11,14 @@ export const DIRECTION_LABEL = { forward: "Forward", reverse: "Reverse" } as con
 export const fanMode = (e: FanEntity) =>
   e.state !== "on" ? null : e.presetMode ? presetLabel(e.presetMode) : e.oscillating ? "Oscillating" : null;
 
-/** A speed control's spoken value: "Speed 2 of 3" or "40 percent", and "Off. Last set to …" while off. */
+/**
+ * A speed control's spoken value: "Speed 2 of 3" or "40 percent", and only "Off" while off, since Home Assistant
+ * reports no speed then, so there is none it was last set to.
+ */
 export function speedValueText(speed: number, count: number, on: boolean) {
+  if (!on) return "Off";
   const said = namedSpeeds(count) ? `speed ${speed} of ${count}` : `${percentOf(speed, count)} percent`;
-  return on ? said.charAt(0).toUpperCase() + said.slice(1) : `Off. Last set to ${said}`;
+  return said.charAt(0).toUpperCase() + said.slice(1);
 }
 
 /** What the fan can do, for its details: "3 speeds, presets, oscillates", or "On / off". */

@@ -36,6 +36,15 @@ describe("FanModule", () => {
     expect(onPercentageChange).toHaveBeenLastCalledWith(100);
   });
 
+  it("draws no thumb while off, since Home Assistant reports no speed then, and a slide still turns it on", () => {
+    const { container, onPercentageChange } = draw({ ...FAN_SEEDS.on.entity, state: "off", percentage: undefined });
+    const fader = screen.getByRole("slider", { name: "Tower fan speed" });
+    expect(fader.getAttribute("aria-valuetext")).toBe("Off");
+    expect(container.querySelector(".fd-thumb")).toBeNull();
+    fireEvent.change(fader, { target: { value: "3" } });
+    expect(onPercentageChange).toHaveBeenLastCalledWith(100);
+  });
+
   it("reads a stepped fan's step on the screen, a stepless one's percent, and its sweep beside it", () => {
     const { container } = draw(FAN_SEEDS.on.entity);
     expect(container.querySelector(".fd-read")?.textContent).toBe("2/3 of 3");

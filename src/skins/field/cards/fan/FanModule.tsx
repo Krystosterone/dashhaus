@@ -44,7 +44,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   const on = e.state === "on";
   const count = e.speedCount ?? 0;
   const speedy = !!(e.supportsSpeed && count >= 2);
-  // Off, the fan reports no speed: the thumb waits at the first one, and a slide turns it on where it lands.
+  // Off, the fan reports no speed: the fader has no thumb, and a tap or a slide turns it on where it lands.
   const speed = on && e.percentage != null && speedy ? speedOf(e.percentage, count) : null;
   const pct = speed == null ? null : percentOf(speed, count);
 
@@ -80,6 +80,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
           min={1}
           max={count}
           lit={on}
+          empty={speed == null}
           valueText={speedValueText(at, count, on)}
           onChange={(next) => onPercentageChange?.(percentOf(next, count))}
         />

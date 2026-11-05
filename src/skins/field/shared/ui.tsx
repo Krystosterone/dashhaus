@@ -366,6 +366,12 @@ export interface FaderProps {
   step?: number;
   /** Whether what it sets is on. While off, setting the current level still reports it, so the fader turns it on. */
   lit: boolean;
+  /**
+   * What it sets reports no level now (a light or a fan while off): no thumb is drawn, since any place would claim a
+   * level Home Assistant never reported, but a tap, a slide or an arrow key still sets one there, turning it on.
+   * `value` is then only where the keyboard starts.
+   */
+  empty?: boolean;
   disabled?: boolean;
   /** The thumb's colour: the parameter it sets. Default the module's first. */
   param?: Param;
@@ -392,17 +398,19 @@ const scaleSteps = (min: number, max: number, step: number) => {
  * A tap jumps the thumb (animated); a drag follows the finger, on a hit layer that leaves vertical swipes to the
  * page; a hidden range input carries the keyboard and screen readers.
  */
-export function Fader({ id, label, legend, value, min, max, step = 1, lit, disabled, param = "a", valueText, snap, onChange }: FaderProps) {
+export function Fader({ id, label, legend, value, min, max, step = 1, lit, empty = false, disabled, param = "a", valueText, snap, onChange }: FaderProps) {
   const known = value != null && Number.isFinite(value);
   const inactive = disabled || !known;
+  // Live but empty: it still takes a tap, a slide and the keyboard, and only the thumb is left out.
+  const thumb = known && !empty;
   const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, snap, onChange });
-  const style = { "--fd-steps": scaleSteps(min, max, step), ...(known ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
+  const style = { "--fd-steps": scaleSteps(min, max, step), ...(thumb ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
   return (
-    <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!known || undefined} style={style}>
+    <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!thumb || undefined} style={style}>
       <p className="fd-legend" aria-hidden="true">{legend}</p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
-      {known && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
+      {thumb && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
       {known && <div className="fd-hit" {...slider.hitProps} />}
       {known && <input id={id} className="fd-in" aria-label={label} {...slider.inputProps} />}
     </div>

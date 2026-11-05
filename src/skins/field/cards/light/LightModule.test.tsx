@@ -28,9 +28,12 @@ describe("LightModule", () => {
     const el = draw(LIGHT_SEEDS.dimmableOff.entity);
     expect(el.querySelector(".fd-read")?.textContent).toBe("OFF");
     expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("Off");
+    // No thumb: any place would claim a level Home Assistant never reported.
+    expect(el.querySelector(".fd-thumb")).toBeNull();
     document.body.innerHTML = "";
-    draw({ ...LIGHT_SEEDS.dimmableOff.entity, brightness: 70 });
+    const known = draw({ ...LIGHT_SEEDS.dimmableOff.entity, brightness: 70 });
     expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("Off. Last set to 70 percent");
+    expect(known.querySelector(".fd-thumb")).not.toBeNull();
   });
 
   it("draws an unknown light as drivable: blank segments and Unknown, a live key and fader", () => {
@@ -45,6 +48,9 @@ describe("LightModule", () => {
     fireEvent.click(key);
     expect(onToggle).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("Unknown");
+    // Empty, it still takes a slide, which turns the light on there.
+    fireEvent.change(screen.getByRole("slider"), { target: { value: "40" } });
+    expect(onBrightnessChange).toHaveBeenCalledWith(40);
   });
 
   it("gives an on/off light one wide key with its state word, and no fader", () => {
