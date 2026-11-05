@@ -27,7 +27,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version-file: .nvmrc
     # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the packageManager
@@ -42,7 +42,7 @@ runs:
     - name: Restore node_modules
       if: inputs.cache != 'false' && inputs.install != 'false'
       id: modules
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           node_modules
@@ -50,7 +50,7 @@ runs:
         key: modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json', 'package.json', 'packages/*/package.json', 'src/skins/*/package.json', 'docs/package.json') }}
     - name: Restore npm's downloads
       if: inputs.cache != 'false' && inputs.install != 'false' && steps.modules.outputs.cache-hit != 'true'
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.npm
         key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -65,7 +65,7 @@ runs:
     # invalidate either.
     - name: Restore the tool caches
       if: inputs.tool-cache == 'true'
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules/.cache
         key: tools-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
@@ -74,7 +74,7 @@ runs:
           tools-${{ runner.os }}-
     - name: Restore the tool caches (read-only)
       if: inputs.tool-cache == 'restore'
-      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules/.cache
         key: tools-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
@@ -90,7 +90,7 @@ runs:
     - name: Restore Chromium
       if: inputs.chromium == 'true'
       id: chromium
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.cache/ms-playwright
         key: ms-playwright-shell-${{ runner.os }}-${{ steps.playwright.outputs.version }}
