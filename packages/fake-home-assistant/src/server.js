@@ -271,7 +271,7 @@ function dashboardPage(ha, dashboard) {
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(dashboard.title)} – Fake Home Assistant</title>
-<style>html,body{margin:0;min-height:100%;background:#fafafa}#view{min-height:100vh}#problem{font:14px/1.5 system-ui;margin:16px;padding:16px;border:1px solid #c00;white-space:pre-wrap}</style>
+<style>html,body{margin:0;min-height:100%;background:#fafafa}@media (prefers-color-scheme: dark){html,body{background:#111111}}#view{min-height:100vh}#problem{font:14px/1.5 system-ui;margin:16px;padding:16px;border:1px solid #c00;white-space:pre-wrap}</style>
 </head><body><div id="view"></div>
 <script type="module">
 const data = ${data};
@@ -323,7 +323,9 @@ const connection = {
 };
 // The person looking is an administrator unless the address says ?admin=false.
 const user = { id: "fake-user", name: "Fake", is_admin: new URLSearchParams(location.search).get("admin") !== "false" };
-const hass = () => ({ connection, states: { ...states }, ...data.registries, user, themes: { darkMode: false }, panels: {} });
+// Dark mode follows the browser's colour scheme, as Home Assistant's default theme does.
+const darkMode = matchMedia("(prefers-color-scheme: dark)").matches;
+const hass = () => ({ connection, states: { ...states }, ...data.registries, user, themes: { darkMode }, panels: {} });
 try {
   if (!data.card) throw new Error("This dashboard has no saved card.");
   for (const url of data.resources) await import(url);

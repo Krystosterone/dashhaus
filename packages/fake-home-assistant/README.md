@@ -134,5 +134,6 @@ that records what a driver asked for, for a test that injects the fake instead o
 - The dashboard page loads the saved first view's first card and serves `subscribe_entities`, light/switch
   `call_service` and empty history/recorder answers from the page; its `lovelace/*` commands go to the server, so a
   card such as Dashhaus's setup card can create dashboards. Its `hass.user` is an administrator unless the address
-  says `?admin=false`.
+  says `?admin=false`. Its `hass.themes.darkMode` follows the browser's colour scheme, as Home Assistant's default
+  theme does, so a dark browser sees a skin's dark mode.
 - `/local/` serves files only; no directory listings, gzip or range requests. The REST API is read-only.
