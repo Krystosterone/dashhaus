@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Dashhaus is before 1.0, and every house it runs on finds something new. A report that it simply works is
+        Dashhaus is in beta, and every house it runs on finds something new. A report that it simply works is
         just as useful as one that it doesn't. For one specific thing that's wrong, a **Bug** is quicker to act on.
   - type: dropdown
     id: skins

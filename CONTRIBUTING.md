@@ -3,7 +3,7 @@
 Thanks for wanting to help. Dashhaus is a small project with strong opinions about how it looks and behaves, so the
 order is: talk first, then code.
 
-The easiest help needs no code at all. Dashhaus is before 1.0 and in its testing phase, so trying it on your own
+The easiest help needs no code at all. Dashhaus is in beta, so trying it on your own
 house and saying how it went is worth as much as a pull request: open a **Test report** issue, good news included.
 
 1. **Open an issue first** for anything beyond a typo: a bug, a new card, a change to a skin's look. Agree the change

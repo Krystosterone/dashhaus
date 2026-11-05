@@ -17,15 +17,13 @@ and the headless hooks under them to draw your own.
 Documentation: **[krystosterone.github.io/dashhaus](https://krystosterone.github.io/dashhaus/)**, with Storybook at
 [/storybook](https://krystosterone.github.io/dashhaus/storybook/).
 
-## Status: early, before 1.0
+## Beta
 
-Dashhaus is in its testing phase. It runs one real house every day, but few others yet, and while it is `0.x` it
-can change quickly:
+Dashhaus is in beta. It runs one real house every day, but few others yet, so it can still change quickly:
 
-- **An update can ask something of you.** Until 1.0, a minor version (0.2 → 0.3) may rename a YAML key, change a
-  hook or redraw a card. Each [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and
-  what to do; read it before you update. In your own code, a caret range stays on one `0.x` minor, so moving to
-  the next is a step you take, and every `@dashhaus/` package moves together.
+- **An update can ask something of you.** An update may rename a YAML key, change a hook or redraw a card. Each
+  [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do; read it before you
+  update.
 - **Your existing dashboards are safe.** The setup card and the deploy command only create dashboards; they never
   change one that exists. The ones they create follow Dashhaus as it updates.
 - **Real devices vary.** Every card is tested on Home Assistant's standard entities, but an integration may report
@@ -35,6 +33,10 @@ can change quickly:
   wrong, a device it misreads or doesn't draw, or simply that it works on your setup.
   [Open an issue](https://github.com/Krystosterone/dashhaus/issues/new/choose); your Home Assistant and Dashhaus
   versions and a screenshot help most.
+
+For code that uses the packages: beta versions are `0.x`, and a change that breaks something moves the middle number
+(0.2 → 0.3). A caret range stays on one `0.x` line, so moving to the next is a step you take; every `@dashhaus/`
+package shares one version, so move them together. 1.0 will be the first stable release.
 
 ## Install
 
