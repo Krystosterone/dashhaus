@@ -273,9 +273,9 @@ Also named, each with its repair: a quoted number (`columns: "2"`), a fractional
 misspelt key (with the key it probably meant), a card where a row belongs, `align` on the page, `width` or `column` on a
 row, `span`, `gap`, `sections` and `modules` (not keys; the message says what to write), `width: full` with a `column`,
 an empty `cards`, a page with neither `cards` nor `rows`, a misplaced or incomplete bundle, a footprint mix the skin
-doesn't take, and another skin's keys (field says why `theme`, `accent`, `color`, `show_control` and bundles are
-orb's). A problem that depends on another (a `column` checked against a row whose `columns` is wrong) is not reported
-twice. What depends only on the screen's width (a row that collapses on a phone) is never an error.
+doesn't take, another skin's keys (field says why `theme`, `accent`, `show_control` and bundles are orb's), and a
+card's `color`, which Orb no longer takes (a card has no colour of its own: `accent` sets the dashboard's one colour). A
+problem that depends on another (a `column` checked against a row whose `columns` is wrong) is not reported twice. What depends only on the screen's width (a row that collapses on a phone) is never an error.
 
 Home Assistant parses the YAML before the card sees it, so the card gets a value, not text: a YAML syntax error, a
 tab, a duplicate key or a missing list dash that still parses into something valid never reaches it, and it has no
@@ -318,7 +318,6 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 | any card | `width`, `column` | Its place in its row (The page and its rows, above). |
 | any card | `show_control` | `false` on a compact card: the value replaces the control and a tap opens details. |
 | any card | `history` | `false` skips today's history read. |
-| light, climate, sensor, cover, toggle, owlet, humidifier, sound, lock, fan | `color` | The orb's or icon's own colour: `yellow`, `apricot`, `rose`, `lavender`, `blue`, `teal`, `sage`, or `none` (not on toggles). |
 | climate, sensor | `unit` | `°C` or `°F`, when the entity doesn't say. |
 | sensor | `humidity`, `battery`, `outdoor` | Companion `sensor.*` entities; `outdoor: true`. |
 | weather | `aqi`, `aqi_scale`, `sun`, `forecasts` | AQI sensor plus `aqi_scale: US` to band it; `sun` defaults to `sun.sun`; `forecasts: false` skips the forecast read. |
@@ -447,7 +446,7 @@ cards:                   # optional; leave out (and leave out rows) for every su
 than a count (tracks come from the width, so a module never narrows below its own 260 px, or a compact row's 300 px),
 the gaps come from the footprint, and a row holds one footprint unless it stacks mixed footprints by column, each
 module given a `column`. Each module's plate still names its own area, from `area` or Home Assistant's registries.
-Keys the main card takes and field doesn't (`theme`, `accent`, `color`, `show_control`, bundles) are refused with the
+Keys the main card takes and field doesn't (`theme`, `accent`, `show_control`, bundles) are refused with the
 reason, for YAML copied across.
 
 ```yaml

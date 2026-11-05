@@ -191,12 +191,12 @@ const { path: lovelace, domainKind } = orbKinds();
 const sharesDomain = domain in domainKind;
 edit(lovelace, after(markers.kinds, `  | "${name}"\n`));
 edit(lovelace, after(sharesDomain ? markers.sharedKinds : markers.domainKinds, sharesDomain ? `  ${name}: { domains: ["${domain}"] },` : `  ${domain}: "${name}",`));
-edit(lovelace, after(markers.cardConfigs, `  | { kind: "${name}";${reading ? " unit?: string;" : ""} color?: ColorName | "none" }`));
-edit(lovelace, after(markers.kindSpecs, `  ${name}: { keys: [${reading ? '"unit", ' : ""}"color"], options: (read, raw, at) => ({${reading ? ' unit: read.string(raw, "unit", at),' : ""} color: readColor(read, raw, at, COLOR_NAMES) }) },`));
+edit(lovelace, after(markers.cardConfigs, `  | { kind: "${name}"${reading ? "; unit?: string" : ""} }`));
+edit(lovelace, after(markers.kindSpecs, reading ? `  ${name}: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },` : `  ${name}: {},`));
 const renderer = seams.orb.renderer;
 edit(renderer, after(markers.tileImports, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";
 `)));
-edit(renderer, after(markers.tiles, fill(`  __name__: (card, key) => <Ha__Name__Tile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area}${reading ? " unit={card.unit}" : ""} color={card.color} />,`)));
+edit(renderer, after(markers.tiles, fill(`  __name__: (card, key) => <Ha__Name__Tile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area}${reading ? " unit={card.unit}" : ""} />,`)));
 // The automatic layout: a control on a domain of its own joins the compact controls per area.
 const placed = !reading && !sharesDomain;
 if (placed) {
@@ -205,7 +205,6 @@ if (placed) {
 }
 const deploy = seams.deployDoc;
 edit(deploy, after(markers.deployDomains, `- \`${domain}\`${sharesDomain ? ` with \`card: ${name}\`` : ""}: ${words}\n`));
-edit(deploy, (s) => s.replace(/^\| ([a-z0-9, ]+) \| `color` \|/m, `| $1, ${words} | \`color\` |`));
 if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | The unit, when the entity doesn't say. |\n`));
 
 // ---------- Write ----------

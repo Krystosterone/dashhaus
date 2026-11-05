@@ -22,13 +22,13 @@ export interface SoundCardProps extends CardProps {
  * orb, opens the sheet. The volume is set in the sheet only: it rarely changes, and a stray tap on a groove
  * beside a sleeping baby would jump it.
  */
-export function SoundCard({ entity: e, history, variant, footprint, showControl, onToggle, onVolumeChange, onOpenDetails, onClose, color }: SoundCardProps) {
+export function SoundCard({ entity: e, history, variant, footprint, showControl, onToggle, onVolumeChange, onOpenDetails, onClose }: SoundCardProps) {
   const card = useCard("sn", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. "energy" (bloom and glow) is for light, heat or daylight; see the attention-budget skill.
-  const colors = paint("state", 0, null, color);
+  const colors = paint("state", 0);
   // The control carries the state word; the status line never repeats it.
   const word = unav ? "Unavailable" : on ? "On" : "Off";
   // The pill's second voice: what tapping does, or how long it has been on.

@@ -3,9 +3,9 @@
 import "./styles/tokens.css";
 
 // Shared card system
-export { Orb, CardTitle, CircleButton, SheetClose, TogglePill, UnavailableSlot, Readout, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint, COLORS } from "./shared/ui";
+export { Orb, CardTitle, CircleButton, SheetClose, TogglePill, UnavailableSlot, Readout, TodayStrip, ChoiceChips, Sheet, fmtDuration, fmt1, paint } from "./shared/ui";
 export { useCard, detailsSheet, detailsTile, normalizeReadings } from "./shared/ui";
-export type { HourSample, ChoiceOption, SlotColor, ColorName, ColorProp, Role, CardFootprint, CardProps, SheetProps, TileProps, Reading } from "./shared/ui";
+export type { HourSample, ChoiceOption, Role, CardFootprint, CardProps, SheetProps, TileProps, Reading } from "./shared/ui";
 
 // The orb skin's connected tiles: each useHa<Kind> hook above its tile.
 export { HaLightTile } from "./ha/HaLightTile";

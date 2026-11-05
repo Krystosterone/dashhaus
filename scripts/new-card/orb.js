@@ -268,13 +268,13 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
   edit(lovelace, shared
     ? after(markers.sharedKinds, `  ${name}: { domains: [${domain.domains.map((d) => `"${d}"`).join(", ")}]${domain.id ? `, id: ${domain.id}` : ""} },`)
     : after(markers.domainKinds, domain.domains.map((d) => `  ${d}: "${name}",`).join("\n")));
-  edit(lovelace, after(markers.cardConfigs, `  | { kind: "${name}"; color?: ColorName | "none" }`));
-  edit(lovelace, after(markers.kindSpecs, `  ${name}: { keys: ["color"], options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }) },`));
+  edit(lovelace, after(markers.cardConfigs, `  | { kind: "${name}" }`));
+  edit(lovelace, after(markers.kindSpecs, `  ${name}: {},`));
   const renderer = seams.orb.renderer;
   const passed = domain.options.map((key) => key === "loadHistory" ? " loadHistory={card.history}" : ` ${key}={card.${key}}`).join("");
   edit(renderer, after(markers.tileImports, fill(`import { Ha__Name__Tile } from "../ha/Ha__Name__Tile";
 `)));
-  edit(renderer, after(markers.tiles, `  ${name}: (card, key) => <Ha${Name}Tile key={key} entityId={card.entity}${passed} footprint={card.footprint} showControl={card.showControl} color={card.color} />,`));
+  edit(renderer, after(markers.tiles, `  ${name}: (card, key) => <Ha${Name}Tile key={key} entityId={card.entity}${passed} footprint={card.footprint} showControl={card.showControl} />,`));
   // The automatic layout: a control on domains of its own joins the compact controls per area.
   const auto = read(seams.orb.auto);
   // A domain the layout already names (placed by hand, as the lock is under Security) is not placed again.
@@ -286,9 +286,6 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
   const deploy = read(seams.deployDoc);
   for (const d of domain.domains.filter((d) => !deploy.includes(`- \`${d}\``))) {
     edit(seams.deployDoc, after(markers.deployDomains, `- \`${d}\`${shared ? ` with \`card: ${name}\`` : ""}: ${words}\n`));
-  }
-  if (!new RegExp(`^\\| [a-z0-9, ]*\\b${words}\\b[a-z0-9, ]* \\| \`color\` \\|`, "m").test(deploy)) {
-    edit(seams.deployDoc, (s) => s.replace(/^\| ([a-z0-9, ]+) \| `color` \|/m, `| $1, ${words} | \`color\` |`));
   }
   if (!read(seams.cardsDoc).includes(`## Using the ${words} card`)) {
     edit(seams.cardsDoc, before(markers.cardsDoc, fill(`## Using the __label__ card

@@ -78,6 +78,13 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
+  it("refuses a card's own colour, saying the accent sets the one colour", () => {
+    expect(problems({ cards: [{ entity: "light.a", color: "lavender" }, { bundle: "joined", cards: ["input_boolean.a", { entity: "input_boolean.b", color: "rose" }] }] })).toEqual([
+      'cards[0] (light.a): "color" is gone: a card has no colour of its own, and the dashboard\'s "accent" sets the one colour every card is on in',
+      'cards[1].cards[1] (input_boolean.b): "color" is gone: a card has no colour of its own, and the dashboard\'s "accent" sets the one colour every card is on in',
+    ]);
+  });
+
   it("only offers card: the cards of the entity's domain", () => {
     expect(problems({ accent: { hue: 200 } })).toEqual(["accent.chroma: is required with the other"]);
     expect(problems({ cards: [{ entity: "light.a", card: "owlet" }, { entity: "sensor.a", card: "owlett" }] })).toEqual([
@@ -103,7 +110,7 @@ describe("parseDashboardConfig", () => {
         cards: [
           { entity: "sensor.t", humidity: "sensor.h", battery: "sensor.b", footprint: "compact", width: 2, show_control: false, history: false },
           { entity: "weather.home", aqi: "sensor.aqi", aqi_scale: "US", forecasts: false, column: 2 },
-          { entity: "switch.fan", icon: "waves", color: "rose", description: "Ceiling fan" },
+          { entity: "switch.fan", icon: "waves", description: "Ceiling fan" },
           { entity: "alarm_control_panel.house", read_only: true, exit_delay: 30, open_sensors: ["Back door"] },
         ],
       }],
@@ -118,7 +125,7 @@ describe("parseDashboardConfig", () => {
       cards: [
         { width: 2, item: { kind: "sensor", entity: "sensor.t", humidity: "sensor.h", battery: "sensor.b", footprint: "compact", showControl: false, history: false } },
         { width: 1, column: 2, item: { kind: "weather", aqi: "sensor.aqi", aqiScale: "US", sun: "sun.sun", forecasts: false } },
-        { item: { kind: "toggle", icon: "waves", color: "rose", description: "Ceiling fan" } },
+        { item: { kind: "toggle", icon: "waves", description: "Ceiling fan" } },
         { item: { kind: "alarm", readOnly: true, exitDelay: 30, openSensors: ["Back door"] } },
       ],
     });

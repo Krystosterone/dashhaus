@@ -17,12 +17,12 @@ export interface __Name__CardProps extends CardProps {
  * One __label__ (`__domain__.*`), switched on and off. It is drawn in the card frame, in the footprint matrix of
  * every other card: the orb and the pill toggle it; the name, or a press and hold on the orb, opens the sheet.
  */
-export function __Name__Card({ entity: e, history, variant, footprint, showControl, onToggle, onOpenDetails, onClose, color }: __Name__CardProps) {
+export function __Name__Card({ entity: e, history, variant, footprint, showControl, onToggle, onOpenDetails, onClose }: __Name__CardProps) {
   const card = useCard("__code__", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. "energy" (bloom and glow) is for light, heat or daylight; see the attention-budget skill.
-  const colors = paint("state", 0, null, color);
+  const colors = paint("state", 0);
   // The control carries the state word; the status line never repeats it.
   const word = unav ? "Unavailable" : on ? "On" : "Off";
   // The pill's second voice: what tapping does, or how long it has been on.

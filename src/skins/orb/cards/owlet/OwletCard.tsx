@@ -4,7 +4,7 @@ import { todaySummary } from "@dashhaus/core/entities/today";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
 import { AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
 
 export interface OwletCardProps extends CardProps {
@@ -13,8 +13,6 @@ export interface OwletCardProps extends CardProps {
   history?: OwletHistory;
   /** Card only: the name and the readings open the details sheet. */
   onOpenDetails?: () => void;
-  /** The icon's colour, if any. Default: none (a bare icon). */
-  color?: ColorProp;
   /** Sheet only: switch the base station on or off. Omit, or leave `baseOn` unset, to hide it. */
   onBaseToggle?: () => void;
 }
@@ -29,14 +27,14 @@ export interface OwletCardProps extends CardProps {
  * in warn, a problem with the sock or base leads the status line. The base station is switched in the sheet only:
  * a stray tap on a dashboard must never silence a baby monitor.
  */
-export function OwletCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color, onBaseToggle }: OwletCardProps) {
+export function OwletCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, onBaseToggle }: OwletCardProps) {
   const card = useCard("ow", { variant, footprint, showControl, area: e.area });
   const { nameId, sheet, compact, area } = card;
   const sleep = e.state === "unavailable" ? undefined : e.state;
   const hr = e.heartRate, o2 = e.oxygen;
   // Off the network or charging: nothing to show. A sleep state or a reading alone still shows.
   const offline = sleep == null && hr == null && o2 == null;
-  const colors = paint("reading", 0, null, color);
+  const colors = paint("reading", 0);
 
   // A vitals alert is the alarm going off: the slot fills with warn, like a triggered security alarm, whatever
   // else the card would show. A device problem, or readings that stopped, leads the status line with the warn

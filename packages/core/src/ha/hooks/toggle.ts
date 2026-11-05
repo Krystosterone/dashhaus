@@ -9,7 +9,6 @@ import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import type { ToggleEntity, ToggleIcon, ToggleHistory } from "../../entities/toggle/types";
-import type { ColorName } from "../../entities/color";
 import type { HaActionError } from "../types";
 
 export interface HaToggleOptions {
@@ -20,7 +19,6 @@ export interface HaToggleOptions {
   /** Overrides when the entity was last reachable, shown while it is unavailable. */
   lastSeen?: string;
   icon?: ToggleIcon;
-  color?: ColorName;
   description?: string;
   /** Host-owned history override; when omitted, today's history is read from Home Assistant. */
   history?: ToggleHistory;
@@ -37,7 +35,7 @@ export interface HaToggleResult {
 }
 
 /** One live input_boolean or switch for any UI: the mapped entity, today's history and its toggle. */
-export function useHaToggle(entityId: string, { name, area, lastSeen, icon, color, description, history, loadHistory = true, onActionError }: HaToggleOptions = {}): HaToggleResult {
+export function useHaToggle(entityId: string, { name, area, lastSeen, icon, description, history, loadHistory = true, onActionError }: HaToggleOptions = {}): HaToggleResult {
   checkEntityId(entityId, ["input_boolean", "switch"], "useHaToggle");
   const store = useHaStore();
   const raw = useHaEntity(entityId);
@@ -45,7 +43,7 @@ export function useHaToggle(entityId: string, { name, area, lastSeen, icon, colo
   const now = useNow();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => toggleHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => toggleFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, icon, color, description, now }), [raw, entityId, area, registryArea, name, lastSeen, icon, color, description, now]);
+  const entity = useMemo(() => toggleFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, icon, description, now }), [raw, entityId, area, registryArea, name, lastSeen, icon, description, now]);
   const actions = useMemo(() => createToggleHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

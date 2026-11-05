@@ -248,9 +248,7 @@ A mode you switch on and off, such as Do Not Disturb, Quiet, Guest or Away. It s
 ```
 
 - **Switching:** the orb and the pill both toggle. Both are raised buttons when off and the accent when on (a mode is on, not energy: no bloom, no glow). It says when the mode ends ("Until 12:54") or how long it has been on ("Since Fri 18:30").
-- **Icon and optional colour per mode:**
-  - Icons: `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`.
-  - The entity's optional `color` (for example `lavender` for quiet and night) tints the orb on standard cards and sheets. Most modes need none.
+- **Icon per mode:** `bell-off`, `moon`, `volume-off`, `guest`, `away`, `power`, `waves`. Its orb is the accent when on, like every other card's; a mode has no colour of its own.
 - **Status line:** shows where the mode applies; in compact cards the end time takes its place. It never says On or Off; that's the pill's word.
 - **Compact:** the toggle uses the same 60 px orb/title/control anatomy as every other card. Use a CSS grid or `JoinedBundle` for mode grids; there is no toggle-only mini variant.
 - **Sheet:** press and hold the orb, or tap the name. It has the description and "Turn on for" chips: 30 min, 1 hour, until morning, until off. While the mode is on they read "Keep on" and the active choice is selected.

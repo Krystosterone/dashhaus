@@ -16,7 +16,7 @@ export interface ToggleSeed {
 
 export const TOGGLE_SEEDS = {
   dnd: {
-    entity: { entityId: "input_boolean.do_not_disturb", name: "Do Not Disturb", area: "Whole home", state: "on", icon: "bell-off", color: "lavender", until: "12:54", duration: "60",
+    entity: { entityId: "input_boolean.do_not_disturb", name: "Do Not Disturb", area: "Whole home", state: "on", icon: "bell-off", until: "12:54", duration: "60",
       description: "Silences phone notifications, the doorbell chime and speaker announcements.", lastChanged: "11:02" },
     past: [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
   },

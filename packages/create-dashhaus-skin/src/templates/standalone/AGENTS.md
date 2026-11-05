@@ -146,7 +146,6 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/clock` | `clockFace`, the header's time and date for a locale, 12 or 24 hours and a time zone |
 | `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY` |
 | `@dashhaus/core/entities/severity` | the `Severity` type a model carries |
-| `@dashhaus/core/entities/color` | the `ColorName` type a model carries |
 | `@dashhaus/core/entities/alarm/modes` | an alarm's modes, their labels and hints, `needsCode` |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |

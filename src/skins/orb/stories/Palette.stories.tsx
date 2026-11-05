@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import type { CSSProperties, ReactNode } from "react";
-import { COLORS } from "../shared/ui";
 
 const meta = {
   title: "Orb/Foundations/Palette",
@@ -43,7 +42,7 @@ export const Roles: Story = {
       <Role title="Readout: look at it" rule="No container. Sensor readings, today's temperatures, a view-only alarm. Nothing that can't be pressed looks pressable.">
         <div style={{ ...pill, justifyItems: "start", fontSize: 20, fontWeight: 700 }}>21.4°</div>
       </Role>
-      <Role title="Solid accent: on" rule="Every on, whatever the role: lit, running, a mode, armed, open, a chosen chip. Energy adds the orb's bloom and the card's glow. One token.">
+      <Role title="Solid accent: on" rule="Every on, whatever the role: lit, running, a mode, armed, open, a chosen chip. Energy adds the orb's bloom and the card's glow. One token, and no card has a colour of its own: the dashboard's accent changes every orb at once.">
         <div style={{ ...pill, background: "oklch(var(--accent-l) var(--brand-c) var(--brand-h))", color: "var(--on-accent)" }}>On</div>
       </Role>
       <Role title="Dashed: unavailable" rule="A dashed outline and muted text, on the orb and the control alike. Nothing else is dashed.">
@@ -54,13 +53,6 @@ export const Roles: Story = {
       </Role>
       <Role title="Warn: text only" rule="Low battery, a door left open, poor air, strong gusts. A triggered alarm alone fills.">
         <span style={{ color: "var(--warn)", fontWeight: 600, fontSize: 15 }}>Battery 8%</span>
-      </Role>
-      <Role title="Colour slot: opt-in, the orb only" rule="No card colours its orb by default. Pass color (or a toggle's own colour) to tint the orb on standard, featured and sheet surfaces; never a fill, never in compact rows.">
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {Object.entries(COLORS).map(([name, c]) => (
-            <div key={name} title={name} style={{ width: 34, height: 34, borderRadius: "50%", background: `oklch(var(--accent-l) ${c.c} ${c.h})` }} />
-          ))}
-        </div>
       </Role>
     </div>
   ),

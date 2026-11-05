@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * Captures the home page's pictures from a static Storybook build, each in the site's light and dark look, as WebP:
+ * Captures the site's pictures from a static Storybook build, each in the site's light and dark look, as WebP, drawn
+ * at four device pixels per CSS pixel and kept at three or more, so they stay sharp on a high-density screen at the
+ * largest size the site shows them (the pages give each a srcset, so a smaller screen downloads less):
  *
- * - `src/assets/skins/phone-<skin>-<look>.webp`: each skin's phone example, the screen alone. The home page shows it
- *   while the live story loads, and in its place where the story can't run.
- * - `src/assets/kinds/<kind>-<look>.webp`: one card of each kind of entity, Orb's tile over Field's module, for the
- *   home page's list of what the skins draw.
+ * - `src/assets/skins/phone-<skin>-<look>.webp`: each skin's phone example, the screen alone, at three times the
+ *   phone's width. The home page shows it while the live story loads, and in its place where the story can't run.
+ * - `src/assets/kinds/<kind>-<look>.webp`: one card of each kind of entity, Orb's tile over Field's module, at four
+ *   times its 400 × 500 band, for the home page's list of what the skins draw.
  * - `src/assets/layout/composition-<device>-<look>.webp`: the Orb Lovelace card's Composition stories on a tablet and a
- *   phone, the same YAML at two widths, for the YAML page's account of how a row collapses.
+ *   phone, the same YAML at two widths, at three times the page's width, for the YAML page's account of how a row
+ *   collapses.
  *
  * Run `npm run build-storybook` at the root first, then `npm run screenshots -w docs [-- <storybook-static dir>]`. Rerun
  * it when a skin's phone example, one of the cards below or the Composition stories change.
@@ -24,6 +27,10 @@ import sharp from "sharp";
 const here = fileURLToPath(new URL(".", import.meta.url));
 const storybook = resolve(process.argv[2] ?? join(here, "../../storybook-static"));
 const assets = join(here, "../src/assets");
+/** Device pixels per CSS pixel the stories are drawn at. */
+const DRAWN = 4;
+/** Device pixels per CSS pixel a picture is kept at, where it isn't the kinds' 4:5 band (drawn and kept at `DRAWN`). */
+const KEPT = 3;
 
 /** Each skin's Storybook toolbar global for the site's light and dark look. */
 const LOOKS = {
@@ -67,7 +74,7 @@ await mkdir(join(assets, "layout"), { recursive: true });
 
 const browser = await chromium.launch(chromiumLaunchOptions());
 try {
-  const page = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: 2, reducedMotion: "reduce" });
+  const page = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: DRAWN, reducedMotion: "reduce" });
   /** Opens a story once its fonts are in. */
   const open = async (id, globals) => {
     await page.goto(story(id, globals));
@@ -76,21 +83,24 @@ try {
   };
   /**
    * The story's first element on its own page, as a band of the given shape: the page around the card is taken from
-   * the shot (Orb's is a gradient, so it can't be painted in), widened to fit a card larger than the band.
+   * the shot (Orb's is a gradient, so it can't be painted in), widened to fit a card larger than the band, at `DRAWN`
+   * device pixels per CSS pixel of the band.
    */
   const capture = async (width, height) => {
     const box = await page.locator("#storybook-root > *").first().boundingBox();
     const scale = Math.max(1, (box.width + 48) / width, (box.height + 48) / height);
     const [w, h] = [width * scale, height * scale];
     const png = await page.screenshot({ animations: "disabled", clip: { x: box.x + box.width / 2 - w / 2, y: box.y + box.height / 2 - h / 2, width: w, height: h } });
-    return sharp(png).resize(width * 2, height * 2).png().toBuffer();
+    return sharp(png).resize(width * DRAWN, height * DRAWN).png().toBuffer();
   };
 
   for (const [skin, looks] of Object.entries(LOOKS)) {
     for (const [look, globals] of Object.entries(looks)) {
       await open(`${skin}-dashboards-examples--phone`, globals);
-      const screen = await page.locator("#storybook-root figure > div").first().screenshot({ animations: "disabled" });
-      await sharp(screen).resize({ width: 600 }).webp({ quality: 80 }).toFile(join(assets, "skins", `phone-${skin}-${look}.webp`));
+      const phone = page.locator("#storybook-root figure > div").first();
+      const { width } = await phone.boundingBox();
+      const screen = await phone.screenshot({ animations: "disabled" });
+      await sharp(screen).resize({ width: Math.round(width * KEPT) }).webp({ quality: 82 }).toFile(join(assets, "skins", `phone-${skin}-${look}.webp`));
       console.log(`wrote skins/phone-${skin}-${look}.webp`);
     }
   }
@@ -101,24 +111,26 @@ try {
       await open(`orb-dashboards-lovelace-card--composition-${device}`, LOOKS.orb[look]);
       // The nav docks to the bottom of the screen, over whatever is there when the whole page is shot: leave it out.
       await page.addStyleTag({ content: ".dash-dock { display: none !important; }" });
-      const shot = await page.locator("#storybook-root > *").first().screenshot({ animations: "disabled" });
-      await sharp(shot).resize({ width: device === "tablet" ? 1240 : 620 }).webp({ quality: 80 }).toFile(join(assets, "layout", `composition-${device}-${look}.webp`));
+      const story = page.locator("#storybook-root > *").first();
+      const { width } = await story.boundingBox();
+      const shot = await story.screenshot({ animations: "disabled" });
+      await sharp(shot).resize({ width: Math.round(width * KEPT) }).webp({ quality: 82 }).toFile(join(assets, "layout", `composition-${device}-${look}.webp`));
       console.log(`wrote layout/composition-${device}-${look}.webp`);
     }
   }
 
-  /** 4:5, as the home page shows it: Orb's card in the upper half, Field's module in the lower. */
-  const W = 800;
-  const H = 1000;
+  /** 4:5, as the home page shows it: Orb's card in the upper half, Field's module in the lower; in CSS pixels. */
+  const W = 400;
+  const H = 500;
   for (const [kind, [orb, field]] of Object.entries(KINDS)) {
     for (const look of ["light", "dark"]) {
       const halves = [];
       for (const [id, globals] of [[orb, LOOKS.orb[look]], [field, LOOKS.field[look]]]) {
         await open(id, globals);
-        halves.push(await capture(W / 2, H / 4));
+        halves.push(await capture(W, H / 2));
       }
-      await sharp({ create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } } })
-        .composite([{ input: halves[0], left: 0, top: 0 }, { input: halves[1], left: 0, top: H / 2 }])
+      await sharp({ create: { width: W * DRAWN, height: H * DRAWN, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } } })
+        .composite([{ input: halves[0], left: 0, top: 0 }, { input: halves[1], left: 0, top: (H / 2) * DRAWN }])
         .webp({ quality: 82 })
         .toFile(join(assets, "kinds", `${kind}-${look}.webp`));
       console.log(`wrote kinds/${kind}-${look}.webp`);

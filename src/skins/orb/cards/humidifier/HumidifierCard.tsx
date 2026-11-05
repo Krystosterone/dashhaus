@@ -25,14 +25,14 @@ const STEP = 1;
  * as every other card: the orb switches it; the slot sets the target humidity; the name, or a press and
  * hold on the orb, opens the sheet with its modes and today's history.
  */
-export function HumidifierCard({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onModeChange, onOpenDetails, onClose, color }: HumidifierCardProps) {
+export function HumidifierCard({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onModeChange, onOpenDetails, onClose }: HumidifierCardProps) {
   const card = useCard("hu", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, compact, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. Humidifying is not light or heat, so it never claims the
   // energy bloom (attention-budget skill); the action words say whether it is working.
-  const colors = paint("state", 0, null, color);
+  const colors = paint("state", 0);
 
   const cur = unav ? undefined : e.currentHumidity;
   const target = on ? e.targetHumidity : undefined;

@@ -1,7 +1,7 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
-import { COLORS, CardTitle, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
+import { CardTitle, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
 
 describe("paint", () => {
@@ -15,21 +15,10 @@ describe("paint", () => {
     expect(p["data-glow"]).toBe("");
     expect(p.style["--hd-glow"]).toBe(0.123);
   });
-  it("paints the colour slot only when a colour is resolved", () => {
-    const p = paint("state", 0, { c: 0.13, h: 52 });
-    expect(p["data-color"]).toBe("");
-    expect(p.style["--color-c"]).toBe(0.13);
-    expect(p.style["--color-h"]).toBe(52);
-    expect(paint("state", 0).style["--color-c"]).toBeUndefined();
-  });
-  it("lets the prop override the card's own colour, and none keep the orb neutral", () => {
-    const own = { c: 0.13, h: 52 };
-    const over = paint("energy", 0, own, "sage");
-    expect(over.style["--color-c"]).toBe(COLORS.sage.c);
-    expect(over.style["--color-h"]).toBe(COLORS.sage.h);
-    const none = paint("energy", 0, own, "none");
-    expect(none["data-color"]).toBeUndefined();
-    expect(none.style["--color-c"]).toBeUndefined();
+  it("paints no colour of the card's own: every orb is the accent", () => {
+    const p = paint("state", 0);
+    expect(Object.keys(p).sort()).toEqual(["data-glow", "data-role", "style"]);
+    expect(Object.keys(p.style)).toEqual(["--hd-glow"]);
   });
   it("carries the role through", () => {
     expect(paint("reading", 0)["data-role"]).toBe("reading");

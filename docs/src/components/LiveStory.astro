@@ -55,6 +55,9 @@ const id = story(given);
 const wide = width > 600;
 const storybook = storybookUrl();
 const src = (globals: string) => `${storybook}iframe.html?id=${id}&viewMode=story&globals=${globals}`;
+/** The poster at one, two and three device pixels a CSS pixel, as wide as the frame (it never grows past `width`). */
+const posterWidths = [1, 2, 3].map((density) => width * density);
+const posterSizes = `min(100vw, ${width}px)`;
 /** The Examples stories' `Device` adds its caption and margins around the screen. */
 const frame = height + 72;
 const style = screen
@@ -66,8 +69,8 @@ const style = screen
   {
     poster && (
       <>
-        <Image class="poster light:sl-hidden" src={poster.dark} alt={poster.alt} width={width} loading="eager" />
-        <Image class="poster dark:sl-hidden" src={poster.light} alt={poster.alt} width={width} loading="eager" />
+        <Image class="poster light:sl-hidden" src={poster.dark} alt={poster.alt} widths={posterWidths} sizes={posterSizes} loading="eager" />
+        <Image class="poster dark:sl-hidden" src={poster.light} alt={poster.alt} widths={posterWidths} sizes={posterSizes} loading="eager" />
       </>
     )
   }

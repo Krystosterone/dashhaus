@@ -40,23 +40,20 @@ describe("toggleFromHass", () => {
   it("passes host metadata through options instead of reading attributes", () => {
     const mapped = toggleFromHass(raw, raw.entity_id, {
       icon: "guest",
-      color: "lavender",
       description: "Lets visitors on the Wi-Fi.",
     });
 
     expect(mapped.icon).toBe("guest");
-    expect(mapped.color).toBe("lavender");
     expect(mapped.description).toBe("Lets visitors on the Wi-Fi.");
   });
 
-  it("does not infer icon, colour, or description from raw attributes", () => {
+  it("does not infer icon or description from raw attributes", () => {
     const mapped = toggleFromHass({
       ...raw,
       attributes: { ...raw.attributes, icon: "moon", color: "blue", description: "fake" },
     }, raw.entity_id);
 
     expect(mapped.icon).toBeUndefined();
-    expect(mapped.color).toBeUndefined();
     expect(mapped.description).toBeUndefined();
   });
 

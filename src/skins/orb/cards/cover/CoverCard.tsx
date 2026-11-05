@@ -4,7 +4,7 @@ import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
 import { AlertStatus, CardFrame, ChoiceChips, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
 
 const SLATS = [
@@ -30,15 +30,13 @@ export interface CoverCardProps extends CardProps {
   /** Card only: the name, and press and hold on the orb, open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** The orb's colour, if any. Default: none (a neutral badge). */
-  color?: ColorProp;
 }
 
 /**
  * One cover: curtains, blinds, shades, garage doors. Position follows Home Assistant: 0 closed, 100 open.
  * It shares the modular footprint matrix with every dashboard card.
  */
-export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, color }: CoverCardProps) {
+export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose }: CoverCardProps) {
   const card = useCard("cv", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, compact, area } = card;
   const unav = e.state === "unavailable";
@@ -51,7 +49,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // A cover that lets a person in: open is a state (the accent orb, no glow), and reads as a warning.
   const access = isAccess(e.deviceClass);
   // Glow is energy flowing: daylight coming in through an open curtain. A garage door lets in no light worth showing.
-  const colors = paint(access ? "state" : "energy", unav || access ? 0 : (0.6 * pos) / 100, null, color);
+  const colors = paint(access ? "state" : "energy", unav || access ? 0 : (0.6 * pos) / 100);
 
   const withPos = hasPosition(e);
   const text = moving

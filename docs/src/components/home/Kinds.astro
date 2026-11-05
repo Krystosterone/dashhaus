@@ -24,6 +24,10 @@ const GROUPS = [
 const KINDS = GROUPS.flatMap((group) => group.kinds);
 /** A row's own picture, as wide as a slide on a narrow page (`li`'s flex basis below). */
 const THUMB = "min(82vw, 22rem)";
+/** The shared picture beside the list: its column of `.kinds`' grid, at most about 33rem; hidden on a narrow page. */
+const PICTURE = "(max-width: 50rem) 1px, min(40vw, 33rem)";
+/** The sizes each picture is offered in, up to the capture's own 1600 px (four device pixels a CSS pixel). */
+const WIDTHS = [480, 800, 1200, 1600];
 ---
 
 <section class="kinds not-content" aria-labelledby="what-it-draws" data-kinds>
@@ -31,8 +35,8 @@ const THUMB = "min(82vw, 22rem)";
     {
       KINDS.map(({ kind }, index) => (
         <div class="frame" data-kind={kind} data-current={index === 0 || undefined}>
-          <Image class="light:sl-hidden" src={picture(kind, "dark")} alt="" width={480} loading={index === 0 ? "eager" : "lazy"} />
-          <Image class="dark:sl-hidden" src={picture(kind, "light")} alt="" width={480} loading={index === 0 ? "eager" : "lazy"} />
+          <Image class="light:sl-hidden" src={picture(kind, "dark")} alt="" widths={WIDTHS} sizes={PICTURE} loading={index === 0 ? "eager" : "lazy"} />
+          <Image class="dark:sl-hidden" src={picture(kind, "light")} alt="" widths={WIDTHS} sizes={PICTURE} loading={index === 0 ? "eager" : "lazy"} />
         </div>
       ))
     }
@@ -47,8 +51,8 @@ const THUMB = "min(82vw, 22rem)";
             {kinds.map(({ kind, name, text }, index) => (
               <li data-kind={kind} data-current={(groupIndex === 0 && index === 0) || undefined}>
                 <span class="thumb" aria-hidden="true">
-                  <Image class="light:sl-hidden" src={picture(kind, "dark")} alt="" widths={[480, 800]} sizes={THUMB} loading="lazy" />
-                  <Image class="dark:sl-hidden" src={picture(kind, "light")} alt="" widths={[480, 800]} sizes={THUMB} loading="lazy" />
+                  <Image class="light:sl-hidden" src={picture(kind, "dark")} alt="" widths={WIDTHS} sizes={THUMB} loading="lazy" />
+                  <Image class="dark:sl-hidden" src={picture(kind, "light")} alt="" widths={WIDTHS} sizes={THUMB} loading="lazy" />
                 </span>
                 <span class="name">{name}</span>
                 <p>{text}</p>

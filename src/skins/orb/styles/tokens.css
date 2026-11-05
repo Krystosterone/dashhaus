@@ -29,7 +29,6 @@
   --on-accent: oklch(0.23 0.02 85);
   --warn: oklch(0.5 0.16 40);
   --on-warn: oklch(0.99 0.005 60);
-  --tint-mix: 50%;
   --accent-l: 0.89;
   --accent-strong-l: 0.76;
   --glow-a: 0.22;
@@ -92,7 +91,6 @@
     --on-accent: oklch(0.23 0.02 85);
     --warn: oklch(0.8 0.13 62);
     --on-warn: oklch(0.2 0.03 50);
-    --tint-mix: 24%;
     --accent-l: 0.87;
     --accent-strong-l: 0.84;
     --glow-a: 0.14;
@@ -123,7 +121,6 @@
   --on-accent: oklch(0.23 0.02 85);
   --warn: oklch(0.8 0.13 62);
   --on-warn: oklch(0.2 0.03 50);
-  --tint-mix: 24%;
   --accent-l: 0.87;
   --accent-strong-l: 0.84;
   --glow-a: 0.14;
