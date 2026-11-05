@@ -36,8 +36,16 @@ own test runs the conformance preset; the contract is what that preset checks.
 Many authors won't write the code themselves: they show an agent a picture or describe a look. So the page leads with
 that, for a reader with no terminal experience: what they need, one prompt to paste, and the Home Assistant clicks the
 deploy needs (the token, and the Terminal & SSH add-on with the key the agent makes). The hand-written steps follow, as
-what the agent does. The prompt hands the agent to the scaffold's `AGENTS.md`, which carries everything else, so the
-page never repeats it; `llms.txt` carries the same route. `verify/dx/author.js` proves the commands; an agent run
+what the agent does.
+
+Making a skin and installing it are split, because only the install has to reach Home Assistant. Any agent that runs
+commands can make one, in the browser (Claude Code on the web) as well as on the person's computer; one in the cloud
+can't reach a Home Assistant on a home network, so it installs nothing. It follows the scaffold's **Install by hand**
+instead: it hands over the built file and the project, and walks the person through File editor, **Resources** and a
+new dashboard, with no token, no SSH and no terminal, at the address `npm run deploy` would use. Declined for now: a
+setup card that registers an uploaded skin, and a skin installed from the Marketplace through a GitHub repository of
+its own; both would add a contract for a reader that doesn't yet exist, and the hand route needs neither. The prompt hands the agent to the scaffold's `AGENTS.md`, which carries everything else, so the
+page never repeats it; `llms.txt` carries the same route. `verify/dx/author.js` proves the commands, and the hand install from what the guide hands over; an agent run
 (`verify/dx/agent-runs.md`, or a study) proves an agent can take them from the packages alone.
 
 ## The developer

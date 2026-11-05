@@ -9,7 +9,10 @@
  * names; `npm install` inside the new project (its `@dashhaus` dependencies are the tarballs, the rest the registry);
  * `npm test`; `npm run build`; then `npm run deploy` (the packed `dashhaus-deploy` bin, reading `.env`) over a real
  * websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the deploy's served-file check runs
- * for real, and open and close the light's and sensor's details in the deployed dashboard; then add a climate card and
+ * for real, and open and close the light's and sensor's details in the deployed dashboard. Before the deploy, the
+ * guide's Install by hand on the same fake Home Assistant, from only what the guide hands over: the file in
+ * `www/dashhaus-<skin>/`, its resource line with `?v=1`, a dashboard at the guide's URL holding its pasted YAML, and
+ * the next version's `?v=2`; the deploy then finds that resource and dashboard and keeps them. Then add a climate card and
  * a lock, and check the lock's unlock asks first, sends nothing on Cancel and sends once on its question's Unlock.
  * `--screenshot <dir>`
  * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
@@ -18,6 +21,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { parse } from "yaml";
 import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import {
   clean,
@@ -44,6 +48,15 @@ console.log(`  tarballs: ${shown(tarballsDir)}`);
 const app = await makeApp("author");
 const required = tarballs(["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy", "create-dashhaus-skin"]);
 let server;
+/** The fake Home Assistant, started once, serving `www` at /local/: the hand install and every deploy share it. */
+const www = join(app, "www");
+const fakeHomeAssistant = async () => {
+  if (!server) {
+    await mkdir(www, { recursive: true });
+    server = await startFakeHomeAssistant({ port: 0, www });
+  }
+  return server;
+};
 try {
   const setup = await report.stage("tarballs", async () => {
     if (required.missing.length) throw new Error(`missing ${required.missing.join(", ")}; run npm run release:pack first`);
@@ -73,7 +86,7 @@ try {
     : { ok: false };
 
   if (!scaffold.ok) {
-    report.blocked(["agent guide", "install", "conformance", "build", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], "the scaffold failed");
+    report.blocked(["agent guide", "install", "conformance", "build", "install by hand", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], "the scaffold failed");
   } else {
     await report.stage("agent guide", async () => {
       const guide = await read(join(skinApp, "AGENTS.md"));
@@ -102,7 +115,7 @@ try {
     });
 
     if (!installed.ok) {
-      report.blocked(["conformance", "build", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], "npm install failed in the skin");
+      report.blocked(["conformance", "build", "install by hand", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], "npm install failed in the skin");
     } else {
       await report.stage("conformance", async () => {
         const result = run("npm", ["test", "--silent"], { cwd: skinApp });
@@ -147,13 +160,48 @@ try {
       });
 
       if (!build.ok) {
-        report.blocked(["deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], `no dist/${bundleName} to upload`);
+        report.blocked(["install by hand", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], `no dist/${bundleName} to upload`);
       } else {
+        // What an agent that can't reach Home Assistant hands over, done as the person would: the guide's own lines.
+        const byHand = await report.stage("install by hand", async () => {
+          const guide = await read(join(skinApp, "AGENTS.md"));
+          const section = guide.split("\n## Install by hand\n")[1]?.split("\n## ")[0];
+          assert.ok(section, "AGENTS.md has no Install by hand section");
+          const folder = `dashhaus-${SKIN}`;
+          const line = `/local/${folder}/${bundleName}?v=1`;
+          assert.ok(section.includes(`\`${line}\``), `Install by hand must give the resource line ${line}`);
+          assert.ok(section.includes(`\`dist/${bundleName}\``), "Install by hand must name the file to hand over");
+          assert.ok(section.includes(`\`${folder}\``), `Install by hand must name the folder and URL ${folder}`);
+          const title = section.match(/titled\s+\*\*([^*]+)\*\*/)?.[1];
+          assert.equal(title, "Home (My Skin)", "Install by hand must title the dashboard as npm run deploy does");
+          const yaml = section.match(/```yaml\n([\s\S]*?)```/)?.[1];
+          assert.ok(yaml, "Install by hand must give the dashboard's text as YAML");
+          const config = parse(yaml);
+          assert.equal(config.views[0].cards[0].type, `custom:${folder}`, "the pasted dashboard must hold the skin's card");
+
+          const { ha, settings } = await fakeHomeAssistant();
+          // File editor: the folder and the upload. Resources: the line, as a module. Then a new dashboard, pasted.
+          await mkdir(join(www, folder), { recursive: true });
+          await writeFile(join(www, folder, bundleName), await read(join(skinApp, "dist", bundleName)));
+          await ha.send("lovelace/resources/create", { res_type: "module", url: line });
+          await ha.send("lovelace/dashboards/create", { url_path: folder, title, mode: "storage" });
+          await ha.send("lovelace/config/save", { url_path: folder, config });
+          const served = await fetch(`${settings.HA_URL}${line}`);
+          assert.equal(served.status, 200, `Home Assistant must serve ${line}`);
+          await exerciseDetails(`${settings.HA_URL}/${folder}`, [{ card: "light", facts: ["State", "Entity"], close: "button" }]);
+
+          // The next change: the new file in place of the old one, and the line's number raised.
+          assert.ok(section.includes("`?v=2`"), "Install by hand must say to raise the resource's number");
+          await writeFile(join(www, folder, bundleName), `${await read(join(skinApp, "dist", bundleName))}\n// the next version\n`);
+          await ha.send("lovelace/resources/update", { resource_id: ha.resources[0].id, res_type: "module", url: line.replace("?v=1", "?v=2") });
+          assert.match(await (await fetch(`${settings.HA_URL}${ha.resources[0].url}`)).text(), /the next version/);
+          await exerciseDetails(`${settings.HA_URL}/${folder}`, [{ card: "sensor", facts: ["State", "Entity"], close: "escape" }]);
+          return `${line}, ${title} from the pasted YAML, drawn; ?v=2 serves the next file`;
+        });
+        if (!byHand.ok) await server?.close().then(() => { server = undefined; });
+
         const deployed = await report.stage("deploy", async () => {
-          const www = join(app, "www");
-          await mkdir(www, { recursive: true });
-          server = await startFakeHomeAssistant({ port: 0, www });
-          const { HA_URL, HA_TOKEN, HA_WWW } = server.settings;
+          const { HA_URL, HA_TOKEN, HA_WWW } = (await fakeHomeAssistant()).settings;
           const example = await read(join(skinApp, ".env.example"));
           for (const key of ["HA_URL=", "HA_TOKEN=", "HA_WWW="]) assert.ok(example.includes(key), `.env.example has no ${key}`);
           await writeFile(join(skinApp, ".env"), `HA_URL=${HA_URL}\nHA_TOKEN=${HA_TOKEN}\nHA_WWW=${HA_WWW}\n`);
@@ -173,7 +221,7 @@ try {
             const file = await screenshotDashboard(`${HA_URL}/dashhaus-my-skin`, join(screenshotDir, "author.png"));
             console.log(`  screenshot: ${file}`);
           }
-          return `npm run deploy: 1 resource served back, 1 dashboard (${HA_URL})`;
+          return `npm run deploy: 1 resource served back, 1 dashboard (${HA_URL})${byHand.ok ? ", both the hand install's, kept" : ""}`;
         });
         if (!deployed.ok) {
           report.blocked(["details", "add a domain", "added card", "add a guarded action", "guarded action"], "the deploy failed");

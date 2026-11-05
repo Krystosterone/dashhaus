@@ -181,6 +181,53 @@ dashboard resource. It then checks that Home Assistant serves the file, and crea
 dashboard's layout is kept and the resource version moves, and an open tab picks the new version up on reload.
 `npx dashhaus-deploy --help` lists the options.
 
+The deploy needs to reach Home Assistant from where you run. When you can't, because you run in the cloud and Home
+Assistant is on the person's home network, or they would rather not make a token, install by hand instead.
+
+## Install by hand
+
+The person installs the skin with Home Assistant's own screens: no token, no SSH, no terminal. It ends where
+`npm run deploy` would, at the same address, so a later `npm run deploy` finds the resource and updates it.
+
+Run `npm test` and `npm run build`, then hand over:
+
+1. **The file**, `dist/dashhaus-__skin__.js`, as a download.
+2. **The project**, for the next change: the repository you work in, or a zip of this folder without `node_modules`,
+   `dist` and `.env`. They bring it back with what they want changed.
+3. **The steps below**, in plain words, one at a time, waiting for each to be done. Give the two lines to paste
+   exactly as written here.
+
+The steps:
+
+1. **Copy the file in.** In Home Assistant, open **Settings → Add-ons → Add-on store**, install **File editor** and
+   press **Start**, then **Open web UI**. With the folder icon, make a folder `www` beside `configuration.yaml` if
+   there is none, a folder `dashhaus-__skin__` inside it, and upload the file into that. If `www` is new, restart Home
+   Assistant (**Settings → System**, the power icon, **Restart Home Assistant**): it serves the folder only when it
+   was there at startup. The Samba share add-on or Studio Code Server do the same, for someone who has one.
+2. **Load it.** Open your profile (your name at the bottom of the sidebar) and turn on **Advanced mode**. Then
+   **Settings → Dashboards → ⋮ → Resources → Add resource**: the URL
+   `/local/dashhaus-__skin__/dashhaus-__skin__.js?v=1`, as a **JavaScript module**.
+3. **Make the dashboard.** **Settings → Dashboards → Add dashboard → New dashboard from scratch**, titled
+   **Home (__Section__)**, with its **URL** set to `dashhaus-__skin__` (the field shows with Advanced mode), the
+   path `npm run deploy` would give it. Open it, press the pencil, then **⋮ → Raw configuration editor**, replace everything with
+   the text below and save.
+4. **Reload the tab**, and the skin draws every light and sensor by area.
+
+```yaml
+views:
+  - title: Home
+    path: home
+    type: panel
+    cards:
+      - type: custom:__card_type__
+        title: Home
+```
+
+After the next change, hand over the new file and two steps: in File editor, delete the old file in
+`www/dashhaus-__skin__` and upload the new one in its place; then in **Resources**, change the end of the line to
+`?v=2` (one more each time) and reload. Without the new number, browsers keep the old file. The dashboard's layout
+is kept.
+
 ## The contract you build on
 
 What you may rely on, and what not to rewrite:

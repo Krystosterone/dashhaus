@@ -60,7 +60,7 @@ export default defineConfig({
             "3. Overview → ⋮ → Edit dashboard → Add card → \"Dashhaus setup\" → Save, then press \"Create dashboards\".",
             "4. Open \"Home (Orb)\" and \"Home (Field)\" from its links, then remove the setup card. It never changes an existing dashboard.",
             "",
-            "To build someone their own skin (a whole look for their dashboards) from a picture or a description: run `npm create dashhaus-skin@latest <name>`, follow the AGENTS.md it writes (restyle, `npm test`, `npm run snapshot` to show them), then `npm run deploy` with HA_URL, HA_TOKEN and HA_WWW in .env. start/build-a-skin has the prompt and the Home Assistant steps for a person with no terminal experience.",
+            "To build someone their own skin (a whole look for their dashboards) from a picture or a description: run `npm create dashhaus-skin@latest <name>`, follow the AGENTS.md it writes (restyle, `npm test`, `npm run snapshot` to show them), then `npm run deploy` with HA_URL, HA_TOKEN and HA_WWW in .env. An agent that can't reach their Home Assistant (one in the cloud) follows the AGENTS.md's Install by hand instead: it hands over the built file and walks them through File editor, Resources and a new dashboard, with no token. start/build-a-skin has the prompt and the Home Assistant steps for a person with no terminal experience.",
             "",
             "The four ways in: install a skin (start/install), build a skin (start/build-a-skin), use the hooks in your own React app (start/getting-started), contribute to the repository (develop/monorepo).",
           ].join("\n"),
