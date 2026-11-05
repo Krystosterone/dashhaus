@@ -71,7 +71,7 @@ A generated skin's cards start read-only, or with the hook's zero-argument actio
 Give the skin its look by replacing its tokens and parts.
 
 The page around the cards comes with it. Its tokens key dark mode on `data-canvas-theme`, the skin's own attribute,
-which the Lovelace card sets from Home Assistant and the **Canvas theme** toolbar sets in Storybook, so another skin's
+which the Lovelace card sets from Home Assistant and the **Theme** toolbar sets in Storybook, so another skin's
 theme never leaks into it. `shared/surface.ts` names its web font once: the Lovelace card links it on Home Assistant's
 page and Storybook links it for the skin's stories. And `CanvasActionStatus` shows a command Home Assistant refused,
 with Retry and Dismiss, so a failed tap never goes unnoticed.

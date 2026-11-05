@@ -41,7 +41,7 @@ Every colour is a `--futura-*` token in `styles/tokens.css`; no other file holds
   Each signal has `-dim` (fills), `-glow` (halos) and `-ink` (text on a solid fill) companions.
 - **Themes:** the console (dark) is Futura's default, on `:root` and `.futura-surface`, whatever the system scheme.
   The daylight values apply under `data-futura-theme="light"`, which the Lovelace card sets on its host from Home
-  Assistant's light theme and Storybook's **Futura theme** toolbar sets on `<html>`. The attribute is Futura's own,
+  Assistant's light theme and Storybook's **Theme** toolbar sets on `<html>`. The attribute is Futura's own,
   so another skin's theme toolbar never re-colours it.
 
 ## Parts

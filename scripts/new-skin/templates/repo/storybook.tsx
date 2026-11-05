@@ -15,7 +15,7 @@ export const __skinVar__Storybook = {
     __skinVar__Theme: {
       description: "__Section__ theme (__Section__ skin only)",
       toolbar: {
-        title: "__Section__ theme",
+        title: "Theme",
         icon: "contrast",
         items: [
           { value: "auto", title: "Auto (system)" },

@@ -15,7 +15,7 @@ export const lcarsStorybook = {
     lcarsTheme: {
       description: "Lcars theme (Lcars skin only)",
       toolbar: {
-        title: "Lcars theme",
+        title: "Theme",
         icon: "contrast",
         items: [
           { value: "auto", title: "Auto (system)" },
