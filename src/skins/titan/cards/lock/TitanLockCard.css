@@ -1,0 +1,11 @@
+/*
+ * The lock's bolt: a ruled bar whose block sits at the right end while locked and the left while unlocked, sliding
+ * on transform between them; it stops in the middle while jammed. A drawing of the state, beside its words.
+ */
+.titan-lock-bolt::after { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 9px; border-top: 1px solid var(--titan-tick); background: repeating-linear-gradient(to right, var(--titan-tick) 0 1px, transparent 1px 10%); }
+.titan-lock-bolt span { position: absolute; bottom: 0; left: 0; width: 38%; height: 8px; background: var(--tone); transform: translateX(163%); transition: transform var(--titan-close) var(--titan-ease-out), background-color var(--titan-close) var(--titan-ease-in-out); }
+.titan-lock-bolt[data-bolt="unlocked"] span, .titan-lock-bolt[data-bolt="open"] span, .titan-lock-bolt[data-bolt="opening"] span { transform: translateX(0); }
+.titan-lock-bolt[data-bolt="locking"] span, .titan-lock-bolt[data-bolt="unlocking"] span, .titan-lock-bolt[data-bolt="jammed"] span { transform: translateX(82%); }
+.titan-lock-bolt[data-bolt="unavailable"] span { display: none; }
+.titan-card[data-card="lock"] .titan-readout-value { font-size: 40px; }
+@media (prefers-reduced-motion: reduce) { .titan-lock-bolt span { transition-duration: 1ms; } }

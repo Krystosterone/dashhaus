@@ -1,0 +1,5 @@
+/* The switch's rail: the reference's segmented bar, lit across while on, an empty well while off. */
+.titan-toggle-rail span { position: absolute; right: 0; bottom: 0; left: 0; height: 8px; background: repeating-linear-gradient(to right, var(--tone) 0 18px, transparent 18px 22px); transform: scaleX(0); transform-origin: left center; transition: transform var(--titan-close) var(--titan-ease-out); }
+.titan-toggle-rail[data-on] span { transform: scaleX(1); }
+.titan-card[data-card="toggle"][data-state="off"] .titan-readout-value { color: var(--titan-ink-muted); }
+@media (prefers-reduced-motion: reduce) { .titan-toggle-rail span { transition-duration: 1ms; } }

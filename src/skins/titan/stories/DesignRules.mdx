@@ -1,0 +1,32 @@
+import { Meta } from "@storybook/blocks";
+import { MarkdownWithStories } from "../../../../.storybook/blocks/MarkdownWithStories";
+import rules from "../../../../src/skins/titan/design.md?raw";
+import * as Palette from "./Palette.stories";
+import * as Parts from "./Parts.stories";
+import * as Examples from "../dashboards/Examples.stories";
+import * as Climate from "../cards/climate/TitanClimateCard.stories";
+import * as Light from "../cards/light/TitanLightCard.stories";
+import * as Lock from "../cards/lock/TitanLockCard.stories";
+import * as Sensor from "../cards/sensor/TitanSensorCard.stories";
+import * as Toggle from "../cards/toggle/TitanToggleCard.stories";
+import * as Weather from "../cards/weather/TitanWeatherCard.stories";
+// new-card: design rule imports
+
+<Meta title="Studies/Titan/Foundations/Design rules" />
+
+<MarkdownWithStories
+  markdown={rules}
+  path="src/skins/titan/design.md"
+  after={{
+    Palette: [Palette.Roles],
+    Parts: [Parts.States],
+    Dashboards: [Examples.Phone, Examples.Tablet],
+    Climate: [Climate.AllStates, Climate.Footprints],
+    Light: [Light.AllStates, Light.Footprints],
+    Lock: [Lock.AllStates, Lock.Footprints],
+    Sensor: [Sensor.AllStates, Sensor.Footprints],
+    Toggle: [Toggle.AllStates, Toggle.Footprints],
+    Weather: [Weather.AllStates, Weather.Footprints],
+    // new-card: design rule stories
+  }}
+/>

@@ -1,0 +1,2 @@
+/* The thermostat draws from the shared parts (shared/ui.css); off reads as a muted figure, never a coloured one. */
+.titan-card[data-card="climate"][data-state="off"] .titan-readout-value { color: var(--titan-ink-muted); }

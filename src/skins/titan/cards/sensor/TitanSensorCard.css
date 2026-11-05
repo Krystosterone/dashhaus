@@ -1,0 +1,2 @@
+/* The sensor draws entirely from the shared parts (shared/ui.css): a teal elbow, a humidity gauge and data blocks. */
+.titan-card[data-card="sensor"] .titan-readout-value { color: var(--titan-ink); }

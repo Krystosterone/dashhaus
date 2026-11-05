@@ -1,0 +1,220 @@
+/*
+ * Titan's parts: the card's elbow frame, keys, the dot strip, gauges and faders, facts and the details panel.
+ * Every colour is a token; a card's colour role arrives as data-tone and becomes --tone, --tone-ink and --tone-text.
+ */
+.titan-card, .titan-sheet { --tone: var(--titan-frame); --tone-ink: var(--titan-frame-ink); --tone-text: var(--titan-ink-muted); }
+[data-tone="on"] { --tone: var(--titan-on); --tone-ink: var(--titan-on-ink); --tone-text: var(--titan-title); }
+[data-tone="read"] { --tone: var(--titan-cool); --tone-ink: var(--titan-cool-ink); --tone-text: var(--titan-cool-text); }
+[data-tone="idle"] { --tone: var(--titan-frame); --tone-ink: var(--titan-frame-ink); --tone-text: var(--titan-ink-muted); }
+[data-tone="alert"] { --tone: var(--titan-alert); --tone-ink: var(--titan-alert-ink); --tone-text: var(--titan-alert); }
+[data-tone="gone"] { --tone: transparent; --tone-ink: var(--titan-ink-muted); --tone-text: var(--titan-ink-muted); }
+
+.titan-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; white-space: nowrap; }
+
+/* ---------------------------------------------------------------- The card: an elbow, a strip, a readout, keys */
+.titan-card {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 52px 16px minmax(0, 1fr);
+  grid-template-rows: 16px 10px minmax(0, 1fr) 22px 12px 44px;
+  grid-template-areas: "side bar bar" "side . ." "side . main" "side . gauge" "side . ." "side . actions";
+  height: 196px;
+  overflow: hidden;
+  color: var(--titan-ink);
+  font-family: var(--titan-sans);
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+.titan-elbow-side { grid-area: side; display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 6px 22px 0; border-radius: 26px 0 0 26px; background: var(--tone); color: var(--tone-ink); transition: background-color var(--titan-close) var(--titan-ease-in-out), color var(--titan-close) var(--titan-ease-in-out); }
+.titan-plate { width: min-content; font: 500 11px/1.1 var(--titan-sans); letter-spacing: 0.02em; text-align: right; }
+.titan-elbow-bar { grid-row: 1; grid-column: 2 / 4; background: var(--tone); transition: background-color var(--titan-close) var(--titan-ease-in-out); }
+.titan-elbow-corner { position: absolute; top: 16px; left: 52px; width: 16px; height: 16px; background: radial-gradient(circle at 100% 100%, transparent 15.5px, var(--tone) 16px); pointer-events: none; }
+.titan-card-strip { grid-row: 1; grid-column: 3; justify-self: end; display: flex; height: 16px; border-left: 6px solid var(--titan-page); }
+.titan-strip-blank { width: 64px; background: var(--titan-coal); }
+.titan-card[data-tone="gone"] .titan-elbow-side { border: 2px dashed var(--titan-key); }
+.titan-card[data-tone="gone"] .titan-elbow-bar { border-top: 2px dashed var(--titan-key); border-right: 2px dashed var(--titan-key); }
+.titan-card[data-tone="gone"] .titan-elbow-corner { display: none; }
+
+.titan-head { grid-area: main; justify-self: end; align-self: start; display: grid; justify-items: end; gap: 1px; min-width: 0; max-width: 62%; text-align: right; }
+.titan-title { appearance: none; max-width: 100%; margin: 0; padding: 0; border: 0; background: transparent; color: var(--titan-ink); font: 600 19px/1.08 var(--titan-sans); letter-spacing: 0.02em; text-align: right; text-transform: uppercase; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent; transition: color var(--titan-press) var(--titan-ease-in-out); }
+.titan-title:active { color: var(--tone-text); }
+.titan-area { margin: 0; max-width: 100%; overflow: hidden; color: var(--titan-ink-muted); font: 400 12px/1.2 var(--titan-sans); letter-spacing: 0.06em; text-overflow: ellipsis; white-space: nowrap; }
+.titan-read { grid-area: main; align-self: end; display: grid; gap: 2px; min-width: 0; }
+.titan-readout { display: flex; align-items: baseline; gap: 3px; margin: 0; color: var(--titan-ink); font: 600 46px/0.9 var(--titan-sans); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; white-space: nowrap; }
+.titan-readout-unit { color: var(--titan-ink-muted); font-size: 18px; font-weight: 500; }
+.titan-status { display: flex; gap: 8px; align-items: center; min-width: 0; margin: 0; color: var(--tone-text); font: 500 13px/1.2 var(--titan-sans); letter-spacing: 0.06em; white-space: nowrap; }
+.titan-status-words { overflow: hidden; text-overflow: ellipsis; }
+.titan-warn { flex: none; display: inline-flex; gap: 5px; align-items: center; padding: 1px 6px 0 4px; background: var(--titan-alert); color: var(--titan-alert-ink); font-weight: 700; }
+.titan-warn-mark { width: 7px; height: 7px; background: var(--titan-alert-ink); }
+.titan-card-gauge { grid-area: gauge; min-width: 0; }
+.titan-actions { grid-area: actions; display: flex; justify-content: flex-end; gap: 4px; min-width: 0; }
+.titan-actions > * { flex: 0 1 112px; min-width: 0; }
+.titan-actions > .titan-datum { flex: 1 1 0; }
+
+/* Compact: the reference's key pair, a value block in the card's colour and the name key beside it. */
+.titan-card[data-footprint="compact"] { grid-template-columns: 84px minmax(0, 1fr); grid-template-rows: 48px; grid-template-areas: none; gap: 4px; height: 48px; }
+.titan-compact-value { display: flex; align-items: flex-end; justify-content: flex-end; gap: 2px; padding: 0 8px 5px; overflow: hidden; background: var(--tone); color: var(--tone-ink); font: 600 20px/1 var(--titan-sans); font-variant-numeric: tabular-nums; white-space: nowrap; transition: background-color var(--titan-close) var(--titan-ease-in-out); }
+.titan-compact-value small { font-size: 12px; }
+.titan-card[data-footprint="compact"][data-tone="gone"] .titan-compact-value { border: 2px dashed var(--titan-key); color: var(--titan-ink-muted); }
+.titan-compact-name { position: relative; display: grid; align-content: end; justify-items: end; -webkit-line-clamp: unset; height: 48px; padding: 0 8px 4px 16px; background: var(--titan-key); color: var(--titan-key-ink); }
+.titan-compact-name::before { content: ""; position: absolute; top: 4px; left: 4px; width: 6px; height: 6px; background: var(--titan-page); }
+.titan-compact-words { max-width: 100%; overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.titan-compact-state { max-width: 100%; overflow: hidden; font: 500 11px/1.2 var(--titan-sans); letter-spacing: 0.06em; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------------------------------------------------------------- Keys */
+.titan-action {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 8px 5px 16px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--titan-key);
+  color: var(--titan-key-ink);
+  font: 500 15px/1 var(--titan-sans);
+  letter-spacing: 0.03em;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--titan-press) var(--titan-ease-out), background-color var(--titan-press) var(--titan-ease-in-out), color var(--titan-press) var(--titan-ease-in-out);
+}
+.titan-action::before { content: ""; position: absolute; top: 4px; left: 4px; width: 6px; height: 6px; background: var(--titan-page); }
+.titan-action[data-tone="frame"] { background: var(--titan-frame); color: var(--titan-frame-ink); }
+.titan-action[data-tone="cool"] { background: var(--titan-cool); color: var(--titan-cool-ink); }
+.titan-action[data-tone="confirm"] { background: var(--titan-on); color: var(--titan-on-ink); }
+.titan-action[aria-pressed="true"] { background: var(--titan-on); color: var(--titan-on-ink); }
+.titan-action[data-tone="frame"][aria-pressed="true"] { background: var(--titan-key-soft); color: var(--titan-key-ink); }
+.titan-action[data-wide] { flex: 1 1 auto; }
+.titan-action:active { transform: scale(0.96); }
+.titan-action[aria-disabled="true"], .titan-action:disabled { background: var(--titan-key-off); color: var(--titan-key-off-ink); cursor: not-allowed; }
+.titan-action[aria-disabled="true"]:active, .titan-action:disabled:active { transform: none; }
+
+.titan-keygroup { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 4px; }
+.titan-keygroup-label { display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 6px 5px; background: var(--titan-frame-deep); color: var(--titan-key-soft); font: 500 12px/1 var(--titan-sans); letter-spacing: 0.06em; text-transform: uppercase; }
+.titan-keygroup-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 4px; }
+
+/* A reading's block: not a key (no marker), deep blue with cyan words, the reference's "82-549". */
+.titan-datum { margin: 0; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; min-width: 0; height: 44px; box-sizing: border-box; padding: 4px 8px 5px; overflow: hidden; background: var(--titan-datum); color: var(--titan-datum-ink); text-transform: uppercase; }
+.titan-datum-label { align-self: flex-start; font: 500 10px/1 var(--titan-sans); letter-spacing: 0.08em; opacity: 0.85; }
+.titan-datum-value { max-width: 100%; overflow: hidden; font: 600 16px/1 var(--titan-sans); font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.titan-datum[data-tone="alert"] { background: var(--titan-alert); color: var(--titan-alert-ink); }
+.titan-datum[data-tone="idle"] { background: var(--titan-coal); color: var(--titan-coal-ink); }
+
+/* ---------------------------------------------------------------- The dot strip */
+.titan-dots { display: grid; gap: 4px; align-content: center; padding: 0 7px; background: var(--titan-coal); }
+.titan-dots-row { display: flex; gap: 2px; align-items: center; }
+.titan-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--titan-dot-dim); }
+.titan-dot[data-level="high"] { background: var(--titan-dot); }
+.titan-dot[data-level="mid"], .titan-dot[data-level="low"] { background: var(--titan-dot-mid); }
+.titan-dot[data-level="gone"] { background: transparent; box-shadow: inset 0 0 0 1px var(--titan-dot-mid); }
+.titan-dot[data-level="ahead"] { visibility: hidden; }
+.titan-dot[data-now] { background: var(--tone); visibility: visible; }
+.titan-dots[data-scale] { padding: 10px 12px 8px; }
+.titan-dots[data-scale] .titan-dots-row { justify-content: space-between; }
+.titan-dots[data-scale] .titan-dot { width: 9px; height: 9px; }
+.titan-dots-hours { display: flex; justify-content: space-between; color: var(--titan-coal-ink); font: 500 11px/1 var(--titan-sans); }
+
+/* ---------------------------------------------------------------- Gauges and faders: the reference's ruled bars */
+/* A rail: the ruled well a card draws its own bar in when it has no level (the lock's bolt, the switch's segments). */
+.titan-rail { position: relative; display: block; height: 22px; }
+.titan-rail::before { content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 8px; background: var(--titan-coal); }
+.titan-gauge { display: grid; grid-template-columns: 40px minmax(0, 1fr) 46px; gap: 6px; align-items: stretch; height: 22px; text-transform: uppercase; }
+.titan-gauge-label { position: relative; display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 5px 3px; background: var(--titan-key); color: var(--titan-key-ink); font: 500 11px/1 var(--titan-sans); letter-spacing: 0.04em; }
+.titan-gauge-track { position: relative; display: block; min-width: 0; }
+.titan-gauge-scale { position: absolute; top: 0; right: 0; left: 0; height: 9px; border-top: 1px solid var(--titan-tick); background: repeating-linear-gradient(to right, var(--titan-tick) 0 1px, transparent 1px 10%); }
+.titan-gauge-scale::after { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 4px; background: repeating-linear-gradient(to right, var(--titan-tick) 0 1px, transparent 1px 2.5%); }
+.titan-gauge-rail { position: absolute; right: 0; bottom: 0; left: 0; height: 8px; overflow: hidden; background: var(--titan-coal); }
+.titan-gauge-fill { position: absolute; inset: 0; background: var(--tone, var(--titan-cool)); transform-origin: left center; transition: transform var(--titan-close) var(--titan-ease-out), background-color var(--titan-close) var(--titan-ease-in-out); }
+.titan-gauge-text { align-self: end; overflow: hidden; color: var(--tone-text, var(--titan-ink)); font: 600 15px/1 var(--titan-sans); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.titan-gauge[data-tone="read"] .titan-gauge-fill { background: var(--titan-cool); }
+.titan-gauge[data-tone="on"] .titan-gauge-fill { background: var(--titan-on); }
+.titan-gauge[data-tone="alert"] .titan-gauge-fill { background: var(--titan-alert); }
+.titan-gauge[data-tone="idle"] .titan-gauge-fill, .titan-fader[data-resting] .titan-gauge-fill { background: var(--titan-key); }
+.titan-fader[data-resting] .titan-gauge-text { color: var(--titan-ink-muted); }
+.titan-fader-thumbs { position: absolute; top: 0; right: 11px; bottom: 0; left: 11px; pointer-events: none; }
+.titan-fader-carriage { position: absolute; inset: 0; }
+.titan-gauge-track[data-anim] .titan-fader-carriage, .titan-gauge-track[data-anim] .titan-gauge-fill { transition: transform var(--titan-close) var(--titan-ease-out); }
+.titan-gauge-track:not([data-anim]) .titan-gauge-fill { transition: background-color var(--titan-close) var(--titan-ease-in-out); }
+.titan-fader-thumb { position: absolute; bottom: -2px; left: -11px; width: 22px; height: 12px; box-sizing: border-box; border: 1px solid var(--titan-thumb-edge); border-radius: 50%; background: var(--titan-thumb); }
+.titan-fader-hit { position: absolute; top: -12px; right: 0; bottom: -10px; left: 0; cursor: pointer; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+.titan-fader[data-disabled] .titan-fader-hit { cursor: not-allowed; }
+.titan-fader[data-disabled] .titan-fader-thumb { visibility: hidden; }
+.titan-fader:has(input:focus-visible) .titan-gauge-track { outline: 2px solid var(--titan-focus); outline-offset: 4px; }
+
+/* ---------------------------------------------------------------- Facts: key pairs */
+.titan-facts { display: grid; gap: 4px; margin: 0; }
+.titan-facts div { display: grid; grid-template-columns: minmax(96px, 0.38fr) minmax(0, 1fr); gap: 10px; align-items: end; min-height: 28px; }
+.titan-facts dt { align-self: stretch; display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 8px 4px; background: var(--titan-frame-deep); color: var(--titan-key-soft); font: 500 12px/1 var(--titan-sans); letter-spacing: 0.06em; text-transform: uppercase; }
+.titan-facts dd { margin: 0; padding-bottom: 4px; overflow-wrap: anywhere; color: var(--titan-ink); font: 400 15px/1.2 var(--titan-sans); letter-spacing: 0.02em; }
+
+/* ---------------------------------------------------------------- Guarded actions */
+.titan-ask { display: grid; gap: 10px; margin: 0; }
+.titan-ask:focus { outline: none; }
+.titan-ask-q { margin: 0; color: var(--titan-title); font: 600 22px/1.1 var(--titan-sans); text-transform: uppercase; }
+.titan-ask-d { margin: 0; color: var(--titan-ink-muted); font: 400 14px/1.4 var(--titan-sans); letter-spacing: 0.03em; }
+.titan-ask-b { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.titan-ask-b .titan-action { flex: 0 1 140px; }
+.titan-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.titan-keys .titan-action { min-height: 52px; font-size: 22px; }
+
+/* ---------------------------------------------------------------- Details: a console panel with its own elbow */
+.titan-dialog { width: min(600px, calc(100vw - 32px)); max-height: min(780px, calc(100dvh - 32px)); padding: 0; overflow: auto; border: 0; border-radius: 0; background: var(--titan-page); color: var(--titan-ink); opacity: 1; transition: transform var(--titan-close) var(--titan-ease-out), opacity var(--titan-close) var(--titan-ease-in-out); }
+.titan-dialog::backdrop { background: var(--titan-backdrop); }
+.titan-dialog[data-closing] { opacity: 0; transform: translateY(12px); }
+.titan-sheet { position: relative; display: grid; grid-template-columns: 72px 18px minmax(0, 1fr); grid-template-rows: 22px auto 1fr; padding: 16px 16px 16px 16px; font-family: var(--titan-sans); }
+.titan-sheet-head { display: contents; }
+.titan-sheet-elbow { grid-column: 1; grid-row: 1 / -1; display: flex; align-items: flex-end; justify-content: flex-end; min-height: 220px; padding: 0 8px 30px 0; border-radius: 40px 0 0 40px; background: var(--tone); color: var(--tone-ink); font: 500 12px/1.1 var(--titan-sans); text-align: right; }
+.titan-sheet-elbow span { width: min-content; }
+.titan-sheet[data-tone="gone"] .titan-sheet-elbow { border: 2px dashed var(--titan-key); }
+.titan-sheet-bar { position: relative; grid-column: 2 / -1; grid-row: 1; background: var(--tone); }
+.titan-sheet-bar::after { content: ""; position: absolute; top: 22px; left: 0; width: 18px; height: 18px; background: radial-gradient(circle at 100% 100%, transparent 17.5px, var(--tone) 18px); }
+.titan-sheet[data-tone="gone"] .titan-sheet-bar { border-top: 2px dashed var(--titan-key); background: transparent; }
+.titan-sheet[data-tone="gone"] .titan-sheet-bar::after { display: none; }
+.titan-sheet-top { grid-column: 3; grid-row: 2; display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; padding: 12px 0 16px; }
+.titan-sheet-name { display: grid; justify-items: end; gap: 2px; min-width: 0; text-align: right; text-transform: uppercase; }
+.titan-sheet-name h2 { margin: 0; overflow-wrap: anywhere; color: var(--titan-title); font: 500 30px/1.05 var(--titan-sans); letter-spacing: 0.02em; }
+.titan-sheet-name span { color: var(--titan-ink-muted); font: 400 13px/1.2 var(--titan-sans); letter-spacing: 0.08em; }
+.titan-sheet-close { flex: 0 0 88px; order: -1; }
+.titan-sheet-body { grid-column: 3; grid-row: 3; display: grid; gap: 18px; align-content: start; min-width: 0; padding-bottom: 8px; }
+.titan-sheet-read { display: grid; gap: 4px; }
+.titan-sheet-read .titan-readout { font-size: 64px; }
+.titan-sheet-gauge { display: grid; gap: 14px; }
+.titan-sheet-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 4px; }
+.titan-sheet-today { display: grid; gap: 6px; }
+.titan-sheet-today h3 { margin: 0; color: var(--titan-ink-muted); font: 500 12px/1 var(--titan-sans); letter-spacing: 0.1em; text-transform: uppercase; }
+.titan-sheet-today p { margin: 0; color: var(--tone-text); font: 400 14px/1.3 var(--titan-sans); letter-spacing: 0.04em; text-transform: uppercase; }
+.titan-sheet[data-tone="gone"] .titan-sheet-today p { color: var(--titan-ink-muted); }
+
+.titan-title:focus-visible, .titan-action:focus-visible { outline: 2px solid var(--titan-focus); outline-offset: 2px; }
+.titan-empty { margin: 0; padding: 24px; color: var(--titan-ink-muted); font: 14px/1.5 var(--titan-sans); }
+
+@media (hover: hover) and (pointer: fine) {
+  .titan-title:hover { color: var(--tone-text); }
+  .titan-compact-name.titan-title:hover { color: var(--titan-key-ink); background: var(--titan-key-soft); }
+  .titan-action:hover:not([aria-disabled="true"]):not(:disabled):not([aria-pressed="true"]) { background: var(--titan-key-soft); color: var(--titan-key-ink); }
+}
+@media (max-width: 600px) {
+  .titan-dialog { width: 100%; max-width: none; max-height: 90dvh; margin: auto 0 0; }
+  .titan-dialog[data-closing] { transform: translateY(100%); }
+  .titan-sheet { grid-template-columns: 28px 12px minmax(0, 1fr); padding: 12px 12px 16px; }
+  .titan-sheet-elbow { padding: 0; border-radius: 22px 0 0 22px; }
+  .titan-sheet-elbow span { display: none; }
+  .titan-sheet-bar::after { width: 12px; height: 12px; background: radial-gradient(circle at 100% 100%, transparent 11.5px, var(--tone) 12px); }
+  .titan-sheet-name h2 { font-size: 24px; }
+  .titan-sheet-read .titan-readout { font-size: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .titan-action, .titan-dialog, .titan-gauge-fill, .titan-fader-carriage, .titan-elbow-side, .titan-elbow-bar { transition-duration: 1ms !important; }
+  .titan-action:active { transform: none; }
+}
