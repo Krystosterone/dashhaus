@@ -4,8 +4,7 @@ import type { ToggleHandlers } from "@dashhaus/core";
 import { ToggleTile } from "../cards/toggle/ToggleTile";
 import type { ToggleTileProps } from "../cards/toggle/ToggleTile";
 
-/** Orb draws no colour of a card's own, so it takes none of the hook's `color`. */
-export interface HaToggleTileProps extends Omit<HaToggleOptions, "color">, Omit<ToggleTileProps, "entity" | "history" | keyof ToggleHandlers> {
+export interface HaToggleTileProps extends HaToggleOptions, Omit<ToggleTileProps, "entity" | "history" | keyof ToggleHandlers> {
   /** The Home Assistant entity id. */
   entityId: string;
 }

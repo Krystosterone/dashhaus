@@ -2,7 +2,6 @@ import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { stringValue } from "../util";
 import type { ToggleEntity, ToggleIcon } from "../../entities/toggle/types";
-import type { ColorName } from "../../entities/color";
 
 export interface ToggleMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
@@ -13,8 +12,6 @@ export interface ToggleMapOptions {
   lastSeen?: string;
   /** Host-supplied orb icon; Home Assistant has no such attribute. */
   icon?: ToggleIcon;
-  /** Host-supplied orb colour; Home Assistant has no such attribute. */
-  color?: ColorName;
   /** Host-supplied one-line description; Home Assistant has no such attribute. */
   description?: string;
 }
@@ -32,7 +29,6 @@ export function toggleFromHass(raw: HassEntity | undefined, entityId: string, op
     area: options.area,
     state,
     icon: options.icon,
-    color: options.color,
     description: options.description,
     lastChanged: formatHaTime(raw?.last_changed, options.now),
     lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(lastSeenRaw, options.now) : undefined,

@@ -1,5 +1,4 @@
 import type { HourSample } from "../history";
-import type { ColorName } from "../color";
 
 export type ToggleIcon = "bell-off" | "moon" | "volume-off" | "guest" | "away" | "power" | "waves";
 
@@ -13,8 +12,6 @@ export interface ToggleEntity {
   area?: string;
   state: "on" | "off" | "unavailable";
   icon?: ToggleIcon;
-  /** Optional colour for the orb (the colour slot). Most modes need none: on is the accent. */
-  color?: ColorName;
   /**
    * Local time it switches itself off, when it was turned on for a while ("07:00"). The hook doesn't set it: Home
    * Assistant has no timed-on service for these domains, so a host that times a mode supplies it.
