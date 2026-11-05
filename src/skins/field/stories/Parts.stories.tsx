@@ -86,10 +86,11 @@ function AllParts() {
         <State label="Unavailable"><Glyph unavailable><IconThermo /></Glyph></State>
       </Part>
 
-      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb; with no trustworthy value there is no thumb at all.">
+      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all.">
         <State label="On, first parameter" width={300}><Fader id="parts-a" label="Brightness" legend="Brightness" value={level} min={1} max={100} lit valueText={`${level} percent`} onChange={setLevel} /></State>
         <State label="Second parameter" width={300}><Fader id="parts-b" label="Warmth" legend="Warmth" value={warmth} min={0} max={100} lit param="b" valueText={`${warmth} percent`} onChange={setWarmth} /></State>
         <State label="Off" width={300}><Fader id="parts-off" label="Brightness, off" legend="Brightness" value={30} min={1} max={100} lit={false} valueText="Off. Last set to 30 percent" onChange={() => {}} /></State>
+        <State label="Off, no level" width={300}><Fader id="parts-off-empty" label="Brightness, off" legend="Brightness" value={100} min={1} max={100} lit={false} empty valueText="Off" onChange={() => {}} /></State>
         <State label="Disabled" width={300}><Fader id="parts-disabled" label="Brightness, unavailable" legend="Brightness" value={30} min={1} max={100} lit={false} disabled valueText="Unavailable" onChange={() => {}} /></State>
         <State label="No value" width={300}><Fader id="parts-empty" label="Brightness, unknown" legend="Brightness" min={1} max={100} lit={false} valueText="Unknown" onChange={() => {}} /></State>
       </Part>

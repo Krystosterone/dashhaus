@@ -57,7 +57,7 @@ Today, from Home Assistant's recorder, kept up to date by every change since. Pa
 
 <ApiMembers from="@dashhaus/core" name="CoverHandlers" />
 
-Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent.
+Every action on an unavailable entity is reported to `onActionError` as `unsupported` and never sent. A cover Home Assistant reports as `unknown` is not unavailable: its state is `"unknown"`, and every action is sent.
 
 ## Every cover
 

@@ -17,7 +17,7 @@ describe("fan labels", () => {
   it("speaks a speed by step or percent, and says when it is off", () => {
     expect(speedValueText(2, 3, true)).toBe("Speed 2 of 3");
     expect(speedValueText(40, 100, true)).toBe("40 percent");
-    expect(speedValueText(1, 3, false)).toBe("Off. Last set to speed 1 of 3");
+    expect(speedValueText(1, 3, false)).toBe("Off");
   });
 
   it("lists what it can do", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCoverHandlers } from "./cover";
+import { coverFromHass } from "../mappers/cover";
 import type { CoverEntity } from "../../entities/cover/types";
 
 const entity: CoverEntity = {
@@ -48,6 +49,32 @@ describe("createCoverHandlers", () => {
 
     expect(callService).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
+  });
+
+  it("drives a cover Home Assistant reports as unknown", async () => {
+    // A Somfy RTS blind on an assumed state: no position, but it opens, closes and stops.
+    const rts = coverFromHass({
+      entity_id: "cover.rts",
+      state: "unknown",
+      attributes: { friendly_name: "RTS blind", device_class: "blind", assumed_state: true, supported_features: 1 | 2 | 8 },
+      last_changed: "2026-10-19T10:00:00Z",
+      last_updated: "2026-10-19T10:00:00Z",
+    }, "cover.rts");
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const handlers = createCoverHandlers({ callService }, rts, { onError });
+
+    handlers.onOpenCover();
+    handlers.onCloseCover();
+    handlers.onStopCover();
+    await Promise.resolve();
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(callService.mock.calls).toEqual([
+      ["cover", "open_cover", { entity_id: "cover.rts" }],
+      ["cover", "close_cover", { entity_id: "cover.rts" }],
+      ["cover", "stop_cover", { entity_id: "cover.rts" }],
+    ]);
   });
 
   it("reports unavailable covers as unsupported without calling services", () => {

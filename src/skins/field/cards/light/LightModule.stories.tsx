@@ -44,11 +44,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Dimmable: Story = {};
+/** Off, as Home Assistant reports it, with no brightness: the fader stays, and sliding it turns the light on. */
 export const Off: Story = { args: { light: "dimmableOff" } };
 /** A colour lamp at 3%: the screen says Colour where a white lamp gives its warmth. */
 export const Colour: Story = { args: { light: "nightLight" } };
 /** No brightness: the key spans the row and carries the state word. */
 export const OnOffOnly: Story = { name: "On / off only", args: { light: "onOff" } };
+/** Reachable but not reported yet: blank segments and Unknown, but the key and fader still switch and dim it. */
+export const Unknown: Story = { args: { light: "unknown" } };
 /** Blank segments on the screen, the key and fader lie flat. */
 export const Unavailable: Story = { args: { light: "unavailable" } };
 /** Every slot at its widest: the worst-case seeds, a long name and area at full brightness and the coolest white first. */

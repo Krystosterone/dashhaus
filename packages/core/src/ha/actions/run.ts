@@ -36,7 +36,10 @@ export function serviceRunner(caller: ServiceCaller, domain: string, entity: { e
     report: (error: HaActionError) => onError?.(error),
     unsupported,
     invalidInput: (message: string) => onError?.(new HaActionError("invalid_input", message, { domain, entityId })),
-    /** False, reported as unsupported, while the entity is unavailable. */
+    /**
+     * False, reported as unsupported, while the entity is unavailable: Home Assistant's own `unavailable`, or a missing
+     * entity. A model that keeps `unknown` apart (a cover or a light on an assumed state) still acts while unknown.
+     */
     actionable() {
       if (entity.state !== "unavailable") return true;
       unsupported(`${entityId} is unavailable`);

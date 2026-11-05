@@ -44,6 +44,9 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const uid = useId();
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
+  // Reachable, but where it is isn't known (an RF blind, a garage door with no sensor): its screen has no reading, the
+  // key opens it as Home Assistant's own toggle does, and every transport key acts.
+  const unknown = e.state === "unknown";
   const moving = isMoving(e);
   const pos = Math.round(openness(e));
   const open = !unav && (pos > 0 || e.state === "open");
@@ -51,7 +54,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const settable = withPos && onSetPosition != null && !unav;
   const stopping = moving && e.supportsStop;
   const travel = e.state === "opening" ? "Opening" : "Closing";
-  const word = moving ? travel : open ? "Open" : "Closed";
+  const word = moving ? travel : unknown ? "Unknown" : open ? "Open" : "Closed";
   // A door left open is about what it reads, so it stays on the screen; a row has no meta lines, so it takes the area's.
   const warned = isAccess(e.deviceClass) && open && !moving;
   const warning = warned ? `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}` : undefined;
@@ -60,6 +63,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const pict = <Pictogram level={pos / 100} lit={open} param={withPos ? "a" : "neutral"}>{WINDOW}</Pictogram>;
   // On the way, a cover with no position is neither open nor shut: its figure is blank, and the meta line says where it's going.
   const read: ReactNode = unav ? <Blank label="Unavailable" />
+    : unknown ? <Blank places={4} label="Unknown" />
     : withPos ? <Percent value={pos} />
     : moving ? <Blank places={4} label={travel} />
     : open ? "OPEN" : "SHUT";
@@ -120,7 +124,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // The panel's content: the screen, with a blind's slats on its second channel; the controls; quick positions, or
   // close, stop and open for a cover with no position; the slats fader; today; and facts.
   const tilt = !unav && e.supportsTilt && e.tilt != null ? Math.round(e.tilt) : undefined;
-  const today = history && (unav ? "Unavailable" : e.lastChanged ? `${open ? "Open" : "Closed"} since ${e.lastChanged}` : undefined);
+  const today = history && (unav ? "Unavailable" : e.lastChanged ? `${unknown ? "Unknown" : open ? "Open" : "Closed"} since ${e.lastChanged}` : undefined);
 
   const aside = tilt != null ? (
     <Channel pict={<Pictogram lit param="b">{SLATS}</Pictogram>} sub="Slats"><Percent value={tilt} /></Channel>
@@ -149,12 +153,13 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
         </KeyGroup>
       )}
 
-      {/* A cover with no position: explicit transport, each key acting once; the one that can't act lies flat. */}
+      {/* A cover with no position: explicit transport, each key acting once; the one that can't act lies flat. Unknown,
+          any of them can, since it could be anywhere and on its way. */}
       {!unav && !withPos && (
         <KeyGroup legend="Move">
-          <Key label={`${e.name}, close`} wide caption="Close" unavailable={!open && !moving} onPress={onCloseCover}><IconDown /></Key>
-          {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving} onPress={onStopCover}><IconStop /></Key>}
-          <Key label={`${e.name}, open`} wide caption="Open" unavailable={open && !moving} onPress={onOpenCover}><IconUp /></Key>
+          <Key label={`${e.name}, close`} wide caption="Close" unavailable={!open && !moving && !unknown} onPress={onCloseCover}><IconDown /></Key>
+          {e.supportsStop && <Key label={`${e.name}, stop`} wide caption="Stop" unavailable={!moving && !unknown} onPress={onStopCover}><IconStop /></Key>}
+          <Key label={`${e.name}, open`} wide caption="Open" unavailable={open && !moving && !unknown} onPress={onOpenCover}><IconUp /></Key>
         </KeyGroup>
       )}
 

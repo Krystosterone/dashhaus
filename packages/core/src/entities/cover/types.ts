@@ -11,7 +11,12 @@ export interface CoverEntity {
   name: string;
   /** Its area: the `area` option, else the one Home Assistant's registries resolve; none when neither has one. */
   area?: string;
-  state: "open" | "closed" | "opening" | "closing" | "unavailable";
+  /**
+   * `unknown` is reachable but not reporting where it is: an RF blind or a garage door with no sensor, which Home
+   * Assistant drives on an assumed state. It can be opened, closed and stopped, and it is never drawn as closed or as
+   * unavailable.
+   */
+  state: "open" | "closed" | "opening" | "closing" | "unknown" | "unavailable";
   deviceClass: CoverClass;
   /** current_position, 0-100. Omit when the cover only opens and closes. */
   position?: number;

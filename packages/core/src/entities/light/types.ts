@@ -1,8 +1,12 @@
 import type { HourSample } from "../history";
 export type { HourSample };
 
-/** Mirrors the parts of a Home Assistant `light.*` entity the card needs. */
-export type LightState = "on" | "off" | "unavailable";
+/**
+ * Mirrors the parts of a Home Assistant `light.*` entity the card needs. `unknown` is reachable but not yet reported
+ * (a light group before its first state, an optimistic MQTT or RF light before its first command): it can be driven,
+ * and it is never drawn as off or as unavailable.
+ */
+export type LightState = "on" | "off" | "unknown" | "unavailable";
 
 export interface LightEntity {
   /** The Home Assistant entity id. */

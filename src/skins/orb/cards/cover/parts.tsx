@@ -41,17 +41,20 @@ export function PositionBar({ id, label, kind, position, moving, text, onChange 
 const IconUp = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 8.5 7 5l3.5 3.5" /></svg>;
 const IconDown = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 5.5 7 9l3.5-3.5" /></svg>;
 
-/** For covers without a position (most garage doors): close at one end, open at the other, state or Stop in the middle. */
-export function OpenCloseControl({ name, open, moving, text, canStop, onOpen, onClose, onStop }: {
-  name: string; open: boolean; moving: boolean; text: string; canStop: boolean; onOpen: () => void; onClose: () => void; onStop: () => void;
+/**
+ * For covers without a position (most garage doors): close at one end, open at the other, state or Stop in the middle.
+ * The end that can't act lies flat; `either`, where the cover is isn't known, so both ends act.
+ */
+export function OpenCloseControl({ name, open, moving, either = false, text, canStop, onOpen, onClose, onStop }: {
+  name: string; open: boolean; moving: boolean; either?: boolean; text: string; canStop: boolean; onOpen: () => void; onClose: () => void; onStop: () => void;
 }) {
   return (
     <div className="cv-oc" data-open={open || undefined} role="group" aria-label={name}>
-      <button type="button" className="cv-oc-b" aria-label={`Close ${name}`} disabled={!open && !moving} onClick={onClose}><span><IconDown /></span></button>
+      <button type="button" className="cv-oc-b" aria-label={`Close ${name}`} disabled={!open && !moving && !either} onClick={onClose}><span><IconDown /></span></button>
       {moving && canStop
         ? <button type="button" className="cv-oc-stop" onClick={onStop}><i aria-hidden="true" />Stop</button>
         : <span className="cv-oc-v" aria-live="polite">{text}</span>}
-      <button type="button" className="cv-oc-b" aria-label={`Open ${name}`} disabled={open && !moving} onClick={onOpen}><span><IconUp /></span></button>
+      <button type="button" className="cv-oc-b" aria-label={`Open ${name}`} disabled={open && !moving && !either} onClick={onOpen}><span><IconUp /></span></button>
     </div>
   );
 }

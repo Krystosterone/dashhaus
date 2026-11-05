@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createLightHandlers } from "./light";
+import { lightFromHass } from "../mappers/light";
 import type { LightEntity } from "../../entities/light/types";
 
 const entity: LightEntity = {
@@ -40,6 +41,25 @@ describe("createLightHandlers", () => {
     expect(callService).toHaveBeenNthCalledWith(1, "light", "toggle", { entity_id: "light.living_room" });
     expect(callService).toHaveBeenNthCalledWith(2, "light", "turn_on", { entity_id: "light.living_room", brightness_pct: 100 });
     expect(callService).toHaveBeenNthCalledWith(3, "light", "turn_on", { entity_id: "light.living_room", color_temp_kelvin: 2800 });
+  });
+
+  it("drives a light Home Assistant reports as unknown, and refuses an unavailable one", async () => {
+    // A light group before its first state: no reading, but it switches and dims.
+    const raw = { entity_id: "light.group", attributes: { supported_color_modes: ["brightness"] }, last_changed: "2026-10-19T10:00:00Z", last_updated: "2026-10-19T10:00:00Z" };
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const unknown = createLightHandlers({ callService }, lightFromHass({ ...raw, state: "unknown" }, raw.entity_id), { onError });
+    unknown.onToggle();
+    unknown.onBrightnessChange(40);
+    createLightHandlers({ callService }, lightFromHass({ ...raw, state: "unavailable" }, raw.entity_id), { onError }).onToggle();
+    await Promise.resolve();
+
+    expect(callService.mock.calls).toEqual([
+      ["light", "toggle", { entity_id: "light.group" }],
+      ["light", "turn_on", { entity_id: "light.group", brightness_pct: 40 }],
+    ]);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
   });
 
   it("does not expose unsupported color-temperature actions", () => {

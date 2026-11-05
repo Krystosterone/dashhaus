@@ -45,12 +45,17 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
   const on = e.state === "on";
+  // Reachable but not reported yet: it switches and dims like an unlit light, and its screen has no reading.
+  const unknown = e.state === "unknown";
   const dimmable = e.supportsBrightness;
-  // An absent reading keeps the thumb at full and the screen on its plain state word.
+  // An absent reading leaves the fader without a thumb and the screen on its plain state word; the hidden level only
+  // says where the keyboard starts.
   const pct = e.brightness == null ? 100 : Math.min(100, Math.max(1, Math.round(e.brightness)));
   const known = dimmable && e.brightness != null;
+  const word = unknown ? "Unknown" : on ? "On" : "Off";
 
   const read = unav ? <Blank label="Unavailable" />
+    : unknown ? <Blank label="Unknown" />
     : !on ? "OFF"
     : known ? <><Digits value={pct} /><small>%</small></>
     : "ON";
@@ -58,7 +63,9 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
     : on && e.supportsColor && e.hs ? lampColorOf(e.hs).name
     : null;
   const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : null) : sinceFact(e.lastChanged) ?? null;
-  const meta: [string, string?] | undefined = unav ? ["Unavailable", since ?? undefined] : warmth ? [warmth, since ?? undefined] : since ? [since] : undefined;
+  const meta: [string, string?] | undefined = unav ? ["Unavailable", since ?? undefined]
+    : unknown ? ["Unknown", since ?? undefined]
+    : warmth ? [warmth, since ?? undefined] : since ? [since] : undefined;
 
   // The bulb's base always lights while on, so a lamp at 3% still reads lit; the rest fills with brightness.
   const pict = <Pictogram level={known ? 0.25 + 0.75 * (pct / 100) : 1} lit={on}>{BULB}</Pictogram>;
@@ -68,7 +75,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   const faded = dimmable && !unav;
   const controls = (where: "m" | "p") => (
     <ModuleRow className="fd-lt-row" solo={!faded}>
-      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!dimmable && !unav ? (on ? "On" : "Off") : undefined}>
+      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!dimmable && !unav ? word : undefined}>
         <IconBulb />
       </Key>
       {faded && (
@@ -80,7 +87,8 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
           min={1}
           max={100}
           lit={on}
-          valueText={on ? `${pct} percent` : `Off. Last set to ${pct} percent`}
+          empty={!known}
+          valueText={!known ? word : on ? `${pct} percent` : `${word}. Last set to ${pct} percent`}
           onChange={onBrightnessChange}
         />
       )}

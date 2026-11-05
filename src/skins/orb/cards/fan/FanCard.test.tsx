@@ -40,7 +40,7 @@ describe("FanCard", () => {
 
   it("says the groove is off while the fan is off", () => {
     render(<FanCard entity={{ ...tower, state: "off", percentage: undefined }} onToggle={noop} onPercentageChange={noop} />);
-    expect(screen.getByRole("slider", { name: "Tower fan speed" }).getAttribute("aria-valuetext")).toBe("Off. Last set to speed 1 of 3");
+    expect(screen.getByRole("slider", { name: "Tower fan speed" }).getAttribute("aria-valuetext")).toBe("Off");
   });
 
   it("toggles from the orb; a fan without speeds keeps the pill", () => {

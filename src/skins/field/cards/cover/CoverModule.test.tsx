@@ -40,6 +40,22 @@ describe("CoverModule", () => {
     expect(screen.queryByRole("slider")).toBeNull();
   });
 
+  it("draws an unknown cover as drivable: blank segments and Unknown, every key live, and the key opens it", () => {
+    const { container, keys, onOpenCover, onCloseCover, onStopCover } = draw("unknown", "standard", { defaultOpen: true });
+    expect(container.querySelector(".fd-module .fd-digits")?.getAttribute("data-pad")).toBe("----");
+    expect(container.querySelector(".fd-module .fd-meta")?.textContent).toMatch(/^Unknown/);
+    expect(keys.some((key) => key.getAttribute("aria-disabled") === "true")).toBe(false);
+    // The module's key and the panel's are the same: each opens it.
+    const opens = screen.getAllByRole("button", { name: "Open Study blind", hidden: true });
+    expect(opens.length).toBeGreaterThan(0);
+    fireEvent.click(opens[0]);
+    expect(onOpenCover).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Study blind, close", hidden: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Study blind, stop", hidden: true }));
+    expect(onCloseCover).toHaveBeenCalledOnce();
+    expect(onStopCover).toHaveBeenCalledOnce();
+  });
+
   it("leads a compact row with its key, or a reading's glyph", () => {
     expect(draw("curtains", "compact").container.querySelector(".fd-module > .fd-key, .fd-module > .fd-glyph")).not.toBeNull();
   });

@@ -98,7 +98,8 @@
 .hd-head > .hd-circ { grid-area: open; }
 .hd-num { grid-area: num; display: none; font-size: clamp(32px, 7cqi, 44px); font-weight: var(--type-readout-weight); letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hd-num span { font-size: 0.48em; letter-spacing: 0; color: var(--ink-2); margin-left: 2px; }
-.hd[data-state="off"] .hd-num { color: var(--ink-3); }
+/* Unknown has no reading, as off has none: its word is dimmed the same way. */
+.hd:is([data-state="off"], [data-state="unknown"]) .hd-num { color: var(--ink-3); }
 .hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
 .hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-area { margin-top: 3px !important; font-size: var(--type-status); font-weight: 500; color: var(--ink-2); line-height: var(--type-status-leading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -397,7 +398,7 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 .hd--compact[data-control="off"] .hd-slot { width: auto; max-width: 48cqi; justify-items: end; }
 /* A readout has no container, so it keeps the inset a pill gives its label instead of meeting the row's curve. */
 .hd--compact .hd-val { padding-inline-end: var(--pad-in); }
-.hd--compact[data-control="off"]:is([data-state="off"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
+.hd--compact[data-control="off"]:is([data-state="off"], [data-state="unknown"], [data-state="unavailable"]) .hd-val { color: var(--ink-3); }
 .hd--compact[data-control="off"] .hd-title { position: static; }
 .hd--compact[data-control="off"] .hd-open::after { inset: 0; border-radius: 999px; }
 .hd--compact[data-control="off"] .hd-open:focus-visible { outline: none; }
@@ -409,7 +410,7 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   .hd--compact { grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "orb title"; column-gap: 8px; }
   .hd--compact .hd-slot, .hd--compact .hd-area { display: none; }
   .hd--compact .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .hd--compact[data-state="unavailable"] .hd-sub, .hd--compact[data-state="off"] .hd-sub { color: var(--ink-3); }
+  .hd--compact:is([data-state="unavailable"], [data-state="off"], [data-state="unknown"]) .hd-sub { color: var(--ink-3); }
   .hd--compact .hd-title { position: static; }
   .hd--compact .hd-open::after { inset: 0; border-radius: 999px; }
   .hd--compact .hd-open:focus-visible { outline: none; }

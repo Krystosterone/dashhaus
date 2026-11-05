@@ -65,6 +65,11 @@ export const Moving: Story = { args: { cover: "moving" } };
 export const GarageDoor: Story = { name: "Garage door", args: { cover: "garage" } };
 /** No position, on its way: blank segments, since it's neither open nor shut, and the key says Stop. */
 export const GateClosing: Story = { name: "Gate, closing", args: { cover: "gate" } };
+/**
+ * An RF blind Home Assistant drives on an assumed state: blank segments and Unknown, since it never says where it is,
+ * but nothing lies flat. The key opens it, as Home Assistant's own toggle does.
+ */
+export const Unknown: Story = { args: { cover: "unknown" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { cover: "unavailable" } };
 
@@ -134,6 +139,9 @@ export const DetailsSlats: Story = { name: "Details, slats", args: { cover: "bli
 
 /** A garage door's panel: close, stop and open, the one that can't act lying flat. */
 export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { cover: "garage", defaultOpen: true } };
+
+/** An unknown cover's panel: close, stop and open all act, since it could be anywhere and on its way. */
+export const DetailsUnknown: Story = { name: "Details, unknown", args: { cover: "unknown", defaultOpen: true } };
 
 /** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { cover: "unavailable", defaultOpen: true } };

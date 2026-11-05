@@ -19,8 +19,12 @@ export const IconBulbOff = () => (
   </svg>
 );
 
-/** Brightness bar: the light's level groove, in percent. Setting it while off turns the light on there. */
-export function BrightnessBar({ id, label, value, on, onChange }: { id: string; label: string; value: number; on: boolean; onChange: (v: number) => void }) {
+/**
+ * Brightness bar: the light's level groove, in percent. Setting it while off turns the light on there. `known`: the
+ * light reported `value`; Home Assistant reports none while a light is off or unknown, so the bar then says only
+ * `offText` ("Off", "Unknown") and never a level it was last set to.
+ */
+export function BrightnessBar({ id, label, value, on, known = true, offText = "Off", onChange }: { id: string; label: string; value: number; on: boolean; known?: boolean; offText?: string; onChange: (v: number) => void }) {
   return (
     <LevelBar
       id={id}
@@ -31,7 +35,8 @@ export function BrightnessBar({ id, label, value, on, onChange }: { id: string; 
       on={on}
       wakes
       text={(pct) => `${pct}%`}
-      valueText={(v) => (on ? `${v} percent` : `Off. Last set to ${v} percent`)}
+      offText={() => offText}
+      valueText={(v) => (on ? `${v} percent` : known ? `${offText}. Last set to ${v} percent` : offText)}
       onChange={onChange}
     />
   );

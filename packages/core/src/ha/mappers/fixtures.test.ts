@@ -29,13 +29,16 @@ import { soundFromHass } from "./sound";
 
 type Mapper = (raw: HassEntity, entityId: string) => { entityId: string; name: string; state: string };
 
-/** Raw-state fixtures per domain, run through the real mapper. `keepsState`: the model reuses HA's state string. */
-const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keepsState: boolean }> = [
-  { domain: "light", fixture: light, map: lightFromHass, keepsState: true },
+/**
+ * Raw-state fixtures per domain, run through the real mapper. `keepsState`: the model reuses HA's state string.
+ * `keepsUnknown`: `unknown` stays its own state, one the card can still drive; elsewhere it is unavailable.
+ */
+const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keepsState: boolean; keepsUnknown?: boolean }> = [
+  { domain: "light", fixture: light, map: lightFromHass, keepsState: true, keepsUnknown: true },
   { domain: "climate", fixture: climate, map: climateFromHass, keepsState: true },
   { domain: "sensor", fixture: sensor, map: sensorFromHass, keepsState: false },
   { domain: "weather", fixture: weather, map: weatherFromHass, keepsState: true },
-  { domain: "cover", fixture: cover, map: coverFromHass, keepsState: true },
+  { domain: "cover", fixture: cover, map: coverFromHass, keepsState: true, keepsUnknown: true },
   { domain: "toggle", fixture: toggle, map: toggleFromHass, keepsState: true },
   { domain: "alarm_control_panel", fixture: alarm, map: alarmFromHass, keepsState: true },
   { domain: "owlet sleep state", fixture: owlet, map: owletFromHass, keepsState: true },
@@ -46,7 +49,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   // new-card: fixtures
 ];
 
-describe.each(domains)("$domain fixture", ({ fixture, map, keepsState }) => {
+describe.each(domains)("$domain fixture", ({ fixture, map, keepsState, keepsUnknown }) => {
   const entries = Object.entries(fixture);
 
   it("covers the unknown and unavailable states", () => {
@@ -60,7 +63,9 @@ describe.each(domains)("$domain fixture", ({ fixture, map, keepsState }) => {
     const mapped = map(raw, entityId);
     expect(mapped.entityId).toBe(entityId);
     expect(mapped.name.length).toBeGreaterThan(0);
-    if (raw.state === "unknown" || raw.state === "unavailable") {
+    if (raw.state === "unknown" && keepsUnknown) {
+      expect(mapped.state).toBe("unknown");
+    } else if (raw.state === "unknown" || raw.state === "unavailable") {
       expect(mapped.state).toBe("unavailable");
     } else if (keepsState) {
       expect(mapped.state).toBe(raw.state);
