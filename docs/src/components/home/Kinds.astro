@@ -4,42 +4,23 @@
  * press changes, and readings), beside one picture that follows the row being read (hovered, or nearest the middle of
  * the screen): that kind's Orb tile over its Field module. On a narrow page there is no room for that picture beside
  * the list, so each row carries its own at close to the cards' real size, and each group becomes a row to swipe
- * through, so twelve full-width pictures don't make the page twelve screens long. The rows name no hook and link to no
- * reference: the developer's way in is its own (spec/journeys.md). The pictures come from `npm run screenshots -w docs`.
+ * through, so a full-width picture per kind doesn't make the page a screen per kind. The rows name no hook and link to
+ * no reference: the developer's way in is its own (spec/journeys.md). The kinds, and each one's line, come from the
+ * entity pages' `kind` frontmatter (`src/lib/kinds.ts`); the pictures from `npm run screenshots -w docs`.
  */
 import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
+import { kinds } from "../../lib/kinds";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const pictures = import.meta.glob<{ default: ImageMetadata }>("../../assets/kinds/*.webp", { eager: true });
 const picture = (kind: string, look: "light" | "dark") => pictures[`../../assets/kinds/${kind}-${look}.webp`].default;
 
+const all = await kinds();
 const GROUPS = [
-  {
-    id: "controls",
-    name: "Controls",
-    kinds: [
-      { kind: "light", name: "Light", text: "On and off, brightness, colour temperature and colour." },
-      { kind: "climate", name: "Climate", text: "A thermostat, heat pump or air conditioner, its setpoints and modes." },
-      { kind: "cover", name: "Cover", text: "Curtains, blinds, shades, garage doors and gates." },
-      { kind: "toggle", name: "Toggle", text: "A switch or input_boolean used as a mode: Guest mode, Do Not Disturb." },
-      { kind: "fan", name: "Fan", text: "On and off, its speed, presets, oscillation and a ceiling fan's direction." },
-      { kind: "sound", name: "Sound", text: "A sound machine: the switch that plays it and its volume." },
-      { kind: "humidifier", name: "Humidifier", text: "On and off, a target humidity and a mode. Dehumidifiers too." },
-      { kind: "lock", name: "Lock", text: "A door lock and its battery: one tap locks, unlocking always asks first." },
-      { kind: "alarm", name: "Alarm", text: "Its state, arm modes, the code and the exit and entry delays." },
-    ],
-  },
-  {
-    id: "readings",
-    name: "Readings",
-    kinds: [
-      { kind: "sensor", name: "Sensor", text: "A room's temperature, read with its device's humidity and battery." },
-      { kind: "weather", name: "Weather", text: "Outdoor conditions, air quality, the sun and the forecast." },
-      { kind: "owlet", name: "Owlet", text: "A sock's sleep state, heart rate, oxygen, alerts and base station." },
-    ],
-  },
-];
+  { id: "controls", name: "Controls", kinds: all.filter((kind) => !kind.reading) },
+  { id: "readings", name: "Readings", kinds: all.filter((kind) => kind.reading) },
+].map((group) => ({ ...group, kinds: group.kinds.map((kind) => ({ kind: kind.name, name: kind.title, text: kind.summary })) }));
 const KINDS = GROUPS.flatMap((group) => group.kinds);
 /** A row's own picture, as wide as a slide on a narrow page (`li`'s flex basis below). */
 const THUMB = "min(82vw, 22rem)";

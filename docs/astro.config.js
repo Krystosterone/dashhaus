@@ -2,14 +2,31 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import starlightLlmsTxt from "starlight-llms-txt";
+import { fileURLToPath } from "node:url";
+import { entityGroups } from "./src/lib/groups.js";
 
 const repo = "https://github.com/Krystosterone/dashhaus";
+
+/**
+ * The site reads the workspace's packages from source at build time, as Storybook and Vitest do (the `source` export
+ * condition), so `src/lib/kinds.ts` can read the skins' own kind tables without a package build first. Vite's
+ * defaults stay after it.
+ */
+const SOURCE = {
+  name: "dashhaus:source",
+  configEnvironment(_name, config) {
+    const defaults = config.consumer === "client" ? ["module", "browser", "development|production"] : ["module", "node", "development|production"];
+    config.resolve ??= {};
+    config.resolve.conditions = ["source", ...(config.resolve.conditions ?? defaults)];
+  },
+};
 
 // Served from GitHub Pages at krystosterone.github.io/dashhaus; `npm run build:docs` puts Storybook under /storybook.
 // llms.txt, llms-small.txt and llms-full.txt carry the same pages for agents.
 export default defineConfig({
   site: "https://krystosterone.github.io",
   base: "/dashhaus",
+  vite: { plugins: [SOURCE] },
   integrations: [
     starlight({
       title: "Dashhaus",
@@ -76,10 +93,7 @@ export default defineConfig({
               label: "Entities",
               items: [
                 { label: "Overview", slug: "entities" },
-                { label: "Controls", items: ["entities/light", "entities/toggle", "entities/cover", "entities/sound"] },
-                { label: "Comfort", items: ["entities/climate", "entities/humidifier", "entities/fan"] },
-                { label: "Readings", items: ["entities/sensor", "entities/weather"] },
-                { label: "Safety", items: ["entities/alarm", "entities/lock", "entities/owlet"] },
+                ...entityGroups(fileURLToPath(new URL("./src/content/docs/entities", import.meta.url))),
               ],
             },
             {

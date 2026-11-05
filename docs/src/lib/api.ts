@@ -6,15 +6,18 @@
  * The program is the one `npm run typecheck` checks for the site's examples (`docs/examples/tsconfig.json`), plus the
  * entries named below, so the site and the examples resolve every `@dashhaus/*` specifier the same way.
  */
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import ts from "typescript";
 
-/** The module specifiers a page may read from. `./api-types` is the examples' own file of named helper types. */
-const ENTRIES = [
+/**
+ * The module specifiers a page may read from: each kind's types beside the packages' entries. `./api-types` is the
+ * examples' own file of named helper types.
+ */
+const entries = () => [
   "@dashhaus/core",
   "@dashhaus/core/entities",
-  ...["light", "climate", "cover", "toggle", "humidifier", "fan", "sound", "alarm", "sensor", "weather", "owlet", "lock"].map((kind) => `@dashhaus/core/entities/${kind}/types`),
+  ...coreKinds().map((kind) => `@dashhaus/core/entities/${kind}/types`),
   "@dashhaus/core/hooks",
   "@dashhaus/core/primitives",
   "@dashhaus/core/testing",
@@ -70,7 +73,7 @@ function load(): Loaded {
   if (!parsed) throw new Error(`api: could not read ${configFile}`);
   const from = join(examples, "index.ts");
   const files = new Map<string, string>();
-  for (const specifier of [...ENTRIES, "./api-types"]) {
+  for (const specifier of [...entries(), "./api-types"]) {
     const resolved = ts.resolveModuleName(specifier, from, parsed.options, ts.sys).resolvedModule;
     if (!resolved) throw new Error(`api: ${specifier} does not resolve from docs/examples`);
     files.set(specifier, resolve(resolved.resolvedFileName));
@@ -88,11 +91,21 @@ function load(): Loaded {
   return loaded;
 }
 
-function exported(from: string, name: string): { checker: ts.TypeChecker; symbol: ts.Symbol } {
+function exportOf(from: string, name: string): ts.Symbol | undefined {
   const { checker, modules } = load();
   const module = modules.get(from);
   if (!module) throw new Error(`api: "${from}" is not one of the entries in docs/src/lib/api.ts`);
-  const found = checker.getExportsOfModule(module).find((symbol) => symbol.name === name);
+  return checker.getExportsOfModule(module).find((symbol) => symbol.name === name);
+}
+
+/** Whether a module exports a name: a list says what a package has, and leaves out what it doesn't. */
+export function exports(from: string, name: string): boolean {
+  return exportOf(from, name) != null;
+}
+
+function exported(from: string, name: string): { checker: ts.TypeChecker; symbol: ts.Symbol } {
+  const { checker } = load();
+  const found = exportOf(from, name);
   if (!found) throw new Error(`api: ${from} exports no ${name}`);
   const symbol = found.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(found) : found;
   return { checker, symbol };
@@ -151,6 +164,18 @@ export function signature(from: string, name: string): Signature {
   const signatureType = checker.getSignatureFromDeclaration(declaration);
   const returns = declaration.type ? declaration.type.getText() : signatureType ? inferred(checker, signatureType.getReturnType()) : "void";
   return { name, text: `${name}${generics}(${parameters.join(", ")}): ${returns}`, doc: docOf(checker, symbol) };
+}
+
+/**
+ * The kinds of entity `@dashhaus/core` models, by name: each folder of `src/entities/` with its types and a
+ * `useHa<Name>` hook beside them in `src/ha/hooks/`. Every list of kinds on the site starts here (`src/lib/kinds.ts`).
+ */
+export function coreKinds(): string[] {
+  const core = join(repoRoot(), "packages", "core", "src");
+  return readdirSync(join(core, "entities"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(join(core, "entities", entry.name, "types.ts")) && existsSync(join(core, "ha", "hooks", `${entry.name}.ts`)))
+    .map((entry) => entry.name)
+    .sort();
 }
 
 /** Where the examples live, for the components that read them. */

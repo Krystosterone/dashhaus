@@ -6,7 +6,7 @@ description: "Read any entity raw, select one value from the whole house, and ke
 import ApiMembers from "../../../components/ApiMembers.astro";
 import Example from "../../../components/Example.astro";
 
-The entity hooks cover the eleven kinds Dashhaus models. For anything else, read the store directly. The store holds
+The entity hooks cover the kinds Dashhaus models. For anything else, read the store directly. The store holds
 Home Assistant's raw state, every entity as `{ entity_id, state, attributes, last_changed, … }`, and keeps an
 unchanged entity's object the same across updates. The hooks below lean on that: each re-renders only when what it
 read has changed.

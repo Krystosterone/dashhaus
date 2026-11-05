@@ -1,6 +1,12 @@
 ---
 title: Sensor
 description: "A room's temperature and humidity: one sensor, read with the humidity and battery sensors on its device."
+kind:
+  group: Readings
+  order: 1
+  summary: "A room's temperature, read with its device's humidity and battery."
+  with: "its device's humidity and battery sensors"
+  reading: true
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";

@@ -6,6 +6,7 @@ description: "Each skin is one Lovelace card. Leave its YAML empty for the autom
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import { Image } from "astro:assets";
 import Example from "../../../components/Example.astro";
+import KindList from "../../../components/KindList.astro";
 import tabletLight from "../../../assets/layout/composition-tablet-light.webp";
 import tabletDark from "../../../assets/layout/composition-tablet-dark.webp";
 import phoneLight from "../../../assets/layout/composition-phone-light.webp";
@@ -126,20 +127,7 @@ list into one map, reaches the card as whatever it parsed to.
 
 The entity's domain picks its card. Where two cards draw one domain, `card:` picks the other:
 
-| Entity | Card |
-| --- | --- |
-| `light.*` | light |
-| `climate.*` | climate |
-| `sensor.*` | sensor, with its device's humidity and battery sensors |
-| `sensor.*_sleep_state` | owlet, an Owlet sock; `card: owlet` for a sock named otherwise |
-| `weather.*` | weather, with its air-quality sensor and `sun.sun` |
-| `cover.*` | cover |
-| `input_boolean.*`, `switch.*` | toggle |
-| `switch.*` with `card: sound` | sound, with its volume `number.*` found beside it |
-| `alarm_control_panel.*` | alarm |
-| `humidifier.*` | humidifier |
-| `lock.*` | lock, with its device's battery sensor |
-| `fan.*` | fan |
+<KindList show="lovelace" />
 
 An entity with no card is an error that says so, rather than an empty space.
 

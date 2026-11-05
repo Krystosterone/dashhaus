@@ -1,26 +1,15 @@
 ---
 title: Entities
-description: "The eleven kinds of entity Dashhaus draws, with each one's hook, headless component, Orb tile and Field module."
+description: "Every kind of entity Dashhaus draws, with each one's hook, headless component, Orb tile and Field module."
 ---
+
+import KindList from "../../../components/KindList.astro";
 
 Each kind of entity has the same four things: a hook and a headless component in `@dashhaus/core`, a tile in
 `@dashhaus/orb` and a module in `@dashhaus/field`. The hook is the one implementation; the other three are it, drawn
 or not.
 
-| Kind | Home Assistant | Hook | Component | Orb | Field |
-| --- | --- | --- | --- | --- | --- |
-| [Light](/dashhaus/entities/light/) | `light.*` | `useHaLight` | `HaLight` | `HaLightTile` | `HaLightModule` |
-| [Toggle](/dashhaus/entities/toggle/) | `input_boolean.*`, `switch.*` | `useHaToggle` | `HaToggle` | `HaToggleTile` | `HaToggleModule` |
-| [Cover](/dashhaus/entities/cover/) | `cover.*` | `useHaCover` | `HaCover` | `HaCoverTile` | `HaCoverModule` |
-| [Sound](/dashhaus/entities/sound/) | `switch.*` and a volume `number.*` | `useHaSound` | `HaSound` | `HaSoundTile` | `HaSoundModule` |
-| [Climate](/dashhaus/entities/climate/) | `climate.*` | `useHaClimate` | `HaClimate` | `HaClimateTile` | `HaClimateModule` |
-| [Humidifier](/dashhaus/entities/humidifier/) | `humidifier.*` | `useHaHumidifier` | `HaHumidifier` | `HaHumidifierTile` | `HaHumidifierModule` |
-| [Fan](/dashhaus/entities/fan/) | `fan.*` | `useHaFan` | `HaFan` | `HaFanTile` | `HaFanModule` |
-| [Sensor](/dashhaus/entities/sensor/) | `sensor.*` | `useHaSensor` | `HaSensor` | `HaSensorTile` | `HaSensorModule` |
-| [Weather](/dashhaus/entities/weather/) | `weather.*` | `useHaWeather` | `HaWeather` | `HaWeatherTile` | `HaWeatherModule` |
-| [Alarm](/dashhaus/entities/alarm/) | `alarm_control_panel.*` | `useHaAlarm` | `HaAlarm` | `HaAlarmTile` | `HaAlarmModule` |
-| [Lock](/dashhaus/entities/lock/) | `lock.*` and its device's battery `sensor.*` | `useHaLock` | `HaLock` | `HaLockTile` | `HaLockModule` |
-| [Owlet](/dashhaus/entities/owlet/) | `sensor.*_sleep_state` | `useHaOwlet` | `HaOwlet` | `HaOwletTile` | `HaOwletModule` |
+<KindList show="table" />
 
 ## What every hook returns
 

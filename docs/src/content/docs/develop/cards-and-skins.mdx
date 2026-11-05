@@ -24,7 +24,11 @@ The generator writes the whole slice, the Home Assistant side included, and regi
 - Orb's Lovelace card (`src/skins/orb/lovelace/`), its exports, and the spec's card and deploy pages.
 
 Then make it the real thing: the entity's fields, the card's drawing, the mapper's attributes and the actions' services,
-its section in `spec/cards.md`. `verify/orb-conformance.test.ts` says which step is missing.
+its section in `spec/cards.md`, and its page on this site, `docs/src/content/docs/entities/fan.mdx`. The page's `kind`
+frontmatter (its sidebar `group` and `order`, a `summary` for the home page, the companions it reads `with`) is all
+the site needs: the home page, the Entities overview, the Hooks reference and the YAML guide list it from there and from
+the code, and the site's build fails until the page exists. `verify/orb-conformance.test.ts` says which other step is
+missing.
 
 ## An existing domain, in Orb
 
