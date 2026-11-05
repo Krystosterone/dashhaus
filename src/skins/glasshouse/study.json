@@ -7,7 +7,8 @@
   "made": "run",
   "reference": {
     "kind": "image",
-    "file": "reference.png"
+    "file": "reference.png",
+    "withdrawn": true
   },
   "task": "# Task\n\nBuild and deploy a Dashhaus skin that looks like ./reference.png\n\nHome Assistant runs at http://127.0.0.1:8801; a long-lived token for an admin: fake-ha-token; its /config/www is mounted at /tmp/dashhaus-study-glasshouse/ha/www.\nThe packages aren't on npm yet; their release tarballs are in ./tarballs.\nWork only in this folder; don't ask questions.\n\nWhen you're done, write two files in this folder, beside the skin:\n\n- DESIGN.md: the skin's design rules, for whoever builds on it: what the look is after, then ## Palette, ## Parts, ## Dashboards\n  and one `## <Card>` section per card (`## Light`), each saying what it shows and why.\n- REPORT.md, with two sections:\n  - ## FRICTION: every guess, retry, workaround, or doc that pointed somewhere you couldn't reach.\n  - ## RESULT: what is deployed and how you know.\n",
   "captures": [

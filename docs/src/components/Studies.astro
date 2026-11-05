@@ -15,7 +15,7 @@ interface Manifest {
 
 interface StudyRecord {
   made: "run" | "generators";
-  reference?: { kind: "image"; file: string } | { kind: "description"; text: string };
+  reference?: { kind: "image"; file: string; withdrawn?: true } | { kind: "description"; text: string };
 }
 
 const manifests = import.meta.glob<Manifest>("../../../src/skins/*/package.json", { eager: true, import: "default" });

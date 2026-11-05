@@ -107,7 +107,7 @@ describe.each(studySkins.map((s) => [s.skin, s] as const))("the %s study", (skin
     for (const heading of REPORT_SECTIONS) expect(read(`${dir}/REPORT.md`)).toContain(heading);
     for (const heading of DESIGN_SECTIONS) expect(read(`${dir}/design.md`)).toMatch(new RegExp(`^${heading}\\s*$`, "m"));
     const reference = record!.reference!;
-    if (reference.kind === "image") expect(existsSync(join(process.cwd(), dir, reference.file))).toBe(true);
+    if (reference.kind === "image") expect(existsSync(join(process.cwd(), dir, reference.file)), "kept, or withdrawn and gone").toBe(!reference.withdrawn);
     else expect(reference.text).toBeTruthy();
     expect(record!.task).toContain("REPORT.md");
     expect(read(`${dir}/README.md`)).toContain("[`REPORT.md`](REPORT.md)");
