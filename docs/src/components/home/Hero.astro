@@ -323,7 +323,10 @@ const SKINS = [
       padding-bottom: 0;
     }
 
+    /* The two phones share the column, each up to its device width, rather than staying desktop-small. */
     .stage {
+      grid-template-columns: repeat(2, minmax(0, 24.375rem));
+      justify-content: center;
       margin-top: 1rem;
     }
   }
@@ -338,8 +341,10 @@ const SKINS = [
       row-gap: 1.25rem;
     }
 
+    /* The phone takes the column's whole width, up to its device width (LiveStory's own cap), so its screen reads at
+       close to its real size rather than inside wide margins. */
     .stage {
-      grid-template-columns: minmax(0, 20rem);
+      grid-template-columns: minmax(0, 24.375rem);
       justify-content: center;
       gap: 1rem;
       padding-bottom: 3rem;
