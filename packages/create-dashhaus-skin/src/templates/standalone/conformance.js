@@ -8,6 +8,8 @@
  * 2. The skin's own CSS rules (AGENTS.md → Rules): colours only from `styles/tokens.css`, whose blocks sit on `:root`,
  *    the theme on the skin's own attribute, hover only under the hover media query, and motion only on transform,
  *    opacity, clip-path and colours.
+ * 3. Every `var(--__skin__-…)` without a fallback, in a stylesheet or in CSS written in a component (the host CSS in
+ *    `lovelace/card.tsx`), names a custom property something defines: a renamed token leaves no rule reading nothing.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -30,15 +32,16 @@ const cardFindings = checkCards(
   { root },
 ).map((finding) => `cards/${finding.card}: [${finding.rule}] ${finding.message}`);
 
-/** Every stylesheet the bundle can carry: everything but dependencies, the build and the preview page. */
-function stylesheets(dir = root) {
+/** Every file the bundle can carry with one of these endings: everything but dependencies, the build and the preview page. */
+function sources(extensions, dir = root) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     if (["node_modules", "dist", "preview", ".git"].includes(entry.name)) return [];
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) return stylesheets(path);
-    return entry.name.endsWith(".css") ? [path] : [];
+    if (entry.isDirectory()) return sources(extensions, path);
+    return extensions.some((extension) => entry.name.endsWith(extension)) ? [path] : [];
   });
 }
+const stylesheets = () => sources([".css"]);
 
 const COLOUR = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
 const LAYOUT_MOTION = /\b(?:transition(?:-property)?|will-change)\s*:[^;]*\b(?:width|height|top|left|right|bottom|margin[a-z-]*|padding[a-z-]*|inset|gap|font-size|all)\b/i;
@@ -83,7 +86,17 @@ function cssFindings(file) {
   return findings;
 }
 
-const findings = [...cardFindings, ...stylesheets().flatMap(cssFindings)];
+/** A `var(--__skin__-…)` with no fallback that nothing defines, as `--name: …` in CSS or `"--name"` in a component. */
+function tokenFindings() {
+  const files = sources([".css", ".ts", ".tsx"]).map((file) => ({ name: relative(root, file), source: readFileSync(file, "utf8") }));
+  const defined = new Set(files.flatMap(({ source }) => [...source.matchAll(/(--__skin__-[\w-]+)\s*:|["'`](--__skin__-[\w-]+)["'`]/g)].map((match) => match[1] ?? match[2])));
+  return files.flatMap(({ name, source }) => source.split("\n").flatMap((line, index) =>
+    [...line.matchAll(/var\(\s*(--__skin__-[\w-]+)\s*\)/g)]
+      .filter((match) => !defined.has(match[1]))
+      .map((match) => `${name}:${index + 1}: [tokens] var(${match[1]}) names no token; define it in styles/tokens.css, or use the token's new name`)));
+}
+
+const findings = [...cardFindings, ...stylesheets().flatMap(cssFindings), ...tokenFindings()];
 if (findings.length) {
   console.error(`conformance: ${findings.length} finding(s)\n  ${findings.join("\n  ")}`);
   process.exit(1);

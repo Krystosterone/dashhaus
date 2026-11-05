@@ -1,8 +1,0 @@
-.lcars-light-meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.lcars-light-meter-label { flex: none; color: var(--lcars-ink-muted); font: 400 13px/1 var(--lcars-sans); letter-spacing: 0.1em; text-transform: uppercase; }
-.lcars-light-meter-bar { flex: 1; min-width: 0; display: flex; gap: 3px; height: 14px; }
-.lcars-light-meter-bar i { flex: 1; background: var(--lcars-card-muted); transition: background-color var(--lcars-close) var(--lcars-ease-in-out); }
-.lcars-light-meter-bar i:first-child { border-radius: 7px 0 0 7px; }
-.lcars-light-meter-bar i:last-child { border-radius: 0 7px 7px 0; }
-.lcars-light-meter-bar i[data-lit] { background: var(--lcars-hue); }
-@media (prefers-reduced-motion: reduce) { .lcars-light-meter-bar i { transition-duration: 1ms; } }

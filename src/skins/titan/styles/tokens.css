@@ -1,0 +1,133 @@
+/*
+ * Titan's design tokens: every colour the skin draws comes from here, light and dark.
+ * The look is a starship console (reference.png): a black page, a slate frame of elbows and bars, flat rectangular
+ * keys with their words in condensed capitals at the bottom right, salmon for what is on, teal for what is read,
+ * and red only for an alert. Dark mode is the reference itself; light mode is the same console on a pale bulkhead.
+ * The theme attribute is the skin's own, data-titan-theme, so another skin's attribute on the same page never
+ * re-colours this one. Keep every block on :root only.
+ */
+:root {
+  /* Page and frame */
+  --titan-page: #dfe1e7;
+  --titan-frame: #52596e;      /* the elbows and bars */
+  --titan-frame-deep: #2f3749; /* the second elbow, section bars */
+  --titan-frame-ink: #f2f3f6;  /* words printed on the frame */
+  --titan-coal: #c4c8d4;       /* recessed segments: the dot strip, a gauge's well */
+  --titan-coal-ink: #2f3749;
+
+  /* Keys */
+  --titan-key: #6d748c;        /* an idle key */
+  --titan-key-ink: #000000;
+  --titan-key-soft: #9aa0b4;   /* a key's lighter step */
+  --titan-key-off: #b4b8c6;    /* a key that can't act right now */
+  --titan-key-off-ink: #3c4250;
+
+  /* Roles */
+  --titan-on: #ff977b;         /* on, heating, open: the console's active colour */
+  --titan-on-ink: #000000;
+  --titan-on-dim: #955747;     /* rust: an hour partly on */
+  --titan-cool: #2a7193;       /* readings, cooling */
+  --titan-cool-ink: #ffffff;
+  --titan-cool-deep: #1c3c55;
+  --titan-cool-text: #1c5e7d;  /* teal words on the page */
+  --titan-datum: #c6d6e0;      /* a reading's block: deep blue, cyan words */
+  --titan-datum-ink: #164a63;
+  --titan-alert: #b82f1a;      /* red alert: jammed, poor air; never just "on" */
+  --titan-alert-ink: #ffffff;
+
+  /* Ink on the page */
+  --titan-title: #a3432c;      /* the page's salmon headline, darkened to read on the pale page */
+  --titan-ink: #11131a;
+  --titan-ink-muted: #4b5163;
+  --titan-tick: #6d748c;       /* a gauge's scale */
+  --titan-thumb: #f4f4f6;      /* a fader's oval */
+  --titan-thumb-edge: #2f3749;
+  --titan-dot: #11131a;        /* a lit hour on the dot strip */
+  --titan-dot-mid: #6d748c;
+  --titan-dot-dim: #a4a9b9;
+  --titan-focus: #1c5e7d;
+  --titan-backdrop: rgb(11 12 16 / 62%);
+
+  /* Motion */
+  --titan-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --titan-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --titan-press: 110ms;
+  --titan-close: 220ms;
+
+  /* Type: Antonio, a condensed grotesque; the bundle carries its own @font-face (shared/surface.ts). */
+  --titan-sans: "Antonio", "Oswald", "Roboto Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-titan-theme="light"]) {
+    --titan-page: #000000;
+    --titan-frame: #52596e;
+    --titan-frame-deep: #2f3749;
+    --titan-frame-ink: #000000;
+    --titan-coal: #1e2229;
+    --titan-coal-ink: #9aa0b4;
+    --titan-key: #6d748c;
+    --titan-key-ink: #000000;
+    --titan-key-soft: #9aa0b4;
+    --titan-key-off: #1e2229;
+    --titan-key-off-ink: #8a90a4;
+    --titan-on: #ff977b;
+    --titan-on-ink: #000000;
+    --titan-on-dim: #955747;
+    --titan-cool: #2a7193;
+    --titan-cool-ink: #ffffff;
+    --titan-cool-deep: #1c3c55;
+    --titan-cool-text: #5fb6dc;
+    --titan-datum: #1c3c55;
+    --titan-datum-ink: #5fb6dc;
+    --titan-alert: #e7442a;
+    --titan-alert-ink: #000000;
+    --titan-title: #ff977b;
+    --titan-ink: #e4e5ea;
+    --titan-ink-muted: #8a90a4;
+    --titan-tick: #6d748c;
+    --titan-thumb: #9b9da2;
+    --titan-thumb-edge: #000000;
+    --titan-dot: #f6f6f6;
+    --titan-dot-mid: #9b9da2;
+    --titan-dot-dim: #3c4250;
+    --titan-focus: #5fb6dc;
+    --titan-backdrop: rgb(0 0 0 / 78%);
+  }
+}
+
+:root[data-titan-theme="dark"] {
+  --titan-page: #000000;
+  --titan-frame: #52596e;
+  --titan-frame-deep: #2f3749;
+  --titan-frame-ink: #000000;
+  --titan-coal: #1e2229;
+  --titan-coal-ink: #9aa0b4;
+  --titan-key: #6d748c;
+  --titan-key-ink: #000000;
+  --titan-key-soft: #9aa0b4;
+  --titan-key-off: #1e2229;
+  --titan-key-off-ink: #8a90a4;
+  --titan-on: #ff977b;
+  --titan-on-ink: #000000;
+  --titan-on-dim: #955747;
+  --titan-cool: #2a7193;
+  --titan-cool-ink: #ffffff;
+  --titan-cool-deep: #1c3c55;
+  --titan-cool-text: #5fb6dc;
+  --titan-datum: #1c3c55;
+  --titan-datum-ink: #5fb6dc;
+  --titan-alert: #e7442a;
+  --titan-alert-ink: #000000;
+  --titan-title: #ff977b;
+  --titan-ink: #e4e5ea;
+  --titan-ink-muted: #8a90a4;
+  --titan-tick: #6d748c;
+  --titan-thumb: #9b9da2;
+  --titan-thumb-edge: #000000;
+  --titan-dot: #f6f6f6;
+  --titan-dot-mid: #9b9da2;
+  --titan-dot-dim: #3c4250;
+  --titan-focus: #5fb6dc;
+  --titan-backdrop: rgb(0 0 0 / 78%);
+}

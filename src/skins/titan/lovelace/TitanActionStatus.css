@@ -1,0 +1,10 @@
+/* The rejected-command row: a console alert panel, a red block with the warning marker beside the words and keys.
+   It sits in the page's dock, so it moves no Card. The red reinforces the words, never replaces them. */
+.titan-action-status { box-sizing: border-box; justify-self: center; width: min(600px, 100%); display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 10px 10px 0; background: var(--titan-page); color: var(--titan-ink); font-family: var(--titan-sans); text-transform: uppercase; outline: 2px solid var(--titan-alert); pointer-events: auto; }
+.titan-action-status::before { content: ""; align-self: stretch; border-radius: 0 13px 13px 0; background: var(--titan-alert); }
+.titan-action-status-copy { min-width: 0; margin: 0; display: grid; gap: 3px; font: 400 14px/1.3 var(--titan-sans); letter-spacing: 0.04em; }
+.titan-action-status-copy strong { color: var(--titan-alert); font-weight: 600; overflow-wrap: anywhere; }
+.titan-action-status-copy span { color: var(--titan-ink-muted); }
+.titan-action-status-buttons { display: flex; gap: 4px; }
+.titan-action-status-buttons .titan-action { min-width: 84px; }
+@media (max-width: 480px) { .titan-action-status { grid-template-columns: 18px minmax(0, 1fr); } .titan-action-status-buttons { grid-column: 2; justify-content: flex-end; } }

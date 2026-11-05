@@ -17,6 +17,9 @@ npm run deploy            # build, upload, register, create the dashboard (needs
 npm run add -- climate    # one more domain's card, registered and on the sample house (see Adding a domain)
 ```
 
+`npm install` under npm 12 may warn that it skipped esbuild's install script (`not covered by allowScripts`); the
+build doesn't need it.
+
 Look at your work after every change: run `npm run snapshot` and open the PNGs (an image-reading tool works).
 The first run prints the two commands that install Playwright's Chromium if it's missing; to use a Chromium or Chrome
 already on the machine instead, set `DASHHAUS_CHROMIUM=/path/to/chrome`. `npm run preview` serves
@@ -39,7 +42,9 @@ the outside in, snapshotting after each step and comparing with the reference:
    turns into the card's host. A token set again on a class inside the card would hide the dark values.
 2. **Type:** set `__SKIN_CONST___FONT_HREF` in `shared/surface.ts` to a Google Fonts stylesheet URL, and name the
    families in tokens (`--__skin__-sans`; add `--__skin__-display`, `--__skin__-mono` as needed). Big numerals,
-   letter-spacing and case belong in the CSS.
+   letter-spacing and case belong in the CSS. The browser fetches the font from Google, not you: you need no web
+   access to name one, and where the browser has none (a Home Assistant on a closed network) it draws the stack's next
+   family, so end the stack with close fallbacks. `npm run snapshot` says when a face fails to load.
 3. **Page:** `dashboards/`: `layout.tsx` (the page, its titled rows and the card grid), `Header.tsx`, `NavBar.tsx` and
    their `dashboard.css`. A greeting, a date or a different grid goes here. `lovelace/__Skin__Dashboard.tsx` draws
    the page from the YAML (each row placed by `useRowLayout` from `@dashhaus/dashboard`: its tracks from its own
@@ -50,6 +55,9 @@ the outside in, snapshotting after each step and comparing with the reference:
    actions are drawn with, and `__Skin__Confirm` and `__Skin__Keypad`, the question and the code keypad a guarded
    action is answered with in the details. Restyle them once there, not per card. The frame puts `data-card="<domain>"`,
    `data-state` and `data-footprint` on each card's article, so CSS can tell a light from a sensor, and on from off.
+   `npm run add` writes every new card against the frame's props as the scaffold made them (`card`, `name`, `area`,
+   `state`, `summary`, `icon`, `footprint`, `actions`, `guarded`): add props of your own freely, but make each new one
+   optional and keep those, even ones your look ignores, or a card added later won't typecheck.
 5. **Cards:** `cards/<domain>/`: the markup in `__Skin__<Name>Card.tsx`, the look in its `.css`, the glyph in
    `icons.tsx`. A card takes its domain's model as `entity` and draws whatever of it you choose (see Data). An on
    state can recolour the whole card.
@@ -79,7 +87,8 @@ the outside in, snapshotting after each step and comparing with the reference:
 `npm test` typechecks, then checks the ones marked ✓; keep the others by hand.
 
 - ✓ **Colours come from tokens.** No colour literal (`#…`, `rgb()`, `oklch()`, …) in any CSS but `styles/tokens.css`,
-  whose blocks sit on `:root`.
+  whose blocks sit on `:root`. Every `var(--__skin__-…)` names a token something defines (or gives a fallback), so a
+  renamed token can't leave a rule reading nothing.
 - ✓ **Classes start with `__skin__-`** (the bundle shares a page with other cards); by convention a card's own start
   `__skin__-<domain>-`.
 - ✓ **Hover only under `@media (hover: hover) and (pointer: fine)`**, so a tap on a phone never leaves it stuck.
@@ -136,7 +145,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words |
 | `@dashhaus/core/entities/clock` | `clockFace`, the header's time and date for a locale, 12 or 24 hours and a time zone |
 | `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY` |
-| `@dashhaus/core/entities/severity`, `/color` | the `Severity` and `ColorName` types a model carries |
+| `@dashhaus/core/entities/severity` | the `Severity` type a model carries |
+| `@dashhaus/core/entities/color` | the `ColorName` type a model carries |
 | `@dashhaus/core/entities/alarm/modes` | an alarm's modes, their labels and hints, `needsCode` |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
@@ -147,7 +157,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/owlet/readings`, `/owlet/sleep` | vitals and sleep states as figures and words |
 | `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |
 | `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |
-| `@dashhaus/core/entities/weather/conditions`, `/weather/readings` | `SKY` and `conditionLabel` (each condition as a sky to draw and words), `isNight`, `deg0`, `compass`, `aqiBand`, `uvBand` |
+| `@dashhaus/core/entities/weather/conditions` | `SKY` (each condition as a sky to draw), `CONDITION_LABEL`, `compass`, `precipitation` |
+| `@dashhaus/core/entities/weather/readings` | `conditionLabel` (a condition in words, by day or night), `isNight`, `deg0`, `aqiBand`, `uvBand`, `weatherWarnings` |
 
 A composed model's companions (a sensor's humidity and battery, a sound machine's volume) reach its hook from the
 YAML (`humidity: sensor.bedroom_humidity`) through `item.companions` in `lovelace/registry.tsx`. The automatic layout

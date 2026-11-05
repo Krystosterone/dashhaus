@@ -1,0 +1,124 @@
+/*
+ * The page: the reference's frame of elbows and bars around rows of cards. Every colour is a token.
+ * Grid areas: the top elbow (etop) turns into the top bar (bar); the rail runs down the left under it; the bottom
+ * elbow (ebot) turns into the bottom bar (bbar). Cards fill main.
+ */
+body.titan-surface { margin: 0; background: var(--titan-page); color: var(--titan-ink); font-family: var(--titan-sans); }
+.titan-dashboard {
+  --titan-rail: 136px;
+  --titan-bar: 26px;
+  --titan-bend: 68px;
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: var(--titan-rail) 24px minmax(0, 1fr);
+  grid-template-rows: var(--titan-bar) auto 1fr auto var(--titan-bar);
+  grid-template-areas: "etop bar bar" "etop . head" "rail . main" "ebot . foot" "ebot bbar bbar";
+  min-height: 100dvh;
+  padding: 16px clamp(12px, 2vw, 28px) 16px;
+  background: var(--titan-page);
+  color: var(--titan-ink);
+  font-family: var(--titan-sans);
+  text-transform: uppercase;
+}
+.titan-dashboard[data-nav] { --titan-dock-gap: 0px; }
+
+/* The top elbow: a slate block with a wide outer bend, its inner bend drawn into the corner beside it. */
+.titan-elbow-top { position: relative; grid-area: etop; display: flex; align-items: flex-end; justify-content: flex-end; min-height: 120px; padding: 0 10px 10px 0; border-radius: var(--titan-bend) 0 0 0; background: var(--titan-frame); color: var(--titan-frame-ink); }
+.titan-elbow-top::after { content: ""; position: absolute; top: var(--titan-bar); left: 100%; width: 32px; height: 32px; background: radial-gradient(circle at 100% 100%, transparent 31.5px, var(--titan-frame) 32px); }
+.titan-elbow-stamp { font: 500 13px/1 var(--titan-sans); letter-spacing: 0.04em; white-space: nowrap; }
+.titan-topbar { grid-area: bar; display: flex; gap: 8px; min-width: 0; }
+.titan-topbar-run { flex: 1 1 auto; background: var(--titan-frame); }
+.titan-pattern { flex: 0 1 260px; display: flex; gap: 4px; align-items: center; justify-content: flex-end; min-width: 0; padding: 0 12px; overflow: hidden; background: var(--titan-coal); }
+.titan-pattern span { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--titan-dot-dim); }
+.titan-pattern span[data-dot="lit"] { background: var(--titan-dot); }
+.titan-pattern span[data-dot="gap"] { background: transparent; }
+
+/* The headline: the title in salmon capitals, set right under the bar; the time big at the left. */
+.titan-header { grid-area: head; display: flex; gap: 20px; align-items: flex-start; justify-content: space-between; min-width: 0; padding: 14px 0 26px; }
+.titan-header-words { display: grid; justify-items: end; gap: 4px; min-width: 0; margin-left: auto; text-align: right; }
+.titan-header h1 { margin: 0; overflow-wrap: anywhere; color: var(--titan-title); font: 400 clamp(30px, 4.2vw, 48px)/1 var(--titan-sans); letter-spacing: 0.02em; }
+.titan-header-sub { margin: 0; color: var(--titan-ink-muted); font: 400 14px/1.2 var(--titan-sans); letter-spacing: 0.08em; }
+.titan-header-time { flex: none; margin: 0; color: var(--titan-ink); font: 500 clamp(34px, 5vw, 60px)/1 var(--titan-sans); font-variant-numeric: tabular-nums; }
+.titan-header-time small { margin-left: 6px; color: var(--titan-ink-muted); font-size: 14px; }
+
+/* The rail: the destinations as a column of keys, then a slate run down to the bottom elbow. */
+.titan-rail { grid-area: rail; display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 6px 0; }
+.titan-rail-fill { flex: 1 1 auto; min-height: 24px; background: var(--titan-frame-deep); }
+.titan-nav { position: sticky; top: 12px; z-index: 2; }
+.titan-nav ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.titan-nav button { position: relative; display: flex; gap: 4px; align-items: flex-end; justify-content: flex-end; width: 100%; min-height: 48px; padding: 0 10px 6px 18px; overflow: hidden; border: 0; border-radius: 0; background: var(--titan-key); color: var(--titan-key-ink); font: 500 15px/1 var(--titan-sans); letter-spacing: 0.04em; text-align: right; text-transform: uppercase; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background-color var(--titan-press) var(--titan-ease-in-out), color var(--titan-press) var(--titan-ease-in-out), transform var(--titan-press) var(--titan-ease-out); }
+.titan-nav button::before { content: ""; position: absolute; top: 4px; left: 4px; width: 6px; height: 6px; background: var(--titan-page); }
+.titan-nav button[data-step="1"] { background: var(--titan-key-soft); }
+.titan-nav button[data-step="2"] { background: var(--titan-frame); color: var(--titan-frame-ink); }
+.titan-nav button[aria-current] { background: var(--titan-on); color: var(--titan-on-ink); }
+.titan-nav button:active { transform: scale(0.97); }
+.titan-nav button:focus-visible { outline: 2px solid var(--titan-focus); outline-offset: 2px; }
+.titan-nav-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titan-nav-leave { flex: none; }
+
+.titan-dashboard-main { grid-area: main; display: grid; gap: 34px; align-content: start; min-width: 0; padding: 6px 0 28px; }
+
+/* The bottom elbow, the footer and the bottom bar. */
+.titan-elbow-bottom { position: relative; grid-area: ebot; min-height: 88px; margin-top: 6px; border-radius: 0 0 0 var(--titan-bend); background: var(--titan-frame); }
+.titan-elbow-bottom::after { content: ""; position: absolute; bottom: var(--titan-bar); left: 100%; width: 32px; height: 32px; background: radial-gradient(circle at 100% 0%, transparent 31.5px, var(--titan-frame) 32px); }
+.titan-footer { grid-area: foot; align-self: end; margin: 0; padding: 20px 0 14px; overflow-wrap: anywhere; color: var(--titan-ink-muted); font: 400 clamp(20px, 2.6vw, 32px)/1 var(--titan-sans); letter-spacing: 0.02em; text-align: right; }
+.titan-bottombar { grid-area: bbar; display: flex; gap: 8px; min-width: 0; }
+.titan-bottombar-run { flex: 3 1 auto; background: var(--titan-frame); }
+.titan-bottombar-run[data-step="1"] { flex: 1 1 auto; background: var(--titan-frame-deep); }
+
+/* A section: a rounded cap, its title, a bar running to its count block. */
+.titan-section { min-width: 0; scroll-margin-top: 24px; }
+.titan-section-head { display: flex; gap: 6px; align-items: center; height: 22px; margin: 0 0 14px; }
+.titan-section-cap { flex: none; width: 26px; height: 22px; border-radius: 11px 0 0 11px; background: var(--titan-key); }
+.titan-section-head h2 { flex: none; max-width: 60%; margin: 0; padding: 0 6px; overflow: hidden; color: var(--titan-ink); font: 500 20px/22px var(--titan-sans); letter-spacing: 0.04em; text-overflow: ellipsis; white-space: nowrap; }
+.titan-section-run { flex: 1 1 auto; height: 10px; background: var(--titan-frame-deep); }
+.titan-section-head p { flex: none; margin: 0; color: var(--titan-ink-muted); font: 400 13px/1 var(--titan-sans); letter-spacing: 0.06em; }
+.titan-section-count { flex: none; display: flex; align-items: flex-end; justify-content: flex-end; min-width: 40px; height: 22px; box-sizing: border-box; padding: 0 6px 3px; background: var(--titan-coal); color: var(--titan-coal-ink); font: 500 13px/1 var(--titan-sans); }
+
+.titan-grid { display: grid; grid-template-columns: repeat(var(--titan-columns, auto-fit), minmax(min(100%, 240px), 1fr)); gap: 26px 20px; }
+.titan-grid[data-footprint="compact"] { gap: 6px 10px; }
+.titan-columns { display: grid; grid-template-columns: repeat(var(--titan-section-columns), minmax(0, 1fr)); gap: 20px; }
+.titan-cell { min-width: 0; grid-column: span var(--titan-span); }
+.titan-card-cell { display: block; min-width: 0; }
+.titan-dashboard-dock { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; justify-items: center; padding: 12px max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); pointer-events: none; }
+.titan-dashboard-empty { margin: 0; padding: 30px; border: 2px dashed var(--titan-key); color: var(--titan-ink-muted); font: 400 16px/1.4 var(--titan-sans); letter-spacing: 0.04em; text-align: center; }
+
+@media (hover: hover) and (pointer: fine) {
+  .titan-nav button:hover:not([aria-current]) { background: var(--titan-key-soft); color: var(--titan-key-ink); }
+  .titan-nav button[data-step="1"]:hover:not([aria-current]) { background: var(--titan-key); }
+}
+
+/* A tablet: a narrower rail. */
+@media (max-width: 900px) {
+  .titan-dashboard { --titan-rail: 104px; --titan-bend: 52px; }
+  .titan-nav button { font-size: 14px; }
+}
+
+/* A phone: the rail becomes a thin bar, the destinations dock at the bottom as a scrolling row of keys. */
+@media (max-width: 640px) {
+  .titan-dashboard { --titan-rail: 22px; --titan-bar: 18px; --titan-bend: 30px; grid-template-columns: var(--titan-rail) 12px minmax(0, 1fr); padding: 10px 12px 12px; }
+  .titan-dashboard[data-nav] { padding-bottom: 76px; }
+  .titan-elbow-top { min-height: 72px; padding: 0; }
+  .titan-elbow-top::after { width: 18px; height: 18px; background: radial-gradient(circle at 100% 100%, transparent 17.5px, var(--titan-frame) 18px); }
+  .titan-elbow-bottom::after { width: 18px; height: 18px; background: radial-gradient(circle at 100% 0%, transparent 17.5px, var(--titan-frame) 18px); }
+  .titan-elbow-stamp { display: none; }
+  .titan-elbow-bottom { min-height: 56px; }
+  .titan-pattern { flex-basis: 120px; padding: 0 8px; gap: 3px; }
+  .titan-pattern span { width: 5px; height: 5px; }
+  .titan-header { padding: 10px 0 18px; gap: 12px; }
+  .titan-header h1 { font-size: 30px; }
+  .titan-header-time { font-size: 34px; }
+  .titan-dashboard-main { gap: 28px; }
+  .titan-grid { grid-template-columns: 1fr; gap: 20px; }
+  .titan-columns { grid-template-columns: 1fr; }
+  .titan-cell { grid-column: 1; }
+  .titan-rail { padding: 6px 0; }
+  .titan-rail .titan-nav { position: fixed; top: auto; right: 0; bottom: 0; left: 0; z-index: 10; padding: 8px 12px max(8px, env(safe-area-inset-bottom)); background: var(--titan-page); }
+  .titan-rail .titan-nav ul { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .titan-rail .titan-nav li { flex: none; }
+  .titan-rail .titan-nav button { min-width: 92px; max-width: 180px; }
+  .titan-dashboard[data-nav] .titan-dashboard-dock { bottom: 64px; }
+  .titan-footer { font-size: 18px; padding: 16px 0 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .titan-nav button { transition-duration: 1ms; } .titan-nav button:active { transform: none; } }

@@ -84,8 +84,9 @@ dependency), offline.
 
 `npm test` runs the conformance preset (each card's component and story title, its class prefix and that no
 presentational card imports the Home Assistant layer) and the skin's CSS rules: no colour literal outside
-`styles/tokens.css`, no selector on the shared `data-theme`, `:hover` only under the hover media query, and no
-transition on a layout property. Each finding names its file, line and fix. Run it after every card change.
+`styles/tokens.css`, no selector on the shared `data-theme`, `:hover` only under the hover media query, no
+transition on a layout property, and no `var(--<skin>-…)` without a fallback that nothing defines. Each finding names
+its file, line and fix. Run it after every card change.
 
 ## Build
 

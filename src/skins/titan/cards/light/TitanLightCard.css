@@ -1,0 +1,2 @@
+/* The light draws entirely from the shared parts (shared/ui.css): its elbow is salmon while on. */
+.titan-card[data-card="light"][data-state="off"] .titan-readout-value { color: var(--titan-ink-muted); }

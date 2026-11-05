@@ -1,0 +1,33 @@
+{
+  "name": "@dashhaus/titan",
+  "version": "0.0.0",
+  "description": "A study: Titan, a skin an agent built from the release packages to look like a picture. Not finished or polished; use it, build on it, contribute back.",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "./styles/tokens.css"
+  ],
+  "exports": {
+    ".": "./index.ts",
+    "./styles/tokens.css": "./styles/tokens.css",
+    "./lovelace/card": "./lovelace/card.tsx",
+    "./storybook": "./storybook.tsx"
+  },
+  "dependencies": {
+    "@dashhaus/core": "*",
+    "@dashhaus/dashboard": "*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
+  },
+  "dashhaus": {
+    "study": {
+      "theme": {
+        "global": "titanTheme",
+        "light": "light",
+        "dark": "dark"
+      }
+    }
+  }
+}

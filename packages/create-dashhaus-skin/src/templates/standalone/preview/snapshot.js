@@ -7,7 +7,8 @@
  *
  * It serves `preview/` with Vite and drives Chromium through Playwright, a dev dependency. The first run tells you
  * the commands that install Playwright's Chromium; `DASHHAUS_CHROMIUM=/path/to/chrome` uses a Chromium or Chrome
- * already on the machine instead. Page errors are printed, and fail the run.
+ * already on the machine instead. Page errors are printed, and fail the run; a web font that failed to load is printed
+ * too, since the snapshot then shows the stack's fallback.
  */
 /* global document -- the waitForFunction and evaluate callbacks run in the page. */
 import { mkdir } from "node:fs/promises";
@@ -68,6 +69,12 @@ try {
       return Boolean(element?.shadowRoot?.querySelector("main, [role=alert], .hd-config-error")) || Boolean(document.querySelector("pre"));
     }, "__card_type__", { timeout: 15000 }).catch(() => problems.push(`${shot.name}: the card drew nothing within 15 s`));
     await page.evaluate(() => document.fonts.ready);
+    const failed = await page.evaluate(() => [...document.fonts].filter((face) => face.status === "error").map((face) => `${face.family} ${face.weight}`));
+    for (const face of new Set(failed)) console.warn(`! ${shot.name}: the font ${face} failed to load; this snapshot draws its stack's fallback`);
+    // The whole page in one viewport, so what is fixed to the bottom (a docked nav) is drawn at the page's foot, where a
+    // person scrolled to the end sees it, not where the first screen ended.
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    if (height > shot.height) await page.setViewportSize({ width: shot.width, height });
     await page.waitForTimeout(300);
     const file = `${out}${shot.name}.png`;
     await page.screenshot({ path: file, fullPage: true });

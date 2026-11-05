@@ -1,0 +1,2 @@
+/* The weather draws entirely from the shared parts (shared/ui.css): a teal elbow, red only for a warning. */
+.titan-card[data-card="weather"] .titan-status-words { text-transform: uppercase; }
