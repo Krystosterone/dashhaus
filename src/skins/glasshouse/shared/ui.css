@@ -1,0 +1,270 @@
+/* The Glasshouse parts: the glass card frame, its switch, step, buttons, bars, chips and the details dialog. */
+
+/* The card: a smoked-glass panel. Its height is the footprint's alone, never its state's. */
+.glasshouse-card {
+  position: relative;
+  box-sizing: border-box;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 236px;
+  padding: 18px 18px 16px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--glasshouse-edge);
+  border-radius: var(--glasshouse-radius);
+  background: linear-gradient(180deg, var(--glasshouse-sheen), transparent 42%), var(--glasshouse-card);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  color: var(--glasshouse-ink);
+  font-family: var(--glasshouse-sans);
+  box-shadow: 0 18px 44px var(--glasshouse-shadow);
+}
+/* The glow an on card gives off from its glyph's corner: faded in on opacity, never a second colour of accent. */
+.glasshouse-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(130% 90% at 0% 0%, var(--glasshouse-glow), transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--glasshouse-switch) var(--glasshouse-ease-in-out);
+}
+.glasshouse-card[data-lit]::before { opacity: 0.7; }
+.glasshouse-card[data-alert] { border-color: var(--glasshouse-warm); }
+.glasshouse-card[data-state="unavailable"] { border-style: dashed; border-color: var(--glasshouse-line); box-shadow: none; }
+.glasshouse-card[data-footprint="compact"] { height: 76px; padding: 14px 14px 14px 16px; border-radius: 18px; }
+
+.glasshouse-head { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; min-width: 0; }
+.glasshouse-identity {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--glasshouse-line);
+  border-radius: 50%;
+  background: var(--glasshouse-card-muted);
+  color: var(--glasshouse-ink-muted);
+  font: 700 16px/1 var(--glasshouse-sans);
+  transition: color var(--glasshouse-switch) var(--glasshouse-ease-in-out), border-color var(--glasshouse-switch) var(--glasshouse-ease-in-out);
+}
+.glasshouse-identity svg { width: 20px; height: 20px; }
+[data-lit] > .glasshouse-head .glasshouse-identity, [data-lit] .glasshouse-dialog-head .glasshouse-identity { border-color: var(--glasshouse-accent); color: var(--glasshouse-accent); filter: drop-shadow(0 0 8px var(--glasshouse-glow)); }
+[data-alert] > .glasshouse-head .glasshouse-identity, [data-alert] .glasshouse-dialog-head .glasshouse-identity { border-color: var(--glasshouse-warm); color: var(--glasshouse-warm); }
+.glasshouse-copy { min-width: 0; display: grid; gap: 3px; }
+.glasshouse-title {
+  appearance: none;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 650 15px/1.25 var(--glasshouse-sans);
+  letter-spacing: -0.01em;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--glasshouse-press) var(--glasshouse-ease-in-out);
+}
+.glasshouse-title:active { color: var(--glasshouse-accent); }
+.glasshouse-sub { display: flex; gap: 6px; align-items: center; min-width: 0; margin: 0; color: var(--glasshouse-ink-muted); font: 500 12px/1.3 var(--glasshouse-sans); }
+.glasshouse-sub > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.glasshouse-marker { flex: none; display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: var(--glasshouse-warm); color: var(--glasshouse-accent-ink); font: 800 10px/1 var(--glasshouse-sans); }
+.glasshouse-summary { margin: 0; color: var(--glasshouse-ink); font: 650 17px/1 var(--glasshouse-sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.glasshouse-control { display: flex; align-items: center; }
+
+.glasshouse-face { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
+.glasshouse-big { margin: 0; color: var(--glasshouse-ink); font: 600 44px/1 var(--glasshouse-sans); letter-spacing: -0.035em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.glasshouse-big small { margin-left: 2px; color: var(--glasshouse-ink-muted); font-size: 0.42em; font-weight: 600; letter-spacing: 0; vertical-align: 0.9em; }
+.glasshouse-none { color: var(--glasshouse-ink-faint); }
+.glasshouse-caption { margin: 0; color: var(--glasshouse-ink-muted); font: 500 12px/1.35 var(--glasshouse-sans); }
+.glasshouse-actions { display: flex; justify-content: flex-end; gap: 8px; min-width: 0; }
+
+/* Raised glass buttons. */
+.glasshouse-action {
+  flex: none;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--glasshouse-line);
+  border-radius: 999px;
+  background: var(--glasshouse-card-muted);
+  color: var(--glasshouse-ink);
+  font: 600 13px/1 var(--glasshouse-sans);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--glasshouse-press) var(--glasshouse-ease-out), color var(--glasshouse-press) var(--glasshouse-ease-in-out), background-color var(--glasshouse-press) var(--glasshouse-ease-in-out), border-color var(--glasshouse-press) var(--glasshouse-ease-in-out);
+}
+.glasshouse-action-icon { display: grid; }
+.glasshouse-action-icon svg { width: 16px; height: 16px; }
+.glasshouse-action[aria-pressed="true"], .glasshouse-action[data-primary] { border-color: var(--glasshouse-accent); background: var(--glasshouse-accent); color: var(--glasshouse-accent-ink); box-shadow: 0 0 18px var(--glasshouse-glow); }
+.glasshouse-action:active { transform: scale(0.96); }
+.glasshouse-action[aria-disabled="true"] { cursor: not-allowed; color: var(--glasshouse-ink-faint); }
+.glasshouse-action:disabled { cursor: not-allowed; opacity: 0.5; }
+
+/* The pill switch: a recessed track; on, it fills cyan and glows, its knob slides over on transform. */
+.glasshouse-switch {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--glasshouse-line);
+  border-radius: 999px;
+  background: var(--glasshouse-track);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--glasshouse-switch) var(--glasshouse-ease-in-out), border-color var(--glasshouse-switch) var(--glasshouse-ease-in-out), transform var(--glasshouse-press) var(--glasshouse-ease-out);
+}
+/* A 44 px target around the 28 px pill. */
+.glasshouse-switch::after { content: ""; position: absolute; inset: -9px -4px; }
+.glasshouse-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--glasshouse-knob);
+  box-shadow: 0 2px 6px var(--glasshouse-shadow);
+  transition: transform var(--glasshouse-switch) var(--glasshouse-ease-out);
+}
+.glasshouse-switch[data-on] { border-color: var(--glasshouse-accent); background: var(--glasshouse-accent); box-shadow: 0 0 16px var(--glasshouse-glow); }
+.glasshouse-switch[data-on] .glasshouse-switch-knob { transform: translateX(20px); }
+.glasshouse-switch:active { transform: scale(0.95); }
+.glasshouse-switch[aria-disabled="true"] { border-style: dashed; cursor: not-allowed; opacity: 0.55; }
+
+/* Round steppers for a value. */
+.glasshouse-step {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--glasshouse-line);
+  border-radius: 50%;
+  background: var(--glasshouse-card-muted);
+  color: var(--glasshouse-ink);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--glasshouse-press) var(--glasshouse-ease-out), color var(--glasshouse-press) var(--glasshouse-ease-in-out), border-color var(--glasshouse-press) var(--glasshouse-ease-in-out);
+}
+.glasshouse-step svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.glasshouse-step:active { transform: scale(0.92); color: var(--glasshouse-accent); }
+.glasshouse-step[aria-disabled="true"] { cursor: not-allowed; color: var(--glasshouse-ink-faint); }
+
+/* Today's bars. */
+.glasshouse-bars { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.glasshouse-bars-plot { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px; align-items: end; }
+.glasshouse-bar { display: block; height: calc(var(--glasshouse-bar) * 100%); border-radius: 3px 3px 1px 1px; background: linear-gradient(0deg, var(--glasshouse-accent-2), var(--glasshouse-accent)); }
+.glasshouse-bar[data-kind="ahead"] { background: var(--glasshouse-track); }
+.glasshouse-bar[data-kind="gap"] { border-top: 2px dashed var(--glasshouse-ink-faint); background: transparent; }
+.glasshouse-bar[data-now] { box-shadow: 0 0 12px var(--glasshouse-glow); }
+.glasshouse-bars-axis { display: flex; justify-content: space-between; color: var(--glasshouse-ink-faint); font: 500 10px/1 var(--glasshouse-sans); font-variant-numeric: tabular-nums; }
+
+/* Chips and stats. */
+.glasshouse-chip { display: inline-flex; gap: 4px; align-items: center; padding: 4px 9px; border: 1px solid var(--glasshouse-line); border-radius: 999px; background: var(--glasshouse-card-muted); color: var(--glasshouse-ink-muted); font: 600 11px/1.2 var(--glasshouse-sans); white-space: nowrap; }
+.glasshouse-chip svg { width: 12px; height: 12px; }
+.glasshouse-chip[data-tone="good"] { color: var(--glasshouse-good); }
+.glasshouse-chip[data-tone="warm"] { color: var(--glasshouse-warm); }
+.glasshouse-chip[data-tone="warn"] { color: var(--glasshouse-warn); }
+.glasshouse-chip[data-tone="accent"] { border-color: var(--glasshouse-accent); color: var(--glasshouse-accent); }
+.glasshouse-stat { min-width: 0; display: grid; gap: 4px; }
+.glasshouse-stat-label { overflow: hidden; color: var(--glasshouse-ink-muted); font: 500 11px/1.2 var(--glasshouse-sans); text-overflow: ellipsis; white-space: nowrap; }
+.glasshouse-stat-value { overflow: hidden; color: var(--glasshouse-ink); font: 650 14px/1.2 var(--glasshouse-sans); font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.glasshouse-stat-value[data-tone="good"] { color: var(--glasshouse-good); }
+.glasshouse-stat-value[data-tone="warm"] { color: var(--glasshouse-warm); }
+.glasshouse-stat-value[data-tone="warn"] { color: var(--glasshouse-warn); }
+.glasshouse-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 12px; padding-top: 12px; border-top: 1px solid var(--glasshouse-line); }
+
+/* The details dialog. */
+.glasshouse-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 32px));
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--glasshouse-edge);
+  border-radius: 26px;
+  background: linear-gradient(180deg, var(--glasshouse-sheen), transparent 30%), var(--glasshouse-card-solid);
+  color: var(--glasshouse-ink);
+  font-family: var(--glasshouse-sans);
+  box-shadow: 0 30px 90px var(--glasshouse-shadow);
+  opacity: 1;
+  transition: transform var(--glasshouse-close) var(--glasshouse-ease-out), opacity var(--glasshouse-close) var(--glasshouse-ease-in-out);
+}
+.glasshouse-dialog::backdrop { background: var(--glasshouse-backdrop); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.glasshouse-dialog[data-closing] { opacity: 0; transform: translateY(12px); }
+.glasshouse-dialog-head { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 18px 18px 14px 20px; border-bottom: 1px solid var(--glasshouse-line); }
+.glasshouse-dialog-name { min-width: 0; display: grid; gap: 3px; }
+.glasshouse-dialog-name strong { overflow: hidden; font: 650 17px/1.25 var(--glasshouse-sans); text-overflow: ellipsis; white-space: nowrap; }
+.glasshouse-dialog-name span { color: var(--glasshouse-ink-muted); font: 500 12px/1.3 var(--glasshouse-sans); }
+.glasshouse-dialog-head button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--glasshouse-accent); font: 650 14px/1 var(--glasshouse-sans); cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform var(--glasshouse-press) var(--glasshouse-ease-out); }
+.glasshouse-dialog-head button:active { transform: scale(0.96); }
+.glasshouse-dialog-body { display: grid; gap: 18px; padding: 20px; overflow: auto; font: 14px/1.5 var(--glasshouse-sans); }
+.glasshouse-sheet-figure { display: flex; gap: 14px; align-items: flex-end; justify-content: space-between; }
+.glasshouse-sheet-chart { display: flex; height: 120px; }
+/* A face's figure with its caption on one line: a reading and its range, a state and since when. */
+.glasshouse-figure-row { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; min-width: 0; }
+.glasshouse-figure-row .glasshouse-caption { overflow: hidden; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.glasshouse-entity-id { margin: 12px 0 0; color: var(--glasshouse-ink-muted); font-size: 12px; overflow-wrap: anywhere; }
+.glasshouse-facts { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--glasshouse-line); }
+.glasshouse-facts div { display: grid; grid-template-columns: minmax(96px, 0.45fr) minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--glasshouse-line); }
+.glasshouse-facts dt { color: var(--glasshouse-ink-muted); }
+.glasshouse-facts dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.glasshouse-ask { display: grid; gap: 10px; }
+.glasshouse-ask:focus { outline: none; }
+.glasshouse-ask-q { margin: 0; font-weight: 650; }
+.glasshouse-ask-d { margin: 0; color: var(--glasshouse-ink-muted); }
+.glasshouse-ask-b { display: flex; flex-wrap: wrap; gap: 8px; }
+.glasshouse-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.glasshouse-keys .glasshouse-action { min-height: 52px; font-size: 17px; }
+.glasshouse-empty { margin: 0; padding: 24px; color: var(--glasshouse-ink-muted); font: 14px/1.5 var(--glasshouse-sans); }
+
+.glasshouse-title:focus-visible, .glasshouse-action:focus-visible, .glasshouse-switch:focus-visible, .glasshouse-step:focus-visible, .glasshouse-dialog-head button:focus-visible { outline: 2px solid var(--glasshouse-accent); outline-offset: 3px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .glasshouse-title:hover { color: var(--glasshouse-accent); }
+  .glasshouse-action:hover:not([aria-disabled="true"]):not(:disabled) { border-color: var(--glasshouse-accent); }
+  .glasshouse-step:hover:not([aria-disabled="true"]) { border-color: var(--glasshouse-accent); }
+  .glasshouse-switch:hover:not([aria-disabled="true"]):not([data-on]) { border-color: var(--glasshouse-accent); }
+}
+@media (max-width: 600px) {
+  .glasshouse-dialog { width: 100%; max-width: none; max-height: 88dvh; margin: auto 0 0; border-radius: 26px 26px 0 0; }
+  .glasshouse-dialog[data-closing] { transform: translateY(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glasshouse-action, .glasshouse-dialog, .glasshouse-switch, .glasshouse-switch-knob, .glasshouse-step, .glasshouse-card::before { transition-duration: 1ms; }
+  .glasshouse-action:active, .glasshouse-switch:active, .glasshouse-step:active { transform: none; }
+}
+
+/* The slider: a recessed groove; its fill scales and its thumb slides, both on transform. */
+.glasshouse-slider { display: grid; gap: 10px; }
+.glasshouse-slider-label { display: flex; justify-content: space-between; gap: 12px; color: var(--glasshouse-ink-muted); font: 500 13px/1.2 var(--glasshouse-sans); }
+.glasshouse-slider-label strong { color: var(--glasshouse-ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+.glasshouse-slider-track { position: relative; container-type: inline-size; height: 28px; overflow: hidden; border: 1px solid var(--glasshouse-line); border-radius: 999px; background: var(--glasshouse-track); touch-action: pan-y; user-select: none; -webkit-tap-highlight-color: transparent; }
+.glasshouse-slider-fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--glasshouse-accent-2), var(--glasshouse-accent)); transform-origin: left center; transform: scaleX(var(--glasshouse-fill)); }
+.glasshouse-slider-thumb { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--glasshouse-knob); box-shadow: 0 0 12px var(--glasshouse-glow); transform: translateX(calc(var(--glasshouse-fill) * (100cqw - 28px))); }
+.glasshouse-slider-track[data-anim] .glasshouse-slider-fill, .glasshouse-slider-track[data-anim] .glasshouse-slider-thumb { transition: transform var(--glasshouse-switch) var(--glasshouse-ease-out); }
+.glasshouse-slider-hit { position: absolute; inset: -8px 0; cursor: pointer; }
+.glasshouse-slider-track:has(input:focus-visible) { outline: 2px solid var(--glasshouse-accent); outline-offset: 3px; }
+.glasshouse-slider[data-unavailable] .glasshouse-slider-track { border-style: dashed; opacity: 0.55; }
+.glasshouse-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); border: 0; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .glasshouse-slider-track[data-anim] .glasshouse-slider-fill, .glasshouse-slider-track[data-anim] .glasshouse-slider-thumb { transition-duration: 1ms; } }

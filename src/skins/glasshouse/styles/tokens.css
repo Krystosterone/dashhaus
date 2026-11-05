@@ -1,0 +1,103 @@
+/*
+ * Glasshouse's design tokens: every colour the skin draws comes from here, light and dark.
+ * The look: a house seen at night through tinted glass. A near-black teal page lit by a cyan glow, smoked-glass
+ * panels with a hairline edge and a faint top sheen, and one cyan accent that glows where something is on.
+ * The theme attribute is the skin's own, data-glasshouse-theme, so another skin's attribute on the same page never
+ * re-colours this one. The Lovelace card sets it on its host from Home Assistant's dark mode, and scopeToHost turns
+ * :root into that host; a page drawing the skin outside Home Assistant sets it on <html>. Without it, the system's
+ * colour scheme decides.
+ * Keep every block on :root only: a token set again on an element inside the page (the surface class) would
+ * override the dark values that element inherits.
+ */
+:root {
+  /* Light: the same glasshouse by day: mist-teal page, frosted white panels, a deeper cyan so it reads on white. */
+  --glasshouse-page: #dde9ea;
+  --glasshouse-page-deep: #c9dcde;
+  --glasshouse-glow-a: rgb(40 190 205 / 30%);
+  --glasshouse-glow-b: rgb(26 120 200 / 16%);
+  --glasshouse-card: rgb(250 254 254 / 62%);
+  --glasshouse-card-solid: #f3f9f9;
+  --glasshouse-card-muted: rgb(12 64 70 / 7%);
+  --glasshouse-edge: rgb(255 255 255 / 85%);
+  --glasshouse-sheen: rgb(255 255 255 / 70%);
+  --glasshouse-ink: #0b2125;
+  --glasshouse-ink-muted: #4a666a;
+  --glasshouse-ink-faint: #7f979a;
+  --glasshouse-line: rgb(12 64 70 / 15%);
+  --glasshouse-accent: #0896aa;
+  --glasshouse-accent-2: #1d63cf;
+  --glasshouse-accent-ink: #ffffff;
+  --glasshouse-glow: rgb(8 150 170 / 28%);
+  --glasshouse-good: #14814a;
+  --glasshouse-warm: #c2560c;
+  --glasshouse-warn: #b3261e;
+  --glasshouse-track: rgb(12 64 70 / 14%);
+  --glasshouse-knob: #ffffff;
+  --glasshouse-shadow: rgb(20 60 66 / 16%);
+  --glasshouse-backdrop: rgb(10 30 34 / 40%);
+
+  --glasshouse-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --glasshouse-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --glasshouse-press: 120ms;
+  --glasshouse-switch: 220ms;
+  --glasshouse-close: 220ms;
+  --glasshouse-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --glasshouse-radius: 20px;
+  --glasshouse-radius-sm: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-glasshouse-theme="light"]) {
+    --glasshouse-page: #040b0d;
+    --glasshouse-page-deep: #071517;
+    --glasshouse-glow-a: rgb(28 196 206 / 26%);
+    --glasshouse-glow-b: rgb(20 96 150 / 22%);
+    --glasshouse-card: rgb(17 33 37 / 66%);
+    --glasshouse-card-solid: #0d1b1e;
+    --glasshouse-card-muted: rgb(190 240 245 / 7%);
+    --glasshouse-edge: rgb(170 235 240 / 15%);
+    --glasshouse-sheen: rgb(255 255 255 / 7%);
+    --glasshouse-ink: #ebf7f7;
+    --glasshouse-ink-muted: #93abae;
+    --glasshouse-ink-faint: #5e7477;
+    --glasshouse-line: rgb(170 235 240 / 13%);
+    --glasshouse-accent: #34dbec;
+    --glasshouse-accent-2: #1f8fe6;
+    --glasshouse-accent-ink: #022126;
+    --glasshouse-glow: rgb(52 219 236 / 42%);
+    --glasshouse-good: #5be38f;
+    --glasshouse-warm: #ffb054;
+    --glasshouse-warn: #ff7a6b;
+    --glasshouse-track: rgb(190 240 245 / 14%);
+    --glasshouse-knob: #f4fdfe;
+    --glasshouse-shadow: rgb(0 0 0 / 50%);
+    --glasshouse-backdrop: rgb(1 6 8 / 72%);
+  }
+}
+
+:root[data-glasshouse-theme="dark"] {
+  --glasshouse-page: #040b0d;
+  --glasshouse-page-deep: #071517;
+  --glasshouse-glow-a: rgb(28 196 206 / 26%);
+  --glasshouse-glow-b: rgb(20 96 150 / 22%);
+  --glasshouse-card: rgb(17 33 37 / 66%);
+  --glasshouse-card-solid: #0d1b1e;
+  --glasshouse-card-muted: rgb(190 240 245 / 7%);
+  --glasshouse-edge: rgb(170 235 240 / 15%);
+  --glasshouse-sheen: rgb(255 255 255 / 7%);
+  --glasshouse-ink: #ebf7f7;
+  --glasshouse-ink-muted: #93abae;
+  --glasshouse-ink-faint: #5e7477;
+  --glasshouse-line: rgb(170 235 240 / 13%);
+  --glasshouse-accent: #34dbec;
+  --glasshouse-accent-2: #1f8fe6;
+  --glasshouse-accent-ink: #022126;
+  --glasshouse-glow: rgb(52 219 236 / 42%);
+  --glasshouse-good: #5be38f;
+  --glasshouse-warm: #ffb054;
+  --glasshouse-warn: #ff7a6b;
+  --glasshouse-track: rgb(190 240 245 / 14%);
+  --glasshouse-knob: #f4fdfe;
+  --glasshouse-shadow: rgb(0 0 0 / 50%);
+  --glasshouse-backdrop: rgb(1 6 8 / 72%);
+}

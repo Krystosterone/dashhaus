@@ -3,6 +3,7 @@ import { orbStorybook } from "@dashhaus/orb/storybook";
 import { fieldStorybook } from "@dashhaus/field/storybook";
 import { futuraStorybook } from "@dashhaus/futura/storybook";
 import { lcarsStorybook } from "@dashhaus/lcars/storybook";
+import { glasshouseStorybook } from "@dashhaus/glasshouse/storybook";
 // new-skin: storybook imports
 
 /**
@@ -28,6 +29,7 @@ const SKINS: SkinStorybook[] = [
   fieldStorybook,
   futuraStorybook,
   lcarsStorybook,
+  glasshouseStorybook,
   // new-skin: storybook setups
 ];
 
@@ -157,6 +159,29 @@ const preview: Preview = {
               "Connected", [
                 "Light",
                 "Sensor",
+                // new-card: connected
+              ],
+            ],
+            "Glasshouse", [
+              "Read me first",
+              "Cards", [
+                "Climate",
+                "Light",
+                "Lock",
+                "Sensor",
+                "Toggle",
+                "Weather",
+                // new-card: cards
+              ],
+              "Dashboards", ["Examples", "Lovelace card", "Header", "Nav bar"],
+              "Foundations", ["Design rules", "Palette", "Parts"],
+              "Connected", [
+                "Climate",
+                "Light",
+                "Lock",
+                "Sensor",
+                "Toggle",
+                "Weather",
                 // new-card: connected
               ],
             ],

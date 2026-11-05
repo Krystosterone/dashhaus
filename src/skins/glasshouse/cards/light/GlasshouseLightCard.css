@@ -1,0 +1,4 @@
+/* The light's level line: a groove whose cyan fill is the brightness, glowing while on. */
+.glasshouse-light-level { height: 6px; overflow: hidden; border-radius: 999px; background: var(--glasshouse-track); }
+.glasshouse-light-level span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--glasshouse-accent-2), var(--glasshouse-accent)); box-shadow: 0 0 12px var(--glasshouse-glow); transform-origin: left center; transition: transform var(--glasshouse-switch) var(--glasshouse-ease-out); }
+@media (prefers-reduced-motion: reduce) { .glasshouse-light-level span { transition-duration: 1ms; } }

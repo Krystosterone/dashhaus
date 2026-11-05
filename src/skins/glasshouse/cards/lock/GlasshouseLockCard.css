@@ -1,0 +1,9 @@
+/* The lock's face: a shield that glows while locked, beside its state in words. */
+.glasshouse-lock-face { display: flex; gap: 16px; align-items: center; min-width: 0; }
+.glasshouse-lock-shield { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border: 1px solid var(--glasshouse-line); border-radius: 18px; background: var(--glasshouse-card-muted); color: var(--glasshouse-ink-muted); }
+.glasshouse-lock-shield svg { width: 36px; height: 36px; }
+.glasshouse-lock-shield[data-secure] { border-color: var(--glasshouse-accent); color: var(--glasshouse-accent); box-shadow: 0 0 24px var(--glasshouse-glow), inset 0 0 16px var(--glasshouse-glow); }
+.glasshouse-card[data-alert] .glasshouse-lock-shield { border-color: var(--glasshouse-warm); color: var(--glasshouse-warm); }
+.glasshouse-lock-copy { min-width: 0; display: grid; gap: 4px; }
+.glasshouse-lock-state { margin: 0; overflow: hidden; color: var(--glasshouse-ink); font: 650 30px/1.05 var(--glasshouse-sans); letter-spacing: -0.03em; text-overflow: ellipsis; white-space: nowrap; }
+.glasshouse-card[data-card="lock"] .glasshouse-face { justify-content: center; }

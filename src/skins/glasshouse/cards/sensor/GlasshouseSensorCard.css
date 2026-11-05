@@ -1,0 +1,2 @@
+/* The sensor's face: the figure and the day's range on one line, the bars below filling the rest. */
+.glasshouse-card[data-card="sensor"] .glasshouse-face { justify-content: space-between; }
