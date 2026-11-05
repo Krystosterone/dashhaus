@@ -4,8 +4,7 @@ import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
 import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/dashboard/card";
-import type { CardFootprint, CardProps as FrameProps, SheetProps, TileProps } from "@dashhaus/dashboard/card";
-import type { ColorName } from "@dashhaus/core/entities/color";
+import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/dashboard/card";
 import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
 import { unavailableSince } from "@dashhaus/core/entities/facts";
@@ -15,38 +14,16 @@ import "./card.css";
 export type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
 /* ---------- Colour ----------
-   One accent hue (tokens.css --brand-c/--brand-h) means on: solid for energy, soft for on-but-not-energy.
-   Neutrals for the rest.
-   A card's own colour is the "colour slot": opt-in, painted on the orb and nowhere else. */
+   One accent hue (tokens.css --brand-c/--brand-h, set for a whole dashboard by its `accent`) means on: solid for
+   energy, soft for on-but-not-energy. Neutrals for the rest. A card has no colour of its own. */
 
-/** A colour for the orb, as OKLCH chroma and hue (lightness comes from the theme). */
-export interface SlotColor { c: number; h: number }
-/** Named colours for the slot. Use sparingly: one per card, and only where it means something. */
-export const COLORS = {
-  yellow: { c: 0.145, h: 92 },
-  apricot: { c: 0.13, h: 52 },
-  rose: { c: 0.1, h: 15 },
-  lavender: { c: 0.07, h: 290 },
-  blue: { c: 0.09, h: 235 },
-  teal: { c: 0.07, h: 200 },
-  sage: { c: 0.08, h: 150 },
-} satisfies Record<ColorName, SlotColor>;
-export type { ColorName };
-/** A card's `color` prop: a named colour, an explicit one, or "none" to keep the orb neutral. */
-export type ColorProp = ColorName | SlotColor | "none";
-
-export type { CardFootprint, SheetProps, TileProps };
+/** `CardProps` are the props every card takes, whatever its entity: the frame's. */
+export type { CardFootprint, CardProps, SheetProps, TileProps };
 
 export type Role = "energy" | "state" | "reading";
 
 /** Card titles are H2 outside a titled section and H3 inside one. Detail sheets reset to H2. */
 export const CardHeadingLevelContext = createContext<2 | 3>(2);
-
-/** The props every card takes, whatever its entity: the frame's, plus the orb's colour slot. */
-export interface CardProps extends FrameProps {
-  /** Opt-in colour for the orb. */
-  color?: ColorProp;
-}
 
 /**
  * A card with a guarded action (a lock's unlock, an alarm's disarm): its details open on the action they ask for, and
@@ -93,17 +70,12 @@ export function useCard(code: string, { variant = "card", footprint = "standard"
   };
 }
 
-/**
- * The colour attributes for a card's article: its role, its glow, and its colour slot.
- * `own` is what the card would show by default (a lamp's colour, heat or cool); `prop` overrides it.
- */
-export function paint(role: Role, glow: number, own?: SlotColor | null, prop?: ColorProp) {
-  const c = prop === "none" ? null : typeof prop === "string" ? COLORS[prop] : prop ?? own ?? null;
+/** The colour attributes for a card's article: its role and its glow. */
+export function paint(role: Role, glow: number) {
   return {
     "data-role": role,
-    "data-color": c ? "" : undefined,
     "data-glow": glow > 0 ? "" : undefined,
-    style: { "--hd-glow": +glow.toFixed(3), ...(c ? { "--color-c": c.c, "--color-h": c.h } : {}) } as Vars,
+    style: { "--hd-glow": +glow.toFixed(3) } as Vars,
   };
 }
 

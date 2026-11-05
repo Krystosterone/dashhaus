@@ -44,7 +44,7 @@ const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open:
  * surface. A jam or a low battery is a warn marker on the status line, never glow; a lock is a state, so it never
  * glows at all. It shows its last change, not a day's history.
  */
-export function LockCard({ entity: e, variant, footprint, showControl, onLock, onUnlock, onOpenDoor, readOnly, onOpenDetails, onClose, action, color }: LockCardProps) {
+export function LockCard({ entity: e, variant, footprint, showControl, onLock, onUnlock, onOpenDoor, readOnly, onOpenDetails, onClose, action }: LockCardProps) {
   const card = useCard("lk", { variant, footprint, showControl, area: e.area });
   const { sheet, compact, area } = card;
   const unav = e.state === "unavailable";
@@ -52,7 +52,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const moving = e.state === "locking" || e.state === "unlocking" || e.state === "opening";
   const jammed = e.state === "jammed";
   const ro = readOnly ?? (!onLock && !onUnlock);
-  const colors = paint("state", 0, null, color);
+  const colors = paint("state", 0);
   const word = WORD[e.state];
 
   // The question or keypad (sheet only), for the action waiting on it. A lock is only asked for in the sheet when it

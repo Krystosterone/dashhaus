@@ -13,7 +13,6 @@ import {
   readBody,
   readAlarmOptions,
   readCard,
-  readColor,
   readOwletOptions,
   readSensorOptions,
   readUnit,
@@ -21,8 +20,7 @@ import {
   rowTitles,
 } from "@dashhaus/dashboard/schema";
 import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
-import { COLORS } from "../shared/ui";
-import type { ColorName, CardFootprint } from "../shared/ui";
+import type { CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
@@ -90,18 +88,18 @@ interface CardBase {
 }
 
 export type CardConfig = CardBase & (
-  | { kind: "light"; color?: ColorName | "none" }
-  | { kind: "climate"; unit?: "°C" | "°F"; color?: ColorName | "none" }
-  | { kind: "sensor"; humidity?: string; battery?: string; outdoor?: boolean; unit?: "°C" | "°F"; color?: ColorName | "none" }
+  | { kind: "light" }
+  | { kind: "climate"; unit?: "°C" | "°F" }
+  | { kind: "sensor"; humidity?: string; battery?: string; outdoor?: boolean; unit?: "°C" | "°F" }
   | { kind: "weather"; aqi?: string; aqiScale?: "US"; sun?: string; forecasts: boolean }
-  | { kind: "cover"; color?: ColorName | "none" }
-  | { kind: "toggle"; icon?: ToggleIcon; color?: ColorName; description?: string }
+  | { kind: "cover" }
+  | { kind: "toggle"; icon?: ToggleIcon; description?: string }
   | { kind: "alarm"; readOnly?: AlarmTileProps["readOnly"]; exitDelay?: number; entryDelay?: number; openSensors?: string[] }
-  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number; color?: ColorName | "none" }
-  | { kind: "humidifier"; color?: ColorName | "none" }
-  | { kind: "sound"; volume?: string; color?: ColorName | "none" }
-  | { kind: "lock"; battery?: string; color?: ColorName | "none" }
-  | { kind: "fan"; color?: ColorName | "none" }
+  | { kind: "owlet"; heartRate?: string; oxygen?: string; charging?: string; baseStation?: string; alerts?: Partial<Record<OwletAlert, string>>; staleAfter?: number }
+  | { kind: "humidifier" }
+  | { kind: "sound"; volume?: string }
+  | { kind: "lock"; battery?: string }
+  | { kind: "fan" }
   // new-card: card configs
 );
 
@@ -152,7 +150,6 @@ export const ACCENTS: Record<string, Accent> = {
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 const FOOTPRINTS: readonly CardFootprint[] = ["compact", "standard", "featured"];
-const COLOR_NAMES = Object.keys(COLORS) as ColorName[];
 
 const COMMON_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT_KEYS, "show_control", "history"];
 /** The most columns a row may have. */
@@ -160,31 +157,24 @@ const MAX_COLUMNS = 12;
 
 /** Each kind's own YAML keys and settings: the shared schema reads the rest. */
 const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
-  light: {
-    keys: ["color"],
-    options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }),
-  },
+  light: {},
   climate: {
-    keys: ["unit", "color"],
-    options: (read, raw, at) => ({ unit: readUnit(read, raw, at), color: readColor(read, raw, at, COLOR_NAMES) }),
+    keys: ["unit"],
+    options: (read, raw, at) => ({ unit: readUnit(read, raw, at) }),
   },
   sensor: {
-    keys: ["humidity", "battery", "outdoor", "unit", "color"],
-    options: (read, raw, at) => ({ ...readSensorOptions(read, raw, at), unit: readUnit(read, raw, at), color: readColor(read, raw, at, COLOR_NAMES) }),
+    keys: ["humidity", "battery", "outdoor", "unit"],
+    options: (read, raw, at) => ({ ...readSensorOptions(read, raw, at), unit: readUnit(read, raw, at) }),
   },
   weather: {
     keys: ["aqi", "aqi_scale", "sun", "forecasts"],
     options: readWeatherOptions,
   },
-  cover: {
-    keys: ["color"],
-    options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }),
-  },
+  cover: {},
   toggle: {
-    keys: ["icon", "color", "description"],
+    keys: ["icon", "description"],
     options: (read, raw, at) => ({
       icon: read.choice(raw, "icon", at, TOGGLE_ICONS),
-      color: read.choice(raw, "color", at, COLOR_NAMES),
       description: read.string(raw, "description", at),
     }),
   },
@@ -193,22 +183,19 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     options: readAlarmOptions,
   },
   owlet: {
-    keys: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after", "color"],
-    options: (read, raw, at) => ({ ...readOwletOptions(read, raw, at, OWLET_ALERTS), color: readColor(read, raw, at, COLOR_NAMES) }),
+    keys: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"],
+    options: (read, raw, at) => readOwletOptions(read, raw, at, OWLET_ALERTS),
   },
-  humidifier: {
-    keys: ["color"],
-    options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }),
-  },
+  humidifier: {},
   sound: {
-    keys: ["volume", "color"],
-    options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]), color: readColor(read, raw, at, COLOR_NAMES) }),
+    keys: ["volume"],
+    options: (read, raw, at) => ({ volume: read.optionalEntity(raw, "volume", at, ["number"]) }),
   },
   lock: {
-    keys: ["battery", "color"],
-    options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]), color: readColor(read, raw, at, COLOR_NAMES) }),
+    keys: ["battery"],
+    options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
-  fan: { keys: ["color"], options: (read, raw, at) => ({ color: readColor(read, raw, at, COLOR_NAMES) }) },
+  fan: {},
   // new-card: kind specs
 };
 
@@ -225,12 +212,21 @@ const KINDS = (Object.keys(KIND_SPECS) as Kind[]).reduce((table, kind) => {
   return table;
 }, {} as Record<Kind, CardKindSpec>);
 
+/** Keys a card once took and no longer does, each with what to write instead, said in place of "did you mean". */
+const RETIRED_KEYS: Record<string, string> = {
+  color: "\"color\" is gone: a card has no colour of its own, and the dashboard's \"accent\" sets the one colour every card is on in",
+};
+
 const CARD_SCHEMA: CardReadSchema<Kind, CardConfig> = {
   noun: "card",
   common: COMMON_KEYS,
   order: KIND_ORDER,
   kinds: KINDS,
   stopOnInvalidCard: true,
+  checkKeys: (read, raw, at, allowed) => {
+    for (const key of Object.keys(RETIRED_KEYS)) if (key in raw) read.problem(at, RETIRED_KEYS[key]);
+    read.keys(raw, at, [...allowed, ...Object.keys(RETIRED_KEYS)]);
+  },
   base: (read, raw, at) => ({
     name: read.string(raw, "name", at),
     area: read.string(raw, "area", at),

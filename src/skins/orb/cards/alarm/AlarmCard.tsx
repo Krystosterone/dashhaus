@@ -49,7 +49,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   const armedMode = ARMED_MODE[e.state];
   const urgentState = e.state === "pending" || e.state === "triggered";
   const moving = e.state === "arming" || e.state === "pending" || e.state === "disarming";
-  const colors = paint("state", 0, null, "none");
+  const colors = paint("state", 0);
   // View only: everything that arms, disarms or asks for the code is left out.
   const ro = readOnly ?? (!onArm && !onDisarm);
   // Home Assistant asks for the code to arm too unless the integration says otherwise.

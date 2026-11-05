@@ -4,7 +4,7 @@ import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, lowBattery as isLowBattery, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
 import { AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./SensorCard.css";
 
 export interface SensorCardProps extends CardProps {
@@ -19,15 +19,13 @@ export interface SensorCardProps extends CardProps {
   /** Card only: the name and the readings open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** The orb's colour, if any. Default: none (a neutral badge). */
-  color?: ColorProp;
 }
 
 /**
  * A read-only temperature and humidity sensor using the shared modular footprint matrix.
  * A reading: neutral, a bare icon in place of an orb, and no glow because nothing is running.
  */
-export function SensorCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: SensorCardProps) {
+export function SensorCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: SensorCardProps) {
   const card = useCard("sw", { variant, footprint, showControl, area: e.area });
   const { sheet, compact, area } = card;
   const unav = e.state === "unavailable";
@@ -35,8 +33,8 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   const h = unav ? undefined : e.humidity;
   const empty = !unav && t == null && h == null;
   const tC = t != null ? toCelsius(t, e.unit) : undefined;
-  // A reading: neutral. "Cool" or "Warm" is said in words; a colour only if the dashboard asks for one.
-  const colors = paint("reading", 0, null, color);
+  // A reading: neutral. "Cool" or "Warm" is said in words.
+  const colors = paint("reading", 0);
 
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
   const lowBattery = isLowBattery(e);

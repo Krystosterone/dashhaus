@@ -206,7 +206,6 @@ const ORB_ONLY = {
     accent: "field has no accent: colour names a parameter (spec/field.md)",
   },
   module: {
-    color: "field keeps colour for what a control sets (spec/field.md)",
     show_control: "a field row shows its screen in place of a control",
   },
 } satisfies Record<string, Record<string, string>>;

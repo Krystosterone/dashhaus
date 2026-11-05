@@ -28,7 +28,7 @@ const removeFan = (copy: string) => {
     rmSync(join(copy, path), { recursive: true, force: true });
   }
   change(copy, "src/skins/orb/index.ts", withoutLines(/^\/\/ Fan$|\.\/cards\/fan\/|\.\/ha\/HaFanTile"/));
-  change(copy, "src/skins/orb/lovelace/config.ts", withoutLines(/^ {2}\| "fan"$|^ {2}fan: "fan",$|kind: "fan"|^ {2}fan: \{ keys:/));
+  change(copy, "src/skins/orb/lovelace/config.ts", withoutLines(/^ {2}\| "fan"$|^ {2}fan: "fan",$|kind: "fan"|^ {2}fan: \{\},$/));
   change(copy, "src/skins/orb/lovelace/ConfigDashboard.tsx", withoutLines(/HaFanTile/));
   change(copy, "src/skins/orb/lovelace/auto.ts", withoutLines(/^ {4}"fan",$/));
   change(copy, "src/skins/field/index.ts", withoutLines(/\.\/cards\/fan\/|\.\/ha\/HaFanModule"/));

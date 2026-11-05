@@ -5,7 +5,7 @@ import { todaySummary } from "@dashhaus/core/entities/today";
 import { lampColorOf } from "./color";
 import type { Hs } from "./color";
 import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, ColorChips, QUICK_LEVELS } from "./parts";
 import "./LightCard.css";
 
@@ -27,14 +27,12 @@ export interface LightCardProps extends CardProps {
   onOpenDetails?: () => void;
   /** Sheet only: the close button calls this. */
   onClose?: () => void;
-  /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent; warmth or colour is named on the status line. */
-  color?: ColorProp;
 }
 
 /**
  * One light entity. The shared footprint matrix fixes its height independently of state and entity type.
  */
-export function LightCard({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose, color }: LightCardProps) {
+export function LightCard({ entity: e, history, variant, footprint, showControl, onToggle, onBrightnessChange, onKelvinChange, onColorChange, onOpenDetails, onClose }: LightCardProps) {
   const card = useCard("lw", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
@@ -51,7 +49,7 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
   const glow = on ? (hasBrightness ? pct / 100 : 0.85) : 0;
   const intensity = hasBrightness ? pct / 100 : 0.85;
   // Lit is energy: the orb and the bar fill with the accent. Warmth and colour are told in words, not by colouring the orb.
-  const colors = paint("energy", glow, null, color);
+  const colors = paint("energy", glow);
 
   const word = unknown ? "Unknown" : on ? "On" : "Off";
   const readout = unav ? null : on && hasBrightness ? <>{pct}<span>%</span></> : word;

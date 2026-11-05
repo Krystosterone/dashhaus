@@ -5,7 +5,7 @@ import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
 import { CardFrame, ChoiceChips, SheetBlock, Stepper, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import { RangeBar, RangeFine } from "./RangeBar";
 import "./ClimateCard.css";
 
@@ -27,8 +27,6 @@ export interface ClimateCardProps extends CardProps {
   onFanChange?: (f: string) => void;
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** Opt-in colour for the orb (standard, featured and sheet only). Default: the accent. */
-  color?: ColorProp;
 }
 
 function useSlotTransition(kind: string) {
@@ -65,7 +63,7 @@ function useSlotTransition(kind: string) {
  * One climate entity. It shares the modular footprint matrix with every dashboard card.
  * The orb switches it off and back on; the slot sets the target; the sheet holds modes, presets and fan.
  */
-export function ClimateCard({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose, color }: ClimateCardProps) {
+export function ClimateCard({ entity: e, history, variant, footprint, showControl, onToggle, onTargetChange, onRangeChange, onModeChange, onPresetChange, onFanChange, onOpenDetails, onClose }: ClimateCardProps) {
   const card = useCard("cw", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, compact, bare, area } = card;
   const unav = e.state === "unavailable";
@@ -75,7 +73,7 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
   const active = on && action !== "idle" && action !== "off";
   // On is the accent orb. Running is energy: the orb blooms and the card glows. Which way it works
   // (heat or cool) is the mode icon and the action words, not a colour.
-  const colors = paint(active ? "energy" : "state", active ? 0.9 : 0, null, color);
+  const colors = paint(active ? "energy" : "state", active ? 0.9 : 0);
 
   const cur = e.currentTemperature;
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;

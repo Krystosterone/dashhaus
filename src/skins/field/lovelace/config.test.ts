@@ -55,9 +55,8 @@ describe("parseFieldConfig: a module's keys", () => {
     ]);
   });
 
-  it("says why color, show_control and a bundle are the main card's", () => {
-    expect(problems({ cards: [{ entity: "light.lamp", color: "amber", show_control: true }, { bundle: "joined", cards: ["light.a", "light.b"] }] })).toEqual([
-      'cards[0] (light.lamp): "color" is the main card\'s: field keeps colour for what a control sets (spec/field.md)',
+  it("says why show_control and a bundle are the main card's", () => {
+    expect(problems({ cards: [{ entity: "light.lamp", show_control: true }, { bundle: "joined", cards: ["light.a", "light.b"] }] })).toEqual([
       'cards[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',
       "cards[1]: bundles are the main card's: list each module on its own",
     ]);

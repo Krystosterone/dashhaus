@@ -4,7 +4,7 @@ import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entitie
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ToggleIconSvg } from "./icons";
 import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleCard.css";
 
 export interface ToggleCardProps extends CardProps {
@@ -24,21 +24,19 @@ export interface ToggleCardProps extends CardProps {
   /** Card only: the name, and press and hold on the orb, open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** Opt-in colour for the orb. Default: the entity's `color`, else none (on is the accent). */
-  color?: ColorProp;
 }
 
 /**
  * A mode you switch on and off: Do Not Disturb, Quiet, Guest. One input_boolean or switch.
  * It uses the same card anatomy and footprint matrix as every other card.
  */
-export function ToggleCard({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose, color }: ToggleCardProps) {
+export function ToggleCard({ entity: e, history, variant, footprint, showControl, durations = DEFAULT_DURATIONS, onToggle, onTurnOnFor, onOpenDetails, onClose }: ToggleCardProps) {
   const card = useCard("tw", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  // A mode is a state, not energy: on is the accent, with no bloom and no glow. A colour only if one was chosen.
-  const colors = paint("state", 0, null, color ?? e.color);
+  // A mode is a state, not energy: on is the accent, with no bloom and no glow.
+  const colors = paint("state", 0);
 
   const ends = on ? (e.until ? `Until ${e.until}` : sinceFact(e.lastChanged) ?? "On") : null;
   // Where it applies; when it ends takes its place in compact cards, where the pill has no room to say so.

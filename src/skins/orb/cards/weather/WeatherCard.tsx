@@ -5,7 +5,7 @@ import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText,
 import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { ConditionIcon } from "./conditions";
 import { AlertStatus, CardFrame, Readout, SheetBlock, fmt1, paint, useCard, detailsSheet } from "../../shared/ui";
-import type { ColorProp, CardProps, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./WeatherCard.css";
 
 export interface WeatherCardProps extends CardProps {
@@ -24,8 +24,6 @@ export interface WeatherCardProps extends CardProps {
   /** Card only: the name and the reading open the details sheet. */
   onOpenDetails?: () => void;
   onClose?: () => void;
-  /** The orb's colour, if any. Default: none (a neutral badge). */
-  color?: ColorProp;
 }
 
 const deg = (t: number) => `${fmt1(t).replace(/\.0$/, "")}°`;
@@ -93,7 +91,7 @@ function Stat({ label, value, sub, warn }: { label: string; value: ReactNode; su
  * is the temperature with feels-like beside it. Featured adds the next hours; the sheet has every reading,
  * the next hours and the next days.
  */
-export function WeatherCard({ entity: e, history, hourly, daily, variant, footprint, showControl, onOpenDetails, onClose, color }: WeatherCardProps) {
+export function WeatherCard({ entity: e, history, hourly, daily, variant, footprint, showControl, onOpenDetails, onClose }: WeatherCardProps) {
   const card = useCard("wx", { variant, footprint, showControl });
   const { sheet, featured } = card;
   const unav = e.state === "unavailable";
@@ -101,7 +99,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
   const night = isNight(e);
   const t = unav ? undefined : e.temperature;
   const feels = unav ? undefined : e.apparentTemperature;
-  const colors = paint("reading", 0, null, color);
+  const colors = paint("reading", 0);
 
   // Today's range: what happened so far, what's forecast for the rest of today, and now.
   const hour = history?.currentHour ?? 0;

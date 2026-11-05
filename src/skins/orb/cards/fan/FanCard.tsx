@@ -33,14 +33,14 @@ const DIRECTIONS = (["forward", "reverse"] as const).map((value) => ({ value, la
  * the slot is the light card's groove, counted in the fan's speeds, or an On/Off pill for a fan without speeds;
  * the name, or a press and hold on the orb, opens the sheet with its presets, oscillation, direction and today.
  */
-export function FanCard({ entity: e, history, variant, footprint, showControl, onToggle, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, onOpenDetails, onClose, color }: FanCardProps) {
+export function FanCard({ entity: e, history, variant, footprint, showControl, onToggle, onPercentageChange, onPresetChange, onOscillateChange, onDirectionChange, onOpenDetails, onClose }: FanCardProps) {
   const card = useCard("fn", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
   // A state: on is the accent, with no glow. Moving air is not light, heat or daylight, so a fan never claims the
   // energy bloom (attention-budget skill); the groove's fill and its words say how fast it runs.
-  const colors = paint("state", 0, null, color);
+  const colors = paint("state", 0);
 
   const count = e.speedCount ?? 0;
   const groove = !!(e.supportsSpeed && count >= 2 && onPercentageChange);

@@ -10,9 +10,9 @@
    Values sit on their control; where a fill passes under a label, the label flips to --on-accent.
    Inverse (--inv-*) is the one urgent action (Stop, Disarm, Enter), never a state.
    A card declares its role with data-role: "energy" (its orb blooms and its card glows), "state"
-   (on without energy: no bloom, no glow) or "reading" (no on/off: its orb is a bare icon). A colour of
-   its own is opt-in (data-color, --color-c/--color-h) and is painted on the orb only, never in compact
-   cards. --hd-glow (0-1) is how much energy is flowing; the glow is always the accent.
+   (on without energy: no bloom, no glow) or "reading" (no on/off: its orb is a bare icon). A card has no
+   colour of its own: its orb is the accent too. --hd-glow (0-1) is how much energy is flowing; the glow is
+   always the accent.
    Heights never change with state.
    Motion: only transform, opacity and clip-path animate; presses answer in 160ms; nothing animates
    on keyboard input or while a finger drags (the value follows the finger directly). */
@@ -29,10 +29,6 @@
 .hd {
   --accent: oklch(var(--accent-l) var(--brand-c) var(--brand-h));
   --accent-strong: oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h));
-  /* The colour slot: the card's own colour, or the accent when it has none */
-  --o-c: var(--brand-c);
-  --o-h: var(--brand-h);
-  --color: oklch(var(--accent-l) var(--o-c) var(--o-h));
   --pad: 16px;
   /* Bare readout icons and their title gap define the shared text axis for measurement cards. */
   --read-icon: 22px;
@@ -152,32 +148,28 @@
 .hd-orb svg { width: 52%; height: 52%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .hd-orb[aria-pressed="true"] { color: var(--on-accent); }
 .hd-orb[aria-pressed="true"] .hd-orb-i {
-  background: var(--color);
-  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / 0.5),
-              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--o-c) var(--o-h) / calc(0.25 + 0.35 * var(--b)));
+  background: var(--accent);
+  box-shadow: 0 0 0 1px oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / 0.5),
+              0 4px calc(8px + 16px * var(--b)) calc(-2px + 2px * var(--b)) oklch(var(--accent-strong-l) var(--brand-c) var(--brand-h) / calc(0.25 + 0.35 * var(--b)));
 }
-/* The colour slot: a card's own colour, opted in, on its orb and nowhere else */
-.hd[data-color] { --o-c: var(--color-c); --o-h: var(--color-h); }
 /* On, but not energy (a mode, an armed alarm, a door left open): the same accent, without the bloom. */
 .hd[data-role="state"] .hd-orb[aria-pressed="true"] .hd-orb-i { box-shadow: none; }
-/* Compact cards stay quiet: the accent, no bloom, no colour slot. */
-.hd--compact .hd-orb[aria-pressed="true"] .hd-orb-i { background: var(--accent); box-shadow: none; }
+/* Compact cards stay quiet: the accent, no bloom. */
+.hd--compact .hd-orb[aria-pressed="true"] .hd-orb-i { box-shadow: none; }
 .hd-orb[aria-disabled="true"] { cursor: default; color: var(--ink-3); }
 .hd-orb[aria-disabled="true"] .hd-orb-i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; }
 .hd-orb:focus-visible { outline: none; }
 .hd-orb:focus-visible .hd-orb-i { outline: 2px solid var(--ink); outline-offset: 3px; }
 .hd-orb--sm { --sz: 34px; }
-/* Static orb for read-only cards: a bare icon, so a reading never looks like a control switched off.
-   Tinted with the card's own colour when it has one. */
+/* Static orb for read-only cards: a bare icon, so a reading never looks like a control switched off. */
 .hd-orb--static { cursor: default; color: var(--ink); }
 .hd-orb--static .hd-orb-i { background: transparent; box-shadow: none; }
-.hd[data-color] .hd-orb--static .hd-orb-i { background: color-mix(in oklab, var(--color) var(--tint-mix), var(--card-solid)); }
 /* A bare reading icon has no disc to fill an orb's box: on cards and sheets it takes its glyph's width, so
    its edge meets the content edge as a disc's does and it sits beside its name. Compact rows keep the box,
    so every row's icon shares one column. */
-.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) { width: var(--read-icon); }
-.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: var(--read-icon); }
-.hd[data-role="reading"]:not([data-color]):not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) svg { width: 100%; }
+.hd[data-role="reading"]:not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) { width: var(--read-icon); }
+.hd[data-role="reading"]:not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) .hd-orb-i { width: var(--read-icon); }
+.hd[data-role="reading"]:not(.hd--compact) .hd-orb--static:not([aria-disabled="true"]) svg { width: 100%; }
 /* A reading's figure is its slot, so a featured reading keeps it there at full size instead of repeating
    it as the header's large readout. */
 .hd--featured[data-role="reading"]:not(.hd--sheet) .hd-head { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "orb title"; }

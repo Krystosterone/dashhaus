@@ -2,7 +2,7 @@ import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { __Name__Icon } from "./icons";
 import { CardFrame, Readout, Today, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
-import type { CardProps, ColorProp, SheetProps } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
 import "./__Name__Card.css";
 
 export interface __Name__CardProps extends CardProps {
@@ -11,8 +11,6 @@ export interface __Name__CardProps extends CardProps {
   history?: __Name__History;
   /** Card only: the name and the reading open the details sheet. */
   onOpenDetails?: () => void;
-  /** The icon's colour, if any. Default: none (a bare icon). */
-  color?: ColorProp;
 }
 
 /** Whole numbers as they are, anything else to one decimal. */
@@ -24,11 +22,11 @@ const withUnit = (n: number, unit = "") => `${fmt(n)}${unit && !/^[%°]/.test(un
  * One __label__ (`__domain__.*`): a reading. Neutral, a bare icon in place of an orb, the figure as a readout
  * with no container, and no glow. The name or the reading opens the sheet with today's readings.
  */
-export function __Name__Card({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose, color }: __Name__CardProps) {
+export function __Name__Card({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: __Name__CardProps) {
   const card = useCard("__code__", { variant, footprint, showControl });
   const unav = e.state === "unavailable";
   const value = unav ? undefined : e.value;
-  const colors = paint("reading", 0, null, color);
+  const colors = paint("reading", 0);
 
   const text = unav ? "Unavailable" : value == null ? "No reading yet" : withUnit(value, e.unit);
   const spoken = value == null ? "no reading yet" : `${fmt(value)} ${e.unit ?? ""}`.trim();
