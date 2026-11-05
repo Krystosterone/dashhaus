@@ -1,7 +1,10 @@
 import {
   BODY_KEYS,
   DashboardConfigError,
+  LOVELACE_KEYS,
+  PAGE_KEYS,
   PLACEMENT_KEYS,
+  ROW_KEYS,
   Reader as YamlReader,
   isRaw,
   oneOf,
@@ -247,6 +250,20 @@ const BUNDLE_SPECS: Record<BundleKind, { keys: string[]; fewest: number; what: s
   joined: { keys: ["bundle", "label", "cards", ...PLACEMENT_KEYS], fewest: 2, what: "a joined bundle shares one card between two or more compact cards" },
   lead: { keys: ["bundle", "label", "sheet_title", "cards", ...PLACEMENT_KEYS], fewest: 2, what: "a lead bundle is its first card, standard, then one or more compact rows" },
   titled: { keys: ["bundle", "title", "area", "cards", ...PLACEMENT_KEYS], fewest: 1, what: "a titled bundle is a lid naming one thing, then its parts" },
+};
+
+/**
+ * Every key this card's YAML takes, by where it goes, for the site's YAML guide: the lists the reader checks, less the
+ * keys Home Assistant reads itself and the ones read only to say what to write instead.
+ */
+export const YAML_KEYS = {
+  card: TOP_KEYS.filter((key) => !BODY_KEYS.includes(key) && !LOVELACE_KEYS.includes(key)),
+  page: PAGE_KEYS,
+  maxColumns: MAX_COLUMNS,
+  row: ROW_KEYS,
+  anyCard: COMMON_KEYS,
+  kinds: Object.fromEntries((Object.keys(KIND_SPECS) as Kind[]).map((kind) => [kind, KIND_SPECS[kind].keys ?? []])) as Record<Kind, readonly string[]>,
+  bundles: BUNDLE_SPECS as Record<string, { keys: readonly string[] }>,
 };
 
 export { DashboardConfigError, suggest };

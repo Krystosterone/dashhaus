@@ -7,6 +7,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import { Image } from "astro:assets";
 import Example from "../../../components/Example.astro";
 import KindList from "../../../components/KindList.astro";
+import YamlKeys from "../../../components/YamlKeys.astro";
 import tabletLight from "../../../assets/layout/composition-tablet-light.webp";
 import tabletDark from "../../../assets/layout/composition-tablet-dark.webp";
 import phoneLight from "../../../assets/layout/composition-phone-light.webp";
@@ -133,21 +134,14 @@ An entity with no card is an error that says so, rather than an empty space.
 
 ## Keys
 
-| Where | Orb | Field |
-| --- | --- | --- |
-| The card | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `theme`, `accent`, `pages`, `nav` | `title`, `subtitle`, `show_time`, `hour_cycle`, `viewing`, `finish`, `footprint`, `quiet`, `pages`, `nav` |
-| The page (the card, or one of its `pages`) | `cards` or `rows`; `columns` (1 to 12, or `auto`) and `flow` for every row | `cards` or `rows`; `columns` (1 to 4, or `auto`) and `flow` for every row |
-| A row | `title`, `note`, `columns`, `flow`, `align`, `cards` | `title`, `note`, `columns`, `flow`, `align`, `cards` |
-| Any card | `entity`, `card`, `name`, `area`, `footprint`, `width`, `column`, `show_control`, `history` | `entity`, `card`, `name`, `area`, `footprint`, `width`, `column`, `history` |
-| A bundle | `bundle` (`joined`, `lead`, `titled`), `cards`, `label`, `sheet_title` (lead), `title` and `area` (titled), `width`, `column` | none |
+<YamlKeys show="where" />
 
-Each card adds its own: a sensor's `humidity`, `battery`, `outdoor` and `unit`; the weather's `aqi`, `aqi_scale`, `sun`
-and `forecasts`; a toggle's `icon` and `description`; a sound's `volume`; an alarm's `read_only`, `exit_delay`,
-`entry_delay` and `open_sensors`; an Owlet sock's `heart_rate`, `oxygen`, `charging`, `base_station`, `alerts` and
-`stale_after`; a lock's `battery`; a climate entity's `unit`. In Orb, most cards also take a `color` for their orb.
+Each card adds its own:
+
+<YamlKeys show="cards" />
 
 `viewing: far` is for a wall panel read from across the room: larger status lines and captions, heavier figures,
-the same card heights. A key Orb takes and Field doesn't (`theme`, `accent`, `color`, `show_control`, bundles) is
+the same card heights. A key Orb takes and Field doesn't (<YamlKeys show="refused" />, bundles) is
 refused with the reason, for YAML copied from one card to the other.
 
 The specification's [deploy page](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md#the-format)

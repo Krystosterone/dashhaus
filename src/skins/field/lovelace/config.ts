@@ -1,7 +1,10 @@
 import {
   BODY_KEYS,
   DashboardConfigError,
+  LOVELACE_KEYS,
+  PAGE_KEYS,
   PLACEMENT_KEYS,
+  ROW_KEYS,
   Reader,
   isRaw,
   cardKinds,
@@ -207,6 +210,22 @@ const ORB_ONLY = {
     show_control: "a field row shows its screen in place of a control",
   },
 } satisfies Record<string, Record<string, string>>;
+
+/**
+ * Every key this card's YAML takes, by where it goes, for the site's YAML guide: the lists the reader checks, less the
+ * keys Home Assistant reads itself and the ones read only to say what to write instead. `orbOnly` are the keys it
+ * refuses with a reason, for YAML copied from Orb.
+ */
+export const YAML_KEYS = {
+  card: TOP_KEYS.filter((key) => !BODY_KEYS.includes(key) && !LOVELACE_KEYS.includes(key)),
+  page: PAGE_KEYS,
+  maxColumns: MAX_ACROSS,
+  row: ROW_KEYS,
+  anyCard: MODULE_KEYS,
+  kinds: Object.fromEntries((Object.keys(FIELD_KINDS) as FieldKind[]).map((kind) => [kind, KIND_KEYS[kind] ?? []])) as Record<FieldKind, readonly string[]>,
+  bundles: {} as Record<string, { keys: readonly string[] }>,
+  orbOnly: [...Object.keys(ORB_ONLY.top), ...Object.keys(ORB_ONLY.module)],
+};
 
 /** Unknown keys, with the reason for one that only the main card takes. */
 function fieldKeys(read: Reader, raw: Raw, path: string, allowed: readonly string[], orbOnly: Record<string, string>) {

@@ -1,0 +1,100 @@
+---
+/**
+ * Orb's and Field's YAML keys, from each skin's `YAML_KEYS`: the same lists its reader checks, so a key a parser
+ * takes is on the page and a key it refuses isn't.
+ *
+ * - `where`: each key by where it goes (the card, a page, a row, any card, a bundle);
+ * - `cards`: the keys each kind of card adds;
+ * - `refused`: inline, the keys Field refuses with a reason because only Orb takes them.
+ */
+import { YAML_KEYS as ORB } from "../../../src/skins/orb/lovelace/config";
+import { YAML_KEYS as FIELD } from "../../../src/skins/field/lovelace/config";
+import { kinds } from "../lib/kinds";
+
+interface Props {
+  show: "where" | "cards" | "refused";
+}
+
+const { show } = Astro.props;
+const list = await kinds();
+const skins = [ORB, FIELD];
+type Keys = typeof ORB | typeof FIELD;
+
+/** A bundle's keys: those every bundle takes, then each other key with the bundles that take it. */
+function bundles(keys: Keys) {
+  const names = Object.keys(keys.bundles);
+  const all = [...new Set(names.flatMap((name) => keys.bundles[name].keys))];
+  const shared = all.filter((key) => key !== "bundle" && names.every((name) => keys.bundles[name].keys.includes(key)));
+  const own = all.filter((key) => key !== "bundle" && !shared.includes(key)).map((key) => ({
+    key,
+    in: names.filter((name) => keys.bundles[name].keys.includes(key)).join(", "),
+  }));
+  return { names, shared, own };
+}
+
+const ROWS = [
+  { where: "The card", keys: (skin: Keys) => skin.card },
+  { where: "The page (the card, or one of its pages)", keys: (skin: Keys) => skin.page, columns: true },
+  { where: "A row", keys: (skin: Keys) => skin.row },
+  { where: "Any card", keys: (skin: Keys) => skin.anyCard },
+];
+---
+
+{
+  show === "where" && (
+    <table>
+      <thead>
+        <tr><th>Where</th><th>Orb</th><th>Field</th></tr>
+      </thead>
+      <tbody>
+        {ROWS.map((row) => (
+          <tr>
+            <td>{row.where}</td>
+            {skins.map((skin) => (
+              <td>
+                {row.keys(skin).map((key, index) => <>{index > 0 && ", "}<code>{key}</code></>)}
+                {row.columns && <>; <code>columns</code> from 1 to {skin.maxColumns}, or <code>auto</code></>}
+              </td>
+            ))}
+          </tr>
+        ))}
+        <tr>
+          <td>A bundle</td>
+          {skins.map((skin) => {
+            const { names, shared, own } = bundles(skin);
+            return names.length === 0 ? <td>none</td> : (
+              <td>
+                <code>bundle</code> ({names.map((name, index) => <>{index > 0 && ", "}<code>{name}</code></>)})
+                {shared.map((key) => <>, <code>{key}</code></>)}
+                {own.map((key) => <>, <code>{key.key}</code> ({key.in})</>)}
+              </td>
+            );
+          })}
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+
+{
+  show === "cards" && (
+    <table>
+      <thead>
+        <tr><th>Card</th><th>Orb</th><th>Field</th></tr>
+      </thead>
+      <tbody>
+        {list.map((kind) => (
+          <tr>
+            <td>{kind.name}</td>
+            {skins.map((skin) => {
+              const keys = (skin.kinds as Record<string, readonly string[]>)[kind.name];
+              return <td>{keys == null ? "not drawn" : keys.length === 0 ? "none" : keys.map((key, index) => <>{index > 0 && ", "}<code>{key}</code></>)}</td>;
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
+{show === "refused" && FIELD.orbOnly.map((key, index) => <>{index > 0 && ", "}<code>{key}</code></>)}
