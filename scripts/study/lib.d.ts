@@ -1,5 +1,8 @@
-/** A study run's reference: a picture beside the task, or a description in it. */
-export type StudyReference = { kind: "image"; file: string } | { kind: "description"; text: string };
+/**
+ * A study run's reference: a picture beside the task, or a description in it. A picture that wasn't ours to share is
+ * `withdrawn`: the record still names it, the file is gone.
+ */
+export type StudyReference = { kind: "image"; file: string; withdrawn?: true } | { kind: "description"; text: string };
 /** A study's study.json: how it was made and from what. */
 export interface StudyRecord {
   name: string;

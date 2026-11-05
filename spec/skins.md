@@ -92,7 +92,8 @@ Kept, a study is a skin in this repository with the same shape as every other st
   reference and task) and how to make it a real skin.
 - `design.md`: the design rules the agent wrote (`## Palette`, `## Parts`, `## Dashboards`, then one section per card),
   drawn as Foundations → Design rules with the stories after their sections.
-- `REPORT.md`, the agent's own FRICTION and RESULT; the reference, when it was a picture.
+- `REPORT.md`, the agent's own FRICTION and RESULT; the reference, when it was a picture and ours to share. One that
+  isn't (someone else's design, kept without their consent) is removed and marked `withdrawn` in `study.json`.
 - `captures/`: its preview snapshots and `deployed.png`, the dashboard it deployed.
 - `study.json`: its name, when it was kept, the version and commit it was built from, how it was made (`made: "run"`,
   or `"generators"` for one an agent built in this repository with `new-skin`), its reference and task.

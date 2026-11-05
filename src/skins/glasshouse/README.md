@@ -18,7 +18,7 @@ it. If you make it better, contributions back are welcome; open a pull request.
 
 ## How it was made
 
-A fresh agent built it from the Dashhaus 0.2.1 release packages (commit `bbc5dbc`) and the picture in [reference.png](reference.png), the way someone outside this repository would: in an empty folder, with `npm create dashhaus-skin`, its `AGENTS.md` and `npm run add`, then deployed it to a simulated Home Assistant. Its whole task:
+A fresh agent built it from the Dashhaus 0.2.1 release packages (commit `bbc5dbc`) and a picture, `reference.png`, the way someone outside this repository would: in an empty folder, with `npm create dashhaus-skin`, its `AGENTS.md` and `npm run add`, then deployed it to a simulated Home Assistant. The picture isn't kept here: it was someone else's design, not ours to share without their consent, so it was removed and `study.json` marks it `withdrawn`. Its whole task:
 
 > # Task
 >
