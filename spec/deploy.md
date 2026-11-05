@@ -502,8 +502,8 @@ Mistakes show the same way as the main card's, all at once with their paths. The
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port), before the CLI move: the SSH upload, resource registration and the first-time dashboard creation (16 generated sections, before the layout became rows) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live after the move: a redeploy over an existing dashboard (the two-run fake websocket covers creation and no-overwrite), and the YAML-mode resource fallback.
 
-Not yet checked live at all: the Marketplace install and the setup card. Both need the public repository and a
-release carrying `dashhaus.js` ([release.md → The Marketplace](release.md#the-marketplace)). The fake Home Assistant
-journey proves the commands and the card; a live run on a scratch Home Assistant 2026.11 (and an older one with HACS)
-must still install from the My link, press Create, check both dashboards draw, edit one, press again and see nothing
-overwritten, then repeat as a non-admin, and is recorded in the release's notes.
+Not yet checked live at all: the Marketplace install and the setup card (GitHub issue #31). Nothing blocks it: the
+repository is public and its releases carry `dashhaus.js` ([release.md → The Marketplace](release.md#the-marketplace)).
+The fake Home Assistant journey proves the commands and the card; a live run on a scratch Home Assistant 2026.11 (and
+an older one with HACS) must still install from the My link, press Create, check both dashboards draw, edit one, press
+again and see nothing overwritten, then repeat as a non-admin, and is recorded in the release's notes.
