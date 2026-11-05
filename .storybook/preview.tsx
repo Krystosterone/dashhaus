@@ -84,10 +84,13 @@ const withSkin: Decorator = (Story, ctx) => {
 
 /**
  * Every skin's globals, each stamped with its skin's section: .storybook/manager.tsx draws a story's toolbar from its
- * own skin's globals only.
+ * own skin's globals only. Storybook draws a menu for every global with a `toolbar`, on every story, so each skin's
+ * toolbar is handed over as `skinToolbar` instead, which only the manager reads.
  */
 const globalTypes: Preview["globalTypes"] = Object.fromEntries(
-  SKINS.flatMap((s) => Object.entries(s.globalTypes ?? {}).map(([id, type]) => [id, { ...type, section: s.section }])),
+  SKINS.flatMap((s) =>
+    Object.entries(s.globalTypes ?? {}).map(([id, { toolbar, ...type }]) => [id, { ...type, section: s.section, skinToolbar: toolbar }]),
+  ),
 );
 
 const preview: Preview = {
@@ -97,6 +100,9 @@ const preview: Preview = {
   loaders: [withSkinFont],
   parameters: {
     backgrounds: { disable: true },
+    // The a11y addon runs axe after every render unless told not to; the gate is the test runner's own axe pass
+    // (.storybook/test-runner.ts), so the addon runs only when its panel's button is pressed, and a story is checked once.
+    a11y: { test: "off" },
     controls: { expanded: true },
     // Storybook reads this statically, so it must stay a literal: one section per skin, then its own order.
     options: {
