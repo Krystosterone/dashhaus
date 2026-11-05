@@ -9,6 +9,10 @@
  *
  * In a build, Storybook is the copy `npm run build:docs` puts under /storybook; under `npm run docs`, it is
  * `npm run storybook` on port 6006.
+ *
+ * Just after a deploy, a browser can still hold the last deploy's `iframe.html` (Pages lets it keep HTML for minutes),
+ * which imports story chunks by names the new deploy no longer has, and Storybook shows "Importing a module script
+ * failed". A frame that lands on Storybook's error screen reloads once under a new URL, which the cache has never seen.
  */
 import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
@@ -255,11 +259,36 @@ const style = screen
     const theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
     for (const frame of frames) {
       const iframe = frame.querySelector("iframe")!;
-      const src = iframe.dataset[theme]!;
+      const fresh = frame.dataset.fresh;
+      const src = iframe.dataset[theme]! + (fresh ? `&fresh=${fresh}` : "");
       if (iframe.getAttribute("src") === src) continue;
       iframe.removeAttribute("data-ready");
       iframe.setAttribute("src", src);
     }
+  };
+
+  /**
+   * Storybook's error screen (`sb-show-errordisplay` on its body), most often a stale `iframe.html` asking for a chunk
+   * the latest deploy replaced: load the story once more under a URL no cache holds. A second failure is a real one,
+   * and Storybook's message stays.
+   */
+  const recover = (frame: HTMLElement, iframe: HTMLIFrameElement) => {
+    let body: HTMLElement | null | undefined;
+    try {
+      body = iframe.contentDocument?.body;
+    } catch {
+      body = null;
+    }
+    if (!body || frame.dataset.fresh) return;
+    const check = () => {
+      if (!body.classList.contains("sb-show-errordisplay")) return;
+      watch.disconnect();
+      frame.dataset.fresh = String(Date.now());
+      follow();
+    };
+    const watch = new MutationObserver(check);
+    watch.observe(body, { attributes: true, attributeFilter: ["class"] });
+    check();
   };
 
   /** An armed story starts inert: a press makes it live and hands it the focus; a fine pointer arriving does too. */
@@ -273,7 +302,10 @@ const style = screen
 
   for (const frame of frames) {
     const iframe = frame.querySelector("iframe")!;
-    iframe.addEventListener("load", () => reveal(frame, iframe));
+    iframe.addEventListener("load", () => {
+      reveal(frame, iframe);
+      recover(frame, iframe);
+    });
     fit.observe(frame);
     const button = frame.querySelector<HTMLButtonElement>(".arm");
     if (button) {
