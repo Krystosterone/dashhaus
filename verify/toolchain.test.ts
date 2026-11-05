@@ -44,14 +44,17 @@ describe("the pinned npm", () => {
 
   it("is what CI enables with Corepack before anything runs npm", () => {
     // Every lane installs through the one setup action, and it enables the pinned npm straight after setting Node up:
-    // nothing between the two runs Node's bundled npm. setup-node's `cache: npm` would (`npm config get cache`), and
-    // devEngines refuses it.
+    // nothing between the two runs Node's bundled npm. setup-node's `cache: npm` would (`npm config get cache`), and so
+    // would the npm cache it enables on its own when package.json names a packageManager; devEngines refuses both.
     const setup = read(".github/actions/setup/action.yml");
     const steps = setup.split(/^\s+- /m).slice(1);
     expect(steps[0], "the setup action sets Node up first").toMatch(/uses: actions\/setup-node@/);
     expect(steps[1], "and enables the pinned npm next").toMatch(/run: corepack enable npm/);
     expect(setup.match(/uses: actions\/setup-node@/g)?.length).toBe(1);
     expect(setup, "setup-node's npm cache runs the bundled npm before Corepack").not.toMatch(/^\s+cache: npm\s*$/m);
+    expect(steps[0], "setup-node turns its npm cache on by itself for a packageManager, unless told not to").toMatch(
+      /^\s+package-manager-cache: false\s*$/m,
+    );
     expect(setup.match(/run: npm ci\b/g)?.length, "one install, after Corepack").toBe(1);
 
     for (const path of [".github/workflows/ci.yml", ".github/workflows/docs.yml", ".github/workflows/release.yml"]) {

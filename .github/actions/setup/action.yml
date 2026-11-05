@@ -30,9 +30,12 @@ runs:
     - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version-file: .nvmrc
+        package-manager-cache: false
     # Corepack first: nothing may run npm before it. The repo's devEngines refuses every npm below the packageManager
-    # pin, which is why setup-node's own `cache: npm` (it asks Node's bundled npm for the cache folder) can't be used;
-    # npm's download cache is restored below instead, and only when node_modules has to be installed.
+    # pin, which is why setup-node's own npm cache (it asks Node's bundled npm for the cache folder) can't be used:
+    # neither `cache: npm` nor the cache it turns on by itself when package.json names a packageManager, which
+    # `package-manager-cache: false` turns off. npm's download cache is restored below instead, and only when
+    # node_modules has to be installed.
     - name: Use the pinned npm
       shell: bash
       run: corepack enable npm && npm --version
