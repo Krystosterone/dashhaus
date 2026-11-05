@@ -10,6 +10,11 @@ session with no terminal. Use one way or the other: each registers its own copy.
 
 To make a dashboard of your own design instead, start from `npm create dashhaus-skin@latest my-skin`.
 
+**Beta.** Dashhaus is in beta: a new `0.x` version (0.2 → 0.3) may break what you use, and a caret range keeps
+you on one `0.x` line until you move. Every `@dashhaus/` package shares one version; each
+[release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do, and an
+[issue](https://github.com/Krystosterone/dashhaus/issues/new/choose) saying how it went on your setup helps.
+
 ## Deploy it
 
 ```sh

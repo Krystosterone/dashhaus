@@ -2,6 +2,11 @@
 
 The Field skin: React modules drawn after Teenage Engineering's EP–133 K.O. II, its module system and page furniture, and `custom:dashhaus-field`, the Lovelace card that draws a whole dashboard from YAML. It imports `@dashhaus/core` and `@dashhaus/dashboard`, never another skin.
 
+**Beta.** Dashhaus is in beta: a new `0.x` version (0.2 → 0.3) may break what you use, and a caret range keeps
+you on one `0.x` line until you move. Every `@dashhaus/` package shares one version; each
+[release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do, and an
+[issue](https://github.com/Krystosterone/dashhaus/issues/new/choose) saying how it went on your setup helps.
+
 ## Install
 
 ```sh

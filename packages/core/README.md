@@ -7,6 +7,11 @@ Where to start: to deploy the ready-made Orb and Field dashboards, install `@das
 depends on this package and its `AGENTS.md` covers the rest. Install this package directly only to compose a skin by
 hand.
 
+**Beta.** Dashhaus is in beta: a new `0.x` version (0.2 → 0.3) may break what you use, and a caret range keeps
+you on one `0.x` line until you move. Every `@dashhaus/` package shares one version; each
+[release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do, and an
+[issue](https://github.com/Krystosterone/dashhaus/issues/new/choose) saying how it went on your setup helps.
+
 ## Install
 
 ```sh

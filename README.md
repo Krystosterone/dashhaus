@@ -17,6 +17,27 @@ and the headless hooks under them to draw your own.
 Documentation: **[krystosterone.github.io/dashhaus](https://krystosterone.github.io/dashhaus/)**, with Storybook at
 [/storybook](https://krystosterone.github.io/dashhaus/storybook/).
 
+## Beta
+
+Dashhaus is in beta and hasn't been tried on many homes yet, so it can still change quickly:
+
+- **An update can ask something of you.** An update may rename a YAML key, change a hook or redraw a card. Each
+  [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do; read it before you
+  update.
+- **Your existing dashboards are safe.** The setup card and the deploy command only create dashboards; they never
+  change one that exists. The ones they create follow Dashhaus as it updates.
+- **Real devices vary.** Every card is tested on Home Assistant's standard entities, but an integration may report
+  its device in a way no card expects yet. Locks, alarm panels and covers act on real things: try each one once
+  while you can see it.
+- **Testers wanted.** Put it on your house, a phone or a wall panel, and tell us what you find: a card that draws
+  wrong, a device it misreads or doesn't draw, or simply that it works on your setup.
+  [Open an issue](https://github.com/Krystosterone/dashhaus/issues/new/choose); your Home Assistant and Dashhaus
+  versions and a screenshot help most.
+
+For code that uses the packages: beta versions are `0.x`, and a change that breaks something moves the middle number
+(0.2 → 0.3). A caret range stays on one `0.x` line, so moving to the next is a step you take; every `@dashhaus/`
+package shares one version, so move them together. 1.0 will be the first stable release.
+
 ## Install
 
 [![Open your Home Assistant instance and open Dashhaus in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
