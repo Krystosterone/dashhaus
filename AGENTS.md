@@ -57,7 +57,7 @@ Node-run ESM is `.js` under `"type": "module"`. The only first-party `.mjs` is a
 
 ## Verifying changes
 
-1. `npm run check` — typecheck, lint, and unit tests. A change to what ships also adds its change note, `npm run change` (CI fails the pull request without one; `internal` for a change no consumer notices).
+1. `npm run check` — typecheck, lint, and unit tests. A change to what ships also adds its change note, `npm run change`, written as the repo's `release-notes` skill says (CI fails the pull request without one; `internal` for a change no consumer notices).
 2. `npm run test-storybook` — every story renders and passes axe. Where `npx playwright install chromium` can't fetch the pinned build, set `DASHHAUS_CHROMIUM=/path/to/chromium`.
 3. `npm run storybook` — open the affected card's All states, Sizes, Footprints, Compact, Worst case and Details stories, and check every width and footprint. For Orb-wide changes, also inspect Orb → Foundations → Worst case.
 4. `npm run build:docs` — when `docs/` or the scaffolder's templates change.

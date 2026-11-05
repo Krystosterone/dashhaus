@@ -16,6 +16,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { publicPackages, tarballName } from "./manifest.js";
+import { fetchFromRegistry, publishedAt } from "./registry.js";
 
 /** Unpack each `{ name, file }` tarball to `<into>/node_modules/<name>`. */
 export async function unpack(tarballs, into) {
@@ -157,11 +158,23 @@ export function apiMarkdown(diff, from) {
   return lines.length ? lines.join("\n") : `None: every entry and export of ${from} is still there, with the same declaration.`;
 }
 
-/** The API of the tarballs at `version` in `tarballsDir`. */
+/**
+ * The API of the tarballs at `version` in `tarballsDir`. A package with no tarball there (one new since that version)
+ * is left out, so the comparison reads its whole API as added.
+ */
 export async function apiOfTarballs(tarballsDir, version, work) {
   const dir = await mkdtemp(join(work, `${version}-`));
-  await unpack(publicPackages.map(({ name }) => ({ name, file: join(tarballsDir, tarballName(name, version)) })), dir);
+  const tarballs = publicPackages.map(({ name }) => ({ name, file: join(tarballsDir, tarballName(name, version)) }));
+  await unpack(tarballs.filter(({ file }) => existsSync(file)), dir);
   return readApi(dir);
+}
+
+/** Fetch `version` of every public package npm has at that version into `<work>/registry`, and return its API. */
+export async function apiOfRegistry(version, work) {
+  const names = publicPackages.map(({ name }) => name).filter((name) => publishedAt(name, version));
+  const problems = await fetchFromRegistry(version, join(work, "registry"), undefined, names);
+  if (problems.length) throw new Error(problems.join("\n"));
+  return apiOfTarballs(join(work, "registry"), version, work);
 }
 
 /** A scratch folder inside the repository, so unpacked declarations resolve React's types from its node_modules. */
@@ -174,16 +187,13 @@ export async function apiWorkDir(root) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const { root, readManifest } = await import("./manifest.js");
-  const { fetchFromRegistry } = await import("./registry.js");
   const args = process.argv.slice(2);
   const from = args.includes("--from")
     ? args[args.indexOf("--from") + 1]
     : execFileSync("npm", ["view", "@dashhaus/core", "version"], { cwd: root, encoding: "utf8" }).trim();
   const current = (await readManifest("packages/core")).version;
   const work = await apiWorkDir(root);
-  const problems = await fetchFromRegistry(from, join(work, "registry"));
-  if (problems.length) throw new Error(problems.join("\n"));
-  const diff = diffApi(await apiOfTarballs(join(work, "registry"), from, work), await apiOfTarballs(join(root, "release"), current, work));
+  const diff = diffApi(await apiOfRegistry(from, work), await apiOfTarballs(join(root, "release"), current, work));
   console.log(`API of release/ (${current}) against ${from} on npm:\n\n${apiMarkdown(diff, from)}`);
   for (const { subpath, name, before, after } of diff.changed) console.log(`\n${subpath} ${name}\n  - ${before}\n  + ${after}`);
 }

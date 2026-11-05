@@ -125,7 +125,7 @@ describe("public packages", () => {
   it("names each tarball as npm pack does and orders the publish by dependency", () => {
     expect(tarballName("@dashhaus/core", "0.3.0")).toBe("dashhaus-core-0.3.0.tgz");
     expect(tarballName("create-dashhaus-skin", "0.3.0-rc.1")).toBe("create-dashhaus-skin-0.3.0-rc.1.tgz");
-    const lines = publishOrder(publicPackages.map(({ name }) => ({ name, version: "0.3.0" }))).trimEnd().split("\n");
+    const lines = publishOrder(publicPackages.map(({ name }) => ({ package: name, version: "0.3.0" }))).trimEnd().split("\n");
     expect(lines.map((line) => line.split("\t"))).toEqual(publicPackages.map(({ name }) => [name, "0.3.0", tarballName(name, "0.3.0")]));
     // Every internal dependency is published before the package that ranges on it.
     const order = publicPackages.map(({ name }) => name);

@@ -59,7 +59,8 @@ npm run change -- <breaking|feature|fix|internal> "<what a consumer notices>"
 
 in the pull request that makes the change, while its reason is fresh, and reviewed in its diff. The text is for
 someone deciding whether to upgrade; `internal` is for a change no consumer notices, and is counted, never listed.
-One file per pull request, so two never conflict; `changes/README.md` is the guide.
+One file per pull request, so two never conflict; `changes/README.md` is the guide, and the repository's
+`release-notes` skill (`.agents/skills/`) is how an agent writes one and finishes a release record.
 
 CI's `checks` lane runs `node scripts/release/changes.js check-pr` on every pull request: a diff that touches a public
 package's files (tests, stories and READMEs aside), the bundle's entry, the lockfile or the build fails unless it adds
@@ -73,7 +74,7 @@ the trigger, and the Release workflow only reproduces what the pull request reco
 
 1. **Prepare.** On a branch from main, `npm run release` (or `npm run release -- <x.y.z>`, `--dry-run` to see the
    version first). It reads the notes, packs the current code and compares its API with the latest version on npm
-   (`npm run release:api` alone), and suggests the version: before 1.0 a breaking note or API break moves the minor and
+   (`npm run release:api` alone; a package new since that version reads as all added), and suggests the version: before 1.0 a breaking note or API break moves the minor and
    anything else the patch, as a caret range reads it; from 1.0, semver. It applies the version and the lockfile,
    packs again, writes the files' SHA-256 to `releases/<version>.sha256` and the record to `releases/<version>.md`,
    and deletes the notes. Two runs on one commit write the same files.
@@ -82,12 +83,14 @@ the trigger, and the Release workflow only reproduces what the pull request reco
    recorded files, or "unrun" and why), and, when the API comparison shows a removed or changed export that no
    `breaking` note owns, whether it breaks. An agent may draft them; a person reviews them.
 3. **Merge**, with CI green: its `dx` lane runs `node scripts/release/candidate.js check`, which fails while the record
-   has a `TODO` or the commit doesn't pack the files it records. When main moved under the pull request,
-   `npm run release:digests` refreshes the record's files; require branches to be up to date before merging, so the
-   check always ran on what merges.
+   has a `TODO:`, while `changes/` holds a note that arrived after the record (its change ships in this release, so
+   it moves into this record), or while the commit doesn't pack the files it records. When main moved under the pull
+   request, `npm run release:digests` refreshes the record's files; require branches to be up to date before merging,
+   so the check always ran on what merges.
 
 Merging moves `packages/bundle/package.json` on main to a version with no tag, which runs
-`.github/workflows/release.yml`, least reversible last:
+`.github/workflows/release.yml`; so does a push that changes a `releases/*.sha256`, the fix for a release whose build
+refused its digests. Least reversible last:
 
 - **plan** reads the version, refuses anything but main, and stops quietly when that version is tagged at another
   commit (nothing to release); tagged at this commit, it finishes the release. It needs the record and its digests.

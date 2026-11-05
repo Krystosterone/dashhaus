@@ -6,9 +6,9 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { apiMarkdown, compareVersions, diffApi, readApi, suggestVersion } from "../scripts/release/api.js";
+import { apiMarkdown, apiOfTarballs, compareVersions, diffApi, readApi, suggestVersion } from "../scripts/release/api.js";
 import type { Api } from "../scripts/release/api.js";
-import { digestProblems, formatDigests, parseDigests, releaseBody, unfinished } from "../scripts/release/candidate.js";
+import { digestProblems, formatDigests, lateNoteProblems, parseDigests, releaseBody, unfinished } from "../scripts/release/candidate.js";
 import { CHANGE_TYPES, formatChange, noteFileName, parseChange, pullRequestProblem, readChanges, shipsFrom } from "../scripts/release/changes.js";
 import { publicPackages } from "../scripts/release/manifest.js";
 import { renderRecord } from "../scripts/release/prepare.js";
@@ -32,7 +32,7 @@ describe("change notes", () => {
     for (const path of ["packages/core/src/entities/light/types.ts", "src/skins/orb/cards/lock/LockCard.tsx", "apps/lovelace/entry.ts", "package-lock.json", "packages/create-dashhaus-skin/src/templates/card/x.tsx"]) {
       expect(shipsFrom(path), path).toBe(true);
     }
-    for (const path of ["packages/core/src/entities/light/light.test.ts", "src/skins/orb/cards/lock/LockCard.stories.tsx", "packages/core/README.md", "docs/src/content/docs/index.mdx", "spec/orb.md", "verify/storybook.test.ts", "packages/fake-home-assistant/src/server.js"]) {
+    for (const path of ["packages/core/src/entities/light/light.test.ts", "src/skins/orb/cards/lock/LockCard.stories.tsx", "packages/core/README.md", "src/skins/orb/stories/DesignRules.mdx", "docs/src/content/docs/index.mdx", "spec/orb.md", "verify/storybook.test.ts", "packages/fake-home-assistant/src/server.js"]) {
       expect(shipsFrom(path), path).toBe(false);
     }
     for (const { dir } of publicPackages) expect(shipsFrom(`${dir}/package.json`), dir).toBe(true);
@@ -131,10 +131,14 @@ describe("the API comparison", () => {
       expect(before["@dashhaus/core"].exports.useHaLight).toBe("export declare function useHaLight(id: string): void;");
       expect(diffApi(before, reworded).breaking, "a doc comment is not the API").toBe(false);
       expect(diffApi(before, changed).changed.map(({ name }) => name)).toEqual(["useHaLight"]);
+      // A package new since the version compared with has no tarball there: left out, so all of it reads as added.
+      const none = await apiOfTarballs(join(work, "no-tarballs"), "0.1.0", work);
+      expect(none).toEqual({});
+      expect(diffApi(none, before)).toMatchObject({ addedSubpaths: Object.keys(before), breaking: false, additive: true });
     } finally {
       await rm(work, { recursive: true, force: true });
     }
-    // Three TypeScript programs: about 1.5s alone, more beside the whole suite.
+    // Four TypeScript programs: about 2s alone, more beside the whole suite.
   }, 30_000);
 });
 
@@ -161,6 +165,13 @@ describe("the candidate", () => {
     );
     expect(releaseBody("## Release page\n\nLast section.", "0.3.0", REPO)).toMatch(/^Last section\.\n/);
     expect(() => releaseBody("# Dashhaus 0.3.0\n\n## What changed\n", "0.3.0", REPO)).toThrow(/Release page/);
+  });
+
+  it("counts only the TODO: markers as unfinished, and a note that arrived after the record as missing from it", () => {
+    expect(unfinished("## Release page\n\nTODO: write it.\n\n- The TODO list card shows due dates.\n")).toEqual(["TODO: write it."]);
+    expect(lateNoteProblems([{ file: "changes/fan-speeds.md" }], "0.3.0")).toEqual([
+      "changes/fan-speeds.md arrived after spec/releases/0.3.0.md was written; add it to What changed there and delete it",
+    ]);
   });
 });
 

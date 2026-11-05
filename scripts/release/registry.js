@@ -15,7 +15,7 @@ import { mkdir, readFile, readdir, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
-import { publicPackages, SEMVER, tarballName } from "./manifest.js";
+import { publicPackages, root, SEMVER, tarballName } from "./manifest.js";
 
 const ATTEMPTS = 6;
 
@@ -36,14 +36,26 @@ async function retried(what, fn) {
 
 const npm = (args, cwd) => execFileSync("npm", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 
-/** Pack every public package at `version` from the registry into `outDir`, checking each one; returns the problems. */
-export async function fetchFromRegistry(version, outDir, compareDir) {
+/** Whether npm has `name` at `version`: asked once, for a version that has long been published. */
+export function publishedAt(name, version) {
+  try {
+    return npm(["view", `${name}@${version}`, "version"], root) === version;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Pack each public package (or each of `names`) at `version` from the registry into `outDir`, checking each one;
+ * returns the problems.
+ */
+export async function fetchFromRegistry(version, outDir, compareDir, names = publicPackages.map(({ name }) => name)) {
   await mkdir(outDir, { recursive: true });
   for (const file of await readdir(outDir)) {
     if (file.endsWith(".tgz")) await rm(join(outDir, file), { force: true });
   }
   const problems = [];
-  for (const { name } of publicPackages) {
+  for (const name of names) {
     const spec = `${name}@${version}`;
     const shasum = await retried(spec, () => {
       const found = npm(["view", spec, "dist.shasum"], outDir);

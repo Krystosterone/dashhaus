@@ -8,7 +8,8 @@
  *
  * `spec/releases/<version>.sha256` lists the seven tarballs and `dashhaus.js`, in `sha256sum` format. `check` runs in
  * CI after `release:pack` while `v<version>` is not yet tagged, so a release PR is green only when its files are the
- * ones it records and its record has no `TODO` left; the Release workflow runs it with `--always` before shipping.
+ * ones it records, its record has no `TODO:` left, and no change note has arrived since the record collected them; the
+ * Release workflow runs it with `--always` before shipping.
  * Once the tag exists the candidate has shipped, and the check stands down until the next version.
  */
 import { execFileSync } from "node:child_process";
@@ -17,6 +18,7 @@ import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readChanges } from "./changes.js";
 import { publicPackages, readManifest, root, tarballName } from "./manifest.js";
 
 export const recordPath = (version) => join(root, "spec/releases", `${version}.md`);
@@ -56,8 +58,15 @@ export function digestProblems(recorded, packed) {
   return problems;
 }
 
-/** The lines of a release record still marked TODO. */
-export const unfinished = (record) => record.split("\n").filter((line) => line.includes("TODO")).map((line) => line.trim());
+/** The lines of a release record still marked `TODO:`, the marker `npm run release` writes. */
+export const unfinished = (record) => record.split("\n").filter((line) => /^\s*TODO:/.test(line)).map((line) => line.trim());
+
+/**
+ * A note in `changes/` while a candidate is recorded arrived after the record collected the notes: its change ships in
+ * this release, so it belongs in this record, not the next one.
+ */
+export const lateNoteProblems = (notes, version) =>
+  notes.map((note) => `${note.file} arrived after spec/releases/${version}.md was written; add it to What changed there and delete it`);
 
 /** The record's `## Release page` section, and a link to the whole record at the tag. */
 export function releaseBody(record, version, repositoryUrl) {
@@ -104,6 +113,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (problems.length) problems.push(`this commit doesn't pack the files spec/releases/${version}.sha256 records; run npm run release:digests and commit it`);
     if (!existsSync(recordPath(version))) problems.push(`spec/releases/${version}.md is missing`);
     else for (const line of unfinished(await readFile(recordPath(version), "utf8"))) problems.push(`spec/releases/${version}.md is unfinished: ${line}`);
+    problems.push(...lateNoteProblems(await readChanges(), version));
     for (const problem of problems) console.error(`✗ ${problem}`);
     if (problems.length) process.exit(1);
     console.log(`candidate ${version}: the record is finished and this commit packs the ${publicPackages.length + 1} files it records`);

@@ -47,4 +47,4 @@ export function readManifest(dir: string): Promise<PackageManifest>;
 export function publishManifest(manifest: PackageManifest): PackageManifest;
 export function tarballName(name: string, version: string): string;
 export const PUBLISH_ORDER: string;
-export function publishOrder(packed: { name: string; version: string }[]): string;
+export function publishOrder(packed: { package: string; version: string }[]): string;

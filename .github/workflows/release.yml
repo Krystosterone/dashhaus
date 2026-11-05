@@ -1,7 +1,8 @@
 name: Release
 
-# Merging a release PR ships it: the push to main that moves the bundle's version to one with no tag yet runs this,
-# and it tags v<version>, attaches dashhaus.js (the file the Home Assistant Marketplace and HACS install), publishes the
+# Merging a release PR ships it: the push to main that moves the bundle's version to one with no tag yet runs this (as
+# does one that refreshes an unshipped release's digests after its build refused them), and it tags v<version>,
+# attaches dashhaus.js (the file the Home Assistant Marketplace and HACS install), publishes the
 # seven packages to npm and publishes the GitHub release. Everything it ships was decided and reviewed in that PR
 # (spec/release.md → Releasing): the version, the notes, and the files' SHA-256 in spec/releases/<version>.sha256,
 # which the build must reproduce before anything leaves. It takes no inputs and runs no model.
@@ -12,7 +13,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: [packages/bundle/package.json]
+    paths: [packages/bundle/package.json, "spec/releases/*.sha256"]
   workflow_dispatch:
 
 env:

@@ -39,9 +39,12 @@ const BUILT_FROM = [
   "scripts/release/manifest.js",
 ];
 
-/** Whether a changed path can change what a release ships. Tests, stories and the package READMEs' prose don't. */
+/**
+ * Whether a changed path can change what a release ships. Tests, stories, Storybook's MDX pages and the package READMEs'
+ * prose don't.
+ */
 export function shipsFrom(path) {
-  if (/\.(?:test|stories)\.[cm]?[jt]sx?$/.test(path) || /\.test-d\.ts$/.test(path) || path.includes("/__snapshots__/")) return false;
+  if (/\.(?:test|stories)\.[cm]?[jt]sx?$/.test(path) || /\.(?:test-d\.ts|mdx)$/.test(path) || path.includes("/__snapshots__/")) return false;
   if (BUILT_FROM.some((entry) => (entry.endsWith("/") ? path.startsWith(entry) : path === entry))) return true;
   return publicPackages.some(({ dir }) => path.startsWith(`${dir}/`) && !path.endsWith("/README.md"));
 }

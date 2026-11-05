@@ -15,12 +15,11 @@ import { execFileSync } from "node:child_process";
 import { rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { apiMarkdown, apiOfTarballs, apiWorkDir, compareVersions, diffApi, suggestVersion } from "./api.js";
+import { apiMarkdown, apiOfRegistry, apiOfTarballs, apiWorkDir, compareVersions, diffApi, suggestVersion } from "./api.js";
 import { digestsPath, formatDigests, packedDigests, recordPath } from "./candidate.js";
 import { CHANGES_DIR, readChanges } from "./changes.js";
 import { readManifest, root, SEMVER } from "./manifest.js";
 import { pack } from "./pack.js";
-import { fetchFromRegistry } from "./registry.js";
 import { applyVersion } from "./version.js";
 
 const SECTIONS = [
@@ -93,9 +92,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`→ packing the current code to compare its API with ${from} on npm`);
   const work = await apiWorkDir(root);
   await pack(join(root, "release"));
-  const problems = await fetchFromRegistry(from, join(work, "registry"));
-  if (problems.length) throw new Error(problems.join("\n"));
-  const diff = diffApi(await apiOfTarballs(join(work, "registry"), from, work), await apiOfTarballs(join(root, "release"), current, work));
+  const diff = diffApi(await apiOfRegistry(from, work), await apiOfTarballs(join(root, "release"), current, work));
 
   const breaking = diff.breaking || notes.some((note) => note.type === "breaking");
   const feature = diff.additive || notes.some((note) => note.type === "feature");

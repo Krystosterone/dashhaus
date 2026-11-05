@@ -35,7 +35,7 @@ describe("the packed public surface", () => {
       const core = packed.find((pkg) => pkg.package === "@dashhaus/core");
       if (!dashboard || !core) throw new Error("pack did not produce the core and dashboard tarballs");
       // The Release workflow publishes in this file's order, with the shell alone.
-      expect(await readFile(join(tarballs, PUBLISH_ORDER), "utf8")).toBe(publishOrder(packed.map(({ package: name, version }) => ({ name, version }))));
+      expect(await readFile(join(tarballs, PUBLISH_ORDER), "utf8")).toBe(publishOrder(packed));
 
       const files = execFileSync("tar", ["-tzf", dashboard.tarball], { encoding: "utf8" }).trim().split("\n");
       expect(files, "the packed dashboard ships the conformance and schema entries with their declarations").toEqual(

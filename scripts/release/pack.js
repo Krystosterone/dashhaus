@@ -69,7 +69,7 @@ export async function pack(outDir = out, buildRoot = root) {
       packed.push({ package: manifest.name, version: manifest.version, tarball, size });
       console.log(`${manifest.name}@${manifest.version} → ${tarball} (${(size / 1024).toFixed(1)} KiB)`);
     }
-    await writeFile(join(outDir, PUBLISH_ORDER), publishOrder(packed.map(({ package: name, version }) => ({ name, version }))));
+    await writeFile(join(outDir, PUBLISH_ORDER), publishOrder(packed));
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
   }

@@ -35,14 +35,15 @@ export function tarballName(name, version) {
 }
 
 /**
- * The publish order `release:pack` writes beside the tarballs, one `name\tversion\tfile` line per package in
+ * The publish order `release:pack` writes beside the tarballs, from what it packed (`{ package, version }`, in order):
+ * one `name\tversion\tfile` line per package in
  * `publicPackages` order, so every internal range resolves. The Release workflow's publish job reads it with the shell
  * alone, running none of the repository's scripts.
  */
 export const PUBLISH_ORDER = "publish.tsv";
 
 export function publishOrder(packed) {
-  return packed.map(({ name, version }) => `${name}\t${version}\t${tarballName(name, version)}\n`).join("");
+  return packed.map(({ package: name, version }) => `${name}\t${version}\t${tarballName(name, version)}\n`).join("");
 }
 
 export const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;

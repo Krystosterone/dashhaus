@@ -19,4 +19,5 @@ export function suggestVersion(latest: string, change: { breaking: boolean; feat
 export function compareVersions(a: string, b: string): -1 | 0 | 1;
 export function apiMarkdown(diff: ApiDiff, from: string): string;
 export function apiOfTarballs(tarballsDir: string, version: string, work: string): Promise<Api>;
+export function apiOfRegistry(version: string, work: string): Promise<Api>;
 export function apiWorkDir(root: string): Promise<string>;

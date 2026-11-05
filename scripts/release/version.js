@@ -23,14 +23,14 @@ function pinInternalRanges(manifest, version) {
 }
 
 /** Set `version` in every public manifest and every internal range, the scaffolder's template included. */
-export async function applyVersion(version, log = console.log) {
+export async function applyVersion(version) {
   for (const pkg of publicPackages) {
     const file = join(root, pkg.dir, "package.json");
     const manifest = JSON.parse(await readFile(file, "utf8"));
     manifest.version = version;
     pinInternalRanges(manifest, version);
     await writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`);
-    log(`${manifest.name}@${manifest.version}`);
+    console.log(`${manifest.name}@${manifest.version}`);
   }
 
   const template = JSON.parse(await readFile(scaffoldTemplate, "utf8"));
@@ -38,7 +38,7 @@ export async function applyVersion(version, log = console.log) {
   // A skin runs `npm run add` from its own copy of the scaffolder, which moves with the other packages.
   if (template.devDependencies?.["create-dashhaus-skin"]) template.devDependencies["create-dashhaus-skin"] = `^${version}`;
   await writeFile(scaffoldTemplate, `${JSON.stringify(template, null, 2)}\n`);
-  log(`create-dashhaus-skin template: @dashhaus ranges ^${version}`);
+  console.log(`create-dashhaus-skin template: @dashhaus ranges ^${version}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

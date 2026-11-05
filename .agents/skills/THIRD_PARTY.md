@@ -8,7 +8,7 @@ keep their upstream terms, and their license texts sit beside them.
 | `animate`, `animate-expo`, `animation-performance`, `animation-vocabulary`, `apple-design`, `ask-sonner`, `break-ui`, `emil-design-eng`, `find-animation-opportunities`, `improve-animations`, `mobile-native`, `pick-ui-library`, `prototype`, `review-animations`, `write-swift` | [emilkowalski/skills](https://github.com/emilkowalski/skills), pinned in `skills-lock.json` | MIT, © 2026 Emil Kowalski | [LICENSE.emilkowalski-skills.txt](LICENSE.emilkowalski-skills.txt) |
 | `impeccable` | [pbakaus/impeccable](https://github.com/pbakaus/impeccable), updated with `npx impeccable update` | Apache-2.0, with its notices | [impeccable/LICENSE](impeccable/LICENSE), [impeccable/NOTICE.md](impeccable/NOTICE.md) |
 | `impeccable/scripts/modern-screenshot.umd.js` | [qq15725/modern-screenshot](https://github.com/qq15725/modern-screenshot), bundled by Impeccable | MIT | upstream |
-| `attention-budget`, `home-assistant-integration`, `row-identity`, `test-speed` | this repository | MIT | [LICENSE](../../LICENSE) |
+| `attention-budget`, `home-assistant-integration`, `release-notes`, `row-identity`, `test-speed` | this repository | MIT | [LICENSE](../../LICENSE) |
 
 The design roles in `.agents/design/` are from agency-agents, under [their license](../design/LICENSE.agency-agents.txt).
 

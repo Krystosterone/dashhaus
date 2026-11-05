@@ -2,7 +2,9 @@
  * The toolchain fails loudly when it drifts (AGENTS.md → Commands): the wrong npm stops before it rewrites the lockfile
  * and says to run `corepack enable`, and one variable points every browser-driven command at an existing Chromium.
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -79,7 +81,9 @@ describe("the pinned npm", () => {
       release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
     expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release"]);
-    expect(release, "a version bump on main, or a rerun by hand").toMatch(/^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/bundle\/package\.json\]\n {2}workflow_dispatch:\n\n/m);
+    expect(release, "a version bump or refreshed digests on main, or a rerun by hand").toMatch(
+      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/bundle\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
+    );
     expect(jobs.plan, "a dispatch ships only from main").toContain('if [ "$GITHUB_REF" != refs/heads/main ]');
     expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./);
     expect(release, "no inputs: the commit decides everything").not.toMatch(/inputs\./);
@@ -134,6 +138,65 @@ function nodeSatisfies(version: string, range: string): boolean {
   };
   return range.split("||").some((set) => set.trim().replace(/([<>=^~]+)\s+/g, "$1").split(/\s+/).every(test));
 }
+
+describe("the release's publish step", () => {
+  // The least reversible lines in the repository, run here as the workflow runs them: the step's own shell, pulled out
+  // of release.yml, against a fake npm (its registry is a folder of shasums) and a portable sha1sum.
+  const script = (/name: Publish to npm\n\s+run: \|\n([\s\S]*?)\n\n/.exec(read(".github/workflows/release.yml"))?.[1] ?? "").replace(/^ {10}/gm, "");
+  const sha1 = (text: string) => createHash("sha1").update(text).digest("hex");
+
+  function publish(packages: { name: string; version: string; file: string; text: string; onNpm?: string }[], prerelease = false) {
+    const work = mkdtempSync(join(tmpdir(), "dashhaus-publish-"));
+    try {
+      for (const dir of ["bin", "registry", "release"]) mkdirSync(join(work, dir));
+      writeFileSync(join(work, "bin/npm"), `#!/bin/bash
+if [ "$1" = view ]; then key="\${2//\\//+}"; [ -f "$FAKE_REGISTRY/$key" ] || { echo "npm error 404" >&2; exit 1; }; cat "$FAKE_REGISTRY/$key"; exit 0; fi
+echo "$*" >> "$FAKE_LOG"
+`);
+      writeFileSync(join(work, "bin/sha1sum"), `#!/usr/bin/env node
+const file = process.argv[2];
+console.log(require("node:crypto").createHash("sha1").update(require("node:fs").readFileSync(file)).digest("hex") + "  " + file);
+`);
+      for (const tool of ["npm", "sha1sum"]) chmodSync(join(work, "bin", tool), 0o755);
+      for (const pkg of packages) {
+        writeFileSync(join(work, "release", pkg.file), pkg.text);
+        if (pkg.onNpm !== undefined) writeFileSync(join(work, "registry", `${pkg.name}@${pkg.version}`.replace("/", "+")), sha1(pkg.onNpm));
+      }
+      writeFileSync(join(work, "release/publish.tsv"), packages.map(({ name, version, file }) => `${name}\t${version}\t${file}\n`).join(""));
+      writeFileSync(join(work, "log"), "");
+      const result = spawnSync("bash", ["-c", script], {
+        cwd: work,
+        encoding: "utf8",
+        env: { ...process.env, PATH: `${join(work, "bin")}:${process.env.PATH}`, FAKE_REGISTRY: join(work, "registry"), FAKE_LOG: join(work, "log"), PRERELEASE: String(prerelease) },
+      });
+      return { status: result.status, output: result.stdout + result.stderr, published: readFileSync(join(work, "log"), "utf8").trim().split("\n").filter(Boolean) };
+    } finally {
+      rmSync(work, { recursive: true, force: true });
+    }
+  }
+
+  const core = { name: "@dashhaus/core", version: "0.3.0", file: "dashhaus-core-0.3.0.tgz", text: "core" };
+  const orb = { name: "@dashhaus/orb", version: "0.3.0", file: "dashhaus-orb-0.3.0.tgz", text: "orb" };
+
+  it("publishes in order, skipping a version npm holds as this very file", () => {
+    expect(script).toContain("npm publish");
+    const run = publish([{ ...core, onNpm: "core" }, orb]);
+    expect(run.status, run.output).toBe(0);
+    expect(run.output).toContain("@dashhaus/core@0.3.0 is already on npm, this very file; skipped");
+    expect(run.published).toEqual(["publish ./release/dashhaus-orb-0.3.0.tgz --provenance --ignore-scripts --tag latest"]);
+  });
+
+  it("sends a prerelease to next, never latest", () => {
+    expect(publish([{ ...core, version: "0.3.0-rc.1" }], true).published).toEqual(["publish ./release/dashhaus-core-0.3.0.tgz --provenance --ignore-scripts --tag next"]);
+  });
+
+  it("stops before anything else when npm holds a different file under the version", () => {
+    const run = publish([{ ...core, onNpm: "an older build" }, orb]);
+    expect(run.status).not.toBe(0);
+    expect(run.output).toContain("@dashhaus/core@0.3.0 is on npm as a different file");
+    expect(run.published).toEqual([]);
+  });
+});
 
 describe("the pinned Node", () => {
   const nvmrc = read(".nvmrc").trim();
