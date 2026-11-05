@@ -9,21 +9,18 @@ import { injectAxe, getAxeResults } from "axe-playwright";
 const config: TestRunnerConfig = {
   async postVisit(page, context) {
     const { parameters } = await getStoryContext(page, context);
-    // Let entrances settle first (a sheet fading in), so contrast is measured at full opacity. Looping
-    // animations never finish, so they're left out. A long finite one is an alarm flash, not an entrance:
-    // field blinks once a second for ten seconds, and a story that shows one must not wait it out. End it
-    // at its final state (the alarm's base style) instead, then wait for what is left.
+    // Let entrances settle first (a sheet fading in), so contrast is measured at full opacity. Looping animations never
+    // finish, so they're left out. A long finite one is an alarm flash, not an entrance: field blinks once a second for
+    // ten seconds, and a story that shows one must not wait it out. End it at its final state (the alarm's base style)
+    // instead, then wait for what is left. Storybook itself pauses the CSS animations a story starts with at their last
+    // keyframe when the runner renders it: that is an entrance's settled state, but a flash's dim half, so a paused
+    // long one is ended too, and a paused animation, which never finishes, isn't waited for.
     await page.evaluate(() => {
-      for (const animation of document.getAnimations()) {
-        const timing = animation.effect?.getComputedTiming();
-        if (!timing || timing.iterations === Infinity || timing.activeDuration <= 1_000) continue;
-        animation.finish();
+      const finite = () => document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity);
+      for (const animation of finite()) {
+        if ((animation.effect?.getComputedTiming().activeDuration ?? 0) > 1_000) animation.finish();
       }
-      return Promise.all(
-        document.getAnimations()
-          .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
-          .map((a) => a.finished.catch(() => undefined)),
-      );
+      return Promise.all(finite().filter((a) => a.playState === "running").map((a) => a.finished.catch(() => undefined)));
     });
     const overflows = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
       modules.flatMap((module) => {

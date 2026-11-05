@@ -27,7 +27,7 @@ async function retried(what, fn) {
     try {
       return fn();
     } catch (error) {
-      if (attempt === ATTEMPTS) throw new Error(`${what}: ${error instanceof Error ? error.message : error}`);
+      if (attempt === ATTEMPTS) throw new Error(`${what}: ${error instanceof Error ? error.message : error}`, { cause: error });
       console.log(`  ${what}: not there yet, retrying (${attempt}/${ATTEMPTS - 1})`);
       await sleep(5000 * attempt);
     }

@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { Canvas, Markdown } from "@storybook/blocks";
+import { Canvas, Markdown } from "@storybook/addon-docs/blocks";
 
 type Of = ComponentProps<typeof Canvas>["of"];
 

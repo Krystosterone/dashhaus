@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { defineConfig } from "vite";
+import { defaultClientConditions, defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -36,7 +36,7 @@ const build = (JSON.parse(readFileSync("packages/bundle/package.json", "utf8")) 
 /** `npm run build:ha` — the Lovelace card as one self-contained ES module: dist/dashhaus.js. */
 export default defineConfig({
   plugins: [react(), inlineCss()],
-  resolve: { conditions: ["source"] },
+  resolve: { conditions: ["source", ...defaultClientConditions] },
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
     __DASHHAUS_BUILD__: JSON.stringify(build),
@@ -47,6 +47,7 @@ export default defineConfig({
     cssCodeSplit: false,
     target: "es2022",
     lib: { entry: "apps/lovelace/entry.ts", formats: ["es"], fileName: () => "dashhaus.js" },
-    rollupOptions: { output: { inlineDynamicImports: true, banner: `/*!\n${notice}\n*/` } },
+    // `comments.legal` keeps React's own `@license` headers, which Vite drops from a minified build unless asked.
+    rolldownOptions: { output: { codeSplitting: false, comments: { legal: true }, banner: `/*!\n${notice}\n*/` } },
   },
 });

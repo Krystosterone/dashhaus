@@ -114,9 +114,9 @@ async function install(app, manifests) {
     "@testing-library/react": "16.3.3",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
-    "home-assistant-js-websocket": "9.7.1",
+    "home-assistant-js-websocket": "9.8.1",
     jsdom: "30.1.3",
-    vitest: "3.2.7",
+    vitest: "5.0.5",
   };
   await writeFile(join(app, "package.json"), `${JSON.stringify({ ...base, devDependencies }, null, 2)}\n`);
   run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
