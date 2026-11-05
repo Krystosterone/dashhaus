@@ -106,6 +106,8 @@ describe("the API comparison", () => {
   });
 
   it("reads each export's declaration from packed types, without comments, following the package's exports", async () => {
+    // Inside the repository, so the unpacked declarations resolve React's types; a fresh install has no .cache yet.
+    await mkdir(join(process.cwd(), "node_modules/.cache"), { recursive: true });
     const work = await mkdtemp(join(process.cwd(), "node_modules/.cache/api-test-"));
     try {
       const write = async (version: string, body: string) => {
