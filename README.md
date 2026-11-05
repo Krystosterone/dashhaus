@@ -52,8 +52,7 @@ No terminal needed, as a Home Assistant administrator:
 4. Open **Home (Orb)** or **Home (Field)** from the card's links, then remove the setup card. It never changes a
    dashboard that exists.
 
-Dashhaus hasn't had its first public release yet, so the link finds nothing until it does. Until then, deploy from the
-command line: [Deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
+For scripted installs or CI, [deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
 
 ## Four ways in
 
