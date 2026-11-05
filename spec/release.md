@@ -24,25 +24,26 @@ Fixtures, demo transports and `testing` are shipped because they are declared pu
 
 What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `spec/contract.md`.
 
-Each release has its record in `releases/<version>.md`, written in its release PR (Releasing, below); the first,
-[0.2.0](releases/0.2.0.md), was written by hand and has the publish order and the tarball inspection.
+Each release has its record in `releases/<version>.md`, written in its release PR (Releasing, below). The first two
+were written by hand: [0.2.0](releases/0.2.0.md), with the publish order and the tarball inspection, and
+[0.2.1](releases/0.2.1.md).
 
 Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
-**Fixed version** across every public package, currently `0.2.0`. There is no independent release need yet:
+**Fixed version** across every public package, currently `0.2.1`. There is no independent release need yet:
 `@dashhaus/dashboard`, the skins and the bundle are built from the same repository and tag, and coupled releases keep
 the internal ranges unambiguous.
 
 `npm run release` applies it (Releasing, below); on its own, apply it with the command, never by editing the manifests:
 
 ```sh
-npm run release:version -- 0.2.0
+npm run release:version -- 0.2.1
 npm install --package-lock-only
 ```
 
-The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.0`,
+The command sets the version in every public manifest and rewrites each internal `@dashhaus` dependency to `^0.2.1`,
 including the scaffolder's `src/templates/standalone/package.json` so a newly scaffolded skin installs the same line.
 `scripts/release/manifest.js` then refuses to pack a `0.0.0` version, an unpinned `@dashhaus` range, or a manifest
 without `files`/`sideEffects`, or without `license: MIT`; `verify:packages` reads the packed template's ranges back.
@@ -168,10 +169,10 @@ npm run change -- fix "<text>"      # a change note, in the pull request that ma
 npm run release [-- <x.y.z>]        # prepare a release PR: version, lockfile, digests, record
 npm run release:api                 # the API of release/ against the latest version on npm
 npm run release:digests             # pack, and refresh the record's digests
-npm run release:version -- 0.2.0   # only the fixed version, in every public manifest
+npm run release:version -- 0.2.1   # only the fixed version, in every public manifest
 npm run release:pack                # build dist, pack the release tarballs and publish.tsv, their order
 npm run verify:packages             # clean-app install, imports, typecheck, deploy bin
-npm run release:registry -- 0.2.0   # what npm serves for a version
+npm run release:registry -- 0.2.1   # what npm serves for a version
 ```
 
 ### Live Home Assistant smoke

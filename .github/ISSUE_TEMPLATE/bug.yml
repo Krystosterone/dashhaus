@@ -35,7 +35,7 @@ body:
     attributes:
       label: Versions
       description: Dashhaus version, Home Assistant version, and the browser or app you saw it in.
-      placeholder: Dashhaus 0.2.0, Home Assistant 2026.11, iOS companion app
+      placeholder: Dashhaus 0.2.1, Home Assistant 2026.11, iOS companion app
     validations:
       required: true
   - type: textarea
