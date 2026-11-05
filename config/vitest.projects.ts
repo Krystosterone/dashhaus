@@ -10,9 +10,17 @@
  * context), but the worker process, and jsdom with it, is loaded once per worker rather than once per file. With the
  * default `forks` pool that per-file process and jsdom start-up was most of the suite's wall time (about 0.7s a file).
  * The generators stay on `forks`: they spawn the repo's own tools and gain nothing from a shared worker.
+ *
+ * Every project reads the workspace's packages from source, through their `source` export condition. Vite's conditions
+ * replace its defaults rather than add to them, and a Node-environment file resolves through the server's list, so both
+ * lists name the source condition beside Vite's own defaults (`defaultClientConditions` and `defaultServerConditions`,
+ * spelt out so this file needn't load Vite).
  */
+const CLIENT_CONDITIONS = ["source", "module", "browser", "development|production"];
+const SERVER_CONDITIONS = ["source", "module", "node", "development|production"];
 const project = (name: string, include: string[], environment: "jsdom" | "node" = "jsdom", test: Record<string, unknown> = {}) => ({
-  resolve: { conditions: ["source"] },
+  resolve: { conditions: CLIENT_CONDITIONS },
+  ssr: { resolve: { conditions: SERVER_CONDITIONS } },
   test: { name, include, environment, globals: true, pool: "vmForks", ...test },
 });
 

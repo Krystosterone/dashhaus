@@ -5,6 +5,7 @@
  * (what `@dashhaus/bundle` resolves), so the repo deploys the artifact a bundle consumer installs. `release:pack`
  * builds the package output directly into its staging root.
  */
+import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,12 +29,23 @@ const PACKED_TYPES = `/** The prebuilt Lovelace bundle as a file URL. */
 export declare const bundlePath: URL;
 `;
 
-/** Vite's build of `apps/lovelace/entry.ts` into `outDir/dashhaus.js`. */
-export async function buildBundleFile(outDir) {
+/** Vite's build of `apps/lovelace/entry.ts` into `outDir/dashhaus.js`, in this process. */
+async function viteBuild(outDir) {
   await build({
     configFile: join(root, "config/vite.lovelace.config.ts"),
     build: { outDir, emptyOutDir: true },
   });
+  return join(outDir, "dashhaus.js");
+}
+
+/**
+ * Vite's build of `apps/lovelace/entry.ts` into `outDir/dashhaus.js`, in a Node process of its own. Vite's bundler,
+ * Rolldown, checks the config it is handed against its own process's built-ins (a `RegExp`, a plugin object), so a
+ * caller in a VM context, as the test suite's `vmForks` pool is, can't build in-process: `release:pack` and the
+ * checks that call it build here instead.
+ */
+export async function buildBundleFile(outDir) {
+  execFileSync(process.execPath, [fileURLToPath(import.meta.url), "--out", outDir], { stdio: "inherit" });
   return join(outDir, "dashhaus.js");
 }
 
@@ -47,9 +59,11 @@ export async function buildBundlePackage(outRoot = root) {
   return dist;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && process.argv[2] === "--out") {
+  await viteBuild(process.argv[3]);
+} else if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const dist = join(root, "dist");
-  const file = await buildBundleFile(dist);
+  const file = await viteBuild(dist);
   const bundled = join(root, "packages/bundle/dist");
   await mkdir(bundled, { recursive: true });
   await copyFile(file, join(bundled, "dashhaus.js"));

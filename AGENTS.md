@@ -124,7 +124,7 @@ Every skin's section has the same groups, in this order, so the tree has one sha
 
 Any other group a skin can't fill holds one **Not in <Skin>** story that says why, never filler. Today every skin fills every group it has.
 
-The toolbar shows the open story's skin's settings only, each named with its value: a skin declares them as `globalTypes` in its `storybook.tsx`, and `.storybook/manager.tsx` draws them in place of Storybook's own toolbar addon, which is off.
+The toolbar shows the open story's skin's settings only, each named with its value: a skin declares them as `globalTypes` in its `storybook.tsx`, and `.storybook/manager.tsx` draws them in place of Storybook's own toolbar, which `.storybook/preview.tsx` leaves nothing to draw.
 
 Primitives (`packages/core/src/primitives/`) have no stories: they are behaviour without markup, pinned by the unit tests beside each hook and felt in the skins' card stories (`spec/core.md` → Interaction primitives).
 
