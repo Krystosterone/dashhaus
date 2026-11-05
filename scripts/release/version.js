@@ -8,6 +8,7 @@
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { publicPackages, root, SEMVER } from "./manifest.js";
 
 const DEPENDENCY_FIELDS = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"];
@@ -21,24 +22,30 @@ function pinInternalRanges(manifest, version) {
   }
 }
 
-const version = process.argv[2];
-if (!version || !SEMVER.test(version) || version === "0.0.0") {
-  console.error("usage: npm run release:version -- <x.y.z>");
-  process.exit(1);
+/** Set `version` in every public manifest and every internal range, the scaffolder's template included. */
+export async function applyVersion(version) {
+  for (const pkg of publicPackages) {
+    const file = join(root, pkg.dir, "package.json");
+    const manifest = JSON.parse(await readFile(file, "utf8"));
+    manifest.version = version;
+    pinInternalRanges(manifest, version);
+    await writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`);
+    console.log(`${manifest.name}@${manifest.version}`);
+  }
+
+  const template = JSON.parse(await readFile(scaffoldTemplate, "utf8"));
+  pinInternalRanges(template, version);
+  // A skin runs `npm run add` from its own copy of the scaffolder, which moves with the other packages.
+  if (template.devDependencies?.["create-dashhaus-skin"]) template.devDependencies["create-dashhaus-skin"] = `^${version}`;
+  await writeFile(scaffoldTemplate, `${JSON.stringify(template, null, 2)}\n`);
+  console.log(`create-dashhaus-skin template: @dashhaus ranges ^${version}`);
 }
 
-for (const pkg of publicPackages) {
-  const file = join(root, pkg.dir, "package.json");
-  const manifest = JSON.parse(await readFile(file, "utf8"));
-  manifest.version = version;
-  pinInternalRanges(manifest, version);
-  await writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(`${manifest.name}@${manifest.version}`);
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const version = process.argv[2];
+  if (!version || !SEMVER.test(version) || version === "0.0.0") {
+    console.error("usage: npm run release:version -- <x.y.z>");
+    process.exit(1);
+  }
+  await applyVersion(version);
 }
-
-const template = JSON.parse(await readFile(scaffoldTemplate, "utf8"));
-pinInternalRanges(template, version);
-// A skin runs `npm run add` from its own copy of the scaffolder, which moves with the other packages.
-if (template.devDependencies?.["create-dashhaus-skin"]) template.devDependencies["create-dashhaus-skin"] = `^${version}`;
-await writeFile(scaffoldTemplate, `${JSON.stringify(template, null, 2)}\n`);
-console.log(`create-dashhaus-skin template: @dashhaus ranges ^${version}`);

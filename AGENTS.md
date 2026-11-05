@@ -38,7 +38,8 @@ One word per thing, the same in code, Storybook and the docs.
 - `npm run build:ha` — the Lovelace card as one file, `dist/dashhaus.js`, also copied to `packages/bundle/dist/`
 - `npm run build:packages` — every public package's `dist`; the workspace keeps reading source (`spec/release.md`)
 - `npm run docs` — the documentation site's dev server; `build:docs` builds it to `docs/dist/` with Storybook under `docs/dist/storybook/`
-- `npm run release:version -- <x.y.z>` (then `npm install --package-lock-only`), `release:pack`, `verify:packages`, and `release:check` for pack then verify (`spec/release.md`)
+- `npm run change -- <breaking|feature|fix|internal> "<what a consumer notices>"` — the change note a pull request that changes what ships carries (`changes/`, spec/release.md → Change notes)
+- `npm run release [-- <x.y.z>]` — prepare a release PR: the version, the lockfile, the files' digests and the record in `spec/releases/`; merging it ships the release (spec/release.md → Releasing). Under it: `release:api` (the API against npm's latest), `release:digests` (refresh the digests), `release:version -- <x.y.z>`, `release:pack`, `verify:packages`, `release:check` for pack then verify, and `release:registry -- <x.y.z>` to check what npm serves
 - `npm run deploy [-- …]` — the `@dashhaus/deploy` CLI over `dashboard.config.mjs` and the `.env` beside it (`spec/deploy.md`)
 - `npm run perf:collect` — measure the deployed dashboards against the live Home Assistant (`spec/performance.md`)
 - `npm run new-card -- <name> --code <xx> --domain <ha_domain> [--kind control|reading]` — scaffold and register a new card (see Adding a card)
@@ -56,13 +57,13 @@ Node-run ESM is `.js` under `"type": "module"`. The only first-party `.mjs` is a
 
 ## Verifying changes
 
-1. `npm run check` — typecheck, lint, and unit tests.
+1. `npm run check` — typecheck, lint, and unit tests. A change to what ships also adds its change note, `npm run change`, written as the repo's `release-notes` skill says (CI fails the pull request without one; `internal` for a change no consumer notices).
 2. `npm run test-storybook` — every story renders and passes axe. Where `npx playwright install chromium` can't fetch the pinned build, set `DASHHAUS_CHROMIUM=/path/to/chromium`.
 3. `npm run storybook` — open the affected card's All states, Sizes, Footprints, Compact, Worst case and Details stories, and check every width and footprint. For Orb-wide changes, also inspect Orb → Foundations → Worst case.
 4. `npm run build:docs` — when `docs/` or the scaffolder's templates change.
 5. `npm run release:check` — when a package manifest, bin, export or module filename changes; packs the seven tarballs and installs them into a clean app.
 
-CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request, each lane installing through `.github/actions/setup`; the Docs workflow runs step 4. Why its lanes are shaped as they are is in `spec/release.md` → CI.
+CI (`.github/workflows/ci.yml`) runs steps 1, 2 and 5 and the `dx` clean-room journeys on every push and pull request, each lane installing through `.github/actions/setup`; the Docs workflow runs step 4. The Release workflow (`.github/workflows/release.yml`) runs when a release PR's version reaches main and ships only what that pull request recorded. Why its lanes are shaped as they are is in `spec/release.md` → CI.
 
 When a check or CI lane is slow, follow the repo's `test-speed` skill (`.agents/skills/test-speed/`): it measures before changing anything, keeps coverage identical, and its `references/` hold every measured speedup and rejected option in this repository. Read its Rejected tables before proposing a change.
 
@@ -85,6 +86,7 @@ The code is split by responsibility, so a whole different UI, a skin, can sit on
 - `dashboard.config.mjs` — the dashboards `npm run deploy` creates; the only file outside orb that imports `@dashhaus/orb/lovelace/auto`.
 - `verify/` — the cross-skin checks (boundaries, conformance, the Storybook tree, the packages, the docs, the toolchain, studies), each saying in its header what it holds, and `dx/`, the clean-room consumer journeys over the packed tarballs.
 - `scripts/` — the builds, `release/` (its rules in `manifest.js`), the perf collector and the generators, `new-card/` and `new-skin/`. Generators name packages through `scripts/packages.js`, never a path or a bare `@dashhaus/` literal, and register after `// new-card: …` or `// new-skin: …` marker comments. Change their templates when the framework changes, so new cards start from the current rules.
+- `changes/` — one change note per pull request, for the next release (spec/release.md → Change notes); `npm run release` collects them into `spec/releases/<version>.md`, the record its release PR reviews.
 - `config/` — the tool configs the commands pass explicitly; `eslint.config.js`, `tsconfig.json` and `skills-lock.json` stay at the root because their tools only read them there.
 - `docs/` — the documentation site for people (Astro Starlight): no repository paths and no rules for agents, except the **Contribute** section. Its sidebar is grouped by journey (spec/journeys.md), the user's first. Every code sample is a file in `docs/examples/` shown with `Example.astro`, never a fence, and API lists come from the packages' types (`verify/docs.test.ts`). A change a person deploying or choosing a skin would notice (a deploy step, a new card, a skin's look) updates the site too; rerun `npm run screenshots -w docs` when a skin's phone example or a kind's first card story changes. The author guide is one page, `src/content/docs/start/build-a-skin.mdx`; extend it rather than adding a second.
 

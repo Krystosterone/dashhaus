@@ -26,9 +26,17 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # A pull request's run checks out its merge commit; its first parent is the base, so the PR's own diff is
+          # one commit deep.
+          fetch-depth: 2
       - uses: ./.github/actions/setup
         with:
           tool-cache: "true"
+      # A pull request that changes what ships carries its change note (spec/release.md → Change notes).
+      - name: Check the change note
+        if: github.event_name == 'pull_request'
+        run: node scripts/release/changes.js check-pr
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build:ha
@@ -82,6 +90,9 @@ jobs:
           chromium: "true"
       - run: npm run release:pack
       - run: npm run verify:packages
+      # While a version is recorded but untagged (a release PR, or main before the Release workflow tags it), this
+      # commit must pack the files its record names, and the record must be finished.
+      - run: node scripts/release/candidate.js check
       - run: node verify/dx/marketplace.js
       - run: node verify/dx/user.js
       - run: node verify/dx/author.js

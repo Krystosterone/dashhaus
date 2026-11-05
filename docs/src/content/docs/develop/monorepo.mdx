@@ -55,6 +55,7 @@ folders do. ESLint and `verify/boundaries.test.ts` hold it.
 | `npm run deploy` | Builds the bundle and deploys the dashboards `dashboard.config.mjs` declares, with `.env` beside it |
 | `npm run docs` | This site's dev server; `npm run build:docs` builds it with Storybook under `/storybook` |
 | `npm run build:packages` | Each public package's `dist` |
+| `npm run change` | Writes the change note a pull request that changes what ships carries, for the next release's notes |
 | `npm run release:check` | Packs the seven tarballs and installs them into a clean app |
 | `npm run new-card`, `npm run new-skin` | The generators ([Add a card or a skin](/dashhaus/develop/cards-and-skins/)) |
 | `npm run perf:collect` | Measures the deployed dashboards in Chromium against a live Home Assistant |
@@ -69,6 +70,9 @@ can't be fetched, `DASHHAUS_CHROMIUM=/path/to/chromium` points them at a Chromiu
 2. `npm run test-storybook`: every story renders and passes axe, and a failure names the rule and the elements.
 3. A look in Storybook at the cards you touched: their All states, Sizes, Footprints, Compact, Worst case and Details
    stories, at every width.
+4. A change note, when the change reaches anyone who installs Dashhaus: `npm run change -- fix "…"`, with `breaking`,
+   `feature`, `fix`, or `internal` for a change no one installing it notices. Write it for someone deciding whether to
+   upgrade. CI fails a pull request that changes what ships without one, and the next release's notes are made of them.
 
 CI runs the first two on every push and pull request, and packs the release to run the clean-room journeys from the
 tarballs alone, one for each way in but this one: [installing from the Marketplace](/dashhaus/start/install/) and

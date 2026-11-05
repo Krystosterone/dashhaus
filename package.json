@@ -39,10 +39,15 @@
     "domains": "node scripts/domains.js",
     "study": "node scripts/study/run.js",
     "study:keep": "node scripts/study/keep.js",
+    "change": "node scripts/release/changes.js add",
+    "release": "node scripts/release/prepare.js",
     "release:version": "node scripts/release/version.js",
     "release:pack": "node scripts/release/pack.js",
     "release:check": "npm run release:pack && npm run verify:packages",
-    "verify:packages": "node scripts/release/verify.js"
+    "verify:packages": "node scripts/release/verify.js",
+    "release:registry": "node scripts/release/registry.js",
+    "release:api": "node scripts/release/api.js",
+    "release:digests": "node scripts/release/pack.js && node scripts/release/candidate.js write"
   },
   "dependencies": {
     "home-assistant-js-websocket": "9.7.1",

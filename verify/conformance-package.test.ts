@@ -7,10 +7,11 @@
  * never touches the repo's own `dist/` while the rest of the suite runs.
  */
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { PUBLISH_ORDER, publishOrder } from "../scripts/release/manifest.js";
 import { pack } from "../scripts/release/pack.js";
 
 const writeFiles = async (root: string, files: Record<string, string>) => {
@@ -33,6 +34,8 @@ describe("the packed public surface", () => {
       const dashboard = packed.find((pkg) => pkg.package === "@dashhaus/dashboard");
       const core = packed.find((pkg) => pkg.package === "@dashhaus/core");
       if (!dashboard || !core) throw new Error("pack did not produce the core and dashboard tarballs");
+      // The Release workflow publishes in this file's order, with the shell alone.
+      expect(await readFile(join(tarballs, PUBLISH_ORDER), "utf8")).toBe(publishOrder(packed));
 
       const files = execFileSync("tar", ["-tzf", dashboard.tarball], { encoding: "utf8" }).trim().split("\n");
       expect(files, "the packed dashboard ships the conformance and schema entries with their declarations").toEqual(
