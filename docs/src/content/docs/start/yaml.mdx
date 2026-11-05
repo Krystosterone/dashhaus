@@ -73,14 +73,14 @@ a row has fewer columns than it was written for, its cards flow in your order in
 row narrowed by its surroundings does the same. A state change never moves a card.
 
 <figure>
-  <Image class="light:sl-hidden" src={tabletDark} alt="On a tablet: a large thermostat across two columns, the alarm and a light stacked beside it and ending where it ends; then the weather and a room sensor two columns wide, with the blinds and the porch switch stacked beside them, and three modes in one card across the row." />
-  <Image class="dark:sl-hidden" src={tabletLight} alt="On a tablet: a large thermostat across two columns, the alarm and a light stacked beside it and ending where it ends; then the weather and a room sensor two columns wide, with the blinds and the porch switch stacked beside them, and three modes in one card across the row." />
+  <Image class="light:sl-hidden" src={tabletDark} widths={[720, 1440, 2160]} sizes="min(100vw, 45rem)" alt="On a tablet: a large thermostat across two columns, the alarm and a light stacked beside it and ending where it ends; then the weather and a room sensor two columns wide, with the blinds and the porch switch stacked beside them, and three modes in one card across the row." />
+  <Image class="dark:sl-hidden" src={tabletLight} widths={[720, 1440, 2160]} sizes="min(100vw, 45rem)" alt="On a tablet: a large thermostat across two columns, the alarm and a light stacked beside it and ending where it ends; then the weather and a room sensor two columns wide, with the blinds and the porch switch stacked beside them, and three modes in one card across the row." />
   <figcaption>The Orb sample above, on a tablet: the thermostat spans two, the alarm and the light stack in the third and end where it ends (`align: bottom`), and the porch switch fills the space under the blinds (`flow: dense`).</figcaption>
 </figure>
 
 <figure>
-  <Image class="light:sl-hidden" src={phoneDark} width={310} alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
-  <Image class="dark:sl-hidden" src={phoneLight} width={310} alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
+  <Image class="light:sl-hidden" src={phoneDark} width={310} widths={[310, 620, 930]} sizes="310px" alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
+  <Image class="dark:sl-hidden" src={phoneLight} width={310} widths={[310, 620, 930]} sizes="310px" alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
   <figcaption>The same YAML on a phone: two columns fit, so the anchors let go and the cards flow in order, at their own heights.</figcaption>
 </figure>
 
