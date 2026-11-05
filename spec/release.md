@@ -261,7 +261,8 @@ Decided, and why:
 - **The command line stays**, for CI, automation and dashboards in YAML mode. Installing both ways loads two copies of
   the bundle, so the install page says to pick one.
 
-What only the operator can do, in order, each once (GitHub issues #29 to #32 track them):
+What only the operator can do, in order, each once. Steps 1 to 3 are done: the repository went public (#29) and
+`v0.2.0` and `v0.2.1` shipped (#30). Steps 4 and 5 are still open, as #31 and #32:
 
 1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
 2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;
