@@ -1,18 +1,21 @@
 ---
 title: Studies
-description: "Skins a fresh agent built from the published packages, kept so you can see what they make and build on them."
+description: "How Dashhaus tests itself with agents: a fresh agent builds a skin from the release packages alone, and the skins those runs leave behind are kept for you to explore and build on."
 ---
 
 import Studies from "../../../components/Studies.astro";
 
-A study is a skin an agent built, kept so you can see what Dashhaus makes and start from it. It is not finished or
-polished, and it doesn't ship.
+Studies are how we check that Dashhaus works for someone who isn't us. When the packages, the scaffolder or their
+guides change, we hand a fresh agent the release packages, a picture or a description and a Home Assistant to deploy
+to, and nothing else: no repository, no web, no help. It builds a skin the way you would with
+[Build a skin](/dashhaus/start/build-a-skin/), and writes down every guess, retry and dead end along the way. That list
+is the real result. Each item is something a guide left unsaid or a tool got wrong, and it becomes the next fix.
 
-A study is a run: a fresh agent, given only the release packages, a picture or a description and a Home Assistant
-to deploy to, builds a skin the way you would with [Build a skin](/dashhaus/start/build-a-skin/), then writes down its
-design rules and every guess and dead end along the way. Each study is then kept in the repository like any skin: in
-Storybook under **Studies**, with a Read me first page, its cards, dashboards, foundations and connected cards, and
-checked like every skin so it keeps working.
+The skin is a by-product, and we keep it because it's too good to throw away. Each one lands in the repository like
+any other skin: in Storybook under **Studies**, with a Read me first page, its cards, dashboards, foundations and
+connected cards, and the same checks as every skin, so it keeps working as Dashhaus changes. None of them is finished
+or polished, and none of them ships. A few were built inside the repository instead of from the packages; each one's
+Read me first page says how it was made.
 
 Do what you want with them: take ideas, copy a part or a card, improve one, or build a skin of your own on top of it.
 If you make one better, contributions back are welcome.
