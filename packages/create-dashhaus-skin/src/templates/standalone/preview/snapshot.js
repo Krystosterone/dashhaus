@@ -6,7 +6,8 @@
  *   npm run snapshot -- --yaml '{"cards":[{"entity":"light.porch"}]}'
  *
  * It serves `preview/` with Vite and drives Chromium through Playwright, a dev dependency. The first run tells you
- * the command that installs Playwright's Chromium. Page errors are printed, and fail the run.
+ * the commands that install Playwright's Chromium; `DASHHAUS_CHROMIUM=/path/to/chrome` uses a Chromium or Chrome
+ * already on the machine instead. Page errors are printed, and fail the run.
  */
 /* global document -- the waitForFunction and evaluate callbacks run in the page. */
 import { mkdir } from "node:fs/promises";
@@ -44,7 +45,9 @@ const shots = [
 let browser;
 const problems = [];
 try {
-  browser = await chromium.launch();
+  // A Chromium or Chrome already on the machine, when Playwright's own build isn't installed or can't be.
+  const executablePath = process.env.DASHHAUS_CHROMIUM || undefined;
+  browser = await chromium.launch({ executablePath });
   await mkdir(out, { recursive: true });
   // A warm-up load: Vite finds a newly imported dependency on the first request and re-optimizes, which reloads the
   // page and can briefly serve two copies of React ("Invalid hook call"). The shots start once that has settled.
@@ -73,7 +76,12 @@ try {
   }
 } catch (error) {
   if (/Executable doesn't exist|browserType\.launch/.test(String(error?.message))) {
-    console.error("Playwright has no Chromium yet: npx playwright install chromium");
+    console.error(process.env.DASHHAUS_CHROMIUM
+      ? `No browser at DASHHAUS_CHROMIUM=${process.env.DASHHAUS_CHROMIUM}: point it at a Chromium or Chrome executable.`
+      : `Playwright has no Chromium yet. Install it, then npm run snapshot again:
+  npx playwright install chromium
+  npx playwright install-deps chromium   # Linux only, when Chromium is missing system libraries (needs sudo)
+Or use a Chromium or Chrome already on this machine: DASHHAUS_CHROMIUM=/path/to/chrome npm run snapshot`);
   } else {
     console.error(error);
   }
