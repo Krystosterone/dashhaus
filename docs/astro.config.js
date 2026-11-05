@@ -127,6 +127,7 @@ export default defineConfig({
         {
           label: "Reference",
           items: [
+            { label: "Release notes", slug: "releases" },
             { label: "Storybook", link: "/storybook/", attrs: { target: "_blank" } },
             { label: "Specification", link: `${repo}/tree/main/spec`, attrs: { target: "_blank" } },
           ],

@@ -80,7 +80,8 @@ the trigger, and the Release workflow only reproduces what the pull request reco
    packs again, writes the files' SHA-256 to `releases/<version>.sha256` and the record to `releases/<version>.md`,
    and deletes the notes. Two runs on one commit write the same files.
 2. **Finish the record**, in the pull request. Its `TODO`s are what only a person can decide: the two or three
-   lines of its `## Release page` (the GitHub release's body), the live Home Assistant smoke below (run on the
+   lines of its `## Release page` (the GitHub release's body, and with its `### Upgrading` steps the version's entry on
+   the documentation site's Release notes page, which lists the notes in `changes/` until then), the live Home Assistant smoke below (run on the
    recorded files, or "unrun" and why), and, when the API comparison shows a removed or changed export that no
    `breaking` note owns, whether it breaks. An agent may draft them; a person reviews them.
 3. **Merge**, with CI green: its `dx` lane runs `node scripts/release/candidate.js check`, which fails while the record
