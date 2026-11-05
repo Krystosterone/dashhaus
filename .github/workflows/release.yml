@@ -1,18 +1,19 @@
 name: Release
 
-# A published GitHub release ships everything its tag builds: dashhaus.js as the release's asset, the file the Home
-# Assistant Marketplace and HACS install, and the seven public packages on npm. Publishing the release (and its tag)
-# stays the operator's step, spec/release.md → Publishing; this only ships what the tag builds, so neither can differ
-# from it. Rerunning it, or dispatching it for an existing tag, is safe: the asset is replaced with the same bytes and
-# a version already on npm is skipped.
+# Merging a release PR ships it: the push to main that moves the bundle's version to one with no tag yet runs this,
+# and it tags v<version>, attaches dashhaus.js (the file the Home Assistant Marketplace and HACS install), publishes the
+# seven packages to npm and publishes the GitHub release. Everything it ships was decided and reviewed in that PR
+# (spec/release.md → Releasing): the version, the notes, and the files' SHA-256 in spec/releases/<version>.sha256,
+# which the build must reproduce before anything leaves. It takes no inputs and runs no model.
+#
+# The jobs run least reversible last: a draft release, then npm, then the registry smoke, then the published release
+# the Marketplace sees. Every job looks before it acts, so rerunning the workflow, or dispatching it on main, finishes a
+# release that stopped partway and does nothing to one that shipped.
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+    paths: [packages/bundle/package.json]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: The existing release's tag to build, attach dashhaus.js to and publish to npm
-        required: true
 
 env:
   # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
@@ -24,30 +25,61 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.event.release.tag_name || inputs.tag }}
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  build:
+  # Whether this commit has a release to ship: its version is untagged, or tagged at this very commit (a rerun).
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      release: ${{ steps.plan.outputs.release }}
+      prerelease: ${{ steps.plan.outputs.prerelease }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.release.tag_name || inputs.tag }}
-          # git describe names the build in the bundle's console line.
-          fetch-depth: 0
           persist-credentials: false
-      # No cache: the file every Home Assistant installs is built from the tag and the lockfile, not from a node_modules
-      # another workflow's job may have saved.
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::a release ships from main, not $GITHUB_REF"
+            exit 1
+          fi
+          version=$(jq -r .version packages/bundle/package.json)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          case "$version" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;; esac
+          if at=$(gh api "repos/$GITHUB_REPOSITORY/commits/refs/tags/v$version" --jq .sha 2>/dev/null); then
+            if [ "$at" != "$GITHUB_SHA" ]; then
+              echo "::notice::v$version is already released, at ${at:0:7}; nothing to release"
+              echo "release=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "v$version is tagged at this commit: finishing its release"
+          fi
+          for file in "spec/releases/$version.md" "spec/releases/$version.sha256"; do
+            test -f "$file" || { echo "::error::$file is missing: a release starts with npm run release, in a pull request"; exit 1; }
+          done
+          echo "release=true" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      # No cache: the files every Home Assistant and npm install get are built from this commit and the lockfile, not
+      # from a node_modules another workflow's job may have saved.
       - uses: ./.github/actions/setup
         with:
           cache: "false"
-      # The Marketplace takes the release's tag as the version and the asset named after the repository as the file;
-      # npm takes the manifests' version. They must be the same.
-      - name: Check the tag is the packages' version
-        run: test "${TAG#v}" = "$(node -p "require('./packages/bundle/package.json').version")"
       - run: npm run build:ha
       - run: npm run release:pack
       # The tarballs about to be published, installed into a clean app, as CI's dx lane does on every push.
@@ -55,6 +87,9 @@ jobs:
       # One build for both stores: the Marketplace's dashhaus.js is the file inside @dashhaus/bundle.
       - name: Check the asset is the bundle package's file
         run: cmp dist/dashhaus.js packages/bundle/dist/dashhaus.js
+      # The gate: this clean build reproduces, byte for byte, the files the release PR recorded and was reviewed on.
+      - run: node scripts/release/candidate.js check --always
+      - run: node scripts/release/candidate.js body > release-page.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dashhaus.js
@@ -67,42 +102,71 @@ jobs:
             release/*.tgz
             release/publish.tsv
           if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-page
+          path: release-page.md
+          if-no-files-found: error
 
-  attach:
-    needs: build
+  # A draft release at this commit, with its notes and dashhaus.js. A draft makes no tag and nobody sees it yet; an
+  # immutable release takes its files only while it is a draft.
+  draft:
+    needs: [plan, build]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
     env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: v${{ needs.plan.outputs.version }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      PRERELEASE: ${{ needs.plan.outputs.prerelease }}
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: dashhaus.js
           path: dist
-      - name: Attach dashhaus.js
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$TAG" dist/dashhaus.js --clobber --repo "$GITHUB_REPOSITORY"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-page
+          path: notes
+      - name: Draft the release
+        run: |
+          set -euo pipefail
+          state=$(gh release list --limit 100 --json tagName,isDraft --jq ".[] | select(.tagName == \"$TAG\") | if .isDraft then \"draft\" else \"published\" end")
+          if [ "$state" = published ]; then
+            echo "$TAG is already published; nothing to draft"
+            exit 0
+          fi
+          if [ -z "$state" ]; then
+            flags=()
+            [ "$PRERELEASE" = true ] && flags+=(--prerelease)
+            gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "Dashhaus $VERSION" --notes-file notes/release-page.md "${flags[@]}"
+          else
+            gh release edit "$TAG" --notes-file notes/release-page.md
+          fi
+          gh release upload "$TAG" dist/dashhaus.js --clobber
 
   # npm trusted publishing: npm accepts this workflow's OIDC identity in place of a token, so there is no npm token
   # secret and no 2FA prompt, and every version carries a provenance attestation naming this repository, workflow and
   # commit. Each package's trusted publisher on npmjs.com names this repository, `release.yml` and the `npm`
-  # environment (spec/release.md → Publishing). The job checks out the tag only for .nvmrc, the pinned npm and the
+  # environment (spec/release.md → Publishing). The job checks out the commit only for .nvmrc, the pinned npm and the
   # setup action; it installs nothing and runs none of the repository's scripts, only `npm publish` on the tarballs the
   # build packed.
   publish:
-    needs: build
+    needs: [plan, build, draft]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: npm
     permissions:
       contents: read
       id-token: write
+    env:
+      PRERELEASE: ${{ needs.plan.outputs.prerelease }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.release.tag_name || inputs.tag }}
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
@@ -112,33 +176,37 @@ jobs:
           name: packages
           path: release
       # In publish.tsv's order, so every internal range resolves the moment it is published. A version npm already has
-      # is skipped, so a run that stopped halfway finishes on a rerun; npm never lets a version be published twice.
+      # is skipped when it is this very file, and stops the run when it is any other: npm never takes a version twice.
       - name: Publish to npm
         run: |
           set -euo pipefail
+          tag=latest
+          [ "$PRERELEASE" = true ] && tag=next
           while IFS=$'\t' read -r name version file; do
-            if [ "$(npm view "$name@$version" version 2>/dev/null || true)" = "$version" ]; then
-              echo "$name@$version is already on npm; skipped"
-              continue
+            published=$(npm view "$name@$version" dist.shasum 2>/dev/null || true)
+            if [ -n "$published" ]; then
+              if [ "$published" = "$(sha1sum "release/$file" | cut -d' ' -f1)" ]; then
+                echo "$name@$version is already on npm, this very file; skipped"
+                continue
+              fi
+              echo "::error::$name@$version is on npm as a different file ($published); a version can't be published twice"
+              exit 1
             fi
             # A prerelease never becomes what `npm install <name>` resolves.
-            tag=latest
-            case "$version" in *-*) tag=next ;; esac
             npm publish "./release/$file" --provenance --ignore-scripts --tag "$tag"
           done < release/publish.tsv
 
-  # The registry smoke: what npm now serves is byte for byte what the tag packed, and the clean-room journeys pass from
-  # it. Read-only, like the build.
+  # The registry smoke: what npm now serves is byte for byte what this commit packed, and the clean-room journeys pass
+  # from it. Read-only, like the build.
   registry:
-    needs: publish
+    needs: [plan, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      VERSION: ${{ needs.plan.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.release.tag_name || inputs.tag }}
           persist-credentials: false
       - uses: ./.github/actions/setup
         with:
@@ -147,8 +215,35 @@ jobs:
         with:
           name: packages
           path: release
-      - run: npm run release:registry -- "$TAG" --out registry --compare release
+      - run: npm run release:registry -- "$VERSION" --out registry --compare release
       - run: node verify/dx/marketplace.js --tarballs registry
       - run: node verify/dx/user.js --tarballs registry
       - run: node verify/dx/author.js --tarballs registry
       - run: node verify/dx/developer.js --tarballs registry
+
+  # Last: publishing the draft creates the tag v<version> at this commit, and the Marketplace and HACS see the release.
+  release:
+    needs: [plan, registry]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: v${{ needs.plan.outputs.version }}
+      PRERELEASE: ${{ needs.plan.outputs.prerelease }}
+    steps:
+      - name: Publish the release
+        run: |
+          set -euo pipefail
+          draft=$(gh release list --limit 100 --json tagName,isDraft --jq ".[] | select(.tagName == \"$TAG\") | .isDraft")
+          if [ "$draft" = false ]; then
+            echo "$TAG is already published"
+            exit 0
+          fi
+          if [ "$PRERELEASE" = true ]; then
+            gh release edit "$TAG" --draft=false
+          else
+            gh release edit "$TAG" --draft=false --latest
+          fi

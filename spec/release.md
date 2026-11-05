@@ -24,8 +24,8 @@ Fixtures, demo transports and `testing` are shipped because they are declared pu
 
 What a third-party skin may rely on from `./skin`, `./card` and `./schema`, what is a per-kind escape hatch, and what is not stable yet is in `spec/contract.md`.
 
-Current candidate notes: [0.2.0](releases/0.2.0.md), including the publish order, the changes since `0.1.0` and the
-tarball inspection.
+Each release has its record in `releases/<version>.md`, written in its release PR (Releasing, below); the first,
+[0.2.0](releases/0.2.0.md), was written by hand and has the publish order and the tarball inspection.
 
 Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
@@ -35,7 +35,7 @@ Every package ships a non-empty `README.md` and the root `LICENSE`, and declares
 `@dashhaus/dashboard`, the skins and the bundle are built from the same repository and tag, and coupled releases keep
 the internal ranges unambiguous.
 
-Apply it with the command, never by editing the manifests:
+`npm run release` applies it (Releasing, below); on its own, apply it with the command, never by editing the manifests:
 
 ```sh
 npm run release:version -- 0.2.0
@@ -49,53 +49,105 @@ without `files`/`sideEffects`, or without `license: MIT`; `verify:packages` read
 
 If a package ever needs its own line, `publicPackages` in `scripts/release/manifest.js` is the single place to give it a separate version and range; write the release order there and in this document. Until then, independent versions are not supported.
 
-## Release commands
+## Change notes
+
+A pull request that changes what a release ships carries a change note: one file in `changes/`, written with
 
 ```sh
-npm run release:version -- 0.3.0   # fixed version in every public manifest
-npm install --package-lock-only     # record it in package-lock.json
-npm run check                       # typecheck, lint, unit tests
-npm run build:ha                    # the Lovelace bundle still builds from source
-npm run release:pack                # build dist, pack the release tarballs and publish.tsv, their order
-npm run verify:packages             # clean-app install, imports, typecheck, deploy bin
+npm run change -- <breaking|feature|fix|internal> "<what a consumer notices>"
 ```
 
-`npm run release:registry -- <x.y.z> [--out registry] [--compare release]` packs the published version back from npm,
-checks each file against the registry's `dist.shasum` and, with `--compare`, against the tarballs the tag packed.
+in the pull request that makes the change, while its reason is fresh, and reviewed in its diff. The text is for
+someone deciding whether to upgrade; `internal` is for a change no consumer notices, and is counted, never listed.
+One file per pull request, so two never conflict; `changes/README.md` is the guide.
+
+CI's `checks` lane runs `node scripts/release/changes.js check-pr` on every pull request: a diff that touches a public
+package's files (tests, stories and READMEs aside), the bundle's entry, the lockfile or the build fails unless it adds
+or edits a note, and every note must parse. `shipsFrom` in `scripts/release/changes.js` is that list. A release PR
+collects the notes instead.
+
+## Releasing
+
+A release is one pull request and one merge. Everything is decided and reviewed in the pull request; merging it is
+the trigger, and the Release workflow only reproduces what the pull request recorded and ships it.
+
+1. **Prepare.** On a branch from main, `npm run release` (or `npm run release -- <x.y.z>`, `--dry-run` to see the
+   version first). It reads the notes, packs the current code and compares its API with the latest version on npm
+   (`npm run release:api` alone), and suggests the version: before 1.0 a breaking note or API break moves the minor and
+   anything else the patch, as a caret range reads it; from 1.0, semver. It applies the version and the lockfile,
+   packs again, writes the files' SHA-256 to `releases/<version>.sha256` and the record to `releases/<version>.md`,
+   and deletes the notes. Two runs on one commit write the same files.
+2. **Finish the record**, in the pull request. Its `TODO`s are what only a person can decide: the two or three
+   lines of its `## Release page` (the GitHub release's body), the live Home Assistant smoke below (run on the
+   recorded files, or "unrun" and why), and, when the API comparison shows a removed or changed export that no
+   `breaking` note owns, whether it breaks. An agent may draft them; a person reviews them.
+3. **Merge**, with CI green: its `dx` lane runs `node scripts/release/candidate.js check`, which fails while the record
+   has a `TODO` or the commit doesn't pack the files it records. When main moved under the pull request,
+   `npm run release:digests` refreshes the record's files; require branches to be up to date before merging, so the
+   check always ran on what merges.
+
+Merging moves `packages/bundle/package.json` on main to a version with no tag, which runs
+`.github/workflows/release.yml`, least reversible last:
+
+- **plan** reads the version, refuses anything but main, and stops quietly when that version is tagged at another
+  commit (nothing to release); tagged at this commit, it finishes the release. It needs the record and its digests.
+- **build**, read-only and with no cache: `build:ha`, `release:pack`, `verify:packages`, checks the Marketplace's
+  `dashhaus.js` is the file `@dashhaus/bundle` ships, then `candidate.js check --always`: a clean build must reproduce
+  every recorded file byte for byte, or nothing ships. It hands on the files and the record's Release page.
+- **draft** creates the GitHub release as a draft at this commit, with that body and `dashhaus.js` attached. A draft
+  has no tag and nobody sees it; an immutable release only takes its files while it is a draft.
+- **publish** runs `npm publish` on each tarball in `publish.tsv`'s order, which is `publicPackages`', so every
+  internal range resolves. A version already on npm is skipped when it is this very file and stops the run when it is
+  any other. A prerelease goes to the `next` dist-tag, everything else to `latest`.
+- **registry**: `release:registry` with `--compare`, so npm serves byte for byte what this commit packed, then the four
+  clean-room journeys from those tarballs ([journeys.md](journeys.md)).
+- **release** publishes the draft, which creates the tag `v<version>` at this commit and is what the Marketplace and
+  HACS see. Last, so a release that failed anywhere earlier is never offered to them.
+
+Every job looks before it acts, so rerunning the workflow, or dispatching it on main, finishes a release that stopped
+partway and does nothing to one that shipped. It takes no inputs and runs no model; `verify/toolchain.test.ts` holds
+its shape. Agents work upstream of it, in the pull request: writing notes, running `npm run release`, drafting the
+record. Nothing they write reaches a consumer without passing review and the checks above.
+
+Decided, and why:
+
+- **The merge is the trigger, not a button after it.** The merge is the reviewed decision; a second click adds a step
+  and no information. `workflow_dispatch` is only for finishing a release that stopped.
+- **One note file per pull request, not a shared `CHANGELOG.md`**, which conflicts between any two open pull requests.
+- **Our own commands, not Changesets, release-please or semantic-release.** One fixed version for seven packages, the
+  scaffolder's template ranges and the recorded digests are this repository's; each tool would duplicate
+  `release:version` or need configuring around it.
+- **No staging dist-tag promoted to `latest` after the smoke.** Trusted publishing covers `npm publish`, not
+  `npm dist-tag`, so promotion would bring a token back. npm versions are immutable anyway: a bad release is fixed
+  forward, by the next patch.
+
+## Determinism
+
+The files a release PR records are the files the workflow ships because nothing in a build depends on anything but the
+tree: the bundle names its build by its version (`config/vite.lovelace.config.ts`), never a ref, so tagging changes no
+byte; npm packs with fixed timestamps; the lockfile pins every dependency, and the build installs it with no cache.
+The 0.2.0 tarballs packed again here, on another machine, matched npm's byte for byte, the bundle aside, which then
+still named its commit.
+
+`npm run release:registry -- <x.y.z> [--out registry] [--compare release]` packs a published version back from npm,
+checks each file against the registry's `dist.shasum` and, with `--compare`, against the tarballs this commit packs.
 
 ## Publishing
 
-Publishing the GitHub release is the operator's one step; `.github/workflows/release.yml` ships what its tag builds:
-
-1. Merge the version bump (the commands above) to main, with CI green.
-2. Run the live Home Assistant smoke below on that commit and record it in `spec/releases/<version>.md`.
-3. Tag the commit `v<version>` and publish a GitHub release from it. Mark a `-rc.N` version as a pre-release.
-
-The workflow then runs four jobs:
-
-- **build**, read-only and with no cache: checks the tag is the packages' version, runs `build:ha`, `release:pack` and
-  `verify:packages`, checks the Marketplace's `dashhaus.js` is the same file `@dashhaus/bundle` ships, and uploads both.
-- **attach** adds `dashhaus.js` to the release (The Marketplace, below).
-- **publish** runs `npm publish` on each tarball in `publish.tsv`'s order, which is `publicPackages`', so every
-  internal range resolves. A version npm already has is skipped, so rerunning the workflow, or dispatching it for the
-  tag, finishes a publish that stopped halfway. A prerelease goes to the `next` dist-tag, everything else to `latest`.
-- **registry** is the registry smoke: `release:registry` with `--compare`, so npm serves byte for byte what the tag
-  packed, then the four clean-room journeys from those tarballs ([journeys.md](journeys.md)).
-
-It publishes with **npm trusted publishing**: npm accepts the publish job's GitHub OIDC identity in place of a token,
-so there is no npm token in the repository or its secrets, no 2FA prompt, and every version carries a provenance
-attestation naming the repository, workflow and commit. The publish job runs in the `npm` environment (add required
-reviewers there for a second pair of eyes before anything reaches npm); it installs nothing, runs none of the
-repository's scripts and publishes with `--ignore-scripts`. `verify/toolchain.test.ts` holds the workflow to that.
+The workflow publishes with **npm trusted publishing**: npm accepts the publish job's GitHub OIDC identity in place of
+a token, so there is no npm token in the repository or its secrets, no 2FA prompt, and every version carries a
+provenance attestation naming the repository, workflow and commit. The publish job runs in the `npm` environment (add
+required reviewers there for a second pair of eyes before anything reaches npm); it installs nothing, runs none of the
+repository's scripts and publishes with `--ignore-scripts`.
 
 Set up once, by the owner of the `@dashhaus` scope, for each of the seven packages on npmjs.com (the package's
 Settings → Trusted Publisher): GitHub Actions, organization or user `Krystosterone`, repository `dashhaus`, workflow
-`release.yml`, environment `npm`. Then set each package's publishing access to require two-factor authentication and disallow
-tokens, so the workflow is the only way to publish. A new public package has to exist on npm before it can have a
-trusted publisher: publish its first version by hand, as below.
+`release.yml`, environment `npm`. Then set each package's publishing access to require two-factor authentication and
+disallow tokens, so the workflow is the only way to publish. A new public package has to exist on npm before it can
+have a trusted publisher: publish its first version by hand, as below.
 
 By hand, only for a package's first version or when the workflow cannot run: be logged in with the registry's 2FA
-(`npm whoami`), pack at the tag, and publish in dependency order. Keep the `./`: npm 11.18 reads a bare
+(`npm whoami`), pack at the release commit, and publish in dependency order. Keep the `./`: npm 11.18 reads a bare
 `release/x.tgz` as a GitHub repository.
 
 ```sh
@@ -106,13 +158,27 @@ npm run release:registry -- <version> --compare release
 
 Then run `node verify/dx/user.js`, `author.js`, `developer.js` and `marketplace.js` with `--tarballs registry`.
 
+## Release commands
+
+```sh
+npm run change -- fix "<text>"      # a change note, in the pull request that makes the change
+npm run release [-- <x.y.z>]        # prepare a release PR: version, lockfile, digests, record
+npm run release:api                 # the API of release/ against the latest version on npm
+npm run release:digests             # pack, and refresh the record's digests
+npm run release:version -- 0.2.0   # only the fixed version, in every public manifest
+npm run release:pack                # build dist, pack the release tarballs and publish.tsv, their order
+npm run verify:packages             # clean-app install, imports, typecheck, deploy bin
+npm run release:registry -- 0.2.0   # what npm serves for a version
+```
+
 ### Live Home Assistant smoke
 
-CI proves both journeys against the in-memory Home Assistant in `verify/dx/`. Before publishing the release, the operator runs the same two journeys once against a real instance. It needs an admin token and an SSH or mounted `HA_WWW`; it is never a CI job and it is recorded as run or unrun, never inferred from the fake.
+CI proves both journeys against the in-memory Home Assistant in `verify/dx/`. In the release PR, before merging, the operator runs the same two journeys once against a real instance, on the files its record names. It needs an admin token and an SSH or mounted `HA_WWW`; it is never a CI job and it is recorded as run or unrun, never inferred from the fake.
 
 Prepare:
 
-1. Pack at the candidate commit and note both values: `git rev-parse HEAD` and `npm run release:pack`.
+1. Pack at the release PR's commit with `npm run release:pack` and note `git rev-parse HEAD`. Its tarballs are the
+   ones the record's `.sha256` names: `node scripts/release/candidate.js check` reports only the record's `TODO`s.
 2. Use a scratch Home Assistant, or first delete the dashboards `home-orb`, `home-field` and `dashhaus-my-skin` and the resources `/local/dashhaus/dashhaus.js` and `/local/dashhaus-my-skin/dashhaus-my-skin.js` from earlier runs. Otherwise the smoke exercises updates, not first creation, and must say so.
 3. Set `release` to this repository's `release/` directory and `<version>` to the packed version in the commands below. Copy `.env.example` to the app and fill `HA_URL`, `HA_TOKEN` and `HA_WWW` (see [deploy.md](deploy.md)). Never put the token in the record.
 
@@ -163,13 +229,13 @@ release serves both. What the repository holds:
 
 - `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
   `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
-- `.github/workflows/release.yml` builds `dist/dashhaus.js` from a published release's tag, checks the tag is
-  `v<version>` of the packages, and attaches the file to the release (and publishes the packages, Publishing above). The build runs read-only and restores no cache
-  (the setup action's `cache: "false"`): any job that runs on main, a third-party action's included, can save an Actions
-  cache entry a later run restores, so the file is installed from the tag's lockfile alone. Only the job that
-  uploads the file may write to the repository, and it runs none of the repository's scripts. Publishing the release
-  stays the operator's step; the workflow only ships what the tag builds. `dist/` stays ignored: the release asset is the artifact, never a
-  committed build.
+- `.github/workflows/release.yml` (Releasing, above) builds `dist/dashhaus.js` from the merged release commit,
+  attaches it to the release while it is a draft, and publishes the release, whose tag `v<version>` is the version
+  the Marketplace reads. The build runs read-only and restores no cache (the setup action's `cache: "false"`): any job
+  that runs on main, a third-party action's included, can save an Actions cache entry a later run restores, so the
+  file is installed from the lockfile alone. Only the jobs that draft and publish the release may write to the
+  repository, and they run none of the repository's scripts. `dist/` stays ignored: the release asset is the
+  artifact, never a committed build.
 - `.github/workflows/hacs.yml` runs `hacs/action`, its wrapper pinned to a commit on its `main` while the checks come from HACS's `ghcr.io/hacs/action:main` image, so they follow HACS's current rules and the pin needs no bump, with `category: plugin` and no ignored checks on every pull request,
   push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
   repository is private, like the Docs deploy.
@@ -196,8 +262,8 @@ What only the operator can do, in order, each once (GitHub issues #29 to #32 tra
 1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
 2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;
    the HACS action checks them.
-3. Publish the release `v<version>` from the tagged commit. The Release workflow attaches `dashhaus.js` and publishes
-   the packages; check its four jobs and the HACS workflow are green.
+3. Merge the release PR (Releasing, above). The Release workflow tags `v<version>`, attaches `dashhaus.js` and
+   publishes the packages and the release; check its six jobs and the HACS workflow are green.
 4. Live, on a scratch Home Assistant 2026.11 and on an older one with HACS: install from the
    [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
    as a custom repository, add the setup card, press Create, open both dashboards, edit one, press again and see
@@ -208,7 +274,7 @@ What only the operator can do, in order, each once (GitHub issues #29 to #32 tra
 
 ## CI
 
-`.github/workflows/ci.yml` is the pipeline: `checks` (typecheck, lint, `build:ha`), `unit` (every suite but the generator copies), two generator shards, `dx` (`release:pack`, `verify:packages`, then the clean-room journeys over the packed tarballs) and two Storybook shards. The required `check` job gathers the checks, unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. Every lane checks out and installs through `.github/actions/setup`, and the Docs workflow does too. The reasons behind its shape:
+`.github/workflows/ci.yml` is the pipeline: `checks` (a pull request's change note, typecheck, lint, `build:ha`), `unit` (every suite but the generator copies), two generator shards, `dx` (`release:pack`, `verify:packages`, an untagged release candidate's digests and record, then the clean-room journeys over the packed tarballs) and two Storybook shards. The required `check` job gathers the checks, unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. Every lane checks out and installs through `.github/actions/setup`, and the Docs workflow does too. The reasons behind its shape:
 
 - Each lane is one runner's install (about 15s on a cache hit) plus its work, and the Storybook shards are the longest, so a lane is split only when it would outlast them. The release proof runs once, in `dx`, whose journeys need its tarballs anyway.
 - `node_modules` is cached whole, keyed on the manifests, and installed only on a miss; npm's download cache is restored only then. A cache hit still leaves the workspace links pointing at the same paths, because the checkout path is fixed.
@@ -218,8 +284,8 @@ What only the operator can do, in order, each once (GitHub issues #29 to #32 tra
 - `test-storybook` builds Storybook in test mode (`storybook build --test`), which leaves out the docs pages it never visits; the Docs workflow's `build:docs` builds them in full. Its axe pass is injected once per page, not per story, and collects violations only. The Storybook and `dx` lanes install only Playwright's headless shell, cached per Playwright version; the runner image already has Chrome's system libraries.
 - A newer commit cancels the run in progress on the same branch or pull request; main keeps every run.
 - The `dx` journeys install only the packed tarballs and import nothing from this repository; a failure in either is a failure of the public surface, not a flaky integration.
-- CI has no publish, tag or release step, and needs no secrets. The Release workflow is not CI: it runs only when the
-  operator publishes a release, and its only writes are that release's asset, with the run's own token, and the npm
-  publish, with the publish job's OIDC identity (Publishing, above). It needs no secrets either.
+- CI has no publish, tag or release step, and needs no secrets. The Release workflow is not CI: it runs only when a
+  release PR's version reaches main, and its only writes are the GitHub release and its asset, with the run's own
+  token, and the npm publish, with the publish job's OIDC identity (Publishing, above). It needs no secrets either.
 
 The measurements behind each of these, and the options measured and rejected, are in `.agents/skills/test-speed/references/dashhaus-evidence.md`.

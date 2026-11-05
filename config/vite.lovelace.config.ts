@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
@@ -27,13 +26,12 @@ function inlineCss(): Plugin {
   };
 }
 
-const build = (() => {
-  try {
-    return execSync("git describe --always --dirty", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
-  } catch {
-    return "dev";
-  }
-})();
+/**
+ * The build's name in its console line: the bundle's version, from the files alone. Never a ref (`git describe`, a tag,
+ * `-dirty`), so the same tree builds the same bytes before and after it is tagged, and the files a release PR records
+ * are the files the Release workflow ships (spec/release.md → Determinism). A deploy is told apart by its content hash.
+ */
+const build = (JSON.parse(readFileSync("packages/bundle/package.json", "utf8")) as { version: string }).version;
 
 /** `npm run build:ha` — the Lovelace card as one self-contained ES module: dist/dashhaus.js. */
 export default defineConfig({

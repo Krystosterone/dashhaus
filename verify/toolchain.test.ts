@@ -72,30 +72,42 @@ describe("the pinned npm", () => {
     for (const step of restores) expect(step, "each install cache is skipped when cache is false").toMatch(/if: inputs\.cache != 'false'/);
   });
 
-  it("publishes to npm with no token, from the build's tarballs, running none of the repository's scripts", () => {
-    // spec/release.md → Publishing: trusted publishing, so the only credential is the publish job's own OIDC identity.
+  it("ships a release from main on its own, publishing to npm with no token and running no repository script after the build", () => {
+    // spec/release.md → Releasing: merging the release PR is the trigger; trusted publishing is the only credential.
     const release = read(".github/workflows/release.yml");
     const jobs = Object.fromEntries(
       release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
-    expect(Object.keys(jobs)).toEqual(["build", "attach", "publish", "registry"]);
+    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release"]);
+    expect(release, "a version bump on main, or a rerun by hand").toMatch(/^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/bundle\/package\.json\]\n {2}workflow_dispatch:\n\n/m);
+    expect(jobs.plan, "a dispatch ships only from main").toContain('if [ "$GITHUB_REF" != refs/heads/main ]');
     expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./);
+    expect(release, "no inputs: the commit decides everything").not.toMatch(/inputs\./);
     for (const [name, job] of Object.entries(jobs)) {
       expect(job.includes("id-token: write"), `${name} ${name === "publish" ? "is" : "is not"} the job npm trusts`).toBe(name === "publish");
-      expect(job.includes("contents: write"), `${name} ${name === "attach" ? "is" : "is not"} the job that writes the release`).toBe(name === "attach");
+      expect(job.includes("contents: write"), `${name} ${["draft", "release"].includes(name) ? "may" : "may not"} write the release`).toBe(["draft", "release"].includes(name));
+      // Only the read-only build and registry jobs install and run the repository's code.
+      if (["draft", "publish", "release"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
     }
+    expect(jobs.build, "the clean build must reproduce the recorded files").toContain("node scripts/release/candidate.js check --always");
+    expect(jobs.draft, "the release stays a draft until the end").toContain("--draft --target \"$GITHUB_SHA\"");
+    expect(jobs.release).toContain("--draft=false");
     const publish = jobs.publish;
     expect(publish, "npm's trusted publisher names this environment").toMatch(/^ {4}environment: npm$/m);
     expect(publish, "the publish job only needs Node and npm").toMatch(/uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+install: "false"/);
     expect(publish, "it publishes in the pack's order").toContain("done < release/publish.tsv");
     expect(publish, "a tarball's own lifecycle scripts never run").toMatch(/npm publish "\.\/release\/\$file" [^\n]*--ignore-scripts/);
-    expect(publish, "its only run step is the publish").not.toMatch(/run: (?!\|)/);
+    expect(publish, "a version on npm is skipped only when it is this very file").toContain('sha1sum "release/$file"');
     expect(jobs.registry, "the registry smoke checks npm against the build's tarballs").toContain("--compare release");
 
     const setup = read(".github/actions/setup/action.yml").split(/^\s+- /m).slice(1);
     for (const step of setup.filter((step) => /^name: (?:Restore node_modules|Restore npm's downloads|Install)$/m.test(step))) {
       expect(step, "install: false skips every install step").toMatch(/inputs\.install != 'false'/);
     }
+
+    const ci = read(".github/workflows/ci.yml");
+    expect(ci, "a pull request that ships carries its change note").toContain("run: node scripts/release/changes.js check-pr");
+    expect(ci, "an untagged candidate packs the files it records").toContain("run: node scripts/release/candidate.js check\n");
   });
 });
 
