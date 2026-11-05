@@ -1,4 +1,0 @@
-.lcars-sensor-readouts { margin: 0; display: flex; gap: 6px 22px; flex-wrap: wrap; align-items: baseline; }
-.lcars-sensor-readouts div { display: flex; gap: 8px; align-items: baseline; }
-.lcars-sensor-readouts dt { color: var(--lcars-ink-muted); font: 400 13px/1 var(--lcars-sans); letter-spacing: 0.1em; text-transform: uppercase; }
-.lcars-sensor-readouts dd { margin: 0; color: var(--lcars-ink); font: 600 22px/1 var(--lcars-sans); font-variant-numeric: tabular-nums; }
