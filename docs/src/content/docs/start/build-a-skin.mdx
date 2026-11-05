@@ -5,6 +5,7 @@ description: "Show an AI agent a picture or describe a look, and it builds your 
 
 import { Aside, FileTree, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
+import Cli from "../../../components/Cli.astro";
 
 A skin is a whole look for your dashboards: how every light, sensor and lock is drawn, on a phone and a wall panel, in
 Home Assistant's light and dark modes. You don't need to write code to have one of your own. Show an AI coding agent a
@@ -301,6 +302,11 @@ preview already has a cover on its demo house.
 
 Then `npm test`, `npm run snapshot`, and give it its own drawing. `npm run build` and `npm run deploy` put it in Home
 Assistant.
+
+`npm run add` draws <Cli show="domains" />. It is `create-dashhaus-skin add`, from the skin's own copy of the
+scaffolder; `--help` prints the same as this:
+
+<Cli show="scaffold" />
 
 ## The rules a skin keeps
 

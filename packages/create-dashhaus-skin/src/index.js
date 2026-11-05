@@ -19,6 +19,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { helpText } from "./help.js";
 import { REGISTRY_MARKERS, beforeMarker, cardKind, cardTokens, filler, registryLines, skinNames, skinTokens } from "./card.js";
 
 const templates = (name) => fileURLToPath(new URL(`./templates/${name}/`, import.meta.url));
@@ -26,19 +27,7 @@ const domains = JSON.parse(readFileSync(new URL("./domains.json", import.meta.ur
 /** The cards a new skin starts with: one control and one reading. */
 const STARTERS = ["light", "sensor"];
 
-const HELP = `usage: create-dashhaus-skin <directory> [--tarballs <dir>] [--dry-run]
-       create-dashhaus-skin add <domain> [--kind control|reading] [--dry-run]
-
-  <directory>        a new, empty folder, or "." for the current one; its name is the skin's name
-  --tarballs <dir>   install @dashhaus packages from the release tarballs in <dir>, not the registry
-  add <domain>       run inside a skin: add the card for one more domain, registered and ready to restyle
-                     (${Object.keys(domains).join(", ")})
-  --kind             a control (its actions as buttons) or a reading (none); the domain's own kind by default
-  --dry-run          print the files that would be written
-  --help             this message
-
-It writes a working skin (a light and a sensor card, a preview, checks, a one-file build and a deploy config) and an
-AGENTS.md that says where its colours, type, parts and rules live.`;
+const HELP = helpText(Object.keys(domains));
 
 const fail = (message) => {
   console.error(`create-dashhaus-skin: ${message}`);
