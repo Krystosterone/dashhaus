@@ -220,6 +220,8 @@ export const markers = {
   headlessImports: "// new-card: headless imports",
   headlessComponents: "// new-card: headless components",
   demoTransports: "// new-card: demo transports",
+  houseImports: "// new-card: house imports",
+  houseParts: "// new-card: house parts",
   fixtureImports: "// new-card: fixture imports",
   mapperImports: "// new-card: mapper imports",
   fixtures: "// new-card: fixtures",

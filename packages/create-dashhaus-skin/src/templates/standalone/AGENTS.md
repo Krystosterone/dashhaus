@@ -18,7 +18,8 @@ npm run add -- climate    # one more domain's card, registered and on the sample
 ```
 
 Look at your work after every change: run `npm run snapshot` and open the PNGs (an image-reading tool works).
-The first run prints the two commands that install Playwright's Chromium if it's missing. `npm run preview` serves
+The first run prints the two commands that install Playwright's Chromium if it's missing; to use a Chromium or Chrome
+already on the machine instead, set `DASHHAUS_CHROMIUM=/path/to/chrome`. `npm run preview` serves
 the same page to a browser instead, at the URL it prints. Presses work there. Both draw the real element from
 `lovelace/entry.tsx` with the same shadow root and CSS as in Home Assistant. Lights and sensors come from your
 sample house, `preview/house.ts`, which already holds the worst cases: an unavailable light, a sensor with no
@@ -90,7 +91,9 @@ the outside in, snapshotting after each step and comparing with the reference:
   formatters (`@dashhaus/core/entities/…`, `/primitives`, `/hooks`), never `@dashhaus/core` itself or its `ha`,
   `websocket` or `demo` subpaths; `ha/` adapters do that.
 - ✓ **Every card folder** has `__Skin__<Name>Card.tsx` and `__Skin__<Name>Card.stories.tsx` titled
-  `__Section__/Cards/<Name>`.
+  `__Section__/Cards/<Name>`. The stories file is metadata only: this folder has no Storybook, and nothing needs one.
+  You look at a card with `npm run snapshot` or `npm run preview`; the title is what a Storybook would file it under
+  if you add one, or if the skin moves into the Dashhaus repository.
 - **One card, one model.** A card draws one normalized model: one entity, or that entity plus the companions its
   hook composes (the sensor's humidity beside its temperature). A card never takes a second entity.
 - **A card's shape and dialog come from the frame.** A card draws inside `__Skin__CardFrame`, which takes its
@@ -120,8 +123,31 @@ The model has every fact the hook reads, and the neutral card shows only a few o
 `node_modules/@dashhaus/core/dist/entities/<domain>/types.d.ts` (`LightEntity` has `brightness`, `colorTempKelvin`,
 `color` and more), and the hooks and their actions in `node_modules/@dashhaus/core/dist/ha/hooks/<domain>.d.ts`. To
 show another fact, read it from `entity` in the card. To expose an action that takes a value (a brightness, a target
-temperature), add a prop to the card and pass `result.actions.<name>` in its adapter. Formatters are in
-`@dashhaus/core/entities/format`.
+temperature), add a prop to the card and pass `result.actions.<name>` in its adapter.
+
+Before you write a label, a unit or a scale yourself, look for it here. A card may import every one of these, each
+typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
+
+| Import from | What it has |
+| --- | --- |
+| `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo` |
+| `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact` |
+| `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
+| `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words |
+| `@dashhaus/core/entities/clock` | `clockFace`, the header's time and date for a locale, 12 or 24 hours and a time zone |
+| `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY` |
+| `@dashhaus/core/entities/severity`, `/color` | the `Severity` and `ColorName` types a model carries |
+| `@dashhaus/core/entities/alarm/modes` | an alarm's modes, their labels and hints, `needsCode` |
+| `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
+| `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
+| `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |
+| `@dashhaus/core/entities/humidifier/labels` | what the unit is doing in words, `fmtHumidity`, `modeLabel` |
+| `@dashhaus/core/entities/light/color`, `/light/kelvin` | the lamp colours, and a colour temperature as a colour and a name |
+| `@dashhaus/core/entities/lock/code`, `/lock/severity` | what a code may contain, and a lock's severity |
+| `@dashhaus/core/entities/owlet/readings`, `/owlet/sleep` | vitals and sleep states as figures and words |
+| `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |
+| `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |
+| `@dashhaus/core/entities/weather/conditions`, `/weather/readings` | `SKY` and `conditionLabel` (each condition as a sky to draw and words), `isNight`, `deg0`, `compass`, `aqiBand`, `uvBand` |
 
 A composed model's companions (a sensor's humidity and battery, a sound machine's volume) reach its hook from the
 YAML (`humidity: sensor.bedroom_humidity`) through `item.companions` in `lovelace/registry.tsx`. The automatic layout
@@ -174,4 +200,4 @@ What you may rely on, and what not to rewrite:
 - `@dashhaus/core`: the `useHa<Name>` hooks; `@dashhaus/core/primitives`: `usePress`, `useSlider`, `useRangeSlider`,
   `useSheet`, `useKeypad` (behaviour, no markup).
 
-Your markup, classes, tokens and stories are yours, and nothing outside this folder depends on them.
+Your markup, classes, tokens and story metadata are yours, and nothing outside this folder depends on them.

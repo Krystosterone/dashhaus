@@ -1,23 +1,101 @@
 ---
 title: Build a skin
-description: "Scaffold a skin with create-dashhaus-skin, add a domain, preview and test it, build one file and deploy it to Home Assistant."
+description: "Show an AI agent a picture or describe a look, and it builds your own Home Assistant dashboard skin and puts it on your dashboards. No code to write. Or scaffold one yourself with create-dashhaus-skin."
 ---
 
-import { FileTree, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import { Aside, FileTree, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 
-A skin is a whole look for a dashboard: cards, a Lovelace card and a bundle of its own, drawn on the headless
-packages. `create-dashhaus-skin` writes a working one in a new folder, with a light you can switch and a room sensor you
-can read, both with details that open from the card, on the real hooks. `npm run add` draws any other domain the same
-way. You change the drawing; the Home Assistant side is already done. It starts from the same templates as the skins
-built inside the Dashhaus repository. It also writes an `AGENTS.md`: point an agent at it and it knows where the colours, type, parts and
-rules live, and how to restyle the skin from a screenshot.
+A skin is a whole look for your dashboards: how every light, sensor and lock is drawn, on a phone and a wall panel, in
+Home Assistant's light and dark modes. You don't need to write code to have one of your own. Show an AI coding agent a
+picture you like, or tell it what you want in a few words. It builds the skin, shows it to you, changes it until it's
+right and puts it on your Home Assistant.
+
+It works because the hard part is already done. Every card already talks to Home Assistant, and the skin comes with
+checks that keep it working on a phone and in dark mode, plus a guide written for agents. The agent only changes how
+things look.
+
+## Ask an agent to build it
+
+### What you need
+
+- A computer: Mac, Windows or Linux. The agent works there, not inside Home Assistant.
+- An AI coding agent that can run commands on that computer, such as Claude Code.
+- A picture of a look you like (a screenshot, a photo of a device or a room, a poster), or a few words about it.
+- For the last step only: an administrator account in Home Assistant.
+
+You don't need to install anything else yourself. The agent installs what it needs and tells you what it's doing.
+
+<Steps>
+
+1. Make an empty folder for your skin, for example **My dashboard** in your Documents, and open it in your agent.
+
+2. Paste the prompt below. Replace the two lines in angle brackets with your own, and attach your picture if you have
+   one.
+
+   ```text title="Prompt" wrap
+   Build me my own Home Assistant dashboard skin with Dashhaus. I'm not a developer: explain each step in plain words.
+
+   Name: <a short name in lower case, like cosy-cabin>
+   Look: <a few words about the look, or "like the picture I attached">
+
+   1. In this folder, run `npm create dashhaus-skin@latest` with that name, then follow the AGENTS.md it writes. Install anything it needs first, such as Node.js 22 or newer, and tell me what you install.
+   2. Restyle the skin to the look: palette, type, page and cards, at phone and desktop width, in light and dark mode. Keep `npm test` passing.
+   3. Show me the snapshots, and change the skin until I say I like it.
+   4. When I say I'm ready, deploy it with `npm run deploy`. Ask me for my Home Assistant's address, walk me through creating a long-lived access token, and help me set up the Terminal & SSH add-on so you can copy files into /config/www: make an SSH key if there is none and give me only its public line to paste. Keep the token in .env.
+   ```
+
+3. Look at what it shows you: pictures of your skin on a sample house, on a phone and a desktop, light and dark. Say
+   what you'd change in your own words: "warmer colours", "bigger numbers", "rounder buttons", "more like the
+   picture". Repeat until you like it.
+
+4. Tell the agent you're ready to put it on Home Assistant. It asks for three things and walks you through each:
+
+   - **Your Home Assistant's address**, the one in your browser when you open it, such as
+     `http://homeassistant.local:8123`.
+   - **A long-lived access token.** In Home Assistant, open your profile (your name at the bottom of the sidebar), then
+     **Security**. Under **Long-lived access tokens**, press **Create token**, call it `Dashhaus` and give the agent
+     what it shows. It's shown only once.
+   - **A way to copy the skin into Home Assistant.** Open **Settings → Add-ons → Add-on store**, install
+     **Terminal & SSH**, and in its **Configuration** tab paste the line the agent gives you into
+     **Authorized keys**. Under **Network**, set the port to `22`. Save, then press **Start** on its **Info** tab.
+
+   The agent keeps the token in a file on your computer, `.env`, which never goes into the skin.
+
+5. Reload Home Assistant in your browser and open your skin's dashboard from the sidebar. It shows every light and
+   room sensor you have, grouped by area, and every other kind of entity the agent added a card for.
+
+</Steps>
+
+### Change it later
+
+Open the same folder in your agent and say what you want, then ask it to deploy again. Your dashboard's layout is kept.
+
+- "Add my blinds and my thermostat": it adds a card for any kind of entity on the
+  [Entities](/dashhaus/entities/) pages.
+- "Show the brightness on the light card", "make the alarm card stand out".
+- "Put a greeting and the date at the top of the page."
+
+To see what agents make, open [Studies](/dashhaus/develop/studies/): skins agents built, kept so you can take ideas from
+one or start from it.
+
+<Aside title="Orb and Field too?">
+  Your skin doesn't replace them. You can [install Orb and Field](/dashhaus/start/install/) on the same Home
+  Assistant, before or after, and switch between all three from the sidebar.
+</Aside>
+
+## Build it yourself
+
+The rest of this page is what the agent does, for you to do in a terminal or to follow along. `create-dashhaus-skin`
+writes a working skin in a new folder, with a light you can switch and a room sensor you can read, both with details
+that open from the card, on the real hooks. `npm run add` draws any other domain the same way. You change the drawing;
+the Home Assistant side is already done. It starts from the same templates as the skins built inside the Dashhaus
+repository. It also writes an `AGENTS.md`, the guide your agent follows: where the colours, type, parts and rules live,
+and how to restyle the skin from a screenshot.
 
 CI runs these steps on every change to Dashhaus: it packs the release, installs `@dashhaus/core`,
 `@dashhaus/dashboard`, `@dashhaus/deploy` and the scaffolder into an empty folder, scaffolds `my-skin`, runs its
 checks, builds it and deploys it into a simulated Home Assistant.
-
-## From nothing to a dashboard
 
 <Steps>
 

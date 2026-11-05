@@ -1,0 +1,32 @@
+/* The weather's face: the glowing sky beside the temperature, the next hours when there is room, then the stats. */
+.glasshouse-weather-face { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+.glasshouse-weather-now { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.glasshouse-weather-art { flex: none; width: 64px; height: 64px; overflow: visible; }
+.glasshouse-weather-sun { fill: var(--glasshouse-warm); filter: drop-shadow(0 0 10px var(--glasshouse-warm)); }
+.glasshouse-weather-moon { fill: var(--glasshouse-knob); filter: drop-shadow(0 0 8px var(--glasshouse-glow)); }
+.glasshouse-weather-cloud { fill: var(--glasshouse-knob); fill-opacity: 0.9; stroke: var(--glasshouse-edge); stroke-width: 1; filter: drop-shadow(0 4px 10px var(--glasshouse-shadow)); }
+.glasshouse-weather-fall { fill: none; stroke: var(--glasshouse-accent); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--glasshouse-glow)); }
+.glasshouse-weather-bolt { fill: none; stroke: var(--glasshouse-warm); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.glasshouse-weather-temp { min-width: 0; display: grid; gap: 6px; }
+.glasshouse-weather-temp .glasshouse-big { font-size: 48px; }
+.glasshouse-weather-hours { display: none; flex: 1; justify-content: flex-end; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.glasshouse-weather-hours li { display: grid; justify-items: center; gap: 4px; min-width: 50px; padding: 8px 4px; border: 1px solid var(--glasshouse-line); border-radius: 14px; background: var(--glasshouse-card-muted); }
+.glasshouse-weather-hours span { color: var(--glasshouse-ink-muted); font: 500 10px/1 var(--glasshouse-sans); font-variant-numeric: tabular-nums; }
+.glasshouse-weather-hours .glasshouse-weather-art { width: 26px; height: 26px; }
+.glasshouse-weather-hours strong { font: 650 13px/1 var(--glasshouse-sans); }
+.glasshouse-weather-side { display: none; flex: 1; min-width: 0; justify-items: end; gap: 6px; text-align: right; }
+.glasshouse-weather-condition { margin: 0; overflow: hidden; color: var(--glasshouse-ink); font: 600 20px/1.2 var(--glasshouse-sans); letter-spacing: -0.01em; text-overflow: ellipsis; white-space: nowrap; }
+@container (min-width: 520px) {
+  .glasshouse-weather-hours { display: flex; }
+  .glasshouse-weather-side { display: grid; }
+  .glasshouse-weather-art { width: 80px; height: 80px; }
+  .glasshouse-weather-temp .glasshouse-big { font-size: 60px; }
+  .glasshouse-weather-hours .glasshouse-weather-art { width: 26px; height: 26px; }
+}
+.glasshouse-weather-warn { color: var(--glasshouse-warm); }
+.glasshouse-weather-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.glasshouse-weather-days li { display: grid; justify-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--glasshouse-line); border-radius: 14px; background: var(--glasshouse-card-muted); }
+.glasshouse-weather-days span { color: var(--glasshouse-ink-muted); font-size: 11px; }
+.glasshouse-weather-days .glasshouse-weather-art { width: 28px; height: 28px; }
+.glasshouse-weather-days strong { font-size: 13px; }
+.glasshouse-weather-days em { color: var(--glasshouse-ink-muted); font-size: 12px; font-style: normal; }

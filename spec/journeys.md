@@ -12,7 +12,7 @@ contributor. The order follows how many people take each path and how little the
 | --- | --- | --- | --- | --- | --- |
 | User | Wants Orb or Field on their Home Assistant and has no terminal | `start/install` | The release asset `dashhaus.js`, through the Marketplace (HACS before 2026.11) | `verify/dx/marketplace.js` | The cards, the YAML keys and the setup card's create-only rule ([deploy.md](deploy.md)) |
 | User, from the command line | Scripts the same install, deploys from CI, or keeps resources in YAML | `start/deploy` | `@dashhaus/bundle`, `@dashhaus/deploy` | `verify/dx/user.js` | The same, plus the CLI's options and `.env` keys ([deploy.md](deploy.md)) |
-| Author | Builds a skin of their own, from the scaffolder and its domain generator | `start/build-a-skin` | `create-dashhaus-skin`, which writes a project on `@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` | `verify/dx/author.js` | The skin-author contract and its conformance check ([contract.md](contract.md)) |
+| Author | Builds a skin of their own, from the scaffolder and its domain generator, often by asking an agent to | `start/build-a-skin` | `create-dashhaus-skin`, which writes a project on `@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` | `verify/dx/author.js` | The skin-author contract and its conformance check ([contract.md](contract.md)) |
 | Developer | Uses the entity models and hooks in a React app of their own, with no skin and no generator | `start/getting-started` | `@dashhaus/core` | `verify/dx/developer.js` | The core contract ([core.md](core.md)) |
 | Contributor | Changes Dashhaus itself: Orb or Field, a domain for both, an in-repository skin, the packages | `develop/monorepo` | A clone of the repository | `npm run check` | The rules in `AGENTS.md` and this spec |
 
@@ -32,6 +32,13 @@ never a second front door, and both pages say to pick one: each way registers it
 The project's distinctive offer: a whole look of one's own on the same hooks, scaffolded with
 `npm create dashhaus-skin` and grown with its `add <domain>`. The author never clones this repository. Their skin's
 own test runs the conformance preset; the contract is what that preset checks.
+
+Many authors won't write the code themselves: they show an agent a picture or describe a look. So the page leads with
+that, for a reader with no terminal experience: what they need, one prompt to paste, and the Home Assistant clicks the
+deploy needs (the token, and the Terminal & SSH add-on with the key the agent makes). The hand-written steps follow, as
+what the agent does. The prompt hands the agent to the scaffold's `AGENTS.md`, which carries everything else, so the
+page never repeats it; `llms.txt` carries the same route. `verify/dx/author.js` proves the commands; an agent run
+(`verify/dx/agent-runs.md`, or a study) proves an agent can take them from the packages alone.
 
 ## The developer
 

@@ -1,0 +1,93 @@
+/* The page around the cards when it is a document's body (the preview, Storybook); inside Home Assistant the card's host is the page. */
+body.glasshouse-surface { margin: 0; background: var(--glasshouse-page); color: var(--glasshouse-ink); font-family: var(--glasshouse-sans); }
+
+/* The page: near-black teal, lit from the top right by a cyan glow and from the bottom left by a blue one. */
+.glasshouse-dashboard {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 18px clamp(14px, 3vw, 40px) 56px;
+  background:
+    radial-gradient(55% 45% at 88% 4%, var(--glasshouse-glow-a), transparent 72%),
+    radial-gradient(40% 30% at 72% 48%, var(--glasshouse-glow-a), transparent 75%),
+    radial-gradient(45% 40% at 4% 96%, var(--glasshouse-glow-b), transparent 72%),
+    radial-gradient(30% 25% at 40% 30%, var(--glasshouse-glow-b), transparent 80%),
+    linear-gradient(180deg, var(--glasshouse-page-deep), var(--glasshouse-page) 60%);
+  color: var(--glasshouse-ink);
+  font-family: var(--glasshouse-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.glasshouse-dashboard-main { width: min(1240px, 100%); margin: 0 auto; display: grid; gap: 30px; }
+.glasshouse-section { min-width: 0; scroll-margin-top: 24px; }
+.glasshouse-section-head { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin: 0 4px 12px; }
+.glasshouse-section-head h2, .glasshouse-section-head p { margin: 0; }
+.glasshouse-section-head h2 { color: var(--glasshouse-ink); font: 650 16px/1.2 var(--glasshouse-sans); letter-spacing: -0.01em; }
+.glasshouse-section-head p { color: var(--glasshouse-ink-muted); font-size: 12px; }
+.glasshouse-grid { display: grid; grid-template-columns: repeat(var(--glasshouse-columns, auto-fit), minmax(min(100%, 260px), 1fr)); gap: 14px; }
+.glasshouse-grid[data-footprint="compact"] { gap: 10px; }
+.glasshouse-columns { display: grid; grid-template-columns: repeat(var(--glasshouse-section-columns), minmax(0, 1fr)); gap: 18px; }
+.glasshouse-cell { min-width: 0; grid-column: span var(--glasshouse-span); }
+.glasshouse-card-cell { display: block; min-width: 0; }
+.glasshouse-dashboard-dock { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; gap: 8px; justify-items: center; padding: 12px max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); pointer-events: none; }
+.glasshouse-dashboard-dock > * { pointer-events: auto; }
+.glasshouse-dashboard-empty { margin: 0; padding: 30px; border: 1px dashed var(--glasshouse-line); border-radius: var(--glasshouse-radius); color: var(--glasshouse-ink-muted); text-align: center; }
+
+/* The header: a top bar (wordmark, nav), then the greeting. */
+.glasshouse-header { width: min(1240px, 100%); margin: 0 auto 26px; display: grid; gap: 28px; }
+.glasshouse-topbar { display: flex; gap: 24px; align-items: center; justify-content: space-between; min-width: 0; }
+.glasshouse-brand { flex: none; display: flex; gap: 10px; align-items: center; margin: 0; color: var(--glasshouse-ink); font: 800 17px/1 var(--glasshouse-sans); letter-spacing: 0.16em; text-transform: uppercase; }
+.glasshouse-mark { width: 28px; height: 28px; }
+.glasshouse-mark-frame { fill: none; stroke: var(--glasshouse-ink); stroke-width: 1.8; stroke-linejoin: round; }
+.glasshouse-mark-lit { fill: var(--glasshouse-accent); filter: drop-shadow(0 0 4px var(--glasshouse-glow)); }
+.glasshouse-topbar-nav { min-width: 0; display: flex; justify-content: flex-end; }
+.glasshouse-greeting { display: flex; justify-content: space-between; gap: 20px; align-items: end; }
+.glasshouse-greeting p { margin: 0; }
+.glasshouse-greeting-title { overflow-wrap: anywhere; font: 650 clamp(26px, 4vw, 40px)/1.1 var(--glasshouse-sans); letter-spacing: -0.03em; }
+.glasshouse-header-sub { margin-top: 6px !important; color: var(--glasshouse-ink-muted); font: 500 14px/1.4 var(--glasshouse-sans); }
+.glasshouse-header-time { flex: none; font: 600 clamp(22px, 4vw, 38px)/1 var(--glasshouse-sans); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.glasshouse-header-time small { margin-left: 5px; color: var(--glasshouse-ink-muted); font-size: 11px; }
+
+/* The nav bar: glass pills with a glyph; the current one is a lit pane. */
+.glasshouse-nav { max-width: 100%; overflow: hidden; border: 1px solid var(--glasshouse-edge); border-radius: 999px; background: var(--glasshouse-card); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.glasshouse-nav ul { margin: 0; padding: 5px; display: flex; gap: 2px; overflow-x: auto; list-style: none; scrollbar-width: none; }
+.glasshouse-nav button {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+  max-width: 200px;
+  padding: 0 16px 0 13px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--glasshouse-ink-muted);
+  font: 600 13px/1 var(--glasshouse-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--glasshouse-press) var(--glasshouse-ease-in-out), background-color var(--glasshouse-press) var(--glasshouse-ease-in-out), transform var(--glasshouse-press) var(--glasshouse-ease-out);
+}
+.glasshouse-nav button span:first-of-type { overflow: hidden; text-overflow: ellipsis; }
+.glasshouse-nav svg { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.glasshouse-nav button[aria-current] { border-color: var(--glasshouse-line); background: var(--glasshouse-card-muted); color: var(--glasshouse-ink); }
+.glasshouse-nav button[aria-current] svg { color: var(--glasshouse-accent); filter: drop-shadow(0 0 5px var(--glasshouse-glow)); }
+.glasshouse-nav button:active { transform: scale(0.96); }
+.glasshouse-nav button:focus-visible { outline: 2px solid var(--glasshouse-accent); outline-offset: -2px; }
+.glasshouse-nav-leave { margin-left: 2px; }
+
+@media (hover: hover) and (pointer: fine) { .glasshouse-nav button:hover:not([aria-current]) { color: var(--glasshouse-ink); } }
+@media (max-width: 760px) {
+  .glasshouse-topbar { flex-direction: column; align-items: stretch; gap: 14px; }
+  .glasshouse-topbar-nav { justify-content: flex-start; }
+}
+@media (max-width: 640px) {
+  .glasshouse-dashboard { padding: 16px 12px 40px; }
+  .glasshouse-header { gap: 20px; margin-bottom: 20px; }
+  .glasshouse-columns { grid-template-columns: 1fr; }
+  .glasshouse-grid { grid-template-columns: 1fr; }
+  .glasshouse-cell { grid-column: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .glasshouse-nav button { transition-duration: 1ms; } .glasshouse-nav button:active { transform: none; } }

@@ -109,6 +109,11 @@ change.fromTemplates(["common", kind], fill);
 // The demo transport joins the package's demo barrel, the one public address for it.
 edit(packageFile("core", "src/demo/index.ts"), after(markers.demoTransports, fill(`export * from "./__name__";
 `)));
+// And the demo house, so Storybook's whole dashboards and a scaffolded skin's preview have one to draw.
+edit(packageFile("core", "src/demo/house.ts"), after(markers.houseImports, fill(`import { createDemo__Name__HaTransport } from "./__name__";
+`)));
+edit(packageFile("core", "src/demo/house.ts"), after(markers.houseParts, fill(`    createDemo__Name__HaTransport(),
+`)));
 
 // ---------- Registrations ----------
 
