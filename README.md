@@ -19,7 +19,7 @@ Documentation: **[krystosterone.github.io/dashhaus](https://krystosterone.github
 
 ## Beta
 
-Dashhaus is in beta. It runs one real house every day, but few others yet, so it can still change quickly:
+Dashhaus is in beta and hasn't been tried on many homes yet, so it can still change quickly:
 
 - **An update can ask something of you.** An update may rename a YAML key, change a hook or redraw a card. Each
   [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do; read it before you
