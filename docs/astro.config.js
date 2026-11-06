@@ -81,6 +81,7 @@ export default defineConfig({
             { label: "Install from the Marketplace", slug: "start/install" },
             { label: "Lay it out in YAML", slug: "start/yaml" },
             { label: "Orb and Field", slug: "skins" },
+            { label: "Warnings and alarms", slug: "start/warnings" },
             { label: "Deploy from the command line", slug: "start/deploy" },
           ],
         },

@@ -7,6 +7,7 @@ import { Tabs, TabItem } from "@astrojs/starlight/components";
 import { Image } from "astro:assets";
 import Example from "../../../components/Example.astro";
 import KindList from "../../../components/KindList.astro";
+import StoryLink from "../../../components/StoryLink.astro";
 import YamlKeys from "../../../components/YamlKeys.astro";
 import tabletLight from "../../../assets/layout/composition-tablet-light.webp";
 import tabletDark from "../../../assets/layout/composition-tablet-dark.webp";
@@ -54,9 +55,10 @@ And each row how it packs them:
   <TabItem label="Orb">
     <Example file="user/orb.yaml" />
 
-    A row's `cards` lists entities, either as the id alone or as a map with options, and bundles: `bundle: joined`
-    puts compact cards side by side in one outer card (`lead` and `titled` are the others). Every footprint is a whole
-    number of Orb's 60 px units, so a compact card stacks beside a standard one without gaps.
+    A row's `cards` lists entities, either as the id alone or as a map with options, and
+    [bundles](#bundles-orb): `bundle: joined` puts compact cards side by side in one outer card (`lead` and `titled`
+    are the others). Every footprint is a whole number of Orb's 60 px units, so a compact card stacks beside a standard
+    one without gaps.
 
   </TabItem>
   <TabItem label="Field">
@@ -83,6 +85,32 @@ row narrowed by its surroundings does the same. A state change never moves a car
   <Image class="dark:sl-hidden" src={phoneLight} width={310} widths={[310, 620, 930]} sizes="310px" alt="The same YAML on a phone: two columns, the thermostat across both, then the alarm and the light, the weather, the blinds and the porch switch side by side, the room sensor, and the three modes stacked in one card." />
   <figcaption>The same YAML on a phone: two columns fit, so the anchors let go and the cards flow in order, at their own heights.</figcaption>
 </figure>
+
+## Bundles (Orb)
+
+A bundle draws several cards as one outer card, so things that belong together read as one. It is an entry of a row's
+`cards`, with `bundle:` saying which of the three it is and its own `cards` listing the members:
+
+<Example file="user/bundles.yaml" />
+
+- **`titled`**: the parts of one thing, often one device split into several entities, under a lid that names it
+  (`title`, required) and its room (`area`) once. Name each part for what it is on the thing ("Power", "Night light"),
+  not "Sound machine power". A part in the lid's room leaves the room off its line and says its own detail instead:
+  since when, a light's warmth, a sound's volume. The lid is a heading and opens nothing; each part opens its own
+  sheet. <StoryLink id="orb-bundles--nursery">See it in Storybook</StoryLink>.
+- **`lead`**: one card that matters most, drawn standard, with related cards hanging under it as compact rows: a
+  floor's thermostat and the heater beside it. The lead's sheet lists the rows again, live, under `sheet_title`
+  ("Also in this bundle" when left out). <StoryLink id="orb-bundles--upstairs">See it in Storybook</StoryLink>.
+- **`joined`**: two or more equal compact cards side by side in one card, with no heading: a few modes, say. Once
+  each would get less than about 170 px they stack instead. <StoryLink id="orb-bundles--sleep-and-dnd">See it in
+  Storybook</StoryLink>.
+
+`label` names a joined or lead bundle for screen readers; it isn't drawn. Every member is still its own card, with its
+own tap, press and hold, and sheet, and takes its own card's keys (`name`, `card:`, `history` …), but the bundle sets
+their footprints and places them: a member takes no `footprint`, its `width` and `column` go on the bundle, and a
+bundle can't hold another. A bundle is as tall as its members make, in the same 60 px units as every other card: a titled
+bundle's lid and three parts are as tall as a featured card. Field has no bundles; its card refuses the key, saying
+so.
 
 ## When the YAML is wrong
 
