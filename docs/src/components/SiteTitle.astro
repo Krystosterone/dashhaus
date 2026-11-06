@@ -1,0 +1,33 @@
+---
+/**
+ * Starlight's site title, which on a skin's landing page is the skin's own name and leads to that page: a reader who
+ * arrives at Orb sees Orb in the header, not Dashhaus (src/lib/skins.ts). Every other page keeps the site's.
+ */
+import Default from "@astrojs/starlight/components/SiteTitle.astro";
+import { skinOf } from "../lib/skins";
+
+const page = skinOf(Astro.locals.starlightRoute.entry.id);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+{
+  page ? (
+    <a href={`${base}/${page.page}/`} class="site-title sl-flex">
+      <span class="sl-flex">{page.name}</span>
+    </a>
+  ) : (
+    <Default />
+  )
+}
+
+<style>
+  .site-title {
+    align-items: center;
+    gap: var(--sl-nav-gap);
+    font-size: var(--sl-text-h4);
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+</style>

@@ -37,6 +37,21 @@ The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` run
 
 ## The dashboard strategy
 
+Three strategies ship, one per Marketplace repository, all from `apps/lovelace/strategy.ts`:
+
+| Strategy | Repository and file | Add dashboard lists it as | Looks |
+| --- | --- | --- | --- |
+| `custom:orb-dashboard` | `Krystosterone/orb-dashboard`, `orb-dashboard.js` | **Orb** | Orb |
+| `custom:field-dashboard` | `Krystosterone/field-dashboard`, `field-dashboard.js` | **Field** | Field |
+| `custom:dashhaus` | `Krystosterone/dashhaus`, `dashhaus.js` | **Dashhaus** | every look, one tab each |
+
+A skin's own (`apps/lovelace/skins.ts`, from `scripts/skin-repositories.js`) is the combined one with one look: its
+bundle (`apps/lovelace/orb.ts`, `field.ts`) carries that skin alone, lists its Lovelace card in the card picker under
+the skin's name, and names nothing Dashhaus; its dialog entry's documentation link is the skin's landing page. Its
+dashboard is one view, at the skin's id, and its config has no `skin` and takes only `title`, `viewing` and the skin's
+own colour key (`theme` for Orb, `finish` for Field); its errors begin with the skin's name (`Orb: …`). Everything
+below holds for all three; it is written for `custom:dashhaus`, the one with a choice of looks.
+
 A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
 `/hacsfiles/dashhaus/dashhaus.js?hacstag=<repository id><version digits>`, which HACS serves from that folder, as a
 module resource; it creates no dashboard. The bundle's
@@ -81,7 +96,8 @@ and the developer docs' Custom dashboard strategies page.
 
 `apps/lovelace/strategy.test.ts` resolves the elements as the frontend does and runs every card the strategy emits
 through its skin's own Lovelace card; `verify/docs.test.ts` does the same for the site's strategy sample.
-`verify/dx/marketplace.js` installs the packed bundle's file as the Marketplace does into the fake Home Assistant,
+`verify/dx/skin.js` installs each skin's own file the same way and picks it by the skin's name, checking nothing named
+Dashhaus is listed. `verify/dx/marketplace.js` installs the packed bundle's file as the Marketplace does into the fake Home Assistant,
 picks **Dashhaus** from its stand-in for the Add dashboard dialog and opens both views, expanded as the frontend
 expands them, in Chromium. Not yet run against a real Home Assistant frontend (What has and hasn't been verified,
 below).
@@ -530,7 +546,15 @@ removed for the dashboard strategy, so the checks still open on it (GitHub issue
 checked live: any install through Home Assistant 2026.11's built-in Marketplace, which doesn't list Dashhaus until the
 catalog does (#32).
 
-The dashboard strategy has not been tried in a real Home Assistant yet: not that Add dashboard lists Dashhaus (2026.5
-or newer), not the dashboard it makes, its tabs, the strategy editor's YAML or Take control. The fake Home Assistant
+Live, on a scratch Home Assistant 2026.11.0 (the `homeassistant/home-assistant:stable` container, with the `demo`
+integration for a house), on 2026-11-06, each skin's own bundle as `release:pack` built it: each file put where the
+Marketplace puts it (`www/community/<repository>/`) and registered as a module resource at `/local/community/…`, since
+the skin repositories didn't exist yet to download from. Add dashboard listed **Orb**, then **Orb** and **Field**,
+under Community dashboards, and nothing named Dashhaus; picking each and pressing Create made `dashboard-orb` and
+`dashboard-field`, titled with the skin's name and its icon, saving only `{ strategy: { type: custom:<repository> } }`;
+each drew its skin's card on the demo house at a desktop and a phone width with no console error, and the card picker
+listed the cards as Orb and Field. Not yet run live: the download from a skin repository through the Marketplace or
+HACS (the repositories and their first release come first), the strategy editor's YAML and Take control, and the
+combined `custom:dashhaus`. The fake Home Assistant
 journey stands in for the frontend's strategy lookup and its dialog, written from the frontend's source; it is not the
 frontend.

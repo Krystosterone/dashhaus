@@ -1,0 +1,5 @@
+# Orb's dashboard, as Add dashboard → Orb saves it, plus the options you can add.
+strategy:
+  type: custom:orb-dashboard
+  viewing: far    # near (default) for a phone or tablet, far for a wall panel
+  theme: dark     # home-assistant (default), auto, light or dark

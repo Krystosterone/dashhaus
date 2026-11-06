@@ -300,6 +300,72 @@ open as #31. Step 5 is open as #32, and step 6 waits on it, in #31:
 6. Once the catalog lists Dashhaus, repeat step 4 on a scratch Home Assistant 2026.11 or newer, through its built-in
    Marketplace, which doesn't offer Dashhaus before then, and record it the same way.
 
+## The skin repositories
+
+Orb and Field are each a product of their own in the Marketplace: a repository per skin, holding one plugin, whose
+release carries that skin's own bundle. A person finds, downloads and picks **Orb** or **Field**; Dashhaus is the
+foundation under them, not what they install ([journeys.md → The user](journeys.md#the-user)). The list is
+`scripts/skin-repositories.js`:
+
+| Skin | Repository | Asset | Strategy | Landing page |
+| --- | --- | --- | --- | --- |
+| Orb | `Krystosterone/orb-dashboard` | `orb-dashboard.js` | `custom:orb-dashboard`, listed as **Orb** | `/dashhaus/orb/` |
+| Field | `Krystosterone/field-dashboard` | `field-dashboard.js` | `custom:field-dashboard`, listed as **Field** | `/dashhaus/field/` |
+
+What each repository carries is kept here, in `hacs/<repository>/`, and copied there: its `hacs.json` (the skin's
+name, no `filename`, the default branch hidden as this repository's is), its README, which is the page HACS and the
+Marketplace show for it, and two workflows. `verify/skin-repositories.test.ts` holds the copies to the list, to each
+other and to the action pins this repository uses.
+
+- **What it ships.** `npm run build:ha` builds each skin's bundle beside `dashhaus.js` (`apps/lovelace/orb.ts`,
+  `field.ts`: the skin alone, its card and its strategy), and `release:pack` builds them beside the tarballs, so a
+  release PR's record lists their SHA-256 with the rest (`candidate.js`). No npm package ships them, and this
+  repository's release doesn't attach them: HACS downloads every asset of a plugin's release, so they would land in
+  every combined install.
+- **How it releases.** The skin repository's `release.yml` runs every six hours and on dispatch. When this repository
+  has published a release the skin repository hasn't, it checks out the tag, installs from the lockfile with no cache,
+  runs `build:ha` and checks `dist/<repository>.js` against the tag's `spec/releases/<version>.sha256`; then it brings
+  its README, `hacs.json` and this repository's `LICENSE` up to the tag, commits them when they changed, and publishes
+  `v<version>` (a draft first, which takes the file, then latest), titled with the skin's name. The build is
+  read-only; only the two jobs that commit and release write, and they run none of this repository's scripts. It needs
+  no secret: the source is public, and its own token writes its own repository. The skin's version is Dashhaus's.
+  This repository's Release workflow checks `build:ha` gives the files `release:pack` recorded, so the skin
+  repository's rebuild can match.
+- **What stays here.** Code, issues, the spec and the site. A skin repository is its release and its README, nothing
+  to develop in: its README sends issues and source here. Its workflows change here and are copied by hand, since its
+  own token can't change them.
+- **The combined download stays.** `Krystosterone/dashhaus` keeps releasing `dashhaus.js` and `custom:dashhaus`
+  (The Marketplace, above) for everyone who has it. Its page is under the site's Set up section, not a landing page.
+  Installing it and a skin's own loads that skin twice; each page says to pick one.
+
+Decided, and why:
+
+- **A repository per skin, not one repository with two plugins.** HACS and the Marketplace take one item per
+  repository and name it after `hacs.json`; a skin can only be found, listed and updated under its own name from a
+  repository of its own.
+- **The skin repository pulls; nothing here pushes.** Pushing a release to another repository needs a token or an
+  app with write access to it, kept as a secret here. Pulling needs nothing, and the digest check means the file it
+  rebuilds is the one this repository's release PR recorded and reviewed. The cost is up to six hours between the two
+  releases.
+- **Rebuilt from the tag, not downloaded.** A file attached to this repository's release would reach every combined
+  install (above); rebuilding is reproducible (Determinism), so the record is the check.
+- **Named `<skin>-dashboard`.** The repository name is the asset's and the strategy's type, so it must be unique among
+  community dashboards; the name a person sees is the skin's, from `hacs.json` and the strategy's entry.
+
+What only the operator can do, each once, in order, for each skin:
+
+1. Create the repository, public, with its description and topics (`home-assistant`, `lovelace`, `hacs`,
+   `dashboard`), issues on (the HACS action checks them; the README sends them here), and the contents of
+   `hacs/<repository>/` plus `LICENSE` on its default branch.
+2. Let the first release happen: once this repository has published a release whose record lists the skin's file,
+   dispatch the skin repository's Release workflow (or wait for its schedule); check its four jobs and its HACS
+   workflow are green.
+3. Live, on a scratch Home Assistant 2026.5 or newer with HACS: install from the skin's My link as a custom repository,
+   reload, **Settings → Dashboards → Add dashboard** and pick the skin under Community dashboards; open it at a phone
+   and a desktop width, in light and dark mode. Record it in `spec/releases/<version>.md`.
+4. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
+   alphabetical order, with the release and the green HACS action. The My link works before it.
+
 ## CI
 
 `.github/workflows/ci.yml` is the pipeline: `checks` (a pull request's change note, typecheck, lint, `build:ha`), `unit` (every suite but the generator copies), two generator shards, `dx` (`release:pack`, `verify:packages`, an untagged release candidate's digests and record, then the clean-room journeys over the packed tarballs) and two Storybook shards. The required `check` job gathers the checks, unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. Every lane checks out and installs through `.github/actions/setup`, and the Docs workflow does too. The reasons behind its shape:

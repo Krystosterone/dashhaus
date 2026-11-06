@@ -7,8 +7,8 @@ import { LinkCard, CardGrid } from "@astrojs/starlight/components";
 
 Dashhaus draws Home Assistant dashboards in React and TypeScript, for phones, tablets and wall panels. It is two things:
 
-- **Two finished skins**, Orb and Field. Each is a whole look for a dashboard, shipped as a Lovelace card you add in
-  Home Assistant and lay out in YAML. You install them prebuilt; nothing to build.
+- **Two finished skins**, [Orb](/dashhaus/orb/) and [Field](/dashhaus/field/). Each is a whole look for a dashboard,
+  installed on its own from the Marketplace and laid out from your house, or in YAML. Nothing to build.
 - **The headless packages under them.** The entity models, the Home Assistant store, a `useHa<Name>` hook and a
   headless component for each kind of entity, the interaction primitives and the card frame. A skin is drawing on top
   of these, so you can draw your own: in a React app of yours, or as a new skin with its own Lovelace card.
@@ -36,13 +36,18 @@ screenshot help most.
 
 ## Four ways in
 
-Dashhaus is used four ways, and each has its own way in. Pick the one that matches what you want to end up with.
+Dashhaus is used four ways, and each has its own way in: installing a finished skin, Orb or Field, is the first. Pick the one that matches what you want to end up with.
 
 <CardGrid>
   <LinkCard
-    title="Install a skin"
-    description="Orb or Field on your Home Assistant, from the Marketplace, with no terminal: download it, then Add dashboard → Dashhaus."
-    href="/dashhaus/start/install/"
+    title="Install Orb"
+    description="Soft, round cards, on your Home Assistant from the Marketplace with no terminal: download it, then Add dashboard → Orb."
+    href="/dashhaus/orb/"
+  />
+  <LinkCard
+    title="Install Field"
+    description="A hardware panel of keys, faders and screens, from the Marketplace the same way: download it, then Add dashboard → Field."
+    href="/dashhaus/field/"
   />
   <LinkCard
     title="Build a skin"
@@ -61,8 +66,10 @@ Dashhaus is used four ways, and each has its own way in. Pick the one that match
   />
 </CardGrid>
 
-Deploying from the command line serves the first two: a [scripted deploy](/dashhaus/start/deploy/) of Orb and Field,
-and the last step of building a skin.
+Orb and Field also come in one download, [Orb and Field in one install](/dashhaus/start/install/): the way Dashhaus
+started, one dashboard with a tab for each, which keeps working for everyone who has it. Deploying from the command
+line serves the first ways in: a [scripted deploy](/dashhaus/start/deploy/) of Orb and Field, and the last step of
+building a skin.
 
 ## How the pieces stack
 

@@ -1,5 +1,6 @@
 /**
- * Build and pack the seven public packages: `npm run release:pack [-- --out release]`.
+ * Build and pack the seven public packages: `npm run release:pack [-- --out release]`, and build each skin's own
+ * bundle beside them (`<repository>.js`, scripts/skin-repositories.js).
  *
  * npm packs a staged copy holding only the files the package ships and its release manifest (no `private`, no
  * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts, and `publish.tsv`
@@ -10,7 +11,7 @@ import { copyFile, cp, mkdir, mkdtemp, readdir, rm, stat, writeFile } from "node
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { buildBundlePackage } from "../build-bundle.js";
+import { SKIN_BUNDLES, buildBundlePackage, buildSkinFiles } from "../build-bundle.js";
 import { buildPackages } from "../build-packages.js";
 import { PUBLISH_ORDER, publicPackages, publishManifest, publishOrder, readManifest, root, tarballName } from "./manifest.js";
 
@@ -49,9 +50,13 @@ export async function pack(outDir = out, buildRoot = root) {
   await buildPackages(buildRoot);
   await buildBundlePackage(buildRoot);
   await mkdir(outDir, { recursive: true });
+  const skinFiles = new Set(SKIN_BUNDLES.map((bundle) => bundle.file));
   for (const file of await readdir(outDir)) {
-    if (file.endsWith(".tgz") || file === PUBLISH_ORDER) await rm(join(outDir, file), { force: true });
+    if (file.endsWith(".tgz") || file === PUBLISH_ORDER || skinFiles.has(file)) await rm(join(outDir, file), { force: true });
   }
+  // Each skin's own bundle, which its repository's release ships and no package does; beside the tarballs, where the
+  // release record reads its digest.
+  for (const file of await buildSkinFiles(outDir)) console.log(`skin bundle → ${file}`);
 
   const stageRoot = await mkdtemp(join(tmpdir(), "dashhaus-pack-"));
   const packed = [];

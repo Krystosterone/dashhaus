@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createDashhausCard } from "@dashhaus/orb/lovelace/card";
 import { createFieldCard } from "@dashhaus/field/lovelace/card";
+import { registerCard } from "@dashhaus/dashboard";
+import { SKIN_REPOSITORIES } from "../../scripts/skin-repositories.js";
 import { STRATEGY_LOOKS } from "./dashboards";
+import { PICKER, SKIN_STRATEGIES, defineSkin } from "./skins";
 import {
   DASHBOARD_ENTRY,
+  DASHHAUS,
   DASHBOARD_STRATEGY_TAG,
   VIEW_STRATEGY_TAG,
   chosenLooks,
@@ -123,8 +127,53 @@ describe("the custom:dashhaus strategy", () => {
 
   it("offers a skin npm run new-skin registers, by its name, with only a title", () => {
     const canvas = { id: "canvas", name: "Canvas", type: "custom:dashhaus-canvas", passes: [] } as const;
-    const looks = [...STRATEGY_LOOKS, canvas];
-    expect(chosenLooks({ skin: "canvas" }, looks)).toEqual([canvas]);
-    expect(generateView({ type: "custom:dashhaus", skin: "canvas", viewing: "far" }, looks)).toEqual({ type: "panel", cards: [{ type: "custom:dashhaus-canvas", title: "Home" }] });
+    const strategy = { ...DASHHAUS, looks: [...STRATEGY_LOOKS, canvas] };
+    expect(chosenLooks({ skin: "canvas" }, strategy)).toEqual([canvas]);
+    expect(generateView({ type: "custom:dashhaus", skin: "canvas", viewing: "far" }, strategy)).toEqual({ type: "panel", cards: [{ type: "custom:dashhaus-canvas", title: "Home" }] });
+  });
+});
+
+describe("each skin's own strategy", () => {
+  it("is the skin's repository's type, listed under the skin's name with its own page, and draws its one look", async () => {
+    for (const entry of SKIN_REPOSITORIES) {
+      const strategy = SKIN_STRATEGIES[entry.skin];
+      defineStrategies(strategy);
+      expect(strategy.type).toBe(entry.repository);
+      expect(window.customStrategies?.find((listed) => listed.type === entry.repository)).toEqual({
+        type: entry.repository,
+        strategyType: "dashboard",
+        name: entry.name,
+        description: entry.description,
+        documentationURL: `https://krystosterone.github.io/dashhaus/${entry.page}/`,
+      });
+      const dashboard = customElements.get(`ll-strategy-dashboard-${entry.repository}`) as unknown as Strategy;
+      expect(dashboard.getCreateSuggestions?.()).toEqual({ title: entry.name, icon: entry.icon });
+      const look = STRATEGY_LOOKS.find((candidate) => candidate.id === entry.skin)!;
+      expect(await expand({ strategy: { type: `custom:${entry.repository}` } })).toEqual([
+        { title: entry.name, path: entry.skin, type: "panel", cards: [{ type: look.type, title: "Home" }] },
+      ]);
+    }
+  });
+
+  it("takes only its own card's settings, and no skin, in words that name the skin", async () => {
+    const orb = SKIN_STRATEGIES.orb;
+    expect(generateDashboard({ type: "custom:orb-dashboard", title: "Flat", viewing: "far", theme: "dark" }, orb).views[0].strategy).toEqual({ type: "custom:orb-dashboard", title: "Flat", viewing: "far", theme: "dark" });
+    expect(generateView({ type: "custom:orb-dashboard", viewing: "far", theme: "dark" }, orb)).toEqual({ type: "panel", cards: [{ type: "custom:dashhaus-orb", title: "Home", viewing: "far", theme: "dark" }] });
+    expect(() => generateDashboard({ type: "custom:orb-dashboard", finish: "black" }, orb)).toThrow(/^Orb: unknown key "finish". The strategy takes title, viewing, theme\.$/);
+    expect(() => generateDashboard({ type: "custom:orb-dashboard", skin: "field" }, orb)).toThrow(/^Orb: unknown key "skin"/);
+    expect(() => generateView({ type: "custom:field-dashboard", theme: "dark" }, SKIN_STRATEGIES.field)).toThrow(/^Field: unknown key "theme". The strategy takes title, viewing, finish\.$/);
+  });
+
+  it("lists the skin's card under the skin's name when its own bundle defines it, and leaves another copy's entry alone", () => {
+    const entry = SKIN_REPOSITORIES[0];
+    window.customCards = [];
+    defineSkin(entry, "skin-test-fresh", () => registerCard("skin-test-fresh", class extends HTMLElement {}, "Dashhaus", "old"));
+    expect(window.customCards).toEqual([{ type: "skin-test-fresh", name: PICKER.orb.name, description: PICKER.orb.description, preview: false }]);
+    defineSkin(entry, "skin-test-fresh", () => registerCard("skin-test-fresh", class extends HTMLElement {}, "Dashhaus", "old"));
+    expect(window.customCards).toHaveLength(1);
+    window.customCards = [{ type: "skin-test-other", name: "Dashhaus", description: "combined" }];
+    customElements.define("skin-test-other", class extends HTMLElement {});
+    defineSkin(entry, "skin-test-other", () => undefined);
+    expect(window.customCards).toEqual([{ type: "skin-test-other", name: "Dashhaus", description: "combined" }]);
   });
 });

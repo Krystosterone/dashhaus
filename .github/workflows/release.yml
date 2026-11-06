@@ -88,6 +88,10 @@ jobs:
       # One build for both stores: the Marketplace's dashhaus.js is the file inside @dashhaus/bundle.
       - name: Check the asset is the bundle package's file
         run: cmp dist/dashhaus.js packages/bundle/dist/dashhaus.js
+      # Each skin's own file, which its repository's release rebuilds from this tag and checks against the record: the
+      # build:ha a skin repository runs must give the file release:pack recorded (spec/release.md → The skin repositories).
+      - name: Check each skin's file is the one release:pack built
+        run: for file in orb-dashboard.js field-dashboard.js; do cmp "dist/$file" "release/$file"; done
       # The gate: this clean build reproduces, byte for byte, the files the release PR recorded and was reviewed on.
       - run: node scripts/release/candidate.js check --always
       - run: node scripts/release/candidate.js body > release-page.md

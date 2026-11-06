@@ -1,0 +1,156 @@
+name: Release
+
+# Field's releases follow the project it is drawn from, Krystosterone/dashhaus: when that project publishes a release,
+# this builds field-dashboard.js from its tag, checks the file is the one its release record lists, brings this
+# repository's README and hacs.json up to that tag, and publishes the release v<version> with the file attached, the
+# release the Home Assistant Marketplace and HACS install. It needs no secret and no token but its own: the source is
+# public. Kept in Krystosterone/dashhaus at hacs/field-dashboard/, with its rules in spec/release.md → The skin
+# repositories; change it there.
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+env:
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  SOURCE: Krystosterone/dashhaus
+  REPOSITORY: field-dashboard
+  NAME: Field
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  # The source's latest published release, and whether this repository has published it yet.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.plan.outputs.tag }}
+      version: ${{ steps.plan.outputs.version }}
+      release: ${{ steps.plan.outputs.release }}
+    steps:
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag=$(gh api "repos/$SOURCE/releases/latest" --jq .tag_name)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          state=$(gh release list -R "$GITHUB_REPOSITORY" --limit 100 --json tagName,isDraft --jq ".[] | select(.tagName == \"$tag\") | if .isDraft then \"draft\" else \"published\" end")
+          if [ "$state" = published ]; then
+            echo "::notice::$tag is already released here; nothing to release"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Read-only and with no cache: the file every install gets is built from the source's tag and its lockfile, and must
+  # be, byte for byte, the file its release record lists.
+  build:
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ env.SOURCE }}
+          ref: ${{ needs.plan.outputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - run: npm run build:ha
+      - name: Check the file is the one the release record lists
+        run: |
+          set -euo pipefail
+          line=$(grep -E "^[0-9a-f]{64}  $REPOSITORY\.js$" "spec/releases/$VERSION.sha256") || { echo "::error::spec/releases/$VERSION.sha256 lists no $REPOSITORY.js"; exit 1; }
+          (cd dist && echo "$line" | sha256sum -c -)
+      - name: Gather what this repository carries
+        run: |
+          set -euo pipefail
+          mkdir carried
+          cp -R "hacs/$REPOSITORY/." carried/
+          rm -rf carried/.github
+          cp LICENSE carried/LICENSE
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: asset
+          path: dist/${{ env.REPOSITORY }}.js
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: carried
+          path: carried/
+          if-no-files-found: error
+          include-hidden-files: true
+
+  # The README, hacs.json and LICENSE as the tag has them, committed when they changed. Workflows stay as they are:
+  # this token can't change them, and they change in the source, by hand, rarely.
+  sync:
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: carried
+          path: ${{ runner.temp }}/carried
+      - id: commit
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+          cp -R "$RUNNER_TEMP/carried/." .
+          git add -A -- . ':!.github'
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "$NAME $VERSION"
+            git push origin HEAD
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  # A draft first, which takes the file, then published as the latest release: the one the Marketplace reads.
+  release:
+    needs: [plan, sync]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.plan.outputs.tag }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      SHA: ${{ needs.sync.outputs.sha }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: asset
+          path: dist
+      - name: Publish the release
+        run: |
+          set -euo pipefail
+          state=$(gh release list --limit 100 --json tagName,isDraft --jq ".[] | select(.tagName == \"$TAG\") | if .isDraft then \"draft\" else \"published\" end")
+          if [ "$state" = published ]; then
+            echo "$TAG is already published"
+            exit 0
+          fi
+          notes="$NAME $VERSION. What changed, and anything to do before you update: https://krystosterone.github.io/dashhaus/releases/"
+          if [ -z "$state" ]; then
+            gh release create "$TAG" --draft --target "$SHA" --title "$NAME $VERSION" --notes "$notes"
+          fi
+          gh release upload "$TAG" "dist/$REPOSITORY.js" --clobber
+          gh release edit "$TAG" --draft=false --latest

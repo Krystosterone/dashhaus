@@ -79,8 +79,9 @@ can't be fetched, `DASHHAUS_CHROMIUM=/path/to/chromium` points them at a Chromiu
    upgrade. CI fails a pull request that changes what ships without one, and the next release's notes are made of them.
 
 CI runs the first two on every push and pull request, and packs the release to run the clean-room journeys from the
-tarballs alone, one for each way in but this one: [installing from the Marketplace](/dashhaus/start/install/) and
-picking Dashhaus in Add dashboard, [deploying from the command line](/dashhaus/start/deploy/),
+tarballs alone, one for each way in but this one: [installing Orb](/dashhaus/orb/) or [Field](/dashhaus/field/)
+from its own repository and picking it in Add dashboard, [installing both in one](/dashhaus/start/install/),
+[deploying from the command line](/dashhaus/start/deploy/),
 [building a skin](/dashhaus/start/build-a-skin/) and [using the hooks](/dashhaus/start/getting-started/), against a
 simulated Home Assistant. `spec/journeys.md` lists them, and a check fails when one loses its page or its proof.
 

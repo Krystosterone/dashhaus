@@ -6,7 +6,8 @@
  *   node scripts/release/candidate.js body             the record's Release page section, for the GitHub release
  *   npm run release:digests                            pack, then write: refresh a release PR whose code moved
  *
- * `spec/releases/<version>.sha256` lists the seven tarballs and `dashhaus.js`, in `sha256sum` format. `check` runs in
+ * `spec/releases/<version>.sha256` lists the seven tarballs, `dashhaus.js` and each skin's own bundle, in `sha256sum`
+ * format. `check` runs in
  * CI after `release:pack` while `v<version>` is not yet tagged, so a release PR is green only when its files are the
  * ones it records, its record has no `TODO:` left, and no change note has arrived since the record collected them; the
  * Release workflow runs it with `--always` before shipping.
@@ -20,15 +21,20 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readChanges } from "./changes.js";
 import { publicPackages, readManifest, root, tarballName } from "./manifest.js";
+import { SKIN_REPOSITORIES, assetName } from "../skin-repositories.js";
 
 export const recordPath = (version) => join(root, "spec/releases", `${version}.md`);
 export const digestsPath = (version) => join(root, "spec/releases", `${version}.sha256`);
 
-/** The files a version ships, by the name its digests use: the tarballs in publish order, then the Marketplace asset. */
+/**
+ * The files a version ships, by the name its digests use: the tarballs in publish order, the Marketplace asset, then
+ * each skin's own bundle, which its repository's release rebuilds from the tag and checks against this record.
+ */
 export function candidateFiles(version, releaseDir = join(root, "release")) {
   return [
     ...publicPackages.map(({ name }) => ({ name: tarballName(name, version), path: join(releaseDir, tarballName(name, version)) })),
     { name: "dashhaus.js", path: join(root, "packages/bundle/dist/dashhaus.js") },
+    ...SKIN_REPOSITORIES.map((entry) => ({ name: assetName(entry), path: join(releaseDir, assetName(entry)) })),
   ];
 }
 

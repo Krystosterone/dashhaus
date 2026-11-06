@@ -1,0 +1,93 @@
+---
+title: Field
+description: "Field, a dashboard for Home Assistant drawn as a hardware panel: keys, faders and dark screens, laid out from your house. Download it from the Marketplace, then Add dashboard → Field."
+template: splash
+editUrl: false
+prev: false
+next: false
+head:
+  - tag: title
+    content: Field, a dashboard for Home Assistant
+hero:
+  title: Field
+  tagline: "A hardware panel for your house: keys you press, faders you slide, screens you read. Laid out for you, room by room."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Example from "../../components/Example.astro";
+import LiveStory from "../../components/LiveStory.astro";
+import Install from "../../components/home/Install.astro";
+import Foot from "../../components/skin/Foot.astro";
+
+<Install skin="field" />
+
+## How it looks
+
+Each module is a plate with a key you press, a fader you slide and an always-dark screen you read, with printed labels
+in capitals. A small orange mark shows what a control sets. Field opens more in a panel from the module's name.
+
+It comes in two finishes, light grey Alloy and Black, and follows Home Assistant's light or dark mode by default. It
+reads the same on a phone in your hand and a wall panel across the room: a module never changes height when its state
+changes. The tablet below is live, on a demo house.
+
+<LiveStory id="field-dashboards-examples--tablet" title="Field on a tablet in landscape: living room, nursery, entrance, outside and the whole home" device="Tablet" width={1180} height={820} light="finish:alloy" dark="finish:black" />
+
+## What it draws
+
+Lights, climate, covers, switches and `input_boolean` modes, sensors, the weather, alarm panels, locks, humidifiers,
+fans, sound machines, Owlet socks and guest Wi-Fi. An entity without a card isn't drawn. Every card in every state is
+in [Storybook](/dashhaus/storybook/), and [Warnings and alarms](/dashhaus/start/warnings/) shows how Field tells you
+something is wrong.
+
+## Settings
+
+Open the dashboard and press **Edit dashboard** (the pencil, or **⋮**). Its dialog opens on the dashboard's
+configuration in YAML; add to it and save:
+
+<Example file="install/field-dashboard.yaml" title="A wall panel, in Black" />
+
+| Key | What it does |
+| --- | --- |
+| `viewing` | `near` (default): a phone or tablet in the hand. `far`: a wall panel read from across the room. |
+| `finish` | `home-assistant` (default): Alloy in Home Assistant's light mode, Black in its dark mode. `auto` follows the device; `alloy` and `black` hold one. |
+| `title` | The title the page prints in its header. `Home` by default. |
+
+To lay out your own cards and rows instead, take control of the dashboard (the same dialog's **⋮ → Take control**),
+which keeps Field's card as it is now, and edit it; [Lay it out in YAML](/dashhaus/start/yaml/) shows how. A dashboard
+you take control of no longer lays itself out.
+
+## If something goes wrong
+
+If **Add dashboard** has no **Field** under Community dashboards, or the dashboard says `Custom element doesn't exist`
+or `Timeout waiting for strategy element`, Home Assistant hasn't loaded Field yet. Reload the tab. If that doesn't help,
+open **Settings → Dashboards → ⋮ → Resources** and check there's a JavaScript module at
+`/hacsfiles/field-dashboard/field-dashboard.js`.
+
+Community dashboards are listed from Home Assistant 2026.5. On an older version, or one that keeps its dashboards in
+YAML, create a dashboard yourself and give it `strategy: { type: custom:field-dashboard }` as its whole configuration.
+
+<Aside title="Installed Dashhaus before?">
+  The Dashhaus download carries Orb and Field together, and keeps working. Keep that, or remove it before you
+  download Field, so the page doesn't load Field twice. Dashboards you made with it keep working while it's installed.
+</Aside>
+
+## Update
+
+The Marketplace (or HACS) tells you when there's a new version of Field. Update it there, then reload the tab. Your
+dashboard follows; [Release notes](/dashhaus/releases/) say what changed and anything to do first.
+
+## Ask an assistant to do it
+
+An assistant that can use your browser can follow this page on its own. Give it the page's address, or this:
+
+```text
+Install the Field dashboard in my Home Assistant. I'm signed in as an administrator.
+1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=field-dashboard&category=plugin
+   and download Field (type: Dashboard; add it as a custom repository if asked). Keep the defaults.
+2. Reload the browser tab.
+3. Settings → Dashboards → Add dashboard → under Community dashboards, pick "Field" → Create.
+4. Open the new Field dashboard from the sidebar and check it draws.
+   Don't change any other dashboard, and never ask me for a password or token.
+```
+
+<Foot skin="field" />

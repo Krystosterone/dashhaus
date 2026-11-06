@@ -5,8 +5,9 @@
  *
  * - no page carries a code fence in a language that compiles or parses, so every such sample comes from a file;
  * - every sample a page names exists, and every file in `docs/examples/` is shown somewhere;
- * - every Lovelace YAML sample reads cleanly through its skin's own parser, and a dashboard strategy sample through the
- *   strategy, every card its views hold through that card's skin's parser;
+ * - every Lovelace YAML sample reads cleanly through its skin's own parser, and a dashboard strategy sample (the combined
+ *   `custom:dashhaus`, or a skin's own) through that strategy, every card its views hold through that card's skin's
+ *   parser;
  * - the user guide's deploy config loads through `@dashhaus/deploy` as `npx dashhaus-deploy` would load it;
  * - every scaffold file the author guide shows is one `create-dashhaus-skin my-skin` writes (before or after
  *   `npm run add -- cover`), and that skin typechecks.
@@ -19,7 +20,8 @@ import { parse } from "yaml";
 import { loadDashboards } from "@dashhaus/deploy";
 import { parseDashboardConfig } from "../src/skins/orb/lovelace/config";
 import { parseFieldConfig } from "../src/skins/field/lovelace/config";
-import { generateDashboard, generateView } from "../apps/lovelace/strategy";
+import { DASHHAUS, generateDashboard, generateView } from "../apps/lovelace/strategy";
+import { SKIN_STRATEGIES } from "../apps/lovelace/skins";
 import { ADDED, writeScaffold } from "../docs/src/lib/scaffold";
 
 const root = process.cwd();
@@ -83,11 +85,13 @@ describe("documentation samples", () => {
         card(config, at);
         continue;
       }
-      // A dashboard's raw config on the strategy: expanded as the frontend does, then each view's card read.
-      expect(config.strategy.type, at).toBe("custom:dashhaus");
-      const { views } = generateDashboard(config.strategy);
+      // A dashboard's raw config on a strategy, the combined one or a skin's own: expanded as the frontend does, then
+      // each view's card read.
+      const strategy = [DASHHAUS, ...Object.values(SKIN_STRATEGIES)].find((candidate) => config.strategy?.type === `custom:${candidate.type}`);
+      expect(strategy, `${at}: no strategy ${config.strategy.type}`).toBeDefined();
+      const { views } = generateDashboard(config.strategy, strategy);
       expect(views.length, at).toBeGreaterThan(0);
-      for (const view of views) for (const drawn of generateView(view.strategy).cards) card(drawn, `${at} → ${view.path}`);
+      for (const view of views) for (const drawn of generateView(view.strategy, strategy).cards) card(drawn, `${at} → ${view.path}`);
     }
   });
 
