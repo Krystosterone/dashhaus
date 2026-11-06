@@ -1,0 +1,76 @@
+{
+  "sensor.maple_voucher": {
+    "entity_id": "sensor.maple_voucher",
+    "state": "98668-49366",
+    "attributes": {
+      "wlan_name": "Maple Guests",
+      "id": "6a5054b78f48bad7321935a4",
+      "quota": 1,
+      "used": 0,
+      "duration": "1 d",
+      "status": "valid_one",
+      "create_time": "2026-07-09T22:11:02",
+      "last_pull": "2026-11-05T16:38:59.442754-05:00",
+      "icon": "mdi:numeric",
+      "friendly_name": "UniFi Hotspot Manager Voucher"
+    },
+    "last_changed": "2026-11-05T08:43:57.976246+00:00",
+    "last_updated": "2026-11-05T21:38:59.446153+00:00"
+  },
+  "sensor.cottage_voucher": {
+    "entity_id": "sensor.cottage_voucher",
+    "state": "40512-77031",
+    "attributes": {
+      "wlan_name": "Cottage Guests",
+      "id": "6a5054b78f48bad7321935b9",
+      "quota": 5,
+      "used": 2,
+      "duration": "1 d",
+      "status": "used_multiple",
+      "create_time": "2026-11-05T09:40:00",
+      "start_time": "2026-11-05T10:02:00",
+      "end_time": "2026-11-06T10:02:00",
+      "status_expires": "18 h, 12 min",
+      "last_pull": "2026-11-05T16:38:59.442754-05:00",
+      "icon": "mdi:numeric",
+      "friendly_name": "UniFi Hotspot Manager Voucher"
+    },
+    "last_changed": "2026-11-05T09:40:30+00:00",
+    "last_updated": "2026-11-05T21:38:59+00:00"
+  },
+  "sensor.annex_voucher": {
+    "entity_id": "sensor.annex_voucher",
+    "state": "unknown",
+    "attributes": {
+      "icon": "mdi:numeric",
+      "friendly_name": "UniFi Hotspot Manager Voucher"
+    },
+    "last_changed": "2026-11-05T08:38:57+00:00",
+    "last_updated": "2026-11-05T08:38:57+00:00"
+  },
+  "sensor.garage_voucher": {
+    "entity_id": "sensor.garage_voucher",
+    "state": "unavailable",
+    "attributes": {
+      "icon": "mdi:numeric",
+      "friendly_name": "UniFi Hotspot Manager Voucher"
+    },
+    "last_changed": "2026-11-05T08:38:57+00:00",
+    "last_updated": "2026-11-05T08:38:57+00:00"
+  },
+  "input_text.guest_wifi_password": {
+    "entity_id": "input_text.guest_wifi_password",
+    "state": "ripe-Mango-sunset-42",
+    "attributes": {
+      "initial": null,
+      "editable": true,
+      "min": 8,
+      "max": 63,
+      "pattern": null,
+      "mode": "password",
+      "friendly_name": "Guest Wi-Fi password"
+    },
+    "last_changed": "2026-11-05T09:40:00+00:00",
+    "last_updated": "2026-11-05T09:40:00+00:00"
+  }
+}

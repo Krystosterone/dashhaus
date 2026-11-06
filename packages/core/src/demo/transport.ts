@@ -16,6 +16,8 @@ export interface DemoCall {
   data: Record<string, unknown>;
   /** Change the entity again after `ms`, as a device that takes time to get there does (a lock's bolt). */
   later(change: DemoChange, ms: number): void;
+  /** Change another of the transport's entities now, as a button that acts on its device's other entities does. */
+  also(entityId: string, change: DemoChange): void;
 }
 
 /**
@@ -93,7 +95,7 @@ export function createDemoTransport({ seed, services, refuse, history, tick }: D
       if (!run) throw refuse ? refuse(domain, service) : new Error(`Unsupported demo service: ${domain}.${service}`);
       const entityId = data.entity_id ?? options.target?.entity_id;
       if (typeof entityId !== "string" || !entities[entityId]) throw new Error("Demo entity not found");
-      const answer = run({ entity: entities[entityId], data, later: (change, ms) => setTimeout(() => apply(entityId, change), ms) });
+      const answer = run({ entity: entities[entityId], data, later: (change, ms) => setTimeout(() => apply(entityId, change), ms), also: apply });
       if ("response" in answer) return { response: answer.response };
       apply(entityId, answer);
       return { success: true };

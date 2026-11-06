@@ -280,6 +280,72 @@
     "companions": [],
     "fixtureId": "fan.bedroom"
   },
+  "guestWifi": {
+    "name": "guestWifi",
+    "Name": "GuestWifi",
+    "CONST": "GUEST_WIFI",
+    "words": "guest wifi",
+    "Label": "Guest wifi",
+    "domains": [
+      "sensor",
+      "input_text",
+      "text"
+    ],
+    "shared": true,
+    "id": "/^sensor\\.\\w+_voucher$/",
+    "kind": "control",
+    "actions": [
+      "onRefresh",
+      "onNewCode"
+    ],
+    "guarded": [],
+    "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
+    "history": false,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "access",
+      "network",
+      "code",
+      "qr",
+      "allowed",
+      "used",
+      "lastsMinutes",
+      "leftMinutes",
+      "created",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": false,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area"
+    ],
+    "companions": [
+      {
+        "key": "qr",
+        "option": "qrEntityId"
+      },
+      {
+        "key": "new_code",
+        "option": "newCodeEntityId"
+      },
+      {
+        "key": "refresh",
+        "option": "refreshEntityId"
+      }
+    ],
+    "fixtureId": "sensor.maple_voucher"
+  },
   "humidifier": {
     "name": "humidifier",
     "Name": "Humidifier",

@@ -39,6 +39,9 @@ export interface Kind {
 
 const capitalized = (name: string) => name[0].toUpperCase() + name.slice(1);
 
+/** A kind's page slug: its name in kebab case, since page ids are lower case (`guestWifi` → `guest-wifi`). */
+export const pageSlug = (name: string) => name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+
 /** An entity-id pattern in the words a reader writes: `^sensor\.\w+_sleep_state$` is `sensor.*_sleep_state`. */
 function glob(id: RegExp): string {
   const text = id.source.replace(/^\^/, "").replace(/\$$/, "").replace(/\\w\+/g, "*").replace(/\\\./g, ".");
@@ -70,13 +73,12 @@ export function kinds(): Promise<Kind[]> {
     const pages = await getCollection("docs", (entry) => entry.id.startsWith("entities/") && entry.id !== "entities");
     const names = coreKinds();
     for (const page of pages) {
-      const name = page.id.slice("entities/".length);
       if (!page.data.kind) throw new Error(`kinds: ${page.id} has no kind in its frontmatter`);
-      if (!names.includes(name)) throw new Error(`kinds: ${page.id} is a page for a kind @dashhaus/core doesn't model`);
+      if (!names.some((name) => `entities/${pageSlug(name)}` === page.id)) throw new Error(`kinds: ${page.id} is a page for a kind @dashhaus/core doesn't model`);
     }
     return names.map((name): Kind => {
-      const page = pages.find((entry) => entry.id === `entities/${name}`);
-      if (!page?.data.kind) throw new Error(`kinds: @dashhaus/core models ${name}, and the site has no entities/${name}.mdx for it`);
+      const page = pages.find((entry) => entry.id === `entities/${pageSlug(name)}`);
+      if (!page?.data.kind) throw new Error(`kinds: @dashhaus/core models ${name}, and the site has no entities/${pageSlug(name)}.mdx for it`);
       const Name = capitalized(name);
       const hook = `useHa${Name}`;
       const component = `Ha${Name}`;
@@ -85,7 +87,7 @@ export function kinds(): Promise<Kind[]> {
       return {
         name,
         title: page.data.title,
-        href: `${import.meta.env.BASE_URL.replace(/\/$/, "")}/entities/${name}/`,
+        href: `${import.meta.env.BASE_URL.replace(/\/$/, "")}/entities/${pageSlug(name)}/`,
         group,
         summary,
         with: page.data.kind.with,
@@ -97,7 +99,7 @@ export function kinds(): Promise<Kind[]> {
         ...lovelace(name),
       };
     }).sort((a, b) => {
-      const order = (kind: Kind) => pages.find((entry) => entry.id === `entities/${kind.name}`)?.data.kind?.order ?? 0;
+      const order = (kind: Kind) => pages.find((entry) => entry.id === `entities/${pageSlug(kind.name)}`)?.data.kind?.order ?? 0;
       return KIND_GROUPS.indexOf(a.group) - KIND_GROUPS.indexOf(b.group) || order(a) - order(b);
     });
   })();

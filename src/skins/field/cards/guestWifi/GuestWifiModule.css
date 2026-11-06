@@ -1,0 +1,51 @@
+/* Guest Wi-Fi module (fd-gw). The plate, glyph, screen, legend, keys and panel body are shared; this is the code on
+   the screen, the network printed on the plate, and the join QR code. The QR code is Home Assistant's own picture,
+   black on white with its quiet zone, so it scans on either finish; nothing here paints it. */
+
+/* The code: ten places in two groups, a gap where the dash is, smaller than a reading's figure so it fits a module. */
+.fd-gw-code { display: inline-flex; }
+.fd-gw-gs { display: inline-flex; gap: 0.32em; }
+.fd-gw[data-footprint="standard"] .fd-read { font-size: 22px; letter-spacing: 0.02em; }
+/* A row's screen stacks the two groups, as a two-line display does. */
+.fd-gw[data-footprint="compact"] .fd-read { font-size: 15px; letter-spacing: 0.04em; }
+.fd-gw[data-footprint="compact"] .fd-gw-gs { flex-direction: column; gap: 2px; line-height: 15px; }
+/* The panel's screen is wider: the code at the figure's size. */
+.fd-gw-panel .fd-read { font-size: 28px; }
+
+/* A password as it is typed: its own case (never the printed upper case), a size down, cut where the screen ends. The
+   meta lines give it the room, since a password has no uses or length to say. */
+.fd-gw-code[data-text] { min-width: 0; }
+.fd-gw .fd-read:has([data-text]) { flex: 1; font-size: 17px; letter-spacing: 0.01em; }
+.fd-gw .fd-read:has([data-text]) .fd-read-fig { min-width: 0; }
+.fd-gw-t { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-transform: none; }
+.fd-gw[data-footprint="compact"] .fd-read:has([data-text]) { font-size: 12px; }
+.fd-gw .fd-screen:has([data-text]) .fd-meta { flex: none; }
+/* The panel's screen shows it whole, wrapping. */
+.fd-gw-panel .fd-read:has([data-text]) { font-size: 18px; white-space: normal; }
+.fd-gw-panel .fd-gw-t { white-space: normal; overflow-wrap: anywhere; line-height: 1.25; }
+.fd-gw-panel .fd-screen:has([data-text]) { height: auto; min-height: 72px; padding-block: 10px; }
+
+/* The network, printed on the plate beside the glyph, where a reading has today: a legend, then its name. */
+.fd-gw-net { display: grid; align-content: start; gap: 9px; min-width: 0; height: 44px; }
+.fd-gw-net .fd-legend { position: static; }
+.fd-gw-ssid { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--fd-type-name); font-weight: 600; letter-spacing: 0.03em; line-height: 16px; text-transform: uppercase; }
+.fd-gw-net[data-none] .fd-gw-ssid { color: var(--fd-ink-3); }
+
+/* The panel: the join QR code, printed on the plate, and how to join beside it. */
+.fd-gw-join { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.fd-gw-qr { display: block; width: 168px; aspect-ratio: 1; border-radius: var(--fd-r-key); image-rendering: pixelated; -webkit-user-drag: none; }
+.fd-gw-join:not(:has(.fd-gw-qr)) { grid-template-columns: minmax(0, 1fr); }
+
+/* Narrow modules: the code keeps the screen to itself, as the pictogram yields. */
+@container (max-width: 279px) {
+  .fd-gw[data-footprint="standard"] .fd-meta { display: none; }
+  .fd-gw[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-gw[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+@container (max-width: 239px) {
+  .fd-gw[data-footprint="standard"] .fd-read { font-size: 20px; }
+}
+/* A narrow panel stacks the QR code over its words. */
+@container (max-width: 359px) {
+  .fd-gw-join { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+}

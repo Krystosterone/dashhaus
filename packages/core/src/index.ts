@@ -124,4 +124,11 @@ export type { FanHandlers, FanHandlerOptions } from "./ha/actions/fan";
 export { useHaFan } from "./ha/hooks/fan";
 export type { HaFanOptions, HaFanResult } from "./ha/hooks/fan";
 export { HaFan } from "./ha/headless";
+export { defaultAccess, guestWifiCompanions, guestWifiFromHass } from "./ha/mappers/guestWifi";
+export type { GuestWifiMapOptions } from "./ha/mappers/guestWifi";
+export { createGuestWifiHandlers, GUEST_WIFI_ACTIONS, GUEST_WIFI_ACTION_DOMAINS } from "./ha/actions/guestWifi";
+export type { GuestWifiButton, GuestWifiHandlers, GuestWifiHandlerOptions } from "./ha/actions/guestWifi";
+export { useHaGuestWifi } from "./ha/hooks/guestWifi";
+export type { HaGuestWifiOptions, HaGuestWifiResult } from "./ha/hooks/guestWifi";
+export { HaGuestWifi } from "./ha/headless";
 // new-card: exports

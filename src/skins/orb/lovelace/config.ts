@@ -24,7 +24,7 @@ import type { CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
-import { OWLET_ALERT_SUFFIX } from "@dashhaus/core";
+import { GUEST_WIFI_ACTION_DOMAINS, OWLET_ALERT_SUFFIX } from "@dashhaus/core";
 import type { NavEntry } from "@dashhaus/dashboard";
 
 /*
@@ -48,6 +48,7 @@ export type Kind =
   | "sound"
   | "lock"
   | "fan"
+  | "guestWifi"
   // new-card: kinds
   ;
 
@@ -74,6 +75,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
 export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp }>> = {
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
   sound: { domains: ["switch"] },
+  guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
   // new-card: shared kinds
 };
 
@@ -100,6 +102,7 @@ export type CardConfig = CardBase & (
   | { kind: "sound"; volume?: string }
   | { kind: "lock"; battery?: string }
   | { kind: "fan" }
+  | { kind: "guestWifi"; access?: "code" | "password"; network?: string; qr?: string; newCode?: string; refresh?: string }
   // new-card: card configs
 );
 
@@ -196,6 +199,16 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
   fan: {},
+  guestWifi: {
+    keys: ["access", "network", "qr", "new_code", "refresh"],
+    options: (read, raw, at) => ({
+      access: read.choice(raw, "access", at, ["code", "password"] as const),
+      network: read.string(raw, "network", at),
+      qr: read.optionalEntity(raw, "qr", at, ["image"]),
+      newCode: read.optionalEntity(raw, "new_code", at, GUEST_WIFI_ACTION_DOMAINS),
+      refresh: read.optionalEntity(raw, "refresh", at, GUEST_WIFI_ACTION_DOMAINS),
+    }),
+  },
   // new-card: kind specs
 };
 

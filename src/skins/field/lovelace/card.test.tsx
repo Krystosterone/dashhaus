@@ -113,8 +113,8 @@ describe("dashhaus-field card", () => {
   it("throws every config problem for the YAML editor to show", () => {
     const card = document.createElement("dashhaus-field-test") as Card;
     expect(() => card.setConfig({ cards: [{ entity: "light.a", footprnt: "compact" }] })).toThrow('did you mean "footprint"?');
-    expect(() => card.setConfig({ cards: ["input_text.note"] })).toThrow(DashboardConfigError);
-    expect(() => card.setConfig({ cards: ["input_text.note"] })).toThrow(/input_text\.note must be a light\.\* or .* entity/);
+    expect(() => card.setConfig({ cards: ["input_number.note"] })).toThrow(DashboardConfigError);
+    expect(() => card.setConfig({ cards: ["input_number.note"] })).toThrow(/input_number\.note must be a light\.\* or .* entity/);
   });
 
   it("lays out its own rows, a note at a legend's end, places each module, and docks a nav to them", async () => {

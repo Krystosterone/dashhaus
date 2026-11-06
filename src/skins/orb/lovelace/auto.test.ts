@@ -111,6 +111,15 @@ describe("autoDashboard", () => {
     expect(rows[1].cards).toEqual([{ entity: "light.patio", footprint: "compact" }, "weather.home"]);
   });
 
+  it("puts each guest Wi-Fi code under Guests, drawn as the guestWifi card", () => {
+    const card = autoDashboard({ ...input, states: { ...states, "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher") } });
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title)).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Nursery", "Guests", "Outside", "Rooms"]);
+    expect(rows.find((s) => s.title === "Guests")!.cards).toEqual(["sensor.67d9d6d6ad84e044caf4621c_voucher"]);
+    const parsed = parseDashboardConfig(card).rows!.find((s) => s.title === "Guests")!;
+    expect(parsed.cards.map((c) => c.item)).toEqual([expect.objectContaining({ kind: "guestWifi", entity: "sensor.67d9d6d6ad84e044caf4621c_voucher" })]);
+  });
+
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });

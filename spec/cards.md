@@ -9,7 +9,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 | Model | Cards | What it is |
 | --- | --- | --- |
 | Direct | light, climate, cover, toggle, humidifier, fan, alarm | One Home Assistant entity and its attributes. |
-| Composed | sensor, sound, weather, owlet | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station. |
+| Composed | sensor, sound, weather, owlet, guestWifi | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
 
@@ -20,7 +20,7 @@ footprint would hide it), **`number`** (a raw setpoint belongs to its device's c
 `number.*`; a slider card would duplicate it) and **`scene`** (no state to draw, and a one-shot activation is a
 button, not a card). The domains still to draw are GitHub issues labelled `new card`.
 
-A card's YAML kind is its own identity: its domain's card by default, or a shared card picked with `card:` (`sound` on a `switch`, `owlet` on a `sensor`). The sections below follow that identity.
+A card's YAML kind is its own identity: its domain's card by default, or a shared card picked with `card:` (`sound` on a `switch`, `owlet` or `guestWifi` on a `sensor`). The sections below follow that identity.
 
 ## Using the light card
 
@@ -399,11 +399,41 @@ One `fan.*` entity: a tower or desk fan, a ceiling fan, an extractor.
 - **Sheet:** press and hold the orb, or tap the name: the groove, then the preset chips (choosing one while off turns it on), Oscillation (Off, On) and a ceiling fan's Direction (Forward, Reverse), each only when the fan declares it; then today's on/off history, and what the fan can do ("3 speeds, presets, oscillates").
 - **Home Assistant:** five services, each gated on the fan's `supported_features` and on its being available: `fan.toggle`; `fan.set_percentage` (`SET_SPEED`); `fan.set_preset_mode` (`PRESET_MODE`, and only one of its own `preset_modes`); `fan.oscillate` (`OSCILLATE`); `fan.set_direction` (`DIRECTION`). A control the fan doesn't declare is never drawn, and a call it can't take is reported as unsupported, never sent. Its speed and preset are read only while it is on; `unknown`, `unavailable` and a missing entity are unavailable.
 
-<!-- new-card: cards -->
-
 ### Field fan module
 
 `FanModule` is the same normalized fan entity in the Field skin; `HaFanModule` is its connected container, on the same `useHaFan` hook as `HaFanTile`, so it takes the same `onToggle`, `onPercentageChange`, `onPresetChange`, `onOscillateChange` and `onDirectionChange`, and its fader counts the same speeds. See [field.md](field.md#fan).
+
+## Using the guest wifi card
+
+A guest Wi-Fi network and what a guest types to use it, of one of two kinds (`access`):
+
+- **`code`:** an open network whose captive portal asks for a code once you have joined. The custom [UniFi Hotspot Manager](https://github.com/ufozone/ha-unifi-voucher) integration (`unifi_voucher`) is the one found by itself: its code sensor, with the QR code image and the two buttons found beside it. Its QR code joins the network; the code is a hotspot voucher.
+- **`password`:** a network with a Wi-Fi password, in any entity whose state is the password: an `input_text` or a `text` (the default `access` for those), or a template `sensor` given `access: password`. Its QR code image, its actions (a `button`, `input_button` or `script`) and the network's name are whatever the host names; without a QR code image, the card shows none.
+
+```tsx
+<GuestWifiTile entity={wifi} onRefresh={() => press("button.site_update")} onNewCode={() => press("button.site_create")} />
+<HaGuestWifiTile entityId="sensor.67d9d6d6ad84e044caf4621c_voucher" />
+<HaGuestWifiTile entityId="input_text.guest_wifi_password" network="Maple Guests 5G" qrEntityId="image.guest_wifi_qr" newCodeEntityId="script.new_guest_wifi_password" />
+```
+
+- **A reading:** a bare Wi-Fi icon, the code as a readout with no container under a Code caption, and no glow. The name defaults to "Guest Wi-Fi" (the integration's own names describe the integration, not the network); the status line names the network to join. The code is in the large-readout voice, sized to the card so a voucher's ten digits never clip at 174 px, and read a digit at a time: "code 9 8 6 6 8, 4 9 3 6 6". A password is captioned Password, a size down, and cut with an ellipsis where the card ends (the sheet shows it whole, wrapping); it is read a character at a time, capitals and symbols named: "password r i p e dash capital M a n g o". Tap the code or the name for the sheet.
+- **Featured:** the network's join QR code on the card, beside how to join and what the code allows ("Single use · Lasts 1 day"), so a guest can scan it from a hall or a wall panel without opening anything. It takes the room the Today strip takes on other cards: a code has no day to draw. Under 260 px the QR code keeps that room alone.
+- **Sheet:** the code; the QR code large and centred, how to join under it ("Join Maple Guests, then enter the code on the page that opens."; for a password, "Scan to join Maple Guests 5G, or choose it in Wi-Fi settings and type the password.", or the second half alone without a QR code); then **Codes** (**Wi-Fi password** for a password): what this code allows (its uses: "Single use", "3 of 5 uses left", "Unlimited uses"; how long it lasts once used, or the time it has left once someone has joined) and two raised pills that act once, **Refresh** (fetch the codes again now; the integration otherwise fetches them every 5 minutes) and **New code** (make one with the integration's own uses and length). Each says it is waiting ("Checking…", "Making…", and in words under them) until Home Assistant answers, by when a new code is in; one press at a time. The line under them says the codes already given keep working: making a new one never ends another. For a password, the pill is **New password…** and asks first, on the shared question ("Change the password for Maple Guests 5G?", "Devices already joined will need the new password.", Cancel and Change), since a new password ends the old one for everyone already in. Facts: when the code was made, when Home Assistant last fetched the codes.
+- **Not on the card:** Refresh and New code are in the sheet only, so a stray tap on a dashboard never makes codes.
+- **No code:** the integration drops a code once its uses are spent, and leaves its sensor unavailable while no code is left. While what makes a new one can still be reached, that is no code, not unavailable: the card says "No code to give" ("No password set" for a password; a compact row "No code" or "No password", muted) and the sheet offers New code. The QR code is left out, since joining would end at a page asking for a code there isn't.
+- **Unavailable:** when neither the code nor its New code button can be reached (or the sensor is `unknown` or missing), the card says Unavailable everywhere, and when it was last seen if the host passes `lastSeen`; no network, code or QR code.
+- **Compact:** the icon, the name over the network, and the code as the row's value.
+- **Home Assistant:** `HaGuestWifiTile` takes the entity that holds the code or password. For UniFi Hotspot Manager's `sensor.<site>_voucher` it finds `image.<site>_qr_code`, `button.<site>_create` and `button.<site>_update` beside it; for anything else, or companions named otherwise, pass `qrEntityId`, `newCodeEntityId`, `refreshEntityId`, and `network` and `access` where the defaults don't fit. Its services press those actions, `button.press`, `input_button.press` or `script.turn_on`, each only while its entity can be reached. The QR code is Home Assistant's own image (`entity_picture`, which Home Assistant serves with a token it rotates), drawn as served, black on white with its quiet zone, so it scans in either theme. A new code takes the integration's defaults: choosing its uses or length, or deleting a code, is the integration's (`unifi_voucher.create`, `unifi_voucher.delete`), not this card's. Changing a password, and redrawing its QR code, is the host's script: the card shows whatever the entity and the image then say.
+
+### Field guest wifi module
+
+`GuestWifiModule` is the same normalized guest Wi-Fi entity in the Field skin; `HaGuestWifiModule` is its connected container, on the same `useHaGuestWifi` hook as `HaGuestWifiTile`, finding the same companions or taking the same `access`, `network`, `qrEntityId`, `newCodeEntityId` and `refreshEntityId`. See [field.md](field.md#guest-wifi).
+
+```tsx
+<HaGuestWifiModule entityId="sensor.67d9d6d6ad84e044caf4621c_voucher" />
+```
+
+<!-- new-card: cards -->
 
 ## The dashboard header
 

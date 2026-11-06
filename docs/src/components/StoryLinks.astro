@@ -13,9 +13,11 @@ interface Props {
 const { kind: name } = Astro.props;
 const kind = (await kinds()).find((entry) => entry.name === name);
 if (!kind) throw new Error(`StoryLinks: no kind ${name}`);
+// Stories are titled by the card's name ("GuestWifi"), which a one-word kind's page title happens to match.
+const Name = name[0].toUpperCase() + name.slice(1);
 const skins = [
-  kind.tile && { skin: "Orb", id: story(storyId(`Orb/Cards/${kind.title}`, "AllStates")) },
-  kind.module && { skin: "Field", id: story(storyId(`Field/Cards/${kind.title}`, "AllStates")) },
+  kind.tile && { skin: "Orb", id: story(storyId(`Orb/Cards/${Name}`, "AllStates")) },
+  kind.module && { skin: "Field", id: story(storyId(`Field/Cards/${Name}`, "AllStates")) },
 ].filter((entry): entry is { skin: string; id: string } => Boolean(entry));
 const href = (id: string) => `${storybookUrl()}?path=/story/${id}`;
 ---

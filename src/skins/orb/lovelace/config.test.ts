@@ -67,6 +67,34 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
+  it("draws a voucher sensor as guest Wi-Fi by its id, any other sensor with card:, and checks its companions' domains", () => {
+    expect(items({ cards: [
+      "sensor.67d9d6d6ad84e044caf4621c_voucher",
+      "sensor.hall_temperature",
+      { entity: "sensor.visitors", card: "guestWifi", qr: "image.visitors_qr", new_code: "button.visitors_new", refresh: "button.visitors_fetch" },
+    ] })).toMatchObject([
+      { kind: "guestWifi", entity: "sensor.67d9d6d6ad84e044caf4621c_voucher", qr: undefined, newCode: undefined, refresh: undefined },
+      { kind: "sensor", entity: "sensor.hall_temperature" },
+      { kind: "guestWifi", entity: "sensor.visitors", qr: "image.visitors_qr", newCode: "button.visitors_new", refresh: "button.visitors_fetch" },
+    ]);
+    expect(problems({ cards: [{ entity: "sensor.site_voucher", qr: "camera.site", new_code: "switch.new_code" }] })).toEqual([
+      "cards[0] (sensor.site_voucher).qr: camera.site must be a image.* entity",
+      "cards[0] (sensor.site_voucher).new_code: switch.new_code must be a button.* or input_button.* or script.* entity",
+    ]);
+  });
+
+  it("draws a password in an input_text as guest Wi-Fi only with card:, its network named and its script pressed", () => {
+    expect(items({ cards: [
+      { entity: "input_text.guest_password", card: "guestWifi", network: "Maple Guests 5G", qr: "image.guest_qr", new_code: "script.new_guest_password", refresh: "input_button.fetch" },
+      { entity: "sensor.site_voucher", access: "password" },
+    ] })).toMatchObject([
+      { kind: "guestWifi", entity: "input_text.guest_password", network: "Maple Guests 5G", qr: "image.guest_qr", newCode: "script.new_guest_password", refresh: "input_button.fetch" },
+      { kind: "guestWifi", access: "password" },
+    ]);
+    expect(problems({ cards: ["input_text.guest_password"] })).toEqual([expect.stringContaining("guestWifi")]);
+    expect(problems({ cards: [{ entity: "sensor.site_voucher", access: "wpa" }] })).toEqual([expect.stringContaining("access")]);
+  });
+
   it("checks an owlet's alert sensors by alert name and domain", () => {
     expect(problems({ rows: [{ cards: [
       { entity: "sensor.a_sleep_state", alerts: { low_oxygn: "binary_sensor.a", sock_off: "sensor.a_off" } },

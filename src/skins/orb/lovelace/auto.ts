@@ -15,6 +15,8 @@ interface Row { title: string; columns?: number; cards: Card[] }
  * when the two drift apart.
  */
 const OWLET = /^sensor\.\w+_sleep_state$/;
+/** UniFi Hotspot Manager's guest Wi-Fi code: SHARED_KINDS draws it as the guestWifi card, its pattern repeated here too. */
+const VOUCHER = /^sensor\.\w+_voucher$/;
 
 /**
  * A starting dashboard config for a house, as titled `rows`: actionable rows first, then household status, then
@@ -59,6 +61,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   if (modes.length) place({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });
 
   const socks = sorted(visible.filter((id) => OWLET.test(id)));
+  const wifi = sorted(visible.filter((id) => VOUCHER.test(id)));
 
   // Controls, one row per area, then whatever has no area.
   const controls = ofDomain(
@@ -94,6 +97,8 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
   if (alarms.length || locks.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks] });
   if (socks.length) place({ title: "Nursery", cards: socks });
+  // Guest Wi-Fi is household status a visitor reads: after the household's own, before the outside and rooms.
+  if (wifi.length) place({ title: "Guests", cards: wifi });
   if (weather) place({ title: "Outside", cards: [weather] });
   if (air.length) place({ title: "Rooms", cards: air });
 
