@@ -10,7 +10,7 @@ you on one `0.x` line until you move. Every `@dashhaus/` package shares one vers
 ## Install
 
 ```sh
-npm install @dashhaus/field @dashhaus/core @dashhaus/core/lovelace react@18 react-dom@18 home-assistant-js-websocket@9
+npm install @dashhaus/field @dashhaus/core react@18 react-dom@18 home-assistant-js-websocket@9
 ```
 
 React 18.3+ or 19 is supported. The websocket client is an optional peer: the Lovelace element reaches it through `@dashhaus/core/websocket`, so install it in the app that builds the browser bundle.
