@@ -11,4 +11,5 @@ export * from "./transport";
 export * from "./toggle";
 export * from "./lock";
 export * from "./fan";
+export * from "./guestWifi";
 // new-card: demo transports

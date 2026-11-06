@@ -150,6 +150,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
 | `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |
+| `@dashhaus/core/entities/guestWifi/words` | a guest Wi-Fi code's uses and length in words, `spokenCode`, `codeGroups`, `isGroupedCode`, `secretWord`, `joinWords` |
 | `@dashhaus/core/entities/humidifier/labels` | what the unit is doing in words, `fmtHumidity`, `modeLabel` |
 | `@dashhaus/core/entities/light/color`, `/light/kelvin` | the lamp colours, and a colour temperature as a colour and a name |
 | `@dashhaus/core/entities/lock/code`, `/lock/severity` | what a code may contain, and a lock's severity |
