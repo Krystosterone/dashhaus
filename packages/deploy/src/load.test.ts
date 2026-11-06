@@ -135,22 +135,19 @@ describe("resolveFiles", () => {
     ]);
   });
 
-  it("takes bundle as the one-file shorthand, keeping an absolute path and its name's folder", () => {
-    const targets = resolveFiles(untyped({ bundle: "/tmp/out/cards.js" }), "/configs/dashboard.config.mjs");
+  it("keeps an absolute path and its name's folder", () => {
+    const targets = resolveFiles(untyped({ files: ["/tmp/out/cards.js"] }), "/configs/dashboard.config.mjs");
     expect(targets).toEqual([{ file: "/tmp/out/cards.js", name: "cards.js", folder: "cards", resourcePath: "/local/cards/cards.js" }]);
-    expect(resolveFiles(untyped({ bundle: "dist/dashhaus.js" }), "/configs/dashboard.config.mjs")[0].file).toBe(join("/configs", "dist", "dashhaus.js"));
   });
 
-  it("refuses both or neither, an empty list, an entry that is not a path and two files with one name", () => {
+  it("refuses no files, an empty list, an entry that is not a path and two files with one name", () => {
     const resolveOf = (overrides: Record<string, unknown>) => () => resolveFiles(untyped(overrides), "/configs/dashboard.config.mjs");
     expect(resolveOf({})).toThrowError(DeployConfigError);
-    expect(resolveOf({})).toThrowError('the deploy config must name the files to upload: files: ["dist/cards.js"] (or bundle: "dist/cards.js" for one)');
-    expect(resolveOf({ files: ["a.js"], bundle: "b.js" })).toThrowError("name the files to upload once");
+    expect(resolveOf({})).toThrowError('the deploy config must name the files to upload: files: ["dist/cards.js"]');
     expect(resolveOf({ files: [] })).toThrowError("files must name at least one file to upload");
     expect(resolveOf({ files: "a.js" })).toThrowError("files must be a list of the files to upload");
     expect(resolveOf({ files: ["a.js", 3] })).toThrowError("files[1] must be the path of a file to upload");
     expect(resolveOf({ files: ["a.js", ""] })).toThrowError("files[1] must be the path of a file to upload");
-    expect(resolveOf({ bundle: "" })).toThrowError("bundle must name the file to upload");
     expect(resolveOf({ files: ["dist/cards.js", "/elsewhere/cards.js"] })).toThrowError(
       "files must have different file names: dist/cards.js and /elsewhere/cards.js would both be served as /local/cards/cards.js",
     );
@@ -172,7 +169,7 @@ describe("readConfig", () => {
 
   it("keeps a build callback, which the deploy runs in the config's directory", async () => {
     const directory = await temporary();
-    await writeFile(join(directory, "dashboard.config.mjs"), "export default { bundle: \"out.js\", build() {}, dashboards: [] };\n");
+    await writeFile(join(directory, "dashboard.config.mjs"), "export default { files: [\"out.js\"], build() {}, dashboards: [] };\n");
     const loaded = await readConfig(join(directory, "dashboard.config.mjs"));
     expect(loaded.build).toBeTypeOf("function");
   });
@@ -180,12 +177,12 @@ describe("readConfig", () => {
   it("refuses a missing file, a config without dashboards, and files it cannot upload", async () => {
     const directory = await temporary();
     await expect(readConfig(join(directory, "missing.js"))).rejects.toThrowError("Could not load");
-    await writeFile(join(directory, "no-dashboards.js"), "export default { bundle: \"out.js\" };\n");
+    await writeFile(join(directory, "no-dashboards.js"), "export default { files: [\"out.js\"] };\n");
     await expect(readConfig(join(directory, "no-dashboards.js"))).rejects.toThrowError("must export default");
     await writeFile(join(directory, "no-files.js"), "export default { dashboards: [] };\n");
     await expect(readConfig(join(directory, "no-files.js"))).rejects.toThrowError("must name the files to upload");
-    await writeFile(join(directory, "no-bundle.js"), "export default { bundle: 3, dashboards: [] };\n");
-    await expect(readConfig(join(directory, "no-bundle.js"))).rejects.toThrowError("bundle must name the file to upload");
+    await writeFile(join(directory, "not-a-list.js"), "export default { files: 3, dashboards: [] };\n");
+    await expect(readConfig(join(directory, "not-a-list.js"))).rejects.toThrowError("files must be a list of the files to upload");
     await writeFile(join(directory, "same-name.js"), "export default { files: [\"a/x.js\", \"b/x.js\"], dashboards: [] };\n");
     await expect(readConfig(join(directory, "same-name.js"))).rejects.toThrowError(`${join(directory, "same-name.js")}: files must have different file names`);
   });
@@ -203,7 +200,7 @@ describe("loadDashboards", () => {
     await writeFile(join(directory, "dashboard.config.mjs"), [
       "export default {",
       '  pageTitle: "Home",',
-      '  bundle: "dist/dashhaus.js",',
+      '  files: ["dist/dashhaus.js"],',
       "  dashboards: [{",
       '    path: "dashhaus-orb",',
       '    title: "Home",',

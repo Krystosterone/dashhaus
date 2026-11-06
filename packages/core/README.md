@@ -83,9 +83,6 @@ class MyCard extends LovelaceDashboardElement<{ title: string }> {
 registerCard("dashhaus-my-skin", MyCard, "My skin", "A dashboard of my own.");
 ```
 
-Until 0.4 these were `@dashhaus/dashboard` and its subpaths: `@dashhaus/dashboard/skin` is now
-`@dashhaus/core/lovelace/skin`, and so on.
-
 ## Docs
 
 - [Core contract and auth boundary](https://github.com/Krystosterone/dashhaus/blob/main/spec/core.md)

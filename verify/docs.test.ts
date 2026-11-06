@@ -21,7 +21,6 @@ import { parseDashboardConfig } from "../src/skins/orb/lovelace/config";
 import { parseFieldConfig } from "../src/skins/field/lovelace/config";
 import { ORB_STRATEGY } from "../src/skins/orb/lovelace/strategy";
 import { FIELD_STRATEGY } from "../src/skins/field/lovelace/strategy";
-import { generateDashboard, generateView } from "../apps/lovelace/strategy";
 import { ADDED, writeScaffold } from "../docs/src/lib/scaffold";
 
 const root = process.cwd();
@@ -76,9 +75,6 @@ describe("documentation samples", () => {
     const card = (config: { type?: string; cards?: unknown[]; [key: string]: unknown }, at: string) => {
       if (config.type === "custom:dashhaus-orb") expect(() => parseDashboardConfig(config), at).not.toThrow();
       else if (config.type === "custom:dashhaus-field") expect(() => parseFieldConfig(config), at).not.toThrow();
-      // Home Assistant's own cards a strategy uses: the combined install's notice above a look's card.
-      else if (config.type === "vertical-stack") (config.cards as { type?: string }[]).forEach((child, i) => card(child, `${at} → cards[${i}]`));
-      else if (config.type === "markdown") expect(typeof (config as { content?: unknown }).content, at).toBe("string");
       else throw new Error(`${at}: no parser for type ${config.type}`);
     };
     const skins = Object.fromEntries([ORB_STRATEGY, FIELD_STRATEGY].map((strategy) => [`custom:${strategy.type}`, strategy]));
@@ -98,10 +94,7 @@ describe("documentation samples", () => {
         card({ type: skin.card, title: "Home", ...keys }, `${at} → ${skin.name}`);
         continue;
       }
-      expect(config.strategy.type, at).toBe("custom:dashhaus");
-      const { views } = generateDashboard(config.strategy);
-      expect(views.length, at).toBeGreaterThan(0);
-      for (const view of views) for (const drawn of generateView(view.strategy).cards) card(drawn, `${at} → ${view.path}`);
+      throw new Error(`${at}: no strategy ${config.strategy.type}`);
     }
   });
 

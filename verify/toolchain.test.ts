@@ -66,7 +66,7 @@ describe("the pinned npm", () => {
   });
 
   it("builds the release from the lockfile, restoring no cache", () => {
-    // Any job on main can save an Actions cache entry a later run restores; the shipped dashhaus.js must not come from one.
+    // Any job on main can save an Actions cache entry a later run restores; the shipped tarballs must not come from one.
     const release = read(".github/workflows/release.yml");
     expect(release, "the release build passes cache: \"false\" to the setup action").toMatch(
       /uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+cache: "false"/,
@@ -104,6 +104,8 @@ describe("the pinned npm", () => {
     expect(jobs.build, "the clean build must reproduce the recorded files").toContain("node scripts/release/candidate.js check --always");
     expect(jobs.draft, "the release stays a draft until the end").toContain("--draft --target \"$GITHUB_SHA\"");
     expect(jobs.release).toContain("--draft=false");
+    // The release is the version's notes; the skins' files are released by their own Marketplace repositories.
+    expect(release, "no file attached to this repository's release").not.toMatch(/gh release upload|dashhaus\.js/);
     const publish = jobs.publish;
     expect(publish, "npm's trusted publisher names this environment").toMatch(/^ {4}environment: npm$/m);
     expect(publish, "the publish job only needs Node and npm").toMatch(/uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+install: "false"/);

@@ -23,8 +23,7 @@ release notes; an additive change is a minor one.
 The package also carries the Lovelace framework a skin's card draws on, under `./lovelace` and its subpaths; what of it
 is frozen is [contract.md](contract.md), not this page. It sits in core so that a skin author installs one package, and
 it stays apart from the entries above: none of them reaches `./lovelace` or `react-dom`
-(`verify/core-package.test.ts`), so a React app that only uses the hooks needs neither. Until 0.4 it was its own
-package, `@dashhaus/dashboard`.
+(`verify/core-package.test.ts`), so a React app that only uses the hooks needs neither.
 
 React 18.3+ and React 19 are both supported peers; the repo's own suites run React 18, and a clean consumer install,
 typecheck and build on React 19 holds the wider range.

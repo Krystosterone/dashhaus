@@ -78,21 +78,6 @@ card its strategy emits through its Lovelace card. `verify/dx/user.js` deploys O
 from their packages and draws them, expanded as the frontend expands them; `verify/dx/author.js` picks a scaffolded skin
 from the fake Home Assistant's stand-in for the Add dashboard dialog.
 
-### The combined install's `custom:dashhaus`
-
-Until Orb and Field installed on their own, one Marketplace install, `Krystosterone/dashhaus`, shipped both skins in
-`dashhaus.js` with a strategy of its own, `custom:dashhaus`, listed as **Dashhaus**: one dashboard with a tab per look.
-Its last release keeps it working (spec/release.md → The combined install's sunset): `apps/lovelace/strategy.ts`, built
-into `dashhaus.js` by `build:ha` and attached to that release.
-
-- One view per look, Orb then Field, or only the looks its `skin` names (one id or a list, in tab order); each view is
-  `ll-strategy-view-dashhaus`, a panel holding a vertical stack: a Markdown card saying the look now installs on its own,
-  with a link to its page and to the move, above the look's card on its automatic layout.
-- Its dialog entry says Orb and Field now install on their own; its keys are `skin`, `title`, `viewing`, `theme` (Orb's
-  card only) and `finish` (Field's card only), refused as above but led by `Dashhaus:`.
-- `apps/lovelace/strategy.test.ts` holds it; `verify/dx/marketplace.js` installs the release's `dashhaus.js` as the
-  Marketplace does into the fake Home Assistant, picks **Dashhaus** from the stand-in dialog and opens both views.
-
 ## Authoring
 
 Editing a card's YAML in Home Assistant, and adding the card from the card picker, are in [Deploy from the command line → Change the layout](../docs/src/content/docs/start/deploy.mdx#change-the-layout).
@@ -530,13 +515,6 @@ Mistakes show the same way as the main card's, all at once with their paths. The
 
 Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-default port), before the CLI move: the SSH upload, resource registration and the first-time dashboard creation (16 generated sections, before the layout became rows) worked. The served file matched the build byte for byte, and the dashboard rendered in Chrome with no error cards or console errors, at phone and desktop widths. Not yet checked live after the move: a redeploy over an existing dashboard (the two-run fake websocket covers creation and no-overwrite), and the YAML-mode resource fallback.
 
-Live, through HACS on Home Assistant 2026.10.4 with `v0.3.0`: the install from the My link as a custom repository,
-then the setup card's first Create, which made both dashboards, and both opened
-([0.3.0 → Live Marketplace install](releases/0.3.0.md#live-marketplace-install)). The setup card has since been
-removed for the dashboard strategy, so the checks still open on it (GitHub issue #31) no longer apply. Not yet
-checked live: any install through Home Assistant 2026.11's built-in Marketplace, which doesn't list Dashhaus until the
-catalog does (#32).
-
 Live, on a scratch Home Assistant 2026.11.0 (the `homeassistant/home-assistant:stable` container, the `demo`
 integration, Chromium driving its real frontend), on 2026-11-06, from the packed 0.3.0 tarballs of this change:
 
@@ -546,9 +524,6 @@ integration, Chromium driving its real frontend), on 2026-11-06, from the packed
   its own description, and nothing named Dashhaus; Create made `dashboard-orb` and `dashboard-field` (titles Orb and
   Field, icons `mdi:home-variant` and `mdi:knob`), which saved only `{ strategy: { type: custom:<repository> } }`. Both
   drew the demo house at 1440 and 390 px, in light and dark, with no error card and no console error.
-- **The combined install's last release.** With `dashhaus.js` registered too, Add dashboard listed **Dashhaus** with
-  its sunset description; its dashboard drew each tab as the frontend's own vertical stack, the Markdown notice (with
-  its links) above the look's card, at both widths.
 - **The command line.** `@dashhaus/deploy` from the tarballs, with Orb's and Field's README configs, into the same
   instance over a mounted `HA_WWW`: each uploaded its file, registered `/local/<repository>/<repository>.js`, created the
   strategy dashboard and the one of your own, and fetched the file back. Each warned that the Marketplace's copy was

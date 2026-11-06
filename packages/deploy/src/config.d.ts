@@ -58,11 +58,9 @@ export interface DeployConfig {
   pageTitle?: string;
   /**
    * The files the CLI uploads, each relative to the config file (or absolute), with different file names: each is
-   * copied to `$HA_WWW/<name>/` and registered as `/local/<name>/<file>`. Give `files` or `bundle`, not both.
+   * copied to `$HA_WWW/<name>/` and registered as `/local/<name>/<file>`.
    */
-  files?: string[];
-  /** The one-file shorthand for `files: [bundle]`. */
-  bundle?: string;
+  files: string[];
   /** Optional; runs once, with the config's directory as the working directory, before the files are read. */
   build?(): void | Promise<void>;
   dashboards: DeployDashboard[];

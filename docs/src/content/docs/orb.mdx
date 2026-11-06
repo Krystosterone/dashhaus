@@ -13,7 +13,6 @@ hero:
   tagline: Soft, round cards you read at a glance. Every device in your house, room by room, laid out for you.
 ---
 
-import { Aside } from "@astrojs/starlight/components";
 import Example from "../../components/Example.astro";
 import LiveStory from "../../components/LiveStory.astro";
 import Install from "../../components/home/Install.astro";
@@ -70,11 +69,6 @@ open **Settings → Dashboards → ⋮ → Resources** and check there's a JavaS
 
 Community dashboards are listed from Home Assistant 2026.5. On an older version, or one that keeps its dashboards in
 YAML, create a dashboard yourself and give it `strategy: { type: custom:orb-dashboard }` as its whole configuration.
-
-<Aside title="Have the Dashhaus download?">
-  It carried Orb and Field together, and has had its last release. Download Orb here, add its dashboard, then delete
-  the Dashhaus dashboard and remove the Dashhaus download: [Moving from Dashhaus](/dashhaus/start/install/).
-</Aside>
 
 ## Update
 

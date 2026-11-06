@@ -1,6 +1,0 @@
-# The whole dashboard, as Add dashboard → Dashhaus saves it, plus the options you can add.
-strategy:
-  type: custom:dashhaus
-  skin: field     # orb, field, or a list such as [field, orb]; every look when left out
-  viewing: far    # near (default) for a phone or tablet, far for a wall panel
-  finish: black   # field's finish; orb takes theme: home-assistant, auto, light or dark

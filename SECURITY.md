@@ -20,8 +20,8 @@ Only the latest released `0.x` line gets security fixes. Before 1.0, a fix may n
 
 - The published packages: `@dashhaus/core`, `@dashhaus/deploy`, `@dashhaus/orb`, `@dashhaus/field` and
   `create-dashhaus-skin`, and the resource each skin's package ships, which its Marketplace repository mirrors.
-- The `dashhaus.js` bundle attached to each GitHub release, which the Home Assistant Marketplace and HACS install,
-  and its `custom:dashhaus` dashboard strategy.
+- Orb's and Field's Marketplace repositories (`Krystosterone/orb-dashboard`, `Krystosterone/field-dashboard`), what
+  they release and the mirror that releases it, and each skin's dashboard strategy.
 
 A token leaked through your own `.env` or `dashboard.config.mjs`, or a flaw in Home Assistant itself, is out of scope;
 report the latter to [Home Assistant](https://www.home-assistant.io/security/).

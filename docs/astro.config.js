@@ -61,7 +61,6 @@ export default defineConfig({
             "2. Reload the browser tab.",
             "3. Settings → Dashboards → Add dashboard → under Community dashboards, pick \"Orb\" (or \"Field\") → Create (Home Assistant 2026.5+; on an older one, give a new dashboard `strategy: { type: custom:orb-dashboard }`, or `custom:field-dashboard`, as its configuration).",
             "4. Open the new dashboard from the sidebar, laid out from the house. It never changes an existing dashboard.",
-            "The earlier Dashhaus download (repository=dashhaus, both looks in one dashboard, `custom:dashhaus`) has had its last release and keeps working; to move from it to a skin's own download, follow start/install.",
             "From a terminal or CI, or for a dashboard of your own rows: `npm install @dashhaus/orb @dashhaus/deploy` (or @dashhaus/field), then `npx dashhaus-deploy --skip-build` with the config in start/deploy.",
             "",
             "To build someone their own skin (a whole look for their dashboards) from a picture or a description: run `npm create dashhaus-skin@latest <name>`, follow the AGENTS.md it writes (restyle, `npm test`, `npm run snapshot` to show them), then `npm run deploy` with HA_URL, HA_TOKEN and HA_WWW in .env. An agent that can't reach their Home Assistant (one in the cloud) follows the AGENTS.md's Install by hand instead: it hands over the built file and walks them through File editor, Resources and a new dashboard, with no token. start/build-a-skin has the prompt and the Home Assistant steps for a person with no terminal experience.",
@@ -85,7 +84,6 @@ export default defineConfig({
           items: [
             { label: "Lay it out in YAML", slug: "start/yaml" },
             { label: "Warnings and alarms", slug: "start/warnings" },
-            { label: "Moving from Dashhaus", slug: "start/install" },
             { label: "Deploy from the command line", slug: "start/deploy" },
           ],
         },

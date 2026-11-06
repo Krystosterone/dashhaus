@@ -12,7 +12,6 @@ contributor. The order follows how many people take each path and how little the
 | --- | --- | --- | --- | --- | --- |
 | User: Orb | Wants Orb on their Home Assistant and has no terminal | `orb` | `orb-dashboard.js`, the release asset of `Krystosterone/orb-dashboard`, which mirrors it from `@dashhaus/orb`, through the Marketplace (HACS before 2026.11) | `verify/dx/skin.js` | Orb's card, its YAML keys and its `custom:orb-dashboard` strategy ([deploy.md](deploy.md)) |
 | User: Field | Wants Field on their Home Assistant and has no terminal | `field` | `field-dashboard.js`, the release asset of `Krystosterone/field-dashboard`, which mirrors it from `@dashhaus/field`, through the Marketplace (HACS before 2026.11) | `verify/dx/skin.js` | Field's card, its YAML keys and its `custom:field-dashboard` strategy ([deploy.md](deploy.md)) |
-| User, both in one | Has the combined Dashhaus install already: both looks in one dashboard | `start/install` | The last release asset `dashhaus.js`, through the Marketplace (HACS before 2026.11) | `verify/dx/marketplace.js` | Its dashboards keep working on its last release, and it says how to move ([release.md → The combined install's sunset](release.md#the-combined-installs-sunset)) |
 | User, from the command line | Scripts the same install, deploys from CI, keeps resources in YAML, or writes a dashboard from scratch | `start/deploy` | `@dashhaus/orb` or `@dashhaus/field`, with `@dashhaus/deploy` | `verify/dx/user.js` | The same, plus the CLI's options and `.env` keys ([deploy.md](deploy.md)) |
 | Author | Builds a skin of their own, from the scaffolder and its domain generator, often by asking an agent to | `start/build-a-skin` | `create-dashhaus-skin`, which writes a project on `@dashhaus/core` and `@dashhaus/deploy` | `verify/dx/author.js` | The skin-author contract and its conformance check ([contract.md](contract.md)) |
 | Developer | Uses the entity models and hooks in a React app of their own, with no skin and no generator | `start/getting-started` | `@dashhaus/core` | `verify/dx/developer.js` | The core contract ([core.md](core.md)) |
@@ -39,10 +38,7 @@ dashboard and the card picker to it: one entry each, the skin's.
 Each page is written so a browser agent can follow it alone and quotes its steps as a prompt; `llms.txt` carries the
 same steps.
 
-The combined row is the way Dashhaus started: one download, `dashhaus`, carrying both looks in one dashboard. Its last
-release keeps it working and tells its people how to move to a skin's own install; the site keeps a page for the move
-under Set up, and no landing page leads to it. The row and its proof go with the combined install
-([release.md → The combined install's sunset](release.md#the-combined-installs-sunset)). The command-line row is the
+The command-line row is the
 same person with a terminal, or a machine, and the one way to deploy a dashboard written from scratch: the skin's card
 with their own rows. It is the advanced page of the same section, never a second front door. Each page says to pick
 one way per skin: each registers its own copy.

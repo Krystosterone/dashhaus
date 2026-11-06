@@ -1,6 +1,6 @@
 /** One resource this repository builds (scripts/resources.js). */
 export interface Resource {
-  /** The skin's id (`orb`), or `dashhaus` for the combined file. */
+  /** The skin's id (`orb`). */
   id: string;
   /** The module the build starts from, from the repository's root. */
   entry: string;
@@ -16,7 +16,6 @@ export interface Resource {
 
 export const SKIN_RESOURCES: Resource[];
 export const GENERATED_RESOURCES: Resource[];
-export const COMBINED: Resource;
 export const RESOURCES: Resource[];
 export function resource(id: string): Resource;
 export const NOTICE: string;

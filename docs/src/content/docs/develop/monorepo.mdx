@@ -36,7 +36,6 @@ src/skins/
   orb/                   @dashhaus/orb: cards/, shared/, bundles/, dashboards/, ha/, lovelace/ (its card, its
                          strategy and resource.ts, the entry of orb-dashboard.js), styles/
   field/                 @dashhaus/field: the same shape, without bundles; field-dashboard.js
-apps/lovelace/           the combined install's last dashhaus.js: entry.ts and strategy.ts (custom:dashhaus)
 verify/                  checks across packages and skins: boundaries, conformance, Storybook, releases, docs
 scripts/                 the generators (new-card, new-skin), builds, release and perf tooling
 spec/                    the specification the code is held to, for maintainers and agents
@@ -79,8 +78,7 @@ can't be fetched, `DASHHAUS_CHROMIUM=/path/to/chromium` points them at a Chromiu
 
 CI runs the first two on every push and pull request, and packs the release to run the clean-room journeys from the
 tarballs alone, one for each way in but this one: [installing Orb](/dashhaus/orb/) or [Field](/dashhaus/field/)
-from its own repository and picking it in Add dashboard, [installing both in one](/dashhaus/start/install/),
-[deploying from the command line](/dashhaus/start/deploy/),
+from its own repository and picking it in Add dashboard, [deploying from the command line](/dashhaus/start/deploy/),
 [building a skin](/dashhaus/start/build-a-skin/) and [using the hooks](/dashhaus/start/getting-started/), against a
 simulated Home Assistant. `spec/journeys.md` lists them, and a check fails when one loses its page or its proof.
 

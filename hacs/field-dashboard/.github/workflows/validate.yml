@@ -2,7 +2,7 @@ name: HACS
 
 # The Home Assistant Marketplace and HACS validate a dashboard plugin with this action: hacs.json, the release carrying
 # field-dashboard.js, the README, the repository's description and topics. Kept in Krystosterone/dashhaus at
-# hacs/field-dashboard/, as the monorepo's own .github/workflows/hacs.yml; change it there.
+# hacs/field-dashboard/; change it there.
 on:
   push:
   schedule:

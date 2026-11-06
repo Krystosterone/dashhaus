@@ -4,8 +4,8 @@
 `@dashhaus/field` are the packages a dashboard author or user installs; `create-dashhaus-skin` scaffolds a standalone
 skin. Each skin's package also ships its **resource**, the one-file Lovelace module Home Assistant loads
 (`dist/<repository>.js` behind its `./resource` export, scripts/resources.js), which the skin's own Marketplace
-repository mirrors (The skin repositories, below). Generated skins created inside this repository, Storybook and the
-combined install's last `dashhaus.js` stay out of npm.
+repository mirrors (The skin repositories, below). Generated skins created inside this repository and Storybook stay
+out of npm.
 
 ## Build and export layout
 
@@ -99,11 +99,12 @@ refused its digests. Least reversible last:
 
 - **plan** reads the version, refuses anything but main, and stops quietly when that version is tagged at another
   commit (nothing to release); tagged at this commit, it finishes the release. It needs the record and its digests.
-- **build**, read-only and with no cache: `build:ha`, `release:pack`, `verify:packages`, checks the release's
-  `dashhaus.js` and each skin's resource inside its tarball are the files `build:ha` writes, then `candidate.js check --always`: a clean build must reproduce
-  every recorded file byte for byte, or nothing ships. It hands on the files and the record's Release page.
-- **draft** creates the GitHub release as a draft at this commit, with that body and `dashhaus.js` attached. A draft
-  has no tag and nobody sees it; an immutable release only takes its files while it is a draft.
+- **build**, read-only and with no cache: `build:ha`, `release:pack`, `verify:packages`, checks each skin's resource
+  inside its tarball is the file `build:ha` writes, then `candidate.js check --always`: a clean build must reproduce
+  every recorded file byte for byte, or nothing ships. It hands on the tarballs and the record's Release page.
+- **draft** creates the GitHub release as a draft at this commit, with that body and no file: the release is the
+  version's notes, and each skin's file is released by its own Marketplace repository (The skin repositories, below).
+  A draft has no tag and nobody sees it.
 - **publish** runs `npm publish` on each tarball in `publish.tsv`'s order, which is `publicPackages`', so every
   internal range resolves. A version already on npm is skipped when it is this very file and stops the run when it is
   any other; it asks npm's document for that one version, so it never leaves a stale index cached (below). A
@@ -111,8 +112,8 @@ refused its digests. Least reversible last:
 - **registry**: `release:registry` with `--compare`, so npm serves byte for byte what this commit packed, then the four
   clean-room journeys from those tarballs ([journeys.md](journeys.md)). npm can list a version minutes after it took
   it, so the check waits for each one, up to ten minutes.
-- **release** publishes the draft, which creates the tag `v<version>` at this commit and is what the Marketplace and
-  HACS see. Last, so a release that failed anywhere earlier is never offered to them.
+- **release** publishes the draft, which creates the tag `v<version>` at this commit. After the registry, so a release
+  that failed anywhere earlier is never announced.
 - **listings** starts each skin repository's mirror with this version and waits for its release (The skin
   repositories, below), so Orb and Field reach the Marketplace minutes after npm.
 
@@ -247,26 +248,9 @@ Record on the release candidate: date and operator, Home Assistant version, cand
 ## The Marketplace
 
 The Home Assistant Marketplace (built in from 2026.11) and HACS (before it) read one catalog and one contract, so one
-release serves both. What the repository holds:
-
-- `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
-  `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
-  It sets `hide_default_branch`: the stores take the file from the latest release's assets first, and failing that
-  from the branch's root or `dist/` (HACS's `update_filenames`), and the default branch has no built file in either,
-  so offering it could only fail.
-- `.github/workflows/release.yml` (Releasing, above) builds `dist/dashhaus.js` from the merged release commit,
-  attaches it to the release while it is a draft, and publishes the release, whose tag `v<version>` is the version
-  the Marketplace reads. The build runs read-only and restores no cache (the setup action's `cache: "false"`): any job
-  that runs on main, a third-party action's included, can save an Actions cache entry a later run restores, so the
-  file is installed from the lockfile alone. Only the jobs that draft and publish the release may write to the
-  repository, and they run none of the repository's scripts. `dist/` stays ignored: the release asset is the
-  artifact, never a committed build.
-- `.github/workflows/hacs.yml` runs `hacs/action`, its wrapper pinned to a commit on its `main` while the checks come from HACS's `ghcr.io/hacs/action:main` image, so they follow HACS's current rules and the pin needs no bump, with `category: plugin` and no ignored checks on every pull request,
-  push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
-  repository is private, like the Docs deploy.
-- The bundle's dashboard strategy ([deploy.md → The dashboard strategy](deploy.md#the-dashboard-strategy)) makes the
-  dashboard after the install, from Home Assistant's own Add dashboard dialog, and the site's [Install from the Marketplace](../docs/src/content/docs/start/install.mdx) page, with its
-  My link and `llms.txt`'s copy of its steps, is the way in.
+release serves both. Orb and Field are each a plugin of their own, from their own repository, which releases the file
+their npm package ships (The skin repositories, below). This repository is not one: it has no `hacs.json` and no HACS
+workflow, and its GitHub releases carry notes, never a file.
 
 Decided, and why:
 
@@ -276,57 +260,16 @@ Decided, and why:
 - **A dashboard strategy, not a setup card or a companion integration.** A repository holds one item of one type, so
   an integration that creates dashboards would be a second repository in Python, on Home Assistant's internal
   Lovelace collections. A strategy needs neither: Home Assistant's own Add dashboard dialog lists it (2026.5 and
-  newer), and the dashboard stores only the strategy, so it follows Dashhaus as it updates. It replaced the setup card,
-  which cost a card placement, a press and a removal, and was then removed.
-- **The person creates it, never an automatic run.** Nothing is created until they pick Dashhaus in Add dashboard, and
+  newer) under the skin's name, and the dashboard stores only the strategy, so it follows the skin as it updates.
+- **The person creates it, never an automatic run.** Nothing is created until they pick the skin in Add dashboard, and
   no existing dashboard is touched.
-- **No token for agents.** An agent installing Dashhaus uses the person's own session through Add dashboard, never a
+- **No token for agents.** An agent installing a skin uses the person's own session through Add dashboard, never a
   long-lived token handed to a model.
 - **The command line stays**, for CI, automation, dashboards in YAML mode and dashboards written from scratch.
   Installing a skin both ways loads two copies of its resource, so each skin's page says to pick one.
-
-### The combined install's sunset
-
-Sharing Dashhaus as a whole didn't land, so Orb and Field became the way in: each has its own page and its own
-Marketplace install (The skin repositories, below), and `Krystosterone/dashhaus` stops being one. It ends in one last
-release, which keeps every combined install working and tells its people what changed:
-
-- That release is the first to ship Orb's and Field's resources in their packages, so their repositories can mirror
-  it the same day. Its `dashhaus.js` still holds both skins and `custom:dashhaus`, built from `apps/lovelace/` by
-  `build:ha`, written beside the tarballs by `release:pack`, recorded in its digests and attached to its GitHub
-  release, which HACS shows on update.
-- Its strategy says Orb and Field now install on their own: in Add dashboard's entry, and above each view in a
-  Markdown card linking to the look's page and to the site's page for the move (spec/deploy.md → The combined
-  install's `custom:dashhaus`). Nothing else changes: its dashboards and cards draw as before.
-- `@dashhaus/bundle` and `@dashhaus/dashboard` are not published again; their last versions stay on npm, deprecated
-  by the operator with a pointer to the skins' packages and to core.
-
-After it, this repository ships no `dashhaus.js`: `apps/lovelace/`, the root `hacs.json`, the HACS workflow and
-`verify/dx/marketplace.js` go, and the Release workflow tags `v<version>` without a GitHub release, so HACS, which
-reads only releases (`custom_components/hacs/repositories/base.py`), keeps offering a combined install its last one and
-never an update with no file in it.
-
-What only the operator can do, in order, each once. Steps 1 to 3 are done: the repository went public (#29) and
-`v0.2.0` and `v0.2.1` shipped (#30). Step 4 is partly done: the HACS install and a first Create passed live with
-`v0.3.0` ([0.3.0 → Live Marketplace install](releases/0.3.0.md#live-marketplace-install)), and its other checks stay
-open as #31. Step 5 is open as #32, and step 6 waits on it, in #31:
-
-1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
-2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;
-   the HACS action checks them.
-3. Merge the release PR (Releasing, above). The Release workflow tags `v<version>`, attaches `dashhaus.js` and
-   publishes the packages and the release; check its six jobs and the HACS workflow are green.
-4. Live, on a scratch Home Assistant older than 2026.11, with HACS: install from the
-   [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
-   as a custom repository, reload, then **Settings → Dashboards → Add dashboard** and pick **Dashhaus** under
-   Community dashboards (Home Assistant 2026.5 or newer), open its Orb and Field tabs at a phone and a desktop width,
-   in light and dark mode, and check **Edit dashboard** opens on the bare strategy in YAML. Record it in
-   `spec/releases/<version>.md`, as run or unrun.
-5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
-   alphabetical order, with the release and the green HACS action. Review takes months; the My link works before it,
-   so this is discovery, not the launch.
-6. Once the catalog lists Dashhaus, repeat step 4 on a scratch Home Assistant 2026.11 or newer, through its built-in
-   Marketplace, which doesn't offer Dashhaus before then, and record it the same way.
+- **No migration paths in the product.** When an install, a package or a key goes away, the release notes say what to
+  do (Change notes, above), and nothing else carries the old way: no compatibility shim, no notice in a dashboard, no
+  page for the move. Orb and Field replaced the combined `dashhaus` download that way.
 
 ## The skin repositories
 
@@ -349,8 +292,7 @@ the mirror's checks on a real version's attestations.
 
 - **What it ships.** The file inside the skin's npm package, byte for byte: the release workflow here publishes the
   package with npm's provenance, and the skin repository releases what npm serves. Nothing builds it twice, and this
-  repository's GitHub release doesn't attach it: HACS downloads every asset of a plugin's release, so it would land in
-  every combined install.
+  repository's GitHub release attaches no file (Releasing, above).
 - **How it releases.** This repository's Release workflow ends with a `listings` job: once npm serves the version, it
   starts each skin repository's `release.yml` with that version (`gh workflow run … -f version=<version>`) and waits
   until each has released it, so one green run means npm and both Marketplace listings are done, minutes apart. Run by
@@ -398,15 +340,13 @@ What only the operator can do, each once, in order, for each skin:
    one permission **Actions: read and write**, and save it in this repository as the Actions secret
    `SKIN_REPOSITORIES_TOKEN`. Note its expiry; a release after it fails at its last job, which a new token and a rerun
    finish.
-3. Let the first release happen: the next release of this repository (the combined install's sunset release, above, is
-   the first to ship the skins' resources) starts both mirrors as its last job; check it, the mirrors and their HACS
-   workflows are green.
+3. Let the first release happen: the next release of this repository starts both mirrors as its last job; check it,
+   the mirrors and their HACS workflows are green.
 4. Live, on a scratch Home Assistant 2026.5 or newer with HACS: install from the skin's My link as a custom repository,
    reload, **Settings → Dashboards → Add dashboard** and pick the skin under Community dashboards; open it at a phone
    and a desktop width, in light and dark mode. Record it in `spec/releases/<version>.md`.
 5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
-   alphabetical order, with the release and the green HACS action. The My link works before it. The combined
-   install's own submission (#32) is then closed in their favour.
+   alphabetical order, with the release and the green HACS action. The My link works before it.
 
 ## CI
 

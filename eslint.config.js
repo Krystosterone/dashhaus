@@ -252,7 +252,7 @@ export default tseslint.config(
     },
   },
   {
-    // The root apps, repo checks and generators consume the packages through their declared subpaths only.
-    files: ["apps/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}", "verify/**/*.ts", "scripts/**/*.ts"],
+    // Storybook, the repo checks and the generators consume the packages through their declared subpaths only.
+    files: [".storybook/**/*.{ts,tsx}", "verify/**/*.ts", "scripts/**/*.ts"],
     rules: { "no-restricted-imports": ["error", { patterns: [...noPackageRelative] }] },
   },);

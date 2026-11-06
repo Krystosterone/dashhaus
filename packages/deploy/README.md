@@ -87,7 +87,6 @@ there is none, and the `.env` keys.
 | Key | What it is |
 | --- | --- |
 | `files` | The JavaScript files to upload, each relative to the config or absolute. Each is copied to `$HA_WWW/<name>/<name>.js` and registered as `/local/<name>/<name>.js?v=<content hash>`, so keep a file's name to keep its URL. Two files may not share a file name, since they would share a URL. |
-| `bundle` | The one-file shorthand: `bundle: "dist/cards.js"` is `files: ["dist/cards.js"]`. Give `files` or `bundle`, not both. |
 | `build` | Optional `async () => {}`, run once with the config's folder as the working directory before the files are read; `--skip-build` skips it. Without one the files must already exist. |
 | `pageTitle` | The view title of each new `card` dashboard (default `Home`). |
 | `dashboards[]` | `path` (the URL path; Home Assistant requires a hyphen, and paths are unique), `title` (sidebar), `icon` (`mdi:…`), exactly one of `strategy` or `card` (below), and optional `env: { path?, title? }` naming `.env` keys that may override the path and title. |

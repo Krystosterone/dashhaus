@@ -413,20 +413,6 @@ export default {
     expect(other.warnings).toEqual([expect.stringContaining("Another field-dashboard.js is also registered (/hacsfiles/dashhaus/field-dashboard.js)")]);
   });
 
-  it("takes bundle as the one-file shorthand for files", async () => {
-    const directory = await project(DASHBOARDS.replace('files: ["dist/dashhaus.js"]', 'bundle: "dist/dashhaus.js"'));
-    const ha = new FakeHomeAssistant();
-    const result = await deploy({
-      configFile: join(directory, "dashboard.config.mjs"),
-      env: settings(directory),
-      skipBuild: true,
-      report: () => {},
-      connect: async () => ha,
-    });
-    expect(result.resources).toEqual([expect.objectContaining({ name: "dashhaus.js", url: expect.stringMatching(/^\/local\/dashhaus\/dashhaus\.js\?v=/) })]);
-    expect(await readFile(join(directory, "www", "dashhaus", "dashhaus.js"), "utf8")).toBe("console.log('bundle');");
-  });
-
   it("saves a strategy dashboard as { strategy } and a card's config as written in one panel view", async () => {
     const directory = await project(`export default {
   pageTitle: "Flat",
@@ -473,8 +459,6 @@ export default {
 ] };`)).rejects.toThrowError("dashboards[0] takes a card or a strategy, not both");
     await expect(run(`export default { files: ["dist/dashhaus.js"], dashboards: [{ path: "home-a", title: "A", icon: "mdi:home" }] };`))
       .rejects.toThrowError("dashboards[0] needs a card");
-    await expect(run(`export default { files: ["dist/dashhaus.js"], bundle: "dist/dashhaus.js", dashboards: [] };`))
-      .rejects.toThrowError("name the files to upload once");
     await expect(run(`export default { files: [], dashboards: [] };`)).rejects.toThrowError("files must name at least one file to upload");
   });
 });

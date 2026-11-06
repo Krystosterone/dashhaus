@@ -81,21 +81,12 @@ async function bundleConfig(file) {
 const folderOf = (name) => name.slice(0, name.length - extname(name).length);
 
 /**
- * The files a config names, as written: `files`, or `bundle` as the one-file shorthand. Each lands at
- * `/local/<folder>/<name>`, so two with the same file name would share a URL. Throws `DeployConfigError`.
+ * The files a config names, as written. Each lands at `/local/<folder>/<name>`, so two with the same file name would
+ * share a URL. Throws `DeployConfigError`.
  */
 function declaredFiles(config) {
-  const hasFiles = config?.files !== undefined;
-  const hasBundle = config?.bundle !== undefined;
-  if (hasFiles && hasBundle) {
-    throw new DeployConfigError('name the files to upload once: files: ["dist/cards.js"], or bundle: "dist/cards.js" for one file, not both');
-  }
-  if (!hasFiles && !hasBundle) {
-    throw new DeployConfigError('the deploy config must name the files to upload: files: ["dist/cards.js"] (or bundle: "dist/cards.js" for one)');
-  }
-  if (hasBundle) {
-    if (typeof config.bundle !== "string" || !config.bundle.trim()) throw new DeployConfigError("bundle must name the file to upload");
-    return [{ path: config.bundle, at: "bundle" }];
+  if (config?.files === undefined) {
+    throw new DeployConfigError('the deploy config must name the files to upload: files: ["dist/cards.js"]');
   }
   if (!Array.isArray(config.files)) throw new DeployConfigError('files must be a list of the files to upload: files: ["dist/cards.js"]');
   if (!config.files.length) throw new DeployConfigError("files must name at least one file to upload");
