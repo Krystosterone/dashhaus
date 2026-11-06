@@ -103,9 +103,11 @@ refused its digests. Least reversible last:
   has no tag and nobody sees it; an immutable release only takes its files while it is a draft.
 - **publish** runs `npm publish` on each tarball in `publish.tsv`'s order, which is `publicPackages`', so every
   internal range resolves. A version already on npm is skipped when it is this very file and stops the run when it is
-  any other. A prerelease goes to the `next` dist-tag, everything else to `latest`.
+  any other; it asks npm's document for that one version, so it never leaves a stale index cached (below). A
+  prerelease goes to the `next` dist-tag, everything else to `latest`.
 - **registry**: `release:registry` with `--compare`, so npm serves byte for byte what this commit packed, then the four
-  clean-room journeys from those tarballs ([journeys.md](journeys.md)).
+  clean-room journeys from those tarballs ([journeys.md](journeys.md)). npm can list a version minutes after it took
+  it, so the check waits for each one, up to ten minutes.
 - **release** publishes the draft, which creates the tag `v<version>` at this commit and is what the Marketplace and
   HACS see. Last, so a release that failed anywhere earlier is never offered to them.
 
@@ -122,6 +124,12 @@ Decided, and why:
 - **Our own commands, not Changesets, release-please or semantic-release.** One fixed version for seven packages, the
   scaffolder's template ranges and the recorded digests are this repository's; each tool would duplicate
   `release:version` or need configuring around it.
+- **The registry is read by the version, never by the package's index.** npm's CDN serves a package's index (what
+  `npm view` and `npm pack <name>@<version>` read) for up to five minutes, so a version published a moment ago is
+  missing from it, and asking for it before publishing keeps the old one cached. 0.3.0's registry job failed that way,
+  its fixed retries spent while npm listed the version two minutes late. npm's document for one version
+  (`<registry>/<name>/<version>`) is never cached and a tarball never changes, so the check reads only those, and it
+  waits against a deadline, not a count of tries.
 - **No staging dist-tag promoted to `latest` after the smoke.** Trusted publishing covers `npm publish`, not
   `npm dist-tag`, so promotion would bring a token back. npm versions are immutable anyway: a bad release is fixed
   forward, by the next patch.
@@ -134,8 +142,10 @@ byte; npm packs with fixed timestamps; the lockfile pins every dependency, and t
 The 0.2.0 tarballs packed again here, on another machine, matched npm's byte for byte, the bundle aside, which then
 still named its commit.
 
-`npm run release:registry -- <x.y.z> [--out registry] [--compare release]` packs a published version back from npm,
-checks each file against the registry's `dist.shasum` and, with `--compare`, against the tarballs this commit packs.
+`npm run release:registry -- <x.y.z> [--out registry] [--compare release]` downloads a published version back from
+npm, checks each file against the registry's `dist.shasum` and `dist.integrity` and, with `--compare`, against the
+tarballs this commit packs. It reads npm's document for each version and the tarball it names, never the package's
+index, and waits up to ten minutes for a version npm doesn't list yet.
 
 ## Publishing
 

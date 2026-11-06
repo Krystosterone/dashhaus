@@ -1,9 +1,14 @@
 /**
  * The release flow's logic (spec/release.md → Releasing): change notes and which pull requests owe one, the API
  * comparison and the version it suggests, the candidate's digests and unfinished record, and the record itself. The
- * workflow that runs them is held by verify/toolchain.test.ts; packing and the registry are exercised by CI's dx lane.
+ * workflow that runs them is held by verify/toolchain.test.ts; packing is exercised by CI's dx lane. The registry check
+ * runs here against a fake registry, which is late the way npm is after a publish.
  */
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { apiMarkdown, apiOfTarballs, compareVersions, diffApi, readApi, suggestVersion } from "../scripts/release/api.js";
@@ -12,6 +17,7 @@ import { digestProblems, formatDigests, lateNoteProblems, parseDigests, releaseB
 import { CHANGE_TYPES, formatChange, noteFileName, parseChange, pullRequestProblem, readChanges, shipsFrom } from "../scripts/release/changes.js";
 import { publicPackages } from "../scripts/release/manifest.js";
 import { renderRecord } from "../scripts/release/prepare.js";
+import { fetchFromRegistry, publishedAt, waitFor } from "../scripts/release/registry.js";
 
 const REPO = "git+https://github.com/Krystosterone/dashhaus.git";
 
@@ -203,5 +209,111 @@ describe("the release record", () => {
     expect(unfinished(renderRecord({ version: "0.3.0", from: "0.2.0", notes, diff: breaking, repository: REPO }))).toHaveLength(3);
     const owned = [...notes, { type: "breaking" as const, body: "gone is gone.", file: "changes/d.md" }];
     expect(unfinished(renderRecord({ version: "0.3.0", from: "0.2.0", notes: owned, diff: breaking, repository: REPO }))).toHaveLength(2);
+  });
+});
+
+describe("the registry check", () => {
+  const sha1 = (bytes: Buffer) => createHash("sha1").update(bytes).digest("hex");
+  const sha512 = (bytes: Buffer) => `sha512-${createHash("sha512").update(bytes).digest("base64")}`;
+
+  /**
+   * A registry that knows `packages` and answers each version's document with a 404 for its first `late` asks, as npm
+   * does just after a publish. It serves nothing else: no package index, so a check that reads one fails.
+   */
+  async function registry(packages: { name: string; version: string; bytes: Buffer; shasum?: string }[], late = 0) {
+    const asked = new Map<string, number>();
+    const seen: string[] = [];
+    const server = createServer((request, response) => {
+      const path = decodeURIComponent(request.url ?? "");
+      seen.push(path);
+      const pkg = packages.find(({ name, version }) => path === `/${name}/${version}` || path === `/${name}/-/${version}.tgz`);
+      if (!pkg) return response.writeHead(404).end("not found");
+      if (path.endsWith(".tgz")) return response.writeHead(200).end(pkg.bytes);
+      const times = (asked.get(path) ?? 0) + 1;
+      asked.set(path, times);
+      if (times <= late) return response.writeHead(404).end("version not found");
+      const { port } = server.address() as AddressInfo;
+      const dist = { shasum: pkg.shasum ?? sha1(pkg.bytes), integrity: sha512(pkg.bytes), tarball: `http://127.0.0.1:${port}/${pkg.name}/-/${pkg.version}.tgz` };
+      response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ name: pkg.name, version: pkg.version, dist }));
+    });
+    await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
+    const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/`;
+    return { url, seen, close: () => new Promise<void>((done) => server.close(() => done())) };
+  }
+
+  async function scratch() {
+    const dir = await mkdtemp(join(tmpdir(), "dashhaus-registry-"));
+    await mkdir(join(dir, "release"));
+    return dir;
+  }
+
+  const core = { name: "@dashhaus/core", version: "0.3.0", bytes: Buffer.from("core 0.3.0") };
+  const orb = { name: "@dashhaus/orb", version: "0.3.0", bytes: Buffer.from("orb 0.3.0") };
+  const quick = { pause: 5, log: () => {} };
+
+  it("waits for a version npm lists late, then checks it against the registry and the packed tarball", async () => {
+    const npm = await registry([core, orb], 3);
+    const dir = await scratch();
+    try {
+      await writeFile(join(dir, "release", "dashhaus-core-0.3.0.tgz"), core.bytes);
+      await writeFile(join(dir, "release", "dashhaus-orb-0.3.0.tgz"), orb.bytes);
+      const problems = await fetchFromRegistry("0.3.0", join(dir, "registry"), join(dir, "release"), [core.name, orb.name], { registry: npm.url, wait: 5_000, ...quick });
+      expect(problems).toEqual([]);
+      expect(await readdir(join(dir, "registry"))).toEqual(["dashhaus-core-0.3.0.tgz", "dashhaus-orb-0.3.0.tgz"]);
+      expect(npm.seen.filter((path) => path === "/@dashhaus/core/0.3.0"), "three misses, then the document").toHaveLength(4);
+      expect(npm.seen.every((path) => /\/0\.3\.0(?:\.tgz)?$/.test(path)), "it never asks for a package's index").toBe(true);
+    } finally {
+      await npm.close();
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("says which version npm still doesn't have when the wait is over", async () => {
+    const npm = await registry([core], Infinity);
+    const dir = await scratch();
+    try {
+      await expect(fetchFromRegistry("0.3.0", join(dir, "registry"), undefined, [core.name], { registry: npm.url, wait: 50, ...quick })).rejects.toThrow(
+        "@dashhaus/core@0.3.0: not on the registry yet, and the wait is over",
+      );
+    } finally {
+      await npm.close();
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("reports a tarball that is not the registry's or not the one this commit packed", async () => {
+    const npm = await registry([{ ...core, shasum: "0".repeat(40) }, orb]);
+    const dir = await scratch();
+    try {
+      await writeFile(join(dir, "release", "dashhaus-core-0.3.0.tgz"), core.bytes);
+      await writeFile(join(dir, "release", "dashhaus-orb-0.3.0.tgz"), "another build");
+      const problems = await fetchFromRegistry("0.3.0", join(dir, "registry"), join(dir, "release"), [core.name, orb.name], { registry: npm.url, wait: 1_000, ...quick });
+      expect(problems).toEqual([
+        `@dashhaus/core@0.3.0: the downloaded tarball's SHA-1 ${sha1(core.bytes)} is not the registry's dist.shasum ${"0".repeat(40)}`,
+        `@dashhaus/orb@0.3.0: npm holds ${sha1(orb.bytes)}, but the tag packs ${sha1(Buffer.from("another build"))}`,
+      ]);
+    } finally {
+      await npm.close();
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("tells a published version from one npm doesn't have", async () => {
+    const npm = await registry([core]);
+    try {
+      expect(await publishedAt(core.name, "0.3.0", npm.url)).toBe(true);
+      expect(await publishedAt(core.name, "0.2.9", npm.url)).toBe(false);
+    } finally {
+      await npm.close();
+    }
+  });
+
+  it("retries an error as well as a miss, doubling its pause, until the deadline", async () => {
+    const lines: string[] = [];
+    let calls = 0;
+    const found = await waitFor("x", () => (++calls === 1 ? undefined : calls === 2 ? Promise.reject(new Error("503")) : "here"), { pause: 1, log: (line) => lines.push(line) });
+    expect(found).toBe("here");
+    expect(lines).toEqual(["  x: not on the registry yet; trying again in 1s", "  x: 503; trying again in 1s"]);
+    await expect(waitFor("y", () => undefined, { deadline: Date.now(), log: () => {} })).rejects.toThrow("y: not on the registry yet, and the wait is over");
   });
 });
