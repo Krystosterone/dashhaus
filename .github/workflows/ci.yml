@@ -75,7 +75,7 @@ jobs:
       - run: npx vitest run --config config/vitest.config.ts --maxWorkers=2 ${{ matrix.files }}
 
   # The release proof and the consumer journeys (spec/journeys.md) from freshly packed tarballs, never the workspace:
-  # the user installs the bundle's dashhaus.js as the Marketplace does and presses the setup card's Create in Chromium,
+  # the user installs the bundle's dashhaus.js as the Marketplace does and picks Dashhaus in Add dashboard in Chromium,
   # or installs only the bundle and the deploy CLI; the skin author scaffolds, tests, builds and deploys a standalone
   # skin, then opens and closes the generated cards' details in Chromium; the developer installs core alone and draws a
   # light through its hook. All run against the fake Home Assistant in verify/dx/, so this lane needs no live instance;

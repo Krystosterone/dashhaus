@@ -244,6 +244,8 @@ release serves both. What the repository holds:
 
 - `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
   `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
+  It sets `hide_default_branch`: the stores look in `dist/`, then the latest release, then the root, and the default
+  branch has no built file in either, so offering it could only fail.
 - `.github/workflows/release.yml` (Releasing, above) builds `dist/dashhaus.js` from the merged release commit,
   attaches it to the release while it is a draft, and publishes the release, whose tag `v<version>` is the version
   the Marketplace reads. The build runs read-only and restores no cache (the setup action's `cache: "false"`): any job
@@ -254,8 +256,8 @@ release serves both. What the repository holds:
 - `.github/workflows/hacs.yml` runs `hacs/action`, its wrapper pinned to a commit on its `main` while the checks come from HACS's `ghcr.io/hacs/action:main` image, so they follow HACS's current rules and the pin needs no bump, with `category: plugin` and no ignored checks on every pull request,
   push to main and weekly. It reads the repository through GitHub's public API, so it skips itself while the
   repository is private, like the Docs deploy.
-- The bundle's setup card ([deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards after the
-  install, and the site's [Install from the Marketplace](../docs/src/content/docs/start/install.mdx) page, with its
+- The bundle's dashboard strategy ([deploy.md → The dashboard strategy](deploy.md#the-dashboard-strategy)) makes the
+  dashboard after the install, from Home Assistant's own Add dashboard dialog, and the site's [Install from the Marketplace](../docs/src/content/docs/start/install.mdx) page, with its
   My link and `llms.txt`'s copy of its steps, is the way in.
 
 Decided, and why:
@@ -263,12 +265,15 @@ Decided, and why:
 - **The Marketplace and HACS are one target.** From Home Assistant 2026.11 the Marketplace is HACS in core, with the
   same catalog, `hacs.json` and action. One `hacs_repository` My link opens HACS before 2026.11 and the Marketplace
   after, so nobody chooses.
-- **A setup card, not a companion integration.** A repository holds one item of one type, so an integration that
-  creates dashboards would be a second repository in Python, on Home Assistant's internal Lovelace collections. The
-  price is one card placement.
-- **A button, not an automatic run.** The setup card creates only what is missing when pressed, and never overwrites.
-- **No token for agents.** An agent installing Dashhaus uses the person's own session through the setup card, never
-  a long-lived token handed to a model.
+- **A dashboard strategy, not a setup card or a companion integration.** A repository holds one item of one type, so
+  an integration that creates dashboards would be a second repository in Python, on Home Assistant's internal
+  Lovelace collections. A strategy needs neither: Home Assistant's own Add dashboard dialog lists it (2026.5 and
+  newer), and the dashboard stores only the strategy, so it follows Dashhaus as it updates. It replaced the setup card,
+  which cost a card placement, a press and a removal; the card is deprecated and still ships.
+- **The person creates it, never an automatic run.** Nothing is created until they pick Dashhaus in Add dashboard, and
+  no existing dashboard is touched.
+- **No token for agents.** An agent installing Dashhaus uses the person's own session through Add dashboard, never a
+  long-lived token handed to a model.
 - **The command line stays**, for CI, automation and dashboards in YAML mode. Installing both ways loads two copies of
   the bundle, so the install page says to pick one.
 
@@ -284,8 +289,11 @@ open as #31. Step 5 is open as #32, and step 6 waits on it, in #31:
    publishes the packages and the release; check its six jobs and the HACS workflow are green.
 4. Live, on a scratch Home Assistant older than 2026.11, with HACS: install from the
    [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
-   as a custom repository, add the setup card, press Create, open both dashboards, edit one, press again and see
-   nothing overwritten, then open the card as a non-admin. Record it in `spec/releases/<version>.md`, as run or unrun.
+   as a custom repository, reload, then **Settings → Dashboards → Add dashboard** and pick **Dashhaus** under
+   Community dashboards (Home Assistant 2026.5 or newer), open its Orb and Field tabs at a phone and a desktop width,
+   in light and dark mode, and check **Edit dashboard → ⋮ → Edit in YAML** shows the bare strategy. Then the deprecated
+   setup card: add it, press Create, open both dashboards, edit one, press again and see nothing overwritten, then open
+   the card as a non-admin. Record it in `spec/releases/<version>.md`, as run or unrun.
 5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
    alphabetical order, with the release and the green HACS action. Review takes months; the My link works before it,
    so this is discovery, not the launch.

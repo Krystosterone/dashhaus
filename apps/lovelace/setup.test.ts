@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SETUP_DASHBOARDS } from "./dashboards";
-import { NOT_ADMIN, YAML_MODE, defineSetupCard, provision } from "./setup";
+import { DEPRECATED, NOT_ADMIN, YAML_MODE, defineSetupCard, provision } from "./setup";
 import type { SetupDashboard, SetupHass } from "./setup";
 
 type Message = { type: string } & Record<string, unknown>;
@@ -163,6 +163,15 @@ describe("custom:dashhaus-setup", () => {
 
   afterEach(() => document.body.replaceChildren());
 
+  it("says first that it is deprecated, and names the way that replaces it, to an admin and anyone else", async () => {
+    for (const admin of [true, false]) {
+      const root = await mount(fakeConnection(), admin);
+      expect(root.querySelector("h2 + p")!.textContent).toBe(DEPRECATED);
+      expect(DEPRECATED).toMatch(/Add dashboard → Dashhaus/);
+      document.body.replaceChildren();
+    }
+  });
+
   it("lists the dashboards, greys out one that is there, and creates the rest on a press", async () => {
     const ha = fakeConnection(["setup-orb"]);
     const root = await mount(ha);
@@ -204,7 +213,7 @@ describe("custom:dashhaus-setup", () => {
     expect(root.querySelector("[role=status]")!.textContent).toBe("2 dashboards were not created; see below.");
   });
 
-  it("is in the card picker as Dashhaus setup", () => {
-    expect(window.customCards).toContainEqual(expect.objectContaining({ type: "dashhaus-setup", name: "Dashhaus setup" }));
+  it("is in the card picker as Dashhaus setup, marked deprecated", () => {
+    expect(window.customCards).toContainEqual(expect.objectContaining({ type: "dashhaus-setup", name: "Dashhaus setup (deprecated)", description: expect.stringMatching(/^Deprecated: add Dashhaus from Settings → Dashboards → Add dashboard/) }));
   });
 });

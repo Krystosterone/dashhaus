@@ -1,6 +1,6 @@
 ---
 title: Install from the Marketplace
-description: "Add Orb and Field to Home Assistant without a terminal: install Dashhaus from the Marketplace or HACS, add the setup card once, press Create."
+description: "Add Orb and Field to Home Assistant without a terminal: download Dashhaus from the Marketplace or HACS, reload, then Add dashboard → Dashhaus."
 ---
 
 import { Aside, LinkButton, Steps } from "@astrojs/starlight/components";
@@ -33,45 +33,61 @@ copy and no file to upload. You need an administrator account.
 
 3. Reload the browser tab, so Home Assistant loads the new resource.
 
-4. Open **Overview**, then **⋮ → Edit dashboard → Add card**, search for **Dashhaus setup**, and save it. Any
-   dashboard works; you'll remove the card afterwards.
+4. Open **Settings → Dashboards** and press **Add dashboard**.
 
-5. In the setup card, leave a look checked if you want it: **Home (Orb)**, **Home (Field)** or both. Press **Create
-   dashboards**.
-
-6. Open each new dashboard from the card's links, or from the sidebar. If the sidebar doesn't show them yet, reload
-   the page.
-
-7. Remove the setup card when you're done. Keeping it is harmless: it never changes a dashboard that exists.
+5. Under **Community dashboards**, pick **Dashhaus**, keep or change its name and icon, and press **Create**. It
+   appears in the sidebar.
 
 </Steps>
 
-## What the setup card does
+The dashboard has a tab for each look, **Orb** and **Field**, each laid out from your house.
 
-- It creates `/dashhaus-orb` and `/dashhaus-field`, each with one panel view holding its look's card, and adds them to
-  the sidebar.
-- Each dashboard starts on the automatic layout: every supported entity in a row per area, kept up to date as you add
-  devices. [Lay it out in YAML](/dashhaus/start/yaml/) shows how to choose your own cards and rows.
-- It never renames, overwrites or deletes a dashboard that already exists. A second press creates only what's missing.
-- It only uses your own signed-in session to create the dashboards. Nothing leaves your Home Assistant.
+## What you get
+
+- One dashboard, with a tab for each look. Each tab is the look's whole page, on the automatic layout: every supported
+  entity in a row per area, kept up to date as you add devices.
+- It follows Home Assistant's light or dark mode, and Dashhaus as it updates: the dashboard stores only
+  `strategy: type: custom:dashhaus`, never a copy of the layout.
+- Nothing is created behind your back and no other dashboard is touched. Delete the dashboard like any other.
+
+### Choose the look, and a wall panel
+
+To keep one look, or set up a wall panel, open the dashboard and its **Edit dashboard** (the pencil, or **⋮**). In the
+**Edit dashboard** dialog, **⋮ → Edit in YAML**, add to the strategy and save:
+
+<Example file="install/strategy.yaml" title="One look, for a wall panel" />
+
+| Key | What it does |
+| --- | --- |
+| `skin` | `orb`, `field`, or a list of them in tab order. Every look when left out. |
+| `viewing` | `near` (default): a phone or tablet in the hand. `far`: a wall panel read from across the room. |
+| `theme` | Orb's colours: `home-assistant` (default, follows its dark mode), `auto`, `light` or `dark`. |
+| `finish` | Field's finish: `home-assistant` (default), `auto`, `alloy` or `black`. |
+| `title` | The title each page prints in its header. `Home` by default. |
+
+To lay out your own cards and rows instead, take control of the dashboard (the same dialog's **⋮ → Take control**),
+which keeps each look's card as it is now, and edit it; [Lay it out in YAML](/dashhaus/start/yaml/) shows how. A
+dashboard you take control of no longer follows the strategy.
 
 ## If something goes wrong
 
-| The setup card says | What to do |
-| --- | --- |
-| Only an administrator can create dashboards | Sign in as an administrator and open the page again. |
-| This Home Assistant manages its dashboards in YAML | Create the dashboard in your configuration yourself, give it a **Panel** view, and add the card below. |
-| A dashboard was not created, with a reason | The others still were. Fix the reason and press Create again; it only creates what's missing. |
+If **Add dashboard** has no **Dashhaus** under Community dashboards, or a dashboard says `Custom element doesn't
+exist` or `Timeout waiting for strategy element`, Home Assistant hasn't loaded Dashhaus yet. Reload the tab. If that
+doesn't help, open **Settings → Dashboards → ⋮ → Resources** and check there's a JavaScript module at
+`/local/community/dashhaus/dashhaus.js`.
 
-If the card picker has no **Dashhaus setup**, or a dashboard says `Custom element doesn't exist`, Home Assistant hasn't
-loaded Dashhaus yet. Reload the tab. If that doesn't help, open **Settings → Dashboards → ⋮ → Resources** and check
-there's a JavaScript module at `/local/community/dashhaus/dashhaus.js`.
-
-For a dashboard you make yourself, in YAML mode or not, each look's card is just its type and a title:
+Community dashboards are listed from Home Assistant 2026.5. On an older version, or a Home Assistant that keeps its
+dashboards in YAML, create a dashboard yourself and give it the strategy as its whole configuration:
+`strategy: { type: custom:dashhaus }`. Or give a **Panel** view one look's card, which is just its type and a title:
 
 <Example file="install/orb.yaml" title="Orb" />
 
 <Example file="install/field.yaml" title="Field" />
+
+<Aside title="The setup card is deprecated">
+  Earlier versions asked you to add a **Dashhaus setup** card and press **Create dashboards**. That card still works,
+  and the dashboards it made keep working, but you no longer need it: use **Add dashboard → Dashhaus** instead.
+</Aside>
 
 ## Update
 
@@ -92,7 +108,7 @@ Install the Dashhaus dashboards in my Home Assistant. I'm signed in as an admini
 1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin
    and download Dashhaus (type: Dashboard; add it as a custom repository if asked). Keep the defaults.
 2. Reload the browser tab.
-3. On Overview: ⋮ → Edit dashboard → Add card → "Dashhaus setup" → Save.
-4. In that card, press "Create dashboards", then open "Home (Orb)" and "Home (Field)" from its links.
-5. Remove the setup card. Don't change any other dashboard, and never ask me for a password or token.
+3. Settings → Dashboards → Add dashboard → under Community dashboards, pick "Dashhaus" → Create.
+4. Open the new Dashhaus dashboard from the sidebar and check its Orb and Field tabs draw.
+   Don't change any other dashboard, and never ask me for a password or token.
 ```

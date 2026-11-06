@@ -7,11 +7,15 @@
  *
  * Check `hacs.json` names the release asset the Marketplace will look for; install the bundle's `dashhaus.js` as the
  * Marketplace does (`www/community/dashhaus/`, a module resource with `?v=<version>`) into
- * `@dashhaus/fake-home-assistant`; add `custom:dashhaus-setup` to a dashboard, as the person does once; then, in
- * Chromium, check a non-admin is refused before anything is sent, press Create as an admin, open both dashboards it
- * made, and press again to check nothing is created twice. No Node, token or SSH on the person's side.
+ * `@dashhaus/fake-home-assistant`; then, in Chromium, do what the person does: open Add dashboard, pick **Dashhaus**
+ * under Community dashboards (the bundle's `window.customStrategies` entry), and open the dashboard it made, whose
+ * `custom:dashhaus` strategy the page expands as the frontend does into one view per look, each drawing its skin's
+ * card. No Node, token or SSH on the person's side.
+ *
+ * The deprecated setup card still ships, so it is still checked after: added to a dashboard, a non-admin refused
+ * before anything is sent, Create as an admin, both dashboards it made open, and a second press creates nothing.
  */
-/* global document -- the waitForFunction callbacks run in the page. */
+/* global document, window -- the waitForFunction and evaluate callbacks run in the page. */
 import assert from "node:assert/strict";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
@@ -34,12 +38,15 @@ import {
   tarballsDir,
 } from "./harness.js";
 
-const report = createReport("DX marketplace — install the release asset as the Marketplace does, then press Create");
+const report = createReport("DX marketplace — install the release asset as the Marketplace does, then Add dashboard → Dashhaus");
 console.log(`  tarballs: ${shown(tarballsDir)}`);
 
 /** The repository the Marketplace installs from; with no `filename` in hacs.json, the asset is named after it. */
 const REPOSITORY = "dashhaus";
-/** Where the person puts the setup card; in Home Assistant, usually Overview. */
+/** The dashboard Add dashboard makes from the strategy's suggested title, `Dashhaus`, and the views it expands to. */
+const STRATEGY_PATH = "dashboard-dashhaus";
+const VIEWS = [{ title: "Orb", path: "orb", tag: "dashhaus-orb" }, { title: "Field", path: "field", tag: "dashhaus-field" }];
+/** Where the person puts the deprecated setup card; in Home Assistant, usually Overview. */
 const SETUP_PATH = "home-setup";
 const MADE = ["dashhaus-orb", "dashhaus-field"];
 
@@ -56,6 +63,8 @@ try {
     const hacs = JSON.parse(await readFile(join(repoRoot, "hacs.json"), "utf8"));
     assert.equal(typeof hacs.name, "string", "hacs.json must name the plugin");
     assert.equal(hacs.filename, undefined, `hacs.json needs no filename while the asset is ${REPOSITORY}.js`);
+    // The default branch holds no built file (dist/ is ignored), so offering it could only fail.
+    assert.equal(hacs.hide_default_branch, true, "hacs.json must hide the default branch, which has no dashhaus.js");
     const release = await readFile(join(repoRoot, ".github/workflows/release.yml"), "utf8");
     assert.match(release, new RegExp(`gh release upload "\\$TAG" dist/${REPOSITORY}\\.js`), "the release workflow must attach dist/dashhaus.js");
     return `"${hacs.name}", asset ${REPOSITORY}.js attached by the release workflow`;
@@ -73,33 +82,85 @@ try {
         server = await startFakeHomeAssistant({ port: 0, www });
         const { ha } = server;
         await ha.send("lovelace/resources/create", { res_type: "module", url: `/local/community/${REPOSITORY}/${REPOSITORY}.js?v=${version}` });
-        assert.match(await read(asset), /dashhaus-setup/, "the bundle must define custom:dashhaus-setup");
-        // The one thing the person does by hand: add the setup card to a dashboard.
-        await ha.send("lovelace/dashboards/create", { url_path: SETUP_PATH, title: "Overview", icon: "mdi:home", mode: "storage" });
-        await ha.send("lovelace/config/save", { url_path: SETUP_PATH, config: { views: [{ title: "Home", path: "home", type: "panel", cards: [{ type: "custom:dashhaus-setup" }] }] } });
-        return `www/community/${REPOSITORY}/${REPOSITORY}.js, resource ?v=${version}, setup card on /${SETUP_PATH}`;
+        const source = await read(asset);
+        assert.match(source, /ll-strategy-dashboard-/, "the bundle must define the dashboard strategy");
+        assert.match(source, /dashhaus-setup/, "the bundle must still define the deprecated custom:dashhaus-setup");
+        return `www/community/${REPOSITORY}/${REPOSITORY}.js, resource ?v=${version}`;
       })
     : { ok: false };
 
+  const STRATEGY_STAGES = ["Add dashboard lists Dashhaus", "pick Dashhaus", "its views draw"];
+  const SETUP_STAGES = ["setup card: not an admin", "setup card: create", "setup card: the dashboards draw", "setup card: press again"];
   if (!installed.ok) {
-    report.blocked(["not an admin", "create", "the dashboards draw", "press again"], "the bundle did not install");
+    report.blocked([...STRATEGY_STAGES, ...SETUP_STAGES], "the bundle did not install");
   } else {
     const { HA_URL } = server.settings;
     const { ha } = server;
+
+    const listed = await report.stage("Add dashboard lists Dashhaus", async () => {
+      const entries = await inPage(`${HA_URL}/config/lovelace/dashboards`, async (page) => {
+        await page.getByRole("button", { name: "Dashhaus", exact: true }).waitFor({ timeout: 10000 });
+        return page.evaluate(() => window.customStrategies);
+      });
+      const ours = entries.filter((entry) => entry.type === "dashhaus");
+      assert.equal(ours.length, 1, "the bundle must list one dashhaus entry");
+      assert.equal(ours[0].strategyType, "dashboard");
+      return `Community dashboards: "${ours[0].name}", ${ours[0].description}`;
+    });
+
+    const picked = listed.ok
+      ? await report.stage("pick Dashhaus", async () => {
+          const before = ha.calls.length;
+          await inPage(`${HA_URL}/config/lovelace/dashboards`, async (page) => {
+            await page.getByRole("button", { name: "Dashhaus", exact: true }).click();
+            await page.getByRole("link", { name: "Open Dashhaus" }).waitFor({ timeout: 10000 });
+          });
+          const made = ha.dashboards.find((dashboard) => dashboard.url_path === STRATEGY_PATH);
+          assert.ok(made, `Add dashboard must make /${STRATEGY_PATH}`);
+          assert.equal(made.title, "Dashhaus", "the strategy suggests the title");
+          assert.equal(made.icon, "mdi:home-variant", "the strategy suggests the icon");
+          // The dialog saves the bare strategy: nothing else is stored, so the dashboard follows Dashhaus as it updates.
+          assert.deepEqual(ha.saved.find((entry) => entry.url_path === STRATEGY_PATH)?.config, { strategy: { type: "custom:dashhaus" } });
+          assert.deepEqual(ha.calls.slice(before).map((call) => call.type), ["lovelace/dashboards/create", "lovelace/config/save"], "picking it sends the dialog's two commands and nothing else");
+          return `/${STRATEGY_PATH}, saved as { strategy: { type: custom:dashhaus } }`;
+        })
+      : { ok: false };
+
+    if (!picked.ok) {
+      report.blocked(["its views draw"], "Add dashboard did not make the dashboard");
+    } else {
+      await report.stage("its views draw", async () => {
+        for (const view of VIEWS) {
+          const url = `${HA_URL}/${STRATEGY_PATH}/${view.path}`;
+          const drawn = await inPage(url, async (page) => {
+            await page.locator(view.tag).waitFor({ state: "attached", timeout: 10000 });
+            return page.evaluate(() => ({ views: window.__fakeHaViews, view: window.__fakeHaView }));
+          });
+          assert.deepEqual(drawn.views, VIEWS.map(({ title, path }) => ({ title, path })), "one view per look, Orb then Field");
+          assert.deepEqual(drawn.view, { title: view.title, path: view.path, type: "panel", cards: [{ type: `custom:${view.tag}`, title: "Home" }] });
+          if (screenshotDir) console.log(`  screenshot: ${await screenshotDashboard(url, join(screenshotDir, `marketplace-strategy-${view.path}.png`))}`);
+        }
+        return `${VIEWS.map((view) => `/${STRATEGY_PATH}/${view.path}`).join(" and ")} expand to panels and draw their cards`;
+      });
+    }
+
+    // The deprecated setup card, still shipped: the one thing the person did by hand was add it to a dashboard.
+    await ha.send("lovelace/dashboards/create", { url_path: SETUP_PATH, title: "Overview", icon: "mdi:home", mode: "storage" });
+    await ha.send("lovelace/config/save", { url_path: SETUP_PATH, config: { views: [{ title: "Home", path: "home", type: "panel", cards: [{ type: "custom:dashhaus-setup" }] }] } });
     const creates = () => ha.calls.filter((call) => call.type === "lovelace/dashboards/create" && MADE.includes(call.payload.url_path)).length;
 
-    await report.stage("not an admin", async () => {
+    await report.stage("setup card: not an admin", async () => {
       const said = await inPage(`${HA_URL}/${SETUP_PATH}?admin=false`, async (page) => {
         const alert = page.getByRole("alert");
         await alert.waitFor({ state: "visible", timeout: 10000 });
         return alert.innerText();
       });
       assert.match(said, /Only an administrator/);
-      assert.equal(ha.calls.filter((call) => call.type.startsWith("lovelace/dashboards/") && call.payload?.url_path !== SETUP_PATH).length, 0, "a non-admin's page must send nothing");
+      assert.equal(ha.calls.filter((call) => call.type.startsWith("lovelace/dashboards/") && ![SETUP_PATH, STRATEGY_PATH].includes(call.payload?.url_path)).length, 0, "a non-admin's page must send nothing");
       return `"${said.split(".")[0]}.", nothing sent`;
     });
 
-    const created = await report.stage("create", async () => {
+    const created = await report.stage("setup card: create", async () => {
       const status = await inPage(`${HA_URL}/${SETUP_PATH}`, async (page) => {
         for (const path of MADE) {
           const box = page.locator(`input[type=checkbox][value="${path}"]`);
@@ -132,9 +193,9 @@ try {
     });
 
     if (!created.ok) {
-      report.blocked(["the dashboards draw", "press again"], "Create did not make the dashboards");
+      report.blocked(["setup card: the dashboards draw", "setup card: press again"], "Create did not make the dashboards");
     } else {
-      await report.stage("the dashboards draw", async () => {
+      await report.stage("setup card: the dashboards draw", async () => {
         for (const path of MADE) {
           if (screenshotDir) console.log(`  screenshot: ${await screenshotDashboard(`${HA_URL}/${path}`, join(screenshotDir, `marketplace-${path}.png`))}`);
           else await inPage(`${HA_URL}/${path}`, async () => undefined);
@@ -142,7 +203,7 @@ try {
         return `${MADE.map((path) => `/${path}`).join(" and ")} draw their cards`;
       });
 
-      await report.stage("press again", async () => {
+      await report.stage("setup card: press again", async () => {
         const before = creates();
         await inPage(`${HA_URL}/${SETUP_PATH}`, async (page) => {
           for (const path of MADE) {

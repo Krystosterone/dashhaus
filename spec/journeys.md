@@ -10,7 +10,7 @@ contributor. The order follows how many people take each path and how little the
 
 | Journey | Who | Way in | Installs | Proof | Promise |
 | --- | --- | --- | --- | --- | --- |
-| User | Wants Orb or Field on their Home Assistant and has no terminal | `start/install` | The release asset `dashhaus.js`, through the Marketplace (HACS before 2026.11) | `verify/dx/marketplace.js` | The cards, the YAML keys and the setup card's create-only rule ([deploy.md](deploy.md)) |
+| User | Wants Orb or Field on their Home Assistant and has no terminal | `start/install` | The release asset `dashhaus.js`, through the Marketplace (HACS before 2026.11) | `verify/dx/marketplace.js` | The cards, the YAML keys and the dashboard strategy ([deploy.md](deploy.md)) |
 | User, from the command line | Scripts the same install, deploys from CI, or keeps resources in YAML | `start/deploy` | `@dashhaus/bundle`, `@dashhaus/deploy` | `verify/dx/user.js` | The same, plus the CLI's options and `.env` keys ([deploy.md](deploy.md)) |
 | Author | Builds a skin of their own, from the scaffolder and its domain generator, often by asking an agent to | `start/build-a-skin` | `create-dashhaus-skin`, which writes a project on `@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` | `verify/dx/author.js` | The skin-author contract and its conformance check ([contract.md](contract.md)) |
 | Developer | Uses the entity models and hooks in a React app of their own, with no skin and no generator | `start/getting-started` | `@dashhaus/core` | `verify/dx/developer.js` | The core contract ([core.md](core.md)) |
@@ -19,8 +19,10 @@ contributor. The order follows how many people take each path and how little the
 ## The user
 
 The front door, and the only journey whose reader may never open a second page. It assumes no Node, no token and no
-file copy: the Marketplace installs the bundle and registers it, and the setup card (`custom:dashhaus-setup`,
-[deploy.md → The setup card](deploy.md#the-setup-card)) creates the dashboards from the person's own signed-in session.
+file copy: the Marketplace installs the bundle and registers it, and the person makes the dashboard from Home
+Assistant's own Add dashboard dialog, which lists the bundle's `custom:dashhaus` strategy
+([deploy.md → The dashboard strategy](deploy.md#the-dashboard-strategy)). The deprecated setup card
+(`custom:dashhaus-setup`) still ships, and the journey still checks it.
 Its page is written so a browser agent can follow it alone and quotes its steps as a prompt; `llms.txt` carries the
 same steps.
 

@@ -7,8 +7,10 @@ so the page needs no token, no separate server and no rebuild when you change th
 
 The bundle is also the published `@dashhaus/bundle` package; deploying it without this repository is
 [Deploy from the command line](../docs/src/content/docs/start/deploy.mdx) on the documentation site. The same file is
-the release asset the Home Assistant Marketplace installs, and the bundle's setup card (The setup card, below) creates
-the dashboards there with no CLI: [Install from the Marketplace](../docs/src/content/docs/start/install.mdx). Who takes
+the release asset the Home Assistant Marketplace installs, and the bundle's dashboard strategy (The dashboard strategy,
+below) makes the dashboard there with no CLI, from Home Assistant's own Add dashboard dialog:
+[Install from the Marketplace](../docs/src/content/docs/start/install.mdx). The setup card it replaces still ships,
+deprecated. Who takes
 which way in is [journeys.md](journeys.md).
 
 ## First deploy
@@ -34,7 +36,57 @@ anything or upload a bundle built elsewhere.
 
 The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` runs). Without `--config` it looks for `dashboard.config.mjs` in the working directory, so that is the file a user app writes; it is not named `dashhaus.config.js`. It bundles the config with esbuild before importing it, so a config may be JavaScript or TypeScript and may import packages; relative imports resolve from the config's directory, and `.env` is read from beside it. `--config <file>` points the CLI at another repo's config, `--skip-build` skips the build callback, and `node packages/deploy/bin.js --help` prints the options and dashboards. The repo's config is the only outside importer of orb's `@dashhaus/orb/lovelace/auto`; the CLI imports no skin.
 
+## The dashboard strategy
+
+A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
+`/local/community/dashhaus/dashhaus.js?v=<version>` as a module resource; it creates no dashboard. The bundle's
+`custom:dashhaus` strategy (`apps/lovelace/strategy.ts`, registered by the bundle's entry) is what the person picks
+next: **Settings → Dashboards → Add dashboard → Dashhaus**, under Community dashboards. It follows the frontend's
+contract as its source has it (`src/panels/lovelace/strategies/get-strategy.ts`, `src/data/lovelace_custom_strategies.ts`)
+and the developer docs' Custom dashboard strategies page.
+
+- **Its elements.** `ll-strategy-dashboard-dashhaus` and `ll-strategy-view-dashhaus`, each with a static
+  `generate(config, hass)`; the frontend waits up to 5 seconds for a `custom:` strategy's element, which the bundle
+  defines as it loads. Both answer `shouldRegenerate()` with `false`: the config alone decides the views, and the cards
+  follow the house themselves. The dashboard's static `getCreateSuggestions()` fills the dialog with **Dashhaus** and
+  `mdi:home-variant`.
+- **The dialog's entry.** `window.customStrategies` gets one `{ type: "dashhaus", strategyType: "dashboard", name,
+  description, documentationURL }`, once however many copies load; the dialog lists it from Home Assistant 2026.5 and
+  saves the bare `{ strategy: { type: "custom:dashhaus" } }`, so a dashboard keeps nothing but the strategy and follows
+  Dashhaus as it updates. Before 2026.5, a dashboard given that config by hand works the same.
+- **What it generates.** One view per look (`STRATEGY_LOOKS`, `apps/lovelace/dashboards.ts`): Orb, Field, then each
+  skin `npm run new-skin` registers, titled with the look's name and at its id as path. Each view is the view strategy,
+  which answers a panel holding the look's card with no `cards` or `rows`, `{ type: "custom:dashhaus-<skin>", title:
+  "Home" }`: the automatic layout (`autoDashboard` for orb, `autoModules` and `areaRows` for field), the same card the
+  setup card and the CLI's default config save. A view strategy also works on its own, as one view of any dashboard.
+- **Its keys**, all optional:
+
+  | Key | Values | Default |
+  | --- | --- | --- |
+  | `skin` | a look's id (`orb`, `field`, a generated skin's), or a list of them in tab order; on a view, one | every look; on a view, `orb` |
+  | `title` | the title each card prints in its header | `Home` |
+  | `viewing` | `near`, `far`, handed to orb's and field's cards | the card's own |
+  | `theme` | orb's `theme`, handed to orb's card only | `home-assistant` |
+  | `finish` | field's `finish`, handed to field's card only | `home-assistant` |
+
+  A generated skin's card gets only the title. Each card checks what it is handed, as it does in YAML. The strategy
+  refuses an unknown key, a look it doesn't have, an empty or repeated `skin` and a list on a view, in words the
+  frontend shows in place of the dashboard (`Dashhaus: …`).
+- **Its surface.** A plain module, no React, store or skin, beside the Lovelace cards in the bundle; the bundle's, not
+  part of any package or of the skin-author contract.
+
+`apps/lovelace/strategy.test.ts` resolves the elements as the frontend does and runs every card the strategy emits
+through its skin's own Lovelace card; `verify/docs.test.ts` does the same for the site's strategy sample.
+`verify/dx/marketplace.js` installs the packed bundle's file as the Marketplace does into the fake Home Assistant,
+picks **Dashhaus** from its stand-in for the Add dashboard dialog and opens both views, expanded as the frontend
+expands them, in Chromium. Not yet run against a real Home Assistant frontend (What has and hasn't been verified,
+below).
+
 ## The setup card
+
+**Deprecated** by the dashboard strategy above. It still ships, works and is tested, so a person following an old
+guide, and a dashboard it made, keep working; it says so in the card picker (**Dashhaus setup (deprecated)**) and on
+the card, naming Add dashboard → Dashhaus. Removing it is a decision still to take.
 
 A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
 `/local/community/dashhaus/dashhaus.js?v=<version>` as a module resource; it creates no dashboard. The bundle's
@@ -509,3 +561,8 @@ then the setup card's first Create, which made both dashboards, and both opened
 #31): a second press after an edit leaving the dashboard alone, the refusal for a non-admin, the YAML-mode fallback,
 and any install through Home Assistant 2026.11's built-in Marketplace, which doesn't list Dashhaus until the catalog
 does (#32). The fake Home Assistant journey covers all of them.
+
+The dashboard strategy has not been tried in a real Home Assistant yet: not that Add dashboard lists Dashhaus (2026.5
+or newer), not the dashboard it makes, its tabs, the strategy editor's YAML or Take control. The fake Home Assistant
+journey stands in for the frontend's strategy lookup and its dialog, written from the frontend's source; it is not the
+frontend.

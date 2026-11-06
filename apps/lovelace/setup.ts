@@ -1,4 +1,10 @@
 /**
+ * @deprecated The `custom:dashhaus` dashboard strategy (strategy.ts) replaces this card: after a Marketplace install the
+ * person picks **Dashhaus** in Home Assistant's own Add dashboard dialog, and no card has to be added, pressed and
+ * removed. The card still ships and still works, so a dashboard it made and a person following an old guide keep
+ * working; it says it is deprecated, in the card picker and on the card. Removing it is a decision still to take
+ * (spec/deploy.md → The setup card).
+ *
  * `custom:dashhaus-setup`: the one step a Marketplace (HACS) install leaves undone. The Marketplace copies the bundle
  * into `www/community/dashhaus/` and registers it; it creates no dashboard. This card does, from the frontend's own
  * authenticated connection, with the same websocket commands `dashhaus-deploy` sends: no Node, no token, no SSH.
@@ -54,6 +60,9 @@ interface DashboardItem {
 
 /** Words for a refusal, before any command is sent. */
 export const NOT_ADMIN = "Only an administrator can create dashboards. Ask one to open this page and press Create.";
+/** What the card says first: it is deprecated, and the way that replaces it. */
+export const DEPRECATED =
+  "This card is deprecated. Add Dashhaus from Settings → Dashboards → Add dashboard → Dashhaus instead; this card still works meanwhile.";
 export const YAML_MODE =
   "This Home Assistant manages its dashboards in YAML, so they can't be created from here. Create the dashboard in your configuration and add the Dashhaus card to it.";
 
@@ -169,6 +178,7 @@ ul { margin: 12px 0 0; padding: 0; list-style: none; }
 li { padding: 4px 0; }
 a { color: var(--primary-color); }
 .failed { color: var(--error-color); }
+.deprecated { padding: 8px 12px; border-radius: 8px; color: var(--primary-text-color); background: var(--secondary-background-color); }
 [hidden] { display: none; }
 `;
 
@@ -270,7 +280,10 @@ export function defineSetupCard(dashboards: readonly SetupDashboard[], pageTitle
       heading.textContent = "Dashhaus setup";
       const intro = document.createElement("p");
       intro.textContent = "Create a dashboard for each Dashhaus look you want. A dashboard that already exists is never changed.";
-      card.append(heading, intro);
+      const deprecated = document.createElement("p");
+      deprecated.className = "deprecated";
+      deprecated.textContent = DEPRECATED;
+      card.append(heading, deprecated, intro);
 
       if (this.#hass && !admin) {
         const refusal = document.createElement("p");
@@ -346,7 +359,7 @@ export function defineSetupCard(dashboards: readonly SetupDashboard[], pageTitle
     }
   }
 
-  registerCard("dashhaus-setup", DashhausSetupCard, "Dashhaus setup", "Creates the Dashhaus dashboards once, then can be removed.");
+  registerCard("dashhaus-setup", DashhausSetupCard, "Dashhaus setup (deprecated)", "Deprecated: add Dashhaus from Settings → Dashboards → Add dashboard instead. Creates the Dashhaus dashboards once, then can be removed.");
 }
 
 function style() {

@@ -114,6 +114,28 @@ describe("the websocket API", () => {
     expect(await (await fetch(`${settings.HA_URL}/`)).text()).toContain("Home");
   });
 
+  it("hands a strategy dashboard's saved config, and the view its address names, to the page that expands it", async () => {
+    const { settings } = await start();
+    const { client } = await authenticate(settings);
+    await ask(client, 1, "lovelace/dashboards/create", { url_path: "dashboard-test", title: "Test" });
+    await ask(client, 2, "lovelace/config/save", { url_path: "dashboard-test", config: { strategy: { type: "custom:test-strategy" } } });
+
+    const html = await (await fetch(`${settings.HA_URL}/dashboard-test/field`)).text();
+    expect(html).toContain('"config":{"strategy":{"type":"custom:test-strategy"}}');
+    expect(html).toContain('"view":"field"');
+    expect(html).toContain('"ll-strategy-" + kind + "-" + name');
+  });
+
+  it("serves the Add dashboard dialog's community list, from the registered resources", async () => {
+    const { settings } = await start();
+    const { client } = await authenticate(settings);
+    await ask(client, 1, "lovelace/resources/create", { res_type: "module", url: "/local/test.js" });
+    const html = await (await fetch(`${settings.HA_URL}/config/lovelace/dashboards`)).text();
+    expect(html).toContain("Community dashboards");
+    expect(html).toContain("/local/test.js");
+    expect(html).toContain("window.customStrategies");
+  });
+
   it("takes a dashboard page's lovelace commands, as the frontend's websocket would, and nothing else", async () => {
     const { ha, settings } = await start();
     const post = async (message: Record<string, unknown>) =>

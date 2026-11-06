@@ -4,9 +4,10 @@ The prebuilt Dashhaus Lovelace bundle: the Orb and Field dashboards, React and e
 registers `custom:dashhaus-orb` and `custom:dashhaus-field` and exports the file's path, so `@dashhaus/deploy` can
 upload it. Nothing is built: install it with the deploy command, write one config, run one command.
 
-The same file is the release asset the Home Assistant Marketplace (HACS) installs. There it also registers
-`custom:dashhaus-setup`, the **Dashhaus setup** card, which creates the two dashboards from Home Assistant's own
-session with no terminal. Use one way or the other: each registers its own copy.
+The same file is the release asset the Home Assistant Marketplace (HACS) installs. There it also registers the
+`custom:dashhaus` dashboard strategy, which Home Assistant's **Add dashboard** dialog lists as **Dashhaus**: one
+dashboard with a tab for each look, with no terminal. (`custom:dashhaus-setup`, the setup card that used to create the
+dashboards, still ships and is deprecated.) Use one way or the other: each registers its own copy.
 
 To make a dashboard of your own design instead, start from `npm create dashhaus-skin@latest my-skin`.
 

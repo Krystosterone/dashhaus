@@ -24,8 +24,8 @@ Dashhaus is in beta and hasn't been tried on many homes yet, so it can still cha
 - **An update can ask something of you.** An update may rename a YAML key, change a hook or redraw a card. Each
   [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do; read it before you
   update.
-- **Your existing dashboards are safe.** The setup card and the deploy command only create dashboards; they never
-  change one that exists. The ones they create follow Dashhaus as it updates.
+- **Your existing dashboards are safe.** Adding the Dashhaus dashboard and the deploy command only create dashboards;
+  they never change one that exists. The ones they create follow Dashhaus as it updates.
 - **Real devices vary.** Every card is tested on Home Assistant's standard entities, but an integration may report
   its device in a way no card expects yet. Locks, alarm panels and covers act on real things: try each one once
   while you can see it.
@@ -40,19 +40,20 @@ package shares one version, so move them together. 1.0 will be the first stable 
 
 ## Install
 
-[![Open your Home Assistant instance and open Dashhaus in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
 
-No terminal needed, as a Home Assistant administrator:
+As a Home Assistant administrator, no terminal needed:
 
-1. Open the link above. Home Assistant 2026.11 or newer opens the Marketplace; older versions need
-   [HACS](https://www.hacs.xyz/docs/use/). Add Dashhaus as a custom repository of type **Dashboard** if asked, then
-   download it.
-2. Reload the browser tab.
-3. On **Overview**: **⋮ → Edit dashboard → Add card → Dashhaus setup**, save, and press **Create dashboards**.
-4. Open **Home (Orb)** or **Home (Field)** from the card's links, then remove the setup card. It never changes a
-   dashboard that exists.
+1. Tap the badge above and press **Download** in HACS (the built-in Marketplace from Home Assistant 2026.11). If asked,
+   add Dashhaus as a custom repository of type **Dashboard**.
+2. Refresh the browser tab.
+3. **Settings → Dashboards → Add dashboard**, pick **Dashhaus** under Community dashboards, and press **Create**.
 
-For scripted installs or CI, [deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
+The new dashboard has a tab for each look, Orb and Field, laid out from your house and kept up to date as you add
+devices. Listing Dashhaus in Add dashboard needs Home Assistant 2026.5 or newer; on an older one, give a new
+dashboard `strategy: { type: custom:dashhaus }` as its configuration. Options such as one look or a wall panel are in
+the [install guide](https://krystosterone.github.io/dashhaus/start/install/). For scripted installs or CI,
+[deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
 
 ## Four ways in
 
@@ -106,7 +107,7 @@ Fill in `.env` and deploy:
 npm run deploy
 ```
 
-It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-field` (Field), the setup card and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [spec/deploy.md](spec/deploy.md). Measure the deployed pages with `npm run perf:collect`; see [spec/performance.md](spec/performance.md). The data boundary, the shared `useHa<Kind>` hooks and the injected transport are in [spec/home-assistant.md](spec/home-assistant.md).
+It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-field` (Field), the `custom:dashhaus` dashboard strategy, the deprecated setup card and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [spec/deploy.md](spec/deploy.md). Measure the deployed pages with `npm run perf:collect`; see [spec/performance.md](spec/performance.md). The data boundary, the shared `useHa<Kind>` hooks and the injected transport are in [spec/home-assistant.md](spec/home-assistant.md).
 
 ## Spec
 
