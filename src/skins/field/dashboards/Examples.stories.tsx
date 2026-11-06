@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { FieldPage, Area, Areas } from "./layout";
+import { NavBar } from "./NavBar";
+import { useScrollSpy } from "@dashhaus/core/hooks";
 import type { FieldFootprint } from "../shared/ui";
 import { LightModule } from "../cards/light/LightModule";
 import { LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
@@ -33,6 +35,12 @@ import type { AlarmSeedName } from "@dashhaus/core/seeds/alarm";
 import { OwletModule } from "../cards/owlet/OwletModule";
 import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
 import type { OwletSeedName } from "@dashhaus/core/seeds/owlet";
+import { FanModule } from "../cards/fan/FanModule";
+import { FAN_SEEDS, useDemoFan } from "@dashhaus/core/seeds/fan";
+import type { FanSeedName } from "@dashhaus/core/seeds/fan";
+import { LockModule } from "../cards/lock/LockModule";
+import { LOCK_SEEDS, useDemoLock } from "@dashhaus/core/seeds/lock";
+import type { LockSeedName } from "@dashhaus/core/seeds/lock";
 
 /*
  * Examples of composing a field page, one per device. They show the composition rules (spec/field.md → Dashboards),
@@ -109,6 +117,25 @@ function Alarm({ seed, footprint, ...own }: Placed & { seed: AlarmSeedName }) {
   const demo = useDemoAlarm(ALARM_SEEDS[seed]);
   return <AlarmModule entity={placed(demo.entity, own)} history={demo.history} onArm={demo.onArm} onDisarm={demo.onDisarm} footprint={footprint} />;
 }
+function Fan({ seed, footprint, ...own }: Placed & { seed: FanSeedName }) {
+  const demo = useDemoFan(FAN_SEEDS[seed]);
+  return (
+    <FanModule
+      entity={placed(demo.entity, own)}
+      history={demo.history}
+      onToggle={demo.onToggle}
+      onPercentageChange={demo.onPercentageChange}
+      onPresetChange={demo.onPresetChange}
+      onOscillateChange={demo.onOscillateChange}
+      onDirectionChange={demo.onDirectionChange}
+      footprint={footprint}
+    />
+  );
+}
+function Lock({ seed, footprint, ...own }: Placed & { seed: LockSeedName }) {
+  const demo = useDemoLock(LOCK_SEEDS[seed]);
+  return <LockModule {...demo} entity={placed(demo.entity, own)} footprint={footprint} />;
+}
 /** An Owlet sock; its base station switches locally. */
 function Owlet({ seed, footprint, ...own }: Placed & { seed: OwletSeedName }) {
   const { entity, history } = OWLET_SEEDS[seed];
@@ -127,53 +154,73 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The phone's page: what is pressed most first, each plate keeping its own room, then the nursery, then the rooms. */
-function PhonePage({ footprint, sock }: { footprint: FieldFootprint; sock: OwletSeedName }) {
-  const f = { footprint };
+const PHONE_AREAS = [["living", "Living room"], ["entrance", "Entrance"], ["nursery", "Nursery"], ["outside", "Outside"], ["rooms", "Rooms"]] as const;
+
+/**
+ * The phone's page, a place an area: each leads with its one whole module, the one pressed or read most, its fader or
+ * keys in reach, and takes 64 px rows under it, as a wall panel's column does; the rooms' air is rows alone. The nav
+ * docked at the bottom jumps to each area and keeps the one being read down.
+ */
+function PhonePage({ sock }: { sock: OwletSeedName }) {
+  const page = useRef<HTMLDivElement>(null);
+  const [reading, jump] = useScrollSpy(page);
+  const nav = <NavBar items={PHONE_AREAS.map(([id, label]) => ({ key: id, label, kind: "section", current: reading === id, onSelect: () => jump(id) }))} />;
+  const row = { footprint: "compact" } as const;
   return (
-    <FieldPage title="Home" now={NOW}>
-      <Area title="Quick" {...f}>
-        <Light seed="dimmable" {...f} />
-        <Toggle seed="dnd" {...f} />
-        <Alarm seed="disarmed" {...f} />
-        <Cover seed="garage" {...f} />
+    <FieldPage title="Home" now={NOW} pageRef={page} nav={nav}>
+      <Area id="living" title="Living room">
+        <Light seed="dimmable" area="Living room" />
+        <Climate seed="heating" area="Living room" {...row} />
+        <Fan seed="ceiling" area="Living room" {...row} />
+        <Cover seed="curtains" area="Living room" {...row} />
       </Area>
-      <Area title="Nursery" {...f}>
-        <Owlet seed={sock} area="Nursery" {...f} />
-        <Light seed="nightLight" area="Nursery" {...f} />
-        <Sound seed="on" area="Nursery" {...f} />
-        <Humidifier seed="on" area="Nursery" name="Humidifier" {...f} />
+      <Area id="entrance" title="Entrance">
+        <Lock seed="locked" area="Entrance" />
+        <Alarm seed="disarmed" area="Entrance" {...row} />
+        <Cover seed="garage" area="Entrance" {...row} />
+        <Light seed="onOff" area="Entrance" {...row} />
       </Area>
-      <Area title="Rooms" {...f}>
-        <Sensor seed="living" {...f} />
-        <Sensor seed="bathroom" {...f} />
-        <Sensor seed="basement" {...f} />
-        <Sensor seed="outdoor" {...f} />
+      <Area id="nursery" title="Nursery">
+        <Owlet seed={sock} area="Nursery" />
+        <Light seed="nightLight" area="Nursery" {...row} />
+        <Sound seed="on" area="Nursery" {...row} />
+        <Humidifier seed="on" area="Nursery" name="Humidifier" {...row} />
+      </Area>
+      <Area id="outside" title="Outside">
+        <Weather seed="partly" name="Weather" />
+        <Sensor seed="outdoor" area="Outside" name="Air" {...row} />
+      </Area>
+      <Area id="rooms" title="Rooms" footprint="compact">
+        <Sensor seed="living" {...row} />
+        <Sensor seed="bedroom" {...row} />
+        <Sensor seed="bathroom" {...row} />
+        <Sensor seed="basement" {...row} />
       </Area>
     </FieldPage>
   );
 }
 
-/** Phone: every module a 64 px row, so the house reads in about one screen: the four things pressed most, the
-    nursery, then each room's air. A row's key, name and screen line up down the column whatever the card. */
+/** Phone: a place an area, each led by its whole module (the living room's light, the front door, the sock, the
+    weather) with 64 px rows under it, so the first screen holds a fader, a lock's keys and seven kinds of module. A
+    row's key, name and screen line up down the column whatever the card. */
 export const Phone: Story = {
   render: () => (
     <Device label="Phone" width={390} height={844}>
-      <PhonePage footprint="compact" sock="deep" />
+      <PhonePage sock="deep" />
     </Device>
   ),
 };
 
-/** Tablet, landscape: whole modules, an area a row of four, so every fader and today's meter is in reach;
-    the living room first, then the nursery, then outside. */
+/** Tablet, landscape: whole modules, an area a row of four, so every fader, key and today's meter is in reach; the
+    living room first, then the nursery and the entrance, then the outside beside the whole home's modes. */
 export const Tablet: Story = {
   render: () => (
     <Device label="Tablet, landscape" width={1180} height={820}>
       <FieldPage title="Home" now={NOW} showTime>
         <Area title="Living room">
           <Light seed="dimmable" area="Living room" />
-          <Light seed="dimmableOff" area="Living room" />
           <Climate seed="heating" area="Living room" />
+          <Fan seed="ceiling" area="Living room" />
           <Cover seed="curtains" area="Living room" />
         </Area>
         <Area title="Nursery">
@@ -182,12 +229,22 @@ export const Tablet: Story = {
           <Sound seed="on" area="Nursery" />
           <Humidifier seed="on" area="Nursery" name="Humidifier" />
         </Area>
-        <Area title="Outside">
-          <Weather seed="partly" name="Weather" />
-          <Sensor seed="outdoor" area="Outside" name="Air" />
-          <Light seed="onOff" area="Outside" />
-          <Cover seed="garage" area="Outside" />
+        <Area title="Entrance">
+          <Lock seed="locked" area="Entrance" />
+          <Alarm seed="disarmed" area="Entrance" />
+          <Cover seed="garage" area="Entrance" />
+          <Light seed="onOff" area="Entrance" />
         </Area>
+        <Areas columns={2}>
+          <Area title="Outside">
+            <Weather seed="partly" name="Weather" />
+            <Sensor seed="outdoor" area="Outside" name="Air" />
+          </Area>
+          <Area title="Whole home">
+            <Toggle seed="dnd" area="Whole home" />
+            <Toggle seed="guest" area="Whole home" />
+          </Area>
+        </Areas>
       </FieldPage>
     </Device>
   ),
@@ -201,8 +258,8 @@ function WallPage({ viewing }: { viewing?: "far" }) {
         <Area title="Living room">
           <Light seed="dimmable" area="Living room" />
           <Climate seed="heating" area="Living room" />
+          <Fan seed="ceiling" area="Living room" footprint="compact" />
           <Cover seed="curtains" area="Living room" footprint="compact" />
-          <Sensor seed="living" name="Air" footprint="compact" />
         </Area>
         <Area title="Nursery">
           <Owlet seed="deep" area="Nursery" />
@@ -212,8 +269,8 @@ function WallPage({ viewing }: { viewing?: "far" }) {
         </Area>
         <Area title="Whole home">
           <Alarm seed="away" area="Whole home" />
+          <Lock seed="locked" area="Whole home" footprint="compact" />
           <Toggle seed="dnd" area="Whole home" footprint="compact" />
-          <Toggle seed="guest" area="Whole home" footprint="compact" />
           <Cover seed="garage" area="Whole home" footprint="compact" />
         </Area>
         <Area title="Outside">
@@ -248,13 +305,13 @@ export const WallPanelFar: Story = {
   ),
 };
 
-/** Phone, whole modules, the sock's alarm below the fold: the module stays in its place in the nursery, and the alert
-    line under the header names it on the first screen; a tap opens the sock's panel. Nothing moves to make room. */
+/** Phone, the sock's alarm below the fold: the module stays in its place in the nursery, and the alert line under the
+    header names it on the first screen; a tap opens the sock's panel. Nothing moves to make room. */
 export const PhoneAlarm: Story = {
   name: "Phone, alarm below the fold",
   render: () => (
     <Device label="Phone" width={390} height={844}>
-      <PhonePage footprint="standard" sock="critical" />
+      <PhonePage sock="critical" />
     </Device>
   ),
 };
