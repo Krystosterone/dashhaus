@@ -2,7 +2,7 @@
 /**
  * `@dashhaus/deploy` is the Node-only CLI: it loads the user's config, never a skin or a browser package, and the repo's
  * `dashboard.config.mjs` stays the one file outside orb that reaches orb's generated layout. The last test loads the
- * repo config from a copied, non-symlinked `@dashhaus/dashboard`, which is the install shape Node refuses to type-strip.
+ * repo config from a copied, non-symlinked `@dashhaus/core/lovelace`, which is the install shape Node refuses to type-strip.
  */
 import { spawnSync } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
@@ -152,24 +152,24 @@ export default {
     });
   });
 
-  it("loads a config from a copied, non-symlinked @dashhaus/dashboard install", async () => {
+  it("loads a config from a copied, non-symlinked @dashhaus/core install", async () => {
     const app = await mkdtemp(join(tmpdir(), "deploy-copied-"));
     directories.push(app);
     await mkdir(join(app, "node_modules", "@dashhaus"), { recursive: true });
-    await cp(join(root, "packages/dashboard"), join(app, "node_modules", "@dashhaus/dashboard"), { recursive: true });
+    await cp(join(root, "packages/core"), join(app, "node_modules", "@dashhaus/core"), { recursive: true });
     await symlink(join(root, "packages/deploy"), join(app, "node_modules", "@dashhaus/deploy"), "dir");
     await symlink(join(root, "src/skins/orb"), join(app, "node_modules", "@dashhaus/orb"), "dir");
     await symlink(join(root, "packages/bundle"), join(app, "node_modules", "@dashhaus/bundle"), "dir");
     await mkdir(join(app, "scripts"), { recursive: true });
     await cp(CONFIG_FILE, join(app, "dashboard.config.mjs"));
     await cp(join(root, "scripts/generated-skins.js"), join(app, "scripts/generated-skins.js"));
-    expect(lstatSync(join(app, "node_modules", "@dashhaus/dashboard")).isSymbolicLink()).toBe(false);
+    expect(lstatSync(join(app, "node_modules", "@dashhaus/core")).isSymbolicLink()).toBe(false);
 
     // A marker in the copy proves the CLI bundled the copy, not the repo's workspace symlink.
-    const copiedSchema = join(app, "node_modules", "@dashhaus/dashboard/src/schema.ts");
-    await writeFile(copiedSchema, `${await readFile(copiedSchema, "utf8")}\nexport const copiedMarker = "copied-dashboard-package";\n`);
+    const copiedSchema = join(app, "node_modules", "@dashhaus/core/src/lovelace/schema.ts");
+    await writeFile(copiedSchema, `${await readFile(copiedSchema, "utf8")}\nexport const copiedMarker = "copied-core-package";\n`);
     await writeFile(join(app, "copied.config.js"), `import { generatedDashboards } from "@dashhaus/deploy/config";
-import { copiedMarker } from "@dashhaus/dashboard/schema";
+import { copiedMarker } from "@dashhaus/core/lovelace/schema";
 export default {
   pageTitle: copiedMarker,
   bundle: "dist/dashhaus.js",
@@ -179,7 +179,7 @@ export default {
     const cli = join(root, "packages/deploy/bin.js");
     const help = spawnSync(process.execPath, [cli, "--config", join(app, "copied.config.js"), "--help"], { cwd: app, encoding: "utf8" });
     expect(help.status, help.stderr).toBe(0);
-    expect(help.stdout).toContain("copied-dashboard-package");
+    expect(help.stdout).toContain("copied-core-package");
     expect(help.stdout).toContain("/dashhaus-copied");
 
     const repo = spawnSync(process.execPath, [cli, "--config", join(app, "dashboard.config.mjs"), "--help"], { cwd: app, encoding: "utf8" });

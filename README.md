@@ -93,8 +93,8 @@ It registers the skin's Foundations, Dashboard, its own entry and Lovelace card;
 
 ### Packages
 
-`@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` are the headless foundation, the framework and the
-deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins. `@dashhaus/bundle` ships the prebuilt one-file
+`@dashhaus/core` and `@dashhaus/deploy` are the headless foundation (with the Lovelace framework under
+`@dashhaus/core/lovelace`) and the deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins. `@dashhaus/bundle` ships the prebuilt one-file
 Lovelace bundle: a deploy-only app installs it with the CLI, names `fileURLToPath(bundlePath)` in its config and runs
 `npx dashhaus-deploy --skip-build`. `create-dashhaus-skin` scaffolds a standalone skin. Package READMEs live in each
 package; the release policy is [spec/release.md](spec/release.md).

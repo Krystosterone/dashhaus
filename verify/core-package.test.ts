@@ -1,6 +1,7 @@
 /**
  * @dashhaus/core's declared subpaths are the package's interface: `./entities` is pure (no React, no DOM, no Node),
- * the browser entries carry no Node builtins, and only `./websocket` reaches the Home Assistant websocket client.
+ * the browser entries carry no Node builtins, only `./websocket` reaches the Home Assistant websocket client, and no
+ * headless entry reaches the Lovelace framework under `./lovelace` (verify/lovelace-package.test.ts holds that one).
  * This walks the real import graph from each entry, the way a bundler would, rather than trusting folder names.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
@@ -112,6 +113,14 @@ describe("@dashhaus/core", () => {
     for (const subpath of BROWSER) {
       const { packages } = graph(entry(subpath));
       expect(packages.filter((p) => NODE_BUILTINS.test(p)), `${subpath} is a browser entry`).toEqual([]);
+    }
+  });
+
+  it("keeps the headless entries clear of the Lovelace framework, so a React app needs core alone", () => {
+    for (const subpath of BROWSER) {
+      const { files, packages } = graph(entry(subpath));
+      expect(files.filter((f) => f.startsWith(`${CORE}/lovelace/`)), `${subpath} never reaches ./lovelace`).toEqual([]);
+      expect(packages.filter((p) => p.startsWith("react-dom")), `${subpath} needs no react-dom`).toEqual([]);
     }
   });
 

@@ -14,6 +14,8 @@ interface Props {
   show: "list" | "subpaths" | "count" | "version";
   /** For `subpaths`: the packages whose tables to draw, as one table. */
   packages?: string[];
+  /** For `subpaths`: only the rows whose subpaths start with this (`./lovelace`), or, with a leading `!`, the others. */
+  rows?: string;
 }
 
 /** Which journey installs each package, in the words of the site's sidebar, listed in the journeys' order. */
@@ -21,14 +23,19 @@ const WHO: Record<string, string> = {
   "@dashhaus/bundle": "Using a skin",
   "@dashhaus/deploy": "Using a skin, building a skin",
   "@dashhaus/core": "Your own app, building a skin",
-  "@dashhaus/dashboard": "Building a skin",
   "@dashhaus/orb": "Your own app",
   "@dashhaus/field": "Your own app",
   "create-dashhaus-skin": "Building a skin, once",
 };
 const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
-const { show, packages = [] } = Astro.props;
+const { show, packages = [], rows } = Astro.props;
+const keep = (subpaths: string[]) => {
+  if (!rows) return true;
+  const negate = rows.startsWith("!");
+  const prefix = negate ? rows.slice(1) : rows;
+  return subpaths.some((subpath) => subpath.startsWith(prefix)) !== negate;
+};
 const order = Object.keys(WHO);
 const all = publicPackageList();
 for (const pkg of all) if (!WHO[pkg.name]) throw new Error(`packages: say who installs ${pkg.name} in docs/src/components/Packages.astro`);
@@ -39,7 +46,9 @@ if (versions.length !== 1) throw new Error(`packages: the public packages don't 
 const tables = packages.map((name) => {
   const pkg = all.find((entry) => entry.name === name);
   if (!pkg?.subpaths) throw new Error(`packages: ${name} is not a public package with a Subpaths table in its README`);
-  return { name, table: pkg.subpaths };
+  const table = { ...pkg.subpaths, rows: pkg.subpaths.rows.filter((row) => keep(row.subpaths)) };
+  if (!table.rows.length) throw new Error(`packages: no row of ${name}'s Subpaths table matches "${rows}"`);
+  return { name, table };
 });
 const columns = tables[0]?.table.columns ?? [];
 for (const { name, table } of tables) {

@@ -1,6 +1,6 @@
 # @dashhaus/core
 
-The headless Home Assistant foundation behind Dashhaus skins: entity models and their pure logic, the store and provider, mappers, actions, the `useHa<Name>` hooks, headless components, interaction primitives, shared hooks, demo transports and a testing helper. It ships no markup and no CSS.
+The Home Assistant foundation behind Dashhaus skins: entity models and their pure logic, the store and provider, mappers, actions, the `useHa<Name>` hooks, headless components, interaction primitives, shared hooks, demo transports and a testing helper, all headless. Under `./lovelace`, the framework a skin's Lovelace card draws on: the custom-element base, the card frame, the YAML reader, the automatic layout and the conformance preset. No entry ships CSS, and the headless entries never reach `./lovelace`, so a React app of your own needs only them.
 
 Where to start: to deploy the ready-made Orb and Field dashboards, install `@dashhaus/bundle` and `@dashhaus/deploy`
 (nothing is built). To build your own look, run `npm create dashhaus-skin@latest my-skin`: the project it writes
@@ -18,7 +18,7 @@ you on one `0.x` line until you move. Every `@dashhaus/` package shares one vers
 npm install @dashhaus/core react@18 react-dom@18 home-assistant-js-websocket@9
 ```
 
-`react` is a peer: React 18.3+ or 19 is supported. `home-assistant-js-websocket` is an optional peer, needed only by `./websocket`; `vitest` and `@testing-library/react` are optional peers, needed only by `./testing`.
+`react` is a peer: React 18.3+ or 19 is supported. `react-dom` is an optional peer, needed only by `./lovelace` and its subpaths (a skin's Lovelace card); `home-assistant-js-websocket` is an optional peer, needed only by `./websocket` and by the Lovelace element base, which reaches it through `./websocket`; `vitest` and `@testing-library/react` are optional peers, needed only by `./testing`.
 
 ## Use
 
@@ -53,6 +53,38 @@ const store = createHaStore(createHomeAssistantTransport(connection));
 | `./demo` | Demo transports for Storybook and tests, and `createDemoStore()` for the whole house |
 | `./testing` | A fake transport (with `calls`, `emit` and `emitEntity`) and a render under a real store, for connected-card tests (needs Vitest and Testing Library) |
 | `./fixtures/*` | Raw Home Assistant state fixtures |
+| `./lovelace` | The full Lovelace entry: element base, nav, room sensors and token scoping. Not part of the contract |
+| `./lovelace/skin` | The frozen skin-author surface: `LovelaceDashboardElement`, `registerCard`, `scopeToHost`, `autoInput`, `useActionStatus` (the rejected-command status a page shows), `LovelaceHass`, `AutoEntityEntry`, `ActionStatus` and `ActionMessage`. The frozen contract |
+| `./lovelace/card` | The frame every skin's card draws on: footprint flags, ids and aria, details state, tile/sheet composition. The frozen contract |
+| `./lovelace/schema` | The shared YAML `Reader`, the card kind table and card reader, the shared option readers, the renderer dispatch and `DashboardConfigError`. Pure; the frozen contract |
+| `./lovelace/layout` | The automatic layout: visibility, area resolution, name sort, grouping, placement. Pure; may change with the layout work |
+| `./lovelace/conformance` | `checkCards`, the generic card preset a skin runs against its own cards. Node- and test-only; the compatibility test |
+
+### The Lovelace framework
+
+What a skin's Lovelace card draws on. `npm create dashhaus-skin@latest my-skin` writes a project on these; import them
+directly only to compose a skin by hand. Each row of the table above says how stable its subpath is: the frozen
+contract (`./lovelace/skin`, `/card`, `/schema`) is what a third-party skin may rely on.
+
+```tsx
+import { LovelaceDashboardElement, registerCard, scopeToHost } from "@dashhaus/core/lovelace/skin";
+import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
+
+class MyCard extends LovelaceDashboardElement<{ title: string }> {
+  protected readonly styles = scopeToHost(":host { color: inherit }");
+
+  protected parse(raw: unknown) { return { title: String((raw as { title?: unknown })?.title ?? "My skin") }; }
+  protected changed(_previous: LovelaceHass, _next: LovelaceHass) { return false; }
+  protected draw(config: { title: string }, _hass: LovelaceHass) {
+    return <main>{config.title}</main>;
+  }
+}
+
+registerCard("dashhaus-my-skin", MyCard, "My skin", "A dashboard of my own.");
+```
+
+Until 0.4 these were `@dashhaus/dashboard` and its subpaths: `@dashhaus/dashboard/skin` is now
+`@dashhaus/core/lovelace/skin`, and so on.
 
 ## Docs
 

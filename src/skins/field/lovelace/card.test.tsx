@@ -26,7 +26,7 @@ adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
 }));
 
 const { createFieldCard } = await import("./card");
-const { DashboardConfigError } = await import("@dashhaus/dashboard");
+const { DashboardConfigError } = await import("@dashhaus/core/lovelace");
 
 customElements.define("dashhaus-field-test", createFieldCard(":root { --fd-press: 120ms; } :root[data-fd-finish=\"black\"] { --fd-page: #111; }"));
 type Card = HTMLElement & { setConfig(raw: unknown): void; hass: unknown };

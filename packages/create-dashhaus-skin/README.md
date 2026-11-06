@@ -52,11 +52,11 @@ lovelace/                             the custom element, YAML reader, automatic
                                       rejected-command row, bundle entry
 styles/tokens.css                     every colour, font and easing, light and dark
 preview/                              the local preview, its sample house and the snapshot script
-conformance.js, tsconfig.json         npm test: tsc, then @dashhaus/dashboard/conformance plus the CSS rules
+conformance.js, tsconfig.json         npm test: tsc, then @dashhaus/core/lovelace/conformance plus the CSS rules
 vite.config.js                        one ES module, dist/dashhaus-<skin>.js, CSS inlined
 dashboard.config.mjs, .env.example    the deploy: the dashboard, the bundle, the settings
 ```
 
-`__Skin__` is the folder's name in PascalCase. The project depends on `@dashhaus/core`, `@dashhaus/dashboard`, React
+`__Skin__` is the folder's name in PascalCase. The project depends on `@dashhaus/core`, React
 18.3+ or 19 and `home-assistant-js-websocket`; `@dashhaus/deploy`, Vite, TypeScript and Playwright (for
 `npm run snapshot`) are dev dependencies; Playwright's Chromium is installed on the first snapshot's word.

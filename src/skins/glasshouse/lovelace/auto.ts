@@ -1,10 +1,10 @@
-import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
-import type { AutoInput } from "@dashhaus/dashboard/layout";
+import { friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import type { AutoInput } from "@dashhaus/core/lovelace/layout";
 import { glasshouseKindOf, GLASSHOUSE_CARDS } from "./registry";
 import type { CardConfig, RowLayoutConfig } from "./config";
 
-export type { AutoInput } from "@dashhaus/dashboard/layout";
-export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
+export type { AutoInput } from "@dashhaus/core/lovelace/layout";
+export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
 
 /** Every supported visible entity, with room sensors reduced to one Card per device (its humidity and battery as
  * companions) and one weather Card. */

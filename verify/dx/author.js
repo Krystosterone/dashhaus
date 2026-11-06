@@ -46,7 +46,7 @@ const report = createReport("DX author — scaffold, read the guide, install, te
 console.log(`  tarballs: ${shown(tarballsDir)}`);
 
 const app = await makeApp("author");
-const required = tarballs(["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy", "create-dashhaus-skin"]);
+const required = tarballs(["@dashhaus/core", "@dashhaus/deploy", "create-dashhaus-skin"]);
 let server;
 /** The fake Home Assistant, started once, serving `www` at /local/: the hand install and every deploy share it. */
 const www = join(app, "www");
@@ -60,7 +60,7 @@ const fakeHomeAssistant = async () => {
 try {
   const setup = await report.stage("tarballs", async () => {
     if (required.missing.length) throw new Error(`missing ${required.missing.join(", ")}; run npm run release:pack first`);
-    return "core, dashboard, deploy and the scaffolder are packed";
+    return "core, deploy and the scaffolder are packed";
   });
 
   const skinApp = join(app, SKIN);
@@ -107,7 +107,7 @@ try {
 
     const installed = await report.stage("install", async () => {
       run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], { cwd: skinApp });
-      const names = ["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy"].map((name) => {
+      const names = ["@dashhaus/core", "@dashhaus/deploy"].map((name) => {
         const { manifest } = installedPackage(skinApp, name);
         return `${manifest.name}@${manifest.version}`;
       });

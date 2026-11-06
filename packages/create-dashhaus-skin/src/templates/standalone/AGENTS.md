@@ -47,7 +47,7 @@ the outside in, snapshotting after each step and comparing with the reference:
    family, so end the stack with close fallbacks. `npm run snapshot` says when a face fails to load.
 3. **Page:** `dashboards/`: `layout.tsx` (the page, its titled rows and the card grid), `Header.tsx`, `NavBar.tsx` and
    their `dashboard.css`. A greeting, a date or a different grid goes here. `lovelace/__Skin__Dashboard.tsx` draws
-   the page from the YAML (each row placed by `useRowLayout` from `@dashhaus/dashboard`: its tracks from its own
+   the page from the YAML (each row placed by `useRowLayout` from `@dashhaus/core/lovelace`: its tracks from its own
    width, each card on its grid lines), and `lovelace/auto.ts` picks the cards when the YAML lists none: every entity a
    card is registered for, a row per area, with room air from `roomSensors` (one sensor card per device).
 4. **Parts:** `shared/ui.tsx` and `shared/ui.css`: `__Skin__CardFrame`, the frame every card is drawn in (its
@@ -243,17 +243,17 @@ is kept.
 
 What you may rely on, and what not to rewrite:
 
-- `@dashhaus/dashboard/skin`: `LovelaceDashboardElement` (implement `styles`, `parse`, `changed`, `draw`; optionally
+- `@dashhaus/core/lovelace/skin`: `LovelaceDashboardElement` (implement `styles`, `parse`, `changed`, `draw`; optionally
   `mountClass`, `fontHref`, `paintHost`), `registerCard`, `scopeToHost` (turns `:root` into `:host`, so tokens
   written for `:root` reach the shadow root), `autoInput`, and `useActionStatus`: the store's latest rejected command
   for `lovelace/__Skin__ActionStatus.tsx` (its words, `retry` and `dismiss`).
-- `@dashhaus/dashboard/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
+- `@dashhaus/core/lovelace/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
   device), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
-  `node_modules/@dashhaus/dashboard/dist/layout.d.ts`, and their signatures may still change before 1.0.
-- `@dashhaus/dashboard/schema`: `Reader`, `readCard`, `readBody` (the shared layout: `cards`, or `rows` of cards,
+  `node_modules/@dashhaus/core/dist/lovelace/layout.d.ts`, and their signatures may still change before 1.0.
+- `@dashhaus/core/lovelace/schema`: `Reader`, `readCard`, `readBody` (the shared layout: `cards`, or `rows` of cards,
   with `columns`, `width`, `column`, `flow` and `align`) and `DashboardConfigError`, used by `lovelace/config.ts`. A
   thrown `DashboardConfigError` shows its problems in Home Assistant's card editor.
-- `@dashhaus/dashboard/card`: `CardProps`, `useCardFrame`, `detailsSheet`, `detailsTile` and `CardDialog`: the frame
+- `@dashhaus/core/lovelace/card`: `CardProps`, `useCardFrame`, `detailsSheet`, `detailsTile` and `CardDialog`: the frame
   `__Skin__CardFrame` derives its shape and ids from, and the details surface it opens.
 - `@dashhaus/core`: the `useHa<Name>` hooks; `@dashhaus/core/primitives`: `usePress`, `useSlider`, `useRangeSlider`,
   `useSheet`, `useKeypad` (behaviour, no markup).

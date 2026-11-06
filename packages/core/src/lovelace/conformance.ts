@@ -1,5 +1,5 @@
 /**
- * The generic card checks for any skin that draws on `@dashhaus/dashboard/card`: each folder under a skin's `cards/`
+ * The generic card checks for any skin that draws on `@dashhaus/core/lovelace/card`: each folder under a skin's `cards/`
  * is one card, with its component, its stories titled for the skin's Storybook section, its own class prefix and a
  * code no other card shares. A skin supplies only what it knows — where its cards are, what its files are called, how
  * a card's code is read and which classes it may use. The repo's own conformance tests call this preset and keep

@@ -1,4 +1,4 @@
-import { useActionStatus } from "@dashhaus/dashboard/skin";
+import { useActionStatus } from "@dashhaus/core/lovelace/skin";
 import "./FuturaActionStatus.css";
 
 /**

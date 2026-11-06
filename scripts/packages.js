@@ -31,7 +31,6 @@ const define = (dir) => {
 /** The shared packages, read from their own manifests so a new subpath is declared once. */
 export const packages = {
   core: define("packages/core"),
-  dashboard: define("packages/dashboard"),
   deploy: define("packages/deploy"),
 };
 
@@ -42,7 +41,7 @@ export function packageFile(packageName, path = "") {
   return path ? `${entry.dir}/${path}` : entry.dir;
 }
 
-/** A declared specifier for a shared package: `@dashhaus/core`, `@dashhaus/core/demo`, `@dashhaus/dashboard/card`. */
+/** A declared specifier for a shared package: `@dashhaus/core`, `@dashhaus/core/demo`, `@dashhaus/core/lovelace/card`. */
 export function packageSpecifier(packageName, subpath = "") {
   const entry = packages[packageName];
   if (!entry) throw new Error(`unknown package "${packageName}": add it to scripts/packages.js`);
@@ -164,7 +163,7 @@ export function generatedManifest(skin, { study, Section, theme } = {}) {
     type: "module",
     sideEffects: ["./styles/tokens.css"],
     exports: generated.exports,
-    dependencies: { [packages.core.name]: "*", [packages.dashboard.name]: "*" },
+    dependencies: { [packages.core.name]: "*" },
     peerDependencies: { react: "^18.3.1 || ^19.0.0", "react-dom": "^18.3.1 || ^19.0.0" },
     ...(study && { dashhaus: studies.marker(theme) }),
   };

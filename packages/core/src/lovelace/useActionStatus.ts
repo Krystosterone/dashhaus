@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useHaSelector, useHaStore } from "@dashhaus/core";
+import { useHaSelector, useHaStore } from "../index";
 import { actionMessage } from "./actionMessage";
 import type { ActionMessage } from "./actionMessage";
 

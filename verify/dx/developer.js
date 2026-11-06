@@ -77,7 +77,7 @@ try {
         const { directory, manifest } = installedPackage(app, "@dashhaus/core");
         const css = readdirSync(directory, { recursive: true, encoding: "utf8" }).filter((file) => file.endsWith(".css") && !file.includes("node_modules"));
         assert.deepEqual(css, [], "@dashhaus/core must ship no stylesheet");
-        return `${manifest.name}@${manifest.version} with React; no skin, no dashboard package, no CSS`;
+        return `${manifest.name}@${manifest.version} with React; no skin, no other package, no CSS`;
       })
     : { ok: false };
 

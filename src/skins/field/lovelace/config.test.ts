@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DashboardConfigError } from "@dashhaus/dashboard";
-import { mapRowItems, rowItems } from "@dashhaus/dashboard/schema";
+import { DashboardConfigError } from "@dashhaus/core/lovelace";
+import { mapRowItems, rowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 
 const problems = (raw: unknown) => {

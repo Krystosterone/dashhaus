@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { HaProvider, createHaStore } from "@dashhaus/core";
-import type { HassEntities } from "@dashhaus/core";
+import { HaProvider, createHaStore } from "../index";
+import type { HassEntities } from "../index";
 import { useActionStatus } from "./useActionStatus";
 
 const entities: HassEntities = {

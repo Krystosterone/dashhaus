@@ -28,8 +28,8 @@ links every workspace package, so the root apps read each package's source, not 
 
 ```text
 packages/
-  core/                  @dashhaus/core: entities/, ha/ (store, mappers, actions, hooks), primitives/, hooks/, demo/
-  dashboard/             @dashhaus/dashboard: element, card frame, schema, layout, conformance
+  core/                  @dashhaus/core: entities/, ha/ (store, mappers, actions, hooks), primitives/, hooks/, demo/,
+                         lovelace/ (the framework: element, card frame, schema, layout, conformance)
   deploy/                @dashhaus/deploy: the dashhaus-deploy CLI
   bundle/                @dashhaus/bundle: the prebuilt dist/dashhaus.js
   create-dashhaus-skin/  the scaffolder and the templates every skin starts from
@@ -60,7 +60,7 @@ folders do. ESLint and `verify/boundaries.test.ts` hold it.
 | `npm run docs` | This site's dev server; `npm run build:docs` builds it with Storybook under `/storybook` |
 | `npm run build:packages` | Each public package's `dist` |
 | `npm run change` | Writes the change note a pull request that changes what ships carries, for the next release's notes |
-| `npm run release:check` | Packs the seven tarballs and installs them into a clean app |
+| `npm run release:check` | Packs the six tarballs and installs them into a clean app |
 | `npm run new-card`, `npm run new-skin` | The generators ([Add a card or a skin](/dashhaus/develop/cards-and-skins/)) |
 | `npm run perf:collect` | Measures the deployed dashboards in Chromium against a live Home Assistant |
 

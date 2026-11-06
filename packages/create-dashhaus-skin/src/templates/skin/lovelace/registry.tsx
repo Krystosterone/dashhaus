@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { CardKindSpec } from "@dashhaus/dashboard/schema";
+import type { CardKindSpec } from "@dashhaus/core/lovelace/schema";
 import type { __Skin__Footprint } from "../shared/ui";
 // new-card: registry imports
 

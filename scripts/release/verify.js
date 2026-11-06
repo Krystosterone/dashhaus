@@ -3,7 +3,7 @@
  *
  * - tarball contents: no tests, stories, repo docs or spec, or workspace-only source paths;
  * - packed manifests: real version, no `private`, no `source` condition, internal ranges pinned, optional peers;
- * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/dashboard`, `./skin` and `./card`, a
+ * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/core/lovelace`, `./skin` and `./card`, a
  *   Vitest run for `@dashhaus/core/testing`, a TypeScript consumer (Bundler and NodeNext), the `dashhaus-deploy` bin
  *   loading a config that imports `@dashhaus/deploy/config`, and a Node-only app installing deploy alone.
  * - each tarball's non-empty README.
@@ -55,17 +55,15 @@ async function checkTarballs(manifests) {
     if (!files.includes("package/LICENSE")) throw new Error(`${manifest.name}: tarball misses package/LICENSE`);
     if (!SEMVER.test(packed.version) || packed.version === "0.0.0") throw new Error(`${manifest.name}: packed version is ${packed.version}`);
     if (JSON.stringify(packed.exports).includes('"source"')) throw new Error(`${manifest.name}: packed exports declare a source condition`);
-    if (["core", "dashboard", "orb", "field"].includes(pkg.key) && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
+    if (["core", "orb", "field"].includes(pkg.key) && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
       throw new Error(`${manifest.name}: home-assistant-js-websocket must stay an optional peer`);
     }
     const filesField = JSON.stringify(packed.files);
     if (!filesField.includes("dist") && pkg.key !== "deploy") throw new Error(`${manifest.name}: packed files must ship dist`);
 
     const required = pkg.key === "core"
-      ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json"]
-      : pkg.key === "dashboard"
-        ? ["package/README.md", "package/dist/index.js", "package/dist/skin.js", "package/dist/skin.d.ts", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/conformance.js", "package/dist/conformance.d.ts"]
-        : pkg.key === "orb"
+      ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json", "package/dist/lovelace/index.js", "package/dist/lovelace/skin.js", "package/dist/lovelace/skin.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/schema.js", "package/dist/lovelace/layout.js", "package/dist/lovelace/conformance.js", "package/dist/lovelace/conformance.d.ts"]
+      : pkg.key === "orb"
           ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/lovelace/auto.js", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
           : pkg.key === "field"
             ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
@@ -78,7 +76,7 @@ async function checkTarballs(manifests) {
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
     if (pkg.key === "scaffold") {
       const template = JSON.parse(execFileSync("tar", ["-xOzf", tarball, "package/dist/templates/standalone/package.json"], { encoding: "utf8" }));
-      for (const name of ["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy"]) {
+      for (const name of ["@dashhaus/core", "@dashhaus/deploy"]) {
         const range = template.dependencies?.[name] ?? template.devDependencies?.[name];
         if (range !== `^${packed.version}`) {
           throw new Error(`${manifest.name}: template pins ${name} "${range}", expected "^${packed.version}"`);
@@ -90,9 +88,11 @@ async function checkTarballs(manifests) {
     ok(`${manifest.name}@${packed.version}: ${files.length} entries, ${(statSync(tarball).size / 1024).toFixed(1)} KiB`);
   }
 
-  const dashboard = manifests.dashboard;
-  if (dashboard.dependencies?.["@dashhaus/core"] !== `^${manifests.core.version}`) {
-    throw new Error(`@dashhaus/dashboard depends on @dashhaus/core "${dashboard.dependencies?.["@dashhaus/core"]}", expected "^${manifests.core.version}"`);
+  for (const key of ["orb", "field"]) {
+    const range = manifests[key].dependencies?.["@dashhaus/core"];
+    if (range !== `^${manifests.core.version}`) {
+      throw new Error(`${manifests[key].name} depends on @dashhaus/core "${range}", expected "^${manifests.core.version}"`);
+    }
   }
 }
 
@@ -151,9 +151,9 @@ assert.ok(Object.keys(fixture).length > 0);
 
 const deployConfig = await load("@dashhaus/deploy/config");
 assert.equal(typeof deployConfig.generatedDashboards, "function");
-await load("@dashhaus/dashboard/schema");
-await load("@dashhaus/dashboard/layout");
-const conformance = await load("@dashhaus/dashboard/conformance");
+await load("@dashhaus/core/lovelace/schema");
+await load("@dashhaus/core/lovelace/layout");
+const conformance = await load("@dashhaus/core/lovelace/conformance");
 assert.equal(typeof conformance.checkCards, "function");
 assert.equal(typeof conformance.cardFolders, "function");
 const deploy = await load("@dashhaus/deploy");
@@ -174,11 +174,11 @@ const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http:
 for (const key of ["window", "document", "HTMLElement", "customElements", "CustomEvent", "Event", "Node", "MutationObserver"]) {
   Object.defineProperty(globalThis, key, { value: key === "window" ? dom.window : dom.window[key], configurable: true, writable: true });
 }
-const dashboard = await load("@dashhaus/dashboard");
+const dashboard = await load("@dashhaus/core/lovelace");
 assert.equal(typeof dashboard.registerCard, "function");
-const skin = await load("@dashhaus/dashboard/skin");
+const skin = await load("@dashhaus/core/lovelace/skin");
 assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "registerCard", "scopeToHost", "useActionStatus"]);
-const card = await load("@dashhaus/dashboard/card");
+const card = await load("@dashhaus/core/lovelace/card");
 assert.equal(card.cardShape({ footprint: "compact" }).footprint, "compact");
 
 const { createElement } = await import("react");
@@ -216,13 +216,13 @@ it("renders a connected component through the packed testing helper", () => {
 
 async function typeConsumer(app) {
   await writeFile(join(app, "consumer.ts"), `
-import type { CardProps } from "@dashhaus/dashboard/card";
-import { cardShape } from "@dashhaus/dashboard/card";
+import type { CardProps } from "@dashhaus/core/lovelace/card";
+import { cardShape } from "@dashhaus/core/lovelace/card";
 import type { DeployConfig } from "@dashhaus/deploy/config";
 import { generatedDashboards } from "@dashhaus/deploy/config";
-import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import type { CardCheck } from "@dashhaus/dashboard/conformance";
-import { checkCards } from "@dashhaus/dashboard/conformance";
+import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
+import type { CardCheck } from "@dashhaus/core/lovelace/conformance";
+import { checkCards } from "@dashhaus/core/lovelace/conformance";
 import { HaActionError } from "@dashhaus/core";
 import type { HassEntity } from "@dashhaus/core";
 import { fmt1 } from "@dashhaus/core/entities/format";
@@ -258,9 +258,9 @@ export type Hass = LovelaceHass;
   await writeFile(join(app, "consumer.node.ts"), `
 import type { DeployConfig } from "@dashhaus/deploy/config";
 import { generatedDashboards } from "@dashhaus/deploy/config";
-import { cardShape } from "@dashhaus/dashboard/card";
-import type { CardCheck } from "@dashhaus/dashboard/conformance";
-import { checkCards } from "@dashhaus/dashboard/conformance";
+import { cardShape } from "@dashhaus/core/lovelace/card";
+import type { CardCheck } from "@dashhaus/core/lovelace/conformance";
+import { checkCards } from "@dashhaus/core/lovelace/conformance";
 import { HaActionError } from "@dashhaus/core";
 import { fmt1 } from "@dashhaus/core/entities/format";
 
@@ -300,7 +300,7 @@ async function bundleConsumer(manifests) {
       dependencies: { "@dashhaus/bundle": tarballFor(manifests.bundle) },
     }, null, 2)}\n`);
     run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
-    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
+    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/core/lovelace"]) {
       if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the bundle-only app installed ${peer}; the bundle must carry its runtime`);
     }
     await writeFile(join(app, "consumer.js"), `
@@ -370,7 +370,7 @@ async function deployConfigConsumer(manifests) {
       dependencies: { "@dashhaus/deploy": tarballFor(manifests.deploy) },
     }, null, 2)}\n`);
     run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
-    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
+    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/core/lovelace"]) {
       if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the deploy-only app installed ${peer}; the config surface must not need it`);
     }
     await writeFile(join(app, "config.js"), `

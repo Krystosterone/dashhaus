@@ -1,7 +1,7 @@
 # Releasing the public packages
 
-`@dashhaus/core`, `@dashhaus/dashboard`, `@dashhaus/deploy`, `@dashhaus/orb`, `@dashhaus/field` and
-`@dashhaus/bundle` are the packages a dashboard author or user installs; `create-dashhaus-skin` scaffolds a
+`@dashhaus/core` (with the Lovelace framework under `./lovelace`), `@dashhaus/deploy`, `@dashhaus/orb`,
+`@dashhaus/field` and `@dashhaus/bundle` are the packages a dashboard author or user installs; `create-dashhaus-skin` scaffolds a
 standalone skin. Generated skins created inside this repository, Storybook and the source of the bundle stay private.
 
 ## Build and export layout
@@ -33,7 +33,7 @@ Every package ships a non-empty `README.md` and the root `LICENSE`, and declares
 ## Versioning
 
 **Fixed version** across every public package, currently `0.2.1`. There is no independent release need yet:
-`@dashhaus/dashboard`, the skins and the bundle are built from the same repository and tag, and coupled releases keep
+core, the skins and the bundle are built from the same repository and tag, and coupled releases keep
 the internal ranges unambiguous.
 
 `npm run release` applies it (Releasing, below); on its own, apply it with the command, never by editing the manifests:
@@ -121,7 +121,7 @@ Decided, and why:
 - **The merge is the trigger, not a button after it.** The merge is the reviewed decision; a second click adds a step
   and no information. `workflow_dispatch` is only for finishing a release that stopped.
 - **One note file per pull request, not a shared `CHANGELOG.md`**, which conflicts between any two open pull requests.
-- **Our own commands, not Changesets, release-please or semantic-release.** One fixed version for seven packages, the
+- **Our own commands, not Changesets, release-please or semantic-release.** One fixed version for six packages, the
   scaffolder's template ranges and the recorded digests are this repository's; each tool would duplicate
   `release:version` or need configuring around it.
 - **The registry is read by the version, never by the package's index.** npm's CDN serves a package's index (what
@@ -155,7 +155,7 @@ provenance attestation naming the repository, workflow and commit. The publish j
 required reviewers there for a second pair of eyes before anything reaches npm); it installs nothing, runs none of the
 repository's scripts and publishes with `--ignore-scripts`.
 
-Set up once, by the owner of the `@dashhaus` scope, for each of the seven packages on npmjs.com (the package's
+Set up once, by the owner of the `@dashhaus` scope, for each of the six packages on npmjs.com (the package's
 Settings → Trusted Publisher): GitHub Actions, organization or user `Krystosterone`, repository `dashhaus`, workflow
 `release.yml`, environment `npm`. Then set each package's publishing access to require two-factor authentication and
 disallow tokens, so the workflow is the only way to publish. A new public package has to exist on npm before it can
@@ -213,7 +213,7 @@ Author journey, from packed tarballs, scaffolding, testing and building once:
 ```sh
 app=$(mktemp -d); cd "$app"
 npm init -y && npm pkg set type=module
-npm install "$release"/dashhaus-core-<version>.tgz "$release"/dashhaus-dashboard-<version>.tgz \
+npm install "$release"/dashhaus-core-<version>.tgz \
   "$release"/dashhaus-deploy-<version>.tgz "$release"/create-dashhaus-skin-<version>.tgz \
   react@18.3.1 react-dom@18.3.1 home-assistant-js-websocket@9.7.1 vite@5.4.19 @vitejs/plugin-react@4.3.4 \
   typescript@5.6.3 @types/react@^19.0.0 @types/react-dom@^19.0.0   # the scaffold's own devDependencies, for npm test

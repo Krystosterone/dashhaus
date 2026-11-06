@@ -5,7 +5,7 @@ import { finiteNumber, isRecord, stringValue } from "../util";
  * A device's battery level, wherever Home Assistant puts it: a companion `sensor.*` on the same device
  * (`device_class: battery`, the common case), or a `battery_level` / `battery` attribute on the entity itself (older
  * integrations). Shared by every composed model with a same-device battery: the room sensor, the lock, and next the
- * binary sensor. Finding the companion is the layout's job (`deviceCompanion` in `@dashhaus/dashboard/layout`); this
+ * binary sensor. Finding the companion is the layout's job (`deviceCompanion` in `@dashhaus/core/lovelace/layout`); this
  * only reads it.
  */
 

@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
-import type { Connection } from "@dashhaus/core/websocket";
-import { HaProvider } from "@dashhaus/core";
-import { createHaStore } from "@dashhaus/core";
-import { createHomeAssistantTransport } from "@dashhaus/core/websocket";
-import type { HaStore, HassEntities } from "@dashhaus/core";
-import { perfMark, perfMarkAfterPaint } from "@dashhaus/core/perf";
+import type { Connection } from "../websocket";
+import { HaProvider } from "../index";
+import { createHaStore } from "../index";
+import { createHomeAssistantTransport } from "../websocket";
+import type { HaStore, HassEntities } from "../index";
+import { perfMark, perfMarkAfterPaint } from "../perf";
 import { ErrorBoundary } from "./errorBoundary";
 
 /** Registry facts per entity: the shape of the frontend's `hass.entities`. */

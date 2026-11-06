@@ -7,7 +7,7 @@
 Futura draws the house as a dark instrument console lit by two neon signals: every card is a bezelled panel led by a
 ring gauge, with a mono readout and today as a segmented level meter. It lives in `src/skins/futura/`
 (`@dashhaus/futura`), was created by `npm run new-skin -- futura`, and keeps every generated contract: the shared
-entity models and `useHa<Name>` hooks, the card frame from `@dashhaus/dashboard/card`, fixed footprints, the
+entity models and `useHa<Name>` hooks, the card frame from `@dashhaus/core/lovelace/card`, fixed footprints, the
 skin-local Card registry and `custom:dashhaus-futura`. The rules every skin keeps ([skins.md](../../../spec/skins.md#rules-every-skin-keeps))
 hold; this page adds Futura's names and numbers.
 

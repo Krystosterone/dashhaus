@@ -1,4 +1,4 @@
-import { useActionStatus } from "@dashhaus/dashboard/skin";
+import { useActionStatus } from "@dashhaus/core/lovelace/skin";
 import "./ActionStatus.css";
 
 /** One dashboard-level recovery surface for the latest rejected Home Assistant action. */

@@ -135,7 +135,7 @@ repository. It also writes an `AGENTS.md`, the guide your agent follows: where t
 and how to restyle the skin from a screenshot.
 
 CI runs these steps on every change to Dashhaus: it packs the release, installs `@dashhaus/core`,
-`@dashhaus/dashboard`, `@dashhaus/deploy` and the scaffolder into an empty folder, scaffolds `my-skin`, runs its
+`@dashhaus/deploy` and the scaffolder into an empty folder, scaffolds `my-skin`, runs its
 checks, builds it and deploys it into a simulated Home Assistant.
 
 <Steps>
@@ -157,7 +157,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
    ```
 
    `--tarballs` points the `@dashhaus` dependencies at the tarballs instead of the registry; `--dry-run` lists the
-   files instead of writing them. `npm install` brings `@dashhaus/core` and `@dashhaus/dashboard`, React and
+   files instead of writing them. `npm install` brings `@dashhaus/core`, React, React DOM and
    `home-assistant-js-websocket` as peers, and TypeScript, Vite and `@dashhaus/deploy` for the checks, the build and
    the deploy.
 
@@ -178,7 +178,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
    npm test
    ```
 
-   It typechecks the skin, then runs the conformance check from `@dashhaus/dashboard/conformance` over `cards/` and
+   It typechecks the skin, then runs the conformance check from `@dashhaus/core/lovelace/conformance` over `cards/` and
    the CSS rules: each card has its component and its stories under the skin's title and classes under the skin's
    prefix, no presentational card imports the Home Assistant layer, every colour is a token,
    `:hover` sits under the hover media query and motion avoids layout properties. Each finding names its file, line
@@ -282,7 +282,7 @@ actions to the card.
 <Example template="ha/HaMySkinLightCard.tsx" />
 
 The shared parts are the card frame, on `useCardFrame`, `detailsSheet` and `detailsTile` from
-`@dashhaus/dashboard/card`, which names each card's article after its title and opens the details in a `CardDialog`
+`@dashhaus/core/lovelace/card`, which names each card's article after its title and opens the details in a `CardDialog`
 (open, close, focus and the page's scroll lock), and the action, on the `usePress` primitive (press and hold,
 `aria-pressed`, an unavailable state that stays focusable).
 
@@ -291,7 +291,7 @@ The shared parts are the card frame, on `useCardFrame`, `detailsSheet` and `deta
 ### The Lovelace card
 
 `registry.tsx` routes an entity to its card by its Home Assistant domain. `config.ts` reads the YAML through the shared
-`Reader` from `@dashhaus/dashboard/schema`, so every mistake is collected with its path and a suggestion, as in Orb
+`Reader` from `@dashhaus/core/lovelace/schema`, so every mistake is collected with its path and a suggestion, as in Orb
 and Field; its card kinds are the registry's.
 
 <Tabs>
@@ -303,13 +303,13 @@ and Field; its card kinds are the registry's.
   </TabItem>
 </Tabs>
 
-`card.tsx` is the element, on `LovelaceDashboardElement` from `@dashhaus/dashboard/skin`: it builds the store on Home
+`card.tsx` is the element, on `LovelaceDashboardElement` from `@dashhaus/core/lovelace/skin`: it builds the store on Home
 Assistant's own connection, puts the CSS in its shadow root and draws the page. `paintHost` puts Home Assistant's dark
 mode on the host as `data-my-skin-theme`, the attribute `styles/tokens.css` reads: the skin's own, so another skin on
 the same page never re-colours yours. The skin's web font is `MY_SKIN_FONT_HREF` in `shared/surface.ts`. The page ends
 with `MySkinActionStatus`, the row that says when Home Assistant refused a command, with Retry and Dismiss. Without
 `cards` in the YAML, `auto.ts` lays out every entity a card is registered for, by area, with
-`@dashhaus/dashboard/layout`.
+`@dashhaus/core/lovelace/layout`.
 
 <Example template="lovelace/card.tsx" />
 
@@ -346,8 +346,8 @@ scaffolder; `--help` prints the same as this:
 
 - One card, one model. A card draws one entity's model, or that entity plus the companions its hook composes (a
   temperature sensor with the humidity sensor on its device), handed to it by its adapter, never from Home Assistant.
-- A card may import `@dashhaus/core`'s entity models, primitives and formatters, and `@dashhaus/dashboard/card`; never
-  `@dashhaus/core` itself, `@dashhaus/core/websocket`, its demo or testing subpaths, or `@dashhaus/dashboard`.
+- A card may import `@dashhaus/core`'s entity models, primitives and formatters, and `@dashhaus/core/lovelace/card`; never
+  `@dashhaus/core` itself, `@dashhaus/core/websocket`, its demo or testing subpaths, or `@dashhaus/core/lovelace`.
   `npm test` enforces it.
 - Every colour comes from `styles/tokens.css`, under the skin's prefix, so another skin on the same page can't collide
   with it.
@@ -357,7 +357,7 @@ scaffolder; `--help` prints the same as this:
 
 The scaffold's `AGENTS.md` repeats these beside the files they govern, with the rest of the look's rules.
 
-[Packages](/dashhaus/packages/#for-a-skin-author) lists what each `@dashhaus/dashboard` subpath promises a skin.
+[Packages](/dashhaus/packages/#for-a-skin-author) lists what each `@dashhaus/core/lovelace` subpath promises a skin.
 
 For a skin drawn end to end with the generators, to take ideas from or build on, see [Studies](/dashhaus/develop/studies/).
 

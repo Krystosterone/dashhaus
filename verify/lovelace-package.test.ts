@@ -1,19 +1,20 @@
 /**
- * @dashhaus/dashboard's declared subpaths are its interface: each entry is browser code with no Node builtins, no CSS
- * and no skin, and every package it reaches is React or a declared @dashhaus subpath. This walks the real import graph
+ * @dashhaus/core's `./lovelace` subpaths are the Lovelace framework's interface: each entry is browser code with no Node
+ * builtins, no CSS and no skin, and everything it reaches outside `src/lovelace/` is React or one of core's own declared
+ * subpaths (reached relatively, inside the package). This walks the real import graph
  * from every entry, the way a bundler would, rather than trusting folder names; it also holds the Lovelace entry to
  * its one caller, a skin's lovelace/ card.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
-import * as conformance from "@dashhaus/dashboard/conformance";
-import * as layout from "@dashhaus/dashboard/layout";
-import * as schema from "@dashhaus/dashboard/schema";
+import * as conformance from "@dashhaus/core/lovelace/conformance";
+import * as layout from "@dashhaus/core/lovelace/layout";
+import * as schema from "@dashhaus/core/lovelace/schema";
 
 const root = process.cwd();
-const PACKAGE = "packages/dashboard";
-const SOURCE = `${PACKAGE}/src`;
+const PACKAGE = "packages/core";
+const SOURCE = `${PACKAGE}/src/lovelace`;
 const packageJson = JSON.parse(readFileSync(join(root, PACKAGE, "package.json"), "utf8"));
 
 const read = (path: string) => readFileSync(join(root, path), "utf8");
@@ -42,7 +43,13 @@ function resolveSpecifier(spec: string, from: string): string | undefined {
 }
 
 /** Every file reachable from the entries, every bare package those files import, and any relative import that leaves. */
+/** Core's own subpaths by their source file: a relative import of one is an edge to that declared subpath. */
+const coreSubpaths = () => new Map(Object.entries(packageJson.exports as Record<string, { source?: string }>)
+  .filter(([subpath, target]) => !subpath.startsWith("./lovelace") && typeof target?.source === "string" && !target.source.includes("*"))
+  .map(([subpath, target]) => [`${PACKAGE}/${target.source!.replace(/^\.\//, "")}`, subpath === "." ? "@dashhaus/core" : `@dashhaus/core/${subpath.slice(2)}`]));
+
 function graph(entries: string[]) {
+  const core = coreSubpaths();
   const files = new Set<string>();
   const packages = new Set<string>();
   const outside: string[] = [];
@@ -53,6 +60,7 @@ function graph(entries: string[]) {
     for (const spec of specs(path)) {
       const target = resolveSpecifier(spec, path);
       if (target?.startsWith(`${SOURCE}/`)) visit(target);
+      else if (target && core.has(target)) packages.add(core.get(target)!);
       else if (target) outside.push(`${path} → ${spec} (${target})`);
       else if (!spec.startsWith(".")) packages.add(spec);
     }
@@ -66,15 +74,18 @@ const NODE_BUILTINS = /^(node:|assert$|buffer$|child_process$|crypto$|events$|fs
 const BROWSER = ["react", "react-dom/client"];
 
 /** The workspace resolves source through the export's `source` condition; the graph walks those files. */
+/** The framework's subpaths, named as before the fusion: `.` is `@dashhaus/core/lovelace`, `./skin` its `/skin`. */
+const exported = (subpath: string) => (subpath === "." ? "./lovelace" : `./lovelace/${subpath.slice(2)}`);
+const SUBPATHS = [".", "./skin", "./card", "./schema", "./layout", "./conformance"];
 const sourceTarget = (subpath: string) => {
-  const target = packageJson.exports[subpath];
+  const target = packageJson.exports[exported(subpath)];
   if (typeof target !== "object" || typeof target.source !== "string") {
-    throw new Error(`@dashhaus/dashboard has no source export for ${subpath}`);
+    throw new Error(`@dashhaus/core has no source export for ${exported(subpath)}`);
   }
   return target.source;
 };
 
-const entries = () => Object.keys(packageJson.exports).map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
+const entries = () => SUBPATHS.map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
 /** The entries a browser may load. `./conformance` reads a skin's files, so it is Node- and test-only. */
 const BROWSER_ENTRIES = [".", "./skin", "./card", "./schema", "./layout"];
 const browserEntries = () => BROWSER_ENTRIES.map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
@@ -91,29 +102,27 @@ function declared(spec: string): boolean {
   return Object.keys(exports).some((key) => key === subpath || (key.endsWith("/*") && subpath.startsWith(key.slice(0, -1))));
 }
 
-describe("@dashhaus/dashboard", () => {
-  it("declares its six entries, its built files and its release metadata", () => {
-    expect(packageJson.name).toBe("@dashhaus/dashboard");
-    expect(packageJson.version).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(packageJson.version).not.toBe("0.0.0");
-    expect(packageJson.private).toBe(true);
+describe("@dashhaus/core/lovelace", () => {
+  it("declares its six entries in @dashhaus/core, with react-dom an optional peer", () => {
+    expect(packageJson.name).toBe("@dashhaus/core");
     expect(packageJson.sideEffects).toBe(false);
-    expect(packageJson.files).toEqual(["dist", "README.md"]);
-    expect(Object.keys(packageJson.exports)).toEqual([".", "./skin", "./card", "./schema", "./layout", "./conformance"]);
-    expect(packageJson.dependencies["@dashhaus/core"]).toBe(`^${packageJson.version}`);
+    expect(Object.keys(packageJson.exports).filter((subpath) => subpath.startsWith("./lovelace"))).toEqual(SUBPATHS.map(exported));
+    expect(packageJson.peerDependencies["react-dom"]).toBe("^18.3.1 || ^19.0.0");
+    expect(packageJson.peerDependenciesMeta["react-dom"].optional, "a developer using only the hooks needs no react-dom").toBe(true);
+    expect(packageJson.dependencies ?? {}, "the framework is inside core, not a package beside it").toEqual({});
   });
 
   it("exposes the skin runtime, the card frame, the card schema, the layout and the conformance preset on subpaths of their own", () => {
     const subpaths = ["./skin", "./card", "./schema", "./layout", "./conformance"];
     for (const subpath of subpaths) {
-      expect(sourceTarget(subpath)).toMatch(new RegExp(`^\\./src/.+\\.tsx?$`));
+      expect(sourceTarget(subpath)).toMatch(new RegExp(`^\\./src/lovelace/.+\\.tsx?$`));
       expect(sourceTarget(subpath)).not.toBe(sourceTarget("."));
-      expect(packageJson.exports[subpath].types).toMatch(new RegExp(`^\\./dist/.+\\.d\\.ts$`));
-      expect(packageJson.exports[subpath].import).toMatch(new RegExp(`^\\./dist/.+\\.js$`));
-      expect(packageJson.exports[subpath].default).toBe(packageJson.exports[subpath].import);
+      expect(packageJson.exports[exported(subpath)].types).toMatch(new RegExp(`^\\./dist/.+\\.d\\.ts$`));
+      expect(packageJson.exports[exported(subpath)].import).toMatch(new RegExp(`^\\./dist/.+\\.js$`));
+      expect(packageJson.exports[exported(subpath)].default).toBe(packageJson.exports[exported(subpath)].import);
     }
     expect(new Set([".", ...subpaths].map(sourceTarget)).size).toBe(subpaths.length + 1);
-    expect(new Set([".", ...subpaths].map((subpath) => packageJson.exports[subpath].import)).size).toBe(subpaths.length + 1);
+    expect(new Set([".", ...subpaths].map((subpath) => packageJson.exports[exported(subpath)].import)).size).toBe(subpaths.length + 1);
   });
 
   it("exposes exactly the schema's public words", () => {
@@ -187,7 +196,7 @@ describe("@dashhaus/dashboard", () => {
   it("keeps every reachable file inside the package, with no CSS and no skin", () => {
     const { files, outside } = graph(entries());
     expect(files.length).toBeGreaterThan(0);
-    expect(outside, "no relative import leaves @dashhaus/dashboard").toEqual([]);
+    expect(outside, "no relative import leaves @dashhaus/core/lovelace").toEqual([]);
     expect(files.filter((file) => file.includes("/skins/")), "the framework is skin-free").toEqual([]);
     expect(files.filter((file) => stylesheets(file).length > 0), "the entries import no stylesheet").toEqual([]);
   });
@@ -221,6 +230,6 @@ describe("@dashhaus/dashboard", () => {
       }
     };
     walk("src/skins");
-    expect(files.filter((file) => !file.includes("/lovelace/") && specs(file).includes("@dashhaus/dashboard"))).toEqual([]);
+    expect(files.filter((file) => !file.includes("/lovelace/") && specs(file).includes("@dashhaus/core/lovelace"))).toEqual([]);
   });
 });

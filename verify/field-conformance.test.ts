@@ -5,7 +5,7 @@
  * verify/storybook.test.ts.
  */
 import { describe, expect, it } from "vitest";
-import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
+import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
 import { exists, object, read, reachesHa, uncomment } from "./conformance";
 
 const SKIN = "src/skins/field";
@@ -48,7 +48,7 @@ const cards = cardFolders(SKIN)
 
 describe("the generic card checks", () => {
   it("pass for every card", () => {
-    expect(checkCards(CHECKS), "@dashhaus/dashboard/conformance").toEqual([]);
+    expect(checkCards(CHECKS), "@dashhaus/core/lovelace/conformance").toEqual([]);
   });
 });
 

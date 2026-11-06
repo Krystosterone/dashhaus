@@ -35,7 +35,7 @@ describe("the generator package map", () => {
   });
 
   it("names distinct packages whose manifests exist and agree with the map", () => {
-    expect(new Set(Object.values(packages).map((pkg) => pkg.name)).size).toBe(3);
+    expect(new Set(Object.values(packages).map((pkg) => pkg.name)).size).toBe(2);
     for (const pkg of Object.values(packages)) {
       expect(JSON.parse(read(`${pkg.dir}/package.json`)).name).toBe(pkg.name);
       expect(pkg.exports).toBeTypeOf("object");
@@ -50,7 +50,7 @@ describe("the generator package map", () => {
     expect(manifest.type).toBe("module");
     expect(Object.keys(manifest.exports).sort()).toEqual([".", "./lovelace/card", "./storybook", "./styles/tokens.css"]);
     expect(manifest.dependencies).toHaveProperty("@dashhaus/core");
-    expect(manifest.dependencies).toHaveProperty("@dashhaus/dashboard");
+    expect(Object.keys(manifest.dependencies), "the Lovelace framework comes with core").toEqual(["@dashhaus/core"]);
     for (const target of Object.values(manifest.exports)) expect(target).toMatch(/^\.\//);
     for (const reserved of ["core", "dashboard", "deploy", "bundle", "fake-home-assistant"]) expect(() => generatedManifest(reserved)).toThrow(/reserved/);
   });

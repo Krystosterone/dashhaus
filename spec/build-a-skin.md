@@ -53,7 +53,7 @@ that installs its Chromium.
 
 A card takes its domain's normalized model as `entity` (with `history` where the domain has one, its footprint and one
 callback per action it shows) from its `ha/` adapter, which calls the shared `useHa<Name>` hook; it never reaches Home Assistant itself.
-Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/dashboard/card`,
+Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/core/lovelace/card`,
 but not the Home Assistant subpaths, the Lovelace entry or a stylesheet from another skin.
 
 Each domain declares its actions' kinds beside its handlers (`<NAME>_ACTIONS: ActionKinds<Handlers>` in
@@ -65,7 +65,7 @@ takes a code as an entry in the frame's `guarded` list, answered in the details 
 saying so.
 
 Every card draws inside the skin's frame, `<Skin>CardFrame` in `shared/ui.tsx`: `detailsTile` and `detailsSheet` from
-`@dashhaus/dashboard/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible
+`@dashhaus/core/lovelace/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible
 name, its title. The title opens the details (`aria-haspopup="dialog"`), a `CardDialog` that closes from its button,
 Escape or the backdrop. The frame puts `data-card="<domain>"` on the article.
 
@@ -73,7 +73,7 @@ The page around the cards follows [skins.md → The page around the cards](skins
 tokens key dark mode on the skin's own `data-my-skin-theme`, which `paintHost` sets on the card's host (and the preview
 on its page), never the shared `data-theme`; `shared/surface.ts` names the web font; and
 `lovelace/MySkinActionStatus.tsx` draws the store's latest rejected command on the page, from `useActionStatus` in the
-frozen `@dashhaus/dashboard/skin` contract.
+frozen `@dashhaus/core/lovelace/skin` contract.
 
 `npm run add -- <domain> [--kind control|reading]` adds a domain: the card folder under `cards/<domain>/` (component,
 CSS, glyph and story metadata), its adapter in `ha/`, and its row in `lovelace/registry.tsx` for its Home Assistant
@@ -117,6 +117,6 @@ Their exports resolve built `dist` in an installed package, so a composition bui
 
 ## Contracts
 
-What a skin may rely on from `@dashhaus/dashboard/skin`, `./card`, `./schema` and `./conformance` is in
+What a skin may rely on from `@dashhaus/core/lovelace/skin`, `./card`, `./schema` and `./conformance` is in
 [contract.md](contract.md). Skins never import each other: move what two skins
-share to `@dashhaus/core` or one of the dashboard subpaths above.
+share to `@dashhaus/core` or one of its Lovelace subpaths above.

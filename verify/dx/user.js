@@ -8,7 +8,7 @@
  * Install `@dashhaus/bundle` and `@dashhaus/deploy`; ask `dashhaus-deploy --help` in the empty folder for a config;
  * write the bundle README's `dashboard.config.mjs` and a `.env`; run `npx dashhaus-deploy --skip-build` (the packed bin)
  * over a real websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/` so the served-file check runs for real;
- * then deploy again and check nothing was recreated. No clone, no build, no React, core or dashboard in the app.
+ * then deploy again and check nothing was recreated. No clone, no build, no React or core in the app.
  */
 import assert from "node:assert/strict";
 import { existsSync, realpathSync } from "node:fs";
@@ -67,11 +67,11 @@ try {
             return false;
           }
         };
-        for (const name of ["react", "@dashhaus/core", "@dashhaus/dashboard"]) {
+        for (const name of ["react", "@dashhaus/core"]) {
           assert.equal(resolvable(name), false, `${name} must not be installed in the deploy-only app`);
         }
         assert.equal(existsSync(join(app, "node_modules/react")), false, "React must not be installed");
-        return `${bundle.name}@${bundle.version}, ${deploy.name}@${deploy.version}; no React, core or dashboard`;
+        return `${bundle.name}@${bundle.version}, ${deploy.name}@${deploy.version}; no React or core`;
       })
     : { ok: false };
 

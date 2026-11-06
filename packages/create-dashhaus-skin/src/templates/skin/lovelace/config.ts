@@ -1,6 +1,6 @@
-import { BODY_KEYS, DashboardConfigError, PLACEMENT_KEYS, Reader, isRaw, readBody, readCard, rowTitles } from "@dashhaus/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
-import type { NavEntry } from "@dashhaus/dashboard";
+import { BODY_KEYS, DashboardConfigError, PLACEMENT_KEYS, Reader, isRaw, readBody, readCard, rowTitles } from "@dashhaus/core/lovelace/schema";
+import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
+import type { NavEntry } from "@dashhaus/core/lovelace";
 import { __SKIN_CONST___CARDS } from "./registry";
 import type { __Skin__CardItem } from "./registry";
 import type { __Skin__Footprint } from "../shared/ui";

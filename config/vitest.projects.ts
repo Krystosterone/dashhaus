@@ -29,7 +29,6 @@ export const projects = [
   project("checks", ["verify/**/*.test.{ts,tsx}"], "node", { exclude: ["verify/tokens.test.ts"] }),
   project("generators", ["scripts/*/*.test.ts"], "node", { pool: "forks" }),
   project("core", ["packages/core/src/**/*.test.{ts,tsx}"]),
-  project("dashboard", ["packages/dashboard/src/**/*.test.{ts,tsx}"]),
   project("deploy", ["packages/deploy/src/**/*.test.ts"], "node"),
   project("fake-home-assistant", ["packages/fake-home-assistant/src/**/*.test.ts"], "node"),
 ];

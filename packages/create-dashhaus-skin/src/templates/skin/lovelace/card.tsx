@@ -1,6 +1,6 @@
-import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
-import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import { mapRowItems } from "@dashhaus/dashboard/schema";
+import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/core/lovelace/skin";
+import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
+import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parse__Skin__Config } from "./config";
 import type { __Skin__Config, CardConfig, PageConfig, RowLayoutConfig } from "./config";
 import { areaName, areaRows, autoCards } from "./auto";

@@ -18,20 +18,20 @@ import {
   readUnit,
   readWeatherOptions,
   rowTitles,
-} from "@dashhaus/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
+} from "@dashhaus/core/lovelace/schema";
+import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
 import type { CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
 import { GUEST_WIFI_ACTION_DOMAINS, OWLET_ALERT_SUFFIX } from "@dashhaus/core";
-import type { NavEntry } from "@dashhaus/dashboard";
+import type { NavEntry } from "@dashhaus/core/lovelace";
 
 /*
  * The card's YAML, as Lovelace hands it over (already parsed), checked and normalized. Every mistake is
  * collected with its path and, for a misspelt key, the key that was probably meant, so the YAML editor shows
  * all of them at once instead of the first. The reading itself is the shared card schema and layout
- * (`@dashhaus/dashboard/schema`: `cards`, or `rows` of cards); this file is the card's kind table and the bundles only
+ * (`@dashhaus/core/lovelace/schema`: `cards`, or `rows` of cards); this file is the card's kind table and the bundles only
  * orb has.
  */
 
@@ -115,7 +115,7 @@ export type BundleConfig =
 /** One entry of a row's `cards`: a card, or a bundle. */
 export type ItemConfig = CardConfig | BundleConfig;
 
-/** A row of the card's layout: its heading, its grid and its cards (`@dashhaus/dashboard/schema` → `readBody`). */
+/** A row of the card's layout: its heading, its grid and its cards (`@dashhaus/core/lovelace/schema` → `readBody`). */
 export type RowLayoutConfig = RowConfig<ItemConfig>;
 
 export type ThemeSetting = "home-assistant" | "auto" | "light" | "dark";

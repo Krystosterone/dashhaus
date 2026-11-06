@@ -21,8 +21,8 @@ you on one `0.x` line until you move. Every `@dashhaus/` package shares one vers
 npm install @dashhaus/bundle @dashhaus/deploy
 ```
 
-(From release tarballs: `npm install ./dashhaus-bundle-<version>.tgz ./dashhaus-deploy-<version>.tgz`.) No React,
-`@dashhaus/core` or `@dashhaus/dashboard` is needed; the bundle carries its own runtime.
+(From release tarballs: `npm install ./dashhaus-bundle-<version>.tgz ./dashhaus-deploy-<version>.tgz`.) No React or
+`@dashhaus/core` is needed; the bundle carries its own runtime.
 
 `.env` beside the config:
 

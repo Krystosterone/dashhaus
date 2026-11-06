@@ -12,7 +12,6 @@ const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
 const programs = [
   ["--noEmit", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/root.tsbuildinfo"],
   ["--noEmit", "-p", "packages/core/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/core.tsbuildinfo"],
-  ["--noEmit", "-p", "packages/dashboard/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/dashboard.tsbuildinfo"],
   ["--noEmit", "-p", "packages/deploy/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/deploy.tsbuildinfo"],
   ["--noEmit", "-p", "packages/fake-home-assistant/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/fake-home-assistant.tsbuildinfo"],
   ["--noEmit", "-p", "src/skins/orb/tsconfig.json", "--incremental", "--tsBuildInfoFile", "node_modules/.cache/tsc/orb.tsbuildinfo"],

@@ -92,7 +92,7 @@ Editing a card's YAML in Home Assistant, and adding the card from the card picke
 
 ### The format
 
-Every skin's Lovelace card reads one layout (`@dashhaus/dashboard/schema` → `readBody`); the keys around it are the
+Every skin's Lovelace card reads one layout (`@dashhaus/core/lovelace/schema` → `readBody`); the keys around it are the
 skin's. The simplest page is a list of `cards`, drawn on one grid in that order:
 
 ```yaml
@@ -223,7 +223,7 @@ is an error that names the fix.
 
 A row is a grid of tracks across and, down, rows of the skin's unit: orb's 60 px with the 8 px gap, so a compact
 card is one unit, a standard two and a featured four; in a skin whose rows hold one footprint (field, a generated
-skin), one card. Every card is a whole block of tracks and units. Placing is pure (`@dashhaus/dashboard/layout` →
+skin), one card. Every card is a whole block of tracks and units. Placing is pure (`@dashhaus/core/lovelace/layout` →
 `placeRow`): it depends on the YAML and the row's own width, never on an entity's state, so a state change never moves
 a card.
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { CardKindSpec } from "@dashhaus/dashboard/schema";
+import type { CardKindSpec } from "@dashhaus/core/lovelace/schema";
 import type { GlasshouseFootprint } from "../shared/ui";
 import { HaGlasshouseLightCard } from "../ha/HaGlasshouseLightCard";
 import { HaGlasshouseSensorCard } from "../ha/HaGlasshouseSensorCard";

@@ -3,8 +3,8 @@ import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode, Ref 
 import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
-import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/dashboard/card";
-import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/dashboard/card";
+import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/core/lovelace/card";
+import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
 import { unavailableSince } from "@dashhaus/core/entities/facts";

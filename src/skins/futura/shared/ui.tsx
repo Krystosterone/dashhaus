@@ -2,8 +2,8 @@ import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { usePress, useSlider } from "@dashhaus/core/primitives";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/dashboard/card";
-import type { CardProps, CardSheetProps, TileProps } from "@dashhaus/dashboard/card";
+import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/core/lovelace/card";
+import type { CardProps, CardSheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import "./ui.css";
 
 export type FuturaFootprint = "compact" | "standard";

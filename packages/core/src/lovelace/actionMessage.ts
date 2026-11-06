@@ -1,4 +1,4 @@
-import type { HaActionError, HassEntity } from "@dashhaus/core";
+import type { HaActionError, HassEntity } from "../index";
 
 export interface ActionMessage { title: string; detail: string }
 

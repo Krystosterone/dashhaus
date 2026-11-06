@@ -10,7 +10,7 @@ import { projects } from "../config/vitest.projects";
 
 const root = process.cwd();
 const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8"));
-const packages = ["core", "dashboard", "deploy", "fake-home-assistant"];
+const packages = ["core", "deploy", "fake-home-assistant"];
 
 /** A Vitest project as the root config writes it. */
 type Project = { test?: { name?: string; include?: string[]; exclude?: string[]; environment?: string } };
@@ -36,12 +36,10 @@ describe("workspace projects", () => {
       checks: "node",
       generators: "node",
       core: "jsdom",
-      dashboard: "jsdom",
       deploy: "node",
       "fake-home-assistant": "node",
     });
     expect(project("core")?.include, "core's tests are in its project").toEqual(["packages/core/src/**/*.test.{ts,tsx}"]);
-    expect(project("dashboard")?.include, "dashboard's tests are in its project").toEqual(["packages/dashboard/src/**/*.test.{ts,tsx}"]);
     expect(project("deploy")?.include, "deploy's tests are in its project").toEqual(["packages/deploy/src/**/*.test.ts"]);
     expect(project("fake-home-assistant")?.include, "the fake Home Assistant's tests run in Node").toEqual(["packages/fake-home-assistant/src/**/*.test.ts"]);
     expect(project("root")?.include, "the root project holds the skins, the bundle's dashboard strategy, the one check that needs a DOM and the docs' example tests").toEqual([
@@ -59,7 +57,6 @@ describe("workspace projects", () => {
       checks: "vmForks",
       generators: "forks",
       core: "vmForks",
-      dashboard: "vmForks",
       deploy: "vmForks",
       "fake-home-assistant": "vmForks",
     });

@@ -24,9 +24,8 @@ const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
 
 const packages = [
   { name: "@dashhaus/core", dir: "packages/core", fixtures: "src/ha/fixtures" },
-  { name: "@dashhaus/dashboard", dir: "packages/dashboard", cross: ["core"] },
-  { name: "@dashhaus/orb", dir: "src/skins/orb", css: true, cross: ["core", "dashboard"] },
-  { name: "@dashhaus/field", dir: "src/skins/field", css: true, cross: ["core", "dashboard"] },
+  { name: "@dashhaus/orb", dir: "src/skins/orb", css: true, cross: ["core"] },
+  { name: "@dashhaus/field", dir: "src/skins/field", css: true, cross: ["core"] },
   { name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", copy: "src" },
 ];
 

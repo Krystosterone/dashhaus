@@ -16,24 +16,22 @@ const read = (path: string) => JSON.parse(readFileSync(join(root, path), "utf8")
 const manifests: Record<string, PackageManifest> = Object.fromEntries(publicPackages.map((pkg) => [pkg.key, read(`${pkg.dir}/package.json`)]));
 
 describe("public packages", () => {
-  it("share one real version and pin @dashhaus/dashboard's core range", () => {
+  it("share one real version and pin @dashhaus/core/lovelace's core range", () => {
     const version = manifests.core.version;
     expect(version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(version).not.toBe("0.0.0");
     for (const pkg of publicPackages) expect(manifests[pkg.key].version, pkg.name).toBe(version);
-    expect(manifests.dashboard.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
     const template = read("packages/create-dashhaus-skin/src/templates/standalone/package.json");
     expect(template.dependencies?.["@dashhaus/core"]).toBe(`^${version}`);
-    expect(template.dependencies?.["@dashhaus/dashboard"]).toBe(`^${version}`);
     expect(template.devDependencies?.["@dashhaus/deploy"]).toBe(`^${version}`);
     expect(template.devDependencies?.["create-dashhaus-skin"], "npm run add uses the skin's own scaffolder").toBe(`^${version}`);
   });
 
   it("publishes the React 18 and 19 peer range the consumer test covered", () => {
-    for (const key of ["core", "dashboard", "orb", "field"] as const) {
+    for (const key of ["core", "orb", "field"] as const) {
       expect(manifests[key].peerDependencies?.react, `${manifests[key].name} accepts React 19`).toBe("^18.3.1 || ^19.0.0");
     }
-    for (const key of ["dashboard", "orb", "field"] as const) {
+    for (const key of ["core", "orb", "field"] as const) {
       expect(manifests[key].peerDependencies?.["react-dom"], `${manifests[key].name} accepts React 19`).toBe("^18.3.1 || ^19.0.0");
     }
     const template = read("packages/create-dashhaus-skin/src/templates/standalone/package.json");
@@ -42,7 +40,7 @@ describe("public packages", () => {
   });
 
   it("resolve source in the workspace and built files in a packed install", () => {
-    for (const key of ["core", "dashboard"]) {
+    for (const key of ["core"]) {
       const manifest = manifests[key];
       expect(manifest.files, `${manifest.name} ships dist and its README`).toEqual(["dist", "README.md"]);
       expect(manifest.sideEffects).toBe(false);
@@ -78,7 +76,7 @@ describe("public packages", () => {
         expect(manifest.exports?.[subpath], `${manifest.name} declares ${subpath}`).toBeTypeOf("object");
       }
       expect(manifest.dependencies?.["@dashhaus/core"]).toBe(`^${manifests.core.version}`);
-      expect(manifest.dependencies?.["@dashhaus/dashboard"]).toBe(`^${manifests.dashboard.version}`);
+      expect(Object.keys(manifest.dependencies ?? {}), `${manifest.name} draws on core alone`).toEqual(["@dashhaus/core"]);
     }
     expect(manifests.orb.exports?.["./lovelace/auto"]?.source).toBe("./lovelace/auto.ts");
     expect(manifests.bundle.dependencies).toBeUndefined();
@@ -101,7 +99,7 @@ describe("public packages", () => {
       }
     }
     expect(publishManifest(manifests.core).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
-    expect(publishManifest(manifests.dashboard).peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional).toBe(true);
+    expect(publishManifest(manifests.core).peerDependenciesMeta?.["react-dom"]?.optional).toBe(true);
     expect(publishManifest(manifests.deploy).bin).toEqual({ "dashhaus-deploy": "./bin.js" });
     expect(publishManifest(manifests.deploy).engines).toEqual({ node: ">=22" });
     for (const pkg of publicPackages) expect(publishManifest(manifests[pkg.key]).files, pkg.name).toContain("README.md");
@@ -118,7 +116,7 @@ describe("public packages", () => {
     expect(() => publishManifest({ ...manifests.orb, publishConfig: undefined })).toThrow(/restricted/);
     expect(() => publishManifest({ ...manifests.field, repository: { type: "git", url: "git+https://github.com/Krystosterone/dashhaus.git" } })).toThrow(/directory/);
     expect(() => publishManifest({ ...manifests.deploy, description: "" })).toThrow(/description/);
-    expect(() => publishManifest({ ...manifests.dashboard, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
+    expect(() => publishManifest({ ...manifests.orb, dependencies: { "@dashhaus/core": "*" } })).toThrow(/expected/);
     expect(() => publishManifest({ ...manifests.core, exports: { ".": { import: "./src/index.ts", default: "./src/index.ts" } } }))
       .toThrow(/built dist files/);
   });

@@ -6,8 +6,8 @@
  */
 import { createElement, useEffect, useId, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
-import { perfMark, perfMarkAfterPaint } from "@dashhaus/core/perf";
-import { useSheet } from "@dashhaus/core/primitives";
+import { perfMark, perfMarkAfterPaint } from "../perf";
+import { useSheet } from "../primitives/index";
 
 /** Dashboard footprints. A skin whose cards don't use `featured` narrows it in its own type. */
 export type CardFootprint = "compact" | "standard" | "featured";
