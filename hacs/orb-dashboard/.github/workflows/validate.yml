@@ -2,7 +2,7 @@ name: HACS
 
 # The Home Assistant Marketplace and HACS validate a dashboard plugin with this action: hacs.json, the release carrying
 # orb-dashboard.js, the README, the repository's description and topics. Kept in Krystosterone/dashhaus at
-# hacs/orb-dashboard/, as the monorepo's own .github/workflows/hacs.yml; change it there.
+# hacs/orb-dashboard/; change it there.
 on:
   push:
   schedule:

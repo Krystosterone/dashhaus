@@ -18,7 +18,6 @@ describe("new-skin", () => {
     expect(result.output).toContain("create src/skins/probe-skin/index.ts");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/resource.ts");
-    expect(result.output, "the combined install takes no new look").not.toContain("apps/lovelace/entry.ts");
   });
 
   describe("a generated skin in a copy", () => {
@@ -34,7 +33,6 @@ describe("new-skin", () => {
       const card = await run(copy, "node", ["scripts/new-card/index.js", "light", "--skin", "canvas"]);
       expect(card.status, card.output).toBe(0);
       // A study (spec/skins.md → Studies): the same generators with --study, in the same copy and the same install.
-      const entryBefore = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
       const deployedBefore = readFileSync(join(copy, "scripts/generated-skins.js"), "utf8");
       const deployDocBefore = readFileSync(join(copy, "spec/deploy.md"), "utf8");
       const study = await run(copy, "node", ["scripts/new-skin/index.js", "atelier", "--study"]);
@@ -97,7 +95,6 @@ describe("new-skin", () => {
       expect(studyFile("stories/ReadMeFirst.mdx")).toContain('<Meta title="Studies/Atelier/Read me first" />');
       expect(studyFile("cards/sensor/AtelierSensorCard.stories.tsx")).toContain('title: "Studies/Atelier/Cards/Sensor"');
       expect(studyFile("ha/HaAtelierSensorCard.stories.tsx")).toContain('title: "Studies/Atelier/Connected/Sensor"');
-      expect(readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8")).toBe(entryBefore);
       expect(readFileSync(join(copy, "scripts/generated-skins.js"), "utf8")).toBe(deployedBefore);
       expect(readFileSync(join(copy, "spec/deploy.md"), "utf8")).toBe(deployDocBefore);
       // Its docs stay in its folder: design rules beside it, and no spec/ page or spec/cards.md entry names it.
@@ -120,7 +117,7 @@ describe("new-skin", () => {
       // The skin's own resource, with its card and its strategy; the study gets none and reaches no other.
       expect(readFileSync(join(copy, "dist/dashhaus-canvas.js"), "utf8")).toContain("ll-strategy-dashboard-");
       expect(existsSync(join(copy, "dist/dashhaus-atelier.js")), "a study has no resource").toBe(false);
-      for (const file of ["dashhaus.js", "orb-dashboard.js", "field-dashboard.js", "dashhaus-canvas.js"]) {
+      for (const file of ["orb-dashboard.js", "field-dashboard.js", "dashhaus-canvas.js"]) {
         expect(readFileSync(join(copy, "dist", file), "utf8"), `the study never reaches ${file}`).not.toContain("dashhaus-atelier");
       }
       // The study's Read me first page and nested sort order build: the static indexer reads both.

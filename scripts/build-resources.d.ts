@@ -3,5 +3,3 @@ export const root: string;
 export function buildResourceFile(id: string, outDir: string): Promise<string>;
 /** Orb's and Field's resources into their packages' `dist/` under `outRoot`. */
 export function buildSkinResources(outRoot?: string): Promise<void>;
-/** The combined install's last `dashhaus.js`, into `outDir`; resolves to the file's path. */
-export function buildCombined(outDir: string): Promise<string>;

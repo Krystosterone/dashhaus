@@ -2,7 +2,7 @@
  * The shared machinery for the clean-room DX drivers, one per journey in spec/journeys.md:
  *
  *   npm run release:pack
- *   node verify/dx/marketplace.js   the user: the release asset installed as the Marketplace does, then setup
+ *   node verify/dx/skin.js          the user: each skin's file installed as the Marketplace does, then Add dashboard
  *   node verify/dx/user.js          the user, from the command line
  *   node verify/dx/author.js        the author
  *   node verify/dx/developer.js     the developer

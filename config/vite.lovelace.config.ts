@@ -6,9 +6,10 @@ import { NOTICE, resource } from "../scripts/resources.js";
 
 /**
  * Which resource this build writes (scripts/resources.js): `DASHHAUS_RESOURCE=orb` for Orb's `orb-dashboard.js`, and so
- * on. `scripts/build-resources.js` sets it for each build; left unset, the combined `dashhaus.js`.
+ * on. `scripts/build-resources.js` sets it for each build.
  */
-const target = resource(process.env.DASHHAUS_RESOURCE || "dashhaus");
+if (!process.env.DASHHAUS_RESOURCE) throw new Error("DASHHAUS_RESOURCE names the resource to build; run npm run build:ha");
+const target = resource(process.env.DASHHAUS_RESOURCE);
 
 /** The bundled React and ReactDOM require their notice in every copy, including the deployed file. */
 const notice = readFileSync(NOTICE, "utf8").trim();

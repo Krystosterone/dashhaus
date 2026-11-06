@@ -92,7 +92,9 @@ describe("the skin repositories", () => {
   });
 
   it("pins the actions this repository pins, and builds nothing", () => {
-    const ours = { ...pins(read(".github/workflows/release.yml")), ...pins(read(".github/workflows/hacs.yml")), ...pins(read(".github/actions/setup/action.yml")) };
+    const ours = { ...pins(read(".github/workflows/release.yml")), ...pins(read(".github/actions/setup/action.yml")) };
+    // HACS's action runs only in the skin repositories now; the first one's pin is the one every other keeps.
+    ours["hacs/action"] = pins(read(`hacs/${SKIN_REPOSITORIES[0].repository}/.github/workflows/validate.yml`))["hacs/action"];
     for (const entry of SKIN_REPOSITORIES) {
       for (const file of ["release.yml", "validate.yml"]) {
         const workflow = read(`hacs/${entry.repository}/.github/workflows/${file}`);

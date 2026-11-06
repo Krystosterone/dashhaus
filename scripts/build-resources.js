@@ -3,17 +3,17 @@
  * dashboard strategy with React inside.
  *
  * `npm run build:ha` writes every one to the repo's `dist/` (`orb-dashboard.js`, `field-dashboard.js`, a generated
- * skin's `dashhaus-<skin>.js`, the combined `dashhaus.js`), and Orb's and Field's again into their packages' `dist/`,
+ * skin's `dashhaus-<skin>.js`), and Orb's and Field's again into their packages' `dist/`,
  * where the workspace's `@dashhaus/orb/resource` names it, so the repo deploys the file a skin's package ships.
  * `release:pack` builds each package's file straight into its staging root, with the module and declarations its
- * `./resource` export resolves to and the notice for the React it carries, and the combined file beside the tarballs.
+ * `./resource` export resolves to and the notice for the React it carries.
  */
 import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
-import { COMBINED, NOTICE, RESOURCES, SKIN_RESOURCES, resource } from "./resources.js";
+import { NOTICE, RESOURCES, SKIN_RESOURCES, resource } from "./resources.js";
 
 /** The repo root: beside this file when Node loads it, or the build root a release check passes. */
 export const root = (() => {
@@ -72,12 +72,6 @@ export async function buildSkinResources(outRoot = root) {
     await mkdir(dist, { recursive: true });
     await writeSkinDist(entry, dist, await buildResourceFile(entry.id, dist));
   }
-}
-
-/** The combined Marketplace install's last `dashhaus.js`, into `outDir`. */
-export async function buildCombined(outDir) {
-  await mkdir(outDir, { recursive: true });
-  return buildResourceFile(COMBINED.id, outDir);
 }
 
 const cli = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];

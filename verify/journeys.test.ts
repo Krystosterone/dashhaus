@@ -34,7 +34,7 @@ describe("spec/journeys.md", () => {
   const dx = ci.slice(ci.indexOf("\n  dx:"), ci.indexOf("\n  storybook_shard:"));
 
   it("lists the four kinds of user, the user first, by skin", () => {
-    expect(rows.map((row) => row.name)).toEqual(["User: Orb", "User: Field", "User, both in one", "User, from the command line", "Author", "Developer", "Contributor"]);
+    expect(rows.map((row) => row.name)).toEqual(["User: Orb", "User: Field", "User, from the command line", "Author", "Developer", "Contributor"]);
   });
 
   it("gives each journey a page in the site's sidebar", () => {

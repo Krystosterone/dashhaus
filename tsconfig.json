@@ -1,5 +1,5 @@
 {
   "extends": "./config/tsconfig.base.json",
-  "include": ["src", "apps", "verify", ".storybook", "scripts/*/*.test.ts"],
+  "include": ["src", "verify", ".storybook", "scripts/*/*.test.ts"],
   "exclude": ["verify/dx/fixtures"]
 }
