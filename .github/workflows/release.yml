@@ -274,3 +274,46 @@ jobs:
           else
             gh release edit "$TAG" --draft=false --latest
           fi
+
+  # After the release: each skin's Marketplace repository mirrors this version, started here rather than on a schedule,
+  # so Orb and Field reach the Marketplace minutes after npm (spec/release.md → The skin repositories). The token can
+  # only start those repositories' workflows (a fine-grained token: Actions read and write on them alone); what they
+  # release is still only a file whose npm provenance names this workflow. The job waits for both releases, so a green
+  # run means npm and both listings are done; a rerun starts only the ones still missing.
+  listings:
+    needs: [plan, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions: {}
+    env:
+      GH_TOKEN: ${{ secrets.SKIN_REPOSITORIES_TOKEN }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      OWNER: ${{ github.repository_owner }}
+    steps:
+      - name: Start each skin repository's mirror, then wait for its release
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::set the SKIN_REPOSITORIES_TOKEN secret (spec/release.md → The skin repositories), then rerun this job"
+            exit 1
+          fi
+          repositories=(orb-dashboard field-dashboard)
+          for repository in "${repositories[@]}"; do
+            if gh release view "v$VERSION" -R "$OWNER/$repository" >/dev/null 2>&1; then
+              echo "$repository already has v$VERSION"
+            else
+              gh workflow run release.yml -R "$OWNER/$repository" -f version="$VERSION"
+              echo "started $repository's mirror for $VERSION"
+            fi
+          done
+          deadline=$((SECONDS + 600))
+          for repository in "${repositories[@]}"; do
+            until gh release view "v$VERSION" -R "$OWNER/$repository" >/dev/null 2>&1; do
+              if [ "$SECONDS" -ge "$deadline" ]; then
+                echo "::error::$repository has no v$VERSION after ten minutes; see its Release workflow"
+                exit 1
+              fi
+              sleep 15
+            done
+            echo "$repository: v$VERSION released"
+          done
