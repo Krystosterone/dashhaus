@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml)
 [![HACS](https://github.com/Krystosterone/dashhaus/actions/workflows/hacs.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/hacs.yml)
-[![License: MIT](https://img.shields.io/github/license/Krystosterone/dashhaus)](LICENSE)
+[![License: MIT](https://badgen.net/github/license/Krystosterone/dashhaus)](LICENSE)
 [![Release](https://badgen.net/github/release/Krystosterone/dashhaus)](https://github.com/Krystosterone/dashhaus/releases/latest)
 [![npm](https://badgen.net/npm/v/@dashhaus/core)](https://www.npmjs.com/package/@dashhaus/core)
 
