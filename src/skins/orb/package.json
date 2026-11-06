@@ -52,6 +52,12 @@
       "import": "./dist/lovelace/auto.js",
       "default": "./dist/lovelace/auto.js"
     },
+    "./resource": {
+      "source": "./resource.js",
+      "types": "./dist/resource.d.ts",
+      "import": "./dist/resource.js",
+      "default": "./dist/resource.js"
+    },
     "./storybook": {
       "source": "./storybook.tsx",
       "types": "./dist/storybook.d.ts",

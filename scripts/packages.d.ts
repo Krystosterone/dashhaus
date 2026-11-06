@@ -73,7 +73,6 @@ export function generatedManifest(skin: string, options?: { study?: boolean; Sec
 
 export const seams: {
   preview: string;
-  lovelaceEntry: string;
   generatedSkins: string;
   agents: string;
   cardsDoc: string;

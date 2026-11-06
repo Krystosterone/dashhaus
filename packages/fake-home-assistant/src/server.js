@@ -350,7 +350,8 @@ try {
 /**
  * A dashboard as the frontend would draw a panel view: every module resource loaded; a dashboard strategy, then the
  * chosen view's strategy, expanded as the frontend's `expandLovelaceConfigStrategies` does (`STRATEGY_SCRIPT`); then
- * the view's first card created, configured and handed a `hass` whose connection answers `subscribe_entities` from the
+ * the view's first card (or each card of a `vertical-stack`, a `markdown` one drawn as its text) created, configured and
+ * handed a `hass` whose connection answers `subscribe_entities` from the
  * fake house, applies `light/switch` toggles, so a press on a deployed card changes it, and sends `lovelace/*`
  * commands to the server, as an administrator unless the address says `?admin=false`. The view is the one whose path
  * the address names, or the first.
@@ -426,15 +427,31 @@ try {
   const shown = picked?.strategy ? await generateStrategy("view", picked, hass()) : picked;
   window.__fakeHaViews = views.map((entry) => ({ title: entry.title, path: entry.path }));
   window.__fakeHaView = shown;
-  data.card = shown?.cards?.[0];
-  if (!data.card) throw new Error("This dashboard has no saved card.");
-  const tag = String(data.card.type ?? "").replace(/^custom:/, "");
-  if (!tag || !String(data.card.type).startsWith("custom:")) throw new Error("The saved card's type is not a custom card: " + data.card.type);
-  await Promise.race([customElements.whenDefined(tag), new Promise((_, reject) => setTimeout(() => reject(new Error("Custom element doesn't exist: " + tag + ". No registered resource defined it.")), 4000))]);
-  const element = document.createElement(tag);
-  element.setConfig(data.card);
-  element.hass = hass();
-  view.append(element);
+  const first = shown?.cards?.[0];
+  if (!first) throw new Error("This dashboard has no saved card.");
+  // Two of the frontend's own cards, enough for a strategy's notice: a vertical stack, and Markdown drawn as its text.
+  const cards = first.type === "vertical-stack" ? first.cards ?? [] : [first];
+  window.__fakeHaMarkdown = [];
+  for (const card of cards) {
+    if (card.type === "markdown") {
+      const note = document.createElement("div");
+      note.className = "fake-markdown";
+      note.setAttribute("role", "note");
+      note.textContent = String(card.content ?? "");
+      window.__fakeHaMarkdown.push(note.textContent);
+      view.append(note);
+      continue;
+    }
+    const tag = String(card.type ?? "").replace(/^custom:/, "");
+    if (!tag || !String(card.type).startsWith("custom:")) throw new Error("The saved card's type is not a custom card: " + card.type);
+    await Promise.race([customElements.whenDefined(tag), new Promise((_, reject) => setTimeout(() => reject(new Error("Custom element doesn't exist: " + tag + ". No registered resource defined it.")), 4000))]);
+    const element = document.createElement(tag);
+    element.setConfig(card);
+    element.hass = hass();
+    view.append(element);
+    data.card ??= card;
+  }
+  if (!data.card) throw new Error("This dashboard has no custom card.");
   window.__fakeHaReady = true;
 } catch (error) {
   fail("Configuration error\\n" + (error?.message ?? String(error)));

@@ -1,9 +1,11 @@
 name: Release
 
-# Merging a release PR ships it: the push to main that moves the bundle's version to one with no tag yet runs this (as
-# does one that refreshes an unshipped release's digests after its build refused them), and it tags v<version>,
-# attaches dashhaus.js (the file the Home Assistant Marketplace and HACS install), publishes the
-# seven packages to npm and publishes the GitHub release. Everything it ships was decided and reviewed in that PR
+# Merging a release PR ships it: the push to main that moves core's version (every package shares it) to one with no
+# tag yet runs this (as does one that refreshes an unshipped release's digests after its build refused them), and it
+# tags v<version>, attaches the combined install's last dashhaus.js (the file the Marketplace and HACS install from this
+# repository), publishes the five packages to npm and publishes the GitHub release. Orb's and Field's resources ship
+# inside their packages, and their own repositories mirror them from npm (spec/release.md → The skin repositories):
+# never attached here, since HACS downloads every asset of a release into the combined install. Everything it ships was decided and reviewed in that PR
 # (spec/release.md → Releasing): the version, the notes, and the files' SHA-256 in spec/releases/<version>.sha256,
 # which the build must reproduce before anything leaves. It takes no inputs and runs no model.
 #
@@ -13,7 +15,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: [packages/bundle/package.json, "spec/releases/*.sha256"]
+    paths: [packages/core/package.json, "spec/releases/*.sha256"]
   workflow_dispatch:
 
 env:
@@ -51,7 +53,7 @@ jobs:
             echo "::error::a release ships from main, not $GITHUB_REF"
             exit 1
           fi
-          version=$(jq -r .version packages/bundle/package.json)
+          version=$(jq -r .version packages/core/package.json)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           case "$version" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;; esac
           if at=$(gh api "repos/$GITHUB_REPOSITORY/commits/refs/tags/v$version" --jq .sha 2>/dev/null); then
@@ -85,16 +87,23 @@ jobs:
       - run: npm run release:pack
       # The tarballs about to be published, installed into a clean app, as CI's dx lane does on every push.
       - run: npm run verify:packages
-      # One build for both stores: the Marketplace's dashhaus.js is the file inside @dashhaus/bundle.
-      - name: Check the asset is the bundle package's file
-        run: cmp dist/dashhaus.js packages/bundle/dist/dashhaus.js
+      # One build for every way in: the files build:ha writes are the ones the release ships, the asset beside the
+      # tarballs and each skin's resource inside its package, which its Marketplace repository mirrors from npm.
+      - name: Check the asset and each skin's resource are the files build:ha writes
+        run: |
+          set -euo pipefail
+          version=$(jq -r .version packages/core/package.json)
+          cmp dist/dashhaus.js release/dashhaus.js
+          for skin in orb field; do
+            tar -xOzf "release/dashhaus-$skin-$version.tgz" "package/dist/$skin-dashboard.js" | cmp - "dist/$skin-dashboard.js"
+          done
       # The gate: this clean build reproduces, byte for byte, the files the release PR recorded and was reviewed on.
       - run: node scripts/release/candidate.js check --always
       - run: node scripts/release/candidate.js body > release-page.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dashhaus.js
-          path: dist/dashhaus.js
+          path: release/dashhaus.js
           if-no-files-found: error
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -227,6 +236,11 @@ jobs:
         with:
           name: packages
           path: release
+      # The combined install's asset is not on npm: the build's copy, beside what npm serves.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dashhaus.js
+          path: registry
       - run: npm run release:registry -- "$VERSION" --out registry --compare release
       - run: node verify/dx/marketplace.js --tarballs registry
       - run: node verify/dx/user.js --tarballs registry

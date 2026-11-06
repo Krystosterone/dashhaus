@@ -31,13 +31,12 @@ packages/
   core/                  @dashhaus/core: entities/, ha/ (store, mappers, actions, hooks), primitives/, hooks/, demo/,
                          lovelace/ (the framework: element, card frame, schema, layout, conformance)
   deploy/                @dashhaus/deploy: the dashhaus-deploy CLI
-  bundle/                @dashhaus/bundle: the prebuilt dist/dashhaus.js
   create-dashhaus-skin/  the scaffolder and the templates every skin starts from
 src/skins/
-  orb/                   @dashhaus/orb: cards/, shared/, bundles/, dashboards/, ha/, lovelace/, styles/
-  field/                 @dashhaus/field: the same shape, without bundles
-apps/lovelace/           the bundle: entry.ts (both skins' Lovelace cards in one file) and strategy.ts (the
-                         custom:dashhaus dashboard strategy)
+  orb/                   @dashhaus/orb: cards/, shared/, bundles/, dashboards/, ha/, lovelace/ (its card, its
+                         strategy and resource.ts, the entry of orb-dashboard.js), styles/
+  field/                 @dashhaus/field: the same shape, without bundles; field-dashboard.js
+apps/lovelace/           the combined install's last dashhaus.js: entry.ts and strategy.ts (custom:dashhaus)
 verify/                  checks across packages and skins: boundaries, conformance, Storybook, releases, docs
 scripts/                 the generators (new-card, new-skin), builds, release and perf tooling
 spec/                    the specification the code is held to, for maintainers and agents
@@ -55,8 +54,8 @@ folders do. ESLint and `verify/boundaries.test.ts` hold it.
 | `npm run storybook` | Storybook's dev server, every skin's cards and dashboards on demo data |
 | `npm run check` | Typecheck, lint and unit tests: the gate before any change is done |
 | `npm run test-storybook` | Builds Storybook, then renders every story and runs axe on it in Chromium |
-| `npm run build:ha` | The one-file Lovelace bundle, `dist/dashhaus.js`, copied into `packages/bundle/dist/` |
-| `npm run deploy` | Builds the bundle and deploys the dashboards `dashboard.config.mjs` declares, with `.env` beside it |
+| `npm run build:ha` | Each skin's resource into `dist/` (`orb-dashboard.js`, `field-dashboard.js`, …), and into its package |
+| `npm run deploy` | Builds the resources and deploys the dashboards `dashboard.config.mjs` declares, with `.env` beside it |
 | `npm run docs` | This site's dev server; `npm run build:docs` builds it with Storybook under `/storybook` |
 | `npm run build:packages` | Each public package's `dist` |
 | `npm run change` | Writes the change note a pull request that changes what ships carries, for the next release's notes |

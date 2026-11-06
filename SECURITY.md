@@ -18,8 +18,8 @@ Only the latest released `0.x` line gets security fixes. Before 1.0, a fix may n
 
 ## What is in scope
 
-- The published packages: `@dashhaus/core`, `@dashhaus/deploy`, `@dashhaus/orb`, `@dashhaus/field`,
-  `@dashhaus/bundle` and `create-dashhaus-skin`.
+- The published packages: `@dashhaus/core`, `@dashhaus/deploy`, `@dashhaus/orb`, `@dashhaus/field` and
+  `create-dashhaus-skin`, and the resource each skin's package ships, which its Marketplace repository mirrors.
 - The `dashhaus.js` bundle attached to each GitHub release, which the Home Assistant Marketplace and HACS install,
   and its `custom:dashhaus` dashboard strategy.
 

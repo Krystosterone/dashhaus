@@ -64,12 +64,10 @@ async function checkTarballs(manifests) {
     const required = pkg.key === "core"
       ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json", "package/dist/lovelace/index.js", "package/dist/lovelace/skin.js", "package/dist/lovelace/skin.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/schema.js", "package/dist/lovelace/layout.js", "package/dist/lovelace/conformance.js", "package/dist/lovelace/conformance.d.ts"]
       : pkg.key === "orb"
-          ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/lovelace/auto.js", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
+          ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/lovelace/auto.js", "package/dist/styles/tokens.css", "package/dist/storybook.js", "package/dist/orb-dashboard.js", "package/dist/resource.js", "package/dist/resource.d.ts", "package/dist/THIRD_PARTY_NOTICES.md"]
           : pkg.key === "field"
-            ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
-            : pkg.key === "bundle"
-              ? ["package/README.md", "package/THIRD_PARTY_NOTICES.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
-              : pkg.key === "scaffold"
+            ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js", "package/dist/field-dashboard.js", "package/dist/resource.js", "package/dist/resource.d.ts", "package/dist/THIRD_PARTY_NOTICES.md"]
+            : pkg.key === "scaffold"
                 ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/standalone/package.json", "package/dist/templates/standalone/lovelace/entry.tsx", "package/dist/card.js", "package/dist/domains.json", "package/dist/templates/skin/lovelace/card.tsx", "package/dist/templates/card/cards/__name__/__Skin____Name__Card.tsx"]
                 : ["package/README.md", "package/bin.js", "package/src/cli.js", "package/src/cli.d.ts", "package/src/config.js", "package/src/config.d.ts"];
     const missing = required.filter((file) => !files.includes(file));
@@ -160,14 +158,21 @@ const deploy = await load("@dashhaus/deploy");
 assert.equal(typeof deploy.loadDashboards, "function");
 const orbAuto = await load("@dashhaus/orb/lovelace/auto");
 assert.equal(typeof orbAuto.autoDashboard, "function");
-const bundle = await load("@dashhaus/bundle");
-assert.ok(bundle.bundlePath instanceof URL, "bundlePath is a file URL");
-assert.ok(existsSync(fileURLToPath(bundle.bundlePath)), "the bundle package ships its dashhaus.js");
-const bundleCode = await (await import("node:fs/promises")).readFile(fileURLToPath(bundle.bundlePath), "utf8");
-assert.match(bundleCode, /dashhaus-orb/);
-assert.match(bundleCode, /dashhaus-field/);
-assert.match(bundleCode, /Copyright \\(c\\) Facebook, Inc\\. and its affiliates\\./, "the bundle carries React's copyright notice");
-assert.match(bundleCode, /Permission is hereby granted, free of charge/, "the bundle carries React's MIT permission text");
+// Each skin ships its resource: one file with its card, its stylesheet and its strategy, and the notice for React.
+for (const [skin, file, card, strategy, token] of [["orb", "orb-dashboard.js", "dashhaus-orb", "orb-dashboard", "--brand-c"], ["field", "field-dashboard.js", "dashhaus-field", "field-dashboard", "--fd-"]]) {
+  const { resourceFile } = await load(\`@dashhaus/\${skin}/resource\`);
+  assert.equal(typeof resourceFile, "string", \`@dashhaus/\${skin}/resource names its file\`);
+  assert.ok(resourceFile.endsWith(\`/node_modules/@dashhaus/\${skin}/dist/\${file}\`), \`\${resourceFile} is the package's own file\`);
+  assert.ok(existsSync(resourceFile), \`@dashhaus/\${skin} ships \${file}\`);
+  const code = await (await import("node:fs/promises")).readFile(resourceFile, "utf8");
+  assert.ok(code.includes(\`"\${card}"\`), \`\${file} defines its card\`);
+  assert.ok(code.includes(strategy) && code.includes("ll-strategy-dashboard-"), \`\${file} defines its dashboard strategy\`);
+  assert.ok(code.includes(token), \`\${file} carries its stylesheet\`);
+  const other = skin === "orb" ? "dashhaus-field" : "dashhaus-orb";
+  assert.ok(!code.includes(\`"\${other}"\`), \`\${file} carries no other skin\`);
+  assert.match(code, /Copyright \\(c\\) Facebook, Inc\\. and its affiliates\\./, \`\${file} carries React's copyright notice\`);
+  assert.match(code, /Permission is hereby granted, free of charge/, \`\${file} carries React's MIT permission text\`);
+}
 
 const { JSDOM } = await import("jsdom");
 const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });
@@ -177,7 +182,7 @@ for (const key of ["window", "document", "HTMLElement", "customElements", "Custo
 const dashboard = await load("@dashhaus/core/lovelace");
 assert.equal(typeof dashboard.registerCard, "function");
 const skin = await load("@dashhaus/core/lovelace/skin");
-assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "registerCard", "scopeToHost", "useActionStatus"]);
+assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "defineSkinStrategy", "registerCard", "scopeToHost", "useActionStatus"]);
 const card = await load("@dashhaus/core/lovelace/card");
 assert.equal(card.cardShape({ footprint: "compact" }).footprint, "compact");
 
@@ -233,7 +238,7 @@ import { createDemoHouseTransport } from "@dashhaus/core/demo";
 import fixture from "@dashhaus/core/fixtures/light.json";
 
 const shape = cardShape({ footprint: "compact" });
-const config: DeployConfig = { bundle: "dist/cards.js", dashboards: generatedDashboards([]) };
+const config: DeployConfig = { files: ["dist/cards.js"], dashboards: generatedDashboards([]) };
 export const values = [HaActionError, kelvinToLch, fmt1, usePress, useNow, createDemoHouseTransport, fixture, config, shape, checkCards];
 export type Card = CardProps;
 export type Check = CardCheck;
@@ -284,48 +289,6 @@ export type Config = DeployConfig;
   }, null, 2)}\n`);
   run(process.execPath, [join(root, "node_modules", "typescript", "bin", "tsc"), "-p", join(app, "tsconfig.node.json")], app);
   ok("TypeScript consumers typecheck against the packed declarations (Bundler and NodeNext)");
-}
-
-/**
- * A deploy-only app installs `@dashhaus/bundle` alone and reads the prebuilt file: no React, core or dashboard is
- * present, and the one bundle carries both cards and their CSS.
- */
-async function bundleConsumer(manifests) {
-  const app = await mkdtemp(join(tmpdir(), "dashhaus-bundle-app-"));
-  try {
-    await writeFile(join(app, "package.json"), `${JSON.stringify({
-      name: "dashhaus-bundle-only",
-      private: true,
-      type: "module",
-      dependencies: { "@dashhaus/bundle": tarballFor(manifests.bundle) },
-    }, null, 2)}\n`);
-    run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
-    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/core/lovelace"]) {
-      if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the bundle-only app installed ${peer}; the bundle must carry its runtime`);
-    }
-    await writeFile(join(app, "consumer.js"), `
-import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { bundlePath } from "@dashhaus/bundle";
-
-assert.ok(bundlePath instanceof URL, "bundlePath is a file URL");
-const file = fileURLToPath(bundlePath);
-assert.ok(existsSync(file), "bundlePath points at a shipped file");
-assert.match(file, /node_modules\\/@dashhaus\\/bundle\\/dist\\/dashhaus\\.js$/);
-const code = await readFile(file, "utf8");
-assert.match(code, /dashhaus-orb/);
-assert.match(code, /dashhaus-field/);
-assert.match(code, /--brand-c/);
-assert.match(code, /--fd-/);
-console.log("bundle-only import ok");
-`);
-    run(process.execPath, ["consumer.js"], app);
-    ok("@dashhaus/bundle installs and resolves its prebuilt file with no React or runtime package");
-  } finally {
-    await rm(app, { recursive: true, force: true });
-  }
 }
 
 /**
@@ -394,7 +357,7 @@ async function deployBin(app) {
 import { generatedDashboards } from "@dashhaus/deploy/config";
 
 export default {
-  bundle: "dist/cards.js",
+  files: ["dist/cards.js"],
   dashboards: generatedDashboards([{ id: "canvas", title: "Packed", icon: "mdi:home" }]),
 };
 `);
@@ -415,7 +378,6 @@ async function main() {
   try {
     await install(app, manifests);
     await nodeConsumer(app);
-    await bundleConsumer(manifests);
     await scaffoldConsumer(manifests);
     await deployConfigConsumer(manifests);
     await testingConsumer(app);

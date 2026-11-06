@@ -85,7 +85,7 @@ describe("the pinned npm", () => {
     );
     expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release"]);
     expect(release, "a version bump or refreshed digests on main, or a rerun by hand").toMatch(
-      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/bundle\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
+      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/core\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
     );
     expect(jobs.plan, "a dispatch ships only from main").toContain('if [ "$GITHUB_REF" != refs/heads/main ]');
     expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./);

@@ -7,6 +7,17 @@
     "rootDir": ".",
     "customConditions": []
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["dist", "**/*.test.ts", "**/*.test.tsx", "**/*.stories.tsx", "**/demo/**"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.stories.tsx",
+    "**/demo/**",
+    "lovelace/resource.ts",
+    "resource.d.ts"
+  ]
 }

@@ -2,8 +2,8 @@
 
 The Home Assistant foundation behind Dashhaus skins: entity models and their pure logic, the store and provider, mappers, actions, the `useHa<Name>` hooks, headless components, interaction primitives, shared hooks, demo transports and a testing helper, all headless. Under `./lovelace`, the framework a skin's Lovelace card draws on: the custom-element base, the card frame, the YAML reader, the automatic layout and the conformance preset. No entry ships CSS, and the headless entries never reach `./lovelace`, so a React app of your own needs only them.
 
-Where to start: to deploy the ready-made Orb and Field dashboards, install `@dashhaus/bundle` and `@dashhaus/deploy`
-(nothing is built). To build your own look, run `npm create dashhaus-skin@latest my-skin`: the project it writes
+Where to start: to deploy the ready-made Orb or Field dashboard, install `@dashhaus/orb` or `@dashhaus/field` with
+`@dashhaus/deploy` (nothing is built). To build your own look, run `npm create dashhaus-skin@latest my-skin`: the project it writes
 depends on this package and its `AGENTS.md` covers the rest. Install this package directly only to compose a skin by
 hand.
 

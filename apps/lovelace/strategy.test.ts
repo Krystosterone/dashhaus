@@ -10,6 +10,7 @@ import {
   defineStrategies,
   generateDashboard,
   generateView,
+  sunsetNotice,
 } from "./strategy";
 
 type Strategy = { generate(config: unknown, hass: unknown): Promise<Record<string, unknown>>; shouldRegenerate?: () => boolean; getCreateSuggestions?: () => unknown };
@@ -29,11 +30,15 @@ async function expand(config: { strategy: { type: string } & Record<string, unkn
   const dashboard = (await element("dashboard", config.strategy.type).generate(config.strategy, {})) as { views: Record<string, unknown>[] };
   return Promise.all(dashboard.views.map(async ({ strategy, ...base }) => {
     const view = strategy as { type: string };
-    return { ...base, ...(await element("view", view.type).generate(view, {})) } as { title: string; path: string; type: string; cards: Record<string, unknown>[] };
+    return { ...base, ...(await element("view", view.type).generate(view, {})) } as { title: string; path: string; type: string; cards: Stack[] };
   }));
 }
 
-describe("the custom:dashhaus strategy", () => {
+type Stack = { type: string; cards: Record<string, unknown>[] };
+/** Each view holds one stack: the sunset notice, then the look's card. */
+const lookCard = (view: { cards: Stack[] }) => view.cards[0].cards[1];
+
+describe("the custom:dashhaus strategy, in the combined install's last release", () => {
   defineStrategies();
 
   afterEach(() => {
@@ -72,10 +77,21 @@ describe("the custom:dashhaus strategy", () => {
   it("with the dialog's bare config, draws every look: one panel view each, on its automatic layout", async () => {
     const views = await expand({ strategy: { type: "custom:dashhaus" } });
     expect(views.map((view) => view.path)).toEqual(STRATEGY_LOOKS.map((look) => look.id));
-    expect(views[0]).toEqual({ title: "Orb", path: "orb", type: "panel", cards: [{ type: "custom:dashhaus-orb", title: "Home" }] });
-    expect(views[1]).toEqual({ title: "Field", path: "field", type: "panel", cards: [{ type: "custom:dashhaus-field", title: "Home" }] });
-    // One card per view, the skin's Lovelace card, with no cards or rows.
-    expect(views.map((view) => view.cards[0].type)).toEqual(STRATEGY_LOOKS.map((look) => look.type));
+    expect(views[0]).toEqual({ title: "Orb", path: "orb", type: "panel", cards: [{ type: "vertical-stack", cards: [sunsetNotice(STRATEGY_LOOKS[0]), { type: "custom:dashhaus-orb", title: "Home" }] }] });
+    expect(views[1]).toEqual({ title: "Field", path: "field", type: "panel", cards: [{ type: "vertical-stack", cards: [sunsetNotice(STRATEGY_LOOKS[1]), { type: "custom:dashhaus-field", title: "Home" }] }] });
+    // One stack per view: the notice, then the skin's Lovelace card, with no cards or rows.
+    expect(views.map(lookCard).map((card) => card.type)).toEqual(STRATEGY_LOOKS.map((look) => look.type));
+  });
+
+  it("tells each view's reader that its look now installs on its own, and where to start", () => {
+    for (const look of STRATEGY_LOOKS) {
+      const notice = sunsetNotice(look);
+      expect(notice.type, "Home Assistant's own Markdown card, so the notice needs nothing from a skin").toBe("markdown");
+      expect(notice.content).toContain(`**${look.name} now installs on its own.**`);
+      expect(notice.content).toContain(`(https://krystosterone.github.io/dashhaus/${look.id}/)`);
+      expect(notice.content).toMatch(/Add dashboard.*remove Dashhaus/);
+    }
+    expect(DASHBOARD_ENTRY.description).toMatch(/^Orb and Field now install on their own/);
   });
 
   it("draws only the looks `skin` names, in its order", async () => {
@@ -85,8 +101,8 @@ describe("the custom:dashhaus strategy", () => {
 
   it("hands each card the settings it takes: viewing to both, theme to orb, finish to field", async () => {
     const views = await expand({ strategy: { type: "custom:dashhaus", title: "Flat", viewing: "far", theme: "dark", finish: "black" } });
-    expect(views[0].cards).toEqual([{ type: "custom:dashhaus-orb", title: "Flat", viewing: "far", theme: "dark" }]);
-    expect(views[1].cards).toEqual([{ type: "custom:dashhaus-field", title: "Flat", viewing: "far", finish: "black" }]);
+    expect(lookCard(views[0])).toEqual({ type: "custom:dashhaus-orb", title: "Flat", viewing: "far", theme: "dark" });
+    expect(lookCard(views[1])).toEqual({ type: "custom:dashhaus-field", title: "Flat", viewing: "far", finish: "black" });
   });
 
   it("emits cards the skins' own Lovelace cards accept", async () => {
@@ -95,7 +111,7 @@ describe("the custom:dashhaus strategy", () => {
     const make = { "custom:dashhaus-orb": "strategy-test-orb", "custom:dashhaus-field": "strategy-test-field" } as Record<string, string>;
     for (const strategy of [{ type: "custom:dashhaus" }, { type: "custom:dashhaus", title: "Flat", viewing: "far", theme: "light", finish: "alloy" }]) {
       for (const view of await expand({ strategy })) {
-        const card = view.cards[0];
+        const card = lookCard(view);
         const element = document.createElement(make[card.type as string]) as HTMLElement & { setConfig(raw: unknown): void };
         expect(() => element.setConfig(card), `${card.type} refused ${JSON.stringify(card)}`).not.toThrow();
       }
@@ -106,8 +122,8 @@ describe("the custom:dashhaus strategy", () => {
   });
 
   it("works as a view of its own in any dashboard, orb by default", () => {
-    expect(generateView({ type: "custom:dashhaus" })).toEqual({ type: "panel", cards: [{ type: "custom:dashhaus-orb", title: "Home" }] });
-    expect(generateView({ type: "custom:dashhaus", skin: "field", viewing: "far" })).toEqual({ type: "panel", cards: [{ type: "custom:dashhaus-field", title: "Home", viewing: "far" }] });
+    expect(lookCard(generateView({ type: "custom:dashhaus" }))).toEqual({ type: "custom:dashhaus-orb", title: "Home" });
+    expect(lookCard(generateView({ type: "custom:dashhaus", skin: "field", viewing: "far" }))).toEqual({ type: "custom:dashhaus-field", title: "Home", viewing: "far" });
   });
 
   it("refuses what it can't use, in words the frontend shows in place of the dashboard", () => {
@@ -125,6 +141,6 @@ describe("the custom:dashhaus strategy", () => {
     const canvas = { id: "canvas", name: "Canvas", type: "custom:dashhaus-canvas", passes: [] } as const;
     const looks = [...STRATEGY_LOOKS, canvas];
     expect(chosenLooks({ skin: "canvas" }, looks)).toEqual([canvas]);
-    expect(generateView({ type: "custom:dashhaus", skin: "canvas", viewing: "far" }, looks)).toEqual({ type: "panel", cards: [{ type: "custom:dashhaus-canvas", title: "Home" }] });
+    expect(lookCard(generateView({ type: "custom:dashhaus", skin: "canvas", viewing: "far" }, looks))).toEqual({ type: "custom:dashhaus-canvas", title: "Home" });
   });
 });

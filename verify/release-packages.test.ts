@@ -67,7 +67,7 @@ describe("public packages", () => {
     }
   });
 
-  it("ships the skins, the bundle and the scaffolder from built dist", () => {
+  it("ships the skins, their resources and the scaffolder from built dist", () => {
     for (const key of ["orb", "field"] as const) {
       const manifest = manifests[key];
       expect(manifest.files, `${manifest.name} ships dist and its README`).toEqual(["dist", "README.md"]);
@@ -79,9 +79,16 @@ describe("public packages", () => {
       expect(Object.keys(manifest.dependencies ?? {}), `${manifest.name} draws on core alone`).toEqual(["@dashhaus/core"]);
     }
     expect(manifests.orb.exports?.["./lovelace/auto"]?.source).toBe("./lovelace/auto.ts");
-    expect(manifests.bundle.dependencies).toBeUndefined();
-    expect(manifests.bundle.files, "the bundle ships its bundled-React notice").toContain("THIRD_PARTY_NOTICES.md");
-    expect(manifests.bundle.exports?.["."]?.source).toBe("./index.js");
+    for (const key of ["orb", "field"] as const) {
+      // The resource a deploy config uploads: the workspace names the file build:ha writes, a packed install its own.
+      expect(manifests[key].exports?.["./resource"], `${manifests[key].name} declares ./resource`).toEqual({
+        source: "./resource.js",
+        types: "./dist/resource.d.ts",
+        import: "./dist/resource.js",
+        default: "./dist/resource.js",
+      });
+    }
+    expect(publicPackages.map((pkg) => pkg.name), "the bundle and the dashboard package are gone").not.toEqual(expect.arrayContaining(["@dashhaus/bundle"]));
     expect(manifests.scaffold.bin).toEqual({ "create-dashhaus-skin": "./bin.js" });
     expect(manifests.scaffold.exports?.["."]?.source).toBe("./src/index.js");
   });

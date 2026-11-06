@@ -74,7 +74,7 @@ class FakeHomeAssistant implements DeployClient {
 
 const DASHBOARDS = `export default {
   pageTitle: "Home",
-  bundle: "dist/dashhaus.js",
+  files: ["dist/dashhaus.js"],
   dashboards: [{
     path: "home-a",
     title: "Home A",
@@ -125,7 +125,9 @@ describe("deploy", () => {
     expect(ha.saved[0].config).toEqual({
       views: [{ title: "Home", path: "home", type: "panel", cards: [{ type: "custom:dashhaus-orb", states: 1 }] }],
     });
-    expect(ha.resources).toEqual([{ id: "resource-1", url: `/local/dashhaus/dashhaus.js?v=${first.version}` }]);
+    const [resource] = first.resources;
+    expect(resource).toEqual({ name: "dashhaus.js", url: `/local/dashhaus/dashhaus.js?v=${resource.version}`, version: expect.stringMatching(/^[0-9a-f]{10}$/), updated: false });
+    expect(ha.resources).toEqual([{ id: "resource-1", url: resource.url }]);
     expect(await readFile(join(directory, "www", "dashhaus", "dashhaus.js"), "utf8")).toBe("console.log('bundle');");
     expect(ha.closed).toBe(true);
 
@@ -134,7 +136,9 @@ describe("deploy", () => {
     expect(ha.dashboards).toHaveLength(1);
     expect(ha.saved).toHaveLength(1);
     expect(ha.resources).toHaveLength(1);
+    expect(second.resources[0]).toMatchObject({ url: resource.url, updated: true });
     expect(messages.some((message) => message.includes("its layout is yours and was left alone"))).toBe(true);
+    expect(messages.at(-1)).toContain(`to pick up dashhaus.js version ${resource.version}.`);
   });
 
   it("deletes a dashboard whose layout failed to save, so the next run creates it again", async () => {
@@ -177,7 +181,7 @@ describe("deploy", () => {
     const directory = await project(`import { writeFileSync } from "node:fs";
 export default {
   pageTitle: "Home",
-  bundle: "dist/built.js",
+  files: ["dist/built.js"],
   build() {
     writeFileSync("dist/built.js", "built here");
   },
@@ -196,14 +200,14 @@ export default {
       report: (message) => messages.push(message),
       connect: async () => ha,
     });
-    expect(messages.some((message) => message.includes("Building the dashboard bundle"))).toBe(true);
+    expect(messages.some((message) => message.includes("Running the config's build"))).toBe(true);
     expect(await readFile(join(directory, "www", "built", "built.js"), "utf8")).toBe("built here");
-    expect(result.resource.url).toBe(`/local/built/built.js?v=${result.version}`);
+    expect(result.resources[0].url).toBe(`/local/built/built.js?v=${result.resources[0].version}`);
   });
 
-  it("skips the build with --skip-build and reads the prebuilt bundle", async () => {
+  it("skips the build with --skip-build and reads the prebuilt file", async () => {
     const directory = await project(`export default {
-  bundle: "dist/dashhaus.js",
+  files: ["dist/dashhaus.js"],
   build() { throw new Error("the build must not run"); },
   dashboards: [{
     path: "home-a",
@@ -222,7 +226,7 @@ export default {
     })).resolves.toMatchObject({ dashboards: [{ path: "home-a", status: "created" }] });
   });
 
-  it("refuses a missing bundle and reports a failed build", async () => {
+  it("refuses a missing file and reports a failed build", async () => {
     const missing = await project(DASHBOARDS, false);
     await expect(deploy({
       configFile: join(missing, "dashboard.config.mjs"),
@@ -233,7 +237,7 @@ export default {
     })).rejects.toThrowError("is missing");
 
     const failed = await project(`export default {
-  bundle: "dist/dashhaus.js",
+  files: ["dist/dashhaus.js"],
   build() { throw new Error("vite exploded"); },
   dashboards: [],
 };`);
@@ -258,12 +262,12 @@ export default {
       warn: (message) => messages.push(message),
       connect: async () => ha,
     });
-    expect(result.resource.error).toBe("resources are YAML");
+    expect(result.resources[0].error).toBe("resources are YAML");
     expect(messages.some((message) => message.includes("If your dashboards are in YAML mode"))).toBe(true);
     expect(ha.saved).toHaveLength(1);
   });
 
-  it("warns when another copy of the bundle is registered too, as a Marketplace install's", async () => {
+  it("warns when another copy of a file is registered too, as a Marketplace install's", async () => {
     const directory = await project();
     const ha = new FakeHomeAssistant();
     ha.resources.push({ id: "resource-hacs", url: "/hacsfiles/dashhaus/dashhaus.js?hacstag=123456789030" });
@@ -320,5 +324,157 @@ export default {
 
     const stale = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("an older bundle") }));
     expect(stale.warnings.join("\n")).toContain("serves a different file");
+  });
+  it("uploads, registers and checks every file the config names, after one build", async () => {
+    const directory = await project(`import { appendFileSync, writeFileSync } from "node:fs";
+export default {
+  files: ["dist/orb-dashboard.js", "dist/field-dashboard.js"],
+  build() {
+    appendFileSync("builds.txt", "built\\n");
+    writeFileSync("dist/orb-dashboard.js", "orb");
+    writeFileSync("dist/field-dashboard.js", "field");
+  },
+  dashboards: [
+    { path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", strategy: { type: "custom:orb-dashboard" } },
+    { path: "home-field", title: "Home (Field)", icon: "mdi:knob", strategy: { type: "custom:field-dashboard" } },
+  ],
+};`, false);
+    const ha = new FakeHomeAssistant();
+    ha.resources.push({ id: "resource-old", url: "/local/field-dashboard/field-dashboard.js?v=0000000000" });
+    const fetched: string[] = [];
+    const messages: string[] = [];
+    const served = new Map([["orb-dashboard.js", "orb"], ["field-dashboard.js", "field"]]);
+    const result = await deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      report: (message) => messages.push(message),
+      warn: (message) => messages.push(`WARN ${message}`),
+      connect: async () => ha,
+      fetch: async (url) => {
+        fetched.push(url);
+        const name = new URL(url).pathname.split("/").at(-1)!;
+        return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode(served.get(name)).buffer as ArrayBuffer };
+      },
+    });
+    expect(await readFile(join(directory, "builds.txt"), "utf8")).toBe("built\n");
+    expect(await readFile(join(directory, "www", "orb-dashboard", "orb-dashboard.js"), "utf8")).toBe("orb");
+    expect(await readFile(join(directory, "www", "field-dashboard", "field-dashboard.js"), "utf8")).toBe("field");
+    expect(result.resources.map(({ name, updated }) => ({ name, updated }))).toEqual([
+      { name: "orb-dashboard.js", updated: false },
+      { name: "field-dashboard.js", updated: true },
+    ]);
+    const [orb, field] = result.resources;
+    expect(orb.version).not.toBe(field.version);
+    expect(ha.resources).toEqual([
+      { id: "resource-old", url: `/local/field-dashboard/field-dashboard.js?v=${field.version}` },
+      { id: "resource-2", url: `/local/orb-dashboard/orb-dashboard.js?v=${orb.version}` },
+    ]);
+    expect(fetched).toEqual([`http://ha.test${orb.url}`, `http://ha.test${field.url}`]);
+    expect(messages.filter((message) => message.startsWith("WARN"))).toEqual([]);
+    expect(messages.filter((message) => message.includes("the uploaded file"))).toHaveLength(2);
+    expect(messages.at(-1)).toContain(`orb-dashboard.js version ${orb.version}, field-dashboard.js version ${field.version}`);
+    expect(ha.saved).toEqual([
+      { url_path: "home-orb", config: { strategy: { type: "custom:orb-dashboard" } } },
+      { url_path: "home-field", config: { strategy: { type: "custom:field-dashboard" } } },
+    ]);
+  });
+
+  it("warns per file when resources can't be managed, and per file another copy is registered", async () => {
+    const directory = await project(`export default {
+  files: ["dist/orb-dashboard.js", "dist/field-dashboard.js"],
+  dashboards: [],
+};`, false);
+    await writeFile(join(directory, "dist", "orb-dashboard.js"), "orb");
+    await writeFile(join(directory, "dist", "field-dashboard.js"), "field");
+    const run = async (ha: FakeHomeAssistant) => {
+      const warnings: string[] = [];
+      const result = await deploy({
+        configFile: join(directory, "dashboard.config.mjs"),
+        env: settings(directory),
+        skipBuild: true,
+        report: () => {},
+        warn: (message) => warnings.push(message),
+        connect: async () => ha,
+      });
+      return { result, warnings };
+    };
+
+    const yaml = new FakeHomeAssistant();
+    yaml.failResources = true;
+    const { result, warnings } = await run(yaml);
+    expect(result.resources.map((resource) => resource.error)).toEqual(["resources are YAML", "resources are YAML"]);
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toContain(`- url: ${result.resources[0].url}`);
+    expect(warnings[1]).toContain(`- url: ${result.resources[1].url}`);
+
+    const marketplace = new FakeHomeAssistant();
+    marketplace.resources.push({ id: "resource-hacs", url: "/hacsfiles/dashhaus/field-dashboard.js?hacstag=1" });
+    const other = await run(marketplace);
+    expect(other.warnings).toEqual([expect.stringContaining("Another field-dashboard.js is also registered (/hacsfiles/dashhaus/field-dashboard.js)")]);
+  });
+
+  it("takes bundle as the one-file shorthand for files", async () => {
+    const directory = await project(DASHBOARDS.replace('files: ["dist/dashhaus.js"]', 'bundle: "dist/dashhaus.js"'));
+    const ha = new FakeHomeAssistant();
+    const result = await deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: () => {},
+      connect: async () => ha,
+    });
+    expect(result.resources).toEqual([expect.objectContaining({ name: "dashhaus.js", url: expect.stringMatching(/^\/local\/dashhaus\/dashhaus\.js\?v=/) })]);
+    expect(await readFile(join(directory, "www", "dashhaus", "dashhaus.js"), "utf8")).toBe("console.log('bundle');");
+  });
+
+  it("saves a strategy dashboard as { strategy } and a card's config as written in one panel view", async () => {
+    const directory = await project(`export default {
+  pageTitle: "Flat",
+  files: ["dist/dashhaus.js"],
+  dashboards: [
+    { path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", strategy: { type: "custom:orb-dashboard", theme: "dark" } },
+    { path: "my-home", title: "My home", icon: "mdi:floor-plan", card: { type: "custom:dashhaus-orb", title: "Home", cards: ["light.kitchen"] } },
+  ],
+};`);
+    const ha = new FakeHomeAssistant();
+    const messages: string[] = [];
+    const result = await deploy({
+      configFile: join(directory, "dashboard.config.mjs"),
+      env: settings(directory),
+      skipBuild: true,
+      report: (message) => messages.push(message),
+      connect: async () => ha,
+    });
+    expect(result.dashboards.map(({ path, status }) => [path, status])).toEqual([["home-orb", "created"], ["my-home", "created"]]);
+    expect(ha.saved).toEqual([
+      { url_path: "home-orb", config: { strategy: { type: "custom:orb-dashboard", theme: "dark" } } },
+      {
+        url_path: "my-home",
+        config: { views: [{ title: "Flat", path: "home", type: "panel", cards: [{ type: "custom:dashhaus-orb", title: "Home", cards: ["light.kitchen"] }] }] },
+      },
+    ]);
+    expect(messages).toContain("  ✓ created with the custom:orb-dashboard strategy");
+    expect(messages).toContain("  ✓ created with your card");
+  });
+
+  it("refuses a config whose dashboards or files it cannot deploy, before touching Home Assistant", async () => {
+    const run = async (source: string) => {
+      const directory = await project(source);
+      return deploy({
+        configFile: join(directory, "dashboard.config.mjs"),
+        env: settings(directory),
+        skipBuild: true,
+        report: () => {},
+        connect: async () => { throw new Error("must not connect"); },
+      });
+    };
+    await expect(run(`export default { files: ["dist/dashhaus.js"], dashboards: [
+  { path: "home-a", title: "A", icon: "mdi:home", card: { type: "custom:dashhaus-orb" }, strategy: { type: "custom:orb-dashboard" } },
+] };`)).rejects.toThrowError("dashboards[0] takes a card or a strategy, not both");
+    await expect(run(`export default { files: ["dist/dashhaus.js"], dashboards: [{ path: "home-a", title: "A", icon: "mdi:home" }] };`))
+      .rejects.toThrowError("dashboards[0] needs a card");
+    await expect(run(`export default { files: ["dist/dashhaus.js"], bundle: "dist/dashhaus.js", dashboards: [] };`))
+      .rejects.toThrowError("name the files to upload once");
+    await expect(run(`export default { files: [], dashboards: [] };`)).rejects.toThrowError("files must name at least one file to upload");
   });
 });

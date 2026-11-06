@@ -35,10 +35,6 @@ const removeField = (copy: string) => {
   writeChanged(copy, ".storybook/preview.tsx", (source) => withoutArrayEntry(source
     .replace('import { fieldStorybook } from "@dashhaus/field/storybook";\n', "")
     .replace(", fieldStorybook", ""), "Field"));
-  writeChanged(copy, "apps/lovelace/entry.ts", (source) => source
-    .replace('import "@dashhaus/field/styles/tokens.css";\n', "")
-    .replace('import { defineFieldCard } from "@dashhaus/field/lovelace/card";\n', "")
-    .replace("defineFieldCard(css);\n", ""));
   writeChanged(copy, "dashboard.config.mjs", (source) => source.replace(/\n {4}\{\n {6}path: "dashhaus-field",[\s\S]*?\n {4}\},/, ""));
   writeChanged(copy, "spec/deploy.md", (source) => source.replace(/\n## The field dashboard[\s\S]*?(?=\n## |\n?$)/i, ""));
   writeChanged(copy, "spec/cards.md", (source) => source.replace(/\n### Field [^\n]*(?:module|Card)\n[\s\S]*?(?=\n## |\n### )/gi, ""));
@@ -78,9 +74,10 @@ describe("new-skin", () => {
       expect(require.resolve("@dashhaus/field")).toMatch(/\/src\/skins\/field\/index\.ts$/);
       expect(require.resolve("@dashhaus/field/storybook")).toMatch(/\/src\/skins\/field\/storybook\.tsx$/);
       expect(readFileSync(join(copy, ".storybook/preview.tsx"), "utf8")).toContain('from "@dashhaus/field/storybook"');
-      const entry = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
-      expect(entry).toContain('import "@dashhaus/field/styles/tokens.css";');
-      expect(entry).toContain('from "@dashhaus/field/lovelace/card"');
+      // Its resource's entry: its card and its strategy, under its own name.
+      const resource = readFileSync(join(copy, "src/skins/field/lovelace/resource.ts"), "utf8");
+      expect(resource).toContain("defineFieldCard(css);");
+      expect(resource).toContain("defineSkinStrategy(FIELD_STRATEGY);");
 
       const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);

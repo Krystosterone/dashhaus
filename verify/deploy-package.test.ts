@@ -11,8 +11,11 @@ import { tmpdir } from "node:os";
 import { join, posix } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { loadDashboards } from "@dashhaus/deploy";
-import type { DeployHa } from "@dashhaus/deploy";
+import type { DeployCardFactory, DeployDashboard, DeployHa } from "@dashhaus/deploy";
 import { GENERATED_SKINS } from "../scripts/generated-skins.js";
+
+/** A card dashboard's factory, called as the CLI would: the repo's and the generated ones are all factories. */
+const make = (dashboard: DeployDashboard) => (dashboard.card as DeployCardFactory)(fakeHa);
 
 const root = process.cwd();
 const PACKAGE = "packages/deploy";
@@ -121,7 +124,7 @@ describe("@dashhaus/deploy", () => {
     ]);
     const orb = dashboards.find(({ path }) => path === "dashhaus-orb")!;
     const field = dashboards.find(({ path }) => path === "dashhaus-field")!;
-    expect(await orb.card(fakeHa)).toEqual({
+    expect(await make(orb)).toEqual({
       card: {
         type: "custom:dashhaus-orb",
         title: "Home",
@@ -129,7 +132,7 @@ describe("@dashhaus/deploy", () => {
       },
       made: "1 generated rows",
     });
-    expect(await field.card(fakeHa)).toEqual({
+    expect(await make(field)).toEqual({
       card: { type: "custom:dashhaus-field", title: "Home" },
       made: "every light and climate entity by area",
     });
@@ -140,13 +143,13 @@ describe("@dashhaus/deploy", () => {
     directories.push(directory);
     await writeFile(join(directory, "dashboard.config.mjs"), `import { generatedDashboards } from "@dashhaus/deploy/config";
 export default {
-  bundle: "dist/cards.js",
+  files: ["dist/cards.js"],
   dashboards: generatedDashboards([{ id: "canvas", title: "Home (Canvas)", icon: "mdi:view-dashboard-outline" }]),
 };
 `);
     const { dashboards } = await loadDashboards({ file: join(directory, "dashboard.config.mjs"), env: {} });
     expect(dashboards).toMatchObject([{ path: "dashhaus-canvas", title: "Home (Canvas)", icon: "mdi:view-dashboard-outline" }]);
-    expect(await dashboards[0].card(fakeHa)).toEqual({
+    expect(await make(dashboards[0])).toEqual({
       card: { type: "custom:dashhaus-canvas", title: "Home" },
       made: "the canvas skin's automatic layout",
     });
@@ -159,7 +162,7 @@ export default {
     await cp(join(root, "packages/core"), join(app, "node_modules", "@dashhaus/core"), { recursive: true });
     await symlink(join(root, "packages/deploy"), join(app, "node_modules", "@dashhaus/deploy"), "dir");
     await symlink(join(root, "src/skins/orb"), join(app, "node_modules", "@dashhaus/orb"), "dir");
-    await symlink(join(root, "packages/bundle"), join(app, "node_modules", "@dashhaus/bundle"), "dir");
+    await symlink(join(root, "src/skins/field"), join(app, "node_modules", "@dashhaus/field"), "dir");
     await mkdir(join(app, "scripts"), { recursive: true });
     await cp(CONFIG_FILE, join(app, "dashboard.config.mjs"));
     await cp(join(root, "scripts/generated-skins.js"), join(app, "scripts/generated-skins.js"));
@@ -172,7 +175,7 @@ export default {
 import { copiedMarker } from "@dashhaus/core/lovelace/schema";
 export default {
   pageTitle: copiedMarker,
-  bundle: "dist/dashhaus.js",
+  files: ["dist/orb-dashboard.js"],
   dashboards: generatedDashboards([{ id: "copied", title: copiedMarker, icon: "mdi:home" }]),
 };
 `);

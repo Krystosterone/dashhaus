@@ -94,13 +94,15 @@ The scaffold's `vite.config.js` emits the bundle. Each component imports its own
 into nothing, and `lovelace/entry.tsx` gathers every stylesheet `?inline` and passes their text to `defineMySkinCard`,
 so a card `npm run add` writes needs no edit there. The emitted
 `dist/dashhaus-my-skin.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one
-resource and no separate stylesheet. Name it for the skin: the prebuilt `@dashhaus/bundle` already owns
-`/local/dashhaus/dashhaus.js`, and a skin-specific name lets both live on one instance.
+resource and no separate stylesheet. Name it for the skin: Orb's and Field's resources own
+`/local/orb-dashboard/orb-dashboard.js` and `/local/field-dashboard/field-dashboard.js`, and a skin-specific name lets
+them all live on one instance. The entry also defines the skin's dashboard strategy (`defineSkinStrategy`,
+[contract.md](contract.md)), so Home Assistant's Add dashboard lists the skin under its own name.
 
 ## Deploy
 
 `.env` beside the scaffold's `dashboard.config.mjs` holds `HA_URL`, `HA_TOKEN` and `HA_WWW`; the scaffold writes
-`.env.example` with each one explained. The config names the bundle, its `build()` (`npm run build`) and the
+`.env.example` with each one explained. The config names the file (`files`), its `build()` (`npm run build`) and the
 dashboard.
 
 Then `npm run deploy` builds, uploads the bundle, registers the resource, checks that Home Assistant serves it and
@@ -108,7 +110,7 @@ creates the dashboard once. See [deploy.md](deploy.md) for `--config`, SSH and t
 
 ## Prebuilt versus composed
 
-Most people who only want Orb and Field install the prebuilt bundle instead ([Deploy a dashboard](../docs/src/content/docs/start/deploy.mdx)); nothing
+Most people who only want Orb or Field install it from the Marketplace, or deploy the resource its package ships ([Deploy a dashboard](../docs/src/content/docs/start/deploy.mdx)); nothing
 is built. A skin project builds its own composition. If it wants the reference skins inside that composition, install
 `@dashhaus/orb` and/or `@dashhaus/field` and import their tokens and registration, as their READMEs show
 ([orb](../src/skins/orb/README.md#use), [field](../src/skins/field/README.md#use)).

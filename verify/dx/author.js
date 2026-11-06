@@ -15,8 +15,10 @@
  * the next version's `?v=2`; the deploy then finds that resource and dashboard and keeps them. Then add a climate card and
  * a lock, and check the lock's unlock asks first, sends nothing on Cancel and sends once on its question's Unlock.
  * `--screenshot <dir>`
- * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
+ * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright. After the deploy, the skin
+ * lists itself in the fake's Add dashboard under its own name, and the dashboard picked there draws its card.
  */
+/* global window -- the evaluate callbacks run in the page. */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
@@ -28,6 +30,7 @@ import {
   createReport,
   exerciseDetails,
   exerciseGuarded,
+  inPage,
   installedPackage,
   makeApp,
   read,
@@ -226,6 +229,24 @@ try {
         if (!deployed.ok) {
           report.blocked(["details", "add a domain", "added card", "add a guarded action", "guarded action"], "the deploy failed");
         } else {
+          // The skin lists itself in Add dashboard under its own name, as Orb and Field do, and makes a dashboard there.
+          await report.stage("Add dashboard lists My Skin", async () => {
+            const { HA_URL } = server.settings;
+            const entries = await inPage(`${HA_URL}/config/lovelace/dashboards`, async (page) => {
+              await page.getByRole("button", { name: "My Skin", exact: true }).click();
+              await page.getByRole("link", { name: "Open My Skin" }).waitFor({ timeout: 10000 });
+              return page.evaluate(() => window.customStrategies);
+            });
+            assert.deepEqual(entries.map((entry) => [entry.type, entry.name]), [[`dashhaus-${SKIN}`, "My Skin"]], "the skin's own entry, and nothing named Dashhaus");
+            const saved = server.ha.saved.find((entry) => entry.url_path === "dashboard-my-skin");
+            assert.deepEqual(saved?.config, { strategy: { type: `custom:dashhaus-${SKIN}` } });
+            const view = await inPage(`${HA_URL}/dashboard-my-skin`, async (page) => {
+              await page.locator(`dashhaus-${SKIN}`).waitFor({ state: "attached", timeout: 10000 });
+              return page.evaluate(() => window.__fakeHaView);
+            });
+            assert.deepEqual(view, { title: "My Skin", path: "home", type: "panel", cards: [{ type: `custom:dashhaus-${SKIN}`, title: "Home" }] });
+            return `Community dashboards: "My Skin"; /dashboard-my-skin saved as { strategy: { type: custom:dashhaus-${SKIN} } } and drawn`;
+          });
           await report.stage("details", async () => {
             const result = await exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
               { card: "light", facts: ["State", "Entity"], close: "button" },

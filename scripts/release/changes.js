@@ -34,7 +34,9 @@ const BUILT_FROM = [
   "LICENSE",
   "config/vite.lovelace.config.ts",
   "config/tsconfig.base.json",
-  "scripts/build-bundle.js",
+  "config/THIRD_PARTY_NOTICES.md",
+  "scripts/build-resources.js",
+  "scripts/resources.js",
   "scripts/build-packages.js",
   "scripts/release/manifest.js",
 ];

@@ -58,8 +58,7 @@ if (exists(docs)) fail(`${docs} already exists`);
 
 const preview = read(seams.preview);
 if (preview.includes(`section: "${Section}"`) || preview.includes(`section: "${studies.section(Section)}"`) || preview.includes(`"${Section}", [`)) fail(`Storybook section "${Section}" is already registered`);
-const entry = read(seams.lovelaceEntry);
-if (entry.includes(`define${Skin}Card(`)) fail(`Lovelace card "dashhaus-${skin}" is already registered`);
+if (read(seams.generatedSkins).includes(`id: "${skin}"`)) fail(`Lovelace card "dashhaus-${skin}" is already registered`);
 
 const fill = filler({
   __skin__: skin,
@@ -78,7 +77,8 @@ const change = changes({ templateRoot, onFail: fail });
 // The core every skin shares, from the scaffolder's templates, then what a skin in this repository adds: its stories,
 // tests, Storybook setup and entry.
 change.fromTemplates([""], fill, join(root, skinTemplates.skin), dir);
-change.fromTemplates(study ? ["repo", "study"] : ["repo"], fill, templateRoot, dir);
+// A shipped skin also gets its resource, the one file its deploy uploads; a study never ships.
+change.fromTemplates(study ? ["repo", "study"] : ["repo", "shipped"], fill, templateRoot, dir);
 change.create(docs, fill(readFileSync(join(templateRoot, "design.md"), "utf8")));
 // The skin is a private workspace package: `npm install` links its name and the root apps import its exports.
 const theme = { global: `${skinVar}Theme`, light: "light", dark: "dark" };
@@ -109,15 +109,9 @@ ${study ? `  "Read me first",\n` : ""}  "Cards", [
 `).replace(/^(?=.)/gm, indent);
 change.edit(seams.preview, study ? after(markers.previewStudies, order("            ")) : after(markers.previewSections, order("          ")));
 
-// A study never ships: no bundle registration, no dashboard from the deploy config, no YAML in spec/deploy.md.
+// A study never ships: no resource, no dashboard from the deploy config, no YAML in spec/deploy.md.
 if (!study) {
-  // Home Assistant bundle: the package's token CSS and its card, by the specifiers its manifest declares.
-  change.edit(seams.lovelaceEntry, after(markers.entryTokens, fill(`import "__tokensSpecifier__";
-`)));
-  change.edit(seams.lovelaceEntry, after(markers.entryCards, fill(`import { define__Skin__Card } from "__cardSpecifier__";
-`)));
-  change.edit(seams.lovelaceEntry, after(markers.entryDefines, fill(`define__Skin__Card(css);
-`)));
+  // Its entry makes `npm run build:ha` build its resource, `dist/dashhaus-<skin>.js`, and the deploy config upload it.
   change.edit(seams.generatedSkins, after(markers.generatedSkins, fill(`  { id: "__skin__", title: "Home (__Section__)", icon: "mdi:view-dashboard-outline" },`)));
 
   // The generated design contract and its Lovelace YAML are discoverable from the repository docs.
@@ -125,4 +119,4 @@ if (!study) {
 }
 
 if (!change.commit(dryRun)) process.exit(0);
-console.log(`Created the ${Section} ${study ? "study" : "skin"}: ${change.writes.size} files and registrations.\n\nNext:\n  1. npm run new-card -- light --skin ${skin}\n  2. npm run storybook  →  ${Stories}/Foundations and ${Stories}/Dashboards\n  3. Replace the neutral tokens and parts using ${docs} as the design contract\n  4. npm run check && npm run test-storybook && npm run build:ha`);
+console.log(`Created the ${Section} ${study ? "study" : "skin"}: ${change.writes.size} files and registrations.\n\nNext:\n  1. npm run new-card -- light --skin ${skin}\n  2. npm run storybook  →  ${Stories}/Foundations and ${Stories}/Dashboards\n  3. Replace the neutral tokens and parts using ${docs} as the design contract\n  4. npm run check && npm run test-storybook && npm run build:ha  →  dist/dashhaus-${skin}.js`);

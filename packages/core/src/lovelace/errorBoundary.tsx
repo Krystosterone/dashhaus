@@ -13,7 +13,7 @@ export class ErrorBoundary extends Component<{ config: unknown; children: ReactN
   }
   render() {
     return this.state.error
-      ? <div className="hd-config-error" role="alert">Dashhaus stopped: {this.state.error.message}</div>
+      ? <div className="hd-config-error" role="alert">The dashboard stopped: {this.state.error.message}</div>
       : this.props.children;
   }
 }

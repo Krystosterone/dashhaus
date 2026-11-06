@@ -7,6 +7,7 @@ export * from "./actionMessage";
 export * from "./element";
 export * from "./nav";
 export * from "./rooms";
+export * from "./strategy";
 export * from "./styles";
 export * from "./useActionStatus";
 export * from "./useDashboardNav";

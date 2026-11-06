@@ -1,41 +1,40 @@
 #!/usr/bin/env node
 /**
- * The user's no-terminal journey, the Home Assistant Marketplace (HACS before 2026.11), from the packed bundle only:
+ * The combined Marketplace install, in its last release (spec/release.md → The combined install's sunset), for the
+ * people who already have it: from the release's asset only, which `release:pack` writes beside the tarballs.
  *
  *   npm run release:pack
  *   node verify/dx/marketplace.js [--tarballs <dir>] [--keep] [--screenshot <dir>]
  *
- * Check `hacs.json` names the release asset the Marketplace will look for; install the bundle's `dashhaus.js` as the
+ * Check `hacs.json` names the release asset the Marketplace will look for; install `dashhaus.js` as the
  * Marketplace does (`www/community/dashhaus/`, served and registered as `/hacsfiles/dashhaus/dashhaus.js?hacstag=…`) into
  * `@dashhaus/fake-home-assistant`; then, in Chromium, do what the person does: open Add dashboard, pick **Dashhaus**
- * under Community dashboards (the bundle's `window.customStrategies` entry), and open the dashboard it made, whose
- * `custom:dashhaus` strategy the page expands as the frontend does into one view per look, each drawing its skin's
- * card. No Node, token or SSH on the person's side.
+ * under Community dashboards (its `window.customStrategies` entry, which says Orb and Field now install on their own),
+ * and open the dashboard it made, whose `custom:dashhaus` strategy the page expands as the frontend does into one view
+ * per look, each drawing the notice above its skin's card. No Node, token or SSH on the person's side.
  */
 /* global window -- the evaluate callbacks run in the page. */
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { startFakeHomeAssistant } from "@dashhaus/fake-home-assistant";
 import {
   clean,
   createReport,
-  importFromApp,
   inPage,
-  install,
-  installedPackage,
   makeApp,
   read,
   repoRoot,
   screenshotDashboard,
   screenshotDir,
   shown,
+  tarballManifest,
   tarballs,
   tarballsDir,
 } from "./harness.js";
 
-const report = createReport("DX marketplace — install the release asset as the Marketplace does, then Add dashboard → Dashhaus");
+const report = createReport("DX marketplace — the combined install's last release: its asset as the Marketplace installs it, then Add dashboard → Dashhaus");
 console.log(`  tarballs: ${shown(tarballsDir)}`);
 
 /** The repository the Marketplace installs from; with no `filename` in hacs.json, the asset is named after it. */
@@ -47,10 +46,12 @@ const VIEWS = [{ title: "Orb", path: "orb", tag: "dashhaus-orb" }, { title: "Fie
 const app = await makeApp("marketplace");
 let server;
 try {
-  const required = tarballs(["@dashhaus/bundle"]);
+  const asset = join(tarballsDir, `${REPOSITORY}.js`);
+  const required = tarballs(["@dashhaus/core"]);
   const packaged = await report.stage("packages", async () => {
-    if (required.missing.length) throw new Error(`missing ${required.missing.join(", ")}; run npm run release:pack first`);
-    return "bundle is packed";
+    if (!existsSync(asset)) throw new Error(`missing ${REPOSITORY}.js beside the tarballs; run npm run release:pack first`);
+    if (required.missing.length) throw new Error(`missing ${required.missing.join(", ")}, whose version the release has; run npm run release:pack first`);
+    return `${REPOSITORY}.js is packed`;
   });
 
   await report.stage("hacs.json", async () => {
@@ -66,10 +67,7 @@ try {
 
   const installed = packaged.ok
     ? await report.stage("install like the Marketplace", async () => {
-        await install(app, { name: "dashhaus-dx-marketplace", private: true, type: "module", dependencies: { "@dashhaus/bundle": `file:${required.found["@dashhaus/bundle"]}` } });
-        const asset = fileURLToPath((await importFromApp(app, "@dashhaus/bundle")).bundlePath);
-        assert.equal(basename(asset), `${REPOSITORY}.js`, "the bundle's file must be the asset the Marketplace looks for");
-        const { version } = installedPackage(app, "@dashhaus/bundle").manifest;
+        const { version } = tarballManifest(required.found["@dashhaus/core"]);
         const www = join(app, "www");
         await mkdir(join(www, "community", REPOSITORY), { recursive: true });
         await copyFile(asset, join(www, "community", REPOSITORY, `${REPOSITORY}.js`));
@@ -79,14 +77,14 @@ try {
         const hacstag = `123456789${version.replace(/\D+/g, "")}`;
         await ha.send("lovelace/resources/create", { res_type: "module", url: `/hacsfiles/${REPOSITORY}/${REPOSITORY}.js?hacstag=${hacstag}` });
         const source = await read(asset);
-        assert.match(source, /ll-strategy-dashboard-/, "the bundle must define the dashboard strategy");
+        assert.match(source, /ll-strategy-dashboard-/, `${REPOSITORY}.js must define the dashboard strategy`);
         return `www/community/${REPOSITORY}/${REPOSITORY}.js, resource /hacsfiles/${REPOSITORY}/${REPOSITORY}.js?hacstag=${hacstag}`;
       })
     : { ok: false };
 
   const STRATEGY_STAGES = ["Add dashboard lists Dashhaus", "pick Dashhaus", "its views draw"];
   if (!installed.ok) {
-    report.blocked(STRATEGY_STAGES, "the bundle did not install");
+    report.blocked(STRATEGY_STAGES, `${REPOSITORY}.js did not install`);
   } else {
     const { HA_URL } = server.settings;
     const { ha } = server;
@@ -97,8 +95,9 @@ try {
         return page.evaluate(() => window.customStrategies);
       });
       const ours = entries.filter((entry) => entry.type === "dashhaus");
-      assert.equal(ours.length, 1, "the bundle must list one dashhaus entry");
+      assert.equal(ours.length, 1, "the combined install must list one dashhaus entry");
       assert.equal(ours[0].strategyType, "dashboard");
+      assert.match(ours[0].description, /^Orb and Field now install on their own/, "the dialog's entry must say Orb and Field install on their own");
       return `Community dashboards: "${ours[0].name}", ${ours[0].description}`;
     });
 
@@ -128,13 +127,18 @@ try {
           const url = `${HA_URL}/${STRATEGY_PATH}/${view.path}`;
           const drawn = await inPage(url, async (page) => {
             await page.locator(view.tag).waitFor({ state: "attached", timeout: 10000 });
-            return page.evaluate(() => ({ views: window.__fakeHaViews, view: window.__fakeHaView }));
+            return page.evaluate(() => ({ views: window.__fakeHaViews, view: window.__fakeHaView, notes: window.__fakeHaMarkdown }));
           });
           assert.deepEqual(drawn.views, VIEWS.map(({ title, path }) => ({ title, path })), "one view per look, Orb then Field");
-          assert.deepEqual(drawn.view, { title: view.title, path: view.path, type: "panel", cards: [{ type: `custom:${view.tag}`, title: "Home" }] });
+          const [stack] = drawn.view.cards;
+          assert.equal(drawn.view.type, "panel");
+          assert.equal(stack.type, "vertical-stack", "the view stacks the notice above the look's card");
+          assert.deepEqual(stack.cards[1], { type: `custom:${view.tag}`, title: "Home" });
+          assert.equal(drawn.notes.length, 1, "the view draws one notice");
+          assert.match(drawn.notes[0], new RegExp(`${view.title} now installs on its own[\\s\\S]*/dashhaus/${view.path}/[\\s\\S]*remove Dashhaus`), "the notice says where the look's own install starts");
           if (screenshotDir) console.log(`  screenshot: ${await screenshotDashboard(url, join(screenshotDir, `marketplace-strategy-${view.path}.png`))}`);
         }
-        return `${VIEWS.map((view) => `/${STRATEGY_PATH}/${view.path}`).join(" and ")} expand to panels and draw their cards`;
+        return `${VIEWS.map((view) => `/${STRATEGY_PATH}/${view.path}`).join(" and ")} expand to panels: the notice, then each look's card`;
       });
     }
   }

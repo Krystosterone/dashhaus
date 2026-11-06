@@ -3,8 +3,8 @@
 
 import type { DeployConfig, DeployDashboard } from "./config.js";
 
-/** Where the bundle goes and the resource URL that serves it. */
-export interface BundleTarget {
+/** Where one file goes and the resource URL that serves it. */
+export interface ResourceTarget {
   file: string;
   name: string;
   folder: string;
@@ -22,7 +22,7 @@ export function resolveDashboards(
   env?: Record<string, string | undefined>,
 ): { dashboards: DeployDashboard[]; pageTitle: string };
 
-export function resolveBundle(config: DeployConfig, file: string): BundleTarget;
+export function resolveFiles(config: DeployConfig, file: string): ResourceTarget[];
 
 export function loadDashboards(options: {
   file: string;

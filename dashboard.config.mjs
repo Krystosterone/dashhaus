@@ -3,9 +3,9 @@
 // sidebar title. Deploy never overwrites a dashboard whose layout exists, so changing a card factory affects the
 // first creation only.
 import { execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { bundlePath } from "@dashhaus/bundle";
 import { generatedDashboards } from "@dashhaus/deploy/config";
+import { resourceFile as field } from "@dashhaus/field/resource";
+import { resourceFile as orb } from "@dashhaus/orb/resource";
 import { GENERATED_SKINS } from "./scripts/generated-skins.js";
 import { autoDashboard } from "@dashhaus/orb/lovelace/auto";
 
@@ -18,8 +18,9 @@ const PAGE_TITLE = "Home";
  */
 export default {
   pageTitle: PAGE_TITLE,
-  // The same prebuilt bundle a `@dashhaus/bundle` consumer installs. Its file name makes the resource URL.
-  bundle: fileURLToPath(bundlePath),
+  // Each skin's resource, the file its package ships and its Marketplace repository mirrors, then one per skin
+  // `npm run new-skin` made. Each file's name makes its resource URL.
+  files: [orb, field, ...GENERATED_SKINS.map(({ id }) => `dist/dashhaus-${id}.js`)],
   // The repo's build stays the config's, not the CLI's. Runs in this file's directory.
   build() {
     execFileSync("npm", ["run", "build:ha", "--silent"], { stdio: "inherit" });

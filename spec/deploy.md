@@ -1,16 +1,17 @@
 # Deploying to Home Assistant
 
-The dashboard ships as one Lovelace card, `custom:dashhaus-orb`, that draws a whole page from its YAML. The same
-bundle also carries the field skin's card (The field dashboard, below), and the deploy CLI sets up a dashboard for
-each dashboard its config declares. It runs inside Home Assistant's own frontend and reuses its websocket connection,
-so the page needs no token, no separate server and no rebuild when you change the layout.
+Each skin ships as one Lovelace card that draws a whole page from its YAML (`custom:dashhaus-orb`,
+`custom:dashhaus-field`), inside its **resource**: the one ES module Home Assistant loads from Settings → Dashboards →
+Resources, which also carries the skin's stylesheet and its dashboard strategy, so Add dashboard lists the skin under its
+own name. It runs inside Home Assistant's own frontend and reuses its websocket connection, so the page needs no token,
+no separate server and no rebuild when you change the layout.
 
-The bundle is also the published `@dashhaus/bundle` package; deploying it without this repository is
-[Deploy from the command line](../docs/src/content/docs/start/deploy.mdx) on the documentation site. The same file is
-the release asset the Home Assistant Marketplace installs, and the bundle's dashboard strategy (The dashboard strategy,
-below) makes the dashboard there with no CLI, from Home Assistant's own Add dashboard dialog:
-[Install from the Marketplace](../docs/src/content/docs/start/install.mdx). Who takes
-which way in is [journeys.md](journeys.md).
+A skin's resource is named after the Marketplace repository that installs it, `<repository>.js`: `orb-dashboard.js` and
+`field-dashboard.js` (`scripts/resources.js`). The same file ships in the skin's package (`@dashhaus/orb/resource`,
+`@dashhaus/field/resource`), which the deploy CLI uploads ([Deploy from the command line](../docs/src/content/docs/start/deploy.mdx)
+on the documentation site), and the skin's own repository mirrors it from npm for the Marketplace
+([release.md → The skin repositories](release.md#the-skin-repositories)). Who takes which way in is
+[journeys.md](journeys.md).
 
 ## First deploy
 
@@ -18,73 +19,79 @@ which way in is [journeys.md](journeys.md).
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar.
 
-`npm run deploy` builds the bundle `dashboard.config.mjs` names (`packages/bundle/dist/dashhaus.js` here), copies it to `www/dashhaus/`, and registers it as a dashboard resource at `/local/dashhaus/dashhaus.js?v=<content hash>`. The new version number makes browsers fetch the new file. It then fetches the file back from `$HA_URL/local/…` and warns, naming `HA_WWW`, when Home Assistant does not serve the bytes it uploaded: a wrong `HA_WWW` is otherwise only a "Custom element doesn't exist" on the dashboard. (The check needs the real websocket client; a caller that injects `connect` injects `fetch` too, or leaves the check out.) The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `dashhaus-orb`, with a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `cards` or `rows`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. The bundle lands under a temporary name and is renamed into place, so a copy cut off halfway leaves the served file as it was; a layout save that fails deletes the dashboard that run created, so the next run creates it again rather than leaving it empty. It warns when another copy of the bundle is registered too (a Marketplace install's `/local/community/…`): both define the same cards, and only the first to load is used. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds the files `dashboard.config.mjs` names (`npm run build:ha`: `src/skins/orb/dist/orb-dashboard.js`, `src/skins/field/dist/field-dashboard.js` and one `dist/dashhaus-<skin>.js` per skin `npm run new-skin` made), copies each to `www/<name without its extension>/`, and registers it as a dashboard resource at `/local/<folder>/<name>?v=<content hash>`. The new version number makes browsers fetch the new file. It then fetches each file back from `$HA_URL/local/…` and warns, naming `HA_WWW`, when Home Assistant does not serve the bytes it uploaded: a wrong `HA_WWW` is otherwise only a "Custom element doesn't exist" on the dashboard. (The check needs the real websocket client; a caller that injects `connect` injects `fetch` too, or leaves the check out.) A repo keeps its URL by keeping its file's name. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`. By default: **Home (Orb)** at `dashhaus-orb`, a panel holding a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `cards` or `rows`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates each resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Each file lands under a temporary name and is renamed into place, so a copy cut off halfway leaves the served file as it was; a layout save that fails deletes the dashboard that run created, so the next run creates it again rather than leaving it empty. It warns when another copy of a file is registered too (a Marketplace install's `/hacsfiles/…`): both define the same card, and only the first to load is used. Open dashboards pick up a new version on their next reload.
 
 ### The dashboard config
 
-Which dashboards deploy creates is in `dashboard.config.mjs` at the repo root, not in the CLI. Its default export names the bundle to upload, optionally how to build it, and the dashboards in order; each dashboard has a `path` (Home Assistant requires a hyphen), a sidebar `title`, an `icon`, and a `card(ha)` factory that returns the card's Lovelace config and what deploy reports it created.
+Which dashboards deploy creates is in `dashboard.config.mjs` at the repo root, not in the CLI. Its default export names the files to upload (`files`, a list; `bundle`, one file, is the older shorthand), optionally how to build them, and the dashboards in order. Each dashboard has a `path` (Home Assistant requires a hyphen), a sidebar `title`, an `icon`, and one of:
 
-`bundle` is resolved against the config's directory when relative. This repo names the prebuilt file from
-`@dashhaus/bundle`, the same artifact a deploy-only user installs, and its `build()` refreshes that package's
-`dashhaus.js`; a user app without the repo installs `@dashhaus/bundle` and `@dashhaus/deploy` and skips the build
-(`npx dashhaus-deploy --skip-build`). `build` is optional: without it the bundle must already exist, and
+- `strategy`: a skin's dashboard strategy and its keys, `{ type: "custom:orb-dashboard" }`, saved as `{ strategy }` and nothing else, so the dashboard lays the house out each time it opens and follows the skin as it updates (The skins' dashboard strategies, below);
+- `card`: the card's Lovelace config, saved in one panel view and then the person's to edit. Either the config itself, for a dashboard written from scratch (a skin's card with their own `cards` or `rows`), or a factory `card(ha)` that returns `{ card, made }`, the card and what deploy reports it created, for a layout generated from the house.
+
+Each entry of `files` is resolved against the config's directory when relative. This repo names Orb's and Field's from
+their packages' `./resource` export, the same files a deploy-only user installs, and its `build()` runs `build:ha`;
+a user app without the repo installs `@dashhaus/orb` or `@dashhaus/field` with `@dashhaus/deploy` and skips the build
+(`npx dashhaus-deploy --skip-build`). `build` is optional: without it the files must already exist, and
 `--skip-build` skips it. The build is the config's declaration, not the CLI's, so another repo can build with
-anything or upload a bundle built elsewhere.
+anything or upload a file built elsewhere. Two files with the same name are refused: they would share one URL.
 
-`ha` is deploy's websocket client, so a factory can read the house before it builds the card. `env` names the `.env` keys allowed to override that dashboard's path and title; `.env` holds settings only, and no secret belongs in this file. `npm run new-skin` registers generated skins in `scripts/generated-skins.js`, and the config spreads them through `generatedDashboards()` from `@dashhaus/deploy/config`, the pure config surface a Node app can import without React. Before deploying, the CLI applies the overrides and refuses a path without a hyphen or two dashboards on one path; `--help` lists the dashboards the config declares, before any `.env` override; with no config (or one that fails to load) it says so and prints a config for the prebuilt bundle and the `.env` keys, so it is the first thing to run in an empty folder. Neither `--help` nor an error points at a file in this repository: the CLI's reader has only its package. A dashboard that already exists keeps its layout, so a changed factory affects the first creation only.
+`ha` is deploy's websocket client, so a factory can read the house before it builds the card. `env` names the `.env` keys allowed to override that dashboard's path and title; `.env` holds settings only, and no secret belongs in this file. `npm run new-skin` registers generated skins in `scripts/generated-skins.js`, and the config spreads them through `generatedDashboards()` from `@dashhaus/deploy/config`, the pure config surface a Node app can import without React. Before deploying, the CLI applies the overrides and refuses a path without a hyphen, two dashboards on one path, or a dashboard with both or neither of `card` and `strategy`; `--help` lists the dashboards the config declares, before any `.env` override; with no config (or one that fails to load) it says so and prints a config for Orb's package and the `.env` keys, so it is the first thing to run in an empty folder. Neither `--help` nor an error points at a file in this repository: the CLI's reader has only its package. A dashboard that already exists keeps its layout, so a changed factory affects the first creation only.
 
-The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` runs). Without `--config` it looks for `dashboard.config.mjs` in the working directory, so that is the file a user app writes; it is not named `dashhaus.config.js`. It bundles the config with esbuild before importing it, so a config may be JavaScript or TypeScript and may import packages; relative imports resolve from the config's directory, and `.env` is read from beside it. `--config <file>` points the CLI at another repo's config, `--skip-build` skips the build callback, and `node packages/deploy/bin.js --help` prints the options and dashboards. The repo's config is the only outside importer of orb's `@dashhaus/orb/lovelace/auto`; the CLI imports no skin.
+The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` runs). Without `--config` it looks for `dashboard.config.mjs` in the working directory, so that is the file a user app writes; it is not named `dashhaus.config.js`. It bundles the config with esbuild before importing it, so a config may be JavaScript or TypeScript and may import packages; relative imports resolve from the config's directory, and `.env` is read from beside it. `--config <file>` points the CLI at another config, `--skip-build` skips the build callback, and `node packages/deploy/bin.js --help` prints the options and dashboards. The repo's config is the only outside importer of orb's `@dashhaus/orb/lovelace/auto`; the CLI imports no skin.
 
-## The dashboard strategy
+## The skins' dashboard strategies
 
-A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
-`/hacsfiles/dashhaus/dashhaus.js?hacstag=<repository id><version digits>`, which HACS serves from that folder, as a
-module resource; it creates no dashboard. The bundle's
-`custom:dashhaus` strategy (`apps/lovelace/strategy.ts`, registered by the bundle's entry) is what the person picks
-next: **Settings → Dashboards → Add dashboard → Dashhaus**, under Community dashboards. It follows the frontend's
-contract as its source has it (`src/panels/lovelace/strategies/get-strategy.ts`, `src/data/lovelace_custom_strategies.ts`)
-and the developer docs' Custom dashboard strategies page.
+Every skin's resource defines a dashboard strategy beside its card, with `defineSkinStrategy` from
+`@dashhaus/core/lovelace/skin` ([contract.md](contract.md)), so Home Assistant's own **Settings → Dashboards → Add
+dashboard** lists the skin under its own name, under Community dashboards, and makes its dashboard with no YAML, token
+or command. Orb's is `custom:orb-dashboard`, listed as **Orb**; Field's is `custom:field-dashboard`, listed as **Field**;
+a skin `create-dashhaus-skin` or `new-skin` writes gets `custom:dashhaus-<skin>`, listed by its name. Nothing a skin's
+resource defines is named Dashhaus. It follows the frontend's contract as its source has it
+(`src/panels/lovelace/strategies/get-strategy.ts`, `src/data/lovelace_custom_strategies.ts`) and the developer docs'
+Custom dashboard strategies page.
 
-- **Its elements.** `ll-strategy-dashboard-dashhaus` and `ll-strategy-view-dashhaus`, each with a static
-  `generate(config, hass)`; the frontend waits up to 5 seconds for a `custom:` strategy's element, which the bundle
-  defines as it loads. Both answer `shouldRegenerate()` with `false`: the config alone decides the views, and the cards
-  follow the house themselves. The dashboard's static `getCreateSuggestions()` fills the dialog with **Dashhaus** and
-  `mdi:home-variant`.
-- **The dialog's entry.** `window.customStrategies` gets one `{ type: "dashhaus", strategyType: "dashboard", name,
-  description, documentationURL }`, once however many copies load; the dialog lists it from Home Assistant 2026.5 and
-  saves the bare `{ strategy: { type: "custom:dashhaus" } }`, so a dashboard keeps nothing but the strategy and follows
-  Dashhaus as it updates. Before 2026.5, a dashboard given that config by hand works the same.
-- **What it generates.** One view per look (`STRATEGY_LOOKS`, `apps/lovelace/dashboards.ts`): Orb, Field, then each
-  skin `npm run new-skin` registers, titled with the look's name and at its id as path. Each view is the view strategy,
-  which answers a panel holding the look's card with no `cards` or `rows`, `{ type: "custom:dashhaus-<skin>", title:
-  "Home" }`: the automatic layout (`autoDashboard` for orb, `autoModules` and `areaRows` for field), the same card the
-  CLI's default config saves for Field. A view strategy also works on its own, as one view of any dashboard.
-- **Its keys**, all optional:
-
-  | Key | Values | Default |
-  | --- | --- | --- |
-  | `skin` | a look's id (`orb`, `field`, a generated skin's), or a list of them in tab order; on a view, one | every look; on a view, `orb` |
-  | `title` | the title each card prints in its header | `Home` |
-  | `viewing` | `near`, `far`, handed to orb's and field's cards | the card's own |
-  | `theme` | orb's `theme`, handed to orb's card only | `home-assistant` |
-  | `finish` | field's `finish`, handed to field's card only | `home-assistant` |
-
-  A generated skin's card gets only the title. Each card checks what it is handed, as it does in YAML. The strategy
-  refuses an unknown key, a look it doesn't have, an empty or repeated `skin` and a list on a view, in words the
-  frontend shows in place of the dashboard (`Dashhaus: …`).
+- **Its elements.** `ll-strategy-dashboard-<type>` and `ll-strategy-view-<type>`, each with a static
+  `generate(config, hass)`; the frontend waits up to 5 seconds for a `custom:` strategy's element, which the resource
+  defines as it loads. Both answer `shouldRegenerate()` with `false`: the config alone decides the view, and the card
+  follows the house itself. The dashboard's static `getCreateSuggestions()` fills the dialog with the skin's name and
+  icon (`mdi:home-variant` for Orb, `mdi:knob` for Field).
+- **The dialog's entry.** `window.customStrategies` gets one `{ type, strategyType: "dashboard", name, description,
+  documentationURL }`, once however many copies load; the documentation link is the skin's own page on the site. The
+  dialog lists it from Home Assistant 2026.5 and saves the bare `{ strategy: { type: "custom:<type>" } }`, so a
+  dashboard keeps nothing but the strategy and follows the skin as it updates. Before 2026.5, a dashboard given that
+  config by hand works the same, and so does one the deploy CLI creates with `strategy:`.
+- **What it generates.** One panel view titled with the skin's name, at `home`, holding the skin's card with no
+  `cards` or `rows`, `{ type: "custom:dashhaus-<skin>", title: "Home" }`: the automatic layout (`autoDashboard` for
+  orb, `autoModules` and `areaRows` for field). The view strategy answers the same panel, as one view of any dashboard.
+- **Its keys**, all optional: `title`, the title the card prints in its header (`Home`), and the keys the skin hands
+  its card unchanged: `viewing` (`near`, `far`) and `theme` for Orb, `viewing` and `finish` for Field, none for a
+  generated or scaffolded skin. The card checks what it is handed, as it does in YAML. The strategy refuses an unknown
+  key or a value that isn't text, in words the frontend shows in place of the dashboard, led by the skin's name
+  (`Orb: …`).
 - **Editing it.** It has no `getConfigElement`, `noEditor` or `configRequired`: the dialog asks no questions before
   creating it, and **Edit dashboard** opens the frontend's strategy editor, which, with no visual editor, shows the
-  strategy's config as YAML, where the keys above are set. Its **Take control** saves the expanded config (the views
-  as panels, each holding its look's card), after which the dashboard no longer follows the strategy.
-- **Its surface.** A plain module, no React, store or skin, beside the Lovelace cards in the bundle; the bundle's, not
-  part of any package or of the skin-author contract.
+  strategy's config as YAML, where the keys above are set. Its **Take control** saves the expanded config (the panel
+  holding the skin's card), after which the dashboard no longer follows the strategy.
 
-`apps/lovelace/strategy.test.ts` resolves the elements as the frontend does and runs every card the strategy emits
-through its skin's own Lovelace card; `verify/docs.test.ts` does the same for the site's strategy sample.
-`verify/dx/marketplace.js` installs the packed bundle's file as the Marketplace does into the fake Home Assistant,
-picks **Dashhaus** from its stand-in for the Add dashboard dialog and opens both views, expanded as the frontend
-expands them, in Chromium. Not yet run against a real Home Assistant frontend (What has and hasn't been verified,
-below).
+`packages/core/src/lovelace/strategy.test.ts` resolves the elements as the frontend does; each skin's own test runs the
+card its strategy emits through its Lovelace card. `verify/dx/user.js` deploys Orb's and Field's strategy dashboards
+from their packages and draws them, expanded as the frontend expands them; `verify/dx/author.js` picks a scaffolded skin
+from the fake Home Assistant's stand-in for the Add dashboard dialog.
+
+### The combined install's `custom:dashhaus`
+
+Until Orb and Field installed on their own, one Marketplace install, `Krystosterone/dashhaus`, shipped both skins in
+`dashhaus.js` with a strategy of its own, `custom:dashhaus`, listed as **Dashhaus**: one dashboard with a tab per look.
+Its last release keeps it working (spec/release.md → The combined install's sunset): `apps/lovelace/strategy.ts`, built
+into `dashhaus.js` by `build:ha` and attached to that release.
+
+- One view per look, Orb then Field, or only the looks its `skin` names (one id or a list, in tab order); each view is
+  `ll-strategy-view-dashhaus`, a panel holding a vertical stack: a Markdown card saying the look now installs on its own,
+  with a link to its page and to the move, above the look's card on its automatic layout.
+- Its dialog entry says Orb and Field now install on their own; its keys are `skin`, `title`, `viewing`, `theme` (Orb's
+  card only) and `finish` (Field's card only), refused as above but led by `Dashhaus:`.
+- `apps/lovelace/strategy.test.ts` holds it; `verify/dx/marketplace.js` installs the release's `dashhaus.js` as the
+  Marketplace does into the fake Home Assistant, picks **Dashhaus** from the stand-in dialog and opens both views.
 
 ## Authoring
 
@@ -282,7 +289,7 @@ its own. A map with `cards` and no `bundle` is an error asking which bundle it i
 Every problem is collected and listed at once, each at its path with its entity id, in plain words with the fix:
 
 ```text
-Dashhaus config has 4 problems:
+The card's config has 4 problems:
 • "cards" and "rows" both lay out this page: keep "cards" for one plain grid, or move those cards into a row under "rows"
 • rows[0].cards[2] (alarm_control_panel.house): "column: 4" is past this row's 3 columns: use column: 3, or raise the row's columns to 4
 • rows[0].cards[0] (light.living_room): "width" is how many columns the card spans: a whole number from 1 to 12, or full — not pixels

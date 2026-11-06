@@ -10,6 +10,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GENERATED_SKINS } from "../scripts/generated-skins.js";
+import { RESOURCES } from "../scripts/resources.js";
 import { storySection, studies } from "../scripts/packages.js";
 import { DESIGN_SECTIONS, REPORT_SECTIONS, fitDesignRules, taskText } from "../scripts/study/lib.js";
 import type { StudyRecord } from "../scripts/study/lib.js";
@@ -25,7 +26,8 @@ const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: tru
 const studySkins = skins.filter((s) => s.study);
 const shipped = skins.filter((s) => !s.study);
 
-const entry = read("apps/lovelace/entry.ts");
+/** The skins a resource ships, by id: Orb's and Field's and each generated skin's (scripts/resources.js). */
+const resourceIds = RESOURCES.map((resource: { id: string }) => resource.id);
 const deployDoc = read("spec/deploy.md");
 
 describe("the skins", () => {
@@ -33,17 +35,18 @@ describe("the skins", () => {
     expect(shipped.map((s) => s.skin)).toEqual(expect.arrayContaining(["orb", "field"]));
   });
 
-  it.each(shipped.map((s) => s.skin))("ship %s in the Lovelace bundle", (skin) => {
-    expect(entry).toContain(`"@dashhaus/${skin}/lovelace/card"`);
-    expect(entry).toContain(`"@dashhaus/${skin}/styles/tokens.css"`);
+  it.each(shipped.map((s) => s.skin))("ship %s as a resource of its own", (skin) => {
+    expect(resourceIds).toContain(skin);
+    expect(existsSync(join(process.cwd(), `src/skins/${skin}/lovelace/resource.ts`)), `src/skins/${skin}/lovelace/resource.ts is its resource's entry`).toBe(true);
   });
 });
 
 describe.each(studySkins.map((s) => [s.skin, s] as const))("the %s study", (skin, { manifest, section }) => {
   const dir = `src/skins/${skin}`;
 
-  it("never ships: no bundle, no deploy-config dashboard, no YAML in spec/deploy.md", () => {
-    expect(entry).not.toContain(`@dashhaus/${skin}/`);
+  it("never ships: no resource, no deploy-config dashboard, no YAML in spec/deploy.md", () => {
+    expect(resourceIds).not.toContain(skin);
+    expect(read("apps/lovelace/entry.ts")).not.toContain(`@dashhaus/${skin}/`);
     expect(GENERATED_SKINS.map((dashboard: { id: string }) => dashboard.id)).not.toContain(skin);
     expect(read("dashboard.config.mjs")).not.toContain(`dashhaus-${skin}`);
     expect(deployDoc).not.toContain(`custom:dashhaus-${skin}`);

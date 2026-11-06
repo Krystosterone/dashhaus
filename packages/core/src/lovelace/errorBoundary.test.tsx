@@ -11,7 +11,7 @@ describe("ErrorBoundary", () => {
   it("says what stopped the card, and draws again once a new config fixes it", () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const { rerender } = render(<ErrorBoundary config={{ v: 1 }}><Draw broken /></ErrorBoundary>);
-    expect(screen.getByRole("alert").textContent).toBe("Dashhaus stopped: bad YAML");
+    expect(screen.getByRole("alert").textContent).toBe("The dashboard stopped: bad YAML");
     rerender(<ErrorBoundary config={{ v: 2 }}><Draw broken={false} /></ErrorBoundary>);
     expect(screen.getByText("drawn")).toBeTruthy();
     vi.restoreAllMocks();

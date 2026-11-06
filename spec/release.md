@@ -1,8 +1,11 @@
 # Releasing the public packages
 
-`@dashhaus/core` (with the Lovelace framework under `./lovelace`), `@dashhaus/deploy`, `@dashhaus/orb`,
-`@dashhaus/field` and `@dashhaus/bundle` are the packages a dashboard author or user installs; `create-dashhaus-skin` scaffolds a
-standalone skin. Generated skins created inside this repository, Storybook and the source of the bundle stay private.
+`@dashhaus/core` (with the Lovelace framework under `./lovelace`), `@dashhaus/deploy`, `@dashhaus/orb` and
+`@dashhaus/field` are the packages a dashboard author or user installs; `create-dashhaus-skin` scaffolds a standalone
+skin. Each skin's package also ships its **resource**, the one-file Lovelace module Home Assistant loads
+(`dist/<repository>.js` behind its `./resource` export, scripts/resources.js), which the skin's own Marketplace
+repository mirrors (The skin repositories, below). Generated skins created inside this repository, Storybook and the
+combined install's last `dashhaus.js` stay out of npm.
 
 ## Build and export layout
 
@@ -28,12 +31,12 @@ Each release has its record in `releases/<version>.md`, written in its release P
 [0.2.0](releases/0.2.0.md), was written by hand and has the publish order and the tarball inspection;
 [0.2.1](releases/0.2.1.md) was started by hand and is the first the Release workflow ships.
 
-Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. `@dashhaus/bundle` also ships `THIRD_PARTY_NOTICES.md`, and its `dashhaus.js` opens with that notice, because the file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
+Every package ships a non-empty `README.md` and the root `LICENSE`, and declares `"license": "MIT"`; `files` keeps the README in the tarball while npm always includes the license file, and `npm run verify:packages` refuses a tarball that drops either. Orb's and Field's packages also ship `dist/THIRD_PARTY_NOTICES.md` (`config/THIRD_PARTY_NOTICES.md`), and every resource opens with that notice, because each file carries React and ReactDOM. `files` is the allowlist for every package, so packed tarballs contain no `*.test.*`, `*.stories.*`, `.agents`, or repository docs. Do not run `npm pack` directly in a package: the workspace manifest still carries the `source` condition, which points at files the tarball does not ship. `npm run release:pack` stages the package with the release manifest and packs that.
 
 ## Versioning
 
 **Fixed version** across every public package, currently `0.2.1`. There is no independent release need yet:
-core, the skins and the bundle are built from the same repository and tag, and coupled releases keep
+core, the skins and their resources are built from the same repository and tag, and coupled releases keep
 the internal ranges unambiguous.
 
 `npm run release` applies it (Releasing, below); on its own, apply it with the command, never by editing the manifests:
@@ -90,14 +93,14 @@ the trigger, and the Release workflow only reproduces what the pull request reco
    request, `npm run release:digests` refreshes the record's files; require branches to be up to date before merging,
    so the check always ran on what merges.
 
-Merging moves `packages/bundle/package.json` on main to a version with no tag, which runs
+Merging moves `packages/core/package.json` (every public package shares its version) on main to a version with no tag, which runs
 `.github/workflows/release.yml`; so does a push that changes a `releases/*.sha256`, the fix for a release whose build
 refused its digests. Least reversible last:
 
 - **plan** reads the version, refuses anything but main, and stops quietly when that version is tagged at another
   commit (nothing to release); tagged at this commit, it finishes the release. It needs the record and its digests.
-- **build**, read-only and with no cache: `build:ha`, `release:pack`, `verify:packages`, checks the Marketplace's
-  `dashhaus.js` is the file `@dashhaus/bundle` ships, then `candidate.js check --always`: a clean build must reproduce
+- **build**, read-only and with no cache: `build:ha`, `release:pack`, `verify:packages`, checks the release's
+  `dashhaus.js` and each skin's resource inside its tarball are the files `build:ha` writes, then `candidate.js check --always`: a clean build must reproduce
   every recorded file byte for byte, or nothing ships. It hands on the files and the record's Release page.
 - **draft** creates the GitHub release as a draft at this commit, with that body and `dashhaus.js` attached. A draft
   has no tag and nobody sees it; an immutable release only takes its files while it is a draft.
@@ -194,7 +197,7 @@ Prepare:
 
 1. Pack at the release PR's commit with `npm run release:pack` and note `git rev-parse HEAD`. Its tarballs are the
    ones the record's `.sha256` names: `node scripts/release/candidate.js check` reports only the record's `TODO`s.
-2. Use a scratch Home Assistant, or first delete the dashboards `home-orb`, `home-field` and `dashhaus-my-skin` and the resources `/local/dashhaus/dashhaus.js` and `/local/dashhaus-my-skin/dashhaus-my-skin.js` from earlier runs. Otherwise the smoke exercises updates, not first creation, and must say so.
+2. Use a scratch Home Assistant, or first delete the dashboards `home-orb`, `my-home-orb`, `home-field`, `my-home-field` and `dashhaus-my-skin` and the resources `/local/orb-dashboard/orb-dashboard.js`, `/local/field-dashboard/field-dashboard.js` and `/local/dashhaus-my-skin/dashhaus-my-skin.js` from earlier runs. Otherwise the smoke exercises updates, not first creation, and must say so.
 3. Set `release` to this repository's `release/` directory and `<version>` to the packed version in the commands below. Copy `.env.example` to the app and fill `HA_URL`, `HA_TOKEN` and `HA_WWW` (see [deploy.md](deploy.md)). Never put the token in the record.
 
 User journey, from packed tarballs with no build:
@@ -202,10 +205,12 @@ User journey, from packed tarballs with no build:
 ```sh
 app=$(mktemp -d); cd "$app"
 npm init -y && npm pkg set type=module
-npm install "$release"/dashhaus-bundle-<version>.tgz "$release"/dashhaus-deploy-<version>.tgz
+npm install "$release"/dashhaus-core-<version>.tgz "$release"/dashhaus-orb-<version>.tgz \
+  "$release"/dashhaus-field-<version>.tgz "$release"/dashhaus-deploy-<version>.tgz
 cp /path/to/dashhaus/.env.example .env        # fill the three values, keep it out of git
-# write dashboard.config.mjs as in verify/dx/user.js (USER_CONFIG): bundlePath, home-orb and home-field
-npx dashhaus-deploy --skip-build
+# write orb.config.mjs and field.config.mjs from the js block in each skin's README, as verify/dx/user.js does
+npx dashhaus-deploy --config orb.config.mjs --skip-build
+npx dashhaus-deploy --config field.config.mjs --skip-build
 ```
 
 Author journey, from packed tarballs, scaffolding, testing and building once:
@@ -228,11 +233,11 @@ npx dashhaus-deploy --skip-build
 
 Observe, in this order:
 
-1. The user deploy prints the upload, registers one resource at `/local/dashhaus/dashhaus.js` and creates its two dashboards. The author deploy registers a second resource at `/local/dashhaus-my-skin/dashhaus-my-skin.js` and creates its dashboard. Each uploaded file is byte-identical to its tarball or build, and the two resources coexist.
+1. The user deploys print each upload, register `/local/orb-dashboard/orb-dashboard.js` and `/local/field-dashboard/field-dashboard.js`, and create their four dashboards: each skin's on its strategy, and each "My home" with its rows. The author deploy registers a second resource at `/local/dashhaus-my-skin/dashhaus-my-skin.js` and creates its dashboard. Each uploaded file is byte-identical to its tarball or build, and the two resources coexist.
 2. Reload every open Home Assistant tab: the frontend reads its resource list once, so a tab opened before the deploy shows a configuration error until reloaded.
-3. The sidebar lists **Home (Orb)**, **Home (Field)** and, from the author app, **Home (My Skin)**. Each opens with no "Configuration error" card and draws its auto layout from the instance's entities; open one card's details and close it.
+3. The sidebar lists **Home (Orb)**, **My home (Orb)**, **Home (Field)**, **My home (Field)** and, from the author app, **Home (My Skin)**. Each opens with no "Configuration error" card and draws its auto layout from the instance's entities; open one card's details and close it.
 4. Press a reversible `input_boolean` or `switch` on Orb or Field, see the state change, then restore it. The browser console shows no errors.
-5. Settings → Dashboards → Resources shows both `/local/dashhaus/dashhaus.js?v=<content hash>` and `/local/dashhaus-my-skin/dashhaus-my-skin.js?v=<content hash>`; both network requests are 200. Edit a dashboard and confirm its generated layout loads in the code editor.
+5. Settings → Dashboards → Resources shows `/local/orb-dashboard/orb-dashboard.js?v=<content hash>`, `/local/field-dashboard/field-dashboard.js?v=<content hash>` and `/local/dashhaus-my-skin/dashhaus-my-skin.js?v=<content hash>`; every network request is 200. Add dashboard lists **Orb**, **Field** and **My Skin** under Community dashboards. Edit a dashboard and confirm its generated layout loads in the code editor.
 6. The author build emitted one `dist/dashhaus-my-skin.js`; its dashboard draws and its card opens details.
 
 Record on the release candidate: date and operator, Home Assistant version, candidate commit, tarball version, the deploy output, pass/fail for each observation above, and where the screenshot or console excerpt lives. If credentials are not supplied, record "live smoke: unrun — no HA_URL/HA_TOKEN/HA_WWW" and do not mark it passed.
@@ -275,8 +280,29 @@ Decided, and why:
   no existing dashboard is touched.
 - **No token for agents.** An agent installing Dashhaus uses the person's own session through Add dashboard, never a
   long-lived token handed to a model.
-- **The command line stays**, for CI, automation and dashboards in YAML mode. Installing both ways loads two copies of
-  the bundle, so the install page says to pick one.
+- **The command line stays**, for CI, automation, dashboards in YAML mode and dashboards written from scratch.
+  Installing a skin both ways loads two copies of its resource, so each skin's page says to pick one.
+
+### The combined install's sunset
+
+Sharing Dashhaus as a whole didn't land, so Orb and Field became the way in: each has its own page and its own
+Marketplace install (The skin repositories, below), and `Krystosterone/dashhaus` stops being one. It ends in one last
+release, which keeps every combined install working and tells its people what changed:
+
+- That release is the first to ship Orb's and Field's resources in their packages, so their repositories can mirror
+  it the same day. Its `dashhaus.js` still holds both skins and `custom:dashhaus`, built from `apps/lovelace/` by
+  `build:ha`, written beside the tarballs by `release:pack`, recorded in its digests and attached to its GitHub
+  release, which HACS shows on update.
+- Its strategy says Orb and Field now install on their own: in Add dashboard's entry, and above each view in a
+  Markdown card linking to the look's page and to the site's page for the move (spec/deploy.md → The combined
+  install's `custom:dashhaus`). Nothing else changes: its dashboards and cards draw as before.
+- `@dashhaus/bundle` and `@dashhaus/dashboard` are not published again; their last versions stay on npm, deprecated
+  by the operator with a pointer to the skins' packages and to core.
+
+After it, this repository ships no `dashhaus.js`: `apps/lovelace/`, the root `hacs.json`, the HACS workflow and
+`verify/dx/marketplace.js` go, and the Release workflow tags `v<version>` without a GitHub release, so HACS, which
+reads only releases (`custom_components/hacs/repositories/base.py`), keeps offering a combined install its last one and
+never an update with no file in it.
 
 What only the operator can do, in order, each once. Steps 1 to 3 are done: the repository went public (#29) and
 `v0.2.0` and `v0.2.1` shipped (#30). Step 4 is partly done: the HACS install and a first Create passed live with

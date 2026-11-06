@@ -7,7 +7,7 @@ config. `npm run add -- <domain>` adds the card for any other domain `@dashhaus/
 same templates as the skins built inside the Dashhaus repository. It also writes an `AGENTS.md`, so an agent handed only "make it look like this" knows where the colours,
 type, parts and rules live and how to check its work. No Storybook, no workspace, no repository.
 
-Just want the ready-made Orb and Field dashboards? Install `@dashhaus/bundle` and `@dashhaus/deploy` instead; nothing
+Just want the ready-made Orb and Field dashboards? Install `@dashhaus/orb` or `@dashhaus/field` with `@dashhaus/deploy` instead; nothing
 is built.
 
 **Beta.** Dashhaus is in beta: a new `0.x` version (0.2 → 0.3) may break what you use, and a caret range keeps

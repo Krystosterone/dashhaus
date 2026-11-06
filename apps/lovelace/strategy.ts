@@ -1,16 +1,19 @@
 /**
- * `strategy: type: custom:dashhaus` — Dashhaus as a Lovelace dashboard strategy, so a Marketplace (HACS) install
- * ends in Home Assistant's own **Add dashboard** dialog: the person picks **Dashhaus** under Community dashboards and
- * the dashboard exists. Nothing is created from a card, no command is sent and nothing is saved: the frontend asks the
+ * `strategy: type: custom:dashhaus` — the combined Marketplace install's dashboard strategy, kept working in its last
+ * release (spec/release.md → The combined install's sunset). Orb and Field now install on their own, each with its own
+ * strategy (`defineSkinStrategy` in `@dashhaus/core/lovelace/skin`); this one says so, above each view and in the Add
+ * dashboard dialog, and otherwise draws what it always drew. The person picks **Dashhaus** under Community dashboards
+ * and the dashboard exists. Nothing is created from a card, no command is sent and nothing is saved: the frontend asks the
  * strategy for the dashboard's config each time it opens it.
  *
  * Two custom elements, as the frontend looks them up (`src/panels/lovelace/strategies/get-strategy.ts`):
  *
- * - `ll-strategy-dashboard-dashhaus`: the dashboard, one view per look (Orb, Field, then each skin `npm run new-skin`
- *   registered), or only the looks its `skin` names. Each view is the view strategy below.
- * - `ll-strategy-view-dashhaus`: one look's panel view, holding its skin's Lovelace card with no `cards` or `rows`: the
- *   automatic layout, which discovers the house's entities and lays them out by area every time it draws. A view of
- *   its own also works in any dashboard (`strategy: { type: custom:dashhaus, skin: field }` on a view).
+ * - `ll-strategy-dashboard-dashhaus`: the dashboard, one view per look (Orb, then Field), or only the looks its `skin`
+ *   names. Each view is the view strategy below.
+ * - `ll-strategy-view-dashhaus`: one look's panel view: the notice that the look now installs on its own, above its
+ *   skin's Lovelace card with no `cards` or `rows`, the automatic layout, which discovers the house's entities and lays
+ *   them out by area every time it draws. A view of its own also works in any dashboard
+ *   (`strategy: { type: custom:dashhaus, skin: field }` on a view).
  *
  * The layout itself stays the skins' (`autoDashboard` for orb, `autoModules`/`areaRows` for field): the views hold the
  * same `{ type: "custom:dashhaus-<skin>", title }` card the deploy config saves for Field, so both ways in draw the same
@@ -27,6 +30,27 @@ export const STRATEGY_TYPE = "dashhaus";
 export const DASHBOARD_STRATEGY_TAG = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 export const VIEW_STRATEGY_TAG = `ll-strategy-view-${STRATEGY_TYPE}`;
 export const STRATEGY_DOCS = "https://krystosterone.github.io/dashhaus/start/install/";
+
+/** Each look's own page, where its own install starts. */
+const LOOK_PAGES: Record<string, string> = {
+  orb: "https://krystosterone.github.io/dashhaus/orb/",
+  field: "https://krystosterone.github.io/dashhaus/field/",
+};
+
+/**
+ * What every view says above its look: Orb and Field install on their own now, and how to move. A Markdown card, Home
+ * Assistant's own, so it needs nothing from the skin and reads the same in either.
+ */
+export function sunsetNotice(look: Pick<StrategyLook, "id" | "name">) {
+  const page = LOOK_PAGES[look.id] ?? STRATEGY_DOCS;
+  return {
+    type: "markdown",
+    content: [
+      `**${look.name} now installs on its own.** This combined Dashhaus install gets no more updates.`,
+      `Install [${look.name}](${page}) from the Marketplace, add its dashboard under **Settings → Dashboards → Add dashboard**, then remove Dashhaus. [How to move](${STRATEGY_DOCS})`,
+    ].join(" "),
+  };
+}
 
 /** One look the strategy can draw: a view's name and path, and the Lovelace card its panel holds. */
 export interface StrategyLook {
@@ -122,8 +146,8 @@ export function generateDashboard(raw: unknown, looks: readonly StrategyLook[] =
 }
 
 /**
- * One look's view: a panel, so the card gets the whole width, holding the look's card on its automatic layout. The
- * frontend keeps the view's own `title` and `path` and adds what this returns.
+ * One look's view: a panel, so the stack gets the whole width, holding the notice above the look's card on its
+ * automatic layout. The frontend keeps the view's own `title` and `path` and adds what this returns.
  */
 export function generateView(raw: unknown, looks: readonly StrategyLook[] = STRATEGY_LOOKS) {
   const config = readConfig(raw);
@@ -131,7 +155,7 @@ export function generateView(raw: unknown, looks: readonly StrategyLook[] = STRA
   const [look] = chosenLooks({ skin: config.skin ?? looks[0]?.id }, looks);
   return {
     type: "panel",
-    cards: [{ type: look.type, title: config.title ?? DEFAULT_TITLE, ...cardSettings(config, look) }],
+    cards: [{ type: "vertical-stack", cards: [sunsetNotice(look), { type: look.type, title: config.title ?? DEFAULT_TITLE, ...cardSettings(config, look) }] }],
   };
 }
 
@@ -154,7 +178,7 @@ export const DASHBOARD_ENTRY: CustomStrategyEntry = {
   type: STRATEGY_TYPE,
   strategyType: "dashboard",
   name: "Dashhaus",
-  description: "Orb and Field: every supported device in a room-by-room page, laid out for you and kept up to date.",
+  description: "Orb and Field now install on their own from the Marketplace: install one and pick it here instead. This combined dashboard still works, with no more updates.",
   documentationURL: STRATEGY_DOCS,
 };
 

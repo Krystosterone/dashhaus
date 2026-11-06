@@ -29,7 +29,7 @@ Open the dashboard, **⋮ → Edit dashboard**, the card's pencil, then **Show c
 type, and every mistake is listed at once, with where it is and what you probably meant:
 
 ```text
-Dashhaus config has 2 problems:
+The card's config has 2 problems:
 • rows[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
 • rows[2].cards[3]: media_player.tv: media_player.* entities have no card yet
 ```
@@ -120,7 +120,7 @@ write instead. This Orb card has five of the mistakes people make most:
 <Example file="mistakes/orb.yaml" />
 
 ```text
-Dashhaus config has 5 problems:
+The card's config has 5 problems:
 • "cards" and "rows" both lay out this page: keep "cards" for one plain grid, or move those cards into a row under "rows"
 • rows[0] (climate.living_room): this is a card, not a row: put it in a row's "cards", or list the cards under "cards" at the top for one plain grid
 • rows[1].cards[0] (climate.living_room): "width: 3" is wider than this row's 2 columns: use width: full, or raise the row's columns to 3
@@ -143,7 +143,7 @@ In Field, a row holds one footprint, so a compact module beside standard ones ne
 <Example file="mistakes/field.yaml" />
 
 ```text
-Dashhaus config has 2 problems:
+The card's config has 2 problems:
 • rows[0].cards[0] (light.ceiling): this row mixes standard and compact modules, so each stacks in a column: give it a "column", or move the compact ones into a row of their own
 • rows[0].cards[1] (cover.living_room): this row mixes standard and compact modules, so each stacks in a column: give it a "column", or move the compact ones into a row of their own
 ```

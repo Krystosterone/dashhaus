@@ -3,8 +3,19 @@
 
 import type { DeployHa } from "./config.js";
 
-export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.js";
-export type { DeployCard, DeployConfig, DeployDashboard, DeployHa } from "./config.js";
+export { DeployConfigError, loadDashboards, readConfig, resolveDashboards, resolveFiles } from "./load.js";
+export type { ResourceTarget } from "./load.js";
+export type {
+  DeployCard,
+  DeployCardConfig,
+  DeployCardDashboard,
+  DeployCardFactory,
+  DeployConfig,
+  DeployDashboard,
+  DeployHa,
+  DeployStrategy,
+  DeployStrategyDashboard,
+} from "./config.js";
 
 /** The authenticated Home Assistant client the CLI hands a config's card factory. */
 export interface DeployClient extends DeployHa {
@@ -23,9 +34,18 @@ export interface DeployOptions {
   fetch?: (url: string, init?: { cache?: string }) => Promise<{ ok: boolean; status: number; arrayBuffer(): Promise<ArrayBuffer> }>;
 }
 
-export interface DeployResult {
+/** One uploaded file's resource: its URL with the content-hash version, and whether it replaced an earlier one. */
+export interface DeployResource {
+  name: string;
+  url: string;
   version: string;
-  resource: { url: string; updated: boolean; error?: string };
+  updated: boolean;
+  /** Set when Home Assistant would not manage resources (YAML mode); the resource must be added by hand. */
+  error?: string;
+}
+
+export interface DeployResult {
+  resources: DeployResource[];
   dashboards: { path: string; title: string; status: "created" | "existing"; renamed?: boolean }[];
 }
 

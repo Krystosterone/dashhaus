@@ -94,8 +94,8 @@ It registers the skin's Foundations, Dashboard, its own entry and Lovelace card;
 ### Packages
 
 `@dashhaus/core` and `@dashhaus/deploy` are the headless foundation (with the Lovelace framework under
-`@dashhaus/core/lovelace`) and the deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins. `@dashhaus/bundle` ships the prebuilt one-file
-Lovelace bundle: a deploy-only app installs it with the CLI, names `fileURLToPath(bundlePath)` in its config and runs
+`@dashhaus/core/lovelace`) and the deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins, each shipping its resource, the one file Home Assistant
+loads: a deploy-only app installs a skin with the CLI, names its `resourceFile` in `files` and runs
 `npx dashhaus-deploy --skip-build`. `create-dashhaus-skin` scaffolds a standalone skin. Package READMEs live in each
 package; the release policy is [spec/release.md](spec/release.md).
 
@@ -120,7 +120,7 @@ The specification the code is held to, written for maintainers and agents. Tests
 | [spec/cards.md](spec/cards.md) | Per-card behaviour |
 | [spec/home-assistant.md](spec/home-assistant.md) | The Home Assistant data boundary and hooks |
 | [spec/core.md](spec/core.md) | The core contract, error metadata, transport lifecycle and auth boundary |
-| [spec/deploy.md](spec/deploy.md) | Deploying the bundle and the Lovelace YAML |
+| [spec/deploy.md](spec/deploy.md) | Deploying the skins' resources, their dashboard strategies and the Lovelace YAML |
 | [spec/performance.md](spec/performance.md) | The deployed pages' performance marks and report |
 | [spec/skins.md](spec/skins.md) | Starting a skin in this repository |
 | [spec/build-a-skin.md](spec/build-a-skin.md) | Building a standalone skin from the published packages |

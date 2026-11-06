@@ -13,7 +13,7 @@ export const MAIN_PAGE = "home";
 export class DashboardConfigError extends Error {
   readonly problems: string[];
   constructor(problems: string[]) {
-    super(`Dashhaus config has ${problems.length === 1 ? "a problem" : `${problems.length} problems`}:\n${problems.map((p) => `• ${p}`).join("\n")}`);
+    super(`The card's config has ${problems.length === 1 ? "a problem" : `${problems.length} problems`}:\n${problems.map((p) => `• ${p}`).join("\n")}`);
     this.name = "DashboardConfigError";
     this.problems = problems;
   }

@@ -175,7 +175,6 @@ export function generatedManifest(skin, { study, Section, theme } = {}) {
  */
 export const seams = {
   preview: ".storybook/preview.tsx",
-  lovelaceEntry: "apps/lovelace/entry.ts",
   generatedSkins: "scripts/generated-skins.js",
   agents: "AGENTS.md",
   cardsDoc: "spec/cards.md",
@@ -203,9 +202,6 @@ export const markers = {
   previewStudies: "// new-skin: study order",
   previewCards: "// new-card: cards",
   previewConnected: "// new-card: connected",
-  entryTokens: "// new-skin: token css",
-  entryCards: "// new-skin: card definitions",
-  entryDefines: "// new-skin: define cards",
   generatedSkins: "// new-skin: dashboards",
   skinCards: "// new-card: card exports",
   registryImports: "// new-card: registry imports",
