@@ -108,8 +108,8 @@ cards:
     area: Bedroom
 ```
 
-Orb draws lights, climate, covers, switches and `input_boolean` modes, room sensors, weather, alarm panels,
-humidifiers, sound machines and Owlet socks; Field draws the same domains as hardware-style modules.
+Orb draws lights, climate, covers, switches and `input_boolean` modes, room sensors, weather, alarm panels, locks,
+humidifiers, fans, sound machines, Owlet socks and guest Wi-Fi; Field draws the same domains as hardware-style modules.
 
 ## Exports
 

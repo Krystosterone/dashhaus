@@ -13,9 +13,9 @@ Dashhaus splits those three apart, so each is written once.
 
 Reading Home Assistant is written once per kind of entity: a mapper turns the raw state into a plain model
 (`LightEntity`, `ClimateEntity`), an action module turns a tap into the right service call, and a `useHa<Name>` hook
-hands both to whatever draws. Orb and Field are two drawings of the same ten models; neither contains a line of Home
-Assistant code. A third skin, or your own app, gets the same models and the same safety checks (an unavailable
-entity, a value out of range, a service Home Assistant refuses) without writing them.
+hands both to whatever draws. Orb and Field are two drawings of the same models, one per kind of entity; neither
+contains a line of Home Assistant code. A third skin, or your own app, gets the same models and the same safety checks
+(an unavailable entity, a value out of range, a service Home Assistant refuses) without writing them.
 
 ## Dashboards that hold still
 
@@ -30,7 +30,7 @@ A skin is one Lovelace card. With no layout written, it groups your house by are
 keeps up as you add devices. When you want your own order, you write YAML in Home Assistant's code editor; the preview
 redraws as you type and every mistake is listed at once, with its path and the probable fix.
 
-## Checked in a browser, not in production
+## Checked in a browser before it ships
 
 Every card, in every state and footprint, is a Storybook story on demo data, and every story must render and pass an
 accessibility check before a change lands. The live dashboards on [Orb and Field](/dashhaus/skins/) are those stories.
