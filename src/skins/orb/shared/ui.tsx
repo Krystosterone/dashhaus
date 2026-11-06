@@ -166,7 +166,8 @@ export function AlertStatus({ label, children }: { label: string; children: Reac
 
 /** Full-width toggle button: raised when off, the accent when on. */
 /** `turnOn`: the off-state control of a unit whose status line already says Off (climate, humidifier). */
-export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { label: string; on: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean }) {
+/** Without `on` it acts once (Refresh, New code): raised, and not announced as a toggle. */
+export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { label: string; on?: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean }) {
   const press = usePress({ onPress: onToggle, pressed: on });
   return (
     <button className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} {...press}>
