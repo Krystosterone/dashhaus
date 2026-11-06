@@ -91,6 +91,13 @@ describe("the skin repositories", () => {
     }
   });
 
+  it("is started by this repository's Release workflow, every skin repository after the release", () => {
+    const listings = read(".github/workflows/release.yml").split(/^ {2}listings:\n/m)[1] ?? "";
+    expect(listings, "the Release workflow has a listings job").not.toBe("");
+    expect(/^ {10}repositories=\(([^)]*)\)$/m.exec(listings)?.[1].split(" ")).toEqual(SKIN_REPOSITORIES.map((entry) => entry.repository));
+    expect(listings, "it waits for each release").toContain('until gh release view "v$VERSION" -R "$OWNER/$repository"');
+  });
+
   it("pins the actions this repository pins, and builds nothing", () => {
     const ours = { ...pins(read(".github/workflows/release.yml")), ...pins(read(".github/actions/setup/action.yml")) };
     // HACS's action runs only in the skin repositories now; the first one's pin is the one every other keeps.
@@ -109,6 +116,9 @@ describe("the skin repositories", () => {
       expect(steps.every((at) => at > 0), "every step is there").toBe(true);
       expect([...steps].sort((a, b) => a - b), "latest, fetch, signatures, then the release").toEqual(steps);
       expect(release).toContain(`npm install --ignore-scripts --no-audit --no-fund "${entry.package}@$VERSION"`);
+      // Started, never scheduled: the Release workflow here hands it the version it just published.
+      expect(release, "no schedule").not.toMatch(/^\s*schedule:/m);
+      expect(release).toMatch(/^on:\n {2}workflow_dispatch:\n {4}inputs:\n {6}version:/m);
       expect(release).toContain(`"mirror/${assetName(entry)}"`);
     }
   });

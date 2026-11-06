@@ -1,18 +1,22 @@
 name: Release
 
-# Orb's releases mirror npm: when @dashhaus/orb publishes a version this repository hasn't released, this takes
+# Orb's releases mirror npm: started with a version of @dashhaus/orb this repository hasn't released, this takes
 # orb-dashboard.js out of that version's tarball, unchanged, and publishes it as the release v<version>, its one asset, which
 # the Home Assistant Marketplace and HACS install. It builds nothing and runs nothing from the package.
 #
 # Before anything is released, .github/mirror.js checks the tarball is the one npm's document names and that npm's
 # SLSA provenance for it names this tarball, built by Krystosterone/dashhaus's release workflow on main; then
-# `npm audit signatures` checks npm's signatures and the attestations' Sigstore signatures. It pulls, so nothing in
-# Krystosterone/dashhaus pushes here and no token crosses between them. Kept there at hacs/orb-dashboard/, with its rules in
+# `npm audit signatures` checks npm's signatures and the attestations' Sigstore signatures. Krystosterone/dashhaus's
+# Release workflow starts it with the version it just published, as its last job; run it by hand with no version for
+# npm's latest. Kept there at hacs/orb-dashboard/, with its rules in
 # spec/release.md → The skin repositories; change it there.
 on:
-  schedule:
-    - cron: "41 */3 * * *"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to mirror; npm's latest when empty"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -36,10 +40,16 @@ jobs:
         with:
           node-version: 22
       - id: plan
-        name: The newest version on npm, unless it is released here already
+        name: The version to mirror, unless it is released here already
+        env:
+          ASKED: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          version=$(node .github/mirror.js latest)
+          version=${ASKED:-$(node .github/mirror.js latest)}
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::\"$version\" is not a version"
+            exit 1
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           if gh release view "v$version" >/dev/null 2>&1; then
             echo "v$version is released; nothing to mirror"

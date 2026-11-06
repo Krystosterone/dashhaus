@@ -83,18 +83,23 @@ describe("the pinned npm", () => {
     const jobs = Object.fromEntries(
       release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
-    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "publish", "registry", "tag"]);
+    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "publish", "registry", "tag", "listings"]);
     expect(release, "a version bump or refreshed digests on main, or a rerun by hand").toMatch(
       /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/core\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
     );
     expect(jobs.plan, "a dispatch ships only from main").toContain('if [ "$GITHUB_REF" != refs/heads/main ]');
-    expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./);
+    expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/);
+    // One secret, in one job: the token that starts the skin repositories' mirrors (spec/release.md → The skin repositories).
+    expect([...release.matchAll(/secrets\.(\w+)/g)].map((match) => match[1]), "no other secret").toEqual(["SKIN_REPOSITORIES_TOKEN"]);
+    expect(jobs.listings, "only the listings job holds it").toContain("secrets.SKIN_REPOSITORIES_TOKEN");
+    expect(jobs.listings, "it can't write here").toMatch(/^ {4}permissions: \{\}$/m);
+    expect(jobs.listings, "it starts each mirror with this version").toContain('gh workflow run release.yml -R "$OWNER/$repository" -f version="$VERSION"');
     expect(release, "no inputs: the commit decides everything").not.toMatch(/inputs\./);
     for (const [name, job] of Object.entries(jobs)) {
       expect(job.includes("id-token: write"), `${name} ${name === "publish" ? "is" : "is not"} the job npm trusts`).toBe(name === "publish");
       expect(job.includes("contents: write"), `${name} ${name === "tag" ? "may" : "may not"} write the tag`).toBe(name === "tag");
       // Only the read-only build and registry jobs install and run the repository's code.
-      if (["publish", "tag"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
+      if (["publish", "tag", "listings"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
     }
     expect(jobs.build, "the clean build must reproduce the recorded files").toContain("node scripts/release/candidate.js check --always");
     // No GitHub release, so HACS keeps the combined install on its last one (spec/release.md → The combined install's sunset).

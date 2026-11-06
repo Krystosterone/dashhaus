@@ -114,6 +114,8 @@ refused its digests. Least reversible last:
   from npm (The skin repositories, below), and HACS, which reads only releases, keeps the combined install on its last
   one (The combined install's sunset, below). The record's Release page leads the version's entry on the site's
   Release notes page.
+- **listings** starts each skin repository's mirror with this version and waits for its release (The skin
+  repositories, below), so Orb and Field reach the Marketplace minutes after npm.
 
 Every job looks before it acts, so rerunning the workflow, or dispatching it on main, finishes a release that stopped
 partway and does nothing to one that shipped. It takes no inputs and runs no model; `verify/toolchain.test.ts` holds
@@ -308,16 +310,19 @@ the mirror's checks on a real version's attestations.
 - **What it ships.** The file inside the skin's npm package, byte for byte: the release workflow here publishes the
   package with npm's provenance, and the skin repository releases what npm serves. Nothing builds it twice, and this
   repository makes no GitHub release (Releasing, above).
-- **How it releases.** The skin repository's `release.yml` runs every three hours and on dispatch. When npm's
-  `latest` for `@dashhaus/<skin>` is a version it hasn't released, `mirror.js` reads that version's document from npm
+- **How it releases.** This repository's Release workflow ends with a `listings` job: once npm serves the version, it
+  starts each skin repository's `release.yml` with that version (`gh workflow run … -f version=<version>`) and waits
+  until each has released it, so one green run means npm and both Marketplace listings are done, minutes apart. Run by
+  hand with no version, the skin repository's workflow mirrors npm's `latest`. When the version isn't released there
+  yet, `mirror.js` reads that version's document from npm
   (never the package's index), downloads its tarball and refuses unless the tarball's sha512 is the document's
   integrity and npm's SLSA provenance for it names this tarball, built from `Krystosterone/dashhaus` by
   `.github/workflows/release.yml` on `refs/heads/main`. `npm audit signatures`, on that version installed with
   `--ignore-scripts` in an empty folder, then checks npm's signatures and the attestations' Sigstore signatures. Only
   then does it take `package/dist/<repository>.js` out, bring its README and `hacs.json` from the commit the
   provenance names (committing them when they changed), and publish `v<version>`, titled with the skin's name, the
-  file its one asset, as latest (a prerelease stays one). It needs no secret: npm and this repository are public, and
-  its own token writes its own repository. The skin's version is the packages'.
+  file its one asset, as latest (a prerelease stays one). It needs no secret of its own: npm and this repository are
+  public, and its own token writes its own repository. The skin's version is the packages'.
 - **What stays here.** Code, issues, the spec and the site. A skin repository is its release and its README, nothing
   to develop in: its README sends issues and source here. Its workflows and script change here and are copied by
   hand, since its own token can't change its workflows.
@@ -331,9 +336,13 @@ Decided, and why:
   with provenance; mirroring it means one build for every way in (the Marketplace, the command line, an app), and the
   provenance check means the mirror takes only a file this repository's release workflow built. A rebuild from the tag
   would need the whole toolchain in the skin repository and a second reproduction of every byte.
-- **The skin repository pulls; nothing here pushes.** Pushing a release to another repository needs a token or an
-  app with write access to it, kept as a secret here. Pulling needs nothing. The cost is up to three hours between
-  npm and the Marketplace, or a dispatch.
+- **Started from here, not polled.** A schedule needs no token, but it puts hours between npm and the Marketplace,
+  and GitHub turns off a public repository's scheduled workflows after 60 days without activity, which a quiet skin
+  repository reaches. So the Release workflow starts the mirrors, with one secret, `SKIN_REPOSITORIES_TOKEN`: a
+  fine-grained token for the skin repositories alone, with Actions read and write and nothing else. It can only start
+  their workflows; it can't write their contents or this repository's, and what they release is still only a file
+  whose npm provenance names this repository's release workflow. It is the Release workflow's only secret, held by its
+  last job, which has no permissions here (`verify/toolchain.test.ts`).
 - **Named `<skin>-dashboard`.** The repository name is the asset's and the strategy's type, so it must be unique among
   community dashboards; the name a person sees is the skin's, from `hacs.json` and the strategy's entry.
 
@@ -343,13 +352,18 @@ What only the operator can do, each once, in order, for each skin:
    `dashboard`), issues on (the HACS action checks them; the README sends them here), and the contents of
    `hacs/<repository>/` plus `LICENSE` on its default branch. Allow Actions to create releases (Settings → Actions →
    Workflow permissions: read and write).
-2. Let the first release happen: once a release of this repository has published the skin's package with its resource
-   (the combined install's sunset release, above, is the first), dispatch the skin repository's Release workflow (or
-   wait for its schedule); check it and its HACS workflow are green.
-3. Live, on a scratch Home Assistant 2026.5 or newer with HACS: install from the skin's My link as a custom repository,
+2. Once both repositories exist: create a fine-grained personal access token (Settings → Developer settings →
+   Fine-grained tokens) with access to only `Krystosterone/orb-dashboard` and `Krystosterone/field-dashboard` and the
+   one permission **Actions: read and write**, and save it in this repository as the Actions secret
+   `SKIN_REPOSITORIES_TOKEN`. Note its expiry; a release after it fails at its last job, which a new token and a rerun
+   finish.
+3. Let the first release happen: the next release of this repository (the combined install's sunset release, above, is
+   the first to ship the skins' resources) starts both mirrors as its last job; check it, the mirrors and their HACS
+   workflows are green.
+4. Live, on a scratch Home Assistant 2026.5 or newer with HACS: install from the skin's My link as a custom repository,
    reload, **Settings → Dashboards → Add dashboard** and pick the skin under Community dashboards; open it at a phone
    and a desktop width, in light and dark mode. Record it in `spec/releases/<version>.md`.
-4. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
+5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
    alphabetical order, with the release and the green HACS action. The My link works before it. The combined
    install's own submission (#32) is then closed in their favour.
 
@@ -367,6 +381,7 @@ What only the operator can do, each once, in order, for each skin:
 - The `dx` journeys install only the packed tarballs and import nothing from this repository; a failure in either is a failure of the public surface, not a flaky integration.
 - CI has no publish, tag or release step, and needs no secrets. The Release workflow is not CI: it runs only when a
   release PR's version reaches main, and its only writes are the tag, with the run's own
-  token, and the npm publish, with the publish job's OIDC identity (Publishing, above). It needs no secrets either.
+  token, and the npm publish, with the publish job's OIDC identity (Publishing, above). Its one secret starts the skin
+  repositories' mirrors (The skin repositories, above).
 
 The measurements behind each of these, and the options measured and rejected, are in `.agents/skills/test-speed/references/dashhaus-evidence.md`.
