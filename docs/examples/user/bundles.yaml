@@ -1,0 +1,24 @@
+type: custom:dashhaus-orb
+title: Home
+rows:
+  - title: Nursery
+    columns: 3
+    cards:
+      - bundle: titled
+        title: Sound machine
+        area: Nursery
+        cards:
+          - entity: switch.sound_machine_power
+            name: Power
+          - entity: light.sound_machine_night_light
+            name: Night light
+          - entity: switch.sound_machine_white_noise
+            card: sound
+            name: White noise
+      - bundle: lead
+        label: Upstairs heating
+        sheet_title: Also upstairs
+        cards: [climate.second_floor, climate.dyson_heater]
+      - bundle: joined
+        label: Bedtime
+        cards: [input_boolean.sleep_mode, input_boolean.do_not_disturb]

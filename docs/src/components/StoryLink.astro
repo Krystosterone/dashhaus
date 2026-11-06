@@ -1,0 +1,16 @@
+---
+/**
+ * A link to one Storybook story in running text, its id checked against the story files (`src/lib/stories.ts`), so
+ * a renamed or removed story fails the build instead of linking to Storybook's "story not found".
+ */
+import { story, storybookUrl } from "../lib/stories";
+
+interface Props {
+  /** The story id, as in Storybook's URL (`orb-bundles--nursery`). */
+  id: string;
+}
+
+const href = `${storybookUrl()}?path=/story/${story(Astro.props.id)}`;
+---
+
+<a href={href}><slot /></a>

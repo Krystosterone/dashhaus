@@ -1,0 +1,74 @@
+---
+title: Warnings and alarms
+description: "How Orb and Field show a problem: a low battery, a door left open, a jammed lock, a triggered alarm or a baby monitor's alert, and how loud each one gets."
+---
+
+import LiveStory from "../../../components/LiveStory.astro";
+import StoryLink from "../../../components/StoryLink.astro";
+
+Both skins show a problem on the card it belongs to, in words, never by colour alone, so it still reads with colour
+turned off or to a screen reader. How loud it gets depends on how soon you need to act: a low battery waits until it
+suits you, a baby's low oxygen doesn't. A card never moves or changes height because of a problem, so you find it
+where you always find that device.
+
+## What counts as a problem
+
+Each card knows its own, from what Home Assistant reports:
+
+| Card | Look when convenient | Act soon | Act now |
+| --- | --- | --- | --- |
+| Sensor | battery at 15% or less | | |
+| Weather | poor air (US AQI over 100, with `aqi_scale: US`), gusts of 50 km/h or more, UV of 8 or more | | |
+| Cover | a garage door, door or gate left open | | |
+| Alarm | disarmed with doors or windows open (`open_sensors`) | the entry delay, counting down | triggered |
+| Lock | battery at 15% or less | jammed | |
+| Owlet | the sock's battery low | the sock off or disconnected, the base station without power, the battery critical, no new reading for `stale_after` minutes (3 by default) | a vitals alert: critical, low or high oxygen; low or high heart rate |
+
+An Owlet base station switched off is a choice, not a fault: both skins say so in plain words, with no warning. An
+unlocked door is a state, however long it lasts. The alert sensors and their names are on the
+[Owlet page](/dashhaus/entities/owlet/), and each card's keys on [Lay it out in YAML](/dashhaus/start/yaml/#keys).
+
+## In Orb
+
+- **A warning leads the card's status line** in orange behind a warning mark, a small circled exclamation point, and
+  a screen reader hears it as a warning: "Battery 12%", "Jammed · may not be locked", "Open since 10:20". Where a card
+  has several, the most urgent leads with a count of the rest ("Hazardous air +2"), and its sheet names every one.
+  Compact rows keep the mark.
+- **Only an alarm that has gone off fills.** A triggered alarm's pill fills orange and pulses gently; an Owlet vitals
+  alert fills the card's control the same way and names every alert sounding, the most urgent first, with its figure:
+  "Low oxygen · 84% O₂". Under reduced motion they hold still.
+- **A problem never glows.** Orb's glow and yellow mean on; a problem gets words and the mark, never more brightness,
+  so it never looks like a lamp switched on.
+
+Storybook has each: <StoryLink id="orb-cards-alarm--triggered">a triggered alarm</StoryLink>,
+<StoryLink id="orb-cards-owlet--critical-alerts">an Owlet vitals alert</StoryLink> and
+<StoryLink id="orb-cards-owlet--sock-off">a sock off</StoryLink>.
+
+## In Field
+
+Field has no warning colour. Its screens are always dark, so it shows how urgent a problem is by how much of the
+screen turns light, which you notice before you read anything, in both finishes:
+
+- **Look when convenient:** an outlined warning sign before its words. A battery's is printed on the plate in place
+  of the area; a reading's stays on the screen.
+- **Act soon:** the words in a light block on the screen's first line (`Sock off`, `Jammed`); the reading stays.
+- **Act now:** the whole screen turns light and its figure becomes the alarm (`79% O₂`, `ALARM`), a rule lines the
+  module's edge and its light blinks. It flashes once a second for the first ten seconds, then holds until it clears.
+  A module drawn later, or a reconnect, picks up where the flash would be instead of starting it again.
+
+**The alert line** sits under the dashboard's title whenever something needs acting on soon or now, so a problem
+below the fold still shows on a phone's first screen. Alarms come first, then the newest; three show, then
+"+N more". Tap one to open that module's panel. With nothing pressing, there's no line.
+
+Under reduced motion an alarm holds its light screen without flashing. So does a dashboard set `quiet: true`, for a
+nursery's panel at night.
+
+<LiveStory id="field-foundations-alerts--on-a-dashboard" title="Field on a dashboard: a triggered alarm, a sock off and a baby's critical oxygen among calm modules, with the alert line on top" device="Phone" width={390} height={844} light="finish:alloy" dark="finish:black" />
+
+Every level, on a sock and an alarm, is in Storybook's <StoryLink id="field-foundations-alerts--ladder">Alerts</StoryLink>.
+
+## What a dashboard can't do
+
+A dashboard shows a problem only while it's open, and only as fast as Home Assistant hears of it. Neither skin sends
+a notification or makes a sound. For that, use a Home Assistant automation that notifies your phone. For a baby
+monitor in particular, Owlet's own app and base station are the alarm; the card repeats what they raised.
