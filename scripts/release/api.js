@@ -171,7 +171,8 @@ export async function apiOfTarballs(tarballsDir, version, work) {
 
 /** Fetch `version` of every public package npm has at that version into `<work>/registry`, and return its API. */
 export async function apiOfRegistry(version, work) {
-  const names = publicPackages.map(({ name }) => name).filter((name) => publishedAt(name, version));
+  const names = [];
+  for (const { name } of publicPackages) if (await publishedAt(name, version)) names.push(name);
   const problems = await fetchFromRegistry(version, join(work, "registry"), undefined, names);
   if (problems.length) throw new Error(problems.join("\n"));
   return apiOfTarballs(join(work, "registry"), version, work);

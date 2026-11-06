@@ -144,23 +144,29 @@ function nodeSatisfies(version: string, range: string): boolean {
 
 describe("the release's publish step", () => {
   // The least reversible lines in the repository, run here as the workflow runs them: the step's own shell, pulled out
-  // of release.yml, against a fake npm (its registry is a folder of shasums) and a portable sha1sum.
+  // of release.yml, against a fake npm, a fake curl (its registry is a folder of shasums; FAKE_STATUS forces an answer)
+  // and a portable sha1sum.
   const script = (/name: Publish to npm\n\s+run: \|\n([\s\S]*?)\n\n/.exec(read(".github/workflows/release.yml"))?.[1] ?? "").replace(/^ {10}/gm, "");
   const sha1 = (text: string) => createHash("sha1").update(text).digest("hex");
 
-  function publish(packages: { name: string; version: string; file: string; text: string; onNpm?: string }[], prerelease = false) {
+  function publish(packages: { name: string; version: string; file: string; text: string; onNpm?: string }[], prerelease = false, status = "") {
     const work = mkdtempSync(join(tmpdir(), "dashhaus-publish-"));
     try {
       for (const dir of ["bin", "registry", "release"]) mkdirSync(join(work, dir));
       writeFileSync(join(work, "bin/npm"), `#!/bin/bash
-if [ "$1" = view ]; then key="\${2//\\//+}"; [ -f "$FAKE_REGISTRY/$key" ] || { echo "npm error 404" >&2; exit 1; }; cat "$FAKE_REGISTRY/$key"; exit 0; fi
 echo "$*" >> "$FAKE_LOG"
+`);
+      writeFileSync(join(work, "bin/curl"), `#!/bin/bash
+url="\${!#}"; path="\${url#https://registry.npmjs.org/}"; key="\${path%/*}"; key="\${key/\\%2f/+}@\${path##*/}"
+if [ -n "$FAKE_STATUS" ]; then printf 'busy\\n%s' "$FAKE_STATUS"; exit 0; fi
+[ -f "$FAKE_REGISTRY/$key" ] || { printf 'version not found\\n404'; exit 0; }
+printf '{"dist":{"shasum":"%s"}}\\n200' "$(cat "$FAKE_REGISTRY/$key")"
 `);
       writeFileSync(join(work, "bin/sha1sum"), `#!/usr/bin/env node
 const file = process.argv[2];
 console.log(require("node:crypto").createHash("sha1").update(require("node:fs").readFileSync(file)).digest("hex") + "  " + file);
 `);
-      for (const tool of ["npm", "sha1sum"]) chmodSync(join(work, "bin", tool), 0o755);
+      for (const tool of ["npm", "curl", "sha1sum"]) chmodSync(join(work, "bin", tool), 0o755);
       for (const pkg of packages) {
         writeFileSync(join(work, "release", pkg.file), pkg.text);
         if (pkg.onNpm !== undefined) writeFileSync(join(work, "registry", `${pkg.name}@${pkg.version}`.replace("/", "+")), sha1(pkg.onNpm));
@@ -170,7 +176,7 @@ console.log(require("node:crypto").createHash("sha1").update(require("node:fs").
       const result = spawnSync("bash", ["-c", script], {
         cwd: work,
         encoding: "utf8",
-        env: { ...process.env, PATH: `${join(work, "bin")}:${process.env.PATH}`, FAKE_REGISTRY: join(work, "registry"), FAKE_LOG: join(work, "log"), PRERELEASE: String(prerelease) },
+        env: { ...process.env, PATH: `${join(work, "bin")}:${process.env.PATH}`, FAKE_REGISTRY: join(work, "registry"), FAKE_LOG: join(work, "log"), FAKE_STATUS: status, PRERELEASE: String(prerelease) },
       });
       return { status: result.status, output: result.stdout + result.stderr, published: readFileSync(join(work, "log"), "utf8").trim().split("\n").filter(Boolean) };
     } finally {
@@ -183,6 +189,8 @@ console.log(require("node:crypto").createHash("sha1").update(require("node:fs").
 
   it("publishes in order, skipping a version npm holds as this very file", () => {
     expect(script).toContain("npm publish");
+    // npm's CDN keeps a package's index for minutes: reading it here would leave one without this version cached.
+    expect(script, "it reads npm's document for the version, never the package's index").not.toMatch(/npm view|npm info/);
     const run = publish([{ ...core, onNpm: "core" }, orb]);
     expect(run.status, run.output).toBe(0);
     expect(run.output).toContain("@dashhaus/core@0.3.0 is already on npm, this very file; skipped");
@@ -197,6 +205,13 @@ console.log(require("node:crypto").createHash("sha1").update(require("node:fs").
     const run = publish([{ ...core, onNpm: "an older build" }, orb]);
     expect(run.status).not.toBe(0);
     expect(run.output).toContain("@dashhaus/core@0.3.0 is on npm as a different file");
+    expect(run.published).toEqual([]);
+  });
+
+  it("stops before publishing when npm answers neither the version nor a 404", () => {
+    const run = publish([core, orb], false, "503");
+    expect(run.status).not.toBe(0);
+    expect(run.output).toContain("npm answered 503 for @dashhaus/core@0.3.0");
     expect(run.published).toEqual([]);
   });
 });

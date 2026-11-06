@@ -178,13 +178,24 @@ jobs:
           path: release
       # In publish.tsv's order, so every internal range resolves the moment it is published. A version npm already has
       # is skipped when it is this very file, and stops the run when it is any other: npm never takes a version twice.
+      # It asks npm's document for the one version, never the package's index (`npm view`), which npm's CDN would keep
+      # for five minutes without the version about to be published; any other answer than the document or a 404 stops.
       - name: Publish to npm
         run: |
           set -euo pipefail
           tag=latest
           [ "$PRERELEASE" = true ] && tag=next
           while IFS=$'\t' read -r name version file; do
-            published=$(npm view "$name@$version" dist.shasum 2>/dev/null || true)
+            answer=$(curl -sS --retry 3 -w '\n%{http_code}' "https://registry.npmjs.org/${name/\//%2f}/$version")
+            code=${answer##*$'\n'}
+            case "$code" in
+              200) published=$(node -p 'JSON.parse(require("node:fs").readFileSync(0, "utf8")).dist.shasum' <<< "${answer%$'\n'*}") ;;
+              404) published= ;;
+              *)
+                echo "::error::npm answered $code for $name@$version, so whether it is published is unknown"
+                exit 1
+                ;;
+            esac
             if [ -n "$published" ]; then
               if [ "$published" = "$(sha1sum "release/$file" | cut -d' ' -f1)" ]; then
                 echo "$name@$version is already on npm, this very file; skipped"
@@ -198,11 +209,11 @@ jobs:
           done < release/publish.tsv
 
   # The registry smoke: what npm now serves is byte for byte what this commit packed, and the clean-room journeys pass
-  # from it. Read-only, like the build.
+  # from it. Read-only, like the build. Its time covers release:registry's ten-minute wait for npm, then the journeys.
   registry:
     needs: [plan, publish]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       VERSION: ${{ needs.plan.outputs.version }}
     steps:
