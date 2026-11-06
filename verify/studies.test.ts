@@ -46,7 +46,6 @@ describe.each(studySkins.map((s) => [s.skin, s] as const))("the %s study", (skin
 
   it("never ships: no resource, no deploy-config dashboard, no YAML in spec/deploy.md", () => {
     expect(resourceIds).not.toContain(skin);
-    expect(read("apps/lovelace/entry.ts")).not.toContain(`@dashhaus/${skin}/`);
     expect(GENERATED_SKINS.map((dashboard: { id: string }) => dashboard.id)).not.toContain(skin);
     expect(read("dashboard.config.mjs")).not.toContain(`dashhaus-${skin}`);
     expect(deployDoc).not.toContain(`custom:dashhaus-${skin}`);

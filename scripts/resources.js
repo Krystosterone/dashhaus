@@ -6,8 +6,9 @@
  *   Marketplace repository that mirrors them (`<repository>.js`, the asset HACS looks for), so a deploy, a mirror and
  *   an install name the same file.
  * - A skin `npm run new-skin` made gets `dashhaus-<skin>.js`, for this repository's own deploy; it ships nowhere.
- * - `dashhaus.js` is the combined Marketplace install's last file: both skins and the `custom:dashhaus` strategy, with
- *   the notice that Orb and Field now install on their own (spec/release.md → The combined install's sunset).
+ *
+ * The combined Marketplace install's `dashhaus.js` is gone: its last release was the last one built
+ * (spec/release.md → The combined install's sunset).
  *
  * Plain data, read by `config/vite.lovelace.config.ts`, `scripts/build-resources.js`, the release and the checks.
  */
@@ -15,7 +16,7 @@ import { GENERATED_SKINS } from "./generated-skins.js";
 
 /**
  * @typedef {object} Resource
- * @property {string} id the skin's id (`orb`), or `dashhaus` for the combined file
+ * @property {string} id the skin's id (`orb`)
  * @property {string} entry the module the build starts from, from the repository's root
  * @property {string} file the file it writes
  * @property {string} version the package whose version names the build in its console line
@@ -37,11 +38,8 @@ export const GENERATED_RESOURCES = GENERATED_SKINS.map(({ id }) => ({
   version: `src/skins/${id}`,
 }));
 
-/** @type {Resource} The combined Marketplace install's last file. */
-export const COMBINED = { id: "dashhaus", entry: "apps/lovelace/entry.ts", file: "dashhaus.js", version: "packages/core" };
-
 /** @type {Resource[]} Everything `npm run build:ha` writes to `dist/`. */
-export const RESOURCES = [...SKIN_RESOURCES, ...GENERATED_RESOURCES, COMBINED];
+export const RESOURCES = [...SKIN_RESOURCES, ...GENERATED_RESOURCES];
 
 /** The resource by its id, or a thrown error naming the ones there are. */
 export function resource(id) {

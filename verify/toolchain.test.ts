@@ -66,7 +66,7 @@ describe("the pinned npm", () => {
   });
 
   it("builds the release from the lockfile, restoring no cache", () => {
-    // Any job on main can save an Actions cache entry a later run restores; the shipped dashhaus.js must not come from one.
+    // Any job on main can save an Actions cache entry a later run restores; the shipped tarballs must not come from one.
     const release = read(".github/workflows/release.yml");
     expect(release, "the release build passes cache: \"false\" to the setup action").toMatch(
       /uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+cache: "false"/,
@@ -83,7 +83,7 @@ describe("the pinned npm", () => {
     const jobs = Object.fromEntries(
       release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
-    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release", "listings"]);
+    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "publish", "registry", "tag", "listings"]);
     expect(release, "a version bump or refreshed digests on main, or a rerun by hand").toMatch(
       /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/core\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
     );
@@ -97,13 +97,14 @@ describe("the pinned npm", () => {
     expect(release, "no inputs: the commit decides everything").not.toMatch(/inputs\./);
     for (const [name, job] of Object.entries(jobs)) {
       expect(job.includes("id-token: write"), `${name} ${name === "publish" ? "is" : "is not"} the job npm trusts`).toBe(name === "publish");
-      expect(job.includes("contents: write"), `${name} ${["draft", "release"].includes(name) ? "may" : "may not"} write the release`).toBe(["draft", "release"].includes(name));
+      expect(job.includes("contents: write"), `${name} ${name === "tag" ? "may" : "may not"} write the tag`).toBe(name === "tag");
       // Only the read-only build and registry jobs install and run the repository's code.
-      if (["draft", "publish", "release", "listings"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
+      if (["publish", "tag", "listings"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
     }
     expect(jobs.build, "the clean build must reproduce the recorded files").toContain("node scripts/release/candidate.js check --always");
-    expect(jobs.draft, "the release stays a draft until the end").toContain("--draft --target \"$GITHUB_SHA\"");
-    expect(jobs.release).toContain("--draft=false");
+    // No GitHub release, so HACS keeps the combined install on its last one (spec/release.md → The combined install's sunset).
+    expect(release, "no GitHub release and no asset").not.toMatch(/gh release (?:create|upload|edit)/);
+    expect(jobs.tag, "the tag marks the release shipped, at this commit").toContain('-f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"');
     const publish = jobs.publish;
     expect(publish, "npm's trusted publisher names this environment").toMatch(/^ {4}environment: npm$/m);
     expect(publish, "the publish job only needs Node and npm").toMatch(/uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+install: "false"/);

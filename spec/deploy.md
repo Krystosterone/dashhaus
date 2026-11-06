@@ -82,16 +82,9 @@ from the fake Home Assistant's stand-in for the Add dashboard dialog.
 
 Until Orb and Field installed on their own, one Marketplace install, `Krystosterone/dashhaus`, shipped both skins in
 `dashhaus.js` with a strategy of its own, `custom:dashhaus`, listed as **Dashhaus**: one dashboard with a tab per look.
-Its last release keeps it working (spec/release.md → The combined install's sunset): `apps/lovelace/strategy.ts`, built
-into `dashhaus.js` by `build:ha` and attached to that release.
-
-- One view per look, Orb then Field, or only the looks its `skin` names (one id or a list, in tab order); each view is
-  `ll-strategy-view-dashhaus`, a panel holding a vertical stack: a Markdown card saying the look now installs on its own,
-  with a link to its page and to the move, above the look's card on its automatic layout.
-- Its dialog entry says Orb and Field now install on their own; its keys are `skin`, `title`, `viewing`, `theme` (Orb's
-  card only) and `finish` (Field's card only), refused as above but led by `Dashhaus:`.
-- `apps/lovelace/strategy.test.ts` holds it; `verify/dx/marketplace.js` installs the release's `dashhaus.js` as the
-  Marketplace does into the fake Home Assistant, picks **Dashhaus** from the stand-in dialog and opens both views.
+Its last release keeps working where it is installed: each tab draws a Markdown notice that the look now installs on
+its own, above the look's card, and its Add dashboard entry says the same (spec/release.md → The combined install's
+sunset). This repository no longer builds it; the code is in the history before that sunset.
 
 ## Authoring
 
