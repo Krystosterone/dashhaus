@@ -6,7 +6,7 @@
  *   node verify/dx/marketplace.js [--tarballs <dir>] [--keep] [--screenshot <dir>]
  *
  * Check `hacs.json` names the release asset the Marketplace will look for; install the bundle's `dashhaus.js` as the
- * Marketplace does (`www/community/dashhaus/`, a module resource with `?v=<version>`) into
+ * Marketplace does (`www/community/dashhaus/`, served and registered as `/hacsfiles/dashhaus/dashhaus.js?hacstag=…`) into
  * `@dashhaus/fake-home-assistant`; then, in Chromium, do what the person does: open Add dashboard, pick **Dashhaus**
  * under Community dashboards (the bundle's `window.customStrategies` entry), and open the dashboard it made, whose
  * `custom:dashhaus` strategy the page expands as the frontend does into one view per look, each drawing its skin's
@@ -81,11 +81,13 @@ try {
         await copyFile(asset, join(www, "community", REPOSITORY, `${REPOSITORY}.js`));
         server = await startFakeHomeAssistant({ port: 0, www });
         const { ha } = server;
-        await ha.send("lovelace/resources/create", { res_type: "module", url: `/local/community/${REPOSITORY}/${REPOSITORY}.js?v=${version}` });
+        // HACS's resource: /hacsfiles/<repository>/<file>?hacstag=<repository id><version digits> (plugin.py).
+        const hacstag = `123456789${version.replace(/\D+/g, "")}`;
+        await ha.send("lovelace/resources/create", { res_type: "module", url: `/hacsfiles/${REPOSITORY}/${REPOSITORY}.js?hacstag=${hacstag}` });
         const source = await read(asset);
         assert.match(source, /ll-strategy-dashboard-/, "the bundle must define the dashboard strategy");
         assert.match(source, /dashhaus-setup/, "the bundle must still define the deprecated custom:dashhaus-setup");
-        return `www/community/${REPOSITORY}/${REPOSITORY}.js, resource ?v=${version}`;
+        return `www/community/${REPOSITORY}/${REPOSITORY}.js, resource /hacsfiles/${REPOSITORY}/${REPOSITORY}.js?hacstag=${hacstag}`;
       })
     : { ok: false };
 

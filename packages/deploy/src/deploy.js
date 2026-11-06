@@ -95,7 +95,7 @@ async function registerResource(ha, target, version, report, warn) {
     if (existing) await ha.send("lovelace/resources/update", { resource_id: existing.id, res_type: "module", url });
     else await ha.send("lovelace/resources/create", { res_type: "module", url });
     report(`  ✓ ${url} ${existing ? "(updated)" : "(added)"}`);
-    // The same bundle from elsewhere (the Marketplace's /local/community/…) defines the same cards: whichever loads
+    // The same bundle from elsewhere (the Marketplace's /hacsfiles/dashhaus/…) defines the same cards: whichever loads
     // first wins, and the other is skipped without a word.
     const other = resources.find((resource) => resource.url.split("?")[0] !== target.resourcePath && resource.url.split("?")[0].endsWith(`/${target.name}`));
     if (other) warn(`  ! Another ${target.name} is also registered (${other.url.split("?")[0]}). Both define the same cards and only the first to load is used, so remove one under Settings → Dashboards → Resources.`);

@@ -244,8 +244,9 @@ release serves both. What the repository holds:
 
 - `hacs.json` at the root names the plugin. It has no `filename`: the repository is `dashhaus` and the asset is
   `dashhaus.js`, which is the name both stores look for. `verify/dx/marketplace.js` fails if either changes alone.
-  It sets `hide_default_branch`: the stores look in `dist/`, then the latest release, then the root, and the default
-  branch has no built file in either, so offering it could only fail.
+  It sets `hide_default_branch`: the stores take the file from the latest release's assets first, and failing that
+  from the branch's root or `dist/` (HACS's `update_filenames`), and the default branch has no built file in either,
+  so offering it could only fail.
 - `.github/workflows/release.yml` (Releasing, above) builds `dist/dashhaus.js` from the merged release commit,
   attaches it to the release while it is a draft, and publishes the release, whose tag `v<version>` is the version
   the Marketplace reads. The build runs read-only and restores no cache (the setup action's `cache: "false"`): any job
@@ -291,7 +292,7 @@ open as #31. Step 5 is open as #32, and step 6 waits on it, in #31:
    [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
    as a custom repository, reload, then **Settings → Dashboards → Add dashboard** and pick **Dashhaus** under
    Community dashboards (Home Assistant 2026.5 or newer), open its Orb and Field tabs at a phone and a desktop width,
-   in light and dark mode, and check **Edit dashboard → ⋮ → Edit in YAML** shows the bare strategy. Then the deprecated
+   in light and dark mode, and check **Edit dashboard** opens on the bare strategy in YAML. Then the deprecated
    setup card: add it, press Create, open both dashboards, edit one, press again and see nothing overwritten, then open
    the card as a non-admin. Record it in `spec/releases/<version>.md`, as run or unrun.
 5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in

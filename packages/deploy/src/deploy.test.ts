@@ -266,7 +266,7 @@ export default {
   it("warns when another copy of the bundle is registered too, as a Marketplace install's", async () => {
     const directory = await project();
     const ha = new FakeHomeAssistant();
-    ha.resources.push({ id: "resource-hacs", url: "/local/community/dashhaus/dashhaus.js?hacstag=1" });
+    ha.resources.push({ id: "resource-hacs", url: "/hacsfiles/dashhaus/dashhaus.js?hacstag=123456789030" });
     const messages: string[] = [];
     await deploy({
       configFile: join(directory, "dashboard.config.mjs"),
@@ -276,7 +276,7 @@ export default {
       warn: (message) => messages.push(message),
       connect: async () => ha,
     });
-    expect(messages.some((message) => message.includes("Another dashhaus.js is also registered (/local/community/dashhaus/dashhaus.js)"))).toBe(true);
+    expect(messages.some((message) => message.includes("Another dashhaus.js is also registered (/hacsfiles/dashhaus/dashhaus.js)"))).toBe(true);
   });
 
   it("refuses a deploy without the settings .env must hold", async () => {

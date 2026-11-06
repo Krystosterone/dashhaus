@@ -141,4 +141,6 @@ that records what a driver asked for, for a test that injects the fake instead o
   `{ strategy: { type: "custom:<type>" } }`. Not the frontend's dialog: no name or icon form, no built-in dashboards. Its `hass.user` is an administrator unless the address
   says `?admin=false`. Its `hass.themes.darkMode` follows the browser's colour scheme, as Home Assistant's default
   theme does, so a dark browser sees a skin's dark mode.
+- `/hacsfiles/<path>` serves `www/community/<path>`, the static path HACS (and the Marketplace) registers for its
+  downloads, so a resource registered as HACS registers it loads. The fake has it whether or not HACS is "installed".
 - `/local/` serves files only; no directory listings, gzip or range requests. The REST API is read-only.

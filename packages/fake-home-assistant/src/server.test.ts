@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -217,6 +217,18 @@ describe("the HTTP server", () => {
 
     expect((await fetch(`${settings.HA_URL}/local/missing.js`)).status).toBe(404);
     expect((await fetch(`${settings.HA_URL}/local/..%2Fsecret.txt`)).status).toBe(403);
+  });
+
+  it("serves /hacsfiles from www/community, as HACS does, and refuses a path outside it", async () => {
+    const www = await tempDir();
+    await mkdir(join(www, "community", "dashhaus"), { recursive: true });
+    await writeFile(join(www, "community", "dashhaus", "dashhaus.js"), "export default 42;\n");
+    const { settings } = await start({ www });
+
+    const served = await fetch(`${settings.HA_URL}/hacsfiles/dashhaus/dashhaus.js?hacstag=123456789030`);
+    expect(served.status).toBe(200);
+    expect(await served.text()).toBe("export default 42;\n");
+    expect((await fetch(`${settings.HA_URL}/hacsfiles/..%2F..%2Fsecret.txt`)).status).toBe(403);
   });
 
   it("writes the state file after every command", async () => {

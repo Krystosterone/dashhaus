@@ -52,8 +52,8 @@ The dashboard has a tab for each look, **Orb** and **Field**, each laid out from
 
 ### Choose the look, and a wall panel
 
-To keep one look, or set up a wall panel, open the dashboard and its **Edit dashboard** (the pencil, or **⋮**). In the
-**Edit dashboard** dialog, **⋮ → Edit in YAML**, add to the strategy and save:
+To keep one look, or set up a wall panel, open the dashboard and press **Edit dashboard** (the pencil, or **⋮**). Its
+dialog opens on the strategy's configuration in YAML; add to it and save:
 
 <Example file="install/strategy.yaml" title="One look, for a wall panel" />
 
@@ -74,7 +74,7 @@ dashboard you take control of no longer follows the strategy.
 If **Add dashboard** has no **Dashhaus** under Community dashboards, or a dashboard says `Custom element doesn't
 exist` or `Timeout waiting for strategy element`, Home Assistant hasn't loaded Dashhaus yet. Reload the tab. If that
 doesn't help, open **Settings → Dashboards → ⋮ → Resources** and check there's a JavaScript module at
-`/local/community/dashhaus/dashhaus.js`.
+`/hacsfiles/dashhaus/dashhaus.js`.
 
 Community dashboards are listed from Home Assistant 2026.5. On an older version, or a Home Assistant that keeps its
 dashboards in YAML, create a dashboard yourself and give it the strategy as its whole configuration:

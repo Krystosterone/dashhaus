@@ -39,7 +39,8 @@ The CLI is `@dashhaus/deploy` (bin `dashhaus-deploy`, which `npm run deploy` run
 ## The dashboard strategy
 
 A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
-`/local/community/dashhaus/dashhaus.js?v=<version>` as a module resource; it creates no dashboard. The bundle's
+`/hacsfiles/dashhaus/dashhaus.js?hacstag=<repository id><version digits>`, which HACS serves from that folder, as a
+module resource; it creates no dashboard. The bundle's
 `custom:dashhaus` strategy (`apps/lovelace/strategy.ts`, registered by the bundle's entry) is what the person picks
 next: **Settings → Dashboards → Add dashboard → Dashhaus**, under Community dashboards. It follows the frontend's
 contract as its source has it (`src/panels/lovelace/strategies/get-strategy.ts`, `src/data/lovelace_custom_strategies.ts`)
@@ -72,6 +73,10 @@ and the developer docs' Custom dashboard strategies page.
   A generated skin's card gets only the title. Each card checks what it is handed, as it does in YAML. The strategy
   refuses an unknown key, a look it doesn't have, an empty or repeated `skin` and a list on a view, in words the
   frontend shows in place of the dashboard (`Dashhaus: …`).
+- **Editing it.** It has no `getConfigElement`, `noEditor` or `configRequired`: the dialog asks no questions before
+  creating it, and **Edit dashboard** opens the frontend's strategy editor, which, with no visual editor, shows the
+  strategy's config as YAML, where the keys above are set. Its **Take control** saves the expanded config (the views
+  as panels, each holding its look's card), after which the dashboard no longer follows the strategy.
 - **Its surface.** A plain module, no React, store or skin, beside the Lovelace cards in the bundle; the bundle's, not
   part of any package or of the skin-author contract.
 
@@ -89,7 +94,8 @@ guide, and a dashboard it made, keep working; it says so in the card picker (**D
 the card, naming Add dashboard → Dashhaus. Removing it is a decision still to take.
 
 A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
-`/local/community/dashhaus/dashhaus.js?v=<version>` as a module resource; it creates no dashboard. The bundle's
+`/hacsfiles/dashhaus/dashhaus.js?hacstag=<repository id><version digits>`, which HACS serves from that folder, as a
+module resource; it creates no dashboard. The bundle's
 `custom:dashhaus-setup` (`apps/lovelace/setup.ts`, registered by the bundle's entry) is the one remaining step: the
 person adds it to any dashboard once, as **Dashhaus setup** from the card picker, and presses **Create dashboards**.
 

@@ -9,6 +9,7 @@
  *   /api/websocket   Home Assistant's websocket API: auth, `subscribe_entities` (the house, then each change),
  *                    `call_service` (toggles change the house), and `FakeHomeAssistant.send` for every other command
  *   /local/<path>    files under HA_WWW, as Home Assistant serves /config/www
+ *   /hacsfiles/<path>  files under HA_WWW/community, as HACS serves the Marketplace's downloads
  *   /                the sidebar: every dashboard deploy created
  *   /<url_path>[/<view>]  a dashboard: its registered resources loaded as modules, a dashboard or view strategy in its
  *                    saved config expanded as the frontend does, and the view's panel card drawn on the fake house,
@@ -66,6 +67,7 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
     }
     if (path === "/api/fake/state") return send(response, 200, "application/json", JSON.stringify(dump(), null, 2));
     if (path.startsWith("/local/")) return serveFile(response, folder, path.slice("/local/".length));
+    if (path.startsWith("/hacsfiles/")) return serveFile(response, folder, `community/${path.slice("/hacsfiles/".length)}`);
     if (path === "/" || path === "") return send(response, 200, "text/html", sidebar(ha));
     if (path === "/config/lovelace/dashboards") return send(response, 200, "text/html", newDashboardPage(ha));
     const dashboard = ha.dashboards.find((candidate) => candidate.url_path === path.split("/")[1]);

@@ -40,7 +40,7 @@ package shares one version, so move them together. 1.0 will be the first stable 
 
 ## Install
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
+[![Open Marketplace repository on My Home Assistant: Dashhaus.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
 
 As a Home Assistant administrator, no terminal needed:
 
