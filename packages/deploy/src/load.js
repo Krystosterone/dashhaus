@@ -13,8 +13,8 @@ const LOADERS = { ".ts": "ts", ".tsx": "tsx", ".mts": "ts", ".cts": "ts", ".js":
 
 /**
  * Each module bundled into the config keeps its own `import.meta.url`. A single `define` would give every dependency
- * the config file's URL, so a package that resolves a shipped file (`@dashhaus/bundle`) would look beside the config
- * instead of beside itself.
+ * the config file's URL, so a package that resolves a shipped file (`@dashhaus/orb/resource`) would look beside the
+ * config instead of beside itself.
  */
 const ownImportMetaUrl = {
   name: "dashhaus-own-import-meta-url",
@@ -77,13 +77,42 @@ async function bundleConfig(file) {
   return { directory, file: outfile };
 }
 
+/** The folder a file lands in under `$HA_WWW`: its name without the extension. */
+const folderOf = (name) => name.slice(0, name.length - extname(name).length);
+
+/**
+ * The files a config names, as written. Each lands at `/local/<folder>/<name>`, so two with the same file name would
+ * share a URL. Throws `DeployConfigError`.
+ */
+function declaredFiles(config) {
+  if (config?.files === undefined) {
+    throw new DeployConfigError('the deploy config must name the files to upload: files: ["dist/cards.js"]');
+  }
+  if (!Array.isArray(config.files)) throw new DeployConfigError('files must be a list of the files to upload: files: ["dist/cards.js"]');
+  if (!config.files.length) throw new DeployConfigError("files must name at least one file to upload");
+  const declared = config.files.map((path, i) => {
+    if (typeof path !== "string" || !path.trim()) throw new DeployConfigError(`files[${i}] must be the path of a file to upload`);
+    return { path, at: `files[${i}]` };
+  });
+  const names = declared.map(({ path }) => basename(path));
+  const shared = names.find((name, i) => names.indexOf(name) !== i);
+  if (shared) {
+    const paths = declared.filter(({ path }) => basename(path) === shared).map(({ path }) => path);
+    throw new DeployConfigError(`files must have different file names: ${paths.join(" and ")} would both be served as /local/${folderOf(shared)}/${shared}`);
+  }
+  return declared;
+}
+
 /** The config's default export, checked for the fields deploy reads. */
 function validateConfig(config, file) {
   if (!config || typeof config !== "object" || Array.isArray(config) || !Array.isArray(config.dashboards)) {
-    throw new DeployConfigError(`${file} must export default { pageTitle?, bundle, build?, dashboards: [...] }`);
+    throw new DeployConfigError(`${file} must export default { pageTitle?, files, build?, dashboards: [...] }`);
   }
-  if (typeof config.bundle !== "string" || !config.bundle.trim()) {
-    throw new DeployConfigError(`${file}: bundle must name the file to upload`);
+  try {
+    declaredFiles(config);
+  } catch (error) {
+    if (error instanceof DeployConfigError) throw new DeployConfigError(`${file}: ${error.message}`);
+    throw error;
   }
   if (config.build !== undefined && typeof config.build !== "function") {
     throw new DeployConfigError(`${file}: build must be a function`);
@@ -120,12 +149,11 @@ export function resolveDashboards(config, env = process.env) {
     if (typeof dashboard.path !== "string") throw new DeployConfigError(`${at}.path must be a string`);
     if (typeof dashboard.title !== "string") throw new DeployConfigError(`${at}.title must be a string`);
     if (typeof dashboard.icon !== "string") throw new DeployConfigError(`${at}.icon must be a string`);
-    if (typeof dashboard.card !== "function") throw new DeployConfigError(`${at}.card must be a function`);
     return {
       path: env[dashboard.env?.path] || dashboard.path,
       title: env[dashboard.env?.title] || dashboard.title,
       icon: dashboard.icon,
-      card: dashboard.card,
+      ...layout(dashboard, at),
     };
   });
   const noHyphen = dashboards.find(({ path }) => !path.includes("-"));
@@ -135,19 +163,47 @@ export function resolveDashboards(config, env = process.env) {
   return { dashboards, pageTitle };
 }
 
+const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+const hasType = (value) => typeof value.type === "string" && Boolean(value.type.trim());
+
 /**
- * The bundle a config names, resolved against the config's directory. The file's folder and name also make the
- * resource URL, so a repo keeps its URL by keeping its bundle path.
+ * What draws a dashboard: a `card` (a factory `card(ha)` returning `{ card, made }`, or the card's config itself),
+ * saved as one panel view, or a skin's `strategy`, saved as `{ strategy }`. Exactly one of them.
  */
-export function resolveBundle(config, file) {
-  if (typeof config?.bundle !== "string" || !config.bundle.trim()) {
-    throw new DeployConfigError('the deploy config must name the bundle to upload: bundle: "dist/cards.js"');
+function layout(dashboard, at) {
+  const hasCard = dashboard.card !== undefined;
+  const hasStrategy = dashboard.strategy !== undefined;
+  if (hasCard && hasStrategy) throw new DeployConfigError(`${at} takes a card or a strategy, not both`);
+  if (hasStrategy) {
+    if (!isObject(dashboard.strategy) || !hasType(dashboard.strategy)) {
+      throw new DeployConfigError(`${at}.strategy must be an object with a type: strategy: { type: "custom:orb-dashboard" }`);
+    }
+    return { strategy: dashboard.strategy };
   }
-  const bundle = isAbsolute(config.bundle) ? config.bundle : resolve(dirname(resolve(file)), config.bundle);
-  const name = basename(bundle);
-  const folder = name.slice(0, name.length - extname(name).length);
-  if (!name || !folder) throw new DeployConfigError(`bundle must name a file: "${config.bundle}"`);
-  return { file: bundle, name, folder, resourcePath: `/local/${folder}/${name}` };
+  if (!hasCard) {
+    throw new DeployConfigError(`${at} needs a card (a card(ha) function, or the card's config) or a strategy ({ type: "custom:orb-dashboard" })`);
+  }
+  if (typeof dashboard.card === "function") return { card: dashboard.card };
+  if (!isObject(dashboard.card)) {
+    throw new DeployConfigError(`${at}.card must be a card(ha) function returning { card, made }, or the card's config: { type: "custom:dashhaus-orb", ... }`);
+  }
+  if (!hasType(dashboard.card)) throw new DeployConfigError(`${at}.card must have a type, such as "custom:dashhaus-orb"`);
+  return { card: dashboard.card };
+}
+
+/**
+ * The files a config names, each resolved against the config's directory. A file's name makes its folder and its
+ * resource URL, so a repo keeps a URL by keeping the file's name. Throws `DeployConfigError`.
+ */
+export function resolveFiles(config, file) {
+  const directory = dirname(resolve(file));
+  return declaredFiles(config).map(({ path, at }) => {
+    const target = isAbsolute(path) ? path : resolve(directory, path);
+    const name = basename(target);
+    const folder = folderOf(name);
+    if (!name || !folder) throw new DeployConfigError(`${at} must name a file: "${path}"`);
+    return { file: target, name, folder, resourcePath: `/local/${folder}/${name}` };
+  });
 }
 
 /** Read a config file and resolve it in one step; the CLI and the loader test share this seam. */

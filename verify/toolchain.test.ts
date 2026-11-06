@@ -66,7 +66,7 @@ describe("the pinned npm", () => {
   });
 
   it("builds the release from the lockfile, restoring no cache", () => {
-    // Any job on main can save an Actions cache entry a later run restores; the shipped dashhaus.js must not come from one.
+    // Any job on main can save an Actions cache entry a later run restores; the shipped tarballs must not come from one.
     const release = read(".github/workflows/release.yml");
     expect(release, "the release build passes cache: \"false\" to the setup action").toMatch(
       /uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+cache: "false"/,
@@ -83,22 +83,29 @@ describe("the pinned npm", () => {
     const jobs = Object.fromEntries(
       release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
-    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release"]);
+    expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release", "listings"]);
     expect(release, "a version bump or refreshed digests on main, or a rerun by hand").toMatch(
-      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/bundle\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
+      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/core\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
     );
     expect(jobs.plan, "a dispatch ships only from main").toContain('if [ "$GITHUB_REF" != refs/heads/main ]');
-    expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN|secrets\./);
+    expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/);
+    // One secret, in one job: the token that starts the skin repositories' mirrors (spec/release.md → The skin repositories).
+    expect([...release.matchAll(/secrets\.(\w+)/g)].map((match) => match[1]), "no other secret").toEqual(["SKIN_REPOSITORIES_TOKEN"]);
+    expect(jobs.listings, "only the listings job holds it").toContain("secrets.SKIN_REPOSITORIES_TOKEN");
+    expect(jobs.listings, "it can't write here").toMatch(/^ {4}permissions: \{\}$/m);
+    expect(jobs.listings, "it starts each mirror with this version").toContain('gh workflow run release.yml -R "$OWNER/$repository" -f version="$VERSION"');
     expect(release, "no inputs: the commit decides everything").not.toMatch(/inputs\./);
     for (const [name, job] of Object.entries(jobs)) {
       expect(job.includes("id-token: write"), `${name} ${name === "publish" ? "is" : "is not"} the job npm trusts`).toBe(name === "publish");
       expect(job.includes("contents: write"), `${name} ${["draft", "release"].includes(name) ? "may" : "may not"} write the release`).toBe(["draft", "release"].includes(name));
       // Only the read-only build and registry jobs install and run the repository's code.
-      if (["draft", "publish", "release"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
+      if (["draft", "publish", "release", "listings"].includes(name)) expect(job, `${name} runs no repository script`).not.toMatch(/npm run|node (?:scripts|verify)\//);
     }
     expect(jobs.build, "the clean build must reproduce the recorded files").toContain("node scripts/release/candidate.js check --always");
     expect(jobs.draft, "the release stays a draft until the end").toContain("--draft --target \"$GITHUB_SHA\"");
     expect(jobs.release).toContain("--draft=false");
+    // The release is the version's notes; the skins' files are released by their own Marketplace repositories.
+    expect(release, "no file attached to this repository's release").not.toMatch(/gh release upload|dashhaus\.js/);
     const publish = jobs.publish;
     expect(publish, "npm's trusted publisher names this environment").toMatch(/^ {4}environment: npm$/m);
     expect(publish, "the publish job only needs Node and npm").toMatch(/uses: \.\/\.github\/actions\/setup\n\s+with:\n\s+install: "false"/);

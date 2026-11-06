@@ -29,12 +29,13 @@ export const CHANGE_TYPES = ["breaking", "feature", "fix", "internal"];
 
 /** Outside the public package folders, the files a tarball or the bundle is built from. */
 const BUILT_FROM = [
-  "apps/lovelace/",
   "package-lock.json",
   "LICENSE",
   "config/vite.lovelace.config.ts",
   "config/tsconfig.base.json",
-  "scripts/build-bundle.js",
+  "config/THIRD_PARTY_NOTICES.md",
+  "scripts/build-resources.js",
+  "scripts/resources.js",
   "scripts/build-packages.js",
   "scripts/release/manifest.js",
 ];

@@ -1,16 +1,17 @@
 /**
- * Build and pack the seven public packages: `npm run release:pack [-- --out release]`.
+ * Build and pack the five public packages: `npm run release:pack [-- --out release]`.
  *
  * npm packs a staged copy holding only the files the package ships and its release manifest (no `private`, no
  * `source` condition, internal `@dashhaus` ranges pinned). The tarballs are the publish artifacts, and `publish.tsv`
- * beside them is the order the Release workflow publishes them in (spec/release.md → Publishing). The build output is `packages/{core,dashboard}/dist`; deploy already runs from its `.js` sources.
+ * beside them is the order the Release workflow publishes them in (spec/release.md → Publishing). The build output is
+ * each package's `dist/`, Orb's and Field's resources included; deploy already runs from its `.js` sources.
  */
 import { execFileSync } from "node:child_process";
 import { copyFile, cp, mkdir, mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { buildBundlePackage } from "../build-bundle.js";
+import { buildSkinResources } from "../build-resources.js";
 import { buildPackages } from "../build-packages.js";
 import { PUBLISH_ORDER, publicPackages, publishManifest, publishOrder, readManifest, root, tarballName } from "./manifest.js";
 
@@ -47,7 +48,7 @@ async function stageFiles(stage, dir, patterns, fromRoot) {
  */
 export async function pack(outDir = out, buildRoot = root) {
   await buildPackages(buildRoot);
-  await buildBundlePackage(buildRoot);
+  await buildSkinResources(buildRoot);
   await mkdir(outDir, { recursive: true });
   for (const file of await readdir(outDir)) {
     if (file.endsWith(".tgz") || file === PUBLISH_ORDER) await rm(join(outDir, file), { force: true });

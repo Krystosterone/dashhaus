@@ -1,5 +1,5 @@
 /**
- * The seven public packages, their release manifest, and the rules a packed manifest must satisfy.
+ * The five public packages, their release manifest, and the rules a packed manifest must satisfy.
  *
  * The workspace resolves package source through the `source` export condition. A packed tarball ships only the built
  * output, so the release pack strips that condition (and `private`) from a staged copy; the package manifests in the
@@ -21,11 +21,9 @@ export const root = (() => {
 /** What each public package ships: built `dist` or the CLI's runnable sources, plus the package README. */
 export const publicPackages = [
   { key: "core", name: "@dashhaus/core", dir: "packages/core", ship: ["dist", "README.md"] },
-  { key: "dashboard", name: "@dashhaus/dashboard", dir: "packages/dashboard", ship: ["dist", "README.md"] },
   { key: "deploy", name: "@dashhaus/deploy", dir: "packages/deploy", ship: ["bin.js", "src/*.js", "src/*.d.ts", "README.md"] },
   { key: "orb", name: "@dashhaus/orb", dir: "src/skins/orb", ship: ["dist", "README.md"] },
   { key: "field", name: "@dashhaus/field", dir: "src/skins/field", ship: ["dist", "README.md"] },
-  { key: "bundle", name: "@dashhaus/bundle", dir: "packages/bundle", ship: ["dist", "README.md", "THIRD_PARTY_NOTICES.md"] },
   { key: "scaffold", name: "create-dashhaus-skin", dir: "packages/create-dashhaus-skin", ship: ["dist", "bin.js", "README.md"] },
 ];
 

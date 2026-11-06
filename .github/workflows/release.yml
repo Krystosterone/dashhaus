@@ -1,9 +1,10 @@
 name: Release
 
-# Merging a release PR ships it: the push to main that moves the bundle's version to one with no tag yet runs this (as
-# does one that refreshes an unshipped release's digests after its build refused them), and it tags v<version>,
-# attaches dashhaus.js (the file the Home Assistant Marketplace and HACS install), publishes the
-# seven packages to npm and publishes the GitHub release. Everything it ships was decided and reviewed in that PR
+# Merging a release PR ships it: the push to main that moves core's version (every package shares it) to one with no
+# tag yet runs this (as does one that refreshes an unshipped release's digests after its build refused them), and it
+# publishes the five packages to npm, publishes the GitHub release with the record's notes and no file, and starts each
+# skin's Marketplace repository mirroring this version. Orb's and Field's resources ship inside their packages, and
+# their own repositories release them from npm (spec/release.md → The skin repositories). Everything it ships was decided and reviewed in that PR
 # (spec/release.md → Releasing): the version, the notes, and the files' SHA-256 in spec/releases/<version>.sha256,
 # which the build must reproduce before anything leaves. It takes no inputs and runs no model.
 #
@@ -13,7 +14,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: [packages/bundle/package.json, "spec/releases/*.sha256"]
+    paths: [packages/core/package.json, "spec/releases/*.sha256"]
   workflow_dispatch:
 
 env:
@@ -51,7 +52,7 @@ jobs:
             echo "::error::a release ships from main, not $GITHUB_REF"
             exit 1
           fi
-          version=$(jq -r .version packages/bundle/package.json)
+          version=$(jq -r .version packages/core/package.json)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           case "$version" in *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;; esac
           if at=$(gh api "repos/$GITHUB_REPOSITORY/commits/refs/tags/v$version" --jq .sha 2>/dev/null); then
@@ -85,17 +86,18 @@ jobs:
       - run: npm run release:pack
       # The tarballs about to be published, installed into a clean app, as CI's dx lane does on every push.
       - run: npm run verify:packages
-      # One build for both stores: the Marketplace's dashhaus.js is the file inside @dashhaus/bundle.
-      - name: Check the asset is the bundle package's file
-        run: cmp dist/dashhaus.js packages/bundle/dist/dashhaus.js
+      # One build for every way in: each skin's resource inside its package, which its Marketplace repository mirrors
+      # from npm, is the file build:ha writes.
+      - name: Check each skin's resource is the file build:ha writes
+        run: |
+          set -euo pipefail
+          version=$(jq -r .version packages/core/package.json)
+          for skin in orb field; do
+            tar -xOzf "release/dashhaus-$skin-$version.tgz" "package/dist/$skin-dashboard.js" | cmp - "dist/$skin-dashboard.js"
+          done
       # The gate: this clean build reproduces, byte for byte, the files the release PR recorded and was reviewed on.
       - run: node scripts/release/candidate.js check --always
       - run: node scripts/release/candidate.js body > release-page.md
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: dashhaus.js
-          path: dist/dashhaus.js
-          if-no-files-found: error
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: packages
@@ -109,8 +111,7 @@ jobs:
           path: release-page.md
           if-no-files-found: error
 
-  # A draft release at this commit, with its notes and dashhaus.js. A draft makes no tag and nobody sees it yet; an
-  # immutable release takes its files only while it is a draft.
+  # A draft release at this commit, with the record's notes and no file. A draft makes no tag and nobody sees it yet.
   draft:
     needs: [plan, build]
     runs-on: ubuntu-latest
@@ -124,10 +125,6 @@ jobs:
       VERSION: ${{ needs.plan.outputs.version }}
       PRERELEASE: ${{ needs.plan.outputs.prerelease }}
     steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: dashhaus.js
-          path: dist
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-page
@@ -147,7 +144,6 @@ jobs:
           else
             gh release edit "$TAG" --notes-file notes/release-page.md
           fi
-          gh release upload "$TAG" dist/dashhaus.js --clobber
 
   # npm trusted publishing: npm accepts this workflow's OIDC identity in place of a token, so there is no npm token
   # secret and no 2FA prompt, and every version carries a provenance attestation naming this repository, workflow and
@@ -228,12 +224,12 @@ jobs:
           name: packages
           path: release
       - run: npm run release:registry -- "$VERSION" --out registry --compare release
-      - run: node verify/dx/marketplace.js --tarballs registry
+      - run: node verify/dx/skin.js --tarballs registry
       - run: node verify/dx/user.js --tarballs registry
       - run: node verify/dx/author.js --tarballs registry
       - run: node verify/dx/developer.js --tarballs registry
 
-  # Last: publishing the draft creates the tag v<version> at this commit, and the Marketplace and HACS see the release.
+  # Publishing the draft creates the tag v<version> at this commit; its notes are the version's release notes.
   release:
     needs: [plan, registry]
     runs-on: ubuntu-latest
@@ -259,3 +255,46 @@ jobs:
           else
             gh release edit "$TAG" --draft=false --latest
           fi
+
+  # After the release: each skin's Marketplace repository mirrors this version, started here rather than on a schedule,
+  # so Orb and Field reach the Marketplace minutes after npm (spec/release.md → The skin repositories). The token can
+  # only start those repositories' workflows (a fine-grained token: Actions read and write on them alone); what they
+  # release is still only a file whose npm provenance names this workflow. The job waits for both releases, so a green
+  # run means npm and both listings are done; a rerun starts only the ones still missing.
+  listings:
+    needs: [plan, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions: {}
+    env:
+      GH_TOKEN: ${{ secrets.SKIN_REPOSITORIES_TOKEN }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      OWNER: ${{ github.repository_owner }}
+    steps:
+      - name: Start each skin repository's mirror, then wait for its release
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::set the SKIN_REPOSITORIES_TOKEN secret (spec/release.md → The skin repositories), then rerun this job"
+            exit 1
+          fi
+          repositories=(orb-dashboard field-dashboard)
+          for repository in "${repositories[@]}"; do
+            if gh release view "v$VERSION" -R "$OWNER/$repository" >/dev/null 2>&1; then
+              echo "$repository already has v$VERSION"
+            else
+              gh workflow run release.yml -R "$OWNER/$repository" -f version="$VERSION"
+              echo "started $repository's mirror for $VERSION"
+            fi
+          done
+          deadline=$((SECONDS + 600))
+          for repository in "${repositories[@]}"; do
+            until gh release view "v$VERSION" -R "$OWNER/$repository" >/dev/null 2>&1; do
+              if [ "$SECONDS" -ge "$deadline" ]; then
+                echo "::error::$repository has no v$VERSION after ten minutes; see its Release workflow"
+                exit 1
+              fi
+              sleep 15
+            done
+            echo "$repository: v$VERSION released"
+          done

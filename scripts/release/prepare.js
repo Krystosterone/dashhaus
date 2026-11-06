@@ -113,7 +113,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`→ packing ${version}`);
   await pack(join(root, "release"));
   await writeFile(digestsPath(version), formatDigests(await packedDigests(version)));
-  const repository = (await readManifest("packages/bundle")).repository.url;
+  const repository = (await readManifest("packages/core")).repository.url;
   await writeFile(recordPath(version), renderRecord({ version, from, notes, diff, repository }));
   for (const note of notes) await rm(join(root, note.file));
 

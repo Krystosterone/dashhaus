@@ -3,13 +3,14 @@
   "version": "0.3.0",
   "private": true,
   "license": "MIT",
-  "description": "The headless Home Assistant foundation behind Dashhaus skins: entity models, the store, mappers, actions, useHa hooks and interaction primitives. No markup, no CSS.",
+  "description": "The Home Assistant foundation behind Dashhaus skins: entity models, the store, mappers, actions, useHa hooks and interaction primitives, headless; and, on its ./lovelace subpaths, the framework a skin's Lovelace card draws on.",
   "keywords": [
     "home-assistant",
     "react",
     "hooks",
     "headless",
-    "dashboard"
+    "dashboard",
+    "lovelace"
   ],
   "homepage": "https://krystosterone.github.io/dashhaus/",
   "bugs": {
@@ -91,6 +92,42 @@
       "import": "./dist/testing.js",
       "default": "./dist/testing.js"
     },
+    "./lovelace": {
+      "source": "./src/lovelace/index.ts",
+      "types": "./dist/lovelace/index.d.ts",
+      "import": "./dist/lovelace/index.js",
+      "default": "./dist/lovelace/index.js"
+    },
+    "./lovelace/skin": {
+      "source": "./src/lovelace/skin.ts",
+      "types": "./dist/lovelace/skin.d.ts",
+      "import": "./dist/lovelace/skin.js",
+      "default": "./dist/lovelace/skin.js"
+    },
+    "./lovelace/card": {
+      "source": "./src/lovelace/card.tsx",
+      "types": "./dist/lovelace/card.d.ts",
+      "import": "./dist/lovelace/card.js",
+      "default": "./dist/lovelace/card.js"
+    },
+    "./lovelace/schema": {
+      "source": "./src/lovelace/schema.ts",
+      "types": "./dist/lovelace/schema.d.ts",
+      "import": "./dist/lovelace/schema.js",
+      "default": "./dist/lovelace/schema.js"
+    },
+    "./lovelace/layout": {
+      "source": "./src/lovelace/layout.ts",
+      "types": "./dist/lovelace/layout.d.ts",
+      "import": "./dist/lovelace/layout.js",
+      "default": "./dist/lovelace/layout.js"
+    },
+    "./lovelace/conformance": {
+      "source": "./src/lovelace/conformance.ts",
+      "types": "./dist/lovelace/conformance.d.ts",
+      "import": "./dist/lovelace/conformance.js",
+      "default": "./dist/lovelace/conformance.js"
+    },
     "./fixtures/*": {
       "source": "./src/ha/fixtures/*",
       "default": "./dist/ha/fixtures/*"
@@ -100,6 +137,7 @@
     "@testing-library/react": "^16.0.0",
     "home-assistant-js-websocket": "^9.7.1",
     "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0",
     "vitest": "^3.0.0 || ^4.0.0 || ^5.0.0"
   },
   "peerDependenciesMeta": {
@@ -107,6 +145,9 @@
       "optional": true
     },
     "home-assistant-js-websocket": {
+      "optional": true
+    },
+    "react-dom": {
       "optional": true
     },
     "vitest": {

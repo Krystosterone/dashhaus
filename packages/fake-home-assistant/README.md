@@ -131,9 +131,16 @@ that records what a driver asked for, for a test that injects the fake instead o
   only; the websocket server answers `unknown_command`.
 - Auth is one long-lived token compared as a string; no users, refresh tokens or permissions.
 - The websocket implementation handles text frames and client close/ping, not binary, compression or server pings.
-- The dashboard page loads the saved first view's first card and serves `subscribe_entities`, light/switch
-  `call_service` and empty history/recorder answers from the page; its `lovelace/*` commands go to the server, so a
-  card such as Dashhaus's setup card can create dashboards. Its `hass.user` is an administrator unless the address
+- The dashboard page loads the first card of the view its address names (`/<url_path>/<view path>`, else the first),
+  after expanding a custom dashboard and view strategy as the frontend's `get-strategy.ts` does (the
+  `ll-strategy-<kind>-<name>` element's static `generate`, merged over the config); it knows no built-in or legacy
+  strategy. It serves `subscribe_entities`, light/switch `call_service` and empty history/recorder answers from the
+  page; its `lovelace/*` commands go to the server, so a card on the page can create dashboards.
+- `/config/lovelace/dashboards` stands in for the Add dashboard dialog's Community dashboards: a button per
+  `window.customStrategies` dashboard entry, which creates `dashboard-<suggested title>` and saves
+  `{ strategy: { type: "custom:<type>" } }`. Not the frontend's dialog: no name or icon form, no built-in dashboards. Its `hass.user` is an administrator unless the address
   says `?admin=false`. Its `hass.themes.darkMode` follows the browser's colour scheme, as Home Assistant's default
   theme does, so a dark browser sees a skin's dark mode.
+- `/hacsfiles/<path>` serves `www/community/<path>`, the static path HACS (and the Marketplace) registers for its
+  downloads, so a resource registered as HACS registers it loads. The fake has it whether or not HACS is "installed".
 - `/local/` serves files only; no directory listings, gzip or range requests. The REST API is read-only.

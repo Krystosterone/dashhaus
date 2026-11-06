@@ -12,28 +12,29 @@ Dashhaus is <Packages show="count" /> packages that share one version, <Packages
 ## How they depend on each other
 
 ```text
-@dashhaus/core           React (peer), home-assistant-js-websocket (optional peer)
-  └─ @dashhaus/dashboard
-       ├─ @dashhaus/orb
-       ├─ @dashhaus/field
-       └─ your skin       (what create-dashhaus-skin writes depends on core and dashboard)
+@dashhaus/core           React (peer); react-dom and home-assistant-js-websocket (optional peers)
+  ├─ @dashhaus/orb
+  ├─ @dashhaus/field
+  └─ your skin           (what create-dashhaus-skin writes depends on core, and deploys with deploy)
 
-@dashhaus/bundle         built from orb and field; depends on nothing
 @dashhaus/deploy         depends on esbuild only; never on React, core or a skin
 ```
 
-So a dashboard that only uses Orb and Field installs `@dashhaus/bundle` and `@dashhaus/deploy` and no React at all. A
-skin installs core and dashboard and deploys its own bundle with the same deploy tool.
+So a dashboard that only uses Orb or Field installs that skin's package and `@dashhaus/deploy`, and uploads the
+resource the skin ships; nothing is built. A skin installs core and deploys its own file with the same deploy tool.
 
 ## `@dashhaus/core`
 
-<Packages show="subpaths" packages={["@dashhaus/core"]} />
+<Packages show="subpaths" packages={["@dashhaus/core"]} rows="!./lovelace" />
 
 The demo, testing and fixture subpaths are for stories and tests: their data can change in any release.
 
 ## For a skin author
 
-<Packages show="subpaths" packages={["@dashhaus/dashboard"]} />
+The Lovelace framework is `@dashhaus/core`'s `./lovelace` subpaths; a React app that only uses the hooks never loads
+them.
+
+<Packages show="subpaths" packages={["@dashhaus/core"]} rows="./lovelace" />
 
 Until 1.0 a breaking change to the contract is allowed, but it is announced as one; the conformance check is what
 says a skin still fits.
@@ -52,8 +53,8 @@ For a script that deploys from code rather than the `dashhaus-deploy` command:
 
 | You want | Install |
 | --- | --- |
-| Orb or Field on your Home Assistant, no terminal | Nothing from npm: the Marketplace installs the bundle ([Install from the Marketplace](/dashhaus/start/install/)) |
-| Orb or Field on your Home Assistant, from a script or CI | `@dashhaus/bundle` and `@dashhaus/deploy` ([Deploy from the command line](/dashhaus/start/deploy/)) |
+| Orb or Field on your Home Assistant, no terminal | Nothing from npm: the Marketplace installs the skin's resource ([Orb](/dashhaus/orb/), [Field](/dashhaus/field/)) |
+| Orb or Field on your Home Assistant, from a script or CI | `@dashhaus/orb` or `@dashhaus/field`, and `@dashhaus/deploy` ([Deploy from the command line](/dashhaus/start/deploy/)) |
 | Entities in a React app, your markup | `@dashhaus/core`, React, `home-assistant-js-websocket` ([Use the hooks in your app](/dashhaus/start/getting-started/)) |
 | Orb's or Field's cards in a React app | `@dashhaus/orb` or `@dashhaus/field` with the above |
-| A skin of your own | `npm create dashhaus-skin@latest`, which writes a project depending on core, dashboard and deploy ([Build a skin](/dashhaus/start/build-a-skin/)) |
+| A skin of your own | `npm create dashhaus-skin@latest`, which writes a project depending on core and deploy ([Build a skin](/dashhaus/start/build-a-skin/)) |

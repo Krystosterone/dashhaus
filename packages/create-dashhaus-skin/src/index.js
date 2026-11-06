@@ -146,7 +146,7 @@ function tarballSpecifiers() {
   if (!existsSync(dir)) fail(`--tarballs ${tarballDir} does not exist`);
   const files = readdirSync(dir).filter((file) => file.endsWith(".tgz")).sort();
   const found = {};
-  const packages = { "@dashhaus/core": "dashhaus-core-", "@dashhaus/dashboard": "dashhaus-dashboard-", "@dashhaus/deploy": "dashhaus-deploy-", "create-dashhaus-skin": "create-dashhaus-skin-" };
+  const packages = { "@dashhaus/core": "dashhaus-core-", "@dashhaus/deploy": "dashhaus-deploy-", "create-dashhaus-skin": "create-dashhaus-skin-" };
   for (const [name, prefix] of Object.entries(packages)) {
     const file = files.filter((candidate) => candidate.startsWith(prefix)).at(-1);
     if (!file) fail(`no ${prefix}<version>.tgz in ${dir}`);

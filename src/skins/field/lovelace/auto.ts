@@ -1,10 +1,10 @@
-import { deviceCompanion, friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/dashboard/layout";
-import type { AutoInput } from "@dashhaus/dashboard/layout";
+import { deviceCompanion, friendlyName, groupByArea, roomSensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import type { AutoInput } from "@dashhaus/core/lovelace/layout";
 import { kindOf } from "./config";
 import type { FieldRow, ModuleConfig } from "./config";
 
-export type { AutoInput } from "@dashhaus/dashboard/layout";
-export { areaName, groupByArea } from "@dashhaus/dashboard/layout";
+export type { AutoInput } from "@dashhaus/core/lovelace/layout";
+export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
 
 /**
  * Every supported entity Field can draw, for a card without `cards` or `rows`, as the card its entity id picks: hidden and

@@ -1,6 +1,6 @@
-import { BODY_KEYS, DashboardConfigError, PLACEMENT_KEYS, Reader, isRaw, readBody, readCard, rowTitles } from "@dashhaus/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
-import type { NavEntry } from "@dashhaus/dashboard";
+import { BODY_KEYS, DashboardConfigError, PLACEMENT_KEYS, Reader, isRaw, readBody, readCard, rowTitles } from "@dashhaus/core/lovelace/schema";
+import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
+import type { NavEntry } from "@dashhaus/core/lovelace";
 import { FUTURA_CARDS } from "./registry";
 import type { FuturaCardItem } from "./registry";
 import type { FuturaFootprint } from "../shared/ui";

@@ -1,6 +1,6 @@
 /**
  * What the repo's conformance tests read the skins' source and docs with, outside every skin; only tests import it.
- * The generic card checks live in `@dashhaus/dashboard/conformance`; these are the repo's own readers and the rule
+ * The generic card checks live in `@dashhaus/core/lovelace/conformance`; these are the repo's own readers and the rule
  * that keeps a card's presentation away from the Home Assistant slice.
  */
 import { existsSync, readFileSync } from "node:fs";

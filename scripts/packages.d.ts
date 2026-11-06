@@ -8,7 +8,7 @@ export interface PackageEntry {
   exports: Record<string, string>;
 }
 
-export const packages: Record<"core" | "dashboard" | "deploy", PackageEntry>;
+export const packages: Record<"core" | "deploy", PackageEntry>;
 export function packageFile(packageName: keyof typeof packages, path?: string): string;
 export function packageSpecifier(packageName: keyof typeof packages, subpath?: string): string;
 
@@ -73,7 +73,6 @@ export function generatedManifest(skin: string, options?: { study?: boolean; Sec
 
 export const seams: {
   preview: string;
-  lovelaceEntry: string;
   generatedSkins: string;
   agents: string;
   cardsDoc: string;

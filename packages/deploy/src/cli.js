@@ -30,7 +30,7 @@ export function parseArgs(argv) {
 /** The command's options, with what each does: `--help` prints them and the documentation site lists them. */
 export const OPTIONS = [
   { flag: "--config <file>", text: "the config to read (default: dashboard.config.mjs in this folder)" },
-  { flag: "--skip-build", text: "upload the bundle as it is; use it for @dashhaus/bundle, which has nothing to build" },
+  { flag: "--skip-build", text: "upload the files as they are; a skin package's file has nothing to build" },
   { flag: "--help", text: "this text" },
 ];
 
@@ -56,24 +56,16 @@ export const ENV_HELP = (() => {
 // package's import-boundary check, which reads specifiers out of the source, doesn't take them for its own.
 const q = '"';
 
-/** A whole config for the prebuilt bundle; a skin project names its own built file in `bundle` instead. */
-export const STARTER_CONFIG = `import { fileURLToPath } from ${q}node:url${q};
-import { bundlePath } from ${q}@dashhaus/bundle${q};   // npm install @dashhaus/bundle: Orb and Field, prebuilt
+/** A whole config for Orb from its package; Field's is the same with its own resource and strategy. */
+export const STARTER_CONFIG = `import { resourceFile as orb } from ${q}@dashhaus/orb/resource${q};   // npm install @dashhaus/orb @dashhaus/deploy
 
 export default {
   pageTitle: "Home",
-  bundle: fileURLToPath(bundlePath),             // or "dist/dashhaus-my-skin.js" for a skin you build
-  // build: async () => { /* run your build */ },// optional; --skip-build skips it
+  files: [orb],                                  // or "dist/dashhaus-my-skin.js" for a skin you build
   dashboards: [
-    {
-      path: "home-orb",                          // the URL path; Home Assistant requires a hyphen
-      title: "Home (Orb)",                       // the sidebar title
-      icon: "mdi:home-variant",
-      async card() {
-        // A card with no cards or rows lays out every supported entity by area.
-        return { card: { type: "custom:dashhaus-orb" }, made: "automatic" };
-      },
-    },
+    { path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", strategy: { type: "custom:orb-dashboard" } },
+    // A dashboard of your own: Orb's card with your cards or rows.
+    // { path: "my-home", title: "My home", icon: "mdi:floor-plan", card: { type: "custom:dashhaus-orb", title: "Home", cards: ["light.kitchen"] } },
   ],
 };`;
 
@@ -90,13 +82,14 @@ export function helpText(dashboards, configFile, problem) {
     : undefined;
   const config = listed
     ? `Config: ${configFile}\nIt declares these dashboards:\n${listed}`
-    : `Config: ${configFile}\n  ${problem ?? "not found"}\n\nWrite dashboard.config.mjs (or pass --config <file>). For the prebuilt Orb and Field bundle:\n\n${indent(STARTER_CONFIG)}`;
+    : `Config: ${configFile}\n  ${problem ?? "not found"}\n\nWrite dashboard.config.mjs (or pass --config <file>). A config for Orb; Field's is the same with\n@dashhaus/field/resource and custom:field-dashboard:\n\n${indent(STARTER_CONFIG)}`;
   return `Usage: dashhaus-deploy [--config <file>] [--skip-build]
 
-Builds the bundle the config names (unless --skip-build), copies it to $HA_WWW/<folder>/, registers
-/local/<folder>/<file> as a dashboard resource (versioned by its content, so browsers fetch the new file),
-checks that Home Assistant serves it, and creates each dashboard the config declares if it does not exist
-yet. An existing dashboard keeps its layout; only its sidebar title follows the config.
+Runs the config's build if it has one (unless --skip-build), copies each file the config names to
+$HA_WWW/<folder>/, registers each as /local/<folder>/<file>, a dashboard resource (versioned by its content,
+so browsers fetch the new file), checks that Home Assistant serves them, and creates each dashboard the config
+declares if it does not exist yet. An existing dashboard keeps its layout; only its sidebar title follows the
+config. A dashboard on a skin's strategy follows the skin as it updates.
 
 ${OPTIONS.map((option) => `  ${option.flag.padEnd(15)}  ${option.text}`).join("\n")}
 

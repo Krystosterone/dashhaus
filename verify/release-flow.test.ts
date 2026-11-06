@@ -34,8 +34,8 @@ describe("change notes", () => {
     for (const note of await readChanges()) expect(CHANGE_TYPES, note.file).toContain(note.type);
   });
 
-  it("counts a change as shipped when it can change a tarball or the bundle", () => {
-    for (const path of ["packages/core/src/entities/light/types.ts", "src/skins/orb/cards/lock/LockCard.tsx", "apps/lovelace/entry.ts", "package-lock.json", "packages/create-dashhaus-skin/src/templates/card/x.tsx"]) {
+  it("counts a change as shipped when it can change a tarball or a resource", () => {
+    for (const path of ["packages/core/src/entities/light/types.ts", "src/skins/orb/cards/lock/LockCard.tsx", "src/skins/orb/lovelace/resource.ts", "scripts/resources.js", "package-lock.json", "packages/create-dashhaus-skin/src/templates/card/x.tsx"]) {
       expect(shipsFrom(path), path).toBe(true);
     }
     for (const path of ["packages/core/src/entities/light/light.test.ts", "src/skins/orb/cards/lock/LockCard.stories.tsx", "packages/core/README.md", "src/skins/orb/stories/DesignRules.mdx", "docs/src/content/docs/index.mdx", "spec/orb.md", "verify/storybook.test.ts", "packages/fake-home-assistant/src/server.js"]) {

@@ -3,7 +3,7 @@
  * generated skin in a temporary copy checks the package, registrations and build seams a real skin uses. The Field
  * reconstruction lives in `field.test.ts`; the three copies run at once.
  */
-import { lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -13,10 +13,11 @@ describe("new-skin", () => {
   it("finds every registration anchor without writing", async () => {
     const result = await run(root, "node", ["scripts/new-skin/index.js", "probe-skin", "--dry-run"]);
     expect(result.status, result.output).toBe(0);
-    for (const path of [".storybook/preview.tsx", "apps/lovelace/entry.ts", "scripts/generated-skins.js", "spec/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
+    for (const path of [".storybook/preview.tsx", "scripts/generated-skins.js", "spec/deploy.md"]) expect(result.output).toContain(`edit   ${path}`);
     expect(result.output).toContain("create src/skins/probe-skin/package.json");
     expect(result.output).toContain("create src/skins/probe-skin/index.ts");
     expect(result.output).toContain("create src/skins/probe-skin/lovelace/registry.tsx");
+    expect(result.output).toContain("create src/skins/probe-skin/lovelace/resource.ts");
   });
 
   describe("a generated skin in a copy", () => {
@@ -32,7 +33,6 @@ describe("new-skin", () => {
       const card = await run(copy, "node", ["scripts/new-card/index.js", "light", "--skin", "canvas"]);
       expect(card.status, card.output).toBe(0);
       // A study (spec/skins.md → Studies): the same generators with --study, in the same copy and the same install.
-      const entryBefore = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
       const deployedBefore = readFileSync(join(copy, "scripts/generated-skins.js"), "utf8");
       const deployDocBefore = readFileSync(join(copy, "spec/deploy.md"), "utf8");
       const study = await run(copy, "node", ["scripts/new-skin/index.js", "atelier", "--study"]);
@@ -64,9 +64,10 @@ describe("new-skin", () => {
       expect(preview).toContain('from "@dashhaus/canvas/storybook"');
       expect(preview).toContain('"Canvas", [');
       expect(preview).toContain('"Light"');
-      const entry = readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8");
-      expect(entry).toContain('import "@dashhaus/canvas/styles/tokens.css";');
-      expect(entry).toContain('from "@dashhaus/canvas/lovelace/card"');
+      const resource = readFileSync(join(copy, "src/skins/canvas/lovelace/resource.ts"), "utf8");
+      expect(resource).toContain("defineCanvasCard(css);");
+      expect(resource).toContain("defineSkinStrategy(CANVAS_STRATEGY);");
+      expect(readFileSync(join(copy, "src/skins/canvas/lovelace/strategy.ts"), "utf8")).toContain('type: "dashhaus-canvas"');
       expect(readFileSync(join(copy, "src/skins/canvas/lovelace/registry.tsx"), "utf8")).toContain("light: { domains: [\"light\"]");
       expect(readFileSync(join(copy, "src/skins/canvas/index.ts"), "utf8")).toContain("CanvasLightCard");
 
@@ -94,7 +95,6 @@ describe("new-skin", () => {
       expect(studyFile("stories/ReadMeFirst.mdx")).toContain('<Meta title="Studies/Atelier/Read me first" />');
       expect(studyFile("cards/sensor/AtelierSensorCard.stories.tsx")).toContain('title: "Studies/Atelier/Cards/Sensor"');
       expect(studyFile("ha/HaAtelierSensorCard.stories.tsx")).toContain('title: "Studies/Atelier/Connected/Sensor"');
-      expect(readFileSync(join(copy, "apps/lovelace/entry.ts"), "utf8")).toBe(entryBefore);
       expect(readFileSync(join(copy, "scripts/generated-skins.js"), "utf8")).toBe(deployedBefore);
       expect(readFileSync(join(copy, "spec/deploy.md"), "utf8")).toBe(deployDocBefore);
       // Its docs stay in its folder: design rules beside it, and no spec/ page or spec/cards.md entry names it.
@@ -114,7 +114,12 @@ describe("new-skin", () => {
       expect(tests.status, tests.output).toBe(0);
       const bundle = await run(copy, "npm", ["run", "build:ha"]);
       expect(bundle.status, bundle.output).toBe(0);
-      expect(readFileSync(join(copy, "dist/dashhaus.js"), "utf8"), "the study never reaches the bundle").not.toContain("dashhaus-atelier");
+      // The skin's own resource, with its card and its strategy; the study gets none and reaches no other.
+      expect(readFileSync(join(copy, "dist/dashhaus-canvas.js"), "utf8")).toContain("ll-strategy-dashboard-");
+      expect(existsSync(join(copy, "dist/dashhaus-atelier.js")), "a study has no resource").toBe(false);
+      for (const file of ["orb-dashboard.js", "field-dashboard.js", "dashhaus-canvas.js"]) {
+        expect(readFileSync(join(copy, "dist", file), "utf8"), `the study never reaches ${file}`).not.toContain("dashhaus-atelier");
+      }
       // The study's Read me first page and nested sort order build: the static indexer reads both.
       const storybook = await run(copy, "npm", ["run", "build-storybook", "--", "--quiet"]);
       expect(storybook.status, storybook.output).toBe(0);

@@ -20,24 +20,21 @@ const coreHa = {
   ],
 };
 const noIndex = [{ group: ["**/index"], message: "Import the module directly, not the public barrel." }];
-const noOtherSkin = [{ group: ["**/skins/**"], message: "Skins never import each other; what two skins share goes in @dashhaus/core or @dashhaus/dashboard." }];
+const noOtherSkin = [{ group: ["**/skins/**"], message: "Skins never import each other; what two skins share goes in @dashhaus/core or @dashhaus/core/lovelace/card." }];
 const noDeepCore = [{ group: ["@dashhaus/core/src/*", "@dashhaus/core/ha/*"], message: "Import a declared @dashhaus/core subpath, not a file inside it." }];
 /** Another workspace package is crossed by its declared subpaths, never a file inside it. */
 const noDeepPackage = [{ group: ["@dashhaus/*/src/**", "@dashhaus/*/ha/**"], message: "Import a declared @dashhaus subpath, not a file inside a package." }];
 /** No relative import crosses into a workspace package: the boundary has a package specifier. */
-const noPackageRelative = [
-  ...noCoreRelative,
-  { group: ["**/packages/dashboard", "**/packages/dashboard/**"], message: "Cross the package boundary with @dashhaus/dashboard." },
-];
-/** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @dashhaus/dashboard/card. */
-const noDashboardEntry = { name: "@dashhaus/dashboard", message: "A card draws on @dashhaus/dashboard/card; only a skin's lovelace/ imports the Lovelace entry." };
+const noPackageRelative = [...noCoreRelative];
+/** The Lovelace entry and its non-card subpaths stay in a skin's lovelace/ card; every card draws on @dashhaus/core/lovelace/card. */
+const noDashboardEntry = { name: "@dashhaus/core/lovelace", message: "A card draws on @dashhaus/core/lovelace/card; only a skin's lovelace/ imports the Lovelace entry." };
 const noDashboard = [{
-  group: ["@dashhaus/dashboard/schema", "@dashhaus/dashboard/layout", "@dashhaus/dashboard/skin", "@dashhaus/dashboard/vite"],
-  message: "A card draws on @dashhaus/dashboard/card; the schema, layout and skin subpaths stay in a skin's lovelace/.",
+  group: ["@dashhaus/core/lovelace/schema", "@dashhaus/core/lovelace/layout", "@dashhaus/core/lovelace/skin", "@dashhaus/core/lovelace/vite"],
+  message: "A card draws on @dashhaus/core/lovelace/card; the schema, layout and skin subpaths stay in a skin's lovelace/.",
 }];
 /** The conformance preset reads a skin's files, so only a card's test may import it; a card and its stories never do. */
 const noConformance = [{
-  group: ["@dashhaus/dashboard/conformance"],
+  group: ["@dashhaus/core/lovelace/conformance"],
   message: "The conformance preset is Node- and test-only; import it from a card's test, never from a card.",
 }];
 /** The imports a skin's files may not reach. A card's test adds the conformance preset back. */
@@ -169,23 +166,22 @@ export default tseslint.config(
     // The rest of the package (the demo transports, the testing renderer, the entry): no skins, no websocket client
     // except the one file that owns it.
     files: ["packages/core/src/**/*.{ts,tsx}"],
-    ignores: ["packages/core/src/entities/**", "packages/core/src/primitives/**", "packages/core/src/hooks/**", "packages/core/src/ha/**", "packages/core/src/websocket.ts", "packages/core/src/websocket.test.ts"],
+    ignores: ["packages/core/src/entities/**", "packages/core/src/primitives/**", "packages/core/src/hooks/**", "packages/core/src/ha/**", "packages/core/src/lovelace/**", "packages/core/src/websocket.ts", "packages/core/src/websocket.test.ts"],
     rules: { "no-restricted-imports": ["error", { patterns: [...noSkin("The headless package never imports a skin."), ...noWebsocket, ...noCoreRelative] }] },
   },
   {
-    // The Lovelace framework: core's declared subpaths, React and react-dom, never a skin, a stylesheet or the
-    // websocket client, and it crosses packages by specifier. verify/dashboard-package.test.ts holds the entry to
-    // that interface.
-    files: ["packages/dashboard/src/**/*.{ts,tsx}"],
+    // The Lovelace framework, core's ./lovelace subpaths: the rest of core (relatively, by its declared entries),
+    // React and react-dom, never a skin, a stylesheet or the websocket client. verify/lovelace-package.test.ts holds
+    // the entries to that interface, and verify/core-package.test.ts keeps the headless entries clear of it.
+    files: ["packages/core/src/lovelace/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["@dashhaus/dashboard", "@dashhaus/dashboard/*"], message: "Inside @dashhaus/dashboard, import relatively." },
-          { group: ["../../**"], message: "Cross the package boundary with @dashhaus/core/…" },
+          { group: ["@dashhaus/core", "@dashhaus/core/*"], message: "Inside @dashhaus/core, import relatively." },
+          { group: ["../../**"], message: "The framework reaches the rest of core through its entries: ../index, ../perf, ../primitives, …" },
           ...noSkin("The dashboard framework is skin-free and CSS-free."),
           ...noWebsocket,
           ...noDeepPackage,
-          ...noPackageRelative,
         ],
       }],
     },
@@ -197,7 +193,7 @@ export default tseslint.config(
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["@dashhaus/core", "@dashhaus/core/*", "@dashhaus/dashboard", "@dashhaus/dashboard/*"], message: "Deploy is Node-only; it imports no React or dashboard package." },
+          { group: ["@dashhaus/core", "@dashhaus/core/*"], message: "Deploy is Node-only; it imports no React or dashboard package." },
           { group: ["**/skins/**", "**/src/skins/**"], message: "Deploy loads the user's config; it never imports a skin." },
           { group: ["**/packages/**"], message: "Deploy never imports a package's source; it bundles the user's config." },
         ],
@@ -207,7 +203,7 @@ export default tseslint.config(
   {
     // A skin's cards, layout, foundations and stories never see the connected layer. Only its ha/ containers, its
     // lovelace/ card and its index.ts may import @dashhaus/core's Home Assistant subpaths, and only lovelace/ may import
-    // @dashhaus/dashboard (a card's test may import the Node-only conformance preset); verify/boundaries.test.ts
+    // @dashhaus/core/lovelace (a card's test may import the Node-only conformance preset); verify/boundaries.test.ts
     // checks the skin-to-skin half.
     files: ["src/skins/**/*.{ts,tsx}"],
     ignores: ["src/skins/*/ha/**", "src/skins/*/lovelace/**", "src/skins/*/index.ts"],
@@ -239,7 +235,7 @@ export default tseslint.config(
     },
   },
   {
-    // A skin's Lovelace card is the one place that draws on @dashhaus/dashboard; it still imports no other skin and no
+    // A skin's Lovelace card is the one place that draws on @dashhaus/core/lovelace; it still imports no other skin and no
     // file inside either package.
     files: ["src/skins/*/lovelace/**/*.{ts,tsx}"],
     rules: {
@@ -256,7 +252,7 @@ export default tseslint.config(
     },
   },
   {
-    // The root apps, repo checks and generators consume the packages through their declared subpaths only.
-    files: ["apps/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}", "verify/**/*.ts", "scripts/**/*.ts"],
+    // Storybook, the repo checks and the generators consume the packages through their declared subpaths only.
+    files: [".storybook/**/*.{ts,tsx}", "verify/**/*.ts", "scripts/**/*.ts"],
     rules: { "no-restricted-imports": ["error", { patterns: [...noPackageRelative] }] },
   },);

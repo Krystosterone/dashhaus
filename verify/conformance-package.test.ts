@@ -31,35 +31,34 @@ describe("the packed public surface", () => {
         app: join(work, "app"),
       };
       const packed = await pack(tarballs, buildRoot);
-      const dashboard = packed.find((pkg) => pkg.package === "@dashhaus/dashboard");
       const core = packed.find((pkg) => pkg.package === "@dashhaus/core");
-      if (!dashboard || !core) throw new Error("pack did not produce the core and dashboard tarballs");
+      if (!core) throw new Error("pack did not produce the core tarball");
       // The Release workflow publishes in this file's order, with the shell alone.
       expect(await readFile(join(tarballs, PUBLISH_ORDER), "utf8")).toBe(publishOrder(packed));
 
-      const files = execFileSync("tar", ["-tzf", dashboard.tarball], { encoding: "utf8" }).trim().split("\n");
-      expect(files, "the packed dashboard ships the conformance and schema entries with their declarations").toEqual(
+      const files = execFileSync("tar", ["-tzf", core.tarball], { encoding: "utf8" }).trim().split("\n");
+      expect(files, "the packed core ships the conformance and schema entries with their declarations").toEqual(
         expect.arrayContaining([
-          "package/dist/conformance.js",
-          "package/dist/conformance.d.ts",
-          "package/dist/schema.js",
-          "package/dist/schema.d.ts",
+          "package/dist/lovelace/conformance.js",
+          "package/dist/lovelace/conformance.d.ts",
+          "package/dist/lovelace/schema.js",
+          "package/dist/lovelace/schema.d.ts",
         ]),
       );
       expect(files.filter((file) => /\.(?:test|stories)\./.test(file)), "the tarball ships no test or story files").toEqual([]);
       expect(files.filter((file) => file.startsWith("package/src/")), "the tarball ships dist, not source").toEqual([]);
-      const manifest = JSON.parse(execFileSync("tar", ["-xOzf", dashboard.tarball, "package/package.json"], { encoding: "utf8" }));
-      expect(manifest.exports["./conformance"]).toEqual({
-        types: "./dist/conformance.d.ts",
-        import: "./dist/conformance.js",
-        default: "./dist/conformance.js",
+      const manifest = JSON.parse(execFileSync("tar", ["-xOzf", core.tarball, "package/package.json"], { encoding: "utf8" }));
+      expect(manifest.exports["./lovelace/conformance"]).toEqual({
+        types: "./dist/lovelace/conformance.d.ts",
+        import: "./dist/lovelace/conformance.js",
+        default: "./dist/lovelace/conformance.js",
       });
-      expect(manifest.exports["./schema"], "the packed manifest points the schema at dist, never source").toEqual({
-        types: "./dist/schema.d.ts",
-        import: "./dist/schema.js",
-        default: "./dist/schema.js",
+      expect(manifest.exports["./lovelace/schema"], "the packed manifest points the schema at dist, never source").toEqual({
+        types: "./dist/lovelace/schema.d.ts",
+        import: "./dist/lovelace/schema.js",
+        default: "./dist/lovelace/schema.js",
       });
-      expect(manifest.peerDependencies?.vitest, "the preset needs no test runner of its own").toBeUndefined();
+      expect(manifest.peerDependenciesMeta?.vitest?.optional, "the preset needs no test runner of its own: only ./testing names one").toBe(true);
 
       await writeFiles(app, {
         "package.json": `${JSON.stringify({
@@ -68,7 +67,6 @@ describe("the packed public surface", () => {
           type: "module",
           dependencies: {
             "@dashhaus/core": `file:${core.tarball}`,
-            "@dashhaus/dashboard": `file:${dashboard.tarball}`,
           },
         }, null, 2)}\n`,
         "skin/cards/good/GoodCard.tsx": `export const GoodCard = () => <article className="gd-card">{useCard("gd")}</article>;\n`,
@@ -79,9 +77,9 @@ describe("the packed public surface", () => {
         "skin/cards/bad/Bad.stories.tsx": `export default { title: "Third/Cards/Bad" };\n`,
         "check.js": `
 import assert from "node:assert/strict";
-import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
+import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
 
-assert.match(import.meta.resolve("@dashhaus/dashboard/conformance"), /node_modules\\/@dashhaus\\/dashboard\\/dist\\/conformance\\.js$/);
+assert.match(import.meta.resolve("@dashhaus/core/lovelace/conformance"), /node_modules\\/@dashhaus\\/core\\/dist\\/lovelace\\/conformance\\.js$/);
 assert.deepEqual(cardFolders("skin"), ["bad", "good"]);
 const findings = checkCards({
   skin: "skin",
@@ -95,7 +93,7 @@ assert.deepEqual(findings, [{ card: "bad", rule: "class-prefix", message: "skin/
 console.log(JSON.stringify(findings));
 `,
         "schema-check.js": `
-import { Reader, cardKinds, readCard, readColor } from "@dashhaus/dashboard/schema";
+import { Reader, cardKinds, readCard, readColor } from "@dashhaus/core/lovelace/schema";
 
 const schema = {
   noun: "card",
@@ -119,7 +117,7 @@ const bad = new Reader();
 const rejected = readCard(bad, schema, { entity: "light.candle_hall", color: "blue" }, "cards[0]");
 
 console.log(JSON.stringify({
-  resolved: import.meta.resolve("@dashhaus/dashboard/schema"),
+  resolved: import.meta.resolve("@dashhaus/core/lovelace/schema"),
   kindsFor: table.kindsFor("light.candle_hall"),
   kindOfCandle: table.kindOf("light.candle_hall"),
   kindOfLight: table.kindOf("light.kitchen"),
@@ -136,7 +134,7 @@ console.log(JSON.stringify({
       expect(output.trim()).toBe('[{"card":"bad","rule":"class-prefix","message":"skin/cards/bad/BadCard.css: .oops"}]');
 
       const proof = JSON.parse(execFileSync(process.execPath, ["schema-check.js"], { cwd: app, encoding: "utf8" }));
-      expect(proof.resolved, "the schema is imported from the installed tarball's dist").toMatch(/node_modules\/@dashhaus\/dashboard\/dist\/schema\.js$/);
+      expect(proof.resolved, "the schema is imported from the installed tarball's dist").toMatch(/node_modules\/@dashhaus\/core\/dist\/lovelace\/schema\.js$/);
       expect(proof.resolved).not.toMatch(/\/src\//);
       expect(proof.kindsFor).toEqual(["light", "candle"]);
       expect(proof.kindOfCandle).toBe("candle");

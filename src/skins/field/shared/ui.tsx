@@ -3,8 +3,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { useKeypad, usePress } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
-import { CardDialog, cardShape, useCardFrame } from "@dashhaus/dashboard/card";
-import type { Details } from "@dashhaus/dashboard/card";
+import { CardDialog, cardShape, useCardFrame } from "@dashhaus/core/lovelace/card";
+import type { Details } from "@dashhaus/core/lovelace/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { useAlarmPhase, useReportAlert } from "./alerts";
@@ -672,7 +672,7 @@ export function Panel({ open, onClose, name, area, focusContent, children }: { o
 }
 
 export type { Details };
-export { useDetails } from "@dashhaus/dashboard/card";
+export { useDetails } from "@dashhaus/core/lovelace/card";
 
 export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children"> {
   /** From `useDetails`: the name opens the panel. */

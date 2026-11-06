@@ -16,9 +16,9 @@ import {
   readUnit,
   readWeatherOptions,
   rowTitles,
-} from "@dashhaus/dashboard/schema";
-import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/dashboard/schema";
-import type { NavEntry } from "@dashhaus/dashboard";
+} from "@dashhaus/core/lovelace/schema";
+import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
+import type { NavEntry } from "@dashhaus/core/lovelace";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
 import { GUEST_WIFI_ACTION_DOMAINS, OWLET_ALERT_SUFFIX } from "@dashhaus/core";
@@ -29,7 +29,7 @@ import type { FieldFootprint } from "../shared/ui";
  * every mistake shows at once with its path, and laid out with the layout every card shares (`cards`, or `rows` of
  * cards), its footprints mixed by column. Field draws lights, climate entities, humidifiers, room sensors, the
  * weather, modes, sound machines, covers, alarms and Owlet socks. The reading itself is the shared card schema
- * (`@dashhaus/dashboard/schema`); this file is the field card's kind table and the words it refuses.
+ * (`@dashhaus/core/lovelace/schema`); this file is the field card's kind table and the words it refuses.
  */
 
 export type FinishSetting = "home-assistant" | "auto" | "alloy" | "black";

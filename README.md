@@ -1,9 +1,7 @@
 # Dashhaus
 
 [![CI](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/ci.yml)
-[![HACS](https://github.com/Krystosterone/dashhaus/actions/workflows/hacs.yml/badge.svg?branch=main)](https://github.com/Krystosterone/dashhaus/actions/workflows/hacs.yml)
 [![License: MIT](https://badgen.net/github/license/Krystosterone/dashhaus)](LICENSE)
-[![Release](https://badgen.net/github/release/Krystosterone/dashhaus)](https://github.com/Krystosterone/dashhaus/releases/latest)
 [![npm](https://badgen.net/npm/v/@dashhaus/core)](https://www.npmjs.com/package/@dashhaus/core)
 
 Home Assistant dashboards drawn in React: two finished looks, Orb and Field, that you install from the Marketplace,
@@ -24,8 +22,8 @@ Dashhaus is in beta and hasn't been tried on many homes yet, so it can still cha
 - **An update can ask something of you.** An update may rename a YAML key, change a hook or redraw a card. Each
   [release](https://github.com/Krystosterone/dashhaus/releases) says what changed and what to do; read it before you
   update.
-- **Your existing dashboards are safe.** The setup card and the deploy command only create dashboards; they never
-  change one that exists. The ones they create follow Dashhaus as it updates.
+- **Your existing dashboards are safe.** Adding Orb's or Field's dashboard and the deploy command only create
+  dashboards; they never change one that exists. The ones they create follow the skin as it updates.
 - **Real devices vary.** Every card is tested on Home Assistant's standard entities, but an integration may report
   its device in a way no card expects yet. Locks, alarm panels and covers act on real things: try each one once
   while you can see it.
@@ -40,25 +38,29 @@ package shares one version, so move them together. 1.0 will be the first stable 
 
 ## Install
 
-[![Open your Home Assistant instance and open Dashhaus in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
+Orb and Field each install on their own from the Marketplace (HACS before Home Assistant 2026.11):
 
-No terminal needed, as a Home Assistant administrator:
+| | |
+| --- | --- |
+| **[Orb](https://krystosterone.github.io/dashhaus/orb/)**: soft, round cards read at a glance | [![Open Orb in your Home Assistant.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=orb-dashboard&category=plugin) |
+| **[Field](https://krystosterone.github.io/dashhaus/field/)**: a hardware panel of keys, faders and dark screens | [![Open Field in your Home Assistant.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=field-dashboard&category=plugin) |
 
-1. Open the link above. Home Assistant 2026.11 or newer opens the Marketplace; older versions need
-   [HACS](https://www.hacs.xyz/docs/use/). Add Dashhaus as a custom repository of type **Dashboard** if asked, then
-   download it.
-2. Reload the browser tab.
-3. On **Overview**: **⋮ → Edit dashboard → Add card → Dashhaus setup**, save, and press **Create dashboards**.
-4. Open **Home (Orb)** or **Home (Field)** from the card's links, then remove the setup card. It never changes a
-   dashboard that exists.
+As a Home Assistant administrator, no terminal needed:
 
-For scripted installs or CI, [deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
+1. Tap the skin's badge and press **Download**. If asked, add it as a custom repository of type **Dashboard**.
+2. Refresh the browser tab.
+3. **Settings → Dashboards → Add dashboard**, pick **Orb** or **Field** under Community dashboards, and press
+   **Create** (Home Assistant 2026.5 or newer).
+
+The dashboard is laid out from your house and kept up to date as you add devices; each skin's page has its settings.
+For scripted installs, CI or a dashboard of your own rows,
+[deploy from the command line](https://krystosterone.github.io/dashhaus/start/deploy/).
 
 ## Four ways in
 
 | You want | Start at |
 | --- | --- |
-| Orb or Field on your Home Assistant | [Install from the Marketplace](https://krystosterone.github.io/dashhaus/start/install/), or [from the command line](https://krystosterone.github.io/dashhaus/start/deploy/) for a script or CI |
+| Orb or Field on your Home Assistant | [Orb](https://krystosterone.github.io/dashhaus/orb/) or [Field](https://krystosterone.github.io/dashhaus/field/) from the Marketplace, or [from the command line](https://krystosterone.github.io/dashhaus/start/deploy/) for a script or CI |
 | A look of your own | [Build a skin](https://krystosterone.github.io/dashhaus/start/build-a-skin/): `npm create dashhaus-skin@latest my-skin` |
 | Home Assistant's entities in your own React app | [Use the hooks in your app](https://krystosterone.github.io/dashhaus/start/getting-started/): `@dashhaus/core` alone |
 | To change Dashhaus itself | [Develop](#develop) below, and [AGENTS.md](AGENTS.md) |
@@ -92,9 +94,9 @@ It registers the skin's Foundations, Dashboard, its own entry and Lovelace card;
 
 ### Packages
 
-`@dashhaus/core`, `@dashhaus/dashboard` and `@dashhaus/deploy` are the headless foundation, the framework and the
-deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins. `@dashhaus/bundle` ships the prebuilt one-file
-Lovelace bundle: a deploy-only app installs it with the CLI, names `fileURLToPath(bundlePath)` in its config and runs
+`@dashhaus/core` and `@dashhaus/deploy` are the headless foundation (with the Lovelace framework under
+`@dashhaus/core/lovelace`) and the deploy CLI; `@dashhaus/orb` and `@dashhaus/field` are the two skins, each shipping its resource, the one file Home Assistant
+loads: a deploy-only app installs a skin with the CLI, names its `resourceFile` in `files` and runs
 `npx dashhaus-deploy --skip-build`. `create-dashhaus-skin` scaffolds a standalone skin. Package READMEs live in each
 package; the release policy is [spec/release.md](spec/release.md).
 
@@ -106,7 +108,7 @@ Fill in `.env` and deploy:
 npm run deploy
 ```
 
-It installs one bundle carrying `custom:dashhaus-orb` (Orb), `custom:dashhaus-field` (Field), the setup card and every registered generated skin, then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [spec/deploy.md](spec/deploy.md). Measure the deployed pages with `npm run perf:collect`; see [spec/performance.md](spec/performance.md). The data boundary, the shared `useHa<Kind>` hooks and the injected transport are in [spec/home-assistant.md](spec/home-assistant.md).
+It uploads each skin's resource (Orb's, Field's and every registered generated skin's: its Lovelace card and its dashboard strategy), then creates one dashboard for each the first time, from the set declared in `dashboard.config.mjs`. You edit any Lovelace card's YAML in Home Assistant. See [spec/deploy.md](spec/deploy.md). Measure the deployed pages with `npm run perf:collect`; see [spec/performance.md](spec/performance.md). The data boundary, the shared `useHa<Kind>` hooks and the injected transport are in [spec/home-assistant.md](spec/home-assistant.md).
 
 ## Spec
 
@@ -119,7 +121,7 @@ The specification the code is held to, written for maintainers and agents. Tests
 | [spec/cards.md](spec/cards.md) | Per-card behaviour |
 | [spec/home-assistant.md](spec/home-assistant.md) | The Home Assistant data boundary and hooks |
 | [spec/core.md](spec/core.md) | The core contract, error metadata, transport lifecycle and auth boundary |
-| [spec/deploy.md](spec/deploy.md) | Deploying the bundle and the Lovelace YAML |
+| [spec/deploy.md](spec/deploy.md) | Deploying the skins' resources, their dashboard strategies and the Lovelace YAML |
 | [spec/performance.md](spec/performance.md) | The deployed pages' performance marks and report |
 | [spec/skins.md](spec/skins.md) | Starting a skin in this repository |
 | [spec/build-a-skin.md](spec/build-a-skin.md) | Building a standalone skin from the published packages |

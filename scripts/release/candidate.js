@@ -3,10 +3,10 @@
  *
  *   node scripts/release/candidate.js write            after release:pack, record the files' SHA-256 for the version
  *   node scripts/release/candidate.js check [--always] the record is finished and this commit packs those files
- *   node scripts/release/candidate.js body             the record's Release page section, for the GitHub release
+ *   node scripts/release/candidate.js body             the record's Release page section, for the site's Release notes
  *   npm run release:digests                            pack, then write: refresh a release PR whose code moved
  *
- * `spec/releases/<version>.sha256` lists the seven tarballs and `dashhaus.js`, in `sha256sum` format. `check` runs in
+ * `spec/releases/<version>.sha256` lists the five tarballs, in `sha256sum` format. `check` runs in
  * CI after `release:pack` while `v<version>` is not yet tagged, so a release PR is green only when its files are the
  * ones it records, its record has no `TODO:` left, and no change note has arrived since the record collected them; the
  * Release workflow runs it with `--always` before shipping.
@@ -24,12 +24,9 @@ import { publicPackages, readManifest, root, tarballName } from "./manifest.js";
 export const recordPath = (version) => join(root, "spec/releases", `${version}.md`);
 export const digestsPath = (version) => join(root, "spec/releases", `${version}.sha256`);
 
-/** The files a version ships, by the name its digests use: the tarballs in publish order, then the Marketplace asset. */
+/** The files a version ships, by the name its digests use: the tarballs in publish order. */
 export function candidateFiles(version, releaseDir = join(root, "release")) {
-  return [
-    ...publicPackages.map(({ name }) => ({ name: tarballName(name, version), path: join(releaseDir, tarballName(name, version)) })),
-    { name: "dashhaus.js", path: join(root, "packages/bundle/dist/dashhaus.js") },
-  ];
+  return publicPackages.map(({ name }) => ({ name: tarballName(name, version), path: join(releaseDir, tarballName(name, version)) }));
 }
 
 const sha256 = async (path) => createHash("sha256").update(await readFile(path)).digest("hex");
@@ -95,8 +92,9 @@ function tagged(version) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const [command, ...args] = process.argv.slice(2);
-  const bundle = await readManifest("packages/bundle");
-  const { version } = bundle;
+  // Every public package shares one version; core's names the release (the Release workflow reads the same file).
+  const core = await readManifest("packages/core");
+  const { version } = core;
   if (command === "write") {
     await writeFile(digestsPath(version), formatDigests(await packedDigests(version)));
     console.log(`spec/releases/${version}.sha256`);
@@ -117,7 +115,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       for (const line of unfinished(record)) problems.push(`spec/releases/${version}.md is unfinished: ${line}`);
       // The Release workflow publishes this section as the GitHub release's body; without it the build stops after merge.
       try {
-        releaseBody(record, version, bundle.repository.url);
+        releaseBody(record, version, core.repository.url);
       } catch (error) {
         problems.push(error instanceof Error ? error.message : String(error));
       }
@@ -125,9 +123,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     problems.push(...lateNoteProblems(await readChanges(), version));
     for (const problem of problems) console.error(`✗ ${problem}`);
     if (problems.length) process.exit(1);
-    console.log(`candidate ${version}: the record is finished and this commit packs the ${publicPackages.length + 1} files it records`);
+    console.log(`candidate ${version}: the record is finished and this commit packs the ${publicPackages.length} files it records`);
   } else if (command === "body") {
-    process.stdout.write(releaseBody(await readFile(recordPath(version), "utf8"), version, bundle.repository.url));
+    process.stdout.write(releaseBody(await readFile(recordPath(version), "utf8"), version, core.repository.url));
   } else {
     console.error("usage: node scripts/release/candidate.js write | check [--always] | body");
     process.exit(1);

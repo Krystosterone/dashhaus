@@ -12,23 +12,56 @@ export interface DeployCard {
   made: string;
 }
 
-/** One dashboard the CLI creates. */
-export interface DeployDashboard {
+/** A factory that reads the house before it returns the dashboard's card. */
+export type DeployCardFactory = (ha: DeployHa) => DeployCard | Promise<DeployCard>;
+
+/** A Lovelace card's config as written, such as `{ type: "custom:dashhaus-orb", cards: ["light.kitchen"] }`. */
+export interface DeployCardConfig {
+  type: string;
+  [key: string]: unknown;
+}
+
+/** A dashboard strategy's config, such as `{ type: "custom:orb-dashboard" }`; the skin draws the dashboard from it. */
+export interface DeployStrategy {
+  type: string;
+  [key: string]: unknown;
+}
+
+/** What every dashboard the CLI creates has. */
+export interface DeployDashboardBase {
   /** Home Assistant requires a hyphen in a dashboard path. */
   path: string;
   title: string;
   icon: string;
   /** The `.env` keys that override this dashboard's path and sidebar title. */
   env?: { path?: string; title?: string };
-  card(ha: DeployHa): DeployCard | Promise<DeployCard>;
 }
+
+/** A dashboard of one card in a panel view, created once and then yours to edit. */
+export interface DeployCardDashboard extends DeployDashboardBase {
+  /** A factory returning `{ card, made }`, or the card's config itself. */
+  card: DeployCardFactory | DeployCardConfig;
+  strategy?: never;
+}
+
+/** A dashboard a skin's strategy draws, saved as `{ strategy }`, so it follows the skin as it updates. */
+export interface DeployStrategyDashboard extends DeployDashboardBase {
+  strategy: DeployStrategy;
+  card?: never;
+}
+
+/** One dashboard the CLI creates: a `card` or a `strategy`, never both. */
+export type DeployDashboard = DeployCardDashboard | DeployStrategyDashboard;
 
 /** The default export of `dashboard.config.mjs`. */
 export interface DeployConfig {
   pageTitle?: string;
-  /** The file the CLI uploads, relative to the config file (or absolute). */
-  bundle: string;
-  /** Optional; runs with the config's directory as the working directory, before the bundle is read. */
+  /**
+   * The files the CLI uploads, each relative to the config file (or absolute), with different file names: each is
+   * copied to `$HA_WWW/<name>/` and registered as `/local/<name>/<file>`.
+   */
+  files: string[];
+  /** Optional; runs once, with the config's directory as the working directory, before the files are read. */
   build?(): void | Promise<void>;
   dashboards: DeployDashboard[];
 }
@@ -40,5 +73,8 @@ export interface GeneratedSkin {
   icon: string;
 }
 
-/** One dashboard per generated skin, in the shape a config declares its own. */
-export function generatedDashboards(skins: GeneratedSkin[], title?: string): DeployDashboard[];
+/** One dashboard per generated skin, in the shape a config declares its own: a card factory. */
+export function generatedDashboards(
+  skins: GeneratedSkin[],
+  title?: string,
+): (DeployCardDashboard & { card: DeployCardFactory })[];

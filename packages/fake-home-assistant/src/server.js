@@ -9,13 +9,17 @@
  *   /api/websocket   Home Assistant's websocket API: auth, `subscribe_entities` (the house, then each change),
  *                    `call_service` (toggles change the house), and `FakeHomeAssistant.send` for every other command
  *   /local/<path>    files under HA_WWW, as Home Assistant serves /config/www
+ *   /hacsfiles/<path>  files under HA_WWW/community, as HACS serves the Marketplace's downloads
  *   /                the sidebar: every dashboard deploy created
- *   /<url_path>[/<view>]  a dashboard: its registered resources loaded as modules and its saved panel card drawn on the
- *                    fake house, through an in-page connection, so a deployed skin can be looked at and screenshotted
+ *   /<url_path>[/<view>]  a dashboard: its registered resources loaded as modules, a dashboard or view strategy in its
+ *                    saved config expanded as the frontend does, and the view's panel card drawn on the fake house,
+ *                    through an in-page connection, so a deployed skin can be looked at and screenshotted
+ *   /config/lovelace/dashboards  the Add dashboard dialog's Community dashboards: every resource loaded, then a button per
+ *                    dashboard strategy in `window.customStrategies`, which creates a dashboard on that strategy
  *   /api/, /api/config, /api/states[/<id>]  the REST reads, with the bearer token
  *   /api/fake/state  what deploy left behind (resources, dashboards, saved layouts, the command log), as JSON
  *   /api/fake/lovelace  POST one `lovelace/*` command from a dashboard page, which the frontend would send over its
- *                    authenticated websocket: how a card such as the setup card creates dashboards from the page
+ *                    authenticated websocket: how a page such as the Add dashboard stand-in creates dashboards
  *
  * `--state` also writes that JSON to a file after every command. The www folder defaults to a new temporary one.
  */
@@ -63,9 +67,11 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
     }
     if (path === "/api/fake/state") return send(response, 200, "application/json", JSON.stringify(dump(), null, 2));
     if (path.startsWith("/local/")) return serveFile(response, folder, path.slice("/local/".length));
+    if (path.startsWith("/hacsfiles/")) return serveFile(response, folder, `community/${path.slice("/hacsfiles/".length)}`);
     if (path === "/" || path === "") return send(response, 200, "text/html", sidebar(ha));
+    if (path === "/config/lovelace/dashboards") return send(response, 200, "text/html", newDashboardPage(ha));
     const dashboard = ha.dashboards.find((candidate) => candidate.url_path === path.split("/")[1]);
-    if (dashboard) return send(response, 200, "text/html", dashboardPage(ha, dashboard));
+    if (dashboard) return send(response, 200, "text/html", dashboardPage(ha, dashboard, path.split("/")[2]));
     send(response, 404, "text/plain", `Not found: ${path}`);
   });
 
@@ -259,15 +265,99 @@ function sidebar(ha) {
 }
 
 /**
- * A dashboard as the frontend would draw a panel view: every module resource loaded, then the view's first card
- * created, configured and handed a `hass` whose connection answers `subscribe_entities` from the fake house,
- * applies `light/switch` toggles, so a press on a deployed card changes it, and sends `lovelace/*` commands to the
- * server, as an administrator unless the address says `?admin=false`.
+ * The frontend's strategy lookup and generation (`src/panels/lovelace/strategies/get-strategy.ts`), in the page: a
+ * `custom:<name>` strategy is the element `ll-strategy-<kind>-<name>` (or the legacy `ll-strategy-<name>`), awaited
+ * for 5 seconds, whose static `generate(config, hass)` answers; what it returns is merged over the config beside
+ * `strategy` (`{ ...base, ...generated }`). The fake knows no built-in strategy and no legacy `generateDashboard`.
+ * Where the frontend shows an error view, the page shows the problem, as it does for a missing card.
  */
-function dashboardPage(ha, dashboard) {
+const STRATEGY_SCRIPT = `
+const strategyElement = async (kind, type) => {
+  if (!String(type ?? "").startsWith("custom:")) throw new Error("Unknown strategy: " + type);
+  const name = type.slice("custom:".length);
+  const tag = "ll-strategy-" + kind + "-" + name;
+  const legacy = "ll-strategy-" + name;
+  const timedOut = await Promise.race([customElements.whenDefined(legacy), customElements.whenDefined(tag), new Promise((done) => setTimeout(() => done(true), 5000))]);
+  if (timedOut === true) throw new Error("Timeout waiting for strategy element " + tag + " to be registered");
+  return customElements.get(tag) ?? customElements.get(legacy);
+};
+const generateStrategy = async (kind, { strategy, ...base }, hass) => {
+  const element = await strategyElement(kind, strategy?.type);
+  return { ...base, ...(await element.generate(strategy, hass)) };
+};`;
+
+/**
+ * The frontend's new-dashboard dialog, its Community dashboards only (`src/panels/config/dashboard/dialog-new-dashboard.ts`):
+ * every module resource loaded, then a button per `window.customStrategies` entry whose `strategyType` is
+ * `dashboard`, named by its `name` (or `type`) and described by its `description`. A press does what the dialog and
+ * the detail dialog after it do with the defaults: the title and icon from the strategy's static
+ * `getCreateSuggestions(hass)`, a `dashboard-<title>` URL, `lovelace/dashboards/create`, then `lovelace/config/save`
+ * with `{ strategy: { type: "custom:<type>" } }`. It ends on a link to the new dashboard.
+ */
+function newDashboardPage(ha) {
+  const data = JSON.stringify({ resources: ha.resources.map((resource) => resource.url), version: ha.version }).replace(/</g, "\\u003c");
+  return `<!doctype html>
+<html><head><meta charset="utf-8"><title>Add dashboard – Fake Home Assistant</title></head>
+<body><h1>Add dashboard</h1><h2>Community dashboards</h2><ul id="strategies"></ul><p id="done" role="status"></p>
+<script type="module">
+const data = ${data};
+${STRATEGY_SCRIPT}
+const send = async (message) => {
+  const answer = await (await fetch("/api/fake/lovelace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(message) })).json();
+  if (!answer.success) throw answer.error;
+  return answer.result;
+};
+const slug = (text) => String(text).toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const hass = { connection: { haVersion: data.version }, user: { is_admin: true }, states: {} };
+const done = document.getElementById("done");
+try {
+  for (const url of data.resources) await import(url);
+  const list = document.getElementById("strategies");
+  for (const entry of (window.customStrategies ?? []).filter((item) => item.strategyType === "dashboard")) {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = entry.name || entry.type;
+    button.addEventListener("click", async () => {
+      try {
+        const type = "custom:" + entry.type;
+        const element = await strategyElement("dashboard", type);
+        const suggested = (await element.getCreateSuggestions?.(hass)) ?? {};
+        const title = suggested.title || entry.name || entry.type;
+        const url_path = "dashboard-" + slug(title);
+        await send({ type: "lovelace/dashboards/create", url_path, title, ...(suggested.icon && { icon: suggested.icon }), mode: "storage", show_in_sidebar: true, require_admin: false });
+        await send({ type: "lovelace/config/save", url_path, config: { strategy: { type } } });
+        const link = document.createElement("a");
+        link.href = "/" + url_path;
+        link.textContent = "Open " + title;
+        done.replaceChildren("Created. ", link);
+      } catch (error) {
+        done.textContent = "Not created: " + (error?.message ?? String(error));
+      }
+    });
+    const description = document.createElement("span");
+    description.textContent = entry.description ?? "";
+    item.append(button, " ", description);
+    list.append(item);
+  }
+  window.__fakeHaReady = true;
+} catch (error) {
+  done.textContent = "Configuration error: " + (error?.message ?? String(error));
+}
+</script></body></html>`;
+}
+
+/**
+ * A dashboard as the frontend would draw a panel view: every module resource loaded; a dashboard strategy, then the
+ * chosen view's strategy, expanded as the frontend's `expandLovelaceConfigStrategies` does (`STRATEGY_SCRIPT`); then
+ * the view's first card created, configured and handed a `hass` whose connection answers `subscribe_entities` from the
+ * fake house, applies `light/switch` toggles, so a press on a deployed card changes it, and sends `lovelace/*`
+ * commands to the server, as an administrator unless the address says `?admin=false`. The view is the one whose path
+ * the address names, or the first.
+ */
+function dashboardPage(ha, dashboard, viewPath) {
   const saved = ha.saved.find((entry) => entry.url_path === dashboard.url_path)?.config;
-  const card = saved?.views?.[0]?.cards?.[0];
-  const data = JSON.stringify({ card, resources: ha.resources.map((resource) => resource.url), states: Object.values(ha.states), registries: ha.registries, version: ha.version }).replace(/</g, "\\u003c");
+  const data = JSON.stringify({ config: saved, view: viewPath ?? null, resources: ha.resources.map((resource) => resource.url), states: Object.values(ha.states), registries: ha.registries, version: ha.version }).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(dashboard.title)} – Fake Home Assistant</title>
@@ -326,9 +416,18 @@ const user = { id: "fake-user", name: "Fake", is_admin: new URLSearchParams(loca
 // Dark mode follows the browser's colour scheme, as Home Assistant's default theme does.
 const darkMode = matchMedia("(prefers-color-scheme: dark)").matches;
 const hass = () => ({ connection, states: { ...states }, ...data.registries, user, themes: { darkMode }, panels: {} });
+${STRATEGY_SCRIPT}
 try {
-  if (!data.card) throw new Error("This dashboard has no saved card.");
+  if (!data.config) throw new Error("This dashboard has no saved card.");
   for (const url of data.resources) await import(url);
+  const config = data.config.strategy ? await generateStrategy("dashboard", data.config, hass()) : data.config;
+  const views = config.views ?? [];
+  const picked = (data.view ? views.find((view) => String(view.path) === data.view) : undefined) ?? views[0];
+  const shown = picked?.strategy ? await generateStrategy("view", picked, hass()) : picked;
+  window.__fakeHaViews = views.map((entry) => ({ title: entry.title, path: entry.path }));
+  window.__fakeHaView = shown;
+  data.card = shown?.cards?.[0];
+  if (!data.card) throw new Error("This dashboard has no saved card.");
   const tag = String(data.card.type ?? "").replace(/^custom:/, "");
   if (!tag || !String(data.card.type).startsWith("custom:")) throw new Error("The saved card's type is not a custom card: " + data.card.type);
   await Promise.race([customElements.whenDefined(tag), new Promise((_, reject) => setTimeout(() => reject(new Error("Custom element doesn't exist: " + tag + ". No registered resource defined it.")), 4000))]);

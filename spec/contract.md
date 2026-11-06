@@ -1,6 +1,6 @@
 # The skin contract
 
-A skin is one whole UI on the headless foundation. It gets entities from `@dashhaus/core` and draws them itself; the parts it may not rewrite are `@dashhaus/dashboard/skin`, the element runtime every skin's Lovelace card extends, `@dashhaus/dashboard/card`, the behaviour every card shares, and `@dashhaus/dashboard/schema`, the reader its Lovelace YAML is written against. Those three subpaths are the frozen 1.0 contract. `@dashhaus/dashboard/conformance` is its compatibility test: a skin runs it against its own cards.
+A skin is one whole UI on the headless foundation. It gets entities from `@dashhaus/core` and draws them itself; the parts it may not rewrite are `@dashhaus/core/lovelace/skin`, the element runtime every skin's Lovelace card extends, `@dashhaus/core/lovelace/card`, the behaviour every card shares, and `@dashhaus/core/lovelace/schema`, the reader its Lovelace YAML is written against. Those three subpaths are the frozen 1.0 contract. `@dashhaus/core/lovelace/conformance` is its compatibility test: a skin runs it against its own cards.
 
 A skin author installs React 18.3+ or 19 and the packages it needs ([build-a-skin.md](build-a-skin.md#start)).
 
@@ -10,22 +10,23 @@ The public packages share one version, currently `0.2.1`, and move together (`sp
 project starts with `npm create dashhaus-skin@latest my-skin`; [build-a-skin.md](build-a-skin.md) walks the whole
 journey from install to deploy. Until 1.0, a breaking change to this page is allowed, but it has to be a change to this page: the conformance preset and the package tests are what say the contract still holds. What a skin draws — its markup, classes, tokens, stories and docs — is the skin's own and is never part of this contract.
 
-## `@dashhaus/dashboard/skin`
+## `@dashhaus/core/lovelace/skin`
 
-The frozen skin-author runtime: the custom-element base, the card-picker registration, the token scoping, the automatic layout's `hass` input and the rejected-command status every skin's page shows. A skin's Lovelace card imports this subpath and nothing else from the framework for its element.
+The frozen skin-author runtime: the custom-element base, the card-picker registration, the dashboard strategy, the token scoping, the automatic layout's `hass` input and the rejected-command status every skin's page shows. A skin's Lovelace card imports this subpath and nothing else from the framework for its element.
 
 A skin may rely on:
 
 - **`LovelaceDashboardElement<C>`** — the base class. A skin implements `styles` (the bundle's CSS, already scoped), `parse(raw)` (validate and normalize the YAML), `changed(previous, next)` (whether a new `hass` changes what the page draws), `draw(config, hass)` (the React node) and, optionally, `mountClass`, `fontHref` and `paintHost(config, hass)`. The base owns the shadow root, one store per frontend connection, the React root and its survival across Lovelace moving the card, and the error boundary. `setConfig`, `hass`, `connectedCallback`, `disconnectedCallback`, `getCardSize` and `getGridOptions` are the standard custom-element entry points and keep their meaning.
 - **`registerCard(type, element, name, description)`** — define the element and list it in the card picker. Safe to call twice.
+- **`defineSkinStrategy(strategy)`** and **`SkinStrategy`** — the skin's dashboard strategy, so Home Assistant's Add dashboard lists the skin under its own name and makes its dashboard with no YAML: `{ type, name, description, documentationURL?, icon?, card, options? }`, where `type` is the strategy's type without `custom:`, `card` the skin's Lovelace card (`custom:<tag>`) and `options` the strategy's keys handed to the card beside `title`. It defines `ll-strategy-dashboard-<type>` and `ll-strategy-view-<type>`, each answering one panel holding the card, and lists the dashboard strategy once in `window.customStrategies`. Safe to call twice. A skin's resource calls it beside `registerCard` (spec/deploy.md → The skins' dashboard strategies).
 - **`scopeToHost(css)`** — move a skin's `:root` selectors onto the shadow host, including the theme attribute forms.
-- **`autoInput(hass)`** — the `states`, `entities`, `devices` and `areas` an automatic layout reads, in the shape `@dashhaus/dashboard/layout` takes.
+- **`autoInput(hass)`** — the `states`, `entities`, `devices` and `areas` an automatic layout reads, in the shape `@dashhaus/core/lovelace/layout` takes.
 - **`useActionStatus()`** — the store's latest rejected service call for a page's recovery row, or null when there is none: `title` and `detail` (the words, `ActionMessage`), `canRetry` (repeating the call is safe), `retrying`, `retry()` and `dismiss()` (`ActionStatus`). It reads the `HaProvider` the element puts above `draw`, so a row mounted once anywhere in the page covers every card. A wrong alarm code gives null: its recovery stays in the keypad. The row's markup, and where it sits, are the skin's own.
 - **`LovelaceHass`** and **`AutoEntityEntry`** — the part of the frontend's `hass` object, and the registry facts per entity, that the element and its layout read.
 
-Not stable: the DOM and focus treatment inside the element, the ids it creates, the order in which it connects the store relative to a render, and the wording of a status's `title` and `detail`. Nav, `useDashboardNav`, room sensors, the main `@dashhaus/dashboard` entry and any internal module are outside this subpath.
+Not stable: the DOM and focus treatment inside the element, the ids it creates, the order in which it connects the store relative to a render, and the wording of a status's `title` and `detail`. Nav, `useDashboardNav`, room sensors, the main `@dashhaus/core/lovelace` entry and any internal module are outside this subpath.
 
-## `@dashhaus/dashboard/card`
+## `@dashhaus/core/lovelace/card`
 
 The frame a card is drawn in: footprint flags, ids and the article's accessible name, the details state, and the tile/sheet composition. It knows no entity, no store and no Home Assistant; a skin brings the entity and its own markup and CSS.
 
@@ -42,7 +43,7 @@ A skin may rely on:
 
 Not stable: the class names, markup and CSS of any skin; the exact ids `uid` and `nameId` produce; the focus treatment and internal DOM of `CardDialog`; and the number of elements between the tile and the card.
 
-## `@dashhaus/dashboard/schema`
+## `@dashhaus/core/lovelace/schema`
 
 The shared YAML reader and the kind table that turns an entity id and a `card:` key into the skin's own normalized card. Pure: no React, no DOM, no skin and no Node builtin, so a config and a generated skin can import it.
 
@@ -60,12 +61,12 @@ The escape hatches, in one place:
 
 Not stable: the wording of a problem (the path and the fact that it was collected are stable); the order in which checks run when a skin supplies its own `base` or hooks; and the shape of a skin's per-kind options, which belongs to that skin.
 
-## `@dashhaus/dashboard/conformance`
+## `@dashhaus/core/lovelace/conformance`
 
 The generic card checks, for a skin outside this repo. It reads a skin's files from disk, so it is Node- and test-only: no React, no DOM, no CSS, and no test runner of its own. Import it in a test and assert the findings are empty.
 
 ```ts
-import { checkCards } from "@dashhaus/dashboard/conformance";
+import { checkCards } from "@dashhaus/core/lovelace/conformance";
 
 expect(checkCards({
   skin: "skin",
@@ -95,8 +96,8 @@ Not stable: the wording of a finding's `message`; the `card` and `rule` fields a
 
 ## What is not stable yet
 
-- **The main `@dashhaus/dashboard` entry** — the nav, `useDashboardNav`, `useRowLayout` (a row's tracks from its own width, and each card's grid lines), room sensors, the token scoping and `actionMessage`. It re-exports `useActionStatus`, whose stable home is `./skin`. A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.
-- **`@dashhaus/dashboard/layout`** — the automatic layout's helpers, published for dashboard configs, and the row placement (`trackCount`, `placeRow`, `spanWidth`, `TrackPolicy`). Its signatures may still change.
-- **`@dashhaus/dashboard/vite`** — does not exist. There is no build integration to depend on; the deploy config owns its `build()`, and no consumer has needed a shared one yet. A demonstrated need starts that cut.
+- **The main `@dashhaus/core/lovelace` entry** — the nav, `useDashboardNav`, `useRowLayout` (a row's tracks from its own width, and each card's grid lines), room sensors, the token scoping and `actionMessage`. It re-exports `useActionStatus`, whose stable home is `./skin`. A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.
+- **`@dashhaus/core/lovelace/layout`** — the automatic layout's helpers, published for dashboard configs, and the row placement (`trackCount`, `placeRow`, `spanWidth`, `TrackPolicy`). Its signatures may still change.
+- **`@dashhaus/core/lovelace/vite`** — does not exist. There is no build integration to depend on; the deploy config owns its `build()`, and no consumer has needed a shared one yet. A demonstrated need starts that cut.
 - **Storybook and generator templates** — the story set and the generated skin are this repo's conventions, not a package contract.
 - **CSS and DOM** — a skin's class names, tokens, data attributes and the DOM it draws are its own; another skin or a consumer may not depend on them.

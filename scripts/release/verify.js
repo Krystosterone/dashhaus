@@ -3,7 +3,7 @@
  *
  * - tarball contents: no tests, stories, repo docs or spec, or workspace-only source paths;
  * - packed manifests: real version, no `private`, no `source` condition, internal ranges pinned, optional peers;
- * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/dashboard`, `./skin` and `./card`, a
+ * - Node imports of every declared subpath, a jsdom React render for `@dashhaus/core/lovelace`, `./skin` and `./card`, a
  *   Vitest run for `@dashhaus/core/testing`, a TypeScript consumer (Bundler and NodeNext), the `dashhaus-deploy` bin
  *   loading a config that imports `@dashhaus/deploy/config`, and a Node-only app installing deploy alone.
  * - each tarball's non-empty README.
@@ -55,30 +55,26 @@ async function checkTarballs(manifests) {
     if (!files.includes("package/LICENSE")) throw new Error(`${manifest.name}: tarball misses package/LICENSE`);
     if (!SEMVER.test(packed.version) || packed.version === "0.0.0") throw new Error(`${manifest.name}: packed version is ${packed.version}`);
     if (JSON.stringify(packed.exports).includes('"source"')) throw new Error(`${manifest.name}: packed exports declare a source condition`);
-    if (["core", "dashboard", "orb", "field"].includes(pkg.key) && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
+    if (["core", "orb", "field"].includes(pkg.key) && packed.peerDependenciesMeta?.["home-assistant-js-websocket"]?.optional !== true) {
       throw new Error(`${manifest.name}: home-assistant-js-websocket must stay an optional peer`);
     }
     const filesField = JSON.stringify(packed.files);
     if (!filesField.includes("dist") && pkg.key !== "deploy") throw new Error(`${manifest.name}: packed files must ship dist`);
 
     const required = pkg.key === "core"
-      ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json"]
-      : pkg.key === "dashboard"
-        ? ["package/README.md", "package/dist/index.js", "package/dist/skin.js", "package/dist/skin.d.ts", "package/dist/card.js", "package/dist/schema.js", "package/dist/layout.js", "package/dist/conformance.js", "package/dist/conformance.d.ts"]
-        : pkg.key === "orb"
-          ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/lovelace/auto.js", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
+      ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/entities/format.js", "package/dist/ha/fixtures/light.json", "package/dist/lovelace/index.js", "package/dist/lovelace/skin.js", "package/dist/lovelace/skin.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/schema.js", "package/dist/lovelace/layout.js", "package/dist/lovelace/conformance.js", "package/dist/lovelace/conformance.d.ts"]
+      : pkg.key === "orb"
+          ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/lovelace/auto.js", "package/dist/styles/tokens.css", "package/dist/storybook.js", "package/dist/orb-dashboard.js", "package/dist/resource.js", "package/dist/resource.d.ts", "package/dist/THIRD_PARTY_NOTICES.md"]
           : pkg.key === "field"
-            ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js"]
-            : pkg.key === "bundle"
-              ? ["package/README.md", "package/THIRD_PARTY_NOTICES.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/dashhaus.js"]
-              : pkg.key === "scaffold"
+            ? ["package/README.md", "package/dist/index.js", "package/dist/index.d.ts", "package/dist/lovelace/card.js", "package/dist/lovelace/card.d.ts", "package/dist/styles/tokens.css", "package/dist/storybook.js", "package/dist/field-dashboard.js", "package/dist/resource.js", "package/dist/resource.d.ts", "package/dist/THIRD_PARTY_NOTICES.md"]
+            : pkg.key === "scaffold"
                 ? ["package/README.md", "package/bin.js", "package/dist/index.js", "package/dist/templates/standalone/package.json", "package/dist/templates/standalone/lovelace/entry.tsx", "package/dist/card.js", "package/dist/domains.json", "package/dist/templates/skin/lovelace/card.tsx", "package/dist/templates/card/cards/__name__/__Skin____Name__Card.tsx"]
                 : ["package/README.md", "package/bin.js", "package/src/cli.js", "package/src/cli.d.ts", "package/src/config.js", "package/src/config.d.ts"];
     const missing = required.filter((file) => !files.includes(file));
     if (missing.length) throw new Error(`${manifest.name}: tarball misses ${missing.join(", ")}`);
     if (pkg.key === "scaffold") {
       const template = JSON.parse(execFileSync("tar", ["-xOzf", tarball, "package/dist/templates/standalone/package.json"], { encoding: "utf8" }));
-      for (const name of ["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy"]) {
+      for (const name of ["@dashhaus/core", "@dashhaus/deploy"]) {
         const range = template.dependencies?.[name] ?? template.devDependencies?.[name];
         if (range !== `^${packed.version}`) {
           throw new Error(`${manifest.name}: template pins ${name} "${range}", expected "^${packed.version}"`);
@@ -90,9 +86,11 @@ async function checkTarballs(manifests) {
     ok(`${manifest.name}@${packed.version}: ${files.length} entries, ${(statSync(tarball).size / 1024).toFixed(1)} KiB`);
   }
 
-  const dashboard = manifests.dashboard;
-  if (dashboard.dependencies?.["@dashhaus/core"] !== `^${manifests.core.version}`) {
-    throw new Error(`@dashhaus/dashboard depends on @dashhaus/core "${dashboard.dependencies?.["@dashhaus/core"]}", expected "^${manifests.core.version}"`);
+  for (const key of ["orb", "field"]) {
+    const range = manifests[key].dependencies?.["@dashhaus/core"];
+    if (range !== `^${manifests.core.version}`) {
+      throw new Error(`${manifests[key].name} depends on @dashhaus/core "${range}", expected "^${manifests.core.version}"`);
+    }
   }
 }
 
@@ -151,34 +149,41 @@ assert.ok(Object.keys(fixture).length > 0);
 
 const deployConfig = await load("@dashhaus/deploy/config");
 assert.equal(typeof deployConfig.generatedDashboards, "function");
-await load("@dashhaus/dashboard/schema");
-await load("@dashhaus/dashboard/layout");
-const conformance = await load("@dashhaus/dashboard/conformance");
+await load("@dashhaus/core/lovelace/schema");
+await load("@dashhaus/core/lovelace/layout");
+const conformance = await load("@dashhaus/core/lovelace/conformance");
 assert.equal(typeof conformance.checkCards, "function");
 assert.equal(typeof conformance.cardFolders, "function");
 const deploy = await load("@dashhaus/deploy");
 assert.equal(typeof deploy.loadDashboards, "function");
 const orbAuto = await load("@dashhaus/orb/lovelace/auto");
 assert.equal(typeof orbAuto.autoDashboard, "function");
-const bundle = await load("@dashhaus/bundle");
-assert.ok(bundle.bundlePath instanceof URL, "bundlePath is a file URL");
-assert.ok(existsSync(fileURLToPath(bundle.bundlePath)), "the bundle package ships its dashhaus.js");
-const bundleCode = await (await import("node:fs/promises")).readFile(fileURLToPath(bundle.bundlePath), "utf8");
-assert.match(bundleCode, /dashhaus-orb/);
-assert.match(bundleCode, /dashhaus-field/);
-assert.match(bundleCode, /Copyright \\(c\\) Facebook, Inc\\. and its affiliates\\./, "the bundle carries React's copyright notice");
-assert.match(bundleCode, /Permission is hereby granted, free of charge/, "the bundle carries React's MIT permission text");
+// Each skin ships its resource: one file with its card, its stylesheet and its strategy, and the notice for React.
+for (const [skin, file, card, strategy, token] of [["orb", "orb-dashboard.js", "dashhaus-orb", "orb-dashboard", "--brand-c"], ["field", "field-dashboard.js", "dashhaus-field", "field-dashboard", "--fd-"]]) {
+  const { resourceFile } = await load(\`@dashhaus/\${skin}/resource\`);
+  assert.equal(typeof resourceFile, "string", \`@dashhaus/\${skin}/resource names its file\`);
+  assert.ok(resourceFile.endsWith(\`/node_modules/@dashhaus/\${skin}/dist/\${file}\`), \`\${resourceFile} is the package's own file\`);
+  assert.ok(existsSync(resourceFile), \`@dashhaus/\${skin} ships \${file}\`);
+  const code = await (await import("node:fs/promises")).readFile(resourceFile, "utf8");
+  assert.ok(code.includes(\`"\${card}"\`), \`\${file} defines its card\`);
+  assert.ok(code.includes(strategy) && code.includes("ll-strategy-dashboard-"), \`\${file} defines its dashboard strategy\`);
+  assert.ok(code.includes(token), \`\${file} carries its stylesheet\`);
+  const other = skin === "orb" ? "dashhaus-field" : "dashhaus-orb";
+  assert.ok(!code.includes(\`"\${other}"\`), \`\${file} carries no other skin\`);
+  assert.match(code, /Copyright \\(c\\) Facebook, Inc\\. and its affiliates\\./, \`\${file} carries React's copyright notice\`);
+  assert.match(code, /Permission is hereby granted, free of charge/, \`\${file} carries React's MIT permission text\`);
+}
 
 const { JSDOM } = await import("jsdom");
 const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });
 for (const key of ["window", "document", "HTMLElement", "customElements", "CustomEvent", "Event", "Node", "MutationObserver"]) {
   Object.defineProperty(globalThis, key, { value: key === "window" ? dom.window : dom.window[key], configurable: true, writable: true });
 }
-const dashboard = await load("@dashhaus/dashboard");
+const dashboard = await load("@dashhaus/core/lovelace");
 assert.equal(typeof dashboard.registerCard, "function");
-const skin = await load("@dashhaus/dashboard/skin");
-assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "registerCard", "scopeToHost", "useActionStatus"]);
-const card = await load("@dashhaus/dashboard/card");
+const skin = await load("@dashhaus/core/lovelace/skin");
+assert.deepEqual(Object.keys(skin).sort(), ["LovelaceDashboardElement", "autoInput", "defineSkinStrategy", "registerCard", "scopeToHost", "useActionStatus"]);
+const card = await load("@dashhaus/core/lovelace/card");
 assert.equal(card.cardShape({ footprint: "compact" }).footprint, "compact");
 
 const { createElement } = await import("react");
@@ -216,13 +221,13 @@ it("renders a connected component through the packed testing helper", () => {
 
 async function typeConsumer(app) {
   await writeFile(join(app, "consumer.ts"), `
-import type { CardProps } from "@dashhaus/dashboard/card";
-import { cardShape } from "@dashhaus/dashboard/card";
+import type { CardProps } from "@dashhaus/core/lovelace/card";
+import { cardShape } from "@dashhaus/core/lovelace/card";
 import type { DeployConfig } from "@dashhaus/deploy/config";
 import { generatedDashboards } from "@dashhaus/deploy/config";
-import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import type { CardCheck } from "@dashhaus/dashboard/conformance";
-import { checkCards } from "@dashhaus/dashboard/conformance";
+import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
+import type { CardCheck } from "@dashhaus/core/lovelace/conformance";
+import { checkCards } from "@dashhaus/core/lovelace/conformance";
 import { HaActionError } from "@dashhaus/core";
 import type { HassEntity } from "@dashhaus/core";
 import { fmt1 } from "@dashhaus/core/entities/format";
@@ -233,7 +238,7 @@ import { createDemoHouseTransport } from "@dashhaus/core/demo";
 import fixture from "@dashhaus/core/fixtures/light.json";
 
 const shape = cardShape({ footprint: "compact" });
-const config: DeployConfig = { bundle: "dist/cards.js", dashboards: generatedDashboards([]) };
+const config: DeployConfig = { files: ["dist/cards.js"], dashboards: generatedDashboards([]) };
 export const values = [HaActionError, kelvinToLch, fmt1, usePress, useNow, createDemoHouseTransport, fixture, config, shape, checkCards];
 export type Card = CardProps;
 export type Check = CardCheck;
@@ -258,9 +263,9 @@ export type Hass = LovelaceHass;
   await writeFile(join(app, "consumer.node.ts"), `
 import type { DeployConfig } from "@dashhaus/deploy/config";
 import { generatedDashboards } from "@dashhaus/deploy/config";
-import { cardShape } from "@dashhaus/dashboard/card";
-import type { CardCheck } from "@dashhaus/dashboard/conformance";
-import { checkCards } from "@dashhaus/dashboard/conformance";
+import { cardShape } from "@dashhaus/core/lovelace/card";
+import type { CardCheck } from "@dashhaus/core/lovelace/conformance";
+import { checkCards } from "@dashhaus/core/lovelace/conformance";
 import { HaActionError } from "@dashhaus/core";
 import { fmt1 } from "@dashhaus/core/entities/format";
 
@@ -284,48 +289,6 @@ export type Config = DeployConfig;
   }, null, 2)}\n`);
   run(process.execPath, [join(root, "node_modules", "typescript", "bin", "tsc"), "-p", join(app, "tsconfig.node.json")], app);
   ok("TypeScript consumers typecheck against the packed declarations (Bundler and NodeNext)");
-}
-
-/**
- * A deploy-only app installs `@dashhaus/bundle` alone and reads the prebuilt file: no React, core or dashboard is
- * present, and the one bundle carries both cards and their CSS.
- */
-async function bundleConsumer(manifests) {
-  const app = await mkdtemp(join(tmpdir(), "dashhaus-bundle-app-"));
-  try {
-    await writeFile(join(app, "package.json"), `${JSON.stringify({
-      name: "dashhaus-bundle-only",
-      private: true,
-      type: "module",
-      dependencies: { "@dashhaus/bundle": tarballFor(manifests.bundle) },
-    }, null, 2)}\n`);
-    run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
-    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
-      if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the bundle-only app installed ${peer}; the bundle must carry its runtime`);
-    }
-    await writeFile(join(app, "consumer.js"), `
-import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { bundlePath } from "@dashhaus/bundle";
-
-assert.ok(bundlePath instanceof URL, "bundlePath is a file URL");
-const file = fileURLToPath(bundlePath);
-assert.ok(existsSync(file), "bundlePath points at a shipped file");
-assert.match(file, /node_modules\\/@dashhaus\\/bundle\\/dist\\/dashhaus\\.js$/);
-const code = await readFile(file, "utf8");
-assert.match(code, /dashhaus-orb/);
-assert.match(code, /dashhaus-field/);
-assert.match(code, /--brand-c/);
-assert.match(code, /--fd-/);
-console.log("bundle-only import ok");
-`);
-    run(process.execPath, ["consumer.js"], app);
-    ok("@dashhaus/bundle installs and resolves its prebuilt file with no React or runtime package");
-  } finally {
-    await rm(app, { recursive: true, force: true });
-  }
 }
 
 /**
@@ -370,7 +333,7 @@ async function deployConfigConsumer(manifests) {
       dependencies: { "@dashhaus/deploy": tarballFor(manifests.deploy) },
     }, null, 2)}\n`);
     run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], app);
-    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/dashboard"]) {
+    for (const peer of ["react", "react-dom", "@dashhaus/core", "@dashhaus/core/lovelace"]) {
       if (existsSync(join(app, "node_modules", ...peer.split("/")))) throw new Error(`the deploy-only app installed ${peer}; the config surface must not need it`);
     }
     await writeFile(join(app, "config.js"), `
@@ -394,7 +357,7 @@ async function deployBin(app) {
 import { generatedDashboards } from "@dashhaus/deploy/config";
 
 export default {
-  bundle: "dist/cards.js",
+  files: ["dist/cards.js"],
   dashboards: generatedDashboards([{ id: "canvas", title: "Packed", icon: "mdi:home" }]),
 };
 `);
@@ -415,7 +378,6 @@ async function main() {
   try {
     await install(app, manifests);
     await nodeConsumer(app);
-    await bundleConsumer(manifests);
     await scaffoldConsumer(manifests);
     await deployConfigConsumer(manifests);
     await testingConsumer(app);

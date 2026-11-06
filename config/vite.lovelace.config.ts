@@ -2,9 +2,17 @@ import { readFileSync } from "node:fs";
 import { defaultClientConditions, defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { NOTICE, resource } from "../scripts/resources.js";
+
+/**
+ * Which resource this build writes (scripts/resources.js): `DASHHAUS_RESOURCE=orb` for Orb's `orb-dashboard.js`, and so
+ * on. `scripts/build-resources.js` sets it for each build.
+ */
+if (!process.env.DASHHAUS_RESOURCE) throw new Error("DASHHAUS_RESOURCE names the resource to build; run npm run build:ha");
+const target = resource(process.env.DASHHAUS_RESOURCE);
 
 /** The bundled React and ReactDOM require their notice in every copy, including the deployed file. */
-const notice = readFileSync("packages/bundle/THIRD_PARTY_NOTICES.md", "utf8").trim();
+const notice = readFileSync(NOTICE, "utf8").trim();
 
 /** Fold every emitted stylesheet into the JS, where the card puts it in its shadow root. */
 function inlineCss(): Plugin {
@@ -27,13 +35,13 @@ function inlineCss(): Plugin {
 }
 
 /**
- * The build's name in its console line: the bundle's version, from the files alone. Never a ref (`git describe`, a tag,
+ * The build's name in its console line: its package's version, from the files alone. Never a ref (`git describe`, a tag,
  * `-dirty`), so the same tree builds the same bytes before and after it is tagged, and the files a release PR records
  * are the files the Release workflow ships (spec/release.md → Determinism). A deploy is told apart by its content hash.
  */
-const build = (JSON.parse(readFileSync("packages/bundle/package.json", "utf8")) as { version: string }).version;
+const build = (JSON.parse(readFileSync(`${target.version}/package.json`, "utf8")) as { version: string }).version;
 
-/** `npm run build:ha` — the Lovelace card as one self-contained ES module: dist/dashhaus.js. */
+/** `npm run build:ha` — one resource as one self-contained ES module: dist/<file>. */
 export default defineConfig({
   plugins: [react(), inlineCss()],
   resolve: { conditions: ["source", ...defaultClientConditions] },
@@ -46,7 +54,7 @@ export default defineConfig({
     emptyOutDir: true,
     cssCodeSplit: false,
     target: "es2022",
-    lib: { entry: "apps/lovelace/entry.ts", formats: ["es"], fileName: () => "dashhaus.js" },
+    lib: { entry: target.entry, formats: ["es"], fileName: () => target.file },
     // `comments.legal` keeps React's own `@license` headers, which Vite drops from a minified build unless asked.
     rolldownOptions: { output: { codeSplitting: false, comments: { legal: true }, banner: `/*!\n${notice}\n*/` } },
   },

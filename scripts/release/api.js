@@ -4,7 +4,7 @@
  * the latest), and `npm run release` uses the same comparison to suggest the next version.
  *
  * Each version's tarballs are unpacked as `node_modules/<name>` side by side under one folder inside the repository's
- * `node_modules/.cache`, so `@dashhaus/dashboard`'s declarations resolve the `@dashhaus/core` of the same version
+ * `node_modules/.cache`, so `@dashhaus/core/lovelace`'s declarations resolve the `@dashhaus/core` of the same version
  * through its packed `exports`, and React's types resolve from the repository. Every export of every typed subpath is
  * recorded as its declaration, printed without comments, so a changed signature reads as changed and a reworded doc
  * comment does not. An untyped subpath (a stylesheet, a CLI) is recorded as present.

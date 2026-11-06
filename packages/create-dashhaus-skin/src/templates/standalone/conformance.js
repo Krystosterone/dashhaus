@@ -2,7 +2,7 @@
 /**
  * `npm test`: the skin's checks, each finding printed with where it is and what to do.
  *
- * 1. The packed card preset (`@dashhaus/dashboard/conformance`) over `cards/`: every card folder has its component
+ * 1. The packed card preset (`@dashhaus/core/lovelace/conformance`) over `cards/`: every card folder has its component
  *    and story file, its stories are titled `__Section__/Cards/<Name>`, its classes start with `__skin__-`, and it
  *    imports nothing from the Home Assistant layer.
  * 2. The skin's own CSS rules (AGENTS.md → Rules): colours only from `styles/tokens.css`, whose blocks sit on `:root`,
@@ -13,7 +13,7 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
-import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
+import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
 
 const root = process.cwd();
 
@@ -27,7 +27,7 @@ const cardFindings = checkCards(
     forbiddenImport: (specifier) =>
       specifier === "@dashhaus/core" ||
       /^@dashhaus\/core\/(?:ha|websocket|demo|testing|fixtures)(?:\/|$)/.test(specifier) ||
-      specifier === "@dashhaus/dashboard",
+      specifier === "@dashhaus/core/lovelace",
   },
   { root },
 ).map((finding) => `cards/${finding.card}: [${finding.rule}] ${finding.message}`);

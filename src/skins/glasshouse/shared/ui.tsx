@@ -4,8 +4,8 @@ import { useKeypad, useGuardedAction, usePress, useSlider } from "@dashhaus/core
 import type { GuardedResult } from "@dashhaus/core/primitives";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { useSettled } from "@dashhaus/core/hooks";
-import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/dashboard/card";
-import type { ActionCardProps, CardSheetProps, TileProps } from "@dashhaus/dashboard/card";
+import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/core/lovelace/card";
+import type { ActionCardProps, CardSheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import "./ui.css";
 
 export type GlasshouseFootprint = "compact" | "standard";

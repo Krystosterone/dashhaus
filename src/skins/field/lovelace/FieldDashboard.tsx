@@ -1,12 +1,12 @@
 import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
-import { useActionStatus } from "@dashhaus/dashboard/skin";
-import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/dashboard";
-import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
-import { useDashboardNav } from "@dashhaus/dashboard";
-import { renderCard, rowItems } from "@dashhaus/dashboard/schema";
-import type { CardRenderers } from "@dashhaus/dashboard/schema";
-import type { TrackPolicy } from "@dashhaus/dashboard/layout";
+import { useActionStatus } from "@dashhaus/core/lovelace/skin";
+import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/core/lovelace";
+import type { NavEntry, PanelInfo } from "@dashhaus/core/lovelace";
+import { useDashboardNav } from "@dashhaus/core/lovelace";
+import { renderCard, rowItems } from "@dashhaus/core/lovelace/schema";
+import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
+import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { HaFanModule } from "../ha/HaFanModule";
 import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
 // new-card: module imports

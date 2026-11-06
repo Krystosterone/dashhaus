@@ -30,14 +30,15 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Dashhaus",
-      description: "Two finished dashboards for Home Assistant, Orb and Field, installed from the Marketplace, and the headless hooks under them to draw your own.",
+      description: "Orb and Field, two finished dashboards for Home Assistant, each installed on its own from the Marketplace; and Dashhaus, the headless hooks under them, to draw your own.",
       social: [{ icon: "github", label: "GitHub", href: repo }],
       editLink: { baseUrl: `${repo}/edit/main/docs/` },
       customCss: ["./src/styles/theme.css"],
       // Code frames sit on their own tone, with no outline, like the rest of the site's surfaces.
       expressiveCode: { styleOverrides: { borderWidth: "0px" } },
-      // The home page's hero draws both skins live; every other page keeps Starlight's.
-      components: { Hero: "./src/components/home/Hero.astro" },
+      // The home page's and each skin's hero draw the skins live; every other page keeps Starlight's. On a skin's page
+      // the header names the skin, not the site.
+      components: { Hero: "./src/components/home/Hero.astro", SiteTitle: "./src/components/SiteTitle.astro" },
       // Libre Franklin sets the site's headings (theme.css); body text stays in the system face.
       head: [
         { tag: "link", attrs: { rel: "preconnect", href: "https://fonts.googleapis.com" } },
@@ -47,42 +48,51 @@ export default defineConfig({
           attrs: { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;700&display=swap" },
         },
       ],
-      // An agent that fetches only llms.txt still gets the task most people bring, installing a skin, and the next, building one.
+      // An agent that fetches only llms.txt still gets the task most people bring, installing Orb or Field, and the next,
+      // building a skin.
       plugins: [
         starlightLlmsTxt({
-          description: "Home Assistant dashboards drawn in React: two finished skins, Orb and Field, installed from the Marketplace, and headless hooks to draw your own.",
+          description: "Orb and Field: two finished Home Assistant dashboards, each installed on its own from the Marketplace; and Dashhaus, the headless React hooks under them, to draw your own.",
           details: [
             "Dashhaus is in beta (0.x versions; 1.0 will be the first stable release): a new 0.x version may break YAML keys, hooks or a card's look, so read a release's notes before updating, keep every @dashhaus/ package on one version, and report how it went at https://github.com/Krystosterone/dashhaus/issues.",
             "",
-            "To install Orb and Field in a Home Assistant, with no terminal, as an administrator:",
-            "1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin and download Dashhaus (a Dashboard; add it as a custom repository if asked). Home Assistant 2026.11+ opens the Marketplace; older versions need HACS.",
+            "Orb and Field each install on their own, as Dashboards from the Marketplace. To install one in a Home Assistant, with no terminal, as an administrator:",
+            "1. Open Orb's repository, https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=orb-dashboard&category=plugin (Field's: repository=field-dashboard), and download it (a Dashboard; add it as a custom repository if asked). Home Assistant 2026.11+ opens the Marketplace; older versions need HACS.",
             "2. Reload the browser tab.",
-            "3. Overview → ⋮ → Edit dashboard → Add card → \"Dashhaus setup\" → Save, then press \"Create dashboards\".",
-            "4. Open \"Home (Orb)\" and \"Home (Field)\" from its links, then remove the setup card. It never changes an existing dashboard.",
+            "3. Settings → Dashboards → Add dashboard → under Community dashboards, pick \"Orb\" (or \"Field\") → Create (Home Assistant 2026.5+; on an older one, give a new dashboard `strategy: { type: custom:orb-dashboard }`, or `custom:field-dashboard`, as its configuration).",
+            "4. Open the new dashboard from the sidebar, laid out from the house. It never changes an existing dashboard.",
+            "From a terminal or CI, or for a dashboard of your own rows: `npm install @dashhaus/orb @dashhaus/deploy` (or @dashhaus/field), then `npx dashhaus-deploy --skip-build` with the config in start/deploy.",
             "",
             "To build someone their own skin (a whole look for their dashboards) from a picture or a description: run `npm create dashhaus-skin@latest <name>`, follow the AGENTS.md it writes (restyle, `npm test`, `npm run snapshot` to show them), then `npm run deploy` with HA_URL, HA_TOKEN and HA_WWW in .env. An agent that can't reach their Home Assistant (one in the cloud) follows the AGENTS.md's Install by hand instead: it hands over the built file and walks them through File editor, Resources and a new dashboard, with no token. start/build-a-skin has the prompt and the Home Assistant steps for a person with no terminal experience.",
             "",
-            "The four ways in: install a skin (start/install), build a skin (start/build-a-skin), use the hooks in your own React app (start/getting-started), contribute to the repository (develop/monorepo).",
+            "The ways in: install Orb (orb) or Field (field), build a skin (start/build-a-skin), use the hooks in your own React app (start/getting-started), contribute to the repository (develop/monorepo).",
           ].join("\n"),
         }),
       ],
+      // A reader arrives at a skin (spec/journeys.md): its page first, then what both skins share, then Dashhaus, the
+      // foundation under them, and the ways to build on it.
       sidebar: [
         {
-          label: "Start here",
+          label: "Dashboards",
+          items: [
+            { label: "Orb", slug: "orb" },
+            { label: "Field", slug: "field" },
+          ],
+        },
+        {
+          label: "Set up",
+          items: [
+            { label: "Lay it out in YAML", slug: "start/yaml" },
+            { label: "Warnings and alarms", slug: "start/warnings" },
+            { label: "Deploy from the command line", slug: "start/deploy" },
+          ],
+        },
+        {
+          label: "Dashhaus",
           items: [
             { label: "Introduction", slug: "intro" },
             { label: "Why Dashhaus", slug: "why" },
             { label: "Packages", slug: "packages" },
-          ],
-        },
-        {
-          label: "Install a skin",
-          items: [
-            { label: "Install from the Marketplace", slug: "start/install" },
-            { label: "Lay it out in YAML", slug: "start/yaml" },
-            { label: "Orb and Field", slug: "skins" },
-            { label: "Warnings and alarms", slug: "start/warnings" },
-            { label: "Deploy from the command line", slug: "start/deploy" },
           ],
         },
         { label: "Build a skin", items: [{ label: "Build a skin", slug: "start/build-a-skin" }] },

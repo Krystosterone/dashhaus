@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FieldDashboard } from "./FieldDashboard";
-import { mapRowItems } from "@dashhaus/dashboard/schema";
+import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
 import { areaRows } from "./auto";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardFolders, checkCards } from "@dashhaus/dashboard/conformance";
+import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
 import { exists, read } from "../../../../verify/conformance";
 
 const SKIN = "src/skins/glasshouse";
@@ -17,7 +17,7 @@ const CHECKS = {
 
 describe("Glasshouse card conformance", () => {
   it("passes the generic card checks", () => {
-    expect(checkCards(CHECKS), "@dashhaus/dashboard/conformance").toEqual([]);
+    expect(checkCards(CHECKS), "@dashhaus/core/lovelace/conformance").toEqual([]);
   });
 });
 

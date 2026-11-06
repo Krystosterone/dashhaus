@@ -15,8 +15,10 @@
  * the next version's `?v=2`; the deploy then finds that resource and dashboard and keeps them. Then add a climate card and
  * a lock, and check the lock's unlock asks first, sends nothing on Cancel and sends once on its question's Unlock.
  * `--screenshot <dir>`
- * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright.
+ * renders the deployed dashboard from the fake Home Assistant with the repo's Playwright. After the deploy, the skin
+ * lists itself in the fake's Add dashboard under its own name, and the dashboard picked there draws its card.
  */
+/* global window -- the evaluate callbacks run in the page. */
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
@@ -28,6 +30,7 @@ import {
   createReport,
   exerciseDetails,
   exerciseGuarded,
+  inPage,
   installedPackage,
   makeApp,
   read,
@@ -46,7 +49,7 @@ const report = createReport("DX author — scaffold, read the guide, install, te
 console.log(`  tarballs: ${shown(tarballsDir)}`);
 
 const app = await makeApp("author");
-const required = tarballs(["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy", "create-dashhaus-skin"]);
+const required = tarballs(["@dashhaus/core", "@dashhaus/deploy", "create-dashhaus-skin"]);
 let server;
 /** The fake Home Assistant, started once, serving `www` at /local/: the hand install and every deploy share it. */
 const www = join(app, "www");
@@ -60,7 +63,7 @@ const fakeHomeAssistant = async () => {
 try {
   const setup = await report.stage("tarballs", async () => {
     if (required.missing.length) throw new Error(`missing ${required.missing.join(", ")}; run npm run release:pack first`);
-    return "core, dashboard, deploy and the scaffolder are packed";
+    return "core, deploy and the scaffolder are packed";
   });
 
   const skinApp = join(app, SKIN);
@@ -107,7 +110,7 @@ try {
 
     const installed = await report.stage("install", async () => {
       run("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline"], { cwd: skinApp });
-      const names = ["@dashhaus/core", "@dashhaus/dashboard", "@dashhaus/deploy"].map((name) => {
+      const names = ["@dashhaus/core", "@dashhaus/deploy"].map((name) => {
         const { manifest } = installedPackage(skinApp, name);
         return `${manifest.name}@${manifest.version}`;
       });
@@ -226,6 +229,24 @@ try {
         if (!deployed.ok) {
           report.blocked(["details", "add a domain", "added card", "add a guarded action", "guarded action"], "the deploy failed");
         } else {
+          // The skin lists itself in Add dashboard under its own name, as Orb and Field do, and makes a dashboard there.
+          await report.stage("Add dashboard lists My Skin", async () => {
+            const { HA_URL } = server.settings;
+            const entries = await inPage(`${HA_URL}/config/lovelace/dashboards`, async (page) => {
+              await page.getByRole("button", { name: "My Skin", exact: true }).click();
+              await page.getByRole("link", { name: "Open My Skin" }).waitFor({ timeout: 10000 });
+              return page.evaluate(() => window.customStrategies);
+            });
+            assert.deepEqual(entries.map((entry) => [entry.type, entry.name]), [[`dashhaus-${SKIN}`, "My Skin"]], "the skin's own entry, and nothing named Dashhaus");
+            const saved = server.ha.saved.find((entry) => entry.url_path === "dashboard-my-skin");
+            assert.deepEqual(saved?.config, { strategy: { type: `custom:dashhaus-${SKIN}` } });
+            const view = await inPage(`${HA_URL}/dashboard-my-skin`, async (page) => {
+              await page.locator(`dashhaus-${SKIN}`).waitFor({ state: "attached", timeout: 10000 });
+              return page.evaluate(() => window.__fakeHaView);
+            });
+            assert.deepEqual(view, { title: "My Skin", path: "home", type: "panel", cards: [{ type: `custom:dashhaus-${SKIN}`, title: "Home" }] });
+            return `Community dashboards: "My Skin"; /dashboard-my-skin saved as { strategy: { type: custom:dashhaus-${SKIN} } } and drawn`;
+          });
           await report.stage("details", async () => {
             const result = await exerciseDetails(`${server.settings.HA_URL}/dashhaus-${SKIN}`, [
               { card: "light", facts: ["State", "Entity"], close: "button" },

@@ -1,6 +1,6 @@
-import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
-import type { LovelaceHass } from "@dashhaus/dashboard/skin";
-import { mapRowItems } from "@dashhaus/dashboard/schema";
+import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/core/lovelace/skin";
+import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
+import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 import type { FieldConfig, FieldRow, ModuleConfig, PageConfig } from "./config";
 import { areaName, areaRows, autoModules } from "./auto";
@@ -8,6 +8,7 @@ import { FieldDashboard } from "./FieldDashboard";
 import { FIELD_FONT_HREF } from "../shared/surface";
 
 export const FIELD_CARD_TYPE = "dashhaus-field";
+export { FIELD_STRATEGY } from "./strategy";
 
 /** The card fills its view, under Home Assistant's toolbar; the field surface paints the page behind it. The toolbar
     (`--header-height`, plus the notch) sits over the top of the view, so a nav jump stops below it. */
@@ -105,5 +106,5 @@ export function createFieldCard(css: string): CustomElementConstructor {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineFieldCard(css: string) {
-  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Dashhaus Field", "The field dashboard: hardware-style light, climate and sensor modules by room. Leave out `cards` and `rows` to show every supported entity by area.");
+  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Field", "Field's whole page from one YAML card: hardware-style light, climate and sensor modules by room. Leave out `cards` and `rows` to show every supported entity by area.");
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { CardKindSpec } from "@dashhaus/dashboard/schema";
+import type { CardKindSpec } from "@dashhaus/core/lovelace/schema";
 import type { TitanFootprint } from "../shared/ui";
 import { HaTitanLightCard } from "../ha/HaTitanLightCard";
 import { HaTitanSensorCard } from "../ha/HaTitanSensorCard";

@@ -25,7 +25,7 @@ it. If you make it better, contributions back are welcome; open a pull request.
 An agent ran `npm run new-skin -- futura`, then `npm run new-card -- <domain> --skin futura` for `light`, `climate`,
 `toggle`, `sensor` and `weather`, and gave the neutral shell its own look: tokens, parts, cards and dashboards, then
 a pass of Impeccable's critique and polish. Its cards keep every generated contract: the shared entity models and
-`useHa<Name>` hooks, the card frame from `@dashhaus/dashboard/card`, fixed footprints and the skin-local Card registry.
+`useHa<Name>` hooks, the card frame from `@dashhaus/core/lovelace/card`, fixed footprints and the skin-local Card registry.
 
 The run's real output was what it taught about the generators. Its friction became fixes in the generators and
 templates, so the next skin starts without it: a theme attribute of each skin's own, one font seam for the Lovelace

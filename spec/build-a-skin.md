@@ -53,7 +53,7 @@ that installs its Chromium.
 
 A card takes its domain's normalized model as `entity` (with `history` where the domain has one, its footprint and one
 callback per action it shows) from its `ha/` adapter, which calls the shared `useHa<Name>` hook; it never reaches Home Assistant itself.
-Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/dashboard/card`,
+Presentational cards may import `@dashhaus/core` entities, primitives and formatters and `@dashhaus/core/lovelace/card`,
 but not the Home Assistant subpaths, the Lovelace entry or a stylesheet from another skin.
 
 Each domain declares its actions' kinds beside its handlers (`<NAME>_ACTIONS: ActionKinds<Handlers>` in
@@ -65,7 +65,7 @@ takes a code as an entry in the frame's `guarded` list, answered in the details 
 saying so.
 
 Every card draws inside the skin's frame, `<Skin>CardFrame` in `shared/ui.tsx`: `detailsTile` and `detailsSheet` from
-`@dashhaus/dashboard/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible
+`@dashhaus/core/lovelace/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible
 name, its title. The title opens the details (`aria-haspopup="dialog"`), a `CardDialog` that closes from its button,
 Escape or the backdrop. The frame puts `data-card="<domain>"` on the article.
 
@@ -73,7 +73,7 @@ The page around the cards follows [skins.md → The page around the cards](skins
 tokens key dark mode on the skin's own `data-my-skin-theme`, which `paintHost` sets on the card's host (and the preview
 on its page), never the shared `data-theme`; `shared/surface.ts` names the web font; and
 `lovelace/MySkinActionStatus.tsx` draws the store's latest rejected command on the page, from `useActionStatus` in the
-frozen `@dashhaus/dashboard/skin` contract.
+frozen `@dashhaus/core/lovelace/skin` contract.
 
 `npm run add -- <domain> [--kind control|reading]` adds a domain: the card folder under `cards/<domain>/` (component,
 CSS, glyph and story metadata), its adapter in `ha/`, and its row in `lovelace/registry.tsx` for its Home Assistant
@@ -94,13 +94,15 @@ The scaffold's `vite.config.js` emits the bundle. Each component imports its own
 into nothing, and `lovelace/entry.tsx` gathers every stylesheet `?inline` and passes their text to `defineMySkinCard`,
 so a card `npm run add` writes needs no edit there. The emitted
 `dist/dashhaus-my-skin.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one
-resource and no separate stylesheet. Name it for the skin: the prebuilt `@dashhaus/bundle` already owns
-`/local/dashhaus/dashhaus.js`, and a skin-specific name lets both live on one instance.
+resource and no separate stylesheet. Name it for the skin: Orb's and Field's resources own
+`/local/orb-dashboard/orb-dashboard.js` and `/local/field-dashboard/field-dashboard.js`, and a skin-specific name lets
+them all live on one instance. The entry also defines the skin's dashboard strategy (`defineSkinStrategy`,
+[contract.md](contract.md)), so Home Assistant's Add dashboard lists the skin under its own name.
 
 ## Deploy
 
 `.env` beside the scaffold's `dashboard.config.mjs` holds `HA_URL`, `HA_TOKEN` and `HA_WWW`; the scaffold writes
-`.env.example` with each one explained. The config names the bundle, its `build()` (`npm run build`) and the
+`.env.example` with each one explained. The config names the file (`files`), its `build()` (`npm run build`) and the
 dashboard.
 
 Then `npm run deploy` builds, uploads the bundle, registers the resource, checks that Home Assistant serves it and
@@ -108,7 +110,7 @@ creates the dashboard once. See [deploy.md](deploy.md) for `--config`, SSH and t
 
 ## Prebuilt versus composed
 
-Most people who only want Orb and Field install the prebuilt bundle instead ([Deploy a dashboard](../docs/src/content/docs/start/deploy.mdx)); nothing
+Most people who only want Orb or Field install it from the Marketplace, or deploy the resource its package ships ([Deploy a dashboard](../docs/src/content/docs/start/deploy.mdx)); nothing
 is built. A skin project builds its own composition. If it wants the reference skins inside that composition, install
 `@dashhaus/orb` and/or `@dashhaus/field` and import their tokens and registration, as their READMEs show
 ([orb](../src/skins/orb/README.md#use), [field](../src/skins/field/README.md#use)).
@@ -117,6 +119,6 @@ Their exports resolve built `dist` in an installed package, so a composition bui
 
 ## Contracts
 
-What a skin may rely on from `@dashhaus/dashboard/skin`, `./card`, `./schema` and `./conformance` is in
+What a skin may rely on from `@dashhaus/core/lovelace/skin`, `./card`, `./schema` and `./conformance` is in
 [contract.md](contract.md). Skins never import each other: move what two skins
-share to `@dashhaus/core` or one of the dashboard subpaths above.
+share to `@dashhaus/core` or one of its Lovelace subpaths above.

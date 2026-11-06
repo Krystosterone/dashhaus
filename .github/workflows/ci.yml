@@ -75,8 +75,8 @@ jobs:
       - run: npx vitest run --config config/vitest.config.ts --maxWorkers=2 ${{ matrix.files }}
 
   # The release proof and the consumer journeys (spec/journeys.md) from freshly packed tarballs, never the workspace:
-  # the user installs the bundle's dashhaus.js as the Marketplace does and presses the setup card's Create in Chromium,
-  # or installs only the bundle and the deploy CLI; the skin author scaffolds, tests, builds and deploys a standalone
+  # each skin's file installs as the Marketplace does and the skin is picked in Add dashboard in Chromium; the
+  # command-line user installs a skin's package and the deploy CLI and deploys its dashboards; the skin author scaffolds, tests, builds and deploys a standalone
   # skin, then opens and closes the generated cards' details in Chromium; the developer installs core alone and draws a
   # light through its hook. All run against the fake Home Assistant in verify/dx/, so this lane needs no live instance;
   # the skin's and the developer's installs reach the registry for React, Vite and TypeScript.
@@ -93,7 +93,7 @@ jobs:
       # While a version is recorded but untagged (a release PR, or main before the Release workflow tags it), this
       # commit must pack the files its record names, and the record must be finished.
       - run: node scripts/release/candidate.js check
-      - run: node verify/dx/marketplace.js
+      - run: node verify/dx/skin.js
       - run: node verify/dx/user.js
       - run: node verify/dx/author.js
       - run: node verify/dx/developer.js

@@ -40,7 +40,7 @@ describe.each(skins)("the %s skin's page", (skin) => {
 
   it("shows a rejected command on its Lovelace page", () => {
     const lovelace = filesIn(`${dir}/lovelace`).filter((file) => /\.tsx$/.test(file) && !file.endsWith(".test.tsx") && !file.endsWith(".stories.tsx"));
-    expect(lovelace.filter((file) => read(file).includes("useActionStatus()")), "a row on useActionStatus from @dashhaus/dashboard").not.toEqual([]);
+    expect(lovelace.filter((file) => read(file).includes("useActionStatus()")), "a row on useActionStatus from @dashhaus/core/lovelace").not.toEqual([]);
   });
 });
 
@@ -78,7 +78,7 @@ describe("the page every skin starts from", () => {
   });
 
   it("draws the rejected-command row on its page", () => {
-    expect(read(`${T}/skin/lovelace/__Skin__ActionStatus.tsx`)).toContain('import { useActionStatus } from "@dashhaus/dashboard/skin";');
+    expect(read(`${T}/skin/lovelace/__Skin__ActionStatus.tsx`)).toContain('import { useActionStatus } from "@dashhaus/core/lovelace/skin";');
     expect(read(`${T}/skin/lovelace/__Skin__ActionStatus.tsx`)).toContain("useActionStatus()");
     expect(read(`${T}/skin/lovelace/__Skin__Dashboard.tsx`)).toContain("<__Skin__ActionStatus />");
   });

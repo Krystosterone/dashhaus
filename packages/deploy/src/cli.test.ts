@@ -4,7 +4,8 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { OPTIONS, SETTINGS, helpText, main, parseArgs } from "./cli.js";
+import { OPTIONS, SETTINGS, STARTER_CONFIG, helpText, main, parseArgs } from "./cli.js";
+import { readConfig, resolveDashboards, resolveFiles } from "./load.js";
 import type { DeployClient } from "./deploy.js";
 
 const directories: string[] = [];
@@ -21,7 +22,7 @@ async function project() {
   await writeFile(join(directory, "dist", "dashhaus.js"), "bundle");
   await writeFile(join(directory, "dashboard.config.mjs"), `export default {
   pageTitle: "Home",
-  bundle: "dist/dashhaus.js",
+  files: ["dist/dashhaus.js"],
   dashboards: [{
     path: "home-a",
     title: "Home A",
@@ -72,7 +73,7 @@ describe("helpText", () => {
   it("lists the dashboards the config declares", () => {
     const text = helpText([
       { path: "home-a", title: "Home A", icon: "mdi:home", card: async () => ({ card: {}, made: "" }) },
-      { path: "home-long", title: "Home Long", icon: "mdi:home", card: async () => ({ card: {}, made: "" }) },
+      { path: "home-long", title: "Home Long", icon: "mdi:home", strategy: { type: "custom:orb-dashboard" } },
     ], "/configs/dashboard.config.mjs");
     expect(text).toContain("dashhaus-deploy [--config <file>] [--skip-build]");
     expect(text).toContain("Home A     /home-a");
@@ -85,10 +86,47 @@ describe("helpText", () => {
     const text = helpText(undefined, "/somewhere/dashboard.config.mjs");
     expect(text).toContain("/somewhere/dashboard.config.mjs");
     expect(text).toContain("not found");
-    expect(text).toContain('import { bundlePath } from "@dashhaus/bundle"');
+    expect(text).toContain('import { resourceFile as orb } from "@dashhaus/orb/resource"');
+    expect(text).toContain("files: [orb]");
+    expect(text).toContain('strategy: { type: "custom:orb-dashboard" }');
     expect(text).toContain("custom:dashhaus-orb");
+    expect(text).toContain("@dashhaus/field/resource and custom:field-dashboard");
+    expect(text).not.toContain("@dashhaus/bundle");
     expect(text).toMatch(/HA_URL=.*\n.*HA_TOKEN=.*\n.*HA_WWW=/);
     expect(text).not.toContain(".env.example");
+  });
+});
+
+describe("STARTER_CONFIG", () => {
+  it("is a config the loader takes, once its package import resolves", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "deploy-cli-"));
+    directories.push(directory);
+    const orb = join(directory, "node_modules", "@dashhaus", "orb");
+    await mkdir(orb, { recursive: true });
+    await writeFile(join(orb, "package.json"), JSON.stringify({ name: "@dashhaus/orb", type: "module", exports: { "./resource": "./resource.js" } }));
+    await writeFile(join(orb, "resource.js"), 'export const resourceFile = "/opt/orb/orb-dashboard.js";\n');
+    await writeFile(join(directory, "dashboard.config.mjs"), STARTER_CONFIG);
+    const config = await readConfig(join(directory, "dashboard.config.mjs"));
+    expect(resolveFiles(config, join(directory, "dashboard.config.mjs"))).toEqual([
+      { file: "/opt/orb/orb-dashboard.js", name: "orb-dashboard.js", folder: "orb-dashboard", resourcePath: "/local/orb-dashboard/orb-dashboard.js" },
+    ]);
+    expect(resolveDashboards(config, {}).dashboards).toEqual([
+      { path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", strategy: { type: "custom:orb-dashboard" } },
+    ]);
+  });
+
+  it("is still a valid config with the card dashboard uncommented", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "deploy-cli-"));
+    directories.push(directory);
+    const source = STARTER_CONFIG.replace(/^.*resourceFile.*$/m, 'const orb = "dist/orb-dashboard.js";').replace("// { path:", "{ path:");
+    await writeFile(join(directory, "dashboard.config.mjs"), source);
+    const { dashboards } = resolveDashboards(await readConfig(join(directory, "dashboard.config.mjs")), {});
+    expect(dashboards[1]).toEqual({
+      path: "my-home",
+      title: "My home",
+      icon: "mdi:floor-plan",
+      card: { type: "custom:dashhaus-orb", title: "Home", cards: ["light.kitchen"] },
+    });
   });
 });
 
@@ -131,7 +169,7 @@ describe("main", () => {
     const code = await main({ argv: ["--help"], cwd: directory, env: {}, report: (message) => messages.push(message), error: (message) => messages.push(message) });
     expect(code).toBe(0);
     expect(messages.join("\n")).toContain("Write dashboard.config.mjs");
-    expect(messages.join("\n")).toContain("@dashhaus/bundle");
+    expect(messages.join("\n")).toContain("@dashhaus/orb/resource");
   });
 
   it("names the missing config and where to start, instead of a resolver error", async () => {

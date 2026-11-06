@@ -1,0 +1,131 @@
+---
+/**
+ * A skin's landing page ends here: its sibling, the other finished skin, then one quiet line saying what it is drawn
+ * on. That line is the page's only mention of Dashhaus, and the way a curious reader finds the foundation: the hooks,
+ * and drawing a look of their own. Nothing above it pitches either.
+ */
+import { SKINS, skin as skinNamed } from "../../lib/skins";
+import type { SiteSkin } from "../../lib/skins";
+
+interface Props {
+  /** The skin, by its id. */
+  skin: SiteSkin["skin"];
+}
+
+const skin = skinNamed(Astro.props.skin);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const others = SKINS.filter((other) => other.skin !== skin.skin);
+---
+
+<footer class="skin-foot not-content">
+  {
+    others.map((other) => (
+      <a class="sibling" href={`${base}/${other.page}/`} data-skin={other.skin}>
+        <span class="label">Another look</span>
+        <span class="name">
+          {other.name}
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="text">{other.tagline}</span>
+      </a>
+    ))
+  }
+  <p class="drawn">
+    {skin.name} is drawn on <a href={`${base}/intro/`}>Dashhaus</a>, open hooks for Home Assistant that you can draw a
+    look of your own on. Free and open source, under the MIT licence.
+  </p>
+</footer>
+
+<style>
+  .skin-foot {
+    display: grid;
+    gap: clamp(2rem, 5vh, 3rem);
+    margin-top: clamp(3rem, 8vh, 5rem);
+  }
+
+  .sibling {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    border-radius: 1.5rem;
+    background: var(--home-tone);
+    color: var(--sl-color-white);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 160ms var(--home-ease),
+      transform 160ms var(--home-ease);
+  }
+
+  .sibling:active {
+    transform: scale(0.98);
+  }
+
+  .sibling:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 3px;
+  }
+
+  .label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-2);
+  }
+
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--home-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .name svg {
+    transition: transform 160ms var(--home-ease);
+  }
+
+  .text {
+    max-width: 52ch;
+    color: var(--sl-color-gray-2);
+  }
+
+  .drawn {
+    max-width: 60ch;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--sl-color-gray-3);
+  }
+
+  .drawn a {
+    color: inherit;
+    text-underline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .sibling:hover {
+      background: var(--home-tone-2);
+    }
+
+    .sibling:hover .name svg {
+      transform: translateX(4px);
+    }
+
+    .drawn a:hover {
+      color: var(--sl-color-white);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sibling,
+    .name svg {
+      transition: none;
+    }
+  }
+</style>

@@ -5,7 +5,8 @@
  *
  * - no page carries a code fence in a language that compiles or parses, so every such sample comes from a file;
  * - every sample a page names exists, and every file in `docs/examples/` is shown somewhere;
- * - every Lovelace YAML sample reads cleanly through its skin's own parser;
+ * - every Lovelace YAML sample reads cleanly through its skin's own parser, and a dashboard strategy sample through the
+ *   strategy, every card its views hold through that card's skin's parser;
  * - the user guide's deploy config loads through `@dashhaus/deploy` as `npx dashhaus-deploy` would load it;
  * - every scaffold file the author guide shows is one `create-dashhaus-skin my-skin` writes (before or after
  *   `npm run add -- cover`), and that skin typechecks.
@@ -18,6 +19,8 @@ import { parse } from "yaml";
 import { loadDashboards } from "@dashhaus/deploy";
 import { parseDashboardConfig } from "../src/skins/orb/lovelace/config";
 import { parseFieldConfig } from "../src/skins/field/lovelace/config";
+import { ORB_STRATEGY } from "../src/skins/orb/lovelace/strategy";
+import { FIELD_STRATEGY } from "../src/skins/field/lovelace/strategy";
 import { ADDED, writeScaffold } from "../docs/src/lib/scaffold";
 
 const root = process.cwd();
@@ -69,12 +72,29 @@ describe("documentation samples", () => {
   it("reads every Lovelace YAML sample through its skin's parser", () => {
     const yaml = walk(examplesDir).filter((file) => file.endsWith(".yaml") && !relative(examplesDir, file).startsWith("mistakes/"));
     expect(yaml.length).toBeGreaterThan(0);
-    for (const file of yaml) {
-      const config = parse(readFileSync(file, "utf8")) as { type?: string };
-      const at = relative(root, file);
+    const card = (config: { type?: string; cards?: unknown[]; [key: string]: unknown }, at: string) => {
       if (config.type === "custom:dashhaus-orb") expect(() => parseDashboardConfig(config), at).not.toThrow();
       else if (config.type === "custom:dashhaus-field") expect(() => parseFieldConfig(config), at).not.toThrow();
       else throw new Error(`${at}: no parser for type ${config.type}`);
+    };
+    const skins = Object.fromEntries([ORB_STRATEGY, FIELD_STRATEGY].map((strategy) => [`custom:${strategy.type}`, strategy]));
+    for (const file of yaml) {
+      const config = parse(readFileSync(file, "utf8")) as { type?: string; strategy?: { type?: string } };
+      const at = relative(root, file);
+      if (!config.strategy) {
+        card(config, at);
+        continue;
+      }
+      // A dashboard's raw config on a strategy: expanded as the frontend does, then each view's card read.
+      const skin = skins[config.strategy.type ?? ""];
+      if (skin) {
+        // A skin's strategy draws its card with the title and the keys it hands on (its own test pins the expansion).
+        const keys = Object.fromEntries(Object.entries(config.strategy).filter(([key]) => key !== "type"));
+        for (const key of Object.keys(keys)) expect(["title", ...(skin.options ?? [])], `${at}: ${skin.name}'s strategy takes ${key}`).toContain(key);
+        card({ type: skin.card, title: "Home", ...keys }, `${at} → ${skin.name}`);
+        continue;
+      }
+      throw new Error(`${at}: no strategy ${config.strategy.type}`);
     }
   });
 
@@ -97,7 +117,7 @@ describe("documentation samples", () => {
 
   it("loads the user guide's deploy config", async () => {
     const { dashboards } = await loadDashboards({ file: join(examplesDir, "user/dashboard.config.mjs"), env: {} });
-    expect(dashboards.map((dashboard: { path: string }) => dashboard.path)).toEqual(["home-orb", "home-field"]);
+    expect(dashboards.map((dashboard: { path: string }) => dashboard.path)).toEqual(["home-orb", "home-field", "my-home"]);
   });
 });
 

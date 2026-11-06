@@ -8,7 +8,7 @@ const PAGE_TITLE = "Home";
 
 export default {
   pageTitle: PAGE_TITLE,
-  bundle: "dist/dashhaus-__skin__.js",
+  files: ["dist/dashhaus-__skin__.js"],
   async build() {
     const result = spawnSync("npm", ["run", "build", "--silent"], { stdio: "inherit", shell: process.platform === "win32" });
     if (result.status !== 0) throw new Error("npm run build failed");

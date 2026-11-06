@@ -1,14 +1,14 @@
-// The deploy CLI's work: read the user's config, build and upload its bundle, register the dashboard resource and
-// create the dashboards once. Node-only: it imports no @dashhaus package and no skin. Settings are the only thing it
+// The deploy CLI's work: read the user's config, build and upload its files, register each as a dashboard resource
+// and create the dashboards once. Node-only: it imports no @dashhaus package and no skin. Settings are the only thing it
 // reads from the environment; the config names the dashboards.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile, rename } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
-import { DeployConfigError, panelView, readConfig, resolveBundle, resolveDashboards } from "./load.js";
+import { DeployConfigError, panelView, readConfig, resolveDashboards, resolveFiles } from "./load.js";
 
-export { DeployConfigError, loadDashboards, readConfig, resolveBundle, resolveDashboards } from "./load.js";
+export { DeployConfigError, loadDashboards, readConfig, resolveDashboards, resolveFiles } from "./load.js";
 
 /** The settings `.env` (or the environment) must carry; the config never holds a secret. */
 function settingsFrom(env) {
@@ -26,20 +26,23 @@ function settingsFrom(env) {
   return { url, token, www, sshPort: env.HA_SSH_PORT ? String(env.HA_SSH_PORT) : undefined };
 }
 
-/** Run the config's build callback with the config's directory as the working directory, then read its bundle. */
-async function readBundle({ config, configFile, target, skipBuild, report }) {
-  if (!skipBuild && config.build) {
-    report("\n→ Building the dashboard bundle");
-    const previous = process.cwd();
-    process.chdir(dirname(configFile));
-    try {
-      await config.build();
-    } catch (error) {
-      throw new DeployConfigError(`The build failed: ${error?.message ?? String(error)}`);
-    } finally {
-      process.chdir(previous);
-    }
+/** Run the config's build callback once, with the config's directory as the working directory. */
+async function runBuild({ config, configFile, skipBuild, report }) {
+  if (skipBuild || !config.build) return;
+  report("\n→ Running the config's build");
+  const previous = process.cwd();
+  process.chdir(dirname(configFile));
+  try {
+    await config.build();
+  } catch (error) {
+    throw new DeployConfigError(`The build failed: ${error?.message ?? String(error)}`);
+  } finally {
+    process.chdir(previous);
   }
+}
+
+/** Read one file the config names, with its content hash as the version its resource URL carries. */
+async function readTarget({ configFile, target, report }) {
   let contents;
   try {
     contents = await readFile(target.file);
@@ -49,13 +52,13 @@ async function readBundle({ config, configFile, target, skipBuild, report }) {
   const version = createHash("sha256").update(contents).digest("hex").slice(0, 10);
   const shown = relative(dirname(configFile), target.file) || target.file;
   report(`  ✓ ${shown} (${Math.round(contents.length / 1024)} kB, version ${version})`);
-  return { contents, version };
+  return { ...target, contents, version };
 }
 
 /**
- * Copy the bundle to Home Assistant's www folder: over SSH for `user@host:/path`, or into a mounted folder (a Windows
+ * Copy one file to Home Assistant's www folder: over SSH for `user@host:/path`, or into a mounted folder (a Windows
  * drive, `Z:\www`, is a folder). It lands under a temporary name and is renamed into place, so a copy cut off halfway
- * leaves the bundle Home Assistant serves as it was.
+ * leaves the file Home Assistant serves as it was.
  */
 async function upload({ contents, target, www, sshPort, configFile, report }) {
   const remote = /^[A-Za-z]:[\\/]/.test(www) ? null : /^(?:[^@/\s]+@)?[^:/\s]+:(.+)$/.exec(www);
@@ -85,9 +88,9 @@ async function upload({ contents, target, www, sshPort, configFile, report }) {
   report(`  ✓ ${target.folder}/${target.name}`);
 }
 
-/** Point the dashboard resource at the new file, with the content hash as its version. */
-async function registerResource(ha, target, version, report, warn) {
-  report("\n→ Registering the dashboard resource");
+/** Point a file's dashboard resource at its new version, the content hash. */
+async function registerResource(ha, target, report, warn) {
+  const { name, version } = target;
   const url = `${target.resourcePath}?v=${version}`;
   try {
     const resources = await ha.send("lovelace/resources");
@@ -95,18 +98,31 @@ async function registerResource(ha, target, version, report, warn) {
     if (existing) await ha.send("lovelace/resources/update", { resource_id: existing.id, res_type: "module", url });
     else await ha.send("lovelace/resources/create", { res_type: "module", url });
     report(`  ✓ ${url} ${existing ? "(updated)" : "(added)"}`);
-    // The same bundle from elsewhere (the Marketplace's /local/community/…) defines the same cards: whichever loads
+    // The same file from elsewhere (a Marketplace install's /hacsfiles/…) defines the same cards: whichever loads
     // first wins, and the other is skipped without a word.
     const other = resources.find((resource) => resource.url.split("?")[0] !== target.resourcePath && resource.url.split("?")[0].endsWith(`/${target.name}`));
     if (other) warn(`  ! Another ${target.name} is also registered (${other.url.split("?")[0]}). Both define the same cards and only the first to load is used, so remove one under Settings → Dashboards → Resources.`);
-    return { url, updated: Boolean(existing) };
+    return { name, url, version, updated: Boolean(existing) };
   } catch (error) {
     const message = error?.message ?? String(error);
     warn(`  ! Could not manage resources (${message}). If your dashboards are in YAML mode, add this under lovelace: resources: in configuration.yaml:
       - url: ${url}
         type: module`);
-    return { url, updated: false, error: message };
+    return { name, url, version, updated: false, error: message };
   }
+}
+
+/**
+ * The config a new dashboard is saved with: a skin's strategy as `{ strategy }`, so the skin draws it on every load,
+ * or a card in one panel view, from its factory or as written.
+ */
+async function layoutOf(dashboard, ha, pageTitle) {
+  if (dashboard.strategy) return { config: { strategy: dashboard.strategy }, made: `the ${dashboard.strategy.type} strategy` };
+  if (typeof dashboard.card === "function") {
+    const { card, made } = await dashboard.card(ha);
+    return { config: panelView(card, pageTitle), made };
+  }
+  return { config: panelView(dashboard.card, pageTitle), made: "your card" };
 }
 
 /** Create each dashboard whose layout does not exist yet; an existing one keeps its layout and follows a title change. */
@@ -127,12 +143,12 @@ async function reconcileDashboards(ha, dashboards, pageTitle, report) {
       results.push({ path: dashboard.path, title: dashboard.title, status: "existing", renamed });
       continue;
     }
-    const { card, made } = await dashboard.card(ha);
+    const { config, made } = await layoutOf(dashboard, ha, pageTitle);
     await ha.send("lovelace/dashboards/create", { url_path: dashboard.path, title: dashboard.title, icon: dashboard.icon, mode: "storage", show_in_sidebar: true, require_admin: false });
     try {
-      await ha.send("lovelace/config/save", { url_path: dashboard.path, config: panelView(card, pageTitle) });
+      await ha.send("lovelace/config/save", { url_path: dashboard.path, config });
     } catch (error) {
-      // Delete what this run created, as the setup card does, so the next run creates it again rather than leaving
+      // Delete what this run created, so the next run creates it again rather than leaving
       // it empty for good. The save's error is the one worth reporting.
       const made = (await ha.send("lovelace/dashboards/list").catch(() => [])).find((item) => item.url_path === dashboard.path);
       if (made) await ha.send("lovelace/dashboards/delete", { dashboard_id: made.id }).catch(() => {});
@@ -162,21 +178,33 @@ export async function deploy({
   const file = resolve(configFile);
   const config = await readConfig(file);
   const { dashboards, pageTitle } = resolveDashboards(config, env);
-  const target = resolveBundle(config, file);
+  const targets = resolveFiles(config, file);
   const settings = settingsFrom(env);
-  const { contents, version } = await readBundle({ config, configFile: file, target, skipBuild, report });
-  await upload({ contents, target, www: settings.www, sshPort: settings.sshPort, configFile: file, report });
+  await runBuild({ config, configFile: file, skipBuild, report });
+  report(`\n→ Reading ${targets.length === 1 ? "the file" : `the ${targets.length} files`}`);
+  const files = [];
+  for (const target of targets) files.push(await readTarget({ configFile: file, target, report }));
+  for (const target of files) await upload({ contents: target.contents, target, www: settings.www, sshPort: settings.sshPort, configFile: file, report });
 
   report(`\n→ Connecting to ${settings.url}`);
   const ha = await connect(settings.url, settings.token);
   try {
     report(`  ✓ Home Assistant ${ha.version}`);
-    const resource = await registerResource(ha, target, version, report, warn);
+    report(`\n→ Registering ${files.length === 1 ? "the dashboard resource" : "the dashboard resources"}`);
+    const resources = [];
+    for (const target of files) resources.push(await registerResource(ha, target, report, warn));
     const results = await reconcileDashboards(ha, dashboards, pageTitle, report);
-    await checkServed({ fetch, url: settings.url, resource: target.resourcePath, version, contents, www: settings.www, report, warn });
-    report(`\nDone. Open ${dashboards.map((dashboard) => `${settings.url}/${dashboard.path}`).join(" or ")} and reload the page once to pick up version ${version}.
-To change a layout: ⋮ → Edit dashboard → the card's ✎ → Show code editor. A mistake is listed with its path and a suggestion.`);
-    return { version, resource, dashboards: results };
+    if (fetch) report(`\n→ Checking that Home Assistant serves ${files.length === 1 ? "it" : "them"}`);
+    for (const target of files) await checkServed({ fetch, url: settings.url, target, www: settings.www, report, warn });
+    const versions = files.map((target) => `${target.name} version ${target.version}`).join(", ");
+    const open = dashboards.length
+      ? `Open ${dashboards.map((dashboard) => `${settings.url}/${dashboard.path}`).join(" or ")} and reload the page once`
+      : "Reload any open Home Assistant tab once";
+    const edit = dashboards.some((dashboard) => !dashboard.strategy)
+      ? "\nTo change a card dashboard's layout: ⋮ → Edit dashboard → the card's ✎ → Show code editor. A mistake is listed with its path and a suggestion."
+      : "";
+    report(`\nDone. ${open} to pick up ${versions}.${edit}`);
+    return { resources, dashboards: results };
   } finally {
     ha.close();
   }
@@ -187,10 +215,10 @@ To change a layout: ⋮ → Edit dashboard → the card's ✎ → Show code edit
  * uploaded. A file that is missing or different means HA_WWW is not the folder Home Assistant serves, which is
  * otherwise only visible as a "Custom element doesn't exist" on the dashboard.
  */
-async function checkServed({ fetch, url, resource, version, contents, www, report, warn }) {
+async function checkServed({ fetch, url, target, www, report, warn }) {
   if (!fetch) return;
-  const address = `${url}${resource}?v=${version}`;
-  report("\n→ Checking that Home Assistant serves it");
+  const { contents } = target;
+  const address = `${url}${target.resourcePath}?v=${target.version}`;
   let response;
   try {
     response = await fetch(address, { cache: "no-store" });

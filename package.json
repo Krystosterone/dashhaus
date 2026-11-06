@@ -20,7 +20,7 @@
     "preinstall": "node scripts/check-npm.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "build:ha": "node scripts/build-bundle.js",
+    "build:ha": "node scripts/build-resources.js",
     "build:packages": "node scripts/build-packages.js",
     "docs": "npm run dev -w docs",
     "build:docs": "npm run build -w docs && storybook build --quiet -o docs/dist/storybook",
@@ -54,12 +54,10 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "@dashhaus/core": "*",
-    "@dashhaus/dashboard": "*",
     "@dashhaus/deploy": "*",
     "@dashhaus/fake-home-assistant": "*",
     "@dashhaus/orb": "*",
-    "@dashhaus/field": "*",
-    "@dashhaus/bundle": "*"
+    "@dashhaus/field": "*"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -1,64 +1,61 @@
 ---
 /**
- * Starlight's hero, replaced for the home page: the page's title and tagline from its frontmatter, the two ways in
- * (installing first, in Install's yellow; building a skin second), and both skins' phone examples running live, each on its own shape (Orb's round button, Field's square key). Any
- * other page with a `hero` keeps Starlight's own.
+ * Starlight's hero, replaced on the pages a reader arrives at: the home page and each skin's landing page. Every other
+ * page with a `hero` keeps Starlight's own.
+ *
+ * - **Home**: the page's title and tagline, a way to each skin's page (Orb in its yellow, Field in its orange), and
+ *   both skins' phone examples running live, each on its own shape (Orb's round button, Field's square key).
+ * - **A skin's page** (`src/lib/skins.ts`): its name and tagline, the button that opens its repository in Home
+ *   Assistant and the way to its install steps below, and its phone example alone. Nothing here names Dashhaus.
  */
 import Default from "@astrojs/starlight/components/Hero.astro";
 import LiveStory from "../LiveStory.astro";
-import orbDark from "../../assets/skins/phone-orb-dark.webp";
-import orbLight from "../../assets/skins/phone-orb-light.webp";
-import fieldDark from "../../assets/skins/phone-field-dark.webp";
-import fieldLight from "../../assets/skins/phone-field-light.webp";
+import { SKINS as ALL, skinOf } from "../../lib/skins";
 
 const { entry } = Astro.locals.starlightRoute;
 const home = entry.id === "index" || entry.id === "";
+const page = skinOf(entry.id);
 const { title = entry.data.title, tagline } = entry.data.hero ?? {};
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-const PATHS = [
-  { href: `${base}/start/install/`, name: "Install a dashboard", text: "From the Marketplace in Home Assistant: add the setup card once and press Create.", primary: true },
-  { href: `${base}/start/build-a-skin/`, name: "Build a skin", text: "A look of your own, no code: show an AI agent a picture or describe it, and it builds and deploys it.", primary: false },
-];
+/** Each skin, as its phone example: its Storybook globals, where its screen starts in the story and how it rounds. */
+const SKINS = (page ? [page] : ALL).map((skin) => ({
+  skin: skin.skin,
+  name: skin.name,
+  text: skin.skin === "orb" ? "Soft and round, read at a glance." : "A hardware panel with keys, faders and a dark screen.",
+  light: skin.light,
+  dark: skin.dark,
+  screen: skin.screen,
+  poster: skin.poster,
+}));
 
-/** Each skin's phone example: its Storybook globals, where its screen starts in the story and how it rounds. */
-const SKINS = [
-  {
-    skin: "orb",
-    name: "Orb",
-    text: "Soft and round, read at a glance.",
-    light: "theme:light",
-    dark: "theme:dark",
-    screen: { top: 47, radius: 36 },
-    poster: { light: orbLight, dark: orbDark },
-  },
-  {
-    skin: "field",
-    name: "Field",
-    text: "A hardware panel with keys, faders and a dark screen.",
-    light: "finish:alloy",
-    dark: "finish:black",
-    screen: { top: 44, radius: 28 },
-    poster: { light: fieldLight, dark: fieldDark },
-  },
-] as const;
+/** The ways on: to each skin's page from home; on a skin's page, its install, in Home Assistant and in steps. */
+const PATHS = page
+  ? [
+      { href: page.myLink, name: "Open in Home Assistant", text: `Download ${page.name} from the Marketplace, or HACS before Home Assistant 2026.11.`, skin: page.skin, external: true },
+      { href: "#install", name: "How it installs", text: "Three steps, all in Home Assistant. No terminal, no YAML.", skin: undefined, external: false },
+    ]
+  : ALL.map((skin) => ({ href: `${base}/${skin.page}/`, name: skin.name, text: skin.tagline, skin: skin.skin, external: false }));
+const note = page ? `It runs live on a demo house: press, slide and scroll it.` : "Both run live on a demo house. Try one, then press, slide and scroll it.";
 ---
 
 {
-  home ? (
-    <section class="home-hero not-content" aria-labelledby="_top">
+  home || page ? (
+    <section class="home-hero not-content" aria-labelledby="_top" data-skin-page={page?.skin}>
       <div class="home-hero-inner">
         <div class="copy">
+          {page && <p class="eyebrow">A dashboard for Home Assistant</p>}
           <h1 id="_top" data-page-title set:html={title} />
           {tagline && <p class="lede" set:html={tagline} />}
           <ul class="paths">
-            {PATHS.map(({ href, name, text, primary }) => (
+            {PATHS.map(({ href, name, text, skin, external }) => (
               <li>
-                <a href={href} data-primary={primary || undefined}>
+                <a href={href} data-skin={skin} target={external ? "_blank" : undefined} rel={external ? "external noopener" : undefined}>
                   <span class="path-name">
                     {name}
+                    {external && <span class="sr-only"> (opens in a new tab)</span>}
                     <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
-                      <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d={external ? "M7 17 17 7m-8 0h8v8" : "M5 12h14m-6-6 6 6-6 6"} fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                   </span>
                   <span class="path-text">{text}</span>
@@ -66,22 +63,26 @@ const SKINS = [
               </li>
             ))}
           </ul>
-          <p class="note">Both run live on a demo house. Try one, then press, slide and scroll it.</p>
+          <p class="note">{note}</p>
         </div>
 
-        <div class="stage" data-skin-stage data-active="orb">
-          <div class="switch" role="group" aria-label="Dashboard to show">
-            {SKINS.map(({ skin, name }, index) => (
-              <button type="button" data-skin={skin} aria-pressed={index === 0 ? "true" : "false"}>
-                {name}
-              </button>
-            ))}
-          </div>
+        <div class="stage" data-skin-stage data-active={SKINS[0].skin} data-count={SKINS.length}>
+          {SKINS.length > 1 && (
+            <div class="switch" role="group" aria-label="Dashboard to show">
+              {SKINS.map(({ skin, name }, index) => (
+                <button type="button" data-skin={skin} aria-pressed={index === 0 ? "true" : "false"}>
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
           {SKINS.map(({ skin, name, text, light, dark, screen, poster }) => (
             <figure class="phone" data-skin={skin}>
-              <figcaption>
-                <strong>{name}</strong> {text}
-              </figcaption>
+              {SKINS.length > 1 && (
+                <figcaption>
+                  <strong>{name}</strong> {text}
+                </figcaption>
+              )}
               <div class="screen">
                 <LiveStory
                   id={`${skin}-dashboards-examples--phone`}
@@ -184,15 +185,20 @@ const SKINS = [
     transform: scale(0.98);
   }
 
-  /* Installing is the front door (spec/journeys.md): Install's yellow, as in the install section and the closing choice. */
-  .paths a[data-primary] {
+  /* Each skin's way in, in its own colour: Orb's yellow, Field's orange. On a skin's page, its install is the front
+     door (spec/journeys.md), in that skin's colour. */
+  .paths a[data-skin] {
     --ink: oklch(0.22 0.006 80);
-    background: oklch(0.86 0.145 92);
+    background: var(--path, oklch(0.86 0.145 92));
     color: var(--ink);
   }
 
-  .paths a[data-primary] .path-name svg,
-  .paths a[data-primary] .path-text {
+  .paths a[data-skin="field"] {
+    --path: oklch(0.72 0.19 42);
+  }
+
+  .paths a[data-skin] .path-name svg,
+  .paths a[data-skin] .path-text {
     color: var(--ink);
   }
 
@@ -222,8 +228,8 @@ const SKINS = [
       background: var(--home-tone-2);
     }
 
-    .paths a[data-primary]:hover {
-      background: oklch(0.9 0.13 92);
+    .paths a[data-skin]:hover {
+      filter: brightness(1.06);
     }
 
     .paths a:hover .path-name svg {
@@ -252,6 +258,21 @@ const SKINS = [
     align-self: end;
     padding-bottom: 4rem;
     isolation: isolate;
+  }
+
+  /* A skin's page: its one phone, a size up, alone on its shape. */
+  .stage[data-count="1"] {
+    grid-template-columns: minmax(0, 22rem);
+    justify-content: center;
+  }
+
+  .eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-2);
   }
 
   .switch {

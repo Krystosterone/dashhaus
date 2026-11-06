@@ -1,0 +1,92 @@
+---
+title: Orb
+description: "Orb, a dashboard for Home Assistant: soft, round cards you read at a glance, laid out from your house. Download it from the Marketplace, then Add dashboard → Orb."
+template: splash
+editUrl: false
+prev: false
+next: false
+head:
+  - tag: title
+    content: Orb, a dashboard for Home Assistant
+hero:
+  title: Orb
+  tagline: Soft, round cards you read at a glance. Every device in your house, room by room, laid out for you.
+---
+
+import Example from "../../components/Example.astro";
+import LiveStory from "../../components/LiveStory.astro";
+import Install from "../../components/home/Install.astro";
+import Foot from "../../components/skin/Foot.astro";
+
+<Install skin="orb" />
+
+## How it looks
+
+Each card has a round button for its main action. Lights, climate and covers get a slider or stepper beside it, and
+readings show a big figure. The yellow accent shows what is on, and a dashed outline means a device is unavailable.
+Tap a card's name, or press and hold its button, to open more in a sheet. Cards that belong together, like a
+nursery's sound machine, night light and white noise, [can join into one](/dashhaus/start/yaml/#bundles-orb).
+
+It follows Home Assistant's light or dark mode, and reads the same on a phone in your hand and a wall panel across the
+room: a card never changes height when its state changes, so nothing jumps when a light turns on. The tablet below is
+live, on a demo house.
+
+<LiveStory id="orb-dashboards-examples--tablet" title="Orb on a tablet in landscape: quick actions, home status, the nursery, outside and rooms" device="Tablet" width={1180} height={820} light="theme:light" dark="theme:dark" />
+
+## What it draws
+
+Lights, climate, covers, switches and `input_boolean` modes, sensors, the weather, alarm panels, locks, humidifiers,
+fans, sound machines, Owlet socks and guest Wi-Fi. An entity without a card isn't drawn. Every card in every state is
+in [Storybook](/dashhaus/storybook/), and [Warnings and alarms](/dashhaus/start/warnings/) shows how Orb tells you
+something is wrong.
+
+## Settings
+
+Open the dashboard and press **Edit dashboard** (the pencil, or **⋮**). Its dialog opens on the dashboard's
+configuration in YAML; add to it and save:
+
+<Example file="install/orb-dashboard.yaml" title="A wall panel, always dark" />
+
+| Key | What it does |
+| --- | --- |
+| `viewing` | `near` (default): a phone or tablet in the hand. `far`: a wall panel read from across the room. |
+| `theme` | `home-assistant` (default) follows Home Assistant's light or dark mode; `auto` follows the device; `light` and `dark` hold one. |
+| `title` | The title the page prints in its header. `Home` by default. |
+
+To lay out your own cards and rows instead, take control of the dashboard (the same dialog's **⋮ → Take control**),
+which keeps Orb's card as it is now, and edit it; [Lay it out in YAML](/dashhaus/start/yaml/) shows how. A dashboard
+you take control of no longer lays itself out.
+
+From a terminal or CI, `@dashhaus/orb` and the deploy tool create Orb's dashboard and one of your own rows in one
+command: [Deploy from the command line](/dashhaus/start/deploy/). Pick one way: each loads its own copy of Orb.
+
+## If something goes wrong
+
+If **Add dashboard** has no **Orb** under Community dashboards, or the dashboard says `Custom element doesn't exist`
+or `Timeout waiting for strategy element`, Home Assistant hasn't loaded Orb yet. Reload the tab. If that doesn't help,
+open **Settings → Dashboards → ⋮ → Resources** and check there's a JavaScript module at
+`/hacsfiles/orb-dashboard/orb-dashboard.js`.
+
+Community dashboards are listed from Home Assistant 2026.5. On an older version, or one that keeps its dashboards in
+YAML, create a dashboard yourself and give it `strategy: { type: custom:orb-dashboard }` as its whole configuration.
+
+## Update
+
+The Marketplace (or HACS) tells you when there's a new version of Orb. Update it there, then reload the tab. Your
+dashboard follows; [Release notes](/dashhaus/releases/) say what changed and anything to do first.
+
+## Ask an assistant to do it
+
+An assistant that can use your browser can follow this page on its own. Give it the page's address, or this:
+
+```text
+Install the Orb dashboard in my Home Assistant. I'm signed in as an administrator.
+1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=orb-dashboard&category=plugin
+   and download Orb (type: Dashboard; add it as a custom repository if asked). Keep the defaults.
+2. Reload the browser tab.
+3. Settings → Dashboards → Add dashboard → under Community dashboards, pick "Orb" → Create.
+4. Open the new Orb dashboard from the sidebar and check it draws.
+   Don't change any other dashboard, and never ask me for a password or token.
+```
+
+<Foot skin="orb" />

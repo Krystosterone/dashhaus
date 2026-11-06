@@ -1,14 +1,14 @@
 import { useMemo, useRef } from "react";
-import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/dashboard";
-import type { NavEntry, PanelInfo } from "@dashhaus/dashboard";
-import { useDashboardNav } from "@dashhaus/dashboard";
+import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/core/lovelace";
+import type { NavEntry, PanelInfo } from "@dashhaus/core/lovelace";
+import { useDashboardNav } from "@dashhaus/core/lovelace";
 import { renderTitanCard } from "./registry";
 import { TitanActionStatus } from "./TitanActionStatus";
 import { TitanPage, TitanSection } from "../dashboards/layout";
 import { TitanNavBar } from "../dashboards/NavBar";
 import type { TitanFootprint } from "../shared/ui";
-import { rowItems } from "@dashhaus/dashboard/schema";
-import type { TrackPolicy } from "@dashhaus/dashboard/layout";
+import { rowItems } from "@dashhaus/core/lovelace/schema";
+import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import type { PageConfig, RowLayoutConfig } from "./config";
 
 const anchorsOf = (rows: readonly RowLayoutConfig[]) => {

@@ -15,7 +15,7 @@ body:
       options:
         - Orb skin
         - Field skin
-        - Setup card or Marketplace / HACS install
+        - Marketplace / HACS install or Add dashboard
         - "@dashhaus/deploy (command line)"
         - create-dashhaus-skin
         - "@dashhaus/core hooks in my own app"

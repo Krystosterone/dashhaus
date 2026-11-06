@@ -1,21 +1,24 @@
 ---
 title: Deploy from the command line
-description: "Install the prebuilt bundle and the deploy tool, and add Orb and Field dashboards to your Home Assistant from a terminal, for automation, CI or YAML mode."
+description: "Install a skin's package and the deploy tool, and add its dashboard, and one of your own, to your Home Assistant from a terminal, for automation, CI or YAML mode."
 ---
 
 import { Aside, Steps } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 import Cli from "../../../components/Cli.astro";
 
-If you only want the dashboards, [Install from the Marketplace](/dashhaus/start/install/) needs no terminal. This page
-is the other way in: for a deploy you script or run from CI, a Home Assistant that manages its resources in YAML, or
-the same steps you'll take later with a skin of your own. Pick one of the two; each registers its own copy.
+If you only want a dashboard, installing [Orb](/dashhaus/orb/) or [Field](/dashhaus/field/) from the Marketplace needs
+no terminal. This page is the other way in: for a deploy you script or run from CI, a Home Assistant that manages its
+resources in YAML, a dashboard you write yourself, or the same steps you'll take later with a skin of your own. Pick
+one way per skin; each registers its own copy.
 
-You don't need to clone or build anything. The prebuilt bundle holds both skins. A small command-line tool copies it
-into Home Assistant and creates a dashboard for each skin. After that you change layouts in Home Assistant itself.
+You don't need to clone or build anything. Each skin's package ships its resource, the one file Home Assistant loads:
+`orb-dashboard.js` in `@dashhaus/orb`, `field-dashboard.js` in `@dashhaus/field`. A small command-line tool copies it
+into Home Assistant, then creates the skin's own dashboard, which follows the skin as it updates, and any dashboard of
+your own: the skin's card with your cards and rows. After that you change layouts in Home Assistant itself.
 
-CI runs these steps on every change to Dashhaus: it packs the release, installs only `@dashhaus/bundle` and
-`@dashhaus/deploy` into an empty folder, writes this config and deploys it into a simulated Home Assistant.
+CI runs these steps on every change: it packs the release, installs the skins' packages and `@dashhaus/deploy` into an
+empty folder, writes each skin's config and deploys it into a simulated Home Assistant.
 
 ## What you need
 
@@ -28,12 +31,12 @@ CI runs these steps on every change to Dashhaus: it packs the release, installs 
 
 <Steps>
 
-1. Make a folder for your dashboards and install the bundle and the deploy tool:
+1. Make a folder for your dashboards and install the skins you want and the deploy tool:
 
    ```sh
    mkdir my-dashboards && cd my-dashboards
    npm init -y
-   npm install @dashhaus/bundle @dashhaus/deploy
+   npm install @dashhaus/orb @dashhaus/field @dashhaus/deploy
    ```
 
 2. Create a `.env` file in that folder with three settings:
@@ -47,14 +50,17 @@ CI runs these steps on every change to Dashhaus: it packs the release, installs 
    <Cli show="settings" />
 
    `HA_WWW` is an SSH address like the one above, or a local folder such as `/Volumes/config/www`. Only the deploy
-   tool uses `HA_TOKEN`; it never goes into the bundle. Keep `.env` out of version control.
+   tool uses `HA_TOKEN`; it never goes into a file it uploads. Keep `.env` out of version control.
 
-3. Create `dashboard.config.mjs` next to it. It names the bundle to upload and the dashboards to create:
+3. Create `dashboard.config.mjs` next to it. It names the files to upload and the dashboards to create:
 
    <Example file="user/dashboard.config.mjs" title="dashboard.config.mjs" />
 
-   Each `path` needs a hyphen; Home Assistant requires one. Keep only the skin you want if you don't need both. The
-   `@type` comment lets your editor check the file against `@dashhaus/deploy/config`; the tool doesn't need it.
+   A dashboard with a `strategy` is the skin's own: it stores only the strategy, so it lays your house out again each
+   time it opens and follows the skin as it updates. A dashboard with a `card` is yours: the skin's card with your
+   `cards` or `rows`, created once and then edited in Home Assistant. Each `path` needs a hyphen; Home Assistant
+   requires one. Keep only the skin you want if you don't need both. The `@type` comment lets your editor check the
+   file against `@dashhaus/deploy/config`; the tool doesn't need it.
 
 4. Deploy:
 
@@ -62,15 +68,16 @@ CI runs these steps on every change to Dashhaus: it packs the release, installs 
    npx dashhaus-deploy --skip-build
    ```
 
-   The tool copies the bundle into `www/`, registers it as a dashboard resource, and creates each dashboard the first
-   time. `--skip-build` tells it to use the bundle as installed, since there's nothing to build. Every step ends in
+   The tool copies each file into `www/`, registers it as a dashboard resource, and creates each dashboard the first
+   time. `--skip-build` tells it to use the files as installed, since there's nothing to build. Every step ends in
    ✓; the last one, `Checking that Home Assistant serves it`, fetches the file back from Home Assistant, so a wrong
    `HA_WWW` shows up here instead of as a blank dashboard. `npx dashhaus-deploy --help` prints the options, a config
    to start from and the `.env` keys:
 
    <Cli show="deploy" />
 
-5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)** or **Home (Field)** in the sidebar.
+5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)**, **Home (Field)** or **My home** in
+   the sidebar.
 
    Home Assistant reads its list of resources when a tab opens. Until you reload, an open tab shows the new dashboard
    in the sidebar but says "Configuration error" instead of drawing it.
@@ -84,12 +91,12 @@ go to **⋮ → Edit dashboard**, then the card's pencil and **Show code editor*
 mistakes are listed all together with where they are and what you probably meant:
 
 ```text
-Dashhaus config has 2 problems:
+The card's config has 2 problems:
 • rows[1].cards[0] (sensor.bedroom_temperature): unknown key "humdity" — did you mean "humidity"?
 • rows[2].cards[3]: media_player.tv: media_player.* entities have no card yet
 ```
 
-To put a Dashhaus card on another dashboard, add **Dashhaus** from the card picker. It starts from the generated layout
+To put a skin's card on another dashboard, add **Orb** or **Field** from the card picker. It starts from the generated layout
 for your house. Put it in a **Panel** view so it gets the full width.
 
 [Lay it out in YAML](/dashhaus/start/yaml/) has both skins' keys, pages and the bottom nav.
@@ -99,11 +106,11 @@ for your house. Put it in a **Panel** view so it gets the full width.
 Update the packages and run the same command again:
 
 ```sh
-npm update @dashhaus/bundle @dashhaus/deploy
+npm update @dashhaus/orb @dashhaus/field @dashhaus/deploy
 npx dashhaus-deploy --skip-build
 ```
 
-Redeploying replaces the bundle and leaves your dashboards alone, so layouts you edited in Home Assistant are kept.
+Redeploying replaces each file and leaves your dashboards alone, so layouts you edited in Home Assistant are kept.
 Open tabs pick up the new version when they reload.
 
 <Aside>

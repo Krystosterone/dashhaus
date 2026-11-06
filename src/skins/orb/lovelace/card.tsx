@@ -2,11 +2,12 @@ import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import type { DashboardConfig, RowLayoutConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/dashboard/skin";
-import type { LovelaceHass } from "@dashhaus/dashboard/skin";
+import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/core/lovelace/skin";
+import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
 import { ORB_FONT_HREF, ORB_THEME_ATTRIBUTE } from "../shared/surface";
 
 export const CARD_TYPE = "dashhaus-orb";
+export { ORB_STRATEGY } from "./strategy";
 
 
 /** The card fills its view; tokens.css's dashboard surface paints the page behind it. Home Assistant's toolbar
@@ -85,5 +86,5 @@ export function createDashhausCard(css: string): CustomElementConstructor {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineDashhausCard(css: string) {
-  registerCard(CARD_TYPE, createDashhausCard(css), "Dashhaus", "A whole dashboard page from one YAML card. Leave out `cards` and `rows` to lay the house out automatically.");
+  registerCard(CARD_TYPE, createDashhausCard(css), "Orb", "Orb's whole page from one YAML card. Leave out `cards` and `rows` to lay the house out automatically.");
 }
