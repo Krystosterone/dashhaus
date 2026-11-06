@@ -5,7 +5,9 @@
  * the story follows the site's light or dark theme through the skin's own Storybook toolbar global.
  *
  * With `screen`, only the device's screen shows (the Examples stories' `Device` caption and margins are cut away),
- * rounded as the story rounds it, over a `poster` until the story has loaded.
+ * rounded as the story rounds it, over a `poster` until the story has loaded. Its viewport ends where the screen
+ * ends, so a modal the story opens against the viewport (a card's details, a bottom sheet on a phone) sits on the
+ * screen's bottom edge instead of in the `Device`'s margin below it, cut off.
  *
  * In a build, Storybook is the copy `npm run build:docs` puts under /storybook; under `npm run docs`, it is
  * `npm run storybook` on port 6006.
@@ -142,7 +144,9 @@ const style = screen
     object-position: top;
   }
 
+  /* The viewport stops at the screen's foot, where a bottom sheet should end. */
   [data-screen] iframe {
+    height: calc((var(--top) + var(--h)) * 1px);
     opacity: 0;
     transition: opacity 300ms var(--ease-out, ease-out);
   }
@@ -236,7 +240,11 @@ const style = screen
     }
   });
 
-  /** A screen-only story shows once it has drawn; served from this site, its screen's top is measured, not assumed. */
+  /**
+   * A screen-only story shows once it has drawn; served from this site, its screen's top is measured, not assumed. Its
+   * page, now taller than the viewport by the `Device`'s bottom margin, is kept from scrolling, so a scroll running
+   * past the screen's end can't shift the screen in the frame.
+   */
   const reveal = (frame: HTMLElement, iframe: HTMLIFrameElement) => {
     if (!frame.hasAttribute("data-screen")) return;
     let tries = 0;
@@ -250,6 +258,8 @@ const style = screen
       const screen = doc?.querySelector("#storybook-root figure > div");
       if (screen) {
         frame.style.setProperty("--top", String(screen.getBoundingClientRect().top + (doc!.defaultView?.scrollY ?? 0)));
+        doc!.documentElement.style.overflow = "hidden";
+        doc!.defaultView?.scrollTo(0, 0);
         iframe.setAttribute("data-ready", "");
       } else if (!doc || ++tries > 120) {
         iframe.setAttribute("data-ready", "");
