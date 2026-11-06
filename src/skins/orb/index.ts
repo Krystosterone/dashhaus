@@ -110,6 +110,14 @@ export type { FanTileProps } from "./cards/fan/FanTile";
 export { HaFanTile } from "./ha/HaFanTile";
 export type { HaFanTileProps } from "./ha/HaFanTile";
 
+// Guest wifi
+export { GuestWifiCard, GuestWifiSheet } from "./cards/guestWifi/GuestWifiCard";
+export type { GuestWifiCardProps, GuestWifiSheetProps } from "./cards/guestWifi/GuestWifiCard";
+export { GuestWifiTile } from "./cards/guestWifi/GuestWifiTile";
+export type { GuestWifiTileProps } from "./cards/guestWifi/GuestWifiTile";
+export { HaGuestWifiTile } from "./ha/HaGuestWifiTile";
+export type { HaGuestWifiTileProps } from "./ha/HaGuestWifiTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

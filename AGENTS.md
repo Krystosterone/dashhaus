@@ -137,7 +137,7 @@ For the orb skin:
 - The accent is `--brand-c` / `--brand-h`; easing comes from the `--ease-*` tokens; a card's height comes from the shared `footprint` matrix plus container width.
 - One UI language (spec/orb.md → One UI language): a raised `--btn` is tapped, a recessed `--groove` is slid or set, a readout has no container; solid accent is on for every role; a dashed outline is unavailable and nothing else. No hatching, no second strength of accent, no default orb colour.
 - No expanding cards: more detail opens in a sheet, from a tap on the card's name (`CardTitle`) or a press and hold. Cards carry no open button.
-- Prefix each card's CSS classes with its card code: `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hu-` humidifier, `sn-` sound, `lk-` lock, `fn-` fan<!-- new-card: orb codes -->. Outside the cards, `hh-` is the dashboard header, `hb-` the bundles and `hd-` the shared card system.
+- Prefix each card's CSS classes with its card code: `lw-` light, `cw-` climate, `sw-` sensor, `al-` alarm, `cv-` cover, `tw-` toggle, `wx-` weather, `ow-` owlet sock, `hu-` humidifier, `sn-` sound, `lk-` lock, `fn-` fan, `gw-` guest Wi-Fi<!-- new-card: orb codes -->. Outside the cards, `hh-` is the dashboard header, `hb-` the bundles and `hd-` the shared card system.
 - Attention follows the spec/orb.md glow contract and the `attention-budget` skill: glow is never the only state channel, damping follows semantic urgency not card position, and urgent states get a warn marker rather than more brightness.
 - Every compact row carries a domain icon, primary identity and one state/action cue; colour never defines a row.
 

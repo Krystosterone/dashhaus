@@ -297,9 +297,10 @@ The entity's domain picks the card. One card shows one normalized model, built f
 - `switch` with `card: sound`: sound, a sound machine's sound with its volume `number.*` found beside it
 - `lock`: lock, with the battery `sensor.*` on its device
 - `fan`: fan
+- `sensor.*_voucher`: guest wifi, a UniFi Hotspot Manager guest Wi-Fi code, with its join QR code `image.*` and its new-code and refresh `button.*`s found beside it; a guest Wi-Fi password in an `input_text`, a `text` or any other `sensor` with `card: guestWifi`
 <!-- new-card: domains -->
 
-When a domain has more than one card, `card:` picks one: `card: owlet` for a sock whose sensor is named differently, or `card: sensor` to override the default.
+When a domain has more than one card, `card:` picks one: `card: owlet` for a sock whose sensor is named differently, `card: guestWifi` for a code sensor named otherwise, or `card: sensor` to override the default.
 
 | Where | Key | Meaning |
 | --- | --- | --- |
@@ -326,6 +327,7 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 | lock | `battery` | The battery `sensor.*` on the lock's device. The automatic layout finds it, and puts every lock under Security after the alarm. |
 | sound | `volume` | The volume `number.*`, when it isn't `number.<device>_volume` beside the switch. |
 | owlet | `heart_rate`, `oxygen`, `charging`, `base_station`, `alerts`, `stale_after` | The sock's `sensor.*` and `binary_sensor.*` companions and its base station's `switch.*`, when they aren't named after the sleep state sensor. `alerts` maps any of `critical_oxygen`, `low_oxygen`, `high_oxygen`, `low_heart_rate`, `high_heart_rate`, `sock_off`, `sock_disconnected`, `lost_power`, `critical_battery`, `low_battery` to its `binary_sensor.*`; an alert left out is found by name, or stays silent. `stale_after`: minutes without a new reading before the card warns (default 3). |
+| guest wifi | `access`, `network`, `qr`, `new_code`, `refresh` | `access`: `code` (an open network whose page asks for a code; the default for a `sensor`) or `password` (a Wi-Fi password; the default for an `input_text` or `text`). `network`: the network's name, where the entity doesn't say it (UniFi Hotspot Manager's `wlan_name`). The join QR code's `image.*`, and what makes a new code or password and fetches it again (a `button.*`, `input_button.*` or `script.*`), when they aren't `image.<site>_qr_code`, `button.<site>_create` and `button.<site>_update` beside `sensor.<site>_voucher`; anything else has none unless named. The automatic layout puts every voucher code under Guests, after the Nursery. |
 | bundle | `joined`: `bundle: joined`, `label`, `cards`, `width`, `column` | Compact members sharing one card. |
 | bundle | `lead`: `bundle: lead`, `label`, `sheet_title`, `cards`, `width`, `column` | Its first card standard, then the rest as compact rows. |
 | bundle | `titled`: `bundle: titled`, `title`, `area`, `cards`, `width`, `column` | The parts of one thing under a lid naming it and its room; parts in that room drop it. Spell `area` as Home Assistant names the room. |
