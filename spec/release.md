@@ -275,20 +275,22 @@ Decided, and why:
 What only the operator can do, in order, each once. Steps 1 to 3 are done: the repository went public (#29) and
 `v0.2.0` and `v0.2.1` shipped (#30). Step 4 is partly done: the HACS install and a first Create passed live with
 `v0.3.0` ([0.3.0 → Live Marketplace install](releases/0.3.0.md#live-marketplace-install)), and its other checks stay
-open as #31. Step 5 is open as #32:
+open as #31. Step 5 is open as #32, and step 6 waits on it, in #31:
 
 1. Make the repository public, with Pages set to deploy from GitHub Actions first (the Docs workflow then deploys).
 2. Fill the repository's description and topics (`home-assistant`, `lovelace`, `hacs`, `dashboard`) and turn issues on;
    the HACS action checks them.
 3. Merge the release PR (Releasing, above). The Release workflow tags `v<version>`, attaches `dashhaus.js` and
    publishes the packages and the release; check its six jobs and the HACS workflow are green.
-4. Live, on a scratch Home Assistant 2026.11 and on an older one with HACS: install from the
+4. Live, on a scratch Home Assistant older than 2026.11, with HACS: install from the
    [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
    as a custom repository, add the setup card, press Create, open both dashboards, edit one, press again and see
    nothing overwritten, then open the card as a non-admin. Record it in `spec/releases/<version>.md`, as run or unrun.
 5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
    alphabetical order, with the release and the green HACS action. Review takes months; the My link works before it,
    so this is discovery, not the launch.
+6. Once the catalog lists Dashhaus, repeat step 4 on a scratch Home Assistant 2026.11 or newer, through its built-in
+   Marketplace, which doesn't offer Dashhaus before then, and record it the same way.
 
 ## CI
 
