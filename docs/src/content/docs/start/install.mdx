@@ -1,59 +1,53 @@
 ---
-title: Install from the Marketplace
-description: "Add Orb and Field to Home Assistant without a terminal: download Dashhaus from the Marketplace or HACS, reload, then Add dashboard → Dashhaus."
+title: Moving from the Dashhaus install
+description: "Orb and Field now install on their own. If you have the Dashhaus download, with both looks in one dashboard, here is how to move to the look you use; until you do, it keeps working."
 ---
 
 import { Aside, LinkButton, Steps } from "@astrojs/starlight/components";
 import Example from "../../../components/Example.astro";
 
-Everything here happens in Home Assistant, in your browser. There's nothing to install on your computer, no token to
-copy and no file to upload. You need an administrator account.
+Orb and Field now install on their own: each has its own download in the Marketplace, and Home Assistant lists it
+under its own name in **Add dashboard**. The **Dashhaus** download, which carried both in one dashboard with a tab
+for each look, has had its last release. Its dashboards keep working, and each tab says so above it, but it gets no
+more updates.
 
-<Aside type="caution" title="Dashhaus is in beta">
-  Try each lock, alarm panel and cover once while you can see it, and read a release's notes before you update.
-  [What that means](/dashhaus/intro/#beta), and how to tell us how it went.
-</Aside>
+Moving takes a few minutes in your browser, with nothing to install on your computer.
 
-## Install
+## Move
 
 <Steps>
 
-1. Open Dashhaus in your Home Assistant:
+1. Open the look you use, and download it from its page:
 
-   <LinkButton href="https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin" icon="external">
-     Open in Home Assistant
-   </LinkButton>
+   <LinkButton href="/dashhaus/orb/">Orb</LinkButton> <LinkButton href="/dashhaus/field/" variant="secondary">Field</LinkButton>
 
-   On Home Assistant 2026.11 or newer this opens the built-in **Marketplace**. On an older version it opens
-   **HACS**, which you [install first](https://www.hacs.xyz/docs/use/). If you're asked whether to add the repository
-   as a custom one, say yes; its type is **Dashboard**.
+   Each page's **Open in Home Assistant** button opens the Marketplace (or HACS before Home Assistant 2026.11) on
+   that look; press **Download** and keep the defaults. Use both pages if you use both looks.
 
-2. Press **Download** (or **Install**) and keep the defaults. Home Assistant copies Dashhaus into its `www` folder and
-   registers it as a dashboard resource.
+2. Reload the browser tab.
 
-3. Reload the browser tab, so Home Assistant loads the new resource.
+3. Open **Settings → Dashboards**, press **Add dashboard**, pick **Orb** or **Field** under **Community
+   dashboards**, and press **Create**. It lays your house out as the Dashhaus tab did, and follows that look as it
+   updates.
 
-4. Open **Settings → Dashboards** and press **Add dashboard**.
-
-5. Under **Community dashboards**, pick **Dashhaus**, keep or change its name and icon, and press **Create**. It
-   appears in the sidebar.
+4. Delete the old **Dashhaus** dashboard (**Settings → Dashboards**, open it, **Delete**), then remove the
+   **Dashhaus** download in the Marketplace or HACS. Reload the tab once more.
 
 </Steps>
 
-The dashboard has a tab for each look, **Orb** and **Field**, each laid out from your house.
+Settings you gave the old dashboard carry over by hand: `viewing`, `theme` (Orb) and `finish` (Field) are the same
+keys on the new one (**Edit dashboard**). If you took control of a Dashhaus dashboard and wrote your own rows, those
+are the look's card, `custom:dashhaus-orb` or `custom:dashhaus-field`: download the look, keep that dashboard, and
+remove Dashhaus. It keeps drawing, now from the look's own file.
 
-## What you get
+<Aside title="Both at once, for a moment">
+  Between steps 2 and 4, Home Assistant loads the look twice, once from each download. The first one loaded draws it,
+  so nothing breaks; removing Dashhaus in step 4 leaves one.
+</Aside>
 
-- One dashboard, with a tab for each look. Each tab is the look's whole page, on the automatic layout: every supported
-  entity in a row per area, kept up to date as you add devices.
-- It follows Home Assistant's light or dark mode, and Dashhaus as it updates: the dashboard stores only
-  `strategy: type: custom:dashhaus`, never a copy of the layout.
-- Nothing is created behind your back and no other dashboard is touched. Delete the dashboard like any other.
+## Until you move
 
-### Choose the look, and a wall panel
-
-To keep one look, or set up a wall panel, open the dashboard and press **Edit dashboard** (the pencil, or **⋮**). Its
-dialog opens on the strategy's configuration in YAML; add to it and save:
+The Dashhaus dashboard keeps its tabs and its settings. Open it and press **Edit dashboard** to change them:
 
 <Example file="install/strategy.yaml" title="One look, for a wall panel" />
 
@@ -65,51 +59,23 @@ dialog opens on the strategy's configuration in YAML; add to it and save:
 | `finish` | Field's finish: `home-assistant` (default), `auto`, `alloy` or `black`. |
 | `title` | The title each page prints in its header. `Home` by default. |
 
-To lay out your own cards and rows instead, take control of the dashboard (the same dialog's **⋮ → Take control**),
-which keeps each look's card as it is now, and edit it; [Lay it out in YAML](/dashhaus/start/yaml/) shows how. A
-dashboard you take control of no longer follows the strategy.
-
-## If something goes wrong
-
-If **Add dashboard** has no **Dashhaus** under Community dashboards, or a dashboard says `Custom element doesn't
-exist` or `Timeout waiting for strategy element`, Home Assistant hasn't loaded Dashhaus yet. Reload the tab. If that
-doesn't help, open **Settings → Dashboards → ⋮ → Resources** and check there's a JavaScript module at
-`/hacsfiles/dashhaus/dashhaus.js`.
-
-Community dashboards are listed from Home Assistant 2026.5. On an older version, or a Home Assistant that keeps its
-dashboards in YAML, create a dashboard yourself and give it the strategy as its whole configuration:
-`strategy: { type: custom:dashhaus }`. Or give a **Panel** view one look's card, which is just its type and a title:
+On a Home Assistant that keeps its dashboards in YAML, a **Panel** view with one look's card works the same with
+either download, so it moves with nothing to change:
 
 <Example file="install/orb.yaml" title="Orb" />
 
 <Example file="install/field.yaml" title="Field" />
-
-<Aside title="Used the setup card before?">
-  Earlier versions asked you to add a **Dashhaus setup** card and press **Create dashboards**. That card is gone: if
-  one is still on a dashboard, it now shows `Custom element doesn't exist: dashhaus-setup`, so remove it there. The
-  **Home (Orb)** and **Home (Field)** dashboards it made keep working as they are.
-</Aside>
-
-## Update
-
-The Marketplace (or HACS) tells you when there's a new version. Update it there, then reload the tab. Your dashboards and
-their layouts are kept.
-
-<Aside title="Pick one way to install">
-  Install from the Marketplace or [from the command line](/dashhaus/start/deploy/), not both. Each registers its own
-  copy, and the page would load Dashhaus twice.
-</Aside>
 
 ## Ask an assistant to do it
 
 An assistant that can use your browser can follow this page on its own. Give it the page's address, or this:
 
 ```text
-Install the Dashhaus dashboards in my Home Assistant. I'm signed in as an administrator.
-1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin
-   and download Dashhaus (type: Dashboard; add it as a custom repository if asked). Keep the defaults.
+Move my Home Assistant from the Dashhaus dashboard to Orb. I'm signed in as an administrator.
+1. Open https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=orb-dashboard&category=plugin
+   and download Orb (type: Dashboard; add it as a custom repository if asked). Keep the defaults.
 2. Reload the browser tab.
-3. Settings → Dashboards → Add dashboard → under Community dashboards, pick "Dashhaus" → Create.
-4. Open the new Dashhaus dashboard from the sidebar and check its Orb and Field tabs draw.
+3. Settings → Dashboards → Add dashboard → under Community dashboards, pick "Orb" → Create. Check it draws.
+4. Delete the dashboard named Dashhaus, then remove the Dashhaus download in the Marketplace or HACS, and reload.
    Don't change any other dashboard, and never ask me for a password or token.
 ```

@@ -8,7 +8,7 @@ import type { SkinStrategy } from "@dashhaus/core/lovelace/skin";
 export const ORB_STRATEGY: SkinStrategy = {
   type: "orb-dashboard",
   name: "Orb",
-  description: "Every supported device in a room-by-room page, laid out for you and kept up to date.",
+  description: "Soft, round cards read at a glance: every supported device in a room-by-room page, laid out for you and kept up to date.",
   documentationURL: "https://krystosterone.github.io/dashhaus/orb/",
   icon: "mdi:home-variant",
   // `custom:` and card.tsx's CARD_TYPE, written out: card.tsx re-exports this module, so it can't import that one.

@@ -537,7 +537,25 @@ removed for the dashboard strategy, so the checks still open on it (GitHub issue
 checked live: any install through Home Assistant 2026.11's built-in Marketplace, which doesn't list Dashhaus until the
 catalog does (#32).
 
-The dashboard strategy has not been tried in a real Home Assistant yet: not that Add dashboard lists Dashhaus (2026.5
-or newer), not the dashboard it makes, its tabs, the strategy editor's YAML or Take control. The fake Home Assistant
-journey stands in for the frontend's strategy lookup and its dialog, written from the frontend's source; it is not the
-frontend.
+Live, on a scratch Home Assistant 2026.11.0 (the `homeassistant/home-assistant:stable` container, the `demo`
+integration, Chromium driving its real frontend), on 2026-11-06, from the packed 0.3.0 tarballs of this change:
+
+- **Each skin's own install.** `orb-dashboard.js` and `field-dashboard.js`, taken out of `@dashhaus/orb`'s and
+  `@dashhaus/field`'s tarballs as the mirror takes them, placed in `www/community/<repository>/` as HACS places them and
+  registered under `/local/community/…`. Add dashboard listed **Field** and **Orb** under Community dashboards, each with
+  its own description, and nothing named Dashhaus; Create made `dashboard-orb` and `dashboard-field` (titles Orb and
+  Field, icons `mdi:home-variant` and `mdi:knob`), which saved only `{ strategy: { type: custom:<repository> } }`. Both
+  drew the demo house at 1440 and 390 px, in light and dark, with no error card and no console error.
+- **The combined install's last release.** With `dashhaus.js` registered too, Add dashboard listed **Dashhaus** with
+  its sunset description; its dashboard drew each tab as the frontend's own vertical stack, the Markdown notice (with
+  its links) above the look's card, at both widths.
+- **The command line.** `@dashhaus/deploy` from the tarballs, with Orb's and Field's README configs, into the same
+  instance over a mounted `HA_WWW`: each uploaded its file, registered `/local/<repository>/<repository>.js`, created the
+  strategy dashboard and the one of your own, and fetched the file back. Each warned that the Marketplace's copy was
+  registered too, as it should. All four dashboards drew; the README's own rows name entities the `demo` integration
+  doesn't have, which drew as unavailable.
+
+Not run live: the download itself from a skin's repository through HACS or the Marketplace, since
+`Krystosterone/orb-dashboard` and `Krystosterone/field-dashboard` don't exist yet and HACS needs a person to authorize it
+with GitHub; the mirror workflow, for the same reason (its checks ran against `@dashhaus/core` 0.3.0's real
+attestations, `verify/skin-repositories.test.ts`); the strategy editor's YAML and Take control.

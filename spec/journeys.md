@@ -1,6 +1,6 @@
 # Journeys
 
-Dashhaus has four kinds of user. Each has one way in on the documentation site, a set of packages, a proof that the
+Dashhaus has four kinds of user. Each has a way in on the documentation site, a set of packages, a proof that the
 way in works and a promise about what stays stable. A way in counts only when its proof runs: a journey with no proof is
 not one the project offers. `verify/journeys.test.ts` reads the table below and fails when a row's page, sidebar
 entry, proof or CI step is missing, or when a `verify/dx/` driver belongs to no row.
@@ -10,7 +10,9 @@ contributor. The order follows how many people take each path and how little the
 
 | Journey | Who | Way in | Installs | Proof | Promise |
 | --- | --- | --- | --- | --- | --- |
-| User | Wants Orb or Field on their Home Assistant and has no terminal | `start/install` | The release asset `dashhaus.js`, through the Marketplace (HACS before 2026.11) | `verify/dx/marketplace.js` | The cards, the YAML keys and the dashboard strategy ([deploy.md](deploy.md)) |
+| User: Orb | Wants Orb on their Home Assistant and has no terminal | `orb` | `orb-dashboard.js`, the release asset of `Krystosterone/orb-dashboard`, which mirrors it from `@dashhaus/orb`, through the Marketplace (HACS before 2026.11) | `verify/dx/skin.js` | Orb's card, its YAML keys and its `custom:orb-dashboard` strategy ([deploy.md](deploy.md)) |
+| User: Field | Wants Field on their Home Assistant and has no terminal | `field` | `field-dashboard.js`, the release asset of `Krystosterone/field-dashboard`, which mirrors it from `@dashhaus/field`, through the Marketplace (HACS before 2026.11) | `verify/dx/skin.js` | Field's card, its YAML keys and its `custom:field-dashboard` strategy ([deploy.md](deploy.md)) |
+| User, both in one | Has the combined Dashhaus install already: both looks in one dashboard | `start/install` | The last release asset `dashhaus.js`, through the Marketplace (HACS before 2026.11) | `verify/dx/marketplace.js` | Its dashboards keep working on its last release, and it says how to move ([release.md → The combined install's sunset](release.md#the-combined-installs-sunset)) |
 | User, from the command line | Scripts the same install, deploys from CI, keeps resources in YAML, or writes a dashboard from scratch | `start/deploy` | `@dashhaus/orb` or `@dashhaus/field`, with `@dashhaus/deploy` | `verify/dx/user.js` | The same, plus the CLI's options and `.env` keys ([deploy.md](deploy.md)) |
 | Author | Builds a skin of their own, from the scaffolder and its domain generator, often by asking an agent to | `start/build-a-skin` | `create-dashhaus-skin`, which writes a project on `@dashhaus/core` and `@dashhaus/deploy` | `verify/dx/author.js` | The skin-author contract and its conformance check ([contract.md](contract.md)) |
 | Developer | Uses the entity models and hooks in a React app of their own, with no skin and no generator | `start/getting-started` | `@dashhaus/core` | `verify/dx/developer.js` | The core contract ([core.md](core.md)) |
@@ -18,15 +20,32 @@ contributor. The order follows how many people take each path and how little the
 
 ## The user
 
-The front door, and the only journey whose reader may never open a second page. It assumes no Node, no token and no
-file copy: the Marketplace installs the bundle and registers it, and the person makes the dashboard from Home
-Assistant's own Add dashboard dialog, which lists the bundle's `custom:dashhaus` strategy
-([deploy.md → The dashboard strategy](deploy.md#the-dashboard-strategy)).
-Its page is written so a browser agent can follow it alone and quotes its steps as a prompt; `llms.txt` carries the
+The front door, and the only journey whose reader may never open a second page. The user arrives at a skin, not at
+Dashhaus: Orb and Field are each a product of their own, with a landing page (`docs/src/content/docs/orb.mdx`,
+`field.mdx`), a Marketplace repository (`Krystosterone/orb-dashboard`, `Krystosterone/field-dashboard`;
+[release.md → The skin repositories](release.md#the-skin-repositories)) and a dashboard strategy that Home Assistant's
+Add dashboard dialog lists under the skin's own name ([deploy.md → The skins' dashboard strategies](deploy.md#the-skins-dashboard-strategies)).
+It assumes no Node, no token and no file copy: the Marketplace installs the skin's file and registers it, and the
+person makes the dashboard from Add dashboard. The landing page is the whole journey: what the skin looks like, live,
+its three install steps, its settings and its help.
+
+Neither the page, nor the repository's README (the page the Marketplace shows), nor what Home Assistant shows pitches
+Dashhaus or the hooks under the skin. Each has one quiet way to them, for a curious reader: on the site, the landing
+page's foot ("drawn on Dashhaus"), and in Home Assistant, the README's foot in the Marketplace, saying the same. Add
+dashboard, the card picker and the skin's file name nothing called Dashhaus; the strategy's documentation link leads
+to the landing page. `verify/skin-repositories.test.ts` holds the README to it, and `verify/dx/skin.js` holds Add
+dashboard and the card picker to it: one entry each, the skin's.
+
+Each page is written so a browser agent can follow it alone and quotes its steps as a prompt; `llms.txt` carries the
 same steps.
 
-The command-line row is the same person with a terminal, or a machine. It is the advanced page of the same section,
-never a second front door, and both pages say to pick one: each way registers its own copy of the bundle.
+The combined row is the way Dashhaus started: one download, `dashhaus`, carrying both looks in one dashboard. Its last
+release keeps it working and tells its people how to move to a skin's own install; the site keeps a page for the move
+under Set up, and no landing page leads to it. The row and its proof go with the combined install
+([release.md → The combined install's sunset](release.md#the-combined-installs-sunset)). The command-line row is the
+same person with a terminal, or a machine, and the one way to deploy a dashboard written from scratch: the skin's card
+with their own rows. It is the advanced page of the same section, never a second front door. Each page says to pick
+one way per skin: each registers its own copy.
 
 ## The author
 

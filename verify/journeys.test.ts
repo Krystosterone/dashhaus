@@ -1,8 +1,9 @@
 /**
  * spec/journeys.md is the one list of the people Dashhaus serves. Each row's way in must be a page in the site's
  * sidebar, its proof a clean-room driver CI runs (or a repository command), and every driver in verify/dx/ must prove a
- * row, so a journey can't be promised without a proof or proved without being promised. The introduction links every
- * way in but the command-line one, which is the advanced page of the user's section.
+ * row, so a journey can't be promised without a proof or proved without being promised. The user's rows come first,
+ * one per skin, each skin's landing page its way in. The introduction links every way in but the command-line one,
+ * which is the advanced page of the user's section.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -32,8 +33,8 @@ describe("spec/journeys.md", () => {
   const ci = read(".github/workflows/ci.yml");
   const dx = ci.slice(ci.indexOf("\n  dx:"), ci.indexOf("\n  storybook_shard:"));
 
-  it("lists the four kinds of user, the user first", () => {
-    expect(rows.map((row) => row.name)).toEqual(["User", "User, from the command line", "Author", "Developer", "Contributor"]);
+  it("lists the four kinds of user, the user first, by skin", () => {
+    expect(rows.map((row) => row.name)).toEqual(["User: Orb", "User: Field", "User, both in one", "User, from the command line", "Author", "Developer", "Contributor"]);
   });
 
   it("gives each journey a page in the site's sidebar", () => {
@@ -66,7 +67,7 @@ describe("spec/journeys.md", () => {
   it("is linked from the introduction, the command line aside", () => {
     const intro = read("docs/src/content/docs/intro.mdx");
     for (const { name, page } of rows.filter((row) => row.name !== "User, from the command line")) {
-      expect(intro, `${name}: the introduction does not link ${page}`).toContain(`href="/dashhaus/${page}/"`);
+      expect(intro, `${name}: the introduction does not link ${page}`).toMatch(new RegExp(`(?:href="|\\]\\()/dashhaus/${page}/[")]`));
     }
   });
 });

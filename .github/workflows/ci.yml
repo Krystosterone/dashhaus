@@ -94,6 +94,7 @@ jobs:
       # commit must pack the files its record names, and the record must be finished.
       - run: node scripts/release/candidate.js check
       - run: node verify/dx/marketplace.js
+      - run: node verify/dx/skin.js
       - run: node verify/dx/user.js
       - run: node verify/dx/author.js
       - run: node verify/dx/developer.js

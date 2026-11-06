@@ -243,6 +243,7 @@ jobs:
           path: registry
       - run: npm run release:registry -- "$VERSION" --out registry --compare release
       - run: node verify/dx/marketplace.js --tarballs registry
+      - run: node verify/dx/skin.js --tarballs registry
       - run: node verify/dx/user.js --tarballs registry
       - run: node verify/dx/author.js --tarballs registry
       - run: node verify/dx/developer.js --tarballs registry
