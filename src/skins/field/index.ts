@@ -70,5 +70,9 @@ export { FanModule } from "./cards/fan/FanModule";
 export type { FanModuleProps } from "./cards/fan/FanModule";
 export { HaFanModule } from "./ha/HaFanModule";
 export type { HaFanModuleProps } from "./ha/HaFanModule";
+export { GuestWifiModule } from "./cards/guestWifi/GuestWifiModule";
+export type { GuestWifiModuleProps } from "./cards/guestWifi/GuestWifiModule";
+export { HaGuestWifiModule } from "./ha/HaGuestWifiModule";
+export type { HaGuestWifiModuleProps } from "./ha/HaGuestWifiModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

@@ -21,7 +21,7 @@ import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from 
 import type { NavEntry } from "@dashhaus/dashboard";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
-import { OWLET_ALERT_SUFFIX } from "@dashhaus/core";
+import { GUEST_WIFI_ACTION_DOMAINS, OWLET_ALERT_SUFFIX } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
 
 /*
@@ -60,6 +60,15 @@ export interface ModuleConfig {
   description?: string;
   /** A sound's volume `number.*`, when it isn't named after the switch or its device. */
   volume?: string;
+  /**
+   * A guest Wi-Fi code's kind (`code` or `password`) and network name, and its join QR code `image.*` and its new-code
+   * and refresh actions (`button.*`, `input_button.*` or `script.*`), when they aren't named after it.
+   */
+  access?: "code" | "password";
+  network?: string;
+  qr?: string;
+  newCode?: string;
+  refresh?: string;
   /** An alarm drawn without its keys; its exit and entry delays in seconds; the names of doors and windows open. */
   readOnly?: boolean;
   exitDelay?: number;
@@ -125,6 +134,7 @@ export type FieldKind =
   | "owlet"
   | "lock"
   | "fan"
+  | "guestWifi"
   // new-card: kinds
   ;
 
@@ -154,6 +164,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
   lock: { domains: ["lock"] },
   fan: { domains: ["fan"] },
+  guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
   // new-card: field kinds
 };
 
@@ -164,7 +175,7 @@ const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT
 /** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
@@ -178,6 +189,13 @@ const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: strin
   alarm: readAlarmOptions,
   owlet: (read, raw, at) => readOwletOptions(read, raw, at, OWLET_ALERTS),
   lock: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
+  guestWifi: (read, raw, at) => ({
+    access: read.choice(raw, "access", at, ["code", "password"] as const),
+    network: read.string(raw, "network", at),
+    qr: read.optionalEntity(raw, "qr", at, ["image"]),
+    newCode: read.optionalEntity(raw, "new_code", at, GUEST_WIFI_ACTION_DOMAINS),
+    refresh: read.optionalEntity(raw, "refresh", at, GUEST_WIFI_ACTION_DOMAINS),
+  }),
 };
 
 /** Field's kind table: the domains above, plus the keys and options each card takes. */

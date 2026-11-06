@@ -61,6 +61,16 @@ describe("autoModules", () => {
     expect(modules).toEqual([{ entity: "light.lamp", kind: "light" }, { entity: "sensor.owlet_sock_a_sleep_state", kind: "owlet" }]);
   });
 
+  it("takes every guest Wi-Fi code by its voucher sensor, not as a room sensor", () => {
+    const modules = autoModules({
+      states: {
+        "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher", "UniFi Hotspot Manager Voucher"),
+        "light.lamp": state("light.lamp", "Lamp"),
+      },
+    });
+    expect(modules).toEqual([{ entity: "light.lamp", kind: "light" }, { entity: "sensor.67d9d6d6ad84e044caf4621c_voucher", kind: "guestWifi" }]);
+  });
+
   it("takes every visible lock, with the battery sensor on its device", () => {
     expect(autoModules({
       states: { "lock.front": state("lock.front", "Front door"), "sensor.front_battery": { attributes: { friendly_name: "Front door battery", device_class: "battery" } }, "lock.back": state("lock.back", "Back door") },
@@ -165,6 +175,28 @@ describe("parseFieldConfig", () => {
     expect(() => parseFieldConfig({ cards: [{ entity: "sensor.a_sleep_state", alerts: { low_oxygn: "binary_sensor.a" } }] })).toThrow('did you mean "low_oxygen"?');
     expect(() => parseFieldConfig({ cards: [{ entity: "sensor.a_sleep_state", alerts: ["binary_sensor.a"] }] })).toThrow('"alerts" must map alerts');
     expect(() => parseFieldConfig({ cards: [{ entity: "sensor.bed_t", heart_rate: "sensor.bpm" }] })).toThrow('"heart_rate"');
+  });
+
+  it("takes a guest Wi-Fi code's QR code and buttons, on guest Wi-Fi only", () => {
+    expect(parseFieldConfig({ cards: [
+      "sensor.site_voucher",
+      { entity: "sensor.visitors", card: "guestWifi", qr: "image.visitors_qr", new_code: "button.visitors_new", refresh: "button.visitors_fetch" },
+    ] }).rows?.[0].cards.map((entry) => entry.item)).toEqual([
+      expect.objectContaining({ entity: "sensor.site_voucher", kind: "guestWifi", qr: undefined, newCode: undefined, refresh: undefined }),
+      expect.objectContaining({ entity: "sensor.visitors", kind: "guestWifi", qr: "image.visitors_qr", newCode: "button.visitors_new", refresh: "button.visitors_fetch" }),
+    ]);
+    expect(() => parseFieldConfig({ cards: [{ entity: "sensor.site_voucher", new_code: "switch.new_code" }] })).toThrow("must be a button.* or input_button.* or script.* entity");
+    expect(() => parseFieldConfig({ cards: [{ entity: "sensor.bed_t", qr: "image.qr" }] })).toThrow('"qr"');
+  });
+
+  it("takes a password in an input_text with card: guestWifi, never by itself", () => {
+    expect(parseFieldConfig({ cards: [
+      { entity: "input_text.guest_password", card: "guestWifi", access: "password", network: "Maple Guests 5G", new_code: "script.new_guest_password" },
+    ] }).rows?.[0].cards.map((entry) => entry.item)).toEqual([
+      expect.objectContaining({ entity: "input_text.guest_password", kind: "guestWifi", access: "password", network: "Maple Guests 5G", newCode: "script.new_guest_password" }),
+    ]);
+    expect(() => parseFieldConfig({ cards: ["input_text.guest_password"] })).toThrow("guestWifi");
+    expect(autoModules({ states: { "input_text.guest_password": state("input_text.guest_password", "Guest password") } })).toEqual([]);
   });
 
   it("takes a card for the entity's domain with \"card\", and no other", () => {

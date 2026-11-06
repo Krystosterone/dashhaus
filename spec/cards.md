@@ -425,6 +425,14 @@ A guest Wi-Fi network and what a guest types to use it, of one of two kinds (`ac
 - **Compact:** the icon, the name over the network, and the code as the row's value.
 - **Home Assistant:** `HaGuestWifiTile` takes the entity that holds the code or password. For UniFi Hotspot Manager's `sensor.<site>_voucher` it finds `image.<site>_qr_code`, `button.<site>_create` and `button.<site>_update` beside it; for anything else, or companions named otherwise, pass `qrEntityId`, `newCodeEntityId`, `refreshEntityId`, and `network` and `access` where the defaults don't fit. Its services press those actions, `button.press`, `input_button.press` or `script.turn_on`, each only while its entity can be reached. The QR code is Home Assistant's own image (`entity_picture`, which Home Assistant serves with a token it rotates), drawn as served, black on white with its quiet zone, so it scans in either theme. A new code takes the integration's defaults: choosing its uses or length, or deleting a code, is the integration's (`unifi_voucher.create`, `unifi_voucher.delete`), not this card's. Changing a password, and redrawing its QR code, is the host's script: the card shows whatever the entity and the image then say.
 
+### Field guest wifi module
+
+`GuestWifiModule` is the same normalized guest Wi-Fi entity in the Field skin; `HaGuestWifiModule` is its connected container, on the same `useHaGuestWifi` hook as `HaGuestWifiTile`, finding the same companions or taking the same `access`, `network`, `qrEntityId`, `newCodeEntityId` and `refreshEntityId`. See [field.md](field.md#guest-wifi).
+
+```tsx
+<HaGuestWifiModule entityId="sensor.67d9d6d6ad84e044caf4621c_voucher" />
+```
+
 <!-- new-card: cards -->
 
 ## The dashboard header
