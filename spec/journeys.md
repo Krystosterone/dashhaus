@@ -21,8 +21,7 @@ contributor. The order follows how many people take each path and how little the
 The front door, and the only journey whose reader may never open a second page. It assumes no Node, no token and no
 file copy: the Marketplace installs the bundle and registers it, and the person makes the dashboard from Home
 Assistant's own Add dashboard dialog, which lists the bundle's `custom:dashhaus` strategy
-([deploy.md → The dashboard strategy](deploy.md#the-dashboard-strategy)). The deprecated setup card
-(`custom:dashhaus-setup`) still ships, and the journey still checks it.
+([deploy.md → The dashboard strategy](deploy.md#the-dashboard-strategy)).
 Its page is written so a browser agent can follow it alone and quotes its steps as a prompt; `llms.txt` carries the
 same steps.
 

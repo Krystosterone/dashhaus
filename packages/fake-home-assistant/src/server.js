@@ -19,7 +19,7 @@
  *   /api/, /api/config, /api/states[/<id>]  the REST reads, with the bearer token
  *   /api/fake/state  what deploy left behind (resources, dashboards, saved layouts, the command log), as JSON
  *   /api/fake/lovelace  POST one `lovelace/*` command from a dashboard page, which the frontend would send over its
- *                    authenticated websocket: how a card such as the setup card creates dashboards from the page
+ *                    authenticated websocket: how a page such as the Add dashboard stand-in creates dashboards
  *
  * `--state` also writes that JSON to a file after every command. The www folder defaults to a new temporary one.
  */

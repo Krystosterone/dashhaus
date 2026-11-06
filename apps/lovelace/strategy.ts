@@ -13,12 +13,12 @@
  *   its own also works in any dashboard (`strategy: { type: custom:dashhaus, skin: field }` on a view).
  *
  * The layout itself stays the skins' (`autoDashboard` for orb, `autoModules`/`areaRows` for field): the views hold the
- * same `{ type: "custom:dashhaus-<skin>", title }` card the setup card and `dashhaus-deploy` save, so the three ways in
- * draw the same page. The generated config depends on the strategy's config alone, never on `hass`, so it is never
+ * same `{ type: "custom:dashhaus-<skin>", title }` card the deploy config saves for Field, so both ways in draw the same
+ * page. The generated config depends on the strategy's config alone, never on `hass`, so it is never
  * regenerated as the house changes; the cards follow the house themselves.
  *
  * Registered in `window.customStrategies` (`src/data/lovelace_custom_strategies.ts`), which the new-dashboard dialog
- * lists from Home Assistant 2026.5. A plain module with no React, store or skin, like the setup card.
+ * lists from Home Assistant 2026.5. A plain module with no React, store or skin.
  */
 import { STRATEGY_LOOKS } from "./dashboards";
 

@@ -270,7 +270,7 @@ Decided, and why:
   an integration that creates dashboards would be a second repository in Python, on Home Assistant's internal
   Lovelace collections. A strategy needs neither: Home Assistant's own Add dashboard dialog lists it (2026.5 and
   newer), and the dashboard stores only the strategy, so it follows Dashhaus as it updates. It replaced the setup card,
-  which cost a card placement, a press and a removal; the card is deprecated and still ships.
+  which cost a card placement, a press and a removal, and was then removed.
 - **The person creates it, never an automatic run.** Nothing is created until they pick Dashhaus in Add dashboard, and
   no existing dashboard is touched.
 - **No token for agents.** An agent installing Dashhaus uses the person's own session through Add dashboard, never a
@@ -292,9 +292,8 @@ open as #31. Step 5 is open as #32, and step 6 waits on it, in #31:
    [My link](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krystosterone&repository=dashhaus&category=plugin)
    as a custom repository, reload, then **Settings → Dashboards → Add dashboard** and pick **Dashhaus** under
    Community dashboards (Home Assistant 2026.5 or newer), open its Orb and Field tabs at a phone and a desktop width,
-   in light and dark mode, and check **Edit dashboard** opens on the bare strategy in YAML. Then the deprecated
-   setup card: add it, press Create, open both dashboards, edit one, press again and see nothing overwritten, then open
-   the card as a non-admin. Record it in `spec/releases/<version>.md`, as run or unrun.
+   in light and dark mode, and check **Edit dashboard** opens on the bare strategy in YAML. Record it in
+   `spec/releases/<version>.md`, as run or unrun.
 5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
    alphabetical order, with the release and the green HACS action. Review takes months; the My link works before it,
    so this is discovery, not the launch.

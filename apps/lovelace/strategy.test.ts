@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createDashhausCard } from "@dashhaus/orb/lovelace/card";
 import { createFieldCard } from "@dashhaus/field/lovelace/card";
-import { SETUP_DASHBOARDS, STRATEGY_LOOKS } from "./dashboards";
+import { STRATEGY_LOOKS } from "./dashboards";
 import {
   DASHBOARD_ENTRY,
   DASHBOARD_STRATEGY_TAG,
@@ -69,13 +69,13 @@ describe("the custom:dashhaus strategy", () => {
     expect((customElements.get(VIEW_STRATEGY_TAG) as unknown as Strategy).shouldRegenerate?.()).toBe(false);
   });
 
-  it("with the dialog's bare config, draws every look the setup card offered: one panel view each, on its automatic layout", async () => {
+  it("with the dialog's bare config, draws every look: one panel view each, on its automatic layout", async () => {
     const views = await expand({ strategy: { type: "custom:dashhaus" } });
     expect(views.map((view) => view.path)).toEqual(STRATEGY_LOOKS.map((look) => look.id));
     expect(views[0]).toEqual({ title: "Orb", path: "orb", type: "panel", cards: [{ type: "custom:dashhaus-orb", title: "Home" }] });
     expect(views[1]).toEqual({ title: "Field", path: "field", type: "panel", cards: [{ type: "custom:dashhaus-field", title: "Home" }] });
-    // The same cards the setup card and dashhaus-deploy save: one card, the skin's, with no cards or rows.
-    expect(views.map((view) => view.cards[0].type)).toEqual(SETUP_DASHBOARDS.map((dashboard) => dashboard.type));
+    // One card per view, the skin's Lovelace card, with no cards or rows.
+    expect(views.map((view) => view.cards[0].type)).toEqual(STRATEGY_LOOKS.map((look) => look.type));
   });
 
   it("draws only the looks `skin` names, in its order", async () => {

@@ -6,8 +6,7 @@ upload it. Nothing is built: install it with the deploy command, write one confi
 
 The same file is the release asset the Home Assistant Marketplace (HACS) installs. There it also registers the
 `custom:dashhaus` dashboard strategy, which Home Assistant's **Add dashboard** dialog lists as **Dashhaus**: one
-dashboard with a tab for each look, with no terminal. (`custom:dashhaus-setup`, the setup card that used to create the
-dashboards, still ships and is deprecated.) Use one way or the other: each registers its own copy.
+dashboard with a tab for each look, with no terminal. Use one way or the other: each registers its own copy.
 
 To make a dashboard of your own design instead, start from `npm create dashhaus-skin@latest my-skin`.
 

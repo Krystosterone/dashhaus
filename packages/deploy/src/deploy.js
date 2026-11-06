@@ -132,7 +132,7 @@ async function reconcileDashboards(ha, dashboards, pageTitle, report) {
     try {
       await ha.send("lovelace/config/save", { url_path: dashboard.path, config: panelView(card, pageTitle) });
     } catch (error) {
-      // Delete what this run created, as the setup card does, so the next run creates it again rather than leaving
+      // Delete what this run created, so the next run creates it again rather than leaving
       // it empty for good. The save's error is the one worth reporting.
       const made = (await ha.send("lovelace/dashboards/list").catch(() => [])).find((item) => item.url_path === dashboard.path);
       if (made) await ha.send("lovelace/dashboards/delete", { dashboard_id: made.id }).catch(() => {});

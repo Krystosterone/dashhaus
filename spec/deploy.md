@@ -9,8 +9,7 @@ The bundle is also the published `@dashhaus/bundle` package; deploying it withou
 [Deploy from the command line](../docs/src/content/docs/start/deploy.mdx) on the documentation site. The same file is
 the release asset the Home Assistant Marketplace installs, and the bundle's dashboard strategy (The dashboard strategy,
 below) makes the dashboard there with no CLI, from Home Assistant's own Add dashboard dialog:
-[Install from the Marketplace](../docs/src/content/docs/start/install.mdx). The setup card it replaces still ships,
-deprecated. Who takes
+[Install from the Marketplace](../docs/src/content/docs/start/install.mdx). Who takes
 which way in is [journeys.md](journeys.md).
 
 ## First deploy
@@ -19,7 +18,7 @@ which way in is [journeys.md](journeys.md).
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar.
 
-`npm run deploy` builds the bundle `dashboard.config.mjs` names (`packages/bundle/dist/dashhaus.js` here), copies it to `www/dashhaus/`, and registers it as a dashboard resource at `/local/dashhaus/dashhaus.js?v=<content hash>`. The new version number makes browsers fetch the new file. It then fetches the file back from `$HA_URL/local/…` and warns, naming `HA_WWW`, when Home Assistant does not serve the bytes it uploaded: a wrong `HA_WWW` is otherwise only a "Custom element doesn't exist" on the dashboard. (The check needs the real websocket client; a caller that injects `connect` injects `fetch` too, or leaves the check out.) The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `dashhaus-orb`, with a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `cards` or `rows`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. The bundle lands under a temporary name and is renamed into place, so a copy cut off halfway leaves the served file as it was; a layout save that fails deletes the dashboard that run created, as the setup card does, so the next run creates it again rather than leaving it empty. It warns when another copy of the bundle is registered too (a Marketplace install's `/local/community/…`): both define the same cards, and only the first to load is used. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds the bundle `dashboard.config.mjs` names (`packages/bundle/dist/dashhaus.js` here), copies it to `www/dashhaus/`, and registers it as a dashboard resource at `/local/dashhaus/dashhaus.js?v=<content hash>`. The new version number makes browsers fetch the new file. It then fetches the file back from `$HA_URL/local/…` and warns, naming `HA_WWW`, when Home Assistant does not serve the bytes it uploaded: a wrong `HA_WWW` is otherwise only a "Custom element doesn't exist" on the dashboard. (The check needs the real websocket client; a caller that injects `connect` injects `fetch` too, or leaves the check out.) The CLI copies it to `$HA_WWW/<bundle name without its extension>/<bundle name>` and registers `/local/<the same folder>/<bundle name>`: a repo keeps its URL by keeping its bundle path. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`, each one panel view. By default: **Home (Orb)** at `dashhaus-orb`, with a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `cards` or `rows`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates the resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. The bundle lands under a temporary name and is renamed into place, so a copy cut off halfway leaves the served file as it was; a layout save that fails deletes the dashboard that run created, so the next run creates it again rather than leaving it empty. It warns when another copy of the bundle is registered too (a Marketplace install's `/local/community/…`): both define the same cards, and only the first to load is used. Open dashboards pick up a new version on their next reload.
 
 ### The dashboard config
 
@@ -59,7 +58,7 @@ and the developer docs' Custom dashboard strategies page.
   skin `npm run new-skin` registers, titled with the look's name and at its id as path. Each view is the view strategy,
   which answers a panel holding the look's card with no `cards` or `rows`, `{ type: "custom:dashhaus-<skin>", title:
   "Home" }`: the automatic layout (`autoDashboard` for orb, `autoModules` and `areaRows` for field), the same card the
-  setup card and the CLI's default config save. A view strategy also works on its own, as one view of any dashboard.
+  CLI's default config saves for Field. A view strategy also works on its own, as one view of any dashboard.
 - **Its keys**, all optional:
 
   | Key | Values | Default |
@@ -86,43 +85,6 @@ through its skin's own Lovelace card; `verify/docs.test.ts` does the same for th
 picks **Dashhaus** from its stand-in for the Add dashboard dialog and opens both views, expanded as the frontend
 expands them, in Chromium. Not yet run against a real Home Assistant frontend (What has and hasn't been verified,
 below).
-
-## The setup card
-
-**Deprecated** by the dashboard strategy above. It still ships, works and is tested, so a person following an old
-guide, and a dashboard it made, keep working; it says so in the card picker (**Dashhaus setup (deprecated)**) and on
-the card, naming Add dashboard → Dashhaus. Removing it is a decision still to take.
-
-A Marketplace (HACS) install copies the release's `dashhaus.js` to `www/community/dashhaus/` and registers
-`/hacsfiles/dashhaus/dashhaus.js?hacstag=<repository id><version digits>`, which HACS serves from that folder, as a
-module resource; it creates no dashboard. The bundle's
-`custom:dashhaus-setup` (`apps/lovelace/setup.ts`, registered by the bundle's entry) is the one remaining step: the
-person adds it to any dashboard once, as **Dashhaus setup** from the card picker, and presses **Create dashboards**.
-
-- **What it offers.** `SETUP_DASHBOARDS` (`apps/lovelace/dashboards.ts`): **Home (Orb)** at `dashhaus-orb` and **Home
-  (Field)** at `dashhaus-field`, the paths, titles and icons of the repository's `dashboard.config.mjs` (its test holds
-  them together), then each skin `npm run new-skin` registers in `scripts/generated-skins.js`. One checkbox each,
-  checked unless the dashboard exists; an existing one is shown as **Already there** and can't be checked.
-- **What a press sends.** `lovelace/dashboards/list`; then, for each checked path that is missing,
-  `lovelace/dashboards/create` (`mode: "storage"`, in the sidebar, not admin-only) and `lovelace/config/save` with one
-  panel view holding `{ type: "custom:<skin>", title: "Home" }`: the automatic layout, as the bundle README's deploy
-  config saves it, so either way in ends with the same dashboards. These are the commands the CLI sends, over the
-  frontend's own authenticated connection; no token, no fetch, no file write.
-- **Create-only.** An existing dashboard is never renamed, saved over or deleted (unlike the CLI, which keeps a title
-  in line with `.env`). A second press lists and sends nothing else. A save that fails after this press created the
-  dashboard deletes it again (`lovelace/dashboards/delete`, by the id the create answered with), so a retry is never
-  blocked by an empty one; each dashboard's failure is reported on it and the others carry on.
-- **Who can.** A person who is not an administrator (`hass.user.is_admin`) is told so and nothing is sent. Home
-  Assistant's `unauthorized` is worded the same way, and `unknown_command` as dashboards managed in YAML, with the
-  manual fallback: create the dashboard, give it a panel view and add the card.
-- **Its surface.** A plain custom element, no React, store or skin tokens, drawn with Home Assistant's theme variables;
-  status in `role="status"`, each failure as `role="alert"`, `aria-busy` while it runs. It is the bundle's, not part of
-  any package or of the skin-author contract.
-
-`apps/lovelace/setup.test.ts` covers the reconciler and the element over a fake connection; `verify/dx/marketplace.js`
-installs the packed bundle's file as the Marketplace does into the fake Home Assistant and presses Create in Chromium
-(a non-admin first, then an admin, then again). Live, only the HACS install and a first Create are verified so far
-(What has and hasn't been verified, below).
 
 ## Authoring
 
@@ -563,10 +525,10 @@ Live, against Home Assistant 2026.10.2 (Home Assistant OS, SSH add-on on a non-d
 
 Live, through HACS on Home Assistant 2026.10.4 with `v0.3.0`: the install from the My link as a custom repository,
 then the setup card's first Create, which made both dashboards, and both opened
-([0.3.0 → Live Marketplace install](releases/0.3.0.md#live-marketplace-install)). Not yet checked live (GitHub issue
-#31): a second press after an edit leaving the dashboard alone, the refusal for a non-admin, the YAML-mode fallback,
-and any install through Home Assistant 2026.11's built-in Marketplace, which doesn't list Dashhaus until the catalog
-does (#32). The fake Home Assistant journey covers all of them.
+([0.3.0 → Live Marketplace install](releases/0.3.0.md#live-marketplace-install)). The setup card has since been
+removed for the dashboard strategy, so the checks still open on it (GitHub issue #31) no longer apply. Not yet
+checked live: any install through Home Assistant 2026.11's built-in Marketplace, which doesn't list Dashhaus until the
+catalog does (#32).
 
 The dashboard strategy has not been tried in a real Home Assistant yet: not that Add dashboard lists Dashhaus (2026.5
 or newer), not the dashboard it makes, its tabs, the strategy editor's YAML or Take control. The fake Home Assistant

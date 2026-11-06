@@ -135,7 +135,7 @@ that records what a driver asked for, for a test that injects the fake instead o
   after expanding a custom dashboard and view strategy as the frontend's `get-strategy.ts` does (the
   `ll-strategy-<kind>-<name>` element's static `generate`, merged over the config); it knows no built-in or legacy
   strategy. It serves `subscribe_entities`, light/switch `call_service` and empty history/recorder answers from the
-  page; its `lovelace/*` commands go to the server, so a card such as Dashhaus's setup card can create dashboards.
+  page; its `lovelace/*` commands go to the server, so a card on the page can create dashboards.
 - `/config/lovelace/dashboards` stands in for the Add dashboard dialog's Community dashboards: a button per
   `window.customStrategies` dashboard entry, which creates `dashboard-<suggested title>` and saves
   `{ strategy: { type: "custom:<type>" } }`. Not the frontend's dialog: no name or icon form, no built-in dashboards. Its `hass.user` is an administrator unless the address

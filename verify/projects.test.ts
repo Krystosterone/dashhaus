@@ -44,7 +44,7 @@ describe("workspace projects", () => {
     expect(project("dashboard")?.include, "dashboard's tests are in its project").toEqual(["packages/dashboard/src/**/*.test.{ts,tsx}"]);
     expect(project("deploy")?.include, "deploy's tests are in its project").toEqual(["packages/deploy/src/**/*.test.ts"]);
     expect(project("fake-home-assistant")?.include, "the fake Home Assistant's tests run in Node").toEqual(["packages/fake-home-assistant/src/**/*.test.ts"]);
-    expect(project("root")?.include, "the root project holds the skins, the bundle's setup card, the one check that needs a DOM and the docs' example tests").toEqual([
+    expect(project("root")?.include, "the root project holds the skins, the bundle's dashboard strategy, the one check that needs a DOM and the docs' example tests").toEqual([
       "src/**/*.test.{ts,tsx}",
       "apps/**/*.test.ts",
       "verify/tokens.test.ts",
