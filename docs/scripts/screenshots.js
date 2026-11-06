@@ -51,6 +51,7 @@ const KINDS = {
   alarm: ["orb-cards-alarm--disarmed", "field-cards-alarm--disarmed"],
   lock: ["orb-cards-lock--locked", "field-cards-lock--locked"],
   owlet: ["orb-cards-owlet--deep-sleep", "field-cards-owlet--deep-sleep"],
+  guestWifi: ["orb-cards-guestwifi--ready", "field-cards-guestwifi--ready"],
 };
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };

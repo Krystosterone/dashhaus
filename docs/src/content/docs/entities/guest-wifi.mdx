@@ -1,0 +1,101 @@
+---
+title: Guest Wi-Fi
+description: "A guest Wi-Fi network and what a guest types: a UniFi Hotspot Manager code, or a Wi-Fi password, with its join QR code and a new one."
+kind:
+  group: Readings
+  order: 3
+  summary: "A guest network, its code or password and its join QR code; refresh it or make a new one."
+  with: "its join QR code image and what refreshes it and makes a new one"
+  reading: true
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+A guest Wi-Fi network and what a guest types to use it. Two kinds, its `access`:
+
+- **A code** (`code`): an open network whose page asks for a code once you have joined, such as a hotspot voucher from
+  the custom [UniFi Hotspot Manager](https://github.com/ufozone/ha-unifi-voucher) integration, which is found by itself.
+- **A password** (`password`): the network's Wi-Fi password, in an `input_text`, a `text` or a template `sensor`.
+
+The card shows the network's name, the code or password and the network's QR code, and can fetch it again or make a
+new one.
+
+## Quick example
+
+<Example file="entities/guestWifi/JoinCard.tsx" />
+
+The entity id is what holds the code or password. For UniFi Hotspot Manager's `sensor.<site>_voucher`, its QR code
+image and its two buttons are found beside it by the integration's names. For anything else, name them: the QR code
+image, and a `button`, `input_button` or `script` for each action. The QR code is an image Home Assistant serves, so
+draw it from the same Home Assistant the dashboard runs in; without one, the card shows none.
+
+## Component
+
+`<HaGuestWifi>` is `useHaGuestWifi` as a component that draws nothing of its own. It takes every option of the hook as
+a prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="@dashhaus/core" name="HaGuestWifi" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaGuestWifi" />
+
+It reads the code or password, its QR code image and what makes a new one, and its area. There is no history: a code's
+day is when it was made and how often it was used.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaGuestWifiOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaGuestWifiResult" />
+
+#### `entity`: GuestWifiEntity
+
+<ApiMembers from="@dashhaus/core/entities/guestWifi/types" name="GuestWifiEntity" />
+
+The integration shows a code only while it has a use left. With none left, the entity is `none` while a new code can
+still be made, and `unavailable` when it can't.
+
+#### `actions`: GuestWifiHandlers
+
+<ApiMembers from="@dashhaus/core" name="GuestWifiHandlers" />
+
+Each presses its action (`button.press`, `input_button.press` or `script.turn_on`) and answers once Home Assistant has.
+A UniFi Hotspot Manager code takes the integration's own uses and length, and the codes already given keep working.
+
+## Tasks
+
+### Make a new code
+
+<Example file="entities/guestWifi/NewCode.tsx" />
+
+### Show a Wi-Fi password
+
+<Example file="entities/guestWifi/Password.tsx" />
+
+A new password ends the old one for every device already joined, so both skins ask before making one.
+
+## In a skin
+
+Orb's `HaGuestWifiTile` and Field's `HaGuestWifiModule` are `useHaGuestWifi` above each skin's card. Both keep
+Refresh and New code in their details, never on the card, so a stray tap never makes codes. They take the hook's
+options as props, plus their own:
+
+<Example file="entities/guestWifi/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaGuestWifiTileProps" except={{ from: "@dashhaus/core", name: "HaGuestWifiOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaGuestWifiModuleProps" except={{ from: "@dashhaus/core", name: "HaGuestWifiOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="guestWifi" />
