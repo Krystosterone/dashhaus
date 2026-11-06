@@ -9,10 +9,12 @@
  *   strategy, every card its views hold through that card's skin's parser;
  * - the user guide's deploy config loads through `@dashhaus/deploy` as `npx dashhaus-deploy` would load it;
  * - every scaffold file the author guide shows is one `create-dashhaus-skin my-skin` writes (before or after
- *   `npm run add -- cover`), and that skin typechecks.
+ *   `npm run add -- cover`), and that skin typechecks;
+ * - the Release notes page shows a record's Upgrading steps once, inside its Release page or after it.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
@@ -21,6 +23,7 @@ import { parseDashboardConfig } from "../src/skins/orb/lovelace/config";
 import { parseFieldConfig } from "../src/skins/field/lovelace/config";
 import { ORB_STRATEGY } from "../src/skins/orb/lovelace/strategy";
 import { FIELD_STRATEGY } from "../src/skins/field/lovelace/strategy";
+import { releases } from "../docs/src/lib/releases";
 import { ADDED, writeScaffold } from "../docs/src/lib/scaffold";
 
 const root = process.cwd();
@@ -141,4 +144,30 @@ describe("the author guide's scaffold", () => {
     const tsc = spawnSync(process.execPath, [join(root, "node_modules/typescript/bin/tsc"), "-p", added], { encoding: "utf8" });
     expect(tsc.status, tsc.stdout + tsc.stderr).toBe(0);
   }, 120_000);
+});
+
+describe("the Release notes page", () => {
+  const notes = (record: string) => {
+    const dir = mkdtempSync(join(tmpdir(), "dashhaus-releases-"));
+    try {
+      mkdirSync(join(dir, "spec/releases"), { recursive: true });
+      writeFileSync(join(dir, "spec/releases/9.9.9.md"), record);
+      return releases(dir)[0].notes;
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  };
+  const count = (text: string, part: string) => text.split(part).length - 1;
+
+  it("shows Upgrading once when it sits inside the Release page", () => {
+    const shown = notes("# 9.9.9\n\n## Release page\n\nNews.\n\n### Upgrading\n\nStep one.\n\n## What changed\n\nMore.\n");
+    expect(count(shown, "### Upgrading")).toBe(1);
+    expect(count(shown, "Step one.")).toBe(1);
+    expect(shown).not.toContain("More.");
+  });
+
+  it("adds Upgrading after the Release page when it sits further down", () => {
+    const shown = notes("# 9.9.9\n\n## Release page\n\nNews.\n\n## What changed\n\n### Upgrading\n\nStep one.\n\n## API\n");
+    expect(shown).toBe("News.\n\n### Upgrading\n\nStep one.");
+  });
 });
