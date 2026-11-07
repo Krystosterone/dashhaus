@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { batteryFact, fanSpeedLabel, inWords, pressWord, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "./words";
+import { inWords } from "../format";
+import { batteryFact, fanSpeedLabel, fanSpeedSaid, isActive, locateSaid, pressHint, pressKeyWord, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "./words";
 import type { VacuumEntity } from "./types";
 
 const all = { supportsStart: true, supportsPause: true, supportsReturn: true } as const;
@@ -14,10 +15,28 @@ describe("vacuum words", () => {
     expect(vacuumWord({ state: "unavailable", stateText: "x" })).toBe("Unavailable");
   });
 
-  it("puts a Home Assistant name in words", () => {
+  it("puts a Home Assistant name in words, core's inWords", () => {
     expect(inWords("zone_cleaning")).toBe("Zone cleaning");
     expect(inWords("MAX-PLUS")).toBe("Max plus");
     expect(fanSpeedLabel("turbo")).toBe("Turbo");
+    expect(fanSpeedSaid("max_plus")).toBe("Fan speed Max plus");
+  });
+
+  it("is active while it moves, cleaning or on its way home, and rests while it stands", () => {
+    for (const state of ["cleaning", "returning"] as const) expect(isActive({ state })).toBe(true);
+    for (const state of ["docked", "idle", "paused", "error", "other", "unavailable"] as const) expect(isActive({ state })).toBe(false);
+  });
+
+  it("says the press on a key, aloud and in a sentence, the same in every skin", () => {
+    expect(pressKeyWord("return", { state: "cleaning" })).toBe("Return");
+    expect(pressKeyWord("start", { state: "error" })).toBe("Start again");
+    expect(pressSaid("pause", { name: "Robot", state: "cleaning" })).toBe("Pause Robot");
+    expect(pressSaid("start", { name: "Robot", state: "error" })).toBe("Start Robot again");
+    expect(pressSaid("return", { name: "Robot", state: "cleaning" })).toBe(returnSaid("Robot"));
+    expect(returnSaid("Robot")).toBe("Send Robot back to its dock");
+    expect(locateSaid("Robot")).toBe("Locate Robot: it plays a sound");
+    expect(pressHint({ state: "cleaning" })).toBe("Pause stops it where it is.");
+    expect(pressHint({ state: "docked" })).toBe("Start sends it out to clean.");
   });
 
   it("presses to pause while it moves and to start while it stands, as it supports", () => {

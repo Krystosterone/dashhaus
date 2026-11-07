@@ -2,7 +2,7 @@ import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
 import { finiteNumber, isRecord, stringList, stringValue } from "../util";
 import { inlineBattery } from "./battery";
-import { inWords } from "../../entities/vacuum/words";
+import { inWords } from "../../entities/format";
 import type { VacuumEntity, VacuumState } from "../../entities/vacuum/types";
 
 export interface VacuumMapOptions {

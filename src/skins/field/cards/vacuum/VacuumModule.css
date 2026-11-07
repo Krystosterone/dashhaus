@@ -1,8 +1,8 @@
 /* Vacuum module (fd-vc): two keys that print what pressing does (Pause or Start, Return); in the panel, Locate beside
    them and the fan speeds. No colour of its own: the LED says cleaning, words say the rest. */
 
-/* Standing still is a state, not a blank: DOCK, IDLE and HOLD keep their places in the dim ink. */
-:is(.fd-vc, .fd-vc-panel):is([data-state="docked"], [data-state="idle"], [data-state="paused"]) .fd-read-fig { color: var(--fd-screen-ink-2); }
+/* Standing still is a state, not a blank: DOCK, IDLE and HOLD keep their places in the dim ink, through the module's
+   one rest hook (`rest`, module.css). */
 
 /* Narrow modules keep one meta line on the screen. */
 @container (max-width: 239px) {

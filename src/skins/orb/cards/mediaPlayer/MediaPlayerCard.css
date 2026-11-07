@@ -1,20 +1,11 @@
 /* Media player card. Shell, orb, pill, chips, picture, today strip and sheet come from src/skins/orb/shared/card.css.
    Classes here start with mp-; colours only from tokens.css. A player is a state: it never glows. */
 
-/* The readout says Muted, or the pill's word, in words: a little smaller than a number */
-.mp .hd-num.mp-word { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hd--sheet.mp .hd-num.mp-word { font-size: 30px; }
+/* The readout says Muted, or the pill's word, in words: the shared hd-num--long, a little smaller than a number */
 /* Resting (not playing, buffering or on) is the quieter ink */
 .mp:not([data-state="playing"], [data-state="buffering"], [data-state="on"]) .hd-num { color: var(--ink-2); }
 /* Muted after what is playing, quieter than it */
 .mp-muted { color: var(--ink-3); }
-
-/* ---------- Nothing it can do now: its state as a readout, no container ---------- */
-.mp-st {
-  display: flex; align-items: center; height: var(--slot-h); min-width: 0; margin: 0; padding: 0 var(--pad-in);
-  font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.hd--compact .mp-st { justify-content: flex-end; font-size: 13px; }
 
 /* ---------- Now playing: the artwork in its well, then the title, the artist and how far in ---------- */
 .mp-now { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; column-gap: 14px; min-width: 0; min-height: 0; }
@@ -78,8 +69,7 @@
   83.3333%, 100% { transform: translateY(-83.3333%); }
 }
 
-/* ---------- Sheet: skip back and on, and turning it off, raised pills that act once, side by side ---------- */
-.mp-acts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+/* Sheet: skip back and on, and turning it off, raised pills that act once, side by side (the shared hd-acts). */
 
 /* A wide compact row has room for the pill's verb as well: Playing · Pause. */
 @container hd (min-width: 400px) {

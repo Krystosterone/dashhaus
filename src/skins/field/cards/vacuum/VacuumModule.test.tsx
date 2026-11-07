@@ -81,4 +81,19 @@ describe("VacuumModule", () => {
   it("leads a compact row with its key", () => {
     expect(draw("cleaning", "compact").container.querySelector(".fd-module > .fd-key")).not.toBeNull();
   });
+
+  it("rests while it stands in a state it names, through the module's rest, and lights while it moves", () => {
+    for (const seed of ["docked", "paused"] as const) expect(draw(seed).container.querySelector(".fd-module")?.hasAttribute("data-rest")).toBe(true);
+    const cleaning = draw("cleaning").container;
+    expect(cleaning.querySelector(".fd-module")?.hasAttribute("data-rest")).toBe(false);
+    const returning = draw({ ...VACUUM_SEEDS.cleaning.entity, state: "returning" });
+    expect(returning.container.querySelector(".fd-module")?.hasAttribute("data-rest")).toBe(false);
+    expect(returning.keys[0].querySelector(".fd-led")?.getAttribute("data-lit")).toBe("true");
+    expect(returning.container.querySelector(".fd-meta")?.textContent).toContain("To the dock");
+  });
+
+  it("says when it was last seen in core's words while unavailable", () => {
+    const { container } = draw({ ...VACUUM_SEEDS.cleaning.entity, state: "unavailable", lastSeen: "08:20" });
+    expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
+  });
 });

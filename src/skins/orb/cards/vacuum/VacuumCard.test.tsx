@@ -95,4 +95,18 @@ describe("VacuumCard", () => {
     const { container } = render(<VacuumCard entity={{ ...cleaning, state: "docked" }} footprint="compact" {...handlers()} />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Docked");
   });
+
+  it("keeps the accent on its way home, its active set (isActive), and rests once it stands", () => {
+    render(<VacuumCard entity={{ ...cleaning, state: "returning" }} {...handlers()} />);
+    expect(screen.getByRole("button", { name: /^Robot vacuum: Returning · Pause/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Pause Robot vacuum" }).getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("draws its state readout and its sheet's actions on the shared parts", () => {
+    const { container } = render(<VacuumCard entity={{ ...cleaning, state: "returning", supportsPause: false }} variant="sheet" {...handlers()} />);
+    expect(container.querySelector(".hd-st")?.textContent).toBe("Returning");
+    expect(container.querySelector(".hd-num")?.classList.contains("hd-num--long")).toBe(true);
+    const docked = render(<VacuumCard entity={{ ...cleaning, state: "idle" }} variant="sheet" {...handlers()} />);
+    expect([...docked.container.querySelectorAll(".hd-acts button")].map((b) => b.textContent)).toEqual(["Return to dock", "Locate"]);
+  });
 });

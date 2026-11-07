@@ -1,24 +1,16 @@
 /* Vacuum card. Shell, orb, pill, chips, today strip and sheet come from src/skins/orb/shared/card.css.
    Classes here start with vc-; colours only from tokens.css. A vacuum is a state: it never glows. */
 
-/* The readout says what it is doing in words, a little smaller than a number; an integration's own words can be long */
-.vc .hd-num.vc-word { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hd--sheet.vc .hd-num.vc-word { font-size: 30px; }
-/* Standing still (docked, idle, paused, in error) is the quieter ink; the marker, not the word, carries an error */
+/* The readout says what it is doing in words (the shared hd-num--long: an integration's own words can be long).
+   Standing still (docked, idle, paused, in error), outside its active set, is the quieter ink; the marker, not the
+   word, carries an error */
 .vc:not([data-state="cleaning"], [data-state="returning"]) .hd-num { color: var(--ink-2); }
 
 /* What the integration adds after the room ("Charging"), quieter than the room */
 .vc-detail { color: var(--ink-3); }
 
-/* ---------- Nothing it can do now (returning with no pause): its state as a readout, no container ---------- */
-.vc-st {
-  display: flex; align-items: center; height: var(--slot-h); min-width: 0; margin: 0; padding: 0 var(--pad-in);
-  font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.hd--compact .vc-st { justify-content: flex-end; font-size: 13px; }
-
-/* ---------- Sheet: the dock and locate, raised pills that act once, side by side ---------- */
-.vc-acts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+/* Nothing it can do now (returning with no pause): its state as a readout, the shared hd-st. The sheet's dock and
+   locate are the shared hd-acts, raised pills that act once, side by side. */
 
 /* A wide compact row has room for the pill's verb as well: Cleaning · Pause. */
 @container hd (min-width: 400px) {

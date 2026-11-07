@@ -1,4 +1,5 @@
-import { isLowBattery } from "../battery";
+import { batteryText, isLowBattery } from "../battery";
+import { inWords } from "../format";
 import type { VacuumEntity, VacuumState } from "./types";
 
 /**
@@ -18,12 +19,6 @@ export const VACUUM_WORDS: Record<Exclude<VacuumState, "other">, string> = {
 /** Today's word, lower case, as `todaySummary` takes it: "Cleaning 42m", "Not cleaning today". */
 export const VACUUM_TODAY = "cleaning";
 
-/** A Home Assistant name in words: `zone_cleaning` → "Zone cleaning", `Max+` stays "Max+". */
-export function inWords(raw: string): string {
-  const spaced = raw.trim().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
-  return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase() : raw;
-}
-
 /** What it is doing in words: "Cleaning", "Docked"; an integration's own state as it says it ("Mopping"). */
 export function vacuumWord(e: Pick<VacuumEntity, "state" | "stateText">): string {
   if (e.state === "unavailable") return VACUUM_WORDS.unavailable;
@@ -31,11 +26,23 @@ export function vacuumWord(e: Pick<VacuumEntity, "state" | "stateText">): string
   return e.state === "other" ? "Unknown" : VACUUM_WORDS[e.state];
 }
 
-/** A fan speed in words: "quiet" → "Quiet", "max_plus" → "Max plus". */
+/** A fan speed in words: "quiet" → "Quiet", "max_plus" → "Max plus" (`inWords`, `@dashhaus/core/entities/format`). */
 export const fanSpeedLabel = inWords;
+
+/** The fan speeds' legend, and one said aloud: "Fan speed Quiet". */
+export const FAN_SPEED = "Fan speed";
+export const fanSpeedSaid = (speed: string) => `${FAN_SPEED} ${fanSpeedLabel(speed)}`;
 
 /** It is moving about the house: cleaning, or on its way back to the dock. */
 export const isMoving = (e: Pick<VacuumEntity, "state">) => e.state === "cleaning" || e.state === "returning";
+
+/**
+ * Its active set (spec/cards.md → One active signal), the one every skin's active signal follows: Orb's accent and
+ * pressed orb, Field's LED, lit pictogram and bright figure. Cleaning and returning, the states it moves in: on its way
+ * home between a clean and the dock it keeps the signal, so it never flickers off and on. Docked, idle, paused and in
+ * error it stands, and rests.
+ */
+export const isActive = isMoving;
 
 /**
  * What a vacuum's one press does now, gated on what it supports: while it moves, it pauses (or, cleaning and unable to
@@ -59,9 +66,49 @@ export function vacuumPress(e: Pick<VacuumEntity, "state" | "supportsStart" | "s
  */
 export function pressWord(press: VacuumPress, e: Pick<VacuumEntity, "state">): string {
   if (press === "pause") return "Pause";
-  if (press === "return") return "Return to dock";
+  if (press === "return") return RETURN_WORDS.long;
   return e.state === "paused" ? "Resume" : e.state === "error" ? "Start again" : "Start";
 }
+
+/** Sending it home in words: a pill's `Return to dock`, and a key's `Return` where half a row holds it. */
+export const RETURN_WORDS = { long: "Return to dock", short: "Return" } as const;
+
+/** The press in words short enough for half a key row: "Pause", "Start", "Resume", "Start again", "Return". */
+export const pressKeyWord = (press: VacuumPress, e: Pick<VacuumEntity, "state">) =>
+  press === "return" ? RETURN_WORDS.short : pressWord(press, e);
+
+/** Sending it home, said aloud: "Send Robot vacuum back to its dock". */
+export const returnSaid = (name: string) => `Send ${name} back to its dock`;
+
+/** Locating it in words: it plays a sound to be found. */
+export const LOCATE_WORD = "Locate";
+export const locateSaid = (name: string) => `${LOCATE_WORD} ${name}: it plays a sound`;
+
+/**
+ * The press said aloud, as an orb's or a key's label: "Pause Robot vacuum", "Start Robot vacuum again" after an error,
+ * "Send Robot vacuum back to its dock".
+ */
+export function pressSaid(press: VacuumPress, e: Pick<VacuumEntity, "name" | "state">): string {
+  if (press === "return") return returnSaid(e.name);
+  if (press === "start" && e.state === "error") return `Start ${e.name} again`;
+  return `${pressWord(press, e)} ${e.name}`;
+}
+
+/** On its way home, where the state word says Returning: where it is going. */
+export const TO_THE_DOCK = "To the dock";
+
+/**
+ * What a press does now, in a sentence, for its details: after an error, while it cleans, on its way home, or standing.
+ */
+export function pressHint(e: Pick<VacuumEntity, "state">): string {
+  if (e.state === "error") return "It stopped part way: clear what went wrong, then start it again.";
+  if (e.state === "cleaning") return "Pause stops it where it is.";
+  if (e.state === "returning") return "On its way back to the dock.";
+  return "Start sends it out to clean.";
+}
+
+/** Today's meter said aloud. */
+export const VACUUM_TODAY_SAID = "Cleaning by hour today.";
 
 /**
  * Its battery is low while it stands away from its dock and nothing is charging it (idle, paused, an `other` state).
@@ -77,7 +124,7 @@ export const lowBattery = (e: Pick<VacuumEntity, "state" | "battery" | "charging
  */
 export function vacuumWarning(e: Pick<VacuumEntity, "state" | "battery" | "charging">): string | undefined {
   if (e.state === "error") return "Error";
-  if (lowBattery(e)) return `Battery ${e.battery}%`;
+  if (lowBattery(e)) return batteryText(e.battery!);
   return undefined;
 }
 
@@ -94,11 +141,14 @@ export function vacuumWarningSentence(e: Pick<VacuumEntity, "name" | "state" | "
   return undefined;
 }
 
+/** What a vacuum's low battery asks for, after its level: it charges at its dock, so "needs charging", not replacing. */
+export const VACUUM_BATTERY_ADVICE = "needs charging";
+
 /** Its battery, for its details: "Battery 82%", "Battery 64%, charging", "Battery 9%, needs charging"; "" when it doesn't say. */
 export function batteryFact(e: Pick<VacuumEntity, "state" | "battery" | "charging">): string {
   if (e.battery == null || e.state === "unavailable") return "";
-  if (lowBattery(e)) return `Battery ${e.battery}%, needs charging`;
-  return `Battery ${e.battery}%${e.charging ? ", charging" : ""}`;
+  if (lowBattery(e)) return `${batteryText(e.battery)}, ${VACUUM_BATTERY_ADVICE}`;
+  return `${batteryText(e.battery)}${e.charging ? ", charging" : ""}`;
 }
 
 /**

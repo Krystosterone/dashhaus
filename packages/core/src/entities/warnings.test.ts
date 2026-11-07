@@ -11,6 +11,7 @@ import { ALERT_WORDS } from "./binarySensor/words";
 import { LEFT_OPEN_WORD } from "./cover/words";
 import { LOCK_WORD } from "./lock/words";
 import { ALERT_WORD, staleText } from "./owlet/readings";
+import { vacuumWarning } from "./vacuum/words";
 import { weatherWarnings } from "./weather/readings";
 import type { WeatherEntity } from "./weather/types";
 
@@ -23,6 +24,8 @@ const words: [string, string][] = [
   ["cover left open", LEFT_OPEN_WORD],
   ["lock jammed", LOCK_WORD.jammed],
   ["low battery", batteryText(100)],
+  ["vacuum error", vacuumWarning({ state: "error" })!],
+  ["vacuum low battery", vacuumWarning({ state: "idle", battery: 15 })!],
   ...[
     alarmWarning({ state: "triggered", triggeredBy: "Basement egress window (north)" }),
     alarmWarning({ state: "pending", triggeredBy: "Front door" }),
