@@ -244,6 +244,40 @@ a card.
 Below 320 px of dashboard content an orb row has one track, so identity wins over columns, as before; in a one-track
 row a later routine glow is damped (spec/orb.md → Dashboards).
 
+#### One layout for every width
+
+A page has one layout, and a width only ever changes how many tracks its rows get (Placement, above): there are no
+layouts per screen size, no breakpoints, and no key that shows or hides a card at a width. Decided, not missed:
+
+- **A width can't tell a device's role.** The composition rules split pages by role, importance first in the hand and
+  room first on the wall (spec/orb.md → Dashboards), and a portrait wall panel is as wide as a tablet. That is why
+  `viewing` is never inferred, and the same holds for a layout.
+- **A row answers to its own width, not the screen's.** A breakpoint reads the viewport, so it would be wrong exactly
+  where a row is narrowed by what is around it: a Home Assistant sections view, a side column.
+- **Nothing moves on its own.** A layout per width would swap the whole page when a tablet turns: its scroll, its
+  nav's destinations, the section lit. Placing depends on the YAML and the row's width so that a state change never
+  does that, and a rotation shouldn't either.
+- **One copy of the page.** A layout per width keeps the same entities in several copies that drift apart, each with
+  its own problems to report.
+
+What the format gives instead:
+
+- **A different order wide and narrow.** Write the narrow order in the YAML, anchor the wide composition with `column`
+  and set `flow: dense`. Wide, an anchored card takes the first free place in its column, above cards written before
+  it; collapsed, the anchors release and the row reads top to bottom as written. Three compact cards in column 2 and
+  then a standard card in column 1 draw side by side at the top on two tracks, and the compact cards first on one.
+  Reading order stays the YAML's, which is dense flow's cost (Placement, 7). Not in a field row that mixes footprints,
+  where `flow: dense` is an error.
+- **A different page for a different device.** Each role gets its own dashboard: `dashboard.config.mjs` lists one per
+  role (a wall panel's with `viewing: far`), each device opens its own (Home Assistant keeps a default dashboard per
+  browser, in its profile settings), and `navigate:` links them.
+
+Reopen this with the need it lacked: a card that must be on the page at one width and gone at another. The shape to
+weigh then is a condition on a row's tracks, not on pixels (a card or row drawn only from a number of tracks, as an
+anchor already holds only at its row's), which stays pure and per row. It would add a key to the frozen
+`@dashhaus/core/lovelace/schema` grammar every skin reads (spec/contract.md), and the nav would have to drop a hidden
+titled row.
+
 #### Footprints in a row
 
 - **Orb** mixes footprints freely: every footprint is a whole number of units, so a compact card stacks beside a
