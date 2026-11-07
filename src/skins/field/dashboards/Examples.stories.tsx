@@ -211,80 +211,110 @@ export const Phone: Story = {
   ),
 };
 
-/** Tablet, landscape: whole modules, an area a row of four, so every fader, key and today's meter is in reach; the
-    living room first, then the nursery and the entrance, then the outside beside the whole home's modes. */
-export const Tablet: Story = {
-  render: () => (
-    <Device label="Tablet, landscape" width={1180} height={820}>
-      <FieldPage title="Home" now={NOW} showTime>
-        <Area title="Living room">
-          <Light seed="dimmable" area="Living room" />
-          <Climate seed="heating" area="Living room" />
-          <Fan seed="ceiling" area="Living room" />
-          <Cover seed="curtains" area="Living room" />
-        </Area>
-        <Area title="Nursery">
-          <Owlet seed="deep" area="Nursery" />
-          <Light seed="nightLight" area="Nursery" />
-          <Sound seed="on" area="Nursery" />
-          <Humidifier seed="on" area="Nursery" name="Humidifier" />
-        </Area>
-        <Area title="Entrance">
-          <Lock seed="locked" area="Entrance" />
-          <Alarm seed="disarmed" area="Entrance" />
-          <Cover seed="garage" area="Entrance" />
-          <Light seed="onOff" area="Entrance" />
-        </Area>
-        <Areas columns={2}>
-          <Area title="Outside">
-            <Weather seed="partly" name="Weather" />
-            <Sensor seed="outdoor" area="Outside" name="Air" />
-          </Area>
-          <Area title="Whole home">
-            <Toggle seed="dnd" area="Whole home" />
-            <Toggle seed="guest" area="Whole home" />
-          </Area>
-        </Areas>
-      </FieldPage>
-    </Device>
-  ),
-};
+const TABLET_AREAS = [["living", "Living room"], ["nursery", "Nursery"], ["entrance", "Entrance"], ["outside", "Outside"]] as const;
 
-/** The wall panel's page, read up close or across the room. */
-function WallPage({ viewing }: { viewing?: "far" }) {
+/**
+ * The tablet's page: the living room across the top, the page's hero and the room you press most, then a column per
+ * other place, each led by its one whole module and taking 64 px rows under it. The nav docked at the bottom keeps the
+ * place being read down.
+ */
+function TabletPage() {
+  const page = useRef<HTMLDivElement>(null);
+  const [reading, jump] = useScrollSpy(page);
+  const nav = <NavBar items={TABLET_AREAS.map(([id, label]) => ({ key: id, label, kind: "section", current: reading === id, onSelect: () => jump(id) }))} />;
+  const row = { footprint: "compact" } as const;
   return (
-    <FieldPage title="Home" now={NOW} showTime viewing={viewing}>
-      <Areas columns={4}>
-        <Area title="Living room">
-          <Light seed="dimmable" area="Living room" />
-          <Climate seed="heating" area="Living room" />
-          <Fan seed="ceiling" area="Living room" footprint="compact" />
-          <Cover seed="curtains" area="Living room" footprint="compact" />
-        </Area>
-        <Area title="Nursery">
+    <FieldPage title="Home" now={NOW} showTime pageRef={page} nav={nav}>
+      <Area id="living" title="Living room">
+        <Light seed="dimmable" area="Living room" />
+        <Climate seed="heating" area="Living room" />
+        <Fan seed="ceiling" area="Living room" />
+        <Cover seed="curtains" area="Living room" />
+      </Area>
+      <Areas columns={3}>
+        <Area id="nursery" title="Nursery">
           <Owlet seed="deep" area="Nursery" />
-          <Light seed="nightLight" area="Nursery" />
-          <Sound seed="on" area="Nursery" footprint="compact" />
-          <Humidifier seed="on" area="Nursery" name="Humidifier" footprint="compact" />
+          <Light seed="nightLight" area="Nursery" {...row} />
+          <Sound seed="on" area="Nursery" {...row} />
+          <Humidifier seed="on" area="Nursery" name="Humidifier" {...row} />
         </Area>
-        <Area title="Whole home">
-          <Alarm seed="away" area="Whole home" />
-          <Lock seed="locked" area="Whole home" footprint="compact" />
-          <Toggle seed="dnd" area="Whole home" footprint="compact" />
-          <Cover seed="garage" area="Whole home" footprint="compact" />
+        <Area id="entrance" title="Entrance">
+          <Lock seed="locked" area="Entrance" />
+          <Cover seed="garage" area="Entrance" name="Garage" {...row} />
+          <Light seed="onOff" area="Entrance" name="Porch light" {...row} />
+          <Alarm seed="disarmed" area="Entrance" {...row} />
         </Area>
-        <Area title="Outside">
+        <Area id="outside" title="Outside">
           <Weather seed="partly" name="Weather" />
-          <Light seed="onOff" area="Outside" footprint="compact" />
-          <Sensor seed="outdoor" area="Outside" name="Air" footprint="compact" />
+          <Sensor seed="outdoor" area="Outside" name="Air" {...row} />
+          <Cover seed="moving" area="Outside" name="Patio" {...row} />
+          <Sensor seed="greenhouse" {...row} />
         </Area>
       </Areas>
     </FieldPage>
   );
 }
 
-/** Wall panel, landscape: one column per place, its leads whole modules and the rest 64 px rows under them; the whole
-    1280 × 800 surface fits without scrolling. */
+/** Tablet, landscape: the living room across the top, then a column per place, each led by its whole module and taking
+    rows under it, so every fader, key and today's meter is in reach; the nav docked at the bottom names each place. */
+export const Tablet: Story = {
+  render: () => (
+    <Device label="Tablet, landscape" width={1180} height={820}>
+      <TabletPage />
+    </Device>
+  ),
+};
+
+const WALL_AREAS = [["living", "Living room"], ["nursery", "Nursery"], ["entrance", "Entrance"], ["outside", "Outside"]] as const;
+
+/**
+ * The wall panel's page, read up close or across the room: one column per place, its two whole modules leading and the
+ * rest 64 px rows under them, and the nav docked at the bottom. The two screens of each column set its rhythm; the rows
+ * only ever fit under them.
+ */
+function WallPage({ viewing }: { viewing?: "far" }) {
+  const page = useRef<HTMLDivElement>(null);
+  const [reading, jump] = useScrollSpy(page);
+  const nav = <NavBar items={WALL_AREAS.map(([id, label]) => ({ key: id, label, kind: "section", current: reading === id, onSelect: () => jump(id) }))} />;
+  const row = { footprint: "compact" } as const;
+  return (
+    <FieldPage title="Home" now={NOW} showTime viewing={viewing} pageRef={page} nav={nav}>
+      <Areas columns={4}>
+        <Area id="living" title="Living room">
+          <Light seed="dimmable" area="Living room" />
+          <Climate seed="heating" area="Living room" />
+          <Fan seed="ceiling" area="Living room" {...row} />
+          <Cover seed="curtains" area="Living room" {...row} />
+          <Light seed="dimmableOff" area="Living room" name="Reading" {...row} />
+        </Area>
+        <Area id="nursery" title="Nursery">
+          <Owlet seed="deep" area="Nursery" />
+          <Light seed="nightLight" area="Nursery" />
+          <Sound seed="on" area="Nursery" {...row} />
+          <Humidifier seed="on" area="Nursery" name="Humidifier" {...row} />
+          <Toggle seed="novaSleep" area="Nursery" {...row} />
+        </Area>
+        <Area id="entrance" title="Entrance">
+          <Alarm seed="disarmed" area="Entrance" />
+          <Light seed="onOff" area="Entrance" />
+          <Lock seed="locked" area="Entrance" {...row} />
+          <Lock seed="unlocked" area="Entrance" name="Back door" {...row} />
+          <Lock seed="code" area="Entrance" {...row} />
+        </Area>
+        <Area id="outside" title="Outside">
+          <Weather seed="partly" name="Weather" />
+          <Sensor seed="greenhouse" />
+          <Sensor seed="outdoor" area="Outside" name="Air" {...row} />
+          <Cover seed="moving" area="Outside" name="Patio" {...row} />
+          <Light seed="garden" {...row} />
+        </Area>
+      </Areas>
+    </FieldPage>
+  );
+}
+
+/** Wall panel, landscape: one column per place, two whole modules leading and rows under them; the whole 1280 × 800
+    surface fits without scrolling, and the nav at the bottom keeps the place being read down. */
 export const WallPanel: Story = {
   name: "Wall panel",
   render: () => (

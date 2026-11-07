@@ -4,11 +4,15 @@ A dashboard for Home Assistant drawn as a hardware panel: keys you press, faders
 read. Every supported device in a room-by-room page, laid out for you and kept up to date, on a phone, a tablet or a
 wall panel.
 
-![Field on a tablet](https://raw.githubusercontent.com/Krystosterone/dashhaus/main/docs/src/assets/skins/tablet-field-light.webp)
+![Field on a tablet, the living room across the top and the other places in columns](https://raw.githubusercontent.com/Krystosterone/dashhaus/main/docs/src/assets/skins/tablet-field-light.webp)
 
 Each module has a key, a fader and a screen, with printed labels in capitals. A small orange mark shows what a
 control sets. Field comes in two finishes, light grey Alloy and Black, and opens more in a panel from the module's
 name.
+
+On a wall panel, the same house in one column per place, with the nav along the bottom:
+
+![Field on a wall panel, a column per place](https://raw.githubusercontent.com/Krystosterone/dashhaus/main/docs/src/assets/skins/wall-panel-field-light.webp)
 
 ## Install
 
