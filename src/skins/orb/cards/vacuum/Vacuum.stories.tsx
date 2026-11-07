@@ -15,8 +15,8 @@ const meta = {
         component:
           "One robot vacuum (`vacuum.*`), its battery its own: a control. What it is doing in words (Cleaning, Docked, Returning, Paused, " +
           "or the integration's own), and one press for what it can do now: Pause while it moves, Start or Resume while it stands. Cleaning " +
-          "is the accent, and it never glows. An error leads the status line behind the warn marker with what went wrong; a low battery away " +
-          "from the dock does too. Tap the name, or press and hold the orb, for the dock, locate, its fan speeds and today's cleaning. Same " +
+          "is the accent, and it never glows. An error leads the status line behind the warn marker with what went wrong; a low battery while it " +
+          "stands away from the dock does too. Tap the name, or press and hold the orb, for the dock, locate, its fan speeds and today's cleaning. Same " +
           "sizes and heights as the other cards.",
       },
     },

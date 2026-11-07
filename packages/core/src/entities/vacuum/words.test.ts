@@ -39,13 +39,17 @@ describe("vacuum words", () => {
     expect(pressWord("return", { state: "cleaning" })).toBe("Return to dock");
   });
 
-  it("warns of an error, and of a low battery only while out and not charging, in 13 characters at most", () => {
+  it("warns of an error, and of a low battery only while it stands away from the dock and isn't charging, in 13 characters at most", () => {
     const e: VacuumEntity = { entityId: "vacuum.x", name: "Robot vacuum", state: "error", error: "Main brush jammed", battery: 9 };
     expect(vacuumWarning(e)).toBe("Error");
     expect(vacuumWarningText(e)).toBe("Error · Main brush jammed");
     expect(vacuumWarningSentence(e)).toBe("Robot vacuum has stopped with an error: main brush jammed");
     expect(vacuumWarning({ state: "idle", battery: 9 })).toBe("Battery 9%");
     expect(vacuumWarning({ state: "paused", battery: 15 })).toBe("Battery 15%");
+    expect(vacuumWarning({ state: "other", battery: 9 })).toBe("Battery 9%");
+    expect(vacuumWarning({ state: "cleaning", battery: 9 })).toBeUndefined();
+    expect(vacuumWarning({ state: "returning", battery: 9 })).toBeUndefined();
+    expect(vacuumWarningSentence({ name: "Robot vacuum", state: "cleaning", battery: 9 })).toBeUndefined();
     expect(vacuumWarning({ state: "docked", battery: 9 })).toBeUndefined();
     expect(vacuumWarning({ state: "idle", battery: 9, charging: true })).toBeUndefined();
     expect(vacuumWarning({ state: "idle", battery: 16 })).toBeUndefined();
@@ -57,6 +61,8 @@ describe("vacuum words", () => {
     expect(batteryFact({ state: "cleaning", battery: 72 })).toBe("Battery 72%");
     expect(batteryFact({ state: "docked", battery: 64, charging: true })).toBe("Battery 64%, charging");
     expect(batteryFact({ state: "idle", battery: 9 })).toBe("Battery 9%, needs charging");
+    expect(batteryFact({ state: "cleaning", battery: 9 })).toBe("Battery 9%");
+    expect(batteryFact({ state: "returning", battery: 9 })).toBe("Battery 9%");
     expect(batteryFact({ state: "idle" })).toBe("");
   });
 

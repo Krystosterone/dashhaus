@@ -6,8 +6,12 @@ describe("vacuumSeverity", () => {
     expect(vacuumSeverity({ state: "error", battery: 5 })).toBe("urgent");
   });
 
-  it("ranks a low battery advisory while out and not charging", () => {
+  it("ranks a low battery advisory while it stands away from the dock and isn't charging", () => {
     expect(vacuumSeverity({ state: "idle", battery: 12 })).toBe("advisory");
+    expect(vacuumSeverity({ state: "paused", battery: 12 })).toBe("advisory");
+    expect(vacuumSeverity({ state: "other", battery: 12 })).toBe("advisory");
+    expect(vacuumSeverity({ state: "cleaning", battery: 9 })).toBeUndefined();
+    expect(vacuumSeverity({ state: "returning", battery: 9 })).toBeUndefined();
     expect(vacuumSeverity({ state: "returning", battery: 12, charging: true })).toBeUndefined();
     expect(vacuumSeverity({ state: "docked", battery: 2 })).toBeUndefined();
   });

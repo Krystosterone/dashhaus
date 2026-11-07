@@ -44,9 +44,10 @@ describe("VacuumModule", () => {
     expect(keys[0].textContent).toBe("Start again");
   });
 
-  it("warns of a low battery on the plate, away from the dock", () => {
+  it("warns of a low battery on the plate while it stands away from the dock, never on it or on its way", () => {
     expect(draw("lowBattery").container.querySelector(".fd-module")?.textContent).toContain("Battery 9%");
-    expect(draw({ ...VACUUM_SEEDS.lowBattery.entity, state: "docked" }).container.querySelector(".fd-module")?.textContent).not.toContain("Battery 9%");
+    for (const state of ["docked", "cleaning", "returning"] as const)
+      expect(draw({ ...VACUUM_SEEDS.lowBattery.entity, state }).container.querySelector(".fd-module")?.textContent).not.toContain("Battery 9%");
   });
 
   it("says an integration's own state in its words, with blank segments", () => {
