@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stillFrom } from "../picture";
-import { CAMERA_WORDS, cameraKind, cameraWord, inWords, stillNote } from "./words";
+import { inWords } from "../format";
+import { CAMERA_WORDS, cameraKind, cameraWord, stillNote } from "./words";
 
 describe("camera words", () => {
   it("says each of Home Assistant's states in one word, Title case", () => {

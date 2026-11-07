@@ -18,12 +18,6 @@ export const CAMERA_WORDS: Record<Exclude<CameraState, "other">, string> = {
  */
 export const STILL_REFRESH = 10;
 
-/** A Home Assistant name in words: `motion_alert` → "Motion alert". */
-export function inWords(raw: string): string {
-  const spaced = raw.trim().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
-  return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase() : raw;
-}
-
 /** What it is doing in words: "Idle", "Recording"; a state Home Assistant doesn't name as it says it. */
 export function cameraWord(e: Pick<CameraEntity, "state" | "stateText">): string {
   if (e.state === "other") return e.stateText ?? "Unknown";

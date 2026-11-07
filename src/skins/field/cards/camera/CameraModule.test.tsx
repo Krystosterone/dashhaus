@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CameraModule } from "./CameraModule";
 import { CAMERA_SEEDS } from "@dashhaus/core/seeds/camera";
@@ -51,12 +51,28 @@ describe("CameraModule", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
-  it("opens the live stream from the name and the still where the host has one", () => {
+  it("opens the live stream from the still where the host has one, and the panel from the name", () => {
     const onOpenLive = vi.fn();
     draw("idle", { onOpenLive });
-    fireEvent.click(screen.getByRole("button", { name: "Front door live view" }));
     fireEvent.click(screen.getByRole("button", { name: "Front door: Idle. Open live view" }));
-    expect(onOpenLive).toHaveBeenCalledTimes(2);
+    expect(onOpenLive).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Front door details" }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("carries a Live key in the panel where there is a stream, so stills off still reach it", () => {
+    const onOpenLive = vi.fn();
+    draw("idle", { onOpenLive, still: false, defaultOpen: true });
+    const panel = screen.getByRole("dialog");
+    fireEvent.click(within(panel).getByRole("button", { name: "Open Front door's live view" }));
+    expect(onOpenLive).toHaveBeenCalledTimes(1);
+  });
+
+  it("draws no Live key with no stream to open, nor while unavailable", () => {
+    draw("idle", { defaultOpen: true });
+    expect(screen.queryByRole("button", { name: /live view/ })).toBeNull();
+    draw("unavailable", { onOpenLive: () => {}, defaultOpen: true });
+    expect(screen.queryByRole("button", { name: /live view/ })).toBeNull();
   });
 
   it("opens the panel from the still where there is no stream, with the whole still and what the camera is", () => {

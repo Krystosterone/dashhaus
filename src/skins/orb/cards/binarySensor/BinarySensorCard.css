@@ -4,11 +4,8 @@
 /* The state in its class's words leads; since when sits in the sensor's second track under its caption, so a column
    of readings lines up its second metric. */
 .bs-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
-.bs-f {
-  overflow: hidden; text-overflow: ellipsis;
-  font-size: 30px; font-weight: var(--type-readout-weight); letter-spacing: -0.03em; line-height: 1.1;
-}
-/* Off in the second ink; a warning is the marker's or the alarm pill's, never the figure's. */
+/* The word is the shared hd-metric-w. Off in the second ink; a warning is the marker's or the alarm pill's, never the
+   figure's. */
 .bs[data-state="off"] .bs-f { color: var(--ink-2); }
 
 @container hd (min-width: 260px) {
@@ -16,13 +13,11 @@
 }
 @container hd (max-width: 259px) {
   .bs:not(.hd--compact):not(.hd--sheet) .bs-bar { grid-template-columns: minmax(0, 1.45fr) minmax(38px, 0.55fr); column-gap: 8px; }
-  .bs:not(.hd--compact):not(.hd--sheet) .bs-f { font-size: 26px; }
   .bs-al-k { display: none; }
 }
 
 /* Compact rows keep the word alone, inline and right-aligned; since when waits for the card. The alarm pill keeps
    since when as the time alone. */
-.hd--compact .bs-f { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .bs-since, .hd--compact .bs-al-k { display: none; }
 
 /* The sheet's header says the state in words, a little smaller than a number. */

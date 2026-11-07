@@ -3,6 +3,11 @@
  * produces a card that passes all of this; a hand-built one fails here with what is missing. The steps are in
  * AGENTS.md → Adding an existing domain to another skin. Its stories are held to the shared set in
  * verify/storybook.test.ts.
+ *
+ * A card's `LIVE` line (FieldDashboard.tsx) must name its `<Ha<Name>Module` within its first two lines, as the check
+ * below reads it. A module that needs a dashboard-wide setting reads it from a context there with the context's
+ * `Consumer` inline, as the camera's does with `Stills` (`stills`, `quiet`): a hook would need a component of its own,
+ * which moves `<HaCameraModule` out of the line's reach. Do the same rather than loosen the check.
  */
 import { describe, expect, it } from "vitest";
 import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";

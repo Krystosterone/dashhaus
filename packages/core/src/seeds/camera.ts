@@ -20,6 +20,10 @@ export const CAMERA_SEEDS = {
   streaming: {
     entity: { entityId: "camera.driveway", name: "Driveway", area: "Outside", state: "streaming", picture: PICTURE_WIDE, lastChanged: "11:02" },
   },
+  /** A state Home Assistant doesn't name, from its integration: said in its own words. */
+  other: {
+    entity: { entityId: "camera.back_door", name: "Back door", area: "Garden", state: "other", stateText: "Motion alert", picture: PICTURE_DOORSTEP, brand: "Reolink", model: "Video Doorbell", motionDetection: true, lastChanged: "21:04" },
+  },
   /** Reachable, but Home Assistant has given no still yet. */
   noStill: {
     entity: { entityId: "camera.garden", name: "Garden", area: "Outside", state: "idle", lastChanged: "10:40" },

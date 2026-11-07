@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { isRecord, stringValue } from "../util";
-import { inWords } from "../../entities/camera/words";
+import { inWords } from "../../entities/format";
 import type { CameraEntity, CameraState } from "../../entities/camera/types";
 
 export interface CameraMapOptions {

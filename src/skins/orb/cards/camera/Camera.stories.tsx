@@ -3,7 +3,7 @@ import { DemoCameraTile as DemoTile } from "./demo/DemoCameraTile";
 import { CAMERA_WORST_CASE } from "@dashhaus/core/seeds/camera";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["idle", "recording", "streaming", "noStill", "failed", "tall", "unavailable", "long"] as const;
+const SEEDS = ["idle", "recording", "streaming", "other", "noStill", "failed", "tall", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/Camera",
@@ -16,7 +16,8 @@ const meta = {
           "One camera (`camera.*`), a doorbell or a nursery's: a reading. A bare camera that says its state without colour, " +
           "its state in words, and its still in a neutral well: beside the words on a standard card, across a featured card, " +
           "whole in the sheet, never in a compact row. The still loads and refreshes only while it is seen. The name and the " +
-          "still open Home Assistant's live stream inside Home Assistant; here, with no stream to open, the details.",
+          "reading open the details, as on every card; the still opens Home Assistant's live stream inside Home Assistant " +
+          "(here, with no stream to open, the details), and the sheet carries a Live view pill to it.",
       },
     },
   },
@@ -28,9 +29,10 @@ const meta = {
     still: { control: "boolean", description: "False: no still, as `stills: false` on the dashboard" },
     paused: { control: "boolean", description: "Hold the still, as a `quiet` dashboard does" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
+    live: { control: "boolean", description: "Give it a live stream to open, as inside Home Assistant (here it opens nothing)" },
   },
   args: { seed: "idle", width: SIZES.M, footprint: "standard" },
-  render: (args) => <DemoTile key={`${args.seed}-${args.defaultOpen}`} {...args} />,
+  render: (args) => <DemoTile key={`${args.seed}-${args.defaultOpen}-${args.live}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
 export default meta;
@@ -39,13 +41,15 @@ type Story = StoryObj<typeof meta>;
 export const Idle: Story = {};
 export const Recording: Story = { args: { seed: "recording" } };
 export const Streaming: Story = { args: { seed: "streaming" } };
+/** A state Home Assistant doesn't name, said in the integration's own words, never guessed onto one it does. */
+export const OtherState: Story = { name: "Other state", args: { seed: "other" } };
 /** Home Assistant has given no still yet: the well holds the camera, and the status line says No picture. */
 export const NoStill: Story = { name: "No still", args: { seed: "noStill" } };
 /** The still fails to load with no frame to keep: the same, never a broken image. */
 export const StillFails: Story = { name: "Still fails", args: { seed: "failed" } };
 /** A `quiet` dashboard holds the still: it loads once seen, never on a timer, and says when it is from. */
 export const Quiet: Story = { args: { paused: true } };
-/** `stills: false`: no still is fetched or drawn; the card is its state and its glyph, and a press still opens the stream. */
+/** `stills: false`: no still is fetched or drawn; the card is its state and its glyph, and its sheet's Live view pill still opens the stream. */
 export const StillsOff: Story = { name: "Stills off", args: { still: false } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 export const Featured: Story = { args: { footprint: "featured" } };
@@ -106,6 +110,8 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
+/** Where the host has a live stream (Home Assistant's more-info), one raised Live view pill under the header opens it. */
+export const DetailsLive: Story = { name: "Details, live view", args: { defaultOpen: true, live: true } };
 /** A portrait doorbell's still, whole in the sheet, the well's sides left empty. */
 export const DetailsTall: Story = { name: "Details, tall still", args: { seed: "tall", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };

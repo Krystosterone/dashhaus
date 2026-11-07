@@ -28,7 +28,7 @@ describe("HaCameraTile", () => {
     expect(container.querySelector(".hd-pic")).toBeNull();
   });
 
-  it("opens the details from the name where the host has no live stream", async () => {
+  it("opens the details from the name, as every card does", async () => {
     renderConnected(<HaCameraTile entityId="camera.front_door" />, raw);
     await waitFor(() => expect(screen.getByRole("button", { name: "Front door details" })).toBeTruthy());
   });

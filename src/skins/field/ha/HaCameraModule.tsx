@@ -10,8 +10,8 @@ export interface HaCameraModuleProps extends HaCameraOptions, Pick<CameraModuleP
 
 /**
  * A live camera module: the useHaCamera hook, with its still from Home Assistant's signed picture, above field's
- * module; its name and still open Home Assistant's own live stream (`useHaMoreInfo`) where the host has it, else the
- * panel. It sends no services.
+ * module; its still and its panel's Live key open Home Assistant's own live stream (`useHaMoreInfo`) where the host has
+ * it, and its name the panel. It sends no services.
  */
 export function HaCameraModule({ entityId, footprint, refresh, paused, defaultOpen, still = true, ...options }: HaCameraModuleProps) {
   const { entity } = useHaCamera(entityId, { ...options, still });

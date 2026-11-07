@@ -32,13 +32,14 @@ import "./dashboard.css";
 
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
 
-/** Each card's connected module, given a module's config and its footprint. A new card adds its row here. */
 /**
  * The dashboard's camera settings (YAML `stills` and `quiet`), which every camera module on it follows, under its own
- * `still` and `refresh`.
+ * `still` and `refresh`. `LIVE` reads it with `Stills.Consumer` inline, so the camera's line still names its module
+ * where verify/field-conformance.test.ts looks for it.
  */
 const Stills = createContext({ stills: true, quiet: false });
 
+/** Each card's connected module, given a module's config and its footprint. A new card adds its row here. */
 const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> = {
   light: (item, footprint) => <HaLightModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
   climate: (item, footprint) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} unit={item.unit} />,

@@ -3,7 +3,7 @@ import { usePicture } from "@dashhaus/core/hooks";
 import type { CameraEntity, CameraState } from "@dashhaus/core/entities/camera/types";
 import { cameraKind, cameraWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Glyph, ModuleFrame, Pictogram, Picture, Screen, useDetails } from "../../shared/ui";
+import { Blank, Glyph, Key, KeyGroup, ModuleFrame, Pictogram, Picture, Screen, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CAMERA_PICT, IconCamera } from "./icons";
 import "./CameraModule.css";
@@ -21,8 +21,9 @@ export interface CameraModuleProps {
   /** Hold the still instead of refreshing it (a `quiet` dashboard); the screen says when it is from. */
   paused?: boolean;
   /**
-   * Open the live stream: inside Home Assistant, its more-info dialog (`useHaMoreInfo`). The name and the still open
-   * it; without one (a story, a standalone app) they open the panel, with the still large and refreshing.
+   * Open the live stream: inside Home Assistant, its more-info dialog (`useHaMoreInfo`). The still opens it, and the
+   * panel carries a Live key to it; without one (a story, a standalone app) the still opens the panel, with the still
+   * large and refreshing.
    */
   onOpenLive?: () => void;
   /** Open the detail panel on first render (stories). */
@@ -42,8 +43,9 @@ const FIGURE: Partial<Record<CameraState, string>> = { idle: "IDLE", recording: 
  * beside the camera's pictogram, lit while it records or streams, then the state in words and since when, or how old
  * the still is (`Still from 22:14`, `No picture`). The still loads and refreshes only while it is seen; it never
  * inverts and carries no colour of Field's. A row has no picture: glyph, name and area, screen. The panel shows the
- * whole still at its width, the screen under it. The name and the still open the live stream where the host has one
- * (Home Assistant's more-info), else the panel.
+ * whole still at its width, the screen under it. The name opens the panel, as on every module; the still opens the live
+ * stream where the host has one (Home Assistant's more-info), else the panel, and the panel carries a Live key to the
+ * stream, so it stays in reach with stills off.
  */
 export function CameraModule({ entity: e, footprint = "standard", still = true, refresh = STILL_REFRESH, paused = false, onOpenLive, defaultOpen = false }: CameraModuleProps) {
   const details = useDetails(defaultOpen);
@@ -57,6 +59,7 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
   const panelPicture = usePicture<HTMLElement>(still && details.open && !unav ? e.picture : undefined, { refresh: refresh * 1000, paused });
   const note = drawn ? stillNote(e, picture) : undefined;
   const panelNote = still ? stillNote(e, panelPicture) : undefined;
+  // The still opens the stream where there is one; the name, as on every module, opens the panel.
   const open = onOpenLive ?? details.openDetails;
   const openLabel = onOpenLive ? "Open live view" : "Open details";
   const lit = e.state === "recording" || e.state === "streaming";
@@ -90,8 +93,6 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
       footprint={footprint}
       state={e.state}
       details={details}
-      onOpen={open}
-      openHint={onOpenLive ? "live view" : "details"}
       pict={pict}
       read={read}
       meta={metaOf(note)}
@@ -104,6 +105,12 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
         </Picture>
       )}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : cameraKind(e) }}
-    />
+    >
+      {onOpenLive && !unav && (
+        <KeyGroup legend="Camera" columns={1}>
+          <Key label={`Open ${e.name}'s live view`} wide caption="Live" onPress={onOpenLive}><IconCamera state="streaming" /></Key>
+        </KeyGroup>
+      )}
+    </ModuleFrame>
   );
 }

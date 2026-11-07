@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fmtAgo } from "./format";
+import { fmtAgo, inWords } from "./format";
 
 describe("fmtAgo", () => {
   it("says how long ago in one unit, rounded down, so it fits a row's screen", () => {
@@ -8,5 +8,15 @@ describe("fmtAgo", () => {
     expect(fmtAgo(254)).toBe("4h");
     expect(fmtAgo(14_641)).toBe("10d");
     expect(fmtAgo(-2)).toBe("0m");
+  });
+});
+
+describe("inWords", () => {
+  it("says an integration's own name in words, sentence case", () => {
+    expect(inWords("connecting")).toBe("Connecting");
+    expect(inWords("zone_cleaning")).toBe("Zone cleaning");
+    expect(inWords("  UPDATING-firmware ")).toBe("Updating firmware");
+    expect(inWords("Max+")).toBe("Max+");
+    expect(inWords("")).toBe("");
   });
 });

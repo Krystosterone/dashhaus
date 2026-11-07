@@ -16,3 +16,12 @@ export const fmtAgo = (m: number) => {
   const mins = Math.max(0, Math.floor(m));
   return mins < 60 ? `${mins}m` : mins < 1440 ? `${Math.floor(mins / 60)}h` : `${Math.floor(mins / 1440)}d`;
 };
+
+/**
+ * A Home Assistant name in words, for a state an integration names its own way: `connecting` → "Connecting",
+ * `zone_cleaning` → "Zone cleaning"; `Max+` stays "Max+".
+ */
+export function inWords(raw: string): string {
+  const spaced = raw.trim().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase() : raw;
+}

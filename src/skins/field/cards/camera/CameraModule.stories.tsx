@@ -7,13 +7,18 @@ import type { CameraSeed, CameraSeedName } from "@dashhaus/core/seeds/camera";
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(CAMERA_SEEDS) as CameraSeedName[];
 
-interface DemoProps { width?: number; footprint?: FieldFootprint; still?: boolean; paused?: boolean; defaultOpen?: boolean }
+interface DemoProps { width?: number; footprint?: FieldFootprint; still?: boolean; paused?: boolean; defaultOpen?: boolean; live?: boolean }
 
-/** Storybook has no live stream to open, so the name and the still open the panel. */
-function DemoCamera({ seed, width, ...props }: DemoProps & { seed: CameraSeed }) {
+const openNothing = () => {};
+
+/**
+ * Storybook has no live stream to open, so the still opens the panel, as the name does; with `live`, it stands in for
+ * one that opens nothing.
+ */
+function DemoCamera({ seed, width, live, ...props }: DemoProps & { seed: CameraSeed }) {
   return (
     <div style={{ width, maxWidth: "100%" }}>
-      <CameraModule entity={seed.entity} {...props} />
+      <CameraModule entity={seed.entity} {...props} onOpenLive={live ? openNothing : undefined} />
     </div>
   );
 }
@@ -32,7 +37,8 @@ const meta = {
         component:
           "One camera as a field module, a doorbell or a nursery's: a reading. Its body is the screen, the still a window in it " +
           "beside the screen's words (IDLE, REC, LIVE). The still loads and refreshes only while it is seen; a row has none. " +
-          "The name and the still open Home Assistant's live stream inside Home Assistant; here, the detail panel.",
+          "The name opens the detail panel, as on every module; the still opens Home Assistant's live stream inside Home " +
+          "Assistant (here, the panel), and the panel carries a Live key to it.",
       },
     },
   },
@@ -43,9 +49,10 @@ const meta = {
     still: { control: "boolean", description: "False: no still, as `stills: false` on the dashboard" },
     paused: { control: "boolean", description: "Hold the still, as a `quiet` dashboard does" },
     defaultOpen: { control: "boolean", description: "Open the detail panel on load" },
+    live: { control: "boolean", description: "Give it a live stream to open, as inside Home Assistant (here it opens nothing)" },
   },
   args: { camera: "idle", width: SIZES.M, footprint: "standard" },
-  render: (args) => <StoryCamera key={`${args.camera}-${args.defaultOpen}`} {...args} />,
+  render: (args) => <StoryCamera key={`${args.camera}-${args.defaultOpen}-${args.live}`} {...args} />,
 } satisfies Meta<typeof StoryCamera>;
 
 export default meta;
@@ -54,13 +61,15 @@ type Story = StoryObj<typeof meta>;
 export const Idle: Story = {};
 export const Recording: Story = { args: { camera: "recording" } };
 export const Streaming: Story = { args: { camera: "streaming" } };
+/** A state Home Assistant doesn't name: blank segments, the meta line saying it in the integration's own words. */
+export const OtherState: Story = { name: "Other state", args: { camera: "other" } };
 /** Home Assistant has given no still yet: the window is the screen with the camera unlit, the meta line No picture. */
 export const NoStill: Story = { name: "No still", args: { camera: "noStill" } };
 /** The still fails to load with no frame to keep: the same, never a broken image. */
 export const StillFails: Story = { name: "Still fails", args: { camera: "failed" } };
 /** A `quiet` dashboard holds the still: it loads once seen, never on a timer, and the meta line says when it is from. */
 export const Quiet: Story = { args: { paused: true } };
-/** `stills: false`: no still is fetched or drawn; the body is the screen alone. */
+/** `stills: false`: no still is fetched or drawn; the body is the screen alone, and the panel's Live key still opens the stream. */
 export const StillsOff: Story = { name: "Stills off", args: { still: false } };
 /** Blank segments on the screen and when it was last seen; the window holds no frame. */
 export const Unavailable: Story = { args: { camera: "unavailable" } };
@@ -125,6 +134,9 @@ export const Compact: Story = {
 
 /** The detail panel: the whole still at the panel's width, the screen under it, then when and what. */
 export const Details: Story = { args: { defaultOpen: true } };
+
+/** Where the host has a live stream (Home Assistant's more-info), a Live key in the panel opens it. */
+export const DetailsLive: Story = { name: "Details, live view", args: { defaultOpen: true, live: true } };
 
 /** A portrait doorbell's still, whole in the panel, the window's sides left dark. */
 export const DetailsTall: Story = { name: "Details, tall still", args: { camera: "tall", defaultOpen: true } };
