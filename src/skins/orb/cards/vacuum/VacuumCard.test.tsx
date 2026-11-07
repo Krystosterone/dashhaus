@@ -54,10 +54,14 @@ describe("VacuumCard", () => {
     expect(h.onStart).toHaveBeenCalledOnce();
   });
 
-  it("warns of a low battery away from the dock, never on it", () => {
+  it("warns of a low battery while it stands away from the dock, never on it or on its way", () => {
     const { container, rerender } = render(<VacuumCard entity={{ ...cleaning, state: "idle", battery: 9 }} {...handlers()} />);
     expect(container.querySelector(".hd-area")?.textContent).toBe("Battery 9%");
     rerender(<VacuumCard entity={{ ...cleaning, state: "docked", battery: 9 }} {...handlers()} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
+    rerender(<VacuumCard entity={{ ...cleaning, battery: 9 }} {...handlers()} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
+    rerender(<VacuumCard entity={{ ...cleaning, state: "returning", battery: 9 }} {...handlers()} />);
     expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
   });
 

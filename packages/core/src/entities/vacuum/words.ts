@@ -63,9 +63,13 @@ export function pressWord(press: VacuumPress, e: Pick<VacuumEntity, "state">): s
   return e.state === "paused" ? "Resume" : e.state === "error" ? "Start again" : "Start";
 }
 
-/** Its battery is low and nothing is charging it: docked, or charging, it never warns of its battery. */
+/**
+ * Its battery is low while it stands away from its dock and nothing is charging it (idle, paused, an `other` state).
+ * Docked or charging, it never warns of its battery; cleaning or returning it heads home on its own, so it doesn't
+ * either. An error outranks it.
+ */
 export const lowBattery = (e: Pick<VacuumEntity, "state" | "battery" | "charging">): boolean =>
-  e.state !== "unavailable" && e.state !== "docked" && !e.charging && isLowBattery(e.battery);
+  e.state !== "unavailable" && e.state !== "docked" && !isMoving(e) && !e.charging && isLowBattery(e.battery);
 
 /**
  * Its warning as a row or a status line leads with it, 13 characters at most so it stays whole on a narrow row: "Error"

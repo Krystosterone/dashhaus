@@ -34,7 +34,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "One robot vacuum as a field module, its battery its own. The screen says what it is doing (RUN, DOCK, HOLD, IDLE, ERR) and the meta line the core word; two keys print what a press does: Pause while it moves, Start or Resume while it stands, its LED the cleaning signal, then Return to send it home. An error is urgent, a low battery away from the dock advisory. Tap the name, or press and hold a key, for the panel: Locate, the fan speeds and today's cleaning. Standard modules are 160 px, compact rows 64 px.",
+          "One robot vacuum as a field module, its battery its own. The screen says what it is doing (RUN, DOCK, HOLD, IDLE, ERR) and the meta line the core word; two keys print what a press does: Pause while it moves, Start or Resume while it stands, its LED the cleaning signal, then Return to send it home. An error is urgent, a low battery while it stands away from the dock advisory. Tap the name, or press and hold a key, for the panel: Locate, the fan speeds and today's cleaning. Standard modules are 160 px, compact rows 64 px.",
       },
     },
   },
