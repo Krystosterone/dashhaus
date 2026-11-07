@@ -159,6 +159,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/owlet/readings`, `/owlet/sleep` | vitals and sleep states as figures and words |
 | `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |
 | `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |
+| `@dashhaus/core/entities/vacuum/words` | a vacuum's state in words (`vacuumWord`), what one press does now (`vacuumPress`, `pressWord`), its warning (`vacuumWarning`), `batteryFact`, `fanSpeedLabel` |
+| `@dashhaus/core/entities/vacuum/severity` | `vacuumSeverity`: an error urgent, a low battery away from the dock advisory |
 | `@dashhaus/core/entities/weather/conditions` | `SKY` (each condition as a sky to draw), `CONDITION_LABEL`, `compass`, `precipitation` |
 | `@dashhaus/core/entities/weather/readings` | `conditionLabel` (a condition in words, by day or night), `isNight`, `deg0`, `aqiBand`, `uvBand`, `weatherWarnings` |
 

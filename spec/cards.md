@@ -459,7 +459,33 @@ A door, a window, a leak, smoke: one `binary_sensor.*`, composed with the batter
 <HaBinarySensorModule entityId="binary_sensor.kitchen_leak" />
 ```
 
+## Using the vacuum card
+
+A robot vacuum: one `vacuum.*`, its battery an attribute of its own (not a companion). A control whose one press does what the vacuum can do now.
+
+```tsx
+<VacuumTile entity={robot} history={today} onStart={start} onPause={pause} onReturnToBase={dock} onLocate={locate} onFanSpeedChange={setSpeed} />
+<HaVacuumTile entityId="vacuum.robot_vacuum" />
+```
+
+- **States:** Home Assistant's activities, in words the same in every skin (`@dashhaus/core/entities/vacuum/words`): Cleaning, Docked, Returning, Paused, Idle, Error and Unavailable. The names integrations give the same ones are mapped onto them (`charging` is Docked, `returning_home` Returning, `stopped` Idle, an older vacuum's `on` and `off` Cleaning and Idle); a kind of cleaning named its own way (`spot_cleaning`, `mopping`) is Cleaning, said as the integration says it (`Spot cleaning`); any other state is said in its own words (`Emptying the bin`), never guessed onto an activity. `unknown` and a missing entity are Unavailable.
+- **One press**, gated on `supported_features` (`vacuumPress`): while it moves (cleaning, returning) the orb and the pill pause it; while it stands (docked, idle, paused, in error, its own state) they start it, or resume it. A vacuum that can't pause is sent back to its dock instead while it cleans; one that can do neither now shows its state as a readout with nothing to press. The pill carries the state word and what a press does (`Cleaning · Pause`, `Paused · Resume`); after an error it says `Start again`, as a jammed lock's says Lock again. Cleaning is the accent; a vacuum is a state, so it never glows (`paint("state", 0)`).
+- **Warnings** take their severity (`vacuumSeverity`), behind the shared warn marker, never brightness: an error is **urgent**, leading the status line with what went wrong where Home Assistant says (`Error · Main brush jammed`; `Error` alone on a compact row, 13 characters at most; a screen reader hears "Robot vacuum has stopped with an error: main brush jammed"); a low battery (`Battery 9%`, at or under 15%) away from its dock and not charging is **advisory**, the device's. A docked or charging vacuum never warns of its battery. Paused, idle and returning are states, however long they last.
+- **Status line:** the warning behind its marker; else the area, with what the integration's `status` adds after it where it says more than the state (`Landing · Charging`); since when where there is no area.
+- **Featured and sheet:** today's cleaning by hour, summed as `Cleaning 1h 15m` or `Not cleaning today`. The sheet's header repeats the state word; under the pill, `Return to dock` (hidden while it is docked or on its way, or when the pill already sends it home) and `Locate` (it plays a sound), raised pills that act once; then its fan speeds as chips (`Fan speed`, the vacuum's own list in words, `max_plus` → `Max plus`). The small print says when it last changed, then its battery (`Battery 64%, charging`; `Battery 9%, needs charging` in the warn colour while it warns).
+- **Compact:** the vacuum from above, the name, and the warning or the area under it; the pill with the state word (with its verb from 400 px), or the word as the row's value.
+- **Unavailable:** the dashed slot with when it was last seen; battery, fan speed and actions are hidden.
+- **Home Assistant:** `createVacuumHandlers` calls `vacuum.start`, `vacuum.pause`, `vacuum.return_to_base`, `vacuum.locate` and `vacuum.set_fan_speed`, each only where `supported_features` declares it (`START`, `PAUSE`, `RETURN_HOME`, `LOCATE`, `FAN_SPEED` with a `fan_speed_list`), reporting what it can't do as `unsupported` and a speed it doesn't list as `invalid_input`. `VACUUM_ACTIONS` declares the four presses and the fan speed as a `choice` over `fanSpeeds`, so every skin's generator draws them. Today comes from the recorder through `vacuumHistoryFromHass`, the on/off parser with cleaning as on; `loadHistory={false}` skips it.
+
 <!-- new-card: cards -->
+
+### Field vacuum module
+
+`VacuumModule` is the same normalized vacuum entity in the Field skin; `HaVacuumModule` is its connected container, on the same `useHaVacuum` hook as `HaVacuumTile`, taking the same handlers. See [field.md](field.md#vacuum).
+
+```tsx
+<HaVacuumModule entityId="vacuum.robot_vacuum" />
+```
 
 ## The dashboard header
 

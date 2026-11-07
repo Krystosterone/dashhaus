@@ -126,6 +126,14 @@ export type { BinarySensorTileProps } from "./cards/binarySensor/BinarySensorTil
 export { HaBinarySensorTile } from "./ha/HaBinarySensorTile";
 export type { HaBinarySensorTileProps } from "./ha/HaBinarySensorTile";
 
+// Vacuum
+export { VacuumCard, VacuumSheet } from "./cards/vacuum/VacuumCard";
+export type { VacuumCardProps, VacuumSheetProps } from "./cards/vacuum/VacuumCard";
+export { VacuumTile } from "./cards/vacuum/VacuumTile";
+export type { VacuumTileProps } from "./cards/vacuum/VacuumTile";
+export { HaVacuumTile } from "./ha/HaVacuumTile";
+export type { HaVacuumTileProps } from "./ha/HaVacuumTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

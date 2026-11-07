@@ -10,6 +10,7 @@ import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { HaFanModule } from "../ha/HaFanModule";
 import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
 import { HaBinarySensorModule } from "../ha/HaBinarySensorModule";
+import { HaVacuumModule } from "../ha/HaVacuumModule";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
@@ -57,6 +58,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   fan: (item, footprint) => <HaFanModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
   guestWifi: (item, footprint) => <HaGuestWifiModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} access={item.access} network={item.network} qrEntityId={item.qr} newCodeEntityId={item.newCode} refreshEntityId={item.refresh} />,
   binarySensor: (item, footprint) => <HaBinarySensorModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} batteryEntityId={item.battery} />,
+  vacuum: (item, footprint) => <HaVacuumModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,
   // new-card: live modules
 };
 
