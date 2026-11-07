@@ -14,4 +14,5 @@ export const SKIN_REPOSITORIES: SkinRepository[];
 export const SITE: string;
 export function assetName(entry: Pick<SkinRepository, "repository">): string;
 export function pageUrl(entry: Pick<SkinRepository, "page">): string;
+export function repositoryUrl(entry: Pick<SkinRepository, "repository">): string;
 export function myLink(entry: Pick<SkinRepository, "repository">): string;
