@@ -54,6 +54,33 @@ describe("clockPlaces", () => {
   it("never counts past the end", () => {
     expect(digits(clockPlaces(999, 225))).toBe("3:45");
   });
+
+  it("starts from the fractional position, so the clock turns with the fill", () => {
+    const [minutes, , tens, ones] = clockPlaces(83.6, 225) as ClockPlace[];
+    expect(ones.offset).toBeCloseTo(3.6);
+    expect(tens.offset).toBeCloseTo(23.6);
+    expect(minutes.offset).toBeCloseTo(83.6);
+    expect(ones.digit).toBe(3);
+  });
+
+  it("runs each place to the end of the track and stops there, showing the length", () => {
+    // Where each place's last turn leaves it: the digit `turns` of the current one reaches, as fill forwards holds it.
+    const ends = (at: number, duration: number) => (clockPlaces(at, duration) as ReturnType<typeof clockPlaces>)
+      .map((p) => (p.kind === "colon" ? ":" : String(Math.floor(((p.turns % 1) * p.cycle) / p.period))))
+      .join("");
+    const [minutes, , tens, ones] = clockPlaces(83, 225) as ClockPlace[];
+    // 142 s to go: the ones turn 14.2 times from 3 s in, the tens 2.75 from 23 s, the minutes 0.375 from 83 s.
+    expect(ones.turns).toBeCloseTo((3 + 142) / 10, 3);
+    expect(tens.turns).toBeCloseTo((23 + 142) / 60, 3);
+    expect(minutes.turns).toBeCloseTo((83 + 142) / 600, 3);
+    expect(ends(83, 225)).toBe("3:45");
+    // A length that ends on a turn shows its first digit, not the last one before it.
+    expect(ends(83, 240)).toBe("4:00");
+    expect(ends(83.4, 240)).toBe("4:00");
+    expect(ends(3723, 5400)).toBe("1:30:00");
+    // At the end already: nothing left to turn.
+    expect(ends(225, 225)).toBe("3:45");
+  });
 });
 
 describe("playTimeSpoken", () => {

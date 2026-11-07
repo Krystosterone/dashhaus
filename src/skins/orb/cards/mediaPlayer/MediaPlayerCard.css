@@ -4,8 +4,8 @@
 /* The readout says Muted, or the pill's word, in words: a little smaller than a number */
 .mp .hd-num.mp-word { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd--sheet.mp .hd-num.mp-word { font-size: 30px; }
-/* Not playing is the quieter ink */
-.mp:not([data-state="playing"], [data-state="buffering"]) .hd-num { color: var(--ink-2); }
+/* Resting (not playing, buffering or on) is the quieter ink */
+.mp:not([data-state="playing"], [data-state="buffering"], [data-state="on"]) .hd-num { color: var(--ink-2); }
 /* Muted after what is playing, quieter than it */
 .mp-muted { color: var(--ink-3); }
 
@@ -37,7 +37,7 @@
 .mp-bar { position: relative; display: block; height: 4px; overflow: hidden; border-radius: 2px; background: var(--fill); }
 .mp-fill {
   position: absolute; inset: 0; border-radius: inherit; background: var(--ink-2); clip-path: inset(0 100% 0 0);
-  animation: mp-fill var(--mp-len) linear var(--mp-at);
+  animation: mp-fill var(--mp-len) linear var(--mp-at) forwards;
 }
 @keyframes mp-fill {
   from { clip-path: inset(0 100% 0 0); }
@@ -47,28 +47,35 @@
 .mp-clock { display: inline-flex; }
 /* One place of the clock: a strip of its digits, one showing, turned by a hard cut every period, as a segment is */
 .mp-place { display: inline-block; height: 16px; overflow: hidden; }
-.mp-reel { display: flex; flex-direction: column; animation: mp-reel-10 var(--mp-cycle) linear var(--mp-off) infinite; }
+/* Each reel turns until the track ends (`--mp-turns`) and holds there, so the clock stops at the length */
+.mp-reel { display: flex; flex-direction: column; animation: mp-reel-10 var(--mp-cycle) linear var(--mp-off) var(--mp-turns, 1) forwards; }
 .mp-reel[data-base="6"] { animation-name: mp-reel-6; }
-.mp-reel > span { display: block; height: 16px; }
+/* The font has no tabular figures, so each place is as wide as its widest digit: centre the digits in it, and set
+   the leading place's against the colon, so 1:24 reads as tight as the length beside it */
+.mp-reel > span { display: block; height: 16px; text-align: center; }
+.mp-place:first-child .mp-reel > span { text-align: end; }
+/* Stops to four decimals, so even the hour place (a 36000 s turn) cuts rather than slides. A sixth has no exact
+   four-decimal stop, so each cut ends at or just before it: a place drawn exactly on a turn (paused at 2:20)
+   shows its digit, never one half-turned. */
 @keyframes mp-reel-10 {
-  0%, 9.999% { transform: translateY(0); }
-  10%, 19.999% { transform: translateY(-10%); }
-  20%, 29.999% { transform: translateY(-20%); }
-  30%, 39.999% { transform: translateY(-30%); }
-  40%, 49.999% { transform: translateY(-40%); }
-  50%, 59.999% { transform: translateY(-50%); }
-  60%, 69.999% { transform: translateY(-60%); }
-  70%, 79.999% { transform: translateY(-70%); }
-  80%, 89.999% { transform: translateY(-80%); }
+  0%, 9.9999% { transform: translateY(0); }
+  10%, 19.9999% { transform: translateY(-10%); }
+  20%, 29.9999% { transform: translateY(-20%); }
+  30%, 39.9999% { transform: translateY(-30%); }
+  40%, 49.9999% { transform: translateY(-40%); }
+  50%, 59.9999% { transform: translateY(-50%); }
+  60%, 69.9999% { transform: translateY(-60%); }
+  70%, 79.9999% { transform: translateY(-70%); }
+  80%, 89.9999% { transform: translateY(-80%); }
   90%, 100% { transform: translateY(-90%); }
 }
 @keyframes mp-reel-6 {
-  0%, 16.666% { transform: translateY(0); }
-  16.667%, 33.332% { transform: translateY(-16.6667%); }
-  33.333%, 49.999% { transform: translateY(-33.3333%); }
-  50%, 66.666% { transform: translateY(-50%); }
-  66.667%, 83.332% { transform: translateY(-66.6667%); }
-  83.333%, 100% { transform: translateY(-83.3333%); }
+  0%, 16.6665% { transform: translateY(0); }
+  16.6666%, 33.3332% { transform: translateY(-16.6667%); }
+  33.3333%, 49.9999% { transform: translateY(-33.3333%); }
+  50%, 66.6665% { transform: translateY(-50%); }
+  66.6666%, 83.3332% { transform: translateY(-66.6667%); }
+  83.3333%, 100% { transform: translateY(-83.3333%); }
 }
 
 /* ---------- Sheet: skip back and on, and turning it off, raised pills that act once, side by side ---------- */

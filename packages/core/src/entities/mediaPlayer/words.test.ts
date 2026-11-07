@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, volumeWord } from "./words";
+import { isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, volumeWord } from "./words";
 
 const ALL = { supportsPlay: true, supportsPause: true, supportsTurnOn: true };
 
@@ -18,6 +18,12 @@ describe("media player words", () => {
     expect(isPlaying({ state: "paused" })).toBe(false);
     expect(isOff({ state: "standby" })).toBe(true);
     expect(isOff({ state: "idle" })).toBe(false);
+  });
+
+  it("is active while playing, buffering or on, and rests otherwise", () => {
+    for (const state of ["playing", "buffering", "on"] as const) expect(isActive({ state })).toBe(true);
+    for (const state of ["paused", "idle", "standby", "off", "other", "unavailable"] as const) expect(isActive({ state })).toBe(false);
+    expect(isPlaying({ state: "on" })).toBe(false);
   });
 
   it("says what is playing, title first, and nothing while off or unavailable", () => {

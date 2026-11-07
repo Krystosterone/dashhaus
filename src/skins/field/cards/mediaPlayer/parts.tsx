@@ -33,7 +33,7 @@ export function ScreenClock({ head }: { head: PlayheadNow }) {
           ? <span key={i} className="fd-mp-colon">:</span>
           : (
             <span key={i} className="fd-mp-place">
-              <span className="fd-mp-reel" data-base={part.base} style={{ "--fd-mp-cycle": `${part.cycle}s`, "--fd-mp-off": `${-part.offset}s`, animationPlayState: state(head), transform: `translateY(${(-100 * part.digit) / part.base}%)` } as Vars}>
+              <span className="fd-mp-reel" data-base={part.base} style={{ "--fd-mp-cycle": `${part.cycle}s`, "--fd-mp-off": `${-part.offset}s`, "--fd-mp-turns": part.turns, animationPlayState: state(head), transform: `translateY(${(-100 * part.digit) / part.base}%)` } as Vars}>
                 {DIGITS[part.base].map((d) => <span key={d}>{d}</span>)}
               </span>
             </span>

@@ -13,9 +13,9 @@ const handlers = () => ({
   onPlay: vi.fn(), onPause: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onTurnOn: vi.fn(), onTurnOff: vi.fn(),
   onVolumeChange: vi.fn(), onMuteChange: vi.fn(), onSourceChange: vi.fn(),
 });
-const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false) => {
+const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false, quiet = false) => {
   const h = handlers();
-  const { container } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} {...h} />);
+  const { container } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} quiet={quiet} {...h} />);
   const module = container.querySelector<HTMLElement>(".fd-module")!;
   return { container, module, h, keys: [...module.querySelectorAll<HTMLButtonElement>(".fd-key")] };
 };
@@ -32,6 +32,29 @@ describe("MediaPlayerModule", () => {
     fireEvent.click(keys[1]);
     expect(h.onPause).toHaveBeenCalledTimes(1);
     expect(h.onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it("lights the LED while it is active (playing, buffering or on), not while it rests", () => {
+    const led = (entity: MediaPlayerEntity) => draw(entity).keys[0].querySelector(".fd-led")?.getAttribute("data-lit");
+    expect(led(S.on.entity)).toBe("true");
+    expect(led(S.buffering.entity)).toBe("true");
+    expect(led(S.paused.entity)).toBe("false");
+    expect(led(S.idle.entity)).toBe("false");
+  });
+
+  it("lights the volume fader only while it plays and is not muted, saying why it doesn't", () => {
+    draw(S.paused.entity, "standard", true);
+    const panel = screen.getByRole("dialog");
+    expect(within(panel).getByText("Paused · 30%")).toBeTruthy();
+    expect(panel.querySelector(".fd-fader")?.getAttribute("data-lit")).toBe("false");
+  });
+
+  it("draws no progress rule and no running clock under a quiet dashboard", () => {
+    const { module } = draw(S.playing.entity, "standard", true, true);
+    expect(module.querySelector(".fd-mp-prog")).toBeNull();
+    const panel = screen.getByRole("dialog");
+    expect(panel.querySelector(".fd-mp-clock")).toBeNull();
+    expect(panel.querySelector(".fd-read-fig")?.textContent).toContain("PLAY");
   });
 
   it("says a hand-picked figure's core word on the meta line, and blanks what it can't name", () => {

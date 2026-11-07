@@ -27,7 +27,7 @@ export function Progress({ head }: { head: PlayheadNow }) {
             ? <span key={i} className="mp-colon">:</span>
             : (
               <span key={i} className="mp-place">
-                <span className="mp-reel" data-base={part.base} style={{ "--mp-cycle": `${part.cycle}s`, "--mp-off": `${-part.offset}s`, animationPlayState: run, transform: `translateY(${(-100 * part.digit) / part.base}%)` } as Vars}>
+                <span className="mp-reel" data-base={part.base} style={{ "--mp-cycle": `${part.cycle}s`, "--mp-off": `${-part.offset}s`, "--mp-turns": part.turns, animationPlayState: run, transform: `translateY(${(-100 * part.digit) / part.base}%)` } as Vars}>
                   {DIGITS[part.base].map((d) => <span key={d}>{d}</span>)}
                 </span>
               </span>

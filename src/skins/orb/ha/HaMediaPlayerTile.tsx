@@ -8,7 +8,10 @@ export interface HaMediaPlayerTileProps extends HaMediaPlayerOptions, Omit<Media
   entityId: string;
 }
 
-/** A live media player tile: the useHaMediaPlayer hook above the presentational tile, its artwork included. */
+/**
+ * A live media player tile: the useHaMediaPlayer hook above the presentational tile, its artwork included. `quiet` is
+ * the dashboard's: no progress line and no clock.
+ */
 export function HaMediaPlayerTile({ entityId, name, area, lastSeen, history, loadHistory, onActionError, ...props }: HaMediaPlayerTileProps) {
   const live = useHaMediaPlayer(entityId, { name, area, lastSeen, history, loadHistory, onActionError });
   return <MediaPlayerTile {...props} entity={live.entity} history={live.history} {...live.actions} />;

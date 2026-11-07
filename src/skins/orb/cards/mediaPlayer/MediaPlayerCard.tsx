@@ -1,7 +1,7 @@
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, isOff, isPlaying, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { usePicture, usePlayhead } from "@dashhaus/core/hooks";
 import { MediaPlayerIcon } from "./icons";
@@ -32,24 +32,30 @@ export interface MediaPlayerCardProps extends CardProps {
   onMuteChange?: (muted: boolean) => void;
   /** Sheet: the source chips. */
   onSourceChange?: (source: string) => void;
+  /**
+   * Nothing on it runs by itself (the dashboard's `quiet`): no progress line and no clock, since a held one would lie
+   * and a running one changes on its own.
+   */
+  quiet?: boolean;
 }
 
 const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;
 
 /**
  * A media player (one `media_player.*`): what is playing, and the one press that plays, pauses or turns it on, gated
- * on what it supports; the pill says which. Playing is the accent; it is a state, so it never glows. The status line
+ * on what it supports; the pill says which. Playing (or buffering, or on) is the accent; a state, so it never glows. The status line
  * says what is playing, the title first. Featured, it shows the artwork, the title and artist, and how far in, a line
  * and a clock that run on by themselves with no re-render. The name, or a press and hold, opens the sheet: the same,
  * skip back and on, the volume groove the sound card has, mute, the source, turning it off, and
  * today's playing. Its artwork is data, never a signal: no glow, never in a row, never inside the orb.
  */
-export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onMuteChange, onSourceChange, onOpenDetails, onClose }: MediaPlayerCardProps) {
+export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onMuteChange, onSourceChange, quiet, onOpenDetails, onClose }: MediaPlayerCardProps) {
   const card = useCard("mp", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, featured, area } = card;
   const unav = e.state === "unavailable";
-  const playing = isPlaying(e);
-  // A state: playing is the accent, with no glow. A player is not light, heat or daylight (attention-budget skill).
+  // Playing, buffering between tracks, or on with nothing to play: the accent's "on" (spec/cards.md → Media player).
+  const active = isActive(e);
+  // A state: being active is the accent, with no glow. A player is not light, heat or daylight (attention-budget skill).
   const colors = paint("state", 0);
   const word = mediaPlayerWord(e);
 
@@ -66,20 +72,25 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   // Featured and the sheet show what is playing under the head, so their status line says where it plays from.
   const roomy = featured || sheet;
   const from = playingFrom(e);
+  // With nothing of its own to say, the status line says since when, never the state word the slot already shows.
+  const since = unav ? "Unavailable" : sinceFact(e.lastChanged);
+  const cue = line ?? area ?? since;
   const status = roomy
-    ? [area, from].filter(Boolean).join(" · ") || (unav ? "Unavailable" : line ?? word)
-    : <>{line ?? area ?? (unav ? "Unavailable" : word)}{muted && <span className="mp-muted"> · {MUTED}</span>}</>;
+    ? [area, from].filter(Boolean).join(" · ") || (line ?? since ?? "")
+    : <>{cue}{muted && <span className="mp-muted">{cue ? " · " : ""}{MUTED}</span>}</>;
 
   const orbLabel = unav ? `${e.name}: Unavailable` : verb ? `${verb} ${e.name}` : `${e.name}: ${word}`;
   const slot = press
-    ? <TogglePill label={`${e.name}: ${word} · ${verb}`} on={playing} onToggle={run} extra={verb}>{word}</TogglePill>
+    ? <TogglePill label={`${e.name}: ${word} · ${verb}`} on={active} onToggle={run} extra={verb}>{word}</TogglePill>
     : <p className="mp-st">{word}</p>;
 
-  const head = usePlayhead(e);
-  const art = usePicture(unav ? undefined : e.picture);
+  const playhead = usePlayhead(e);
+  const head = quiet ? undefined : playhead;
   const title = mediaTitle(e);
   const artist = mediaArtist(e);
   const loaded = !unav && !isOff(e);
+  // The artwork is asked for only where its well is drawn: featured and the sheet, while something is loaded.
+  const art = usePicture(roomy && loaded ? e.picture : undefined);
   const nowPlaying = roomy && loaded && (title || artist || head || e.picture);
 
   const can = {
@@ -96,13 +107,13 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
       card={card}
       name={e.name}
       attrs={{ "data-state": e.state, ...colors }}
-      orb={viewOnly ? undefined : { label: orbLabel, pressed: playing, intensity: 0, onToggle: run, children: <MediaPlayerIcon /> }}
+      orb={viewOnly ? undefined : { label: orbLabel, pressed: active, intensity: 0, onToggle: run, children: <MediaPlayerIcon /> }}
       glyph={viewOnly ? <MediaPlayerIcon /> : undefined}
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails && (() => onOpenDetails())}
       status={status}
-      statusTitle={typeof status === "string" ? status : line ?? area}
+      statusTitle={typeof status === "string" ? status : cue}
       value={word}
       // The large readout is the volume, which no card control prints, or Muted; without one it repeats the pill's word.
       readout={unav ? { value: null } : muted ? { value: MUTED, duplicate: true, className: "mp-word" } : loaded && e.volume != null ? { value: <>{e.volume}<span>%</span></> } : { value: word, duplicate: true, className: "mp-word" }}
@@ -140,10 +151,10 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
               value={e.volume!}
               min={0}
               max={100}
-              on={!muted}
+              on={active && !muted}
               text={(pct) => `${pct}%`}
-              offText={(pct) => `${MUTED} · ${pct}%`}
-              valueText={(v) => (muted ? `${v} percent, muted` : `${v} percent`)}
+              offText={(pct) => `${muted ? MUTED : word} · ${pct}%`}
+              valueText={(v) => (muted ? `${v} percent, muted` : active ? `${v} percent` : `${v} percent, ${word.toLowerCase()}`)}
               onChange={onVolumeChange!}
             />
           )}

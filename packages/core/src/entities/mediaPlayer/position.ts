@@ -35,7 +35,8 @@ export const playedShare = (p: Playhead) => (p.duration > 0 ? Math.min(1, Math.m
 /**
  * One place of a running clock: a strip of `base` digits that turns one step every `period` seconds, and the digit it
  * shows at the start (`digit`). A card draws each as a strip of digits moved by a stepped transform animation lasting
- * `cycle` seconds, started `offset` seconds in (a negative delay), so the clock keeps time with no re-render.
+ * `cycle` seconds, started `offset` seconds in (a negative delay) and run `turns` times with its end held (fill
+ * `forwards`), so the clock keeps time with no re-render and stops at the length rather than counting past it.
  */
 export interface ClockPlace {
   kind: "digit";
@@ -43,19 +44,27 @@ export interface ClockPlace {
   period: number;
   /** `period × base`: how long one turn of the strip takes. */
   cycle: number;
-  /** Seconds into the current turn. */
+  /** Seconds into the current turn, fractional, so the clock turns when the fill says it should. */
   offset: number;
   digit: number;
+  /**
+   * How many turns, from the start of the current one, until the end of the track: the animation's iteration count.
+   * A hair over, so a length that ends on a turn (4:00) shows the turn's first digit, not its last.
+   */
+  turns: number;
 }
 
 /** A clock's places, left to right, digits and the colons between them. */
 export type ClockPart = ClockPlace | { kind: "colon" };
 
-const place = (at: number, base: 6 | 10, period: number): ClockPlace => {
+/** A millisecond past the end, so a place whose last turn ends with the track shows where it ends. */
+const PAST_END = 0.001;
+
+const place = (at: number, duration: number, base: 6 | 10, period: number): ClockPlace => {
   const cycle = period * base;
-  const whole = Math.floor(at);
-  const offset = whole % cycle;
-  return { kind: "digit", base, period, cycle, offset, digit: Math.floor(offset / period) };
+  const offset = at % cycle;
+  const turns = (offset + duration - at + PAST_END) / cycle;
+  return { kind: "digit", base, period, cycle, offset, digit: Math.floor(offset / period), turns };
 };
 
 /**
@@ -66,10 +75,11 @@ const place = (at: number, base: 6 | 10, period: number): ClockPlace => {
 export function clockPlaces(at: number, duration: number): ClockPart[] {
   const t = Math.max(0, Math.min(at, duration));
   const colon = { kind: "colon" } as const;
-  const seconds = [place(t, 6, 10), place(t, 10, 1)];
-  if (duration >= 3600) return [place(t, 10, 3600), colon, place(t, 6, 600), place(t, 10, 60), colon, ...seconds];
-  if (duration >= 600) return [place(t, 6, 600), place(t, 10, 60), colon, ...seconds];
-  return [place(t, 10, 60), colon, ...seconds];
+  const of = (base: 6 | 10, period: number) => place(t, duration, base, period);
+  const seconds = [of(6, 10), of(10, 1)];
+  if (duration >= 3600) return [of(10, 3600), colon, of(6, 600), of(10, 60), colon, ...seconds];
+  if (duration >= 600) return [of(6, 600), of(10, 60), colon, ...seconds];
+  return [of(10, 60), colon, ...seconds];
 }
 
 /** A playing time for a screen reader: "1 minute 23 seconds", "1 hour 2 minutes". */

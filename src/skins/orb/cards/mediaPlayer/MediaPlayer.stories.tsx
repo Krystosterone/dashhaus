@@ -15,7 +15,7 @@ const meta = {
         component:
           "One media player (`media_player.*`): a control. What it is doing in words (Playing, Paused, Buffering, Idle, On, Standby, Off, or " +
           "the integration's own), what is playing on the status line, the title first, and one press for what it can do now: Pause while " +
-          "it plays, Play while it doesn't, Turn on while it is off or asleep. Playing is the accent, and it never glows. Featured, the " +
+          "it plays, Play while it doesn't, Turn on while it is off or asleep. Playing, buffering and on are the accent, and it never glows. Featured, the " +
           "artwork, the title and artist, and how far in: a line and a clock that run on by themselves, with no re-render. Tap the name, or " +
           "press and hold the orb, for skip, the volume, mute, the source, turning it off and today's playing. Same sizes " +
           "and heights as the other cards.",
@@ -27,6 +27,7 @@ const meta = {
     width: { control: { type: "range", min: 160, max: 640, step: 2 }, description: "Container width in px" },
     footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
     showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
+    quiet: { control: "boolean", description: "The dashboard's quiet: no progress line and no clock" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
   },
   args: { seed: "playing", width: SIZES.M, footprint: "standard" },
@@ -54,6 +55,8 @@ export const Off: Story = { args: { seed: "off" } };
 export const OtherState: Story = { name: "Other state", args: { seed: "other" } };
 /** Featured: the artwork in its well, the title and artist, and how far in, the line and clock running on their own. */
 export const Featured: Story = { args: { footprint: "featured" } };
+/** Under a quiet dashboard nothing runs by itself: no line and no clock, never a held one that would lie. */
+export const Quiet: Story = { args: { footprint: "featured", quiet: true } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /**
  * Realistic worst-case data from the demo seeds (MEDIA_PLAYER_WORST_CASE): long everything on an hour-long track with art

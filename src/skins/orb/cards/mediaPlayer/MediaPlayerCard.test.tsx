@@ -17,6 +17,24 @@ describe("MediaPlayerCard", () => {
     expect(screen.getByRole("button", { name: /^Kitchen speaker: Playing · Pause/ }).getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("is the accent while on with nothing to play (a TV showing an input), as a light that is on", () => {
+    const { container } = render(<MediaPlayerCard entity={MEDIA_PLAYER_SEEDS.on.entity} {...press()} onTurnOff={vi.fn()} />);
+    expect(screen.getByRole("button", { name: /^Den TV: On · Turn off/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Turn off Den TV" }).getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelector("article")?.getAttribute("data-state")).toBe("on");
+  });
+
+  it("rests while paused: the pill is raised, not the accent", () => {
+    render(<MediaPlayerCard entity={MEDIA_PLAYER_SEEDS.paused.entity} {...press()} />);
+    expect(screen.getByRole("button", { name: /^Living room: Paused · Play/ }).getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("says since when, not the slot's word again, where it has nothing else to say", () => {
+    const bare: MediaPlayerEntity = { entityId: "media_player.x", name: "X", state: "playing", lastChanged: "11:40" };
+    const { container } = render(<MediaPlayerCard entity={bare} {...press()} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Since 11:40");
+  });
+
   it("says what is playing on the status line, the title first", () => {
     const { container } = render(<MediaPlayerCard entity={playing} {...press()} />);
     expect(container.querySelector(".hd-area")?.textContent).toBe("Sunday Morning · Maroon 5");
@@ -54,6 +72,25 @@ describe("MediaPlayerCard", () => {
     expect(screen.getByRole("img", { name: "Artwork for Sunday Morning" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "1 minute 23 seconds of 4 minutes 5 seconds" })).toBeTruthy();
     expect(container.querySelector(".hd-area")?.textContent).toBe("Kitchen · Spotify");
+  });
+
+  it("draws no progress line and no clock under a quiet dashboard", () => {
+    const { container } = render(<MediaPlayerCard entity={playing} footprint="featured" quiet {...press()} />);
+    expect(container.querySelector(".mp-title")?.textContent).toBe("Sunday Morning");
+    expect(container.querySelector(".mp-prog")).toBeNull();
+  });
+
+  it("fills the volume groove only while it plays and is not muted, saying why it doesn't", () => {
+    const sheet = (entity: MediaPlayerEntity) => render(<MediaPlayerCard entity={entity} variant="sheet" {...press()} onVolumeChange={vi.fn()} />);
+    const { unmount } = sheet(MEDIA_PLAYER_SEEDS.paused.entity);
+    expect(screen.getAllByText("Paused · 30%").length).toBeGreaterThan(0);
+    expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("30 percent, paused");
+    unmount();
+    const muted = sheet(MEDIA_PLAYER_SEEDS.muted.entity);
+    expect(screen.getAllByText("Muted · 60%").length).toBeGreaterThan(0);
+    muted.unmount();
+    sheet(playing);
+    expect(screen.getByRole("slider").getAttribute("aria-valuetext")).toBe("45 percent");
   });
 
   it("draws no progress for a stream with no duration, and no well without artwork", () => {

@@ -7,7 +7,7 @@ import type { MediaPlayerSeed, MediaPlayerSeedName } from "@dashhaus/core/seeds/
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(MEDIA_PLAYER_SEEDS) as MediaPlayerSeedName[];
 
-function DemoMediaPlayer({ seed, width, footprint, defaultOpen }: { seed: MediaPlayerSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
+function DemoMediaPlayer({ seed, width, footprint, quiet, defaultOpen }: { seed: MediaPlayerSeed; width?: number; footprint?: FieldFootprint; quiet?: boolean; defaultOpen?: boolean }) {
   const demo = useDemoMediaPlayer(seed);
   return (
     <div style={{ width, maxWidth: "100%" }}>
@@ -16,13 +16,14 @@ function DemoMediaPlayer({ seed, width, footprint, defaultOpen }: { seed: MediaP
         history={demo.history}
         onPlay={demo.onPlay} onPause={demo.onPause} onPrevious={demo.onPrevious} onNext={demo.onNext} onTurnOn={demo.onTurnOn} onTurnOff={demo.onTurnOff} onVolumeChange={demo.onVolumeChange} onSourceChange={demo.onSourceChange} onMuteChange={demo.onMuteChange}
         footprint={footprint}
+        quiet={quiet}
         defaultOpen={defaultOpen}
       />
     </div>
   );
 }
 
-function StoryMediaPlayer({ mediaPlayer, ...props }: { mediaPlayer: MediaPlayerSeedName; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
+function StoryMediaPlayer({ mediaPlayer, ...props }: { mediaPlayer: MediaPlayerSeedName; width?: number; footprint?: FieldFootprint; quiet?: boolean; defaultOpen?: boolean }) {
   return <DemoMediaPlayer seed={MEDIA_PLAYER_SEEDS[mediaPlayer]} {...props} />;
 }
 
@@ -36,7 +37,7 @@ const meta = {
         component:
           "One media player (`media_player.*`) as a field module. The screen says PLAY, HOLD, IDLE, ON, STBY or OFF beside the artwork, a " +
           "window in the screen square at its height; the meta lines say the title, then the artist; a rule along the screen's foot lights as " +
-          "it plays, running on by itself. The first key prints what a press does (Pause, Play, Turn on), its LED the playing signal; then " +
+          "it plays, running on by itself. The first key prints what a press does (Pause, Play, Turn on), its LED lit while it plays or is on; then " +
           "Next. Tap the name, or press and hold a key, for the panel: the time played as a running segment clock, Previous, Play and Next, " +
           "the volume fader, Mute, Power, the source and today. Standard modules are 160 px, compact rows 64 px.",
       },
@@ -46,6 +47,7 @@ const meta = {
     mediaPlayer: { control: "select", options: SEEDS, description: "Example media player" },
     width: { control: { type: "range", min: 180, max: 640, step: 2 }, description: "Container width in px" },
     footprint: { control: "inline-radio", options: ["compact", "standard"], description: "Module height" },
+    quiet: { control: "boolean", description: "The dashboard's quiet: no progress rule and no running clock" },
     defaultOpen: { control: "boolean", description: "Open the detail panel on load" },
   },
   args: { mediaPlayer: "playing", width: SIZES.M, footprint: "standard" },
@@ -71,6 +73,8 @@ export const Standby: Story = { args: { mediaPlayer: "standby" } };
 export const Off: Story = { args: { mediaPlayer: "off" } };
 /** A state Home Assistant doesn't name: blank segments, the integration's own words on the meta line. */
 export const OtherState: Story = { name: "Other state", args: { mediaPlayer: "other" } };
+/** Under a quiet dashboard nothing runs by itself: no progress rule, and the panel says PLAY rather than a clock. */
+export const Quiet: Story = { args: { quiet: true } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { mediaPlayer: "unavailable" } };
 

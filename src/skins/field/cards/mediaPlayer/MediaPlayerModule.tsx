@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, isOff, isPlaying, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, isActive, isOff, isPlaying, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { fmtPlayTime } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -36,6 +36,11 @@ export interface MediaPlayerModuleProps {
   onMuteChange?: (muted: boolean) => void;
   /** The panel's source keys (`MEDIA_PLAYER_ACTIONS`: a choice). */
   onSourceChange?: (source: string) => void;
+  /**
+   * Nothing on it runs by itself (the dashboard's `quiet`): no progress rule and no running clock, since a held one
+   * would lie and a running one changes on its own; the panel's screen says the state's figure instead.
+   */
+  quiet?: boolean;
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
 }
@@ -52,15 +57,17 @@ const FIGURE: Partial<Record<MediaPlayerEntity["state"], string>> = { playing: "
  * artwork, a window in the screen square at its height (the player's pictogram, lit while it plays, where it has none);
  * the meta lines say what is playing, the title then the artist, and a rule along the screen's foot lights as it
  * plays, running on by itself. Under it the first key prints what a press does, **Pause** while it plays, **Play**
- * while it doesn't, **Turn on** while it is off, its LED the playing signal; then **Next**. The name, or a press and
+ * while it doesn't, **Turn on** while it is off, its LED lit while it plays or is on; then **Next**. The name, or a press and
  * hold, opens the panel: the time played as a running segment clock, Previous, Play and Next, the volume fader the
  * sound module has, Mute, the source, Power and today's playing.
  */
-export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onMuteChange, onSourceChange, footprint = "standard", defaultOpen = false }: MediaPlayerModuleProps) {
+export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onMuteChange, onSourceChange, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
   const playing = isPlaying(e);
+  // Playing, buffering between tracks, or on with nothing to play: the LED and a bright figure (spec/field.md).
+  const active = isActive(e);
   const loaded = !unav && !isOff(e);
   const word = mediaPlayerWord(e);
   const muted = loaded && e.muted === true;
@@ -82,7 +89,8 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
     </span>
   ) : glyph;
 
-  const head = usePlayhead(e);
+  const playhead = usePlayhead(e);
+  const head = quiet ? undefined : playhead;
   const figure = FIGURE[e.state];
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
     : figure ? <><span aria-hidden="true">{figure}</span><span className="fd-sr">{word}</span></>
@@ -102,7 +110,7 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
     <Key
       key="press"
       label={unav ? `${e.name}, unavailable` : press ? `${pressWord(press)} ${e.name}` : `${e.name}, ${word.toLowerCase()}`}
-      led={!unav && playing}
+      led={active}
       unavailable={unav || !press}
       onPress={() => { if (press) handlers[press]?.(); }}
       onHold={details.openDetails}
@@ -163,13 +171,13 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
         <Fader
           id={`${uid}-vol`}
           label={`${e.name} volume`}
-          legend={muted ? `${MUTED} · ${e.volume}%` : `Volume ${e.volume}%`}
+          legend={muted ? `${MUTED} · ${e.volume}%` : active ? `Volume ${e.volume}%` : `${word} · ${e.volume}%`}
           value={e.volume!}
           min={0}
           max={100}
-          lit={loaded && !muted}
+          lit={active && !muted}
           disabled={!loaded}
-          valueText={muted ? `${e.volume} percent, muted` : `${e.volume} percent`}
+          valueText={muted ? `${e.volume} percent, muted` : active ? `${e.volume} percent` : `${e.volume} percent, ${word.toLowerCase()}`}
           onChange={(v) => onVolumeChange?.(v)}
         />
       )}

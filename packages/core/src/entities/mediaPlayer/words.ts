@@ -28,8 +28,15 @@ export function mediaPlayerWord(e: Pick<MediaPlayerEntity, "state" | "stateText"
   return e.state === "other" ? "Unknown" : MEDIA_PLAYER_WORDS[e.state];
 }
 
-/** It plays, or is about to: the accent's "on". Paused, idle and the rest are not. */
+/** It plays, or is about to: what a press pauses, and what today's hours count. Paused, idle and the rest are not. */
 export const isPlaying = (e: Pick<MediaPlayerEntity, "state">) => e.state === "playing" || e.state === "buffering";
+
+/**
+ * It is active, the accent's "on", the LED and a bright figure: playing, buffering between tracks (so the accent
+ * doesn't flicker), or on with nothing to play (a TV showing an input, whose press turns it off, as a light's does).
+ * Paused, idle, standby, off and an integration's own state rest.
+ */
+export const isActive = (e: Pick<MediaPlayerEntity, "state">) => isPlaying(e) || e.state === "on";
 
 /** It is off, or asleep in standby: nothing it was playing is still loaded, and a press turns it on. */
 export const isOff = (e: Pick<MediaPlayerEntity, "state">) => e.state === "off" || e.state === "standby";
