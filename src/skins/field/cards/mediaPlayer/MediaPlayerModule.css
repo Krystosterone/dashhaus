@@ -1,10 +1,6 @@
 /* Media player module (fd-mp). Its own layout goes here; the plate, key, screen, picture, fader, meter, row (ModuleRow)
    and panel body (PanelBody) are shared. */
 
-/* Resting figures are dim, as off is: HOLD, IDLE, STBY and an integration's own; a paused clock is held, so dim too.
-   PLAY and ON stay bright, and buffering's blank segments are on their way. */
-:is(.fd-mp, .fd-mp-panel):is([data-state="paused"], [data-state="idle"], [data-state="standby"], [data-state="other"]) .fd-read-fig { color: var(--fd-screen-ink-2); }
-
 /* The artwork: a window in the screen, square at its height, in the pictogram's place */
 .fd-mp-art { display: block; flex: none; width: 26px; }
 .fd-mp-panel .fd-mp-art { width: 52px; }

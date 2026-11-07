@@ -1,6 +1,6 @@
 /**
  * The field skin's design rules (spec/field.md) and the hard rules every skin keeps (AGENTS.md), as checks
- * against its CSS. The docs are the contract, this test is the tripwire.
+ * against its CSS, and the screen's words in its modules. The docs are the contract, this test is the tripwire.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -79,6 +79,61 @@ describe("a lamp's own colour", () => {
     for (const f of nonTokens) {
       for (const { selector, body } of rules(f)) if (/var\(--fd-lamp\b/.test(body) && !/^(\.fd-swatch|\.fd-pict\[data-lamp\] \.fd-pict-lit)$/.test(selector)) bad.push(`${f}: ${selector}`);
     }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("the screen speaks in fixed places", () => {
+  it("a resting state's figure is dim through the module's one rest hook, never a card's own rule", () => {
+    const shared = rules(`${SKIN}/shared/module.css`).filter((r) => /\[data-rest\]/.test(r.selector));
+    expect(shared.some((r) => /\.fd-read-fig/.test(r.selector) && /\.fd-chan/.test(r.selector) && /color: var\(--fd-screen-ink-2\)/.test(r.body))).toBe(true);
+    const bad = cssFiles.filter((f) => f.startsWith(`${SKIN}/cards/`)).flatMap((f) => rules(f)
+      .filter((r) => /\.fd-(?:read-fig|chan)\b/.test(r.selector) && /(?:^|;)\s*color\s*:\s*var\(--fd-screen-ink-2\)/.test(r.body))
+      .map((r) => `${f}: ${r.selector}`));
+    expect(bad, "pass the module's `rest` instead (spec/field.md → The screen speaks in fixed places)").toEqual([]);
+    // And no state dims it by its name in the shared CSS either: off is a rest like any other.
+    expect(nonTokens.flatMap((f) => rules(f).filter((r) => /\[data-state[^\]]*\][^,{]*\.fd-(?:read-fig|chan)\b/.test(r.selector)).map((r) => `${f}: ${r.selector}`))).toEqual([]);
+  });
+
+  it("a word on the screen takes four places at most; only an alarm's takes five", () => {
+    const ALARM_WORDS = new Set(["ALARM", "SMOKE"]);
+    const modules = readdirSync(join(process.cwd(), `${SKIN}/cards`), { recursive: true, encoding: "utf8" })
+      .filter((f) => /Module\.tsx$/.test(f) && !/\.(stories|test)\.tsx$/.test(f));
+    const bad = modules.flatMap((f) => [...readFileSync(join(process.cwd(), `${SKIN}/cards/${f}`), "utf8").matchAll(/"([A-Z][A-Z0-9]{4,})"/g)]
+      .map((m) => m[1]).filter((word) => !ALARM_WORDS.has(word)).map((word) => `${f}: ${word}`));
+    expect(bad).toEqual([]);
+  });
+
+  it("nothing printed is smaller than 10 px: every type size, in the tokens and the CSS", () => {
+    const bad: string[] = [];
+    for (const f of cssFiles) {
+      for (const [, prop, px] of css(f).matchAll(/(font-size|--fd-type-[\w-]+)\s*:\s*([\d.]+)px/g)) if (Number(px) < 10) bad.push(`${f}: ${prop} ${px}px`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("a clock cuts and never slides: its places' stops in fours of decimals, each held, and it stops at its end", () => {
+    const bad: string[] = [];
+    let clocks = 0;
+    for (const f of nonTokens) {
+      const body = css(f);
+      for (const m of body.matchAll(/@keyframes\s+([\w-]*reel[\w-]*)\s*\{/g)) {
+        clocks++;
+        const start = m.index! + m[0].length;
+        let depth = 1;
+        let end = start;
+        for (; end < body.length && depth > 0; end++) depth += body[end] === "{" ? 1 : body[end] === "}" ? -1 : 0;
+        for (const [, stops] of body.slice(start, end - 1).matchAll(/([^{}]+)\{/g)) {
+          const list = stops.split(",").map((stop) => stop.trim());
+          if (list.length !== 2) bad.push(`${f}: ${m[1]} ${stops.trim()} isn't a held stop`);
+          for (const stop of list) if (!/^\d+(?:\.\d{4})?%$/.test(stop)) bad.push(`${f}: ${m[1]} ${stop}`);
+        }
+        for (const { value } of decls(f).filter((d) => d.prop === "animation" && d.value.includes(m[1]))) {
+          if (/\binfinite\b/.test(value) || !/\bforwards\b/.test(value)) bad.push(`${f}: ${value}`);
+        }
+      }
+    }
+    expect(clocks).toBeGreaterThan(0);
     expect(bad).toEqual([]);
   });
 });

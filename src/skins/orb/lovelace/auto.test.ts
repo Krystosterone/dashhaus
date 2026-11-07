@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { autoDashboard } from "./auto";
 import type { AutoState } from "./auto";
 import { parseDashboardConfig } from "./config";
@@ -150,6 +152,26 @@ describe("autoDashboard", () => {
     expect(rows.find((s) => s.title === "Cameras")!.cards).toEqual(["camera.door", "camera.nursery"]);
     const parsed = parseDashboardConfig(card).rows!.find((s) => s.title === "Cameras")!;
     expect(parsed.cards.map((c) => c.item.kind)).toEqual(["camera", "camera"]);
+  });
+
+  it("lays out every band in the order spec/deploy.md gives: actions, safety and security, cameras, household status, the glance", () => {
+    const every = {
+      ...input,
+      states: {
+        ...states,
+        "lock.front": state("lock.front"),
+        "binary_sensor.back_door": state("binary_sensor.back_door", { device_class: "door" }),
+        "camera.door": state("camera.door"),
+        "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher"),
+      },
+    };
+    const titles = (autoDashboard(every).rows as { title: string }[]).map((s) => s.title);
+    // The rule's row titles, in its order; an area's row stands where the rule says "a row per area".
+    const spec = readFileSync(join(process.cwd(), "spec/deploy.md"), "utf8");
+    const rule = spec.slice(spec.indexOf("#### The automatic layout's order"), spec.indexOf("\nA row whose title an area already has"));
+    const listed = [...rule.matchAll(/^\d\. .*(?:\n {3}.*)*/gm)].flatMap(([item]) => [...item.matchAll(/`([A-Z]\w+)`|(a row per area)/g)].map((m) => m[1] ?? "Bedroom"));
+    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Outside", "Rooms"]);
+    expect(titles).toEqual(listed);
   });
 
   it("places a media player with the controls in its area, after the fans, drawn as the media player card", () => {

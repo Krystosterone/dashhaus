@@ -80,6 +80,8 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
       line={unav ? undefined : e.network ?? e.area}
       footprint={footprint}
       state={e.state}
+      // Nothing to give, a known resting state: NONE at the figure's own size, in the dim ink.
+      rest={e.state === "none"}
       details={details}
       pict={pict}
       read={read}

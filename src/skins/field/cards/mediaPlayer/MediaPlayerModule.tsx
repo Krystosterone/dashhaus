@@ -160,6 +160,9 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
       area={e.area}
       footprint={footprint}
       state={e.state}
+      // Resting figures are dim, as off is: HOLD, IDLE, STBY and an integration's own; a paused clock is held, so dim
+      // too. PLAY and ON stay bright, and buffering's blank segments are on their way.
+      rest={e.state === "paused" || e.state === "idle" || e.state === "standby" || e.state === "other"}
       details={details}
       pict={footprint === "compact" ? glyph : artwork}
       read={<>{read}{progress}</>}

@@ -56,11 +56,11 @@
   .ow:not(.hd--compact):not(.hd--sheet) .ow-heart { margin-right: 3px; }
 }
 
-/* Compact rows retain the concise inline figures and put the liveness cue beside the heart rate. */
+/* Compact rows retain the concise inline figures, at the row's size (the shared hd-metric-v), and put the liveness cue
+   beside the heart rate. */
 /* The status line carries the sleep state there, so the slot keeps only the figures. */
 .hd--compact .ow-metric.ow-metric--sleep { display: none; }
 .hd--compact .ow-metric { display: flex; align-items: baseline; column-gap: 0; }
-.hd--compact .ow-value { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .ow-value small { margin-left: 2px; font-size: 12.5px; }
 .hd--compact .ow-compact-unit { display: inline; }
 .hd--compact .ow-heart { margin-right: 3px; }

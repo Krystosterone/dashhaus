@@ -167,7 +167,9 @@
 .fd-read { margin: 0; display: flex; flex: none; align-items: center; gap: 8px; min-width: 0; font-size: 28px; font-weight: var(--fd-type-figure); letter-spacing: -0.01em; line-height: 1; white-space: nowrap; }
 .fd-read small { font-size: 11px; font-weight: 400; color: var(--fd-screen-ink-2); margin-left: 2px; align-self: flex-start; margin-top: 3px; }
 .fd-read-fig { display: inline-flex; align-items: baseline; }
-[data-state="off"] .fd-read-fig { color: var(--fd-screen-ink-2); }
+/* A resting figure (Module's `rest`; off always rests), here and in the panel with its second channel: the dim ink, a
+   state and not a blank. The one rule: a card never dims its own. */
+[data-rest] :is(.fd-read-fig, .fd-chan) { color: var(--fd-screen-ink-2); }
 .fd-meta { margin: 0; display: grid; justify-items: end; gap: 3px; min-width: 0; font-size: var(--fd-type-small); font-weight: 500; letter-spacing: 0.07em; line-height: 13px; text-transform: uppercase; color: var(--fd-screen-ink-2); text-align: right; }
 .fd-meta > span { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 /* Fixed digit places: the leading ones are unlit segments, like a segment display's. The empty alternative text

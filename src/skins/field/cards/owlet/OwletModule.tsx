@@ -119,6 +119,9 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
       area={e.area}
       footprint={footprint}
       state={offline ? (e.charging ? "charging" : "unavailable") : stale ? "stale" : sleep ?? "unknown"}
+      // Readings that stopped are old, so the figure dims as the heart beside it goes out; on its charger, a known
+      // resting state, its figure (DOCK) is dim too, never blank segments.
+      rest={offline ? e.charging : stale}
       warning={compact ? rowWarning ?? warning : warning}
       note={e.baseOn === false ? "Base station off" : undefined}
       line={offline ? (e.charging ? CHARGING : undefined) : sleepWord}

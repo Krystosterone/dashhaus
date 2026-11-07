@@ -85,20 +85,20 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
     <span className="hd-bar ow-bar">
       <span className="hd-metric ow-metric ow-metric--sleep">
         <span className="hd-label ow-label">Sleep</span>
-        {sleep ? <span className="ow-value ow-sleep">{SLEEP_FIGURE[sleep]}</span> : <span className="ow-sleep-none">{SLEEP_FIGURE_UNKNOWN}</span>}
+        {sleep ? <span className="ow-value hd-metric-v ow-sleep">{SLEEP_FIGURE[sleep]}</span> : <span className="ow-sleep-none">{SLEEP_FIGURE_UNKNOWN}</span>}
       </span>
       <span className="ow-vitals">
       {hr != null && (
         <span className="hd-metric ow-metric ow-metric--heart">
           <span className="ow-heart" data-live={e.live || undefined}><HeartIcon /></span>
           <span className="hd-label ow-label"><span className="hd-label-long">Heart rate</span><span className="hd-label-short">Heart</span></span>
-          <span className="ow-value">{fmtBpm(hr)}<small>bpm</small></span>
+          <span className="ow-value hd-metric-v">{fmtBpm(hr)}<small>bpm</small></span>
         </span>
       )}
       {o2 != null && (
         <span className="hd-metric ow-metric ow-metric--oxygen">
           <span className="hd-label ow-label">Oxygen</span>
-          <span className="ow-value">{fmtOxygen(o2)}<small>%<span className="ow-compact-unit"> O₂</span></small></span>
+          <span className="ow-value hd-metric-v">{fmtOxygen(o2)}<small>%<span className="ow-compact-unit"> O₂</span></small></span>
         </span>
       )}
       {hr == null && o2 == null && <span className="hd-none">Waiting…</span>}

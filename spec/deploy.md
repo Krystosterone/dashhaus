@@ -356,6 +356,22 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 
 The Dashboards section of [spec/orb.md](orb.md) has the composition rules: frequent actions first, then household status and the room/environment glance; one hero per screen; compact rows where alignment matters.
 
+#### The automatic layout's order
+
+Orb's automatic layout (`autoDashboard`) lays its rows out in bands, the most pressing first, and a row added for a
+new kind of card goes at the end of its band, never ahead of a row already there:
+
+1. **Actions**, since automatic discovery can't know which ones a person uses most: `Comfort` (the thermostats),
+   `Modes`, a row per area of its controls by area name, then `Other`.
+2. **Safety and security**: `Security`, the alarm, then the locks, then the doors, windows, leaks and smoke.
+3. **Security-adjacent**: `Cameras`, what the doors and the nursery look like, right after what guards them.
+4. **Household status**: `Nursery` (an Owlet sock), then `Guests` (the guest Wi-Fi code a visitor reads); a new
+   household-status row goes after both.
+5. **The glance**, read-only context: `Outside` (the weather), then `Rooms` (the room sensors).
+
+A row whose title an area already has joins that area's row, so the page never shows two rows of one name.
+`src/skins/orb/lovelace/auto.test.ts` lays out a house with every band and holds it to this list.
+
 ### Navigation
 
 A nav docks at the bottom of the screen: one pill per destination, the one you're on in the accent. Without `nav`, it lists the card's pages when it has some, or else its titled rows, so even the automatic layout gets one. A wall panel (`viewing: far`) has none unless `nav` lists it, and a nav with a single destination isn't drawn. `nav: false` turns it off.

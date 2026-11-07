@@ -1,7 +1,4 @@
 /* Lock module (fd-lk): one key that prints what pressing it does (Lock, Unlock, Lock again); in the panel, Open door
    beside it, the confirmation, or the keypad. No colour of its own: the LED says locked, words say the rest. */
 
-/* Unlocked is a state, not a blank: OPEN keeps its places in the dim ink. */
-:is(.fd-lk, .fd-lk-panel):is([data-state="unlocked"], [data-state="open"]) .fd-read-fig { color: var(--fd-screen-ink-2); }
-
 /* The hint, the question and the keypad are the shared .fd-hint, Confirm and Keypad (shared/panel.css). */

@@ -112,6 +112,8 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       area={e.area}
       footprint={footprint}
       state={e.state}
+      // Unlocked is a state, not a blank: OPEN keeps its places in the dim ink.
+      rest={e.state === "unlocked" || e.state === "open"}
       warning={footprint === "compact" ? warning : battery}
       alert={level === "urgent" ? { level, what: "Jammed", startedAt: undefined } : undefined}
       panelFocus={pending ? "content" : undefined}

@@ -19,9 +19,6 @@
 .fd-cm-body[data-still] .fd-screen { flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; border-radius: 0; }
 .fd-cm-body[data-still] .fd-meta { justify-items: start; text-align: left; max-width: 100%; }
 
-/* Idle is a resting state: its figure in the dim ink, as a door's SHUT. */
-:is(.fd-cm, .fd-cm-panel)[data-state="idle"] .fd-read-fig { color: var(--fd-screen-ink-2); }
-
 /* Narrow modules keep one meta line on the screen, as every module does. */
 @container (max-width: 239px) {
   .fd-cm .fd-meta-2 { display: none; }

@@ -12,7 +12,7 @@
  * saying so. Nothing is written unless every file and every registration can be made.
  */
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir, smallPrint } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("orb");
@@ -121,7 +121,9 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     today && "Today",
     kind === "control" && (!slotLevel || otherTaps.length || asked.length) && "TogglePill",
   ].filter(Boolean).map((part) => `${part}, `).join("");
-  const facts = ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact"] : [])].sort();
+  // The sheet's small print: when first, then what the device is where the entity says (spec/cards.md).
+  const small = smallPrint(has);
+  const facts = [...small.facts].sort();
   const drawn = kind === "control" ? [...taps, ...asked.map(({ action }) => action), ...drawnValues] : [];
   const demoProps = drawn.filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" ");
   /** What each drawn action is handed, as the card's own prop type: it can't import the domain's handlers. */
@@ -218,7 +220,9 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __lastSeen__: has("lastSeen") ? "e.lastSeen" : "undefined",
     __status__: has("area") ? "card.area" : '""',
     __control__: control,
-    __factsStart__: `unav ? lastSeenFact(${has("lastSeen") ? "e.lastSeen" : "undefined"}) : ${has("lastChanged") ? "lastChangedFact(e.lastChanged)" : '""'}`,
+    __factsStart__: small.start,
+    __factsEnd__: small.end ? `, end: ${small.end}` : "",
+    __batteryImport__: small.battery ? `\nimport { batteryText } from "${packageSpecifier("core", "entities/battery")}";` : "",
     __sheetBlocks__: sheetBlocks,
     __optionWords__: values.choices.length ? '\n/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const words = stateWords(option); return words[0].toUpperCase() + words.slice(1); };' : "",
     __todayBlock__: today ? `      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={${domain.minutes ? `todaySummary("${domain.minutes}", history.${domain.minutes}Minutes)` : '""'}} />}` : "",

@@ -15,11 +15,10 @@
   .wx-warn-s { display: inline; }
 }
 .wx-rd-f { color: var(--ink-2); font-size: 14px; font-weight: 600; }
-/* Standard and featured: now is the card's figure, in the large-readout voice. */
-.wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
+/* Standard and featured: now is the card's figure, in the large-readout voice; a compact row's is the row's size (both
+   the shared hd-metric-n). */
 .wx:not(.hd--compact):not(.hd--sheet) .wx-rd-f { font-size: 15px; }
 .hd--compact .wx-rd { justify-content: flex-end; column-gap: 8px; }
-.hd--compact .wx-rd-t { font-size: 13.5px; }
 .hd--compact .wx-rd-f { color: var(--ink-3); font-size: 12.5px; }
 
 /* ---------- Next hours: one column per hour across the full width, as many as fit; the rest wrap into a row of no height ---------- */

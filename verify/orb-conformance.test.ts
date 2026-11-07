@@ -46,6 +46,10 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(missing, "AGENTS.md → Adding a card, step 1").toEqual([]);
   });
 
+  it("says its small print in core's words", () => {
+    expect(source, `${cardFile}: its facts come from @dashhaus/core/entities/facts, when first (spec/cards.md → What every card says → Small print)`).toContain('"@dashhaus/core/entities/facts"');
+  });
+
   it("is built from the shared card system", () => {
     expect(code, `${cardFile}: call useCard("<code>", …) and spread its \`article\` onto the <article>`).toBeDefined();
     expect(source, `${cardFile}: spread paint(role, glow, own, prop) onto the article`).toMatch(/\bpaint\(/);

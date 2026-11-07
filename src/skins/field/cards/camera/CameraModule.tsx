@@ -93,6 +93,8 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
       area={e.area}
       footprint={footprint}
       state={e.state}
+      // Idle is a resting state: its figure in the dim ink, as a door's SHUT.
+      rest={e.state === "idle"}
       details={details}
       pict={pict}
       read={read}

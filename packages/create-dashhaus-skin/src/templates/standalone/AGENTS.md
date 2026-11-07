@@ -56,8 +56,8 @@ the outside in, snapshotting after each step and comparing with the reference:
    action is answered with in the details. Restyle them once there, not per card. The frame puts `data-card="<domain>"`,
    `data-state` and `data-footprint` on each card's article, so CSS can tell a light from a sensor, and on from off.
    `npm run add` writes every new card against the frame's props as the scaffold made them (`card`, `name`, `area`,
-   `state`, `summary`, `icon`, `footprint`, `actions`, `guarded`): add props of your own freely, but make each new one
-   optional and keep those, even ones your look ignores, or a card added later won't typecheck.
+   `state`, `summary`, `icon`, `footprint`, `actions`, `guarded`): add props of your own as the Rules below say, each
+   one optional, and keep those, even ones your look ignores, or a card added later won't typecheck.
 5. **Cards:** `cards/<domain>/`: the markup in `__Skin__<Name>Card.tsx`, the look in its `.css`, the glyph in
    `icons.tsx`. A card takes its domain's model as `entity` and draws whatever of it you choose (see Data). An on
    state can recolour the whole card.
@@ -113,6 +113,10 @@ the outside in, snapshotting after each step and comparing with the reference:
 - **Controls feel like controls:** `touch-action: manipulation`, no text selection or tap highlight, press feedback on
   `:active`.
   `__Skin__Action` already does this; build new controls on `usePress` from `@dashhaus/core/primitives`.
+- **A card extends a shared part only generically.** `__Skin__CardFrame`, `__Skin__Action` and the other parts in
+  `shared/` gain a prop for a card only when the prop is generic: named for what it does, never for the card that
+  wanted it first (`body`, not `cameraStill`), optional, so every other card stays as it was, and seen across its
+  states in `npm run snapshot`. Anything else the card draws in its own folder.
 - **Readable at phone width (390 px) and in dark mode.** Snapshot both.
 
 ## Data
