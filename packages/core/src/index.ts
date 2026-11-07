@@ -81,6 +81,7 @@ export {
   weatherHistoryFromHass,
   owletHistoryFromHass,
   readingHistoryFromHass,
+  vacuumHistoryFromHass,
 } from "./ha/history";
 export type { HaHistoryRecord, OnOffHistory } from "./ha/history";
 export { serviceRunner } from "./ha/actions/run";
@@ -136,4 +137,11 @@ export type { BinarySensorMapOptions } from "./ha/mappers/binarySensor";
 export { useHaBinarySensor } from "./ha/hooks/binarySensor";
 export type { HaBinarySensorOptions, HaBinarySensorResult } from "./ha/hooks/binarySensor";
 export { HaBinarySensor } from "./ha/headless";
+export { vacuumFromHass } from "./ha/mappers/vacuum";
+export type { VacuumMapOptions } from "./ha/mappers/vacuum";
+export { createVacuumHandlers, VACUUM_ACTIONS } from "./ha/actions/vacuum";
+export type { VacuumHandlers, VacuumHandlerOptions } from "./ha/actions/vacuum";
+export { useHaVacuum } from "./ha/hooks/vacuum";
+export type { HaVacuumOptions, HaVacuumResult } from "./ha/hooks/vacuum";
+export { HaVacuum } from "./ha/headless";
 // new-card: exports

@@ -50,6 +50,7 @@ export type Kind =
   | "fan"
   | "guestWifi"
   | "binarySensor"
+  | "vacuum"
   // new-card: kinds
   ;
 
@@ -67,6 +68,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   lock: "lock",
   fan: "fan",
   binary_sensor: "binarySensor",
+  vacuum: "vacuum",
   // new-card: domain kinds
 };
 
@@ -106,6 +108,7 @@ export type CardConfig = CardBase & (
   | { kind: "fan" }
   | { kind: "guestWifi"; access?: "code" | "password"; network?: string; qr?: string; newCode?: string; refresh?: string }
   | { kind: "binarySensor"; battery?: string }
+  | { kind: "vacuum" }
   // new-card: card configs
 );
 
@@ -216,6 +219,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     keys: ["battery"],
     options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
+  vacuum: {},
   // new-card: kind specs
 };
 

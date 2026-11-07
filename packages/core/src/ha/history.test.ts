@@ -11,6 +11,7 @@ import {
   readingHistoryFromHass,
   sensorHistoryFromHass,
   toggleHistoryFromHass,
+  vacuumHistoryFromHass,
   weatherHistoryFromHass,
 } from "./history";
 
@@ -108,6 +109,27 @@ describe("hour walk", () => {
       now(),
     );
     expect(result.onMinutes).toBe(0);
+  });
+});
+
+describe("vacuumHistoryFromHass", () => {
+  it("counts hours cleaning, by the mapper's names for its states", () => {
+    const result = vacuumHistoryFromHass(
+      [record("vacuum.x", "docked", iso(0)), record("vacuum.x", "spot_cleaning", iso(9)), record("vacuum.x", "charging", iso(10)), record("vacuum.x", "cleaning", iso(12, 4))],
+      "vacuum.x",
+      now(),
+    );
+    expect(result.samples[8]).toBe(0);
+    expect(result.samples[9]).toBe(1);
+    expect(result.samples[10]).toBe(0);
+    expect(result.samples[13]).toBeNull();
+    expect(result.cleaningMinutes).toBe(60 + 34);
+  });
+
+  it("marks hours it was unreachable", () => {
+    const result = vacuumHistoryFromHass([record("vacuum.x", "unavailable", iso(0)), record("vacuum.x", "error", iso(11))], "vacuum.x", now());
+    expect(result.samples[3]).toBe("unavailable");
+    expect(result.samples[11]).toBe(0);
   });
 });
 
