@@ -1,0 +1,87 @@
+---
+title: Binary sensor
+description: "One binary_sensor.* entity and its device's battery: a door, a window, a leak or smoke, said in its own words."
+kind:
+  group: Safety
+  order: 3
+  summary: "A door, a window, a leak or smoke, in its own words; smoke and leaks warn."
+  with: "its device's battery sensor"
+  reading: true
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One `binary_sensor.*` entity, with the battery sensor on its device: a door or a window open or closed, a leak sensor
+wet or dry, a smoke, gas or carbon monoxide detector clear or not, and when it last changed. Read-only.
+
+## Quick example
+
+<Example file="entities/binarySensor/DoorState.tsx" />
+
+Home Assistant reports every binary sensor as `on` or `off`; its `device_class` says what that means. `stateWord` says
+it in the class's words: a door `on` is Open, a leak sensor's Wet, a smoke detector's Smoke. A sensor Home Assistant
+can't reach is `unavailable`, never a safe-looking Closed or Clear.
+
+## Component
+
+`<HaBinarySensor>` is `useHaBinarySensor` as a component that draws nothing of its own. It takes every option of the
+hook as a prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item
+of a list.
+
+<ApiMembers from="@dashhaus/core" name="HaBinarySensor" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaBinarySensor" />
+
+It reads the sensor, its area, given `batteryEntityId` the battery sensor on the same device, and today's history of
+when it was on.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaBinarySensorOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaBinarySensorResult" />
+
+#### `entity`: BinarySensorEntity
+
+<ApiMembers from="@dashhaus/core/entities/binarySensor/types" name="BinarySensorEntity" />
+
+#### `history`: BinarySensorHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since: the share of each hour it was on, and
+the minutes that adds up to. Pass `history` to supply your own, or `loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/binarySensor/types" name="BinarySensorHistory" />
+
+## What needs looking at
+
+`binarySensorSeverity` ranks what a sensor's state may claim, the same in every skin: smoke, gas and carbon monoxide
+are an alarm, a leak urgent, a low battery advisory. An open door is a state, not a warning, however long it lasts.
+
+<Example file="entities/binarySensor/Warnings.tsx" />
+
+## In a skin
+
+Orb's `HaBinarySensorTile` and Field's `HaBinarySensorModule` are `useHaBinarySensor` above each skin's card. Each
+draws the picture its device class names and says the state in its words. Smoke and a leak are marked as a warning,
+never a glow. They take the hook's options as props, plus their own:
+
+<Example file="entities/binarySensor/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaBinarySensorTileProps" except={{ from: "@dashhaus/core", name: "HaBinarySensorOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaBinarySensorModuleProps" except={{ from: "@dashhaus/core", name: "HaBinarySensorOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="binarySensor" />

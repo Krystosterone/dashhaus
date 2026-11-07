@@ -54,6 +54,52 @@
     "companions": [],
     "fixtureId": "alarm_control_panel.disarmed"
   },
+  "binarySensor": {
+    "name": "binarySensor",
+    "Name": "BinarySensor",
+    "CONST": "BINARY_SENSOR",
+    "words": "binary sensor",
+    "Label": "Binary sensor",
+    "domains": [
+      "binary_sensor"
+    ],
+    "kind": "reading",
+    "actions": [],
+    "guarded": [],
+    "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
+    "history": true,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "deviceClass",
+      "lastChanged",
+      "changedAt",
+      "battery",
+      "lastSeen"
+    ],
+    "onOff": true,
+    "minutes": "on",
+    "samples": true,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [
+      {
+        "key": "battery",
+        "option": "batteryEntityId"
+      }
+    ],
+    "fixtureId": "binary_sensor.front_door"
+  },
   "climate": {
     "name": "climate",
     "Name": "Climate",

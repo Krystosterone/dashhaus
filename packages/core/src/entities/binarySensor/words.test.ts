@@ -1,0 +1,47 @@
+import { describe, expect, it } from "vitest";
+import { ALERT_WORDS, BINARY_SENSOR_WORDS, alertWord, isBinarySensorClass, pictureOf, stateWord, wordsOf } from "./words";
+import { todaySummary } from "../today";
+import { ON_SEVERITY } from "./severity";
+
+describe("binary sensor words", () => {
+  it("says the state in its device class's words", () => {
+    expect(stateWord({ state: "on", deviceClass: "door" })).toBe("Open");
+    expect(stateWord({ state: "off", deviceClass: "door" })).toBe("Closed");
+    expect(stateWord({ state: "on", deviceClass: "moisture" })).toBe("Wet");
+    expect(stateWord({ state: "off", deviceClass: "moisture" })).toBe("Dry");
+    expect(stateWord({ state: "on", deviceClass: "smoke" })).toBe("Smoke");
+    expect(stateWord({ state: "off", deviceClass: "smoke" })).toBe("Clear");
+    expect(stateWord({ state: "on" })).toBe("On");
+    expect(stateWord({ state: "unavailable", deviceClass: "door" })).toBe("Unavailable");
+  });
+
+  it("has words for every class, and a today word todaySummary reads", () => {
+    for (const words of Object.values(BINARY_SENSOR_WORDS)) {
+      expect(words.on).not.toBe(words.off);
+      expect(words.today).toBe(words.today.toLowerCase());
+    }
+    expect(todaySummary(wordsOf("door").today, 42)).toBe("Open 42m");
+    expect(todaySummary(wordsOf("smoke").today, 0)).toBe("Not detected today");
+  });
+
+  it("says a warning only while on, for a class that warns", () => {
+    expect(alertWord({ state: "on", deviceClass: "moisture" })).toBe("Leak detected");
+    expect(alertWord({ state: "off", deviceClass: "smoke" })).toBeUndefined();
+    expect(alertWord({ state: "on", deviceClass: "door" })).toBeUndefined();
+    for (const cls of Object.keys(ON_SEVERITY)) expect(ALERT_WORDS[cls as keyof typeof ALERT_WORDS]).toBeDefined();
+  });
+
+  it("knows Home Assistant's classes, and nothing else", () => {
+    expect(isBinarySensorClass("window")).toBe(true);
+    expect(isBinarySensorClass("toString")).toBe(false);
+    expect(isBinarySensorClass("doorbell")).toBe(false);
+  });
+
+  it("names a picture for each kind of sensor", () => {
+    expect(pictureOf("garage_door")).toBe("door");
+    expect(pictureOf("carbon_monoxide")).toBe("smoke");
+    expect(pictureOf("moisture")).toBe("leak");
+    expect(pictureOf("connectivity")).toBe("sensor");
+    expect(pictureOf()).toBe("sensor");
+  });
+});

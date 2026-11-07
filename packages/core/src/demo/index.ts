@@ -12,4 +12,5 @@ export * from "./toggle";
 export * from "./lock";
 export * from "./fan";
 export * from "./guestWifi";
+export * from "./binarySensor";
 // new-card: demo transports

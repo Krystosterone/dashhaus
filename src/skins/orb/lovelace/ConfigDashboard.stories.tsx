@@ -27,7 +27,7 @@ const YAML = {
   type: "custom:dashhaus-orb",
   title: "Home",
   rows: [
-    { title: "Security", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }] },
+    { title: "Security", cards: [{ entity: "alarm_control_panel.house", footprint: "compact" }, { entity: "binary_sensor.patio_door", footprint: "compact", battery: "sensor.patio_door_battery" }] },
     { title: "Outside", cards: [{ entity: "weather.home", aqi: "sensor.home_aqi", aqi_scale: "US" }] },
     {
       title: "Living room",

@@ -1,0 +1,62 @@
+{
+  "binary_sensor.front_door": {
+    "entity_id": "binary_sensor.front_door",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Front door",
+      "device_class": "door"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "binary_sensor.kitchen_leak": {
+    "entity_id": "binary_sensor.kitchen_leak",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Kitchen leak",
+      "device_class": "moisture"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "binary_sensor.hallway_smoke": {
+    "entity_id": "binary_sensor.hallway_smoke",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Hallway smoke",
+      "device_class": "smoke"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "binary_sensor.bedroom_window": {
+    "entity_id": "binary_sensor.bedroom_window",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Bedroom window",
+      "device_class": "window"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "binary_sensor.porch_motion": {
+    "entity_id": "binary_sensor.porch_motion",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch motion",
+      "device_class": "motion"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "binary_sensor.garage_door": {
+    "entity_id": "binary_sensor.garage_door",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage door",
+      "device_class": "garage_door"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  }
+}

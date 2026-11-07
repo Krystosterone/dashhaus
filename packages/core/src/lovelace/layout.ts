@@ -139,6 +139,33 @@ export function roomSensors({ states, entities = {} }: RoomSensorInput): RoomSen
   return rooms;
 }
 
+/**
+ * The binary sensor device classes an automatic layout shows: the safety glance, doors, windows, leaks and smoke.
+ * Every other class (motion, connectivity, updates, an Owlet sock's alerts with none) is left for a person to add,
+ * since a house has dozens of them and they would bury the ones that matter.
+ */
+export const SAFETY_CLASSES: readonly string[] = ["door", "garage_door", "window", "opening", "moisture", "smoke", "gas", "carbon_monoxide", "safety"];
+
+/** One safety sensor for an automatic layout: the `binary_sensor`, with the battery sensor on its device. */
+export interface SafetySensor {
+  entity: string;
+  battery?: string;
+}
+
+/**
+ * Every visible `binary_sensor` of a safety class (`SAFETY_CLASSES`), by name, each with its device's battery where it
+ * has one. Config and diagnostic sensors are left out; their battery companions may be diagnostic, as a lock's are.
+ */
+export function safetySensors({ states, entities = {} }: RoomSensorInput): SafetySensor[] {
+  return Object.keys(states)
+    .filter((id) => id.startsWith("binary_sensor.") && !entities[id]?.hidden && !entities[id]?.entity_category && SAFETY_CLASSES.includes(deviceClass(states[id]) ?? ""))
+    .sort(byName(states))
+    .map((entity) => {
+      const battery = deviceCompanion({ states, entities }, entity, "battery");
+      return { entity, ...(battery && { battery }) };
+    });
+}
+
 /*
  * Placing a row's cards (spec/deploy.md → The format → Placement). A row is a grid of tracks across and, down, rows of
  * the skin's unit: orb's 60 px, or one module in a skin whose rows hold one footprint. Every card is a block of whole

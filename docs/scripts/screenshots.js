@@ -53,6 +53,7 @@ const KINDS = {
   lock: ["orb-cards-lock--locked", "field-cards-lock--locked"],
   owlet: ["orb-cards-owlet--deep-sleep", "field-cards-owlet--deep-sleep"],
   guestWifi: ["orb-cards-guestwifi--ready", "field-cards-guestwifi--ready"],
+  binarySensor: ["orb-cards-binarysensor--closed", "field-cards-binarysensor--closed"],
 };
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };

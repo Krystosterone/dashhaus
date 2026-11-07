@@ -433,6 +433,32 @@ A guest Wi-Fi network and what a guest types to use it, of one of two kinds (`ac
 <HaGuestWifiModule entityId="sensor.67d9d6d6ad84e044caf4621c_voucher" />
 ```
 
+## Using the binary sensor card
+
+A door, a window, a leak, smoke: one `binary_sensor.*`, composed with the battery `sensor.*` on its device, as the lock is. A reading: it has no actions.
+
+```tsx
+<BinarySensorTile entity={door} history={today} />
+<HaBinarySensorTile entityId="binary_sensor.patio_door" batteryEntityId="sensor.patio_door_battery" />
+```
+
+- **States:** on, off and Unavailable, said in the device class's words (`@dashhaus/core/entities/binarySensor/words`, the same in every skin): a door, a garage door, an opening or a window is Open or Closed, moisture Wet or Dry, smoke, gas and carbon monoxide Smoke, Gas or CO, or Clear, motion Motion or Clear, a battery Low or Normal, and the rest after Home Assistant's own device class states; with no class, On or Off. `unknown`, any state but `on` and `off`, and a missing entity are Unavailable, never a safe-looking Closed or Clear. A device class Home Assistant doesn't define is none.
+- **A reading:** the bare icon its device class names (`pictureOf`: a door, a window, a drop, a smoke detector, a motion sensor, or the plain sensor), saying its state without colour (a door ajar, a window's sash out, a puddle under the drop, smoke under the detector, waves out from the motion sensor); the state's word as a readout with no container, with since when under its caption. Off is said in the second ink. It never glows (`paint("reading", 0)`). Tap the reading or the name for the sheet.
+- **Warnings** lead the status line behind the shared warn marker, in words, never brightness (`binarySensorSeverity`): smoke, gas and carbon monoxide are an alarm (`Smoke detected`, said as "Alert: Smoke detected at Hallway smoke"); a leak, heat, an unsafe or tampered device and a problem are urgent (`Leak detected`); a cold sensor and a battery class advisory; and these set the state's word in the warn colour too. Else a low battery (`Battery 9%`, at or under 15%, `@dashhaus/core/entities/battery`), advisory and the device's. An open door or window is a state, not a warning, however long it lasts.
+- **Status line:** the warning, else the area, or since when where there is none.
+- **Featured and sheet:** today's hours on (open, wet, detecting) by hour, summed as `Open 42m` or `Not open today` (`todaySummary` with the class's word, a detector's `Detected 3m`). The sheet's header says the state in words; its small print says the battery ("Battery 9%, replace soon", in the warn colour while low) and when it last changed.
+- **Compact:** the icon, the name, and the warning or the state's word under it; the word again as the row's value.
+- **Unavailable:** the dashed slot with when it was last seen; the last state and the battery are hidden.
+- **Home Assistant:** `HaBinarySensorTile` takes the sensor, and `batteryEntityId` for the battery on its device (the automatic layout finds it, `deviceCompanion`); a `battery_level` or `battery` attribute on the sensor itself wins. Today comes from the recorder through `onOffHistoryFromHass`; `loadHistory={false}` skips it.
+
+### Field binary sensor module
+
+`BinarySensorModule` is the same normalized binary sensor entity in the Field skin; `HaBinarySensorModule` is its connected container, on the same `useHaBinarySensor` hook as `HaBinarySensorTile`, taking the same `batteryEntityId`. See [field.md](field.md#binary-sensor).
+
+```tsx
+<HaBinarySensorModule entityId="binary_sensor.kitchen_leak" />
+```
+
 <!-- new-card: cards -->
 
 ## The dashboard header

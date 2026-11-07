@@ -83,6 +83,29 @@ describe("autoDashboard", () => {
     expect(() => parseDashboardConfig(autoDashboard(withLocks))).not.toThrow();
   });
 
+  it("puts doors, windows, leaks and smoke under Security after the locks, each with its device's battery, and no other binary sensor", () => {
+    const withSensors = {
+      ...input,
+      states: { ...states, ...Object.fromEntries([
+        state("lock.front", { friendly_name: "Front door" }),
+        state("binary_sensor.patio", { friendly_name: "Patio door", device_class: "door" }),
+        state("binary_sensor.sink", { friendly_name: "Leak", device_class: "moisture" }),
+        state("binary_sensor.hall_motion", { friendly_name: "Hall motion", device_class: "motion" }),
+        state("sensor.patio_battery", { device_class: "battery" }),
+      ].map((s) => [s.entity_id, s])) },
+      entities: { ...input.entities, "binary_sensor.patio": { device_id: "patio" }, "sensor.patio_battery": { device_id: "patio", entity_category: "diagnostic" } },
+    };
+    const security = (autoDashboard(withSensors).rows as { title: string; cards: unknown[] }[]).find((s) => s.title === "Security");
+    expect(security?.cards).toEqual([
+      { entity: "alarm_control_panel.house", footprint: "compact" },
+      { entity: "lock.front", footprint: "compact" },
+      { entity: "binary_sensor.sink", footprint: "compact" },
+      { entity: "binary_sensor.patio", footprint: "compact", battery: "sensor.patio_battery" },
+    ]);
+    const parsed = parseDashboardConfig(autoDashboard(withSensors)).rows?.find((row) => row.title === "Security");
+    expect(parsed?.cards.map((entry) => entry.item.kind)).toEqual(["alarm", "lock", "binarySensor", "binarySensor"]);
+  });
+
   it("produces a config the card accepts", () => {
     const card = autoDashboard(input, "Flat");
     expect(() => parseDashboardConfig(card)).not.toThrow();

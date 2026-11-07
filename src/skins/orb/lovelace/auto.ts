@@ -1,7 +1,7 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/core/lovelace/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, byName, deviceCompanion, domainOf, placeSection, roomSensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { areaId, byName, deviceCompanion, domainOf, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/core/lovelace/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/core/lovelace/layout";
@@ -44,6 +44,8 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
     const battery = deviceCompanion(input, entity, "battery");
     return { entity, footprint: "compact", ...(battery && { battery }) };
   });
+  // Then the safety glance: doors, windows, leaks and smoke (`SAFETY_CLASSES`), each with its device's battery.
+  const safety: Card[] = safetySensors(input).map(({ entity, battery }) => ({ entity, footprint: "compact", ...(battery && { battery }) }));
 
   const weather = ofDomain("weather")[0];
 
@@ -95,7 +97,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
 
   // Automatic discovery cannot infer true frequency. It puts every action first, then stable household
   // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
-  if (alarms.length || locks.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks] });
+  if (alarms.length || locks.length || safety.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks, ...safety] });
   if (socks.length) place({ title: "Nursery", cards: socks });
   // Guest Wi-Fi is household status a visitor reads: after the household's own, before the outside and rooms.
   if (wifi.length) place({ title: "Guests", cards: wifi });
