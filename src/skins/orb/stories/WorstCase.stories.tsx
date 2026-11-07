@@ -38,6 +38,9 @@ import type { LockSeed } from "@dashhaus/core/seeds/lock";
 import { DemoFanTile } from "../cards/fan/demo/DemoFanTile";
 import { FAN_SEEDS, FAN_WORST_CASE } from "@dashhaus/core/seeds/fan";
 import type { FanSeed } from "@dashhaus/core/seeds/fan";
+import { DemoCameraTile } from "../cards/camera/demo/DemoCameraTile";
+import { CAMERA_SEEDS, CAMERA_WORST_CASE } from "@dashhaus/core/seeds/camera";
+import type { CameraSeed } from "@dashhaus/core/seeds/camera";
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its
@@ -102,6 +105,11 @@ const LOCKS: Record<"demo" | "worst", LockSeed[]> = {
 const FANS: Record<"demo" | "worst", FanSeed[]> = {
   demo: [FAN_SEEDS.on],
   worst: FAN_WORST_CASE,
+};
+
+const CAMERAS: Record<"demo" | "worst", CameraSeed[]> = {
+  demo: [CAMERA_SEEDS.idle],
+  worst: CAMERA_WORST_CASE,
 };
 
 function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: CardFootprint }) {
@@ -175,6 +183,7 @@ function WorstCasePage() {
       {SOUNDS[data].map((seed, index) => <Row key={`n${index}`}>{(footprint) => <DemoSoundTile seed={seed} footprint={footprint} />}</Row>)}
       {FANS[data].map((seed, index) => <Row key={`f${index}`}>{(footprint) => <DemoFanTile seed={seed} footprint={footprint} />}</Row>)}
       {OWLETS[data].map((seed, index) => <Row key={`o${index}`}>{(footprint) => <DemoOwletTile seed={seed} footprint={footprint} />}</Row>)}
+      {CAMERAS[data].map((seed, index) => <Row key={`m${index}`}>{(footprint) => <DemoCameraTile seed={seed} footprint={footprint} />}</Row>)}
       <DataToggle value={data} onChange={setData} />
     </div>
   );

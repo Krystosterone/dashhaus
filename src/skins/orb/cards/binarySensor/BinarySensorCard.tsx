@@ -61,7 +61,7 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
       {since && (
         <span className="hd-metric hd-metric--sub bs-since">
           <span className="hd-label">Since</span>
-          <span className="bs-t">{since}</span>
+          <span className="hd-metric-t">{since}</span>
         </span>
       )}
     </span>

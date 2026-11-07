@@ -1,0 +1,62 @@
+{
+  "camera.front_door": {
+    "entity_id": "camera.front_door",
+    "state": "idle",
+    "attributes": {
+      "friendly_name": "Front door",
+      "access_token": "4f1c2a",
+      "entity_picture": "/api/camera_proxy/camera.front_door?token=4f1c2a",
+      "brand": "Reolink",
+      "model_name": "Video Doorbell",
+      "motion_detection": true,
+      "frontend_stream_type": "hls",
+      "supported_features": 2
+    },
+    "last_changed": "2026-10-19T08:16:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "camera.nursery": {
+    "entity_id": "camera.nursery",
+    "state": "recording",
+    "attributes": {
+      "friendly_name": "Nursery",
+      "access_token": "9b7e01",
+      "entity_picture": "/api/camera_proxy/camera.nursery?token=9b7e01",
+      "supported_features": 3
+    },
+    "last_changed": "2026-10-19T19:30:00+00:00",
+    "last_updated": "2026-10-19T19:30:00+00:00"
+  },
+  "camera.driveway": {
+    "entity_id": "camera.driveway",
+    "state": "streaming",
+    "attributes": {
+      "friendly_name": "Driveway",
+      "access_token": "77aa10",
+      "entity_picture": "/api/camera_proxy/camera.driveway?token=77aa10",
+      "frontend_stream_type": "web_rtc",
+      "supported_features": 2
+    },
+    "last_changed": "2026-10-19T11:02:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "camera.porch": {
+    "entity_id": "camera.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "camera.garage": {
+    "entity_id": "camera.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "restored": true
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  }
+}

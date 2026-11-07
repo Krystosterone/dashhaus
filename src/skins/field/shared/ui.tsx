@@ -45,6 +45,8 @@ export interface ModuleProps {
   state: string;
   /** Makes the name the button that opens the detail panel. */
   onOpen?: () => void;
+  /** What the name's button opens, said after the name: "details" (the default), or "live view" for a camera's stream. */
+  openHint?: string;
   /**
    * A warning about the device rather than its reading (a low battery), behind the warning marker, in place of
    * the area: printed on the plate, at the module's full width in either footprint.
@@ -72,7 +74,7 @@ export interface ModuleProps {
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
-export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, level, say, since, children }: ModuleProps) {
+export function Module({ kind, name, area, footprint = "standard", state, onOpen, openHint = "details", warning, note, level, say, since, children }: ModuleProps) {
   const frame = useCardFrame({ footprint });
   const delay = useAlarmPhase(level === "alarm", since);
   return (
@@ -81,7 +83,7 @@ export function Module({ kind, name, area, footprint = "standard", state, onOpen
         {/* Labelled by the name alone, so the heading stays "Ceiling" while the button inside reads "Ceiling details". */}
         <h3 className="fd-name" title={name} aria-labelledby={frame.nameId}>
           {onOpen ? (
-            <button type="button" className="fd-open" aria-label={`${name} details`} aria-haspopup="dialog" onClick={onOpen}>
+            <button type="button" className="fd-open" aria-label={`${name} ${openHint}`} aria-haspopup="dialog" onClick={onOpen}>
               <span className="fd-open-t" id={frame.nameId}>{name}</span><IconOpen />
             </button>
           ) : <span id={frame.nameId}>{name}</span>}
@@ -742,6 +744,18 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   controls?: (where: "m" | "p") => ReactNode;
   /** Under the screen in a standard module, where it isn't `controls`: a reading's glyph and today. */
   row?: ReactNode;
+  /**
+   * A standard module's whole body under its header, in place of its screen and row: a camera's still, a window in the
+   * screen beside the screen's words. The card draws its own screen in it.
+   */
+  body?: ReactNode;
+  /** Over the panel's screen: a camera's still at the panel's width, the screen's words under it. */
+  panelPicture?: ReactNode;
+  /**
+   * What the name opens, where it isn't the panel: a camera's live stream (Home Assistant's more-info). The alert line
+   * still opens the panel.
+   */
+  onOpen?: () => void;
   /** The panel screen's second channel (`Channel`), in place of its meta lines. */
   aside?: ReactNode;
   /** The panel's screen, where it says something else than the module's (an owlet's reading under its alarm). */
@@ -765,19 +779,19 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
  * and controls, and the detail panel its name opens: the screen again with its second channel, the controls again,
  * the card's own blocks, and its facts. A card brings what goes in it.
  */
-export function ModuleFrame({ details, pict, read, meta, line, lead, controls, row = controls?.("m"), aside, panelScreen, facts, panelFocus, alert, children, ...module }: ModuleFrameProps) {
+export function ModuleFrame({ details, pict, read, meta, line, lead, controls, row = controls?.("m"), body, panelPicture, onOpen, aside, panelScreen, facts, panelFocus, alert, children, ...module }: ModuleFrameProps) {
   const { compact } = cardShape({ footprint: module.footprint });
   useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what, startedAt: alert.startedAt }, details.openDetails);
   const screen = panelScreen ?? { pict, read, meta };
   return (
     <>
-      <Module {...module} area={compact ? line ?? module.area : module.area} onOpen={details.openDetails} level={alert?.level} say={alert?.say} since={alert?.startedAt}>
+      <Module {...module} area={compact ? line ?? module.area : module.area} onOpen={onOpen ?? details.openDetails} level={alert?.level} say={alert?.say} since={alert?.startedAt}>
         {compact ? (
           <>
             {lead}
             <Screen pict={pict}>{read}</Screen>
           </>
-        ) : (
+        ) : body ?? (
           <>
             <Screen pict={pict} meta={meta}>{read}</Screen>
             {row}
@@ -786,6 +800,7 @@ export function ModuleFrame({ details, pict, read, meta, line, lead, controls, r
       </Module>
       <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area} focusContent={panelFocus === "content"}>
         <PanelBody className={`${module.kind}-panel`} state={module.state}>
+          {panelPicture}
           <Screen pict={screen.pict} meta={screen.meta} aside={aside}>{screen.read}</Screen>
           {controls?.("p")}
           {children}

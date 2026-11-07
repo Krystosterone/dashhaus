@@ -8,7 +8,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 
 | Model | Cards | What it is |
 | --- | --- | --- |
-| Direct | light, climate, cover, toggle, humidifier, fan, alarm | One Home Assistant entity and its attributes. |
+| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera | One Home Assistant entity and its attributes (a camera's still is its own `entity_picture`, core.md → Pictures). |
 | Composed | sensor, sound, weather, owlet, guestWifi | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
@@ -474,7 +474,35 @@ A door, a window, a leak, smoke: one `binary_sensor.*`, composed with the batter
 <HaBinarySensorModule entityId="binary_sensor.kitchen_leak" />
 ```
 
+## Using the camera card
+
+A doorbell's or a nursery's camera: one `camera.*`, its state and its still. A reading: no actions and no history.
+
+```tsx
+<CameraTile entity={frontDoor} onOpenLive={openStream} />
+<HaCameraTile entityId="camera.front_door" refresh={10} />
+```
+
+- **States:** Idle, Recording, Streaming and Unavailable, Home Assistant's own (`@dashhaus/core/entities/camera/words`, the same in every skin); a state it doesn't name is said in its own words (`motion_alert` → Motion alert), never as Idle. `unknown`, `unavailable` and a missing entity are Unavailable. A camera has no warnings: nothing is ranked.
+- **A reading:** the bare camera on its mount in place of an orb, saying its state without colour (a dot by the lens while it records, waves while it streams), and the state's word as a readout with no container, Idle in the second ink. It never glows (`paint("reading", 0)`).
+- **The still** is a picture (spec/core.md → Pictures, orb.md → A picture is a readout): Home Assistant's own signed `entity_picture`, added by `useHaCamera` (`useHaPicture`), drawn in `Picture` through `usePicture`. It loads only once its card is on screen and the page visible, refreshes every `refresh` seconds (default 10) only while both stay true, and keeps its last frame while the next decodes. Standard: beside the words, as tall as the card's inside, 16:9 cropped narrower as the card narrows, and gone under 260 px, where the sheet has it. Featured: across the card under the header at 16:9 on a phone's card, the state's word moving to the header's readout (under 260 px the words keep the slot and the still takes the rest). Sheet: the whole frame, `contain`, at the sheet's width. Never in a compact row, never glowing, never the state's colour, no word over it.
+- **What it says of its still** (`stillNote`), on the status line in place of the area, never over the picture: `No picture` when there is none to show (Home Assistant names none, or it failed with nothing to keep: the well holds the camera in muted ink, never a broken image), `Still from 22:14` when the frame isn't refreshing (a refresh failed and the last frame stays, or a `quiet` dashboard holds it).
+- **Unavailable:** the dashed slot with when it was last seen, and the dashed well with no frame at all, never a past one; the state, still and small print about the camera are hidden.
+- **The press:** the name and the still open the live stream where the host has one (`onOpenLive`: `useHaMoreInfo`, Home Assistant's more-info dialog inside Home Assistant), else the sheet, with the still large and refreshing while it is open; the reading always opens the sheet, so it stays in reach inside Home Assistant. No stream player of Dashhaus's own.
+- **Privacy and cost:** `still={false}` (YAML `still: false`, or the dashboard's `stills: false`) draws and fetches no still at all, and the card is its state and its icon; `paused` (the dashboard's `quiet`) loads a still when the card comes on screen and when the panel wakes, never on a timer.
+- **Compact:** the camera, the name and the area, the state's word as the row's value.
+- **Small print:** when it last changed (when it was last seen while unavailable), then what it is: `Reolink Video Doorbell · motion detection on` (`cameraKind`).
+- **Home Assistant:** `HaCameraTile` takes the camera and `still`, `refresh` and `paused`; it wires `onOpenLive` itself. It reads no history.
+
 <!-- new-card: cards -->
+
+### Field camera module
+
+`CameraModule` is the same normalized camera entity in the Field skin; `HaCameraModule` is its connected container, on the same `useHaCamera` hook as `HaCameraTile`, taking the same `still`, `refresh` and `paused`. See [field.md](field.md#camera).
+
+```tsx
+<HaCameraModule entityId="camera.nursery" />
+```
 
 ## The dashboard header
 

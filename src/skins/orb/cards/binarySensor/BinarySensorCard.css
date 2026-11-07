@@ -10,7 +10,6 @@
 }
 /* Off in the second ink; a warning is the marker's or the alarm pill's, never the figure's. */
 .bs[data-state="off"] .bs-f { color: var(--ink-2); }
-.bs-t { font-size: 15px; font-weight: 600; line-height: 1; }
 
 @container hd (min-width: 260px) {
   .bs:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }

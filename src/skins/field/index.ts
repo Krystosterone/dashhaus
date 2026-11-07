@@ -78,5 +78,9 @@ export { BinarySensorModule } from "./cards/binarySensor/BinarySensorModule";
 export type { BinarySensorModuleProps } from "./cards/binarySensor/BinarySensorModule";
 export { HaBinarySensorModule } from "./ha/HaBinarySensorModule";
 export type { HaBinarySensorModuleProps } from "./ha/HaBinarySensorModule";
+export { CameraModule } from "./cards/camera/CameraModule";
+export type { CameraModuleProps } from "./cards/camera/CameraModule";
+export { HaCameraModule } from "./ha/HaCameraModule";
+export type { HaCameraModuleProps } from "./ha/HaCameraModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

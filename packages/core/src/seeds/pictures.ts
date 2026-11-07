@@ -56,6 +56,30 @@ export const PICTURE_WIDE = svg(840, 360, [
   stamp(840, "2026-11-07 07:58:12  DRIVEWAY"),
 ].join(""));
 
+/**
+ * A doorbell's portrait still, 9:16, as the ones that see a visitor head to toe give it: the worst case for a 16:9
+ * box, which crops it to a band across the middle.
+ */
+export const PICTURE_TALL = svg(360, 640, [
+  `<rect width="360" height="640" fill="#a9a196"/>`,
+  `<rect y="470" width="360" height="170" fill="#857f75"/>`,
+  `<rect x="40" y="60" width="150" height="410" fill="#3f4a52"/>`,
+  `<rect x="54" y="80" width="122" height="170" fill="#4d5961"/>`,
+  `<rect x="54" y="270" width="122" height="180" fill="#4d5961"/>`,
+  `<circle cx="170" cy="280" r="6" fill="#c9b37a"/>`,
+  `<circle cx="252" cy="210" r="34" fill="#6a5446"/>`,
+  `<path d="M206 300c0-34 20-52 46-52s46 18 46 52v170h-92z" fill="#2f5d7a"/>`,
+  `<rect x="214" y="470" width="30" height="80" fill="#2b2b2e"/><rect x="260" y="470" width="30" height="80" fill="#2b2b2e"/>`,
+  `<rect x="96" y="540" width="96" height="64" fill="#b48a5a"/><rect x="138" y="540" width="12" height="64" fill="#d8c7a6"/>`,
+  stamp(360, "16:05:41  DOORBELL"),
+].join(""));
+
+/**
+ * A still that never decodes, as a camera that answers with an error page gives one: the worst case for a still that
+ * fails to load with nothing to keep.
+ */
+export const PICTURE_BROKEN = uri("<html><body>502 Bad Gateway</body></html>");
+
 /** A record sleeve, square: a low sun over three bands of field. */
 export const ARTWORK_SUNDAY = svg(600, 600, [
   `<rect width="600" height="600" fill="#e9d9b8"/>`,

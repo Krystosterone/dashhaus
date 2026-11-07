@@ -152,6 +152,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/alarm/words` | its warning's word and sensor (`alarmWarning`), `openSentence` |
 | `@dashhaus/core/entities/binarySensor/words` | a binary sensor's state in its device class's words (`stateWord`, `alertWord`, `wordsOf`), and the picture its class names (`pictureOf`) |
 | `@dashhaus/core/entities/binarySensor/severity` | `binarySensorSeverity`, and `stateSeverity` for the state's own |
+| `@dashhaus/core/entities/camera/words` | a camera's state in words (`cameraWord`), what to say of its still (`stillNote`: `No picture`, `Still from 22:14`), what it is (`cameraKind`), and how often a still refreshes by default (`STILL_REFRESH`, 10 seconds) |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/climate/words` | what a target does (`TARGET_WORD`), and its small print (`climateFacts`) |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |

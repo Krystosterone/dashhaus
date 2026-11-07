@@ -242,6 +242,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 .hd-metric:only-child { grid-column: 1 / -1; }
 /* A secondary metric (humidity, since when): its caption over its figure, left in its track, in the second ink. */
 .hd-metric--sub { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
+/* A secondary metric's time under its caption: since when a reading has said its word (a door's, a camera's). */
+.hd-metric-t { font-size: 15px; font-weight: 600; line-height: 1; }
 .hd-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
 .hd-label-short { display: none; }
 /* No reading yet: plain words. */

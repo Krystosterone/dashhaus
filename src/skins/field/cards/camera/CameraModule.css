@@ -1,0 +1,35 @@
+/* Camera module (fd-cm). The plate, screen, picture's window and panel body are shared; its own is the body: one dark
+   well under the header, the still a window in it beside the screen's words (spec/field.md → Camera). */
+
+/* A standard module's body takes the screen's and the row's place: there is no fader and no today. */
+.fd-cm[data-footprint="standard"] { grid-template-rows: auto 1fr; }
+
+.fd-cm-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--fd-r-screen);
+  background: var(--fd-screen);
+}
+/* The window at the body's height, up to 16:9, cropped to it as the module narrows; the screen's words beside it. */
+.fd-cm-body[data-still] { grid-template-columns: min(169px, 54%) minmax(0, 1fr); }
+.fd-cm-body .fd-pic { height: 100%; aspect-ratio: auto; }
+.fd-cm-body[data-still] .fd-screen { flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; border-radius: 0; }
+.fd-cm-body[data-still] .fd-meta { justify-items: start; text-align: left; max-width: 100%; }
+
+/* Idle is a resting state: its figure in the dim ink, as a door's SHUT. */
+:is(.fd-cm, .fd-cm-panel)[data-state="idle"] .fd-read-fig { color: var(--fd-screen-ink-2); }
+
+/* Narrow modules keep one meta line on the screen, as every module does. */
+@container (max-width: 239px) {
+  .fd-cm .fd-meta-2 { display: none; }
+  .fd-cm .fd-read { font-size: 22px; }
+}
+
+/* A narrow row keeps the figure and lets the pictogram go. */
+@container (max-width: 279px) {
+  .fd-cm[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-cm[data-footprint="compact"] .fd-screen { width: 80px; }
+}

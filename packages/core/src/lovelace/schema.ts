@@ -644,6 +644,15 @@ export const readAlarmOptions = (read: Reader, raw: Raw, at: string) => {
   };
 };
 
+/**
+ * A camera card's still: `still: false` draws and fetches none on this card, and `refresh` is how often it refreshes
+ * while seen, in seconds (spec/core.md → Pictures). A dashboard's `stills` and `quiet` are the skin's top-level keys.
+ */
+export const readCameraOptions = (read: Reader, raw: Raw, at: string) => ({
+  still: read.boolean(raw, "still", at),
+  refresh: read.number(raw, "refresh", at, 1, 3600),
+});
+
 /** An Owlet sock's companions, its alert sensors by alert name, and the minutes before it warns. */
 export function readOwletOptions<A extends string>(read: Reader, raw: Raw, at: string, alerts: readonly A[]) {
   const rawAlerts = raw.alerts;

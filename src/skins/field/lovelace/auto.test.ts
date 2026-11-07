@@ -112,7 +112,18 @@ describe("groupByArea", () => {
 
 describe("parseFieldConfig", () => {
   it("defaults to automatic modules, Home Assistant's dark mode, standard modules, and alarms that flash", () => {
-    expect(parseFieldConfig({ type: "custom:dashhaus-field" })).toEqual({ title: undefined, showTime: false, hourCycle: undefined, finish: "home-assistant", footprint: "standard", quiet: false });
+    expect(parseFieldConfig({ type: "custom:dashhaus-field" })).toEqual({ title: undefined, showTime: false, hourCycle: undefined, finish: "home-assistant", footprint: "standard", quiet: false, stills: true });
+  });
+
+  it("takes a camera's still and refresh, and the dashboard's stills", () => {
+    const config = parseFieldConfig({ stills: false, cards: [{ entity: "camera.door", still: false, refresh: 30 }, "camera.nursery"] });
+    expect(config.stills).toBe(false);
+    expect(config.rows?.[0].cards.map((c) => c.item)).toMatchObject([
+      { kind: "camera", entity: "camera.door", still: false, stillRefresh: 30 },
+      { kind: "camera", entity: "camera.nursery" },
+    ]);
+    expect(() => parseFieldConfig({ stills: "no" })).toThrow('"stills"');
+    expect(() => parseFieldConfig({ cards: [{ entity: "camera.door", refresh: 0 }] })).toThrow('"refresh" must be a whole number from 1 to 3600');
   });
 
   it("takes a clock for the header, on 12 or 24 hours", () => {
