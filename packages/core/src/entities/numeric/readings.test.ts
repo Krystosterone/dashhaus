@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fmtNumeric, isNumericClass, numericFact, isNumericStateClass, numericFigure, numericToday, numericWords, withUnit } from "./readings";
+import { TODAY_SHORT_PLACES, fmtNumeric, isNumericClass, numericFact, isNumericStateClass, numericFigure, numericToday, numericWords, withUnit } from "./readings";
 import type { NumericHistory } from "./types";
 
 const day = (readings: NumericHistory["readings"], currentHour = readings.length - 1): NumericHistory => ({ readings, currentHour });
@@ -93,5 +93,17 @@ describe("numericToday", () => {
   it("keeps a flat day flat rather than filling the strip with noise", () => {
     const { samples } = numericToday({ unit: "W" }, day([1000, 1001]));
     expect(samples[1] as number).toBeLessThan(0.25);
+  });
+});
+
+describe("TODAY_SHORT_PLACES", () => {
+  it("holds a measurement's range and a meter's rise, and not a range below zero", () => {
+    expect(TODAY_SHORT_PLACES).toBe(9);
+    const fits = (readings: number[], stateClass?: "total_increasing") =>
+      numericToday({ unit: "W", stateClass }, day(readings)).short!.length <= TODAY_SHORT_PLACES;
+    expect(fits([470, 940])).toBe(true); // "470–940"
+    expect(fits([-5, 42])).toBe(true); // "-5 to 42"
+    expect(fits([1514.7, 1523.3], "total_increasing")).toBe(true); // "+8.6"
+    expect(fits([310, -1240, 420])).toBe(false); // "-1240 to 420"
   });
 });

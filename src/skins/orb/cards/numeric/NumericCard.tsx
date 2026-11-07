@@ -1,5 +1,5 @@
 import type { NumericEntity, NumericHistory } from "@dashhaus/core/entities/numeric/types";
-import { fmtNumeric, numericFact, numericFigure, numericToday, numericWords, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { TODAY_SHORT_PLACES, fmtNumeric, numericFact, numericFigure, numericToday, numericWords, withUnit } from "@dashhaus/core/entities/numeric/readings";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { NumericIcon } from "./icons";
 import { CardFrame, Readout, Today, paint, useCard, detailsSheet } from "../../shared/ui";
@@ -19,9 +19,10 @@ export interface NumericCardProps extends CardProps {
  * the bare icon its device class names in place of an orb (air, power, a meter, a gauge), the figure in its unit as a
  * readout with no container, and no glow. The figure takes five places at most, scaled with an SI letter beyond
  * (`numericFigure`), so it never loses a digit to an ellipsis; it is heard in full. Today's second metric is the
- * day's low and high, or how far a meter that only climbs rose. The status line says the area and what it measures
- * ("Living room · CO₂"). It has no warning: a threshold of its own would be a guess (spec/cards.md). The name or the
- * reading opens the sheet with today's readings by hour.
+ * day's low and high, or how far a meter that only climbs rose, left out where it would not fit whole
+ * (`TODAY_SHORT_PLACES`). The status line says the area and what it measures ("Living room · CO₂"), and before a first
+ * reading "No reading yet", the readout "Waiting…", as the sensor card. It has no warning: a threshold of its own
+ * would be a guess (spec/cards.md). The name or the reading opens the sheet with today's readings by hour.
  */
 export function NumericCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: NumericCardProps) {
   const card = useCard("nm", { variant, footprint, showControl, area: e.area });
@@ -33,19 +34,22 @@ export function NumericCard({ entity: e, history, variant, footprint, showContro
   const today = history ? numericToday(e, history) : undefined;
 
   const figure = value != null ? numericFigure(value) : undefined;
-  const text = unav ? "Unavailable" : figure == null ? "No reading yet" : withUnit(figure, e.unit);
+  const text = unav ? "Unavailable" : figure == null ? "Waiting…" : withUnit(figure, e.unit);
   const spoken = value == null ? "no reading yet" : withUnit(fmtNumeric(value), e.unit);
-  const status = unav ? "Unavailable" : [area, words.label].filter(Boolean).join(" · ") || undefined;
+  const status = unav ? "Unavailable"
+    : [area, figure == null ? "No reading yet" : words.label].filter(Boolean).join(" · ") || undefined;
+  // A second metric that can't fit its track is left out, never cut: the strip and the sheet say it in full.
+  const todayMetric = today?.short && today.short.length <= TODAY_SHORT_PLACES ? today.short : undefined;
 
   const bar = (
     <span className="hd-bar nm-bar">
       {figure != null
         ? <span className="hd-metric nm-f"><span className="nm-v">{figure}</span>{e.unit && <small>{e.unit}</small>}</span>
-        : <span className="hd-none">No reading yet</span>}
-      {figure != null && today?.short && (
+        : <span className="hd-none">Waiting…</span>}
+      {figure != null && todayMetric && (
         <span className="hd-metric hd-metric--sub nm-today">
           <span className="hd-label">Today</span>
-          <span className="nm-t">{today.short}</span>
+          <span className="nm-t">{todayMetric}</span>
         </span>
       )}
     </span>

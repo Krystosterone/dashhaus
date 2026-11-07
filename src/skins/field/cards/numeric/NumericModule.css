@@ -7,14 +7,17 @@
   .fd-nm .fd-read { font-size: 24px; }
 }
 
-/* A row's screen holds a figure of five places and a unit of three letters ("12346 kWh"): it lets the pictogram (the
-   plate's glyph names what it measures) and the unlit leading places go, as a narrow sensor's row lets its pictogram
-   go. The figure is the same as the module's. */
-.fd-nm[data-footprint="compact"] .fd-pict { display: none; }
-/* Blank segments (unavailable, no reading yet) say themselves in their pad, so it stays on them. */
+/* A row keeps its pictogram, so its figure lines up with the sensor, lock and binary sensor rows beside it in an
+   area's list, and lets the unlit leading places go (the module's): the figure is the same as the module's. Blank
+   segments (unavailable, no reading yet) say themselves in their pad, so it stays on them. */
 .fd-nm[data-footprint="compact"] .fd-digits:not(:has(.fd-sr))::before { content: none; }
-.fd-nm[data-footprint="compact"] .fd-read { gap: 4px; }
-.fd-nm[data-footprint="compact"] .fd-screen { padding-inline: 6px; }
+/* The unit shows where it fits beside the figure, whole ("650 ppm", "1840 W"), and otherwise the row keeps the figure
+   ("1523", "-1240", "12346"); the unit is still heard. It wraps to a second line the screen clips, so what fits is the
+   figure's and the unit's own width, at every width, and never a cut letter. */
+.fd-nm[data-footprint="compact"] .fd-read { flex: 0 1 auto; }
+.fd-nm[data-footprint="compact"] .fd-read > .fd-read-fig { flex-wrap: wrap; min-width: 0; height: 1em; overflow-y: clip; }
+/* The figure's last segment already stands clear of the unit, so a row spends no margin on it ("1840 W" fits). */
+.fd-nm[data-footprint="compact"] .fd-read small { margin-left: 0; }
 
 /* A narrow row keeps the figure; its unit waits for the module and the panel (and is still heard). */
 @container (max-width: 279px) {
