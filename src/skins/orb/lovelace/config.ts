@@ -50,6 +50,7 @@ export type Kind =
   | "fan"
   | "guestWifi"
   | "binarySensor"
+  | "numeric"
   // new-card: kinds
   ;
 
@@ -78,6 +79,7 @@ export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
   sound: { domains: ["switch"] },
   guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
+  numeric: { domains: ["sensor"] },
   // new-card: shared kinds
 };
 
@@ -106,6 +108,7 @@ export type CardConfig = CardBase & (
   | { kind: "fan" }
   | { kind: "guestWifi"; access?: "code" | "password"; network?: string; qr?: string; newCode?: string; refresh?: string }
   | { kind: "binarySensor"; battery?: string }
+  | { kind: "numeric"; unit?: string }
   // new-card: card configs
 );
 
@@ -216,6 +219,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     keys: ["battery"],
     options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
+  numeric: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },
   // new-card: kind specs
 };
 

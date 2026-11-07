@@ -106,6 +106,21 @@ describe("autoDashboard", () => {
     expect(parsed?.cards.map((entry) => entry.item.kind)).toEqual(["alarm", "lock", "binarySensor", "binarySensor"]);
   });
 
+  it("puts the room's air quality in Rooms after the room sensors, as numeric cards, and leaves power to a person", () => {
+    const withAir = {
+      ...input,
+      states: { ...states, ...Object.fromEntries([
+        state("sensor.living_co2", { friendly_name: "Living room CO2", device_class: "carbon_dioxide" }),
+        state("sensor.living_pm25", { friendly_name: "Living room PM2.5", device_class: "pm25" }),
+      ].map((s) => [s.entity_id, s])) },
+      entities: { ...input.entities, "sensor.living_co2": { device_id: "air" }, "sensor.living_pm25": { device_id: "air" } },
+    };
+    const rooms = (autoDashboard(withAir).rows as { title: string; cards: unknown[] }[]).find((s) => s.title === "Rooms");
+    expect(rooms?.cards.slice(-1)).toEqual([{ entity: "sensor.living_co2", card: "numeric" }]);
+    const parsed = parseDashboardConfig(autoDashboard(withAir)).rows?.find((row) => row.title === "Rooms");
+    expect(parsed?.cards.map((entry) => entry.item.kind)).toEqual(["sensor", "sensor", "numeric"]);
+  });
+
   it("produces a config the card accepts", () => {
     const card = autoDashboard(input, "Flat");
     expect(() => parseDashboardConfig(card)).not.toThrow();

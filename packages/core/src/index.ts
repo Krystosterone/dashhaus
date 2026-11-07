@@ -136,4 +136,9 @@ export type { BinarySensorMapOptions } from "./ha/mappers/binarySensor";
 export { useHaBinarySensor } from "./ha/hooks/binarySensor";
 export type { HaBinarySensorOptions, HaBinarySensorResult } from "./ha/hooks/binarySensor";
 export { HaBinarySensor } from "./ha/headless";
+export { numericFromHass } from "./ha/mappers/numeric";
+export type { NumericMapOptions } from "./ha/mappers/numeric";
+export { useHaNumeric } from "./ha/hooks/numeric";
+export type { HaNumericOptions, HaNumericResult } from "./ha/hooks/numeric";
+export { HaNumeric } from "./ha/headless";
 // new-card: exports
