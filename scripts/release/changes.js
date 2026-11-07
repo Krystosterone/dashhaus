@@ -27,7 +27,7 @@ export const CHANGES_DIR = "changes";
 /** In the order a release record lists them; `internal` is counted, never listed. */
 export const CHANGE_TYPES = ["breaking", "feature", "fix", "internal"];
 
-/** Outside the public package folders, the files a tarball or the bundle is built from. */
+/** Outside the public package folders, the files a tarball or a resource is built from. */
 const BUILT_FROM = [
   "package-lock.json",
   "LICENSE",

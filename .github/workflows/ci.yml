@@ -20,7 +20,7 @@ concurrency:
 # Every lane checks out, then installs through .github/actions/setup. Why the lanes are shaped as they are is in
 # spec/release.md → CI.
 jobs:
-  # Typecheck, lint and the Lovelace bundle, on the tool caches so an unchanged file isn't checked again.
+  # Typecheck, lint and the skins' resources, on the tool caches so an unchanged file isn't checked again.
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15

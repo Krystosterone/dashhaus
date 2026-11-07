@@ -41,10 +41,10 @@ The four colour roles are `on`, `read`, `idle` and `alert`, plus `gone` for unav
 colour. Salmon is never used for decoration. A key that is lit but at rest (a lock's LOCK while locked, a switch's OFF
 while off) lights pale (`--titan-key-soft`), not salmon, so "on" keeps one meaning.
 
-**Type** is Antonio, a condensed grotesque (SIL OFL 1.1), set in capitals throughout. The bundle carries its own woff2
-files, inlined from `@fontsource/antonio`, and hands them to the page as a blob stylesheet (`shared/surface.ts`). It
-needs no Google Fonts and no network, because Home Assistant is often on a home network with no route out. Big figures
-use tabular numerals.
+**Type** is Antonio, a condensed grotesque (SIL OFL 1.1), set in capitals throughout. Its Lovelace card carries its own
+woff2 files, inlined from `@fontsource/antonio`, and hands them to the page as a blob stylesheet (`shared/surface.ts`).
+It needs no Google Fonts and no network, because Home Assistant is often on a home network with no route out. Big
+figures use tabular numerals.
 
 **Motion**: only transforms, opacity and colours, at `--titan-press` (110 ms) for keys and `--titan-close` (220 ms) for
 state changes, eased by `--titan-ease-*`. Keys scale to 0.96 on `:active`. Fills grow on `scaleX`. The lock's bolt

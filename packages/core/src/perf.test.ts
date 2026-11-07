@@ -54,8 +54,8 @@ describe("performance marks", () => {
     window.localStorage.setItem("dashhaus:perf", "1");
     const perf = await load();
     expect(perf.perfEnabled()).toBe(true);
-    perf.perfMark("bundle:entry");
-    expect(window.__dashhausPerf?.marks.map((mark) => mark.name)).toEqual(["bundle:entry"]);
+    perf.perfMark("resource:entry");
+    expect(window.__dashhausPerf?.marks.map((mark) => mark.name)).toEqual(["resource:entry"]);
   });
 
   it("marks after paint, or immediately where the frame API is absent", async () => {

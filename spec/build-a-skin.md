@@ -1,7 +1,7 @@
 # Build a skin
 
 A skin is a React UI for Home Assistant drawn on the headless packages. This guide is the standalone path: a new
-directory, the published packages, the scaffolder, one bundle, one deploy. It does not use this repository, Storybook
+directory, the published packages, the scaffolder, one resource, one deploy. It does not use this repository, Storybook
 or its workspace. The repository's own generator reference is [skins.md](skins.md).
 
 ## Start
@@ -42,7 +42,7 @@ to the scaffold's files or scripts updates it in the same change.
 ## Preview
 
 `preview/` draws the real element from `lovelace/entry.tsx` (shadow root, scoped CSS, the store on a connection)
-through an in-page stand-in for Home Assistant's websocket connection; it is not part of the bundle. The domains
+through an in-page stand-in for Home Assistant's websocket connection; it is not part of the resource. The domains
 `preview/house.ts` lists (lights and sensors) come from it, with the worst cases a skin must survive; every other
 domain comes from `@dashhaus/core/demo`'s house, whose services behave, so a card `npm run add` writes is on the page
 with no edit. `npm run preview` serves it with Vite; `npm run snapshot` saves it at 1280 px light, 390 px light and
@@ -90,7 +90,7 @@ its file, line and fix. Run it after every card change.
 
 ## Build
 
-The scaffold's `vite.config.js` emits the bundle. Each component imports its own stylesheet, which the config turns
+The scaffold's `vite.config.js` emits the resource. Each component imports its own stylesheet, which the config turns
 into nothing, and `lovelace/entry.tsx` gathers every stylesheet `?inline` and passes their text to `defineMySkinCard`,
 so a card `npm run add` writes needs no edit there. The emitted
 `dist/dashhaus-my-skin.js` is one ES module carrying React, the card code and its CSS; Home Assistant needs one
@@ -105,7 +105,7 @@ them all live on one instance. The entry also defines the skin's dashboard strat
 `.env.example` with each one explained. The config names the file (`files`), its `build()` (`npm run build`) and the
 dashboard.
 
-Then `npm run deploy` builds, uploads the bundle, registers the resource, checks that Home Assistant serves it and
+Then `npm run deploy` builds, uploads the file, registers it as a resource, checks that Home Assistant serves it and
 creates the dashboard once. See [deploy.md](deploy.md) for `--config`, SSH and the deploy rules.
 
 ## Prebuilt versus composed

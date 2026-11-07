@@ -1,7 +1,7 @@
 # __Section__, a study
 
 __Section__ is a **study**: a skin an agent built, kept so you can see what it made and start from it.
-It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and `npm run deploy` doesn't
+It is not finished or polished, and it doesn't ship: it has no resource, and `npm run deploy` doesn't
 create its dashboard. It is checked like every skin in this repository, so it keeps working as the packages change.
 
 ## Use it
@@ -25,5 +25,5 @@ paragraph with what was done after that, and what the run taught about the gener
 
 A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its design
 rules to `spec/__skin__.md` (and its cards' entries to `spec/cards.md`), move its stories from `Studies/__Section__` to
-`__Section__`, and register it in the Lovelace bundle and the deploy config as `new-skin` does for any skin (spec/skins.md →
-Studies).
+`__Section__`, and give it a resource and register it in the deploy config as `new-skin` does for any skin
+(spec/skins.md → Studies).

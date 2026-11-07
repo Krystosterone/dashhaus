@@ -38,7 +38,7 @@ the outside in, snapshotting after each step and comparing with the reference:
 1. **Palette:** `styles/tokens.css`. Name the reference's colours by role: page, card, muted card, ink, muted ink,
    line, accent and the ink on it, warning. Then set the tokens. Add tokens freely; keep the `--__skin__-` prefix. The
    light block is Home Assistant's light mode and the two dark blocks its dark mode, so give the dark mode a version
-   of the look too, even when the reference shows only one. Keep every token block on `:root`, which the bundle
+   of the look too, even when the reference shows only one. Keep every token block on `:root`, which the build
    turns into the card's host. A token set again on a class inside the card would hide the dark values.
 2. **Type:** set `__SKIN_CONST___FONT_HREF` in `shared/surface.ts` to a Google Fonts stylesheet URL, and name the
    families in tokens (`--__skin__-sans`; add `--__skin__-display`, `--__skin__-mono` as needed). Big numerals,
@@ -77,8 +77,8 @@ the outside in, snapshotting after each step and comparing with the reference:
 | `lovelace/card.tsx` | the custom element: theme attribute, font link, host CSS | rarely |
 | `lovelace/config.ts`, `lovelace/auto.ts` | the YAML the card takes, and the automatic layout | rarely |
 | `lovelace/registry.tsx` | which card draws which entity; `npm run add` adds a row | `npm run add` does it |
-| `lovelace/entry.tsx` | the bundle's entry: gathers every stylesheet into the one file | no |
-| `preview/` | the local preview, your sample house and the snapshot script; not part of the bundle | add sample entities |
+| `lovelace/entry.tsx` | the resource's entry: gathers every stylesheet into the one file, and defines the card and the dashboard strategy | no |
+| `preview/` | the local preview, your sample house and the snapshot script; not part of the resource | add sample entities |
 | `conformance.js`, `tsconfig.json` | `npm test`: the rules, after `tsc` | no |
 | `vite.config.js`, `dashboard.config.mjs` | the one-file build and the deploy | rarely |
 
@@ -89,7 +89,7 @@ the outside in, snapshotting after each step and comparing with the reference:
 - ✓ **Colours come from tokens.** No colour literal (`#…`, `rgb()`, `oklch()`, …) in any CSS but `styles/tokens.css`,
   whose blocks sit on `:root`. Every `var(--__skin__-…)` names a token something defines (or gives a fallback), so a
   renamed token can't leave a rule reading nothing.
-- ✓ **Classes start with `__skin__-`** (the bundle shares a page with other cards); by convention a card's own start
+- ✓ **Classes start with `__skin__-`** (the card shares a page with other cards); by convention a card's own start
   `__skin__-<domain>-`.
 - ✓ **Hover only under `@media (hover: hover) and (pointer: fine)`**, so a tap on a phone never leaves it stuck.
 - ✓ **A theme attribute of its own.** Dark mode is keyed on `data-__skin__-theme`, which `lovelace/card.tsx` sets on
@@ -186,7 +186,7 @@ npm run deploy
 ```
 
 `HA_WWW` is Home Assistant's `/config/www`, the folder it serves at `/local/`: `user@host:/config/www` over SSH, or that
-folder mounted here. `npm run deploy` builds, copies the bundle to `$HA_WWW/dashhaus-__skin__/` and registers it as a
+folder mounted here. `npm run deploy` builds, copies the file to `$HA_WWW/dashhaus-__skin__/` and registers it as a
 dashboard resource. It then checks that Home Assistant serves the file, and creates **Home (__Section__)** at
 `/dashhaus-__skin__` the first time. It worked when every step ends in ✓. Run it again after every change: the
 dashboard's layout is kept and the resource version moves, and an open tab picks the new version up on reload.

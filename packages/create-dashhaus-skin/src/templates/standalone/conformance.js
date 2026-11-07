@@ -32,7 +32,7 @@ const cardFindings = checkCards(
   { root },
 ).map((finding) => `cards/${finding.card}: [${finding.rule}] ${finding.message}`);
 
-/** Every file the bundle can carry with one of these endings: everything but dependencies, the build and the preview page. */
+/** Every file the resource can carry with one of these endings: everything but dependencies, the build and the preview page. */
 function sources(extensions, dir = root) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     if (["node_modules", "dist", "preview", ".git"].includes(entry.name)) return [];

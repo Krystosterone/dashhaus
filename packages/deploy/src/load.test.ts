@@ -27,7 +27,7 @@ const dashboard = (overrides: Partial<{ path: string; title: string; env: { path
 });
 
 const config = (overrides: Partial<DeployConfig> = {}): DeployConfig => ({
-  files: ["dist/dashhaus.js"],
+  files: ["dist/orb-dashboard.js"],
   dashboards: [dashboard()],
   ...overrides,
 });
@@ -200,7 +200,7 @@ describe("loadDashboards", () => {
     await writeFile(join(directory, "dashboard.config.mjs"), [
       "export default {",
       '  pageTitle: "Home",',
-      '  files: ["dist/dashhaus.js"],',
+      '  files: ["dist/orb-dashboard.js"],',
       "  dashboards: [{",
       '    path: "dashhaus-orb",',
       '    title: "Home",',

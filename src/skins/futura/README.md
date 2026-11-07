@@ -2,7 +2,7 @@
 
 Futura is a **study**: a skin an agent built with this repository's generators, kept so you can see what they make and
 start from it. It draws the house as a dark instrument console lit by two neon signals, cyan for live and amber for
-energy. It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and `npm run deploy`
+energy. It is not finished or polished, and it doesn't ship: it has no resource, and `npm run deploy`
 doesn't create its dashboard. It is checked like every skin in this repository, so it keeps working as the packages
 change.
 
@@ -36,5 +36,5 @@ loudly on the wrong npm.
 
 A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its design
 rules to `spec/futura.md` (and its cards' entries to `spec/cards.md`), move its stories from `Studies/Futura` to
-`Futura`, and register it in the Lovelace bundle and the deploy config as `new-skin` does for any skin (spec/skins.md →
+`Futura`, and give it a resource and register it in the deploy config as `new-skin` does for any skin (spec/skins.md →
 Studies).

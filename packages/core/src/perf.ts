@@ -1,12 +1,12 @@
 /**
- * Opt-in performance marks for a deployed bundle.
+ * Opt-in performance marks for a deployed skin's resource.
  *
  * Off is the default and stays invisible: every function here returns before it touches the DOM, the
  * Performance API or a listener unless the page opted in with `?dashhaus_perf=1` or
  * `localStorage["dashhaus:perf"] = "1"`. On, it records `dashhaus:<name>` Performance marks and keeps the
  * same marks, with their details, in `window.__dashhausPerf` for the repo's Playwright collector.
  *
- * The bundle marks what a user waits for: the entry evaluating, the Lovelace element connecting and its
+ * The resource marks what a user waits for: its entry evaluating, the Lovelace element connecting and its
  * store connecting, the first render painting, a pointer press, a details surface appearing, and one
  * action from Home Assistant's service call to the entity update painting. The collector combines them
  * with the browser's navigation, paint and long-task entries.

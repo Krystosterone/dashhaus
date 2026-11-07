@@ -149,21 +149,21 @@ try {
         return "npm test refuses data-theme and names data-my-skin-theme";
       });
 
-      const bundleName = `dashhaus-${SKIN}.js`;
+      const resourceName = `dashhaus-${SKIN}.js`;
       const build = await report.stage("build", async () => {
         const { output } = run("npm", ["run", "build", "--silent"], { cwd: skinApp });
         // Every file, not only the .js ones: a stylesheet read as CSS once left an empty dist/style.css beside it.
         const files = await readdir(join(skinApp, "dist"));
-        assert.deepEqual(files, [bundleName], "the build must emit one file, the JS bundle named for the skin");
+        assert.deepEqual(files, [resourceName], "the build must emit one file, the resource named for the skin");
         assert.doesNotMatch(output, /css-syntax-error|warnings when minifying css/i, "the build must not warn about CSS");
-        const bundle = await read(join(skinApp, "dist", bundleName));
-        assert.match(bundle, /dashhaus-my-skin/, "the bundle must register the skin's card");
-        assert.match(bundle, /--my-skin-/, "the bundle must carry the skin's CSS");
-        return `dist/${bundleName} (${Math.round(bundle.length / 1024)} kB)`;
+        const resource = await read(join(skinApp, "dist", resourceName));
+        assert.match(resource, /dashhaus-my-skin/, "the resource must register the skin's card");
+        assert.match(resource, /--my-skin-/, "the resource must carry the skin's CSS");
+        return `dist/${resourceName} (${Math.round(resource.length / 1024)} kB)`;
       });
 
       if (!build.ok) {
-        report.blocked(["install by hand", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], `no dist/${bundleName} to upload`);
+        report.blocked(["install by hand", "deploy", "details", "add a domain", "added card", "add a guarded action", "guarded action"], `no dist/${resourceName} to upload`);
       } else {
         // What an agent that can't reach Home Assistant hands over, done as the person would: the guide's own lines.
         const byHand = await report.stage("install by hand", async () => {
@@ -171,9 +171,9 @@ try {
           const section = guide.split("\n## Install by hand\n")[1]?.split("\n## ")[0];
           assert.ok(section, "AGENTS.md has no Install by hand section");
           const folder = `dashhaus-${SKIN}`;
-          const line = `/local/${folder}/${bundleName}?v=1`;
+          const line = `/local/${folder}/${resourceName}?v=1`;
           assert.ok(section.includes(`\`${line}\``), `Install by hand must give the resource line ${line}`);
-          assert.ok(section.includes(`\`dist/${bundleName}\``), "Install by hand must name the file to hand over");
+          assert.ok(section.includes(`\`dist/${resourceName}\``), "Install by hand must name the file to hand over");
           assert.ok(section.includes(`\`${folder}\``), `Install by hand must name the folder and URL ${folder}`);
           const title = section.match(/titled\s+\*\*([^*]+)\*\*/)?.[1];
           assert.equal(title, "Home (My Skin)", "Install by hand must title the dashboard as npm run deploy does");
@@ -185,7 +185,7 @@ try {
           const { ha, settings } = await fakeHomeAssistant();
           // File editor: the folder and the upload. Resources: the line, as a module. Then a new dashboard, pasted.
           await mkdir(join(www, folder), { recursive: true });
-          await writeFile(join(www, folder, bundleName), await read(join(skinApp, "dist", bundleName)));
+          await writeFile(join(www, folder, resourceName), await read(join(skinApp, "dist", resourceName)));
           await ha.send("lovelace/resources/create", { res_type: "module", url: line });
           await ha.send("lovelace/dashboards/create", { url_path: folder, title, mode: "storage" });
           await ha.send("lovelace/config/save", { url_path: folder, config });
@@ -195,7 +195,7 @@ try {
 
           // The next change: the new file in place of the old one, and the line's number raised.
           assert.ok(section.includes("`?v=2`"), "Install by hand must say to raise the resource's number");
-          await writeFile(join(www, folder, bundleName), `${await read(join(skinApp, "dist", bundleName))}\n// the next version\n`);
+          await writeFile(join(www, folder, resourceName), `${await read(join(skinApp, "dist", resourceName))}\n// the next version\n`);
           await ha.send("lovelace/resources/update", { resource_id: ha.resources[0].id, res_type: "module", url: line.replace("?v=1", "?v=2") });
           assert.match(await (await fetch(`${settings.HA_URL}${ha.resources[0].url}`)).text(), /the next version/);
           await exerciseDetails(`${settings.HA_URL}/${folder}`, [{ card: "sensor", facts: ["State", "Entity"], close: "escape" }]);
@@ -213,13 +213,13 @@ try {
           assert.match(result.output, /✓ .*\/local\/dashhaus-my-skin\/dashhaus-my-skin\.js\?v=[0-9a-f]{10} \(\d+ kB, the uploaded file\)/);
           const ha = server.ha;
           assert.equal(ha.resources.length, 1);
-          assert.ok(ha.resources[0].url.startsWith(`/local/dashhaus-${SKIN}/${bundleName}?v=`), `unexpected resource URL ${ha.resources[0].url}`);
+          assert.ok(ha.resources[0].url.startsWith(`/local/dashhaus-${SKIN}/${resourceName}?v=`), `unexpected resource URL ${ha.resources[0].url}`);
           assert.deepEqual(ha.dashboards.map((dashboard) => dashboard.url_path), ["dashhaus-my-skin"]);
           assert.deepEqual(ha.dashboards.map((dashboard) => dashboard.title), ["Home (My Skin)"]);
           assert.equal(ha.saved.length, 1);
           assert.equal(ha.saved[0].config.views[0].type, "panel");
           assert.equal(ha.saved[0].config.views[0].cards[0].type, "custom:dashhaus-my-skin");
-          assert.equal(await read(join(www, `dashhaus-${SKIN}/${bundleName}`)), await read(join(skinApp, "dist", bundleName)));
+          assert.equal(await read(join(www, `dashhaus-${SKIN}/${resourceName}`)), await read(join(skinApp, "dist", resourceName)));
           if (screenshotDir) {
             const file = await screenshotDashboard(`${HA_URL}/dashhaus-my-skin`, join(screenshotDir, "author.png"));
             console.log(`  screenshot: ${file}`);

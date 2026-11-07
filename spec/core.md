@@ -149,7 +149,7 @@ one: the deployed card already inherits the frontend's authenticated connection,
 duplicate the host's.
 
 - **Lovelace card.** The element builds a transport from `hass.connection` with `createHomeAssistantTransport`. It
-  shares the Home Assistant frontend's authenticated socket, carries no credentials in the card or the bundle, and
+  shares the Home Assistant frontend's authenticated socket, carries no credentials in the card or its resource, and
   never closes the frontend's connection.
 - **Standalone app.** The host obtains an `Auth` — OAuth through `home-assistant-js-websocket`, or a long-lived token
   the host manages — and calls `connectHomeAssistant(auth)`. The host owns the returned transport and calls

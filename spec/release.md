@@ -67,7 +67,7 @@ One file per pull request, so two never conflict; `changes/README.md` is the gui
 `release-notes` skill (`.agents/skills/`) is how an agent writes one and finishes a release record.
 
 CI's `checks` lane runs `node scripts/release/changes.js check-pr` on every pull request: a diff that touches a public
-package's files (tests, stories and READMEs aside), the bundle's entry, the lockfile or the build fails unless it adds
+package's files (tests, stories and READMEs aside), a resource's entry, the lockfile or the build fails unless it adds
 or edits a note, and every note must parse. `shipsFrom` in `scripts/release/changes.js` is that list. A release PR
 collects the notes instead.
 
@@ -143,9 +143,9 @@ Decided, and why:
 ## Determinism
 
 The files a release PR records are the files the workflow ships because nothing in a build depends on anything but the
-tree: the bundle names its build by its version (`config/vite.lovelace.config.ts`), never a ref, so tagging changes no
+tree: a resource names its build by its version (`config/vite.lovelace.config.ts`), never a ref, so tagging changes no
 byte; npm packs with fixed timestamps; the lockfile pins every dependency, and the build installs it with no cache.
-The 0.2.0 tarballs packed again here, on another machine, matched npm's byte for byte, the bundle aside, which then
+The 0.2.0 tarballs packed again here, on another machine, matched npm's byte for byte, the resource aside, which then
 still named its commit.
 
 `npm run release:registry -- <x.y.z> [--out registry] [--compare release]` downloads a published version back from

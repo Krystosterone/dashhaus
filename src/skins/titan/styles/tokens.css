@@ -54,7 +54,7 @@
   --titan-press: 110ms;
   --titan-close: 220ms;
 
-  /* Type: Antonio, a condensed grotesque; the bundle carries its own @font-face (shared/surface.ts). */
+  /* Type: Antonio, a condensed grotesque; the Lovelace card carries its own @font-face (shared/surface.ts). */
   --titan-sans: "Antonio", "Oswald", "Roboto Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
 }
 

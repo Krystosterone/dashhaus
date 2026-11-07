@@ -46,13 +46,13 @@ function loadFont(href: string) {
 }
 
 /**
- * What every skin's Lovelace card shares, whichever UI it draws: a shadow root with the bundle's styles, one store per
- * frontend connection (reused, never closed, so no token), and a React root that survives Lovelace moving the
- * card between parents. A Lovelace card parses its YAML, says which `hass` changes its page reads (entity states reach it
+ * What every skin's Lovelace card shares, whichever UI it draws: a shadow root with the resource's styles, one store
+ * per frontend connection (reused, never closed, so no token), and a React root that survives Lovelace moving the card
+ * between parents. A Lovelace card parses its YAML, says which `hass` changes its page reads (entity states reach it
  * through the store either way), and draws.
  */
 export abstract class LovelaceDashboardElement<C> extends HTMLElement {
-  /** The bundle's stylesheet, scoped to the host, plus the card's own host rules. */
+  /** The resource's stylesheet, scoped to the host, plus the card's own host rules. */
   protected abstract readonly styles: string;
   /** A class for the element React renders into. */
   protected readonly mountClass: string = "";

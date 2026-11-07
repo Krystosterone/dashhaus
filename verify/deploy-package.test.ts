@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { loadDashboards } from "@dashhaus/deploy";
 import type { DeployCardFactory, DeployDashboard, DeployHa } from "@dashhaus/deploy";
 import { GENERATED_SKINS } from "../scripts/generated-skins.js";
+import { RESOURCES } from "../scripts/resources.js";
 
 /** A card dashboard's factory, called as the CLI would: the repo's and the generated ones are all factories. */
 const make = (dashboard: DeployDashboard) => (dashboard.card as DeployCardFactory)(fakeHa);
@@ -99,9 +100,10 @@ describe("@dashhaus/deploy", () => {
     expect(outside).toEqual([]);
   });
 
-  it("hardcodes neither this repo's Vite config nor its bundle", () => {
+  it("hardcodes neither this repo's Vite config nor a skin's resource", () => {
     const files = sources([PACKAGE]).filter((path) => /\.(js|mjs|mts)$/.test(path));
-    expect(files.filter((path) => /vite\.lovelace\.config\.ts|dashhaus\.js/.test(read(path)))).toEqual([]);
+    const names = ["vite.lovelace.config.ts", ...RESOURCES.map(({ file }) => file)];
+    expect(files.filter((path) => names.some((name) => read(path).includes(name)))).toEqual([]);
   });
 
   it("keeps the repo's config the only outside importer of orb's generated layout", () => {

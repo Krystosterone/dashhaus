@@ -247,7 +247,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
     - registry.tsx which card draws which entity
     - MySkinDashboard.tsx the page drawn from the YAML
     - MySkinActionStatus.tsx the rejected-command row
-    - entry.tsx the bundle's entry
+    - entry.tsx the resource's entry: the card, its CSS and its dashboard strategy
   - styles/
     - tokens.css every colour, under the skin's prefix
   - preview/
@@ -258,7 +258,7 @@ checks, builds it and deploys it into a simulated Home Assistant.
   - CLAUDE.md imports AGENTS.md
   - conformance.js the card and CSS rules npm test runs
   - tsconfig.json the TypeScript program
-  - dashboard.config.mjs the bundle to build and the dashboard to create
+  - dashboard.config.mjs the resource to build and the dashboard to create
   - .env.example the three deploy settings
   - .gitignore keeps .env and the build out of git
   - vite.config.js the one-file build

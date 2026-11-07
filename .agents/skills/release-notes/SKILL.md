@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: Write the change note a pull request carries, and finish a release PR's record. Use when a change touches what a release ships (a public package, the bundle's entry, the lockfile or the build), when CI says a pull request "adds no change note" or a candidate is unfinished, when preparing a release with npm run release, or when reviewing notes or a release record.
+description: Write the change note a pull request carries, and finish a release PR's record. Use when a change touches what a release ships (a public package, a skin's resource entry, the lockfile or the build), when CI says a pull request "adds no change note" or a candidate is unfinished, when preparing a release with npm run release, or when reviewing notes or a release record.
 ---
 
 # Release notes

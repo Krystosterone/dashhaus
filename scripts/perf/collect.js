@@ -1,7 +1,7 @@
 /**
  * Measure the deployed dashboards in a real browser, against the live Home Assistant.
  *
- * The bundle's opt-in marks (`@dashhaus/core/perf`) are combined with the browser's navigation, paint,
+ * The resources' opt-in marks (`@dashhaus/core/perf`) are combined with the browser's navigation, paint,
  * long-task and resource entries. For each skin it measures a cold load, opening a card's details, and one
  * reversible control action; it restores the entity to the state it found. The report is JSON, one file per
  * run, so two runs can be compared.
@@ -21,12 +21,16 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { chromiumLaunchOptions } from "../chromium.js";
 import { connectHomeAssistant, loadDashboards } from "@dashhaus/deploy";
+import { RESOURCES } from "../resources.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const VIEWPORT = { width: 1440, height: 1000 };
 const CONFIG = join(root, "dashboard.config.mjs");
 const ENV = join(root, ".env");
 const DEFAULT_ENTITY = "input_boolean.do_not_disturb";
+// Every file `npm run build:ha` writes, which deploy serves as `/local/<name>/<name>.js`: a stack or a request from
+// one of them is the skin's own.
+const RESOURCE_FILES = RESOURCES.map(({ file }) => file);
 
 function usage() {
   return `Usage: npm run perf:collect [-- options]
@@ -42,7 +46,7 @@ Options:
   --headed           Show the browser instead of running headless
   --help             Print this help
 
-Settings: HA_URL and HA_TOKEN in .env or the environment. Deploy the instrumented bundle first.
+Settings: HA_URL and HA_TOKEN in .env or the environment. Deploy the instrumented resources first (npm run deploy).
 `;
 }
 
@@ -118,17 +122,17 @@ async function createContext(browser, { token, origin, enabled }) {
     deviceScaleFactor: 1,
     colorScheme: "dark",
   });
-  await context.addInitScript(({ token, origin, enabled }) => {
-    // The opt-in must add nothing to an off page. Record what the bundle itself registers or fetches,
+  await context.addInitScript(({ token, origin, enabled, files }) => {
+    // The opt-in must add nothing to an off page. Record what a skin's resource itself registers or fetches,
     // by checking the call stack, so Home Assistant's own pointer listeners and requests do not count.
-    const fromBundle = () => {
+    const fromResource = () => {
       const stack = new Error().stack ?? "";
-      return stack.includes("/local/") && stack.includes("dashhaus");
+      return stack.includes("/local/") && files.some((file) => stack.includes(file));
     };
     window.__perfProbe = { pointerdown: [], fetches: [] };
     const addListener = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function (type, listener, options) {
-      if (type === "pointerdown" && fromBundle()) {
+      if (type === "pointerdown" && fromResource()) {
         window.__perfProbe.pointerdown.push({
           target: this === window ? "window" : this === document ? "document" : this?.tagName?.toLowerCase() ?? "other",
           capture: typeof options === "object" ? options?.capture === true : options === true,
@@ -140,13 +144,13 @@ async function createContext(browser, { token, origin, enabled }) {
     const request = window.fetch;
     if (request) {
       window.fetch = function (...args) {
-        if (fromBundle()) window.__perfProbe.fetches.push(typeof args[0] === "string" ? args[0] : args[0]?.url ?? "?");
+        if (fromResource()) window.__perfProbe.fetches.push(typeof args[0] === "string" ? args[0] : args[0]?.url ?? "?");
         return request.apply(this, args);
       };
     }
     const open = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-      if (fromBundle()) window.__perfProbe.fetches.push(String(url));
+      if (fromResource()) window.__perfProbe.fetches.push(String(url));
       return open.call(this, method, url, ...rest);
     };
     try {
@@ -188,7 +192,7 @@ async function createContext(browser, { token, origin, enabled }) {
     } catch {
       // The observers are collector-side context; a browser without them still has navigation timing.
     }
-  }, { token, origin, enabled });
+  }, { token, origin, enabled, files: RESOURCE_FILES });
   return context;
 }
 
@@ -318,7 +322,7 @@ function summarizeBrowser(browser) {
 
 function summarizeMarks(marks) {
   const marksByName = {
-    bundleEntryMs: firstMark(marks, "bundle:entry")?.at ?? null,
+    resourceEntryMs: firstMark(marks, "resource:entry")?.at ?? null,
     elementConnectedMs: firstMark(marks, "element:connected")?.at ?? null,
     storeCreatedMs: firstMark(marks, "store:created")?.at ?? null,
     storeConnectedMs: firstMark(marks, "store:connected")?.at ?? null,
@@ -335,13 +339,13 @@ function summarizeMarks(marks) {
   return {
     marks: Object.fromEntries(Object.entries(marksByName).map(([key, value]) => [key, round(value)])),
     timings: {
-      entryToConnectedMs: delta(firstMark(marks, "bundle:entry"), connected),
+      entryToConnectedMs: delta(firstMark(marks, "resource:entry"), connected),
       connectedToPaintedMs: delta(connected, painted),
-      entryToPaintedMs: delta(firstMark(marks, "bundle:entry"), painted),
+      entryToPaintedMs: delta(firstMark(marks, "resource:entry"), painted),
       framePaintToStoreConnectedMs: delta(painted, store),
       navigationToPaintedMs: round(painted?.at),
       connectedToReadyMs: delta(connected, ready),
-      entryToReadyMs: delta(firstMark(marks, "bundle:entry"), ready),
+      entryToReadyMs: delta(firstMark(marks, "resource:entry"), ready),
       storeToReadyMs: delta(store, ready),
       navigationToReadyMs: round(ready?.at),
     },
@@ -363,22 +367,22 @@ async function runSkin(browser, skin, { path, base, token, origin, entity, cardN
     try {
       await page.waitForFunction(() => window.__dashhausPerf?.marks?.some((mark) => mark.name === "store:painted"), null, { timeout: 90_000 });
     } catch {
-      throw new Error(`No data-ready performance mark from ${url}. Deploy the instrumented bundle with npm run deploy.`);
+      throw new Error(`No data-ready performance mark from ${url}. Deploy the instrumented resources with npm run deploy.`);
     }
     await waitForCards(page);
     await page.waitForTimeout(300);
 
     // Prove the off check's probe is not vacuous: the opt-in page must show the listener it looks for,
-    // and the bundle must still make no fetch of its own.
+    // and the resource must still make no fetch of its own.
     const probe = await page.evaluate(() => window.__perfProbe ?? { pointerdown: [], fetches: [] });
-    // React's event delegation also registers pointerdown listeners from inside the bundle; the opt-in's
+    // React's event delegation also registers pointerdown listeners from inside the resource; the opt-in's
     // one is the window capture listener it installs, so judge only that signature.
     const optInListeners = probe.pointerdown.filter((entry) => entry.target === "window" && entry.capture && entry.passive).length;
     if (optInListeners === 0) {
       throw new Error("The performance probe saw no opt-in pointerdown listener; the off check cannot prove absence.");
     }
     if (probe.fetches.length > 0) {
-      throw new Error(`The dashhaus bundle fetched ${probe.fetches[0]}${probe.fetches.length > 1 ? " and more" : ""}; the opt-in must not add requests.`);
+      throw new Error(`The ${skin} resource fetched ${probe.fetches[0]}${probe.fetches.length > 1 ? " and more" : ""}; the opt-in must not add requests.`);
     }
 
     const loadMarks = await readMarks(page);
@@ -395,8 +399,8 @@ async function runSkin(browser, skin, { path, base, token, origin, entity, cardN
       cards: dom.cards,
       hosts: dom.hosts,
       probe: { pointerdownListeners: optInListeners, fetches: probe.fetches.length },
-      bundle: (() => {
-        const resource = browserTimings.resources.find((entry) => entry.name.includes("/local/") && entry.name.includes("dashhaus"));
+      resource: (() => {
+        const resource = browserTimings.resources.find((entry) => entry.name.includes("/local/") && RESOURCE_FILES.some((file) => entry.name.includes(file)));
         return resource && {
           url: resource.name,
           initiatorType: resource.initiatorType,
@@ -580,7 +584,7 @@ async function offCheck(browser, { base, path, token, origin, cardName }) {
       throw new Error(`Instrumentation ran without the opt-in; the off check found ${pointerdownListeners} pointerdown listener(s).`);
     }
     if (fetches > 0) {
-      throw new Error(`Instrumentation ran without the opt-in; the off check found a fetch from the bundle.`);
+      throw new Error(`Instrumentation ran without the opt-in; the off check found a fetch from a resource.`);
     }
     if (consoleLines.length > 0) {
       throw new Error(`Instrumentation ran without the opt-in; the off check found a console line: ${consoleLines[0].text}`);

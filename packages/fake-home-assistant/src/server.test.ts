@@ -207,10 +207,10 @@ describe("the HTTP server", () => {
 
   it("serves /local and refuses a path outside it", async () => {
     const www = await tempDir();
-    await writeFile(join(www, "bundle.js"), "export default 42;\n");
+    await writeFile(join(www, "orb-dashboard.js"), "export default 42;\n");
     const { settings } = await start({ www });
 
-    const served = await fetch(`${settings.HA_URL}/local/bundle.js`);
+    const served = await fetch(`${settings.HA_URL}/local/orb-dashboard.js`);
     expect(served.status).toBe(200);
     expect(served.headers.get("content-type")).toBe("text/javascript");
     expect(await served.text()).toBe("export default 42;\n");
@@ -221,11 +221,11 @@ describe("the HTTP server", () => {
 
   it("serves /hacsfiles from www/community, as HACS does, and refuses a path outside it", async () => {
     const www = await tempDir();
-    await mkdir(join(www, "community", "dashhaus"), { recursive: true });
-    await writeFile(join(www, "community", "dashhaus", "dashhaus.js"), "export default 42;\n");
+    await mkdir(join(www, "community", "orb-dashboard"), { recursive: true });
+    await writeFile(join(www, "community", "orb-dashboard", "orb-dashboard.js"), "export default 42;\n");
     const { settings } = await start({ www });
 
-    const served = await fetch(`${settings.HA_URL}/hacsfiles/dashhaus/dashhaus.js?hacstag=123456789030`);
+    const served = await fetch(`${settings.HA_URL}/hacsfiles/orb-dashboard/orb-dashboard.js?hacstag=123456789030`);
     expect(served.status).toBe(200);
     expect(await served.text()).toBe("export default 42;\n");
     expect((await fetch(`${settings.HA_URL}/hacsfiles/..%2F..%2Fsecret.txt`)).status).toBe(403);
