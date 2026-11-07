@@ -28,26 +28,68 @@ describe("BinarySensorCard", () => {
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBeNull();
   });
 
-  it("leads with the warn marker for smoke and a leak, never a glow", () => {
-    const { container, rerender } = render(<BinarySensorCard entity={{ ...door, name: "Hallway", deviceClass: "smoke" }} />);
-    expect(screen.getByRole("img", { name: "Alert: Smoke detected at Hallway" })).toBeTruthy();
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Smoke detected");
+  it("leads with the warn marker for a leak, and keeps the figure in ink, never a glow", () => {
+    const { container } = render(<BinarySensorCard entity={{ ...door, name: "Sink", deviceClass: "moisture" }} />);
+    expect(screen.getByRole("img", { name: "Warning: Leak detected at Sink" })).toBeTruthy();
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Leak detected");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
-    rerender(<BinarySensorCard entity={{ ...door, name: "Sink", deviceClass: "moisture" }} footprint="compact" />);
-    expect(container.querySelector(".hd-sub")?.textContent).toBe("Leak detected");
-    expect(container.querySelector(".bs-f")?.textContent).toBe("Wet");
+    expect(container.querySelector(".bs-f")?.hasAttribute("data-warn")).toBe(false);
+    expect(container.querySelector(".hd-num")?.className).toBe("hd-num");
+  });
+
+  it("fills the slot in warn for smoke, the alarm and since when, with the status line plain", () => {
+    const smoke: BinarySensorEntity = { ...door, name: "Hallway", area: "Upstairs", deviceClass: "smoke", lastChanged: "11:52" };
+    const { container } = render(<BinarySensorCard entity={smoke} />);
+    const pill = screen.getByRole("alert");
+    expect(pill.className).toBe("hd-alarm");
+    expect(pill.textContent).toBe("Smoke alarmSince 11:52");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Upstairs");
+    expect(container.querySelector(".hd-alert-cue")).toBeNull();
+    expect(container.querySelector(".bs-bar")).toBeNull();
+    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("alarm");
+    expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
+  });
+
+  it("keeps the alarm pill in a compact row, with the control or without it", () => {
+    const smoke: BinarySensorEntity = { ...door, name: "Hallway", area: "Upstairs", deviceClass: "smoke", lastChanged: "11:52" };
+    for (const showControl of [true, false]) {
+      const { container, unmount } = render(<BinarySensorCard entity={smoke} footprint="compact" showControl={showControl} />);
+      expect(container.querySelector(".hd-slot .hd-alarm")?.textContent).toBe("Smoke alarmSince 11:52");
+      expect(container.querySelector(".hd-val")).toBeNull();
+      expect(container.querySelector(".hd-sub")?.textContent).toBe("Smoke alarm");
+      unmount();
+    }
+  });
+
+  it("says a garage door left open as the cover card does: advisory, ahead of a low battery", () => {
+    const { container } = render(<BinarySensorCard entity={{ ...door, name: "Garage", deviceClass: "garage_door", lastChanged: "18:30", battery: 3 }} />);
+    expect(screen.getByRole("img", { name: "Warning: Garage has been open since 18:30" })).toBeTruthy();
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Open since 18:30");
+    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
+  });
+
+  it("says since when beside the area in the sheet, and when before what the device is in the small print", () => {
+    const { container, rerender } = render(<BinarySensorCard entity={{ ...door, battery: 64 }} variant="sheet" />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall · Since 11:31");
+    rerender(<BinarySensorCard entity={{ ...door, battery: 9 }} variant="sheet" />);
+    const facts = container.querySelectorAll(".hd-info > span");
+    expect(facts[0]?.textContent).toBe("Last changed 11:31");
+    expect(facts[1]?.textContent).toBe("Battery 9%, replace soon");
+    expect(facts[1]?.querySelector(".hd-warn")).not.toBeNull();
   });
 
   it("warns of a low battery, but lets the state's own warning lead", () => {
     const { container, rerender } = render(<BinarySensorCard entity={{ ...door, state: "off", battery: 9 }} />);
     expect(screen.getByRole("img", { name: "Warning: battery 9% on Front door, replace soon" })).toBeTruthy();
-    rerender(<BinarySensorCard entity={{ ...door, deviceClass: "smoke", battery: 9 }} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Smoke detected");
+    rerender(<BinarySensorCard entity={{ ...door, deviceClass: "moisture", battery: 9 }} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Leak detected");
   });
 
-  it("hides the last state while unavailable", () => {
-    const { container } = render(<BinarySensorCard entity={{ ...door, state: "unavailable", lastSeen: "08:20" }} footprint="compact" />);
+  it("hides the last state while unavailable, and says Unavailable on the status line", () => {
+    const { container, rerender } = render(<BinarySensorCard entity={{ ...door, state: "unavailable", lastSeen: "08:20" }} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Unavailable");
     expect(screen.queryByText("Open")).toBeNull();
+    rerender(<BinarySensorCard entity={{ ...door, state: "unavailable", lastSeen: "08:20" }} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Unavailable");
   });
 });

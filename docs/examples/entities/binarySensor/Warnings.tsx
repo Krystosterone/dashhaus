@@ -1,6 +1,6 @@
 import { HaBinarySensor, useHaSelector } from "@dashhaus/core";
 import type { HaSnapshot } from "@dashhaus/core";
-import { alertWord } from "@dashhaus/core/entities/binarySensor/words";
+import { alertText } from "@dashhaus/core/entities/binarySensor/words";
 import { binarySensorSeverity } from "@dashhaus/core/entities/binarySensor/severity";
 
 const sensorIds = (snapshot: HaSnapshot) =>
@@ -8,7 +8,7 @@ const sensorIds = (snapshot: HaSnapshot) =>
 
 /**
  * Every binary sensor that needs looking at, most urgent first in your own markup: smoke, gas and carbon monoxide are
- * an alarm, a leak urgent, a low battery advisory. An open door is a state, so it never lists.
+ * an alarm, a leak urgent, a garage door left open and a low battery advisory. An open door is a state, so it never lists.
  */
 export function Warnings() {
   const ids = useHaSelector(sensorIds).split(" ").filter(Boolean);
@@ -19,7 +19,7 @@ export function Warnings() {
           {({ entity }) => {
             const severity = binarySensorSeverity(entity);
             if (!severity) return null;
-            return <li data-severity={severity}>{entity.name}: {alertWord(entity) ?? `battery ${entity.battery}%`}</li>;
+            return <li data-severity={severity}>{entity.name}: {alertText(entity) ?? `battery ${entity.battery}%`}</li>;
           }}
         </HaBinarySensor>
       ))}

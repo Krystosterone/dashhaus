@@ -37,7 +37,7 @@ export const BINARY_SENSOR_SEEDS = {
     entity: { entityId: "binary_sensor.kitchen_sink_leak", name: "Under the sink", area: "Kitchen", state: "on", deviceClass: "moisture", lastChanged: "11:48", battery: 92 },
     history: day(QUIET, 0.1),
   },
-  /** Smoke: an alarm, the warn marker and never more glow. */
+  /** Smoke: an alarm, Orb's slot filled in warn and Field's screen inverted, never more glow. */
   smoke: {
     entity: { entityId: "binary_sensor.hallway_smoke", name: "Hallway smoke", area: "Upstairs", state: "on", deviceClass: "smoke", lastChanged: "11:52" },
     history: day(QUIET, 0.05),
@@ -51,7 +51,7 @@ export const BINARY_SENSOR_SEEDS = {
     entity: { entityId: "binary_sensor.garage_door", name: "Garage door", area: "Garage", state: "unavailable", deviceClass: "garage_door", lastSeen: "08:20" },
     history: day([0, 0, 0, 0, 0, 0, 0, 0.5, "unavailable", "unavailable", "unavailable"], "unavailable"),
   },
-  /** Worst case: names and areas long enough to truncate at every width, open all day, a battery near empty (break-ui skill). */
+  /** Worst case: names and areas long enough to truncate at every width, a garage door open all day (its warning leads the low battery), a battery near empty (break-ui skill). */
   long: {
     entity: {
       entityId: "binary_sensor.basement_bulkhead_door_contact", name: "Basement bulkhead door to the garden stairs", area: "Utility room behind the laundry and boiler",
@@ -65,8 +65,9 @@ export type BinarySensorSeedName = keyof typeof BINARY_SENSOR_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce. Long names and areas with an alarm and a low
- * battery at once, a plain sensor with no class, no area and no history, and a long name in another language. Every
- * skin's Worst case story draws these.
+ * battery at once, a plain sensor with no class, no area and no history, a long name in another language, a battery
+ * exactly at the warning line, a long name gone and never seen, and an urgent warning at length. Every skin's Worst
+ * case story draws these.
  */
 export const BINARY_SENSOR_WORST_CASE: BinarySensorSeed[] = [
   BINARY_SENSOR_SEEDS.long,
@@ -77,5 +78,17 @@ export const BINARY_SENSOR_WORST_CASE: BinarySensorSeed[] = [
   { // No class, no area, never changed, nothing read today
     entity: { entityId: "binary_sensor.x", name: "X", state: "off" },
     history: day(Array<HourSample>(11).fill(null), null),
+  },
+  { // A long compound name, closed, the battery exactly at the warning line: it warns
+    entity: { entityId: "binary_sensor.arbeitszimmer_fenster", name: "Arbeitszimmer-Fensterkontakt", area: "Arbeitszimmer", state: "off", deviceClass: "window", lastChanged: "Mon 06:12", battery: 15 },
+    history: day(QUIET, 0),
+  },
+  { // Gone with its long name, never seen: "Last seen unknown" and the dashed slot at length
+    entity: { entityId: "binary_sensor.basement_bulkhead_door_contact_2", name: BINARY_SENSOR_SEEDS.long.entity.name, area: BINARY_SENSOR_SEEDS.long.entity.area, state: "unavailable", deviceClass: "door" },
+    history: day(Array<HourSample>(11).fill("unavailable"), "unavailable"),
+  },
+  { // Tampered with, a long name: the urgent path at its worst, with the battery low behind it
+    entity: { entityId: "binary_sensor.boiler_room_water_heater_tamper", name: "Water heater flood sensor, boiler room", area: "Utility room behind the laundry and boiler", state: "on", deviceClass: "tamper", lastChanged: "Sun 03:07", battery: 7 },
+    history: day(QUIET, 1),
   },
 ];

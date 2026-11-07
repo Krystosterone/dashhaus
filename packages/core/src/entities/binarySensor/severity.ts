@@ -5,8 +5,9 @@ import type { BinarySensorClass, BinarySensorEntity } from "./types";
 /**
  * How much a binary sensor's `on` may claim (`../severity.ts`). Smoke, gas and carbon monoxide are an **alarm**: act
  * now, it is about safety. A leak, heat, an unsafe or tampered device and a problem are **urgent**: act soon, before it
- * spreads. A cold sensor and a low battery class are **advisory**. Every other class (a door, a window, motion) is a
- * state, not a warning, however long it lasts: nothing here knows when a door should be closed.
+ * spreads. A cold sensor, a low battery class and a garage door left open are **advisory**: the garage door as the
+ * cover card warns of one (the same thing, the same warning, whatever its domain). Every other class (a door, a
+ * window, motion) is a state, not a warning, however long it lasts: nothing here knows when a door should be closed.
  */
 export const ON_SEVERITY: Partial<Record<BinarySensorClass, Severity>> = {
   smoke: "alarm",
@@ -19,6 +20,7 @@ export const ON_SEVERITY: Partial<Record<BinarySensorClass, Severity>> = {
   problem: "urgent",
   cold: "advisory",
   battery: "advisory",
+  garage_door: "advisory",
 };
 
 /** What its state says needs attention: its class's `on` severity while on, else nothing. */

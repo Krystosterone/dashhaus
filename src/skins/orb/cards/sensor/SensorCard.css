@@ -10,7 +10,6 @@
 .sw-t .sw-value small {
   margin-left: 1px; font-size: 0.62em; font-weight: 400; letter-spacing: 0; vertical-align: 0.34em;
 }
-.sw-h { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
 .sw-h .sw-value { font-size: 18px; font-weight: 600; }
 .sw-h .sw-value small { margin-left: 1px; font-size: 0.78em; font-weight: 600; }
 

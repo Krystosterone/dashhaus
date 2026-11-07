@@ -14,8 +14,9 @@ const meta = {
       description: {
         component:
           "One binary sensor (`binary_sensor.*`: a door, a window, a leak, smoke), with its device's battery: a reading. The icon its device class names, " +
-          "its state in that class's words (Open, Wet, Smoke) with since when, and no glow. Smoke, gas and carbon monoxide, a leak and a low battery " +
-          "lead the status line behind the warn marker. Tap the reading or the name for today's hours on. Same sizes and heights as the other cards.",
+          "its state in that class's words (Open, Wet, Smoke) with since when, and no glow. Smoke, gas and carbon monoxide fill the slot in warn; " +
+          "a leak, a garage door left open and a low battery lead the status line behind the warn marker. Tap the reading or the name for today's " +
+          "hours on. Same sizes and heights as the other cards.",
       },
     },
   },
@@ -36,15 +37,15 @@ type Story = StoryObj<typeof meta>;
 export const Closed: Story = {};
 export const Open: Story = { args: { seed: "open" } };
 export const Window: Story = { args: { seed: "window" } };
-/** A leak is urgent: the warn marker leads the status line, and Wet is said in the warn colour. Never a glow. */
+/** A leak is urgent: the warn marker leads the status line; Wet stays in ink, the marker carries it. Never a glow. */
 export const Leak: Story = { args: { seed: "leak" } };
-/** Smoke is an alarm: the same marker, in words, never more glow (attention-budget skill). */
+/** Smoke is an alarm going off: the slot fills in warn with the alarm and since when, as the Owlet's vitals do; never more glow (attention-budget skill). */
 export const Smoke: Story = { args: { seed: "smoke" } };
 /** Clear, with its device's battery low: advisory, about the device. */
 export const LowBattery: Story = { name: "Low battery", args: { seed: "lowBattery" } };
-export const Unavailable: Story = { args: { seed: "unavailable" } };
 export const Featured: Story = { args: { footprint: "featured" } };
-/** Realistic worst-case data from the demo seeds (BINARY_SENSOR_WORST_CASE): long names, an alarm and a low battery at once, no class. */
+export const Unavailable: Story = { args: { seed: "unavailable" } };
+/** Realistic worst-case data from the demo seeds (BINARY_SENSOR_WORST_CASE): long names, an alarm and a low battery at once, no class, a battery at the line, gone and never seen, tampered. */
 export const WorstCase: Story = {
   name: "Worst case",
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },

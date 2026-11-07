@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { BinarySensorModule } from "./BinarySensorModule";
 import { BINARY_SENSOR_SEEDS } from "@dashhaus/core/seeds/binarySensor";
+import type { BinarySensorEntity } from "@dashhaus/core/entities/binarySensor/types";
 
 /*
  * What every field module does, whatever it is: a reading has no keys, a lit pictogram says on, and unavailable
@@ -26,6 +27,35 @@ describe("BinarySensorModule", () => {
     const open = draw("open");
     expect(open.querySelector(".fd-read-fig")?.textContent).toBe("OPENOpen");
     expect(open.querySelector(".fd-pict")?.getAttribute("data-lit")).toBe("true");
+  });
+
+  it("speaks in four places at most, OK for a clear detector, never stepping the type down", () => {
+    const fig = (entity: BinarySensorEntity) => render(<BinarySensorModule entity={entity} />).container.querySelector(".fd-read-fig")?.textContent;
+    const base: BinarySensorEntity = { entityId: "binary_sensor.x", name: "X", state: "on" };
+    expect(fig({ ...base, deviceClass: "carbon_monoxide" })).toBe("COCO");
+    expect(fig({ ...base, deviceClass: "moisture", state: "off" })).toBe("DRYDry");
+    expect(fig({ ...base, deviceClass: "presence", state: "off" })).toBe("AWAYAway");
+    expect(fig({ ...base, deviceClass: "connectivity" })).toBe("ONConnected");
+    const clear = draw("lowBattery");
+    expect(clear.querySelector(".fd-read-fig")?.textContent).toBe("OKClear");
+    expect(clear.querySelector(".fd-module")?.getAttribute("data-state")).toBe("off");
+  });
+
+  it("says how long ago an alarm went off in a row, NOW under a minute, and blank segments when it can't know", () => {
+    const smoke = BINARY_SENSOR_SEEDS.smoke.entity;
+    const row = (entity: BinarySensorEntity) => render(<BinarySensorModule entity={entity} footprint="compact" />).container.querySelector(".fd-read-fig");
+    expect(row({ ...smoke, changedAt: Date.now() - 3 * 60_000 })?.textContent).toBe("Smoke, 3m");
+    expect(row({ ...smoke, changedAt: Date.now() })?.textContent).toBe("Smoke, NOW");
+    expect(row(smoke)?.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
+  });
+
+  it("warns of a garage door left open as the cover does, on the screen, and in a row on the area's line", () => {
+    const long = BINARY_SENSOR_SEEDS.long.entity;
+    const standard = render(<BinarySensorModule entity={long} />).container;
+    expect(standard.querySelector(".fd-meta")?.textContent).toBe("Warning: OpenSince Fri 18:30");
+    expect(standard.querySelector(".fd-area")?.textContent).toBe(long.area);
+    const row = render(<BinarySensorModule entity={long} footprint="compact" />).container;
+    expect(row.querySelector(".fd-area")?.textContent).toBe("Warning: Open since Fri 18:30");
   });
 
   it("keeps an open door a state, a leak urgent and smoke an alarm, on the screen", () => {

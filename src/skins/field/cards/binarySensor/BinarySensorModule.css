@@ -7,9 +7,6 @@
   .fd-bs .fd-read { font-size: 24px; }
 }
 
-/* A row's screen holds four places at its size: a five-letter figure (SMOKE, CLEAR) steps down to fit, whole. */
-.fd-bs[data-footprint="compact"] .fd-bs-fig[data-places="5"] { font-size: 17px; letter-spacing: -0.02em; }
-
 /* A narrow row keeps the figure and lets the pictogram go. */
 @container (max-width: 279px) {
   .fd-bs[data-footprint="compact"] .fd-pict { display: none; }

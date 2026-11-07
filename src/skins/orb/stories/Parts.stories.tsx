@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { useSlider } from "@dashhaus/core/primitives";
 import {
-  AlertStatus, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
+  AlarmPill, AlertStatus, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
 } from "../shared/ui";
 import type { HourSample } from "../shared/ui";
 import { BrightnessBar, IconBulb, WarmthRuler } from "../cards/light/parts";
@@ -154,6 +154,11 @@ function AllParts() {
 
       <Part name="Unavailable" rule="What stands in a card's slot when its entity is unavailable: a dashed outline and muted text. Nothing else is dashed.">
         <State label="In a card" width={280}><UnavailableSlot lastSeen="10:42" /></State>
+      </Part>
+
+      <Part name="Alarm pill" cardRole="reading" rule="An alarm that has gone off (a baby's oxygen, smoke): the one place warn fills, in the slot over the control, in every footprint. Its alert on the left, its figure or since when on the right; the fill deepens under the words, and holds still under reduced motion.">
+        <State label="Smoke" width={280}><AlarmPill alert="Smoke alarm" value="Since 11:52" /></State>
+        <State label="Two vitals, a figure" width={340}><AlarmPill alert="Low oxygen" more="High heart rate" value="84% O₂" /></State>
       </Part>
 
       <Part name="Today strip" surface="hd--featured" rule="24 hourly sticks: height is that hour's level, the current hour is the accent. Hours not yet come are a short line; unavailable hours are dashed.">

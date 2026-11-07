@@ -11,6 +11,12 @@ describe("binarySensorSeverity", () => {
     expect(binarySensorSeverity({ ...e, state: "off" })).toBeUndefined();
   });
 
+  it("warns of a garage door left open, as the cover card does: advisory, ahead of a low battery", () => {
+    expect(binarySensorSeverity({ ...e, deviceClass: "garage_door", state: "on" })).toBe("advisory");
+    expect(stateSeverity({ ...e, deviceClass: "garage_door", state: "on", battery: 3 } as BinarySensorEntity)).toBe("advisory");
+    expect(binarySensorSeverity({ ...e, deviceClass: "garage_door", state: "off" })).toBeUndefined();
+  });
+
   it("keeps a door, a window and a plain sensor a state, not a warning, however they are", () => {
     for (const deviceClass of ["door", "window", "motion", undefined] as const) expect(stateSeverity({ ...e, deviceClass, state: "on" })).toBeUndefined();
   });

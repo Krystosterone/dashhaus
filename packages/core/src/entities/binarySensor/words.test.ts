@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALERT_WORDS, BINARY_SENSOR_WORDS, alertWord, isBinarySensorClass, pictureOf, stateWord, wordsOf } from "./words";
+import { ALERT_SPOKEN, ALERT_WORDS, ALERT_WORD_MAX, BINARY_SENSOR_WORDS, alertSentence, alertText, alertWord, isBinarySensorClass, pictureOf, stateWord, wordsOf } from "./words";
 import { todaySummary } from "../today";
 import { ON_SEVERITY } from "./severity";
 
@@ -28,7 +28,25 @@ describe("binary sensor words", () => {
     expect(alertWord({ state: "on", deviceClass: "moisture" })).toBe("Leak detected");
     expect(alertWord({ state: "off", deviceClass: "smoke" })).toBeUndefined();
     expect(alertWord({ state: "on", deviceClass: "door" })).toBeUndefined();
-    for (const cls of Object.keys(ON_SEVERITY)) expect(ALERT_WORDS[cls as keyof typeof ALERT_WORDS]).toBeDefined();
+    for (const cls of Object.keys(ON_SEVERITY)) {
+      expect(ALERT_WORDS[cls as keyof typeof ALERT_WORDS]).toBeDefined();
+      expect(ALERT_SPOKEN[cls as keyof typeof ALERT_SPOKEN]).toBeDefined();
+    }
+  });
+
+  it("keeps every warning's words whole on a narrow row: 13 characters at most", () => {
+    expect(ALERT_WORD_MAX).toBe(13);
+    for (const [cls, word] of Object.entries(ALERT_WORDS)) expect(word.length, cls).toBeLessThanOrEqual(ALERT_WORD_MAX);
+  });
+
+  it("says a garage door left open as the cover card does, with since when, and every warning whole to a screen reader", () => {
+    expect(alertText({ state: "on", deviceClass: "garage_door", lastChanged: "18:30" })).toBe("Open since 18:30");
+    expect(alertText({ state: "on", deviceClass: "garage_door" })).toBe("Open");
+    expect(alertText({ state: "on", deviceClass: "door", lastChanged: "18:30" })).toBeUndefined();
+    expect(alertText({ state: "on", deviceClass: "smoke", lastChanged: "11:52" })).toBe("Smoke alarm");
+    expect(alertSentence({ state: "on", deviceClass: "carbon_monoxide", name: "Bedroom" })).toBe("Carbon monoxide detected at Bedroom");
+    expect(alertSentence({ state: "on", deviceClass: "garage_door", name: "Garage", lastChanged: "18:30" })).toBe("Garage has been open since 18:30");
+    expect(alertSentence({ state: "off", deviceClass: "smoke", name: "Hall" })).toBeUndefined();
   });
 
   it("knows Home Assistant's classes, and nothing else", () => {

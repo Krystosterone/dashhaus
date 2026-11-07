@@ -164,6 +164,21 @@ export function AlertStatus({ label, children }: { label: string; children: Reac
   return <><AlertCue label={label} /><span className="hd-warn">{children}</span></>;
 }
 
+/**
+ * An alarm that has gone off, in the slot: the one place warn fills (spec/orb.md → One UI language). Its alert on the
+ * left in bold, any others after it while there is room (`more`), and its figure or since when on the right
+ * (`value`). Pass it to `CardFrame`'s `urgent`, which shows it over the card's control or value in every footprint.
+ * Announced once, as an alert.
+ */
+export function AlarmPill({ alert, more, value }: { alert: ReactNode; more?: ReactNode; value?: ReactNode }) {
+  return (
+    <div className="hd-alarm" role="alert">
+      <span className="hd-alarm-l"><b>{alert}</b>{more && <span className="hd-alarm-c"> · {more}</span>}</span>
+      {value && <span className="hd-alarm-v">{value}</span>}
+    </div>
+  );
+}
+
 /** Full-width toggle button: raised when off, the accent when on. */
 /** `turnOn`: the off-state control of a unit whose status line already says Off (climate, humidifier). */
 /** Without `on` it acts once (Refresh, New code): raised, and not announced as a toggle. */
