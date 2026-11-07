@@ -1,7 +1,8 @@
 import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { fmt__Name__ as fmt, with__Name__Unit as withUnit } from "@dashhaus/core/entities/__name__/words";
 import { __Name__Icon } from "./icons";
-import { CardFrame, Readout, Today, fmt1, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
+import { CardFrame, Readout, Today, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./__Name__Card.css";
 
@@ -13,14 +14,10 @@ export interface __Name__CardProps extends CardProps {
   onOpenDetails?: () => void;
 }
 
-/** Whole numbers as they are, anything else to one decimal. */
-const fmt = (n: number) => (Number.isInteger(n) ? String(n) : fmt1(n));
-/** "42%", "21.4°C", but "650 ppm": symbols sit on the figure, words keep a space. */
-const withUnit = (n: number, unit = "") => `${fmt(n)}${unit && !/^[%°]/.test(unit) ? " " : ""}${unit}`;
-
 /**
  * One __label__ (`__domain__.*`): a reading. Neutral, a bare icon in place of an orb, the figure as a readout
- * with no container, and no glow. The name or the reading opens the sheet with today's readings.
+ * with no container, and no glow. The name or the reading opens the sheet with today's readings. Before a first value
+ * its status line says "No reading yet" and its readout "Waiting…" (spec/cards.md → What every card says).
  */
 export function __Name__Card({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: __Name__CardProps) {
   const card = useCard("__code__", { variant, footprint, showControl });
@@ -28,14 +25,14 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
   const value = unav ? undefined : e.value;
   const colors = paint("reading", 0);
 
-  const text = unav ? "Unavailable" : value == null ? "No reading yet" : withUnit(value, e.unit);
+  const text = unav ? "Unavailable" : value == null ? "Waiting…" : withUnit(value, e.unit);
   const spoken = value == null ? "no reading yet" : `${fmt(value)} ${e.unit ?? ""}`.trim();
-  const status = unav ? "Unavailable" : e.area;
+  const status = unav ? "Unavailable" : value == null ? [e.area, "No reading yet"].filter(Boolean).join(" · ") : e.area;
   const series = history ? normalizeReadings(history.readings) : null;
 
   const bar = (
     <span className="hd-bar">
-      {value != null ? <span className="hd-metric __code__-f">{fmt(value)}{e.unit && <small>{e.unit}</small>}</span> : <span className="hd-none">No reading yet</span>}
+      {value != null ? <span className="hd-metric __code__-f">{fmt(value)}{e.unit && <small>{e.unit}</small>}</span> : <span className="hd-none">Waiting…</span>}
     </span>
   );
 

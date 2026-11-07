@@ -116,6 +116,13 @@ describe("viewing distance: type for the room, never a height", () => {
     expect(css(`${SKIN}/shared/alerts.css`)).toMatch(/\.fd-alerts-entry \{[^}]*font-size: var\(--fd-type-alert\)/);
   });
 
+  it("the screen's figure never steps its type down to fit its word: a word fits four places or is another word", () => {
+    const bad = cssFiles.flatMap((f) => rules(f)
+      .filter((r) => /\[data-(?:places|len|length|chars|long)\b/.test(r.selector) && /(?:^|;)\s*font-size\s*:/.test(r.body))
+      .map((r) => `${f}: ${r.selector}`));
+    expect(bad).toEqual([]);
+  });
+
   it("far sets only the type roles, on the page and never on a detail panel, which is read up close", () => {
     const far = rules(TOKENS).filter((r) => r.selector.includes('[data-viewing="far"]'));
     expect(far).toHaveLength(1);
