@@ -126,6 +126,14 @@ export type { BinarySensorTileProps } from "./cards/binarySensor/BinarySensorTil
 export { HaBinarySensorTile } from "./ha/HaBinarySensorTile";
 export type { HaBinarySensorTileProps } from "./ha/HaBinarySensorTile";
 
+// Camera
+export { CameraCard, CameraSheet } from "./cards/camera/CameraCard";
+export type { CameraCardProps, CameraSheetProps } from "./cards/camera/CameraCard";
+export { CameraTile } from "./cards/camera/CameraTile";
+export type { CameraTileProps } from "./cards/camera/CameraTile";
+export { HaCameraTile } from "./ha/HaCameraTile";
+export type { HaCameraTileProps } from "./ha/HaCameraTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

@@ -138,4 +138,9 @@ export type { BinarySensorMapOptions } from "./ha/mappers/binarySensor";
 export { useHaBinarySensor } from "./ha/hooks/binarySensor";
 export type { HaBinarySensorOptions, HaBinarySensorResult } from "./ha/hooks/binarySensor";
 export { HaBinarySensor } from "./ha/headless";
+export { cameraFromHass } from "./ha/mappers/camera";
+export type { CameraMapOptions } from "./ha/mappers/camera";
+export { useHaCamera } from "./ha/hooks/camera";
+export type { HaCameraOptions, HaCameraResult } from "./ha/hooks/camera";
+export { HaCamera } from "./ha/headless";
 // new-card: exports

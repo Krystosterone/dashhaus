@@ -143,6 +143,15 @@ describe("autoDashboard", () => {
     expect(parsed.cards.map((c) => c.item)).toEqual([expect.objectContaining({ kind: "guestWifi", entity: "sensor.67d9d6d6ad84e044caf4621c_voucher" })]);
   });
 
+  it("puts every camera under Cameras after Security, at its standard footprint so its still shows", () => {
+    const card = autoDashboard({ ...input, states: { ...states, "camera.nursery": state("camera.nursery", { friendly_name: "Nursery" }), "camera.door": state("camera.door", { friendly_name: "Front door" }) } });
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title)).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Outside", "Rooms"]);
+    expect(rows.find((s) => s.title === "Cameras")!.cards).toEqual(["camera.door", "camera.nursery"]);
+    const parsed = parseDashboardConfig(card).rows!.find((s) => s.title === "Cameras")!;
+    expect(parsed.cards.map((c) => c.item.kind)).toEqual(["camera", "camera"]);
+  });
+
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });

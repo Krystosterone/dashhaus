@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { createContext, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import { useActionStatus } from "@dashhaus/core/lovelace/skin";
 import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/core/lovelace";
@@ -10,6 +10,7 @@ import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { HaFanModule } from "../ha/HaFanModule";
 import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
 import { HaBinarySensorModule } from "../ha/HaBinarySensorModule";
+import { HaCameraModule } from "../ha/HaCameraModule";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
@@ -30,6 +31,13 @@ import type { FieldKind, FieldRow, ModuleConfig, PageConfig } from "./config";
 import "./dashboard.css";
 
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
+
+/**
+ * The dashboard's camera settings (YAML `stills` and `quiet`), which every camera module on it follows, under its own
+ * `still` and `refresh`. `LIVE` reads it with `Stills.Consumer` inline, so the camera's line still names its module
+ * where verify/field-conformance.test.ts looks for it.
+ */
+const Stills = createContext({ stills: true, quiet: false });
 
 /** Each card's connected module, given a module's config and its footprint. A new card adds its row here. */
 const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> = {
@@ -57,6 +65,8 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   fan: (item, footprint) => <HaFanModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
   guestWifi: (item, footprint) => <HaGuestWifiModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} access={item.access} network={item.network} qrEntityId={item.qr} newCodeEntityId={item.newCode} refreshEntityId={item.refresh} />,
   binarySensor: (item, footprint) => <HaBinarySensorModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} batteryEntityId={item.battery} />,
+  camera: (item, footprint) => <Stills.Consumer>{({ stills, quiet }) => (
+    <HaCameraModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} still={stills && item.still !== false} refresh={item.stillRefresh} paused={quiet} />)}</Stills.Consumer>,
   // new-card: live modules
 };
 
@@ -152,8 +162,13 @@ export interface FieldDashboardProps {
   /** The nav's destinations; absent: the pages, or else the main page's sections; false: none. */
   nav?: NavEntry[] | false;
   footprint: FieldFootprint;
-  /** An alarm holds its inverted screen from the start, with no flash (YAML `quiet: true`). */
+  /**
+   * Nothing changes by itself (YAML `quiet: true`): an alarm holds its inverted screen from the start, with no flash,
+   * and a camera's still refreshes only when seen anew, never on a timer.
+   */
   quiet?: boolean;
+  /** False: no camera still is fetched or drawn (YAML `stills: false`). */
+  stills?: boolean;
   /** The frontend's `hass.panels`, which name the dashboards a `navigate:` item goes to. */
   panels?: Record<string, PanelInfo>;
   /** Fixed clock for screenshots; live otherwise. */
@@ -171,7 +186,7 @@ const NO_PAGES: PageConfig[] = [];
  * dashboards. A wall panel (`viewing: far`) has no nav unless the YAML lists one; a nav with one destination isn't
  * drawn. A rejected command docks at the bottom, above the nav. It needs an `HaProvider` above it.
  */
-export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, rows, pages = NO_PAGES, nav: navConfig, footprint, quiet, panels, now, navigate }: FieldDashboardProps) {
+export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, rows, pages = NO_PAGES, nav: navConfig, footprint, quiet, stills = true, panels, now, navigate }: FieldDashboardProps) {
   const root = useRef<HTMLDivElement>(null);
   const pageIds = useMemo(() => pages.map((p) => p.id), [pages]);
   const main = useMemo(() => anchorsOf(rows), [rows]);
@@ -188,22 +203,25 @@ export function FieldDashboard({ title, subtitle, showTime, hourCycle, viewing, 
   const shown = page?.rows ?? rows;
   const ids = page ? anchorsOf(page.rows).ids : main.ids;
   const legend = shown.length > 1;
+  const pictures = useMemo(() => ({ stills, quiet: quiet === true }), [stills, quiet]);
 
   return (
-    <FieldPage
-      pageRef={root}
-      title={page?.title ?? title}
-      subtitle={page ? undefined : subtitle}
-      showTime={showTime}
-      hourCycle={hourCycle}
-      viewing={viewing}
-      quiet={quiet}
-      now={now}
-      nav={showNav ? <><ActionNotice /><NavBar items={nav.buttons} /></> : undefined}
-    >
-      {shown.map((row, i) => <Row key={`${page?.id ?? MAIN_PAGE}:${i}`} row={row} id={ids.get(row)} legend={legend} label={shown.length > 1 ? "Other" : null} footprint={footprint} />)}
-      {rowItems(shown).length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>cards</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
-      {!showNav && <ActionNotice />}
-    </FieldPage>
+    <Stills.Provider value={pictures}>
+      <FieldPage
+        pageRef={root}
+        title={page?.title ?? title}
+        subtitle={page ? undefined : subtitle}
+        showTime={showTime}
+        hourCycle={hourCycle}
+        viewing={viewing}
+        quiet={quiet}
+        now={now}
+        nav={showNav ? <><ActionNotice /><NavBar items={nav.buttons} /></> : undefined}
+      >
+        {shown.map((row, i) => <Row key={`${page?.id ?? MAIN_PAGE}:${i}`} row={row} id={ids.get(row)} legend={legend} label={shown.length > 1 ? "Other" : null} footprint={footprint} />)}
+        {rowItems(shown).length === 0 && <p className="fd-dash-empty">No supported entities yet. Add <code>cards</code> to the card, or add a light, climate entity, temperature sensor or toggle to Home Assistant.</p>}
+        {!showNav && <ActionNotice />}
+      </FieldPage>
+    </Stills.Provider>
   );
 }

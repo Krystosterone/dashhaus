@@ -1,0 +1,82 @@
+---
+title: Camera
+description: "One camera.* entity, a doorbell's or a nursery's: its state and its still, which loads only while you can see it."
+kind:
+  group: Safety
+  order: 5
+  summary: "A doorbell or a nursery camera: its still, fetched only while seen, and a press for its live stream."
+  reading: true
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One `camera.*` entity: whether it is idle, recording or streaming, and its still, the picture Home Assistant serves for
+it. Read-only, with no history.
+
+## Quick example
+
+<Example file="entities/camera/FrontDoor.tsx" />
+
+The still is Home Assistant's own `entity_picture`, a signed address whose token Home Assistant changes every few
+minutes; the hook follows it, and gives none while the camera is unavailable, so a past frame never reads as now.
+`usePicture` loads it only once its box is on screen and the page is visible, refreshes it only while both stay true,
+and keeps the last frame up while the next one loads. Nothing is fetched in the background.
+
+## Component
+
+`<HaCamera>` is `useHaCamera` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="@dashhaus/core" name="HaCamera" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaCamera" />
+
+It reads the camera, its area and its still. Pass `still: false` to have no still at all: nothing is ever requested.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaCameraOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaCameraResult" />
+
+#### `entity`: CameraEntity
+
+<ApiMembers from="@dashhaus/core/entities/camera/types" name="CameraEntity" />
+
+## The live stream
+
+Dashhaus has no stream player of its own. `useHaMoreInfo` opens Home Assistant's own more-info dialog for the camera,
+which plays its live stream; outside Home Assistant there is none, and it gives nothing, so open your own details
+instead.
+
+<Example file="entities/camera/LiveStream.tsx" />
+
+## In a skin
+
+Orb's `HaCameraTile` and Field's `HaCameraModule` are `useHaCamera` above each skin's card. Each says the state in
+words, draws the still beside them (Orb in a quiet well, Field as a window in its screen), says when a still is from
+when it stops refreshing, opens its details from the name, and opens the live stream from the still and from a Live
+view in the details, which is there even with stills off. A compact row never shows a still. They
+take the hook's options as props, plus their own: `refresh`, in seconds, and `paused`, which holds the still until the
+card comes back on screen or the panel wakes.
+
+<Example file="entities/camera/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaCameraTileProps" except={{ from: "@dashhaus/core", name: "HaCameraOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaCameraModuleProps" except={{ from: "@dashhaus/core", name: "HaCameraOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="camera" />

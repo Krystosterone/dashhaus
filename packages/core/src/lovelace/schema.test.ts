@@ -4,6 +4,7 @@ import {
   cardKindOrder,
   cardKinds,
   readAlarmOptions,
+  readCameraOptions,
   readCard,
   readCards,
   readColor,
@@ -111,6 +112,14 @@ describe("shared option readers", () => {
     });
     expect(readAlarmOptions(reader, { open_sensors: "Back door" }, "alarm").openSensors).toBeUndefined();
     expect(reader.problems).toEqual(['alarm: "open_sensors" must be a list of names']);
+  });
+
+  it("reads a camera's still switch and its refresh in seconds", () => {
+    const reader = new Reader();
+    expect(readCameraOptions(reader, { still: false, refresh: 30 }, "camera")).toEqual({ still: false, refresh: 30 });
+    expect(readCameraOptions(reader, {}, "camera")).toEqual({ still: undefined, refresh: undefined });
+    expect(readCameraOptions(reader, { still: "no", refresh: 0.5 }, "camera")).toEqual({ still: undefined, refresh: undefined });
+    expect(reader.problems).toEqual(['camera: "still" must be true or false', 'camera: "refresh" must be a whole number from 1 to 3600']);
   });
 
   it("reads an Owlet sock's alert sensors by alert name", () => {

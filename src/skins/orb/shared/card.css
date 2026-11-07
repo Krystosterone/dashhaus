@@ -242,6 +242,14 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 .hd-metric:only-child { grid-column: 1 / -1; }
 /* A secondary metric (humidity, since when): its caption over its figure, left in its track, in the second ink. */
 .hd-metric--sub { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
+/* A secondary metric's time under its caption: since when a reading has said its word (a door's, a camera's). */
+.hd-metric-t { font-size: 15px; font-weight: 600; line-height: 1; }
+/* A reading's state in words as its figure (a door's Open, a camera's Idle): the readout's size, a step smaller on a
+   narrow card, the row's size in a compact row. A card colours its own resting word. */
+.hd-metric-w {
+  overflow: hidden; text-overflow: ellipsis;
+  font-size: 30px; font-weight: var(--type-readout-weight); letter-spacing: -0.03em; line-height: 1.1;
+}
 .hd-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
 .hd-label-short { display: none; }
 /* No reading yet: plain words. */
@@ -252,12 +260,14 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 @container hd (max-width: 259px) {
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-long { display: none; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-short { display: inline; }
+  .hd:not(.hd--compact):not(.hd--sheet) .hd-metric-w { font-size: 26px; }
 }
 /* Centred, not baseline: a flex line aligns its baselines at the top of the slot, under the row's centre line. */
 .hd--compact .hd-bar {
   display: flex; align-items: center; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
 }
 .hd--compact .hd-label { display: none; }
+.hd--compact .hd-metric-w { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .hd-none { flex: none; font-size: 12.5px; }
 
 /* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a

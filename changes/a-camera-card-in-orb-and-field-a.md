@@ -1,0 +1,4 @@
+---
+type: feature
+---
+A camera card in Orb and Field: a doorbell's or a nursery's camera, its state in words and its still, which loads only while the card is on screen and refreshes only then (every 10 seconds, or the card's refresh), and never shows a past frame while the camera is unavailable. The still opens Home Assistant's own live stream, and so does a Live view in its details, even with stills off; the name opens the details, as on every card; a compact row shows no still. YAML takes a camera's still: false and refresh, and a dashboard's stills: false (no still fetched anywhere) and quiet (a still holds until the panel wakes and says when it is from), now in Orb too; Orb's automatic layout puts every camera under Cameras. Its words are @dashhaus/core/entities/camera/words (an integration's own state in words is inWords in @dashhaus/core/entities/format), its demo seeds @dashhaus/core/seeds/camera, and @dashhaus/core/lovelace/schema adds readCameraOptions.
