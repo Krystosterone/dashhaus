@@ -156,6 +156,8 @@ try {
         const files = await readdir(join(skinApp, "dist"));
         assert.deepEqual(files, [resourceName], "the build must emit one file, the resource named for the skin");
         assert.doesNotMatch(output, /css-syntax-error|warnings when minifying css/i, "the build must not warn about CSS");
+        // Nor about its own config: Vite 8 warns on a Rollup-era option such as output.inlineDynamicImports.
+        assert.doesNotMatch(output, /\bWARN\b|deprecated/i, `the build must print no warning:\n${output}`);
         const resource = await read(join(skinApp, "dist", resourceName));
         assert.match(resource, /dashhaus-my-skin/, "the resource must register the skin's card");
         assert.match(resource, /--my-skin-/, "the resource must carry the skin's CSS");

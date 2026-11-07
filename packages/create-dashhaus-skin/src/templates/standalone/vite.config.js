@@ -32,6 +32,6 @@ export default defineConfig({
     emptyOutDir: true,
     target: "es2022",
     lib: { entry: "lovelace/entry.tsx", formats: ["es"], fileName: () => "dashhaus-__skin__.js" },
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    rolldownOptions: { output: { codeSplitting: false } },
   },
 });
