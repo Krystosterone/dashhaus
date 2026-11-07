@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { CameraEntity, CameraState } from "@dashhaus/core/entities/camera/types";
-import { cameraKind, cameraWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
+import { cameraKind, cameraWord, liveViewSaid, openStillWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { Blank, Glyph, Key, KeyGroup, ModuleFrame, Pictogram, Picture, Screen, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -61,7 +61,7 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
   const panelNote = still ? stillNote(e, panelPicture) : undefined;
   // The still opens the stream where there is one; the name, as on every module, opens the panel.
   const open = onOpenLive ?? details.openDetails;
-  const openLabel = onOpenLive ? "Open live view" : "Open details";
+  const openLabel = openStillWord(!!onOpenLive);
   const lit = e.state === "recording" || e.state === "streaming";
 
   const pict = <Pictogram param="neutral" lit={lit}>{CAMERA_PICT}</Pictogram>;
@@ -70,7 +70,8 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
     : figure ? <><span aria-hidden="true">{figure}</span><span className="fd-sr">{word}</span></>
     : <Blank places={4} label={word} />;
   const since = sinceFact(e.lastChanged);
-  const metaOf = (said?: string): [ReactNode, ReactNode?] => unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : [word, said ?? since];
+  // Unavailable says when it was last seen in core's words ("Last seen 08:20"), as every module does.
+  const metaOf = (said?: string): [ReactNode, ReactNode?] => unav ? [word, e.lastSeen ? lastSeenFact(e.lastSeen) : undefined] : [word, said ?? since];
   const glyph = <Glyph unavailable={unav}><IconCamera state={e.state} /></Glyph>;
   const label = `${e.name}: ${word}`;
 
@@ -100,7 +101,7 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
       body={body}
       panelScreen={{ pict, read, meta: metaOf(panelNote) }}
       panelPicture={still && !unav && (
-        <Picture picture={panelPicture} label={label} fit="contain" onOpen={onOpenLive} openLabel="Open live view">
+        <Picture picture={panelPicture} label={label} fit="contain" onOpen={onOpenLive} openLabel={openStillWord(true)}>
           <svg viewBox="0 0 20 26" aria-hidden="true">{CAMERA_PICT}</svg>
         </Picture>
       )}
@@ -108,7 +109,7 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
     >
       {onOpenLive && !unav && (
         <KeyGroup legend="Camera" columns={1}>
-          <Key label={`Open ${e.name}'s live view`} wide caption="Live" onPress={onOpenLive}><IconCamera state="streaming" /></Key>
+          <Key label={liveViewSaid(e.name)} wide caption="Live" onPress={onOpenLive}><IconCamera state="streaming" /></Key>
         </KeyGroup>
       )}
     </ModuleFrame>

@@ -46,7 +46,7 @@ describe("CameraModule", () => {
   it("blanks the screen while unavailable, says when it was last seen, and draws no frame", () => {
     const { container } = draw("unavailable");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
-    expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableSeen 08:20");
+        expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
     expect(container.querySelector(".fd-pic")?.getAttribute("data-status")).toBe("unavailable");
     expect(container.querySelector("img")).toBeNull();
   });
@@ -81,5 +81,17 @@ describe("CameraModule", () => {
     const panel = screen.getByRole("dialog");
     expect(panel.querySelector(".fd-pic[data-fit='contain']")).not.toBeNull();
     expect(panel.textContent).toContain("Reolink Video Doorbell · motion detection on");
+  });
+
+  it("starts the panel's small print with when, and ends it with what the camera is", () => {
+    draw("idle", { defaultOpen: true });
+    const facts = [...(screen.getByRole("dialog").querySelector(".fd-info")?.children ?? [])].map((s) => s.textContent);
+    expect(facts[0]).toMatch(/^Last changed /);
+    expect(facts.at(-1)).toBe("Reolink Video Doorbell · motion detection on");
+  });
+
+  it("says Last seen in the panel's small print while unavailable, never Seen", () => {
+    draw("unavailable", { defaultOpen: true });
+    expect(screen.getByRole("dialog").querySelector(".fd-info")?.firstElementChild?.textContent).toBe("Last seen 08:20");
   });
 });

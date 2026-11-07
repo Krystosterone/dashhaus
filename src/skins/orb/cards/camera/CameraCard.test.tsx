@@ -80,7 +80,7 @@ describe("CameraCard", () => {
     const { container } = render(<CameraCard entity={{ ...entity, state: "unavailable", lastSeen: "08:20" }} />);
     expect(container.querySelector(".hd-pic")).toBeNull();
     expect(container.querySelector("article")?.hasAttribute("data-still")).toBe(false);
-    expect(container.querySelector(".hd-unav")?.textContent).toContain("08:20");
+    expect(container.querySelector(".hd-unav")?.textContent).toBe("UnavailableLast seen 08:20");
     expect(container.querySelector(".hd-area")?.textContent).toBe("Unavailable");
     expect(screen.queryByText("Idle")).toBeNull();
   });
@@ -99,8 +99,13 @@ describe("CameraCard", () => {
   });
 
   it("says what the camera is in the sheet's small print, after when it last changed", () => {
-    render(<CameraCard entity={{ ...entity, motionDetection: true }} variant="sheet" />);
-    expect(screen.getByText("Last changed 08:16")).toBeTruthy();
-    expect(screen.getByText("Reolink Video Doorbell · motion detection on")).toBeTruthy();
+    const { container } = render(<CameraCard entity={{ ...entity, motionDetection: true }} variant="sheet" />);
+    const facts = [...(container.querySelector(".hd-info")?.children ?? [])].map((s) => s.textContent);
+    expect(facts).toEqual(["Last changed 08:16", "Reolink Video Doorbell · motion detection on"]);
+  });
+
+  it("starts the small print with when it was last seen while unavailable", () => {
+    const { container } = render(<CameraCard entity={{ ...entity, state: "unavailable", lastSeen: "08:20" }} variant="sheet" />);
+    expect(container.querySelector(".hd-info")?.firstElementChild?.textContent).toBe("Last seen 08:20");
   });
 });

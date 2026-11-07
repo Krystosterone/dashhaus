@@ -24,6 +24,21 @@ export function cameraWord(e: Pick<CameraEntity, "state" | "stateText">): string
   return CAMERA_WORDS[e.state];
 }
 
+/**
+ * The details' one way to the live stream, where the host has one: Orb's pill says it whole; Field's key, whose
+ * caption has a key's places, says `Live`, and its spoken label says it whole (`liveViewSaid`).
+ */
+export const LIVE_VIEW = "Live view";
+
+/** The way to the live stream, said in full for a screen reader: "Open Front door's live view". */
+export const liveViewSaid = (name: string) => `Open ${name}'s live view`;
+
+/**
+ * What pressing the still does, said after what it shows: the live stream where the host has one (Home Assistant's
+ * more-info), else the card's details.
+ */
+export const openStillWord = (live: boolean) => (live ? "Open live view" : "Open details");
+
 /** Where a still is in its lifecycle, as `usePicture` says (`@dashhaus/core/hooks`). */
 export type StillStatus = "none" | "loading" | "ready" | "stale" | "failed";
 

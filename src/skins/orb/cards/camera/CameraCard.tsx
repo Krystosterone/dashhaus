@@ -1,7 +1,7 @@
 import { usePicture } from "@dashhaus/core/hooks";
 import type { CameraEntity } from "@dashhaus/core/entities/camera/types";
-import { cameraKind, cameraWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { LIVE_VIEW, cameraKind, cameraWord, liveViewSaid, openStillWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { CameraIcon } from "./icons";
 import { CardFrame, Picture, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
@@ -54,7 +54,8 @@ export function CameraCard({ entity: e, still = true, refresh = STILL_REFRESH, p
   // The still opens the stream where there is one; the name, as on every card, opens the details.
   const openStill = sheet ? onOpenLive : onOpenLive ?? onOpenDetails;
   const since = !unav && e.lastChanged ? e.lastChanged : undefined;
-  const status = unav ? "Unavailable" : note ?? area ?? (since && `Since ${since}`);
+  // Unavailable says the core word, as the slot does; else the still's note, the area, or since when.
+  const status = unav ? word : note ?? area ?? sinceFact(since);
   const spoken = `${word}${since ? `, since ${since}` : ""}`;
   const live = !!onOpenLive;
   // An integration's own word may wrap where its column is narrow rather than be cut (Motion alert).
@@ -85,7 +86,7 @@ export function CameraCard({ entity: e, still = true, refresh = STILL_REFRESH, p
         ratio={sheet ? "16 / 9" : undefined}
         unavailable={unav}
         onOpen={openStill}
-        openLabel={live ? "Open live view" : "Open details"}
+        openLabel={openStillWord(live)}
       >
         <CameraIcon state={e.state} />
       </Picture>
@@ -114,7 +115,7 @@ export function CameraCard({ entity: e, still = true, refresh = STILL_REFRESH, p
     >
       {onOpenLive && !unav && (
         <SheetBlock>
-          <TogglePill label={`Open ${e.name}'s live view`} onToggle={onOpenLive}>Live view</TogglePill>
+          <TogglePill label={liveViewSaid(e.name)} onToggle={onOpenLive}>{LIVE_VIEW}</TogglePill>
         </SheetBlock>
       )}
       {well}

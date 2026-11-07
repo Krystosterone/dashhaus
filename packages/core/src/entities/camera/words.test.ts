@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stillFrom } from "../picture";
 import { inWords } from "../format";
-import { CAMERA_WORDS, cameraKind, cameraWord, stillNote } from "./words";
+import { CAMERA_WORDS, LIVE_VIEW, cameraKind, cameraWord, liveViewSaid, openStillWord, stillNote } from "./words";
 
 describe("camera words", () => {
   it("says each of Home Assistant's states in one word, Title case", () => {
@@ -36,5 +36,12 @@ describe("camera words", () => {
     expect(cameraKind({ brand: "Reolink", model: "Video Doorbell", motionDetection: true })).toBe("Reolink Video Doorbell · motion detection on");
     expect(cameraKind({ motionDetection: false })).toBe("Motion detection off");
     expect(cameraKind({})).toBe("");
+  });
+
+  it("says what a press on the still opens, and the way to the live stream, the same in every skin", () => {
+    expect(openStillWord(true)).toBe("Open live view");
+    expect(openStillWord(false)).toBe("Open details");
+    expect(LIVE_VIEW).toBe("Live view");
+    expect(liveViewSaid("Front door")).toBe("Open Front door's live view");
   });
 });
