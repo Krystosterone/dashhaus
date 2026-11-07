@@ -17,6 +17,7 @@ import {
   readSensorOptions,
   readUnit,
   readWeatherOptions,
+  readCalendarOptions,
   rowTitles,
 } from "@dashhaus/core/lovelace/schema";
 import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
@@ -50,6 +51,7 @@ export type Kind =
   | "fan"
   | "guestWifi"
   | "binarySensor"
+  | "calendar"
   // new-card: kinds
   ;
 
@@ -67,6 +69,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   lock: "lock",
   fan: "fan",
   binary_sensor: "binarySensor",
+  calendar: "calendar",
   // new-card: domain kinds
 };
 
@@ -106,6 +109,7 @@ export type CardConfig = CardBase & (
   | { kind: "fan" }
   | { kind: "guestWifi"; access?: "code" | "password"; network?: string; qr?: string; newCode?: string; refresh?: string }
   | { kind: "binarySensor"; battery?: string }
+  | { kind: "calendar"; calendars?: string[]; days?: number; events: boolean }
   // new-card: card configs
 );
 
@@ -215,6 +219,10 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   binarySensor: {
     keys: ["battery"],
     options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
+  },
+  calendar: {
+    keys: ["calendars", "days", "events"],
+    options: readCalendarOptions,
   },
   // new-card: kind specs
 };

@@ -78,5 +78,9 @@ export { BinarySensorModule } from "./cards/binarySensor/BinarySensorModule";
 export type { BinarySensorModuleProps } from "./cards/binarySensor/BinarySensorModule";
 export { HaBinarySensorModule } from "./ha/HaBinarySensorModule";
 export type { HaBinarySensorModuleProps } from "./ha/HaBinarySensorModule";
+export { CalendarModule } from "./cards/calendar/CalendarModule";
+export type { CalendarModuleProps } from "./cards/calendar/CalendarModule";
+export { HaCalendarModule } from "./ha/HaCalendarModule";
+export type { HaCalendarModuleProps } from "./ha/HaCalendarModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

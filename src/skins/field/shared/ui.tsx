@@ -491,9 +491,11 @@ export function Facts({ start, end }: { start?: ReactNode; end?: ReactNode }) {
 
 /**
  * Today on a strip of screen, one segment column per hour. Parameter tones identify adjustable history; neutral
- * is for activity such as climate runtime. Hours not yet come are dark; unavailable hours show a dash.
+ * is for activity such as climate runtime. Hours not yet come are dark; unavailable hours show a dash. A model that
+ * knows the hours ahead (a calendar's plan) passes `aheadFrom`: those hours draw their level in the dim ink, the column
+ * dimmed as a dark hour's, so a plan never reads as a past (orb's `TodayStrip` `forecastFrom`).
  */
-export function Meter({ label, samples, currentHour, tone = "a" }: { label: string; samples: HourSample[]; currentHour: number; tone?: Tone }) {
+export function Meter({ label, samples, currentHour, tone = "a", aheadFrom }: { label: string; samples: HourSample[]; currentHour: number; tone?: Tone; aheadFrom?: number }) {
   return (
     <div className="fd-meter" role="img" aria-label={label} data-tone={tone}>
       {Array.from({ length: 24 }, (_, i) => {
@@ -501,7 +503,7 @@ export function Meter({ label, samples, currentHour, tone = "a" }: { label: stri
         const state = x === "unavailable" ? "unav" : x == null ? "none" : "lvl";
         const level = typeof x === "number" ? Math.min(1, Math.max(0, x)) : 0;
         return (
-          <span key={i} className="fd-meter-h" data-state={state} data-now={i === currentHour || undefined} style={{ "--fd-level": level.toFixed(3) } as Vars}>
+          <span key={i} className="fd-meter-h" data-state={state} data-now={i === currentHour || undefined} data-ahead={(aheadFrom != null && i >= aheadFrom && state === "lvl") || undefined} style={{ "--fd-level": level.toFixed(3) } as Vars}>
             <span className="fd-meter-lit" />
           </span>
         );
@@ -522,6 +524,8 @@ export interface TodayProps {
   /** The hour now, marked under its column; omit or -1 for none. */
   currentHour?: number;
   tone?: Tone;
+  /** Hours from this one on are known ahead (a calendar's plan), drawn at their level in the dim ink. */
+  aheadFrom?: number;
 }
 
 /** No history: every hour dark. */
@@ -531,11 +535,11 @@ const NO_HOURS: HourSample[] = Array(24).fill(null);
  * Today: a printed legend, with its summary at the end, over the hour meter. In a panel, a block; in a module it
  * takes a fader's place and height, its legend over a shorter strip.
  */
-export function Today({ legend = "Today", summary, label, samples = NO_HOURS, currentHour = -1, tone }: TodayProps) {
+export function Today({ legend = "Today", summary, label, samples = NO_HOURS, currentHour = -1, tone, aheadFrom }: TodayProps) {
   return (
     <div className="fd-block fd-today">
       <Legend value={summary}>{legend}</Legend>
-      <Meter label={summary ? `${label} ${summary}.` : label} samples={samples} currentHour={currentHour} tone={tone} />
+      <Meter label={summary ? `${label} ${summary}.` : label} samples={samples} currentHour={currentHour} tone={tone} aheadFrom={aheadFrom} />
     </div>
   );
 }

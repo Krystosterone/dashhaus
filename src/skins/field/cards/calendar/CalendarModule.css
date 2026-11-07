@@ -1,0 +1,31 @@
+/* Calendar module (fd-ca): a reading. Its glyph where a key would be, then today's meter where a fader would be. The
+   plate, screen, meter, row (ModuleRow) and panel body (PanelBody) are shared. */
+
+/* Narrow modules keep one meta line on the screen. */
+@container (max-width: 239px) {
+  .fd-ca .fd-meta-2 { display: none; }
+  .fd-ca .fd-read { font-size: 24px; }
+}
+
+/* A narrow row keeps the figure and lets the pictogram go. */
+@container (max-width: 279px) {
+  .fd-ca[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-ca[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+
+/* The panel's lists, printed on the plate: when in a fixed column, then what, where and on which calendar. */
+.fd-ca-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.fd-ca-ev { display: grid; grid-template-columns: 11.8em minmax(0, 1fr); column-gap: 12px; align-items: baseline; min-width: 0; }
+.fd-ca-ev-t {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em; line-height: 16px; text-transform: uppercase; font-variant-numeric: tabular-nums;
+  color: var(--fd-print);
+}
+.fd-ca-ev-n { display: grid; gap: 2px; min-width: 0; }
+.fd-ca-ev-title { font-size: 13px; font-weight: 500; line-height: 16px; color: var(--fd-ink); overflow-wrap: anywhere; }
+.fd-ca-ev-d { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; line-height: 13px; text-transform: uppercase; color: var(--fd-ink-3); overflow-wrap: anywhere; }
+/* Under way: Now before its title in words, and its time in ink. */
+.fd-ca-ev[data-when="now"] .fd-ca-ev-t { color: var(--fd-ink); }
+.fd-ca-ev-now { font-weight: 700; }
+/* Over: printed lighter, kept so the day reads whole. */
+.fd-ca-ev[data-when="over"] :is(.fd-ca-ev-t, .fd-ca-ev-title, .fd-ca-ev-d) { color: var(--fd-ink-3); font-weight: 400; }

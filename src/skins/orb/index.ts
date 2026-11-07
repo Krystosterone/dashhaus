@@ -126,6 +126,14 @@ export type { BinarySensorTileProps } from "./cards/binarySensor/BinarySensorTil
 export { HaBinarySensorTile } from "./ha/HaBinarySensorTile";
 export type { HaBinarySensorTileProps } from "./ha/HaBinarySensorTile";
 
+// Calendar
+export { CalendarCard, CalendarSheet } from "./cards/calendar/CalendarCard";
+export type { CalendarCardProps, CalendarSheetProps } from "./cards/calendar/CalendarCard";
+export { CalendarTile } from "./cards/calendar/CalendarTile";
+export type { CalendarTileProps } from "./cards/calendar/CalendarTile";
+export { HaCalendarTile } from "./ha/HaCalendarTile";
+export type { HaCalendarTileProps } from "./ha/HaCalendarTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

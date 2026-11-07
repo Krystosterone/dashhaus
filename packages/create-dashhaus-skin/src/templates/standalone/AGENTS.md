@@ -149,6 +149,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/alarm/modes` | an alarm's modes, their labels and hints, `needsCode` |
 | `@dashhaus/core/entities/binarySensor/words` | a binary sensor's state in its device class's words (`stateWord`, `alertWord`, `wordsOf`), and the picture its class names (`pictureOf`) |
 | `@dashhaus/core/entities/binarySensor/severity` | `binarySensorSeverity`, and `stateSeverity` for the state's own |
+| `@dashhaus/core/entities/calendar/words` | a calendar's events in words, counted from its own minute: when one is (`eventWhen`: "In 2h 6m", "Until 12:15", "Tomorrow 09:30"), a compact cue (`eventCue`), its span (`eventSpan`), `freeFor`, `leftToday`, `clockTime`, `dayWord` |
+| `@dashhaus/core/entities/calendar/agenda` | `calendarAgenda` (the event to lead with, today's, what's left and later) and `calendarDay` (today's hours busy) |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
 | `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |

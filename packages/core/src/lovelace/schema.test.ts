@@ -4,6 +4,7 @@ import {
   cardKindOrder,
   cardKinds,
   readAlarmOptions,
+  readCalendarOptions,
   readCard,
   readCards,
   readColor,
@@ -111,6 +112,19 @@ describe("shared option readers", () => {
     });
     expect(readAlarmOptions(reader, { open_sensors: "Back door" }, "alarm").openSensors).toBeUndefined();
     expect(reader.problems).toEqual(['alarm: "open_sensors" must be a list of names']);
+  });
+
+  it("reads a calendar's other calendars, its horizon and whether to read its events", () => {
+    const reader = new Reader();
+    expect(readCalendarOptions(reader, { calendars: ["calendar.school"], days: 14 }, "calendar")).toEqual({ calendars: ["calendar.school"], days: 14, events: true });
+    expect(readCalendarOptions(reader, { events: false }, "calendar")).toEqual({ calendars: undefined, days: undefined, events: false });
+    expect(readCalendarOptions(reader, { calendars: ["sensor.x"], days: 40 }, "calendar")).toEqual({ calendars: [], days: undefined, events: true });
+    expect(readCalendarOptions(reader, { calendars: "calendar.school" }, "calendar").calendars).toBeUndefined();
+    expect(reader.problems).toEqual([
+      "calendar.calendars[0]: sensor.x must be a calendar.* entity",
+      'calendar: "days" must be a whole number from 1 to 31',
+      'calendar: "calendars" must be a list of calendar.* entity ids',
+    ]);
   });
 
   it("reads an Owlet sock's alert sensors by alert name", () => {
