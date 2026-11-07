@@ -100,6 +100,47 @@
     ],
     "fixtureId": "binary_sensor.front_door"
   },
+  "calendar": {
+    "name": "calendar",
+    "Name": "Calendar",
+    "CONST": "CALENDAR",
+    "words": "calendar",
+    "Label": "Calendar",
+    "domains": [
+      "calendar"
+    ],
+    "kind": "reading",
+    "actions": [],
+    "guarded": [],
+    "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
+    "history": true,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "events",
+      "now",
+      "days",
+      "calendars",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "busy",
+    "samples": true,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area"
+    ],
+    "companions": [],
+    "fixtureId": "calendar.family"
+  },
   "climate": {
     "name": "climate",
     "Name": "Climate",

@@ -4,6 +4,7 @@ import lock from "../fixtures/lock.json";
 import fan from "../fixtures/fan.json";
 import guestWifi from "../fixtures/guestWifi.json";
 import binarySensor from "../fixtures/binarySensor.json";
+import calendar from "../fixtures/calendar.json";
 // new-card: fixture imports
 import alarm from "../fixtures/alarm.json";
 import climate from "../fixtures/climate.json";
@@ -19,6 +20,7 @@ import { lockFromHass } from "./lock";
 import { fanFromHass } from "./fan";
 import { guestWifiFromHass } from "./guestWifi";
 import { binarySensorFromHass } from "./binarySensor";
+import { calendarFromHass } from "./calendar";
 // new-card: mapper imports
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
@@ -52,6 +54,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "fan", fixture: fan, map: fanFromHass, keepsState: true },
   { domain: "guest wifi", fixture: guestWifi, map: guestWifiFromHass, keepsState: false },
   { domain: "binary sensor", fixture: binarySensor, map: binarySensorFromHass, keepsState: true },
+  { domain: "calendar", fixture: calendar, map: calendarFromHass, keepsState: false },
   // new-card: fixtures
 ];
 

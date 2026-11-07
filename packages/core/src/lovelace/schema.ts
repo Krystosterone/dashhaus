@@ -632,6 +632,17 @@ export const readWeatherOptions = (read: Reader, raw: Raw, at: string) => ({
   forecasts: read.boolean(raw, "forecasts", at) ?? true,
 });
 
+/**
+ * A calendar's other calendars, read beside it and merged (`calendar.*` ids), how many days it looks ahead, today
+ * included (1 to 31; the card's default is 7), and whether to read its events (default `true`).
+ */
+export const readCalendarOptions = (read: Reader, raw: Raw, at: string) => {
+  const list = raw.calendars;
+  if (list != null && !Array.isArray(list)) read.problem(at, "\"calendars\" must be a list of calendar.* entity ids");
+  const calendars = Array.isArray(list) ? list.flatMap((id, i) => read.entityId(id, `${at}.calendars[${i}]`, ["calendar"]) ?? []) : undefined;
+  return { calendars, days: read.number(raw, "days", at, 1, 31), events: read.boolean(raw, "events", at) ?? true };
+};
+
 /** An alarm's view-only flag, its delays and the names of the doors and windows open. */
 export const readAlarmOptions = (read: Reader, raw: Raw, at: string) => {
   const sensors = raw.open_sensors;

@@ -1,0 +1,65 @@
+{
+  "calendar.family": {
+    "entity_id": "calendar.family",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Family",
+      "message": "Dentist",
+      "all_day": false,
+      "start_time": "2026-10-19 14:00:00",
+      "end_time": "2026-10-19 15:00:00",
+      "location": "Main St Dental",
+      "description": ""
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "calendar.work": {
+    "entity_id": "calendar.work",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Work",
+      "message": "Team standup",
+      "all_day": false,
+      "start_time": "2026-10-19 11:30:00",
+      "end_time": "2026-10-19 12:15:00",
+      "location": "Room 3",
+      "description": ""
+    },
+    "last_changed": "2026-10-19T11:30:00+00:00",
+    "last_updated": "2026-10-19T11:30:00+00:00"
+  },
+  "calendar.holidays": {
+    "entity_id": "calendar.holidays",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Holidays",
+      "message": "Bin day",
+      "all_day": true,
+      "start_time": "2026-10-19 00:00:00",
+      "end_time": "2026-10-20 00:00:00",
+      "location": "",
+      "description": ""
+    },
+    "last_changed": "2026-10-19T00:00:00+00:00",
+    "last_updated": "2026-10-19T00:00:02+00:00"
+  },
+  "calendar.club": {
+    "entity_id": "calendar.club",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Club"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "calendar.shared": {
+    "entity_id": "calendar.shared",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Shared"
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  }
+}

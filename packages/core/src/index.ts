@@ -136,4 +136,9 @@ export type { BinarySensorMapOptions } from "./ha/mappers/binarySensor";
 export { useHaBinarySensor } from "./ha/hooks/binarySensor";
 export type { HaBinarySensorOptions, HaBinarySensorResult } from "./ha/hooks/binarySensor";
 export { HaBinarySensor } from "./ha/headless";
+export { CALENDAR_DAYS, calendarEventsFromHass, calendarFromHass } from "./ha/mappers/calendar";
+export type { CalendarMapOptions } from "./ha/mappers/calendar";
+export { useHaCalendar } from "./ha/hooks/calendar";
+export type { HaCalendarOptions, HaCalendarResult } from "./ha/hooks/calendar";
+export { HaCalendar } from "./ha/headless";
 // new-card: exports

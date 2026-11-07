@@ -143,6 +143,21 @@ describe("autoDashboard", () => {
     expect(parsed.cards.map((c) => c.item)).toEqual([expect.objectContaining({ kind: "guestWifi", entity: "sensor.67d9d6d6ad84e044caf4621c_voucher" })]);
   });
 
+  it("puts every visible calendar under Calendar, after the guests and before the outside", () => {
+    const card = autoDashboard({
+      ...input,
+      states: { ...states, "calendar.school": state("calendar.school"), "calendar.family": state("calendar.family"), "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher") },
+    });
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title)).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Nursery", "Guests", "Calendar", "Outside", "Rooms"]);
+    expect(rows.find((s) => s.title === "Calendar")!.cards).toEqual(["calendar.family", "calendar.school"]);
+    const parsed = parseDashboardConfig(card).rows!.find((s) => s.title === "Calendar")!;
+    expect(parsed.cards.map((c) => c.item)).toEqual([
+      expect.objectContaining({ kind: "calendar", entity: "calendar.family", events: true }),
+      expect.objectContaining({ kind: "calendar", entity: "calendar.school" }),
+    ]);
+  });
+
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });

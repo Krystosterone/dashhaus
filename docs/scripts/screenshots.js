@@ -54,6 +54,7 @@ const KINDS = {
   owlet: ["orb-cards-owlet--deep-sleep", "field-cards-owlet--deep-sleep"],
   guestWifi: ["orb-cards-guestwifi--ready", "field-cards-guestwifi--ready"],
   binarySensor: ["orb-cards-binarysensor--closed", "field-cards-binarysensor--closed"],
+  calendar: ["orb-cards-calendar--next", "field-cards-calendar--next"],
 };
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
