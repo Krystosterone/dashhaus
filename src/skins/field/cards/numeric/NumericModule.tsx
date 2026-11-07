@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { NumericEntity, NumericHistory } from "@dashhaus/core/entities/numeric/types";
-import { FIGURE_PLACES, fmtNumeric, numericFact, numericFigure, numericToday, numericWords, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { FIGURE_PLACES, fmtNumeric, numericFigure, numericToday, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { numericFact, numericTodaySaid, numericWords } from "@dashhaus/core/entities/numeric/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { Blank, Digits, Glyph, ModuleFrame, ModuleRow, Pictogram, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -40,14 +41,13 @@ export function NumericModule({ entity: e, history, footprint = "standard", defa
       {e.unit && <small aria-hidden="true">{e.unit}</small>}
       <span className="fd-sr">{withUnit(fmtNumeric(value), e.unit)}</span>
     </>;
-  const updated = e.lastUpdated ? `Updated ${e.lastUpdated}` : undefined;
-  const lines: ReactNode[] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : null]
-    : [value == null ? "No reading yet" : null, words.label || null, updated];
+  const lines: ReactNode[] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : null]
+    : [value == null ? "No reading yet" : null, words.label || null, updatedFact(e.lastUpdated) || null];
   const [first, second] = lines.filter(Boolean);
   const meta: [ReactNode, ReactNode?] | undefined = first ? [first, second] : undefined;
 
   const glyph = <Glyph unavailable={unav}><IconNumeric picture={words.picture} /></Glyph>;
-  const label = `${words.label || "Reading"} by hour today.`;
+  const label = numericTodaySaid(e.deviceClass);
 
   return (
     <ModuleFrame

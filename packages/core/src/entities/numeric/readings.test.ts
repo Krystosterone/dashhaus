@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { TODAY_SHORT_PLACES, fmtNumeric, isNumericClass, numericFact, isNumericStateClass, numericFigure, numericToday, numericWords, withUnit } from "./readings";
+import { TODAY_SHORT_PLACES, fmtNumeric, isNumericStateClass, numericFigure, numericToday, withUnit } from "./readings";
+import { NO_READINGS_TODAY } from "../today";
 import type { NumericHistory } from "./types";
 
 const day = (readings: NumericHistory["readings"], currentHour = readings.length - 1): NumericHistory => ({ readings, currentHour });
@@ -39,29 +40,10 @@ describe("withUnit", () => {
   });
 });
 
-describe("numericWords", () => {
-  it("names what a class measures, and a plain reading has no label", () => {
-    expect(numericWords("carbon_dioxide")).toEqual({ label: "CO₂", long: "Carbon dioxide", picture: "air" });
-    expect(numericWords("energy").picture).toBe("meter");
-    expect(numericWords("power").picture).toBe("power");
-    expect(numericWords(undefined)).toEqual({ label: "", long: "Reading", picture: "gauge" });
-  });
-
-  it("knows only Home Assistant's classes, and none from the prototype", () => {
-    expect(isNumericClass("pm25")).toBe(true);
-    expect(isNumericClass("constructor")).toBe(false);
-    expect(isNumericClass("door")).toBe(false);
+describe("isNumericStateClass", () => {
+  it("knows only Home Assistant's state classes", () => {
     expect(isNumericStateClass("total_increasing")).toBe(true);
     expect(isNumericStateClass("totally")).toBe(false);
-  });
-});
-
-describe("numericFact", () => {
-  it("says what the reading is and its unit, as far as it knows", () => {
-    expect(numericFact({ deviceClass: "carbon_dioxide", unit: "ppm" })).toBe("Carbon dioxide in ppm");
-    expect(numericFact({ deviceClass: "energy" })).toBe("Energy");
-    expect(numericFact({ unit: "W" })).toBe("In W");
-    expect(numericFact({})).toBe("");
   });
 });
 
@@ -87,7 +69,7 @@ describe("numericToday", () => {
   });
 
   it("has no reading yet before the first, and keeps gone hours", () => {
-    expect(numericToday({}, day([null, "unavailable", null]))).toEqual({ long: "No readings yet today", samples: [null, "unavailable", null] });
+    expect(numericToday({}, day([null, "unavailable", null]))).toEqual({ long: NO_READINGS_TODAY, samples: [null, "unavailable", null] });
   });
 
   it("keeps a flat day flat rather than filling the strip with noise", () => {

@@ -1,83 +1,17 @@
+/**
+ * A numeric reading's figures, the same on every card and in every skin: how its number is written in the places a card
+ * has, its unit beside it, and today's readings in two lengths. What it measures, in words, is `./words`.
+ */
 import { normalizeReadings } from "../history";
 import type { HourSample, Reading } from "../history";
-import type { NumericClass, NumericEntity, NumericHistory, NumericStateClass } from "./types";
-
-/**
- * What a numeric reading measures, in its device class's words, the same on every card and in every skin: `label` is
- * the short word a status line or a screen's meta line carries ("CO₂", "Power"), `long` the full name the details'
- * small print and a screen reader say ("Carbon dioxide"). `picture` is the icon each skin draws for it, so a column
- * tells air from power from a meter.
- */
-export interface NumericWords {
-  label: string;
-  long: string;
-  picture: NumericPicture;
-}
-
-/** The pictures a numeric card draws: air quality, electricity now, a meter that counts up, and any other gauge. */
-export type NumericPicture = "air" | "power" | "meter" | "gauge";
-
-const air = (label: string, long = label): NumericWords => ({ label, long, picture: "air" });
-const power = (label: string, long = label): NumericWords => ({ label, long, picture: "power" });
-const meter = (label: string, long = label): NumericWords => ({ label, long, picture: "meter" });
-const gauge = (label: string, long = label): NumericWords => ({ label, long, picture: "gauge" });
-
-export const NUMERIC_WORDS: Record<NumericClass, NumericWords> = {
-  apparent_power: power("Power", "Apparent power"),
-  aqi: air("AQI", "Air quality index"),
-  atmospheric_pressure: gauge("Pressure", "Atmospheric pressure"),
-  carbon_dioxide: air("CO₂", "Carbon dioxide"),
-  carbon_monoxide: air("CO", "Carbon monoxide"),
-  current: power("Current"),
-  data_rate: gauge("Data rate"),
-  data_size: gauge("Data"),
-  distance: gauge("Distance"),
-  energy: meter("Energy"),
-  frequency: gauge("Frequency"),
-  gas: meter("Gas", "Gas use"),
-  humidity: gauge("Humidity"),
-  illuminance: gauge("Light", "Illuminance"),
-  irradiance: gauge("Sunlight", "Irradiance"),
-  moisture: gauge("Moisture"),
-  nitrogen_dioxide: air("NO₂", "Nitrogen dioxide"),
-  ozone: air("Ozone"),
-  pm1: air("PM1", "Ultrafine particles"),
-  pm10: air("PM10", "Coarse particles"),
-  pm25: air("PM2.5", "Fine particles"),
-  power: power("Power"),
-  power_factor: power("Power factor"),
-  precipitation: gauge("Rain", "Precipitation"),
-  precipitation_intensity: gauge("Rain rate", "Precipitation intensity"),
-  pressure: gauge("Pressure"),
-  reactive_power: power("Power", "Reactive power"),
-  signal_strength: gauge("Signal", "Signal strength"),
-  sound_pressure: gauge("Noise", "Sound pressure"),
-  speed: gauge("Speed"),
-  temperature: gauge("Temperature"),
-  volatile_organic_compounds: air("VOC", "Volatile organic compounds"),
-  volatile_organic_compounds_parts: air("VOC", "Volatile organic compounds"),
-  voltage: power("Voltage"),
-  volume: meter("Volume"),
-  water: meter("Water", "Water use"),
-  weight: gauge("Weight"),
-  wind_speed: gauge("Wind", "Wind speed"),
-};
-
-/** A reading with no device class, or one the card has no words for: a plain number in its unit. */
-const PLAIN: NumericWords = { label: "", long: "Reading", picture: "gauge" };
-
-/** Whether a raw `device_class` is one the numeric card has words for. */
-export const isNumericClass = (value: unknown): value is NumericClass =>
-  typeof value === "string" && Object.hasOwn(NUMERIC_WORDS, value);
+import { NO_READINGS_TODAY } from "../today";
+import type { NumericEntity, NumericHistory, NumericStateClass } from "./types";
 
 const STATE_CLASSES: readonly NumericStateClass[] = ["measurement", "total", "total_increasing"];
 
 /** Whether a raw `state_class` is one Home Assistant defines. */
 export const isNumericStateClass = (value: unknown): value is NumericStateClass =>
   typeof value === "string" && (STATE_CLASSES as readonly string[]).includes(value);
-
-/** The words for what a reading measures; a plain reading's `label` is empty, so a line leaves it out. */
-export const numericWords = (deviceClass?: NumericClass): NumericWords => (deviceClass ? NUMERIC_WORDS[deviceClass] : PLAIN);
 
 /** The most places a figure takes, a sign and a point included: what a segment screen holds, and a small card. */
 export const FIGURE_PLACES = 5;
@@ -119,15 +53,6 @@ export const unitHugs = (unit?: string) => !!unit && /^[%°′″]/.test(unit);
 /** A number and its unit as words: "650 ppm", "41%", or the number alone when it has none. */
 export const withUnit = (text: string, unit?: string) => (unit ? `${text}${unitHugs(unit) ? "" : " "}${unit}` : text);
 
-/**
- * What the reading is, for the details' small print: "Carbon dioxide in ppm", "Energy in kWh", "In W" with no class,
- * "Carbon dioxide" with no unit, nothing with neither.
- */
-export function numericFact({ deviceClass, unit }: Pick<NumericEntity, "deviceClass" | "unit">): string {
-  const what = deviceClass ? NUMERIC_WORDS[deviceClass].long : undefined;
-  return what && unit ? `${what} in ${unit}` : what ?? (unit ? `In ${unit}` : "");
-}
-
 /** Today's readings scaled for a Today strip: a numeric day spans at least a hundredth of its high, so noise stays flat. */
 export function normalizeNumeric(readings: Reading[]): { samples: HourSample[]; min: number | null; max: number | null } {
   const nums = readings.filter((x): x is number => typeof x === "number");
@@ -148,7 +73,7 @@ export interface NumericToday {
    * running total's rise today); none before a reading.
    */
   short?: string;
-  /** "Low 380 ppm · High 1450 ppm", "Steady at 0 kW", "+3.2 kWh today", or "No readings yet today". */
+  /** "Low 380 ppm · High 1450 ppm", "Steady at 0 kW", "+3.2 kWh today", or `NO_READINGS_TODAY` ("No readings yet"). */
   long: string;
   /** The day scaled for a Today strip (`normalizeNumeric`). */
   samples: HourSample[];
@@ -161,7 +86,7 @@ export interface NumericToday {
  */
 export function numericToday(entity: Pick<NumericEntity, "unit" | "stateClass">, history: NumericHistory): NumericToday {
   const day = normalizeNumeric(history.readings);
-  if (day.min == null || day.max == null) return { long: "No readings yet today", samples: day.samples };
+  if (day.min == null || day.max == null) return { long: NO_READINGS_TODAY, samples: day.samples };
   const nums = history.readings.slice(0, history.currentHour + 1).filter((x): x is number => typeof x === "number");
   const rise = nums.length ? nums[nums.length - 1] - nums[0] : undefined;
   if (entity.stateClass === "total_increasing" && rise != null && rise >= 0) {

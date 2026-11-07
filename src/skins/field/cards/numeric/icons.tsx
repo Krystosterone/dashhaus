@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { NumericPicture } from "@dashhaus/core/entities/numeric/readings";
+import type { NumericPicture } from "@dashhaus/core/entities/numeric/words";
 
 const STROKE = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 

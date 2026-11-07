@@ -1,5 +1,6 @@
 import type { NumericEntity, NumericHistory } from "@dashhaus/core/entities/numeric/types";
-import { TODAY_SHORT_PLACES, fmtNumeric, numericFact, numericFigure, numericToday, numericWords, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { TODAY_SHORT_PLACES, fmtNumeric, numericFigure, numericToday, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { numericFact, numericWords } from "@dashhaus/core/entities/numeric/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { NumericIcon } from "./icons";
 import { CardFrame, Readout, Today, paint, useCard, detailsSheet } from "../../shared/ui";
@@ -42,9 +43,9 @@ export function NumericCard({ entity: e, history, variant, footprint, showContro
   const todayMetric = today?.short && today.short.length <= TODAY_SHORT_PLACES ? today.short : undefined;
 
   const bar = (
-    <span className="hd-bar nm-bar">
+    <span className="hd-bar hd-bar--pair nm-bar">
       {figure != null
-        ? <span className="hd-metric nm-f"><span className="nm-v">{figure}</span>{e.unit && <small>{e.unit}</small>}</span>
+        ? <span className="hd-metric nm-f"><span className="nm-v hd-metric-n">{figure}</span>{e.unit && <small>{e.unit}</small>}</span>
         : <span className="hd-none">Waiting…</span>}
       {figure != null && todayMetric && (
         <span className="hd-metric hd-metric--sub nm-today">

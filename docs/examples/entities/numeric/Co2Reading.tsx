@@ -1,5 +1,6 @@
 import { useHaNumeric } from "@dashhaus/core";
-import { numericFigure, numericWords, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { numericFigure, withUnit } from "@dashhaus/core/entities/numeric/readings";
+import { numericWords } from "@dashhaus/core/entities/numeric/words";
 
 /** A room's CO₂ in its own words: what it measures, and the figure in its unit. */
 export function LivingRoomCo2() {

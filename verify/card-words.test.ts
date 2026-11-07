@@ -5,7 +5,8 @@
  * - severity is ranked once, in core (`entities/<name>/severity.ts`): a card draws the level it is given and never
  *   declares a ranking of its own;
  * - before a first value every reading says `No reading yet` (or `Waiting…`, where Orb has room for a figure alone),
- *   never another phrase for it (`No reading since 10:20`, a reading that stopped, is a warning, not this).
+ *   never another phrase for it (`No reading since 10:20`, a reading that stopped, is a warning, not this);
+ * - an unavailable card says when it was last seen as `lastSeenFact` does (`Last seen 08:20`), never `Seen 08:20`.
  *
  * Studies keep their own design (spec/skins.md → Studies), so only the two skins are held here.
  */
@@ -47,5 +48,9 @@ describe("what every card says", () => {
   it("says `No reading yet` before a first value, never another phrase for it", () => {
     const other = /["'`>](?:No (?:data|values?|figures?)\b|No reading(?!s? yet|s? since|\$\{)|No readings? available|Awaiting\b|Waiting for (?:data|a reading|readings|events|the first)|Loading\b)/;
     expect(hits(other)).toEqual([]);
+  });
+
+  it("says when an unavailable card was last seen in core's words (`lastSeenFact`), never a bare `Seen`", () => {
+    expect(hits(/["'`>]Seen (?:\$\{|\d)/)).toEqual([]);
   });
 });

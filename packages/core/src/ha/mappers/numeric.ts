@@ -1,7 +1,8 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import { isRecord, stringValue } from "../util";
-import { isNumericClass, isNumericStateClass } from "../../entities/numeric/readings";
+import { isNumericStateClass } from "../../entities/numeric/readings";
+import { isNumericClass } from "../../entities/numeric/words";
 import type { NumericEntity } from "../../entities/numeric/types";
 
 export interface NumericMapOptions {

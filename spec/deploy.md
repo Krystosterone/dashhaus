@@ -369,7 +369,8 @@ new kind of card goes at the end of its band, never ahead of a row already there
 3. **Security-adjacent**: `Cameras`, what the doors and the nursery look like, right after what guards them.
 4. **Household status**: `Nursery` (an Owlet sock), then `Guests` (the guest Wi-Fi code a visitor reads); a new
    household-status row goes after both.
-5. **The glance**, read-only context: `Outside` (the weather), then `Rooms` (the room sensors).
+5. **The glance**, read-only context: `Outside` (the weather), then `Rooms` (the room sensors, then each room's air
+   quality as numeric readings, one per device).
 
 A row whose title an area already has joins that area's row, so the page never shows two rows of one name.
 `src/skins/orb/lovelace/auto.test.ts` lays out a house with every band and holds it to this list.

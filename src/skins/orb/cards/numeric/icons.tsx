@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { NumericPicture } from "@dashhaus/core/entities/numeric/readings";
+import type { NumericPicture } from "@dashhaus/core/entities/numeric/words";
 
 /**
  * The domain icon, every compact row's identity (row-identity skill): the picture its device class names

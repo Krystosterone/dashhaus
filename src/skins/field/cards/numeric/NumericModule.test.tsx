@@ -53,7 +53,7 @@ describe("NumericModule", () => {
     const container = draw("unavailable");
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("-----");
     expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
-    expect(container.querySelector(".fd-meta")?.textContent).toContain("Seen 08:20");
+    expect(container.querySelector(".fd-meta")?.textContent).toContain("Last seen 08:20");
   });
 
   it("leads a compact row with a reading's glyph and keeps its pictogram", () => {
