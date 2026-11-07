@@ -161,6 +161,7 @@ describe("@dashhaus/core/lovelace", () => {
 
   it("exposes exactly the layout's public words", () => {
     expect(Object.keys(layout).sort()).toEqual([
+      "SAFETY_CLASSES",
       "areaId",
       "areaName",
       "byName",
@@ -172,6 +173,7 @@ describe("@dashhaus/core/lovelace", () => {
       "placeRow",
       "placeSection",
       "roomSensors",
+      "safetySensors",
       "sortByName",
       "spanWidth",
       "trackCount",

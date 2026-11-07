@@ -198,6 +198,27 @@
 /* Unavailable: dashed, empty, muted, like the orb beside it. */
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
+/* An alarm that has gone off (AlarmPill): the one place warn fills, in the slot, as a triggered security alarm's pill.
+   The fill deepens under the text, so its words never drop under 4.5:1. */
+.hd-alarm {
+  position: relative; isolation: isolate;
+  display: flex; align-items: center; gap: 12px; min-width: 0; height: var(--slot-h); padding: 0 16px; border-radius: 99px;
+  background: var(--warn); color: var(--on-warn); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hd-alarm::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: color-mix(in oklab, var(--warn) 78%, var(--ink)); opacity: 0;
+  animation: hd-alarm 1.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes hd-alarm { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .hd-alarm::before { animation: none; } }
+.hd-alarm-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.hd-alarm-l b { font-weight: 700; }
+.hd-alarm-v { flex: none; font-size: 14px; font-weight: 700; }
+@container hd (max-width: 259px) { .hd-alarm-c { display: none; } }
+.hd--compact .hd-alarm { padding: 0 var(--pad-in); }
+.hd--compact .hd-alarm-l, .hd--compact .hd-alarm-v { font-size: 12.5px; }
+.hd--compact .hd-alarm-c { display: none; }
 
 /* Readout: a reading's figures with no container, so nothing that can't be pressed looks pressable.
    Tapping it still opens details. */
@@ -214,6 +235,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 }
 .hd-metric { min-width: 0; }
 .hd-metric:only-child { grid-column: 1 / -1; }
+/* A secondary metric (humidity, since when): its caption over its figure, left in its track, in the second ink. */
+.hd-metric--sub { display: grid; align-content: center; gap: 2px; color: var(--ink-2); }
 .hd-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
 .hd-label-short { display: none; }
 /* No reading yet: plain words. */

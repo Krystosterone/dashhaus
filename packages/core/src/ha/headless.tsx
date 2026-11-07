@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useHaLock } from "./hooks/lock";
 import { useHaFan } from "./hooks/fan";
 import { useHaGuestWifi } from "./hooks/guestWifi";
+import { useHaBinarySensor } from "./hooks/binarySensor";
 // new-card: headless imports
 import { useHaLight } from "./hooks/light";
 import { useHaClimate } from "./hooks/climate";
@@ -52,4 +53,5 @@ export const HaSound = headless(useHaSound, "HaSound");
 export const HaLock = headless(useHaLock, "HaLock");
 export const HaFan = headless(useHaFan, "HaFan");
 export const HaGuestWifi = headless(useHaGuestWifi, "HaGuestWifi");
+export const HaBinarySensor = headless(useHaBinarySensor, "HaBinarySensor");
 // new-card: headless components

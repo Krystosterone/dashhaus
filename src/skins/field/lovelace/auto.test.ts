@@ -80,6 +80,20 @@ describe("autoModules", () => {
     expect(() => parseFieldConfig({ cards: [{ entity: "lock.front", battery: "light.lamp" }] })).toThrow();
   });
 
+  it("takes every door, window, leak and smoke sensor, with the battery on its device, and no other binary sensor", () => {
+    expect(autoModules({
+      states: {
+        "binary_sensor.patio": { attributes: { friendly_name: "Patio door", device_class: "door" } },
+        "sensor.patio_battery": { attributes: { friendly_name: "Patio battery", device_class: "battery" } },
+        "binary_sensor.sink": { attributes: { friendly_name: "Leak", device_class: "moisture" } },
+        "binary_sensor.hall": { attributes: { friendly_name: "Hall motion", device_class: "motion" } },
+        "binary_sensor.sock_off": { attributes: { friendly_name: "Sock off" } },
+      },
+      entities: { "binary_sensor.patio": { device_id: "patio" }, "sensor.patio_battery": { device_id: "patio", entity_category: "diagnostic" } },
+    })).toEqual([{ entity: "binary_sensor.sink", kind: "binarySensor" }, { entity: "binary_sensor.patio", kind: "binarySensor", battery: "sensor.patio_battery" }]);
+    expect(parseFieldConfig({ cards: [{ entity: "binary_sensor.patio", battery: "sensor.patio_battery" }] }).rows?.[0].cards[0].item).toMatchObject({ kind: "binarySensor", battery: "sensor.patio_battery" });
+  });
+
   it("takes every visible alarm panel", () => {
     expect(autoModules({ states: { "alarm_control_panel.house": state("alarm_control_panel.house", "House alarm") } })).toEqual([{ entity: "alarm_control_panel.house", kind: "alarm" }]);
   });

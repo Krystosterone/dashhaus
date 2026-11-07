@@ -131,4 +131,9 @@ export type { GuestWifiButton, GuestWifiHandlers, GuestWifiHandlerOptions } from
 export { useHaGuestWifi } from "./ha/hooks/guestWifi";
 export type { HaGuestWifiOptions, HaGuestWifiResult } from "./ha/hooks/guestWifi";
 export { HaGuestWifi } from "./ha/headless";
+export { binarySensorFromHass } from "./ha/mappers/binarySensor";
+export type { BinarySensorMapOptions } from "./ha/mappers/binarySensor";
+export { useHaBinarySensor } from "./ha/hooks/binarySensor";
+export type { HaBinarySensorOptions, HaBinarySensorResult } from "./ha/hooks/binarySensor";
+export { HaBinarySensor } from "./ha/headless";
 // new-card: exports

@@ -3,7 +3,7 @@ import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
-import { AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import { AlarmPill, AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
 
@@ -124,10 +124,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
       bareValue={offline ? subText : readings || "No reading yet"}
       onClose={onClose}
       urgent={vital ? (
-        <div className="ow-alarm" role="alert">
-          <span className="ow-alarm-l"><b>{ALERT_WORD[vital]}</b>{vitals.length > 1 && <span className="ow-alarm-c"> · {vitals.slice(1).map((a) => ALERT_WORD[a]).join(" · ")}</span>}</span>
-          {vitalFigure && <span className="ow-alarm-v">{vitalFigure}</span>}
-        </div>
+        <AlarmPill alert={ALERT_WORD[vital]} more={vitals.length > 1 ? vitals.slice(1).map((a) => ALERT_WORD[a]).join(" · ") : undefined} value={vitalFigure} />
       ) : undefined}
       control={sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
         : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}

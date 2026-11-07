@@ -118,6 +118,14 @@ export type { GuestWifiTileProps } from "./cards/guestWifi/GuestWifiTile";
 export { HaGuestWifiTile } from "./ha/HaGuestWifiTile";
 export type { HaGuestWifiTileProps } from "./ha/HaGuestWifiTile";
 
+// Binary sensor
+export { BinarySensorCard, BinarySensorSheet } from "./cards/binarySensor/BinarySensorCard";
+export type { BinarySensorCardProps, BinarySensorSheetProps } from "./cards/binarySensor/BinarySensorCard";
+export { BinarySensorTile } from "./cards/binarySensor/BinarySensorTile";
+export type { BinarySensorTileProps } from "./cards/binarySensor/BinarySensorTile";
+export { HaBinarySensorTile } from "./ha/HaBinarySensorTile";
+export type { HaBinarySensorTileProps } from "./ha/HaBinarySensorTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
