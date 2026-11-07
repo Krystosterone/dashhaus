@@ -15,7 +15,7 @@ release notes; an additive change is a minor one.
 | `.` | The transport and store contracts, `HaProvider` and its selectors, the `useHa<Name>` hooks, the matching `Ha<Name>` headless components, registry hooks, history and request hooks, `useHaPicture` and `useHaMoreInfo`, mappers and action factories |
 | `./entities`, `./entities/*` | The normalized, skin-free entity models and their pure logic. Raw Home Assistant state never enters them. |
 | `./primitives` | The headless interaction hooks: press, slider, range slider, sheet, keypad |
-| `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `usePicture`, `useDemoClimate` |
+| `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `usePicture`, `usePlayhead`, `useDemoClimate` |
 | `./seeds/*` | Every skin's demo seeds, one module per domain: `<NAME>_SEEDS`, `<NAME>_WORST_CASE`, their types and the domain's `useDemo<Name>` |
 | `./perf` | The opt-in marks; documented in [performance.md](performance.md) |
 | `./websocket` | The one module that imports `home-assistant-js-websocket`, plus `connectHomeAssistant(auth)` |

@@ -1,0 +1,53 @@
+{
+  "media_player.kitchen": {
+    "entity_id": "media_player.kitchen",
+    "state": "playing",
+    "attributes": {
+      "friendly_name": "Kitchen speaker",
+      "media_content_type": "music",
+      "media_title": "Sunday Morning",
+      "media_artist": "Maroon 5",
+      "media_album_name": "Songs About Jane",
+      "media_duration": 245,
+      "media_position": 83,
+      "media_position_updated_at": "2026-10-19T11:53:30+00:00",
+      "volume_level": 0.45,
+      "is_volume_muted": false,
+      "source": "Spotify",
+      "source_list": ["Spotify", "Radio", "TV"],
+      "entity_picture": "/api/media_player_proxy/media_player.kitchen?token=abc&cache=f1e2",
+      "supported_features": 18877
+    },
+    "last_changed": "2026-10-19T11:40:00+00:00",
+    "last_updated": "2026-10-19T11:53:30+00:00"
+  },
+  "media_player.living_room_tv": {
+    "entity_id": "media_player.living_room_tv",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Living room TV",
+      "supported_features": 384
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "media_player.porch": {
+    "entity_id": "media_player.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "media_player.garage": {
+    "entity_id": "media_player.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

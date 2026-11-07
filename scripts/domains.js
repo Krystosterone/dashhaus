@@ -57,7 +57,8 @@ function summaryFor(entity) {
   if (has("currentTemperature") && has("unit")) return 'e.currentTemperature == null ? stateWords(e.state) : `${e.currentTemperature}${e.unit}`';
   if (has("currentHumidity")) return 'e.currentHumidity == null ? stateWords(e.state) : `${e.currentHumidity}%`';
   if (has("heartRate")) return 'e.heartRate == null ? stateWords(e.state) : `${e.heartRate} bpm`';
-  if (has("position")) return 'e.position == null ? stateWords(e.state) : `${e.position}%`';
+  // A cover's position is a percent; a player's, beside its duration, is seconds into a track.
+  if (has("position") && !has("duration")) return 'e.position == null ? stateWords(e.state) : `${e.position}%`';
   if (has("volume")) return 'e.volume == null ? stateWords(e.state) : `${e.volume}%`';
   if (has("brightness")) return 'e.brightness == null ? stateWords(e.state) : `${e.brightness}%`';
   if (has("targetHumidity")) return 'e.targetHumidity == null ? stateWords(e.state) : `${e.targetHumidity}%`';

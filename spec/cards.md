@@ -8,7 +8,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 
 | Model | Cards | What it is |
 | --- | --- | --- |
-| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera | One Home Assistant entity and its attributes (a camera's still is its own `entity_picture`, core.md → Pictures). |
+| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera, media player | One Home Assistant entity and its attributes (a camera's still and a player's artwork are its own `entity_picture`, core.md → Pictures). |
 | Composed | sensor, sound, weather, owlet, guestWifi | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
@@ -495,14 +495,43 @@ A doorbell's or a nursery's camera: one `camera.*`, its state and its still. A r
 - **Small print:** when it last changed (when it was last seen while unavailable), then what it is: `Reolink Video Doorbell · motion detection on` (`cameraKind`).
 - **Home Assistant:** `HaCameraTile` takes the camera and `still`, `refresh` and `paused`; it wires `onOpenLive` itself. It reads no history.
 
-<!-- new-card: cards -->
-
 ### Field camera module
 
 `CameraModule` is the same normalized camera entity in the Field skin; `HaCameraModule` is its connected container, on the same `useHaCamera` hook as `HaCameraTile`, taking the same `still`, `refresh` and `paused`. See [field.md](field.md#camera).
 
 ```tsx
 <HaCameraModule entityId="camera.nursery" />
+```
+
+## Using the media player card
+
+Now playing: one `media_player.*` (a speaker, a TV, a cast), a direct model and a control whose one press does what the player can do now. Its artwork is the entity's own picture (core.md → Pictures).
+
+```tsx
+<MediaPlayerTile entity={kitchen} history={today} onPlay={play} onPause={pause} onPrevious={back} onNext={next} onTurnOn={on} onTurnOff={off} onVolumeChange={setVolume} onMuteChange={mute} onSourceChange={pick} />
+<HaMediaPlayerTile entityId="media_player.kitchen" />
+```
+
+- **States:** Home Assistant's, in words the same in every skin (`@dashhaus/core/entities/mediaPlayer/words`): Playing, Paused, Buffering, Idle, On (on with nothing loaded), Standby, Off and Unavailable. The names older and custom integrations give the same ones are mapped onto them (`stopped` is Idle, `loading` Buffering, `sleeping` Standby); any other state is said in its own words (`connecting` → `Connecting`), never guessed onto one Home Assistant names. `unknown` and a missing entity are Unavailable, and say nothing of what was playing.
+- **One press**, gated on `supported_features` (`mediaPress`): while it plays or buffers the orb and the pill pause it, while it is paused, idle, on or in a state of its own they play it, and while it is off or in standby they turn it on; one that is on and can do none of that but turns off (a TV showing an input) turns off, as a light does. One that can do nothing now shows its state as a readout with nothing to press. The pill carries the state word and what a press does (`Playing · Pause`, `Off · Turn on`, `On · Turn off`). Playing and buffering are the accent (buffering is on its way to playing, so the accent doesn't flicker between tracks); a player is a state, so it never glows (`paint("state", 0)`). No warnings: nothing a player does is a fault to rank, and Muted is a choice.
+- **Status line:** what is playing, the title first so a narrow card keeps it (`Sunday Morning · Maroon 5`), the title or artist alone, else the app; then `Muted` after it while muted. With nothing loaded, the area. Featured and in the sheet, which show the title under the head, the area and where it plays from (`Kitchen · Spotify`).
+- **Readout,** featured and in the sheet: the volume (`45%`), `Muted`, or the pill's word where it reports none.
+- **Featured:** the standard card, then what is playing in place of today's strip, as the weather's next hours are: the artwork square in its well at the row's height (only where the player gives one: no empty well for a stream), the title over two lines, the artist, and how far in. Under 260 px the artwork yields and the title keeps the room.
+- **How far in** ticks with no re-render: a thin line that fills (`clip-path`, one linear animation the length of the track, started where it is), the time played under its start and the length under its end, each place of the clock a strip of digits stepped through by its own timed animation with a hard cut, as a segment turns (`usePlayhead`, `clockPlaces`). Worked out once from `media_position`, `media_position_updated_at` and `media_duration`, and again only when one of them or the state changes (a new track, a pause, a seek): never on a timer. Held where it was while paused or buffering. A stream with no duration draws no line and no clock, never a guessed one; a screen reader hears `1 minute 23 seconds of 4 minutes 5 seconds`.
+- **Artwork** is data, never a signal: it never glows, never carries the state, never sits in a compact row or in the orb. It loads only on screen, through core's picture lifecycle (`usePicture`), with no refresh timer: it changes when its URL does, with the track. A failed one leaves the well with the player's glyph and no words, since the title already says what is playing; unavailable, off or in standby, none is drawn at all.
+- **Sheet:** the head, the pill, then what is playing (the artwork, title, artist, album and how far in); `Previous` and `Next` as raised pills that act once; the volume groove the sound card has (`Volume`, set as a percent; `Muted · 45%` and unfilled while muted, and setting it never unmutes); `Mute` as chips (Off, On); the source as chips (the player's own list); `Turn off`; today's playing by hour (`Playing 1h 20m` or `Not playing today`). Each only where the player supports it. The small print says when it last changed, then what it can do (`Skip, volume, mute, 3 sources`, or `View only`).
+- **Compact:** the player's glyph, the name, and what is playing (or the area) under it; the pill with the state word (with its verb from 400 px), or the word as the row's value. Never the artwork or the line.
+- **Unavailable:** the dashed slot with when it was last seen; what was playing, the artwork, the volume and every action are hidden.
+- **Home Assistant:** `createMediaPlayerHandlers` calls `media_player.media_play`, `media_pause`, `media_previous_track`, `media_next_track`, `turn_on`, `turn_off`, `volume_set` (the percent as a level from 0 to 1), `volume_mute` and `select_source`, each only where `supported_features` declares it (`PLAY`, `PAUSE`, `PREVIOUS_TRACK`, `NEXT_TRACK`, `TURN_ON`, `TURN_OFF`, `VOLUME_SET`, `VOLUME_MUTE`, `SELECT_SOURCE` with a `source_list`), reporting what it can't do as `unsupported` and a source it doesn't list as `invalid_input`. `MEDIA_PLAYER_ACTIONS` declares the six presses, the volume as a `level`, mute as a `switch` and the source as a `choice` over `sources`, so every skin's generator draws them. `useHaMediaPlayer` adds the artwork (`useHaPicture`, while something is loaded); today comes from the recorder through `mediaPlayerHistoryFromHass`, playing and buffering as on; `loadHistory={false}` skips it.
+
+<!-- new-card: cards -->
+
+### Field media player module
+
+`MediaPlayerModule` is the same normalized media player entity in the Field skin; `HaMediaPlayerModule` is its connected container, on the same `useHaMediaPlayer` hook as `HaMediaPlayerTile`, taking the same handlers. See [field.md](field.md#media-player).
+
+```tsx
+<HaMediaPlayerModule entityId="media_player.kitchen" />
 ```
 
 ## The dashboard header

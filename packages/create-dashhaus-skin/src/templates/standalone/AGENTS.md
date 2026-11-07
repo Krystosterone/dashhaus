@@ -139,7 +139,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 
 | Import from | What it has |
 | --- | --- |
-| `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo` |
+| `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo`, `fmtPlayTime` (a player's clock), `inWords` (an integration's own state in words) |
 | `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText` |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
@@ -151,6 +151,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/alarm/severity` | `alarmSeverity` |
 | `@dashhaus/core/entities/alarm/words` | its warning's word and sensor (`alarmWarning`), `openSentence` |
 | `@dashhaus/core/entities/binarySensor/words` | a binary sensor's state in its device class's words (`stateWord`, `alertWord`, `wordsOf`), and the picture its class names (`pictureOf`) |
+| `@dashhaus/core/entities/mediaPlayer/words` | a media player's state in words (`mediaPlayerWord`), what is playing (`mediaLine`), its one press (`mediaPress`, `pressWord`), what it can do (`mediaAbilities`) |
+| `@dashhaus/core/entities/mediaPlayer/position` | where a player is without a timer (`playhead`, `playedShare`), a running clock's places (`clockPlaces`), a time in words (`playTimeSpoken`); the hooks' usePlayhead works it out when it changes |
 | `@dashhaus/core/entities/binarySensor/severity` | `binarySensorSeverity`, and `stateSeverity` for the state's own |
 | `@dashhaus/core/entities/camera/words` | a camera's state in words (`cameraWord`), what to say of its still (`stillNote`: `No picture`, `Still from 22:14`), what it is (`cameraKind`), what a press on the still opens and the way to its live stream (`openStillWord`, `LIVE_VIEW`, `liveViewSaid`), and how often a still refreshes by default (`STILL_REFRESH`, 10 seconds) |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |

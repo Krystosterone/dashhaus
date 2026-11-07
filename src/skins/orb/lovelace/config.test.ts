@@ -211,14 +211,14 @@ describe("parseDashboardConfig", () => {
       titel: "Home",
       theme: "drak",
       rows: [
-        { title: "A", cards: [{ entity: "sensor.t", humdity: "sensor.h" }, "lamp", "media_player.tv", { entity: "light.a", footprint: "huge" }] },
+        { title: "A", cards: [{ entity: "sensor.t", humdity: "sensor.h" }, "lamp", "scene.movie_night", { entity: "light.a", footprint: "huge" }] },
         { title: "B" },
       ],
     })).toEqual([
       'unknown key "titel" — did you mean "title"?',
       'rows[0].cards[0] (sensor.t): unknown key "humdity" — did you mean "humidity"?',
       'rows[0].cards[1]: "lamp" is not an entity id like light.kitchen',
-      expect.stringContaining("rows[0].cards[2]: media_player.tv: media_player.* entities have no card yet"),
+      expect.stringContaining("rows[0].cards[2]: scene.movie_night: scene.* entities have no card yet"),
       'rows[0].cards[3] (light.a): "footprint" must be one of "compact", "standard", "featured"',
       'rows[1]: "cards" must be a list of at least one card',
       '"theme" must be one of "home-assistant", "auto", "light", "dark" — did you mean "dark"?',

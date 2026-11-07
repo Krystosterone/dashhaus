@@ -1,0 +1,114 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { MediaPlayerModule } from "./MediaPlayerModule";
+import { MEDIA_PLAYER_SEEDS, MEDIA_PLAYER_WORST_CASE } from "@dashhaus/core/seeds/mediaPlayer";
+import type { MediaPlayerEntity } from "@dashhaus/core/entities/mediaPlayer/types";
+
+/*
+ * What every field module does, whatever it is: its keys press, a lit LED says on, and unavailable blanks the screen
+ * and lays every key flat, still focusable so a hold opens the details (spec/field.md → Unavailable). The frame
+ * (footprints, details) is ModuleFrame's, tested in shared/ui.test.tsx; test what this media player itself does here.
+ */
+const handlers = () => ({
+  onPlay: vi.fn(), onPause: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onTurnOn: vi.fn(), onTurnOff: vi.fn(),
+  onVolumeChange: vi.fn(), onMuteChange: vi.fn(), onSourceChange: vi.fn(),
+});
+const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false) => {
+  const h = handlers();
+  const { container } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} {...h} />);
+  const module = container.querySelector<HTMLElement>(".fd-module")!;
+  return { container, module, h, keys: [...module.querySelectorAll<HTMLButtonElement>(".fd-key")] };
+};
+const S = MEDIA_PLAYER_SEEDS;
+
+describe("MediaPlayerModule", () => {
+  it("says PLAY, the title and the artist, lights the LED, and pauses on its first key", () => {
+    const { module, keys, h } = draw(S.playing.entity);
+    expect(module.querySelector(".fd-read-fig")?.textContent).toContain("PLAY");
+    expect(module.querySelector(".fd-meta")?.textContent).toBe("Sunday MorningMaroon 5");
+    expect(keys.map((k) => k.getAttribute("aria-label"))).toEqual(["Pause Kitchen speaker", "Kitchen speaker: next track"]);
+    expect(keys[0].querySelector(".fd-led")?.getAttribute("data-lit")).toBe("true");
+    fireEvent.click(keys[0]);
+    fireEvent.click(keys[1]);
+    expect(h.onPause).toHaveBeenCalledTimes(1);
+    expect(h.onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it("says a hand-picked figure's core word on the meta line, and blanks what it can't name", () => {
+    expect(draw(S.paused.entity).module.querySelector(".fd-meta")?.textContent).toBe("TidesPaused · Ólafur Arnalds");
+    const buffering = draw(S.buffering.entity).module;
+    expect(buffering.querySelector(".fd-read .fd-digits")?.getAttribute("data-pad")).toBe("----");
+    expect(buffering.querySelector(".fd-meta")?.textContent).toContain("Buffering");
+    const other = draw(S.other.entity).module;
+    expect(other.querySelector(".fd-read .fd-digits")?.getAttribute("data-pad")).toBe("----");
+    expect(other.querySelector(".fd-meta")?.textContent).toMatch(/^Connecting/);
+  });
+
+  it("turns on what is off or asleep, and lays Next flat with nothing loaded", () => {
+    const { keys, h } = draw(S.off.entity);
+    expect(keys[0].getAttribute("aria-label")).toBe("Turn on Office speaker");
+    fireEvent.click(keys[0]);
+    expect(h.onTurnOn).toHaveBeenCalledTimes(1);
+    expect(keys[1].getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(keys[1]);
+    expect(h.onNext).not.toHaveBeenCalled();
+  });
+
+  it("draws the artwork as a window in the screen, never in a row, and a progress rule only where the track has a length", () => {
+    expect(draw(S.playing.entity).module.querySelector(".fd-pic")).not.toBeNull();
+    expect(draw(S.playing.entity).module.querySelector(".fd-mp-prog")).not.toBeNull();
+    expect(draw(S.playing.entity, "compact").module.querySelector(".fd-pic")).toBeNull();
+    const stream = draw(S.stream.entity).module;
+    expect(stream.querySelector(".fd-pic")).toBeNull();
+    expect(stream.querySelector(".fd-mp-prog")).toBeNull();
+  });
+
+  it("puts the title on a row's line", () => {
+    expect(draw(S.playing.entity, "compact").module.textContent).toContain("Sunday Morning");
+  });
+
+  it("offers in its panel the clock, skip, volume, mute, power and the source, each where it is supported", () => {
+    const { h } = draw(S.playing.entity, "standard", true);
+    const panel = screen.getByRole("dialog");
+    expect(within(panel).getByRole("img", { name: "1 minute 23 seconds of 4 minutes 5 seconds" })).toBeTruthy();
+    fireEvent.click(within(panel).getByRole("button", { name: "Kitchen speaker: previous track" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Mute" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Source Radio" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Power" }));
+    expect(h.onPrevious).toHaveBeenCalledTimes(1);
+    expect(h.onMuteChange).toHaveBeenCalledWith(true);
+    expect(h.onSourceChange).toHaveBeenCalledWith("Radio");
+    expect(h.onTurnOff).toHaveBeenCalledTimes(1);
+    expect(within(panel).getByRole("slider", { name: "Kitchen speaker volume" })).toBeTruthy();
+  });
+
+  it("offers nothing a player doesn't support", () => {
+    const bare = MEDIA_PLAYER_WORST_CASE.find((seed) => seed.entity.entityId === "media_player.wohnzimmer")!.entity;
+    const { keys } = draw(bare, "standard", true);
+    expect(keys).toHaveLength(1);
+    expect(keys[0].getAttribute("aria-disabled")).toBe("true");
+    const panel = screen.getByRole("dialog");
+    expect(within(panel).queryByRole("slider")).toBeNull();
+    expect(within(panel).queryByRole("button", { name: "Mute" })).toBeNull();
+    expect(within(panel).getByText("View only")).toBeTruthy();
+  });
+
+  it("blanks the screen while unavailable, says when it was last seen, and lays every key flat with no state word", () => {
+    const { module, keys, h } = draw(S.unavailable.entity);
+    expect(module.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
+    expect(module.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
+    expect(module.querySelector(".fd-pic")).toBeNull();
+    // Flat, not disabled: it keeps its focus and its hold, so the details still open; a press does nothing.
+    for (const key of keys) {
+      expect(key.disabled).toBe(false);
+      expect(key.getAttribute("aria-disabled")).toBe("true");
+      fireEvent.click(key);
+    }
+    for (const handler of Object.values(h)) expect(handler).not.toHaveBeenCalled();
+    expect(module.querySelector(".fd-key-cap")).toBeNull();
+  });
+
+  it("leads a compact row with its key", () => {
+    expect(draw(S.playing.entity, "compact").container.querySelector(".fd-module > .fd-key")).not.toBeNull();
+  });
+});

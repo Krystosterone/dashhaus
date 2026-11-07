@@ -152,6 +152,16 @@ describe("autoDashboard", () => {
     expect(parsed.cards.map((c) => c.item.kind)).toEqual(["camera", "camera"]);
   });
 
+  it("places a media player with the controls in its area, after the fans, drawn as the media player card", () => {
+    const card = autoDashboard({
+      states: { "fan.bed": state("fan.bed", { friendly_name: "Fan" }), "media_player.bed": state("media_player.bed", { friendly_name: "Bedroom speaker" }) },
+      entities: { "fan.bed": { area_id: "bedroom" }, "media_player.bed": { area_id: "bedroom" } },
+      areas: { bedroom: { name: "Bedroom" } },
+    });
+    expect(card.rows).toEqual([{ title: "Bedroom", cards: [{ entity: "fan.bed", footprint: "compact" }, { entity: "media_player.bed", footprint: "compact" }] }]);
+    expect(parseDashboardConfig(card).rows![0].cards[1].item).toEqual(expect.objectContaining({ kind: "mediaPlayer", entity: "media_player.bed" }));
+  });
+
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });

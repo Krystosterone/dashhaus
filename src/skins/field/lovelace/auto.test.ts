@@ -46,6 +46,10 @@ describe("autoModules", () => {
     expect(autoModules({ states: { "humidifier.bedroom": state("humidifier.bedroom", "Bedroom") } })).toEqual([{ entity: "humidifier.bedroom", kind: "humidifier" }]);
   });
 
+  it("takes every visible media player", () => {
+    expect(autoModules({ states: { "media_player.kitchen": state("media_player.kitchen", "Kitchen speaker") } })).toEqual([{ entity: "media_player.kitchen", kind: "mediaPlayer" }]);
+  });
+
   it("takes every visible cover", () => {
     expect(autoModules({ states: { "cover.garage_door": state("cover.garage_door", "Garage door") } })).toEqual([{ entity: "cover.garage_door", kind: "cover" }]);
   });
