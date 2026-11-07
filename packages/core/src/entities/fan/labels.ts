@@ -4,6 +4,16 @@ import { namedSpeeds, percentOf } from "./speed";
 /** A preset as a word: "breeze" → "Breeze", "smart_mode" → "Smart mode". */
 export const presetLabel = (preset: string) => preset.charAt(0).toUpperCase() + preset.slice(1).replace(/_/g, " ");
 
+/**
+ * Its state in words, the same on every card and in every skin: its speed while it runs at one ("2 of 3", "40%"),
+ * else On; Off; or Unavailable while it is.
+ */
+export const fanWord = (e: Pick<FanEntity, "state">, speed?: string | null) =>
+  e.state === "unavailable" ? "Unavailable" : e.state !== "on" ? "Off" : speed ?? "On";
+
+/** Oscillation's two choices, as the sheet's chips name them. */
+export const OSCILLATION = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;
+
 /** The direction as a word. */
 export const DIRECTION_LABEL = { forward: "Forward", reverse: "Reverse" } as const;
 

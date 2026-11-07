@@ -12,7 +12,8 @@ describe("LightModule", () => {
     const el = draw(LIGHT_SEEDS.dimmable.entity);
     expect(el.querySelector(".fd-read")?.textContent).toBe("80%");
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("0");
-    expect(el.querySelector(".fd-meta")?.textContent).toBe("2700KSince 10:31");
+    // spec/cards.md → Field's meta line still says the core word: the warmth's name, as orb's status line says it.
+    expect(el.querySelector(".fd-meta")?.textContent).toBe("Warm whiteSince 10:31");
     expect(screen.getByRole("button", { name: "Ceiling" }).getAttribute("aria-pressed")).toBe("true");
   });
 

@@ -64,7 +64,8 @@ describe("SensorModule", () => {
   it("blanks the screen while unavailable, with when it was last seen, and makes up no reading", () => {
     const el = draw(SENSOR_SEEDS.garage);
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
-    expect(el.querySelector(".fd-meta")?.textContent).toBe("UnavailableSeen 08:20");
+    // spec/cards.md → Field's meta line still says the core word: `lastSeenFact`'s "Last seen".
+    expect(el.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
     expect(el.querySelector(".fd-warn")).toBeNull();
     expect(el.querySelectorAll(".fd-meter-h[data-state='unav']").length).toBeGreaterThan(0);
   });
@@ -84,11 +85,13 @@ describe("SensorModule", () => {
       "Temperature todayLow 19.5° · High 21.4°",
       "Humidity todayLow 44% · High 47%",
     ]);
-    expect(panel.querySelector(".fd-info")?.textContent).toBe("Comfortable · RisingBattery 82% · Updated 11:52");
+    // spec/cards.md → small print: when first, then what the device is (its battery); comfort is the screen's.
+    expect(panel.querySelector(".fd-info")?.textContent).toBe("Updated 11:52Battery 82%");
   });
 
-  it("leads the panel's facts with a low battery and what to do", () => {
+  it("ends the panel's facts with a low battery and what to do, after when it last reported", () => {
     render(<SensorModule entity={SENSOR_SEEDS.basement.entity} history={SENSOR_SEEDS.basement.history} defaultOpen />);
-    expect(screen.getByRole("dialog").querySelector(".fd-info")?.textContent).toBe("Warning: Battery 8%, replace soonUpdated 11:40");
+    // spec/cards.md → small print: when first, then what the device is.
+    expect(screen.getByRole("dialog").querySelector(".fd-info")?.textContent).toBe("Updated 11:40Warning: Battery 8%, replace soon");
   });
 });

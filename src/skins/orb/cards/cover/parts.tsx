@@ -1,5 +1,6 @@
 import { SliderTrack } from "../../shared/ui";
 import { snapEnds } from "@dashhaus/core/entities/cover/position";
+import { positionText } from "@dashhaus/core/entities/cover/words";
 
 /** Width of a fully drawn-back curtain panel, in px. Matches --stub in CoverCard.css. */
 const STUB = 14;
@@ -26,7 +27,7 @@ export function PositionBar({ id, label, kind, position, moving, text, onChange 
         // Curtains open from the middle: the distance from it, out to a drawn-back panel, is how far open.
         along: kind === "curtain" ? (x, r) => Math.min(1, Math.abs(x - (r.left + r.width / 2)) / Math.max(1, r.width / 2 - STUB)) : undefined,
         snap: (raw) => snapEnds(Math.round(raw)),
-        valueText: (v) => (v === 0 ? "Closed" : v === 100 ? "Open" : `${v} percent open`),
+        valueText: positionText,
         onChange,
       }}
       className="cv-bar"

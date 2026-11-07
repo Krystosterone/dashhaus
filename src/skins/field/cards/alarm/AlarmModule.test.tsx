@@ -101,9 +101,11 @@ describe("AlarmModule", () => {
     const pending = draw("pending");
     expect(pending.container.querySelector(".fd-module")?.getAttribute("data-level")).toBe("urgent");
     const block = pending.container.querySelector(".fd-module .fd-meta .fd-warn");
-    expect(block?.textContent).toBe("Warning: Front door");
+    // spec/cards.md → its words live in core (`alarmWarning`): the warning's word first, 13 characters at most, then the sensor.
+    expect(block?.textContent).toBe("Warning: Entry delay");
     expect(block?.hasAttribute("data-block")).toBe(true);
-    expect(meta(pending.container)).toMatch(/Disarm now$/);
+    expect(meta(pending.container)).toMatch(/Front door$/);
+    expect(meta(draw("pending", "standard", { entity: { ...ALARM_SEEDS.pending.entity, triggeredBy: undefined } }).container)).toMatch(/Disarm now$/);
     expect(draw("pending", "compact").container.querySelector(".fd-area .fd-warn")?.hasAttribute("data-block")).toBe(true);
   });
 
@@ -122,12 +124,16 @@ describe("AlarmModule", () => {
     const changedAt = Date.now() - 3 * 60_000;
     const { container } = render(<AlarmModule entity={{ ...ALARM_SEEDS.triggered.entity, changedAt }} footprint="compact" onArm={() => true} onDisarm={() => true} />);
     expect(container.querySelector(".fd-read")?.textContent).toBe("Alarm, 3m");
-    expect(container.querySelector(".fd-area .fd-warn")?.textContent).toBe("Warning: Back door");
+    // spec/cards.md → its words live in core (`alarmWarning`): the warning's word first, 13 characters at most, then the sensor.
+    expect(container.querySelector(".fd-area .fd-warn")?.textContent).toBe("Warning: Triggered · Back door");
   });
 
   it("warns of an open door while disarmed, on the screen or in place of a row's area", () => {
-    expect(draw("openDoor").container.querySelector(".fd-module .fd-meta .fd-warn")?.textContent).toBe("Warning: 2 open: Back door, Kitchen window");
-    expect(draw("openDoor", "compact").container.querySelector(".fd-area .fd-warn")?.textContent).toBe("Warning: 2 open: Back door, Kitchen window");
+    // spec/cards.md → its words live in core (`alarmWarning`): the warning's word first, 13 characters at most, then the sensor.
+    const standard = draw("openDoor").container;
+    expect(standard.querySelector(".fd-module .fd-meta .fd-warn")?.textContent).toBe("Warning: 2 open");
+    expect(meta(standard)).toBe("Warning: 2 openBack door, Kitchen window");
+    expect(draw("openDoor", "compact").container.querySelector(".fd-area .fd-warn")?.textContent).toBe("Warning: 2 open · Back door, Kitchen window");
   });
 
   it("prints a row's mode in place of its area while armed, and its area while disarmed", () => {

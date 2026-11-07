@@ -116,6 +116,12 @@ describe("owletFromHass alerts", () => {
     expect(mapped).toMatchObject({ state: "unavailable", alerts: ["sock_off"] });
   });
 
+  it("never warns of a low battery while the sock charges, and keeps every other alert", () => {
+    const alertEntities = { low_battery: binary("low_battery", "on"), critical_battery: binary("critical_battery", "on"), lost_power: binary("lost_power", "on") };
+    expect(owletFromHass(sleep, sleep.entity_id, { alertEntities, chargingEntity: binary("charging", "on") }).alerts).toEqual(["lost_power"]);
+    expect(owletFromHass(sleep, sleep.entity_id, { alertEntities, chargingEntity: binary("charging", "off") }).alerts).toEqual(["low_battery", "critical_battery", "lost_power"]);
+  });
+
   it("says charging only while the charging sensor is on", () => {
     expect(owletFromHass(sleep, sleep.entity_id, { chargingEntity: binary("charging", "on") }).charging).toBe(true);
     expect(owletFromHass(sleep, sleep.entity_id, { chargingEntity: binary("charging", "unavailable") }).charging).toBe(false);

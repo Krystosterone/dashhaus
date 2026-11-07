@@ -117,7 +117,7 @@ function AllParts() {
           <ScreenAt><Screen pict={<Pictogram lit param="neutral">{THERMO}</Pictogram>} meta={["48% RH"]}><Digits text="21.4" places={4} /><small>°</small></Screen></ScreenAt>
         </State>
         <State label="Unavailable" width={300}>
-          <ScreenAt><Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>} meta={["Unavailable", "Seen 10:42"]}><Blank label="Unavailable" /></Screen></ScreenAt>
+          <ScreenAt><Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>} meta={["Unavailable", "Last seen 10:42"]}><Blank label="Unavailable" /></Screen></ScreenAt>
         </State>
       </Part>
 

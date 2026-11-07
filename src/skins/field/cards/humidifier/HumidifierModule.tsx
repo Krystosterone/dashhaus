@@ -1,8 +1,8 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
-import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { ACTION_LABEL, fmtHumidity, humidifierFacts, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
+import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Fader, Key, Legend, ModuleFrame, Pictogram, Steps, Today, useDetails, KeyGroup, choices, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -53,10 +53,10 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
     : e.currentHumidity != null ? <Humidity value={e.currentHumidity} />
     : "ON";
 
-  const room = e.currentHumidity != null ? `${fmtHumidity(e.currentHumidity)}% room` : undefined;
+  const room = e.currentHumidity != null ? nowText(`${fmtHumidity(e.currentHumidity)}%`) : undefined;
   const doing = e.action && e.action !== "off" ? ACTION_LABEL[e.action] : undefined;
   const mode = e.mode ? modeLabel(e.mode) : undefined;
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
+  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
     : !on ? ["Off", room]
     : target != null ? [`${verb} ${fmtHumidity(target)}%`, doing ?? mode]
     : [mode ?? "On", doing];
@@ -122,7 +122,7 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
       lead={<Key label={keyLabel} led={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconHumidifier kind={e.kind} /></Key>}
       controls={controls}
       aside={aside}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: `${e.kind === "dehumidifier" ? "Dehumidifier" : "Humidifier"}${unav ? "" : ` · ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`}` }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: humidifierFacts(e, unav) }}
     >
       {adjustable && onTargetChange && target != null && down != null && up != null && (
         <div className="fd-block">

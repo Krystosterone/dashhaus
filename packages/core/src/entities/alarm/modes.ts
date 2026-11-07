@@ -1,4 +1,3 @@
-import type { Severity } from "../severity";
 import type { AlarmAction, AlarmEntity, AlarmMode, AlarmState } from "./types";
 
 /** The mode an armed state is in; undefined for every other state. */
@@ -8,7 +7,7 @@ export const ARMED_MODE: Partial<Record<AlarmState, AlarmMode>> = { armed_home: 
 export const MODE_LABEL: Record<AlarmMode | "off", string> = { off: "Off", home: "Home", away: "Away", night: "Night", vacation: "Vacation", custom_bypass: "Custom" };
 
 /** An armed mode in words: "Armed away". */
-export const ARMED_LABEL: Record<AlarmMode, string> = { home: "Armed home", away: "Armed away", night: "Armed night", vacation: "Armed vacation", custom_bypass: "Armed, custom bypass" };
+export const ARMED_LABEL: Record<AlarmMode, string> = { home: "Armed home", away: "Armed away", night: "Armed night", vacation: "Armed vacation", custom_bypass: "Armed custom" };
 
 /** What each mode watches, for the details. */
 export const MODE_HINT: Record<AlarmMode, string> = {
@@ -30,12 +29,5 @@ export const needsCode = (e: Pick<AlarmEntity, "codeFormat" | "codeArmRequired">
 /** A delay's time left, as a panel's display shows it: 0:42, 10:00. */
 export const mmss = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, Math.ceil(s)) % 60).padStart(2, "0")}`;
 
-/**
- * How much the alarm's state may claim: triggered is the alarm going off; the entry delay is urgent, a minute or less
- * to disarm; disarmed with doors or windows open is advisory.
- */
-export function alarmSeverity(e: Pick<AlarmEntity, "state" | "openSensors">): Severity | undefined {
-  if (e.state === "triggered") return "alarm";
-  if (e.state === "pending") return "urgent";
-  return e.state === "disarmed" && e.openSensors?.length ? "advisory" : undefined;
-}
+/** Ranked once, in `./severity.ts`; here too for the modules that read it beside the modes. */
+export { alarmSeverity } from "./severity";

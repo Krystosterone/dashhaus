@@ -6,7 +6,8 @@ import { lampColorOf } from "./color";
 import type { Hs } from "./color";
 import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
-import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, ColorChips, QUICK_LEVELS } from "./parts";
+import { QUICK_LEVELS, lightAbilities, lightWord } from "@dashhaus/core/entities/light/words";
+import { IconBulb, IconBulbOff, BrightnessBar, WarmthRuler, ColorChips } from "./parts";
 import "./LightCard.css";
 
 export interface LightCardProps extends CardProps {
@@ -37,8 +38,6 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  // Reachable but not reported yet: it switches and dims, so it is drawn as a light that isn't lit, in its own word.
-  const unknown = e.state === "unknown";
   const hasBrightness = e.supportsBrightness && e.brightness != null;
   // The bar keeps the slot whatever the light's state, so the control never changes under a finger. Home Assistant
   // reports no brightness while a light is off or unknown, and the bar needs none then: sliding it turns the light on.
@@ -51,9 +50,10 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
   // Lit is energy: the orb and the bar fill with the accent. Warmth and colour are told in words, not by colouring the orb.
   const colors = paint("energy", glow);
 
-  const word = unknown ? "Unknown" : on ? "On" : "Off";
+  // Unknown (reachable but not reported yet) switches and dims, so it is drawn as a light that isn't lit, in its own word.
+  const word = lightWord(e);
   const readout = unav ? null : on && hasBrightness ? <>{pct}<span>%</span></> : word;
-  const valueText = unav ? "Unavailable" : on && hasBrightness ? `${pct}%` : word;
+  const valueText = on && hasBrightness ? `${pct}%` : word;
 
   // A lit lamp's colour, when it shows one rather than a colour temperature.
   const lamp = on && e.supportsColor && e.hs ? lampColorOf(e.hs) : null;
@@ -83,7 +83,7 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
       onClose={onClose}
       control={dims ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={pct} on={on} known={hasBrightness} offText={word} onChange={onBrightnessChange} />
         : <TogglePill label={`${e.name}: ${word}`} on={on} onToggle={onToggle}>{word}</TogglePill>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: lightAbilities(e) }}
     >
       {!unav && (
         <SheetBlock>

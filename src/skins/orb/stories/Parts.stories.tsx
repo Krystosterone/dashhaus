@@ -158,7 +158,7 @@ function AllParts() {
 
       <Part name="Alarm pill" cardRole="reading" rule="An alarm that has gone off (a baby's oxygen, smoke): the one place warn fills, in the slot over the control, in every footprint. Its alert on the left, its figure or since when on the right; the fill deepens under the words, and holds still under reduced motion.">
         <State label="Smoke" width={280}><AlarmPill alert="Smoke alarm" value="Since 11:52" /></State>
-        <State label="Two vitals, a figure" width={340}><AlarmPill alert="Low oxygen" more="High heart rate" value="84% O₂" /></State>
+        <State label="Two vitals, a figure" width={340}><AlarmPill alert="Low oxygen" more="High pulse" value="84% O₂" /></State>
       </Part>
 
       <Part name="Today strip" surface="hd--featured" rule="24 hourly sticks: height is that hour's level, the current hour is the accent. Hours not yet come are a short line; unavailable hours are dashed.">

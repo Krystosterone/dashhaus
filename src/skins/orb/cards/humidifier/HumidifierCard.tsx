@@ -1,6 +1,6 @@
 import type { HumidifierEntity, HumidifierHistory } from "@dashhaus/core/entities/humidifier/types";
-import { ACTION_LABEL, fmtHumidity, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { ACTION_LABEL, fmtHumidity, humidifierFacts, modeLabel, targetVerb } from "@dashhaus/core/entities/humidifier/labels";
+import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { HumidifierIcon } from "./icons";
 import { CardFrame, ChoiceChips, SheetBlock, Stepper, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -37,10 +37,11 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
   const cur = unav ? undefined : e.currentHumidity;
   const target = on ? e.targetHumidity : undefined;
   const action = on ? e.action : undefined;
-  const statusParts = [cur != null ? `${fmtHumidity(cur)}%${compact ? "" : " now"}` : null, unav ? "Unavailable" : action ? ACTION_LABEL[action] : !on ? ACTION_LABEL.off : null].filter(Boolean);
-  // With nothing measured or reported, the status line names the room, as a toggle's does.
-  const status = statusParts.length ? statusParts.join(" · ") : area;
-  const setText = unav ? "Unavailable" : !on ? "Off" : target != null ? `Set ${fmtHumidity(target)}%` : e.mode ? modeLabel(e.mode) : "On";
+  const statusParts = unav ? [] : [cur != null ? (compact ? `${fmtHumidity(cur)}%` : nowText(`${fmtHumidity(cur)}%`)) : null, action ? ACTION_LABEL[action] : !on ? ACTION_LABEL.off : null].filter(Boolean);
+  // With nothing measured or reported, the status line names the room, as a toggle's does; so does an unavailable
+  // unit, a control keeping its room while the slot says Unavailable (spec/orb.md → One state vocabulary).
+  const status = statusParts.length ? statusParts.join(" · ") : unav ? area ?? "Unavailable" : area;
+  const setText = unav ? "Unavailable" : !on ? "Off" : target != null ? `${targetVerb(e.kind)} ${fmtHumidity(target)}%` : e.mode ? modeLabel(e.mode) : "On";
 
   let slot;
   if (!on) slot = <TogglePill label={`${e.name}: Off, turn on`} on={false} onToggle={onToggle} turnOn>Turn on</TogglePill>;
@@ -64,13 +65,13 @@ export function HumidifierCard({ entity: e, history, variant, footprint, showCon
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
-      status={sheet && area && status !== area ? `${area} · ${status}` : status}
+      status={sheet && area && status !== area && !unav ? `${area} · ${status}` : status}
       value={subText}
       bareValue={setText}
       readout={{ value: cur == null ? null : <>{fmtHumidity(cur)}<span>%</span></> }}
       onClose={onClose}
       control={slot}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : `Target range ${fmtHumidity(e.minHumidity)}–${fmtHumidity(e.maxHumidity)}%`, end: unav ? "" : lastChangedFact(e.lastChanged) }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: humidifierFacts(e, unav) }}
     >
       {!unav && onModeChange && e.modes && e.modes.length > 1 && (
         <SheetBlock>

@@ -2,6 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
+import { LEFT_OPEN_WORD, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
+import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, Warn, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -27,9 +29,6 @@ export interface CoverModuleProps {
 /** A pointer value onto whole percent, with magnetic ends: a tap near an end closes or opens it fully. */
 const snap = (raw: number) => snapEnds(Math.round(raw));
 
-/** A position in words, for screen readers and the quick keys. */
-const positionText = (v: number) => (v === 0 ? "Closed" : v === 100 ? "Open" : v === 50 ? "Half open" : `${v}% open`);
-
 /** A percentage in its three fixed places: the leading digits unlit, read as the bare number. */
 const Percent = ({ value }: { value: number }) => <><Digits value={value} /><small>%</small></>;
 
@@ -53,11 +52,11 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const withPos = hasPosition(e);
   const settable = withPos && onSetPosition != null && !unav;
   const stopping = moving && e.supportsStop;
-  const travel = e.state === "opening" ? "Opening" : "Closing";
-  const word = moving ? travel : unknown ? "Unknown" : open ? "Open" : "Closed";
-  // A door left open is about what it reads, so it stays on the screen; a row has no meta lines, so it takes the area's.
-  const warned = isAccess(e.deviceClass) && open && !moving;
-  const warning = warned ? `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}` : undefined;
+  const word = coverWord(e);
+  // A door left open (core ranks it advisory) is about what it reads, so it stays on the screen, `Open` behind the
+  // marker over since when, as a garage door's binary sensor says it; a row has no meta lines, so it takes the area's.
+  const warned = coverSeverity(e) != null;
+  const warning = warned ? leftOpenText(e.lastChanged) : undefined;
 
   // The window lights with the daylight let in, from the bottom; a cover with no position sets nothing, so it is neutral.
   const pict = <Pictogram level={pos / 100} lit={open} param={withPos ? "a" : "neutral"}>{WINDOW}</Pictogram>;
@@ -65,11 +64,11 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   const read: ReactNode = unav ? <Blank label="Unavailable" />
     : unknown ? <Blank places={4} label="Unknown" />
     : withPos ? <Percent value={pos} />
-    : moving ? <Blank places={4} label={travel} />
+    : moving ? <Blank places={4} label={word} />
     : open ? "OPEN" : "SHUT";
   const since = !moving && sinceFact(e.lastChanged);
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : warning ? [<Warn key="w">{warning}</Warn>]
+  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
+    : warned ? [<Warn key="w">{LEFT_OPEN_WORD}</Warn>, sinceFact(e.lastChanged)]
     : [word, since];
 
   const openPanel = details.openDetails;
@@ -107,7 +106,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
         <Fader
           id={`${uid}-${where}`}
           label={`${e.name} position`}
-          legend={moving ? travel : "Position"}
+          legend={moving ? word : "Position"}
           value={pos}
           min={0}
           max={100}
@@ -124,7 +123,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // The panel's content: the screen, with a blind's slats on its second channel; the controls; quick positions, or
   // close, stop and open for a cover with no position; the slats fader; today; and facts.
   const tilt = !unav && e.supportsTilt && e.tilt != null ? Math.round(e.tilt) : undefined;
-  const today = history && (unav ? "Unavailable" : e.lastChanged ? `${unknown ? "Unknown" : open ? "Open" : "Closed"} since ${e.lastChanged}` : undefined);
+  const today = history && (unav ? "Unavailable" : e.lastChanged ? `${moving ? (open ? "Open" : "Closed") : word} since ${e.lastChanged}` : undefined);
 
   const aside = tilt != null ? (
     <Channel pict={<Pictogram lit param="b">{SLATS}</Pictogram>} sub="Slats"><Percent value={tilt} /></Channel>

@@ -35,7 +35,8 @@ describe("WeatherCard", () => {
     const hourly = [{ hour: 3, temperature: 6, condition: "rainy" as const, precipitationProbability: 70 }];
     const { container } = render(<WeatherCard entity={{ ...weather, windGustSpeed: 62 }} history={history} hourly={hourly} />);
 
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Gusts 62 km/h · 70% rain at 03:00 · Partly cloudy · 2°–6°");
+    // spec/cards.md → a warning's words fit a row (13 characters): the gusts' speed is the sheet's and the spoken label's.
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Strong gusts · 70% rain at 03:00 · Partly cloudy · 2°–6°");
   });
 
   it("leads a card with the most urgent warning and counts the rest; the sheet and the spoken label name them all", () => {
@@ -45,7 +46,7 @@ describe("WeatherCard", () => {
     expect(container.querySelector(".hd-area .wx-warn-s")?.textContent).toBe("3 warnings");
     expect(screen.getByRole("img", { name: /^Warning: / }).getAttribute("aria-label")).toBe("Warning: Home: Hazardous air, Gusts 84 km/h, Extreme UV");
     rerender(<WeatherCard entity={stormy} history={history} variant="sheet" />);
-    expect(container.querySelector(".hd-area")?.textContent).toContain("Hazardous air · Gusts 84 km/h · Extreme UV");
+    expect(container.querySelector(".hd-area")?.textContent).toContain("Hazardous air · Strong gusts · Extreme UV");
   });
 
   it("names falling rain once, by when it stops", () => {

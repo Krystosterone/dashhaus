@@ -5,9 +5,11 @@
 /* The code: ten places in two groups, a gap where the dash is, smaller than a reading's figure so it fits a module. */
 .fd-gw-code { display: inline-flex; }
 .fd-gw-gs { display: inline-flex; gap: 0.32em; }
-.fd-gw[data-footprint="standard"] .fd-read { font-size: 22px; letter-spacing: 0.02em; }
+.fd-gw[data-state="ready"][data-footprint="standard"] .fd-read { font-size: 22px; letter-spacing: 0.02em; }
 /* A row's screen stacks the two groups, as a two-line display does. */
-.fd-gw[data-footprint="compact"] .fd-read { font-size: 15px; letter-spacing: 0.04em; }
+.fd-gw[data-state="ready"][data-footprint="compact"] .fd-read { font-size: 15px; letter-spacing: 0.04em; }
+/* Nothing to give, a known resting state: NONE at the figure's own size, in the dim ink. */
+:is(.fd-gw, .fd-gw-panel)[data-state="none"] .fd-read-fig { color: var(--fd-screen-ink-2); }
 .fd-gw[data-footprint="compact"] .fd-gw-gs { flex-direction: column; gap: 2px; line-height: 15px; }
 /* The panel's screen is wider: the code at the figure's size. */
 .fd-gw-panel .fd-read { font-size: 28px; }
@@ -43,7 +45,7 @@
   .fd-gw[data-footprint="compact"] .fd-screen { width: 80px; }
 }
 @container (max-width: 239px) {
-  .fd-gw[data-footprint="standard"] .fd-read { font-size: 20px; }
+  .fd-gw[data-state="ready"][data-footprint="standard"] .fd-read { font-size: 20px; }
 }
 /* A narrow panel stacks the QR code over its words. */
 @container (max-width: 359px) {

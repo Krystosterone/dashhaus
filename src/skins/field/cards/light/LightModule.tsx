@@ -2,6 +2,7 @@ import { useId } from "react";
 import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/types";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
+import { QUICK_LEVELS, lightAbilities, lightWord } from "@dashhaus/core/entities/light/words";
 import type { Hs } from "@dashhaus/core/entities/light/color";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
@@ -25,14 +26,6 @@ export interface LightModuleProps {
   defaultOpen?: boolean;
 }
 
-/** Quick levels: a key each, its figure on the key and its name printed under it. */
-const LEVELS = [
-  { value: 5, name: "Night" },
-  { value: 25, name: "Dim" },
-  { value: 50, name: "Half" },
-  { value: 100, name: "Full" },
-];
-
 /**
  * One light as a field module. The key switches it and its LED says it's on. The screen's bulb fills with the
  * brightness, in brightness's colour, the fader thumb's; beside it the figure, then warmth and since when. The
@@ -52,17 +45,18 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
   // says where the keyboard starts.
   const pct = e.brightness == null ? 100 : Math.min(100, Math.max(1, Math.round(e.brightness)));
   const known = dimmable && e.brightness != null;
-  const word = unknown ? "Unknown" : on ? "On" : "Off";
+  const word = lightWord(e);
 
   const read = unav ? <Blank label="Unavailable" />
     : unknown ? <Blank label="Unknown" />
     : !on ? "OFF"
     : known ? <><Digits value={pct} /><small>%</small></>
     : "ON";
-  const warmth = on && e.supportsColorTemp && e.kelvin != null ? `${Math.round(e.kelvin / 100) * 100}K`
+  // The warmth in the model's words, as orb's status line names it; the panel's channel keeps its figure in kelvin.
+  const warmth = on && e.supportsColorTemp && e.kelvin != null ? kelvinName(e.kelvin)
     : on && e.supportsColor && e.hs ? lampColorOf(e.hs).name
     : null;
-  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : null) : sinceFact(e.lastChanged) ?? null;
+  const since = unav ? (e.lastSeen ? lastSeenFact(e.lastSeen) : null) : sinceFact(e.lastChanged) ?? null;
   const meta: [string, string?] | undefined = unav ? ["Unavailable", since ?? undefined]
     : unknown ? ["Unknown", since ?? undefined]
     : warmth ? [warmth, since ?? undefined] : since ? [since] : undefined;
@@ -125,14 +119,14 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
       lead={<Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel}><IconBulb /></Key>}
       controls={controls}
       aside={aside}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.supportsBrightness ? `Dimmable${e.supportsColorTemp ? ", warmth" : ""}${e.supportsColor ? ", colour" : ""}` : "On / off" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: lightAbilities(e) }}
     >
 
       {e.supportsBrightness && (
         <KeyGroup legend="Quick levels" columns={4}>
-          {LEVELS.map((l) => (
-            <Option key={l.value} name={l.name}>
-              <Key label={`${l.name}, ${l.value}%`} wide disabled={unav} onPress={() => onBrightnessChange(l.value)}>
+          {QUICK_LEVELS.map((l) => (
+            <Option key={l.value} name={l.label}>
+              <Key label={`${l.label}, ${l.sub}`} wide disabled={unav} onPress={() => onBrightnessChange(l.value)}>
                 <span className="fd-key-fig">{l.value}</span>
               </Key>
             </Option>

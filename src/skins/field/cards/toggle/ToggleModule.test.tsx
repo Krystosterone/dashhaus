@@ -43,7 +43,8 @@ describe("ToggleModule", () => {
   it("blanks the screen while unavailable, says when it was last seen, and lays its key flat without a state word", () => {
     const { container, keys } = draw(TOGGLE_SEEDS.unavailable);
     expect(container.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("---");
-    expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableSeen 08:20");
+    // spec/cards.md → Field's meta line still says the core word: `lastSeenFact`'s "Last seen".
+    expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
     // Flat but still focusable, so a hold opens the details.
     expect(keys.every((key) => key.getAttribute("aria-disabled") === "true" && !key.disabled)).toBe(true);
     expect(container.querySelector(".fd-key-cap")).toBeNull();

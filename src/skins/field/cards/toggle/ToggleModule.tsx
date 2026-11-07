@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { DurationOption, ToggleEntity, ToggleHistory } from "@dashhaus/core/entities/toggle/types";
 import { DEFAULT_DURATIONS } from "@dashhaus/core/entities/toggle/durations";
+import { toggleKind, toggleWord } from "@dashhaus/core/entities/toggle/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Key, ModuleFrame, Option, Pictogram, Today, useDetails, KeyGroup, Channel } from "../../shared/ui";
@@ -37,13 +38,13 @@ export function ToggleModule({ entity: e, footprint = "standard", history, onTog
   const pict = <Pictogram param="neutral" lit={on}>{modePict(e.icon)}</Pictogram>;
   const read: ReactNode = unav ? <Blank label="Unavailable" /> : on ? "ON" : "OFF";
   const since = sinceFact(e.lastChanged);
-  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
+  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
     : on && e.until ? [`Until ${e.until}`, since]
     : since ? [since]
     : undefined;
   // Square at the head of a compact row; across the row in a module and the panel, with its state word.
   const key = (wide: boolean) => (
-    <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
+    <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? toggleWord(e) : undefined}>
       <IconMode icon={e.icon} />
     </Key>
   );
@@ -71,7 +72,7 @@ export function ToggleModule({ entity: e, footprint = "standard", history, onTog
       lead={key(false)}
       controls={() => key(true)}
       aside={aside}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.entityId.startsWith("switch.") ? "Switch" : "Toggle helper" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: toggleKind(e) }}
     >
       {e.description && <p className="fd-hint">{e.description}</p>}
 

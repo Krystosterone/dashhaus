@@ -1,7 +1,7 @@
 import type { BinarySensorEntity, BinarySensorHistory } from "@dashhaus/core/entities/binarySensor/types";
 import { alertSentence, alertText, alertWord, pictureOf, stateWord, wordsOf } from "@dashhaus/core/entities/binarySensor/words";
 import { binarySensorSeverity, stateSeverity } from "@dashhaus/core/entities/binarySensor/severity";
-import { isLowBattery } from "@dashhaus/core/entities/battery";
+import { batteryAdvice, batterySaid, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { BinarySensorIcon } from "./icons";
@@ -41,9 +41,9 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
   const alarm = stateLevel === "alarm";
   const stateAlert = stateLevel ? alertText(e) : undefined;
   const lowBattery = !unav && isLowBattery(e.battery);
-  const warning = stateAlert ?? (severity ? `Battery ${e.battery}%` : undefined);
+  const warning = stateAlert ?? (severity ? batteryText(e.battery!) : undefined);
   const alertLabel = warning
-    ? `${alarm ? "Alert" : "Warning"}: ${stateAlert ? alertSentence(e) : `battery ${e.battery}% on ${e.name}, replace soon`}`
+    ? `${alarm ? "Alert" : "Warning"}: ${stateAlert ? alertSentence(e) : batterySaid(e.battery!, e.name)}`
     : null;
   const since = !unav && e.lastChanged ? e.lastChanged : undefined;
   const sinceText = since ? `Since ${since}` : undefined;
@@ -90,7 +90,7 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
       // When first, what the device is after it; `Facts`' `warn` marks the start, so a low battery marks its own end.
       facts={{
         start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged),
-        end: e.battery == null || unav ? "" : lowBattery ? <span className="hd-warn">Battery {e.battery}%, replace soon</span> : `Battery ${e.battery}%`,
+        end: e.battery == null || unav ? "" : lowBattery ? <span className="hd-warn">{batteryAdvice(e.battery)}</span> : batteryText(e.battery),
       }}
     >
       {history && (

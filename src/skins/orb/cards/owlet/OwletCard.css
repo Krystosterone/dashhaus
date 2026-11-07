@@ -7,6 +7,8 @@
 .ow { --ow-fig: clamp(26px, 6.8cqi, 30px); }
 .ow-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 16px; }
 .ow-vitals { display: contents; }
+/* One vital alone keeps its own column: it is not the bar's only figure, so it never takes the whole bar's width. */
+.ow-vitals > .hd-metric:only-child { grid-column: auto; }
 .ow-bar .hd-none { grid-column: 2 / -1; }
 .ow-metric {
   display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "cue label" "value value";
@@ -40,10 +42,11 @@
 }
 
 /* Under 320px three figures don't fit: the sleep state keeps the large figure, and the vitals stack beside it
-   in the compact row's inline form, the liveness cue beside the heart rate. */
+   in the compact row's inline form, the liveness cue beside the heart rate. They sit in the shared metric grid's
+   proportional second track, left-aligned, never pinned to the card's right edge (spec/orb.md → Readout). */
 @container hd (max-width: 319px) {
-  .ow:not(.hd--compact):not(.hd--sheet) .ow-bar { grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; }
-  .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals { display: grid; justify-items: end; align-content: center; row-gap: 4px; }
+  .ow:not(.hd--compact):not(.hd--sheet) .ow-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
+  .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals { display: grid; justify-items: start; align-content: center; row-gap: 4px; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals .hd-none { grid-column: auto; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals .ow-metric { display: flex; align-items: baseline; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals .hd-label { display: none; }
@@ -72,14 +75,6 @@
 .ow-heart[data-live] .ow-heart-i { animation: ow-beat 2.4s var(--ease-out) infinite; transform-origin: 50% 60%; }
 @keyframes ow-beat { 0%, 12%, 100% { scale: 1; } 5% { scale: 1.24; } 9% { scale: 0.96; } }
 .ow[data-stale] :is(.ow-value, .ow-value small, .hd-label, .ow-heart, .hd-val) { color: var(--ink-3); }
-/* The stale warning: the sentence where it fits, "Stopped 11:49" in compact rows and narrow cards. */
-.ow-st-s { display: none; }
-.hd--compact .ow-st-l { display: none; }
-.hd--compact .ow-st-s { display: inline; }
-@container hd (max-width: 259px) {
-  .ow-st-l { display: none; }
-  .ow-st-s { display: inline; }
-}
 /* The sleep state after a warning in a compact row: its phrase where it fits, its figure under 440px. */
 .ow-sl-s { display: none; }
 @container hd (max-width: 439px) {
@@ -93,8 +88,6 @@
 }
 
 /* ---------- A vitals alert: the alarm going off, the shared AlarmPill (hd-alarm in shared/card.css) ---------- */
-/* Beside a compact row's title the pill has a control's width: the alert's name only; the figures go to the status line. */
-.ow.hd--compact:not([data-control="off"]) .hd-alarm-v { display: none; }
 
 /* The sheet's base station switch: the shared pill, under its heading */
 .ow-base .hd-blk-h { margin: 0; }

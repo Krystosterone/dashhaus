@@ -36,7 +36,7 @@ __leftOut__
   // No parameter to colour: the pictogram is neutral, and a latching key's LED says on.
   const pict = <Pictogram param="neutral" lit={__lit__}>{__CONST___PICT}</Pictogram>;
   const read: ReactNode = unav ? <Blank label="Unavailable" /> : __read__;
-  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : __meta__;
+  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined] : __meta__;
   // One key per action: square at the head of a compact row (the first), across the row with its word.
   const keys = (wide: boolean) => [
 __keys__

@@ -18,6 +18,8 @@
 
 /* Readings that stopped are old: the figure dims to the meta lines' ink, as the heart beside it goes out. */
 :is(.fd-ow, .fd-ow-panel)[data-state="stale"] .fd-read-fig { color: var(--fd-screen-ink-2); }
+/* On its charger, a known resting state: its figure (DOCK) in the dim ink, never blank segments. */
+:is(.fd-ow, .fd-ow-panel)[data-state="charging"] .fd-read-fig { color: var(--fd-screen-ink-2); }
 
 /* Narrow modules keep both meta lines, the sleep state and the oxygen, since no other part of the module says
    them; the pictogram still goes (module.css), and the figure takes a size smaller and the screen tighter, so

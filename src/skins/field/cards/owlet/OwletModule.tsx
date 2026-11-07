@@ -1,9 +1,10 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
-import { ALERT_SHORT, ALERT_WORD, SLEEP_WORD, URGENT_PROBLEMS, fmtOxygen, normalize, owletSeverity, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
+import { ALERT_SAID, ALERT_SHORT, ALERT_WORD, CHARGING, SLEEP_UNKNOWN, SLEEP_WORD, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "@dashhaus/core/entities/owlet/readings";
+import { URGENT_PROBLEMS, owletSeverity } from "@dashhaus/core/entities/owlet/severity";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { todaySummary } from "@dashhaus/core/entities/today";
+import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, ModuleRow, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";
@@ -43,12 +44,12 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
   const { vitals, problems } = rankAlerts(e.alerts);
   const level = owletSeverity(e.alerts, stale);
 
-  const sleepWord = sleep ? SLEEP_WORD[sleep] : "Sleep unknown";
+  const sleepWord = sleep ? SLEEP_WORD[sleep] : SLEEP_UNKNOWN;
   const oxygen = o2 != null ? `${fmtOxygen(o2)}% O₂` : undefined;
-  const seen = e.lastSeen ? `Seen ${e.lastSeen}` : undefined;
+  const seen = e.lastSeen ? lastSeenFact(e.lastSeen) : undefined;
   const glyph = <Glyph unavailable={offline}><IconSock /></Glyph>;
   // Offline, the meter keeps the sleep so far and its legend says why there is no more, as the screen does.
-  const asleep = history && (offline ? (e.charging ? "Charging" : "Unavailable") : todaySummary("asleep", history.asleepMinutes));
+  const asleep = history && (offline ? (e.charging ? CHARGING : "Unavailable") : todaySummary("asleep", history.asleepMinutes));
 
   // Lit while there is a heart rate that hasn't stopped; beating while readings are known to arrive, once every 2.4 s, a
   // sign of life rather than the measured rate. Where the host can't tell, it stays lit and still.
@@ -57,11 +58,13 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
       <Pictogram param="neutral" lit={hr != null && !stale}>{HEART}</Pictogram>
     </span>
   );
-  const heartRead: ReactNode = offline ? <Blank label={e.charging ? "Charging" : "Unavailable"} />
+  // On its charger is a known resting state, so the screen names it in the dim ink (`DOCK`), never blank segments; out
+  // of reach it can't, so they are blank. Before a first reading the segments are blank and say so in core's words.
+  const heartRead: ReactNode = offline ? (e.charging ? <><span aria-hidden="true">DOCK</span><span className="fd-sr">{CHARGING}</span></> : <Blank label="Unavailable" />)
     : hr != null ? <><Digits value={hr} /><small>bpm</small></>
-    : <Blank label="No heart rate yet" />;
+    : <Blank label={o2 == null ? "No reading yet" : "No heart rate yet"} />;
   // The reading as it is, alarm or not: the panel's screen, under which every alert is listed.
-  const reading: [ReactNode, ReactNode?] = offline ? [e.charging ? "Charging" : "Unavailable", seen]
+  const reading: [ReactNode, ReactNode?] = offline ? [e.charging ? CHARGING : "Unavailable", seen]
     : [sleepWord, oxygen ?? (hr == null ? "No reading yet" : undefined)];
 
   let pict: ReactNode = heart, read = heartRead, meta = reading;
@@ -77,20 +80,20 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
       read = <><Digits value={o2} /><small>% O₂</small></>;
     }
     const others = vitals.slice(1).map((a) => ALERT_WORD[a]);
+    // On the screen's first line beside its figure, a word (`Critical`); without the figure, the alert's own words.
     meta = [fits ? ALERT_SHORT[lead] : ALERT_WORD[lead], others.length ? withCount(others) : byOxygen ? (hr != null ? `${hr} bpm` : sleepWord) : oxygen ?? sleepWord];
     const figure = byOxygen ? `${fmtOxygen(o2)}%` : hr != null && lead.endsWith("heart_rate") ? `${hr} bpm` : "";
     rowWarning = withCount(vitals.map((a) => ALERT_WORD[a]));
     const what = [ALERT_WORD[lead], figure].filter(Boolean).join(" ") + (vitals.length > 1 ? ` +${vitals.length - 1}` : "");
-    const spoken = vitals.map((a) => ALERT_WORD[a].toLowerCase()).join(", ");
+    const spoken = vitals.map((a) => ALERT_SAID[a].toLowerCase()).join(", ");
     alert = { level, what, startedAt: e.vitalsSince, say: `Alarm: ${e.name}, ${spoken}${byOxygen ? `, oxygen ${fmtOxygen(o2)} percent` : hr != null ? `, heart rate ${hr}` : ""}.` };
   } else if (level === "urgent") {
     // What stopped the monitoring, in an inverted block; a day as well as a time ("Fri 18:30") keeps the time.
-    const time = e.lastUpdated?.trim().split(/\s+/).at(-1);
     const urgent = problems.find((p) => URGENT_PROBLEMS.has(p));
-    const words = urgent ? ALERT_WORD[urgent] : time ? `Stopped ${time}` : "Stopped";
+    const words = urgent ? ALERT_WORD[urgent] : staleText(e.lastUpdated);
     meta = [<Warn key="w" block>{words}</Warn>, offline ? seen : sleepWord];
     rowWarning = words;
-    alert = { level, what: urgent ? words : `No reading${time ? ` since ${time}` : ""}` };
+    alert = { level, what: words };
   } else if (problems.length) {
     // Advisory, the device's: the plate's line. A pressing level above takes its place, and the panel lists it.
     warning = withCount(problems.map((a) => ALERT_WORD[a]));
@@ -101,13 +104,12 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
   // station's key, today's sleep, heart rate and oxygen, then when it last updated.
   const uid = useId();
   const said = [
-    ...[...vitals, ...problems].map((a) => ALERT_WORD[a]),
-    ...(stale ? [`No new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}`] : []),
+    ...[...vitals, ...problems].map((a) => ALERT_SAID[a]),
+    ...(stale ? [staleSaid(e.lastUpdated)] : []),
   ];
   const hrSeries = history?.heartRate ? normalize(history.heartRate) : null;
   const o2Series = history?.oxygen ? normalize(history.oxygen) : null;
-  const lowHigh = (s: { min: number | null; max: number | null }, unit: string) =>
-    s.min == null || s.max == null ? "No readings yet" : `Low ${Math.round(s.min)}${unit} · High ${Math.round(s.max)}${unit}`;
+  const lowHigh = (s: { min: number | null; max: number | null }, unit: string) => rangeSummary(s.min, s.max, (v) => `${Math.round(v)}${unit}`);
   const base = e.baseOn != null && onBaseToggle;
 
   return (
@@ -116,10 +118,10 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
       name={e.name}
       area={e.area}
       footprint={footprint}
-      state={offline ? "unavailable" : stale ? "stale" : sleep ?? "unknown"}
+      state={offline ? (e.charging ? "charging" : "unavailable") : stale ? "stale" : sleep ?? "unknown"}
       warning={compact ? rowWarning ?? warning : warning}
       note={e.baseOn === false ? "Base station off" : undefined}
-      line={offline ? (e.charging ? "Charging" : undefined) : sleepWord}
+      line={offline ? (e.charging ? CHARGING : undefined) : sleepWord}
       alert={alert}
       details={details}
       pict={pict}
@@ -133,7 +135,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
         </ModuleRow>
       )}
       panelScreen={{ pict: heart, read: heartRead, meta: reading }}
-      facts={{ start: offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live), end: offline && e.charging ? "On its charger" : "" }}
+      facts={{ start: offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live), end: offline && e.charging ? CHARGING : "" }}
     >
       {said.length > 0 && <Notices className="fd-ow-say" warnings={said} />}
 

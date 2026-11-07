@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { codeGroups, isGroupedCode, joinWords, newSecretWords, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
+import { codeGroups, isGroupedCode, joinWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Glyph, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Pictogram, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -52,11 +52,14 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
       <span className="fd-sr">{capital(secret)} {spokenCode(code)}</span>
     </span>
   );
-  const read: ReactNode = ready ? figure(e.code!) : <Blank places={4} label={unav ? "Unavailable" : `No ${secret}`} />;
+  // Nothing to give is a known resting state, so the screen names it in the dim ink (`NONE`), never blank segments;
+  // unavailable it can't say, so they are blank.
+  const read: ReactNode = ready ? figure(e.code!) : unav ? <Blank places={4} label="Unavailable" />
+    : <><span aria-hidden="true">NONE</span><span className="fd-sr">{noneWord(e)}</span></>;
   // The screen's room is short: "3 of 5 left", "18 h left"; the panel's words say them in full.
   const [first = capital(secret), second] = ready ? shortTerms(e) : [];
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : !ready ? [`No ${secret}`, "Make one in details"]
+  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
+    : !ready ? [noneWord(e), "Make one in details"]
     : [first, second];
   const glyph = <Glyph unavailable={unav}><IconGuestWifi /></Glyph>;
 
@@ -91,7 +94,8 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
           </div>
         </ModuleRow>
       )}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : e.created ? `Made ${e.created}` : "", end: unav ? "" : updatedFact(e.lastUpdated) }}
+      // When first (it last reported, or was last seen), then its code: when that was made.
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: unav ? "" : madeFact(e.created) }}
     >
       {ready && (
         <div className="fd-block">
@@ -137,7 +141,7 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
           </KeyGroup>
           <p className="fd-hint" role="status">
             {pending === "new" ? `Making a new ${secret}.` : pending === "refresh" ? `Checking the ${secret}.`
-              : !ready ? (password ? "No password is set. Make one to give." : "Every code has been used. Make a new one to give.")
+              : !ready ? noneSentence(e)
               : make ? newSecretWords(e) : ""}
           </p>
         </div>

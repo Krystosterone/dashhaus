@@ -2,7 +2,8 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { TARGET_WORD, climateFacts } from "@dashhaus/core/entities/climate/words";
+import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Steps, Today, useDetails, KeyGroup, choices, Temperature, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -26,11 +27,10 @@ export interface ClimateModuleProps {
 
 function targetCopy(e: ClimateEntity, mode: HvacMode) {
   if (mode === "heat_cool" && e.targetLow != null && e.targetHigh != null) {
-    return { value: `${fmtTarget(e.targetLow)}–${fmtTarget(e.targetHigh)}°`, label: "Keep" };
+    return { value: `${fmtTarget(e.targetLow)}–${fmtTarget(e.targetHigh)}°`, label: TARGET_WORD.heat_cool! };
   }
   if (e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto")) {
-    const label = mode === "heat" ? "Heat to" : mode === "cool" ? "Cool to" : "Target";
-    return { value: `${fmtTarget(e.targetTemperature)}°`, label };
+    return { value: `${fmtTarget(e.targetTemperature)}°`, label: TARGET_WORD[mode]! };
   }
   return undefined;
 }
@@ -65,8 +65,8 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
     : mode === "fan_only" ? "FAN"
     : <Blank places={4} label="No temperature reading" />;
 
-  const seen = e.lastSeen ? `Seen ${e.lastSeen}` : undefined;
-  const room = e.currentTemperature != null ? `${fmtCurrent(e.currentTemperature)}${e.unit} room` : undefined;
+  const seen = e.lastSeen ? lastSeenFact(e.lastSeen) : undefined;
+  const room = e.currentTemperature != null ? nowText(`${fmtCurrent(e.currentTemperature)}${e.unit}`) : undefined;
   const meta: [ReactNode, ReactNode?] = unavailable
     ? ["Unavailable", seen]
     : !on
@@ -100,7 +100,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
           <Fader
             id={`${uid}-${where}-target`}
             label={`${e.name} target temperature`}
-            legend={`${target?.label ?? "Target"} ${target?.value ?? ""}`.trim()}
+            legend={`${target?.label ?? TARGET_WORD[mode] ?? ""} ${target?.value ?? ""}`.trim()}
             value={e.targetTemperature}
             min={e.minTemp}
             max={e.maxTemp}
@@ -114,7 +114,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
           <RangeFader
             id={`${uid}-${where}-range`}
             name={e.name}
-            legend={`Keep ${target?.value ?? ""}`.trim()}
+            legend={`${TARGET_WORD.heat_cool} ${target?.value ?? ""}`.trim()}
             low={e.targetLow!}
             high={e.targetHigh!}
             min={e.minTemp}
@@ -166,7 +166,7 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
       )}
       controls={controls}
       aside={aside}
-      facts={{ start: unavailable ? lastSeenFact(e.lastSeen) : e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : "", end: unavailable ? "" : [lastChangedFact(e.lastChanged), `${fmtTarget(e.minTemp)}–${fmtTarget(e.maxTemp)}${e.unit}`].filter(Boolean).join(" · ") }}
+      facts={{ start: unavailable ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unavailable ? "" : climateFacts(e) }}
     >
       {hasSingle && onTargetChange && target && e.targetTemperature != null && (
         <TargetFine name={e.name} label={target.label} value={e.targetTemperature} min={e.minTemp} max={e.maxTemp} step={e.step} onChange={onTargetChange} />

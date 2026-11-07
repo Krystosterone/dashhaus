@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { codeGroups, durationMinutes, durationWords, inUse, isGroupedCode, joinWords, lastsWords, newSecretWords, secretWord, shortTerms, spokenCode, usesWords } from "./words";
+import { codeGroups, durationMinutes, durationWords, inUse, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode, usesWords } from "./words";
 
 describe("durationMinutes", () => {
   it("reads the integration's durations", () => {
@@ -84,5 +84,16 @@ describe("shortTerms", () => {
     expect(shortTerms({ allowed: "unlimited", used: 0, lastsMinutes: 10080 })).toEqual(["Unlimited", "Lasts 7 days"]);
     expect(shortTerms({ allowed: 9999, used: 9998, leftMinutes: 524_159 })).toEqual(["1 of 9999 left", "363 days left"]);
     expect(shortTerms({})).toEqual([]);
+  });
+});
+
+describe("guest Wi-Fi's words while there is nothing to give", () => {
+  it("says the same word and sentence in every skin, and when the code was made", () => {
+    expect(noneWord({ access: "code" })).toBe("No code");
+    expect(noneWord({ access: "password" })).toBe("No password");
+    expect(noneSentence({ access: "code" })).toBe("Every code has been used. Make a new one to give.");
+    expect(noneSentence({ access: "password" })).toBe("No password is set. Make one to give.");
+    expect(madeFact("08:00")).toBe("Made 08:00");
+    expect(madeFact()).toBe("");
   });
 });

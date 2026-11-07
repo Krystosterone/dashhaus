@@ -1,12 +1,14 @@
 import type { AlarmEntity, AlarmHistory, AlarmMode, AlarmAction, AlarmResult } from "@dashhaus/core/entities/alarm/types";
 import { ARMED_MODE, MODE_LABEL, needsCode as codeFor } from "@dashhaus/core/entities/alarm/modes";
+import { alarmSeverity } from "@dashhaus/core/entities/alarm/severity";
+import { alarmWarning, openSentence, warningLine } from "@dashhaus/core/entities/alarm/words";
 import { useDelayLeft } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ShieldIcon } from "./icons";
-import { ModeSwitch, Countdown, AlarmPill, AlarmStatus } from "./parts";
-import { AlertStatus, CardFrame, Keypad, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
+import { ModeSwitch, Countdown, AlarmStatus } from "./parts";
+import { AlarmPill, AlertStatus, CardFrame, Keypad, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./AlarmCard.css";
 
@@ -47,7 +49,11 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   const { sheet, area } = card;
   const unav = e.state === "unavailable";
   const armedMode = ARMED_MODE[e.state];
-  const urgentState = e.state === "pending" || e.state === "triggered";
+  // Core ranks it (triggered is the alarm, the entry delay urgent, open doors while disarmed advisory) and says it;
+  // the card draws the level it is given.
+  const level = unav ? undefined : alarmSeverity(e);
+  const warning = unav ? undefined : alarmWarning(e);
+  const urgentState = level === "alarm" || level === "urgent";
   const moving = e.state === "arming" || e.state === "pending" || e.state === "disarming";
   const colors = paint("state", 0);
   // View only: everything that arms, disarms or asks for the code is left out.
@@ -71,16 +77,14 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   const pick = (m: AlarmMode | "off") => act(m === "off" ? { kind: "disarm" } : { kind: "arm", mode: m });
 
   const open = e.openSensors ?? [];
-  const openText = open.length ? `${open[0]} open${open.length > 1 ? ` +${open.length - 1}` : ""}` : null;
-  const warningText = unav ? null
-    : e.state === "triggered" ? `Triggered${e.triggeredBy ? ` by ${e.triggeredBy}` : ""}`
-    : e.state === "pending" ? (e.triggeredBy ? `${e.triggeredBy} opened` : "Entry delay")
-    : e.state === "disarmed" ? openText
-    : null;
-  const alertLabel = warningText ? `Warning: ${e.name}: ${warningText}` : null;
+  const warningText = warning ? warningLine(warning) : null;
+  const alertLabel = warning ? `${level === "alarm" ? "Alert" : "Warning"}: ${e.name}: ${warning.said}` : null;
   // Arming to an unknown mode (HA's core entity doesn't say) reads as plain "Arming".
   const to = e.armingTo ? ` ${MODE_LABEL[e.armingTo].toLowerCase()}` : "";
-  const status = alertLabel ? <AlertStatus label={alertLabel}>{warningText}</AlertStatus>
+  // An alarm fills the slot, so its status line keeps plain words; urgent and advisory lead it behind the marker,
+  // the warning's word first and the sensor after it (spec/orb.md → the warn colour).
+  const status = level === "alarm" ? warningText
+    : warning ? <><AlertStatus label={alertLabel!}>{warning.word}</AlertStatus>{warning.detail && ` · ${warning.detail}`}</>
     : unav ? area ?? "Unavailable"
     : e.state === "arming" ? `Arming${to} · leave now`
     : e.state === "disarming" ? "Disarming…"
@@ -89,8 +93,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
   const word = unav ? "Unavailable" : e.state === "triggered" ? "Alarm" : e.state === "pending" ? (ro ? "Entry delay" : "Disarm now") : e.state === "arming" ? "Arming" : e.state === "disarming" ? "Disarming" : armedMode ? MODE_LABEL[armedMode] : "Disarmed";
 
   let slot;
-  if (e.state === "triggered") slot = <AlarmPill cause={e.triggeredBy} onDisarm={ro ? undefined : () => act({ kind: "disarm" })} />;
-  else if (e.state === "pending") slot = ro
+  if (e.state === "pending") slot = ro
     ? <Countdown kind="pending" label={left == null ? "Entry delay…" : "Entry delay"} left={left} total={e.delay} />
     : <Countdown kind="pending" label={left == null ? "Entry delay · disarm now" : "Disarm now"} left={left} total={e.delay} action="Disarm" onAction={() => act({ kind: "disarm" })} />;
   else if (e.state === "arming") slot = <Countdown kind="arming" label={left == null ? `Arming${to}…` : `Arming${to}`} left={left} total={e.delay} action={ro ? undefined : "Cancel"} onAction={ro ? undefined : () => act({ kind: "disarm" })} />;
@@ -110,7 +113,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-armed": armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined, "data-alert": alertLabel ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, "data-armed": armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined, "data-alert": level === "alarm" ? "alarm" : level ? "warn" : undefined, ...colors }}
       glyph={<ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} />}
       unavailable={unav}
       lastSeen={e.lastSeen}
@@ -122,12 +125,21 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
       onClose={onClose}
       closeFocus={!pending}
       control={slot}
+      // Triggered: the shared alarm pill, its alert and what set it off, since when where nothing can be pressed, and Disarm.
+      urgent={level === "alarm" ? (
+        <AlarmPill
+          alert="Alarm"
+          more={e.triggeredBy}
+          value={ro ? sinceFact(e.lastChanged) : undefined}
+          action={ro ? undefined : <button type="button" className="al-cd-b al-alarm-b" onClick={() => act({ kind: "disarm" })}>Disarm</button>}
+        />
+      ) : undefined}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged, e.changedBy), end: ro ? "View only" : !e.codeFormat ? "No code" : codeToArm ? "Code to arm and disarm" : "Code to disarm" }}
     >
       {!unav && (
         <SheetBlock>
           {open.length > 0 && (!pending || pending.kind === "arm") && (
-            <p className="hd-note"><span className="hd-warn">{listOf(open)} {open.length > 1 ? "are" : "is"} open.</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
+            <p className="hd-note"><span className="hd-warn">{openSentence(open)}</span>{ro ? null : <> Arming will leave {open.length > 1 ? "them" : "it"} unguarded.</>}</p>
           )}
           {pending && (
             <Keypad key={guard.pendingKey} prompt={promptFor(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
@@ -138,8 +150,6 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
     </CardFrame>
   );
 }
-
-const listOf = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
 export type AlarmSheetProps = SheetProps<AlarmCardProps>;
 

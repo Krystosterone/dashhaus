@@ -85,6 +85,16 @@ export const codeGroups = (code: string) => code.split(/[\s-]+/).filter(Boolean)
 /** What a guest types, in words: "code" or "password". */
 export const secretWord = (e: Pick<GuestWifiEntity, "access">) => (e.access === "password" ? "password" : "code");
 
+/** Its state while there is nothing to give, the same on every card and in every skin: "No code", "No password". */
+export const noneWord = (e: Pick<GuestWifiEntity, "access">) => (e.access === "password" ? "No password" : "No code");
+
+/** Why there is nothing to give, and what to do, in a sentence: every code used, or no password set. */
+export const noneSentence = (e: Pick<GuestWifiEntity, "access">) =>
+  (e.access === "password" ? "No password is set. Make one to give." : "Every code has been used. Make a new one to give.");
+
+/** When the code it shows was made, in small print after when it last reported: "Made 08:00", or "". */
+export const madeFact = (created?: string) => (created ? `Made ${created}` : "");
+
 /**
  * How to join, in a sentence: "Join Maple Guests, then enter the code on the page that opens." for a code; for a
  * password, "Scan to join Maple Guests, or choose it in Wi-Fi settings and type the password." (without its QR code,

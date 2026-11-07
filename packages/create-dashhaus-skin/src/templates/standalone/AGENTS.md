@@ -140,27 +140,39 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | Import from | What it has |
 | --- | --- |
 | `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo` |
-| `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact` |
+| `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText` |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
-| `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words |
+| `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
 | `@dashhaus/core/entities/clock` | `clockFace`, the header's time and date for a locale, 12 or 24 hours and a time zone |
-| `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY` |
-| `@dashhaus/core/entities/severity` | the `Severity` type a model carries |
+| `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY`, and a battery in words: `batteryText`, `batteryAdvice` |
+| `@dashhaus/core/entities/severity` | the `Severity` type a model carries, and `WARNING_WORD_MAX`, the 13 characters a warning's words fit |
 | `@dashhaus/core/entities/alarm/modes` | an alarm's modes, their labels and hints, `needsCode` |
+| `@dashhaus/core/entities/alarm/severity` | `alarmSeverity` |
+| `@dashhaus/core/entities/alarm/words` | its warning's word and sensor (`alarmWarning`), `openSentence` |
 | `@dashhaus/core/entities/binarySensor/words` | a binary sensor's state in its device class's words (`stateWord`, `alertWord`, `wordsOf`), and the picture its class names (`pictureOf`) |
 | `@dashhaus/core/entities/binarySensor/severity` | `binarySensorSeverity`, and `stateSeverity` for the state's own |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
+| `@dashhaus/core/entities/climate/words` | what a target does (`TARGET_WORD`), and its small print (`climateFacts`) |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
+| `@dashhaus/core/entities/cover/words` | a cover's state in words (`coverWord`), `positionText`, a door left open (`leftOpenText`) |
+| `@dashhaus/core/entities/cover/severity` | `coverSeverity` |
 | `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |
-| `@dashhaus/core/entities/guestWifi/words` | a guest Wi-Fi code's uses and length in words, `spokenCode`, `codeGroups`, `isGroupedCode`, `secretWord`, `joinWords` |
+| `@dashhaus/core/entities/guestWifi/words` | a guest Wi-Fi code's uses and length in words, `spokenCode`, `codeGroups`, `isGroupedCode`, `secretWord`, `joinWords`, `noneWord` |
 | `@dashhaus/core/entities/humidifier/labels` | what the unit is doing in words, `fmtHumidity`, `modeLabel` |
 | `@dashhaus/core/entities/light/color`, `/light/kelvin` | the lamp colours, and a colour temperature as a colour and a name |
+| `@dashhaus/core/entities/light/words` | a light's state in words (`lightWord`), `QUICK_LEVELS`, `lightAbilities` |
 | `@dashhaus/core/entities/lock/code`, `/lock/severity` | what a code may contain, and a lock's severity |
+| `@dashhaus/core/entities/lock/words` | each lock state in words, `LOCK_WORD` |
 | `@dashhaus/core/entities/owlet/readings`, `/owlet/sleep` | vitals and sleep states as figures and words |
+| `@dashhaus/core/entities/owlet/severity` | `owletSeverity` |
 | `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |
+| `@dashhaus/core/entities/sensor/severity` | `sensorSeverity` |
+| `@dashhaus/core/entities/sound/words` | `soundWord`, `soundAbilities` |
 | `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |
+| `@dashhaus/core/entities/toggle/words` | `toggleWord`, `toggleKind` |
 | `@dashhaus/core/entities/weather/conditions` | `SKY` (each condition as a sky to draw), `CONDITION_LABEL`, `compass`, `precipitation` |
-| `@dashhaus/core/entities/weather/readings` | `conditionLabel` (a condition in words, by day or night), `isNight`, `deg0`, `aqiBand`, `uvBand`, `weatherWarnings` |
+| `@dashhaus/core/entities/weather/readings` | `conditionLabel` (a condition in words, by day or night), `isNight`, `deg0`, `aqiBand`, `uvBand`, `weatherWarnings`, `weatherWarningsSaid` |
+| `@dashhaus/core/entities/weather/severity` | `weatherSeverity` |
 
 A composed model's companions (a sensor's humidity and battery, a sound machine's volume) reach its hook from the
 YAML (`humidity: sensor.bedroom_humidity`) through `item.companions` in `lovelace/registry.tsx`. The automatic layout

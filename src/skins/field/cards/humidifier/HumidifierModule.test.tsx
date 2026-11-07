@@ -74,7 +74,8 @@ describe("HumidifierModule", () => {
   it("is off with the room on its meta line and one wide key to turn it on, and no fader", () => {
     const { container } = draw("off");
     expect(container.querySelector(".fd-read")?.textContent).toBe("OFF");
-    expect(container.querySelector(".fd-meta")?.textContent).toBe("Off47% room");
+    // spec/cards.md → its words live in core: the room's humidity as it is now, in the word every skin says it in.
+    expect(container.querySelector(".fd-meta")?.textContent).toBe("Off47% now");
     expect(screen.queryByRole("slider")).toBeNull();
     expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Turn on");
   });

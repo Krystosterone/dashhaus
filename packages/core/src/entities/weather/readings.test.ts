@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { conditionLabel, isNight, rangeText, todayRange, weatherWarnings } from "./readings";
+import { conditionLabel, isNight, rangeText, todayRange, weatherWarnings, weatherWarningsSaid } from "./readings";
+import { weatherSeverity } from "./severity";
 import type { WeatherEntity } from "./types";
 
 const base: WeatherEntity = { entityId: "weather.home", name: "Home", state: "sunny", temperatureUnit: "°C", windSpeedUnit: "km/h", pressureUnit: "hPa" };
@@ -16,13 +17,21 @@ describe("isNight and conditionLabel", () => {
 
 describe("weatherWarnings", () => {
   it("lists poor air, strong gusts and high UV, most urgent first", () => {
-    expect(weatherWarnings({ ...base, aqi: 312, windGustSpeed: 84, windSpeedUnit: "mph", uvIndex: 12 })).toEqual(["Hazardous air", "Gusts 84 mph", "Extreme UV"]);
+    // spec/cards.md → a warning's words fit a row: the gusts are a word, and their speed is said whole to a screen reader.
+    expect(weatherWarnings({ ...base, aqi: 312, windGustSpeed: 84, windSpeedUnit: "mph", uvIndex: 12 })).toEqual(["Hazardous air", "Strong gusts", "Extreme UV"]);
+    expect(weatherWarningsSaid({ ...base, aqi: 312, windGustSpeed: 84, windSpeedUnit: "mph", uvIndex: 12 })).toEqual(["Hazardous air", "Gusts 84 mph", "Extreme UV"]);
   });
 
   it("judges gusts in km/h whatever the unit, and is quiet under the thresholds or while unavailable", () => {
-    expect(weatherWarnings({ ...base, windGustSpeed: 14, windSpeedUnit: "m/s" })).toEqual(["Gusts 14 m/s"]);
+    expect(weatherWarnings({ ...base, windGustSpeed: 14, windSpeedUnit: "m/s" })).toEqual(["Strong gusts"]);
     expect(weatherWarnings({ ...base, aqi: 100, windGustSpeed: 49, uvIndex: 7.9 })).toEqual([]);
     expect(weatherWarnings({ ...base, state: "unavailable", aqi: 400 })).toEqual([]);
+  });
+
+  it("ranks any of them advisory, once, in core, and nothing while unavailable", () => {
+    expect(weatherSeverity({ ...base, aqi: 312 })).toBe("advisory");
+    expect(weatherSeverity(base)).toBeUndefined();
+    expect(weatherSeverity({ ...base, state: "unavailable", aqi: 400 })).toBeUndefined();
   });
 });
 

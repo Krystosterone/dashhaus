@@ -52,7 +52,8 @@ describe("HaOwletTile", () => {
     expect(screen.queryByRole("alert")).toBeNull();
     view.unmount();
     renderConnected(<HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" alertEntityIds={{ high_heart_rate: "binary_sensor.nursery_panic" }} />, raw);
-    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("High heart rate133 bpm"));
+    // spec/cards.md → a warning's words fit a row: 13 characters at most.
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("High pulse133 bpm"));
   });
 
   it("says Charging from the charging sensor", async () => {

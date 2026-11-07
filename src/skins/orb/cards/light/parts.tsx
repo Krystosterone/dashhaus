@@ -42,13 +42,6 @@ export function BrightnessBar({ id, label, value, on, known = true, offText = "O
   );
 }
 
-export const QUICK_LEVELS = [
-  { value: 5, label: "Night", sub: "5%" },
-  { value: 25, label: "Dim", sub: "25%" },
-  { value: 50, label: "Half", sub: "50%" },
-  { value: 100, label: "Full", sub: "100%" },
-];
-
 /** Warmth ruler: ticks every 100 K over the warm-to-cool scale; an ink stick and a tag mark the value. */
 export function WarmthRuler({ id, kelvin, min = K_MIN, max = K_MAX, disabled, onChange }: { id: string; kelvin: number; min?: number; max?: number; disabled?: boolean; onChange: (k: number) => void }) {
   const intervals = Math.max(1, Math.round(Math.max(100, max - min) / 100));
