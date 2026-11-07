@@ -27,12 +27,14 @@ export interface HaCalendarOptions {
   /** Set false when the events are supplied by another application-owned query: the entity's own event stands in. */
   loadEvents?: boolean;
   onEventsError?: (error: unknown) => void;
+  /** Set false to leave out today's plan by hour (YAML `history: false`): `history` is then undefined. */
+  loadHistory?: boolean;
 }
 
 export interface HaCalendarResult {
   entity: CalendarEntity;
-  /** Today's plan by hour, from the events: no recorder read. */
-  history: CalendarHistory;
+  /** Today's plan by hour, from the events: no recorder read. Undefined with `loadHistory: false`. */
+  history: CalendarHistory | undefined;
 }
 
 /**
@@ -56,7 +58,8 @@ const fetchEvents = (store: HaStore, entityIds: readonly string[], from: number,
  * calendars read beside it, from today's start to the horizon; and today's plan by hour. The events are their own
  * ranged read, `calendar.get_events` through the store's query, as the weather's forecasts are: read again each hour,
  * on a new day, and whenever the calendar itself changes (an event starts or ends), the last events staying up while
- * the next read loads. It sends no services.
+ * the next read loads. Today's plan is computed from those events, never read from the recorder; `loadHistory: false`
+ * leaves it out. It sends no services.
  */
 export function useHaCalendar(entityId: string, {
   calendarEntityIds = [],
@@ -67,6 +70,7 @@ export function useHaCalendar(entityId: string, {
   events: providedEvents,
   loadEvents = true,
   onEventsError,
+  loadHistory = true,
 }: HaCalendarOptions = {}): HaCalendarResult {
   checkEntityId(entityId, ["calendar"], "useHaCalendar");
   const raw = useHaEntity(entityId);
@@ -106,6 +110,6 @@ export function useHaCalendar(entityId: string, {
     days: span,
     calendars: ids.length,
   }), [raw, entityId, name, area, registryArea, lastSeen, now, providedEvents, read, span, ids.length]);
-  const history = useMemo(() => calendarDay(entity.events, entity.now), [entity.events, entity.now]);
+  const history = useMemo(() => (loadHistory ? calendarDay(entity.events, entity.now) : undefined), [loadHistory, entity.events, entity.now]);
   return { entity, history };
 }

@@ -136,7 +136,8 @@
     "summary": "stateWords(e.state)",
     "options": [
       "name",
-      "area"
+      "area",
+      "loadHistory"
     ],
     "companions": [],
     "fixtureId": "calendar.family"

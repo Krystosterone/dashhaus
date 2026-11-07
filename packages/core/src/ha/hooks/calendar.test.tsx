@@ -22,7 +22,14 @@ describe("useHaCalendar", () => {
     expect(result.current.entity.events?.find((e) => e.title === "Assembly")?.calendar).toBe("School");
     expect(result.current.entity.events?.find((e) => e.title === "Dentist")?.calendar).toBe("Family");
     // Today's plan comes from the events: the school run, the dentist and swimming.
-    expect(result.current.history.busyMinutes).toBe(30 + 60 + 60);
+    expect(result.current.history?.busyMinutes).toBe(30 + 60 + 60);
+  });
+
+  it("leaves today's plan out with loadHistory: false, the events still read", async () => {
+    const { wrapper } = setup();
+    const { result } = renderHook(() => useHaCalendar("calendar.family", { days: 1, loadHistory: false }), { wrapper });
+    await waitFor(() => expect(result.current.entity.events?.length).toBe(4));
+    expect(result.current.history).toBeUndefined();
   });
 
   it("reads one calendar's events unnamed, and only to its horizon", async () => {

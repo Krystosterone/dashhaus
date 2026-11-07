@@ -55,12 +55,14 @@ export function CalendarCard({ entity: e, history, variant, footprint, showContr
   const title = next?.title ?? (waiting ? CALENDAR_WORDS.waiting : CALENDAR_WORDS.free);
   const when = next ? eventWhen(next, e.now) : waiting ? undefined : free;
   const cue = unav ? "Unavailable" : next ? eventCue(next, e.now) : waiting ? CALENDAR_WORDS.waiting : free.line;
-  const spoken = next ? `${next.title}, ${when!.line}` : waiting ? "Waiting for events" : free.line;
+  const spoken = next ? `${next.title}, ${when!.line}` : waiting ? CALENDAR_WORDS.noReading : free.line;
   const left = waiting ? undefined : leftToday(agenda.left.length, agenda.today.length);
 
   // A row names the event and cues when; a card counts what's left today, its readout already naming the event. A row
-  // with no event says what's left today beside its Free, and waits beside its Waiting with its area alone.
+  // with no event says what's left today beside its Free. Before the events are read, every footprint says so after
+  // its area, as every reading does, the readout and the row's cue keeping Waiting….
   const status = unav ? "Unavailable"
+    : waiting ? [area, CALENDAR_WORDS.noReading].filter(Boolean).join(" · ")
     : compact ? (next ? next.title : left ?? area)
     : sheet ? [area, left].filter(Boolean).join(" · ") || undefined
     : left ?? area;

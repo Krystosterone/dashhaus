@@ -1,9 +1,6 @@
 /* Calendar module (fd-ca): a reading. Its glyph where a key would be, then today's meter where a fader would be. The
    plate, screen, meter, row (ModuleRow) and panel body (PanelBody) are shared. */
 
-/* Free, with nothing to the horizon, in the dim screen ink, as a closed door's SHUT is. */
-.fd-ca[data-state="off"] .fd-read-fig { color: var(--fd-screen-ink-2); }
-
 /* Narrow modules keep one meta line on the screen. */
 @container (max-width: 239px) {
   .fd-ca .fd-meta-2 { display: none; }

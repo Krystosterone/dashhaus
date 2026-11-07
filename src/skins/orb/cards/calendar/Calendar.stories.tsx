@@ -44,8 +44,8 @@ export const AllDay: Story = { name: "All day", args: { seed: "allDay" } };
 export const Tomorrow: Story = { args: { seed: "tomorrow" } };
 /** Nothing to the horizon: Free, and for how long, in the second ink. */
 export const Free: Story = { args: { seed: "free" } };
-/** Reachable, its events not read yet. */
-export const Waiting: Story = { args: { seed: "waiting" } };
+/** Reachable, its events not read yet: No reading yet on the status line, Waiting… in the readout. */
+export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
 export const Featured: Story = { args: { footprint: "featured" } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (CALENDAR_WORST_CASE): a long title and place over three calendars, six all-day events, a flight across midnight, accented text, nothing at all, gone and never seen. */

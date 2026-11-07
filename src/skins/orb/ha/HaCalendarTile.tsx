@@ -12,7 +12,7 @@ export interface HaCalendarTileProps extends HaCalendarOptions, Omit<CalendarTil
  * A live, read-only calendar tile: the useHaCalendar hook, with its events and any calendars read beside it, above
  * the presentational tile. It sends no services.
  */
-export function HaCalendarTile({ entityId, calendarEntityIds, days, name, area, lastSeen, events, loadEvents, onEventsError, ...props }: HaCalendarTileProps) {
-  const live = useHaCalendar(entityId, { calendarEntityIds, days, name, area, lastSeen, events, loadEvents, onEventsError });
+export function HaCalendarTile({ entityId, calendarEntityIds, days, name, area, lastSeen, events, loadEvents, onEventsError, loadHistory, ...props }: HaCalendarTileProps) {
+  const live = useHaCalendar(entityId, { calendarEntityIds, days, name, area, lastSeen, events, loadEvents, onEventsError, loadHistory });
   return <CalendarTile {...props} entity={live.entity} history={live.history} />;
 }

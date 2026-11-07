@@ -14,8 +14,10 @@ export const CALENDAR_WORDS = {
   tomorrow: "Tomorrow",
   /** Nothing on any calendar from now to the horizon. */
   free: "Free",
-  /** The events haven't been read yet. */
+  /** The events haven't been read yet: the readout's and a compact row's cue. */
   waiting: "Waiting…",
+  /** The events haven't been read yet: the status line, a screen's words and what a screen reader hears, as every reading says it. */
+  noReading: "No reading yet",
   /** An event with no summary, as a shared calendar shows someone else's. */
   untitled: "Busy",
   /** The state `todaySummary` takes for the day's plan: "Busy 3h 30m", "Not busy today". */

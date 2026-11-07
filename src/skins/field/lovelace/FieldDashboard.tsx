@@ -58,7 +58,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   fan: (item, footprint) => <HaFanModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} />,
   guestWifi: (item, footprint) => <HaGuestWifiModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} access={item.access} network={item.network} qrEntityId={item.qr} newCodeEntityId={item.newCode} refreshEntityId={item.refresh} />,
   binarySensor: (item, footprint) => <HaBinarySensorModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} batteryEntityId={item.battery} />,
-  calendar: (item, footprint) => <HaCalendarModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} calendarEntityIds={item.calendars} days={item.days} loadEvents={item.events} />,
+  calendar: (item, footprint) => <HaCalendarModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} calendarEntityIds={item.calendars} days={item.days} loadEvents={item.events} loadHistory={item.history} />,
   // new-card: live modules
 };
 

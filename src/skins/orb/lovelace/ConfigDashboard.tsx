@@ -46,7 +46,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   fan: (card, key) => <HaFanTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   guestWifi: (card, key) => <HaGuestWifiTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} access={card.access} network={card.network} qrEntityId={card.qr} newCodeEntityId={card.newCode} refreshEntityId={card.refresh} />,
   binarySensor: (card, key) => <HaBinarySensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} batteryEntityId={card.battery} />,
-  calendar: (card, key) => <HaCalendarTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} calendarEntityIds={card.calendars} days={card.days} loadEvents={card.events} />,
+  calendar: (card, key) => <HaCalendarTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} calendarEntityIds={card.calendars} days={card.days} loadEvents={card.events} loadHistory={card.history} />,
   // new-card: tiles
 };
 
