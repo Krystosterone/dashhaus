@@ -48,6 +48,9 @@ export const assetName = (entry) => `${entry.repository}.js`;
 /** A skin's landing page. */
 export const pageUrl = (entry) => `${SITE}/${entry.page}/`;
 
+/** A skin's own repository on GitHub, where its landing page's GitHub link leads. */
+export const repositoryUrl = (entry) => `https://github.com/${OWNER}/${entry.repository}`;
+
 /** The My link that opens a skin's repository in the Marketplace, or in HACS before 2026.11. */
 export const myLink = (entry) =>
   `https://my.home-assistant.io/redirect/hacs_repository/?owner=${OWNER}&repository=${entry.repository}&category=plugin`;

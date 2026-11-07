@@ -4,7 +4,7 @@
  * landing page is the skin's alone; its one way to Dashhaus is the foot (`components/skin/Foot.astro`).
  */
 import type { ImageMetadata } from "astro";
-import { SKIN_REPOSITORIES, myLink, pageUrl } from "../../../scripts/skin-repositories.js";
+import { SKIN_REPOSITORIES, myLink, pageUrl, repositoryUrl } from "../../../scripts/skin-repositories.js";
 import type { SkinRepository } from "../../../scripts/skin-repositories.js";
 import orbDark from "../assets/skins/phone-orb-dark.webp";
 import orbLight from "../assets/skins/phone-orb-light.webp";
@@ -16,6 +16,8 @@ export interface SiteSkin extends SkinRepository {
   myLink: string;
   /** Its landing page's address. */
   url: string;
+  /** Its own repository on GitHub, where its page's GitHub link leads. */
+  repositoryUrl: string;
   /** One line under its name. */
   tagline: string;
   /** Its Storybook toolbar global for the site's light and dark look. */
@@ -28,7 +30,7 @@ export interface SiteSkin extends SkinRepository {
   colours: { key: "theme" | "finish"; values: readonly string[]; text: string };
 }
 
-const SITE: Record<SkinRepository["skin"], Omit<SiteSkin, keyof SkinRepository | "myLink" | "url">> = {
+const SITE: Record<SkinRepository["skin"], Omit<SiteSkin, keyof SkinRepository | "myLink" | "url" | "repositoryUrl">> = {
   orb: {
     tagline: "Soft, round cards you read at a glance. Every device in your house, room by room, laid out for you.",
     light: "theme:light",
@@ -55,7 +57,7 @@ const SITE: Record<SkinRepository["skin"], Omit<SiteSkin, keyof SkinRepository |
   },
 };
 
-export const SKINS: SiteSkin[] = SKIN_REPOSITORIES.map((entry) => ({ ...entry, ...SITE[entry.skin], myLink: myLink(entry), url: pageUrl(entry) }));
+export const SKINS: SiteSkin[] = SKIN_REPOSITORIES.map((entry) => ({ ...entry, ...SITE[entry.skin], myLink: myLink(entry), url: pageUrl(entry), repositoryUrl: repositoryUrl(entry) }));
 
 /** The skin whose landing page this is, by the page's id. */
 export const skinOf = (id: string) => SKINS.find((skin) => skin.page === id);

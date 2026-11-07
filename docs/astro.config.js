@@ -37,8 +37,12 @@ export default defineConfig({
       // Code frames sit on their own tone, with no outline, like the rest of the site's surfaces.
       expressiveCode: { styleOverrides: { borderWidth: "0px" } },
       // The home page's and each skin's hero draw the skins live; every other page keeps Starlight's. On a skin's page
-      // the header names the skin, not the site.
-      components: { Hero: "./src/components/home/Hero.astro", SiteTitle: "./src/components/SiteTitle.astro" },
+      // the header names the skin, not the site, and its GitHub link opens the skin's own repository.
+      components: {
+        Hero: "./src/components/home/Hero.astro",
+        SiteTitle: "./src/components/SiteTitle.astro",
+        SocialIcons: "./src/components/SocialIcons.astro",
+      },
       // Libre Franklin sets the site's headings (theme.css); body text stays in the system face.
       head: [
         { tag: "link", attrs: { rel: "preconnect", href: "https://fonts.googleapis.com" } },

@@ -1,0 +1,36 @@
+---
+/**
+ * Starlight's social links, which on a skin's landing page lead to the skin's own repository, the one the Marketplace
+ * installs from, as the header names the skin (SiteTitle.astro, src/lib/skins.ts). Every other page keeps the site's.
+ */
+import Default from "@astrojs/starlight/components/SocialIcons.astro";
+import { Icon } from "@astrojs/starlight/components";
+import { skinOf } from "../lib/skins";
+
+const page = skinOf(Astro.locals.starlightRoute.entry.id);
+---
+
+{
+  page ? (
+    <a href={page.repositoryUrl} rel="me" class="sl-flex">
+      <span class="sr-only">{page.name} on GitHub</span>
+      <Icon name="github" />
+    </a>
+  ) : (
+    <Default />
+  )
+}
+
+<style>
+  a {
+    color: var(--sl-color-text-accent);
+    padding: 0.5em;
+    margin: -0.5em;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      color: var(--sl-color-white);
+    }
+  }
+</style>
