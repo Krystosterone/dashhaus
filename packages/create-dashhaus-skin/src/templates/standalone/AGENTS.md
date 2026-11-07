@@ -156,6 +156,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/humidifier/labels` | what the unit is doing in words, `fmtHumidity`, `modeLabel` |
 | `@dashhaus/core/entities/light/color`, `/light/kelvin` | the lamp colours, and a colour temperature as a colour and a name |
 | `@dashhaus/core/entities/lock/code`, `/lock/severity` | what a code may contain, and a lock's severity |
+| `@dashhaus/core/entities/numeric/readings` | what a numeric reading measures in words and its picture (`numericWords`), its figure in five places at most (`numericFigure`, `fmtNumeric`), `withUnit`, and today's low and high or a meter's rise (`numericToday`) |
 | `@dashhaus/core/entities/owlet/readings`, `/owlet/sleep` | vitals and sleep states as figures and words |
 | `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |
 | `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |

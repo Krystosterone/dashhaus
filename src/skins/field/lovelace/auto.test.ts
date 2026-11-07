@@ -27,6 +27,19 @@ describe("autoModules", () => {
     expect(modules).toEqual([{ entity: "sensor.bed_t", humidity: "sensor.bed_h", battery: "sensor.bed_b", kind: "sensor" }, { entity: "light.lamp", kind: "light" }]);
   });
 
+  it("takes the room's air quality as numeric modules, one per device, and leaves power to a person", () => {
+    expect(autoModules({
+      states: {
+        "sensor.living_co2": state("sensor.living_co2", "Living room CO2", "carbon_dioxide"),
+        "sensor.living_pm25": state("sensor.living_pm25", "Living room PM2.5", "pm25"),
+        "sensor.power": state("sensor.power", "Power", "power"),
+      },
+      entities: { "sensor.living_co2": { device_id: "air" }, "sensor.living_pm25": { device_id: "air" } },
+    })).toEqual([{ entity: "sensor.living_co2", kind: "numeric" }]);
+    expect(parseFieldConfig({ cards: [{ entity: "sensor.house_energy", card: "numeric", unit: "kWh" }] }).rows?.[0].cards[0].item).toMatchObject({ kind: "numeric", readingUnit: "kWh" });
+    expect(parseFieldConfig({ cards: [{ entity: "sensor.house_energy" }] }).rows?.[0].cards[0].item).toMatchObject({ kind: "sensor" });
+  });
+
   it("takes the first weather entity by name, with the sun for night", () => {
     const modules = autoModules({
       states: { "weather.met": state("weather.met", "Met"), "weather.home": state("weather.home", "Home"), "light.lamp": state("light.lamp", "Lamp") },

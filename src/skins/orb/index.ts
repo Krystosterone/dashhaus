@@ -126,6 +126,14 @@ export type { BinarySensorTileProps } from "./cards/binarySensor/BinarySensorTil
 export { HaBinarySensorTile } from "./ha/HaBinarySensorTile";
 export type { HaBinarySensorTileProps } from "./ha/HaBinarySensorTile";
 
+// Numeric
+export { NumericCard, NumericSheet } from "./cards/numeric/NumericCard";
+export type { NumericCardProps, NumericSheetProps } from "./cards/numeric/NumericCard";
+export { NumericTile } from "./cards/numeric/NumericTile";
+export type { NumericTileProps } from "./cards/numeric/NumericTile";
+export { HaNumericTile } from "./ha/HaNumericTile";
+export type { HaNumericTileProps } from "./ha/HaNumericTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

@@ -586,6 +586,49 @@
     ],
     "fixtureId": "lock.front_door"
   },
+  "numeric": {
+    "name": "numeric",
+    "Name": "Numeric",
+    "CONST": "NUMERIC",
+    "words": "numeric",
+    "Label": "Numeric",
+    "domains": [
+      "sensor"
+    ],
+    "shared": true,
+    "kind": "reading",
+    "actions": [],
+    "guarded": [],
+    "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
+    "history": true,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "value",
+      "unit",
+      "deviceClass",
+      "stateClass",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": false,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "sensor.living_room_co2"
+  },
   "owlet": {
     "name": "owlet",
     "Name": "Owlet",
