@@ -1,4 +1,5 @@
 import { useId } from "react";
+import type { ReactNode } from "react";
 import type { LightEntity, LightHistory } from "@dashhaus/core/entities/light/types";
 import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
@@ -52,12 +53,14 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
     : !on ? "OFF"
     : known ? <><Digits value={pct} /><small>%</small></>
     : "ON";
-  // The warmth in the model's words, as orb's status line names it; the panel's channel keeps its figure in kelvin.
-  const warmth = on && e.supportsColorTemp && e.kelvin != null ? kelvinName(e.kelvin)
+  // The warmth in the model's words, as orb's status line names it; a narrow module's screen shortens it to the
+  // kelvin figure (LightModule.css), where the name would clip. The panel's channel keeps its figure in kelvin.
+  const warmth = on && e.supportsColorTemp && e.kelvin != null
+    ? <><span className="fd-lt-wn">{kelvinName(e.kelvin)}</span><span className="fd-lt-wk">{Math.round(e.kelvin / 100) * 100}K</span></>
     : on && e.supportsColor && e.hs ? lampColorOf(e.hs).name
     : null;
   const since = unav ? (e.lastSeen ? lastSeenFact(e.lastSeen) : null) : sinceFact(e.lastChanged) ?? null;
-  const meta: [string, string?] | undefined = unav ? ["Unavailable", since ?? undefined]
+  const meta: [ReactNode, string?] | undefined = unav ? ["Unavailable", since ?? undefined]
     : unknown ? ["Unknown", since ?? undefined]
     : warmth ? [warmth, since ?? undefined] : since ? [since] : undefined;
 

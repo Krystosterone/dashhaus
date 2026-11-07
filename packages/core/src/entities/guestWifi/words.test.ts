@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { codeGroups, durationMinutes, durationWords, inUse, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode, usesWords } from "./words";
+import { NONE_HINT, codeGroups, durationMinutes, durationWords, inUse, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode, usesWords } from "./words";
 
 describe("durationMinutes", () => {
   it("reads the integration's durations", () => {
@@ -93,6 +93,7 @@ describe("guest Wi-Fi's words while there is nothing to give", () => {
     expect(noneWord({ access: "password" })).toBe("No password");
     expect(noneSentence({ access: "code" })).toBe("Every code has been used. Make a new one to give.");
     expect(noneSentence({ access: "password" })).toBe("No password is set. Make one to give.");
+    expect(NONE_HINT).toBe("Make one in details");
     expect(madeFact("08:00")).toBe("Made 08:00");
     expect(madeFact()).toBe("");
   });

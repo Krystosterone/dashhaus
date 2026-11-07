@@ -120,6 +120,8 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
       glyph={<OwletIcon off={offline} />}
       unavailable={offline}
       lastSeen={e.lastSeen}
+      // Home Assistant reports a charging sock unavailable: the dashed slot stays, and says why.
+      unavailableWord={e.charging ? CHARGING : undefined}
       onOpen={onOpenDetails}
       status={status}
       value={sub}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { codeGroups, isGroupedCode, joinWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
+import { NONE_HINT, codeGroups, isGroupedCode, joinWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Glyph, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Pictogram, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -59,7 +59,7 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
   // The screen's room is short: "3 of 5 left", "18 h left"; the panel's words say them in full.
   const [first = capital(secret), second] = ready ? shortTerms(e) : [];
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
-    : !ready ? [noneWord(e), "Make one in details"]
+    : !ready ? [noneWord(e), NONE_HINT]
     : [first, second];
   const glyph = <Glyph unavailable={unav}><IconGuestWifi /></Glyph>;
 

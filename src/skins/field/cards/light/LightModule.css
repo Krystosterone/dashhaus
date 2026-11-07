@@ -6,3 +6,10 @@
 @container (max-width: 419px) {
   .fd-lt-colours { gap: 8px; }
 }
+
+/* The warmth's name on the meta line; a narrow module's screen has room for its kelvin figure only. */
+.fd-lt-wk { display: none; }
+@container (max-width: 239px) {
+  .fd-lt-wn { display: none; }
+  .fd-lt-wk { display: inline; }
+}

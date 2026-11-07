@@ -63,6 +63,9 @@ describe("GuestWifiCard", () => {
     const none: GuestWifiEntity = { ...entity, state: "none", code: undefined, allowed: undefined, used: undefined, lastsMinutes: undefined };
     const { container, rerender } = render(<GuestWifiCard entity={none} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("No code");
+    // The featured card says where New code is: in the details.
+    rerender(<GuestWifiCard entity={none} footprint="featured" />);
+    expect(container.querySelector(".gw-how")?.textContent).toBe("No code. Make one in details.");
     rerender(<GuestWifiCard entity={none} variant="sheet" onNewCode={() => Promise.resolve()} />);
     expect(screen.queryByRole("img", { name: /QR code/ })).toBeNull();
     expect(screen.getByText("Every code has been used. Make a new one to give.")).toBeTruthy();

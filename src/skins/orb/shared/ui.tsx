@@ -207,10 +207,14 @@ export function Facts({ start, end, warn }: { start?: ReactNode; end?: ReactNode
   );
 }
 
-export function UnavailableSlot({ lastSeen }: { lastSeen?: string }) {
+/**
+ * The slot of an entity Home Assistant reports unavailable: a dashed outline, its word and when it was last seen.
+ * `word` says why where the card knows ("Charging"); default "Unavailable".
+ */
+export function UnavailableSlot({ lastSeen, word = "Unavailable" }: { lastSeen?: string; word?: string }) {
   return (
     <div className="hd-unav">
-      <span>Unavailable</span>
+      <span>{word}</span>
       {lastSeen && <span className="hd-unav-t">Last seen {lastSeen}</span>}
     </div>
   );
@@ -632,6 +636,8 @@ export interface CardFrameProps {
   unavailable?: boolean;
   /** When an unavailable entity was last seen: the slot and `Today` say so. */
   lastSeen?: string;
+  /** The unavailable slot's word where the card knows why ("Charging"). Default "Unavailable". */
+  unavailableWord?: string;
   /** Card only: the name, and a press and hold on the orb, open the details. */
   onOpen?: () => void;
   /** What the name's button adds to it for screen readers. Default "details". */
@@ -666,10 +672,10 @@ export interface CardFrameProps {
   children?: ReactNode;
 }
 
-export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotInner, facts, children }: CardFrameProps) {
+export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotInner, facts, children }: CardFrameProps) {
   const { article, nameId, sheet, compact, bare } = card;
   const open = sheet ? undefined : onOpen;
-  const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} /> : control);
+  const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} word={unavailableWord} /> : control);
   return (
     <FrameContext.Provider value={{ sheet, unavailable, lastSeen }}>
       <article {...article} {...attrs}>

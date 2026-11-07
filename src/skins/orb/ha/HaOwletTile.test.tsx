@@ -60,7 +60,8 @@ describe("HaOwletTile", () => {
     const charging = { [`binary_sensor.owlet_sock_ac0_charging`]: sensor("binary_sensor.owlet_sock_ac0_charging", "on", "Charging") };
     const offline = Object.fromEntries([`${BASE}_sleep_state`, `${BASE}_heart_rate`, `${BASE}_o2_saturation`].map((id) => [id, { ...raw[id], state: "unavailable" }]));
     renderConnected(<HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" />, { ...raw, ...offline, ...charging });
-    await waitFor(() => expect(screen.getByText("Charging")).toBeTruthy());
+    await waitFor(() => expect(screen.getAllByText("Charging").length).toBeGreaterThan(0));
+    expect(screen.queryByText("Unavailable")).toBeNull();
   });
 
   it("names the sock after its device by default", async () => {

@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@dashhaus/core/entities/weather/types";
 import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "@dashhaus/core/entities/weather/conditions";
 import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings, weatherWarningsSaid } from "@dashhaus/core/entities/weather/readings";
+import { weatherSeverity } from "@dashhaus/core/entities/weather/severity";
 import { NO_READINGS_TODAY, rangeSummary } from "@dashhaus/core/entities/today";
 import { normalizeReadings } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
@@ -51,12 +52,14 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   const hour = history?.currentHour ?? 0;
 
   const warnings = weatherWarnings(e);
+  // Core ranks them (any is advisory); the module draws the marker for the level it is given.
+  const level = weatherSeverity(e);
   const precip = cond ? precipitation(cond, hourly, hour) : null;
   // Falling rain that stops soon already names itself ("Rain until 15:00").
   const sky = cond ? precip ?? conditionLabel(cond, night) : null;
   // The most urgent warning, with a count of the rest so a clipped line never hides that more exist; where even
   // that clips, the count alone. Spoken in full.
-  const warn = warnings.length > 1 ? (
+  const warn = !level ? null : warnings.length > 1 ? (
     <Warn>
       <span aria-hidden="true">
         <span className="fd-wx-warn-l">{`${warnings[0]} +${warnings.length - 1}`}</span>
@@ -64,7 +67,7 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
       </span>
       <span className="fd-sr">{weatherWarningsSaid(e).join(", ")}</span>
     </Warn>
-  ) : warnings.length === 1 && <Warn>{warnings[0]}</Warn>;
+  ) : <Warn>{warnings[0]}</Warn>;
 
   const pict = <Pictogram param="neutral" lit={cond != null}>{conditionPict(cond, night)}</Pictogram>;
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
@@ -82,7 +85,7 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   // A compact row has no meta lines: the first takes the area's line, a warning behind its marker.
   const compact = footprint === "compact";
   const line = compact ? (unav ? "Unavailable" : sky ?? undefined) : undefined;
-  const plateWarning = compact && warnings.length ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
+  const plateWarning = compact && level ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
 
   // The panel's content: the screen with how it feels on its second channel, every warning and the sky in words,
   // today, the next hours and the next days on strips of screen, then every reading printed on the plate.

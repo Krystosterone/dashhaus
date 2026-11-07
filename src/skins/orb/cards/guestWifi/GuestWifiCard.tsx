@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
+import { NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { GuestWifiIcon } from "./icons";
 import { CardFrame, Confirm, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -71,7 +71,8 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
     <div className="gw-join" data-qr={ready && e.qr ? "" : undefined}>
       {ready && e.qr && <img className="gw-qr" src={e.qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} />}
       <p className="gw-how">
-        {ready ? joinWords(e) : noneSentence(e)}
+        {/* The sheet has New code under it; the card says where to find it. */}
+        {ready ? joinWords(e) : sheet ? noneSentence(e) : `${none}. ${NONE_HINT}.`}
         {featured && terms && <span className="gw-terms">{terms}</span>}
       </p>
     </div>

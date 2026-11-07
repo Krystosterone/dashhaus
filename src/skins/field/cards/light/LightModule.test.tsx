@@ -13,7 +13,10 @@ describe("LightModule", () => {
     expect(el.querySelector(".fd-read")?.textContent).toBe("80%");
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("0");
     // spec/cards.md → Field's meta line still says the core word: the warmth's name, as orb's status line says it.
-    expect(el.querySelector(".fd-meta")?.textContent).toBe("Warm whiteSince 10:31");
+    expect(el.querySelector(".fd-meta .fd-lt-wn")?.textContent).toBe("Warm white");
+    // A narrow module's screen shortens it to the figure (LightModule.css).
+    expect(el.querySelector(".fd-meta .fd-lt-wk")?.textContent).toBe("2700K");
+    expect(el.querySelector(".fd-meta-2")?.textContent).toBe("Since 10:31");
     expect(screen.getByRole("button", { name: "Ceiling" }).getAttribute("aria-pressed")).toBe("true");
   });
 

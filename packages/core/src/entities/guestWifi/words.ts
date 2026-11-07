@@ -92,6 +92,12 @@ export const noneWord = (e: Pick<GuestWifiEntity, "access">) => (e.access === "p
 export const noneSentence = (e: Pick<GuestWifiEntity, "access">) =>
   (e.access === "password" ? "No password is set. Make one to give." : "Every code has been used. Make a new one to give.");
 
+/**
+ * What to do, where the card has no room for `noneSentence` and no New code of its own: Orb's card outside its
+ * sheet, Field's meta line. New code is in the details.
+ */
+export const NONE_HINT = "Make one in details";
+
 /** When the code it shows was made, in small print after when it last reported: "Made 08:00", or "". */
 export const madeFact = (created?: string) => (created ? `Made ${created}` : "");
 

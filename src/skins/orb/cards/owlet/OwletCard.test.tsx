@@ -100,8 +100,11 @@ describe("OwletCard", () => {
   });
 
   it("says Charging, not Unavailable, while the sock is on its charger", () => {
-    render(<OwletCard entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, charging: true }} />);
-    expect(screen.getByText("Charging")).toBeTruthy();
+    const { container } = render(<OwletCard entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, charging: true, lastSeen: "07:12" }} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Charging");
+    // Home Assistant reports it unavailable: the slot keeps its dashed outline, and says why.
+    expect(container.querySelector(".hd-unav")?.textContent).toBe("ChargingLast seen 07:12");
+    expect(screen.queryByText("Unavailable")).toBeNull();
   });
 
   it("lists every alert in the sheet", () => {

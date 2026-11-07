@@ -45,7 +45,7 @@
    in the compact row's inline form, the liveness cue beside the heart rate. They sit in the shared metric grid's
    proportional second track, left-aligned, never pinned to the card's right edge (spec/orb.md → Readout). */
 @container hd (max-width: 319px) {
-  .ow:not(.hd--compact):not(.hd--sheet) .ow-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
+  .ow:not(.hd--compact):not(.hd--sheet) .ow-bar { grid-template-columns: minmax(0, 1.35fr) minmax(max-content, 0.65fr); column-gap: 12px; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals { display: grid; justify-items: start; align-content: center; row-gap: 4px; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals .hd-none { grid-column: auto; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-vitals .ow-metric { display: flex; align-items: baseline; }
