@@ -87,6 +87,14 @@ function synthesizeHistory(entity: HassEntity): DemoHistoryRow[] {
       historyRecord(entity, entity.state, morningEpoch(9, 30)),
     ];
   }
+  if (domain === "vacuum") {
+    return [
+      historyRecord(entity, "docked", morningEpoch(6, 30)),
+      historyRecord(entity, "cleaning", morningEpoch(8)),
+      historyRecord(entity, "docked", morningEpoch(9)),
+      historyRecord(entity, entity.state, morningEpoch(11, 20)),
+    ];
+  }
   if (domain === "alarm_control_panel") {
     return [
       historyRecord(entity, "disarmed", morningEpoch(6, 30)),

@@ -199,6 +199,16 @@ describe("autoDashboard", () => {
     expect(parseDashboardConfig(card).rows![0].cards[1].item).toEqual(expect.objectContaining({ kind: "mediaPlayer", entity: "media_player.bed" }));
   });
 
+  it("places a robot vacuum with the controls in its area, after the fans, drawn as the vacuum card", () => {
+    const card = autoDashboard({
+      states: { "fan.bed": state("fan.bed", { friendly_name: "Fan" }), "vacuum.robot": state("vacuum.robot", { friendly_name: "Robot vacuum" }) },
+      entities: { "fan.bed": { area_id: "bedroom" }, "vacuum.robot": { area_id: "bedroom" } },
+      areas: { bedroom: { name: "Bedroom" } },
+    });
+    expect(card.rows).toEqual([{ title: "Bedroom", cards: [{ entity: "fan.bed", footprint: "compact" }, { entity: "vacuum.robot", footprint: "compact" }] }]);
+    expect(parseDashboardConfig(card).rows![0].cards[1].item).toEqual(expect.objectContaining({ kind: "vacuum", entity: "vacuum.robot" }));
+  });
+
   it("stays automatic when there is nothing to place", () => {
     const empty = autoDashboard({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home" });

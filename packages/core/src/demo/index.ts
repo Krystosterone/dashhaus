@@ -16,4 +16,5 @@ export * from "./binarySensor";
 export * from "./camera";
 export * from "./mediaPlayer";
 export * from "./numeric";
+export * from "./vacuum";
 // new-card: demo transports

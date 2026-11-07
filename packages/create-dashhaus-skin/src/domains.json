@@ -984,6 +984,72 @@
     "companions": [],
     "fixtureId": "input_boolean.guest_mode"
   },
+  "vacuum": {
+    "name": "vacuum",
+    "Name": "Vacuum",
+    "CONST": "VACUUM",
+    "words": "vacuum",
+    "Label": "Vacuum",
+    "domains": [
+      "vacuum"
+    ],
+    "kind": "control",
+    "actions": [
+      "onStart",
+      "onPause",
+      "onReturnToBase",
+      "onLocate"
+    ],
+    "guarded": [],
+    "leftOut": [
+      "onFanSpeedChange"
+    ],
+    "levels": [],
+    "choices": [
+      {
+        "action": "onFanSpeedChange",
+        "field": "fanSpeed",
+        "options": {
+          "field": "fanSpeeds"
+        }
+      }
+    ],
+    "switches": [],
+    "history": true,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "stateText",
+      "status",
+      "error",
+      "battery",
+      "charging",
+      "supportsStart",
+      "supportsPause",
+      "supportsReturn",
+      "supportsLocate",
+      "supportsFanSpeed",
+      "fanSpeeds",
+      "fanSpeed",
+      "lastChanged",
+      "changedAt",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "cleaning",
+    "samples": true,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "vacuum.downstairs"
+  },
   "weather": {
     "name": "weather",
     "Name": "Weather",

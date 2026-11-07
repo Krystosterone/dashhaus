@@ -82,6 +82,7 @@ export {
   owletHistoryFromHass,
   readingHistoryFromHass,
   mediaPlayerHistoryFromHass,
+  vacuumHistoryFromHass,
 } from "./ha/history";
 export type { HaHistoryRecord, OnOffHistory } from "./ha/history";
 export { serviceRunner } from "./ha/actions/run";
@@ -156,4 +157,11 @@ export type { NumericMapOptions } from "./ha/mappers/numeric";
 export { useHaNumeric } from "./ha/hooks/numeric";
 export type { HaNumericOptions, HaNumericResult } from "./ha/hooks/numeric";
 export { HaNumeric } from "./ha/headless";
+export { vacuumFromHass } from "./ha/mappers/vacuum";
+export type { VacuumMapOptions } from "./ha/mappers/vacuum";
+export { createVacuumHandlers, VACUUM_ACTIONS } from "./ha/actions/vacuum";
+export type { VacuumHandlers, VacuumHandlerOptions } from "./ha/actions/vacuum";
+export { useHaVacuum } from "./ha/hooks/vacuum";
+export type { HaVacuumOptions, HaVacuumResult } from "./ha/hooks/vacuum";
+export { HaVacuum } from "./ha/headless";
 // new-card: exports

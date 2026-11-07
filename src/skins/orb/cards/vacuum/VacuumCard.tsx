@@ -1,0 +1,121 @@
+import type { VacuumEntity, VacuumHistory } from "@dashhaus/core/entities/vacuum/types";
+import { VACUUM_TODAY, batteryFact, fanSpeedLabel, lowBattery, pressWord, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "@dashhaus/core/entities/vacuum/words";
+import type { VacuumPress } from "@dashhaus/core/entities/vacuum/words";
+import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { todaySummary } from "@dashhaus/core/entities/today";
+import { VacuumIcon } from "./icons";
+import { AlertStatus, CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import type { CardProps, SheetProps } from "../../shared/ui";
+import "./VacuumCard.css";
+
+export interface VacuumCardProps extends CardProps {
+  entity: VacuumEntity;
+  /** Today's cleaning: shown in the featured footprint and in the sheet. */
+  history?: VacuumHistory;
+  /** Start cleaning, or resume after a pause: the orb and the pill, while it stands. */
+  onStart?: () => void;
+  /** Pause where it is: the orb and the pill, while it moves. */
+  onPause?: () => void;
+  /** Send it to its dock: the sheet, or the orb and the pill of a vacuum that can't pause. */
+  onReturnToBase?: () => void;
+  /** Play its sound, to be found: the sheet. */
+  onLocate?: () => void;
+  /** Sheet: the fan speed chips. */
+  onFanSpeedChange?: (speed: string) => void;
+}
+
+/**
+ * A robot vacuum (one `vacuum.*`, its battery its own). One press does what it can now, gated on what it supports: it
+ * pauses a vacuum that is moving and starts (or resumes) one that stands, and the pill says which. Cleaning is the
+ * accent; it is a state, so it never glows. An error leads the status line behind the warn marker with what went
+ * wrong, and a low battery away from the dock does too, as advisory; never more brightness. The name, or a press and
+ * hold, opens the sheet: the dock and locate, its fan speeds, today's cleaning and its battery.
+ */
+export function VacuumCard({ entity: e, history, variant, footprint, showControl, onStart, onPause, onReturnToBase, onLocate, onFanSpeedChange, onOpenDetails, onClose }: VacuumCardProps) {
+  const card = useCard("vc", { variant, footprint, showControl, area: e.area });
+  const { uid, compact, area } = card;
+  const unav = e.state === "unavailable";
+  const cleaning = e.state === "cleaning";
+  // A state: cleaning is the accent, with no glow. A vacuum is not light, heat or daylight (attention-budget skill).
+  const colors = paint("state", 0);
+  const word = vacuumWord(e);
+
+  // The one press, where the vacuum supports it and the card was given its handler.
+  const handlers: Record<VacuumPress, (() => void) | undefined> = { start: onStart, pause: onPause, return: onReturnToBase };
+  const viewOnly = !onStart && !onPause && !onReturnToBase;
+  const wanted = vacuumPress(e);
+  const press = wanted && handlers[wanted] ? wanted : null;
+  const verb = press ? pressWord(press, e) : undefined;
+  const run = () => { if (press) handlers[press]?.(); };
+
+  const warning = unav ? undefined : vacuumWarning(e);
+  const alertLabel = warning ? `Warning: ${vacuumWarningSentence(e)}` : null;
+  const detail = statusDetail(e);
+  // The warning first, the short word on a row and what went wrong where there is room; else the room and what the
+  // integration adds ("Charging"); with no room to name, its own detail.
+  const status = alertLabel
+    ? <AlertStatus label={alertLabel}>{compact ? warning : vacuumWarningText(e)}</AlertStatus>
+    : area ? <>{area}{detail && <span className="vc-detail"> · {detail}</span>}</> : unav ? "Unavailable" : detail ?? sinceFact(e.lastChanged);
+
+  const orbLabel = unav ? `${e.name}: Unavailable`
+    : press === "return" ? `Send ${e.name} back to its dock`
+    : press === "start" && e.state === "error" ? `Start ${e.name} again`
+    : verb ? `${verb} ${e.name}` : `${e.name}: ${word}`;
+  // After an error the pill says what a press does, as a jammed lock's says Lock again; the status line says Error.
+  const slot = press
+    ? (
+      <TogglePill label={`${e.name}: ${word} · ${verb}`} on={cleaning} onToggle={run} extra={e.state === "error" ? undefined : verb}>
+        {e.state === "error" ? verb : word}
+      </TogglePill>
+    )
+    : <p className="vc-st">{word}</p>;
+
+  const canReturn = !unav && e.supportsReturn && !!onReturnToBase && press !== "return" && e.state !== "docked" && e.state !== "returning";
+  const canLocate = !unav && e.supportsLocate && !!onLocate;
+  const speeds = !unav && e.supportsFanSpeed && e.fanSpeeds && onFanSpeedChange ? e.fanSpeeds : null;
+  const battery = batteryFact(e);
+
+  return (
+    <CardFrame
+      card={card}
+      name={e.name}
+      attrs={{ "data-state": e.state, "data-alert": alertLabel ? "warn" : undefined, ...colors }}
+      orb={viewOnly ? undefined : { label: orbLabel, pressed: cleaning, intensity: 0, onToggle: run, children: <VacuumIcon /> }}
+      glyph={viewOnly ? <VacuumIcon /> : undefined}
+      unavailable={unav}
+      lastSeen={e.lastSeen}
+      onOpen={onOpenDetails && (() => onOpenDetails())}
+      status={status}
+      value={warning ?? word}
+      alert={alertLabel}
+      bareValue={word}
+      readout={{ value: unav ? null : word, duplicate: true, className: "vc-word" }}
+      onClose={onClose}
+      control={slot}
+      facts={{
+        start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged),
+        end: battery && lowBattery(e) ? <span className="hd-warn">{battery}</span> : battery,
+      }}
+    >
+      {(canReturn || canLocate || speeds) && (
+        <SheetBlock>
+          {(canReturn || canLocate) && (
+            <div className="vc-acts">
+              {canReturn && <TogglePill label={`Send ${e.name} back to its dock`} onToggle={onReturnToBase!}>Return to dock</TogglePill>}
+              {canLocate && <TogglePill label={`Locate ${e.name}: it plays a sound`} onToggle={onLocate!}>Locate</TogglePill>}
+            </div>
+          )}
+          {speeds && (
+            <ChoiceChips id={`${uid}-f`} label="Fan speed" options={speeds.map((s) => ({ value: s, label: fanSpeedLabel(s) }))} value={e.fanSpeed} onChange={onFanSpeedChange!} />
+          )}
+        </SheetBlock>
+      )}
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary(VACUUM_TODAY, history.cleaningMinutes)} />}
+    </CardFrame>
+  );
+}
+
+export type VacuumSheetProps = SheetProps<VacuumCardProps>;
+
+/** The vacuum's detail view in a modal sheet. */
+export const VacuumSheet = detailsSheet(VacuumCard);

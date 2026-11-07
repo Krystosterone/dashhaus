@@ -54,6 +54,7 @@ export type Kind =
   | "camera"
   | "mediaPlayer"
   | "numeric"
+  | "vacuum"
   // new-card: kinds
   ;
 
@@ -73,6 +74,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   binary_sensor: "binarySensor",
   camera: "camera",
   media_player: "mediaPlayer",
+  vacuum: "vacuum",
   // new-card: domain kinds
 };
 
@@ -116,6 +118,7 @@ export type CardConfig = CardBase & (
   | { kind: "camera"; still?: boolean; refresh?: number }
   | { kind: "mediaPlayer" }
   | { kind: "numeric"; unit?: string }
+  | { kind: "vacuum" }
   // new-card: card configs
 );
 
@@ -233,6 +236,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   camera: { keys: ["still", "refresh"], options: readCameraOptions },
   mediaPlayer: {},
   numeric: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },
+  vacuum: {},
   // new-card: kind specs
 };
 
