@@ -94,5 +94,9 @@ export { VacuumModule } from "./cards/vacuum/VacuumModule";
 export type { VacuumModuleProps } from "./cards/vacuum/VacuumModule";
 export { HaVacuumModule } from "./ha/HaVacuumModule";
 export type { HaVacuumModuleProps } from "./ha/HaVacuumModule";
+export { CalendarModule } from "./cards/calendar/CalendarModule";
+export type { CalendarModuleProps } from "./cards/calendar/CalendarModule";
+export { HaCalendarModule } from "./ha/HaCalendarModule";
+export type { HaCalendarModuleProps } from "./ha/HaCalendarModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

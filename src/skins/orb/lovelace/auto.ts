@@ -70,6 +70,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
 
   const socks = sorted(visible.filter((id) => OWLET.test(id)));
   const wifi = sorted(visible.filter((id) => VOUCHER.test(id)));
+  const calendars = ofDomain("calendar");
 
   // Controls, one row per area, then whatever has no area.
   const controls = ofDomain(
@@ -115,6 +116,8 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // Household status: the nursery, then the guest Wi-Fi code a visitor reads; a new household-status row goes after it.
   if (socks.length) place({ title: "Nursery", cards: socks });
   if (wifi.length) place({ title: "Guests", cards: wifi });
+  // Every calendar is household status too, what's next and when: after the guests, before the outside and rooms.
+  if (calendars.length) place({ title: "Calendar", cards: calendars });
   // The glance.
   if (weather) place({ title: "Outside", cards: [weather] });
   if (air.length) place({ title: "Rooms", cards: air });

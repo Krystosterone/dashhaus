@@ -583,6 +583,24 @@ A robot vacuum: one `vacuum.*`, its battery an attribute of its own (not a compa
 - **Unavailable:** the dashed slot with when it was last seen; battery, fan speed and actions are hidden.
 - **Home Assistant:** `createVacuumHandlers` calls `vacuum.start`, `vacuum.pause`, `vacuum.return_to_base`, `vacuum.locate` and `vacuum.set_fan_speed`, each only where `supported_features` declares it (`START`, `PAUSE`, `RETURN_HOME`, `LOCATE`, `FAN_SPEED` with a `fan_speed_list`), reporting what it can't do as `unsupported` and a speed it doesn't list as `invalid_input`. `VACUUM_ACTIONS` declares the four presses and the fan speed as a `choice` over `fanSpeeds`, so every skin's generator draws them. Today comes from the recorder through `vacuumHistoryFromHass`, the on/off parser with cleaning as on; `loadHistory={false}` skips it.
 
+## Using the calendar card
+
+What's next, and when: one `calendar.*`, composed with its events from today's start to its horizon (7 days unless `days` says), and those of any other calendars read beside it (`calendarEntityIds`), merged. A reading: it has no actions and no warnings.
+
+```tsx
+<CalendarTile entity={family} history={today} />
+<HaCalendarTile entityId="calendar.family" calendarEntityIds={["calendar.school"]} days={14} />
+```
+
+- **Events:** their own ranged read, `calendar.get_events` through the store's `query`, as the weather's forecasts are, never the recorder's history. Each event is a title (`Busy` when it has none), a start and an end, all-day or timed, a location, and its calendar's name when more than one is read. What the card says about them is `@dashhaus/core/entities/calendar/words` and `/agenda`, the same in every skin, counted from the entity's own minute (`now`), never a timer of the card's: times on the 24-hour clock (`14:00`), as the weather's hours; days as `Today`, `Tomorrow`, the weekday within the week (`Thu`), then the date (`Oct 26`).
+- **The next event** (`calendarAgenda`): one under way, else the next to start; within a day a timed event leads before the all-day ones, so bin day never hides the dentist at 14:00, and an all-day event leads only when the day has nothing timed left. An event that began yesterday and runs on counts as today's.
+- **A reading:** a bare calendar icon, its day filled while a timed event is under way, so the shape says it without colour. The readout is the next event's title, a little smaller than a reading's number since it is words, and when it is under its caption in the sensor's second track (`eventWhen`): `In` `2h 6m` for one still to come today, `Until` `12:15` for one under way, `Today` `All day`, `Until` `Fri` for an all-day event running on, `Tomorrow` `09:30` or `Thu` `All day` for another day. With nothing to the horizon it says `Free` in the second ink, `For` `7 days`; before its events are read, `Waiting…`. It never glows (`paint("reading", 0)`). Tap the reading or the name for the sheet.
+- **Status line:** what's left today (`2 left today`, `Nothing more today`, `Nothing today`), all-day events included; `Unavailable` while it is. In the sheet, the area before it.
+- **Featured and sheet:** today's plan by hour (`calendarDay`): the share of each hour taken by timed events, overlaps once, the hours ahead included and drawn lighter, since a calendar knows them, summed as `Busy 2h 30m` or `Not busy today`; all-day events take no hours. The sheet keeps the readout in its slot, then lists **Events today**, all-day first, those already over in the third ink, the one under way with `Now` before its title, each with its span (`14:00–15:00`, `22:00–Tue 06:40`, `All day`, `Until Fri`) and where and on which calendar it is; then **Coming up**, the next five after today (`Tomorrow 18:00`, `Thu`). Its small print says when the calendar last changed, then how far it looks (`Next 7 days`, `3 calendars · Next 31 days`).
+- **Compact:** the icon, the name, and the next event's title under it; one cue on the right, `Now` while a timed event is under way, else when (`In 2h 6m`, `All day`, `Tomorrow 09:30`, `Free for 7 days`). Under 320 px the line says both (`Dentist · In 2h 6m`).
+- **Unavailable:** the dashed slot with when it was last seen; no events, no lists.
+- **Home Assistant:** `HaCalendarTile` takes the calendar, `calendarEntityIds` for more calendars and `days` for the horizon (1 to 31). The events are read again each hour, on a new day, and whenever the calendar itself changes (an event starts or ends), the last ones staying up while the next read loads; until the first read settles, the calendar's own current or next event (its `message`, `start_time` and `end_time` attributes) stands in. `events` supplies them from the host instead, and `loadEvents={false}` skips the read.
+
 <!-- new-card: cards -->
 
 ### Field media player module
@@ -599,6 +617,14 @@ A robot vacuum: one `vacuum.*`, its battery an attribute of its own (not a compa
 
 ```tsx
 <HaVacuumModule entityId="vacuum.robot_vacuum" />
+```
+
+### Field calendar module
+
+`CalendarModule` is the same normalized calendar entity in the Field skin; `HaCalendarModule` is its connected container, on the same `useHaCalendar` hook as `HaCalendarTile`, taking the same `calendarEntityIds` and `days`. See [field.md](field.md#calendar).
+
+```tsx
+<HaCalendarModule entityId="calendar.family" calendarEntityIds={["calendar.school"]} />
 ```
 
 ## The dashboard header

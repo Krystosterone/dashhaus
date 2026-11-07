@@ -7,6 +7,7 @@ import { useHaCamera } from "./hooks/camera";
 import { useHaMediaPlayer } from "./hooks/mediaPlayer";
 import { useHaNumeric } from "./hooks/numeric";
 import { useHaVacuum } from "./hooks/vacuum";
+import { useHaCalendar } from "./hooks/calendar";
 // new-card: headless imports
 import { useHaLight } from "./hooks/light";
 import { useHaClimate } from "./hooks/climate";
@@ -62,4 +63,5 @@ export const HaCamera = headless(useHaCamera, "HaCamera");
 export const HaMediaPlayer = headless(useHaMediaPlayer, "HaMediaPlayer");
 export const HaNumeric = headless(useHaNumeric, "HaNumeric");
 export const HaVacuum = headless(useHaVacuum, "HaVacuum");
+export const HaCalendar = headless(useHaCalendar, "HaCalendar");
 // new-card: headless components

@@ -1,0 +1,97 @@
+---
+title: Calendar
+description: "What's next, and when: a calendar.* entity with its events over the coming days, and any other calendars beside it."
+kind:
+  group: Readings
+  order: 4
+  summary: "What's next and when: the next event, today's, and what's coming."
+  with: "its events, and any other calendars you name"
+  reading: true
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One `calendar.*` entity with its events from the start of today to a horizon a week away, and the events of any other
+calendars you read beside it, merged into one list. What's next, and when. Read-only.
+
+## Quick example
+
+<Example file="entities/calendar/NextEvent.tsx" />
+
+`calendarAgenda` picks the event a card leads with: one under way, else the next to start. Within a day a timed
+event comes before the all-day ones, so bin day never hides the dentist at two. `eventWhen` says when it is, counted
+from the entity's own minute: `In 2h 6m`, `Until 12:15`, `All day`, `Tomorrow 09:30`. Every skin says it in these
+words.
+
+## Component
+
+`<HaCalendar>` is `useHaCalendar` as a component that draws nothing of its own. It takes every option of the hook as
+a prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a
+list.
+
+<ApiMembers from="@dashhaus/core" name="HaCalendar" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaCalendar" />
+
+It reads the calendar and its area, and its events through `calendar.get_events`, one call per calendar, from the start
+of today for `days` days. They are read again each hour, on a new day, and whenever the calendar itself changes (an
+event starts or ends); the last events stay up while the next read loads. Until the first read settles, the calendar's
+own current or next event stands in. Pass `events` to supply your own, or `loadEvents={false}` to skip the read.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaCalendarOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaCalendarResult" />
+
+#### `entity`: CalendarEntity
+
+<ApiMembers from="@dashhaus/core/entities/calendar/types" name="CalendarEntity" />
+
+#### CalendarEvent
+
+One of `entity.events`.
+
+<ApiMembers from="@dashhaus/core/entities/calendar/types" name="CalendarEvent" />
+
+#### `history`: CalendarHistory
+
+Today's plan, drawn from the events rather than Home Assistant's recorder: the share of each hour taken by timed events,
+the hours still to come included, and the minutes that adds up to. All-day events take no hours.
+
+<ApiMembers from="@dashhaus/core/entities/calendar/types" name="CalendarHistory" />
+
+## Today's events
+
+`calendarAgenda` also sorts the day: `today` is every event on it, all-day first, those already over kept so the day
+reads whole; `left` those not over yet; `later` what starts after today. `eventSpan` says an event's span
+(`14:00–15:00`, `All day`).
+
+<Example file="entities/calendar/Today.tsx" />
+
+## In a skin
+
+Orb's `HaCalendarTile` and Field's `HaCalendarModule` are `useHaCalendar` above each skin's card. Each leads with the
+next event and when it is, counts what's left today, and opens on today's events and what's coming. With nothing to
+the horizon they say Free. They take the hook's options as props, plus their own:
+
+<Example file="entities/calendar/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaCalendarTileProps" except={{ from: "@dashhaus/core", name: "HaCalendarOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaCalendarModuleProps" except={{ from: "@dashhaus/core", name: "HaCalendarOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="calendar" />

@@ -164,4 +164,9 @@ export type { VacuumHandlers, VacuumHandlerOptions } from "./ha/actions/vacuum";
 export { useHaVacuum } from "./ha/hooks/vacuum";
 export type { HaVacuumOptions, HaVacuumResult } from "./ha/hooks/vacuum";
 export { HaVacuum } from "./ha/headless";
+export { CALENDAR_DAYS, calendarEventsFromHass, calendarFromHass } from "./ha/mappers/calendar";
+export type { CalendarMapOptions } from "./ha/mappers/calendar";
+export { useHaCalendar } from "./ha/hooks/calendar";
+export type { HaCalendarOptions, HaCalendarResult } from "./ha/hooks/calendar";
+export { HaCalendar } from "./ha/headless";
 // new-card: exports

@@ -18,6 +18,7 @@ import {
   readSensorOptions,
   readUnit,
   readWeatherOptions,
+  readCalendarOptions,
   rowTitles,
 } from "@dashhaus/core/lovelace/schema";
 import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
@@ -55,6 +56,7 @@ export type Kind =
   | "mediaPlayer"
   | "numeric"
   | "vacuum"
+  | "calendar"
   // new-card: kinds
   ;
 
@@ -75,6 +77,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   camera: "camera",
   media_player: "mediaPlayer",
   vacuum: "vacuum",
+  calendar: "calendar",
   // new-card: domain kinds
 };
 
@@ -119,6 +122,7 @@ export type CardConfig = CardBase & (
   | { kind: "mediaPlayer" }
   | { kind: "numeric"; unit?: string }
   | { kind: "vacuum" }
+  | { kind: "calendar"; calendars?: string[]; days?: number; events: boolean }
   // new-card: card configs
 );
 
@@ -237,6 +241,10 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   mediaPlayer: {},
   numeric: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },
   vacuum: {},
+  calendar: {
+    keys: ["calendars", "days", "events"],
+    options: readCalendarOptions,
+  },
   // new-card: kind specs
 };
 

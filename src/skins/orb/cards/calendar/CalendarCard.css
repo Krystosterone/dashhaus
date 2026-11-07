@@ -1,0 +1,41 @@
+/* Calendar card. Shell, header, bare icon, readout, metrics, today strip and sheet come from shared/card.css. Classes
+   here start with ca-; colours only from tokens.css. A reading: it never glows. */
+
+/* The next event's title leads; when it is sits in the sensor's second track under its caption, so a column of
+   readings lines up its second metric. A title is words, not a figure: smaller than a reading's number. */
+.ca-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
+.ca-f {
+  overflow: hidden; text-overflow: ellipsis;
+  font-size: 24px; font-weight: var(--type-readout-weight); letter-spacing: -0.02em; line-height: 1.15;
+}
+/* Free, with nothing to the horizon, in the second ink, as a closed door is. */
+.ca[data-state="off"] .ca-f { color: var(--ink-2); }
+.ca-t { overflow: hidden; text-overflow: ellipsis; font-size: 15px; font-weight: 600; line-height: 1; }
+/* The compact row's one cue; the card and the sheet say it as the caption and its value. */
+.ca-cue { display: none; }
+
+@container hd (min-width: 260px) {
+  .ca:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
+}
+@container hd (max-width: 259px) {
+  .ca:not(.hd--compact):not(.hd--sheet) .ca-bar { grid-template-columns: minmax(0, 1.2fr) minmax(52px, 0.8fr); column-gap: 8px; }
+  .ca:not(.hd--compact):not(.hd--sheet) .ca-f { font-size: 20px; }
+}
+
+/* Compact rows name the event on the status line and cue when on the right: the title waits for the card. */
+.hd--compact .ca-f, .hd--compact .ca-when { display: none; }
+.hd--compact .ca-cue { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-weight: 700; }
+.hd--compact[data-state="off"] .ca-cue { color: var(--ink-2); font-weight: 600; }
+
+/* The sheet's lists: when in a fixed column, then what, where and on which calendar. */
+.ca-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ca-ev { display: grid; grid-template-columns: 8.6em minmax(0, 1fr); column-gap: 12px; align-items: baseline; min-width: 0; font-size: 14px; }
+.ca-ev-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); font-weight: 500; font-variant-numeric: tabular-nums; }
+.ca-ev-n { display: grid; gap: 2px; min-width: 0; }
+.ca-ev-title { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.ca-ev-d { font-size: 12.5px; font-weight: 500; color: var(--ink-2); line-height: 1.3; overflow-wrap: anywhere; }
+/* Under way: its time in ink, and Now before its title in words, never in colour alone. */
+.ca-ev[data-when="now"] .ca-ev-t { color: var(--ink); font-weight: 600; }
+.ca-ev-now { font-weight: 700; }
+/* Over: the whole row in the third ink, kept so the day reads whole. */
+.ca-ev[data-when="over"] :is(.ca-ev-t, .ca-ev-title, .ca-ev-d) { color: var(--ink-3); font-weight: 500; }
