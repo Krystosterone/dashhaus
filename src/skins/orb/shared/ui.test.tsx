@@ -1,8 +1,10 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
-import { CardTitle, Picture, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
+import { CardTitle, Picture, SheetClose, UnavailableSlot, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
+import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
+import { lastSeenFact } from "@dashhaus/core/entities/facts";
 
 describe("paint", () => {
   it("shows no glow attribute at zero", () => {
@@ -187,5 +189,25 @@ describe("Picture", () => {
     fireEvent.click(box);
     expect(onOpen).not.toHaveBeenCalled();
     expect(container.querySelector("img")).toBeNull();
+  });
+  it("draws no word over the picture in any state: the card's own line says how old a still is (spec/cards.md)", () => {
+    for (const status of ["none", "loading", "ready", "stale", "failed"] as const) {
+      for (const unavailable of [false, true]) {
+        const { container, unmount } = render(<Picture picture={{ ...frame, status }} label="Front door camera" onOpen={() => {}} unavailable={unavailable} />);
+        expect(container.textContent, `${status}${unavailable ? ", unavailable" : ""}`).toBe("");
+        unmount();
+      }
+    }
+  });
+  it("says core's words for its press where the card names none", () => {
+    render(<Picture picture={frame} label="Artwork" onOpen={() => {}} />);
+    expect(screen.getByRole("button", { name: `Artwork. ${PICTURE_WORDS.open}` })).toBeTruthy();
+  });
+});
+
+describe("UnavailableSlot", () => {
+  it("says when it was last seen in core's words, as Field does", () => {
+    const { container } = render(<UnavailableSlot lastSeen="08:20" />);
+    expect(container.textContent).toBe(`Unavailable${lastSeenFact("08:20")}`);
   });
 });

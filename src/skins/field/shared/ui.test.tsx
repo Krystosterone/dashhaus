@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Key, ModuleFrame, Picture, useDetails } from "./ui";
 import type { FieldFootprint } from "./ui";
+import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 
 function Probe({ footprint, defaultOpen, warning, note }: { footprint?: FieldFootprint; defaultOpen?: boolean; warning?: string; note?: string }) {
   const details = useDetails(defaultOpen);
@@ -116,5 +117,18 @@ describe("Picture", () => {
     fireEvent.click(box);
     expect(onOpen).not.toHaveBeenCalled();
     expect(container.querySelector("img")).toBeNull();
+  });
+  it("draws no word over the picture in any state: the card's own line says how old a still is (spec/cards.md)", () => {
+    for (const status of ["none", "loading", "ready", "stale", "failed"] as const) {
+      for (const unavailable of [false, true]) {
+        const { container, unmount } = render(<Picture picture={{ ...frame, status }} label="Front door camera" onOpen={() => {}} unavailable={unavailable} />);
+        expect(container.textContent, `${status}${unavailable ? ", unavailable" : ""}`).toBe("");
+        unmount();
+      }
+    }
+  });
+  it("says core's words for its press where the card names none", () => {
+    render(<Picture picture={frame} label="Artwork" onOpen={() => {}} />);
+    expect(screen.getByRole("button", { name: `Artwork. ${PICTURE_WORDS.open}` })).toBeTruthy();
   });
 });

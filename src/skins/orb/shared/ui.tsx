@@ -8,7 +8,8 @@ import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileO
 import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
-import { unavailableSince } from "@dashhaus/core/entities/facts";
+import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -216,7 +217,7 @@ export function UnavailableSlot({ lastSeen, word = "Unavailable" }: { lastSeen?:
   return (
     <div className="hd-unav">
       <span>{word}</span>
-      {lastSeen && <span className="hd-unav-t">Last seen {lastSeen}</span>}
+      {lastSeen && <span className="hd-unav-t">{lastSeenFact(lastSeen)}</span>}
     </div>
   );
 }
@@ -248,7 +249,7 @@ export interface PictureProps {
   /** What a press opens: the live stream, or the card's details. Without it, or while unavailable (a camera that is
    * gone has no stream to open), the picture isn't a button. */
   onOpen?: () => void;
-  /** What the press does, said after the label: "Open live view". */
+  /** What the press does, said after the label: "Open live view". Default core's `PICTURE_WORDS.open`. */
   openLabel?: string;
   /** The card's glyph, drawn while there is no frame. */
   children?: ReactNode;
@@ -261,7 +262,7 @@ export interface PictureProps {
  * outline, as everything unavailable has. It never glows and never carries a state. With `onOpen` it is the button
  * that opens it, pressed as a readout is; unavailable, it ignores `onOpen` and takes no press or focus.
  */
-export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = "Open", children = <IconPicture /> }: PictureProps) {
+export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = PICTURE_WORDS.open, children = <IconPicture /> }: PictureProps) {
   const src = unavailable ? undefined : picture.src;
   const inner = (
     <span className="hd-pic-i">

@@ -130,10 +130,11 @@ MJPEG player, and no dependency for one.
   picture, and nothing everywhere else (a compact row, a footprint with no well for it, stills switched off, the entity
   unavailable), so nothing is fetched for a box that isn't there.
 - **Its words** are `entities/picture.ts`: `No picture` for a source with nothing to keep, `Still from 22:14`
-  (`stillFrom(at)`) for a stale or paused still, said on the status line or a meta line, never over the picture. What a
-  card says when its picture fails depends on what the picture is for: where it is the content (a camera's still), it
-  says `No picture`; where it is recognition only (a player's artwork, which the title already names), it says nothing
-  and the well keeps the card's glyph.
+  (`stillFrom(at)`) for a stale or paused still, said on the status line or a meta line, never over the picture,
+  and `Open` for its press where the card names nothing better (`PICTURE_WORDS.open`), so a skin's `Picture` part
+  writes no word of its own. What a card says when its picture fails depends on what the picture is for: where it is
+  the content (a camera's still), it says `No picture`; where it is recognition only (a player's artwork, which the
+  title already names), it says nothing and the well keeps the card's glyph.
 - **The live stream is Home Assistant's.** `useHaMoreInfo(entityId)` opens the host's own dialog for the entity, from
   `HaProvider`'s `moreInfo`: the Lovelace card base fires `hass-more-info` from its element, and Home Assistant's
   more-info dialog plays a camera's stream with its own player. Where the host has none (Storybook, a demo, a standalone

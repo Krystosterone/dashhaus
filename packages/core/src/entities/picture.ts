@@ -6,6 +6,8 @@
 export const PICTURE_WORDS = {
   /** A picture that failed to load with nothing to keep. */
   none: "No picture",
+  /** What pressing a picture does, said after what it is, where its card names nothing better ("Open live view"). */
+  open: "Open",
 } as const;
 
 /** A frame's time, "22:14", from when it loaded (`usePicture`'s `at`, epoch ms). */

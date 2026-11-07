@@ -8,6 +8,7 @@ import { CardDialog, cardShape, useCardFrame } from "@dashhaus/core/lovelace/car
 import type { Details } from "@dashhaus/core/lovelace/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
+import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -308,7 +309,7 @@ export interface PictureProps {
   /** What a press opens: the live stream, or the module's panel. Without it, or while unavailable (a camera that is
    * gone has no stream to open), the picture isn't a button. */
   onOpen?: () => void;
-  /** What the press does, said after the label: "Open live view". */
+  /** What the press does, said after the label: "Open live view". Default core's `PICTURE_WORDS.open`. */
   openLabel?: string;
   /** The card's pictogram, unlit while there is no frame. */
   children?: ReactNode;
@@ -321,7 +322,7 @@ export interface PictureProps {
  * an inverted photograph means nothing, so severity stays in the screen's words. With `onOpen` it is pressed as a key
  * is, though it has no LED and latches nothing; unavailable, it ignores `onOpen` and takes no press or focus.
  */
-export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = "Open", children = <PictPicture /> }: PictureProps) {
+export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = PICTURE_WORDS.open, children = <PictPicture /> }: PictureProps) {
   const src = unavailable ? undefined : picture.src;
   const inner = (
     <span className="fd-pic-i">
