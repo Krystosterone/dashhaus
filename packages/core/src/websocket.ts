@@ -2,6 +2,7 @@ import type { Auth, Connection } from "home-assistant-js-websocket";
 export type { Connection } from "home-assistant-js-websocket";
 import { callService, createConnection, subscribeEntities } from "home-assistant-js-websocket";
 import type { HaServiceCallOptions, HaTransport, Unsubscribe } from "./ha/types";
+import { againstBase } from "./ha/picture";
 
 export interface HomeAssistantTransport extends HaTransport {
   /** Close the socket. The host that opened the connection owns closing it. */
@@ -34,6 +35,9 @@ export function createHomeAssistantTransport(connection: Connection): HomeAssist
       callService(connection, domain, service, serviceData, options.target, options.returnResponse)
     ),
     sendMessage: (type, payload = {}) => connection.sendMessagePromise({ ...payload, type }),
+    // Home Assistant's base, as the frontend's `hass.hassUrl()` reads it; a connection with no auth (a gateway's)
+    // keeps the path relative to the page.
+    resolveUrl: (path) => againstBase(path, connection.options.auth?.data.hassUrl),
     close: () => connection.close(),
   };
 }

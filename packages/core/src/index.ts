@@ -87,6 +87,8 @@ export { serviceRunner } from "./ha/actions/run";
 export type { ActionKind, ActionKinds } from "./ha/actions/kinds";
 export type { ServiceCaller } from "./ha/actions/run";
 export { useHaHistory } from "./ha/useHaHistory";
+export { useHaMoreInfo, useHaPicture } from "./ha/useHaPicture";
+export { picturePath, resolvePicture } from "./ha/picture";
 export { areaMembership, areaNamesFromRegistries, readRegistries, useHaArea, useHaAreas, useHaRegistry } from "./ha/registry";
 export type {
   HaAreaEntities,

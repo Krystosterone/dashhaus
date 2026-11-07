@@ -6,3 +6,4 @@ export * from "./severity";
 export * from "./battery";
 export * from "./facts";
 export * from "./today";
+export * from "./picture";

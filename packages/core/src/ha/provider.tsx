@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { HaConnectionStatus, HaSnapshot, HaStore, HassEntity } from "./types";
 
 const HaStoreContext = createContext<HaStore | null>(null);
+const HaMoreInfoContext = createContext<((entityId: string) => void) | undefined>(undefined);
 
 type StoreOwnership = { count: number };
 const storeOwnership = new WeakMap<HaStore, StoreOwnership>();
@@ -29,12 +30,17 @@ export interface HaProviderProps {
    * using it unmounts; it never closes the transport.
    */
   store: HaStore;
+  /**
+   * Open the host's own dialog for an entity: Home Assistant's more-info, which plays a camera's live stream. The
+   * Lovelace card base passes one; a host with no such dialog leaves it out, and `useHaMoreInfo` returns nothing.
+   */
+  moreInfo?: (entityId: string) => void;
   /** Your app. */
   children: ReactNode;
 }
 
 /** Own the store lifecycle at the application boundary, not inside a card. */
-export function HaProvider({ store, children }: HaProviderProps) {
+export function HaProvider({ store, moreInfo, children }: HaProviderProps) {
   const activeStore = useRef<HaStore | null>(null);
   const effectGeneration = useRef(0);
 
@@ -63,7 +69,16 @@ export function HaProvider({ store, children }: HaProviderProps) {
     };
   }, [store]);
 
-  return <HaStoreContext.Provider value={store}>{children}</HaStoreContext.Provider>;
+  return (
+    <HaStoreContext.Provider value={store}>
+      <HaMoreInfoContext.Provider value={moreInfo}>{children}</HaMoreInfoContext.Provider>
+    </HaStoreContext.Provider>
+  );
+}
+
+/** The host's `moreInfo`, from the nearest `HaProvider`. */
+export function useHaMoreInfoHost(): ((entityId: string) => void) | undefined {
+  return useContext(HaMoreInfoContext);
 }
 
 export function useHaStore() {

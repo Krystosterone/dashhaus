@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useKeypad, usePress } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
+import type { Picture as PictureLifecycle } from "@dashhaus/core/hooks";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
 import { CardDialog, cardShape, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { Details } from "@dashhaus/core/lovelace/card";
@@ -289,6 +290,49 @@ export function Screen({ pict, children, meta, aside }: { pict?: ReactNode; chil
       )}
     </div>
   );
+}
+
+/** A framed landscape, as a screen's pictogram: a picture's glyph where its card has none of its own. */
+export const PictPicture = () => <svg viewBox="0 0 20 26" aria-hidden="true"><path d="M1 6h18v14H1zm2 2v8.6l4.5-4.5 3.5 3.5 2.5-2.5L17 16.6V8zm11 1.2a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2z" fillRule="evenodd" /></svg>;
+
+export interface PictureProps {
+  /** Its lifecycle, from `usePicture` (`@dashhaus/core/hooks`): the frame to draw, and the ref that says it is seen. */
+  picture: Pick<PictureLifecycle, "ref" | "src" | "status">;
+  /** What the picture is, said for it ("Front door camera"). */
+  label: string;
+  /** Its window's aspect ratio ("16 / 9", "1 / 1"); a card may give it a height instead. */
+  ratio?: string;
+  /** `cover` crops the frame to the window (a module); `contain` shows the whole frame (a panel). */
+  fit?: "cover" | "contain";
+  unavailable?: boolean;
+  /** What a press opens: the live stream, or the module's panel. Without it the picture isn't a button. */
+  onOpen?: () => void;
+  /** What the press does, said after the label: "Open live view". */
+  openLabel?: string;
+  /** The card's pictogram, unlit while there is no frame. */
+  children?: ReactNode;
+}
+
+/**
+ * Field's media surface: a window in the screen. The screen's own dark well with the frame clipped into it, no bezel
+ * and no words on it (the screen's meta lines say how old a still is). Before a frame, on a failed one and while
+ * unavailable it is the screen with the card's pictogram unlit, as a blank screen is. It never inverts with an alarm:
+ * an inverted photograph means nothing, so severity stays in the screen's words. With `onOpen` it is pressed as a key
+ * is, though it has no LED and latches nothing.
+ */
+export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = "Open", children = <PictPicture /> }: PictureProps) {
+  const src = unavailable ? undefined : picture.src;
+  const inner = (
+    <span className="fd-pic-i">
+      {src
+        ? <img className="fd-pic-img" src={src} alt="" draggable={false} decoding="async" />
+        : <span className="fd-pic-glyph" aria-hidden="true">{children}</span>}
+    </span>
+  );
+  const box = { className: "fd-pic", style: ratio ? { aspectRatio: ratio } : undefined, "data-fit": fit, "data-status": unavailable ? "unavailable" : picture.status };
+  return onOpen
+    ? <button type="button" ref={picture.ref} {...box} aria-label={`${label}. ${openLabel}`} onClick={onOpen}>{inner}</button>
+    : <div ref={picture.ref} {...box} role="img" aria-label={label}>{inner}</div>;
 }
 
 /**

@@ -3,6 +3,7 @@ import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode, Ref 
 import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
+import type { Picture as PictureLifecycle } from "@dashhaus/core/hooks";
 import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import type { HourSample, Reading } from "@dashhaus/core/entities/history";
@@ -229,6 +230,49 @@ export function Readout({ label, onOpen, children }: { label: string; onOpen?: (
   return onOpen
     ? <button type="button" className="hd-read" aria-label={`${label}. Open details`} onClick={onOpen}>{inner}</button>
     : <div className="hd-read" role="img" aria-label={label}>{inner}</div>;
+}
+
+/** A framed landscape: a picture's glyph where its card has none of its own. */
+export const IconPicture = () => <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 16l5-5 4 4 3-3 6 6" /><circle cx="16" cy="9" r="1.5" /></svg>;
+
+export interface PictureProps {
+  /** Its lifecycle, from `usePicture` (`@dashhaus/core/hooks`): the frame to draw, and the ref that says it is seen. */
+  picture: Pick<PictureLifecycle, "ref" | "src" | "status">;
+  /** What the picture is, said for it ("Front door camera"). */
+  label: string;
+  /** Its box's aspect ratio ("16 / 9", "1 / 1"); a card may give it a height instead. */
+  ratio?: string;
+  /** `cover` crops the frame to the box (a card); `contain` shows the whole frame (a sheet). */
+  fit?: "cover" | "contain";
+  unavailable?: boolean;
+  /** What a press opens: the live stream, or the card's details. Without it the picture isn't a button. */
+  onOpen?: () => void;
+  /** What the press does, said after the label: "Open live view". */
+  openLabel?: string;
+  /** The card's glyph, drawn while there is no frame. */
+  children?: ReactNode;
+}
+
+/**
+ * A picture: a camera's still or a player's artwork. A readout, so it has no raised or recessed edge: a neutral well of
+ * a fixed size, the frame in it, and never a word over it (the card says how old a still is on its status line). Before
+ * a frame, on a failed one and while unavailable it is the well with the card's glyph; unavailable adds the dashed
+ * outline, as everything unavailable has. It never glows and never carries a state. With `onOpen` it is the button
+ * that opens it, pressed as a readout is.
+ */
+export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = "Open", children = <IconPicture /> }: PictureProps) {
+  const src = unavailable ? undefined : picture.src;
+  const inner = (
+    <span className="hd-pic-i">
+      {src
+        ? <img className="hd-pic-img" src={src} alt="" draggable={false} decoding="async" />
+        : <span className="hd-pic-glyph" aria-hidden="true">{children}</span>}
+    </span>
+  );
+  const box = { className: "hd-pic", style: ratio ? { aspectRatio: ratio } : undefined, "data-fit": fit, "data-status": unavailable ? "unavailable" : picture.status };
+  return onOpen
+    ? <button type="button" ref={picture.ref} {...box} aria-label={`${label}. ${openLabel}`} onClick={onOpen}>{inner}</button>
+    : <div ref={picture.ref} {...box} role="img" aria-label={label}>{inner}</div>;
 }
 
 export const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;

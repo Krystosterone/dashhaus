@@ -55,5 +55,7 @@ export function createDemoHouseTransport(): HaTransport {
       return part.callService(domain, service, serviceData, options);
     },
     sendMessage: (type, payload = {}) => demoSendMessage(merged(), type, payload),
+    // The first part that holds the picture serves it; none fetches the network.
+    resolveUrl: (path) => parts.reduce<string | undefined>((found, part) => found ?? part.resolveUrl?.(path), undefined),
   };
 }

@@ -47,6 +47,11 @@ export interface HaTransport {
   ): Promise<unknown>;
   /** Generic websocket command (e.g. history reads). Optional so injected demo transports stay valid. */
   sendMessage?: (type: string, payload?: Record<string, unknown>) => Promise<unknown>;
+  /**
+   * Turn a Home Assistant path (an entity's `entity_picture`) into a URL this page can load, or nothing when it
+   * can't. Optional: without it a path stays as Home Assistant gave it, relative to the page.
+   */
+  resolveUrl?: (path: string) => string | undefined;
 }
 
 export type HaConnectionStatus = "idle" | "connecting" | "connected" | "disconnected" | "error";
@@ -143,4 +148,6 @@ export interface HaStore {
   ): Promise<unknown>;
   /** Generic websocket command (e.g. recorder history reads) that stays out of action ordering and `lastActionError`. */
   callApi(type: string, payload?: Record<string, unknown>): Promise<unknown>;
+  /** An entity's picture path as a URL this page can load (`resolvePicture` over the transport's `resolveUrl`). */
+  resolveUrl?(path: string): string | undefined;
 }

@@ -26,4 +26,8 @@ describe("createDemoHouseTransport", () => {
       expect(missing, `${name}'s entities aren't in the demo house: add it to house.ts`).toEqual([]);
     }
   });
+
+  it("resolves a picture no domain holds to nothing, so the demo house never fetches the network", () => {
+    expect(demo.createDemoHouseTransport().resolveUrl?.("/api/camera_proxy/camera.nowhere?token=x")).toBeUndefined();
+  });
 });
