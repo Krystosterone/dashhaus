@@ -113,10 +113,11 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   if (alarms.length || locks.length || safety.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks, ...safety] });
   // Security-adjacent: what the doors and the nursery look like, right after what guards them.
   if (cameras.length) place({ title: "Cameras", cards: cameras });
-  // Household status: the nursery, then the guest Wi-Fi code a visitor reads; a new household-status row goes after it.
+  // Household status: the nursery, then the guest Wi-Fi code a visitor reads, then the calendars; a new household-status
+  // row goes after them.
   if (socks.length) place({ title: "Nursery", cards: socks });
   if (wifi.length) place({ title: "Guests", cards: wifi });
-  // Every calendar is household status too, what's next and when: after the guests, before the outside and rooms.
+  // Every calendar, what's next and when: after the guests, before the glance.
   if (calendars.length) place({ title: "Calendar", cards: calendars });
   // The glance.
   if (weather) place({ title: "Outside", cards: [weather] });

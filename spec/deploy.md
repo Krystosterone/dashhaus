@@ -370,8 +370,8 @@ new kind of card goes at the end of its band, never ahead of a row already there
    `Modes`, a row per area of its controls by area name, then `Other`.
 2. **Safety and security**: `Security`, the alarm, then the locks, then the doors, windows, leaks and smoke.
 3. **Security-adjacent**: `Cameras`, what the doors and the nursery look like, right after what guards them.
-4. **Household status**: `Nursery` (an Owlet sock), then `Guests` (the guest Wi-Fi code a visitor reads); a new
-   household-status row goes after both.
+4. **Household status**: `Nursery` (an Owlet sock), then `Guests` (the guest Wi-Fi code a visitor reads), then
+   `Calendar` (every calendar, what's next and when); a new household-status row goes after them.
 5. **The glance**, read-only context: `Outside` (the weather), then `Rooms` (the room sensors, then each room's air
    quality as numeric readings, one per device).
 

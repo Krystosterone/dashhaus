@@ -178,6 +178,7 @@ describe("autoDashboard", () => {
         "binary_sensor.back_door": state("binary_sensor.back_door", { device_class: "door" }),
         "camera.door": state("camera.door"),
         "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher"),
+        "calendar.family": state("calendar.family"),
       },
     };
     const titles = (autoDashboard(every).rows as { title: string }[]).map((s) => s.title);
@@ -185,7 +186,7 @@ describe("autoDashboard", () => {
     const spec = readFileSync(join(process.cwd(), "spec/deploy.md"), "utf8");
     const rule = spec.slice(spec.indexOf("#### The automatic layout's order"), spec.indexOf("\nA row whose title an area already has"));
     const listed = [...rule.matchAll(/^\d\. .*(?:\n {3}.*)*/gm)].flatMap(([item]) => [...item.matchAll(/`([A-Z]\w+)`|(a row per area)/g)].map((m) => m[1] ?? "Bedroom"));
-    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Outside", "Rooms"]);
+    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Calendar", "Outside", "Rooms"]);
     expect(titles).toEqual(listed);
   });
 

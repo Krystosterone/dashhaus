@@ -22,6 +22,11 @@ export const CALENDAR_WORDS = {
   untitled: "Busy",
   /** The state `todaySummary` takes for the day's plan: "Busy 3h 30m", "Not busy today". */
   busy: "busy",
+  /** Today's plan said aloud, a meter whose hours ahead are known. */
+  busySaid: "Hours busy by hour today, those ahead included.",
+  /** The details' lists: today's events, then the next after today. */
+  eventsToday: "Events today",
+  comingUp: "Coming up",
 } as const;
 
 const DAY = 86_400_000;
@@ -62,6 +67,13 @@ export function dayWord(ms: number, now: number) {
 const lastDay = (event: CalendarEvent) => dayAfter(event.end - 1, 0);
 
 export const isUnderWay = (event: CalendarEvent, now: number) => event.start <= now && now < event.end;
+
+/**
+ * Its active set (spec/cards.md → One active signal): an event under way, timed or all-day, the one every skin's
+ * signal follows (Orb's icon with its day filled, Field's lit pictogram and NOW). With none, or nothing to the horizon,
+ * it rests.
+ */
+export const isActive = (next: CalendarEvent | undefined, now: number) => next != null && isUnderWay(next, now);
 export const isOver = (event: CalendarEvent, now: number) => event.end <= now;
 
 /** Minutes until it starts, rounded up, so an event a few seconds off is "In 1m", never "In 0m". */

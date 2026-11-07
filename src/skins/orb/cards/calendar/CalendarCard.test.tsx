@@ -73,4 +73,13 @@ describe("CalendarCard", () => {
     expect(screen.getByText("Busy 2h 30m")).toBeTruthy();
     expect(screen.getByText("Next 7 days")).toBeTruthy();
   });
+
+  it("fills its icon's day while an event is under way, timed or all-day (isActive), and draws on the shared pair", () => {
+    const filled = (c: HTMLElement) => c.querySelector(".hd-orb--static rect[fill='currentColor']") != null;
+    expect(filled(render(<CalendarCard entity={underWay.entity} />).container)).toBe(true);
+    expect(filled(render(<CalendarCard entity={allDay.entity} />).container)).toBe(true);
+    expect(filled(render(<CalendarCard entity={normal.entity} />).container)).toBe(false);
+    const { container } = render(<CalendarCard entity={normal.entity} />);
+    expect(container.querySelector(".hd-bar")?.classList.contains("hd-bar--pair")).toBe(true);
+  });
 });

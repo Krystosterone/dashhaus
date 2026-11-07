@@ -1,6 +1,6 @@
 import type { CalendarEntity, CalendarEvent, CalendarHistory } from "@dashhaus/core/entities/calendar/types";
 import { calendarAgenda } from "@dashhaus/core/entities/calendar/agenda";
-import { CALENDAR_WORDS, eventCue, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isOver, isUnderWay, leftToday } from "@dashhaus/core/entities/calendar/words";
+import { CALENDAR_WORDS, eventCue, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isActive, isOver, isUnderWay, leftToday } from "@dashhaus/core/entities/calendar/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { CalendarIcon } from "./icons";
@@ -66,10 +66,12 @@ export function CalendarCard({ entity: e, history, variant, footprint, showContr
     : compact ? (next ? next.title : left ?? area)
     : sheet ? [area, left].filter(Boolean).join(" · ") || undefined
     : left ?? area;
-  const state = unav ? "unavailable" : !next ? "off" : isUnderWay(next, e.now) ? "on" : "ok";
+  // Its active set, the one every skin's signal follows: an event under way, timed or all-day.
+  const active = isActive(next, e.now);
+  const state = unav ? "unavailable" : !next ? "off" : active ? "on" : "ok";
 
   const bar = (
-    <span className="hd-bar ca-bar">
+    <span className="hd-bar hd-bar--pair ca-bar">
       {waiting ? <span className="hd-none">{CALENDAR_WORDS.waiting}</span> : (
         <>
           <span className="hd-metric ca-f">{title}</span>
@@ -90,7 +92,7 @@ export function CalendarCard({ entity: e, history, variant, footprint, showContr
       card={card}
       name={e.name}
       attrs={{ "data-state": state, ...colors }}
-      glyph={<CalendarIcon now={next != null && isUnderWay(next, e.now) && !next.allDay} />}
+      glyph={<CalendarIcon now={active} />}
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
@@ -105,13 +107,13 @@ export function CalendarCard({ entity: e, history, variant, footprint, showContr
       <SheetBlock>
         {!unav && agenda.today.length > 0 && (
           <section className="hd-blk" aria-labelledby={`${card.nameId}-today`}>
-            <h3 className="hd-blk-h" id={`${card.nameId}-today`}>Events today</h3>
+            <h3 className="hd-blk-h" id={`${card.nameId}-today`}>{CALENDAR_WORDS.eventsToday}</h3>
             <ol className="ca-list">{agenda.today.map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventSpan(event, e.now)} />)}</ol>
           </section>
         )}
         {!unav && agenda.later.length > 0 && (
           <section className="hd-blk" aria-labelledby={`${card.nameId}-later`}>
-            <h3 className="hd-blk-h" id={`${card.nameId}-later`}>Coming up</h3>
+            <h3 className="hd-blk-h" id={`${card.nameId}-later`}>{CALENDAR_WORDS.comingUp}</h3>
             <ol className="ca-list">{agenda.later.slice(0, LATER).map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventDay(event, e.now)} />)}</ol>
           </section>
         )}

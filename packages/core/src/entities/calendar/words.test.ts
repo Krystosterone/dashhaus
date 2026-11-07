@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CalendarEvent } from "./types";
-import { clockTime, countdown, dayWord, eventCue, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, leftToday, minutesUntil } from "./words";
+import { clockTime, countdown, dayWord, eventCue, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isActive, leftToday, minutesUntil } from "./words";
 
 /** Monday 19 October 2026, local time. */
 const at = (day: number, hour: number, minute = 0) => new Date(2026, 9, day, hour, minute).getTime();
@@ -9,6 +9,13 @@ const timed = (title: string, start: number, end: number): CalendarEvent => ({ t
 const allDay = (title: string, firstDay: number, days = 1): CalendarEvent => ({ title, start: at(firstDay, 0), end: at(firstDay + days, 0), allDay: true });
 
 describe("calendar words", () => {
+  it("is active while an event is under way, timed or all-day, and rests with none", () => {
+    expect(isActive(timed("Dentist", at(19, 11), at(19, 13)), NOW)).toBe(true);
+    expect(isActive(allDay("Bin day", 19), NOW)).toBe(true);
+    expect(isActive(timed("Later", at(19, 14), at(19, 15)), NOW)).toBe(false);
+    expect(isActive(undefined, NOW)).toBe(false);
+  });
+
   it("tells the time on the 24-hour clock, as the weather does", () => {
     expect(clockTime(at(19, 9, 5))).toBe("09:05");
     expect(clockTime(at(19, 14, 0))).toBe("14:00");

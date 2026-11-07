@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { CalendarEntity, CalendarEvent, CalendarHistory } from "@dashhaus/core/entities/calendar/types";
 import { calendarAgenda } from "@dashhaus/core/entities/calendar/agenda";
-import { CALENDAR_WORDS, clockTime, dayWord, daysBetween, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isOver, isUnderWay, leftToday } from "@dashhaus/core/entities/calendar/words";
+import { CALENDAR_WORDS, clockTime, dayWord, daysBetween, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isActive, isOver, isUnderWay, leftToday } from "@dashhaus/core/entities/calendar/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Glyph, Legend, ModuleFrame, ModuleRow, Pictogram, Today, useDetails } from "../../shared/ui";
@@ -64,7 +64,8 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
   const next = unav ? undefined : agenda.next;
   const waiting = !unav && e.events === undefined;
   const free = freeFor(e.days);
-  const under = next != null && isUnderWay(next, e.now);
+  // Its active set, the one every skin's signal follows: an event under way, timed or all-day.
+  const under = isActive(next, e.now);
   const when = next ? eventWhen(next, e.now) : undefined;
   const left = waiting || unav ? undefined : leftToday(agenda.left.length, agenda.today.length);
   const state = unav ? "unavailable" : !next ? "off" : under ? "on" : "ok";
@@ -76,7 +77,7 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
     : <><span aria-hidden="true">{CALENDAR_WORDS.free.toUpperCase()}</span><span className="fd-sr">{free.line}</span></>;
   // A timed event on another day: the figure already says its clock, so the words say its day alone.
   const otherDay = next != null && !under && !next.allDay && daysBetween(e.now, next.start) > 0 ? dayWord(next.start, e.now) : undefined;
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
+  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
     : waiting ? [CALENDAR_WORDS.noReading]
     : next ? [next.title, otherDay ?? when!.line]
     : [free.line, left];
@@ -88,7 +89,7 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
 
   const glyph = <Glyph unavailable={unav}><IconCalendar /></Glyph>;
   const summary = history && (unav ? "Unavailable" : todaySummary(CALENDAR_WORDS.busy, history.busyMinutes));
-  const label = "Hours busy by hour today, those ahead included.";
+  const label = CALENDAR_WORDS.busySaid;
 
   return (
     <ModuleFrame
@@ -113,13 +114,13 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
     >
       {!unav && agenda.today.length > 0 && (
         <div className="fd-block">
-          <Legend value={left}>Events today</Legend>
+          <Legend value={left}>{CALENDAR_WORDS.eventsToday}</Legend>
           <ol className="fd-ca-list">{agenda.today.map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventSpan(event, e.now)} />)}</ol>
         </div>
       )}
       {!unav && agenda.later.length > 0 && (
         <div className="fd-block">
-          <Legend>Coming up</Legend>
+          <Legend>{CALENDAR_WORDS.comingUp}</Legend>
           <ol className="fd-ca-list">{agenda.later.slice(0, LATER).map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventDay(event, e.now)} />)}</ol>
         </div>
       )}

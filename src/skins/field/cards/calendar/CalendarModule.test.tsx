@@ -52,7 +52,7 @@ describe("CalendarModule", () => {
   it("blanks the screen while unavailable and says when it was last seen", () => {
     const container = draw("unavailable");
     expect(container.querySelector(".fd-digits")?.textContent).toBe("Unavailable");
-    expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableSeen 08:20");
+    expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
   });
 
   it("lists today's events and what's coming in the panel, with today's hours busy", () => {
