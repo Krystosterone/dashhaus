@@ -1,7 +1,7 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
-import { CardTitle, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
+import { CardTitle, Picture, SheetClose, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
 
 describe("paint", () => {
@@ -163,5 +163,29 @@ describe("Track", () => {
     expect(screen.getByRole("slider", { name: "High" }).className).toBe("hd-track-in xx-hi");
     // The card's fill sits under the hit layer.
     expect([...root.children].map((c) => c.className)).toEqual(["xx-zone", "hd-track-hit", "hd-track-in xx-lo", "hd-track-in xx-hi"]);
+  });
+});
+
+describe("Picture", () => {
+  const frame = { ref: () => {}, src: "data:image/png;base64,AA==", status: "ready" as const };
+  it("is the button that opens it, labelled by what it is and what the press does", () => {
+    const onOpen = vi.fn();
+    render(<Picture picture={frame} label="Front door camera" onOpen={onOpen} openLabel="Open live view" />);
+    fireEvent.click(screen.getByRole("button", { name: "Front door camera. Open live view" }));
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
+  it("is an image without onOpen", () => {
+    render(<Picture picture={frame} label="Artwork" />);
+    expect(screen.getByRole("img", { name: "Artwork" })).toBeTruthy();
+  });
+  it("takes no press or focus while unavailable, and draws no frame: a camera that is gone has nothing to open", () => {
+    const onOpen = vi.fn();
+    const { container } = render(<Picture picture={frame} label="Front door camera" onOpen={onOpen} unavailable />);
+    expect(screen.queryByRole("button")).toBeNull();
+    const box = screen.getByRole("img", { name: "Front door camera" });
+    expect(box.getAttribute("data-status")).toBe("unavailable");
+    fireEvent.click(box);
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(container.querySelector("img")).toBeNull();
   });
 });

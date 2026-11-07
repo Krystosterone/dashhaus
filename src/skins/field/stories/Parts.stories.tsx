@@ -132,7 +132,7 @@ function AllParts() {
         </State>
       </Part>
 
-      <Part name="Picture" rule="Field's media surface, a camera's still or a player's artwork on usePicture: a window in the screen, its own dark well with the frame clipped into it, no bezel and no words on it. It loads once seen, decodes before it draws, and keeps its last frame while the next loads. Before a frame, with none to keep and while unavailable, it is the screen with the card's pictogram unlit. It never inverts with an alarm. Pressed, it opens the stream or the panel.">
+      <Part name="Picture" rule="Field's media surface, a camera's still or a player's artwork on usePicture: a window in the screen, its own dark well with the frame clipped into it, no bezel and no words on it. It loads once seen, decodes before it draws, and keeps its last frame while the next loads. Before a frame, with none to keep and while unavailable, it is the screen with the card's pictogram unlit. It never inverts with an alarm. Pressed, it opens the stream or the panel; unavailable, it takes no press.">
         <State label="A still, 16:9" width={300}><Live src={PICTURE_DOORSTEP} label="Front door camera" onOpen={() => {}} openLabel="Open live view" /></State>
         <State label="At night" width={300}><Live src={PICTURE_NURSERY} label="Nursery camera" /></State>
         <State label="21:9, cropped" width={300}><Live src={PICTURE_WIDE} label="Driveway camera" /></State>
@@ -141,7 +141,7 @@ function AllParts() {
         <State label="3:4 artwork, cropped" width={96}><Live src={ARTWORK_TALL} label="Artwork" ratio="1 / 1" /></State>
         <State label="Before a frame" width={300}><Picture picture={held("loading")} label="Front door camera" /></State>
         <State label="Failed, nothing kept" width={300}><Picture picture={held("failed")} label="Front door camera" /></State>
-        <State label="Unavailable" width={300}><Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" unavailable /></State>
+        <State label="Unavailable" width={300}><Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" unavailable onOpen={() => {}} /></State>
       </Part>
 
       <Part name="Pictogram" rule="The shape is always there unlit, and lights from the bottom up to its level in its parameter's colour, or in a colour lamp's own.">

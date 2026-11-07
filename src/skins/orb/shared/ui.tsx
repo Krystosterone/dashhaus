@@ -245,7 +245,8 @@ export interface PictureProps {
   /** `cover` crops the frame to the box (a card); `contain` shows the whole frame (a sheet). */
   fit?: "cover" | "contain";
   unavailable?: boolean;
-  /** What a press opens: the live stream, or the card's details. Without it the picture isn't a button. */
+  /** What a press opens: the live stream, or the card's details. Without it, or while unavailable (a camera that is
+   * gone has no stream to open), the picture isn't a button. */
   onOpen?: () => void;
   /** What the press does, said after the label: "Open live view". */
   openLabel?: string;
@@ -258,7 +259,7 @@ export interface PictureProps {
  * a fixed size, the frame in it, and never a word over it (the card says how old a still is on its status line). Before
  * a frame, on a failed one and while unavailable it is the well with the card's glyph; unavailable adds the dashed
  * outline, as everything unavailable has. It never glows and never carries a state. With `onOpen` it is the button
- * that opens it, pressed as a readout is.
+ * that opens it, pressed as a readout is; unavailable, it ignores `onOpen` and takes no press or focus.
  */
 export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = "Open", children = <IconPicture /> }: PictureProps) {
   const src = unavailable ? undefined : picture.src;
@@ -270,7 +271,7 @@ export function Picture({ picture, label, ratio, fit = "cover", unavailable = fa
     </span>
   );
   const box = { className: "hd-pic", style: ratio ? { aspectRatio: ratio } : undefined, "data-fit": fit, "data-status": unavailable ? "unavailable" : picture.status };
-  return onOpen
+  return onOpen && !unavailable
     ? <button type="button" ref={picture.ref} {...box} aria-label={`${label}. ${openLabel}`} onClick={onOpen}>{inner}</button>
     : <div ref={picture.ref} {...box} role="img" aria-label={label}>{inner}</div>;
 }

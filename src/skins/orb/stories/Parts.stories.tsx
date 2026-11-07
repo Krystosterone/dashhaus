@@ -163,7 +163,7 @@ function AllParts() {
         </State>
       </Part>
 
-      <Part name="Picture" cardRole="reading" rule="A camera's still or a player's artwork, on usePicture: a readout, so a neutral well with no edge of its own, the frame in it and never a word over it. It loads once seen, decodes before it draws, and keeps its last frame while the next loads. Before a frame, or with none to keep, the well holds the card's glyph; unavailable is dashed and shows no frame at all. Pressed, it opens the stream or the details.">
+      <Part name="Picture" cardRole="reading" rule="A camera's still or a player's artwork, on usePicture: a readout, so a neutral well with no edge of its own, the frame in it and never a word over it. It loads once seen, decodes before it draws, and keeps its last frame while the next loads. Before a frame, or with none to keep, the well holds the card's glyph; unavailable is dashed and shows no frame at all. Pressed, it opens the stream or the details; unavailable, it takes no press.">
         <State label="A still, 16:9" width={280}><Live src={PICTURE_DOORSTEP} label="Front door camera" onOpen={() => {}} openLabel="Open live view" /></State>
         <State label="At night" width={280}><Live src={PICTURE_NURSERY} label="Nursery camera" /></State>
         <State label="21:9, cropped" width={280}><Live src={PICTURE_WIDE} label="Driveway camera" /></State>
@@ -172,7 +172,7 @@ function AllParts() {
         <State label="3:4 artwork, cropped" width={120}><Live src={ARTWORK_TALL} label="Artwork" ratio="1 / 1" /></State>
         <State label="Before a frame" width={280}><Picture picture={held("loading")} label="Front door camera" /></State>
         <State label="Failed, nothing kept" width={280}><Picture picture={held("failed")} label="Front door camera" /></State>
-        <State label="Unavailable" width={280}><Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" unavailable /></State>
+        <State label="Unavailable" width={280}><Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" unavailable onOpen={() => {}} /></State>
       </Part>
 
       <Part name="Unavailable" rule="What stands in a card's slot when its entity is unavailable: a dashed outline and muted text. Nothing else is dashed.">

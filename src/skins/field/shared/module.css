@@ -333,7 +333,9 @@ button.fd-pic { cursor: pointer; }
 button.fd-pic:focus-visible { outline: 2px solid var(--fd-focus); outline-offset: 2px; }
 .fd-pic-i { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; border-radius: inherit; background: var(--fd-screen); transition: transform var(--fd-press) var(--fd-ease-out); }
 button.fd-pic:active .fd-pic-i { transform: scale(0.98); }
-.fd-pic-img { display: block; width: 100%; height: 100%; object-fit: cover; animation: fd-pic-in 150ms var(--fd-ease-out); }
+/* The frame fills the window, never its own size: a 9:16 still in a 16:9 window, or 3:4 artwork in a square one,
+   would otherwise grow the grid row it sits in. */
+.fd-pic-img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; animation: fd-pic-in 150ms var(--fd-ease-out); }
 .fd-pic[data-fit="contain"] .fd-pic-img { object-fit: contain; }
 .fd-pic-glyph { display: grid; place-items: center; width: 20px; height: 26px; }
 .fd-pic-glyph svg { width: 100%; height: 100%; fill: currentColor; }

@@ -305,7 +305,8 @@ export interface PictureProps {
   /** `cover` crops the frame to the window (a module); `contain` shows the whole frame (a panel). */
   fit?: "cover" | "contain";
   unavailable?: boolean;
-  /** What a press opens: the live stream, or the module's panel. Without it the picture isn't a button. */
+  /** What a press opens: the live stream, or the module's panel. Without it, or while unavailable (a camera that is
+   * gone has no stream to open), the picture isn't a button. */
   onOpen?: () => void;
   /** What the press does, said after the label: "Open live view". */
   openLabel?: string;
@@ -318,7 +319,7 @@ export interface PictureProps {
  * and no words on it (the screen's meta lines say how old a still is). Before a frame, on a failed one and while
  * unavailable it is the screen with the card's pictogram unlit, as a blank screen is. It never inverts with an alarm:
  * an inverted photograph means nothing, so severity stays in the screen's words. With `onOpen` it is pressed as a key
- * is, though it has no LED and latches nothing.
+ * is, though it has no LED and latches nothing; unavailable, it ignores `onOpen` and takes no press or focus.
  */
 export function Picture({ picture, label, ratio, fit = "cover", unavailable = false, onOpen, openLabel = "Open", children = <PictPicture /> }: PictureProps) {
   const src = unavailable ? undefined : picture.src;
@@ -330,7 +331,7 @@ export function Picture({ picture, label, ratio, fit = "cover", unavailable = fa
     </span>
   );
   const box = { className: "fd-pic", style: ratio ? { aspectRatio: ratio } : undefined, "data-fit": fit, "data-status": unavailable ? "unavailable" : picture.status };
-  return onOpen
+  return onOpen && !unavailable
     ? <button type="button" ref={picture.ref} {...box} aria-label={`${label}. ${openLabel}`} onClick={onOpen}>{inner}</button>
     : <div ref={picture.ref} {...box} role="img" aria-label={label}>{inner}</div>;
 }

@@ -124,16 +124,26 @@ MJPEG player, and no dependency for one.
   fails clears it (`failed`), so the last track's cover never sits under the next track's title; no source clears it at
   once and cancels its load. `paused` (a `quiet` dashboard) takes a new frame only on first sight and when the page wakes.
   It returns `{ ref, src, status, at }`, `status` one of `none`, `loading`, `ready`, `stale`, `failed`, and `at` when the
-  frame drawn loaded. Artwork passes no `refresh`: it changes when its URL does.
+  frame drawn loaded. Artwork passes no `refresh`: it changes when its URL does. Without its `ref` on a box it never
+  loads, even where there is no IntersectionObserver (where there is none, a box that is there counts as on screen).
+- **Asked for only where it is drawn.** A card passes `usePicture` a source only for a footprint that draws the
+  picture, and nothing everywhere else (a compact row, a footprint with no well for it, stills switched off, the entity
+  unavailable), so nothing is fetched for a box that isn't there.
 - **Its words** are `entities/picture.ts`: `No picture` for a source with nothing to keep, `Still from 22:14`
-  (`stillFrom(at)`) for a stale or paused still, said on the status line or a meta line, never over the picture.
+  (`stillFrom(at)`) for a stale or paused still, said on the status line or a meta line, never over the picture. What a
+  card says when its picture fails depends on what the picture is for: where it is the content (a camera's still), it
+  says `No picture`; where it is recognition only (a player's artwork, which the title already names), it says nothing
+  and the well keeps the card's glyph.
 - **The live stream is Home Assistant's.** `useHaMoreInfo(entityId)` opens the host's own dialog for the entity, from
   `HaProvider`'s `moreInfo`: the Lovelace card base fires `hass-more-info` from its element, and Home Assistant's
   more-info dialog plays a camera's stream with its own player. Where the host has none (Storybook, a demo, a standalone
-  app), it returns nothing and a card opens its own details instead, never a control that opens nothing.
+  app), it returns nothing and a card opens its own details instead, never a control that opens nothing. That is the
+  picture's own press; which press opens what is each skin's (orb.md → A picture is a readout, field.md → A picture is
+  a window in the screen): the name opens the details on every card, whatever its picture's press does.
 - **Privacy and cost** are the dashboard's: a still is fetched only while seen (above); a dashboard's `stills: false`, or
   a camera card's `still: false`, fetches none (the card passes no source rather than hiding a loaded one); `quiet`
-  pauses refreshing. Each skin draws a picture with its own `Picture` part, a fixed box with no word over it.
+  pauses refreshing. Each skin draws a picture with its own `Picture` part, a fixed box with no word over it, which
+  takes no press while the entity is unavailable: a camera that is gone has no stream to open.
 
 ## Error metadata
 

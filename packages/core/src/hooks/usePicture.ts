@@ -16,7 +16,7 @@ export interface PictureOptions {
 }
 
 export interface Picture<T extends Element = HTMLElement> {
-  /** Put it on the picture's box: nothing loads until that box is on screen. */
+  /** Put it on the picture's box: nothing loads until that box is on screen, and nothing ever loads without it. */
   ref: (node: T | null) => void;
   /** The decoded frame to draw, or nothing yet. */
   src?: string;
@@ -40,18 +40,22 @@ function usePageVisibility() {
   return page;
 }
 
-/** Whether the node is on screen. Without IntersectionObserver it counts as on screen. */
+/**
+ * Whether the node is on screen. With no node it never is, so a picture whose `ref` is never attached never loads.
+ * Without IntersectionObserver an attached node counts as on screen.
+ */
 function useOnScreen(node: Element | null) {
-  const [onScreen, setOnScreen] = useState(() => typeof IntersectionObserver === "undefined");
+  const observable = typeof IntersectionObserver !== "undefined";
+  const [intersecting, setIntersecting] = useState(false);
   useEffect(() => {
-    if (!node || typeof IntersectionObserver === "undefined") return;
+    if (!node || !observable) return;
     const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) setOnScreen(entry.isIntersecting);
+      for (const entry of entries) setIntersecting(entry.isIntersecting);
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [node]);
-  return onScreen;
+  }, [node, observable]);
+  return node != null && (!observable || intersecting);
 }
 
 /**

@@ -1,7 +1,7 @@
 import { act, render, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePicture } from "./usePicture";
-import type { PictureOptions } from "./usePicture";
+import type { Picture, PictureOptions } from "./usePicture";
 
 /** An off-DOM image whose decode the test settles: what `usePicture` loads each frame into. */
 class FakeImage {
@@ -38,6 +38,13 @@ const setVisibility = (state: "visible" | "hidden") => {
 
 const DOOR = "http://ha.local/api/camera_proxy/camera.door?token=a";
 
+/** The hook with its `ref` on a box, as the skins' `Picture` part puts it: what makes it count as seen. */
+function renderSeen<Props>(callback: (props: Props) => Picture, options?: { initialProps: Props }) {
+  const rendered = renderHook(callback, options);
+  act(() => rendered.result.current.ref(document.createElement("div")));
+  return rendered;
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-11-07T22:00:00Z"));
@@ -53,7 +60,7 @@ afterEach(() => {
 
 describe("usePicture", () => {
   it("draws a frame only once it has decoded, then holds it", async () => {
-    const { result } = renderHook(() => usePicture("/art/sunday.jpg"));
+    const { result } = renderSeen(() => usePicture("/art/sunday.jpg"));
     expect(result.current).toMatchObject({ status: "loading", src: undefined });
     expect(last().decoding).toBe("async");
     expect(last().src).toBe("/art/sunday.jpg");
@@ -65,7 +72,7 @@ describe("usePicture", () => {
   });
 
   it("keeps the last cover up while the next track's loads, and clears it when the next one fails", async () => {
-    const { result, rerender } = renderHook(({ src }) => usePicture(src), { initialProps: { src: "/art/one.jpg" } });
+    const { result, rerender } = renderSeen(({ src }) => usePicture(src), { initialProps: { src: "/art/one.jpg" } });
     await settle();
 
     rerender({ src: "/art/two.jpg" });
@@ -75,7 +82,7 @@ describe("usePicture", () => {
   });
 
   it("clears at once and cancels its load when the source goes, as an unavailable camera's does", async () => {
-    const { result, rerender } = renderHook(({ src }: { src?: string }) => usePicture(src), { initialProps: { src: "/art/one.jpg" as string | undefined } });
+    const { result, rerender } = renderSeen(({ src }: { src?: string }) => usePicture(src), { initialProps: { src: "/art/one.jpg" as string | undefined } });
     await settle();
     rerender({ src: "/art/two.jpg" });
     const pending = last();
@@ -86,7 +93,7 @@ describe("usePicture", () => {
   });
 
   it("refreshes a still on its interval, each frame asked past the cache", async () => {
-    const { result } = renderHook(() => usePicture(DOOR, { refresh: 10_000 }));
+    const { result } = renderSeen(() => usePicture(DOOR, { refresh: 10_000 }));
     expect(last().src).toBe(`${DOOR}&t=${Date.now()}`);
     await settle();
 
@@ -102,7 +109,7 @@ describe("usePicture", () => {
   });
 
   it("keeps the last still when a refresh fails, as stale, and tries again on the interval", async () => {
-    const { result } = renderHook(() => usePicture(DOOR, { refresh: 10_000 }));
+    const { result } = renderSeen(() => usePicture(DOOR, { refresh: 10_000 }));
     await settle();
     const first = result.current.at;
 
@@ -115,7 +122,7 @@ describe("usePicture", () => {
   });
 
   it("never refreshes while the page is hidden, and refreshes at once when it comes back late", async () => {
-    renderHook(() => usePicture(DOOR, { refresh: 10_000 }));
+    renderSeen(() => usePicture(DOOR, { refresh: 10_000 }));
     await settle();
 
     setVisibility("hidden");
@@ -150,8 +157,22 @@ describe("usePicture", () => {
     expect(FakeImage.made).toHaveLength(2);
   });
 
+  it("never loads without a box to put on screen, even where there is no IntersectionObserver", () => {
+    vi.stubGlobal("IntersectionObserver", undefined);
+    const { result } = renderHook(() => usePicture(DOOR, { refresh: 10_000 }));
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(FakeImage.made).toHaveLength(0);
+    expect(result.current).toMatchObject({ status: "loading", src: undefined });
+
+    act(() => result.current.ref(document.createElement("div")));
+    expect(FakeImage.made).toHaveLength(1);
+    act(() => result.current.ref(null));
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(FakeImage.made).toHaveLength(1);
+  });
+
   it("paused, holds the still as stale and takes a new one only when the page wakes", async () => {
-    const { result } = renderHook(() => usePicture(DOOR, { refresh: 10_000, paused: true }));
+    const { result } = renderSeen(() => usePicture(DOOR, { refresh: 10_000, paused: true }));
     await settle();
     expect(result.current.status).toBe("stale");
 
@@ -174,7 +195,7 @@ describe("usePicture", () => {
     }
     const made: OldImage[] = [];
     vi.stubGlobal("Image", class extends OldImage { constructor() { super(); made.push(this); } });
-    const { result } = renderHook(() => usePicture("/art/sunday.jpg"));
+    const { result } = renderSeen(() => usePicture("/art/sunday.jpg"));
 
     await act(async () => { made[0]?.onload?.(); await Promise.resolve(); });
     expect(result.current).toMatchObject({ status: "ready", src: "/art/sunday.jpg" });
