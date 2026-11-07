@@ -53,7 +53,8 @@ function EventRow({ event, now, when }: { event: CalendarEvent; now: number; whe
  * flat plate and today's meter of the hours busy, those ahead included. The screen leads with the next event, a timed
  * one before the day's all-day ones: NOW while it is under way, lit, else the clock it starts at or an all-day event's
  * weekday; the meta lines its title and when (In 2h 6m, Until 12:15, Tomorrow 09:30). With nothing to the horizon the
- * screen says FREE in the dim ink. A row's line names the event, and its day when it isn't today's. It has no actions
+ * screen says FREE in the dim ink. A row's line names the event, then its day when it isn't today's, and with none
+ * what's left today. It has no actions
  * and no warnings. The panel lists today's events and what's coming.
  */
 export function CalendarModule({ entity: e, history, footprint = "standard", defaultOpen = false }: CalendarModuleProps) {
@@ -70,19 +71,20 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
 
   const pict = <Pictogram param="neutral" lit={under}>{CALENDAR_PICT}</Pictogram>;
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
-    : waiting ? <Blank places={4} label="Waiting for events" />
+    : waiting ? <Blank places={4} label={CALENDAR_WORDS.noReading} />
     : next ? <><span aria-hidden="true">{figureOf(next, e.now)}</span><span className="fd-sr">{`${next.title}, ${when!.line}`}</span></>
     : <><span aria-hidden="true">{CALENDAR_WORDS.free.toUpperCase()}</span><span className="fd-sr">{free.line}</span></>;
   // A timed event on another day: the figure already says its clock, so the words say its day alone.
   const otherDay = next != null && !under && !next.allDay && daysBetween(e.now, next.start) > 0 ? dayWord(next.start, e.now) : undefined;
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : waiting ? [CALENDAR_WORDS.waiting]
+    : waiting ? [CALENDAR_WORDS.noReading]
     : next ? [next.title, otherDay ?? when!.line]
     : [free.line, left];
-  // A row has no meta lines: its line names the event, after its day when its clock is another day's.
+  // A row has no meta lines: its line names the event, then its day when its clock is another day's; with no event it
+  // says what's left today, as orb's row does, the screen's FREE already saying for how long.
   const line = unav || waiting ? undefined
-    : next ? (otherDay ? `${otherDay} · ${next.title}` : next.title)
-    : free.line;
+    : next ? (otherDay ? `${next.title} · ${otherDay}` : next.title)
+    : left;
 
   const glyph = <Glyph unavailable={unav}><IconCalendar /></Glyph>;
   const summary = history && (unav ? "Unavailable" : todaySummary(CALENDAR_WORDS.busy, history.busyMinutes));
@@ -104,7 +106,7 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
       row={(
         <ModuleRow className="fd-ca-row">
           {glyph}
-          <Today summary={summary} label={label} tone="neutral" samples={history?.samples} currentHour={history?.currentHour} />
+          <Today summary={summary} label={label} tone="neutral" samples={history?.samples} currentHour={history?.currentHour} aheadFrom={history && history.currentHour + 1} />
         </ModuleRow>
       )}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: horizonFact(e.days, e.calendars) }}
@@ -121,7 +123,7 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
           <ol className="fd-ca-list">{agenda.later.slice(0, LATER).map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventDay(event, e.now)} />)}</ol>
         </div>
       )}
-      {history && <Today summary={summary} label={label} tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
+      {history && <Today summary={summary} label={label} tone="neutral" samples={history.samples} currentHour={history.currentHour} aheadFrom={history.currentHour + 1} />}
     </ModuleFrame>
   );
 }

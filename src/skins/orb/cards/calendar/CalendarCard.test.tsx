@@ -41,7 +41,13 @@ describe("CalendarCard", () => {
     expect(container.querySelector("article")?.getAttribute("data-state")).toBe("off");
     expect(container.querySelector(".hd-area")?.textContent).toBe("Nothing today");
     rerender(<CalendarCard entity={waiting.entity} />);
-    expect(screen.getByRole("img", { name: "Waiting for events" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "No reading yet" })).toBeTruthy();
+    expect(container.querySelector(".hd-none")?.textContent).toBe("Waiting…");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("No reading yet");
+    rerender(<CalendarCard entity={{ ...waiting.entity, area: "Kitchen" }} variant="sheet" />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Kitchen · No reading yet");
+    rerender(<CalendarCard entity={waiting.entity} footprint="compact" />);
+    expect(container.querySelector(".hd-sub")?.textContent).toBe("Waiting…");
   });
 
   it("names the event in a compact row and cues when, Now while under way", () => {

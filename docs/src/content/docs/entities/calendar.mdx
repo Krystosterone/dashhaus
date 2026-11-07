@@ -3,7 +3,7 @@ title: Calendar
 description: "What's next, and when: a calendar.* entity with its events over the coming days, and any other calendars beside it."
 kind:
   group: Readings
-  order: 4
+  order: 5
   summary: "What's next and when: the next event, today's, and what's coming."
   with: "its events, and any other calendars you name"
   reading: true
@@ -65,7 +65,8 @@ One of `entity.events`.
 #### `history`: CalendarHistory
 
 Today's plan, drawn from the events rather than Home Assistant's recorder: the share of each hour taken by timed events,
-the hours still to come included, and the minutes that adds up to. All-day events take no hours.
+the hours still to come included, and the minutes that adds up to. All-day events take no hours. Pass
+`loadHistory: false` to leave it out: `history` is then undefined.
 
 <ApiMembers from="@dashhaus/core/entities/calendar/types" name="CalendarHistory" />
 

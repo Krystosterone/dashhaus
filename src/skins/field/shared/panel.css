@@ -86,6 +86,9 @@
 .fd-meter[data-tone="b"] .fd-meter-lit { background: var(--fd-param-b); }
 .fd-meter[data-tone="neutral"] .fd-meter-lit { background: var(--fd-screen-ink-2); }
 .fd-meter-h[data-state="none"] { opacity: 0.45; }
+/* Known ahead (a calendar's plan): the level in the dim ink, the column dimmed as a dark hour's, so it never reads as past. */
+.fd-meter-h[data-ahead] { opacity: 0.45; }
+.fd-meter-h[data-ahead] .fd-meter-lit { background: var(--fd-screen-ink-2); }
 .fd-meter-h[data-state="unav"] { background: transparent; }
 .fd-meter-h[data-state="unav"]::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--fd-screen-ink-2); }
 .fd-meter-h[data-now]::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 2px; height: 3px; margin-left: -1px; background: var(--fd-screen-ink); }

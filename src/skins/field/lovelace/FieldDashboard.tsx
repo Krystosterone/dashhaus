@@ -76,7 +76,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
     <HaMediaPlayerModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} quiet={quiet} />)}</Stills.Consumer>,
   numeric: (item, footprint) => <HaNumericModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} unit={item.readingUnit} />,
   vacuum: (item, footprint) => <HaVacuumModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,
-  calendar: (item, footprint) => <HaCalendarModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} calendarEntityIds={item.calendars} days={item.days} loadEvents={item.events} />,
+  calendar: (item, footprint) => <HaCalendarModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} calendarEntityIds={item.calendars} days={item.days} loadEvents={item.events} loadHistory={item.history} />,
   // new-card: live modules
 };
 

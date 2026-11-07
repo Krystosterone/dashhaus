@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Key, ModuleFrame, Picture, useDetails } from "./ui";
+import { Key, ModuleFrame, Picture, Today, useDetails } from "./ui";
 import type { FieldFootprint } from "./ui";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 
@@ -130,5 +130,16 @@ describe("Picture", () => {
   it("says core's words for its press where the card names none", () => {
     render(<Picture picture={frame} label="Artwork" onOpen={() => {}} />);
     expect(screen.getByRole("button", { name: `Artwork. ${PICTURE_WORDS.open}` })).toBeTruthy();
+  });
+});
+
+describe("Today", () => {
+  it("marks the hours known ahead from aheadFrom, and none without it", () => {
+    const samples = [0, 0.5, 1, 0.25, null];
+    const { container, rerender } = render(<Today label="Busy today." samples={samples} currentHour={1} aheadFrom={2} tone="neutral" />);
+    const ahead = [...container.querySelectorAll(".fd-meter-h")].map((h) => h.hasAttribute("data-ahead"));
+    expect(ahead.slice(0, 5)).toEqual([false, false, true, true, false]);
+    rerender(<Today label="Busy today." samples={samples} currentHour={1} tone="neutral" />);
+    expect(container.querySelector(".fd-meter-h[data-ahead]")).toBeNull();
   });
 });

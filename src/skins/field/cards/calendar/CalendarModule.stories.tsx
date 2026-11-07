@@ -64,8 +64,8 @@ export const AllDay: Story = { name: "All day", args: { calendar: "allDay" } };
 export const Tomorrow: Story = { args: { calendar: "tomorrow" } };
 /** Nothing to the horizon: FREE in the dim ink, never blank segments. */
 export const Free: Story = { args: { calendar: "free" } };
-/** Reachable, its events not read yet: blank segments, said as waiting. */
-export const Waiting: Story = { args: { calendar: "waiting" } };
+/** Reachable, its events not read yet: blank segments, and No reading yet. */
+export const NoReadingYet: Story = { name: "No reading yet", args: { calendar: "waiting" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { calendar: "unavailable" } };
 

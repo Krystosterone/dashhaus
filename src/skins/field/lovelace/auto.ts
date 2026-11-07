@@ -13,7 +13,7 @@ export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
  * orb's does, with `sun.sun` for night. Every input_boolean and switch is a toggle, every humidifier a humidifier, every
  * fan a fan, every cover a cover, every media_player a media player, every vacuum a vacuum, every alarm_control_panel an alarm, every lock a lock with its device's battery (`deviceCompanion`), every `sensor.*_sleep_state` an Owlet sock (its readings are
  * found beside it, so they aren't drawn on their own), and every `sensor.*_voucher` a guest Wi-Fi code (its QR code and
- * buttons likewise). The binary sensor card takes only the safety glance, as orb's does: every door, window, leak and
+ * buttons likewise), and every calendar a calendar. The binary sensor card takes only the safety glance, as orb's does: every door, window, leak and
  * smoke sensor (`safetySensors`), with its device's battery. Every camera is a camera, its still on a standard module.
  * The numeric card takes the room's air quality, one reading per
  * device (`numericSensors`: CO₂ first); power, energy and any other reading are added by hand. The dashboard groups them by area.

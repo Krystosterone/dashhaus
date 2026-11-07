@@ -38,12 +38,15 @@ describe("CalendarModule", () => {
     const free = draw("free");
     expect(free.querySelector(".fd-read-fig")?.textContent).toBe("FREEFree for 7 days");
     expect(free.querySelector(".fd-module")?.getAttribute("data-state")).toBe("off");
-    expect(draw("waiting").querySelector(".fd-digits")?.textContent).toBe("Waiting for events");
+    const waiting = draw("waiting");
+    expect(waiting.querySelector(".fd-digits")?.textContent).toBe("No reading yet");
+    expect(waiting.querySelector(".fd-meta")?.textContent).toBe("No reading yet");
   });
 
-  it("names the event on a row's line, after its day when it isn't today's", () => {
+  it("names the event on a row's line, then its day when it isn't today's, and with none what's left today", () => {
     expect(draw("normal", "compact").querySelector(".fd-area")?.textContent).toBe("Dentist");
-    expect(draw("tomorrow", "compact").querySelector(".fd-area")?.textContent).toBe("Tomorrow · School trip");
+    expect(draw("tomorrow", "compact").querySelector(".fd-area")?.textContent).toBe("School trip · Tomorrow");
+    expect(draw("free", "compact").querySelector(".fd-area")?.textContent).toBe("Nothing today");
   });
 
   it("blanks the screen while unavailable and says when it was last seen", () => {
@@ -58,6 +61,13 @@ describe("CalendarModule", () => {
     expect(lists[0].textContent).toContain("14:00–15:00DentistMain St Dental");
     expect(lists[1].textContent).toContain("Tomorrow 18:00Parents' evening");
     expect(screen.getAllByText("Busy 2h 30m").length).toBeGreaterThan(0);
+    // The plan's hours after this one are known ahead, on the row's meter and the panel's.
+    const { currentHour } = CALENDAR_SEEDS.normal.history;
+    for (const meter of document.querySelectorAll(".fd-meter")) {
+      const hours = [...meter.querySelectorAll(".fd-meter-h")];
+      expect(hours[currentHour].hasAttribute("data-ahead")).toBe(false);
+      expect(hours[currentHour + 1].hasAttribute("data-ahead")).toBe(true);
+    }
     expect(screen.getByText("Next 7 days")).toBeTruthy();
   });
 });
