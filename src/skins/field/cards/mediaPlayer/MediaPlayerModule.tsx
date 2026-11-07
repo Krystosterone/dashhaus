@@ -1,11 +1,12 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, isActive, isOff, isPlaying, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { fmtPlayTime } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead } from "@dashhaus/core/hooks";
 import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -65,12 +66,14 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
-  const playing = isPlaying(e);
-  // Playing, buffering between tracks, or on with nothing to play: the LED and a bright figure (spec/field.md).
+  // Playing, buffering between tracks, or on with nothing to play: the LED, a lit pictogram and a bright figure
+  // (spec/cards.md → One active signal).
   const active = isActive(e);
   const loaded = !unav && !isOff(e);
   const word = mediaPlayerWord(e);
   const muted = loaded && e.muted === true;
+  // Why the volume doesn't sound now (Muted, Paused, Idle), or nothing while it does.
+  const quietVolume = volumeReason(e);
 
   const handlers: Record<MediaPress, (() => void) | undefined> = { play: onPlay, pause: onPause, turnOn: onTurnOn, turnOff: onTurnOff };
   const wanted = mediaPress(e);
@@ -78,12 +81,12 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
 
   // The artwork in the pictogram's place, never in a row (spec/field.md → A picture is a window in the screen).
   const art = usePicture(loaded ? e.picture : undefined);
-  const glyph = <Pictogram param="neutral" lit={playing}>{MEDIA_PLAYER_PICT}</Pictogram>;
+  const glyph = <Pictogram param="neutral" lit={active}>{MEDIA_PLAYER_PICT}</Pictogram>;
   const title = mediaTitle(e);
   const artist = mediaArtist(e);
   const artwork = loaded && e.picture ? (
     <span className="fd-mp-art">
-      <Picture picture={art} label={title ? `Artwork for ${title}` : `${e.name} artwork`} ratio="1 / 1">
+      <Picture picture={art} label={artworkLabel(e)} ratio="1 / 1">
         <svg viewBox="0 0 20 26" aria-hidden="true">{MEDIA_PLAYER_PICT}</svg>
       </Picture>
     </span>
@@ -92,7 +95,7 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   const playhead = usePlayhead(e);
   const head = quiet ? undefined : playhead;
   const figure = FIGURE[e.state];
-  const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
+  const read: ReactNode = unav ? <Blank places={4} label={word} />
     : figure ? <><span aria-hidden="true">{figure}</span><span className="fd-sr">{word}</span></>
     : <Blank places={4} label={word} />;
   const progress = head && <ScreenProgress head={head} />;
@@ -101,7 +104,8 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   // integration's own), and Muted, beside the artist.
   const says = !figure || e.state === "paused";
   const second = [says && title ? word : undefined, muted ? MUTED : undefined, artist].filter(Boolean).join(" · ");
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
+  // Unavailable says when it was last seen in core's words ("Last seen 08:20"), as every module does.
+  const meta: [ReactNode, ReactNode?] = unav ? [word, e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
     : !loaded ? [word, sinceFact(e.lastChanged)]
     : title ? [title, second || undefined]
     : [word, [muted ? MUTED : undefined, artist ?? playingFrom(e) ?? sinceFact(e.lastChanged)].filter(Boolean).join(" · ") || undefined];
@@ -123,13 +127,13 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   // Next lies flat, rather than going, where there is nothing loaded to skip, so the row never reflows.
   const canNext = !!e.supportsNext && !!onNext;
   const nextKey = (
-    <Key key="next" label={`${e.name}: next track`} unavailable={!loaded} onPress={() => { if (loaded) onNext?.(); }} onHold={details.openDetails} wide caption={unav ? undefined : "Next"}>
+    <Key key="next" label={skipSaid(e.name, "next")} unavailable={!loaded} onPress={() => { if (loaded) onNext?.(); }} onHold={details.openDetails} wide caption={unav ? undefined : SKIP_WORDS.next}>
       <IconNext />
     </Key>
   );
   const canPrevious = !!e.supportsPrevious && !!onPrevious;
   const previousKey = (
-    <Key key="previous" label={`${e.name}: previous track`} unavailable={!loaded} onPress={() => { if (loaded) onPrevious?.(); }} wide caption={unav ? undefined : "Previous"}>
+    <Key key="previous" label={skipSaid(e.name, "previous")} unavailable={!loaded} onPress={() => { if (loaded) onPrevious?.(); }} wide caption={unav ? undefined : SKIP_WORDS.previous}>
       <IconPrevious />
     </Key>
   );
@@ -171,13 +175,15 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
         <Fader
           id={`${uid}-vol`}
           label={`${e.name} volume`}
-          legend={muted ? `${MUTED} · ${e.volume}%` : active ? `Volume ${e.volume}%` : `${word} · ${e.volume}%`}
+          // A loudness lights only while it sounds, active and unmuted; unlit, its legend says why first
+          // (spec/cards.md → What every card shows).
+          legend={volumeText(e.volume!, quietVolume)}
           value={e.volume!}
           min={0}
           max={100}
-          lit={active && !muted}
+          lit={!quietVolume}
           disabled={!loaded}
-          valueText={muted ? `${e.volume} percent, muted` : active ? `${e.volume} percent` : `${e.volume} percent, ${word.toLowerCase()}`}
+          valueText={volumeSaid(e.volume!, quietVolume?.toLowerCase())}
           onChange={(v) => onVolumeChange?.(v)}
         />
       )}
@@ -204,7 +210,7 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
         </KeyGroup>
       )}
       <Today
-        summary={history && (unav ? "Unavailable" : todaySummary(MEDIA_PLAYER_TODAY, history.playingMinutes))}
+        summary={history && (unav ? word : todaySummary(MEDIA_PLAYER_TODAY, history.playingMinutes))}
         label="Playing by hour today."
         tone="neutral"
         samples={history?.samples}

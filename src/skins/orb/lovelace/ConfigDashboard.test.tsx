@@ -8,11 +8,11 @@ import { ConfigDashboard } from "./ConfigDashboard";
 const light = (id: string, name: string) => ({ entity_id: id, state: "on", attributes: { friendly_name: name, supported_color_modes: ["onoff"] } });
 const raw: HassEntities = { "light.a": light("light.a", "Desk"), "light.b": light("light.b", "Pendant") };
 
-function draw(yaml: Record<string, unknown>) {
+function draw(yaml: Record<string, unknown>, entities: HassEntities = raw) {
   const config = parseDashboardConfig(yaml);
   return renderConnected(
     <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} panels={{ "baby-view": { url_path: "baby-view", title: "Baby View" } }} now={new Date(2026, 9, 17, 11, 54)} />,
-    raw,
+    entities,
   );
 }
 
@@ -125,5 +125,27 @@ describe("ConfigDashboard layout", () => {
     expect(document.querySelectorAll(".dash-row")).toHaveLength(1);
     expect(document.querySelector(".dash-sec")).toBeNull();
     expect(nav()).toBeNull();
+  });
+});
+
+describe("ConfigDashboard quiet", () => {
+  const speaker: HassEntities = {
+    "media_player.kitchen": {
+      entity_id: "media_player.kitchen", state: "playing", last_changed: "2026-10-17T11:40:00+00:00", last_updated: "2026-10-17T11:53:30+00:00",
+      attributes: { friendly_name: "Kitchen speaker", media_title: "Sunday Morning", media_duration: 245, media_position: 83, media_position_updated_at: "2026-10-17T11:53:30+00:00", supported_features: 18877 },
+    },
+  } as HassEntities;
+  const card = { cards: [{ entity: "media_player.kitchen", footprint: "featured" }] };
+
+  it("draws a featured media player's progress line and clock, which run on by themselves", async () => {
+    draw(card, speaker);
+    await waitFor(() => expect(screen.getByText("Sunday Morning", { selector: ".mp-title" })).toBeTruthy());
+    expect(document.querySelector(".mp-prog")).not.toBeNull();
+  });
+
+  it("draws no progress line or clock on a media player under the dashboard's quiet", async () => {
+    draw({ ...card, quiet: true }, speaker);
+    await waitFor(() => expect(screen.getByText("Sunday Morning", { selector: ".mp-title" })).toBeTruthy());
+    expect(document.querySelector(".mp-prog")).toBeNull();
   });
 });

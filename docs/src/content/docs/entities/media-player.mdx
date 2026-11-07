@@ -93,8 +93,9 @@ read with `loadHistory={false}`.
 
 Orb's `HaMediaPlayerTile` and Field's `HaMediaPlayerModule` are `useHaMediaPlayer` above each skin's card. One press
 pauses it while it plays, plays it while it doesn't and turns it on while it is off; skipping, the volume, mute, the
-source and turning it off are in its details. Its artwork is shown where there is room, never in a row. They take the
-hook's options as props, plus their own:
+source and turning it off are in its details. Its artwork is shown where there is room, never in a row. On a dashboard
+set `quiet`, where nothing changes by itself, they draw no line or clock for how far in. They take the hook's options
+as props, plus their own:
 
 <Example file="entities/mediaPlayer/Skins.tsx" />
 

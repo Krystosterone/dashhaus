@@ -1,8 +1,9 @@
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead } from "@dashhaus/core/hooks";
 import { MediaPlayerIcon } from "./icons";
 import { Progress } from "./parts";
@@ -69,11 +70,14 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
 
   const line = mediaLine(e);
   const muted = !unav && !isOff(e) && e.muted === true;
+  // Why the volume doesn't sound now (Muted, Paused, Idle), or nothing while it does.
+  const quietVolume = volumeReason(e);
   // Featured and the sheet show what is playing under the head, so their status line says where it plays from.
   const roomy = featured || sheet;
   const from = playingFrom(e);
-  // With nothing of its own to say, the status line says since when, never the state word the slot already shows.
-  const since = unav ? "Unavailable" : sinceFact(e.lastChanged);
+  // With nothing of its own to say, the status line says since when, never the state word the slot already shows
+  // (spec/orb.md → One state vocabulary); unavailable, it says so, as every card does.
+  const since = unav ? word : sinceFact(e.lastChanged);
   const cue = line ?? area ?? since;
   const status = roomy
     ? [area, from].filter(Boolean).join(" · ") || (line ?? since ?? "")
@@ -124,7 +128,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
       {nowPlaying && (
         <div className="mp-now" data-art={e.picture ? "" : undefined}>
           {e.picture && (
-            <Picture picture={art} label={title ? `Artwork for ${title}` : `${e.name} artwork`} ratio="1 / 1">
+            <Picture picture={art} label={artworkLabel(e)} ratio="1 / 1">
               <MediaPlayerIcon />
             </Picture>
           )}
@@ -140,21 +144,23 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
         <SheetBlock>
           {(can.previous || can.next) && (
             <div className="mp-acts">
-              {can.previous && <TogglePill label={`${e.name}: previous track`} onToggle={onPrevious!}>Previous</TogglePill>}
-              {can.next && <TogglePill label={`${e.name}: next track`} onToggle={onNext!}>Next</TogglePill>}
+              {can.previous && <TogglePill label={skipSaid(e.name, "previous")} onToggle={onPrevious!}>{SKIP_WORDS.previous}</TogglePill>}
+              {can.next && <TogglePill label={skipSaid(e.name, "next")} onToggle={onNext!}>{SKIP_WORDS.next}</TogglePill>}
             </div>
           )}
           {can.volume && (
             <LevelBar
               id={`${uid}-vol`}
-              heading="Volume"
+              heading={VOLUME}
               value={e.volume!}
               min={0}
               max={100}
-              on={active && !muted}
+              // A loudness fills only while it sounds, active and unmuted; unfilled, its words say why first
+              // (spec/cards.md → What every card shows).
+              on={!quietVolume}
               text={(pct) => `${pct}%`}
-              offText={(pct) => `${muted ? MUTED : word} · ${pct}%`}
-              valueText={(v) => (muted ? `${v} percent, muted` : active ? `${v} percent` : `${v} percent, ${word.toLowerCase()}`)}
+              offText={(pct) => volumeText(pct, quietVolume)}
+              valueText={(v) => volumeSaid(v, quietVolume?.toLowerCase())}
               onChange={onVolumeChange!}
             />
           )}
@@ -164,7 +170,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
           {can.source && (
             <ChoiceChips id={`${uid}-s`} label="Source" options={e.sources!.map((s) => ({ value: s, label: s }))} value={e.source} onChange={onSourceChange!} />
           )}
-          {can.off && <div className="mp-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>Turn off</TogglePill></div>}
+          {can.off && <div className="mp-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>{pressWord("turnOff")}</TogglePill></div>}
         </SheetBlock>
       )}
       {sheet && history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary(MEDIA_PLAYER_TODAY, history.playingMinutes)} />}

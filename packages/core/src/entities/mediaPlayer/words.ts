@@ -1,3 +1,4 @@
+import { volumeText } from "../volume";
 import type { MediaPlayerEntity, MediaPlayerState } from "./types";
 
 /**
@@ -90,7 +91,28 @@ export const pressWord = (press: MediaPress): string => PRESS_WORDS[press];
 export function volumeWord(e: Pick<MediaPlayerEntity, "state" | "volume" | "muted">): string | undefined {
   if (!loaded(e)) return undefined;
   if (e.muted) return MUTED;
-  return e.volume == null ? undefined : `Volume ${e.volume}%`;
+  return e.volume == null ? undefined : volumeText(e.volume);
+}
+
+/**
+ * Why its volume doesn't sound now, said before the value (`volumeText`): `Muted`, or the state's word while it isn't
+ * active (`Paused`, `Idle`); nothing while it plays, buffers or is on, the only time its groove or fader fills.
+ */
+export function volumeReason(e: Pick<MediaPlayerEntity, "state" | "stateText" | "muted">): string | undefined {
+  if (loaded(e) && e.muted) return MUTED;
+  return isActive(e) ? undefined : mediaPlayerWord(e);
+}
+
+/** Its skip keys and pills, in words: "Previous", "Next". */
+export const SKIP_WORDS = { previous: "Previous", next: "Next" } as const;
+
+/** A skip said in full for a screen reader: "Kitchen speaker: previous track". */
+export const skipSaid = (name: string, which: keyof typeof SKIP_WORDS) => `${name}: ${which} track`;
+
+/** What its artwork is, said for it: "Artwork for Sunday Morning", or "Kitchen speaker artwork" with no title. */
+export function artworkLabel(e: Pick<MediaPlayerEntity, "state" | "title" | "name">): string {
+  const title = mediaTitle(e);
+  return title ? `Artwork for ${title}` : `${e.name} artwork`;
 }
 
 /**

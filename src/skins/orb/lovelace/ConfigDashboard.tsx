@@ -31,13 +31,22 @@ import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
 import type { CardConfig, DashboardConfig, ItemConfig, Kind, RowLayoutConfig } from "./config";
 import { ActionStatus } from "./ActionStatus";
 
-/** The dashboard's camera settings (YAML `stills` and `quiet`), which every camera card on it follows. */
+/**
+ * The dashboard's picture and motion settings (YAML `stills` and `quiet`): every camera card on it follows both, and
+ * every media player follows `quiet`, drawing no progress line or clock.
+ */
 const Stills = createContext({ stills: true, quiet: false });
 
 /** A configured camera: its own `still` and `refresh`, under the dashboard's `stills` and `quiet`. */
 function ConfiguredCamera({ card }: { card: Extract<CardConfig, { kind: "camera" }> }) {
   const { stills, quiet } = useContext(Stills);
   return <HaCameraTile entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} still={stills && card.still !== false} refresh={card.refresh} paused={quiet} />;
+}
+
+/** A configured media player, under the dashboard's `quiet`: nothing on it runs by itself, so no line and no clock. */
+function ConfiguredMediaPlayer({ card }: { card: Extract<CardConfig, { kind: "mediaPlayer" }> }) {
+  const { quiet } = useContext(Stills);
+  return <HaMediaPlayerTile entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} quiet={quiet} />;
 }
 
 /** Each kind's connected tile: the shared renderer dispatch picks the card's row. */
@@ -57,7 +66,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   guestWifi: (card, key) => <HaGuestWifiTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} access={card.access} network={card.network} qrEntityId={card.qr} newCodeEntityId={card.newCode} refreshEntityId={card.refresh} />,
   binarySensor: (card, key) => <HaBinarySensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} batteryEntityId={card.battery} />,
   camera: (card, key) => <ConfiguredCamera key={key} card={card} />,
-  mediaPlayer: (card, key) => <HaMediaPlayerTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
+  mediaPlayer: (card, key) => <ConfiguredMediaPlayer key={key} card={card} />,
   // new-card: tiles
 };
 

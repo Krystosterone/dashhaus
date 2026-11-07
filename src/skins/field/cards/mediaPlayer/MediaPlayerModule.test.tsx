@@ -15,9 +15,9 @@ const handlers = () => ({
 });
 const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false, quiet = false) => {
   const h = handlers();
-  const { container } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} quiet={quiet} {...h} />);
+  const { container, unmount } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} quiet={quiet} {...h} />);
   const module = container.querySelector<HTMLElement>(".fd-module")!;
-  return { container, module, h, keys: [...module.querySelectorAll<HTMLButtonElement>(".fd-key")] };
+  return { container, module, h, unmount, keys: [...module.querySelectorAll<HTMLButtonElement>(".fd-key")] };
 };
 const S = MEDIA_PLAYER_SEEDS;
 
@@ -42,10 +42,27 @@ describe("MediaPlayerModule", () => {
     expect(led(S.idle.entity)).toBe("false");
   });
 
+  it("lights the pictogram with the LED, the same active set: on with nothing loaded and buffering too (spec/cards.md)", () => {
+    const lit = (entity: MediaPlayerEntity) => draw({ ...entity, picture: undefined }).module.querySelector(".fd-pict")?.getAttribute("data-lit");
+    expect(lit(S.on.entity)).toBe("true");
+    expect(lit(S.buffering.entity)).toBe("true");
+    expect(lit(S.playing.entity)).toBe("true");
+    expect(lit(S.paused.entity)).toBe("false");
+    expect(lit(S.standby.entity)).toBe("false");
+  });
+
   it("lights the volume fader only while it plays and is not muted, saying why it doesn't", () => {
     draw(S.paused.entity, "standard", true);
     const panel = screen.getByRole("dialog");
     expect(within(panel).getByText("Paused · 30%")).toBeTruthy();
+    expect(panel.querySelector(".fd-fader")?.getAttribute("data-lit")).toBe("false");
+    expect(within(panel).getByRole("slider", { hidden: true }).getAttribute("aria-valuetext")).toBe("30 percent, paused");
+  });
+
+  it("says Muted before the volume while muted, and lights it again only while it sounds", () => {
+    draw(S.muted.entity, "standard", true);
+    const panel = screen.getByRole("dialog");
+    expect(within(panel).getByText(`Muted · ${S.muted.entity.volume}%`)).toBeTruthy();
     expect(panel.querySelector(".fd-fader")?.getAttribute("data-lit")).toBe("false");
   });
 
@@ -119,7 +136,7 @@ describe("MediaPlayerModule", () => {
   it("blanks the screen while unavailable, says when it was last seen, and lays every key flat with no state word", () => {
     const { module, keys, h } = draw(S.unavailable.entity);
     expect(module.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
-    expect(module.querySelector(".fd-meta")?.textContent).toMatch(/^Unavailable/);
+    expect(module.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
     expect(module.querySelector(".fd-pic")).toBeNull();
     // Flat, not disabled: it keeps its focus and its hold, so the details still open; a press does nothing.
     for (const key of keys) {
@@ -129,6 +146,17 @@ describe("MediaPlayerModule", () => {
     }
     for (const handler of Object.values(h)) expect(handler).not.toHaveBeenCalled();
     expect(module.querySelector(".fd-key-cap")).toBeNull();
+  });
+
+  it("starts its small print with when, Last seen while unavailable, and ends it with what it can do", () => {
+    const facts = (entity: MediaPlayerEntity) => {
+      const { unmount } = draw(entity, "standard", true);
+      const said = [...(screen.getByRole("dialog").querySelector(".fd-info")?.children ?? [])].map((s) => s.textContent);
+      unmount();
+      return said;
+    };
+    expect(facts(S.playing.entity)).toEqual([`Last changed ${S.playing.entity.lastChanged}`, "Skip, volume, mute, 3 sources"]);
+    expect(facts(S.unavailable.entity)[0]).toBe("Last seen 08:20");
   });
 
   it("leads a compact row with its key", () => {

@@ -34,9 +34,10 @@ import "./dashboard.css";
 interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
 
 /**
- * The dashboard's camera settings (YAML `stills` and `quiet`), which every camera module on it follows, under its own
- * `still` and `refresh`. `LIVE` reads it with `Stills.Consumer` inline, so the camera's line still names its module
- * where verify/field-conformance.test.ts looks for it.
+ * The dashboard's picture and motion settings (YAML `stills` and `quiet`): every camera module on it follows both,
+ * under its own `still` and `refresh`, and every media player follows `quiet`, drawing no progress rule or running
+ * clock. `LIVE` reads it with `Stills.Consumer` inline, so each line still names its module where
+ * verify/field-conformance.test.ts looks for it.
  */
 const Stills = createContext({ stills: true, quiet: false });
 
@@ -68,7 +69,8 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   binarySensor: (item, footprint) => <HaBinarySensorModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} batteryEntityId={item.battery} />,
   camera: (item, footprint) => <Stills.Consumer>{({ stills, quiet }) => (
     <HaCameraModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} still={stills && item.still !== false} refresh={item.stillRefresh} paused={quiet} />)}</Stills.Consumer>,
-  mediaPlayer: (item, footprint) => <HaMediaPlayerModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,
+  mediaPlayer: (item, footprint) => <Stills.Consumer>{({ quiet }) => (
+    <HaMediaPlayerModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} quiet={quiet} />)}</Stills.Consumer>,
   // new-card: live modules
 };
 
@@ -166,7 +168,8 @@ export interface FieldDashboardProps {
   footprint: FieldFootprint;
   /**
    * Nothing changes by itself (YAML `quiet: true`): an alarm holds its inverted screen from the start, with no flash,
-   * and a camera's still refreshes only when seen anew, never on a timer.
+   * a camera's still refreshes only when seen anew, never on a timer, and a media player draws no progress rule or
+   * running clock.
    */
   quiet?: boolean;
   /** False: no camera still is fetched or drawn (YAML `stills: false`). */

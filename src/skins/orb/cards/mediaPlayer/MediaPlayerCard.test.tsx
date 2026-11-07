@@ -35,6 +35,20 @@ describe("MediaPlayerCard", () => {
     expect(container.querySelector(".hd-area")?.textContent).toBe("Since 11:40");
   });
 
+  it("falls back on its status line as every card does: its own cue, the area, since when, then nothing (spec/orb.md)", () => {
+    const status = (entity: MediaPlayerEntity) => {
+      const { container, unmount } = render(<MediaPlayerCard entity={entity} {...press()} />);
+      const said = container.querySelector(".hd-area")?.textContent ?? "";
+      unmount();
+      return said;
+    };
+    const idle: MediaPlayerEntity = { entityId: "media_player.x", name: "X", state: "idle", area: "Den", lastChanged: "11:40" };
+    expect(status({ ...idle, title: "Tides" })).toBe("Tides");
+    expect(status(idle)).toBe("Den");
+    expect(status({ ...idle, area: undefined })).toBe("Since 11:40");
+    expect(status({ ...idle, area: undefined, lastChanged: undefined })).toBe("");
+  });
+
   it("says what is playing on the status line, the title first", () => {
     const { container } = render(<MediaPlayerCard entity={playing} {...press()} />);
     expect(container.querySelector(".hd-area")?.textContent).toBe("Sunday Morning · Maroon 5");

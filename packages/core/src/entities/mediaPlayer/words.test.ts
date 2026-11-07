@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, volumeWord } from "./words";
+import { artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeReason, volumeWord } from "./words";
+import { volumeText } from "../volume";
 
 const ALL = { supportsPlay: true, supportsPause: true, supportsTurnOn: true };
 
@@ -61,6 +62,23 @@ describe("media player words", () => {
     expect(volumeWord({ state: "playing", volume: 45 })).toBe("Volume 45%");
     expect(volumeWord({ state: "playing", volume: 45, muted: true })).toBe("Muted");
     expect(volumeWord({ state: "off", volume: 45 })).toBeUndefined();
+  });
+
+  it("gives the reason its volume doesn't sound before the value, and none while it is active (spec/cards.md)", () => {
+    for (const state of ["playing", "buffering", "on"] as const) expect(volumeReason({ state })).toBeUndefined();
+    expect(volumeText(30, volumeReason({ state: "paused" }))).toBe("Paused · 30%");
+    expect(volumeText(25, volumeReason({ state: "idle" }))).toBe("Idle · 25%");
+    expect(volumeText(45, volumeReason({ state: "playing", muted: true }))).toBe("Muted · 45%");
+    expect(volumeText(45, volumeReason({ state: "off", muted: true }))).toBe("Off · 45%");
+    expect(volumeReason({ state: "other", stateText: "Connecting" })).toBe("Connecting");
+  });
+
+  it("says its skips and its artwork the same in every skin", () => {
+    expect(SKIP_WORDS).toEqual({ previous: "Previous", next: "Next" });
+    expect(skipSaid("Kitchen speaker", "next")).toBe("Kitchen speaker: next track");
+    expect(artworkLabel({ state: "playing", name: "Kitchen speaker", title: "Sunday Morning" })).toBe("Artwork for Sunday Morning");
+    expect(artworkLabel({ state: "playing", name: "Kitchen speaker" })).toBe("Kitchen speaker artwork");
+    expect(artworkLabel({ state: "off", name: "Kitchen speaker", title: "Sunday Morning" })).toBe("Kitchen speaker artwork");
   });
 
   it("says what it can do, or that it is view only", () => {
