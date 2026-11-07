@@ -90,46 +90,43 @@ function PhoneDashboard() {
 
 export const Phone: Story = { render: () => <PhoneDashboard /> };
 
-/** Tablet, landscape: the hero light beside the nursery's sound machine; the house's status (the door, the alarm, the
-    upstairs heating as a lead bundle, the fan) beside the nursery; then the outside beside the room glance. */
-export const Tablet: Story = {
-  render: () => (
+const TABLET_SECTIONS = [["quick", "Quick actions"], ["status", "Home status"], ["nursery", "Nursery"]] as const;
+
+/**
+ * The tablet's page: the hero light beside the nursery's sound machine, then the house's status beside the nursery,
+ * each section one screen of cards at the top of the page. It ends where the screen does; the nav docked at the bottom
+ * names each section.
+ */
+function TabletDashboard() {
+  const page = useRef<HTMLDivElement>(null);
+  const [reading, jump] = useScrollSpy(page);
+  const nav = <NavBar items={TABLET_SECTIONS.map(([id, label]) => ({ key: id, label, kind: "section", current: reading === id, onSelect: () => jump(id) }))} />;
+  return (
     <Device label="Tablet, landscape" width={1180} height={820}>
-      <DashboardPage title="Home" now={NOW} showTime>
-        <Section title="Quick actions" columns={2}>
+      <DashboardPage title="Home" now={NOW} showTime pageRef={page} nav={nav} style={{ minHeight: "100%" }}>
+        <Section id="quick" title="Quick actions" columns={2}>
           <Light light="dimmable" footprint="featured" />
           <Bundle bundle="nursery" />
         </Section>
         <Columns columns={2}>
-          <Section title="Home status">
+          <Section id="status" title="Home status">
             <Lock seed="locked" footprint="compact" />
             <Alarm alarm="ring" readOnly footprint="compact" />
-            <Bundle bundle="upstairs" />
             <Fan seed="ceiling" footprint="compact" />
           </Section>
-          <Section title="Nursery">
+          <Section id="nursery" title="Nursery">
             <Owlet seed="deep" />
             <Bundle bundle="sleep" />
-            <Humidifier seed="on" name="Humidifier" area="Nursery" footprint="compact" />
-          </Section>
-        </Columns>
-        <Columns columns={2}>
-          <Section title="Outside">
-            <Weather weather="partly" />
-            <Light light="onOff" footprint="compact" />
-            <Cover cover="garage" footprint="compact" />
-          </Section>
-          <Section title="Rooms" columns={2}>
-            <Sensor sensor="living" />
-            <Sensor sensor="bedroom" />
-            <Sensor sensor="bathroom" />
-            <Sensor sensor="basement" />
           </Section>
         </Columns>
       </DashboardPage>
     </Device>
-  ),
-};
+  );
+}
+
+/** Tablet, landscape: the hero light beside the nursery's sound machine, the house's status beside the nursery, and the
+    nav docked at the bottom; the whole 1180 × 820 surface fits without scrolling. */
+export const Tablet: Story = { render: () => <TabletDashboard /> };
 
 /** Wall panel, landscape: one column per place, ordered actions, status, then glance. */
 export const WallPanel: Story = {
@@ -157,12 +154,15 @@ export const WallPanel: Story = {
             <Bundle bundle="nursery" />
             <Owlet seed="deep" />
             <Climate unit="nurseryDyson" footprint="compact" />
+            <Humidifier seed="on" name="Humidifier" area="Nursery" />
           </Section>
           <Section title="Outside">
-            <Weather weather="partly" />
+            <Weather weather="rain" />
+            <Sensor sensor="outdoor" name="Air" />
             <Lock seed="locked" footprint="compact" />
             <Alarm alarm="ring" readOnly footprint="compact" />
             <Cover cover="garage" footprint="compact" />
+            <Cover cover="gate" footprint="compact" />
             <Light light="onOff" footprint="compact" />
           </Section>
         </Columns>

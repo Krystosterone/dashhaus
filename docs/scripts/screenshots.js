@@ -4,10 +4,10 @@
  * at four device pixels per CSS pixel and kept at three or more, so they stay sharp on a high-density screen at the
  * largest size the site shows them (the pages give each a srcset, so a smaller screen downloads less):
  *
- * - `src/assets/skins/<device>-<skin>-<look>.webp`: each skin's phone and tablet examples, and Field's wall panel, the
- *   screen alone, at three times the device's width. The home page shows the phone's while the live story loads, and
- *   in its place where the story can't run; the skins' Marketplace READMEs open on the tablet's, and Field's carries the
- *   wall panel's below it.
+ * - `src/assets/skins/<device>-<skin>-<look>.webp`: each skin's phone and tablet examples, and its wall panel, the
+ *   screen alone, at three times the device's width. The home page shows the phone's while the live story loads, and in
+ *   its place where the story can't run; each skin's Marketplace README opens on the tablet's and carries the wall
+ *   panel's below it.
  * - `src/assets/kinds/<kind>-<look>.webp`: one card of each kind of entity, Orb's tile over Field's module, at four
  *   times its 400 × 500 band, for the home page's list of what the skins draw.
  * - `src/assets/layout/composition-<device>-<look>.webp`: the Orb Lovelace card's Composition stories on a tablet and a
@@ -112,15 +112,17 @@ try {
     }
   }
 
-  /** Field's wall panel, the second picture its Marketplace README carries: the 1280 × 800 screen alone. */
-  for (const [look, globals] of Object.entries(LOOKS.field)) {
-    await page.setViewportSize({ width: 1400, height: 900 });
-    await open("field-dashboards-examples--wall-panel", globals);
-    const screen = page.locator("#storybook-root figure > div").first();
-    const { width } = await screen.boundingBox();
-    const shot = await screen.screenshot({ animations: "disabled" });
-    await sharp(shot).resize({ width: Math.round(width * KEPT) }).webp({ quality: 82 }).toFile(join(assets, "skins", `wall-panel-field-${look}.webp`));
-    console.log(`wrote skins/wall-panel-field-${look}.webp`);
+  /** Each skin's wall panel, the second picture its Marketplace README carries: the 1280 × 800 screen alone. */
+  for (const [skin, story] of [["orb", "orb-dashboards-examples--wall-panel"], ["field", "field-dashboards-examples--wall-panel"]]) {
+    for (const [look, globals] of Object.entries(LOOKS[skin])) {
+      await page.setViewportSize({ width: 1400, height: 900 });
+      await open(story, globals);
+      const screen = page.locator("#storybook-root figure > div").first();
+      const { width } = await screen.boundingBox();
+      const shot = await screen.screenshot({ animations: "disabled" });
+      await sharp(shot).resize({ width: Math.round(width * KEPT) }).webp({ quality: 82 }).toFile(join(assets, "skins", `wall-panel-${skin}-${look}.webp`));
+      console.log(`wrote skins/wall-panel-${skin}-${look}.webp`);
+    }
   }
 
   /** The same YAML drawn at two widths: the story's page, as wide as its device, down to its last row. */
