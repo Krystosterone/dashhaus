@@ -4,8 +4,9 @@
  * at four device pixels per CSS pixel and kept at three or more, so they stay sharp on a high-density screen at the
  * largest size the site shows them (the pages give each a srcset, so a smaller screen downloads less):
  *
- * - `src/assets/skins/phone-<skin>-<look>.webp`: each skin's phone example, the screen alone, at three times the
- *   phone's width. The home page shows it while the live story loads, and in its place where the story can't run.
+ * - `src/assets/skins/<device>-<skin>-<look>.webp`: each skin's phone and tablet examples, the screen alone, at three
+ *   times the device's width. The home page shows the phone's while the live story loads, and in its place where the
+ *   story can't run; the skins' Marketplace READMEs open on the tablet's.
  * - `src/assets/kinds/<kind>-<look>.webp`: one card of each kind of entity, Orb's tile over Field's module, at four
  *   times its 400 × 500 band, for the home page's list of what the skins draw.
  * - `src/assets/layout/composition-<device>-<look>.webp`: the Orb Lovelace card's Composition stories on a tablet and a
@@ -95,14 +96,18 @@ try {
     return sharp(png).resize(width * DRAWN, height * DRAWN).png().toBuffer();
   };
 
+  /** Each skin's example device, the screen alone: the phone's frame fits the page, the tablet's needs a wider one. */
   for (const [skin, looks] of Object.entries(LOOKS)) {
     for (const [look, globals] of Object.entries(looks)) {
-      await open(`${skin}-dashboards-examples--phone`, globals);
-      const phone = page.locator("#storybook-root figure > div").first();
-      const { width } = await phone.boundingBox();
-      const screen = await phone.screenshot({ animations: "disabled" });
-      await sharp(screen).resize({ width: Math.round(width * KEPT) }).webp({ quality: 82 }).toFile(join(assets, "skins", `phone-${skin}-${look}.webp`));
-      console.log(`wrote skins/phone-${skin}-${look}.webp`);
+      for (const [device, viewport] of [["phone", { width: 1000, height: 1000 }], ["tablet", { width: 1280, height: 1000 }]]) {
+        await page.setViewportSize(viewport);
+        await open(`${skin}-dashboards-examples--${device}`, globals);
+        const screen = page.locator("#storybook-root figure > div").first();
+        const { width } = await screen.boundingBox();
+        const shot = await screen.screenshot({ animations: "disabled" });
+        await sharp(shot).resize({ width: Math.round(width * KEPT) }).webp({ quality: 82 }).toFile(join(assets, "skins", `${device}-${skin}-${look}.webp`));
+        console.log(`wrote skins/${device}-${skin}-${look}.webp`);
+      }
     }
   }
 
