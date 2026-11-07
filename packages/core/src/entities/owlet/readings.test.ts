@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fmtBpm, fmtOxygen, normalize, owletSeverity, rankAlerts } from "./readings";
+import { ALERT_SAID, ALERT_WORD, SLEEP_UNKNOWN, fmtBpm, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "./readings";
+import { owletSeverity } from "./severity";
 
 describe("normalize", () => {
   it("scales readings between 0.12 and 1, keeping gaps and hours ahead", () => {
@@ -46,5 +47,20 @@ describe("owletSeverity", () => {
   it("leaves a low battery advisory, and a quiet sock at nothing", () => {
     expect(owletSeverity(["low_battery"])).toBe("advisory");
     expect(owletSeverity()).toBeUndefined();
+  });
+});
+
+describe("owlet words", () => {
+  it("has a short word for every alert, and says each in full aloud", () => {
+    expect(Object.keys(ALERT_SAID).sort()).toEqual(Object.keys(ALERT_WORD).sort());
+    expect(ALERT_SAID.critical_oxygen).toBe("Critical oxygen");
+  });
+
+  it("says readings that stopped in a row's room, the time without its day, and whole aloud", () => {
+    expect(staleText("11:49")).toBe("Stopped 11:49");
+    expect(staleText("Fri 18:30")).toBe("Stopped 18:30");
+    expect(staleText()).toBe("Stopped");
+    expect(staleSaid("Fri 18:30")).toBe("No new reading since Fri 18:30");
+    expect(SLEEP_UNKNOWN).toBe("Sleep unknown");
   });
 });

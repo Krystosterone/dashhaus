@@ -51,7 +51,8 @@ describe("SoundModule", () => {
   it("leads the screen with the volume while it plays, and keeps the volume to the panel", () => {
     const { container } = draw("on");
     expect(container.querySelector(".fd-read")?.textContent).toBe("62%");
-    expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^Playing/);
+    // spec/cards.md → its words live in core: the state word every skin says, On.
+    expect(container.querySelector(".fd-meta")?.textContent).toMatch(/^On/);
     expect(container.querySelector(".fd-pict")?.getAttribute("data-param")).toBe("a");
     // A stray tap beside a sleeping baby must not jump the volume: the module carries no fader.
     expect(container.querySelector(".fd-fader")).toBeNull();

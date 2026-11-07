@@ -167,14 +167,16 @@ export function AlertStatus({ label, children }: { label: string; children: Reac
 /**
  * An alarm that has gone off, in the slot: the one place warn fills (spec/orb.md → One UI language). Its alert on the
  * left in bold, any others after it while there is room (`more`), and its figure or since when on the right
- * (`value`). Pass it to `CardFrame`'s `urgent`, which shows it over the card's control or value in every footprint.
- * Announced once, as an alert.
+ * (`value`), then the one thing to do about it where there is one (`action`, a security alarm's Disarm; a compact row
+ * keeps the alert and the action). Pass it to `CardFrame`'s `urgent`, which shows it over the card's control or value
+ * in every footprint. Announced once, as an alert.
  */
-export function AlarmPill({ alert, more, value }: { alert: ReactNode; more?: ReactNode; value?: ReactNode }) {
+export function AlarmPill({ alert, more, value, action }: { alert: ReactNode; more?: ReactNode; value?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="hd-alarm" role="alert">
+    <div className="hd-alarm" role="alert" data-action={action ? "" : undefined}>
       <span className="hd-alarm-l"><b>{alert}</b>{more && <span className="hd-alarm-c"> · {more}</span>}</span>
       {value && <span className="hd-alarm-v">{value}</span>}
+      {action}
     </div>
   );
 }
@@ -205,10 +207,14 @@ export function Facts({ start, end, warn }: { start?: ReactNode; end?: ReactNode
   );
 }
 
-export function UnavailableSlot({ lastSeen }: { lastSeen?: string }) {
+/**
+ * The slot of an entity Home Assistant reports unavailable: a dashed outline, its word and when it was last seen.
+ * `word` says why where the card knows ("Charging"); default "Unavailable".
+ */
+export function UnavailableSlot({ lastSeen, word = "Unavailable" }: { lastSeen?: string; word?: string }) {
   return (
     <div className="hd-unav">
-      <span>Unavailable</span>
+      <span>{word}</span>
       {lastSeen && <span className="hd-unav-t">Last seen {lastSeen}</span>}
     </div>
   );
@@ -630,6 +636,8 @@ export interface CardFrameProps {
   unavailable?: boolean;
   /** When an unavailable entity was last seen: the slot and `Today` say so. */
   lastSeen?: string;
+  /** The unavailable slot's word where the card knows why ("Charging"). Default "Unavailable". */
+  unavailableWord?: string;
   /** Card only: the name, and a press and hold on the orb, open the details. */
   onOpen?: () => void;
   /** What the name's button adds to it for screen readers. Default "details". */
@@ -664,10 +672,10 @@ export interface CardFrameProps {
   children?: ReactNode;
 }
 
-export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotInner, facts, children }: CardFrameProps) {
+export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotInner, facts, children }: CardFrameProps) {
   const { article, nameId, sheet, compact, bare } = card;
   const open = sheet ? undefined : onOpen;
-  const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} /> : control);
+  const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} word={unavailableWord} /> : control);
   return (
     <FrameContext.Provider value={{ sheet, unavailable, lastSeen }}>
       <article {...article} {...attrs}>

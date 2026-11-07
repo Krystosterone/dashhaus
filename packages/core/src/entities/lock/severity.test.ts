@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { JAMMED_MEANING, LOCK_WORD } from "./words";
 import { lockSeverity } from "./severity";
 import type { LockEntity } from "./types";
 
@@ -11,5 +12,13 @@ describe("lockSeverity", () => {
     expect(lockSeverity({ ...e, battery: 16 })).toBeUndefined();
     expect(lockSeverity({ ...e, state: "unlocked" })).toBeUndefined();
     expect(lockSeverity({ ...e, state: "unavailable", battery: 2 })).toBeUndefined();
+  });
+});
+
+describe("lock words", () => {
+  it("says every state, the verb while it moves, and Home Assistant's Open for an unlatched door", () => {
+    expect(LOCK_WORD.open).toBe("Open");
+    expect(LOCK_WORD.opening).toBe("Opening");
+    expect(JAMMED_MEANING).toBe("May not be locked");
   });
 });

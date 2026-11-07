@@ -31,7 +31,10 @@ export function uvBand(uv: number): { label: string } {
 
 /** Air over this US AQI is a warning. */
 export const AQI_WARN = 100;
-/** Gusts from this speed are a warning. */
+/**
+ * Gusts from this speed are a warning: Beaufort force 7, "near gale" (50–61 km/h), where walking against the wind
+ * gets hard and loose things blow about. A published band, as the air's and the UV's, not a threshold of the card's.
+ */
 export const GUST_WARN_KMH = 50;
 /** A UV index from "Very high" up is a warning. */
 export const UV_WARN = 8;
@@ -40,14 +43,22 @@ export const airWarns = (e: WeatherEntity) => e.aqi != null && e.aqi > AQI_WARN;
 export const gustWarns = (e: WeatherEntity) => e.windGustSpeed != null && toKmh(e.windGustSpeed, e.windSpeedUnit) >= GUST_WARN_KMH;
 export const uvWarns = (e: WeatherEntity) => e.uvIndex != null && e.uvIndex >= UV_WARN;
 
-/** What about the weather is worth acting on, most urgent first: poor air, strong gusts, high UV. None while unavailable. */
+/**
+ * What about the weather is worth acting on, most urgent first: poor air, strong gusts, high UV, each in 13 characters
+ * at most so a row keeps it whole (spec/cards.md → a warning's words fit a row). None while unavailable.
+ */
 export function weatherWarnings(e: WeatherEntity): string[] {
   if (e.state === "unavailable") return [];
   return [
     airWarns(e) ? (e.aqi! > 300 ? "Hazardous air" : e.aqi! > 200 ? "Very poor air" : "Poor air") : null,
-    gustWarns(e) ? `Gusts ${Math.round(e.windGustSpeed!)} ${e.windSpeedUnit}` : null,
+    gustWarns(e) ? "Strong gusts" : null,
     uvWarns(e) ? `${uvBand(e.uvIndex!).label} UV` : null,
   ].filter((x): x is string => !!x);
+}
+
+/** The warnings said whole, for a screen reader: as `weatherWarnings`, with the gusts' speed ("Gusts 84 km/h"). */
+export function weatherWarningsSaid(e: WeatherEntity): string[] {
+  return weatherWarnings(e).map((word) => (word === "Strong gusts" ? `Gusts ${Math.round(e.windGustSpeed!)} ${e.windSpeedUnit}` : word));
 }
 
 /**

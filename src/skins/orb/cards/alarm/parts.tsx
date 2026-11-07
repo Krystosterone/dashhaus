@@ -47,16 +47,6 @@ export function Countdown({ kind, label, left, total, action, onAction }: { kind
   );
 }
 
-/** Triggered: the one place the warn colour fills. What set it off, and Disarm (not in view-only mode). */
-export function AlarmPill({ cause, onDisarm }: { cause?: string; onDisarm?: () => void }) {
-  return (
-    <div className="al-alarm" role="alert">
-      <span className="al-alarm-l"><b>Alarm</b>{cause ? <span className="al-alarm-c"> · {cause}</span> : null}</span>
-      {onDisarm && <button type="button" className="al-cd-b al-alarm-b" onClick={onDisarm}>Disarm</button>}
-    </div>
-  );
-}
-
 /**
  * View-only mode's slot, in place of the mode switch: what the alarm is doing, nothing to press.
  * A readout, with no container: the badge says armed. Who changed it, from M up.

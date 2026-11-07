@@ -3,7 +3,7 @@ import type { BinarySensorEntity, BinarySensorHistory } from "@dashhaus/core/ent
 import type { BinarySensorClass } from "@dashhaus/core/entities/binarySensor/types";
 import { ALERT_SPOKEN, alertText, alertWord, pictureOf, stateWord, wordsOf } from "@dashhaus/core/entities/binarySensor/words";
 import { stateSeverity } from "@dashhaus/core/entities/binarySensor/severity";
-import { isLowBattery } from "@dashhaus/core/entities/battery";
+import { batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { fmtAgo } from "@dashhaus/core/entities/format";
@@ -71,7 +71,7 @@ export function BinarySensorModule({ entity: e, history, footprint = "standard",
   const stateLevel = stateSeverity(e);
   // The screen says the warning's word over since when; a row, with no meta lines, says both on one ("Open since 18:30").
   const said = stateLevel ? alertWord(e) : undefined;
-  const lowBattery = !unav && isLowBattery(e.battery) ? `Battery ${e.battery}%` : undefined;
+  const lowBattery = !unav && isLowBattery(e.battery) ? batteryText(e.battery) : undefined;
   const battery = !stateLevel ? lowBattery : undefined;
 
   const pict = <Pictogram param="neutral" lit={on}>{BINARY_SENSOR_PICT[picture]}</Pictogram>;
@@ -80,7 +80,7 @@ export function BinarySensorModule({ entity: e, history, footprint = "standard",
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
     : stateLevel === "alarm" && compact ? (ago != null ? <><span className="fd-sr">{word}, </span>{ago < 1 ? "NOW" : fmtAgo(ago)}</> : <Blank places={4} label={word} />)
     : <><span aria-hidden="true">{figureOf(e.deviceClass, on)}</span><span className="fd-sr">{word}</span></>;
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
+  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
     // The figure is the alarm (SMOKE, GAS, CO): its first line says it was detected, as the alarm's names its cause.
     : stateLevel === "alarm" ? [`${words.today.charAt(0).toUpperCase()}${words.today.slice(1)}`, since]
     : stateLevel === "urgent" ? [<Warn key="w" block>{said}</Warn>, since]
@@ -119,10 +119,10 @@ export function BinarySensorModule({ entity: e, history, footprint = "standard",
           <Today summary={summary} label={label} tone="neutral" samples={history?.samples} currentHour={history?.currentHour} />
         </ModuleRow>
       )}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.battery != null && !unav ? `Battery ${e.battery}%` : "" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: e.battery != null && !unav ? batteryText(e.battery) : "" }}
     >
       {history && <Today summary={summary} label={label} tone="neutral" samples={history.samples} currentHour={history.currentHour} />}
-      {lowBattery && <p className="fd-hint"><Warn>{lowBattery}. Replace it soon.</Warn></p>}
+      {lowBattery && <p className="fd-hint"><Warn>{batteryAdvice(e.battery!)}</Warn></p>}
     </ModuleFrame>
   );
 }

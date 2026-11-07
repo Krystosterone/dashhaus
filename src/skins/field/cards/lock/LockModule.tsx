@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { LockAction, LockEntity, LockResult } from "@dashhaus/core/entities/lock/types";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
-import { isLowBattery } from "@dashhaus/core/entities/battery";
+import { batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
+import { JAMMED_MEANING, LOCK_WORD } from "@dashhaus/core/entities/lock/words";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Warn, useDetails, KeyGroup } from "../../shared/ui";
@@ -28,9 +29,6 @@ export interface LockModuleProps {
 
 /** The screen's figure, four places like a segment display's; the meta line says the state in words. */
 const FIGURE: Partial<Record<LockEntity["state"], string>> = { locked: "LOCK", unlocked: "OPEN", open: "OPEN", jammed: "JAM" };
-const WORD: Record<LockEntity["state"], string> = {
-  locked: "Locked", unlocked: "Unlocked", locking: "Locking", unlocking: "Unlocking", jammed: "Jammed", open: "Unlatched", opening: "Unlatching", unavailable: "Unavailable",
-};
 const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open: "Open door" };
 
 /**
@@ -71,20 +69,20 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
   };
 
   const since = sinceFact(e.lastChanged);
-  const word = WORD[e.state];
+  const word = LOCK_WORD[e.state];
   const pict = <Pictogram param="neutral" lit={locked}>{LOCK_PICT}</Pictogram>;
   const figure = FIGURE[e.state];
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
     : figure ? <><span aria-hidden="true">{figure}</span><span className="fd-sr">{word}</span></>
     : <Blank places={4} label={word} />;
-  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : jammed ? [<Warn key="w" block>Jammed</Warn>, "May not be locked"]
+  const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
+    : jammed ? [<Warn key="w" block>{LOCK_WORD.jammed}</Warn>, JAMMED_MEANING]
     : [word, e.changedBy && !moving ? `${since ? `${since} · ` : ""}${e.changedBy}` : since];
-  const battery = level === "advisory" ? `Battery ${e.battery}%` : undefined;
+  const battery = level === "advisory" ? batteryText(e.battery!) : undefined;
   // The plate shows one warning, and a jam outranks the battery there; the panel still lists a low battery (spec/field.md).
-  const lowBattery = !unav && isLowBattery(e.battery) ? `Battery ${e.battery}%` : undefined;
+  const lowBattery = !unav && isLowBattery(e.battery) ? batteryAdvice(e.battery) : undefined;
   // A row has no meta lines: the jam takes the area's line, in its block.
-  const warning = jammed ? "Jammed" : battery;
+  const warning = jammed ? LOCK_WORD.jammed : battery;
 
   const verb = locked ? "Unlock" : jammed ? "Lock again" : moving ? undefined : "Lock";
   const icon = <IconLock open={!unav && !locked && e.state !== "locking"} alert={jammed} />;
@@ -117,7 +115,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       warning={footprint === "compact" ? warning : battery}
       alert={level === "urgent" ? { level, what: "Jammed", startedAt: undefined } : undefined}
       panelFocus={pending ? "content" : undefined}
-      facts={pending ? undefined : { start: unav ? lastSeenFact(e.lastSeen) : changed, end: <>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · Battery ${e.battery}%` : ""}</> }}
+      facts={pending ? undefined : { start: unav ? lastSeenFact(e.lastSeen) : changed, end: <>{ro ? "View only" : e.codeFormat ? "Code to unlock" : "No code"}{e.battery != null && !unav ? ` · ${batteryText(e.battery)}` : ""}</> }}
       details={{ ...details, openDetails: openPanel }}
       pict={pict}
       read={read}
@@ -151,7 +149,7 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
               <KeyGroup legend="Door" columns={1}>{openKey}</KeyGroup>
             </div>
           )}
-          {lowBattery && <p className="fd-hint"><Warn>{lowBattery}. Replace it soon.</Warn></p>}
+          {lowBattery && <p className="fd-hint"><Warn>{lowBattery}</Warn></p>}
         </>
       )}
     </ModuleFrame>

@@ -34,7 +34,8 @@ describe("OwletCard", () => {
     const { container } = render(<OwletCard entity={{ ...sock, state: "unavailable" }} />);
     expect(container.querySelector("article")?.getAttribute("data-state")).toBe("unknown");
     expect(container.querySelector(".ow-sleep-none")?.textContent).toBe("Unknown");
-    expect(screen.getByRole("img", { name: "sleep state unknown, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
+    // spec/cards.md → its words live in core: `SLEEP_UNKNOWN`, the same in both skins.
+    expect(screen.getByRole("img", { name: "sleep unknown, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
   });
 
   it("is unavailable when the sock reports nothing", () => {
@@ -56,7 +57,8 @@ describe("OwletCard", () => {
     expect(card?.getAttribute("data-alert")).toBe("warn");
     expect(card?.hasAttribute("data-stale")).toBe(true);
     expect(container.querySelector(".ow-heart[data-live]")).toBeNull();
-    expect(screen.getByText("No new reading since 11:49")).toBeTruthy();
+    // spec/cards.md → a warning's words fit a row (13 characters): "Stopped 11:49" in every footprint, said whole aloud.
+    expect(screen.queryByText("No new reading since 11:49")).toBeNull();
     expect(screen.getByText("Stopped 11:49")).toBeTruthy();
     expect(screen.getByRole("img", { name: "Warning: Nova's sock has sent no new reading since 11:49" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "deep sleep, heart rate 121 beats per minute, oxygen 98 percent, no new reading since 11:49" })).toBeTruthy();
@@ -80,13 +82,14 @@ describe("OwletCard", () => {
 
   it("names every vitals alert, the most urgent first, with the matching figure", () => {
     const { container } = render(<OwletCard entity={{ ...sock, heartRate: 71, alerts: ["low_heart_rate", "critical_oxygen"] }} footprint="compact" showControl={false} />);
-    expect(screen.getByRole("alert").textContent).toBe("Critical oxygen · Low heart rate98% O₂");
-    expect(container.querySelector(".hd-sub")?.textContent).toBe("Critical oxygen · 98% O₂ · Low heart rate");
+    // spec/cards.md → a warning's words fit a row (13 characters, `ALERT_WORD`); the details' list says each in full.
+    expect(screen.getByRole("alert").textContent).toBe("Critical O₂ · Low pulse98% O₂");
+    expect(container.querySelector(".hd-sub")?.textContent).toBe("Critical O₂ · 98% O₂ · Low pulse");
   });
 
   it("sounds the alarm even when the readings are gone, and in a compact row without its control", () => {
     render(<OwletCard entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, alerts: ["low_heart_rate"] }} footprint="compact" showControl={false} />);
-    expect(screen.getByRole("alert").textContent).toBe("Low heart rate");
+    expect(screen.getByRole("alert").textContent).toBe("Low pulse");
   });
 
   it("leads the status line with a device problem in words, over a stale warning", () => {
@@ -97,8 +100,11 @@ describe("OwletCard", () => {
   });
 
   it("says Charging, not Unavailable, while the sock is on its charger", () => {
-    render(<OwletCard entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, charging: true }} />);
-    expect(screen.getByText("Charging")).toBeTruthy();
+    const { container } = render(<OwletCard entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, charging: true, lastSeen: "07:12" }} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Charging");
+    // Home Assistant reports it unavailable: the slot keeps its dashed outline, and says why.
+    expect(container.querySelector(".hd-unav")?.textContent).toBe("ChargingLast seen 07:12");
+    expect(screen.queryByText("Unavailable")).toBeNull();
   });
 
   it("lists every alert in the sheet", () => {
@@ -107,16 +113,19 @@ describe("OwletCard", () => {
     expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(["High heart rate", "Battery low"]);
   });
 
-  it("puts the vitals alert on the compact value line, and the figures on the status line beside the pill", () => {
+  it("puts the vitals alert on the compact value line, its figure in the pill, and the plain sleep state on the status line", () => {
     const { container } = render(<OwletCard entity={{ ...sock, oxygen: 86, alerts: ["low_oxygen"] }} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Low oxygen · 86% O₂");
-    expect(container.querySelector(".hd-area")?.textContent).toBe("121 bpm · 86% O₂");
+    // spec/orb.md → an alarm fills the slot with AlarmPill, its value on the right in compact rows too, and the status
+    // line keeps its plain words under it.
+    expect(screen.getByRole("alert").textContent).toBe("Low oxygen86% O₂");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Deep sleep");
   });
 
   it("keeps the sleep state on a compact row's status line, after any warning", () => {
     const status = (entity: OwletEntity) => render(<OwletCard entity={entity} footprint="compact" />).container.querySelector(".hd-area")?.textContent;
     expect(status(sock)).toBe("Deep sleep");
-    expect(status({ ...sock, live: false, lastUpdated: "11:49" })).toBe("No new reading since 11:49Stopped 11:49 · Deep sleepDeep");
+    expect(status({ ...sock, live: false, lastUpdated: "11:49" })).toBe("Stopped 11:49 · Deep sleepDeep");
     expect(status({ ...sock, alerts: ["low_battery"] })).toBe("Battery low · Deep sleepDeep");
     expect(status({ ...sock, baseOn: false })).toBe("Base station off · Deep sleepDeep");
   });

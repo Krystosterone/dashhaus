@@ -18,3 +18,6 @@ export const lastChangedFact = (lastChanged?: string, by?: string) => (lastChang
 
 /** When it last reported: "Updated 10:42", "Live · updated 10:42", or "" when it doesn't say. */
 export const updatedFact = (lastUpdated?: string, live?: boolean) => (lastUpdated ? `${live ? "Live · updated" : "Updated"} ${lastUpdated}` : "");
+
+/** A reading as it is now, beside a target it is held to: "20.4° now", "38% now". */
+export const nowText = (figure: string) => `${figure} now`;

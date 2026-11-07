@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "@dashhaus/core/entities/weather/types";
 import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "@dashhaus/core/entities/weather/conditions";
-import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
+import { aqiBand, conditionLabel, deg0, isNight, rangeText, todayRange, uvBand, weatherWarnings, weatherWarningsSaid } from "@dashhaus/core/entities/weather/readings";
+import { weatherSeverity } from "@dashhaus/core/entities/weather/severity";
 import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { ConditionIcon } from "./conditions";
 import { AlertStatus, CardFrame, Readout, SheetBlock, fmt1, paint, useCard, detailsSheet } from "../../shared/ui";
@@ -74,12 +75,15 @@ function NextHours({ hours, empty }: { hours: HourlyForecast[]; empty: string })
   );
 }
 
-/** A read-only reading in the sheet, shaped like a chip. */
-function Stat({ label, value, sub, warn }: { label: string; value: ReactNode; sub?: string; warn?: boolean }) {
+/**
+ * A read-only reading in the sheet, shaped like a chip. Its figure keeps its own ink: the status line's marker already
+ * names every warning, so a figure is never a second warn channel (spec/orb.md → the warn colour).
+ */
+function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
   return (
     <div className="wx-stat">
       <span className="wx-stat-l">{label}</span>
-      <span className={warn ? "wx-stat-v hd-warn" : "wx-stat-v"}>{value}</span>
+      <span className="wx-stat-v">{value}</span>
       {sub && <span className="wx-stat-s">{sub}</span>}
     </div>
   );
@@ -113,6 +117,8 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
   // Warnings come first, in the warn colour, like a sensor's low battery.
   const band = e.aqi != null ? aqiBand(e.aqi) : null;
   const warnings = weatherWarnings(e);
+  // Core ranks them (any is advisory); the card draws the level it is given.
+  const level = weatherSeverity(e);
   // On a card the most urgent warning leads with a count of the rest ("Hazardous air +2"), so an ellipsis
   // never hides that more exist; under 260 px, where even that clips, the count alone ("3 warnings"). The
   // sheet names them all, and the alert label always speaks all of them.
@@ -120,7 +126,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
     ? <><span className="wx-warn-l">{`${warnings[0]} +${warnings.length - 1}`}</span><span className="wx-warn-s">{`${warnings.length} warnings`}</span></>
     : warnings[0] ?? null;
   const warningText = sheet ? warnings.join(" · ") : warningSummary;
-  const alertLabel = warnings.length ? `Warning: ${e.name}: ${warnings.join(", ")}` : null;
+  const alertLabel = level ? `Warning: ${e.name}: ${weatherWarningsSaid(e).join(", ")}` : null;
 
   // Most urgent first: warnings, rain or snow, then the condition and today's low–high.
   const rest = [precip, condition, range].filter(Boolean).join(" · ");
@@ -130,7 +136,8 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
 
   const readLabel = t == null ? "" : `${fmt1(t)} degrees now${feels != null ? `, feels like ${Math.round(feels) || 0}` : ""}`;
   let slot;
-  if (t == null) slot = <div className="hd-unav"><span>No temperature yet</span></div>;
+  // Before a first temperature the figure's place waits, as every reading's does; a dashed outline means unavailable only.
+  if (t == null) slot = <Readout label={`${e.name}: No reading yet`} onOpen={sheet ? undefined : onOpenDetails}><span className="hd-bar wx-bar"><span className="hd-none">Waiting…</span></span></Readout>;
   else slot = <Reading now={t} feels={feels} label={readLabel} onOpen={sheet ? undefined : onOpenDetails} />;
 
   const nextHours = (hourly ?? []).filter((h) => h.hour > hour && h.hour <= hour + HOURS_AHEAD);
@@ -146,7 +153,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": warnings.length ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": level ? "warn" : undefined, ...colors }}
       glyph={<ConditionIcon condition={cond ?? "unavailable"} night={night} />}
       unavailable={unav}
       lastSeen={e.lastSeen}
@@ -162,7 +169,7 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
       // The sheet already says now (the large figure) and feels-like (its tile); its slot only reports a missing reading.
       slot={!(sheet && t != null)}
       control={slot}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : "", end: !unav && updatedFact(e.lastUpdated) }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated) }}
     >
       {!unav && (
         <SheetBlock>
@@ -170,9 +177,9 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
             {e.apparentTemperature != null && <Stat label="Feels like" value={deg(e.apparentTemperature)} sub={e.dewPoint != null ? `Dew point ${deg(e.dewPoint)}` : undefined} />}
             {e.humidity != null && <Stat label="Humidity" value={<>{Math.round(e.humidity)}<small>%</small></>} />}
             {e.windSpeed != null && <Stat label="Wind" value={<>{Math.round(e.windSpeed)}<small> {e.windSpeedUnit}</small></>}
-              sub={[e.windBearing != null ? compass(e.windBearing) : null, e.windGustSpeed != null ? `gusts ${Math.round(e.windGustSpeed)}` : null].filter(Boolean).join(", ") || undefined} warn={gustWarns(e)} />}
-            {band && <Stat label="Air quality" value={Math.round(e.aqi!)} sub={band.label} warn={airWarns(e)} />}
-            {e.uvIndex != null && <Stat label="UV index" value={Math.round(e.uvIndex)} sub={uvBand(e.uvIndex).label} warn={uvWarns(e)} />}
+              sub={[e.windBearing != null ? compass(e.windBearing) : null, e.windGustSpeed != null ? `gusts ${Math.round(e.windGustSpeed)}` : null].filter(Boolean).join(", ") || undefined} />}
+            {band && <Stat label="Air quality" value={Math.round(e.aqi!)} sub={band.label} />}
+            {e.uvIndex != null && <Stat label="UV index" value={Math.round(e.uvIndex)} sub={uvBand(e.uvIndex).label} />}
             {e.pressure != null && <Stat label="Pressure" value={<>{e.pressureUnit === "inHg" ? e.pressure.toFixed(2) : Math.round(e.pressure)}<small> {e.pressureUnit}</small></>} />}
           </div>
         </SheetBlock>

@@ -42,7 +42,7 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
       readout={{ value: unav ? null : word }}
       onClose={onClose}
       control={<TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav && e.area ? e.area : "" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged) }}
     >
       {history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary("on", history.onMinutes)} />}
     </CardFrame>

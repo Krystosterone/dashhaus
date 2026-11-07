@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { alarmSeverity, mmss, modeChoices, needsCode } from "./modes";
+import { ARMED_LABEL, mmss, modeChoices, needsCode } from "./modes";
+import { alarmSeverity } from "./severity";
+import { alarmWarning, listOf, openSentence, warningLine } from "./words";
 
 describe("modeChoices", () => {
   it("puts Off before the panel's modes", () => {
@@ -42,5 +44,30 @@ describe("alarmSeverity", () => {
     expect(alarmSeverity({ state: "disarmed", openSensors: [] })).toBeUndefined();
     expect(alarmSeverity({ state: "armed_away", openSensors: ["Back door"] })).toBeUndefined();
     expect(alarmSeverity({ state: "arming" })).toBeUndefined();
+  });
+});
+
+describe("alarm words", () => {
+  it("says each armed mode in Title case, short enough for a row (spec/cards.md → state words)", () => {
+    expect(ARMED_LABEL.custom_bypass).toBe("Armed custom");
+    for (const label of Object.values(ARMED_LABEL)) expect(label.length).toBeLessThanOrEqual(14);
+  });
+
+  it("says its warning's word first, the sensor after it, and the whole sentence aloud", () => {
+    const triggered = alarmWarning({ state: "triggered", triggeredBy: "Back door" })!;
+    expect(triggered).toEqual({ word: "Triggered", detail: "Back door", said: "Triggered by Back door" });
+    expect(alarmWarning({ state: "pending", triggeredBy: "Front door" })).toEqual({ word: "Entry delay", detail: "Front door", said: "Entry delay, Front door opened" });
+    const open = alarmWarning({ state: "disarmed", openSensors: ["Back door", "Kitchen window"] })!;
+    expect(open).toEqual({ word: "2 open", detail: "Back door, Kitchen window", said: "Back door and Kitchen window are open" });
+    expect(alarmWarning({ state: "disarmed", openSensors: ["Back door"] })?.word).toBe("Open");
+    expect(alarmWarning({ state: "armed_away", openSensors: ["Back door"] })).toBeUndefined();
+    expect(alarmWarning({ state: "unavailable" })).toBeUndefined();
+    expect(warningLine(triggered)).toBe("Triggered · Back door");
+    expect(warningLine({ word: "Triggered" })).toBe("Triggered");
+  });
+
+  it("lists what is open in a sentence", () => {
+    expect(listOf(["Hall", "Back door", "Kitchen window"])).toBe("Hall, Back door and Kitchen window");
+    expect(openSentence(["Back door"])).toBe("Back door is open.");
   });
 });

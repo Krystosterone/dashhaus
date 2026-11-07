@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
-import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
+import { DIRECTION_LABEL, fanAbilities, fanMode, fanWord, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, Pictogram, Today, choices, useDetails, Channel } from "../../shared/ui";
@@ -56,7 +56,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
     : pct != null ? <><Digits value={pct} /><small>%</small></>
     : "ON";
   const first = fanMode(e);
-  const since = unav ? (e.lastSeen ? `Seen ${e.lastSeen}` : undefined) : sinceFact(e.lastChanged);
+  const since = unav ? (e.lastSeen ? lastSeenFact(e.lastSeen) : undefined) : sinceFact(e.lastChanged);
   const meta: [string, string?] | undefined = unav ? ["Unavailable", since] : first ? [first, since] : since ? [since] : undefined;
 
   // The hub always lights while on, so the first of three speeds still reads lit; the blades fill with the speed.
@@ -68,7 +68,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
   const at = speed ?? 1;
   const controls = (where: "m" | "p") => (
     <ModuleRow className="fd-fn-row" solo={!faded}>
-      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? (on ? "On" : "Off") : undefined}>
+      <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={openPanel} wide={!faded} caption={!faded && !unav ? fanWord(e) : undefined}>
         <IconFan />
       </Key>
       {faded && (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { isGroupedCode, joinWords, lastsWords, newSecretWords, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
+import { NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { GuestWifiIcon } from "./icons";
 import { CardFrame, Confirm, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -42,8 +42,8 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
   const colors = paint("reading", 0);
 
   const terms = ready ? [usesWords(e), lastsWords(e)].filter(Boolean).join(" · ") : "";
-  const none = password ? "No password set" : "No code to give";
-  const text = unav ? "Unavailable" : ready ? e.code! : `No ${secret}`;
+  const none = noneWord(e);
+  const text = unav ? "Unavailable" : ready ? e.code! : none;
   const spoken = ready ? `${secret} ${spokenCode(e.code!)}` : none.toLowerCase();
   const status = unav ? "Unavailable" : e.network ?? card.area;
   // A voucher's ten digits fit the card at the readout's size; free text shrinks, and past that is cut, whole in the sheet.
@@ -71,7 +71,8 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
     <div className="gw-join" data-qr={ready && e.qr ? "" : undefined}>
       {ready && e.qr && <img className="gw-qr" src={e.qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} />}
       <p className="gw-how">
-        {ready ? joinWords(e) : sheet ? (password ? "No password is set." : "Every code has been used. Make a new one to give.") : `${none}. Make a new one in its details.`}
+        {/* The sheet has New code under it; the card says where to find it. */}
+        {ready ? joinWords(e) : sheet ? noneSentence(e) : `${none}. ${NONE_HINT}.`}
         {featured && terms && <span className="gw-terms">{terms}</span>}
       </p>
     </div>
@@ -91,7 +92,8 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
       onClose={onClose}
       control={sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
         : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : e.created ? `Made ${e.created}` : "", end: unav ? e.area ?? "" : updatedFact(e.lastUpdated) }}
+      // When first (it last reported, or was last seen), then its code: when that was made.
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: unav ? "" : madeFact(e.created) }}
     >
       {join}
       <SheetBlock>

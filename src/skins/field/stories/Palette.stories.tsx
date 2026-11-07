@@ -80,7 +80,7 @@ function Parts() {
       <Role title="Unavailable" rule="The screen blanks and says so, with when it was last seen; every control lies flat and disabled. No reading or target is made up.">
         <div style={{ display: "grid", gap: 10, width: "100%" }}>
           <ScreenAt>
-            <Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>} meta={["Unavailable", "Seen 10:42"]}>
+            <Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>} meta={["Unavailable", "Last seen 10:42"]}>
               <Blank label="Unavailable" />
             </Screen>
           </ScreenAt>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastChangedFact, lastSeenFact, sinceFact, unavailableSince, updatedFact } from "./facts";
+import { lastChangedFact, lastSeenFact, nowText, sinceFact, unavailableSince, updatedFact } from "./facts";
 
 describe("facts", () => {
   it("says when an unavailable entity was last seen, even when nobody knows", () => {
@@ -21,5 +21,9 @@ describe("facts", () => {
     expect(updatedFact("10:42")).toBe("Updated 10:42");
     expect(updatedFact("10:42", true)).toBe("Live · updated 10:42");
     expect(updatedFact()).toBe("");
+  });
+
+  it("says a reading as it is now, in one word every skin shares", () => {
+    expect(nowText("20.4°")).toBe("20.4° now");
   });
 });

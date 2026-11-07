@@ -63,7 +63,7 @@ Applied from Emil Kowalski's design-engineering skills (emil-design-eng, review-
   - The values: long and compound names, missing areas, raw floats, readings near zero or far past comfort, no reading yet, handles that meet, and every mode, preset and fan option.
   - A Demo / Worst case toggle switches the data. Check it after any change.
 - **Compact cards without a control.** Every card accepts `showControl={false}` when `footprint="compact"` (default true). The card then has no pill, bar, stepper or switch: the value replaces it, and tapping the row opens the detail sheet. An actionable orb keeps its tap (switch) and hold (details). This works in bundles because bundles use the same tile contract. **Foundations / Compact rows** shows every card both ways.
-  - The value is short where the status line already says the rest: the thermostat shows its setpoint ("Set 21.5°"), a mode "On", the home row its temperature.
+  - The value is short where the status line already says the rest: the thermostat shows its mode and setpoint ("Heat · 21.5°"), a mode "On", the home row its temperature.
   - Under 320 px a compact card already gives up its inline control for the value under the name; only the row tap differs when `showControl={false}`.
 
 ## Bundles

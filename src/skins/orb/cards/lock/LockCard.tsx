@@ -1,5 +1,7 @@
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
-import { isLowBattery } from "@dashhaus/core/entities/battery";
+import { BATTERY_ADVICE, batterySaid, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
+import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
+import { JAMMED_MEANING, LOCK_WORD } from "@dashhaus/core/entities/lock/words";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { DoorIcon, LockIcon } from "./icons";
@@ -24,17 +26,6 @@ export interface LockCardProps extends ActionCardProps<LockAction> {
   readOnly?: boolean;
 }
 
-const WORD: Record<LockEntity["state"], string> = {
-  locked: "Locked",
-  unlocked: "Unlocked",
-  locking: "Locking…",
-  unlocking: "Unlocking…",
-  jammed: "Jammed",
-  open: "Open",
-  opening: "Opening…",
-  unavailable: "Unavailable",
-};
-
 const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open: "Open" };
 
 /**
@@ -53,7 +44,10 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const jammed = e.state === "jammed";
   const ro = readOnly ?? (!onLock && !onUnlock);
   const colors = paint("state", 0);
-  const word = WORD[e.state];
+  // Core's word; on its way it trails off, as every orb transition does ("Locking…").
+  const word = `${LOCK_WORD[e.state]}${moving ? "…" : ""}`;
+  // Core ranks it: a jam is urgent, a low battery advisory; the card draws the level it is given.
+  const level = lockSeverity(e);
 
   // The question or keypad (sheet only), for the action waiting on it. A lock is only asked for in the sheet when it
   // turned out to want a code: a tap locks everywhere else.
@@ -77,11 +71,13 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   };
 
   const lowBattery = !unav && isLowBattery(e.battery);
-  const warning = unav ? null : jammed ? "Jammed" : lowBattery ? `Battery ${e.battery}%` : null;
-  const alertLabel = warning ? `Warning: ${e.name}: ${jammed ? "jammed, it may not be locked" : `battery ${e.battery}%, replace soon`}` : null;
+  const warning = level === "urgent" ? LOCK_WORD.jammed : level === "advisory" ? batteryText(e.battery!) : null;
+  const alertLabel = level === "urgent" ? `Warning: ${e.name}: jammed, it ${JAMMED_MEANING.toLowerCase()}`
+    : level === "advisory" ? `Warning: ${batterySaid(e.battery!, e.name)}`
+    : null;
   const since = sinceFact(e.lastChanged);
   // A jam is urgent and a low battery advisory: both are a warn marker, so the jam says what it means (attention-budget: words, not brightness); a compact row has room only for the word.
-  const status = alertLabel ? <AlertStatus label={alertLabel}>{jammed && !compact ? "Jammed · may not be locked" : warning}</AlertStatus> : area ?? (unav ? "Unavailable" : since);
+  const status = alertLabel ? <AlertStatus label={alertLabel}>{level === "urgent" && !compact ? `${warning} · ${JAMMED_MEANING.toLowerCase()}` : warning}</AlertStatus> : area ?? (unav ? "Unavailable" : since);
   // What a tap does, in the pill's second voice; while it waits, nothing.
   const cue = locked ? "Unlock…" : jammed ? undefined : "Lock";
   const orbLabel = unav ? `${e.name}: Unavailable` : moving ? `${e.name}: ${word}` : locked ? `Unlock ${e.name}…` : `Lock ${e.name}`;
@@ -139,7 +135,8 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
 
       {!unav && !pending && e.battery != null && (
         <dl className="lk-last">
-          {e.battery != null && <div><dt>Battery</dt><dd>{lowBattery ? <span className="hd-warn">{e.battery}% · replace soon</span> : `${e.battery}%`}</dd></div>}
+          {/* The figure keeps its own ink: the status line's marker already says a low battery (spec/orb.md). */}
+          {e.battery != null && <div><dt>Battery</dt><dd>{lowBattery ? `${e.battery}% · ${BATTERY_ADVICE}` : `${e.battery}%`}</dd></div>}
         </dl>
       )}
     </CardFrame>

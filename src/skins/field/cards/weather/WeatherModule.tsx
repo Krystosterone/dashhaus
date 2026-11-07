@@ -1,7 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@dashhaus/core/entities/weather/types";
 import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "@dashhaus/core/entities/weather/conditions";
-import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
+import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings, weatherWarningsSaid } from "@dashhaus/core/entities/weather/readings";
+import { weatherSeverity } from "@dashhaus/core/entities/weather/severity";
+import { NO_READINGS_TODAY, rangeSummary } from "@dashhaus/core/entities/today";
 import { normalizeReadings } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
@@ -50,28 +52,30 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   const hour = history?.currentHour ?? 0;
 
   const warnings = weatherWarnings(e);
+  // Core ranks them (any is advisory); the module draws the marker for the level it is given.
+  const level = weatherSeverity(e);
   const precip = cond ? precipitation(cond, hourly, hour) : null;
   // Falling rain that stops soon already names itself ("Rain until 15:00").
   const sky = cond ? precip ?? conditionLabel(cond, night) : null;
   // The most urgent warning, with a count of the rest so a clipped line never hides that more exist; where even
   // that clips, the count alone. Spoken in full.
-  const warn = warnings.length > 1 ? (
+  const warn = !level ? null : warnings.length > 1 ? (
     <Warn>
       <span aria-hidden="true">
         <span className="fd-wx-warn-l">{`${warnings[0]} +${warnings.length - 1}`}</span>
         <span className="fd-wx-warn-s">{`${warnings.length} warnings`}</span>
       </span>
-      <span className="fd-sr">{warnings.join(", ")}</span>
+      <span className="fd-sr">{weatherWarningsSaid(e).join(", ")}</span>
     </Warn>
-  ) : warnings.length === 1 && <Warn>{warnings[0]}</Warn>;
+  ) : <Warn>{warnings[0]}</Warn>;
 
   const pict = <Pictogram param="neutral" lit={cond != null}>{conditionPict(cond, night)}</Pictogram>;
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
     : t != null ? <Temperature value={t} unit={e.temperatureUnit} />
-    : <Blank places={4} label="No temperature yet" />;
+    : <Blank places={4} label="No reading yet" />;
   const meta: [ReactNode, ReactNode?] = unav
-    ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : [warn || sky, feels != null ? `Feels ${deg0(feels)}` : t == null ? "No temperature yet" : undefined];
+    ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
+    : [warn || sky, feels != null ? `Feels ${deg0(feels)}` : t == null ? "No reading yet" : undefined];
 
   // Today's low and high: what was read, what's forecast for the rest of it, and now. While unavailable, what was read.
   const range = todayRange(t, history, unav ? undefined : hourly, unav ? undefined : daily);
@@ -81,7 +85,7 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   // A compact row has no meta lines: the first takes the area's line, a warning behind its marker.
   const compact = footprint === "compact";
   const line = compact ? (unav ? "Unavailable" : sky ?? undefined) : undefined;
-  const plateWarning = compact && warnings.length ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
+  const plateWarning = compact && level ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
 
   // The panel's content: the screen with how it feels on its second channel, every warning and the sky in words,
   // today, the next hours and the next days on strips of screen, then every reading printed on the plate.
@@ -124,7 +128,7 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
       {history && (
         <Today
           legend="Temperature today"
-          summary={range ? `Low ${deg0(range.low)} · High ${deg0(range.high)}` : unav ? undefined : "No readings yet"}
+          summary={range ? rangeSummary(range.low, range.high, deg0) : unav ? undefined : NO_READINGS_TODAY}
           label="Temperature by hour today."
           tone="neutral"
           samples={day?.samples}

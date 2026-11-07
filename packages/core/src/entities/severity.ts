@@ -6,3 +6,10 @@
  * warnings; each skin draws the levels its own way.
  */
 export type Severity = "advisory" | "urgent" | "alarm";
+
+/**
+ * The longest a warning's words may be, on every card: what a 340 px Field row's warning line and an Orb compact row
+ * hold whole (spec/cards.md → a warning's words fit a row). What may follow the word (since when, a count, a sensor's
+ * name) clips before it does; the spoken label says the whole sentence.
+ */
+export const WARNING_WORD_MAX = 13;

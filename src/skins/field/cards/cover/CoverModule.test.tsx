@@ -102,7 +102,9 @@ describe("CoverModule", () => {
   it("says OPEN for a garage door with no position, warns it was left open, and spans the key with what a hold does", () => {
     const { container } = draw("garage");
     expect(container.querySelector(".fd-read")?.textContent).toBe("OPEN");
-    expect(container.querySelector(".fd-meta")?.textContent).toBe("Warning: Open since 10:20");
+    // spec/cards.md → the same physical thing gets the same warning: `Open` behind the marker over since when, as a
+    // garage door's binary sensor says it.
+    expect(container.querySelector(".fd-meta")?.textContent).toBe("Warning: OpenSince 10:20");
     expect(container.querySelector(".fd-key-cap")?.textContent).toBe("Hold to close");
     expect(screen.queryByRole("slider")).toBeNull();
   });

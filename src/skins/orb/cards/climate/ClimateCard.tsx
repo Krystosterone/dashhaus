@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@dashhaus/core/entities/climate/modes";
-import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { TARGET_WORD, climateFacts } from "@dashhaus/core/entities/climate/words";
+import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
 import { CardFrame, ChoiceChips, SheetBlock, Stepper, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -78,11 +79,14 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
   const cur = e.currentTemperature;
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;
   const single = !range && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
-  const statusParts = [cur != null ? `${fmtCurrent(cur)}°${compact ? "" : " now"}` : null, unav ? "Unavailable" : ACTION_LABEL[action]].filter(Boolean);
-  const status = statusParts.join(" · ");
+  // While unavailable a control keeps its room on the status line (spec/orb.md → One state vocabulary); the slot says
+  // Unavailable. Otherwise the room's temperature, as it is now, and what the unit is doing.
+  const status = unav ? area ?? "Unavailable"
+    : [cur != null ? (compact ? `${fmtCurrent(cur)}°` : nowText(`${fmtCurrent(cur)}°`)) : null, ACTION_LABEL[action]].filter(Boolean).join(" · ");
+  // The compact cue: the mode and its setpoint, in figures, so no word is said twice.
   const modePrefix = compact && on ? `${modeLabel(mode)} · ` : "";
-  const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `Hold ${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}Set ${fmtTarget(e.targetTemperature!)}°` : modeLabel(mode);
-  const kicker = mode === "heat" ? "Heat to" : mode === "cool" ? "Cool to" : "Keep at";
+  const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}${fmtTarget(e.targetTemperature!)}°` : modeLabel(mode);
+  const kicker = TARGET_WORD[mode] ?? TARGET_WORD.auto;
   // HA heat_cool requires target_temp_low <= target_temp_high.
   const setRange = (lo: number, hi: number) => {
     const [l, h] = orderedRange(lo, hi);
@@ -117,14 +121,14 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
-      status={sheet && area ? `${area} · ${status}` : status}
+      status={sheet && area && !unav ? `${area} · ${status}` : status}
       value={<>{cur != null && !unav && <span className="hd-sub-optional">{fmtCurrent(cur)}° · </span>}{setText}</>}
       bareValue={valText}
       readout={{ value: unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></> }}
       onClose={onClose}
       control={slot}
       slotInner={{ ref: slotRef, className: "cw-slot" }}
-      facts={{ start: e.currentHumidity != null ? `Humidity ${Math.round(e.currentHumidity)}%` : unav ? lastSeenFact(e.lastSeen) : "", end: unav ? "" : lastChangedFact(e.lastChanged) }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : climateFacts(e) }}
     >
       {!unav && (
         <SheetBlock>
