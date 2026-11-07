@@ -146,6 +146,7 @@ export type FieldKind =
   | "guestWifi"
   | "binarySensor"
   | "camera"
+  | "mediaPlayer"
   // new-card: kinds
   ;
 
@@ -178,6 +179,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
   binarySensor: { domains: ["binary_sensor"] },
   camera: { domains: ["camera"] },
+  mediaPlayer: { domains: ["media_player"] },
   // new-card: field kinds
 };
 

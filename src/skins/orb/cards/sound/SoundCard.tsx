@@ -2,6 +2,7 @@ import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/ty
 import { soundAbilities, soundWord } from "@dashhaus/core/entities/sound/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { volumeText } from "@dashhaus/core/entities/volume";
 import { SoundIcon } from "./icons";
 import { VolumeBar } from "./parts";
 import { CardFrame, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -35,7 +36,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
   // The pill's second voice: what tapping does, or how long it has been on.
   const cue = on ? sinceFact(e.lastChanged) : "Turn on";
   // With no room to name (a titled bundle's lid names it), the status line carries the volume instead.
-  const volume = !unav && e.volume != null ? `Volume ${e.volume}%` : null;
+  const volume = !unav && e.volume != null ? volumeText(e.volume) : null;
   // Unavailable, since when it was last seen.
   const since = unav ? e.lastSeen : e.lastChanged;
 

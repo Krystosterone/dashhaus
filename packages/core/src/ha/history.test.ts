@@ -7,6 +7,7 @@ import {
   coverHistoryFromHass,
   historyRecords,
   lightHistoryFromHass,
+  mediaPlayerHistoryFromHass,
   owletHistoryFromHass,
   readingHistoryFromHass,
   sensorHistoryFromHass,
@@ -436,5 +437,24 @@ describe("history/history_during_period wire fixture", () => {
     const result = lightHistoryFromHass(records, "light.living_room", at);
     expect(result.samples[at.getHours()]).toBe(1);
     expect(result.onMinutes).toBeGreaterThan(0);
+  });
+});
+
+describe("mediaPlayerHistoryFromHass", () => {
+  it("counts the hours playing or buffering, and says unknown hours were unavailable", () => {
+    const result = mediaPlayerHistoryFromHass(
+      single([
+        record("media_player.kitchen", "off", iso(0)),
+        record("media_player.kitchen", "playing", iso(7)),
+        record("media_player.kitchen", "paused", iso(9)),
+        record("media_player.kitchen", "unknown", iso(10)),
+        record("media_player.kitchen", "buffering", iso(11)),
+        record("media_player.kitchen", "playing", iso(12)),
+      ]),
+      "media_player.kitchen",
+      now(),
+    );
+    expect(result.samples.slice(0, 13)).toEqual([0, 0, 0, 0, 0, 0, 0, 1, 1, 0, "unavailable", 1, 1]);
+    expect(result.playingMinutes).toBe(3 * 60 + 34);
   });
 });

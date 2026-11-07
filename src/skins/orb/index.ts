@@ -134,6 +134,14 @@ export type { CameraTileProps } from "./cards/camera/CameraTile";
 export { HaCameraTile } from "./ha/HaCameraTile";
 export type { HaCameraTileProps } from "./ha/HaCameraTile";
 
+// Media player
+export { MediaPlayerCard, MediaPlayerSheet } from "./cards/mediaPlayer/MediaPlayerCard";
+export type { MediaPlayerCardProps, MediaPlayerSheetProps } from "./cards/mediaPlayer/MediaPlayerCard";
+export { MediaPlayerTile } from "./cards/mediaPlayer/MediaPlayerTile";
+export type { MediaPlayerTileProps } from "./cards/mediaPlayer/MediaPlayerTile";
+export { HaMediaPlayerTile } from "./ha/HaMediaPlayerTile";
+export type { HaMediaPlayerTileProps } from "./ha/HaMediaPlayerTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

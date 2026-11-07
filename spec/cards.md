@@ -8,7 +8,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 
 | Model | Cards | What it is |
 | --- | --- | --- |
-| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera | One Home Assistant entity and its attributes (a camera's still is its own `entity_picture`, core.md → Pictures). |
+| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera, media player | One Home Assistant entity and its attributes (a camera's still and a player's artwork are its own `entity_picture`, core.md → Pictures). |
 | Composed | sensor, sound, weather, owlet, guestWifi | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
@@ -35,6 +35,19 @@ A card's words and warnings belong to its model, not to a skin, so every skin sa
 - **Before a first value, every reading says the same words.** `No reading yet` wherever a line says the state (Orb's status line, Field's first meta line and blank screen, the spoken label), and `Waiting…` only where Orb has room for a figure alone (its readout and its compact cue). Never a blank status line, and never another phrase for it.
 - **A picture is data, never a signal.** A camera's still or a player's artwork (core.md → Pictures) never glows, never carries the state and never sits in a compact row. While unavailable no picture is drawn at all, never a past frame; a still that isn't refreshing says when it is from (`Still from 22:14`), and one that failed with nothing to keep says `No picture`, on the line that says the state, never over the picture.
 - **Small print: when first, then what the device is.** Facts start with when (`Last changed 08:16`, `Last seen 08:20` while unavailable, `Updated 11:53`, from `entities/facts.ts`) and end with what the device is (its battery, its capabilities, its code), in both skins.
+
+## What every card shows
+
+A card's signals belong to its model too, so a state lights the same way in every skin and a level or a clock behaves the same on every card. Each skin's rules say how it draws them: [orb.md](orb.md) → One UI language and A clock runs on by itself, [field.md](field.md) → A lit LED says on, the Fader and A clock runs on by itself.
+
+- **One active signal, in every skin.** A model says once which of its states are active (`isActive` in `entities/<name>/words.ts` where it isn't simply `on`), and every skin's active signal follows that one set: Orb's accent and pressed orb, Field's LED, lit pictogram and bright figure. A skin never draws its own set. A transient state between two active ones (a player buffering between tracks) shares the active signal, so it doesn't flicker off and on; a powered `on` with nothing playing (a TV showing an input) is active, as a light that is on is.
+- **A level that is a loudness or an output** (a player's volume, a sound machine's) fills only while that output is active and unmuted, since a full groove beside silence would say it sounds. Unfilled, its words give the reason before the value (`Off · 62%`, `Muted · 45%`, `Paused · 30%`; `volumeText` in `entities/volume.ts`, with the card's reason, `volumeReason` or `soundVolumeReason`), and what a screen reader hears says it too (`62 percent, sound off`, `volumeSaid`). Setting it never switches the output on or unmutes it.
+- **A clock that runs on by itself** (a player's position) is worked out once from what Home Assistant reported and then left to CSS, so nothing re-renders every second:
+  - it cuts and never slides: each place steps through its digits with hard cuts, its keyframe stops written to four decimals, so even the slowest place never visibly slides;
+  - it stops at the end of what it measures (a track's length) and holds there, never counting past it;
+  - it starts from the fractional position, each place's animation started that far into its turn, so it turns when the fill says it should, never a second late;
+  - reduced motion keeps it, because a hard cut is not motion and a clock that stopped would lie;
+  - a dashboard's `quiet` draws none, neither the clock nor a line that fills with it (deploy.md), since a held one would lie and a running one changes by itself.
 
 ## Using the light card
 
@@ -352,7 +365,7 @@ A sound machine's sound: one `switch.*` that plays it, and the `number.*` that s
 
 - **Switching:** the orb and the pill both toggle the sound. Both are raised buttons when off and the accent when on (a state: no bloom, no glow; the attention-budget skill keeps energy for light and heat).
 - **Status line:** the area and the volume ("Nursery · Volume 62%") on standard and featured cards; compact rows keep the room alone, except under a titled bundle's lid that already names it, where they say the volume. It never says On or Off; that's the pill's word.
-- **Volume, in the sheet only:** press and hold the orb, or tap the name, for a volume groove the accent fills while the sound plays. It rarely changes, and a stray tap on a groove beside a sleeping baby would jump it, so no card carries it. Setting it never switches the sound: while the sound is off the groove stays empty and reads "Off · 62%". A sound without a volume entity has no groove.
+- **Volume, in the sheet only:** press and hold the orb, or tap the name, for a volume groove the accent fills while the sound plays. It rarely changes, and a stray tap on a groove beside a sleeping baby would jump it, so no card carries it. Setting it never switches the sound: while the sound is off the groove stays empty and reads "Off · 62%", and a screen reader hears "62 percent, sound off", in both skins (What every card shows → A level that is a loudness). A sound without a volume entity has no groove.
 - **The readout** on featured cards and in the sheet is the volume; a sound without one repeats the pill's On or Off there.
 - **Sheet:** the volume and today's on/off history, then the small print: when it last changed, and what it can do ("On / off, volume", `soundAbilities`), as Field's panel says it.
 - **Home Assistant:** `HaSoundTile` takes the sound's switch and finds its volume beside it: `number.<switch>_volume`, then `number.<device>_volume` (the Tuya integration's `switch.nursery_music` and `number.nursery_volume`). Pass `volumeEntityId` when it is named otherwise. The volume is a percent of the number's range, set back in its own range and step.
@@ -495,14 +508,44 @@ A doorbell's or a nursery's camera: one `camera.*`, its state and its still. A r
 - **Small print:** when it last changed (when it was last seen while unavailable), then what it is: `Reolink Video Doorbell · motion detection on` (`cameraKind`).
 - **Home Assistant:** `HaCameraTile` takes the camera and `still`, `refresh` and `paused`; it wires `onOpenLive` itself. It reads no history.
 
-<!-- new-card: cards -->
-
 ### Field camera module
 
 `CameraModule` is the same normalized camera entity in the Field skin; `HaCameraModule` is its connected container, on the same `useHaCamera` hook as `HaCameraTile`, taking the same `still`, `refresh` and `paused`. See [field.md](field.md#camera).
 
 ```tsx
 <HaCameraModule entityId="camera.nursery" />
+```
+
+## Using the media player card
+
+Now playing: one `media_player.*` (a speaker, a TV, a cast), a direct model and a control whose one press does what the player can do now. Its artwork is the entity's own picture (core.md → Pictures).
+
+```tsx
+<MediaPlayerTile entity={kitchen} history={today} onPlay={play} onPause={pause} onPrevious={back} onNext={next} onTurnOn={on} onTurnOff={off} onVolumeChange={setVolume} onMuteChange={mute} onSourceChange={pick} />
+<HaMediaPlayerTile entityId="media_player.kitchen" />
+```
+
+- **States:** Home Assistant's, in words the same in every skin (`@dashhaus/core/entities/mediaPlayer/words`): Playing, Paused, Buffering, Idle, On (on with nothing loaded), Standby, Off and Unavailable. The names older and custom integrations give the same ones are mapped onto them (`stopped` is Idle, `loading` Buffering, `sleeping` Standby); any other state is said in its own words (`connecting` → `Connecting`), never guessed onto one Home Assistant names. `unknown` and a missing entity are Unavailable, and say nothing of what was playing.
+- **One press**, gated on `supported_features` (`mediaPress`): while it plays or buffers the orb and the pill pause it, while it is paused, idle, on or in a state of its own they play it, and while it is off or in standby they turn it on; one that is on and can do none of that but turns off (a TV showing an input) turns off, as a light does. One that can do nothing now shows its state as a readout with nothing to press. The pill carries the state word and what a press does (`Playing · Pause`, `Off · Turn on`, `On · Turn off`). Its active states are the accent, the orb pressed and the pill solid (`isActive`, What every card shows → One active signal): playing, buffering (on its way to playing, so the accent doesn't flicker between tracks) and on (a TV showing an input, whose pill says `On · Turn off`, as a light that is on); paused, idle, standby, off and an integration's own state rest, raised, the readout in the quieter ink. A player is a state, so it never glows (`paint("state", 0)`). No warnings: nothing a player does is a fault to rank, and Muted is a choice.
+- **Status line:** what is playing, the title first so a narrow card keeps it (`Sunday Morning · Maroon 5`), the title or artist alone, else the app; then `Muted` after it while muted. With nothing loaded, the area; with no area either, since when (`Since 11:40`), never the state word the slot already shows. Featured and in the sheet, which show the title under the head, the area and where it plays from (`Kitchen · Spotify`).
+- **Readout,** featured and in the sheet: the volume (`45%`), `Muted`, or the pill's word where it reports none.
+- **Featured:** the standard card, then what is playing in place of today's strip, as the weather's next hours are: the artwork square in its well at the row's height (only where the player gives one: no empty well for a stream), the title over two lines, the artist, and how far in. Under 260 px the artwork yields and the title keeps the room.
+- **How far in** ticks with no re-render: a thin line that fills (`clip-path`, one linear animation the length of the track, started where it is), the time played under its start and the length under its end, each place of the clock a strip of digits stepped through by its own timed animation with a hard cut, as a segment turns (`usePlayhead`, `clockPlaces`). Worked out once from `media_position`, `media_position_updated_at` and `media_duration`, and again only when one of them or the state changes (a new track, a pause, a seek): never on a timer. Held where it was while paused or buffering, and stopped at the length when the track ends (fill `forwards`, each place turning only as many times as there is track left), never counting past it. A stream with no duration draws no line and no clock, never a guessed one, and neither does a dashboard set `quiet`, where nothing runs by itself and a held clock would lie (the card's `quiet`, which the Lovelace card passes from its YAML; What every card shows → A clock that runs on by itself); a screen reader hears `1 minute 23 seconds of 4 minutes 5 seconds`.
+- **Artwork** is data, never a signal: it never glows, never carries the state, never sits in a compact row or in the orb. It is asked for only where its well is drawn (featured and the sheet), and loads only on screen, through core's picture lifecycle (`usePicture`), with no refresh timer: it changes when its URL does, with the track. A failed one leaves the well with the player's glyph and no words, since the title already says what is playing; unavailable, off or in standby, none is drawn at all.
+- **Sheet:** the head, the pill, then what is playing (the artwork, title, artist, album and how far in); `Previous` and `Next` as raised pills that act once; the volume groove the sound card has (`Volume`, set as a percent), filled by the accent only while the player is active and not muted, else unfilled and saying why before the value (`Muted · 45%`, `Paused · 30%`, `Idle · 25%`; `volumeReason`, What every card shows → A level that is a loudness); setting it never plays or unmutes; `Mute` as chips (Off, On); the source as chips (the player's own list); `Turn off`; today's playing by hour (`Playing 1h 20m` or `Not playing today`). Each only where the player supports it. The small print says when it last changed, then what it can do (`Skip, volume, mute, 3 sources`, or `View only`).
+- **Compact:** the player's glyph, the name, and what is playing (or the area) under it; the pill with the state word (with its verb from 400 px), or the word as the row's value. Never the artwork or the line.
+- **Unavailable:** the dashed slot with when it was last seen (`Last seen 08:20`); what was playing, the artwork, the volume and every action are hidden.
+- **Its words** are core's, as every card's are: the states, the press (`pressWord`), the skips (`SKIP_WORDS`, `skipSaid`), what the artwork is (`artworkLabel`) and the volume (`volumeText`, `volumeReason`).
+- **Home Assistant:** `createMediaPlayerHandlers` calls `media_player.media_play`, `media_pause`, `media_previous_track`, `media_next_track`, `turn_on`, `turn_off`, `volume_set` (the percent as a level from 0 to 1), `volume_mute` and `select_source`, each only where `supported_features` declares it (`PLAY`, `PAUSE`, `PREVIOUS_TRACK`, `NEXT_TRACK`, `TURN_ON`, `TURN_OFF`, `VOLUME_SET`, `VOLUME_MUTE`, `SELECT_SOURCE` with a `source_list`), reporting what it can't do as `unsupported` and a source it doesn't list as `invalid_input`. `MEDIA_PLAYER_ACTIONS` declares the six presses, the volume as a `level`, mute as a `switch` and the source as a `choice` over `sources`, so every skin's generator draws them. `useHaMediaPlayer` adds the artwork (`useHaPicture`, while something is loaded); today comes from the recorder through `mediaPlayerHistoryFromHass`, playing and buffering as on; `loadHistory={false}` skips it.
+
+<!-- new-card: cards -->
+
+### Field media player module
+
+`MediaPlayerModule` is the same normalized media player entity in the Field skin; `HaMediaPlayerModule` is its connected container, on the same `useHaMediaPlayer` hook as `HaMediaPlayerTile`, taking the same handlers. See [field.md](field.md#media-player).
+
+```tsx
+<HaMediaPlayerModule entityId="media_player.kitchen" />
 ```
 
 ## The dashboard header

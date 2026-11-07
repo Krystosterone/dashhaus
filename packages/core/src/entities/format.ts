@@ -25,3 +25,14 @@ export function inWords(raw: string): string {
   const spaced = raw.trim().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
   return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase() : raw;
 }
+
+/**
+ * A playing time on the clock a player shows, rounded down to the second: "0:05", "3:45", "12:09", "1:02:03". Hours
+ * appear from an hour; minutes take two places beside them. Negative or not a number counts as none.
+ */
+export function fmtPlayTime(seconds: number): string {
+  const total = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}

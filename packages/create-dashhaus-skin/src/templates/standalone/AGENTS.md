@@ -139,11 +139,12 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 
 | Import from | What it has |
 | --- | --- |
-| `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo` |
+| `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo`, `fmtPlayTime` (a player's clock), `inWords` (an integration's own state in words) |
 | `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText` |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
 | `@dashhaus/core/entities/picture` | what a card says about its picture (a still, artwork): `PICTURE_WORDS`, `stillFrom`, `pictureTime` |
+| `@dashhaus/core/entities/volume` | a loudness or an output's level in words, the reason first while it doesn't sound: `volumeText` (`Volume 45%`, `Muted · 45%`), `volumeSaid`, `VOLUME` |
 | `@dashhaus/core/entities/clock` | `clockFace`, the header's time and date for a locale, 12 or 24 hours and a time zone |
 | `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY`, and a battery in words: `batteryText`, `batteryAdvice` |
 | `@dashhaus/core/entities/severity` | the `Severity` type a model carries, and `WARNING_WORD_MAX`, the 13 characters a warning's words fit |
@@ -151,6 +152,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/alarm/severity` | `alarmSeverity` |
 | `@dashhaus/core/entities/alarm/words` | its warning's word and sensor (`alarmWarning`), `openSentence` |
 | `@dashhaus/core/entities/binarySensor/words` | a binary sensor's state in its device class's words (`stateWord`, `alertWord`, `wordsOf`), and the picture its class names (`pictureOf`) |
+| `@dashhaus/core/entities/mediaPlayer/words` | a media player's state in words (`mediaPlayerWord`), what is playing (`mediaLine`), its one press (`mediaPress`, `pressWord`), what it can do (`mediaAbilities`), whether it is active (`isActive`), why its volume doesn't sound (`volumeReason`), its skips (`SKIP_WORDS`, `skipSaid`) and what its artwork is (`artworkLabel`) |
+| `@dashhaus/core/entities/mediaPlayer/position` | where a player is without a timer (`playhead`, `playedShare`), a running clock's places (`clockPlaces`), a time in words (`playTimeSpoken`); the hooks' usePlayhead works it out when it changes |
 | `@dashhaus/core/entities/binarySensor/severity` | `binarySensorSeverity`, and `stateSeverity` for the state's own |
 | `@dashhaus/core/entities/camera/words` | a camera's state in words (`cameraWord`), what to say of its still (`stillNote`: `No picture`, `Still from 22:14`), what it is (`cameraKind`), what a press on the still opens and the way to its live stream (`openStillWord`, `LIVE_VIEW`, `liveViewSaid`), and how often a still refreshes by default (`STILL_REFRESH`, 10 seconds) |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
@@ -169,7 +172,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/owlet/severity` | `owletSeverity` |
 | `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |
 | `@dashhaus/core/entities/sensor/severity` | `sensorSeverity` |
-| `@dashhaus/core/entities/sound/words` | `soundWord`, `soundAbilities` |
+| `@dashhaus/core/entities/sound/words` | `soundWord`, `soundAbilities`, and why its volume doesn't sound (`soundVolumeReason`, `SOUND_OFF_SAID`) |
 | `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |
 | `@dashhaus/core/entities/toggle/words` | `toggleWord`, `toggleKind` |
 | `@dashhaus/core/entities/weather/conditions` | `SKY` (each condition as a sky to draw), `CONDITION_LABEL`, `compass`, `precipitation` |

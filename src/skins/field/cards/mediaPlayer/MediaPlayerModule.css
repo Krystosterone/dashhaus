@@ -1,0 +1,60 @@
+/* Media player module (fd-mp). Its own layout goes here; the plate, key, screen, picture, fader, meter, row (ModuleRow)
+   and panel body (PanelBody) are shared. */
+
+/* Resting figures are dim, as off is: HOLD, IDLE, STBY and an integration's own; a paused clock is held, so dim too.
+   PLAY and ON stay bright, and buffering's blank segments are on their way. */
+:is(.fd-mp, .fd-mp-panel):is([data-state="paused"], [data-state="idle"], [data-state="standby"], [data-state="other"]) .fd-read-fig { color: var(--fd-screen-ink-2); }
+
+/* The artwork: a window in the screen, square at its height, in the pictogram's place */
+.fd-mp-art { display: block; flex: none; width: 26px; }
+.fd-mp-panel .fd-mp-art { width: 52px; }
+
+/* How far in: a rule along the screen's foot, unlit, lighting from the left as it plays. Never in a row. */
+:is(.fd-mp, .fd-mp-panel) .fd-screen { position: relative; }
+.fd-mp-prog { position: absolute; right: 10px; bottom: 3px; left: 10px; height: 2px; overflow: hidden; border-radius: 1px; background: var(--fd-screen-unlit); }
+.fd-mp-panel .fd-mp-prog { right: 14px; bottom: 6px; left: 14px; }
+.fd-mp-fill {
+  position: absolute; inset: 0; background: var(--fd-screen-ink-2); clip-path: inset(0 100% 0 0);
+  animation: fd-mp-fill var(--fd-mp-len) linear var(--fd-mp-at) forwards;
+}
+@keyframes fd-mp-fill {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.fd-mp[data-footprint="compact"] .fd-mp-prog { display: none; }
+
+/* The panel's clock: each place a strip of digits, one showing, turned by a hard cut every period, as a segment is */
+.fd-mp-clock, .fd-mp-places { display: inline-flex; }
+.fd-mp-place { display: inline-block; height: 1em; overflow: hidden; }
+/* Each reel turns until the track ends (`--fd-mp-turns`) and holds there, so the clock stops at the length */
+.fd-mp-reel { display: flex; flex-direction: column; animation: fd-mp-reel-10 var(--fd-mp-cycle) linear var(--fd-mp-off) var(--fd-mp-turns, 1) forwards; }
+.fd-mp-reel[data-base="6"] { animation-name: fd-mp-reel-6; }
+.fd-mp-reel > span { display: block; height: 1em; line-height: 1; }
+/* Stops to four decimals, so even the hour place (a 36000 s turn) cuts rather than slides. A sixth has no exact
+   four-decimal stop, so each cut ends at or just before it: a place drawn exactly on a turn (paused at 2:20)
+   shows its digit, never one half-turned. */
+@keyframes fd-mp-reel-10 {
+  0%, 9.9999% { transform: translateY(0); }
+  10%, 19.9999% { transform: translateY(-10%); }
+  20%, 29.9999% { transform: translateY(-20%); }
+  30%, 39.9999% { transform: translateY(-30%); }
+  40%, 49.9999% { transform: translateY(-40%); }
+  50%, 59.9999% { transform: translateY(-50%); }
+  60%, 69.9999% { transform: translateY(-60%); }
+  70%, 79.9999% { transform: translateY(-70%); }
+  80%, 89.9999% { transform: translateY(-80%); }
+  90%, 100% { transform: translateY(-90%); }
+}
+@keyframes fd-mp-reel-6 {
+  0%, 16.6665% { transform: translateY(0); }
+  16.6666%, 33.3332% { transform: translateY(-16.6667%); }
+  33.3333%, 49.9999% { transform: translateY(-33.3333%); }
+  50%, 66.6665% { transform: translateY(-50%); }
+  66.6666%, 83.3332% { transform: translateY(-66.6667%); }
+  83.3333%, 100% { transform: translateY(-83.3333%); }
+}
+
+/* Narrow modules keep the figure and one meta line; the artwork goes, as every pictogram does. */
+@container (max-width: 239px) {
+  .fd-mp[data-footprint="standard"] .fd-mp-art { display: none; }
+}
