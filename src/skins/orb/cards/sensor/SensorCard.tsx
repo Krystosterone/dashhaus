@@ -65,11 +65,11 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
 
   const bar = (
     <span className="hd-bar sw-bar">
-      {t != null && <span className="hd-metric sw-t"><span className="sw-value">{fmtTemp(t)}<small>°</small></span></span>}
+      {t != null && <span className="hd-metric sw-t"><span className="sw-value hd-metric-n">{fmtTemp(t)}<small>°</small></span></span>}
       {h != null && (
         <span className="hd-metric hd-metric--sub sw-h">
           <span className="hd-label"><span className="hd-label-long">Humidity</span><span className="hd-label-short">RH</span></span>
-          <span className="sw-value">{fmtHum(h)}<small>%</small></span>
+          <span className="sw-value hd-metric-v">{fmtHum(h)}<small>%</small></span>
         </span>
       )}
       {empty && <span className="hd-none">Waiting…</span>}

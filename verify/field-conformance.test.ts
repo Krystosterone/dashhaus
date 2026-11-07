@@ -9,6 +9,8 @@
  * `Consumer` inline, as the camera's does with `Stills` (`stills`, `quiet`): a hook would need a component of its own,
  * which moves `<HaCameraModule` out of the line's reach. Do the same rather than loosen the check.
  */
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
 import { exists, object, read, reachesHa, uncomment } from "./conformance";
@@ -72,6 +74,10 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
     expect(code, `${moduleFile}: draw it in <ModuleFrame kind="fd-<code>" …>, which opens its details in a panel`).toBeDefined();
   });
 
+  it("says its small print in core's words", () => {
+    expect(read(moduleFile), `${moduleFile}: its facts come from @dashhaus/core/entities/facts, when first (spec/cards.md → What every card says → Small print)`).toContain('"@dashhaus/core/entities/facts"');
+  });
+
   it("lists its class prefix in AGENTS.md", () => {
     expect(read("AGENTS.md"), "AGENTS.md → Hard rules, the field skin: add it to the card class prefixes").toContain(`\`fd-${code}-\``);
   });
@@ -102,5 +108,22 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
   it("is a module on the Lovelace card", () => {
     expect(object(read(`${SKIN}/lovelace/config.ts`), "FIELD_KINDS"), `${STEP}, step 4: give it its domains in FIELD_KINDS (${SKIN}/lovelace/config.ts)`).toMatch(new RegExp(`^\\s*${name}: \\{ domains:`, "m"));
     expect(object(read(`${SKIN}/lovelace/FieldDashboard.tsx`), "LIVE"), `${STEP}, step 4: draw it in LIVE (${SKIN}/lovelace/FieldDashboard.tsx)`).toMatch(new RegExp(`^\\s*${name}: [^\\n]*(\\n[^\\n]*)?<Ha${Name}Module\\b`, "m"));
+  });
+});
+
+describe("the module frame", () => {
+  // spec/skins.md → Rules every skin keeps → A card extends a shared part only generically.
+  it("draws in Foundations → Parts every prop of its that only one module passes", () => {
+    const ui = read(`${SKIN}/shared/ui.tsx`);
+    const props = ["ModuleProps", "ModuleFrameProps"].flatMap((type) =>
+      [...(ui.match(new RegExp(`export interface ${type}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1] ?? "").matchAll(/^ {2}(\w+)\??:/gm)].map((m) => m[1]));
+    expect(props).toContain("body");
+    const modules = readdirSync(join(process.cwd(), `${SKIN}/cards`))
+      .map((folder) => `${SKIN}/cards/${folder}/${folder[0].toUpperCase()}${folder.slice(1)}Module.tsx`)
+      .filter(exists).map(read);
+    const parts = read(`${SKIN}/stories/Parts.stories.tsx`);
+    const passes = (source: string, prop: string) => new RegExp(`\\s${prop}=[{"]`).test(source);
+    const once = props.filter((prop) => modules.filter((source) => passes(source, prop)).length === 1);
+    expect(once.filter((prop) => !passes(parts, prop)), "draw it in the Module frame part of Field → Foundations → Parts").toEqual([]);
   });
 });

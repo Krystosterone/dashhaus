@@ -36,7 +36,7 @@ function Reading({ now, feels, label, onOpen }: { now: number; feels?: number; l
   const read = (
     <span className="hd-bar wx-bar">
       <span className="hd-metric wx-rd">
-        <span className="wx-rd-t">{fmt1(now)}°</span>
+        <span className="wx-rd-t hd-metric-n">{fmt1(now)}°</span>
         {feels != null && <span className="wx-rd-f">Feels {deg0(feels)}</span>}
       </span>
     </span>

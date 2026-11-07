@@ -136,6 +136,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       area={e.area}
       footprint={footprint}
       state={e.state}
+      // Closed is a reading, 0% open, so its figure keeps its places in the dim ink, as OFF does.
+      rest={e.state === "closed"}
       warning={footprint === "compact" ? warning : undefined}
       details={details}
       pict={pict}

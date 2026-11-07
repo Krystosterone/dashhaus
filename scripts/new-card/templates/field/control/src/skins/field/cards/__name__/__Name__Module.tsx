@@ -2,7 +2,7 @@ __reactImport__
 import type { ReactNode } from "react";
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
 __guardImports__
-import { __factsImport__ } from "@dashhaus/core/entities/facts";__todaySummaryImport__
+import { __factsImport__ } from "@dashhaus/core/entities/facts";__batteryImport____todaySummaryImport__
 import { Blank, __partsImport____valuePartsImport__Key, KeyGroup, ModuleFrame, Pictogram, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
@@ -64,7 +64,7 @@ __todayBlock__
       meta={meta}
       lead={keys(false)[0]}
       __rowProp__
-      facts={__factsWhen__({ start: unav ? lastSeenFact(e.lastSeen) : __changed__ })}
+      facts={__factsWhen__({ start: __factsStart____factsEnd__ })}
     >
 __panelBody__
     </ModuleFrame>

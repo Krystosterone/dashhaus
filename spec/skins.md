@@ -67,6 +67,11 @@ package; `verify/skin-rules.test.ts` holds it to that.
   would override the dark values it inherits.
 - **Controls feel like controls:** no text selection or tap highlight, `touch-action: manipulation`, press feedback
   on `:active`, built on the `@dashhaus/core/primitives` hooks rather than hand-written ARIA.
+- **A card extends a shared part only generically.** A part in the skin's `shared/`, the card frame among them (Orb's
+  `CardFrame`, Field's `ModuleFrame`), gains a prop for a card only when the prop is generic: named for what it does,
+  never for the card that wanted it first (`body`, not `cameraStill`), optional, so every other card stays as it was,
+  and drawn across its states where the skin shows its parts (Foundations → Parts in this repository, the preview for
+  a standalone skin). Anything else the card draws in its own folder, from the parts there are.
 
 ## Studies
 

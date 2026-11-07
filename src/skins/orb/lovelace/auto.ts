@@ -100,14 +100,17 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
     place({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact" })) });
   }
 
-  // Automatic discovery cannot infer true frequency. It puts every action first, then stable household
-  // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
+  // Automatic discovery cannot infer true frequency. It puts every action first, then the status bands, the most
+  // pressing first, then read-only environmental context; authored dashboards pin their actual frequent actions. A
+  // row for a new kind goes at the end of its band (spec/deploy.md → The automatic layout's order).
+  // Safety and security.
   if (alarms.length || locks.length || safety.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks, ...safety] });
-  // What the doors and the nursery look like: household status, right after what guards them.
+  // Security-adjacent: what the doors and the nursery look like, right after what guards them.
   if (cameras.length) place({ title: "Cameras", cards: cameras });
+  // Household status: the nursery, then the guest Wi-Fi code a visitor reads; a new household-status row goes after it.
   if (socks.length) place({ title: "Nursery", cards: socks });
-  // Guest Wi-Fi is household status a visitor reads: after the household's own, before the outside and rooms.
   if (wifi.length) place({ title: "Guests", cards: wifi });
+  // The glance.
   if (weather) place({ title: "Outside", cards: [weather] });
   if (air.length) place({ title: "Rooms", cards: air });
 

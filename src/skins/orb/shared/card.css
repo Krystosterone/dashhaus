@@ -250,6 +250,11 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   overflow: hidden; text-overflow: ellipsis;
   font-size: 30px; font-weight: var(--type-readout-weight); letter-spacing: -0.03em; line-height: 1.1;
 }
+/* A reading's leading number as its figure (a temperature, now outside): the large readout's voice on a standard or
+   featured card. A card sets its own size in its sheet and a narrower container; a compact row's is the row's (below). */
+.hd:not(.hd--compact):not(.hd--sheet) .hd-metric-n {
+  font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em;
+}
 .hd-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
 .hd-label-short { display: none; }
 /* No reading yet: plain words. */
@@ -267,7 +272,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   display: flex; align-items: center; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
 }
 .hd--compact .hd-label { display: none; }
-.hd--compact .hd-metric-w { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
+/* Every figure a compact row draws, a word or a number (a temperature, a heart rate), at the row's size. */
+.hd--compact :is(.hd-metric-w, .hd-metric-n, .hd-metric-v) { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .hd-none { flex: none; font-size: 12.5px; }
 
 /* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a

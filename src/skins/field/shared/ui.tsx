@@ -43,6 +43,12 @@ export interface ModuleProps {
   footprint?: FieldFootprint;
   /** The entity's state, for styling hooks only. */
   state: string;
+  /**
+   * A known resting state (a door's SHUT, a sock's DOCK on its charger), or readings that stopped: the screen's figure,
+   * here and in the panel, and the panel's second channel, in the dim ink (`data-rest`, one rule in `module.css`), never
+   * blank segments. Off always rests. A card never dims its figure in its own CSS.
+   */
+  rest?: boolean;
   /** Makes the name the button that opens the detail panel. */
   onOpen?: () => void;
   /**
@@ -72,11 +78,11 @@ export interface ModuleProps {
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
-export function Module({ kind, name, area, footprint = "standard", state, onOpen, warning, note, level, say, since, children }: ModuleProps) {
+export function Module({ kind, name, area, footprint = "standard", state, rest, onOpen, warning, note, level, say, since, children }: ModuleProps) {
   const frame = useCardFrame({ footprint });
   const delay = useAlarmPhase(level === "alarm", since);
   return (
-    <article className={`fd-module ${kind}`} data-footprint={frame.footprint} data-state={state} data-level={level} {...frame.article} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
+    <article className={`fd-module ${kind}`} data-footprint={frame.footprint} data-state={state} data-rest={resting(state, rest)} data-level={level} {...frame.article} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
       <header className="fd-head">
         {/* Labelled by the name alone, so the heading stays "Ceiling" while the button inside reads "Ceiling details". */}
         <h3 className="fd-name" title={name} aria-labelledby={frame.nameId}>
@@ -166,12 +172,16 @@ export function ModuleRow({ solo, className, children, ...data }: { solo?: boole
   return <div className={className ? `fd-row ${className}` : "fd-row"} data-solo={solo || undefined} {...data}>{children}</div>;
 }
 
+/** `data-rest` while the module rests (`Module`'s `rest`), as off always does. */
+const resting = (state: string, rest?: boolean) => (rest || state === "off" ? "" : undefined);
+
 /**
  * A detail panel's content under its header: the screen, then each block, a column 16 px apart. It is the container
- * its key groups and blocks read their width from. `state` is the entity's, for the card's styling hooks.
+ * its key groups and blocks read their width from. `state` is the entity's, for the card's styling hooks; `rest`, as
+ * the module's, dims its figure.
  */
-export function PanelBody({ className, state, children }: { className?: string; state: string; children: ReactNode }) {
-  return <div className={className ? `fd-panel-body ${className}` : "fd-panel-body"} data-state={state}>{children}</div>;
+export function PanelBody({ className, state, rest, children }: { className?: string; state: string; rest?: boolean; children: ReactNode }) {
+  return <div className={className ? `fd-panel-body ${className}` : "fd-panel-body"} data-state={state} data-rest={resting(state, rest)}>{children}</div>;
 }
 
 /**
@@ -743,11 +753,11 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   /** Under the screen in a standard module, where it isn't `controls`: a reading's glyph and today. */
   row?: ReactNode;
   /**
-   * A standard module's whole body under its header, in place of its screen and row: a camera's still, a window in the
-   * screen beside the screen's words. The card draws its own screen in it.
+   * A standard module's whole body under its header, in place of its screen and row, for a card whose module has no
+   * row (a camera's still, a window in the screen beside the screen's words). The card draws its own screen in it.
    */
   body?: ReactNode;
-  /** Over the panel's screen: a camera's still at the panel's width, the screen's words under it. */
+  /** A `Picture` over the panel's screen, at the panel's width (a camera's still), the screen's words under it. */
   panelPicture?: ReactNode;
   /** The panel screen's second channel (`Channel`), in place of its meta lines. */
   aside?: ReactNode;
@@ -792,7 +802,7 @@ export function ModuleFrame({ details, pict, read, meta, line, lead, controls, r
         )}
       </Module>
       <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area} focusContent={panelFocus === "content"}>
-        <PanelBody className={`${module.kind}-panel`} state={module.state}>
+        <PanelBody className={`${module.kind}-panel`} state={module.state} rest={module.rest}>
           {panelPicture}
           <Screen pict={screen.pict} meta={screen.meta} aside={aside}>{screen.read}</Screen>
           {controls?.("p")}

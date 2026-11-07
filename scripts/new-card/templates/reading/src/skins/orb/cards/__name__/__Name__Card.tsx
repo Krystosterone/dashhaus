@@ -33,7 +33,7 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
 
   const bar = (
     <span className="hd-bar">
-      {value != null ? <span className="hd-metric __code__-f">{fmt(value)}{e.unit && <small>{e.unit}</small>}</span> : <span className="hd-none">Waiting…</span>}
+      {value != null ? <span className="hd-metric hd-metric-n __code__-f">{fmt(value)}{e.unit && <small>{e.unit}</small>}</span> : <span className="hd-none">Waiting…</span>}
     </span>
   );
 

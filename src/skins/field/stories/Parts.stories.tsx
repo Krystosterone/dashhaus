@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Temperature, Today, useDetails, Warn } from "../shared/ui";
+import type { ModuleFrameProps } from "../shared/ui";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_TALL, ARTWORK_TIDES, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
@@ -69,6 +70,16 @@ function Live({ src, ...props }: { src: string } & Omit<Parameters<typeof Pictur
 
 /** A picture held in one status, for the states a lifecycle passes through. */
 const held = (status: PictureStatus, src?: string) => ({ ref: () => {}, src, status });
+
+/** The module frame on its own, its name opening its panel. */
+function Frame(props: Omit<ModuleFrameProps, "details" | "kind" | "pict" | "lead"> & Partial<Pick<ModuleFrameProps, "pict" | "lead">>) {
+  const details = useDetails(false);
+  return (
+    <ModuleFrame kind="fd-parts" details={details} pict={<Pictogram lit param="neutral">{THERMO}</Pictogram>} lead={<Glyph><IconThermo /></Glyph>}
+      row={<ModuleRow><Glyph><IconThermo /></Glyph><Today summary="19.5°–21.4°" label="Temperature by hour today." samples={DAY} currentHour={18} tone="neutral" /></ModuleRow>}
+      facts={{ start: "Updated 10:42", end: "Battery 80%" }} {...props} />
+  );
+}
 
 function AllParts() {
   const [on, setOn] = useState(true);
@@ -168,6 +179,18 @@ function AllParts() {
               <Facts start="Updated 10:42" />
             </PanelBody>
           </Plate>
+        </State>
+      </Part>
+
+      <Part name="Module frame" rule="Every module's frame (ModuleFrame): its header, then the screen and the row under it, or a compact row's lead and screen; its name opens the panel, the screen again, the controls and the small print. What a card hands it is generic: rest, a known resting state, its figure dim here and in the panel; a note in place of the area; its own body in place of the screen and the row; a picture over the panel's screen. Tap a name for its panel.">
+        <State label="A screen and its row" width={300}><Frame name="Hall" area="Downstairs" state="ok" read={<Temperature value={21.4} unit="°" />} meta={["48% RH", "Since 10:31"]} /></State>
+        <State label="A row" width={340}><Frame name="Hall" area="Downstairs" state="ok" footprint="compact" read={<Temperature value={21.4} unit="°" />} /></State>
+        <State label="Resting" width={300}><Frame name="Garage door" area="Garage" state="closed" rest pict={null} read="SHUT" meta={["Closed", "Since 08:16"]} /></State>
+        <State label="A note in place of the area" width={300}><Frame name="Nursery" area="Upstairs" note="Base station off" state="ok" read={<Temperature value={20.1} unit="°" />} meta={["52% RH"]} /></State>
+        <State label="Its own body; a picture over the panel's screen" width={300}>
+          <Frame name="Front door" area="Porch" state="idle" rest read="IDLE" meta={["Idle", "Still from 10:42"]}
+            body={<div style={{ gridRow: "2 / -1", display: "grid", minHeight: 0 }}><Screen meta={["The card's own body", "Under the header"]}>IDLE</Screen></div>}
+            panelPicture={<Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" fit="contain" />} />
         </State>
       </Part>
 

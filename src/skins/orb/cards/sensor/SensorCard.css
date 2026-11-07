@@ -6,7 +6,6 @@
 .sw-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
 .sw-t { display: flex; align-items: baseline; }
 .sw-value { line-height: 1; }
-.sw-t .sw-value { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
 .sw-t .sw-value small {
   margin-left: 1px; font-size: 0.62em; font-weight: 400; letter-spacing: 0; vertical-align: 0.34em;
 }
@@ -25,11 +24,11 @@
   .sw:not(.hd--compact):not(.hd--sheet) .sw-h .sw-value { font-size: 17px; }
 }
 
-/* Compact rows keep the established one-line readout. */
+/* Compact rows keep the established one-line readout, each figure at the row's size (the shared hd-metric-n and -v). */
 .hd--compact :is(.sw-t, .sw-h) { display: block; }
-.hd--compact .sw-value { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .sw-t .sw-value small { font-size: 0.8em; font-weight: 600; vertical-align: 0.12em; }
-.hd--compact .sw-h .sw-value { font-size: 12.5px; color: var(--ink-2); }
+/* The humidity a step smaller, in the second ink, and bold as the row's figures are (its own 600 would win the tie). */
+.hd--compact .sw-h .sw-value { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
 
 /* The sheet's header owns the temperature; its readout keeps a clearly captioned humidity value. */
 .hd--sheet .sw-bar { grid-template-columns: minmax(0, 1fr); }

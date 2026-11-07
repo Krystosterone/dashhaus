@@ -1,7 +1,5 @@
 /* Alarm module (fd-al): Off and each arm mode as choice keys, or one key through a delay. A view-only alarm is a
    reading: its glyph, then today's meter. */
-/* Disarmed is a reading, not a blank, so OFF keeps its places in the dim ink. */
-:is(.fd-al, .fd-al-panel)[data-state="disarmed"] .fd-read-fig { color: var(--fd-screen-ink-2); }
 
 /* The mode keys: one column each, the current one chosen. */
 /* A KeyGroup: one row, each key filling its cell. */
