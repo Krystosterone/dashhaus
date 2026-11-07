@@ -28,7 +28,7 @@ export function __Name__Module({ entity: e__historyArg__, footprint = "standard"
   const unav = e.state === "unavailable";
 
   const pict = <Pictogram param="neutral" lit={!unav}>{__CONST___PICT}</Pictogram>;
-  const read: ReactNode = <Blank label={unav ? "Unavailable" : "No figure yet"} />;
+  const read: ReactNode = <Blank label={unav ? "Unavailable" : "No reading yet"} />;
   const meta: [ReactNode, ReactNode?] = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined] : [words(e.state)];
   const glyph = <Glyph unavailable={unav}><Icon__Name__ /></Glyph>;
 __readingTodayConst__
