@@ -6,7 +6,10 @@
  *   declares a ranking of its own;
  * - before a first value every reading says `No reading yet` (or `Waiting…`, where Orb has room for a figure alone),
  *   never another phrase for it (`No reading since 10:20`, a reading that stopped, is a warning, not this);
- * - an unavailable card says when it was last seen as `lastSeenFact` does (`Last seen 08:20`), never `Seen 08:20`.
+ * - an unavailable card says when it was last seen as `lastSeenFact` does (`Last seen 08:20`), never `Seen 08:20`;
+ * - a blank figure says one of two things: `No reading yet` where the device declares the figure but hasn't sent it,
+ *   `Not reported` where it doesn't declare it and a fixed place must still hold something, never a phrase of the
+ *   card's own for either (`No room temperature`, `No heart rate yet`, `Direction not reported`).
  *
  * Studies keep their own design (spec/skins.md → Studies), so only the two skins are held here.
  */
@@ -47,6 +50,17 @@ describe("what every card says", () => {
 
   it("says `No reading yet` before a first value, never another phrase for it", () => {
     const other = /["'`>](?:No (?:data|values?|figures?)\b|No reading(?!s? yet|s? since|\$\{)|No readings? available|Awaiting\b|Waiting for (?:data|a reading|readings|events|the first)|Loading\b)/;
+    expect(hits(other)).toEqual([]);
+  });
+
+  it("says `No reading yet` for a declared figure not sent yet, never a phrase of its own for one figure", () => {
+    // A list that hasn't been read yet (the weather's `No forecast yet`) is not a figure, so it says its own words.
+    const own = /["'`>]No (?!reading(?:s)? (?:yet|since)\b|new reading|forecast\b)(?:[a-z]+ ){0,2}(?:reading|readings|yet)\b|["'`>]No (?:room|temperature|warmth|humidity|direction|speed|level|colou?r|heart rate|oxygen|value)\b(?! (?:to|is|today|left|more))/;
+    expect(hits(own)).toEqual([]);
+  });
+
+  it("says `Not reported` for a figure the device doesn't declare, never another phrase for it", () => {
+    const other = /["'`>](?:[A-Z][a-z]+(?: [a-z]+)? not reported|Not (?:available|supported|known|declared)\b|Unreported\b|N\/A\b)|["'`>]not reported\b/;
     expect(hits(other)).toEqual([]);
   });
 

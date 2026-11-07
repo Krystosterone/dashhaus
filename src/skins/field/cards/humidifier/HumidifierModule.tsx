@@ -95,9 +95,9 @@ export function HumidifierModule({ entity: e, footprint = "standard", history, o
   const aside = unav ? (
     <Channel sub="Unavailable"><Blank label="Unavailable" /></Channel>
   ) : !on ? (
-    <Channel pict={<Pictogram lit={false}>{DROP}</Pictogram>} sub="Room">
-      {e.currentHumidity != null ? <Humidity value={e.currentHumidity} /> : <Blank label="No room humidity" />}
-    </Channel>
+    // A unit that reports no room humidity doesn't declare it (spec/cards.md → What every card says): no Room channel,
+    // and the screen keeps its meta lines.
+    e.currentHumidity != null ? <Channel pict={<Pictogram lit={false}>{DROP}</Pictogram>} sub="Room"><Humidity value={e.currentHumidity} /></Channel> : undefined
   ) : target != null ? (
     <Channel pict={<Pictogram lit level={target / 100}>{DROP}</Pictogram>} sub={verb}><Humidity value={target} /></Channel>
   ) : e.mode ? (

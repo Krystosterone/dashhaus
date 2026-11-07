@@ -16,7 +16,15 @@ export interface ClimateEntity {
   state: HvacMode | "unavailable";
   hvacModes: HvacMode[];
   hvacAction?: HvacAction;
+  /** The room's temperature as the thermostat reads it, once it has. */
   currentTemperature?: number;
+  /**
+   * Whether it reports the room's temperature at all. A climate entity declares no feature for it, so its attribute
+   * says: `false` where it has no `current_temperature`, so it may never report one ("Not reported"); omitted, or
+   * `true`, it does, and a missing `currentTemperature` is one not sent yet ("No reading yet"; spec/cards.md → What
+   * every card says).
+   */
+  reportsCurrentTemperature?: boolean;
   currentHumidity?: number;
   /** Single setpoint (heat, cool, auto). */
   targetTemperature?: number;

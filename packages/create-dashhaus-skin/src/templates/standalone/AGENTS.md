@@ -144,7 +144,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | Import from | What it has |
 | --- | --- |
 | `@dashhaus/core/entities/format` | `fmt1` (one decimal), `fmtDuration`, `fmtAgo`, `fmtPlayTime` (a player's clock), `inWords` (an integration's own state in words) |
-| `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText` |
+| `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText`; a blank figure's two phrases, `NO_READING_YET` (declared, not sent yet) and `NOT_REPORTED` (not declared, where a fixed place must hold something) |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
 | `@dashhaus/core/entities/picture` | what a card says about its picture (a still, artwork): `PICTURE_WORDS`, `stillFrom`, `pictureTime` |
@@ -163,7 +163,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/calendar/words` | a calendar's events in words, counted from its own minute: when one is (`eventWhen`: "In 2h 6m", "Until 12:15", "Tomorrow 09:30"), a compact cue (`eventCue`), its span (`eventSpan`), `freeFor`, `leftToday`, `clockTime`, `dayWord`; its active set (`isActive`: an event under way) and its other words (`CALENDAR_WORDS`) |
 | `@dashhaus/core/entities/calendar/agenda` | `calendarAgenda` (the event to lead with, today's, what's left and later) and `calendarDay` (today's hours busy) |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
-| `@dashhaus/core/entities/climate/words` | what a target does (`TARGET_WORD`), and its small print (`climateFacts`) |
+| `@dashhaus/core/entities/climate/words` | what a target does (`TARGET_WORD`), what a missing room temperature says (`roomTemperatureBlank`), and its small print (`climateFacts`) |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
 | `@dashhaus/core/entities/cover/words` | a cover's state in words (`coverWord`), `positionText`, a door left open (`leftOpenText`) |
 | `@dashhaus/core/entities/cover/severity` | `coverSeverity` |

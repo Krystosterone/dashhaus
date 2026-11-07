@@ -91,6 +91,25 @@ describe("climateFromHass", () => {
     expect(missing.targetTemperature).toBeUndefined();
   });
 
+  it("tells a room temperature not sent yet from one the thermostat never reports, by its attribute", () => {
+    const without: Record<string, unknown> = { ...raw.attributes };
+    delete without.current_temperature;
+    // The attribute is there with no number in it yet: it reports one, not yet ("No reading yet").
+    const notYet = climateFromHass({ ...raw, attributes: { ...raw.attributes, current_temperature: null } }, raw.entity_id);
+    expect(notYet.currentTemperature).toBeUndefined();
+    expect(notYet.reportsCurrentTemperature).toBeUndefined();
+    // Home Assistant's native attribute counts too.
+    expect(climateFromHass({ ...raw, attributes: { ...without, native_current_temperature: null } }, raw.entity_id).reportsCurrentTemperature).toBeUndefined();
+    // No attribute at all: it never reports one ("Not reported").
+    const never = climateFromHass({ ...raw, attributes: without }, raw.entity_id);
+    expect(never.currentTemperature).toBeUndefined();
+    expect(never.reportsCurrentTemperature).toBe(false);
+    // A reading says it reports one; unavailable or missing, nothing is said of it.
+    expect(climateFromHass(raw, raw.entity_id).reportsCurrentTemperature).toBeUndefined();
+    expect(climateFromHass({ ...raw, state: "unavailable", attributes: without }, raw.entity_id).reportsCurrentTemperature).toBeUndefined();
+    expect(climateFromHass(undefined, "climate.missing").reportsCurrentTemperature).toBeUndefined();
+  });
+
   it("omits out-of-range humidity readings", () => {
     const mapped = climateFromHass({
       ...raw,

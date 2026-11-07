@@ -233,6 +233,7 @@
       "hvacModes",
       "hvacAction",
       "currentTemperature",
+      "reportsCurrentTemperature",
       "currentHumidity",
       "targetTemperature",
       "targetLow",

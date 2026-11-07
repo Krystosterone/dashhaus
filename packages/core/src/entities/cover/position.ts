@@ -5,7 +5,13 @@ export const CLASS_LABEL: Record<CoverClass, string> = {
   curtain: "Curtain", blind: "Blind", shade: "Shade", shutter: "Shutter", awning: "Awning", window: "Window", garage: "Garage door", door: "Door", gate: "Gate",
 };
 
-/** Covers that let a person in, rather than light: open is a state, and left open it reads as a warning. */
+/**
+ * Covers that let a person in, rather than light: an access point that is normally closed and that the dashboard can
+ * close, so left open it warns, as advisory (`coverSeverity`). A garage door, a gate and a door (a motorised one: a
+ * cover is one the dashboard drives). A garage door's contact sensor warns the same way (`garage_door` in the binary
+ * sensor's `ON_SEVERITY`); a plain door contact never does, since people walk through doors all day and a time it may
+ * stay open would be a threshold the card invented (spec/cards.md → A door or gate left open).
+ */
 export const isAccess = (kind: CoverClass) => kind === "garage" || kind === "door" || kind === "gate";
 
 /** Quick positions, closed to open. */

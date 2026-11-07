@@ -78,6 +78,13 @@ function validTargetRange(low: number | undefined, high: number | undefined, bou
   return { low, high };
 }
 
+/**
+ * Whether the entity reports the room's temperature at all: a climate entity declares no feature for it, so the
+ * attribute is what tells "not yet" (present, with no number in it yet) from "never" (absent).
+ */
+const reportsCurrentTemperature = (attributes: HassEntity["attributes"]) =>
+  "current_temperature" in attributes || "native_current_temperature" in attributes;
+
 /** Map one raw Home Assistant climate state to the existing presentational model. */
 export function climateFromHass(raw: HassEntity | undefined, entityId: string, options: ClimateMapOptions = {}): ClimateEntity {
   const attributes = raw?.attributes ?? {};
@@ -121,6 +128,7 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     hvacModes: modeList(attributes.hvac_modes),
     hvacAction: readable ? actionValue(stringValue(attributes.hvac_action)) : undefined,
     currentTemperature: readable ? firstNumber(attributes.current_temperature, attributes.native_current_temperature) : undefined,
+    ...(readable && !reportsCurrentTemperature(attributes) && { reportsCurrentTemperature: false }),
     currentHumidity: readable ? percentage(firstNumber(attributes.current_humidity)) : undefined,
     targetTemperature: readable ? targetTemperature : undefined,
     targetLow: readable ? targetRange.low : undefined,

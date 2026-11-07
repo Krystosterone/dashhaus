@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, MODE_META, fmtCurrent, fmtTarget, orderedRange, titleCase } from "@dashhaus/core/entities/climate/modes";
-import { TARGET_WORD, climateFacts } from "@dashhaus/core/entities/climate/words";
+import { TARGET_WORD, climateFacts, roomTemperatureBlank } from "@dashhaus/core/entities/climate/words";
 import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Fader, Key, Legend, ModuleFrame, Option, Pictogram, RangeFader, Steps, Today, useDetails, KeyGroup, choices, Temperature, ModuleRow, Channel } from "../../shared/ui";
@@ -63,7 +63,8 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
     : e.currentTemperature != null ? <Temperature value={e.currentTemperature} unit={e.unit} />
     : mode === "dry" ? "DRY"
     : mode === "fan_only" ? "FAN"
-    : <Blank places={4} label="No temperature reading" />;
+    // The screen's fixed places hold blank segments: not sent yet, or a thermostat that never reports one.
+    : <Blank places={4} label={roomTemperatureBlank(e)} />;
 
   const seen = e.lastSeen ? lastSeenFact(e.lastSeen) : undefined;
   const room = e.currentTemperature != null ? nowText(`${fmtCurrent(e.currentTemperature)}${e.unit}`) : undefined;
@@ -133,9 +134,12 @@ export function ClimateModule({ entity: e, footprint = "standard", history, onTo
   const aside = unavailable ? (
     <Channel sub="Unavailable"><Blank places={4} label="Unavailable" /></Channel>
   ) : !on ? (
-    <Channel pict={<Pictogram lit={false}><ModeShape mode={targetPictMode} /></Pictogram>} sub="Room">
-      {e.currentTemperature != null ? <Temperature value={e.currentTemperature} unit={e.unit} /> : <Blank places={4} label="No room temperature" />}
-    </Channel>
+    // A thermostat that never reports the room's temperature has no Room channel: the screen keeps its meta lines.
+    e.reportsCurrentTemperature === false ? undefined : (
+      <Channel pict={<Pictogram lit={false}><ModeShape mode={targetPictMode} /></Pictogram>} sub="Room">
+        {e.currentTemperature != null ? <Temperature value={e.currentTemperature} unit={e.unit} /> : <Blank places={4} label={roomTemperatureBlank(e)} />}
+      </Channel>
+    )
   ) : (
     <Channel
       pict={<Pictogram lit={target != null} param={mode === "heat_cool" ? "b" : "a"}><ModeShape mode={targetPictMode} /></Pictogram>}

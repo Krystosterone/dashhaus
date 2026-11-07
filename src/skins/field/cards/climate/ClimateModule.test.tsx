@@ -138,4 +138,25 @@ describe("ClimateModule", () => {
     expect(within(panel).getByRole("button", { name: "Garage heater, unavailable", hidden: true }).getAttribute("aria-disabled")).toBe("true");
     expect(within(panel).queryByRole("button", { name: /^Set (mode|preset|fan) to /, hidden: true })).toBeNull();
   });
+
+  it("says No reading yet for a room temperature not sent yet, Not reported for one it never reports", () => {
+    const heating = CLIMATE_SEEDS.heating.entity;
+    const notYet = draw({ ...heating, currentTemperature: undefined });
+    expect(notYet.querySelector(".fd-read .fd-sr")?.textContent).toBe("No reading yet");
+    const never = draw({ ...heating, currentTemperature: undefined, reportsCurrentTemperature: false });
+    expect(never.querySelector(".fd-read .fd-sr")?.textContent).toBe("Not reported");
+  });
+
+  it("keeps the Room channel, saying No reading yet, for an off thermostat not read yet", () => {
+    const off = { ...CLIMATE_SEEDS.heating.entity, state: "off" as const, currentTemperature: undefined };
+    render(<ClimateModule entity={off} defaultOpen onToggle={vi.fn()} onTargetChange={vi.fn()} />);
+    expect(within(screen.getByRole("dialog")).getByText("Room")).toBeTruthy();
+    expect(within(screen.getByRole("dialog")).getByText("No reading yet", { selector: ".fd-sr" })).toBeTruthy();
+  });
+
+  it("keeps the screen's meta lines in the panel where there is no room reading to show", () => {
+    const off = { ...CLIMATE_SEEDS.heating.entity, state: "off" as const, currentTemperature: undefined, reportsCurrentTemperature: false };
+    render(<ClimateModule entity={off} defaultOpen onToggle={vi.fn()} onTargetChange={vi.fn()} />);
+    expect(within(screen.getByRole("dialog")).queryByText("Room")).toBeNull();
+  });
 });

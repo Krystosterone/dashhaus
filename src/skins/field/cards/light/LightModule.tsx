@@ -5,7 +5,7 @@ import { kelvinName, K_MIN, K_MAX } from "@dashhaus/core/entities/light/kelvin";
 import { LAMP_COLORS, lampColorOf } from "@dashhaus/core/entities/light/color";
 import { QUICK_LEVELS, lightAbilities, lightWord } from "@dashhaus/core/entities/light/words";
 import type { Hs } from "@dashhaus/core/entities/light/color";
-import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModuleFrame, Key, Digits, Blank, Fader, Option, Pictogram, Swatch, Today, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -102,7 +102,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
     <Channel pict={<Pictogram lit lamp={lamp.name}>{LENS}</Pictogram>} name={lamp.name} sub="Colour" />
   ) : e.supportsColorTemp ? (
     <Channel pict={<Pictogram lit={on && k != null} param="b">{SUN}</Pictogram>} sub={k != null ? kelvinName(k) : "Warmth"}>
-      {k != null ? <>{k}<small>K</small></> : <Blank places={4} label="No warmth" />}
+      {k != null ? <>{k}<small>K</small></> : <Blank places={4} label={NO_READING_YET} />}
     </Channel>
   ) : undefined;
   const today = history && (unav ? "Unavailable" : todaySummary("on", history.onMinutes));
@@ -149,7 +149,7 @@ export function LightModule({ entity: e, footprint = "standard", history, onTogg
           lit={on}
           disabled={unav || !on}
           param="b"
-          valueText={k == null ? "Not reported" : `${k} kelvin, ${kelvinName(k)}`}
+          valueText={k == null ? NO_READING_YET : `${k} kelvin, ${kelvinName(k)}`}
           onChange={onKelvinChange}
         />
       )}
