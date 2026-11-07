@@ -216,23 +216,21 @@ npx dashhaus-deploy --config orb.config.mjs --skip-build
 npx dashhaus-deploy --config field.config.mjs --skip-build
 ```
 
-Author journey, from packed tarballs, scaffolding, testing and building once:
+Author journey, from packed tarballs, scaffolding, testing and building once, as `verify/dx/author.js` does:
 
 ```sh
 app=$(mktemp -d); cd "$app"
-npm init -y && npm pkg set type=module
-npm install "$release"/dashhaus-core-<version>.tgz \
-  "$release"/dashhaus-deploy-<version>.tgz "$release"/create-dashhaus-skin-<version>.tgz \
-  react@18.3.1 react-dom@18.3.1 home-assistant-js-websocket@9.7.1 vite@5.4.19 @vitejs/plugin-react@4.3.4 \
-  typescript@5.6.3 @types/react@^19.0.0 @types/react-dom@^19.0.0   # the scaffold's own devDependencies, for npm test
-npx create-dashhaus-skin my-skin
-ln -s "$app/node_modules" my-skin/node_modules   # pre-publish stand-in for `npm install` in the scaffold
+npx --yes --package "$release"/create-dashhaus-skin-<version>.tgz create-dashhaus-skin my-skin --tarballs "$release"
 cd my-skin
+npm install        # its @dashhaus dependencies from the tarballs, the rest (Vite, React, TypeScript) from npm
 npm test
-npm run build
+npm run build      # prints no warning
 cp /path/to/dashhaus/.env.example .env           # same three values; the scaffold's dashboard is dashhaus-my-skin
 npx dashhaus-deploy --skip-build
 ```
+
+The scaffold installs its own development dependencies, at the ranges its `package.json` names, so the smoke builds
+with the Vite an author gets.
 
 Observe, in this order:
 
