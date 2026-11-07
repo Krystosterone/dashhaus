@@ -2,14 +2,14 @@
  * The site's release notes, read from the release records (`spec/releases/<version>.md`) and the change notes waiting
  * for the next release (`changes/`), the same files `npm run release` writes and the Release workflow publishes from.
  * A record's words for people are its `## Release page` section, which the GitHub release also carries, and the
- * `### Upgrading` steps when it has them; the rest of a record (its verification, digests and publish gate) is for
- * whoever cuts the release, so the site leaves it out.
+ * `### Upgrading` steps when it has them, shown once whether they sit inside the Release page or after it; the rest
+ * of a record (its verification, digests and publish gate) is for whoever cuts the release, so the site leaves it out.
  *
  * Pure (files only), for the content loader in `content.config.ts`.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { CHANGES_DIR, parseChange } from "../../../scripts/release/changes.js";
+import { CHANGES_DIR, parseChange, type ChangeNote } from "../../../scripts/release/changes.js";
 
 export interface Release {
   version: string;
@@ -50,7 +50,9 @@ export function releases(cwd = process.cwd()): Release[] {
       const record = readFileSync(join(dir, `${version}.md`), "utf8");
       const page = section(record, "Release page", 2);
       const upgrading = section(record, "Upgrading", 3);
-      return { version, notes: [page, upgrading && `### Upgrading\n\n${upgrading}`].filter(Boolean).join("\n\n") };
+      // Upgrading inside the Release page, where the GitHub release carries it too, is in `page` already.
+      const nested = page !== undefined && /^### Upgrading$/m.test(page);
+      return { version, notes: [page, !nested && upgrading && `### Upgrading\n\n${upgrading}`].filter(Boolean).join("\n\n") };
     });
 }
 
@@ -63,6 +65,6 @@ export function pendingChanges(cwd = process.cwd()): PendingChange[] {
     .filter((file) => file.endsWith(".md") && file !== "README.md")
     .sort()
     .map((file) => parseChange(readFileSync(join(dir, file), "utf8"), `${CHANGES_DIR}/${file}`))
-    .filter((change): change is PendingChange => change.type !== "internal")
+    .filter((change): change is ChangeNote & PendingChange => change.type !== "internal")
     .sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 }
