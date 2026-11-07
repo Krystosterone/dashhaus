@@ -9,6 +9,7 @@ import type {
   Unsubscribe,
 } from "./types";
 import { isRecord, safeProperty } from "./util";
+import { resolvePicture } from "./picture";
 import { perfEnabled, perfMark, perfMarkAfterPaint } from "../perf";
 
 /** `home-assistant-js-websocket`'s ERR_CONNECTION_LOST: in-flight commands are rejected with it when the socket drops. */
@@ -278,6 +279,7 @@ export function createHaStore(transport: HaTransport, initialEntities?: HassEnti
     },
     query: service(false),
     callApi,
+    resolveUrl: (path) => resolvePicture(path, transport.resolveUrl?.bind(transport)),
   };
 }
 

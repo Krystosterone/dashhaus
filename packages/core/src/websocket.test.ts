@@ -10,7 +10,7 @@ vi.mock("home-assistant-js-websocket", () => library);
 
 const { connectHomeAssistant, createHomeAssistantTransport } = await import("./websocket");
 
-function fakeConnection() {
+function fakeConnection(hassUrl?: string) {
   const handlers = new Map<string, Set<(...args: unknown[]) => void>>();
   const connection = {
     addEventListener: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
@@ -22,6 +22,7 @@ function fakeConnection() {
     }),
     sendMessagePromise: vi.fn(async () => ["result"]),
     close: vi.fn(),
+    options: { auth: hassUrl ? { data: { hassUrl } } : undefined },
   };
   const fire = (event: string, ...args: unknown[]) => handlers.get(event)?.forEach((handler) => handler(connection, ...args));
   return { connection: connection as unknown as Connection, raw: connection, fire, handlers };
@@ -84,6 +85,22 @@ describe("createHomeAssistantTransport", () => {
     const { connection, raw } = fakeConnection();
     createHomeAssistantTransport(connection).close();
     expect(raw.close).toHaveBeenCalled();
+  });
+});
+
+describe("resolveUrl", () => {
+  it("resolves an entity's picture path against Home Assistant's base, as the frontend's hassUrl does", () => {
+    const { connection } = fakeConnection("http://homeassistant.local:8123");
+    const transport = createHomeAssistantTransport(connection);
+
+    expect(transport.resolveUrl?.("/api/camera_proxy/camera.door?token=abc")).toBe("http://homeassistant.local:8123/api/camera_proxy/camera.door?token=abc");
+    expect(transport.resolveUrl?.("https://i.scdn.co/image/ab67")).toBe("https://i.scdn.co/image/ab67");
+  });
+
+  it("keeps a path relative to the page when the connection has no auth (a gateway's)", () => {
+    const { connection } = fakeConnection();
+
+    expect(createHomeAssistantTransport(connection).resolveUrl?.("/api/camera_proxy/camera.door?token=abc")).toBe("/api/camera_proxy/camera.door?token=abc");
   });
 });
 

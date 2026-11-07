@@ -2,7 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleRow, Notices, PanelBody, Pictogram, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { usePicture } from "@dashhaus/core/hooks";
+import type { PictureStatus } from "@dashhaus/core/hooks";
+import { ARTWORK_TALL, ARTWORK_TIDES, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
@@ -58,6 +61,14 @@ function ScreenAt({ children }: { children: ReactNode }) {
 }
 
 const DAY: HourSample[] = [0, 0, 0, 0, 0, 0, 0.3, 0.8, 0.6, 0, 0, 0, 0.4, 0.5, "unavailable", "unavailable", 0.7, 0.9, 1, null, null, null, null, null];
+
+/** A picture through the real lifecycle: it loads once on screen and decodes before it draws. */
+function Live({ src, ...props }: { src: string } & Omit<Parameters<typeof Picture>[0], "picture">) {
+  return <Picture picture={usePicture<HTMLElement>(src)} {...props} />;
+}
+
+/** A picture held in one status, for the states a lifecycle passes through. */
+const held = (status: PictureStatus, src?: string) => ({ ref: () => {}, src, status });
 
 function AllParts() {
   const [on, setOn] = useState(true);
@@ -119,6 +130,18 @@ function AllParts() {
         <State label="Unavailable" width={300}>
           <ScreenAt><Screen pict={<Pictogram lit={false}>{BULB}</Pictogram>} meta={["Unavailable", "Last seen 10:42"]}><Blank label="Unavailable" /></Screen></ScreenAt>
         </State>
+      </Part>
+
+      <Part name="Picture" rule="Field's media surface, a camera's still or a player's artwork on usePicture: a window in the screen, its own dark well with the frame clipped into it, no bezel and no words on it. It loads once seen, decodes before it draws, and keeps its last frame while the next loads. Before a frame, with none to keep and while unavailable, it is the screen with the card's pictogram unlit. It never inverts with an alarm. Pressed, it opens the stream or the panel; unavailable, it takes no press.">
+        <State label="A still, 16:9" width={300}><Live src={PICTURE_DOORSTEP} label="Front door camera" onOpen={() => {}} openLabel="Open live view" /></State>
+        <State label="At night" width={300}><Live src={PICTURE_NURSERY} label="Nursery camera" /></State>
+        <State label="21:9, cropped" width={300}><Live src={PICTURE_WIDE} label="Driveway camera" /></State>
+        <State label="21:9 whole, in a panel" width={300}><Live src={PICTURE_WIDE} label="Driveway camera" fit="contain" /></State>
+        <State label="Artwork, 1:1" width={96}><Live src={ARTWORK_TIDES} label="Artwork" ratio="1 / 1" /></State>
+        <State label="3:4 artwork, cropped" width={96}><Live src={ARTWORK_TALL} label="Artwork" ratio="1 / 1" /></State>
+        <State label="Before a frame" width={300}><Picture picture={held("loading")} label="Front door camera" /></State>
+        <State label="Failed, nothing kept" width={300}><Picture picture={held("failed")} label="Front door camera" /></State>
+        <State label="Unavailable" width={300}><Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" unavailable onOpen={() => {}} /></State>
       </Part>
 
       <Part name="Pictogram" rule="The shape is always there unlit, and lights from the bottom up to its level in its parameter's colour, or in a colour lamp's own.">

@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Key, ModuleFrame, useDetails } from "./ui";
+import { Key, ModuleFrame, Picture, useDetails } from "./ui";
 import type { FieldFootprint } from "./ui";
+import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 
 function Probe({ footprint, defaultOpen, warning, note }: { footprint?: FieldFootprint; defaultOpen?: boolean; warning?: string; note?: string }) {
   const details = useDetails(defaultOpen);
@@ -97,5 +98,37 @@ describe("Key", () => {
     expect(key.hasAttribute("data-chosen")).toBe(true);
     fireEvent.click(key);
     expect(onPress).not.toHaveBeenCalled();
+  });
+});
+
+describe("Picture", () => {
+  const frame = { ref: () => {}, src: "data:image/png;base64,AA==", status: "ready" as const };
+  it("is the button that opens it, labelled by what it is and what the press does", () => {
+    const onOpen = vi.fn();
+    render(<Picture picture={frame} label="Front door camera" onOpen={onOpen} openLabel="Open live view" />);
+    fireEvent.click(screen.getByRole("button", { name: "Front door camera. Open live view" }));
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
+  it("takes no press or focus while unavailable, and draws no frame: a camera that is gone has nothing to open", () => {
+    const onOpen = vi.fn();
+    const { container } = render(<Picture picture={frame} label="Front door camera" onOpen={onOpen} unavailable />);
+    expect(screen.queryByRole("button")).toBeNull();
+    const box = screen.getByRole("img", { name: "Front door camera" });
+    fireEvent.click(box);
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(container.querySelector("img")).toBeNull();
+  });
+  it("draws no word over the picture in any state: the card's own line says how old a still is (spec/cards.md)", () => {
+    for (const status of ["none", "loading", "ready", "stale", "failed"] as const) {
+      for (const unavailable of [false, true]) {
+        const { container, unmount } = render(<Picture picture={{ ...frame, status }} label="Front door camera" onOpen={() => {}} unavailable={unavailable} />);
+        expect(container.textContent, `${status}${unavailable ? ", unavailable" : ""}`).toBe("");
+        unmount();
+      }
+    }
+  });
+  it("says core's words for its press where the card names none", () => {
+    render(<Picture picture={frame} label="Artwork" onOpen={() => {}} />);
+    expect(screen.getByRole("button", { name: `Artwork. ${PICTURE_WORDS.open}` })).toBeTruthy();
   });
 });

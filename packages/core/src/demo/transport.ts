@@ -40,6 +40,11 @@ export interface DemoTransportOptions {
   history?: (entities: HassEntities, entityIds: readonly string[]) => Record<string, DemoHistoryRow[]>;
   /** A live reading: every `ms`, `change` picks an entity and its change, or nothing. It runs while anyone listens. */
   tick?: { ms: number; change: (entities: HassEntities) => [string, DemoChange] | undefined };
+  /**
+   * The pictures it serves: an `entity_picture` path, as Home Assistant gives it, to a local picture
+   * (`@dashhaus/core/seeds/pictures`). A path it doesn't hold resolves to nothing, so a demo never fetches the network.
+   */
+  pictures?: Record<string, string>;
 }
 
 const copy = (entities: HassEntities): HassEntities =>
@@ -52,7 +57,7 @@ const copy = (entities: HassEntities): HassEntities =>
  * every change, `last_changed` when the state changes. Registries and history come from `demoSendMessage`. A
  * domain's transport is its seed and its services alone.
  */
-export function createDemoTransport({ seed, services, refuse, history, tick }: DemoTransportOptions): HaTransport {
+export function createDemoTransport({ seed, services, refuse, history, tick, pictures = {} }: DemoTransportOptions): HaTransport {
   let entities = copy(seed);
   const listeners = new Set<(next: HassEntities) => void>();
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -108,7 +113,16 @@ export function createDemoTransport({ seed, services, refuse, history, tick }: D
       }
       return demoSendMessage(entities, type, payload);
     },
+    resolveUrl: (path) => demoPicture(pictures, path),
   };
+}
+
+/**
+ * A demo's picture for an `entity_picture` path: the one it holds, matched without the query (Home Assistant's token,
+ * a refresh's time), or nothing.
+ */
+export function demoPicture(pictures: Record<string, string>, path: string): string | undefined {
+  return pictures[path] ?? pictures[path.split(/[?#]/)[0]];
 }
 
 /** Switching one domain's entities on and off: `toggle`, `turn_on` and `turn_off`, or the ones named. */
