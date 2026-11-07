@@ -8,9 +8,9 @@ in either can reach your home, so please report one privately.
 Use GitHub's private reporting: **[Report a vulnerability](https://github.com/Krystosterone/dashhaus/security/advisories/new)**.
 Don't open a public issue or pull request for it.
 
-Say what is affected (a package and its version, the bundle, its dashboard strategy), how to reproduce it, and what an
-attacker gains. You'll get an answer within a week; a fix ships as a patch release of every affected package, with an
-advisory that credits you unless you'd rather it didn't.
+Say what is affected (a package and its version, a skin's resource, its dashboard strategy), how to reproduce it, and
+what an attacker gains. You'll get an answer within a week; a fix ships as a patch release of every affected package,
+with an advisory that credits you unless you'd rather it didn't.
 
 ## Supported versions
 

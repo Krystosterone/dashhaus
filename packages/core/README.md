@@ -47,7 +47,7 @@ const store = createHaStore(createHomeAssistantTransport(connection));
 | `./entities`, `./entities/*` | The entity models and their pure logic (`./entities/light/types`, `./entities/format`), with no React and no Home Assistant |
 | `./primitives` | Headless interaction hooks: press, slider, range slider, sheet, keypad, and `useGuardedAction` for an action that asks first or takes a code |
 | `./hooks` | Shared hooks with no UI: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, and `useDemoClimate` for stories |
-| `./perf` | The opt-in performance marks the deployed bundle records, off unless the page asks for them with `?dashhaus_perf=1` |
+| `./perf` | The opt-in performance marks a deployed skin's resource records, off unless the page asks for them with `?dashhaus_perf=1` |
 | `./websocket` | `connectHomeAssistant` and `createHomeAssistantTransport`: the one module that imports `home-assistant-js-websocket` |
 | `./seeds/*` | One domain's demo data per module (`./seeds/lock`): its `<NAME>_SEEDS`, `<NAME>_WORST_CASE` and `useDemo<Name>` hook, the same for every skin's stories |
 | `./demo` | Demo transports for Storybook and tests, and `createDemoStore()` for the whole house |

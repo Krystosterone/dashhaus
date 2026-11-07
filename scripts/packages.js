@@ -123,7 +123,7 @@ export function skinDir(skin) {
 /**
  * A study: a skin an agent built, kept so people can see it, use it and build on it. It is not finished or polished
  * and it doesn't ship: `new-skin --study` (which `npm run study:keep` runs) generates it like any skin, then marks it,
- * files its stories under `Studies/<Name>` and leaves it out of the Lovelace bundle and the deploy config
+ * files its stories under `Studies/<Name>`, gives it no resource and leaves it out of the deploy config
  * (spec/skins.md → Studies). Everything that treats a study differently reads the marker in its manifest; what the
  * study's run was is its `study.json` (`studies.record`).
  */

@@ -9,8 +9,8 @@
  *   npm run new-card -- light --skin canvas
  *
  * `--study` makes a study's shell (spec/skins.md → Studies): the same skin from the same templates, plus a README and a
- * Read me first page, with its stories under `Studies/<Name>`, a marker in its manifest, and no registration in the
- * Lovelace bundle, the deploy config or spec/deploy.md, so it never ships. `npm run study:keep` runs it to bring a
+ * Read me first page, with its stories under `Studies/<Name>`, a marker in its manifest, and no resource and no
+ * registration in the deploy config or spec/deploy.md, so it never ships. `npm run study:keep` runs it to bring a
  * study run into the repository, then lays the agent's skin over it.
  */
 import { spawnSync } from "node:child_process";

@@ -1,6 +1,6 @@
 /**
  * The preview: the real `custom:__card_type__` element from `lovelace/entry.tsx`, drawn the way Home Assistant draws
- * it (shadow root, the bundle's CSS, the store on a websocket connection), on a sample house instead of a real one.
+ * it (shadow root, the resource's CSS, the store on a websocket connection), on a sample house instead of a real one.
  * `npm run preview` serves it; `npm run snapshot` saves it as PNGs.
  *
  * The house is two parts. `./house.ts` is yours: the domains it lists (lights and sensors to start) come only from

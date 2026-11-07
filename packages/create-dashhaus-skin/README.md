@@ -49,12 +49,12 @@ ha/                                   the useHaLight and useHaSensor adapters
 shared/                               the card frame, its details dialog, the action button; the font and theme attribute
 dashboards/                           the page: layout, card grid, header and nav bar
 lovelace/                             the custom element, YAML reader, automatic layout, card registry, page and
-                                      rejected-command row, bundle entry
+                                      rejected-command row, resource entry
 styles/tokens.css                     every colour, font and easing, light and dark
 preview/                              the local preview, its sample house and the snapshot script
 conformance.js, tsconfig.json         npm test: tsc, then @dashhaus/core/lovelace/conformance plus the CSS rules
 vite.config.js                        one ES module, dist/dashhaus-<skin>.js, CSS inlined
-dashboard.config.mjs, .env.example    the deploy: the dashboard, the bundle, the settings
+dashboard.config.mjs, .env.example    the deploy: the dashboard, the resource, the settings
 ```
 
 `__Skin__` is the folder's name in PascalCase. The project depends on `@dashhaus/core`, React

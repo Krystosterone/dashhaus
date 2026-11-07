@@ -74,7 +74,7 @@ class FakeHomeAssistant implements DeployClient {
 
 const DASHBOARDS = `export default {
   pageTitle: "Home",
-  files: ["dist/dashhaus.js"],
+  files: ["dist/orb-dashboard.js"],
   dashboards: [{
     path: "home-a",
     title: "Home A",
@@ -86,13 +86,13 @@ const DASHBOARDS = `export default {
   }],
 };`;
 
-async function project(source = DASHBOARDS, writeBundle = true) {
+async function project(source = DASHBOARDS, writeResource = true) {
   const directory = await mkdtemp(join(tmpdir(), "deploy-run-"));
   directories.push(directory);
   await mkdir(join(directory, "dist"), { recursive: true });
   await mkdir(join(directory, "www"), { recursive: true });
   await writeFile(join(directory, "dashboard.config.mjs"), source);
-  if (writeBundle) await writeFile(join(directory, "dist", "dashhaus.js"), "console.log('bundle');");
+  if (writeResource) await writeFile(join(directory, "dist", "orb-dashboard.js"), "console.log('orb');");
   return directory;
 }
 
@@ -126,9 +126,9 @@ describe("deploy", () => {
       views: [{ title: "Home", path: "home", type: "panel", cards: [{ type: "custom:dashhaus-orb", states: 1 }] }],
     });
     const [resource] = first.resources;
-    expect(resource).toEqual({ name: "dashhaus.js", url: `/local/dashhaus/dashhaus.js?v=${resource.version}`, version: expect.stringMatching(/^[0-9a-f]{10}$/), updated: false });
+    expect(resource).toEqual({ name: "orb-dashboard.js", url: `/local/orb-dashboard/orb-dashboard.js?v=${resource.version}`, version: expect.stringMatching(/^[0-9a-f]{10}$/), updated: false });
     expect(ha.resources).toEqual([{ id: "resource-1", url: resource.url }]);
-    expect(await readFile(join(directory, "www", "dashhaus", "dashhaus.js"), "utf8")).toBe("console.log('bundle');");
+    expect(await readFile(join(directory, "www", "orb-dashboard", "orb-dashboard.js"), "utf8")).toBe("console.log('orb');");
     expect(ha.closed).toBe(true);
 
     const second = await run();
@@ -138,7 +138,7 @@ describe("deploy", () => {
     expect(ha.resources).toHaveLength(1);
     expect(second.resources[0]).toMatchObject({ url: resource.url, updated: true });
     expect(messages.some((message) => message.includes("its layout is yours and was left alone"))).toBe(true);
-    expect(messages.at(-1)).toContain(`to pick up dashhaus.js version ${resource.version}.`);
+    expect(messages.at(-1)).toContain(`to pick up orb-dashboard.js version ${resource.version}.`);
   });
 
   it("deletes a dashboard whose layout failed to save, so the next run creates it again", async () => {
@@ -207,7 +207,7 @@ export default {
 
   it("skips the build with --skip-build and reads the prebuilt file", async () => {
     const directory = await project(`export default {
-  files: ["dist/dashhaus.js"],
+  files: ["dist/orb-dashboard.js"],
   build() { throw new Error("the build must not run"); },
   dashboards: [{
     path: "home-a",
@@ -237,7 +237,7 @@ export default {
     })).rejects.toThrowError("is missing");
 
     const failed = await project(`export default {
-  files: ["dist/dashhaus.js"],
+  files: ["dist/orb-dashboard.js"],
   build() { throw new Error("vite exploded"); },
   dashboards: [],
 };`);
@@ -270,7 +270,7 @@ export default {
   it("warns when another copy of a file is registered too, as a Marketplace install's", async () => {
     const directory = await project();
     const ha = new FakeHomeAssistant();
-    ha.resources.push({ id: "resource-hacs", url: "/hacsfiles/dashhaus/dashhaus.js?hacstag=123456789030" });
+    ha.resources.push({ id: "resource-hacs", url: "/hacsfiles/orb-dashboard/orb-dashboard.js?hacstag=123456789030" });
     const messages: string[] = [];
     await deploy({
       configFile: join(directory, "dashboard.config.mjs"),
@@ -280,7 +280,7 @@ export default {
       warn: (message) => messages.push(message),
       connect: async () => ha,
     });
-    expect(messages.some((message) => message.includes("Another dashhaus.js is also registered (/hacsfiles/dashhaus/dashhaus.js)"))).toBe(true);
+    expect(messages.some((message) => message.includes("Another orb-dashboard.js is also registered (/hacsfiles/orb-dashboard/orb-dashboard.js)"))).toBe(true);
   });
 
   it("refuses a deploy without the settings .env must hold", async () => {
@@ -313,8 +313,8 @@ export default {
     };
     const body = (text: string) => async () => new TextEncoder().encode(text).buffer as ArrayBuffer;
 
-    const served = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("console.log('bundle');") }));
-    expect(fetched[0]).toMatch(/^http:\/\/ha\.test\/local\/dashhaus\/dashhaus\.js\?v=[0-9a-f]{10}$/);
+    const served = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("console.log('orb');") }));
+    expect(fetched[0]).toMatch(/^http:\/\/ha\.test\/local\/orb-dashboard\/orb-dashboard\.js\?v=[0-9a-f]{10}$/);
     expect(served.warnings).toEqual([]);
     expect(served.reports.join("\n")).toContain("the uploaded file");
 
@@ -322,7 +322,7 @@ export default {
     expect(missing.warnings.join("\n")).toContain("HTTP 404");
     expect(missing.warnings.join("\n")).toContain("HA_WWW");
 
-    const stale = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("an older bundle") }));
+    const stale = await run(async () => ({ ok: true, status: 200, arrayBuffer: body("an older resource") }));
     expect(stale.warnings.join("\n")).toContain("serves a different file");
   });
   it("uploads, registers and checks every file the config names, after one build", async () => {
@@ -408,15 +408,15 @@ export default {
     expect(warnings[1]).toContain(`- url: ${result.resources[1].url}`);
 
     const marketplace = new FakeHomeAssistant();
-    marketplace.resources.push({ id: "resource-hacs", url: "/hacsfiles/dashhaus/field-dashboard.js?hacstag=1" });
+    marketplace.resources.push({ id: "resource-hacs", url: "/hacsfiles/field-dashboard/field-dashboard.js?hacstag=1" });
     const other = await run(marketplace);
-    expect(other.warnings).toEqual([expect.stringContaining("Another field-dashboard.js is also registered (/hacsfiles/dashhaus/field-dashboard.js)")]);
+    expect(other.warnings).toEqual([expect.stringContaining("Another field-dashboard.js is also registered (/hacsfiles/field-dashboard/field-dashboard.js)")]);
   });
 
   it("saves a strategy dashboard as { strategy } and a card's config as written in one panel view", async () => {
     const directory = await project(`export default {
   pageTitle: "Flat",
-  files: ["dist/dashhaus.js"],
+  files: ["dist/orb-dashboard.js"],
   dashboards: [
     { path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", strategy: { type: "custom:orb-dashboard", theme: "dark" } },
     { path: "my-home", title: "My home", icon: "mdi:floor-plan", card: { type: "custom:dashhaus-orb", title: "Home", cards: ["light.kitchen"] } },
@@ -454,10 +454,10 @@ export default {
         connect: async () => { throw new Error("must not connect"); },
       });
     };
-    await expect(run(`export default { files: ["dist/dashhaus.js"], dashboards: [
+    await expect(run(`export default { files: ["dist/orb-dashboard.js"], dashboards: [
   { path: "home-a", title: "A", icon: "mdi:home", card: { type: "custom:dashhaus-orb" }, strategy: { type: "custom:orb-dashboard" } },
 ] };`)).rejects.toThrowError("dashboards[0] takes a card or a strategy, not both");
-    await expect(run(`export default { files: ["dist/dashhaus.js"], dashboards: [{ path: "home-a", title: "A", icon: "mdi:home" }] };`))
+    await expect(run(`export default { files: ["dist/orb-dashboard.js"], dashboards: [{ path: "home-a", title: "A", icon: "mdi:home" }] };`))
       .rejects.toThrowError("dashboards[0] needs a card");
     await expect(run(`export default { files: [], dashboards: [] };`)).rejects.toThrowError("files must name at least one file to upload");
   });

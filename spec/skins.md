@@ -99,7 +99,7 @@ Kept, a study is a skin in this repository with the same shape as every other st
   or `"generators"` for one an agent built in this repository with `new-skin`), its reference and task.
 
 Its `package.json` marks it (`"dashhaus": { "study": … }`): its stories sit under `Studies/<Name>` after the Read me
-first page, with the same groups as every skin, and it never reaches the Lovelace bundle, the deploy config or
+first page, with the same groups as every skin, and it has no resource and never reaches the deploy config or
 `spec/deploy.md`. It is checked like any skin (typecheck, lint, its tests, every story rendering under axe), so it keeps
 working as the packages change; `study.json` records what it was first built from. The docs site's Studies page lists
 every study from its marker and `study.json`, with its phone Examples story drawn live. The specs, AGENTS.md and the

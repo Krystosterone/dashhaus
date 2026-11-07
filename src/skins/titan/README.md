@@ -1,7 +1,7 @@
 # Titan, a study
 
 Titan is a **study**: a skin an agent built, kept so you can see what it made and start from it.
-It is not finished or polished, and it doesn't ship: it isn't in the Lovelace bundle, and `npm run deploy` doesn't
+It is not finished or polished, and it doesn't ship: it has no resource, and `npm run deploy` doesn't
 create its dashboard. It is checked like every skin in this repository, so it keeps working as the packages change.
 
 It is an unofficial homage, drawn after a fan-made LCARS console, the Titan page at
@@ -70,6 +70,5 @@ Kept, it failed this repository's checks, so the study was changed (the checks w
 ## Make it a real skin
 
 A study becomes a skin when someone takes it further: remove `dashhaus.study` from its `package.json`, move its design
-rules to `spec/titan.md` (and its cards' entries to `spec/cards.md`), move its stories from `Studies/Titan` to
-`Titan`, and register it in the Lovelace bundle and the deploy config as `new-skin` does for any skin (spec/skins.md →
-Studies).
+rules to `spec/titan.md` (and its cards' entries to `spec/cards.md`), move its stories from `Studies/Titan` to `Titan`,
+and give it a resource and register it in the deploy config as `new-skin` does for any skin (spec/skins.md → Studies).

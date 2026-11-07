@@ -11,7 +11,7 @@ import { FIELD_STRATEGY } from "./strategy";
 declare const __DASHHAUS_BUILD__: string;
 
 const css = "__DASHHAUS_CSS__";
-perfMark("bundle:entry");
+perfMark("resource:entry");
 defineFieldCard(css);
 defineSkinStrategy(FIELD_STRATEGY);
 console.info(`Field ${__DASHHAUS_BUILD__}`);

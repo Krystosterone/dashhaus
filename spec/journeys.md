@@ -57,12 +57,14 @@ what the agent does.
 Making a skin and installing it are split, because only the install has to reach Home Assistant. Any agent that runs
 commands can make one, in the browser (Claude Code on the web) as well as on the person's computer; one in the cloud
 can't reach a Home Assistant on a home network, so it installs nothing. It follows the scaffold's **Install by hand**
-instead: it hands over the built file and the project, and walks the person through File editor, **Resources** and a
-new dashboard, with no token, no SSH and no terminal, at the address `npm run deploy` would use. Declined for now: a
-setup card that registers an uploaded skin, and a skin installed from the Marketplace through a GitHub repository of
-its own; both would add a contract for a reader that doesn't yet exist, and the hand route needs neither. The prompt hands the agent to the scaffold's `AGENTS.md`, which carries everything else, so the
-page never repeats it; `llms.txt` carries the same route. `verify/dx/author.js` proves the commands, and the hand install from what the guide hands over; an agent run
-(`verify/dx/agent-runs.md`, or a study) proves an agent can take them from the packages alone.
+instead: it hands over the built file and the project, and walks the person through File editor, **Resources** and a new
+dashboard, with no token, no SSH and no terminal, at the address `npm run deploy` would use. Declined for now, for an
+author's skin: a setup card that registers an uploaded skin, and a Marketplace repository of its own, as Orb and Field
+have (spec/release.md → The skin repositories); both would add a contract for a reader that doesn't yet exist, and the
+hand route needs neither. The prompt hands the agent to the scaffold's `AGENTS.md`, which carries everything else, so
+the page never repeats it; `llms.txt` carries the same route. `verify/dx/author.js` proves the commands, and the hand
+install from what the guide hands over; an agent run (`verify/dx/agent-runs.md`, or a study) proves an agent can take
+them from the packages alone.
 
 ## The developer
 

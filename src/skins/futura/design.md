@@ -1,7 +1,7 @@
 # Futura skin
 
 > **A study.** Futura is a skin an agent built with the generators, kept to learn from and build on: not finished
-> or polished, and not shipped in the Lovelace bundle or the deploy config. Its [README](README.md) says what that
+> or polished, and not shipped: no resource, and not in the deploy config. Its [README](README.md) says what that
 > means and how to take it further ([skins.md → Studies](../../../spec/skins.md#studies)).
 
 Futura draws the house as a dark instrument console lit by two neon signals: every card is a bezelled panel led by a

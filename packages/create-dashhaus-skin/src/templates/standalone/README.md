@@ -56,5 +56,5 @@ A row holds one footprint; put compact cards in a row of their own. `column: 2` 
 - `cards/`: the presentational cards; they never import Home Assistant.
 - `ha/`: the adapters, the only files that call `useHa<Name>`.
 - `shared/`: the page, the parts every card uses and the details sheet they open.
-- `lovelace/`: the custom element (page layout, fonts), its YAML reader, the card registry and the bundle entry.
-- `preview/`: the local preview and its sample house; not in the bundle.
+- `lovelace/`: the custom element (page layout, fonts), its YAML reader, the card registry and the resource's entry.
+- `preview/`: the local preview and its sample house; not in the resource.

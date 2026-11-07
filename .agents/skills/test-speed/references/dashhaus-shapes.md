@@ -229,10 +229,10 @@ the tests are nearly the whole gate and the other two only take cores from them.
 
 ## CI: one setup action
 
-`.github/actions/setup/action.yml` (composite), used by every job in `ci.yml` and
-`docs.yml` right after `actions/checkout`, and by `release.yml`'s build with `cache: "false"`:
-that build restores neither install cache, so the shipped `dashhaus.js` never comes from an
-entry another job saved. Its uncached `npm ci` is deliberate; don't speed it up.
+`.github/actions/setup/action.yml` (composite), used by every job in `ci.yml` and `docs.yml` right after
+`actions/checkout`, and by `release.yml`'s build with `cache: "false"`: that build restores neither install cache, so a
+shipped resource (`orb-dashboard.js`, `field-dashboard.js`) never comes from an entry another job saved. Its uncached
+`npm ci` is deliberate; don't speed it up.
 
 ```yaml
 inputs:

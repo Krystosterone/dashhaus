@@ -11,7 +11,7 @@ import { ORB_STRATEGY } from "./strategy";
 declare const __DASHHAUS_BUILD__: string;
 
 const css = "__DASHHAUS_CSS__";
-perfMark("bundle:entry");
+perfMark("resource:entry");
 defineDashhausCard(css);
 defineSkinStrategy(ORB_STRATEGY);
 console.info(`Orb ${__DASHHAUS_BUILD__}`);

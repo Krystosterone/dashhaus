@@ -19,10 +19,10 @@ async function project() {
   directories.push(directory);
   await mkdir(join(directory, "dist"), { recursive: true });
   await mkdir(join(directory, "www"), { recursive: true });
-  await writeFile(join(directory, "dist", "dashhaus.js"), "bundle");
+  await writeFile(join(directory, "dist", "orb-dashboard.js"), "orb");
   await writeFile(join(directory, "dashboard.config.mjs"), `export default {
   pageTitle: "Home",
-  files: ["dist/dashhaus.js"],
+  files: ["dist/orb-dashboard.js"],
   dashboards: [{
     path: "home-a",
     title: "Home A",
