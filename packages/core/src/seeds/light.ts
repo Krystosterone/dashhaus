@@ -30,6 +30,11 @@ export const LIGHT_SEEDS = {
     entity: { entityId: "light.porch", name: "Porch light", area: "Porch", state: "on", supportsBrightness: false, brightness: 100, lastChanged: "11:20" },
     past: [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
   },
+  /** A garden light, up with the dawn: a control whose screen is the only lit thing outside. */
+  garden: {
+    entity: { entityId: "light.garden", name: "Garden", area: "Outside", state: "on", supportsBrightness: true, brightness: 40, lastChanged: "05:40" },
+    past: [0, 0, 0, 0, 0, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4],
+  },
   unavailable: {
     entity: { entityId: "light.shelf_strip", name: "Shelf strip", area: "Living room", state: "unavailable", supportsBrightness: true, lastSeen: "10:42" },
     past: [0, 0, 0, 0, 0, 0, 0, 0.3, 0.3, 0.3, "unavailable"],

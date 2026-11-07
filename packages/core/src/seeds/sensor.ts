@@ -43,6 +43,12 @@ export const SENSOR_SEEDS = {
     [4.1, 3.8, 3.5, 3.3, 3.1, 3.0, 3.4, 4.2, 5.0, 5.6, 6.0],
     [88, 89, 90, 90, 91, 91, 89, 85, 82, 80, 79],
   ),
+  /** A greenhouse: warmer and wetter than outside, the second reading a garden's page carries. */
+  greenhouse: seed(
+    { entityId: "sensor.greenhouse", name: "Greenhouse", area: "Outside", state: "ok", temperature: 23.6, humidity: 71, unit: "°C", battery: 55, lastUpdated: "11:52" },
+    [21.0, 20.2, 19.6, 19.1, 18.9, 19.2, 20.1, 21.4, 22.5, 23.1, 23.4],
+    [78, 79, 80, 80, 81, 79, 76, 74, 72, 71, 71],
+  ),
   basement: seed(
     { entityId: "sensor.basement", name: "Basement", area: "Basement", state: "ok", temperature: 17.2, humidity: 28, unit: "°C", battery: 8, lastUpdated: "11:40" },
     [17.6, 17.5, 17.5, 17.4, 17.4, 17.3, 17.3, 17.2, 17.2, 17.2, 17.2],
