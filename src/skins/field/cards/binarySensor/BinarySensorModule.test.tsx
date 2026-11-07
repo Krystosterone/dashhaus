@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { BinarySensorModule } from "./BinarySensorModule";
-import { BINARY_SENSOR_SEEDS } from "@dashhaus/core/seeds/binarySensor";
+import { BINARY_SENSOR_SEEDS, atTime } from "@dashhaus/core/seeds/binarySensor";
 import type { BinarySensorEntity } from "@dashhaus/core/entities/binarySensor/types";
 
 /*
@@ -9,8 +9,10 @@ import type { BinarySensorEntity } from "@dashhaus/core/entities/binarySensor/ty
  * blanks the screen (spec/field.md → Unavailable). The frame (footprints, details) is ModuleFrame's, tested in
  * shared/ui.test.tsx; this tests what the binary sensor itself does.
  */
-const draw = (seed: keyof typeof BINARY_SENSOR_SEEDS, footprint?: "compact" | "standard") =>
-  render(<BinarySensorModule entity={BINARY_SENSOR_SEEDS[seed].entity} history={BINARY_SENSOR_SEEDS[seed].history} footprint={footprint} />).container;
+const draw = (name: keyof typeof BINARY_SENSOR_SEEDS, footprint?: "compact" | "standard") => {
+  const seed = atTime(BINARY_SENSOR_SEEDS[name], Date.now());
+  return render(<BinarySensorModule entity={seed.entity} history={seed.history} footprint={footprint} />).container;
+};
 
 describe("BinarySensorModule", () => {
   it("is a reading: no keys, its glyph on a flat plate", () => {
@@ -46,7 +48,8 @@ describe("BinarySensorModule", () => {
     const row = (entity: BinarySensorEntity) => render(<BinarySensorModule entity={entity} footprint="compact" />).container.querySelector(".fd-read-fig");
     expect(row({ ...smoke, changedAt: Date.now() - 3 * 60_000 })?.textContent).toBe("Smoke, 3m");
     expect(row({ ...smoke, changedAt: Date.now() })?.textContent).toBe("Smoke, NOW");
-    expect(row(smoke)?.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
+    expect(row({ ...smoke, changedAt: undefined })?.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
+    expect(draw("smoke", "compact").querySelector(".fd-read-fig")?.textContent).toBe("Smoke, 2m");
   });
 
   it("warns of a garage door left open as the cover does, on the screen, and in a row on the area's line", () => {

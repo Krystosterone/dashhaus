@@ -47,8 +47,8 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
     : null;
   const since = !unav && e.lastChanged ? e.lastChanged : undefined;
   const sinceText = since ? `Since ${since}` : undefined;
-  // The sheet drops the slot, so its status line says since when beside the area.
-  const plain = sheet ? [area, sinceText].filter(Boolean).join(" · ") || undefined : area ?? sinceText;
+  // The area, or since when without one. The sheet's small print says when it last changed, so its status line doesn't.
+  const plain = area ?? sinceText;
   // An alarm fills the slot, so the status line keeps its plain words and no second marker.
   const status = unav ? "Unavailable"
     : alertLabel && !alarm ? <AlertStatus label={alertLabel}>{warning}</AlertStatus>

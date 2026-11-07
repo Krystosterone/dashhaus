@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { HourSample } from "../entities/history";
 import type { BinarySensorEntity, BinarySensorHistory } from "../entities/binarySensor/types";
 
@@ -15,7 +16,11 @@ const day = (past: HourSample[], now: HourSample): BinarySensorHistory => {
 };
 const QUIET: HourSample[] = Array<HourSample>(11).fill(0);
 
-export interface BinarySensorSeed { entity: BinarySensorEntity; history: BinarySensorHistory }
+export interface BinarySensorSeed {
+  /** `changedAt` here is seconds ago, made absolute when the story mounts (`useDemoBinarySensor`). */
+  entity: BinarySensorEntity;
+  history: BinarySensorHistory;
+}
 
 export const BINARY_SENSOR_SEEDS = {
   /** Closed, opened a few times this morning. */
@@ -39,7 +44,7 @@ export const BINARY_SENSOR_SEEDS = {
   },
   /** Smoke: an alarm, Orb's slot filled in warn and Field's screen inverted, never more glow. */
   smoke: {
-    entity: { entityId: "binary_sensor.hallway_smoke", name: "Hallway smoke", area: "Upstairs", state: "on", deviceClass: "smoke", lastChanged: "11:52" },
+    entity: { entityId: "binary_sensor.hallway_smoke", name: "Hallway smoke", area: "Upstairs", state: "on", deviceClass: "smoke", lastChanged: "11:52", changedAt: 120 },
     history: day(QUIET, 0.05),
   },
   /** Clear, with its device's battery low: advisory, about the device. */
@@ -92,3 +97,15 @@ export const BINARY_SENSOR_WORST_CASE: BinarySensorSeed[] = [
     history: day(QUIET, 1),
   },
 ];
+
+/** A seed as a card draws it: its `changedAt`, seconds ago in the seed, made absolute from `now`. */
+export const atTime = (seed: BinarySensorSeed, now: number): BinarySensorSeed => ({
+  entity: { ...seed.entity, changedAt: seed.entity.changedAt != null ? now - seed.entity.changedAt * 1000 : undefined },
+  history: seed.history,
+});
+
+/** A seed made absolute once, when the story mounts, as the alarm's demo is. */
+export function useDemoBinarySensor(seed: BinarySensorSeed): BinarySensorSeed {
+  const [demo] = useState(() => atTime(seed, Date.now()));
+  return demo;
+}

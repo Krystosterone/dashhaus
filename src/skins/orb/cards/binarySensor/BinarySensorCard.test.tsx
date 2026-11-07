@@ -68,9 +68,9 @@ describe("BinarySensorCard", () => {
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
   });
 
-  it("says since when beside the area in the sheet, and when before what the device is in the small print", () => {
+  it("says only the area on the sheet's status line, and when before what the device is in the small print", () => {
     const { container, rerender } = render(<BinarySensorCard entity={{ ...door, battery: 64 }} variant="sheet" />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall · Since 11:31");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
     rerender(<BinarySensorCard entity={{ ...door, battery: 9 }} variant="sheet" />);
     const facts = container.querySelectorAll(".hd-info > span");
     expect(facts[0]?.textContent).toBe("Last changed 11:31");

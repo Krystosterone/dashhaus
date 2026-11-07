@@ -1,5 +1,5 @@
 import { BinarySensorTile } from "../BinarySensorTile";
-import { BINARY_SENSOR_SEEDS } from "@dashhaus/core/seeds/binarySensor";
+import { BINARY_SENSOR_SEEDS, useDemoBinarySensor } from "@dashhaus/core/seeds/binarySensor";
 import type { BinarySensorSeedName, BinarySensorSeed } from "@dashhaus/core/seeds/binarySensor";
 import type { CardFootprint } from "../../../shared/ui";
 
@@ -16,7 +16,7 @@ export interface DemoBinarySensorTileProps {
 
 /** A BinarySensorTile with example data. */
 export function DemoBinarySensorTile({ seed, width, footprint, showControl, defaultOpen }: DemoBinarySensorTileProps) {
-  const s = (typeof seed === "string" ? BINARY_SENSOR_SEEDS[seed] : seed);
+  const s = useDemoBinarySensor(typeof seed === "string" ? BINARY_SENSOR_SEEDS[seed] : seed);
   return (
     <div style={{ width, maxWidth: "100%" }}>
       <BinarySensorTile entity={s.entity} history={s.history} footprint={footprint} showControl={showControl} defaultOpen={defaultOpen} />

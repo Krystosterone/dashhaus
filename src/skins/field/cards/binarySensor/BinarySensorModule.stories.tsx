@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { BinarySensorModule } from "./BinarySensorModule";
 import type { FieldFootprint } from "../../shared/ui";
-import { BINARY_SENSOR_SEEDS, BINARY_SENSOR_WORST_CASE } from "@dashhaus/core/seeds/binarySensor";
+import { BINARY_SENSOR_SEEDS, BINARY_SENSOR_WORST_CASE, useDemoBinarySensor } from "@dashhaus/core/seeds/binarySensor";
 import type { BinarySensorSeed, BinarySensorSeedName } from "@dashhaus/core/seeds/binarySensor";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(BINARY_SENSOR_SEEDS) as BinarySensorSeedName[];
 
 function DemoBinarySensor({ seed, width, footprint, defaultOpen }: { seed: BinarySensorSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
-  const demo = seed;
+  const demo = useDemoBinarySensor(seed);
   return (
     <div style={{ width, maxWidth: "100%" }}>
       <BinarySensorModule
