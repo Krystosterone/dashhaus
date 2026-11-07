@@ -114,7 +114,7 @@ export const Footprints: Story = {
   ),
 };
 
-/** Every example as a 64 px row, stacked as a phone's column would be. */
+/** Every example as a 64 px row, stacked as a phone's column would be. Rows keep the pictogram from 280 px, and the unit where it fits whole beside the figure. */
 export const Compact: Story = {
   args: { footprint: "compact" },
   parameters: { layout: "padded", controls: { include: ["width"] } },

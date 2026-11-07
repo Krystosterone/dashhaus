@@ -56,7 +56,23 @@ describe("NumericModule", () => {
     expect(container.querySelector(".fd-meta")?.textContent).toContain("Seen 08:20");
   });
 
-  it("leads a compact row with a reading's glyph", () => {
-    expect(draw("co2", "compact").querySelector(".fd-module > .fd-glyph")).not.toBeNull();
+  it("leads a compact row with a reading's glyph and keeps its pictogram", () => {
+    const row = draw("co2", "compact");
+    expect(row.querySelector(".fd-module > .fd-glyph")).not.toBeNull();
+    expect(row.querySelector(".fd-screen .fd-pict")).not.toBeNull();
+  });
+
+  it("keeps a row's unit for the screen to show where it fits, and heard in full", () => {
+    // Whether it fits is the screen's (NumericModule.css, seen in the Compact story): the row only has to carry it.
+    const row = draw("long", "compact");
+    expect(row.querySelector(".fd-read small")?.textContent).toBe("kWh");
+    expect(screen.getByText("12346 kWh")).toBeTruthy();
+  });
+
+  it("legends the panel's one meter Today", () => {
+    const { co2 } = NUMERIC_SEEDS;
+    render(<NumericModule entity={co2.entity} history={co2.history} defaultOpen />);
+    expect(screen.getByRole("dialog").textContent).toContain("Low 470 ppm · High 940 ppm");
+    expect(screen.getByRole("dialog").querySelector(".fd-legend span")?.textContent).toBe("Today");
   });
 });

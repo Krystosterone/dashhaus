@@ -71,7 +71,8 @@ export function NumericModule({ entity: e, history, footprint = "standard", defa
     >
       {history && today && (
         <Today
-          legend={words.label ? `${words.label} today` : "Today"}
+          // One meter in the panel, so its legend is Today, as the sensor's.
+          legend="Today"
           // As the sensor's: the day's readings while gone, and nothing to say when there were none.
           summary={unav && !today.short ? undefined : today.long}
           label={label}

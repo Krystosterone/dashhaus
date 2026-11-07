@@ -39,10 +39,11 @@ export const Co2: Story = { name: "CO₂" };
 export const Power: Story = { args: { seed: "power" } };
 /** A meter that only climbs (`total_increasing`): today says how far it rose, not a low and a high. */
 export const Energy: Story = { args: { seed: "energy" } };
-/** Negative: the grid's power while solar panels export. The sign is part of the figure, never a warning. */
+/** Negative: the grid's power while solar panels export. The sign is part of the figure, never a warning. Today's `-1240 to 420` can't fit its track whole, so the metric is left out and the strip and the sheet say it. */
 export const Negative: Story = { args: { seed: "export" } };
 /** No unit and no device class: a count, with the gauge icon and the area alone on the status line. */
 export const NoUnit: Story = { name: "No unit", args: { seed: "count" } };
+/** Reachable, no reading yet: the sensor card's words, `No reading yet` after the area on the status line and `Waiting…` in the readout. */
 export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
 export const Featured: Story = { args: { footprint: "featured" } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };

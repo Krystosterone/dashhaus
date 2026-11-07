@@ -135,6 +135,12 @@ export function normalizeNumeric(readings: Reading[]): { samples: HourSample[]; 
   return normalizeReadings(readings, Math.max(scale / 100, 1e-9));
 }
 
+/**
+ * The most characters today's `short` takes where it sits beside the figure as a second metric (a card's second
+ * track): beyond ("-1240 to 420"), the metric is left out rather than cut, and the strip and the details say it in full.
+ */
+export const TODAY_SHORT_PLACES = 9;
+
 /** What today's readings come to, in two lengths: `short` for a row or a metric, `long` for the strip's summary. */
 export interface NumericToday {
   /**

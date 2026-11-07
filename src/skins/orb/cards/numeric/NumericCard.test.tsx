@@ -52,9 +52,20 @@ describe("NumericCard", () => {
     expect(screen.getByText("+8.6 kWh today")).toBeTruthy();
   });
 
-  it("waits for a first reading in words", () => {
-    render(<NumericCard entity={{ ...entity, value: undefined }} />);
+  it("waits for a first reading in the sensor card's words", () => {
+    const { container, rerender } = render(<NumericCard entity={{ ...entity, value: undefined }} />);
     expect(screen.getByRole("img", { name: "no reading yet" })).toBeTruthy();
+    expect(container.querySelector(".hd-none")?.textContent).toBe("Waiting…");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Living room · No reading yet");
+    rerender(<NumericCard entity={{ ...entity, value: undefined }} footprint="compact" />);
+    expect(container.querySelector(".hd-sub")?.textContent).toBe("Waiting…");
+  });
+
+  it("leaves out today's metric where it can't fit whole, and the strip still says it", () => {
+    const { export: grid } = NUMERIC_SEEDS;
+    const { container } = render(<NumericCard entity={grid.entity} history={grid.history} variant="sheet" />);
+    expect(container.querySelector(".nm-today")).toBeNull();
+    expect(screen.getByText("Low -1240 W · High 420 W")).toBeTruthy();
   });
 
   it("hides the last value while unavailable", () => {
