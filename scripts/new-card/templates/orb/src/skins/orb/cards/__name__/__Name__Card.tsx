@@ -39,7 +39,7 @@ __leftOut__
       onOpen={__onOpen__}
       status={__status__}
       value={word}
-      readout={{ value: unav ? null : word, duplicate: true }}
+      readout={{ value: unav ? null : word, duplicate: true, word: true }}
       onClose={onClose}__closeFocus__
       control={__control__}
       facts={{ start: __factsStart____factsEnd__ }}

@@ -362,7 +362,9 @@ button.fd-pic:active .fd-pic-i { transform: scale(0.98); }
    panel, as many as it says. Its container is the panel or module around it. */
 .fd-keys { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
 .fd-keys[data-columns] { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-n), minmax(0, 1fr)); }
-.fd-keys .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A key's caption keeps to one line, ending in an ellipsis where its cell is too narrow: in a group of keys, in a
+   question's two keys (panel.css), and on a solo row's key, which spans the row. */
+.fd-keys .fd-key-cap, .fd-cf-keys .fd-key-cap, .fd-row[data-solo] .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @container (max-width: 300px) {
   .fd-keys[data-narrow]:not([data-narrow-at]) { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
 }

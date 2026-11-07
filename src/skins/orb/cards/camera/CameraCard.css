@@ -2,9 +2,8 @@
    Classes here start with cm-; colours only from tokens.css. A reading: it never glows, and its still is a picture,
    contained in a neutral well of a fixed size (spec/orb.md → A picture is a readout). */
 
-/* The state in words (the shared hd-metric-w) leads; since when sits in the sensor's second track under its caption, as
-   a binary sensor's. Idle, the resting state, in the second ink. */
-.cm-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
+/* The state in words (the shared hd-metric-w) leads; since when sits in the second track under its caption
+   (hd-bar--pair), as a binary sensor's. Idle, the resting state, in the second ink. */
 .cm[data-state="idle"] .cm-f { color: var(--ink-2); }
 /* An integration's own word (Motion alert) wraps to a second line at the slot's size rather than lose its end where its
    column is narrow (beside the still, under 260 px); Home Assistant's own words fit. A compact row may still cut it; the
@@ -41,7 +40,6 @@
 /* Under 260 px a standard card keeps its icon, name and words; the still waits for the sheet, and a featured card keeps
    it under the words. */
 @container hd (max-width: 259px) {
-  .cm:not(.hd--compact):not(.hd--sheet) .cm-bar { grid-template-columns: minmax(0, 1.45fr) minmax(38px, 0.55fr); column-gap: 8px; }
   .cm:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .cm-pic { display: none; }
 }
 

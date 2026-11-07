@@ -70,7 +70,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
       status={area ? <>{area}{mode && <span className="fn-mode"> · {mode}</span>}</> : !sheet && detail}
       statusTitle={area}
       value={word}
-      readout={{ value: unav ? null : speed?.endsWith("%") ? <>{speed.slice(0, -1)}<span>%</span></> : word, duplicate: true, className: speed?.endsWith("%") ? undefined : "fn-word" }}
+      readout={{ value: unav ? null : speed?.endsWith("%") ? <>{speed.slice(0, -1)}<span>%</span></> : word, duplicate: true, word: !speed?.endsWith("%") }}
       onClose={onClose}
       control={groove
         ? <SpeedBar id={`${uid}-speed`} label={`${e.name} speed`} percent={on && e.percentage != null ? e.percentage : percentOf(1, count)} count={count} on={on} onChange={onPercentageChange!} />

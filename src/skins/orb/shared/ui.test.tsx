@@ -1,7 +1,7 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
-import { CardTitle, Picture, SheetClose, UnavailableSlot, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
+import { CardFrame, CardTitle, Picture, SheetClose, UnavailableSlot, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { lastSeenFact } from "@dashhaus/core/entities/facts";
@@ -209,5 +209,41 @@ describe("UnavailableSlot", () => {
   it("says when it was last seen in core's words, as Field does", () => {
     const { container } = render(<UnavailableSlot lastSeen="08:20" />);
     expect(container.textContent).toBe(`Unavailable${lastSeenFact("08:20")}`);
+  });
+});
+
+describe("CardFrame", () => {
+  function Frame({ slotKind, word }: { slotKind?: string; word?: boolean }) {
+    const card = useCard("pt", {});
+    return <CardFrame card={card} name="Lamp" attrs={{}} status="Study" value="On" control={<span>{slotKind}</span>} slotKind={slotKind} readout={{ value: "On", word }} />;
+  }
+
+  it("fades the slot's new content in when what it shows changes, and only then", () => {
+    const animate = vi.fn(function (this: HTMLElement) { return { cancel: () => {} }; });
+    const proto = HTMLElement.prototype as { animate?: unknown };
+    const before = proto.animate;
+    proto.animate = animate;
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    const styles = vi.spyOn(window, "getComputedStyle").mockReturnValue({ getPropertyValue: (name: string) => ({ "--press": "0.16s", "--ease-out": "ease" })[name] ?? "" } as CSSStyleDeclaration);
+    try {
+      const { container, rerender } = render(<Frame slotKind="off" />);
+      rerender(<Frame slotKind="off" />);
+      expect(animate).not.toHaveBeenCalled();
+      rerender(<Frame slotKind="setpoint" />);
+      expect(animate).toHaveBeenCalledTimes(1);
+      expect(animate.mock.contexts[0]).toBe(container.querySelector(".hd-slot"));
+      expect(animate.mock.calls[0]).toEqual([[{ opacity: 0, transform: "scale(0.97)" }, { opacity: 1, transform: "scale(1)" }], { duration: 160, easing: "ease" }]);
+    } finally {
+      proto.animate = before;
+      styles.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("sets a word in the readout a little smaller than a figure", () => {
+    const { container, rerender } = render(<Frame word />);
+    expect(container.querySelector(".hd-num")?.className).toBe("hd-num hd-num--word");
+    rerender(<Frame />);
+    expect(container.querySelector(".hd-num")?.className).toBe("hd-num");
   });
 });

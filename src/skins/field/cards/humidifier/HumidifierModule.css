@@ -1,6 +1,6 @@
 /* Humidifier module (fd-hu): the power key, then the target fader across the rest of the row. */
-/* A solo row (no target to set: off, or a unit without one) prints what the key does on one line. */
-.fd-hu-row .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A solo row (no target to set: off, or a unit without one) prints what the key does on one line, as every solo row's
+   key does (module.css). */
 
 /*
  * Narrow modules keep one meta line (module.css): the one the module doesn't already say. The fader's legend prints

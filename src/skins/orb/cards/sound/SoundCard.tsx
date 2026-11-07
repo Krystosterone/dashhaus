@@ -53,7 +53,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
       statusTitle={area}
       value={word}
       // The large readout is the volume, which no card control prints; without one it repeats the pill's word.
-      readout={e.volume != null && !unav ? { value: <>{e.volume}<span>%</span></> } : { value: unav ? null : word, duplicate: true }}
+      readout={e.volume != null && !unav ? { value: <>{e.volume}<span>%</span></> } : { value: unav ? null : word, duplicate: true, word: true }}
       onClose={onClose}
       control={<TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : soundAbilities(e) }}

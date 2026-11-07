@@ -7,6 +7,7 @@ import type { ModuleFrameProps } from "../shared/ui";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_TALL, ARTWORK_TIDES, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
+import { LAMP_COLORS } from "@dashhaus/core/entities/light/color";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
@@ -87,6 +88,7 @@ function AllParts() {
   const [level, setLevel] = useState(64);
   const [warmth, setWarmth] = useState(40);
   const [range, setRange] = useState<[number, number]>([20, 24]);
+  const [position, setPosition] = useState(60);
 
   return (
     <div style={{ maxWidth: 760, fontFamily: "var(--fd-sans)", fontStretch: "var(--fd-wide)", color: "var(--fd-ink)" }}>
@@ -108,13 +110,14 @@ function AllParts() {
         <State label="Unavailable"><Glyph unavailable><IconThermo /></Glyph></State>
       </Part>
 
-      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all.">
+      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all. A fader may snap a pointer onto its own grid: a cover's ends pull the thumb to closed and open.">
         <State label="On, first parameter" width={300}><Fader id="parts-a" label="Brightness" legend="Brightness" value={level} min={1} max={100} lit valueText={`${level} percent`} onChange={setLevel} /></State>
         <State label="Second parameter" width={300}><Fader id="parts-b" label="Warmth" legend="Warmth" value={warmth} min={0} max={100} lit param="b" valueText={`${warmth} percent`} onChange={setWarmth} /></State>
         <State label="Off" width={300}><Fader id="parts-off" label="Brightness, off" legend="Brightness" value={30} min={1} max={100} lit={false} valueText="Off. Last set to 30 percent" onChange={() => {}} /></State>
         <State label="Off, no level" width={300}><Fader id="parts-off-empty" label="Brightness, off" legend="Brightness" value={100} min={1} max={100} lit={false} empty valueText="Off" onChange={() => {}} /></State>
         <State label="Disabled" width={300}><Fader id="parts-disabled" label="Brightness, unavailable" legend="Brightness" value={30} min={1} max={100} lit={false} disabled valueText="Unavailable" onChange={() => {}} /></State>
         <State label="No value" width={300}><Fader id="parts-empty" label="Brightness, unknown" legend="Brightness" min={1} max={100} lit={false} valueText="Unknown" onChange={() => {}} /></State>
+        <State label="Magnetic ends: slide near one and it snaps there" width={300}><Fader id="parts-snap" label="Curtains position" legend="Position" value={position} min={0} max={100} lit={position > 0} valueText={`${position} percent open`} snap={(raw) => (raw <= 4 ? 0 : raw >= 96 ? 100 : Math.round(raw))} onChange={setPosition} /></State>
       </Part>
 
       <Part name="Range fader" rule="Two ordered values on one fader: the lower thumb is the first parameter, the upper the second. A tap or a drag moves the nearer thumb.">
@@ -200,9 +203,14 @@ function AllParts() {
         <State label="No history" width={300}><Today label="No history today." /></State>
       </Part>
 
-      <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, under a printed legend where it has one.">
+      <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, and fewer to a row on a narrow panel (300 px and under, or under 420 px), under a printed legend where it has one.">
         <State label="One row" width={300}><KeyGroup label="Cover"><Key label="Open" wide caption="Open" onPress={() => {}}><IconBulb /></Key><Key label="Stop" wide caption="Stop" onPress={() => {}}><IconBulb /></Key><Key label="Close" wide caption="Close" onPress={() => {}}><IconBulb /></Key></KeyGroup></State>
         <State label="Two to a row, with a legend" width={300}><KeyGroup legend="Mode" columns={2}>{["Off", "Home", "Away", "Night"].map((m, i) => <Key key={m} label={m} chosen={i === 1} wide caption={m} onPress={() => {}}><IconBulb /></Key>)}</KeyGroup></State>
+        <State label="Seven to a row, four on a panel under 420 px" width={380}>
+          <div style={{ containerType: "inline-size" }}>
+            <KeyGroup legend="Colour" value={LAMP_COLORS[1].name} columns={7} narrow={4} narrowAt={420}>{LAMP_COLORS.map((c, i) => <Key key={c.name} label={c.name} pressed={i === 1} wide onPress={() => {}}><Swatch lamp={c.name} /></Key>)}</KeyGroup>
+          </div>
+        </State>
       </Part>
 
       <Part name="Facts" rule="The panel's small print: a fact at its start and, where there is one, its end, in the words @dashhaus/core/entities/facts gives every module.">

@@ -1,5 +1,5 @@
-import { Children, createContext, useContext, useEffect, useId, useRef } from "react";
-import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode, Ref } from "react";
+import { Children, createContext, useContext, useEffect, useId, useLayoutEffect, useRef } from "react";
+import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
 import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
@@ -277,8 +277,9 @@ export function Picture({ picture, label, ratio, fit = "cover", unavailable = fa
     : <div ref={picture.ref} {...box} role="img" aria-label={label}>{inner}</div>;
 }
 
-export const IconMinus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
-export const IconPlus = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
+/** The minus and the plus that step a value, in their shared size (`hd-step-i`). */
+export const IconMinus = () => <svg className="hd-step-i" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8" /></svg>;
+export const IconPlus = () => <svg className="hd-step-i" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7h8M7 3v8" /></svg>;
 
 /**
  * Setpoint stepper: a groove with a minus and a plus button at its ends, the value between them.
@@ -293,7 +294,7 @@ export function Stepper({ label, kicker, cue, value, unit, format = String, min,
       <button type="button" className="hd-step-b" aria-label={`Lower to ${format(down)}${unit}`} disabled={value <= min} onClick={() => onChange(down)}><span><IconMinus /></span></button>
       <span className="hd-step-v" aria-live="polite">
         {kicker && <span className="hd-step-k">{kicker}</span>}
-        {cue && <span className="hd-step-cue">{cue}</span>}
+        {cue && <span className="hd-cue">{cue}</span>}
         {format(value)}<small>{unit}</small>
       </span>
       <button type="button" className="hd-step-b" aria-label={`Raise to ${format(up)}${unit}`} disabled={value >= max} onClick={() => onChange(up)}><span><IconPlus /></span></button>
@@ -665,6 +666,8 @@ export interface CardReadout {
   duplicate?: boolean;
   /** Spoken where it stands for a reading (the sheet's large figure); otherwise hidden from screen readers. */
   label?: string;
+  /** It says a word (On, a named speed), not a figure: set a little smaller than a number (`hd-num--word`). */
+  word?: boolean;
   /** The card's own class for it. */
   className?: string;
 }
@@ -710,16 +713,52 @@ export interface CardFrameProps {
   urgent?: ReactNode;
   /** false: no slot (a sheet whose large figure already says it all). Default true. */
   slot?: boolean;
-  /** A wrapper of the card's own inside the slot, around whatever it shows (climate's, which animates the change). */
-  slotInner?: { ref?: Ref<HTMLDivElement>; className: string };
+  /**
+   * What the slot shows, in the card's own words ("setpoint", "range"): when it changes, the new content fades in,
+   * scaled up a little where motion is allowed, so a control that swaps for another is seen to. Without it the slot
+   * swaps at once.
+   */
+  slotKind?: string;
   /** The sheet's small print. */
   facts?: { start?: ReactNode; end?: ReactNode; warn?: boolean };
   /** The card's body after the slot, in its order: `SheetBlock`s, `Today`, and anything of its own. */
   children?: ReactNode;
 }
 
-export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotInner, facts, children }: CardFrameProps) {
+/** The slot's ref: when `kind` changes, what it shows fades in, at the card system's press duration and easing. */
+function useSlotChange(kind: string | undefined) {
+  const slotRef = useRef<HTMLDivElement>(null);
+  const previousKind = useRef(kind);
+
+  useLayoutEffect(() => {
+    if (previousKind.current === kind) return;
+    previousKind.current = kind;
+
+    const slot = slotRef.current;
+    if (!slot?.animate) return;
+
+    const styles = getComputedStyle(slot);
+    const press = styles.getPropertyValue("--press").trim();
+    const duration = Number.parseFloat(press) * (press.endsWith("ms") ? 1 : 1000);
+    const easing = styles.getPropertyValue("--ease-out").trim();
+    if (!duration || !easing) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const animation = slot.animate(
+      reduced
+        ? [{ opacity: 0 }, { opacity: 1 }]
+        : [{ opacity: 0, transform: "scale(0.97)" }, { opacity: 1, transform: "scale(1)" }],
+      { duration, easing },
+    );
+    return () => animation.cancel();
+  }, [kind]);
+
+  return slotRef;
+}
+
+export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotKind, facts, children }: CardFrameProps) {
   const { article, nameId, sheet, compact, bare } = card;
+  const slotRef = useSlotChange(slotKind);
   const open = sheet ? undefined : onOpen;
   const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} word={unavailableWord} /> : control);
   return (
@@ -735,7 +774,7 @@ export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, 
           </CardTitle>
           {readout && (
             <p
-              className={["hd-num", readout.duplicate && "hd-num--control-duplicate", readout.className].filter(Boolean).join(" ")}
+              className={["hd-num", readout.duplicate && "hd-num--control-duplicate", readout.word && "hd-num--word", readout.className].filter(Boolean).join(" ")}
               {...(readout.label ? { role: "img", "aria-label": readout.label } : { "aria-hidden": true })}
             >{readout.value}</p>
           )}
@@ -743,9 +782,7 @@ export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, 
         </header>
 
         {slot && (
-          <div className="hd-slot">
-            {slotInner ? <div ref={slotInner.ref} className={slotInner.className}>{shown}</div> : shown}
-          </div>
+          <div className="hd-slot" ref={slotRef}>{shown}</div>
         )}
 
         {children}

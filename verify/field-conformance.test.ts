@@ -9,11 +9,9 @@
  * `Consumer` inline, as the camera's does with `Stills` (`stills`, `quiet`): a hook would need a component of its own,
  * which moves `<HaCameraModule` out of the line's reach. Do the same rather than loosen the check.
  */
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
-import { exists, object, read, reachesHa, uncomment } from "./conformance";
+import { exists, object, optionalProps, read, reachesHa, uncomment, undrawnProps } from "./conformance";
 
 const SKIN = "src/skins/field";
 const STEP = "AGENTS.md → Adding an existing domain to another skin";
@@ -111,19 +109,10 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
   });
 });
 
-describe("the module frame", () => {
+describe("the shared parts", () => {
   // spec/skins.md → Rules every skin keeps → A card extends a shared part only generically.
-  it("draws in Foundations → Parts every prop of its that only one module passes", () => {
-    const ui = read(`${SKIN}/shared/ui.tsx`);
-    const props = ["ModuleProps", "ModuleFrameProps"].flatMap((type) =>
-      [...(ui.match(new RegExp(`export interface ${type}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1] ?? "").matchAll(/^ {2}(\w+)\??:/gm)].map((m) => m[1]));
-    expect(props).toContain("body");
-    const modules = readdirSync(join(process.cwd(), `${SKIN}/cards`))
-      .map((folder) => `${SKIN}/cards/${folder}/${folder[0].toUpperCase()}${folder.slice(1)}Module.tsx`)
-      .filter(exists).map(read);
-    const parts = read(`${SKIN}/stories/Parts.stories.tsx`);
-    const passes = (source: string, prop: string) => new RegExp(`\\s${prop}=[{"]`).test(source);
-    const once = props.filter((prop) => modules.filter((source) => passes(source, prop)).length === 1);
-    expect(once.filter((prop) => !passes(parts, prop)), "draw it in the Module frame part of Field → Foundations → Parts").toEqual([]);
+  it("draw in Foundations → Parts every optional prop of theirs that only one module passes", () => {
+    expect(optionalProps(`${SKIN}/shared/ui.tsx`).get("ModuleFrame")).toContain("body");
+    expect(undrawnProps(SKIN), `draw it in its part's states in ${SKIN}/stories/Parts.stories.tsx (the frame's in Module frame), or, named for the module, make it generic or the module's own`).toEqual([]);
   });
 });

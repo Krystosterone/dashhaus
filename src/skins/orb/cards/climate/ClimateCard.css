@@ -1,10 +1,6 @@
 /* Climate-specific parts. Shell, header, orb, pills, setpoint stepper, today strip, chips and sheet come from src/shared/card.css. */
 
-/* The mode icon before a compact setpoint (the range bar's label; the stepper has its own, hd-step-cue). */
-.cw-control-mode { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
-.cw-control-mode svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-
-.cw-slot { display: grid; min-width: 0; }
+/* The mode icon before a compact setpoint is the shared hd-cue, on the stepper and on the range bar's label. */
 
 /* Heat/cool range on one track (Track in shared/ui.tsx): the zones are its fill, the handles ride it. */
 .cw-rb {
@@ -70,7 +66,6 @@
 
 .cw-fine-l b { font-size: 17px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 .cw-fine-b { flex: none; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--btn); box-shadow: var(--btn-shadow); color: var(--ink); cursor: pointer; }
-.cw-fine-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .cw-fine-b:disabled { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default; }
 .cw-fine-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 

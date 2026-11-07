@@ -1,9 +1,8 @@
 /* Sensor-specific parts. Shell, header, badge, readout, metrics, today strip and sheet come from src/shared/card.css. */
 
-/* The reading is one responsive metric grid: a dominant temperature and a captioned humidity. At useful
-   widths it shares the title's text axis; at the smallest standard width it uses the full slot so neither
+/* The reading is one responsive metric grid (hd-bar--pair): a dominant temperature and a captioned humidity. At
+   useful widths it shares the title's text axis; at the smallest standard width it uses the full slot so neither
    number is squeezed. */
-.sw-bar { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
 .sw-t { display: flex; align-items: baseline; }
 .sw-value { line-height: 1; }
 .sw-t .sw-value small {
@@ -17,9 +16,6 @@
 }
 @container hd (max-width: 259px) {
   .sw:not(.hd--compact):not(.hd--sheet) .sw-trend { display: none; }
-  .sw:not(.hd--compact):not(.hd--sheet) .sw-bar {
-    grid-template-columns: minmax(0, 1.45fr) minmax(38px, 0.55fr); column-gap: 8px;
-  }
   .sw:not(.hd--compact):not(.hd--sheet) .sw-t .sw-value { font-size: 32px; }
   .sw:not(.hd--compact):not(.hd--sheet) .sw-h .sw-value { font-size: 17px; }
 }

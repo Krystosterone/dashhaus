@@ -64,7 +64,7 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   </>;
 
   const bar = (
-    <span className="hd-bar sw-bar">
+    <span className="hd-bar hd-bar--pair sw-bar">
       {t != null && <span className="hd-metric sw-t"><span className="sw-value hd-metric-n">{fmtTemp(t)}<small>°</small></span></span>}
       {h != null && (
         <span className="hd-metric hd-metric--sub sw-h">

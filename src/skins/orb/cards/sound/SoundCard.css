@@ -1,9 +1,7 @@
 /* Sound card. Everything else (orb, pill, today strip, sheet) comes from src/shared/card.css.
    Classes here start with sn-; colours only from tokens.css. */
 
-/* Without a volume the readout says On or Off in words, a little smaller than a number */
-.sn .hd-num--control-duplicate { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
-.hd--sheet.sn .hd-num--control-duplicate { font-size: 34px; }
+/* Without a volume the readout says On or Off in words, a little smaller than a number: the shared hd-num--word. */
 
 /* The volume on the status line. Compact rows keep the room alone; the sheet shows it on its groove, and a
    featured card in its large readout, until the readout yields to the orb under 260 px. */

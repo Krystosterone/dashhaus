@@ -62,7 +62,7 @@ export function CameraCard({ entity: e, still = true, refresh = STILL_REFRESH, p
   const own = e.state === "other";
 
   const bar = (
-    <span className="hd-bar cm-bar">
+    <span className="hd-bar hd-bar--pair cm-bar">
       <span className="hd-metric hd-metric-w cm-f" data-own={own || undefined}>{word}</span>
       {since && (
         <span className="hd-metric hd-metric--sub cm-since">

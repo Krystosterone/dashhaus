@@ -82,7 +82,7 @@ function NextHours({ hours, empty }: { hours: HourlyForecast[]; empty: string })
 function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
   return (
     <div className="wx-stat">
-      <span className="wx-stat-l">{label}</span>
+      <span className="hd-chip-sub">{label}</span>
       <span className="wx-stat-v">{value}</span>
       {sub && <span className="wx-stat-s">{sub}</span>}
     </div>

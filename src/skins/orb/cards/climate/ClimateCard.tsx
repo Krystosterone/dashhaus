@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef } from "react";
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@dashhaus/core/entities/climate/modes";
 import { TARGET_WORD, climateFacts } from "@dashhaus/core/entities/climate/words";
@@ -28,36 +27,6 @@ export interface ClimateCardProps extends CardProps {
   onFanChange?: (f: string) => void;
   onOpenDetails?: () => void;
   onClose?: () => void;
-}
-
-function useSlotTransition(kind: string) {
-  const slotRef = useRef<HTMLDivElement>(null);
-  const previousKind = useRef(kind);
-
-  useLayoutEffect(() => {
-    if (previousKind.current === kind) return;
-    previousKind.current = kind;
-
-    const slot = slotRef.current;
-    if (!slot?.animate) return;
-
-    const styles = getComputedStyle(slot);
-    const press = styles.getPropertyValue("--press").trim();
-    const duration = Number.parseFloat(press) * (press.endsWith("ms") ? 1 : 1000);
-    const easing = styles.getPropertyValue("--ease-out").trim();
-    if (!duration || !easing) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const animation = slot.animate(
-      reduced
-        ? [{ opacity: 0 }, { opacity: 1 }]
-        : [{ opacity: 0, transform: "scale(0.97)" }, { opacity: 1, transform: "scale(1)" }],
-      { duration, easing },
-    );
-    return () => animation.cancel();
-  }, [kind]);
-
-  return slotRef;
 }
 
 /**
@@ -103,8 +72,8 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
     slot = <TogglePill label={`${e.name}: ${modeLabel(mode)}${e.fanMode ? `, Fan ${titleCase(e.fanMode).toLowerCase()}` : ""}`} on onToggle={onToggle} extra={e.fanMode ? `Fan ${titleCase(e.fanMode).toLowerCase()}` : undefined}>{modeLabel(mode)}</TogglePill>;
   }
 
+  // What the slot shows: a mode's control swapping for another's fades in (CardFrame's slotKind).
   const slotKind = bare ? "bare" : unav ? "unavailable" : !on ? "off" : range ? "range" : single ? "setpoint" : "mode";
-  const slotRef = useSlotTransition(slotKind);
 
   // The compact value appears under the name, or in place of a hidden control.
   // The status line already gives the room temperature: the replacement value is just the setpoint.
@@ -127,7 +96,7 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
       readout={{ value: unav || cur == null ? null : <>{fmtCurrent(cur)}<span>°</span></> }}
       onClose={onClose}
       control={slot}
-      slotInner={{ ref: slotRef, className: "cw-slot" }}
+      slotKind={slotKind}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : climateFacts(e) }}
     >
       {!unav && (
