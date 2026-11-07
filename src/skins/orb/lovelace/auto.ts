@@ -1,7 +1,7 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/core/lovelace/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, byName, deviceCompanion, domainOf, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { areaId, byName, deviceCompanion, domainOf, numericSensors, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/core/lovelace/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/core/lovelace/layout";
@@ -61,6 +61,9 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   const air: Card[] = roomSensors(input).map(({ entity, humidity, battery }) => (
     humidity || battery ? { entity, ...(humidity && { humidity }), ...(battery && { battery }) } : entity
   ));
+  // Then the room's air quality, one numeric reading per device (`NUMERIC_CLASSES`: CO₂ first). The sensor card stays
+  // the domain's default, so these name their card.
+  air.push(...numericSensors(input).map((entity) => ({ entity, card: "numeric" })));
 
   const modes = ofDomain("input_boolean");
   if (modes.length) place({ title: "Modes", columns: 2, cards: modes.map((entity) => ({ entity, footprint: "compact" })) });

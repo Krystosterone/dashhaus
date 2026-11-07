@@ -1,0 +1,92 @@
+---
+title: Numeric
+description: "Any number one sensor.* entity measures, such as CO₂ in ppm, power in W or energy in kWh, in its own words and unit."
+kind:
+  group: Readings
+  order: 2
+  summary: "Any number a sensor measures, such as CO₂, power or energy, in its own words and unit."
+  reading: true
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One `sensor.*` entity with a number: CO₂ in ppm, power in W, energy in kWh, or anything else a sensor measures. One
+card for all of them: its device class and its unit choose its words, its icon and how its figure is written.
+Read-only.
+
+## Quick example
+
+<Example file="entities/numeric/Co2Reading.tsx" />
+
+A sensor's domain says nothing of what it measures, so the card reads its `device_class`. `numericWords` names it,
+short for a line (`CO₂`, `Power`) and long for small print (`Carbon dioxide`). `numericFigure` writes the figure in five
+places at most: `650`, `21.4`, `0.42`, and beyond five, scaled (`123k`, `1.2M`), so a card never cuts a digit.
+`withUnit` puts a symbol on the figure (`41%`) and a word after a space (`650 ppm`). A sensor Home Assistant can't reach
+is `unavailable`, and a state that isn't a number is no reading, never a made-up value.
+
+The `sensor` card stays the default for every `sensor.*`. On a dashboard, pick this one with `card: numeric`. A
+dashboard laid out for you uses it for the room's air quality only (CO₂, particles, VOC), one per device. Add power,
+energy and any other reading yourself, since every smart plug has them.
+
+## Component
+
+`<HaNumeric>` is `useHaNumeric` as a component that draws nothing of its own. It takes every option of the hook as a
+prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="@dashhaus/core" name="HaNumeric" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaNumeric" />
+
+It reads the sensor, its area, and today's readings by hour.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaNumericOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaNumericResult" />
+
+#### `entity`: NumericEntity
+
+<ApiMembers from="@dashhaus/core/entities/numeric/types" name="NumericEntity" />
+
+#### `history`: NumericHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since: one reading per hour, carried forward.
+Pass `history` to supply your own, or `loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/numeric/types" name="NumericHistory" />
+
+## Today
+
+`numericToday` says the day the same way in every skin. A measurement gives its low and high. A meter that only climbs
+(`state_class: total_increasing`, such as energy or water) gives how far it rose since the day's first reading, since
+its low and high would only be midnight and now.
+
+<Example file="entities/numeric/Today.tsx" />
+
+## In a skin
+
+Orb's `HaNumericTile` and Field's `HaNumericModule` are `useHaNumeric` above each skin's card. Each draws the picture
+its device class names (air, power, a meter or a gauge), the figure in its unit, and today. Neither warns: a CO₂ or
+power threshold of the card's own would be a guess. They take the hook's options as props, plus their own:
+
+<Example file="entities/numeric/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaNumericTileProps" except={{ from: "@dashhaus/core", name: "HaNumericOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaNumericModuleProps" except={{ from: "@dashhaus/core", name: "HaNumericOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="numeric" />

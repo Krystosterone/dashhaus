@@ -6,6 +6,7 @@ import guestWifi from "../fixtures/guestWifi.json";
 import binarySensor from "../fixtures/binarySensor.json";
 import camera from "../fixtures/camera.json";
 import mediaPlayer from "../fixtures/mediaPlayer.json";
+import numeric from "../fixtures/numeric.json";
 // new-card: fixture imports
 import alarm from "../fixtures/alarm.json";
 import climate from "../fixtures/climate.json";
@@ -23,6 +24,7 @@ import { guestWifiFromHass } from "./guestWifi";
 import { binarySensorFromHass } from "./binarySensor";
 import { cameraFromHass } from "./camera";
 import { mediaPlayerFromHass } from "./mediaPlayer";
+import { numericFromHass } from "./numeric";
 // new-card: mapper imports
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
@@ -58,6 +60,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "binary sensor", fixture: binarySensor, map: binarySensorFromHass, keepsState: true },
   { domain: "camera", fixture: camera, map: cameraFromHass, keepsState: true },
   { domain: "media player", fixture: mediaPlayer, map: mediaPlayerFromHass, keepsState: true },
+  { domain: "numeric", fixture: numeric, map: numericFromHass, keepsState: false },
   // new-card: fixtures
 ];
 

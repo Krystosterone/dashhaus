@@ -1,0 +1,4 @@
+---
+type: feature
+---
+A numeric card in Orb and Field for any number a sensor measures, such as CO₂ in ppm, power in W or energy in kWh: its device class and unit choose its words, its icon and how its figure is written (five places at most, scaled beyond), and today shows the day's low and high, or how far a meter that only climbs rose. Pick it in YAML with `card: numeric` (with `unit` where the entity doesn't say); the automatic layouts add the room's air quality (CO₂, particles, VOC) as numeric cards, and `@dashhaus/core/lovelace/layout` adds `numericSensors` and `NUMERIC_CLASSES` (typed as `NumericClass`) for a skin's own automatic layout.

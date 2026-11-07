@@ -172,6 +172,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/light/words` | a light's state in words (`lightWord`), `QUICK_LEVELS`, `lightAbilities` |
 | `@dashhaus/core/entities/lock/code`, `/lock/severity` | what a code may contain, and a lock's severity |
 | `@dashhaus/core/entities/lock/words` | each lock state in words, `LOCK_WORD` |
+| `@dashhaus/core/entities/numeric/readings` | what a numeric reading measures in words and its picture (`numericWords`), its figure in five places at most (`numericFigure`, `fmtNumeric`), `withUnit`, and today's low and high or a meter's rise (`numericToday`) |
 | `@dashhaus/core/entities/owlet/readings`, `/owlet/sleep` | vitals and sleep states as figures and words |
 | `@dashhaus/core/entities/owlet/severity` | `owletSeverity` |
 | `@dashhaus/core/entities/sensor/readings` | `fmtTemp`, `comfortLabel`, `trendOf`, `toCelsius` |

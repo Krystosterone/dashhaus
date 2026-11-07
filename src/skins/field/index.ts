@@ -86,5 +86,9 @@ export { MediaPlayerModule } from "./cards/mediaPlayer/MediaPlayerModule";
 export type { MediaPlayerModuleProps } from "./cards/mediaPlayer/MediaPlayerModule";
 export { HaMediaPlayerModule } from "./ha/HaMediaPlayerModule";
 export type { HaMediaPlayerModuleProps } from "./ha/HaMediaPlayerModule";
+export { NumericModule } from "./cards/numeric/NumericModule";
+export type { NumericModuleProps } from "./cards/numeric/NumericModule";
+export { HaNumericModule } from "./ha/HaNumericModule";
+export type { HaNumericModuleProps } from "./ha/HaNumericModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

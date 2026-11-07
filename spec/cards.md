@@ -538,6 +538,33 @@ Now playing: one `media_player.*` (a speaker, a TV, a cast), a direct model and 
 - **Its words** are core's, as every card's are: the states, the press (`pressWord`), the skips (`SKIP_WORDS`, `skipSaid`), what the artwork is (`artworkLabel`) and the volume (`volumeText`, `volumeReason`).
 - **Home Assistant:** `createMediaPlayerHandlers` calls `media_player.media_play`, `media_pause`, `media_previous_track`, `media_next_track`, `turn_on`, `turn_off`, `volume_set` (the percent as a level from 0 to 1), `volume_mute` and `select_source`, each only where `supported_features` declares it (`PLAY`, `PAUSE`, `PREVIOUS_TRACK`, `NEXT_TRACK`, `TURN_ON`, `TURN_OFF`, `VOLUME_SET`, `VOLUME_MUTE`, `SELECT_SOURCE` with a `source_list`), reporting what it can't do as `unsupported` and a source it doesn't list as `invalid_input`. `MEDIA_PLAYER_ACTIONS` declares the six presses, the volume as a `level`, mute as a `switch` and the source as a `choice` over `sources`, so every skin's generator draws them. `useHaMediaPlayer` adds the artwork (`useHaPicture`, while something is loaded); today comes from the recorder through `mediaPlayerHistoryFromHass`, playing and buffering as on; `loadHistory={false}` skips it.
 
+## Using the numeric card
+
+A number one `sensor.*` measures: CO₂ in ppm, power in W, energy in kWh, or any other. One generic card, not one per kind of reading: the device class and the unit drive its words, its icon and its formatting. A direct model and a reading: it has no actions and no companions.
+
+```tsx
+<NumericTile entity={co2} history={today} />
+<HaNumericTile entityId="sensor.living_room_co2" />
+```
+
+- **What it measures:** the device class's words (`@dashhaus/core/entities/numeric/readings`, the same in every skin): a short label for a line (`CO₂`, `PM2.5`, `Power`, `Energy`, `Light`) and a long one for the small print and a screen reader (`Carbon dioxide`, `Fine particles`), and a picture: air (CO₂, particles, VOC, ozone, AQI), power (power, current, voltage), a meter (energy, gas, water, volume) or a gauge (any other). A class it has no words for, and none, is a plain reading with the gauge and no label.
+- **The figure:** as precise as its size needs (`fmtNumeric`: whole from 100, one decimal from 10, two under 10; never `-0`), at most five places, a sign and a point included, so it never loses a digit to an ellipsis: beyond, it is scaled with an SI letter (`numericFigure`: 123456 is `123k`, 1234567.8 `1.2M`), and heard in full. Its unit after it, a symbol on the figure (`41%`) and a word after a space (`650 ppm`); none is a bare number. A negative reading keeps its sign; it is never a warning.
+- **A reading:** the bare icon its class names, the figure in the large-readout voice with its unit in the second ink, as a readout with no container, and today under its caption in the sensor's second track (`minmax(0, 1.35fr) minmax(44px, 0.65fr)`, left-aligned): the day's low and high (`470–940`; a range below zero says `-1240 to 420`; a day that never moved says its one value), or, for a meter that only climbs (`state_class: total_increasing`), how far it rose since the day's first reading (`+8.6`), since a meter's low and high would only be midnight and now. Under 260 px the figure keeps the slot to itself. It never glows (`paint("reading", 0)`). Tap the reading or the name for the sheet.
+- **No warning:** a CO₂ or power threshold of its own would be a guess, so it has none (a configurable threshold is an open issue, not a constant in the card).
+- **Status line:** the area and what it measures (`Living room · CO₂`); the area alone with no class; `Unavailable` while it is.
+- **Featured and sheet:** today's readings by hour on the strip, from its low to its high, summed as `Low 470 ppm · High 940 ppm` (`Steady at 0 kW`; a meter's `+8.6 kWh today`); a featured card's readout keeps the figure alone, since the strip says the day. The sheet's header says the figure and drops the slot; its small print says when it last reported (when it was last seen while unavailable), then what it is (`numericFact`: `Carbon dioxide in ppm`).
+- **Compact:** the icon, the name, the status line, and the figure with its unit as the row's value.
+- **Unavailable:** `unknown`, `unavailable` and a missing entity are Unavailable: the dashed slot with when it was last seen, and the last value hidden. A state that isn't a finite number is `No reading yet`, never a made-up value.
+- **Home Assistant:** `HaNumericTile` takes the sensor and, where the entity doesn't say, its `unit`; `device_class` and `state_class` are read from it. It is a shared kind on `sensor` (`SHARED_KINDS`), never the domain's default: YAML picks it with `card: numeric`, and the automatic layouts pick it by device class for the room's air quality only (`numericSensors`: CO₂, then particles, then VOC, one per device). Today comes from the recorder through `readingHistoryFromHass`; `loadHistory={false}` skips it.
+
+### Field numeric module
+
+`NumericModule` is the same normalized numeric entity in the Field skin; `HaNumericModule` is its connected container, on the same `useHaNumeric` hook as `HaNumericTile`, taking the same `unit`. See [field.md](field.md#numeric).
+
+```tsx
+<HaNumericModule entityId="sensor.house_energy" />
+```
+
 <!-- new-card: cards -->
 
 ### Field media player module

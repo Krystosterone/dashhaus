@@ -1,0 +1,23 @@
+/* Numeric module (fd-nm). Its own layout goes here; the plate, key, screen, fader, meter, row (ModuleRow) and
+   panel body (PanelBody) are shared. */
+
+/* Narrow modules keep one meta line on the screen. */
+@container (max-width: 239px) {
+  .fd-nm .fd-meta-2 { display: none; }
+  .fd-nm .fd-read { font-size: 24px; }
+}
+
+/* A row's screen holds a figure of five places and a unit of three letters ("12346 kWh"): it lets the pictogram (the
+   plate's glyph names what it measures) and the unlit leading places go, as a narrow sensor's row lets its pictogram
+   go. The figure is the same as the module's. */
+.fd-nm[data-footprint="compact"] .fd-pict { display: none; }
+/* Blank segments (unavailable, no reading yet) say themselves in their pad, so it stays on them. */
+.fd-nm[data-footprint="compact"] .fd-digits:not(:has(.fd-sr))::before { content: none; }
+.fd-nm[data-footprint="compact"] .fd-read { gap: 4px; }
+.fd-nm[data-footprint="compact"] .fd-screen { padding-inline: 6px; }
+
+/* A narrow row keeps the figure; its unit waits for the module and the panel (and is still heard). */
+@container (max-width: 279px) {
+  .fd-nm[data-footprint="compact"] .fd-screen { width: 80px; }
+  .fd-nm[data-footprint="compact"] .fd-read small { display: none; }
+}

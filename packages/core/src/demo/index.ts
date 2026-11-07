@@ -15,4 +15,5 @@ export * from "./guestWifi";
 export * from "./binarySensor";
 export * from "./camera";
 export * from "./mediaPlayer";
+export * from "./numeric";
 // new-card: demo transports
