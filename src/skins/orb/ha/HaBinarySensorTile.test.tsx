@@ -26,7 +26,7 @@ describe("HaBinarySensorTile", () => {
     renderConnected(<HaBinarySensorTile entityId="binary_sensor.kitchen_leak" loadHistory={false} />, raw);
     await waitFor(() => expect(screen.getByRole("heading", { name: "Under the sink" })).toBeTruthy());
     expect(screen.getByRole("button", { name: /^Under the sink: Wet, since .+\. Open details$/ })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Warning: Leak detected at Under the sink" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Warning: Under the sink: Leak detected" })).toBeTruthy();
   });
 
   it("passes its device's battery through", async () => {

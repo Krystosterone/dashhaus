@@ -49,7 +49,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
   const problem = problems[0];
   // Readings that stopped, in a row's room ("Stopped 11:49"); the spoken label says it whole.
   const staleWords = staleText(e.lastUpdated);
-  const problemLabel = problem ? `Warning: ${ALERT_SAID[problem]} on ${e.name}'s sock` : stale ? `Warning: ${e.name}'s sock has sent ${staleSaid(e.lastUpdated).toLowerCase()}` : null;
+  const problemLabel = problem ? `Warning: ${e.name}: ${ALERT_SAID[problem]}` : stale ? `Warning: ${e.name}: ${staleSaid(e.lastUpdated)}` : null;
   const vitalFigure = !vital ? null : vital.endsWith("oxygen") ? (o2 != null ? `${fmtOxygen(o2)}% O₂` : null) : hr != null ? `${fmtBpm(hr)} bpm` : null;
   // The most urgent alert and its figure first, so an ellipsis only ever takes the others.
   const vitalText = vital ? [ALERT_WORD[vital], vitalFigure, ...vitals.slice(1).map((a) => ALERT_WORD[a])].filter(Boolean).join(" · ") : null;
@@ -77,7 +77,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
   // Under 320px a compact row keeps only this line, so it carries the alert, the sleep state and the readings.
   // Before a first reading the figures' place waits ("Waiting…"), as the readout does (spec/cards.md).
   const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? CHARGING : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "Waiting…"].filter(Boolean).join(" · ");
-  const sub = vitalText ? <AlertStatus label={`Alert: ${vitalSaid} on ${e.name}'s sock`}>{vitalText}</AlertStatus>
+  const sub = vitalText ? <AlertStatus label={`Alert: ${e.name}: ${vitalSaid}`}>{vitalText}</AlertStatus>
     : problemLabel ? <AlertStatus label={problemLabel}>{subText}</AlertStatus>
     : subText;
 
@@ -138,7 +138,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
       {sheet && alerts.length > 0 && (
         <section className="ow-alerts" aria-labelledby={`${nameId}-a`}>
           <h3 className="hd-blk-h" id={`${nameId}-a`}>Alerts</h3>
-          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={VITAL_ALERTS.has(a) ? "Alert" : "Warning"}>{ALERT_SAID[a]}</AlertStatus></li>)}</ul>
+          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={`${VITAL_ALERTS.has(a) ? "Alert" : "Warning"}: ${e.name}: ${ALERT_SAID[a]}`}>{ALERT_SAID[a]}</AlertStatus></li>)}</ul>
         </section>
       )}
 

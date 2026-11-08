@@ -1,6 +1,6 @@
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
-import { SLAT_POSITIONS, coverWord, leftOpenSentence, leftOpenText } from "@dashhaus/core/entities/cover/words";
+import { SLAT_POSITIONS, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { CoverIcon } from "./icons";
@@ -60,7 +60,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const warned = coverSeverity(e) != null;
   const identity = area ?? CLASS_LABEL[e.deviceClass];
   const warning = warned ? leftOpenText(e.lastChanged) : undefined;
-  const alertLabel = warned ? `Warning: ${leftOpenSentence(e.name, e.lastChanged)}` : undefined;
+  const alertLabel = warned ? `Warning: ${e.name}: ${warning}` : undefined;
 
   // A door left open leads the status line behind the warn marker in every footprint, in the words a garage door's
   // binary sensor says it in (spec/orb.md → the warn colour); otherwise the room, and in the sheet what it is.

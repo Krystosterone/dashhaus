@@ -1,7 +1,7 @@
 import type { BinarySensorEntity, BinarySensorHistory } from "@dashhaus/core/entities/binarySensor/types";
-import { alertSentence, alertText, alertWord, pictureOf, stateWord, wordsOf } from "@dashhaus/core/entities/binarySensor/words";
+import { alertSaid, alertText, alertWord, pictureOf, stateWord, wordsOf } from "@dashhaus/core/entities/binarySensor/words";
 import { binarySensorSeverity, stateSeverity } from "@dashhaus/core/entities/binarySensor/severity";
-import { batteryAdvice, batterySaid, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
+import { batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { BinarySensorIcon } from "./icons";
@@ -43,7 +43,7 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
   const lowBattery = !unav && isLowBattery(e.battery);
   const warning = stateAlert ?? (severity ? batteryText(e.battery!) : undefined);
   const alertLabel = warning
-    ? `${alarm ? "Alert" : "Warning"}: ${stateAlert ? alertSentence(e) : batterySaid(e.battery!, e.name)}`
+    ? `${alarm ? "Alert" : "Warning"}: ${e.name}: ${stateAlert ? alertSaid(e) : batteryAdvice(e.battery!)}`
     : null;
   const since = !unav && e.lastChanged ? e.lastChanged : undefined;
   const sinceText = since ? `Since ${since}` : undefined;

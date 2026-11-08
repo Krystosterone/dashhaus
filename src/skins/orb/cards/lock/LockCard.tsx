@@ -1,5 +1,5 @@
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
-import { BATTERY_ADVICE, batterySaid, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
+import { BATTERY_ADVICE, batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
 import { JAMMED_MEANING, LOCK_WORD } from "@dashhaus/core/entities/lock/words";
 import { useGuardedAction } from "@dashhaus/core/primitives";
@@ -73,7 +73,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const lowBattery = !unav && isLowBattery(e.battery);
   const warning = level === "urgent" ? LOCK_WORD.jammed : level === "advisory" ? batteryText(e.battery!) : null;
   const alertLabel = level === "urgent" ? `Warning: ${e.name}: jammed, it ${JAMMED_MEANING.toLowerCase()}`
-    : level === "advisory" ? `Warning: ${batterySaid(e.battery!, e.name)}`
+    : level === "advisory" ? `Warning: ${e.name}: ${batteryAdvice(e.battery!)}`
     : null;
   const since = sinceFact(e.lastChanged);
   // A jam is urgent and a low battery advisory: both are a warn marker, so the jam says what it means (attention-budget: words, not brightness); a compact row has room only for the word.

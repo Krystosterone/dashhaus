@@ -49,7 +49,7 @@ describe("VacuumCard", () => {
     const { container } = render(<VacuumCard entity={{ ...cleaning, state: "error", error: "Main brush jammed" }} {...h} />);
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
     expect(container.querySelector(".hd-area")?.textContent).toBe("Error · Main brush jammed");
-    expect(screen.getByLabelText("Warning: Robot vacuum has stopped with an error: main brush jammed")).toBeTruthy();
+    expect(screen.getByLabelText("Warning: Robot vacuum: Stopped with an error: main brush jammed")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /^Robot vacuum: Error · Start again/ }));
     expect(h.onStart).toHaveBeenCalledOnce();
   });

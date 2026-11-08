@@ -118,6 +118,15 @@ export function alertSentence(e: Pick<BinarySensorEntity, "state" | "deviceClass
   return `${ALERT_SPOKEN[e.deviceClass]} at ${e.name}`;
 }
 
+/**
+ * Its warning said whole without the name, for a skin that names the card before it (Orb's `Warning: <name>: …`):
+ * "Carbon monoxide detected", "Open since 18:30". Undefined while it has none.
+ */
+export function alertSaid(e: Pick<BinarySensorEntity, "state" | "deviceClass" | "lastChanged">): string | undefined {
+  if (!alertWord(e) || !e.deviceClass) return undefined;
+  return SINCE_ALERTS.has(e.deviceClass) ? leftOpenText(e.lastChanged) : ALERT_SPOKEN[e.deviceClass];
+}
+
 /** Its device class's words, or plain On and Off. */
 export const wordsOf = (deviceClass?: BinarySensorClass): BinarySensorWords => (deviceClass ? BINARY_SENSOR_WORDS[deviceClass] : PLAIN_WORDS);
 
