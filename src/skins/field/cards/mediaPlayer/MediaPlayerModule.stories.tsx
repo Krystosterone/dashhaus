@@ -189,7 +189,7 @@ export const DetailsVolumeSteps: Story = { name: "Details, volume steps", args: 
 export const DetailsSources: Story = { name: "Details, sources", args: { mediaPlayer: "on", defaultOpen: true } };
 
 /**
- * Inside Home Assistant (`useHaMoreInfo`), the panel's last control is a wide Open in Home Assistant key with no LED:
+ * Inside Home Assistant (`useHaMoreInfo`), the panel's last control is a wide Open key under a Home Assistant legend, with no LED:
  * Home Assistant's own player, for browsing media, grouping and the sound mode. Here it stands in for one that opens
  * nothing.
  */

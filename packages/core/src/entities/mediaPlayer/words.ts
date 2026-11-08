@@ -143,7 +143,9 @@ export const POSITION = "Position";
 
 /**
  * The details' one way to Home Assistant's own player (its more-info dialog: browsing media, grouping, sound mode),
- * where the host has one (`useHaMoreInfo`), last among their controls: Orb's pill and Field's key print it whole.
+ * where the host has one (`useHaMoreInfo`), last among their controls: Orb's pill says it whole; Field's key, whose
+ * caption has a key's places, says `Open` under its `Home Assistant` legend, as the camera's `Live` under `Camera`, and
+ * its spoken label says it whole (`openInHomeAssistantSaid`).
  */
 export const OPEN_IN_HOME_ASSISTANT = "Open in Home Assistant";
 

@@ -8,7 +8,7 @@ export interface HaMediaPlayerModuleProps extends HaMediaPlayerOptions, Pick<Med
 }
 
 /**
- * A live media player module: the useHaMediaPlayer hook above field's module. Its panel's Open in Home Assistant key
+ * A live media player module: the useHaMediaPlayer hook above field's module. Its panel's Open key (under Home Assistant)
  * opens Home Assistant's own player (`useHaMoreInfo`) where the host has it. `quiet` is the dashboard's: no progress
  * rule and no running clock.
  */

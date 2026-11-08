@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, OPEN_IN_HOME_ASSISTANT, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { fmtPlayTime } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -53,8 +53,8 @@ export interface MediaPlayerModuleProps {
   quiet?: boolean;
   /**
    * Open Home Assistant's own player for it: inside Home Assistant, its more-info dialog (`useHaMoreInfo`), which
-   * browses media, groups players and sets the sound mode. The panel carries an Open in Home Assistant key to it, last
-   * among its controls; without one (a story, a standalone app) there is none.
+   * browses media, groups players and sets the sound mode. The panel carries an Open key to it under a Home Assistant
+   * legend, last among its controls; without one (a story, a standalone app) there is none.
    */
   onOpenMore?: () => void;
   /** Open the detail panel on first render (stories). */
@@ -274,9 +274,10 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
         </KeyGroup>
       )}
       {onOpenMore && !unav && (
-        // Last, a wide key that acts once, with no LED: it leaves the skin's look for Home Assistant's own player.
+        // Last, a wide key that acts once, with no LED: it leaves the skin's look for Home Assistant's own player. Its
+        // legend says where it goes and its caption what it does, as the camera's Camera / Live; its label says it whole.
         <KeyGroup legend="Home Assistant" columns={1}>
-          <Key label={openInHomeAssistantSaid(e.name)} wide caption={OPEN_IN_HOME_ASSISTANT} onPress={onOpenMore}><IconOpenOut /></Key>
+          <Key label={openInHomeAssistantSaid(e.name)} wide caption="Open" onPress={onOpenMore}><IconOpenOut /></Key>
         </KeyGroup>
       )}
       <Today

@@ -122,7 +122,7 @@ describe("MediaPlayerModule", () => {
     expect(within(panel).getByRole("slider", { name: "Kitchen speaker volume" })).toBeTruthy();
   });
 
-  it("ends its panel with a wide Open in Home Assistant key, no LED, where the host has its player, and nowhere else", () => {
+  it("ends its panel with a wide Open key under Home Assistant, said whole, no LED, where the host has its player, and nowhere else", () => {
     const onOpenMore = vi.fn();
     const { module, unmount } = draw(S.playing.entity, "standard", false, false, onOpenMore);
     // Never on the module's face.
@@ -131,7 +131,7 @@ describe("MediaPlayerModule", () => {
     draw(S.playing.entity, "standard", true, false, onOpenMore);
     const panel = screen.getByRole("dialog");
     const key = within(panel).getByRole("button", { name: "Open Kitchen speaker in Home Assistant" });
-    expect(key.querySelector(".fd-key-cap")?.textContent).toBe("Open in Home Assistant");
+    expect(key.querySelector(".fd-key-cap")?.textContent).toBe("Open");
     expect(key.hasAttribute("data-wide")).toBe(true);
     expect(key.querySelector(".fd-led")).toBeNull();
     const keys = [...panel.querySelectorAll(".fd-key:not(.fd-key--close)")];
