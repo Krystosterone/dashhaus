@@ -56,6 +56,8 @@ import { VACUUM_SEEDS, VACUUM_WORST_CASE, useDemoVacuum } from "@dashhaus/core/s
 import type { VacuumSeed } from "@dashhaus/core/seeds/vacuum";
 import { CalendarModule } from "../cards/calendar/CalendarModule";
 import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
+import { SunModule } from "../cards/sun/SunModule";
+import { SUN_SEEDS, SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
 // new-card: worst case imports
 
 /*
@@ -156,6 +158,7 @@ const CARDS = [
   card(NUMERIC_WORST_CASE, [NUMERIC_SEEDS.co2, NUMERIC_SEEDS.power], (seed, footprint) => <NumericModule entity={seed.entity} history={seed.history} footprint={footprint} />),
   card(VACUUM_WORST_CASE, [VACUUM_SEEDS.cleaning], (seed, footprint) => <Vacuum seed={seed} footprint={footprint} />),
   card(CALENDAR_WORST_CASE, [CALENDAR_SEEDS.normal], (seed, footprint) => <CalendarModule entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card(SUN_WORST_CASE, [SUN_SEEDS.normal], (seed, footprint) => <SunModule entity={seed.entity} history={seed.history} footprint={footprint} />),
   // new-card: worst cases
 ];
 
