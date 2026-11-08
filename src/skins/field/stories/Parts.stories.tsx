@@ -2,10 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Today, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Temperature, Today, useDetails, Warn } from "../shared/ui";
+import type { ModuleFrameProps } from "../shared/ui";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_TALL, ARTWORK_TIDES, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
+import { LAMP_COLORS } from "@dashhaus/core/entities/light/color";
 import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
@@ -70,12 +72,23 @@ function Live({ src, ...props }: { src: string } & Omit<Parameters<typeof Pictur
 /** A picture held in one status, for the states a lifecycle passes through. */
 const held = (status: PictureStatus, src?: string) => ({ ref: () => {}, src, status });
 
+/** The module frame on its own, its name opening its panel. */
+function Frame(props: Omit<ModuleFrameProps, "details" | "kind" | "pict" | "lead"> & Partial<Pick<ModuleFrameProps, "pict" | "lead">>) {
+  const details = useDetails(false);
+  return (
+    <ModuleFrame kind="fd-parts" details={details} pict={<Pictogram lit param="neutral">{THERMO}</Pictogram>} lead={<Glyph><IconThermo /></Glyph>}
+      row={<ModuleRow><Glyph><IconThermo /></Glyph><Today summary="19.5°–21.4°" label="Temperature by hour today." samples={DAY} currentHour={18} tone="neutral" /></ModuleRow>}
+      facts={{ start: "Updated 10:42", end: "Battery 80%" }} {...props} />
+  );
+}
+
 function AllParts() {
   const [on, setOn] = useState(true);
   const [mode, setMode] = useState<"heat" | "cool" | "off">("heat");
   const [level, setLevel] = useState(64);
   const [warmth, setWarmth] = useState(40);
   const [range, setRange] = useState<[number, number]>([20, 24]);
+  const [position, setPosition] = useState(60);
 
   return (
     <div style={{ maxWidth: 760, fontFamily: "var(--fd-sans)", fontStretch: "var(--fd-wide)", color: "var(--fd-ink)" }}>
@@ -97,13 +110,14 @@ function AllParts() {
         <State label="Unavailable"><Glyph unavailable><IconThermo /></Glyph></State>
       </Part>
 
-      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all.">
+      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all. A fader may snap a pointer onto its own grid: a cover's ends pull the thumb to closed and open.">
         <State label="On, first parameter" width={300}><Fader id="parts-a" label="Brightness" legend="Brightness" value={level} min={1} max={100} lit valueText={`${level} percent`} onChange={setLevel} /></State>
         <State label="Second parameter" width={300}><Fader id="parts-b" label="Warmth" legend="Warmth" value={warmth} min={0} max={100} lit param="b" valueText={`${warmth} percent`} onChange={setWarmth} /></State>
         <State label="Off" width={300}><Fader id="parts-off" label="Brightness, off" legend="Brightness" value={30} min={1} max={100} lit={false} valueText="Off. Last set to 30 percent" onChange={() => {}} /></State>
         <State label="Off, no level" width={300}><Fader id="parts-off-empty" label="Brightness, off" legend="Brightness" value={100} min={1} max={100} lit={false} empty valueText="Off" onChange={() => {}} /></State>
         <State label="Disabled" width={300}><Fader id="parts-disabled" label="Brightness, unavailable" legend="Brightness" value={30} min={1} max={100} lit={false} disabled valueText="Unavailable" onChange={() => {}} /></State>
         <State label="No value" width={300}><Fader id="parts-empty" label="Brightness, unknown" legend="Brightness" min={1} max={100} lit={false} valueText="Unknown" onChange={() => {}} /></State>
+        <State label="Magnetic ends: slide near one and it snaps there" width={300}><Fader id="parts-snap" label="Curtains position" legend="Position" value={position} min={0} max={100} lit={position > 0} valueText={`${position} percent open`} snap={(raw) => (raw <= 4 ? 0 : raw >= 96 ? 100 : Math.round(raw))} onChange={setPosition} /></State>
       </Part>
 
       <Part name="Range fader" rule="Two ordered values on one fader: the lower thumb is the first parameter, the upper the second. A tap or a drag moves the nearer thumb.">
@@ -171,15 +185,32 @@ function AllParts() {
         </State>
       </Part>
 
+      <Part name="Module frame" rule="Every module's frame (ModuleFrame): its header, then the screen and the row under it, or a compact row's lead and screen; its name opens the panel, the screen again, the controls and the small print. What a card hands it is generic: rest, a known resting state, its figure dim here and in the panel; a note in place of the area; its own body in place of the screen and the row; a picture over the panel's screen. Tap a name for its panel.">
+        <State label="A screen and its row" width={300}><Frame name="Hall" area="Downstairs" state="ok" read={<Temperature value={21.4} unit="°" />} meta={["48% RH", "Since 10:31"]} /></State>
+        <State label="A row" width={340}><Frame name="Hall" area="Downstairs" state="ok" footprint="compact" read={<Temperature value={21.4} unit="°" />} /></State>
+        <State label="Resting" width={300}><Frame name="Garage door" area="Garage" state="closed" rest pict={null} read="SHUT" meta={["Closed", "Since 08:16"]} /></State>
+        <State label="A note in place of the area" width={300}><Frame name="Nursery" area="Upstairs" note="Base station off" state="ok" read={<Temperature value={20.1} unit="°" />} meta={["52% RH"]} /></State>
+        <State label="Its own body; a picture over the panel's screen" width={300}>
+          <Frame name="Front door" area="Porch" state="idle" rest read="IDLE" meta={["Idle", "Still from 10:42"]}
+            body={<div style={{ gridRow: "2 / -1", display: "grid", minHeight: 0 }}><Screen meta={["The card's own body", "Under the header"]}>IDLE</Screen></div>}
+            panelPicture={<Picture picture={held("ready", PICTURE_DOORSTEP)} label="Front door camera" fit="contain" />} />
+        </State>
+      </Part>
+
       <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash.">
         <State label="First parameter" width={300}><Today summary="4h 10m" label="Brightness today." samples={DAY} currentHour={18} /></State>
         <State label="Neutral, an activity" width={300}><Today summary="2h" label="Heating today." samples={DAY} currentHour={18} tone="neutral" /></State>
         <State label="No history" width={300}><Today label="No history today." /></State>
       </Part>
 
-      <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, under a printed legend where it has one.">
+      <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, and fewer to a row on a narrow panel (300 px and under, or under 420 px), under a printed legend where it has one.">
         <State label="One row" width={300}><KeyGroup label="Cover"><Key label="Open" wide caption="Open" onPress={() => {}}><IconBulb /></Key><Key label="Stop" wide caption="Stop" onPress={() => {}}><IconBulb /></Key><Key label="Close" wide caption="Close" onPress={() => {}}><IconBulb /></Key></KeyGroup></State>
         <State label="Two to a row, with a legend" width={300}><KeyGroup legend="Mode" columns={2}>{["Off", "Home", "Away", "Night"].map((m, i) => <Key key={m} label={m} chosen={i === 1} wide caption={m} onPress={() => {}}><IconBulb /></Key>)}</KeyGroup></State>
+        <State label="Seven to a row, four on a panel under 420 px" width={380}>
+          <div style={{ containerType: "inline-size" }}>
+            <KeyGroup legend="Colour" value={LAMP_COLORS[1].name} columns={7} narrow={4} narrowAt={420}>{LAMP_COLORS.map((c, i) => <Key key={c.name} label={c.name} pressed={i === 1} wide onPress={() => {}}><Swatch lamp={c.name} /></Key>)}</KeyGroup>
+          </div>
+        </State>
       </Part>
 
       <Part name="Facts" rule="The panel's small print: a fact at its start and, where there is one, its end, in the words @dashhaus/core/entities/facts gives every module.">

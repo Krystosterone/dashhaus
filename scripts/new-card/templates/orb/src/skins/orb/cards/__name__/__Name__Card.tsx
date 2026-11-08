@@ -1,5 +1,5 @@
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
-import { __factsImport__ } from "@dashhaus/core/entities/facts";__todaySummaryImport____guardImports__
+import { __factsImport__ } from "@dashhaus/core/entities/facts";__batteryImport____todaySummaryImport____guardImports__
 import { CardFrame, __partsImport__detailsSheet, paint, useCard } from "../../shared/ui";
 import type { __propsBaseImport__, SheetProps } from "../../shared/ui";
 import { __Name__Icon } from "./icons";
@@ -39,10 +39,10 @@ __leftOut__
       onOpen={__onOpen__}
       status={__status__}
       value={word}
-      readout={{ value: unav ? null : word, duplicate: true }}
+      readout={{ value: unav ? null : word, duplicate: true, word: true }}
       onClose={onClose}__closeFocus__
       control={__control__}
-      facts={{ start: __factsStart__ }}
+      facts={{ start: __factsStart____factsEnd__ }}
     >
 __sheetBlocks__
 __todayBlock__

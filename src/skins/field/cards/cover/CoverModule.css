@@ -1,6 +1,4 @@
 /* Cover module (fd-cv): the key, then the position fader across the rest of the row. */
-/* Closed is a reading, 0% open, so its figure keeps its places in the dim ink, as OFF does. */
-:is(.fd-cv, .fd-cv-panel)[data-state="closed"] :is(.fd-read-fig, .fd-chan) { color: var(--fd-screen-ink-2); }
 
 /* OPEN and SHUT fill a row's screen, so a cover with no position lets the window go there; its key names it. */
 .fd-cv[data-footprint="compact"]:not(:has(.fd-read .fd-digits)) .fd-pict { display: none; }

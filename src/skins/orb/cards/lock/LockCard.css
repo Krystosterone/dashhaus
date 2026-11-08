@@ -36,7 +36,6 @@
 .lk-door:active { scale: 0.98; }
 .lk-door:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .lk-door svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.lk-door-x { font-weight: 500; font-size: 13.5px; color: var(--ink-2); }
 
 /* The question and the keypad are the shared Confirm and Keypad (shared/card.css). */
 

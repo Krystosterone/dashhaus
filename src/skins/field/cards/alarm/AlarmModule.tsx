@@ -167,6 +167,8 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       area={e.area}
       footprint={footprint}
       state={e.state}
+      // Disarmed is a reading, not a blank, so OFF keeps its places in the dim ink.
+      rest={e.state === "disarmed"}
       warning={footprint === "compact" ? warning : undefined}
       line={line}
       alert={level === "alarm" ? { level, what: warning!, startedAt: e.changedAt, say: `Alarm: ${e.name} ${said!.said.charAt(0).toLowerCase()}${said!.said.slice(1)}.` }

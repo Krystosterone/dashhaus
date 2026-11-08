@@ -48,7 +48,7 @@ export function RangeBar({ id, name, low, high, current, modeCue, min, max, step
       <div className="cw-rb-zone cw-rb-zone--cool" />
       {current != null && <i className="cw-rb-cur" aria-hidden="true" />}
       {/* Narrow and compact: one readout. Wider standard/featured cards: values ride the handles. */}
-      <span className="cw-rb-lab" aria-hidden="true"><span>{modeCue && <span className="cw-control-mode">{modeCue}</span>}{lo === hi ? fmtTarget(lo) : `${fmtTarget(lo)}–${fmtTarget(hi)}`}°</span></span>
+      <span className="cw-rb-lab" aria-hidden="true"><span>{modeCue && <span className="hd-cue">{modeCue}</span>}{lo === hi ? fmtTarget(lo) : `${fmtTarget(lo)}–${fmtTarget(hi)}`}°</span></span>
       <div className="cw-rb-rail" aria-hidden="true">
         <div className="cw-rb-at cw-rb-at--lo"><i className="cw-rb-k cw-rb-k--lo">{fmtTarget(lo)}°</i></div>
         <div className="cw-rb-at cw-rb-at--hi"><i className="cw-rb-k cw-rb-k--hi">{fmtTarget(hi)}°</i></div>

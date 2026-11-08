@@ -50,7 +50,7 @@ export function OpenCloseControl({ name, open, moving, either = false, text, can
   name: string; open: boolean; moving: boolean; either?: boolean; text: string; canStop: boolean; onOpen: () => void; onClose: () => void; onStop: () => void;
 }) {
   return (
-    <div className="cv-oc" data-open={open || undefined} role="group" aria-label={name}>
+    <div className="hd-step" data-open={open || undefined} role="group" aria-label={name}>
       <button type="button" className="cv-oc-b" aria-label={`Close ${name}`} disabled={!open && !moving && !either} onClick={onClose}><span><IconDown /></span></button>
       {moving && canStop
         ? <button type="button" className="cv-oc-stop" onClick={onStop}><i aria-hidden="true" />Stop</button>

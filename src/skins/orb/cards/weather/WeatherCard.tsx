@@ -36,7 +36,7 @@ function Reading({ now, feels, label, onOpen }: { now: number; feels?: number; l
   const read = (
     <span className="hd-bar wx-bar">
       <span className="hd-metric wx-rd">
-        <span className="wx-rd-t">{fmt1(now)}°</span>
+        <span className="wx-rd-t hd-metric-n">{fmt1(now)}°</span>
         {feels != null && <span className="wx-rd-f">Feels {deg0(feels)}</span>}
       </span>
     </span>
@@ -82,7 +82,7 @@ function NextHours({ hours, empty }: { hours: HourlyForecast[]; empty: string })
 function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
   return (
     <div className="wx-stat">
-      <span className="wx-stat-l">{label}</span>
+      <span className="hd-chip-sub">{label}</span>
       <span className="wx-stat-v">{value}</span>
       {sub && <span className="wx-stat-s">{sub}</span>}
     </div>

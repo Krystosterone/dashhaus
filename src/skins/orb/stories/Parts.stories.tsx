@@ -6,18 +6,22 @@ import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_SUNDAY, ARTWORK_TALL, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
 import {
-  AlarmPill, AlertStatus, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot,
+  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
 } from "../shared/ui";
-import type { HourSample } from "../shared/ui";
-import { BrightnessBar, IconBulb, WarmthRuler } from "../cards/light/parts";
+import type { CardFootprint, CardFrameProps, HourSample } from "../shared/ui";
+import { BrightnessBar, ColorChips, IconBulb, WarmthRuler } from "../cards/light/parts";
+import { LAMP_COLORS } from "../cards/light/color";
+import type { LampColor } from "../cards/light/color";
 import { VolumeBar } from "../cards/sound/parts";
 import { PositionBar } from "../cards/cover/parts";
 import { RangeBar } from "../cards/climate/RangeBar";
-// The card tracks below bring their own fills; their cards' CSS draws them.
+import { ModeIcon } from "../cards/climate/modes";
+// The card tracks below bring their own fills, and an alarm its Disarm; their cards' CSS draws them.
 import "../cards/light/LightCard.css";
 import "../cards/sound/SoundCard.css";
 import "../cards/cover/CoverCard.css";
 import "../cards/climate/ClimateCard.css";
+import "../cards/alarm/AlarmCard.css";
 
 const meta = {
   title: "Orb/Foundations/Parts",
@@ -79,6 +83,47 @@ function PlainTrack({ id, initial, lit = true }: { id: string; initial: number; 
   );
 }
 
+/**
+ * The card frame on its own, drawing a lamp's words, orb and pill as a card hands them over; a state passes what it
+ * shows on top. `footprint` and `variant` are `useCard`'s.
+ */
+function Frame({ footprint = "standard", variant = "card", ...props }: Partial<Omit<CardFrameProps, "card">> & { footprint?: CardFootprint; variant?: "card" | "sheet" }) {
+  const card = useCard("pt", { variant, footprint });
+  return (
+    <CardFrame
+      card={card}
+      name="Desk lamp"
+      attrs={{ "data-state": "on", ...paint("energy", 0) }}
+      orb={{ label: "Desk lamp", pressed: true, onToggle: () => {}, children: <IconBulb /> }}
+      status="Study"
+      value="On"
+      onOpen={() => {}}
+      control={<TogglePill label="Desk lamp: On" on onToggle={() => {}}>On</TogglePill>}
+      facts={{ start: "Last changed 10:58", end: "Dimmable" }}
+      {...props}
+    />
+  );
+}
+
+/** A thermostat's slot as it swaps: Turn on while off, the stepper while on; tap the orb. */
+function SlotChange() {
+  const [on, setOn] = useState(true);
+  const [target, setTarget] = useState(21.5);
+  return (
+    <Frame
+      name="Hall thermostat"
+      attrs={{ "data-state": on ? "active" : "off", ...paint("energy", 0) }}
+      orb={{ label: `Hall thermostat, ${on ? "heat" : "off"}`, pressed: on, onToggle: () => setOn(!on), children: <ModeIcon mode="heat" /> }}
+      status={on ? "Heating" : "Off"}
+      value={on ? `${target.toFixed(1)}°` : "Off"}
+      slotKind={on ? "setpoint" : "off"}
+      control={on
+        ? <Stepper label="Hall thermostat target temperature" value={target} unit="°" format={(v) => v.toFixed(1)} min={16} max={26} step={0.5} onChange={setTarget} />
+        : <TogglePill label="Hall thermostat: Off, turn on" on={false} turnOn onToggle={() => setOn(true)}>Turn on</TogglePill>}
+    />
+  );
+}
+
 /** A picture through the real lifecycle: it loads once on screen and decodes before it draws. */
 function Live({ src, ...props }: { src: string } & Omit<Parameters<typeof Picture>[0], "picture">) {
   return <Picture picture={usePicture<HTMLElement>(src)} {...props} />;
@@ -99,6 +144,7 @@ function AllParts() {
   const [shade, setShade] = useState(30);
   const [range, setRange] = useState<[number, number]>([20, 24]);
   const setRangePair = (lo: number, hi: number) => setRange([lo, hi]);
+  const [colour, setColour] = useState<LampColor | null>(LAMP_COLORS[1]);
 
   return (
     <div style={{ maxWidth: 760, fontFamily: "var(--font)", color: "var(--ink)" }}>
@@ -113,6 +159,14 @@ function AllParts() {
         <State label="On"><Orb label="Do not disturb" pressed onToggle={() => {}}><IconBulb /></Orb></State>
       </Part>
 
+      <Part name="Card frame" rule="Every card's frame (CardFrame): the head, with the orb or a reading's icon, the name that opens details over its status line, and the readout; then the slot and the card's own blocks; the sheet adds its close button and its small print. What a card hands it is generic: what its slot shows, so a control that swaps for another fades in; a word for why it is unavailable; its own hint for the name's button; its own close label.">
+        <State label="A card" width={300}><Frame /></State>
+        <State label="Its slot changes: tap the orb" width={300}><SlotChange /></State>
+        <State label="Unavailable, saying why" width={300}><Frame unavailable unavailableWord="Charging" lastSeen="10:42" attrs={{ "data-state": "unavailable", ...paint("energy", 0) }} /></State>
+        <State label="Its own hint: the name reads “Desk lamp settings”" width={300}><Frame openHint="settings" /></State>
+        <State label="In its sheet, its own close label" width={340}><Frame variant="sheet" closeLabel="Close Desk lamp details" closeFocus={false} onClose={() => {}} /></State>
+      </Part>
+
       <Part name="Card title" rule="The name, and the button that opens details when the card has them, marked by a chevron. Warnings ride under it as text with a cue.">
         <State label="Opens details" width={220}><CardTitle id="parts-title-open" name="Living room lamp" onOpen={() => {}}><p className="hd-area">Living room</p></CardTitle></State>
         <State label="No details" width={220}><CardTitle id="parts-title-plain" name="Living room lamp"><p className="hd-area">Living room</p></CardTitle></State>
@@ -125,16 +179,18 @@ function AllParts() {
         <State label="Turn on" width={220}><TogglePill label="Turn on heat" on={false} turnOn onToggle={() => {}}>Turn on</TogglePill></State>
       </Part>
 
-      <Part name="Chips" rule="One of several: raised, the chosen one in the accent.">
+      <Part name="Chips" rule="One of several: raised, the chosen one in the accent. A card's own chips add their class to the chip's (light's colours, each with its swatch).">
         <State label="One chosen" width={340}>
           <ChoiceChips id="parts-chips" label="Preset" value={preset} onChange={setPreset} options={[{ value: 5, label: "Night", sub: "5%" }, { value: 25, label: "Dim", sub: "25%" }, { value: 50, label: "Half", sub: "50%" }, { value: 100, label: "Full", sub: "100%" }]} />
         </State>
+        <State label="Light: colour chips, as in its sheet" width={480}><ColorChips id="parts-colour" value={colour} onChange={setColour} /></State>
       </Part>
 
       <Part name="Stepper" rule="A groove with a raised minus and plus at its ends, the value between. At an end its button lies flat. Its kicker shows from 260 px.">
         <State label="From 260 px" width={280}><Stepper label="Heat to" kicker="Heat to" value={setpoint} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={setSetpoint} /></State>
         <State label="Narrow" width={200}><Stepper label="Heat to, narrow" kicker="Heat to" value={setpoint} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={setSetpoint} /></State>
         <State label="At the top" width={200}><Stepper label="Heat to, at max" value={23} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={() => {}} /></State>
+        <State label="Its cue: a compact row's mode" width={200}><Stepper label="Heat to, with its mode" cue={<ModeIcon mode="heat" />} value={setpoint} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={setSetpoint} /></State>
       </Part>
 
       <Part name="Track" rule="A groove you slide along or set: tap to jump (animated), drag to follow the finger, a vertical swipe scrolls the page. The fill is the accent; the value flips where it passes. Off is the plain groove.">
@@ -182,6 +238,7 @@ function AllParts() {
       <Part name="Alarm pill" cardRole="reading" rule="An alarm that has gone off (a baby's oxygen, smoke): the one place warn fills, in the slot over the control, in every footprint. Its alert on the left, its figure or since when on the right; the fill deepens under the words, and holds still under reduced motion.">
         <State label="Smoke" width={280}><AlarmPill alert="Smoke alarm" value="Since 11:52" /></State>
         <State label="Two vitals, a figure" width={340}><AlarmPill alert="Low oxygen" more="High pulse" value="84% O₂" /></State>
+        <State label="With the one thing to do" width={340}><AlarmPill alert="Alarm" more="Hall motion" action={<button type="button" className="al-cd-b al-alarm-b">Disarm</button>} /></State>
       </Part>
 
       <Part name="Today strip" surface="hd--featured" rule="24 hourly sticks: height is that hour's level, the current hour is the accent. Hours not yet come are a short line; unavailable hours are dashed.">

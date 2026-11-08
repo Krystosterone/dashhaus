@@ -158,6 +158,33 @@ describe("motion: composite-only, token easing, no viewport sizing", () => {
   });
 });
 
+describe("a clock runs on by itself", () => {
+  it("cuts and never slides: its places' stops in fours of decimals, each held, and it stops at its end", () => {
+    const bad: string[] = [];
+    let clocks = 0;
+    for (const f of nonTokens) {
+      const body = css(f);
+      for (const m of body.matchAll(/@keyframes\s+([\w-]*reel[\w-]*)\s*\{/g)) {
+        clocks++;
+        const start = m.index! + m[0].length;
+        let depth = 1;
+        let end = start;
+        for (; end < body.length && depth > 0; end++) depth += body[end] === "{" ? 1 : body[end] === "}" ? -1 : 0;
+        for (const [, stops] of body.slice(start, end - 1).matchAll(/([^{}]+)\{/g)) {
+          const list = stops.split(",").map((stop) => stop.trim());
+          if (list.length !== 2) bad.push(`${f}: ${m[1]} ${stops.trim()} isn't a held stop`);
+          for (const stop of list) if (!/^\d+(?:\.\d{4})?%$/.test(stop)) bad.push(`${f}: ${m[1]} ${stop}`);
+        }
+        for (const { value } of decls(f).filter((d) => d.prop === "animation" && d.value.includes(m[1]))) {
+          if (/\binfinite\b/.test(value) || !/\bforwards\b/.test(value)) bad.push(`${f}: ${value}`);
+        }
+      }
+    }
+    expect(clocks).toBeGreaterThan(0);
+    expect(bad).toEqual([]);
+  });
+});
+
 describe("touch: controls answer presses, tracks let pages scroll", () => {
   it("shared controls disable tap highlight, selection, and tap delay", () => {
     const c = css(`${SKIN}/shared/card.css`);

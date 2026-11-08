@@ -96,6 +96,8 @@
 .hd-num span { font-size: 0.48em; letter-spacing: 0; color: var(--ink-2); margin-left: 2px; }
 /* Unknown has no reading, as off has none: its word is dimmed the same way. */
 .hd:is([data-state="off"], [data-state="unknown"]) .hd-num { color: var(--ink-3); }
+/* A readout that says a word (On, a named speed), not a figure: a little smaller than a number. */
+.hd-num--word { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
 .hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
 .hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-area { margin-top: 3px !important; font-size: var(--type-status); font-weight: 500; color: var(--ink-2); line-height: var(--type-status-leading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -238,6 +240,9 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   display: grid; align-items: center; min-width: 0; height: var(--slot-h);
   color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+/* A leading figure and a captioned second one (a temperature and its humidity, a door's word and since when): the
+   second in a proportional track, so a column of readings lines it up; a step tighter on a narrow card. */
+.hd-bar--pair { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
 .hd-metric { min-width: 0; }
 .hd-metric:only-child { grid-column: 1 / -1; }
 /* A secondary metric (humidity, since when): its caption over its figure, left in its track, in the second ink. */
@@ -250,6 +255,11 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   overflow: hidden; text-overflow: ellipsis;
   font-size: 30px; font-weight: var(--type-readout-weight); letter-spacing: -0.03em; line-height: 1.1;
 }
+/* A reading's leading number as its figure (a temperature, now outside): the large readout's voice on a standard or
+   featured card. A card sets its own size in its sheet and a narrower container; a compact row's is the row's (below). */
+.hd:not(.hd--compact):not(.hd--sheet) .hd-metric-n {
+  font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em;
+}
 .hd-label { color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; letter-spacing: 0.01em; line-height: 1; }
 .hd-label-short { display: none; }
 /* No reading yet: plain words. */
@@ -261,13 +271,15 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-long { display: none; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-short { display: inline; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-metric-w { font-size: 26px; }
+  .hd:not(.hd--compact):not(.hd--sheet) .hd-bar--pair { grid-template-columns: minmax(0, 1.45fr) minmax(38px, 0.55fr); column-gap: 8px; }
 }
 /* Centred, not baseline: a flex line aligns its baselines at the top of the slot, under the row's centre line. */
 .hd--compact .hd-bar {
   display: flex; align-items: center; justify-content: flex-end; column-gap: 10px; padding-inline-end: var(--pad-in);
 }
 .hd--compact .hd-label { display: none; }
-.hd--compact .hd-metric-w { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
+/* Every figure a compact row draws, a word or a number (a temperature, a heart rate), at the row's size. */
+.hd--compact :is(.hd-metric-w, .hd-metric-n, .hd-metric-v) { font-size: 13.5px; font-weight: 700; letter-spacing: 0; }
 .hd--compact .hd-none { flex: none; font-size: 12.5px; }
 
 /* Setpoint stepper: a groove with a minus and a plus button at its ends. The setpoint is a value, not a
@@ -280,7 +292,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 }
 .hd-step-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; touch-action: manipulation; }
 .hd-step-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: background-color 150ms var(--ease-out), scale var(--press) var(--ease-out); }
-.hd-step-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+/* The minus and the plus that step a value (IconMinus, IconPlus): the stepper's ends, a climate range's fine steps. */
+.hd-step-i { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .hd-step-b:active > span { scale: 0.9; }
 .hd-step-b:disabled { cursor: default; }
 /* A disabled button lies flat. */
@@ -293,8 +306,9 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 .hd-step-v { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .hd-step-v small { font-size: 0.8em; font-weight: 600; margin-left: -4px; }
 .hd-step-k { display: none; font-size: 12.5px; font-weight: 600; opacity: 0.72; }
-.hd-step-cue { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
-.hd-step-cue svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+/* A small icon before a control's value, where a compact row keeps its mode: the stepper's `cue`, a range's label. */
+.hd-cue { display: inline-grid; flex: 0 0 13px; place-items: center; align-self: center; }
+.hd-cue svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 @container hd (min-width: 260px) {
   .hd-step-k { display: inline; }
 }
@@ -359,7 +373,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 }
 .hd-chip:active { scale: 0.97; }
 .hd-chip > span { max-width: 100%; overflow-wrap: break-word; }
-.hd-chip small { font-size: 12px; font-weight: 500; color: var(--ink-2); }
+/* A chip's second line, and the label over a figure set out as a chip without being one (hd-chip-sub). */
+.hd-chip small, .hd-chip-sub { font-size: 12px; font-weight: 500; color: var(--ink-2); }
 .hd-chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .hd-chip[aria-pressed="true"] small { color: var(--on-accent); }
 .hd-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -415,6 +430,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 .hd--compact .hd-open::after { inset-inline: -10px 8px; }
 .hd--compact .hd-name { font-size: 15px; }
 .hd--compact .hd-area, .hd--compact .hd-sub { margin-top: 1px !important; font-size: var(--type-status-compact); }
+/* The compact value line, where a row shows it (under 320 px, or where a card's control yields to it sooner). */
+.hd--compact .hd-sub { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The control and the name split the row; no column goes to a details button. */
 .hd--compact .hd-slot { grid-area: slot; width: clamp(112px, 40cqi, 232px); }
 .hd--compact .hd-pill, .hd--compact .hd-unav { font-size: 13px; }
@@ -439,7 +456,7 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 @container hd (max-width: 319px) {
   .hd--compact { grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "orb title"; column-gap: 8px; }
   .hd--compact .hd-slot, .hd--compact .hd-area { display: none; }
-  .hd--compact .hd-sub { display: block; color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hd--compact .hd-sub { display: block; }
   .hd--compact:is([data-state="unavailable"], [data-state="off"], [data-state="unknown"]) .hd-sub { color: var(--ink-3); }
   .hd--compact .hd-title { position: static; }
   .hd--compact .hd-open::after { inset: 0; border-radius: 999px; }
@@ -461,6 +478,7 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 }
 .hd--sheet .hd-head { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "orb title num open"; row-gap: 0; }
 .hd--sheet .hd-num { display: block; font-size: 40px; }
+.hd--sheet .hd-num--word { font-size: 34px; }
 .hd--sheet .hd-area { white-space: normal; }
 /* The sheet is where a truncated name can be read in full. */
 .hd--sheet .hd-name > span { white-space: normal; overflow-wrap: anywhere; }

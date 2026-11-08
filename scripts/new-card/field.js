@@ -19,7 +19,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir, smallPrint } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("field");
@@ -119,6 +119,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const askedKeys = asked.map(({ action }) => `"${keyOf(action)}"`);
   const codeKeys = asked.filter(({ takes }) => takes === "code").map(({ action }) => `"${keyOf(action)}"`);
   const since = has("lastChanged") ? "sinceFact(e.lastChanged)" : "undefined";
+  const small = smallPrint(has);
   // Today's summary in words, where the history counts the minutes in a state (`onMinutes`): "On 2h 36m", "Not on today".
   const minutesIn = domain.minutes;
   /** Today's meter at an indent, or nothing for a domain without history. */
@@ -186,9 +187,13 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __areaProp__: has("area") ? " area={e.area}" : "",
     // Since when it has been as it is, on the screen and in the panel's facts, where the entity says.
     __meta__: toggle ? (has("lastChanged") ? "e.lastChanged ? [sinceFact(e.lastChanged)] : undefined" : "undefined") : `[words(e.state), ${since}]`,
-    __changed__: has("lastChanged") ? "lastChangedFact(e.lastChanged)" : "\"\"",
-    // The facts' words, from core: what this module prints.
-    __factsImport__: ["lastSeenFact", ...(has("lastChanged") ? ["lastChangedFact", "sinceFact"] : [])].sort().join(", "),
+    // The panel's small print: when first, then what the device is where the entity says (spec/cards.md).
+    __factsStart__: small.start,
+    __factsEnd__: small.end ? `, end: ${small.end}` : "",
+    __batteryImport__: small.battery ? `\nimport { batteryText } from "${packageSpecifier("core", "entities/battery")}";` : "",
+    // The facts' words, from core: what this module prints, and a control's since when on its screen.
+    __factsImport__: [...new Set([...small.facts, ...(has("lastChanged") ? ["sinceFact"] : [])])].sort().join(", "),
+    __readingFactsImport__: [...small.facts].sort().join(", "),
     // Today's meter, from the history's hourly samples where it has them; dark until the author wires it otherwise.
     __samplesProp__: domain.samples ? "samples={history?.samples}" : "",
     __historyType__: history ? `, ${Name}History` : "",

@@ -1,11 +1,10 @@
 /* __Label__ card. Shell, header, bare icon, readout, metrics, today strip and sheet come from src/shared/card.css.
    Classes here start with __code__-; colours only from tokens.css. */
 
-/* The figure: the large-readout voice on standard and featured cards, inline in compact rows. */
+/* The figure: the large-readout voice on standard and featured cards and the row's size in compact rows, both the
+   shared hd-metric-n; its sheet size and its unit are its own. */
 .__code__-f { font-size: 20px; font-weight: 700; line-height: 1; }
 .__code__-f small { margin-left: 3px; color: var(--ink-2); font-size: 13px; font-weight: 600; letter-spacing: 0; }
-.__code__:not(.hd--compact):not(.hd--sheet) .__code__-f { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
 .__code__:not(.hd--compact):not(.hd--sheet) .__code__-f small { font-size: 15px; }
-.hd--compact .__code__-f { font-size: 13.5px; }
 .hd--compact .__code__-f small { margin-left: 2px; font-size: 12.5px; }
 .hd--sheet .__code__-f { font-size: 28px; font-weight: 300; letter-spacing: -0.03em; }

@@ -18,12 +18,6 @@
 /* ---------- Open / close control: for covers without a position ----------
    A groove holding two buttons, the state between them. Open isn't a fill: the orb says it,
    and a door left open carries the warn cue. */
-.cv-oc {
-  --btn: calc(var(--slot-h) - 2 * var(--inset));
-  display: grid; grid-template-columns: var(--slot-h) minmax(0, 1fr) var(--slot-h); align-items: center;
-  height: var(--slot-h); min-width: 0; border-radius: 99px;
-  background: var(--groove); box-shadow: var(--groove-shadow); color: var(--ink);
-}
 .cv-oc-b { display: grid; place-items: center; width: var(--slot-h); height: var(--slot-h); padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
 .cv-oc-b > span { display: grid; place-items: center; width: var(--btn); height: var(--btn); border-radius: 50%; background: var(--btn); color: var(--ink); box-shadow: var(--btn-shadow); transition: scale var(--press) var(--ease-out), background-color 150ms var(--ease-out); }
 .cv-oc-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

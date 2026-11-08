@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
-import { exists, object, read, reachesHa, uncomment } from "./conformance";
+import { exists, object, optionalProps, read, reachesHa, uncomment, undrawnProps } from "./conformance";
 
 const SKIN = "src/skins/field";
 const STEP = "AGENTS.md → Adding an existing domain to another skin";
@@ -72,6 +72,10 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
     expect(code, `${moduleFile}: draw it in <ModuleFrame kind="fd-<code>" …>, which opens its details in a panel`).toBeDefined();
   });
 
+  it("says its small print in core's words", () => {
+    expect(read(moduleFile), `${moduleFile}: its facts come from @dashhaus/core/entities/facts, when first (spec/cards.md → What every card says → Small print)`).toContain('"@dashhaus/core/entities/facts"');
+  });
+
   it("lists its class prefix in AGENTS.md", () => {
     expect(read("AGENTS.md"), "AGENTS.md → Hard rules, the field skin: add it to the card class prefixes").toContain(`\`fd-${code}-\``);
   });
@@ -102,5 +106,13 @@ describe.each(cards)("field $name card", ({ name, Name, dir, moduleFile, code, w
   it("is a module on the Lovelace card", () => {
     expect(object(read(`${SKIN}/lovelace/config.ts`), "FIELD_KINDS"), `${STEP}, step 4: give it its domains in FIELD_KINDS (${SKIN}/lovelace/config.ts)`).toMatch(new RegExp(`^\\s*${name}: \\{ domains:`, "m"));
     expect(object(read(`${SKIN}/lovelace/FieldDashboard.tsx`), "LIVE"), `${STEP}, step 4: draw it in LIVE (${SKIN}/lovelace/FieldDashboard.tsx)`).toMatch(new RegExp(`^\\s*${name}: [^\\n]*(\\n[^\\n]*)?<Ha${Name}Module\\b`, "m"));
+  });
+});
+
+describe("the shared parts", () => {
+  // spec/skins.md → Rules every skin keeps → A card extends a shared part only generically.
+  it("draw in Foundations → Parts every optional prop of theirs that only one module passes", () => {
+    expect(optionalProps(`${SKIN}/shared/ui.tsx`).get("ModuleFrame")).toContain("body");
+    expect(undrawnProps(SKIN), `draw it in its part's states in ${SKIN}/stories/Parts.stories.tsx (the frame's in Module frame), or, named for the module, make it generic or the module's own`).toEqual([]);
   });
 });

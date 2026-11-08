@@ -15,11 +15,10 @@
   .wx-warn-s { display: inline; }
 }
 .wx-rd-f { color: var(--ink-2); font-size: 14px; font-weight: 600; }
-/* Standard and featured: now is the card's figure, in the large-readout voice. */
-.wx:not(.hd--compact):not(.hd--sheet) .wx-rd-t { font-size: 34px; font-weight: var(--type-readout-weight); letter-spacing: -0.035em; }
+/* Standard and featured: now is the card's figure, in the large-readout voice; a compact row's is the row's size (both
+   the shared hd-metric-n). */
 .wx:not(.hd--compact):not(.hd--sheet) .wx-rd-f { font-size: 15px; }
 .hd--compact .wx-rd { justify-content: flex-end; column-gap: 8px; }
-.hd--compact .wx-rd-t { font-size: 13.5px; }
 .hd--compact .wx-rd-f { color: var(--ink-3); font-size: 12.5px; }
 
 /* ---------- Next hours: one column per hour across the full width, as many as fit; the rest wrap into a row of no height ---------- */
@@ -41,7 +40,6 @@
   display: grid; align-content: start; gap: 1px; min-width: 0; min-height: 68px; padding: 10px 12px;
   border-radius: 18px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line);
 }
-.wx-stat-l { font-size: 12px; font-weight: 500; color: var(--ink-2); }
 .wx-stat-v { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .wx-stat-v small { font-size: 12px; font-weight: 600; color: var(--ink-2); }
 .wx-stat-s { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -1,6 +1,3 @@
 /* __Label__ card. The frame, the orb or bare icon, the pill, the readout, the today strip and the sheet come from
-   src/skins/orb/shared/card.css. Classes here start with __code__-; colours only from tokens.css. */
-
-/* The readout says the state in words, a little smaller than a number */
-.__code__ .hd-num--control-duplicate { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
-.hd--sheet.__code__ .hd-num--control-duplicate { font-size: 34px; }
+   src/skins/orb/shared/card.css. Classes here start with __code__-; colours only from tokens.css. The readout says the
+   state in words, a little smaller than a number: the frame's `readout.word`, the shared hd-num--word. */

@@ -65,7 +65,7 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
       status={sheet && area ? `${area}${on && e.until ? ` · Until ${e.until}` : ""}` : status}
       value={subText}
       bareValue={valText}
-      readout={{ value: unav ? null : word, duplicate: true }}
+      readout={{ value: unav ? null : word, duplicate: true, word: true }}
       onClose={onClose}
       control={<TogglePill label={`${e.name}: ${word} · ${on ? ends : "Turn on"}`} on={on} onToggle={onToggle} extra={on ? ends : "Turn on"}>{word}</TogglePill>}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: toggleKind(e) }}

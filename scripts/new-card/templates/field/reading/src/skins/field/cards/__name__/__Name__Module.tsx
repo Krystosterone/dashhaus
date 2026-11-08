@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { __Name__Entity__historyType__ } from "@dashhaus/core/entities/__name__/types";
-import { lastSeenFact } from "@dashhaus/core/entities/facts";__todaySummaryImport__
+import { __readingFactsImport__ } from "@dashhaus/core/entities/facts";__batteryImport____todaySummaryImport__
 import { Blank, Glyph, ModuleFrame, ModuleRow, Pictogram, __todayImport__useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { Icon__Name__, __CONST___PICT } from "./icons";
@@ -45,7 +45,7 @@ __readingTodayConst__
       meta={meta}
       lead={glyph}
       row={<ModuleRow className="fd-__code__-row">{glyph}__readingToday__</ModuleRow>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : "" }}
+      facts={{ start: __factsStart____factsEnd__ }}
     >
       __readingToday__
     </ModuleFrame>

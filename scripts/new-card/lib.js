@@ -21,6 +21,25 @@ export const fail = (message) => {
 export const card = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
 export const { filler } = card;
 
+/**
+ * The small print a card drawn from its domain's description prints (spec/cards.md → What every card says): when first,
+ * when it was last seen while unavailable, else when it last updated or changed, whichever the entity says; then what
+ * the device is, where the entity says it (its battery). `has` says whether the entity has a field. `start` and `end`
+ * are expressions over `e` and `unav`; `facts` are the `entities/facts` words they use, and `battery` whether `end`
+ * uses `batteryText`.
+ */
+export function smallPrint(has) {
+  const when = has("lastUpdated") ? "updatedFact" : has("lastChanged") ? "lastChangedFact" : undefined;
+  const field = when === "updatedFact" ? "lastUpdated" : "lastChanged";
+  const battery = has("battery");
+  return {
+    start: `unav ? lastSeenFact(${has("lastSeen") ? "e.lastSeen" : "undefined"}) : ${when ? `${when}(e.${field})` : '""'}`,
+    end: battery ? 'unav || e.battery == null ? "" : batteryText(e.battery)' : undefined,
+    facts: ["lastSeenFact", ...(when ? [when] : [])],
+    battery,
+  };
+}
+
 /** A card's name in every form a template and a doc use, or a failure if it isn't camelCase. */
 export function names(name, example) {
   if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) fail(`name "${name}" must be camelCase starting lower-case, like ${example}`);

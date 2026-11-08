@@ -127,7 +127,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
             <button type="button" className="lk-door" onClick={() => guard.ask("open")}>
               <DoorIcon />
               <span>Open door</span>
-              <span className="lk-door-x">Unlatch it</span>
+              <span className="hd-blk-v">Unlatch it</span>
             </button>
           )}
         </SheetBlock>

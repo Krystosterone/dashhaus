@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import * as core from "@dashhaus/core";
 import { cardFolders, checkCards } from "@dashhaus/core/lovelace/conformance";
-import { exists, object, read, reachesHa } from "./conformance";
+import { exists, object, optionalProps, read, reachesHa, undrawnProps } from "./conformance";
 
 /** The skin these cards belong to; a card's logic lives outside it, in @dashhaus/core. */
 const SKIN = "src/skins/orb";
@@ -46,6 +46,10 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(missing, "AGENTS.md → Adding a card, step 1").toEqual([]);
   });
 
+  it("says its small print in core's words", () => {
+    expect(source, `${cardFile}: its facts come from @dashhaus/core/entities/facts, when first (spec/cards.md → What every card says → Small print)`).toContain('"@dashhaus/core/entities/facts"');
+  });
+
   it("is built from the shared card system", () => {
     expect(code, `${cardFile}: call useCard("<code>", …) and spread its \`article\` onto the <article>`).toBeDefined();
     expect(source, `${cardFile}: spread paint(role, glow, own, prop) onto the article`).toMatch(/\bpaint\(/);
@@ -82,5 +86,13 @@ describe.each(cards)("$name card", ({ name, Name, dir, cardFile, source, code, w
     expect(picked, `${step}: give it its domain in DOMAIN_KIND, or list it in SHARED_KINDS (${SKIN}/lovelace/config.ts)`).toBe(true);
     expect(read(`${SKIN}/lovelace/ConfigDashboard.tsx`), `${step}: render it in tile() (${SKIN}/lovelace/ConfigDashboard.tsx)`).toMatch(new RegExp(`<Ha${Name}Tile\\b`));
     expect(read("spec/deploy.md"), `${step}: list its domain in spec/deploy.md`).toMatch(new RegExp(`^- \`.*\`: ${words}\\b`, "m"));
+  });
+});
+
+describe("the shared parts", () => {
+  // spec/skins.md → Rules every skin keeps → A card extends a shared part only generically.
+  it("draw in Foundations → Parts every optional prop of theirs that only one card passes", () => {
+    expect(optionalProps(`${SKIN}/shared/ui.tsx`).get("CardFrame")).toContain("openHint");
+    expect(undrawnProps(SKIN), `draw it in its part's states in ${SKIN}/stories/Parts.stories.tsx (the card frame's in Card frame), or, named for the card, make it generic or the card's own`).toEqual([]);
   });
 });
