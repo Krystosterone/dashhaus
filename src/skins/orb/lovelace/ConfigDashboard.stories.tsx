@@ -6,7 +6,8 @@ import { createHaStore } from "@dashhaus/core";
 import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { DEMO_ENERGY_PREFS, createDemoHouseTransport } from "@dashhaus/core/demo";
+import { DEMO_ENERGY_PREFS, DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_WORST_CASE, createDemoHouseTransport, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
+import type { DemoWallHouse } from "@dashhaus/core/demo";
 import type { HaTransport, HassEntities } from "@dashhaus/core";
 
 const meta = {
@@ -112,6 +113,39 @@ function Automatic() {
   return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
 }
 
+/** A panel's frame, at its real size: what is past its height is past the fold, and scrolls inside. */
+function Panel({ label, width, height, children }: { label: string; width: number; height: number; children: ReactNode }) {
+  return (
+    <figure style={{ margin: "24px auto", width, maxWidth: "100%", display: "grid", gap: 8 }}>
+      <figcaption style={{ font: "500 13px var(--font)", color: "var(--ink-2)", paddingInline: 8 }}>{label} · {width} × {height}</figcaption>
+      <div style={{ height, overflowY: "auto", borderRadius: 36, boxShadow: "inset 0 0 0 1px var(--line), var(--shadow)" }}>{children}</div>
+    </figure>
+  );
+}
+
+/**
+ * The automatic layout with `layout: wall` and `viewing: far`, as a wall panel's card draws it, on the demo house in
+ * several rooms (`DEMO_WALL_HOUSE`): one column per place under its heading, the house's own cards ending the first row.
+ */
+function Wall({ house }: { house: DemoWallHouse }) {
+  const entities = useHaSelector((snapshot) => snapshot.entities);
+  const config = useMemo(() => parseDashboardConfig({
+    ...autoDashboard(demoWallInput(entities, house), "Home", { layout: "wall" }),
+    viewing: "far",
+    show_time: true,
+  }), [entities, house]);
+  return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
+}
+
+function WallHouse({ house = DEMO_WALL_HOUSE, label, width = 1280, height = 800 }: { house?: DemoWallHouse; label: string; width?: number; height?: number }) {
+  const store = useMemo(() => createHaStore(createDemoWallHouseTransport(house)), [house]);
+  return (
+    <HaProvider store={store}>
+      <Panel label={label} width={width} height={height}><Wall house={house} /></Panel>
+    </HaProvider>
+  );
+}
+
 function FailedAction() {
   const store = useHaStore();
   const status = useHaStatus();
@@ -190,6 +224,23 @@ function WithNav() {
 
 export const FromYaml: Story = { name: "From YAML", render: () => <House><Configured /></House> };
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <House><Automatic /></House> };
+/**
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per place, by area name, three across, each under
+ * its place's heading, so its cards leave their own area out; the house's own alarm, modes, guest Wi-Fi and calendars
+ * end the first row, and the next places wrap under it. What is pressed is a compact row, what is read standard.
+ */
+export const AutomaticWall: Story = { name: "Automatic layout, wall panel", render: () => <WallHouse label="Wall panel" /> };
+/**
+ * The worst case for a wall: eight rooms, so three rows of places; the longest area name, ending in an ellipsis; a room
+ * of one card (the hallway's smoke alarm); and, in a late room, a jammed lock and an open door, below the fold. Orb has
+ * no alert line, so nothing on the first screen says so (spec/deploy.md → The wall layout).
+ */
+export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall panel, worst case", render: () => <WallHouse house={DEMO_WALL_HOUSE_WORST_CASE} label="Wall panel, worst case" /> };
+/**
+ * The same wall on an 800 × 1280 portrait panel: three columns still fit (each over 156 px), so each place keeps its
+ * column and heading, its compact rows trading their inline control for their value line under 320 px.
+ */
+export const AutomaticWallPortrait: Story = { name: "Automatic layout, wall panel, portrait", render: () => <WallHouse label="Wall panel, portrait" width={800} height={1280} /> };
 export const ActionFailure: Story = { name: "Action failure and retry", render: () => <ActionFailureExample /> };
 export const CompositionPhone: Story = { name: "Composition, phone", render: () => <House width={390}><Configured yaml={COMPOSED_YAML} /></House> };
 export const CompositionTablet: Story = { name: "Composition, tablet", render: () => <House width={820}><Configured yaml={COMPOSED_YAML} /></House> };

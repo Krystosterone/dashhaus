@@ -121,7 +121,9 @@ describe("@dashhaus/deploy", () => {
     expect(pageTitle).toBe("Home");
     expect(dashboards.map(({ path, title, icon }) => ({ path, title, icon }))).toEqual([
       { path: "dashhaus-orb", title: "Home (Orb)", icon: "mdi:home-variant" },
+      { path: "dashhaus-orb-wall", title: "Wall (Orb)", icon: "mdi:tablet-dashboard" },
       { path: "dashhaus-field", title: "Home (Field)", icon: "mdi:knob" },
+      { path: "dashhaus-field-wall", title: "Wall (Field)", icon: "mdi:tablet-dashboard" },
       ...GENERATED_SKINS.map(({ id, title, icon }) => ({ path: `dashhaus-${id}`, title, icon })),
     ]);
     const orb = dashboards.find(({ path }) => path === "dashhaus-orb")!;
@@ -137,6 +139,23 @@ describe("@dashhaus/deploy", () => {
     expect(await make(field)).toEqual({
       card: { type: "custom:dashhaus-field", title: "Home" },
       made: "every light and climate entity by area",
+    });
+    // Each wall: the house one column per place, read from across the room, its nav back to its skin's dashboard.
+    const orbWall = dashboards.find(({ path }) => path === "dashhaus-orb-wall")!;
+    const fieldWall = dashboards.find(({ path }) => path === "dashhaus-field-wall")!;
+    expect(await make(orbWall)).toEqual({
+      card: {
+        type: "custom:dashhaus-orb",
+        title: "Home",
+        rows: [{ cards: [{ entity: "light.bed", footprint: "compact" }] }],
+        viewing: "far",
+        nav: [{ page: "home" }, { navigate: "/dashhaus-orb" }],
+      },
+      made: "1 generated rows, one column per place",
+    });
+    expect(await make(fieldWall)).toEqual({
+      card: { type: "custom:dashhaus-field", title: "Home", layout: "wall", viewing: "far", nav: [{ page: "home" }, { navigate: "/dashhaus-field" }] },
+      made: "every supported entity, one column per place",
     });
   });
 

@@ -5,10 +5,12 @@ import { FieldDashboard } from "./FieldDashboard";
 import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
-import { areaRows, autoModules, energyModules } from "./auto";
+import { areaColumns, areaName, areaRows, autoModules, energyModules } from "./auto";
+import { outsideArea } from "@dashhaus/core/lovelace/layout";
 import { HaProvider, useHaSelector } from "@dashhaus/core";
 import { createHaStore } from "@dashhaus/core";
-import { DEMO_ENERGY_PREFS, createDemoHaTransport, createDemoHouseTransport } from "@dashhaus/core/demo";
+import { DEMO_ENERGY_PREFS, DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_WORST_CASE, createDemoHaTransport, createDemoHouseTransport, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
+import type { DemoWallHouse } from "@dashhaus/core/demo";
 import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@dashhaus/core/demo";
 import type { HassEntities } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
@@ -114,6 +116,42 @@ function AutomaticHouse() {
   return <HaProvider store={store}><Automatic /></HaProvider>;
 }
 
+/** A panel's frame, at its real size: what is past its height is past the fold, and scrolls inside. */
+function Panel({ label, width, height, children }: { label: string; width: number; height: number; children: ReactNode }) {
+  return (
+    <figure style={{ margin: "24px auto", width, maxWidth: "100%", display: "grid", gap: 8 }}>
+      <figcaption style={{ font: "600 11px var(--fd-sans)", fontStretch: "var(--fd-wide)", letterSpacing: "0.06em", color: "var(--fd-ink-2)", paddingInline: 8 }}>
+        {label.toUpperCase()} · {width} × {height}
+      </figcaption>
+      <div style={{ height, overflowY: "auto", borderRadius: 28, boxShadow: "inset 0 0 0 1px var(--fd-hairline)" }}>{children}</div>
+    </figure>
+  );
+}
+
+/**
+ * The automatic layout with `layout: wall` and `viewing: far`, as a wall panel's card draws it, on the demo house in
+ * several rooms (`DEMO_WALL_HOUSE`): one column per place under its legend, each module its area from the registries.
+ */
+function Wall({ house }: { house: DemoWallHouse }) {
+  const states = useHaSelector((snapshot) => snapshot.entities);
+  const rows = useMemo(() => {
+    const input = demoWallInput(states, house);
+    const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
+    const modules = autoModules(input);
+    return areaColumns(modules.map(place), energyModules(input, modules).map(place), { outside: outsideArea(input) });
+  }, [states, house]);
+  return <FieldDashboard title="Home" showTime viewing="far" rows={rows} footprint="standard" now={NOW} />;
+}
+
+function WallHouse({ house = DEMO_WALL_HOUSE, label, width = 1280, height = 800 }: { house?: DemoWallHouse; label: string; width?: number; height?: number }) {
+  const store = useMemo(() => createHaStore(createDemoWallHouseTransport(house)), [house]);
+  return (
+    <HaProvider store={store}>
+      <Panel label={label} width={width} height={height}><Wall house={house} /></Panel>
+    </HaProvider>
+  );
+}
+
 /**
  * A config as Lovelace hands it to the card, drawn as the card draws it: checked, each module given its area. In
  * Home Assistant a `navigate:` key would leave for that dashboard; here it stays put.
@@ -197,8 +235,9 @@ const PAGES_YAML = {
 
 /**
  * A wall panel read from across the room: one column per place, footprints mixed by column. Each column leads with
- * whole modules and stacks rows under them; every plate names its own area. The CO₂ sensor is listed on its own, so
- * its device class picks the numeric module.
+ * whole modules and stacks rows under them. A column of one place prints its legend and its plates leave their area
+ * out; a column of several (the house's modes and the garage, the outside and a CO₂ sensor) names each plate's own.
+ * The CO₂ sensor is listed on its own, so its device class picks the numeric module.
  */
 const WALL_YAML = {
   type: "custom:dashhaus-field",
@@ -300,7 +339,10 @@ export const WithAlerts: Story = { name: "With alerts", args: { alerting: true }
 export const RowsAndNav: Story = { name: "Rows and nav", render: () => <Yaml yaml={ROWS_YAML} /> };
 /** `pages:` and `nav:`: the main page, two pages of the card's own (kept in the URL hash), and another dashboard. */
 export const NavAndPages: Story = { name: "Nav and pages", render: () => <Yaml yaml={PAGES_YAML} /> };
-/** `viewing: far` on a wall panel: print and screens a step up, areas side by side, and no nav unless `nav:` lists one. */
+/**
+ * `viewing: far` on a wall panel: print and screens a step up, areas side by side under their legends where a column
+ * is one place, and no nav unless `nav:` lists one.
+ */
 export const WallPanelFar: Story = { name: "Wall panel, far", render: () => <Yaml yaml={WALL_YAML} /> };
 
 export const Composition: Story = { name: "Composition", render: () => <Yaml yaml={COMPOSED_YAML} /> };
@@ -309,3 +351,20 @@ export const Composition: Story = { name: "Composition", render: () => <Yaml yam
  * power and energy meters from Home Assistant's energy preferences under Energy, last.
  */
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <AutomaticHouse /> };
+/**
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per place, by area name, four across, each under its
+ * legend, so its plates leave their own area out; each column leads with what is read whole and takes its rows under
+ * it; the house's own alarm, modes, guest Wi-Fi and calendars end the first row, and Outside wraps under it.
+ */
+export const AutomaticWall: Story = { name: "Automatic layout, wall panel", render: () => <WallHouse label="Wall panel" /> };
+/**
+ * The worst case for a wall: eight rooms, so two more rows of places; the longest area name, ending in an ellipsis; a
+ * room of one module (the hallway's smoke alarm); and, in a late room, a jammed lock and an open door, below the fold.
+ * The alert line under the header names the lock on the first screen (spec/deploy.md → The wall layout).
+ */
+export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall panel, worst case", render: () => <WallHouse house={DEMO_WALL_HOUSE_WORST_CASE} label="Wall panel, worst case" /> };
+/**
+ * The same wall on an 800 × 1280 portrait panel: two of a module's 260 px tracks fit, so the columns wrap two by two in
+ * place order, each still one place under its legend.
+ */
+export const AutomaticWallPortrait: Story = { name: "Automatic layout, wall panel, portrait", render: () => <WallHouse label="Wall panel, portrait" width={800} height={1280} /> };
