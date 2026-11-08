@@ -6,6 +6,7 @@ import { useHaRequest } from "../useHaRequest";
 import { checkEntityId } from "../dev";
 import { finiteNumber } from "../util";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import { sunDay } from "../../entities/sun/position";
 import type { HaStore } from "../types";
 import type { SunEntity, SunHistory } from "../../entities/sun/types";
@@ -43,6 +44,7 @@ export function useHaSun(entityId: string, { name, area, lastSeen, latitude, lon
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const given = latitude !== undefined && longitude !== undefined;
   const config = useHaRequest(loadHistory && !given ? "config" : undefined, fetchConfig, { cache: true }).value;
   const lat = given ? latitude : finiteNumber(config?.latitude);
@@ -52,6 +54,9 @@ export function useHaSun(entityId: string, { name, area, lastSeen, latitude, lon
     () => (loadHistory && lat !== undefined && lon !== undefined ? sunDay(minute, lat, lon) : undefined),
     [loadHistory, lat, lon, minute],
   );
-  const entity = useMemo(() => sunFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now }), [raw, entityId, name, area, registryArea, lastSeen, now]);
+  const entity = useMemo(
+    () => sunFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle }),
+    [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle],
+  );
   return { entity, history };
 }

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoSunTile as DemoTile } from "./demo/DemoSunTile";
-import { SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
+import { SUN_SEEDS, SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["normal", "evening", "dawn", "summer", "polarDay", "waiting", "unavailable", "long"] as const;
@@ -13,7 +15,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "The sun (`sun.sun`): a reading. A bare icon pointing the way the sun goes next, what comes next on the 24-hour " +
+          "The sun (`sun.sun`): a reading. A bare icon pointing the way the sun goes next, what comes next on the dashboard's " +
           "clock as the readout, and no glow. The featured card and the sheet draw today's path with the sun on it, worked " +
           "out from the home's location. Tap the reading or the name for every time to come. Same sizes and heights as the other cards.",
       },
@@ -44,6 +46,20 @@ export const Summer: Story = { args: { seed: "summer", footprint: "featured" } }
 /** High in the Arctic in June: no sunset reported, so it says so in words. */
 export const PolarDay: Story = { name: "Up all day", args: { seed: "polarDay", footprint: "featured" } };
 export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state, the worst case among them, each time the card says
+ * on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {SEEDS.map((name) => <DemoTile key={name} seed={onHourCycle(SUN_SEEDS[name], "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 export const Featured: Story = { args: { footprint: "featured" } };
 /** Realistic worst-case data from the demo seeds (SUN_WORST_CASE): long names, a polar night and a polar day. */
@@ -103,6 +119,10 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
+/** The details on a 12-hour clock: every time in them with its period, today's sunrise and sunset under the path. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  render: ({ seed, width, footprint }) => <DemoTile seed={onHourCycle(typeof seed === "string" ? SUN_SEEDS[seed] : seed, "h12")} width={width} footprint={footprint} defaultOpen />,
+};
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",

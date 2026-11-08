@@ -18,12 +18,12 @@ describe("sun words", () => {
     expect(sunAfter(down)?.kind).toBe("setting");
   });
 
-  it("says when on the 24-hour clock, and how long until it", () => {
+  it("says when on 24 hours, and how long until it", () => {
     const next = sunNext(up)!;
-    expect(sunTime(next)).toBe("20:30");
+    expect(sunTime(next, "h23")).toBe("20:30");
     expect(sunWhen(next, now)).toBe("Sets in 4h 35m");
     expect(sunWhen({ kind: "rising", at: at(20, 5, 1) }, at(19, 20, 49))).toBe("Rises in 8h 12m");
-    expect(sunSaid(next, now)).toBe("Sunset at 20:30, sets in 4h 35m");
+    expect(sunSaid(next, now, "h23")).toBe("Sunset at 20:30, sets in 4h 35m");
   });
 
   it("never counts down to zero: a few seconds off is in 1m", () => {
@@ -53,7 +53,7 @@ describe("sun words", () => {
   it("lists every event in the order they come, the day before a time that isn't today's", () => {
     const list = sunSchedule(up);
     expect(list.map((e) => e.kind)).toEqual(["setting", "dusk", "dawn", "rising", "noon"]);
-    expect(list.map((e) => scheduleTime(e, now))).toEqual(["20:30", "21:04", "Tomorrow 04:25", "Tomorrow 05:01", "Tomorrow 12:46"]);
+    expect(list.map((e) => scheduleTime(e, now, "h23"))).toEqual(["20:30", "21:04", "Tomorrow 04:25", "Tomorrow 05:01", "Tomorrow 12:46"]);
     expect(sunSchedule({ ...up, state: "unavailable" })).toEqual([]);
   });
 
@@ -64,5 +64,23 @@ describe("sun words", () => {
     expect(positionFact({})).toBeUndefined();
     expect(daylightSummary({ daylightMinutes: 929 })).toBe("Daylight 15h 29m");
     expect(daylightSummary({ daylightMinutes: 0 })).toBe("No daylight today");
+  });
+});
+
+describe("sun words on a 12-hour clock", () => {
+  const pm = (time: string) => `${time}\u00a0PM`;
+  const am = (time: string) => `${time}\u00a0AM`;
+
+  it("says when with its period, the hour unpadded, and counts down as on 24 hours", () => {
+    const next = sunNext(up)!;
+    expect(sunTime(next, "h12")).toBe(pm("8:30"));
+    expect(sunTime({ kind: "rising", at: at(20, 5, 1) }, "h12")).toBe(am("5:01"));
+    expect(sunSaid(next, now, "h12")).toBe(`Sunset at ${pm("8:30")}, sets in 4h 35m`);
+  });
+
+  it("lists every event with its period, the day before a time that isn't today's", () => {
+    expect(sunSchedule(up).map((e) => scheduleTime(e, now, "h12"))).toEqual([
+      pm("8:30"), pm("9:04"), `Tomorrow ${am("4:25")}`, `Tomorrow ${am("5:01")}`, `Tomorrow ${pm("12:46")}`,
+    ]);
   });
 });

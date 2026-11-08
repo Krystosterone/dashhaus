@@ -1,8 +1,15 @@
-import { render, screen } from "@testing-library/react";
+import { render as renderPlain, screen } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
+import type { HourCycle } from "@dashhaus/core/entities/clock";
 import { describe, expect, it, vi } from "vitest";
 import { SunCard } from "./SunCard";
 import { SUN_SEEDS } from "@dashhaus/core/seeds/sun";
 import type { SunEntity } from "@dashhaus/core/entities/sun/types";
+
+/** A card on a dashboard of this hour cycle; `render` puts it on 24 hours, the clock the seeds are written on. */
+const renderOn = (hourCycle: HourCycle, ui: ReactElement) => renderPlain(ui, { wrapper: ({ children }: { children: ReactNode }) => <HourCycleProvider hourCycle={hourCycle}>{children}</HourCycleProvider> });
+const render = (ui: ReactElement) => renderOn("h23", ui);
 
 const at = (day: number, hour: number, minute = 0) => new Date(2026, 9, day, hour, minute).getTime();
 const entity: SunEntity = {
@@ -83,5 +90,25 @@ describe("SunCard", () => {
       "Sunset20:30", "Dusk21:04", "DawnTomorrow 04:25", "SunriseTomorrow 05:01", "NoonTomorrow 12:46",
     ]);
     expect(container.querySelector(".hd-info")?.textContent).toContain("Elevation 46° · Azimuth 250°");
+  });
+
+  it("says every time on the dashboard's 12-hour clock, with its period", () => {
+    const { container, rerender } = renderOn("h12", <SunCard entity={entity} onOpenDetails={() => {}} />);
+    expect(container.querySelector(".su-f")?.textContent).toBe("8:30\u00a0PM");
+    expect(container.querySelector(".su-after")?.textContent).toBe("Sunrise5:01\u00a0AM");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Sets in 4h 35m");
+    expect(screen.getByRole("button", { name: "Sun: Sunset at 8:30\u00a0PM, sets in 4h 35m. Open details" })).toBeTruthy();
+    rerender(<SunCard entity={entity} variant="sheet" />);
+    expect([...container.querySelectorAll(".su-ev")].map((li) => li.textContent)).toEqual([
+      "Sunset8:30\u00a0PM", "Dusk9:04\u00a0PM", "DawnTomorrow 4:25\u00a0AM", "SunriseTomorrow 5:01\u00a0AM", "NoonTomorrow 12:46\u00a0PM",
+    ]);
+  });
+
+  it("times today's sunrise and sunset under the path on the dashboard's clock", () => {
+    const seed = SUN_SEEDS.normal;
+    const { container } = renderOn("h12", <SunCard entity={seed.entity} history={seed.history} footprint="featured" />);
+    expect([...container.querySelectorAll(".su-mark-t")].map((t) => t.textContent)).toEqual([
+      expect.stringMatching(/^\d{1,2}:\d\d\u00a0AM$/), expect.stringMatching(/^\d{1,2}:\d\d\u00a0PM$/),
+    ]);
   });
 });

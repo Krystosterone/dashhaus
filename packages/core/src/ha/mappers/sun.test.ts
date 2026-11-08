@@ -24,6 +24,11 @@ describe("sunFromHass", () => {
     expect(sun.lastUpdated).toBeDefined();
   });
 
+  it("says when it last updated on the dashboard's hour cycle", () => {
+    expect(sunFromHass(fixture["sun.sun"], "sun.sun", { now, hourCycle: "h23" }).lastUpdated).toMatch(/^\d\d:\d\d$/);
+    expect(sunFromHass(fixture["sun.sun"], "sun.sun", { now, hourCycle: "h12" }).lastUpdated).toMatch(/^\d{1,2}:\d\d\u00a0[AP]M$/);
+  });
+
   it("is down below the horizon", () => {
     expect(sunFromHass(fixture["sun.sun_night"], "sun.sun_night", { now })).toMatchObject({ state: "ok", up: false, elevation: -37.14 });
   });

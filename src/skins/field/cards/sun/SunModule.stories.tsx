@@ -3,6 +3,8 @@ import { SunModule } from "./SunModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { SUN_SEEDS, SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
 import type { SunSeed, SunSeedName } from "@dashhaus/core/seeds/sun";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(SUN_SEEDS) as SunSeedName[];
@@ -61,6 +63,20 @@ export const Summer: Story = { args: { sun: "summer" } };
 /** High in the Arctic in June: no sunset reported, so the screen says UP. */
 export const PolarDay: Story = { name: "Up all day", args: { sun: "polarDay" } };
 export const NoReadingYet: Story = { name: "No reading yet", args: { sun: "waiting" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state, the worst case among them, each time the module says
+ * on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {SEEDS.map((name) => <DemoSun key={name} seed={onHourCycle(SUN_SEEDS[name], "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { sun: "unavailable" } };
 
@@ -124,6 +140,11 @@ export const Compact: Story = {
 
 /** The detail panel: the screen and today. */
 export const Details: Story = { args: { defaultOpen: true } };
+
+/** The panel on a 12-hour clock: every time in it with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  render: ({ sun, width, footprint }) => <DemoSun seed={onHourCycle(SUN_SEEDS[sun], "h12")} width={width} footprint={footprint} defaultOpen />,
+};
 
 /** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { sun: "unavailable", defaultOpen: true } };
