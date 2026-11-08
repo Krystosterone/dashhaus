@@ -9,8 +9,8 @@ name: Release
 # which the build must reproduce before anything leaves. It takes no inputs and runs no model.
 #
 # The jobs run least reversible last: a draft release, then npm, then the registry smoke, then the published release
-# the Marketplace sees. Every job looks before it acts, so rerunning the workflow, or dispatching it on main, finishes a
-# release that stopped partway and does nothing to one that shipped.
+# the Marketplace sees, which the public site is then rebuilt from. Every job looks before it acts, so rerunning the
+# workflow, or dispatching it on main, finishes a release that stopped partway and changes nothing of one that shipped.
 on:
   push:
     branches: [main]
@@ -229,13 +229,16 @@ jobs:
       - run: node verify/dx/author.js --tarballs registry
       - run: node verify/dx/developer.js --tarballs registry
 
-  # Publishing the draft creates the tag v<version> at this commit; its notes are the version's release notes.
+  # Publishing the draft creates the tag v<version> at this commit; its notes are the version's release notes. A stable
+  # release then becomes the public site: the Docs workflow builds it from the tag (spec/release.md → The site). It is
+  # started rather than called, so the Pages deploy's OIDC identity never comes from this workflow, which npm trusts.
   release:
     needs: [plan, registry]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: write
+      actions: write
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
@@ -248,13 +251,14 @@ jobs:
           draft=$(gh release list --limit 100 --json tagName,isDraft --jq ".[] | select(.tagName == \"$TAG\") | .isDraft")
           if [ "$draft" = false ]; then
             echo "$TAG is already published"
-            exit 0
-          fi
-          if [ "$PRERELEASE" = true ]; then
+          elif [ "$PRERELEASE" = true ]; then
             gh release edit "$TAG" --draft=false
           else
             gh release edit "$TAG" --draft=false --latest
           fi
+      - name: Deploy the site from the release
+        if: env.PRERELEASE != 'true'
+        run: gh workflow run docs.yml --ref main -f tag="$TAG"
 
   # After the release: each skin's Marketplace repository mirrors this version, started here rather than on a schedule,
   # so Orb and Field reach the Marketplace minutes after npm (spec/release.md → The skin repositories). The token can

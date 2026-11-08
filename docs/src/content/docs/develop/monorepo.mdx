@@ -82,6 +82,12 @@ from its own repository and picking it in Add dashboard, [deploying from the com
 [building a skin](/dashhaus/start/build-a-skin/) and [using the hooks](/dashhaus/start/getting-started/), against a
 simulated Home Assistant. `spec/journeys.md` lists them, and a check fails when one loses its page or its proof.
 
+## The site's previews
+
+This site is the latest release: it is rebuilt from a release's tag when the release is published, so it describes
+what the Marketplace and npm serve. Every pull request builds it too and posts a link to its preview, with Storybook,
+on the pull request; main's preview is the site as the next release will have it.
+
 ## The docs' code samples
 
 Every code sample on this site is a file in `docs/examples/`, shown by `docs/src/components/Example.astro`. They are

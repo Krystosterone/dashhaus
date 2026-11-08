@@ -358,6 +358,36 @@ What only the operator can do, each once, in order, for each skin:
 5. Submit the repository to the catalog: a pull request to `hacs/default`, adding it to the `plugin` list in
    alphabetical order, with the release and the green HACS action. The My link works before it.
 
+## The site
+
+The documentation site (`docs/`, with Storybook under `/storybook`) has two homes, both built by
+`.github/workflows/docs.yml` with `npm run build:docs`:
+
+- **The public site is the latest release.** GitHub Pages serves the docs as they stood at the latest published,
+  non-prerelease tag. The Release workflow's `release` job starts the Docs workflow with that tag once the GitHub
+  release is published, and the site job refuses a draft or a prerelease. A dispatch by hand with no tag redeploys the
+  latest release; there is no deploy from a branch. Pages serves only a public repository, so until then the site
+  jobs skip.
+- **Every branch has a preview.** Each pull request and main build the site and upload it to Cloudflare Pages: a pull
+  request's link is posted on it, in one comment edited on each push, and main's is the project's production URL, the
+  site as the next release will have it. The preview keeps the public path (`base` in `docs/astro.config.js`) and its
+  root redirects there, so the same build serves both. It needs the `CLOUDFLARE_API_TOKEN` (Cloudflare Pages: Edit)
+  and `CLOUDFLARE_ACCOUNT_ID` secrets; the first upload creates the `dashhaus` project. Without them, on a fork's pull
+  request or before they are set, the site is still built, which is the check, and nothing is uploaded.
+
+Decided, and why:
+
+- **The site describes what ships.** Almost everyone reading it installs from the Marketplace or npm, so a site built
+  from main would list cards, keys and steps their version doesn't have. A docs fix reaches the public site with the
+  next release; until then it is on main's preview.
+- **Previews on another host.** A repository has one Pages site and each deploy replaces it whole, so a preview there
+  would sit on the public site beside the release. Cloudflare Pages takes a built folder with one command and a URL per
+  upload.
+- **Started, not called.** The Release workflow starts the Docs workflow (`gh workflow run`, `actions: write` in its
+  `release` job alone) instead of calling it, so no job in the workflow npm trusts holds `id-token: write` for Pages.
+- **No versioned docs.** One site per release while every package shares one 0.x version; side-by-side versions
+  wait until people stay on an older major.
+
 ## CI
 
 `.github/workflows/ci.yml` is the pipeline: `checks` (a pull request's change note, typecheck, lint, `build:ha`), `unit` (every suite but the generator copies), two generator shards, `dx` (`release:pack`, `verify:packages`, an untagged release candidate's digests and record, then the clean-room journeys over the packed tarballs) and two Storybook shards. The required `check` job gathers the checks, unit, generator and `dx` lanes, and the required `storybook` job both Storybook shards. Every lane checks out and installs through `.github/actions/setup`, and the Docs workflow does too. The reasons behind its shape:

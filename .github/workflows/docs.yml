@@ -1,14 +1,26 @@
 name: Docs
 
-# The human documentation site (docs/) with Storybook under /storybook, built on every pull request, and deployed to
-# GitHub Pages from main once the repository is public: Pages is unavailable to a private repository, so the deploy job
-# would otherwise fail the whole run on every push to main. Before the first deploy, Pages must be set to deploy from
-# GitHub Actions in the repository settings.
+# The human documentation site (docs/) with Storybook under /storybook (spec/release.md → The site). Two places:
+#
+# - The public site, on GitHub Pages, is the latest release: the Release workflow starts this workflow with the tag it
+#   has just published, and a dispatch by hand with no tag redeploys the latest release. It never deploys a branch, so
+#   it never describes a card, a key or a step the Marketplace and npm don't serve yet. Pages is unavailable to a
+#   private repository, so both jobs skip until the repository is public; Pages must be set to deploy from GitHub
+#   Actions in the repository settings before the first deploy.
+# - Every pull request and main build the site and upload it to Cloudflare Pages as a preview: a pull request's link is
+#   posted on it, and main's is the project's production URL, the site as the next release will have it. The
+#   preview needs the CLOUDFLARE_API_TOKEN (Cloudflare Pages: Edit) and CLOUDFLARE_ACCOUNT_ID secrets; without them
+#   (a fork's pull request, or before they are set) the site is still built, which is the check, and not uploaded.
 on:
   pull_request:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release to deploy, v<x.y.z>; empty for the latest release"
+        required: false
+        default: ""
 
 env:
   # Corepack may otherwise ask before downloading the pinned npm in a non-interactive run.
@@ -17,29 +29,128 @@ env:
 permissions:
   contents: read
 
-concurrency:
-  group: docs-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build:
+  # A pull request's or main's site, built and uploaded to Cloudflare Pages.
+  preview:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: docs-preview-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The Cloudflare Pages project; created on the first upload, with main as its production branch.
+      PROJECT: dashhaus
+      # Pinned, like every action here; npx fetches it only for the upload.
+      WRANGLER: wrangler@4.151.2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: npm run build:docs
-      # Nothing reads this artifact until the deploy job below can run, and a private repository's artifact quota is small.
-      - if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.event.repository.visibility == 'public'
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      # The site is built for its public path (astro.config's `base`, which its pages also link by), so the preview
+      # serves it under the same path, and the preview's root redirects there.
+      - name: Lay the site out at its public path
+        run: |
+          set -euo pipefail
+          base=$(sed -n 's|^  base: "/\([^"/]*\)/\{0,1\}",$|\1|p' docs/astro.config.js)
+          test -n "$base" || { echo "::error::no base: \"/<path>\" in docs/astro.config.js"; exit 1; }
+          mkdir -p "preview/$base"
+          cp -R docs/dist/. "preview/$base/"
+          printf '/ /%s/ 302\n' "$base" > preview/_redirects
+          echo "BASE=$base" >> "$GITHUB_ENV"
+      - name: Upload the preview
+        id: upload
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler.jsonl
+        run: |
+          set -euo pipefail
+          if ! created=$(npx --yes "$WRANGLER" pages project create "$PROJECT" --production-branch=main 2>&1); then
+            grep -qi "already exists" <<< "$created" || { echo "$created"; exit 1; }
+          fi
+          npx --yes "$WRANGLER" pages deploy preview --project-name="$PROJECT" --branch="$BRANCH" --commit-hash="$COMMIT" --commit-dirty=true
+          url=$(jq -r 'select(.type == "pages-deploy-detailed") | .url' "$WRANGLER_OUTPUT_FILE_PATH" | tail -1)
+          test -n "$url" -a "$url" != null || { echo "::error::wrangler named no deployment URL"; exit 1; }
+          echo "url=$url/$BASE/" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Docs preview"
+            echo
+            echo "- Site: $url/$BASE/"
+            echo "- Storybook: $url/$BASE/storybook/"
+          } >> "$GITHUB_STEP_SUMMARY"
+      # One comment per pull request, edited in place on every push.
+      - name: Link the preview on the pull request
+        if: github.event_name == 'pull_request' && steps.upload.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          URL: ${{ steps.upload.outputs.url }}
+          COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          marker="<!-- docs-preview -->"
+          body=$(printf '%s\n**Docs preview** for %s: [the site](%s) · [Storybook](%sstorybook/)\n\nThe public site stays on the latest release; this is the site as this pull request would leave it.\n' "$marker" "${COMMIT:0:7}" "$URL" "$URL")
+          id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" | head -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh api -X POST "repos/$GH_REPO/issues/$PR/comments" -f body="$body" > /dev/null
+          fi
+
+  # The public site: a release's own docs, built from its tag.
+  site:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.event.repository.visibility == 'public'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: docs-site
+      cancel-in-progress: false
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      # A published release only: never a draft, a prerelease or a branch.
+      - id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TAG" ]; then
+            TAG=$(gh release view --json tagName --jq .tagName)
+          fi
+          state=$(gh release view "$TAG" --json isDraft,isPrerelease --jq 'if .isDraft then "a draft" elif .isPrerelease then "a prerelease" else "published" end')
+          if [ "$state" != published ]; then
+            echo "::error::$TAG is $state; the public site is the latest published release"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ steps.tag.outputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: npm run build:docs
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs/dist
 
   deploy:
-    # Only a public repository can serve Pages, so deploying before launch would turn every push to main red. A missing
-    # or non-public `visibility` skips the job, and making the repository public turns it on.
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.event.repository.visibility == 'public'
-    needs: build
+    needs: site
     runs-on: ubuntu-latest
+    concurrency:
+      group: docs-site-deploy
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write
