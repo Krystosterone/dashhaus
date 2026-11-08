@@ -60,7 +60,7 @@ describe("OwletCard", () => {
     // spec/cards.md → a warning's words fit a row (13 characters): "Stopped 11:49" in every footprint, said whole aloud.
     expect(screen.queryByText("No new reading since 11:49")).toBeNull();
     expect(screen.getByText("Stopped 11:49")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Warning: Nova's sock has sent no new reading since 11:49" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Warning: Nova: No new reading since 11:49" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "deep sleep, heart rate 121 beats per minute, oxygen 98 percent, no new reading since 11:49" })).toBeTruthy();
   });
 
@@ -76,7 +76,7 @@ describe("OwletCard", () => {
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("alarm");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
     // The device problem still leads the status line, and the sleep state the alarm displaced follows it.
-    expect(screen.getByRole("img", { name: "Warning: Battery low on Nova's sock" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Warning: Nova: Battery low" })).toBeTruthy();
     expect(container.querySelector(".hd-area")?.textContent).toBe("Battery low · Deep sleepDeep");
   });
 

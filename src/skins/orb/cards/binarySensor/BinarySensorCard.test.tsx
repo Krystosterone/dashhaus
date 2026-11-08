@@ -30,7 +30,7 @@ describe("BinarySensorCard", () => {
 
   it("leads with the warn marker for a leak, and keeps the figure in ink, never a glow", () => {
     const { container } = render(<BinarySensorCard entity={{ ...door, name: "Sink", deviceClass: "moisture" }} />);
-    expect(screen.getByRole("img", { name: "Warning: Leak detected at Sink" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Warning: Sink: Leak detected" })).toBeTruthy();
     expect(container.querySelector(".hd-area")?.textContent).toBe("Leak detected");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
     expect(container.querySelector(".bs-f")?.hasAttribute("data-warn")).toBe(false);
@@ -64,7 +64,7 @@ describe("BinarySensorCard", () => {
 
   it("says a garage door left open as the cover card does: advisory, ahead of a low battery", () => {
     const { container } = render(<BinarySensorCard entity={{ ...door, name: "Garage", deviceClass: "garage_door", lastChanged: "18:30", battery: 3 }} />);
-    expect(screen.getByRole("img", { name: "Warning: Garage has been open since 18:30" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Warning: Garage: Open since 18:30" })).toBeTruthy();
     expect(container.querySelector(".hd-area")?.textContent).toBe("Open since 18:30");
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
   });
@@ -81,7 +81,7 @@ describe("BinarySensorCard", () => {
 
   it("warns of a low battery, but lets the state's own warning lead", () => {
     const { container, rerender } = render(<BinarySensorCard entity={{ ...door, state: "off", battery: 9 }} />);
-    expect(screen.getByRole("img", { name: "Warning: battery 9% on Front door, replace soon" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Warning: Front door: Battery 9%, replace soon" })).toBeTruthy();
     rerender(<BinarySensorCard entity={{ ...door, deviceClass: "moisture", battery: 9 }} />);
     expect(container.querySelector(".hd-area")?.textContent).toBe("Leak detected");
   });

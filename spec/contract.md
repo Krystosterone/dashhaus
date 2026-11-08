@@ -10,6 +10,8 @@ The public packages share one version, currently `0.2.1`, and move together (`sp
 project starts with `npm create dashhaus-skin@latest my-skin`; [build-a-skin.md](build-a-skin.md) walks the whole
 journey from install to deploy. Until 1.0, a breaking change to this page is allowed, but it has to be a change to this page: the conformance preset and the package tests are what say the contract still holds. What a skin draws — its markup, classes, tokens, stories and docs — is the skin's own and is never part of this contract.
 
+One name, one meaning: a name added to this contract, a field, a key or an export, never takes one an entry already gives a meaning of its own. A read card says the domain's default drew it with `defaulted`, because `bare` is already the frame's compact row with no control. Where the two meet, in a skin's card, a read card's fields (`CardShape` in `./schema`, what `readCard` sets) and the frame's props and flags (`CardProps`, `cardShape` and `CardFrame` in `./card`) share no name (`verify/lovelace-package.test.ts`).
+
 ## `@dashhaus/core/lovelace/skin`
 
 The frozen skin-author runtime: the custom-element base, the card-picker registration, the dashboard strategy, the token scoping, the automatic layout's `hass` input and the rejected-command status every skin's page shows. A skin's Lovelace card imports this subpath and nothing else from the framework for its element.

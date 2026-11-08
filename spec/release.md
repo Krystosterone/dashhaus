@@ -66,6 +66,18 @@ someone deciding whether to upgrade; `internal` is for a change no consumer noti
 One file per pull request, so two never conflict; `changes/README.md` is the guide, and the repository's
 `release-notes` skill (`.agents/skills/`) is how an agent writes one and finishes a release record.
 
+A note names only what a consumer can import or see: a card, a skin and its look, a YAML key, a package and what it
+exports. A skin's part or component is code a consumer sees only when the skin's entry exports it (`Orb's TogglePill`);
+one it keeps inside (Field's steps) is named by what it does instead. `verify/release-flow.test.ts` holds every note in
+`changes/` to this: each `<Skin>'s <Name>` it writes as code (in backticks, with a capital inside it, or called a part,
+component or hook) is an export of that skin's `index.ts`.
+
+A required member added to an interface the package only hands out, one a consumer reads but never passes in, builds
+or implements (`MediaPlayerHandlers`, the `actions` `useHaMediaPlayer` returns), is a `feature`, not `breaking`: code
+written against the old declaration still compiles. Added to one a consumer passes in or implements (a card's props, a
+`CardReadSchema`), it breaks. The API comparison lists either as a changed declaration and cannot tell them apart, so
+the release record's TODO for an API change without a breaking note is where a person says which it is.
+
 CI's `checks` lane runs `node scripts/release/changes.js check-pr` on every pull request: a diff that touches a public
 package's files (tests, stories and READMEs aside), a resource's entry, the lockfile or the build fails unless it adds
 or edits a note, and every note must parse. `shipsFrom` in `scripts/release/changes.js` is that list. A release PR

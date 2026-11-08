@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
-import { batteryAdvice, batterySaid, batteryText } from "@dashhaus/core/entities/battery";
+import { batteryAdvice, batteryText } from "@dashhaus/core/entities/battery";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { sensorSeverity } from "@dashhaus/core/entities/sensor/severity";
 import { rangeSummary } from "@dashhaus/core/entities/today";
@@ -43,7 +43,7 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   // Core ranks it: a low battery is advisory, the device's; the card draws the level it is given.
   const lowBattery = sensorSeverity(e) === "advisory";
   const batteryWarning = lowBattery ? batteryText(e.battery!) : null;
-  const alertLabel = lowBattery ? `Warning: ${batterySaid(e.battery!, e.name)}` : null;
+  const alertLabel = lowBattery ? `Warning: ${e.name}: ${batteryAdvice(e.battery!)}` : null;
   const comfort = comfortLabel(tC, h, e.outdoor);
   const readout = [t != null ? `${fmtTemp(t)}°` : null, h != null ? `${fmtHum(h)}%` : null].filter(Boolean).join(" · ");
   // In the sheet the large figure says the temperature, so it is spoken there and the readings below keep the humidity.

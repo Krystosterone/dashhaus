@@ -1,5 +1,5 @@
 import type { VacuumEntity, VacuumHistory } from "@dashhaus/core/entities/vacuum/types";
-import { FAN_SPEED, LOCATE_WORD, RETURN_WORDS, VACUUM_TODAY, batteryFact, fanSpeedLabel, isActive, locateSaid, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "@dashhaus/core/entities/vacuum/words";
+import { FAN_SPEED, LOCATE_WORD, RETURN_WORDS, VACUUM_TODAY, batteryFact, fanSpeedLabel, isActive, locateSaid, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSaid, vacuumWarningText, vacuumWord } from "@dashhaus/core/entities/vacuum/words";
 import { vacuumSeverity } from "@dashhaus/core/entities/vacuum/severity";
 import type { VacuumPress } from "@dashhaus/core/entities/vacuum/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -54,7 +54,7 @@ export function VacuumCard({ entity: e, history, variant, footprint, showControl
   // Core ranks it: an error is urgent, a low battery away from the dock advisory; either leads the status line.
   const level = vacuumSeverity(e);
   const warning = level ? vacuumWarning(e) : undefined;
-  const alertLabel = warning ? `Warning: ${vacuumWarningSentence(e)}` : null;
+  const alertLabel = warning ? `Warning: ${e.name}: ${vacuumWarningSaid(e)}` : null;
   const detail = statusDetail(e);
   // The warning first, the short word on a row and what went wrong where there is room; else the room and what the
   // integration adds ("Charging"); with no room to name, its own detail.

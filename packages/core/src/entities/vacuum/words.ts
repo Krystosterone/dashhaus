@@ -141,6 +141,16 @@ export function vacuumWarningSentence(e: Pick<VacuumEntity, "name" | "state" | "
   return undefined;
 }
 
+/**
+ * Its warning as a sentence without the name, for a skin that names the card before it (Orb's `Warning: <name>: …`):
+ * "Stopped with an error: brush jammed", "Battery 9%, needs charging".
+ */
+export function vacuumWarningSaid(e: Pick<VacuumEntity, "state" | "battery" | "charging" | "error">): string | undefined {
+  if (e.state === "error") return `Stopped with an error${e.error ? `: ${e.error.charAt(0).toLowerCase()}${e.error.slice(1)}` : ""}`;
+  if (lowBattery(e)) return `${batteryText(e.battery!)}, ${VACUUM_BATTERY_ADVICE}`;
+  return undefined;
+}
+
 /** What a vacuum's low battery asks for, after its level: it charges at its dock, so "needs charging", not replacing. */
 export const VACUUM_BATTERY_ADVICE = "needs charging";
 

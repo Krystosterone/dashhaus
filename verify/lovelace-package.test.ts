@@ -7,7 +7,9 @@
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, posix } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { cardShape } from "@dashhaus/core/lovelace/card";
 import * as conformance from "@dashhaus/core/lovelace/conformance";
 import * as layout from "@dashhaus/core/lovelace/layout";
 import * as schema from "@dashhaus/core/lovelace/schema";
@@ -89,6 +91,18 @@ const entries = () => SUBPATHS.map((subpath) => `${PACKAGE}/${sourceTarget(subpa
 /** The entries a browser may load. `./conformance` reads a skin's files, so it is Node- and test-only. */
 const BROWSER_ENTRIES = [".", "./skin", "./card", "./schema", "./layout"];
 const browserEntries = () => BROWSER_ENTRIES.map((subpath) => `${PACKAGE}/${sourceTarget(subpath).replace(/^\.\//, "")}`);
+
+/** The members an interface declares in a source file, with those of the interfaces it extends there. */
+function members(path: string, name: string): string[] {
+  const file = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, false, path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const found = file.statements.find((statement): statement is ts.InterfaceDeclaration => ts.isInterfaceDeclaration(statement) && statement.name.text === name);
+  if (!found) throw new Error(`${path} declares no interface ${name}`);
+  const own = found.members.flatMap((member) => (member.name && ts.isIdentifier(member.name) ? [member.name.text] : []));
+  const inherited = (found.heritageClauses ?? []).flatMap((clause) => clause.types)
+    .flatMap((type) => (ts.isIdentifier(type.expression) && file.statements.some((s) => ts.isInterfaceDeclaration(s) && s.name.text === (type.expression as ts.Identifier).text)
+      ? members(path, type.expression.text) : []));
+  return [...new Set([...own, ...inherited])];
+}
 
 /** Whether a bare specifier names a subpath its package declares, wildcard exports included. */
 function declared(spec: string): boolean {
@@ -189,6 +203,24 @@ describe("@dashhaus/core/lovelace", () => {
 
   it("exposes exactly the conformance preset's public words", () => {
     expect(Object.keys(conformance).sort()).toEqual(["cardFolders", "checkCards", "strayClasses"]);
+  });
+
+  // One contract name, one meaning (spec/contract.md): a skin's card holds the card its YAML read (`./schema`'s
+  // `CardShape`, from `readCard`) and the frame's flags (`./card`'s `cardShape`, `useCardFrame`) side by side, so a
+  // field of the one never takes a name the other already gives a meaning (`bare`, the compact row with no control).
+  it("never gives a read card's field a name the card frame already uses", () => {
+    const CARD = `${SOURCE}/card.tsx`;
+    const SCHEMA = `${SOURCE}/schema.ts`;
+    expect(Object.keys(cardShape()).sort(), "cardShape returns what its interface declares").toEqual(members(CARD, "CardShape").sort());
+    const frame = new Set([...members(CARD, "CardProps"), ...members(CARD, "CardFrame")]);
+    const card = members(SCHEMA, "CardShape");
+    const reader = new schema.Reader();
+    const kinds = { own: { domains: ["switch"] }, other: { domains: ["switch"] } };
+    const read = schema.readCard(reader, { noun: "card", common: ["entity"], kinds, base: () => ({}) }, "switch.a", "cards[0]");
+    expect(reader.problems).toEqual([]);
+    expect(read, "readCard sets what CardShape declares and nothing else of its own").toEqual({ entity: "switch.a", kind: "own", defaulted: true });
+    expect(Object.keys(read!).filter((key) => !card.includes(key))).toEqual([]);
+    expect(card.filter((key) => frame.has(key)), "a read card's fields and the frame's flags share no name").toEqual([]);
   });
 
   it("keeps the schema and layout pure, so a Node config can import them", () => {

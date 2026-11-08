@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { inWords } from "../format";
-import { batteryFact, fanSpeedLabel, fanSpeedSaid, isActive, locateSaid, pressHint, pressKeyWord, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "./words";
+import { batteryFact, fanSpeedLabel, fanSpeedSaid, isActive, locateSaid, pressHint, pressKeyWord, pressSaid, pressWord, returnSaid, statusDetail, vacuumPress, vacuumWarning, vacuumWarningSaid, vacuumWarningSentence, vacuumWarningText, vacuumWord } from "./words";
 import type { VacuumEntity } from "./types";
 
 const all = { supportsStart: true, supportsPause: true, supportsReturn: true } as const;
@@ -63,6 +63,10 @@ describe("vacuum words", () => {
     expect(vacuumWarning(e)).toBe("Error");
     expect(vacuumWarningText(e)).toBe("Error · Main brush jammed");
     expect(vacuumWarningSentence(e)).toBe("Robot vacuum has stopped with an error: main brush jammed");
+    expect(vacuumWarningSaid(e)).toBe("Stopped with an error: main brush jammed");
+    expect(vacuumWarningSaid({ ...e, error: undefined })).toBe("Stopped with an error");
+    expect(vacuumWarningSaid({ state: "idle", battery: 9 })).toBe("Battery 9%, needs charging");
+    expect(vacuumWarningSaid({ state: "cleaning", battery: 9 })).toBeUndefined();
     expect(vacuumWarning({ state: "idle", battery: 9 })).toBe("Battery 9%");
     expect(vacuumWarning({ state: "paused", battery: 15 })).toBe("Battery 15%");
     expect(vacuumWarning({ state: "other", battery: 9 })).toBe("Battery 9%");
