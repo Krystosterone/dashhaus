@@ -37,8 +37,6 @@
   .ow:not(.hd--compact):not(.hd--sheet) .ow-bar { column-gap: 10px; }
   .ow:not(.hd--compact):not(.hd--sheet) { --ow-fig: 23px; }
   .ow:not(.hd--compact):not(.hd--sheet) .ow-value small { margin-left: 1px; font-size: 11px; }
-  .ow[data-stale]:not(.hd--compact):not(.hd--sheet) .hd-area { font-size: 12px; }
-  .ow[data-stale]:not(.hd--compact):not(.hd--sheet) .hd-alert-cue { width: 12px; height: 12px; margin-inline-end: 3px; }
 }
 
 /* Under 320px three figures don't fit: the sleep state keeps the large figure, and the vitals stack beside it
