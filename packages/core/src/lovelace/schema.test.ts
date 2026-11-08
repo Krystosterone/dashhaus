@@ -19,7 +19,7 @@ import {
 import type { CardReadSchema, FootprintMix, LayoutSchema } from "./schema";
 
 type Kind = "light" | "switch" | "sound" | "owlet";
-interface TestCard { entity: string; kind: Kind; bare?: true; name?: string; color?: string; volume?: string; alerts?: Record<string, string> }
+interface TestCard { entity: string; kind: Kind; defaulted?: true; name?: string; color?: string; volume?: string; alerts?: Record<string, string> }
 
 const domainKind: Record<string, Kind> = { light: "light", switch: "switch" };
 
@@ -65,13 +65,13 @@ describe("readCard", () => {
     });
   });
 
-  it("marks a card bare only when its domain's own kind drew it because nothing chose another", () => {
-    expect(read("switch.a").card).toEqual({ entity: "switch.a", kind: "switch", name: undefined, color: undefined, bare: true });
-    expect(read({ entity: "switch.a", name: "Fan" }).card?.bare, "a common key chooses nothing").toBe(true);
-    expect(read("light.a").card, "a domain with one kind has nothing to choose").not.toHaveProperty("bare");
-    expect(read({ entity: "switch.a", card: "switch" }).card, "card: chose it").not.toHaveProperty("bare");
-    expect(read({ entity: "switch.a", color: "red" }).card, "one of its kind's own keys chose it").not.toHaveProperty("bare");
-    expect(read("sensor.crib_sleep_state").card, "an id pattern chose it").not.toHaveProperty("bare");
+  it("marks a card defaulted only when its domain's own kind drew it because nothing chose another", () => {
+    expect(read("switch.a").card).toEqual({ entity: "switch.a", kind: "switch", name: undefined, color: undefined, defaulted: true });
+    expect(read({ entity: "switch.a", name: "Fan" }).card?.defaulted, "a common key chooses nothing").toBe(true);
+    expect(read("light.a").card, "a domain with one kind has nothing to choose").not.toHaveProperty("defaulted");
+    expect(read({ entity: "switch.a", card: "switch" }).card, "card: chose it").not.toHaveProperty("defaulted");
+    expect(read({ entity: "switch.a", color: "red" }).card, "one of its kind's own keys chose it").not.toHaveProperty("defaulted");
+    expect(read("sensor.crib_sleep_state").card, "an id pattern chose it").not.toHaveProperty("defaulted");
   });
 
   it("says which card takes a key another kind on the domain owns, in place of unknown key", () => {

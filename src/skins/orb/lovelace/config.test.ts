@@ -35,14 +35,14 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
-  it("leaves a bare sensor's card to its attributes, and names the card a key belongs to", () => {
-    expect(items({ cards: ["sensor.office_co2", { entity: "sensor.office", humidity: "sensor.office_humidity" }, { entity: "sensor.office_co2", card: "numeric" }, "sensor.crib_sleep_state"] })!.map((card) => [card.kind, "bare" in card])).toEqual([
+  it("leaves the card of a sensor listed on its own to its attributes, and names the card a key belongs to", () => {
+    expect(items({ cards: ["sensor.office_co2", { entity: "sensor.office", humidity: "sensor.office_humidity" }, { entity: "sensor.office_co2", card: "numeric" }, "sensor.crib_sleep_state"] })!.map((card) => [card.kind, "defaulted" in card])).toEqual([
       ["sensor", true],
       ["sensor", false],
       ["numeric", false],
       ["owlet", false],
     ]);
-    expect(items({ cards: ["light.a"] })![0]).not.toHaveProperty("bare");
+    expect(items({ cards: ["light.a"] })![0]).not.toHaveProperty("defaulted");
     expect(problems({ cards: [{ entity: "sensor.office_co2", stale_after: 5 }, { entity: "sensor.office_co2", card: "sensor", stale_after: 5 }] })).toEqual([
       'cards[0] (sensor.office_co2): "stale_after" is the owlet card\'s: add card: owlet',
       'cards[1] (sensor.office_co2): unknown key "stale_after"',

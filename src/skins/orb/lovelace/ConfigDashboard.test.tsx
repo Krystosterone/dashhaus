@@ -160,14 +160,14 @@ describe("ConfigDashboard hour_cycle", () => {
   });
 });
 
-describe("ConfigDashboard bare sensors", () => {
+describe("ConfigDashboard sensors listed on their own", () => {
   const sensors: HassEntities = {
     "sensor.office_co2": { entity_id: "sensor.office_co2", state: "812", attributes: { friendly_name: "Office air", device_class: "carbon_dioxide", unit_of_measurement: "ppm", state_class: "measurement" } },
     "sensor.office_temperature": { entity_id: "sensor.office_temperature", state: "21.4", attributes: { friendly_name: "Office", device_class: "temperature", unit_of_measurement: "\u00b0C", state_class: "measurement" } },
   };
   const cardOf = (name: string) => screen.getByRole("heading", { name }).closest(".hd") as HTMLElement;
 
-  it("draws a bare CO\u2082 sensor as the numeric card, and a bare temperature as the room sensor", async () => {
+  it("draws a CO\u2082 sensor listed on its own as the numeric card, and a temperature as the room sensor", async () => {
     draw({ cards: ["sensor.office_co2", "sensor.office_temperature"] }, sensors);
     await waitFor(() => expect(cardOf("Office air").classList.contains("nm")).toBe(true));
     expect(cardOf("Office").classList.contains("sw")).toBe(true);

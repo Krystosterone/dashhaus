@@ -46,11 +46,11 @@ interface LiveProps { item: ModuleConfig; footprint: FieldFootprint }
 const Stills = createContext({ stills: true, quiet: false });
 
 /**
- * A bare `sensor.*` (no `card:`, no id pattern, no sensor key): the numeric module when its attributes say it measures
- * something other than the room's temperature or humidity (`useSensorCard`), else its room sensor module. Both are the
- * same height at a footprint, so the choice never moves the row.
+ * A `sensor.*` listed on its own (no `card:`, no id pattern, no sensor key): the numeric module when its attributes
+ * say it measures something other than the room's temperature or humidity (`useSensorCard`), else its room sensor
+ * module. Both are the same height at a footprint, so the choice never moves the row.
  */
-function BareSensor({ item, footprint, sensor }: LiveProps & { sensor: ReactNode }) {
+function DefaultedSensor({ item, footprint, sensor }: LiveProps & { sensor: ReactNode }) {
   return useSensorCard(item.entity) === "numeric" ? LIVE.numeric({ ...item, kind: "numeric" }, footprint) : sensor;
 }
 
@@ -60,7 +60,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   climate: (item, footprint) => <HaClimateModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} unit={item.unit} />,
   sensor: (item, footprint) => {
     const sensor = <HaSensorModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} loadHistory={item.history} unit={item.unit} humidityEntityId={item.humidity} batteryEntityId={item.battery} outdoor={item.outdoor} />;
-    return item.bare ? <BareSensor item={item} footprint={footprint} sensor={sensor} /> : sensor;
+    return item.defaulted ? <DefaultedSensor item={item} footprint={footprint} sensor={sensor} /> : sensor;
   },
   weather: (item, footprint) => (
     <HaWeatherModule entityId={item.entity} name={item.name} footprint={footprint} loadHistory={item.history} aqiEntityId={item.aqi} aqiScale={item.aqiScale} sunEntityId={item.sun} loadForecasts={item.forecasts} />

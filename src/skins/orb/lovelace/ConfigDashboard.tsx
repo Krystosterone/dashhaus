@@ -54,11 +54,11 @@ function ConfiguredMediaPlayer({ card }: { card: Extract<CardConfig, { kind: "me
 }
 
 /**
- * A bare `sensor.*` (no `card:`, no id pattern, no sensor key): the numeric card when its attributes say it measures
- * something other than the room's temperature or humidity (`useSensorCard`), else its room sensor tile. Both are the
- * same height at a footprint, so the choice never moves the row.
+ * A `sensor.*` listed on its own (no `card:`, no id pattern, no sensor key): the numeric card when its attributes say
+ * it measures something other than the room's temperature or humidity (`useSensorCard`), else its room sensor tile.
+ * Both are the same height at a footprint, so the choice never moves the row.
  */
-function BareSensor({ card, sensor }: { card: Extract<CardConfig, { kind: "sensor" }>; sensor: ReactElement }) {
+function DefaultedSensor({ card, sensor }: { card: Extract<CardConfig, { kind: "sensor" }>; sensor: ReactElement }) {
   return useSensorCard(card.entity) === "numeric" ? TILES.numeric({ ...card, kind: "numeric" }) : sensor;
 }
 
@@ -69,7 +69,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   cover: (card, key) => <HaCoverTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   sensor: (card, key) => {
     const sensor = <HaSensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} humidityEntityId={card.humidity} batteryEntityId={card.battery} outdoor={card.outdoor} unit={card.unit} />;
-    return card.bare ? <BareSensor key={key} card={card} sensor={sensor} /> : sensor;
+    return card.defaulted ? <DefaultedSensor key={key} card={card} sensor={sensor} /> : sensor;
   },
   weather: (card, key) => <HaWeatherTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} aqiEntityId={card.aqi} aqiScale={card.aqiScale} sunEntityId={card.sun} loadForecasts={card.forecasts} />,
   toggle: (card, key) => <HaToggleTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} icon={card.icon} description={card.description} />,

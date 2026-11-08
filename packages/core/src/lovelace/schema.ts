@@ -450,10 +450,11 @@ export interface CardShape<K extends string = string> {
   kind: K;
   /**
    * The domain's own kind drew it only because nothing chose another: no `card:`, no id pattern and none of its kind's
-   * own keys, on a domain another kind also draws. A skin may settle the choice as the card draws (a bare `sensor.*`
-   * draws the numeric card when its attributes say so, `sensorCard` in `@dashhaus/core/lovelace`), or ignore it.
+   * own keys, on a domain another kind also draws. A skin may settle the choice as the card draws (a `sensor.*`
+   * listed on its own draws the numeric card when its attributes say so, `sensorCard` in `@dashhaus/core/lovelace`),
+   * or ignore it.
    */
-  bare?: true;
+  defaulted?: true;
 }
 
 /** One card kind: its Home Assistant domains, the id pattern that picks it on a shared domain, and its own keys. */
@@ -584,8 +585,8 @@ export function readCard<K extends string, C extends CardShape<K>>(
   else read.keys(raw, at, checked);
   const base = schema.base(read, raw, at);
   const options = schema.kinds[kind].options?.(read, raw, at) ?? {};
-  const bare = raw.card == null && !schema.kinds[kind].id && available.length > 1 && !own.some((key) => key in raw);
-  return { ...base, entity, kind, ...options, ...(bare && { bare: true }) } as C;
+  const defaulted = raw.card == null && !schema.kinds[kind].id && available.length > 1 && !own.some((key) => key in raw);
+  return { ...base, entity, kind, ...options, ...(defaulted && { defaulted: true }) } as C;
 }
 
 /** Read a non-empty list of cards, each with its path. */

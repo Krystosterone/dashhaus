@@ -74,9 +74,9 @@ describe("parseFieldConfig: a module's keys", () => {
     ]);
   });
 
-  it("leaves a bare sensor's module to its attributes, and names the module a key belongs to", () => {
+  it("leaves the module of a sensor listed on its own to its attributes, and names the module a key belongs to", () => {
     const modules = rowItems(parseFieldConfig({ cards: ["sensor.office_co2", { entity: "sensor.office", unit: "°F" }, { entity: "sensor.office_co2", card: "numeric" }, "sensor.crib_sleep_state"] }).rows ?? []);
-    expect(modules.map((module) => [module.kind, module.bare === true])).toEqual([
+    expect(modules.map((module) => [module.kind, module.defaulted === true])).toEqual([
       ["sensor", true],
       ["sensor", false],
       ["numeric", false],

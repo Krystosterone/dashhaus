@@ -49,7 +49,7 @@ describe("FieldDashboard hour_cycle", () => {
   });
 });
 
-describe("FieldDashboard bare sensors", () => {
+describe("FieldDashboard sensors listed on their own", () => {
   const sensors = {
     "sensor.office_co2": { entity_id: "sensor.office_co2", state: "812", attributes: { friendly_name: "Office air", device_class: "carbon_dioxide", unit_of_measurement: "ppm", state_class: "measurement" } },
     "sensor.office_temperature": { entity_id: "sensor.office_temperature", state: "21.4", attributes: { friendly_name: "Office", device_class: "temperature", unit_of_measurement: "°C", state_class: "measurement" } },
@@ -60,7 +60,7 @@ describe("FieldDashboard bare sensors", () => {
   };
   const moduleOf = (name: string) => screen.getByRole("heading", { name }).closest(".fd-module") as HTMLElement;
 
-  it("draws a bare CO₂ sensor as the numeric module, and a bare temperature as the room sensor", async () => {
+  it("draws a CO₂ sensor listed on its own as the numeric module, and a temperature as the room sensor", async () => {
     drawn({ cards: ["sensor.office_co2", "sensor.office_temperature"] });
     await waitFor(() => expect(moduleOf("Office air").classList.contains("fd-nm")).toBe(true));
     expect(moduleOf("Office").classList.contains("fd-sw")).toBe(true);

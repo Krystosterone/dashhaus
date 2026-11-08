@@ -197,7 +197,7 @@ describe("parseFieldConfig", () => {
 
   it("takes a toggle's icon and description, on toggles only", () => {
     expect(parseFieldConfig({ cards: ["switch.fan", { entity: "input_boolean.dnd", icon: "bell-off", description: "Silences the chimes." }] }).rows?.[0].cards.map((entry) => entry.item)).toEqual([
-      { entity: "switch.fan", kind: "toggle", name: undefined, area: undefined, footprint: undefined, icon: undefined, description: undefined, bare: true },
+      { entity: "switch.fan", kind: "toggle", name: undefined, area: undefined, footprint: undefined, icon: undefined, description: undefined, defaulted: true },
       { entity: "input_boolean.dnd", kind: "toggle", name: undefined, area: undefined, footprint: undefined, icon: "bell-off", description: "Silences the chimes." },
     ]);
     expect(() => parseFieldConfig({ cards: [{ entity: "input_boolean.dnd", icon: "bel-off" }] })).toThrow('did you mean "bell-off"?');

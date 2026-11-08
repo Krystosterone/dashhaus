@@ -178,8 +178,8 @@ const PAGES_YAML = {
 
 /**
  * A wall panel read from across the room: one column per place, footprints mixed by column. Each column leads with
- * whole modules and stacks rows under them; every plate names its own area. The CO₂ sensor is listed bare, so its
- * device class picks the numeric module.
+ * whole modules and stacks rows under them; every plate names its own area. The CO₂ sensor is listed on its own, so
+ * its device class picks the numeric module.
  */
 const WALL_YAML = {
   type: "custom:dashhaus-field",
@@ -205,7 +205,7 @@ const WALL_YAML = {
         { entity: "weather.home", name: "Weather", column: 4 },
         { entity: "light.porch", column: 4, footprint: "compact" },
         { entity: "sensor.outside_temperature", name: "Air", outdoor: true, column: 4, footprint: "compact" },
-        // Bare: no card: and no sensor key, so its device class picks the numeric module.
+        // On its own: no card: and no sensor key, so its device class picks the numeric module.
         { entity: "sensor.living_room_co2", area: "Living room", column: 4, footprint: "compact" },
       ],
     },
