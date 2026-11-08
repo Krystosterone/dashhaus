@@ -421,6 +421,19 @@ button.fd-pic:active .fd-pic-i { transform: scale(0.98); }
 /* A key's caption keeps to one line, ending in an ellipsis where its cell is too narrow: in a group of keys, in a
    question's two keys (panel.css), and on a solo row's key, which spans the row. */
 .fd-keys .fd-key-cap, .fd-cf-keys .fd-key-cap, .fd-row[data-solo] .fd-key-cap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A key's word is what pressing it does (spec/field.md → A key's word is what pressing it does), so beside a glyph it
+   is whole or gone whole, never cut: the glyph and the word are one line that wraps, so a word that doesn't fit beside
+   its glyph goes to a line the key never shows and the glyph says it alone, the key's label still saying the whole
+   verb. The strut holds the shown line at the key's height, its gap taken back. A choice's name, with no glyph to
+   fall back on, still ends in an ellipsis. */
+.fd-key-in { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; max-width: 100%; height: 100%; }
+.fd-key-in:has(> .fd-key-glyph:not(:empty)) { flex-wrap: wrap; align-content: flex-start; overflow: hidden; }
+.fd-key-in:has(> .fd-key-glyph:not(:empty))::before { content: ""; flex: none; width: 0; height: 100%; margin-inline-end: -8px; }
+/* Under 240 px a module's row of two or more keys keeps its glyphs and drops its words, so the row reads alike (its
+   content box is 26 px narrower than the module). */
+@container (max-width: 213px) {
+  .fd-module[data-footprint="standard"] .fd-keys:has(> .fd-key ~ .fd-key) .fd-key-in:has(> .fd-key-glyph:not(:empty)) > .fd-key-cap { display: none; }
+}
 @container (max-width: 300px) {
   .fd-keys[data-narrow]:not([data-narrow-at]) { grid-auto-flow: row; grid-template-columns: repeat(var(--fd-keys-narrow), minmax(0, 1fr)); }
 }

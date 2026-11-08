@@ -38,8 +38,9 @@ const config: TestRunnerConfig = {
       const lines = overflows.map(({ name, clientWidth, scrollWidth }) => `  ${name}: ${scrollWidth}px content in ${clientWidth}px module`);
       throw new Error(`Field module horizontal overflow\n${lines.join("\n")}`);
     }
-    // A Field row's screen holds its figure inside its inset, four places as three (spec/field.md → Footprints), and a
-    // module's today and fader keep their legend to one line, so the strip or the slot under it never moves.
+    // A Field row's screen holds its figure inside its inset, four places as three (spec/field.md → Footprints), a key's
+    // verb is never cut, and a module's today and fader keep their legend to one line, so the strip or the slot under it
+    // never moves.
     const misfits = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
       modules.flatMap((module) => {
         const name = module.querySelector(".fd-name")?.textContent?.trim() || "unnamed";
@@ -50,6 +51,17 @@ const config: TestRunnerConfig = {
           const inner = screen.getBoundingClientRect().right - parseFloat(getComputedStyle(screen).paddingRight);
           const right = read.getBoundingClientRect().right;
           if (right > inner + 0.5) found.push(`${name}: its row's figure "${read.textContent}" runs ${(right - inner).toFixed(1)}px into the screen's inset`);
+        }
+        // A key's verb is whole or gone whole beside its glyph (spec/field.md → A key's word is what pressing it does),
+        // and under 240 px a module's row of two or more keys shows its glyphs alone.
+        const narrowRow = module.matches('[data-footprint="standard"]') && module.getBoundingClientRect().width < 240;
+        for (const cap of module.querySelectorAll(".fd-key-in:has(> .fd-key-glyph:not(:empty)) > .fd-key-cap")) {
+          const line = cap.parentElement!.getBoundingClientRect();
+          const at = cap.getBoundingClientRect();
+          if (!at.width || at.top >= line.bottom - 0.5) continue;
+          if (cap.scrollWidth > cap.clientWidth + 1) found.push(`${name}: a key cuts its verb "${cap.textContent}" (${cap.scrollWidth - cap.clientWidth}px short)`);
+          const row = cap.closest(".fd-keys");
+          if (narrowRow && row && row.querySelectorAll(":scope > .fd-key").length > 1) found.push(`${name}: under 240 px its row of keys prints "${cap.textContent}"`);
         }
         for (const legend of module.querySelectorAll(".fd-today > .fd-legend, .fd-fader > .fd-legend")) {
           const line = parseFloat(getComputedStyle(legend).lineHeight);
