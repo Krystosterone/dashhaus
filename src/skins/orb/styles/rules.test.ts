@@ -218,6 +218,20 @@ describe("type: a readout's word has one size in the sheet", () => {
   });
 });
 
+describe("type: the status line keeps its size on every card", () => {
+  it("no card or bundle sizes the status line, its warning or its warn marker (spec/orb.md → The status line keeps its type)", () => {
+    const sizes = /(?:^|;)\s*(?:font-size|font|width|height|inline-size|block-size|min-width|min-height|max-width|max-height|scale|zoom)\s*:/;
+    const own = cssFiles.filter((f) => f.startsWith(`${SKIN}/cards/`) || f.startsWith(`${SKIN}/bundles/`)).flatMap((f) =>
+      [...css(f).matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap(([, selector, body]) => {
+        const shown = selector.replace(/:not\([^)]*\)/g, "").replace(/:has\([^)]*\)/g, "");
+        const text = /\.hd-(?:area|warn)\b/.test(shown) && /(?:^|;)\s*(?:font-size|font)\s*:/.test(body);
+        const cue = /\.hd-alert-cue\b/.test(shown) && sizes.test(body);
+        return text || cue ? [`${f}: ${selector.trim()}`] : [];
+      }));
+    expect(own, "let shared/card.css size the status line; a long one clips after its word").toEqual([]);
+  });
+});
+
 describe("glow: attention is a multiplier on a dimmed baseline", () => {
   it("the glow layer is glow x damping, both defaulting off or full", () => {
     expect(css(`${SKIN}/shared/card.css`)).toContain("opacity: calc(var(--hd-glow, 0) * var(--glow-damp, 1))");

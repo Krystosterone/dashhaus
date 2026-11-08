@@ -23,7 +23,7 @@ const groupsOf = (section: string) => [
   ...GROUPS.filter((g) => !OWN[g] || OWN[g] === section),
 ];
 
-/** The stories every card has, in this order, as [export, sidebar name]. A card's own states come first; it may add capability stories in between. */
+/** The stories every card has, in this order, as [export, sidebar name]. A card's own states come first; it may add a variant after the one it extends (`misplaced`). */
 const STANDARD: [string, string][] = [
   ["Unavailable", "Unavailable"],
   ["WorstCase", "Worst case"],
@@ -48,15 +48,44 @@ const label = (name: string) => name[0].toUpperCase() + name.slice(1);
 /** A card folder's seeds constant, as `names()` in scripts/new-card/lib.js makes it: `binarySensor` → `BINARY_SENSOR`. */
 const constant = (name: string) => name.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase();
 
-/** Each story export of a CSF file and its sidebar name: its `name:`, or the export name when it has none. */
+/**
+ * Each story export of a CSF file and its sidebar name: its `name:` (after a spread of the story it reuses, if any),
+ * or the export name when it has none.
+ */
 function stories(source: string) {
   const out: { id: string; name: string }[] = [];
   const exports = [...source.matchAll(/^export const (\w+): Story = /gm)];
   exports.forEach((m, i) => {
     const body = source.slice(m.index + m[0].length, exports[i + 1]?.index ?? source.length);
-    out.push({ id: m[1], name: body.match(/^\{\s*name: "([^"]+)"/)?.[1] ?? m[1] });
+    out.push({ id: m[1], name: body.match(/^\{\s*(?:\.\.\.\w+,\s*)?name: "([^"]+)"/)?.[1] ?? m[1] });
   });
   return out;
+}
+
+/**
+ * Where a card's own stories sit (AGENTS.md → Storybook), as far as their names tell: a state goes among the card's
+ * states, before Unavailable; past it, a story is a variant of the standard story before it and is named after it
+ * (`Compact, sizes`, `Details, colour`), so every `Details, …` comes before `Details, unavailable`, and nothing comes
+ * after `Details, phone`. Returns each misplaced story, saying where it goes.
+ */
+function misplaced(found: { id: string; name: string }[]) {
+  const standard = STANDARD.map(([, name]) => name);
+  const last = standard.at(-1)!;
+  let extended: string | undefined;
+  return found.flatMap(({ id, name }) => {
+    if (standard.includes(name)) {
+      extended = name;
+      return [];
+    }
+    const story = `${id} ("${name}")`;
+    if (!extended) {
+      const of = standard.find((s) => name.startsWith(`${s}, `));
+      return of ? [`${story}: a variant of "${of}" goes after it`] : [];
+    }
+    if (extended === last) return [`${story}: nothing comes after "${last}"; a state goes before "Unavailable", a variant after the story it extends`];
+    if (name.startsWith(`${extended}, `)) return [];
+    return [`${story}: after "${extended}" only its variants ("${extended}, …"); a state goes before "Unavailable", a variant after the story it extends, named after it`];
+  });
 }
 
 /** `storySort.order` in .storybook/preview.tsx, which must stay a literal for Storybook to read it. */
@@ -159,6 +188,10 @@ describe.each(skins)("the $section section", ({ section, files, cards, skin }) =
       expect(positions, `standard stories in the order ${STANDARD.map(([id]) => id).join(", ")}`).toEqual([...positions].sort((a, b) => a - b));
       const misnamed = STANDARD.filter(([id, name]) => found.find((s) => s.id === id)?.name !== name).map(([id, name]) => `${id} should be named "${name}"`);
       expect(misnamed).toEqual([]);
+    });
+
+    it("places its own stories beside the one they extend: states before Unavailable, a variant after its story", () => {
+      expect(misplaced(stories(own?.source ?? ""))).toEqual([]);
     });
 
     it(`has a connected story under ${section}/Connected/<Name>`, () => {

@@ -53,6 +53,7 @@ export const StillFails: Story = { name: "Still fails", args: { seed: "failed" }
 export const Quiet: Story = { args: { paused: true } };
 /** `stills: false`: no still is fetched or drawn; the card is its state and its glyph, and its sheet's Live view pill still opens the stream. */
 export const StillsOff: Story = { name: "Stills off", args: { still: false } };
+export const Featured: Story = { args: { footprint: "featured" } };
 /**
  * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
  * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
@@ -68,7 +69,6 @@ export const TwelveHourClock: Story = {
   ),
 };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
-export const Featured: Story = { args: { footprint: "featured" } };
 /** Realistic worst-case data from the demo seeds (CAMERA_WORST_CASE): no still, a failed one, wide and tall stills, a long name. */
 export const WorstCase: Story = {
   name: "Worst case",

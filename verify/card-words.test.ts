@@ -9,7 +9,9 @@
  * - an unavailable card says when it was last seen as `lastSeenFact` does (`Last seen 08:20`), never `Seen 08:20`;
  * - a blank figure says one of two things: `No reading yet` where the device declares the figure but hasn't sent it,
  *   `Not reported` where it doesn't declare it and a fixed place must still hold something, never a phrase of the
- *   card's own for either (`No room temperature`, `No heart rate yet`, `Direction not reported`).
+ *   card's own for either (`No room temperature`, `No heart rate yet`, `Direction not reported`);
+ * - a skin never formats a time itself, in its cards or its shared parts (an hour axis among them): it passes
+ *   `useHourCycle()` to core's words (`hourLabel`, `formatHaTime`, …), so every time is on the dashboard's one clock.
  *
  * Studies keep their own design (spec/skins.md → Studies), so only the two skins are held here.
  */
@@ -25,10 +27,12 @@ const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
   return statSync(path).isDirectory() ? files(path) : [path];
 });
 
-/** Each card folder's drawing: its components and helpers, without its tests and stories. */
-const sources = SKINS.flatMap((skin) => files(join(root, "src/skins", skin, "cards")))
+/** A skin folder's drawing (`cards`, `shared`): its components and helpers, without its tests and stories. */
+const drawing = (folder: string) => SKINS.flatMap((skin) => files(join(root, "src/skins", skin, folder)))
   .filter((path) => /\.tsx?$/.test(path) && !/\.(test|stories)\.tsx?$/.test(path))
   .map((path) => ({ path: relative(root, path), text: readFileSync(path, "utf8").replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "") }));
+/** Each card folder's drawing. */
+const sources = drawing("cards");
 
 /** Where a match is: `file:line`, with the line itself. */
 const where = (path: string, text: string, index: number) => {
@@ -36,7 +40,7 @@ const where = (path: string, text: string, index: number) => {
   return `${path}:${line} ${text.split("\n")[line - 1].trim().slice(0, 120)}`;
 };
 
-const hits = (pattern: RegExp) => sources.flatMap(({ path, text }) =>
+const hits = (pattern: RegExp, among = sources) => among.flatMap(({ path, text }) =>
   [...text.matchAll(new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`))].map((m) => where(path, text, m.index!)));
 
 describe("what every card says", () => {
@@ -66,5 +70,11 @@ describe("what every card says", () => {
 
   it("says when an unavailable card was last seen in core's words (`lastSeenFact`), never a bare `Seen`", () => {
     expect(hits(/["'`>]Seen (?:\$\{|\d)/)).toEqual([]);
+  });
+
+  it("never formats a time itself, in a card or a shared part: every time is core's words on the page's hour cycle", () => {
+    // A weekday or a date (`toLocaleDateString` with `weekday`) isn't on a clock, so it isn't held here.
+    const own = /\.toLocaleTimeString\(|\.toLocaleString\(|\bIntl\.DateTimeFormat\b|\.get(?:UTC)?(?:Hours|Minutes)\(\)|\bhour12\s*:|\.padStart\(\s*2\b/;
+    expect(hits(own, [...sources, ...drawing("shared")]), "pass useHourCycle() to core's words (hourLabel, formatHaTime, clockTime, …)").toEqual([]);
   });
 });

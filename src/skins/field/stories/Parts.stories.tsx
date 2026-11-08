@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Temperature, Today, useDetails, Warn } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Temperature, Today, useDetails, Warn, WarnWords } from "../shared/ui";
 import type { ModuleFrameProps } from "../shared/ui";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
@@ -248,9 +248,10 @@ function AllParts() {
         <State label="The keypad (1234)" width={300}><Keypad prompt="Code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 
-      <Part name="Legend and warning" rule="A printed label with its rule, for a group of keys or a meter. A warning is an outlined marker before its words: field has no warning colour.">
+      <Part name="Legend and warning" rule="A printed label with its rule, for a group of keys or a meter. A warning is an outlined marker before its words: field has no warning colour. What follows its word (WarnWords: what set it off, a count) gives way first, so a clip never cuts a word that fits.">
         <State label="Legend" width={300}><Legend value="Amber">Colour</Legend></State>
         <State label="Warning"><Warn>Battery 8%</Warn></State>
+        <State label="Its word, then what set it off, in 120 px" width={120}><Warn block><WarnWords word="Triggered" detail=" · Back door" /></Warn></State>
       </Part>
     </div>
   );

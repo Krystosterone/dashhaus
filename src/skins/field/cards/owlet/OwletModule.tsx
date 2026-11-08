@@ -5,7 +5,7 @@ import { ALERT_SAID, ALERT_SHORT, ALERT_WORD, CHARGING, SLEEP_UNKNOWN, SLEEP_WOR
 import { URGENT_PROBLEMS, owletSeverity } from "@dashhaus/core/entities/owlet/severity";
 import { NO_READING_YET, lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, ModuleRow, Notices } from "../../shared/ui";
+import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, WarnWords, useDetails, ModuleRow, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";
 import "./OwletModule.css";
@@ -23,6 +23,8 @@ export interface OwletModuleProps {
 
 /** The most urgent with a count of the rest, so a clipped line never hides that more exist. */
 const withCount = (words: string[]) => (words.length > 1 ? `${words[0]} +${words.length - 1}` : words[0]);
+/** A warning's first alert with the count of the rest after it, which gives way before the word does (`Critical O₂ +1`). */
+const warnCount = (words: string[]) => <WarnWords word={words[0]} detail={words.length > 1 ? ` +${words.length - 1}` : undefined} />;
 
 /**
  * An Owlet Smart Sock as a field module: a reading, so nothing on it is pressed but its name. Its sock lies flat
@@ -68,7 +70,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     : [sleepWord, oxygen ?? (hr == null ? "No reading yet" : undefined)];
 
   let pict: ReactNode = heart, read = heartRead, meta = reading;
-  let warning: string | undefined, rowWarning: ReactNode;
+  let warning: ReactNode, rowWarning: ReactNode;
   let alert: { level: "urgent" | "alarm"; what: string; startedAt?: number; say?: string } | undefined;
   if (level === "alarm") {
     // The figure is the vital that set it off: the oxygen, or the heart rate. Its first line says how, in a word.
@@ -83,7 +85,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     // On the screen's first line beside its figure, a word (`Critical`); without the figure, the alert's own words.
     meta = [fits ? ALERT_SHORT[lead] : ALERT_WORD[lead], others.length ? withCount(others) : byOxygen ? (hr != null ? `${hr} bpm` : sleepWord) : oxygen ?? sleepWord];
     const figure = byOxygen ? `${fmtOxygen(o2)}%` : hr != null && lead.endsWith("heart_rate") ? `${hr} bpm` : "";
-    rowWarning = withCount(vitals.map((a) => ALERT_WORD[a]));
+    rowWarning = warnCount(vitals.map((a) => ALERT_WORD[a]));
     const what = [ALERT_WORD[lead], figure].filter(Boolean).join(" ") + (vitals.length > 1 ? ` +${vitals.length - 1}` : "");
     const spoken = vitals.map((a) => ALERT_SAID[a].toLowerCase()).join(", ");
     alert = { level, what, startedAt: e.vitalsSince, say: `Alarm: ${e.name}, ${spoken}${byOxygen ? `, oxygen ${fmtOxygen(o2)} percent` : hr != null ? `, heart rate ${hr}` : ""}.` };
@@ -100,7 +102,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     alert = { level, what: urgent ? ALERT_WORD[urgent] : staleText(e.lastUpdated) };
   } else if (problems.length) {
     // Advisory, the device's: the plate's line. A pressing level above takes its place, and the panel lists it.
-    warning = withCount(problems.map((a) => ALERT_WORD[a]));
+    warning = warnCount(problems.map((a) => ALERT_WORD[a]));
   }
   const compact = footprint === "compact";
 

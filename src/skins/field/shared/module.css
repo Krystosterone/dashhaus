@@ -134,6 +134,12 @@
 /* Top-aligned, so a warning line is no taller than the line it replaces. */
 .fd-warn { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; vertical-align: top; color: var(--fd-ink); }
 .fd-warn-t { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* A warning's word and what follows it (`WarnWords`): what follows gives way first, to an ellipsis, then, with less than
+   two letters' room, wraps onto a line that isn't shown, so a clip never cuts a word that fits its line alone and
+   never leaves a stray mark after it; a word too long for the line still ends in an ellipsis. */
+.fd-warn-t:has(> .fd-warn-d) { display: flex; flex-wrap: wrap; max-height: 1lh; }
+.fd-warn-w { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.fd-warn-d { flex: 1 1 0; min-width: 2em; max-width: max-content; overflow: hidden; text-overflow: ellipsis; white-space: pre; }
 .fd-warn svg { flex: none; width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
 .fd-screen .fd-warn { color: var(--fd-screen-ink); }
 

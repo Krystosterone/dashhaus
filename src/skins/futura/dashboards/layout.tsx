@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import { FuturaHeader } from "./Header";
 import type { FuturaHeaderProps } from "./Header";
 import type { FuturaFootprint } from "../shared/ui";
@@ -12,14 +13,16 @@ export interface FuturaPageProps extends Partial<FuturaHeaderProps> {
   children: ReactNode;
 }
 
-/** The Futura Dashboard: optional header, sections, and a docked NavBar. */
+/** The Futura Dashboard: optional header, sections, and a docked NavBar, every card on the header's hour cycle. */
 export function FuturaPage({ pageRef, nav, children, title, ...header }: FuturaPageProps) {
   return (
-    <div ref={pageRef} className="futura-dashboard" data-nav={nav ? "" : undefined}>
-      {title && <FuturaHeader title={title} {...header} />}
-      <main className="futura-dashboard-main">{children}</main>
-      {nav && <div className="futura-dashboard-dock">{nav}</div>}
-    </div>
+    <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
+      <div ref={pageRef} className="futura-dashboard" data-nav={nav ? "" : undefined}>
+        {title && <FuturaHeader title={title} {...header} />}
+        <main className="futura-dashboard-main">{children}</main>
+        {nav && <div className="futura-dashboard-dock">{nav}</div>}
+      </div>
+    </HourCycleProvider>
   );
 }
 
