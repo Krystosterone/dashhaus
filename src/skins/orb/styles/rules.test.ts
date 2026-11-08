@@ -236,5 +236,45 @@ describe("glow: attention is a multiplier on a dimmed baseline", () => {
   it("the glow layer is glow x damping, both defaulting off or full", () => {
     expect(css(`${SKIN}/shared/card.css`)).toContain("opacity: calc(var(--hd-glow, 0) * var(--glow-damp, 1))");
   });
+
+  /*
+   * The dashboard's budget (spec/orb.md → Composing for a glance; .agents/skills/attention-budget). The values are a
+   * product heuristic, not a standard: position damps a later glow to 0.5, and urgency's factor is 1, a no-op, until
+   * the scan-task comparison decides its value and whether its scope widens from the container to the whole `.dash`.
+   * Change them, or the selectors' shape, only with that comparison, and the census in .storybook/glow-census.ts with them.
+   */
+  const layout = css(`${SKIN}/dashboards/layout.css`);
+  const CONTAINERS = [".dash-grid--1", '.dash-row[data-tracks="1"]'];
+
+  it("damping is position times urgency, multiplied, in a one-column grid and a one-track row", () => {
+    expect(layout).toContain(':is(.dash-grid--1, .dash-row[data-tracks="1"]) > * .hd { --glow-damp: calc(var(--glow-later, 1) * var(--glow-yield, 1)); }');
+    // Only that rule sets --glow-damp: no rule's order or specificity decides a value.
+    expect(layout.match(/--glow-damp\s*:/g)).toHaveLength(1);
+  });
+
+  it("position: a later cell's glow takes --glow-damp-later, 0.5, keyed on data-glow alone", () => {
+    for (const c of CONTAINERS) {
+      expect(layout).toContain(`${c} > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }`);
+    }
+    expect(layout.match(/--glow-later\s*:/g)).toHaveLength(CONTAINERS.length);
+  });
+
+  it("urgency: an urgent or alarm card anywhere in the container sets every glow's --glow-damp-under-alert, 1; advisory doesn't", () => {
+    for (const c of CONTAINERS) {
+      expect(layout).toContain(`${c}:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }`);
+    }
+    expect(layout.match(/--glow-yield\s*:/g)).toHaveLength(CONTAINERS.length);
+    expect(layout).not.toMatch(/data-level="advisory"/);
+  });
+
+  it("the budget keys on data-glow and data-level only, never a card's own markup", () => {
+    const rules = [...layout.matchAll(/([^{}]+)\{([^{}]*--glow-[a-z-]+\s*:[^{}]*)\}/g)].map(([, selector]) => selector.trim());
+    expect(rules).toHaveLength(1 + 2 * CONTAINERS.length);
+    for (const selector of rules) {
+      const attrs = [...selector.matchAll(/\[([a-z-]+)/g)].map(([, a]) => a);
+      expect(attrs.filter((a) => !["data-glow", "data-level", "data-tracks"].includes(a)), selector).toEqual([]);
+      expect(selector.replace(/\.(dash-grid--1|dash-row|hd)\b/g, ""), selector).not.toMatch(/\.[a-z]/);
+    }
+  });
 });
 
