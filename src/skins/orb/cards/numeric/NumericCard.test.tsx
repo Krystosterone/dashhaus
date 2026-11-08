@@ -88,7 +88,7 @@ describe("NumericCard", () => {
     const card = container.querySelector("article");
     expect(container.querySelector(".hd-area")?.textContent).toBe("High CO₂ · Bedroom");
     expect(container.querySelector(".hd-area .hd-warn")?.textContent).toBe("High CO₂");
-    expect(screen.getAllByRole("img", { name: "Warning: Carbon dioxide above 1200 ppm" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("img", { name: "Warning: Bedroom CO₂: Carbon dioxide above 1200 ppm" }).length).toBeGreaterThan(0);
     expect(card?.getAttribute("data-alert")).toBe("warn");
     expect(card?.getAttribute("data-glow")).toBeNull();
     expect(container.querySelector(".nm-v")?.closest(".hd-warn")).toBeNull();

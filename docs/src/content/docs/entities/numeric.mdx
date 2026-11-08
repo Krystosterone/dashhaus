@@ -42,7 +42,7 @@ a band, `warn_below` under `warn_above`. Orb and Field take the same keys.
 
 Past a limit, the card says so in place of what it measures, behind a warning sign: `High CO₂`, `Low voltage`,
 `Too cold` for a temperature, and `Too high` or `Too low` where its kind has no short word. A screen reader hears
-"Warning: Carbon dioxide above 1200 ppm". A reading at the limit doesn't warn. The details always say the limits you
+the card's name, then "Warning: Carbon dioxide above 1200 ppm". A reading at the limit doesn't warn. The details always say the limits you
 set ("Warns above 1200 ppm"), so you can check why it warns. In React they are `useHaNumeric`'s `warnAbove` and
 `warnBelow`, and `numericWarning` says whether a reading is past one.
 

@@ -26,8 +26,9 @@ export interface NumericCardProps extends CardProps {
  * reading "No reading yet", the readout "Waiting…", as the sensor card. It warns only past a limit the person set
  * (`warnAbove`, `warnBelow`; a threshold of its own would be a guess, spec/cards.md): core's word leads the status
  * line behind the warn marker ("High CO₂ · Living room"), in place of what it measures, advisory, so the figure keeps
- * its ink and the card no glow; a compact row's value line says it the same way. The sheet's small print says the
- * limits, whether or not it warns. The name or the reading opens the sheet with today's readings by hour.
+ * its ink and the card no glow; the marker is heard with the card's name first ("Warning: Bedroom CO₂: Carbon dioxide
+ * above 1200 ppm"), as every Orb card's; a compact row's value line says it the same way. The sheet's small print says
+ * the limits, whether or not it warns. The name or the reading opens the sheet with today's readings by hour.
  */
 export function NumericCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: NumericCardProps) {
   const card = useCard("nm", { variant, footprint, showControl, area: e.area });
@@ -41,9 +42,10 @@ export function NumericCard({ entity: e, history, variant, footprint, showContro
   const figure = value != null ? numericFigure(value) : undefined;
   const text = unav ? "Unavailable" : figure == null ? "Waiting…" : withUnit(figure, e.unit);
   const spoken = value == null ? "no reading yet" : withUnit(fmtNumeric(value), e.unit);
-  // Core ranks it (a limit the person set, advisory) and words it; the card draws the word it is given, first.
+  // Core ranks it (a limit the person set, advisory) and words it; the card draws the word it is given, first, and its
+  // marker names the card before core's sentence, as every Orb card's does.
   const warning = numericWarning(e);
-  const alertLabel = warning ? `Warning: ${warning.said}` : null;
+  const alertLabel = warning ? `Warning: ${e.name}: ${warning.said}` : null;
   const status = unav ? "Unavailable"
     // In a narrow card the area gives way, so the line never clips and the word keeps its room.
     : warning ? <><AlertStatus label={alertLabel!}>{warning.word}</AlertStatus>{area && <span className="hd-sub-optional">{` · ${area}`}</span>}</>
