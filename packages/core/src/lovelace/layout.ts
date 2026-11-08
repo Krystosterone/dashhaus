@@ -1,5 +1,6 @@
 import type { AutoEntityEntry } from "./element";
 import type { BinarySensorClass } from "../entities/binarySensor/types";
+import type { NumericClass } from "../entities/numeric/types";
 
 /*
  * The facts an automatic Lovelace layout needs, shared by every skin: which entities are visible, which area an
@@ -169,6 +170,30 @@ export function safetySensors({ states, entities = {} }: RoomSensorInput): Safet
       const battery = deviceCompanion({ states, entities }, entity, "battery");
       return { entity, ...(battery && { battery }) };
     });
+}
+
+/**
+ * The numeric reading classes an automatic layout shows, in the order one device's readings are picked: the room's air
+ * (CO₂, then fine and coarse particles, then volatile organic compounds). Power, energy and every other class are left
+ * for a person to add with `card: numeric`, since every smart plug has them and dozens would bury the room's air.
+ */
+export const NUMERIC_CLASSES: readonly NumericClass[] = ["carbon_dioxide", "pm25", "pm10", "volatile_organic_compounds", "volatile_organic_compounds_parts"];
+
+/**
+ * Room air quality for an automatic layout, one per device: every visible `sensor` of a `NUMERIC_CLASSES` class, the
+ * first class in that order on each device (an air monitor's CO₂ before its particles), by name. Hidden, config and
+ * diagnostic sensors are left out; a sensor with no device stands alone.
+ */
+export function numericSensors({ states, entities = {} }: RoomSensorInput): string[] {
+  const visible = Object.keys(states).filter((id) => id.startsWith("sensor.") && !entities[id]?.hidden && !entities[id]?.entity_category);
+  const rank = (id: string) => (NUMERIC_CLASSES as readonly (string | undefined)[]).indexOf(deviceClass(states[id]));
+  const picked = new Map<string, string>();
+  for (const id of visible.filter((sensor) => rank(sensor) >= 0)) {
+    const key = entities[id]?.device_id ? `device:${entities[id].device_id}` : id;
+    const held = picked.get(key);
+    if (!held || rank(id) < rank(held)) picked.set(key, id);
+  }
+  return [...picked.values()].sort(byName(states));
 }
 
 /*

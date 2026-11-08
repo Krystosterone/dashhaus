@@ -51,6 +51,8 @@ export interface ModuleConfig {
   humidity?: string;
   battery?: string;
   outdoor?: boolean;
+  /** A numeric reading's unit (YAML `unit`), when the entity doesn't say. */
+  readingUnit?: string;
   /** A weather's air-quality sensor and its scale, its sun entity (default `sun.sun`), and whether to read forecasts. */
   aqi?: string;
   aqiScale?: "US";
@@ -147,6 +149,7 @@ export type FieldKind =
   | "binarySensor"
   | "camera"
   | "mediaPlayer"
+  | "numeric"
   // new-card: kinds
   ;
 
@@ -180,6 +183,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   binarySensor: { domains: ["binary_sensor"] },
   camera: { domains: ["camera"] },
   mediaPlayer: { domains: ["media_player"] },
+  numeric: { domains: ["sensor"] },
   // new-card: field kinds
 };
 
@@ -190,7 +194,7 @@ const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT
 /** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"], numeric: ["unit"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
@@ -216,6 +220,7 @@ const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: strin
     const { still, refresh } = readCameraOptions(read, raw, at);
     return { still, stillRefresh: refresh };
   },
+  numeric: (read, raw, at) => ({ readingUnit: read.string(raw, "unit", at) }),
 };
 
 /** Field's kind table: the domains above, plus the keys and options each card takes. */

@@ -15,6 +15,7 @@ import { HaGuestWifiTile } from "../ha/HaGuestWifiTile";
 import { HaBinarySensorTile } from "../ha/HaBinarySensorTile";
 import { HaCameraTile } from "../ha/HaCameraTile";
 import { HaMediaPlayerTile } from "../ha/HaMediaPlayerTile";
+import { HaNumericTile } from "../ha/HaNumericTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
@@ -67,6 +68,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   binarySensor: (card, key) => <HaBinarySensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} batteryEntityId={card.battery} />,
   camera: (card, key) => <ConfiguredCamera key={key} card={card} />,
   mediaPlayer: (card, key) => <ConfiguredMediaPlayer key={key} card={card} />,
+  numeric: (card, key) => <HaNumericTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} />,
   // new-card: tiles
 };
 

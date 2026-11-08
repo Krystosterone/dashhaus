@@ -5,6 +5,7 @@ import { useHaGuestWifi } from "./hooks/guestWifi";
 import { useHaBinarySensor } from "./hooks/binarySensor";
 import { useHaCamera } from "./hooks/camera";
 import { useHaMediaPlayer } from "./hooks/mediaPlayer";
+import { useHaNumeric } from "./hooks/numeric";
 // new-card: headless imports
 import { useHaLight } from "./hooks/light";
 import { useHaClimate } from "./hooks/climate";
@@ -58,4 +59,5 @@ export const HaGuestWifi = headless(useHaGuestWifi, "HaGuestWifi");
 export const HaBinarySensor = headless(useHaBinarySensor, "HaBinarySensor");
 export const HaCamera = headless(useHaCamera, "HaCamera");
 export const HaMediaPlayer = headless(useHaMediaPlayer, "HaMediaPlayer");
+export const HaNumeric = headless(useHaNumeric, "HaNumeric");
 // new-card: headless components

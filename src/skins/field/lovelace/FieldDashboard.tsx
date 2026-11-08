@@ -12,6 +12,7 @@ import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
 import { HaBinarySensorModule } from "../ha/HaBinarySensorModule";
 import { HaCameraModule } from "../ha/HaCameraModule";
 import { HaMediaPlayerModule } from "../ha/HaMediaPlayerModule";
+import { HaNumericModule } from "../ha/HaNumericModule";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
@@ -71,6 +72,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
     <HaCameraModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} still={stills && item.still !== false} refresh={item.stillRefresh} paused={quiet} />)}</Stills.Consumer>,
   mediaPlayer: (item, footprint) => <Stills.Consumer>{({ quiet }) => (
     <HaMediaPlayerModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} quiet={quiet} />)}</Stills.Consumer>,
+  numeric: (item, footprint) => <HaNumericModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} unit={item.readingUnit} />,
   // new-card: live modules
 };
 

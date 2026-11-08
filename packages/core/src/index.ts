@@ -151,4 +151,9 @@ export type { MediaPlayerHandlers, MediaPlayerHandlerOptions } from "./ha/action
 export { useHaMediaPlayer } from "./ha/hooks/mediaPlayer";
 export type { HaMediaPlayerOptions, HaMediaPlayerResult } from "./ha/hooks/mediaPlayer";
 export { HaMediaPlayer } from "./ha/headless";
+export { numericFromHass } from "./ha/mappers/numeric";
+export type { NumericMapOptions } from "./ha/mappers/numeric";
+export { useHaNumeric } from "./ha/hooks/numeric";
+export type { HaNumericOptions, HaNumericResult } from "./ha/hooks/numeric";
+export { HaNumeric } from "./ha/headless";
 // new-card: exports

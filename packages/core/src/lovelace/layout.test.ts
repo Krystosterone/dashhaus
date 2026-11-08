@@ -6,6 +6,7 @@ import {
   deviceCompanion,
   friendlyName,
   groupByArea,
+  numericSensors,
   placeSection,
   roomSensors,
   safetySensors,
@@ -121,6 +122,31 @@ describe("safetySensors", () => {
         "binary_sensor.tamper": { entity_category: "diagnostic" },
       },
     })).toEqual([{ entity: "binary_sensor.sink" }, { entity: "binary_sensor.patio", battery: "sensor.patio_battery" }]);
+  });
+});
+
+describe("numericSensors", () => {
+  it("takes the room's air, one reading per device by class, by name, and leaves power and energy to a person", () => {
+    expect(numericSensors({
+      states: {
+        "sensor.living_co2": { attributes: { friendly_name: "Living room CO2", device_class: "carbon_dioxide" } },
+        "sensor.living_pm25": { attributes: { friendly_name: "Living room PM2.5", device_class: "pm25" } },
+        "sensor.bedroom_voc": { attributes: { friendly_name: "Bedroom VOC", device_class: "volatile_organic_compounds" } },
+        "sensor.attic_pm10": { attributes: { friendly_name: "Attic PM10", device_class: "pm10" } },
+        "sensor.plug_power": { attributes: { friendly_name: "Plug power", device_class: "power" } },
+        "sensor.house_energy": { attributes: { friendly_name: "House energy", device_class: "energy" } },
+        "sensor.office_temperature": { attributes: { friendly_name: "Office", device_class: "temperature" } },
+        "sensor.hidden_co2": { attributes: { friendly_name: "Hidden CO2", device_class: "carbon_dioxide" } },
+        "sensor.diagnostic_co2": { attributes: { friendly_name: "Diagnostic CO2", device_class: "carbon_dioxide" } },
+      },
+      entities: {
+        "sensor.living_pm25": { device_id: "air" },
+        "sensor.living_co2": { device_id: "air" },
+        "sensor.bedroom_voc": { device_id: "bedroom" },
+        "sensor.hidden_co2": { hidden: true },
+        "sensor.diagnostic_co2": { entity_category: "diagnostic" },
+      },
+    })).toEqual(["sensor.attic_pm10", "sensor.bedroom_voc", "sensor.living_co2"]);
   });
 });
 

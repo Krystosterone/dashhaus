@@ -53,6 +53,7 @@ export type Kind =
   | "binarySensor"
   | "camera"
   | "mediaPlayer"
+  | "numeric"
   // new-card: kinds
   ;
 
@@ -83,6 +84,7 @@ export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp
   owlet: { domains: ["sensor"], id: /^sensor\.\w+_sleep_state$/ },
   sound: { domains: ["switch"] },
   guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
+  numeric: { domains: ["sensor"] },
   // new-card: shared kinds
 };
 
@@ -113,6 +115,7 @@ export type CardConfig = CardBase & (
   | { kind: "binarySensor"; battery?: string }
   | { kind: "camera"; still?: boolean; refresh?: number }
   | { kind: "mediaPlayer" }
+  | { kind: "numeric"; unit?: string }
   // new-card: card configs
 );
 
@@ -229,6 +232,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   },
   camera: { keys: ["still", "refresh"], options: readCameraOptions },
   mediaPlayer: {},
+  numeric: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },
   // new-card: kind specs
 };
 
