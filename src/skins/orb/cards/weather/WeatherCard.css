@@ -44,7 +44,6 @@
 .wx-stat-l { font-size: 12px; font-weight: 500; color: var(--ink-2); }
 .wx-stat-v { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .wx-stat-v small { font-size: 12px; font-weight: 600; color: var(--ink-2); }
-.wx-stat-v.hd-warn, .wx-stat-v.hd-warn small { color: var(--warn); }
 .wx-stat-s { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .wx-days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }

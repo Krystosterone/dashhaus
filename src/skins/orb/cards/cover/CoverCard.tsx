@@ -1,17 +1,13 @@
 import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
+import { SLAT_POSITIONS, coverWord, leftOpenSentence, leftOpenText } from "@dashhaus/core/entities/cover/words";
+import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
 import { AlertStatus, CardFrame, ChoiceChips, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
-
-const SLATS = [
-  { value: 0, label: "Closed" },
-  { value: 50, label: "Angled" },
-  { value: 100, label: "Open" },
-];
 
 export interface CoverCardProps extends CardProps {
   entity: CoverEntity;
@@ -38,7 +34,7 @@ export interface CoverCardProps extends CardProps {
  */
 export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose }: CoverCardProps) {
   const card = useCard("cv", { variant, footprint, showControl, area: e.area });
-  const { uid, sheet, compact, area } = card;
+  const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
   // Reachable, but where it is isn't known (an RF blind, a garage door with no sensor): it is drawn as not open,
   // says Unknown, and both ends of its control act.
@@ -52,22 +48,21 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const colors = paint(access ? "state" : "energy", unav || access ? 0 : (0.6 * pos) / 100);
 
   const withPos = hasPosition(e);
-  const text = moving
-    ? `${e.state === "opening" ? "Opening" : "Closing"}${withPos ? ` · ${pos}%` : ""}`
-    : unknown ? "Unknown"
-    : !open ? "Closed" : !withPos || pos === 100 ? "Open" : `Open · ${pos}%`;
+  const word = coverWord(e);
+  const text = moving ? `${word}${withPos ? ` · ${pos}%` : ""}`
+    : unknown || !open || !withPos || pos === 100 ? word : `${word} · ${pos}%`;
   const stopping = moving && e.supportsStop;
   const orbAction = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
   const orbLabel = stopping ? `Stop ${e.name}` : e.name;
-  const warnedOpen = access && open && !moving;
+  // Core ranks it (a garage door, door or gate left open is advisory); the card draws the level it is given.
+  const warned = coverSeverity(e) != null;
   const identity = area ?? CLASS_LABEL[e.deviceClass];
-  const alertLabel = warnedOpen ? `Warning: ${e.name} has been open${e.lastChanged ? ` since ${e.lastChanged}` : ""}` : undefined;
+  const warning = warned ? leftOpenText(e.lastChanged) : undefined;
+  const alertLabel = warned ? `Warning: ${leftOpenSentence(e.name, e.lastChanged)}` : undefined;
 
-  // A door left open leads the status line in the warn colour, like a sensor's low battery.
-  const status = unav ? identity
-    : warnedOpen ? (compact ? identity : `Open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`)
-    : identity;
-  const areaText = sheet && area && !(access && open) ? `${area} · ${CLASS_LABEL[e.deviceClass]}` : status;
+  // A door left open leads the status line behind the warn marker in every footprint, in the words a garage door's
+  // binary sensor says it in (spec/orb.md → the warn colour); otherwise the room, and in the sheet what it is.
+  const areaText = sheet && area && !(access && open) ? `${area} · ${CLASS_LABEL[e.deviceClass]}` : identity;
 
   let slot;
   if (withPos && onSetPosition) {
@@ -77,20 +72,20 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   }
 
   // The compact value appears under the name, or in place of a hidden control.
-  const subText = unav ? "Unavailable" : text;
+  const subText = unav ? "Unavailable" : warning ?? text;
   return (
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-alert": warnedOpen ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, "data-alert": warned ? "warn" : undefined, ...colors }}
       orb={{ label: orbLabel, pressed: open && !unav, intensity: pos / 100, onToggle: orbAction, children: <CoverIcon kind={e.deviceClass} open={open} stop={stopping} /> }}
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
-      status={alertLabel ? <AlertStatus label={alertLabel}>{areaText}</AlertStatus> : areaText}
+      status={alertLabel ? <AlertStatus label={alertLabel}>{warning}</AlertStatus> : areaText}
       value={subText}
       alert={alertLabel}
-      readout={{ value: unav ? null : unknown ? "Unknown" : withPos && pos > 0 ? <>{pos}<span>%</span></> : open ? "Open" : "Closed", duplicate: true }}
+      readout={{ value: unav ? null : !unknown && withPos && pos > 0 ? <>{pos}<span>%</span></> : word, duplicate: true }}
       onClose={onClose}
       closeLabel={`Close ${e.name} details`}
       control={slot}
@@ -99,10 +94,10 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       {!unav && (
         <SheetBlock>
           {withPos && onSetPosition && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
-          {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLATS} value={e.tilt} onChange={onSetTilt} />}
+          {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLAT_POSITIONS} value={e.tilt} onChange={onSetTilt} />}
         </SheetBlock>
       )}
-      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={e.lastChanged ? `${unknown ? "Unknown" : open ? "Open" : "Closed"} since ${e.lastChanged}` : ""} />}
+      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={e.lastChanged ? `${moving ? (open ? "Open" : "Closed") : word} since ${e.lastChanged}` : ""} />}
     </CardFrame>
   );
 }

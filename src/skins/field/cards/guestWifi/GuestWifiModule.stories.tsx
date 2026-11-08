@@ -52,7 +52,7 @@ export const Ready: Story = {};
 export const InUse: Story = { name: "In use", args: { guestWifi: "shared" } };
 /** A network with a Wi-Fi password, kept in an `input_text`: shown as it is typed; New password asks first in the panel. */
 export const Password: Story = { args: { guestWifi: "password" } };
-/** Every code has been used: blank segments, and a new one is made in the panel. */
+/** Every code has been used: NONE in the dim ink, a known resting state, and a new one is made in the panel. */
 export const NoCode: Story = { name: "No code", args: { guestWifi: "none" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { guestWifi: "unavailable" } };

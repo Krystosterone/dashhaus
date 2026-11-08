@@ -89,10 +89,11 @@ describe("OwletModule", () => {
   it("names the next vitals alert on the second line, and lets the advisory battery step aside", () => {
     const { read, meta, line } = draw("critical");
     expect(read).toBe("79% O₂");
-    expect(meta).toEqual(["Critical", "Low heart rate"]);
+    // spec/cards.md → a warning's words fit a row (13 characters, `ALERT_WORD`); the details' list says each in full.
+    expect(meta).toEqual(["Critical", "Low pulse"]);
     // The battery is advisory: the alarm takes its place, and the panel still lists it.
     expect(line).toBe("Nursery");
-    expect(draw("critical", "compact").line).toBe("Warning: Critical oxygen +1");
+    expect(draw("critical", "compact").line).toBe("Warning: Critical O₂ +1");
   });
 
   it("says a switched-off base station in plain words in place of the area, behind any warning", () => {
@@ -106,16 +107,21 @@ describe("OwletModule", () => {
     expect(draw("unavailable", "compact").line).toBe("Nursery");
   });
 
-  it("blanks the screen while it reports nothing, and says why and when it was last seen", () => {
+  it("names its charger in the dim ink, blanks the screen out of reach, and says why and when it was last seen", () => {
     const { container, meta } = draw("charging");
-    expect(container.querySelector(".fd-module .fd-digits")?.getAttribute("data-pad")).toBe("---");
-    expect(meta).toEqual(["Charging", "Seen 07:12"]);
-    expect(draw("unavailable").meta).toEqual(["Unavailable", "Seen 10:42"]);
+    // spec/field.md → a known resting state is never blank, but its figure in the dim ink.
+    expect(container.querySelector(".fd-module .fd-read")?.textContent).toBe("DOCKCharging");
+    expect(container.querySelector(".fd-module")?.getAttribute("data-state")).toBe("charging");
+    // spec/cards.md → Field's meta line still says the core word: `lastSeenFact`'s "Last seen".
+    expect(meta).toEqual(["Charging", "Last seen 07:12"]);
+    const away = draw("unavailable");
+    expect(away.container.querySelector(".fd-module .fd-digits")?.getAttribute("data-pad")).toBe("---");
+    expect(away.meta).toEqual(["Unavailable", "Last seen 10:42"]);
     expect(container.querySelector(".fd-glyph")?.hasAttribute("data-unavailable")).toBe(true);
     // Today's legend says why it stopped, not a sleep total that stopped counting; the meter keeps the sleep so far.
     expect(screen.getByRole("img", { name: "Sleep by hour today. Charging." })).toBeTruthy();
     // A sock off its foot stops the monitoring: urgent, its block on the screen, when it was last seen beside it.
-    expect(draw("sockOff").meta).toEqual(["Warning: Sock off", "Seen 11:41"]);
+    expect(draw("sockOff").meta).toEqual(["Warning: Sock off", "Last seen 11:41"]);
   });
 
   it("leaves a low battery advisory, on the plate's line with its marker", () => {

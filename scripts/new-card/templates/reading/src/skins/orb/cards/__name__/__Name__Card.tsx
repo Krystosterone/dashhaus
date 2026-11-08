@@ -1,5 +1,6 @@
 import type { __Name__Entity, __Name__History } from "@dashhaus/core/entities/__name__/types";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { rangeSummary } from "@dashhaus/core/entities/today";
 import { fmt__Name__ as fmt, with__Name__Unit as withUnit } from "@dashhaus/core/entities/__name__/words";
 import { __Name__Icon } from "./icons";
 import { CardFrame, Readout, Today, normalizeReadings, paint, useCard, detailsSheet } from "../../shared/ui";
@@ -50,13 +51,13 @@ export function __Name__Card({ entity: e, history, variant, footprint, showContr
       onClose={onClose}
       control={card.sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
         : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: unav && e.area ? e.area : "" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated) }}
     >
       {series && (
         <Today
           samples={series.samples}
           currentHour={history!.currentHour}
-          summary={series.min == null || series.max == null ? "No readings yet today" : `Low ${withUnit(series.min, e.unit)} · High ${withUnit(series.max, e.unit)}`}
+          summary={rangeSummary(series.min, series.max, (v) => withUnit(v, e.unit))}
         />
       )}
     </CardFrame>

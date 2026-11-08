@@ -1,8 +1,9 @@
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { todaySummary } from "@dashhaus/core/entities/today";
+import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
 import { HeartIcon, OwletIcon } from "./icons";
-import { ALERT_WORD, SLEEP_FIGURE, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts } from "@dashhaus/core/entities/owlet/readings";
+import { ALERT_SAID, ALERT_WORD, CHARGING, SLEEP_FIGURE, SLEEP_FIGURE_UNKNOWN, SLEEP_UNKNOWN, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "@dashhaus/core/entities/owlet/readings";
+import { owletSeverity } from "@dashhaus/core/entities/owlet/severity";
 import { AlarmPill, AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
@@ -40,22 +41,24 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
   // else the card would show. A device problem, or readings that stopped, leads the status line with the warn
   // marker. Never a glow, and always in words.
   const { vitals, problems } = rankAlerts(e.alerts);
-  const vital = vitals[0];
-  const problem = problems[0];
   const stale = !offline && e.live === false;
-  const staleText = `No new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}`;
-  const staleTime = e.lastUpdated?.trim().split(/\s+/).at(-1);
-  // Narrow cards keep the time, the part users need, rather than clipping a day plus time mid-phrase.
-  const staleWords = <><span className="ow-st-l">{staleText}</span><span className="ow-st-s">{staleTime ? `Stopped ${staleTime}` : "Stopped"}</span></>;
-  const problemLabel = problem ? `Warning: ${ALERT_WORD[problem]} on ${e.name}'s sock` : stale ? `Warning: ${e.name}'s sock has sent no new reading${e.lastUpdated ? ` since ${e.lastUpdated}` : ""}` : null;
+  // Core ranks it (a vitals alert is the alarm, a stop in the monitoring urgent, a low battery advisory); the card
+  // draws the level it is given.
+  const level = owletSeverity(e.alerts, stale);
+  const vital = level === "alarm" ? vitals[0] : undefined;
+  const problem = problems[0];
+  // Readings that stopped, in a row's room ("Stopped 11:49"); the spoken label says it whole.
+  const staleWords = staleText(e.lastUpdated);
+  const problemLabel = problem ? `Warning: ${ALERT_SAID[problem]} on ${e.name}'s sock` : stale ? `Warning: ${e.name}'s sock has sent ${staleSaid(e.lastUpdated).toLowerCase()}` : null;
   const vitalFigure = !vital ? null : vital.endsWith("oxygen") ? (o2 != null ? `${fmtOxygen(o2)}% O₂` : null) : hr != null ? `${fmtBpm(hr)} bpm` : null;
   // The most urgent alert and its figure first, so an ellipsis only ever takes the others.
   const vitalText = vital ? [ALERT_WORD[vital], vitalFigure, ...vitals.slice(1).map((a) => ALERT_WORD[a])].filter(Boolean).join(" · ") : null;
+  const vitalSaid = vital ? [ALERT_SAID[vital], vitalFigure, ...vitals.slice(1).map((a) => ALERT_SAID[a])].filter(Boolean).join(" · ") : null;
 
-  const sleepWord = sleep ? SLEEP_WORD[sleep] : "Sleep state unknown";
+  const sleepWord = sleep ? SLEEP_WORD[sleep] : SLEEP_UNKNOWN;
   const readings = [hr != null ? `${fmtBpm(hr)} bpm` : null, o2 != null ? `${fmtOxygen(o2)}% O₂` : null].filter(Boolean).join(" · ");
   const figures = [hr != null ? `heart rate ${fmtBpm(hr)} beats per minute` : null, o2 != null ? `oxygen ${fmtOxygen(o2)} percent` : null].filter(Boolean).join(", ");
-  const vitalsSpoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleText.toLowerCase()}` : figures;
+  const vitalsSpoken = !figures ? "no reading yet" : e.live ? `live, ${figures}` : stale ? `${figures}, ${staleSaid(e.lastUpdated).toLowerCase()}` : figures;
   const spoken = `${sleepWord.toLowerCase()}, ${vitalsSpoken}`;
   // Off, the base sounds no alarm while the sock may still read: said in words, after any warning.
   const baseOff = e.baseOn === false;
@@ -66,15 +69,15 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
     : stale ? <AlertStatus label={problemLabel!}>{staleWords}</AlertStatus>
     : baseOff ? "Base station off"
     : null;
-  const status = offline ? (problem ? lead : e.charging ? "Charging" : "Unavailable")
-    // A compact row's alarm pill only has room for the alert's name, so the figures move up here.
-    : vital && compact && readings ? readings
+  // An alarm fills the slot with its alert and figure, in compact rows too; the status line keeps its plain words.
+  const status = offline ? (problem ? lead : e.charging ? CHARGING : "Unavailable")
     // After a warning a narrow compact row has room for the figure alone ("Stopped 11:49 · Deep"), not its phrase.
     : sleepInStatus ? (lead && sleep ? <>{lead} · <span className="ow-sl-l">{sleepWord}</span><span className="ow-sl-s">{SLEEP_FIGURE[sleep]}</span></> : <>{lead}{lead && " · "}{sleepWord}</>)
     : lead ?? area;
   // Under 320px a compact row keeps only this line, so it carries the alert, the sleep state and the readings.
-  const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? "Charging" : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "No reading yet"].filter(Boolean).join(" · ");
-  const sub = vitalText ? <AlertStatus label={`Alert: ${vitalText} on ${e.name}'s sock`}>{vitalText}</AlertStatus>
+  // Before a first reading the figures' place waits ("Waiting…"), as the readout does (spec/cards.md).
+  const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? CHARGING : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "Waiting…"].filter(Boolean).join(" · ");
+  const sub = vitalText ? <AlertStatus label={`Alert: ${vitalSaid} on ${e.name}'s sock`}>{vitalText}</AlertStatus>
     : problemLabel ? <AlertStatus label={problemLabel}>{subText}</AlertStatus>
     : subText;
 
@@ -82,7 +85,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
     <span className="hd-bar ow-bar">
       <span className="hd-metric ow-metric ow-metric--sleep">
         <span className="hd-label ow-label">Sleep</span>
-        {sleep ? <span className="ow-value ow-sleep">{SLEEP_FIGURE[sleep]}</span> : <span className="ow-sleep-none">Unknown</span>}
+        {sleep ? <span className="ow-value ow-sleep">{SLEEP_FIGURE[sleep]}</span> : <span className="ow-sleep-none">{SLEEP_FIGURE_UNKNOWN}</span>}
       </span>
       <span className="ow-vitals">
       {hr != null && (
@@ -98,15 +101,14 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
           <span className="ow-value">{fmtOxygen(o2)}<small>%<span className="ow-compact-unit"> O₂</span></small></span>
         </span>
       )}
-      {hr == null && o2 == null && <span className="hd-none">No reading yet</span>}
+      {hr == null && o2 == null && <span className="hd-none">Waiting…</span>}
       </span>
     </span>
   );
 
   const hrSeries = history?.heartRate ? normalize(history.heartRate) : null;
   const o2Series = history?.oxygen ? normalize(history.oxygen) : null;
-  const lowHigh = (s: { min: number | null; max: number | null }, unit: string) =>
-    s.min == null || s.max == null ? "No readings yet today" : `Low ${Math.round(s.min)}${unit} · High ${Math.round(s.max)}${unit}`;
+  const lowHigh = (s: { min: number | null; max: number | null }, unit: string) => rangeSummary(s.min, s.max, (v) => `${Math.round(v)}${unit}`);
   const alerts = [...vitals, ...problems];
 
   // "unknown" while the sock reads but has no sleep state: live readings, never dimmed like an unavailable card.
@@ -114,26 +116,29 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": offline ? "unavailable" : sleep ?? "unknown", "data-alert": vital ? "alarm" : problemLabel ? "warn" : undefined, "data-stale": stale ? "true" : undefined, ...colors }}
+      attrs={{ "data-state": offline ? "unavailable" : sleep ?? "unknown", "data-alert": level === "alarm" ? "alarm" : level ? "warn" : undefined, "data-stale": stale ? "true" : undefined, ...colors }}
       glyph={<OwletIcon off={offline} />}
       unavailable={offline}
       lastSeen={e.lastSeen}
+      // Home Assistant reports a charging sock unavailable: the dashed slot stays, and says why.
+      unavailableWord={e.charging ? CHARGING : undefined}
       onOpen={onOpenDetails}
       status={status}
       value={sub}
-      bareValue={offline ? subText : readings || "No reading yet"}
+      bareValue={offline ? subText : readings || "Waiting…"}
       onClose={onClose}
       urgent={vital ? (
         <AlarmPill alert={ALERT_WORD[vital]} more={vitals.length > 1 ? vitals.slice(1).map((a) => ALERT_WORD[a]).join(" · ") : undefined} value={vitalFigure} />
       ) : undefined}
       control={sheet || !onOpenDetails ? <Readout label={spoken}>{bar}</Readout>
         : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      facts={{ start: offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live), end: offline ? [e.charging ? "Charging" : null, e.area].filter(Boolean).join(" · ") : "" }}
+      // When first, then what the device is: on its charger, the reason it reports nothing.
+      facts={{ start: offline ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated, e.live), end: offline && e.charging ? CHARGING : "" }}
     >
       {sheet && alerts.length > 0 && (
         <section className="ow-alerts" aria-labelledby={`${nameId}-a`}>
           <h3 className="hd-blk-h" id={`${nameId}-a`}>Alerts</h3>
-          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={VITAL_ALERTS.has(a) ? "Alert" : "Warning"}>{ALERT_WORD[a]}</AlertStatus></li>)}</ul>
+          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={VITAL_ALERTS.has(a) ? "Alert" : "Warning"}>{ALERT_SAID[a]}</AlertStatus></li>)}</ul>
         </section>
       )}
 

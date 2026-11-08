@@ -1,4 +1,5 @@
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
+import { soundAbilities, soundWord } from "@dashhaus/core/entities/sound/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { SoundIcon } from "./icons";
@@ -30,7 +31,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
   // A state: on is the accent, with no glow. "energy" (bloom and glow) is for light, heat or daylight; see the attention-budget skill.
   const colors = paint("state", 0);
   // The control carries the state word; the status line never repeats it.
-  const word = unav ? "Unavailable" : on ? "On" : "Off";
+  const word = soundWord(e);
   // The pill's second voice: what tapping does, or how long it has been on.
   const cue = on ? sinceFact(e.lastChanged) : "Turn on";
   // With no room to name (a titled bundle's lid names it), the status line carries the volume instead.
@@ -54,7 +55,7 @@ export function SoundCard({ entity: e, history, variant, footprint, showControl,
       readout={e.volume != null && !unav ? { value: <>{e.volume}<span>%</span></> } : { value: unav ? null : word, duplicate: true }}
       onClose={onClose}
       control={<TogglePill label={`${e.name}: ${word}${cue ? ` · ${cue}` : ""}`} on={on} onToggle={onToggle} extra={cue}>{word}</TogglePill>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav && e.area ? e.area : "" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : soundAbilities(e) }}
     >
       {!unav && e.volume != null && onVolumeChange && (
         <SheetBlock>

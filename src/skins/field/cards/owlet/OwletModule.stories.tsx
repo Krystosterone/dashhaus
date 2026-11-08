@@ -67,7 +67,7 @@ export const LowOxygen: Story = { name: "Alert: low oxygen", args: { owlet: "low
 export const CriticalAlerts: Story = { name: "Alert: critical oxygen and low heart rate", args: { owlet: "critical" } };
 export const SockOff: Story = { name: "Problem: sock off", args: { owlet: "sockOff" } };
 export const LowBattery: Story = { name: "Problem: battery low", args: { owlet: "lowBattery" } };
-/** On its charger the sock reports nothing, and says why. */
+/** On its charger the sock reports nothing, and says why: DOCK in the dim ink, a known resting state, never blank segments. */
 export const Charging: Story = { args: { owlet: "charging" } };
 /** Blank segments and when it was last seen; today's sleep so far stays. */
 export const Unavailable: Story = { args: { owlet: "unavailable" } };

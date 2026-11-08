@@ -1,3 +1,5 @@
+import { leftOpenSentence, leftOpenText } from "../cover/words";
+import { WARNING_WORD_MAX } from "../severity";
 import type { BinarySensorClass, BinarySensorEntity } from "./types";
 
 /**
@@ -72,8 +74,8 @@ export const ALERT_WORDS: Partial<Record<BinarySensorClass, string>> = {
   garage_door: "Open",
 };
 
-/** The longest a warning's words may be (`ALERT_WORDS`): what a 340 px row's warning line holds whole. */
-export const ALERT_WORD_MAX = 13;
+/** The longest a warning's words may be (`ALERT_WORDS`): every card's `WARNING_WORD_MAX`. */
+export const ALERT_WORD_MAX = WARNING_WORD_MAX;
 
 /** A class's warning said in full, for a screen reader: "Carbon monoxide detected". */
 export const ALERT_SPOKEN: Partial<Record<BinarySensorClass, string>> = {
@@ -103,7 +105,7 @@ const SINCE_ALERTS: ReadonlySet<BinarySensorClass> = new Set(["garage_door"]);
  */
 export function alertText(e: Pick<BinarySensorEntity, "state" | "deviceClass" | "lastChanged">): string | undefined {
   const word = alertWord(e);
-  return word && e.deviceClass && SINCE_ALERTS.has(e.deviceClass) && e.lastChanged ? `${word} since ${e.lastChanged}` : word;
+  return word && e.deviceClass && SINCE_ALERTS.has(e.deviceClass) ? leftOpenText(e.lastChanged) : word;
 }
 
 /**
@@ -112,7 +114,7 @@ export function alertText(e: Pick<BinarySensorEntity, "state" | "deviceClass" | 
  */
 export function alertSentence(e: Pick<BinarySensorEntity, "state" | "deviceClass" | "lastChanged" | "name">): string | undefined {
   if (!alertWord(e) || !e.deviceClass) return undefined;
-  if (SINCE_ALERTS.has(e.deviceClass)) return `${e.name} has been open${e.lastChanged ? ` since ${e.lastChanged}` : ""}`;
+  if (SINCE_ALERTS.has(e.deviceClass)) return leftOpenSentence(e.name, e.lastChanged);
   return `${ALERT_SPOKEN[e.deviceClass]} at ${e.name}`;
 }
 

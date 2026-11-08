@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { todaySummary } from "./today";
+import { NO_READINGS_TODAY, rangeSummary, todaySummary } from "./today";
+
+describe("rangeSummary", () => {
+  it("says the day's low and high in the figures' own format, or that there are none yet", () => {
+    expect(rangeSummary(18.2, 21, (t) => `${t}°`)).toBe("Low 18.2° · High 21°");
+    expect(rangeSummary(null, 21, String)).toBe(NO_READINGS_TODAY);
+    expect(NO_READINGS_TODAY).toBe("No readings yet");
+  });
+});
 
 describe("todaySummary", () => {
   it("says how long it was in its state today", () => {

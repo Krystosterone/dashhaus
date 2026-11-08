@@ -56,7 +56,8 @@ describe("WeatherModule", () => {
   it("blanks the screen while unavailable, with when it was last seen, and keeps what today read", () => {
     const el = draw(WEATHER_SEEDS.unavailable);
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
-    expect(el.querySelector(".fd-meta")?.textContent).toBe("UnavailableSeen 08:20");
+    // spec/cards.md → Field's meta line still says the core word: `lastSeenFact`'s "Last seen".
+    expect(el.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
     expect(el.querySelector(".fd-screen .fd-pict")?.getAttribute("data-lit")).toBe("false");
     expect(el.querySelector(".fd-wx-row .fd-legend-v")?.textContent).toBe("2°–3°");
     expect(el.querySelectorAll(".fd-meter-h[data-state='unav']").length).toBeGreaterThan(0);
@@ -65,7 +66,8 @@ describe("WeatherModule", () => {
   it("says when no temperature has arrived, in blank segments", () => {
     const el = draw(WEATHER_WORST_CASE[1]);
     expect(el.querySelector(".fd-digits")?.getAttribute("data-pad")).toBe("----");
-    expect(el.querySelector(".fd-meta")?.textContent).toBe("FogNo temperature yet");
+    // spec/cards.md → before a first value, every reading says the same words.
+    expect(el.querySelector(".fd-meta")?.textContent).toBe("FogNo reading yet");
   });
 
   it("opens the panel from the name: feels-like on the second channel, every warning, the forecasts, every reading", () => {

@@ -1,8 +1,11 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
+import { batteryAdvice, batterySaid, batteryText } from "@dashhaus/core/entities/battery";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
-import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, lowBattery as isLowBattery, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
+import { sensorSeverity } from "@dashhaus/core/entities/sensor/severity";
+import { rangeSummary } from "@dashhaus/core/entities/today";
+import { toCelsius, comfortLabel, trendOf, normalize, fmtTemp, fmtHum, TREND_WORD, IconThermo, IconThermoOff } from "./readings";
 import { AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./SensorCard.css";
@@ -37,9 +40,10 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   const colors = paint("reading", 0);
 
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
-  const lowBattery = isLowBattery(e);
-  const batteryText = lowBattery ? `Battery ${e.battery}%` : null;
-  const alertLabel = batteryText ? `Warning: ${batteryText} on ${e.name}, replace soon` : null;
+  // Core ranks it: a low battery is advisory, the device's; the card draws the level it is given.
+  const lowBattery = sensorSeverity(e) === "advisory";
+  const batteryWarning = lowBattery ? batteryText(e.battery!) : null;
+  const alertLabel = lowBattery ? `Warning: ${batterySaid(e.battery!, e.name)}` : null;
   const comfort = comfortLabel(tC, h, e.outdoor);
   const readout = [t != null ? `${fmtTemp(t)}°` : null, h != null ? `${fmtHum(h)}%` : null].filter(Boolean).join(" · ");
   // In the sheet the large figure says the temperature, so it is spoken there and the readings below keep the humidity.
@@ -48,8 +52,8 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
 
   // Status line, most important first: a low battery, then comfort (or the location for outdoor sensors).
   // Trend is its own low-priority phrase so a narrow card can remove it cleanly instead of clipping a word.
-  const statusParts: ReactNode[] = unav ? ["Unavailable"] : empty ? [batteryText, "No reading yet"].filter(Boolean) : [
-    batteryText,
+  const statusParts: ReactNode[] = unav ? ["Unavailable"] : empty ? [batteryWarning, "No reading yet"].filter(Boolean) : [
+    batteryWarning,
     sheet && area && !e.outdoor ? area : null,
     lowBattery ? null : e.outdoor ? area ?? "Outside" : comfort,
   ].filter(Boolean);
@@ -75,8 +79,9 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
   const tempSeries = history ? normalize(history.temperature) : null;
   const humSeries = history?.humidity ? normalize(history.humidity) : null;
 
-  // The compact value appears under the name, or in place of a hidden reading.
-  const subText = unav ? "Unavailable" : batteryText ?? (empty ? "No reading yet" : readout);
+  // The compact value appears under the name, or in place of a hidden reading: a figure's place, so before the first
+  // value it waits, as the readout does, while the status line says "No reading yet" (spec/cards.md).
+  const subText = unav ? "Unavailable" : batteryWarning ?? (empty ? "Waiting…" : readout);
   return (
     <CardFrame
       card={card}
@@ -94,19 +99,23 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
       slot={!(sheetFigure && h == null)}
       control={sheet || !onOpenDetails ? <Readout label={sheetFigure ? `humidity ${fmtHum(h!)} percent` : spoken}>{bar}</Readout>
         : <Readout label={`${e.name}: ${spoken}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      facts={{ start: e.battery != null ? `Battery ${e.battery}%${lowBattery ? ", replace soon" : ""}` : "", end: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), warn: lowBattery }}
+      // When first, then what the device is: its battery, a low one in the warn ink of its own end.
+      facts={{
+        start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated),
+        end: e.battery == null ? "" : lowBattery ? <span className="hd-warn">{batteryAdvice(e.battery)}</span> : batteryText(e.battery),
+      }}
     >
       {tempSeries && (
         <Today
           title={sheet ? "Temperature today" : "Today"}
           samples={tempSeries.samples}
           currentHour={history!.currentHour}
-          summary={tempSeries.min == null || tempSeries.max == null ? "No readings yet today" : `Low ${fmtTemp(tempSeries.min)}° · High ${fmtTemp(tempSeries.max)}°`}
+          summary={rangeSummary(tempSeries.min, tempSeries.max, (v) => `${fmtTemp(v)}°`)}
         />
       )}
       {humSeries && (
         <SheetBlock>
-          <TodayStrip title="Humidity today" samples={humSeries.samples} currentHour={history!.currentHour} summary={humSeries.min == null || humSeries.max == null ? "No readings yet today" : `Low ${fmtHum(humSeries.min)}% · High ${fmtHum(humSeries.max)}%`} />
+          <TodayStrip title="Humidity today" samples={humSeries.samples} currentHour={history!.currentHour} summary={rangeSummary(humSeries.min, humSeries.max, (v) => `${fmtHum(v)}%`)} />
         </SheetBlock>
       )}
     </CardFrame>

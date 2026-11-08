@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import type { SensorEntity, SensorHistory } from "@dashhaus/core/entities/sensor/types";
-import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, lowBattery, normalize, toCelsius, trendOf } from "@dashhaus/core/entities/sensor/readings";
+import { TREND_WORD, comfortLabel, fmtHum, fmtTemp, normalize, toCelsius, trendOf } from "@dashhaus/core/entities/sensor/readings";
+import { sensorSeverity } from "@dashhaus/core/entities/sensor/severity";
+import { batteryAdvice, batteryText } from "@dashhaus/core/entities/battery";
+import { NO_READINGS_TODAY, rangeSummary } from "@dashhaus/core/entities/today";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { Blank, Digits, Glyph, ModuleFrame, Pictogram, Today, Warn, useDetails, Temperature, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -33,7 +36,8 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
   const h = unav ? undefined : e.humidity;
   // The figure: the temperature, or the humidity of a sensor that only has that.
   const humidityOnly = t == null && h != null;
-  const battery = lowBattery(e) ? `Battery ${e.battery}%` : undefined;
+  // Core ranks it: a low battery is advisory, the device's, on the plate's line.
+  const battery = sensorSeverity(e) === "advisory" ? batteryText(e.battery!) : undefined;
   const comfort = comfortLabel(t != null ? toCelsius(t, e.unit) : undefined, h, e.outdoor);
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
   const day = history ? normalize(history.temperature) : null;
@@ -48,7 +52,7 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
 
   // Most important first; the screen has room for two.
   const lines: ReactNode[] = unav
-    ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : null]
+    ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : null]
     : [
       t == null && h == null ? "No reading yet" : null,
       t != null && h != null ? `${fmtHum(h)}% RH` : humidityOnly ? "Humidity" : null,
@@ -59,7 +63,7 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
   const meta: [ReactNode, ReactNode?] | undefined = first ? [first, second] : undefined;
 
   const fmt = humidityOnly ? (x: number) => `${fmtHum(x)}%` : (x: number) => `${fmtTemp(x)}°`;
-  const range = day && day.min != null && day.max != null ? { short: `${fmt(day.min)}–${fmt(day.max)}`, long: `Low ${fmt(day.min)} · High ${fmt(day.max)}` } : undefined;
+  const range = day && day.min != null && day.max != null ? { short: `${fmt(day.min)}–${fmt(day.max)}`, long: rangeSummary(day.min, day.max, fmt) } : undefined;
   const what = humidityOnly ? "Humidity" : "Temperature";
 
   const glyph = <Glyph unavailable={unav}><IconThermo /></Glyph>;
@@ -68,14 +72,13 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
   // today's temperature and humidity, then the battery and when it last reported.
   const channel = !unav && e.temperature != null && h != null;
   const humidity = history?.humidity ? normalize(history.humidity) : null;
-  const humidityRange = humidity && humidity.min != null && humidity.max != null ? `Low ${fmtHum(humidity.min)}% · High ${fmtHum(humidity.max)}%` : undefined;
+  const humidityRange = humidity && humidity.min != null && humidity.max != null ? rangeSummary(humidity.min, humidity.max, (x) => `${fmtHum(x)}%`) : undefined;
 
   const aside = channel ? (
     <Channel pict={<Pictogram param="neutral" lit level={h / 100}>{DROP}</Pictogram>} sub="Humidity"><Digits value={h} /><small>%</small></Channel>
   ) : undefined;
 
   const reported = unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated);
-  const power = e.battery != null && !battery ? `Battery ${e.battery}%` : "";
 
   return (
     <ModuleFrame
@@ -97,12 +100,14 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
         </ModuleRow>
       )}
       aside={aside}
-      facts={{ start: battery ? <Warn>{battery}, replace soon</Warn> : unav ? "" : [comfort, trend && TREND_WORD[trend]].filter(Boolean).join(" · "), end: [power, reported].filter(Boolean).join(" · ") }}
+      // When first, then what the device is: its battery, a low one behind the marker. Comfort and trend are the
+      // screen's meta lines, not small print.
+      facts={{ start: reported, end: e.battery == null || unav ? "" : battery ? <Warn>{batteryAdvice(e.battery)}</Warn> : batteryText(e.battery) }}
     >
       {history && day?.samples && (
         <Today
           legend={`${what} today`}
-          summary={range?.long ?? (unav ? undefined : "No readings yet")}
+          summary={range?.long ?? (unav ? undefined : NO_READINGS_TODAY)}
           label={`${what} by hour today.`}
           tone="neutral"
           samples={day?.samples}
@@ -112,7 +117,7 @@ export function SensorModule({ entity: e, footprint = "standard", history, defau
       {humidity && (
         <Today
           legend="Humidity today"
-          summary={humidityRange ?? (unav ? undefined : "No readings yet")}
+          summary={humidityRange ?? (unav ? undefined : NO_READINGS_TODAY)}
           label="Humidity by hour today."
           tone="neutral"
           samples={humidity.samples}

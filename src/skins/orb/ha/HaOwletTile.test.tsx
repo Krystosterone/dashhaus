@@ -52,14 +52,16 @@ describe("HaOwletTile", () => {
     expect(screen.queryByRole("alert")).toBeNull();
     view.unmount();
     renderConnected(<HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" alertEntityIds={{ high_heart_rate: "binary_sensor.nursery_panic" }} />, raw);
-    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("High heart rate133 bpm"));
+    // spec/cards.md → a warning's words fit a row: 13 characters at most.
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("High pulse133 bpm"));
   });
 
   it("says Charging from the charging sensor", async () => {
     const charging = { [`binary_sensor.owlet_sock_ac0_charging`]: sensor("binary_sensor.owlet_sock_ac0_charging", "on", "Charging") };
     const offline = Object.fromEntries([`${BASE}_sleep_state`, `${BASE}_heart_rate`, `${BASE}_o2_saturation`].map((id) => [id, { ...raw[id], state: "unavailable" }]));
     renderConnected(<HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" />, { ...raw, ...offline, ...charging });
-    await waitFor(() => expect(screen.getByText("Charging")).toBeTruthy());
+    await waitFor(() => expect(screen.getAllByText("Charging").length).toBeGreaterThan(0));
+    expect(screen.queryByText("Unavailable")).toBeNull();
   });
 
   it("names the sock after its device by default", async () => {

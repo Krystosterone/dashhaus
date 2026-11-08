@@ -124,7 +124,7 @@
   .al:not(.hd--compact) .hd-slot:has(.al-sw[data-crowd]) .al-st--open { display: flex; }
 }
 /* ---------- Countdown: exit delay (arming) or entry delay (pending) ---------- */
-.al-cd, .al-alarm {
+.al-cd {
   position: relative; display: flex; align-items: center; gap: 10px; height: var(--slot-h); min-width: 0;
   padding: 0 var(--inset) 0 var(--pad-in); border-radius: 99px; overflow: hidden; font-variant-numeric: tabular-nums;
 }
@@ -140,11 +140,8 @@
 }
 .al-cd-b:active { scale: 0.95; }
 .al-cd-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-/* Entry delay: someone came in and the alarm is about to go off. Warn, tinted. */
-.al-cd[data-kind="pending"] { background: color-mix(in oklab, var(--warn) 14%, var(--card-solid)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 45%, transparent); }
-.al-cd[data-kind="pending"] .al-cd-fill { background: color-mix(in oklab, var(--warn) 20%, transparent); }
-/* Warn on its own warn tint (and the elapsed fill) falls under 4.5:1; pulled toward --ink it holds. */
-.al-cd[data-kind="pending"] :is(.al-cd-l, .al-cd-t) { color: color-mix(in oklab, var(--warn) 65%, var(--ink)); }
+/* Entry delay: urgent, so the warn marker leads the status line and the countdown keeps the arming countdown's own
+   ink and fill, never a second warn channel (spec/orb.md → the warn colour). */
 /* No timer (the delay's length isn't known): a soft band sweeps instead of the fill.
    Where the label won't fit (S or compact), the status line already says it; the action keeps its place on the right. */
 .al-cd-wait {
@@ -153,41 +150,24 @@
   animation: al-sweep 1.8s var(--ease-in-out) infinite;
 }
 @keyframes al-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
-.al-cd[data-kind="pending"] .al-cd-wait { background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--warn) 22%, transparent), transparent); }
 .al .al-cd:not([data-timed]) { justify-content: flex-end; }
 .al-cd:not([data-timed]) .al-cd-l { margin-right: auto; }
 /* Nothing to press (disarming): the words, centred, at every size */
 .al .al-cd:not([data-timed]):not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); }
 .al-cd:not([data-timed]):not(:has(.al-cd-b)) .al-cd-l { display: block !important; flex: none; margin: 0; }
 /* Narrow: the time and the button; the words are in the status line */
-@container hd (max-width: 259px) { .al-cd-l { display: none; } .al-cd, .al-alarm { justify-content: space-between; padding-left: var(--pad-in); } }
+@container hd (max-width: 259px) { .al-cd-l { display: none; } .al-cd { justify-content: space-between; padding-left: var(--pad-in); } }
 .hd--compact .al-cd-l { display: none; }
 .hd--compact .al-cd { justify-content: space-between; padding-left: var(--pad-in); }
 .hd--compact .al-cd-b { height: var(--slot-h); font-size: 12.5px; }
 
-/* ---------- Triggered: the one place warn fills ---------- */
-/* The pulse deepens the fill under the text instead of fading the pill: fading toward the card took
-   --on-warn under 4.5:1, while warn pulled toward --ink only moves away from it, in either theme. */
-.al-alarm { background: var(--warn); color: var(--on-warn); isolation: isolate; }
-.al-alarm::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-  background: color-mix(in oklab, var(--warn) 78%, var(--ink)); opacity: 0;
-  animation: al-pulse 1.4s var(--ease-in-out) infinite alternate;
-}
-@keyframes al-pulse { to { opacity: 1; } }
-.al-alarm-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
-.al-alarm-l b { font-weight: 700; }
+/* ---------- Triggered: the shared AlarmPill (hd-alarm in shared/card.css), the one place warn fills ---------- */
+/* Its Disarm: the countdown's button, on the card surface so it reads on the warn fill. */
 .al-alarm-b { background: var(--card-solid); color: var(--ink); }
-@container hd (max-width: 259px) { .al-alarm-c { display: none; } }
-.hd--compact .al-alarm-l { display: none; }
 /* View only: a countdown with nothing to press keeps its right padding; where the label hides, the time centres */
 .al-cd[data-timed]:not(:has(.al-cd-b)) { padding-right: 16px; }
 .hd--compact .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); }
 @container hd (max-width: 259px) { .al-cd[data-timed]:not(:has(.al-cd-b)) { justify-content: center; padding: 0 var(--pad-in); } }
-/* With no Disarm to show (view only), the pill says Alarm at every size */
-.hd--compact .al-alarm:not(:has(.al-alarm-b)) .al-alarm-l { display: inline; }
-.al-alarm:not(:has(.al-alarm-b)) { padding-right: 16px; }
-.hd--compact .al-alarm { justify-content: flex-end; }
 
 /* ---------- Sheet: open doors and windows ---------- */
 /* The keypad is the shared Keypad (shared/card.css). */
@@ -196,7 +176,6 @@
 @keyframes al-wait { to { opacity: 0.35; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .al-alarm::before { animation: none; }
   /* Gentler, not gone: the sweep becomes a slow fade in place */
   .al-cd-wait { left: 30%; animation: al-wait 1.4s var(--ease-in-out) infinite alternate; }
   .al-thumb { transition: background-color 200ms var(--ease-out); }

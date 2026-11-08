@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
+import { soundAbilities, soundWord } from "@dashhaus/core/entities/sound/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, useDetails, Channel } from "../../shared/ui";
@@ -40,14 +41,14 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
   const pict = <Pictogram level={volume == null ? 1 : volume / 100} lit={on} param={volume != null ? "a" : "neutral"}>{SPEAKER}</Pictogram>;
   const read: ReactNode = unav ? <Blank label="Unavailable" /> : !on ? "OFF" : volume != null ? <Volume value={volume} /> : "ON";
   const since = sinceFact(e.lastChanged);
-  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? `Seen ${e.lastSeen}` : undefined]
-    : on && volume != null ? ["Playing", since]
+  const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
+    : on && volume != null ? [soundWord(e), since]
     : !on && volume != null ? [`Volume ${volume}%`, since]
     : since ? [since]
     : undefined;
   // Square at the head of a compact row; across the row with its state word, which unavailable has none of.
   const key = (wide: boolean) => (
-    <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}>
+    <Key label={e.name} pressed={on} unavailable={unav} onPress={onToggle} onHold={details.openDetails} wide={wide} caption={wide && !unav ? soundWord(e) : undefined}>
       <IconSound />
     </Key>
   );
@@ -76,7 +77,7 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
       lead={key(false)}
       controls={() => key(true)}
       aside={aside}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : volume != null ? "On / off, volume" : "On / off" }}
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : soundAbilities(e) }}
     >
       {volume != null && onVolumeChange && (
         <Fader

@@ -1,6 +1,6 @@
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { percentOf, speedText } from "@dashhaus/core/entities/fan/speed";
-import { DIRECTION_LABEL, fanAbilities, fanMode, presetLabel } from "@dashhaus/core/entities/fan/labels";
+import { DIRECTION_LABEL, OSCILLATION, fanAbilities, fanMode, fanWord, presetLabel } from "@dashhaus/core/entities/fan/labels";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { FanIcon } from "./icons";
@@ -25,7 +25,6 @@ export interface FanCardProps extends CardProps {
   onDirectionChange?: (direction: FanDirection) => void;
 }
 
-const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;
 const DIRECTIONS = (["forward", "reverse"] as const).map((value) => ({ value, label: DIRECTION_LABEL[value] }));
 
 /**
@@ -46,7 +45,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
   const groove = !!(e.supportsSpeed && count >= 2 && onPercentageChange);
   const speed = on && e.supportsSpeed && e.percentage != null && count >= 2 ? speedText(e.percentage, count) : null;
   // The state word, once: the groove or the pill carries it, the compact row says it under the name.
-  const word = unav ? "Unavailable" : !on ? "Off" : speed ?? "On";
+  const word = fanWord(e, speed);
   // The pill's second voice: what tapping does, or how long it has run.
   const cue = on ? sinceFact(e.lastChanged) : "Turn on";
   // The status line names what it runs as, after the room: its preset, or that it sweeps.
@@ -84,7 +83,7 @@ export function FanCard({ entity: e, history, variant, footprint, showControl, o
             <ChoiceChips id={`${uid}-p`} label="Preset" options={e.presetModes.map((p) => ({ value: p, label: presetLabel(p) }))} value={e.presetMode} onChange={onPresetChange} />
           )}
           {e.supportsOscillate && onOscillateChange && (
-            <ChoiceChips id={`${uid}-o`} label="Oscillation" options={[...ON_OFF]} value={e.oscillating == null ? null : e.oscillating ? "on" : "off"} onChange={(v) => onOscillateChange(v === "on")} />
+            <ChoiceChips id={`${uid}-o`} label="Oscillation" options={[...OSCILLATION]} value={e.oscillating == null ? null : e.oscillating ? "on" : "off"} onChange={(v) => onOscillateChange(v === "on")} />
           )}
           {e.supportsDirection && onDirectionChange && (
             <ChoiceChips id={`${uid}-d`} label="Direction" options={DIRECTIONS} value={e.direction} onChange={onDirectionChange} />

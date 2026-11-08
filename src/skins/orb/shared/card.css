@@ -216,9 +216,14 @@
 .hd-alarm-l b { font-weight: 700; }
 .hd-alarm-v { flex: none; font-size: 14px; font-weight: 700; }
 @container hd (max-width: 259px) { .hd-alarm-c { display: none; } }
-.hd--compact .hd-alarm { padding: 0 var(--pad-in); }
+/* A compact row's pill is a control's width: a tighter gap keeps a warning's whole word (13 characters) beside its figure. */
+.hd--compact .hd-alarm { gap: 8px; padding: 0 10px; }
 .hd--compact .hd-alarm-l, .hd--compact .hd-alarm-v { font-size: 12.5px; }
 .hd--compact .hd-alarm-c { display: none; }
+/* With an action (a security alarm's Disarm) the pill keeps the button's inset on the right; a compact row has room
+   for the alert and the action, not the time between them. */
+.hd-alarm[data-action] { padding-right: var(--inset); }
+.hd--compact .hd-alarm[data-action] .hd-alarm-v { display: none; }
 
 /* Readout: a reading's figures with no container, so nothing that can't be pressed looks pressable.
    Tapping it still opens details. */
