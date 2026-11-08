@@ -88,6 +88,13 @@ describe("parseFieldConfig: a module's keys", () => {
     ]);
   });
 
+  it("names the numeric module as the one a warning limit belongs to, on a sensor listed on its own", () => {
+    expect(problems({ cards: [{ entity: "sensor.office_co2", warn_above: 1200 }, { entity: "sensor.office_co2", card: "sensor", warn_below: 400 }] })).toEqual([
+      'cards[0] (sensor.office_co2): "warn_above" is the numeric module\'s: add card: numeric',
+      'cards[1] (sensor.office_co2): unknown key "warn_below"',
+    ]);
+  });
+
   it("says why show_control and a bundle are the main card's", () => {
     expect(problems({ cards: [{ entity: "light.lamp", show_control: true }, { bundle: "joined", cards: ["light.a", "light.b"] }] })).toEqual([
       'cards[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',
