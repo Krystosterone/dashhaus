@@ -15,6 +15,7 @@ import { createDemoMediaPlayerHaTransport } from "./mediaPlayer";
 import { createDemoNumericHaTransport } from "./numeric";
 import { createDemoVacuumHaTransport } from "./vacuum";
 import { createDemoCalendarHaTransport } from "./calendar";
+import { createDemoSunHaTransport } from "./sun";
 // new-card: house imports
 import type { HaTransport, HassEntities } from "../ha/types";
 
@@ -43,6 +44,7 @@ export function createDemoHouseTransport(): HaTransport {
     createDemoNumericHaTransport(),
     createDemoVacuumHaTransport(),
     createDemoCalendarHaTransport(),
+    createDemoSunHaTransport(),
     // new-card: house parts
   ];
   const latest: HassEntities[] = parts.map(() => ({}));

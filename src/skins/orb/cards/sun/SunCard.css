@@ -1,0 +1,48 @@
+/* Sun card. Shell, header, bare icon, readout, metrics, blocks and sheet come from shared/card.css. Classes here start
+   with su-; colours only from tokens.css. A reading: it never glows. */
+
+/* The figure, what comes next on the 24-hour clock, in the shared large-readout voice (hd-metric-n); up or down all
+   day says it in words (hd-metric-w). The other event sits in the second track under its caption. */
+.su-f { overflow: hidden; text-overflow: ellipsis; }
+.hd--sheet .su-f { font-size: 40px; font-weight: var(--type-readout-weight); letter-spacing: -0.04em; line-height: 1; }
+@container hd (min-width: 260px) {
+  .su:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
+}
+/* A compact row keeps the figure alone: its status line already counts down to it. */
+.hd--compact .su-after { display: none; }
+
+/* Today's path: only on the featured card and in the sheet. */
+.su:not(.hd--featured):not(.hd--sheet) .su-path { display: none; }
+.su-path { grid-template-rows: auto minmax(0, 1fr); min-height: 0; }
+.hd--sheet .su-plot { height: 96px; }
+.su-plot { position: relative; min-height: 56px; margin-bottom: 16px; }
+.su-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.su-plot path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.su-hz { stroke: var(--line); stroke-width: 1; }
+/* The day so far in ink, the rest of it lighter, as the calendar draws its hours ahead; the night a thinner, fainter
+   line. Never dashed: in Orb a dashed line means unavailable and nothing else. */
+.su-line[data-part="past"] { stroke: var(--ink); stroke-width: 2; }
+.su-line[data-part="ahead"] { stroke: var(--tick); stroke-width: 2; }
+.su-line[data-part="night"] { stroke: var(--tick); stroke-width: 1.25; opacity: 0.6; }
+.su-plot[data-unavailable] .su-line { opacity: 0.45; }
+
+/* Today's sunrise and sunset: a tick on the horizon, the time under it. */
+.su-mark { position: absolute; left: var(--x); top: var(--y); width: 1.5px; height: 8px; margin: -4px 0 0 -0.75px; background: var(--ink-3); }
+.su-mark-t {
+  position: absolute; top: 12px; left: 50%; translate: -50% 0;
+  font-size: 11.5px; font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* Now: the accent's stick, as the Today strip's now is; the sun a ring on its path, a readout and not a button. */
+.su-now { position: absolute; left: var(--x); top: 0; bottom: 0; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--accent-strong); }
+.su-sun {
+  position: absolute; left: var(--x); top: var(--y); width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%; background: var(--card-solid); box-shadow: inset 0 0 0 2px var(--ink-3);
+}
+.su-sun[data-up] { box-shadow: inset 0 0 0 2px var(--ink); }
+
+/* The sheet's list of what comes next: the event, then when, the one the card leads with in ink. */
+.su-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.su-ev { display: flex; justify-content: space-between; gap: 12px; min-width: 0; font-size: 14px; }
+.su-ev-n { font-weight: 600; color: var(--ink-2); }
+.su-ev-t { font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.su-ev[data-lead] :is(.su-ev-n, .su-ev-t) { color: var(--ink); font-weight: 700; }

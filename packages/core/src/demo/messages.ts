@@ -118,7 +118,15 @@ export function demoHistoryDuringPeriod(entities: HassEntities, entityIds: reado
   return result;
 }
 
-/** Handle the generic websocket commands a demo transport supports: history reads and the registries. */
+/**
+ * The demo home's location, `get_config`'s: Montréal's latitude, and the longitude whose solar noon is the local
+ * zone's midday, so the sun rises and sets at believable local times wherever the stories are drawn.
+ */
+export function demoConfig() {
+  return { location_name: "Home", latitude: 45.5, longitude: -new Date().getTimezoneOffset() / 4 };
+}
+
+/** Handle the generic websocket commands a demo transport supports: history reads, the registries and the configuration. */
 export async function demoSendMessage(
   entities: HassEntities,
   type: string,
@@ -133,5 +141,6 @@ export async function demoSendMessage(
   if (type === "config/device_registry/list") return demoDeviceRegistry();
   if (type === "config/area_registry/list") return demoAreaRegistry();
   if (type === "config/floor_registry/list") return demoFloorRegistry();
+  if (type === "get_config") return demoConfig();
   throw new Error(`Unsupported demo command: ${type}`);
 }

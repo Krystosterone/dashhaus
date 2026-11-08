@@ -18,4 +18,5 @@ export * from "./mediaPlayer";
 export * from "./numeric";
 export * from "./vacuum";
 export * from "./calendar";
+export * from "./sun";
 // new-card: demo transports

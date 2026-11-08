@@ -982,6 +982,53 @@
     ],
     "fixtureId": "switch.bedroom"
   },
+  "sun": {
+    "name": "sun",
+    "Name": "Sun",
+    "CONST": "SUN",
+    "words": "sun",
+    "Label": "Sun",
+    "domains": [
+      "sun"
+    ],
+    "kind": "reading",
+    "actions": [],
+    "guarded": [],
+    "leftOut": [],
+    "levels": [],
+    "choices": [],
+    "switches": [],
+    "history": true,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "up",
+      "nextRising",
+      "nextSetting",
+      "nextDawn",
+      "nextDusk",
+      "nextNoon",
+      "elevation",
+      "azimuth",
+      "now",
+      "lastUpdated",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "daylight",
+    "samples": true,
+    "summary": "stateWords(e.state)",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "sun.sun"
+  },
   "toggle": {
     "name": "toggle",
     "Name": "Toggle",

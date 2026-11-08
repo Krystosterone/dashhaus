@@ -157,6 +157,7 @@ export type FieldKind =
   | "numeric"
   | "vacuum"
   | "calendar"
+  | "sun"
   // new-card: kinds
   ;
 
@@ -193,6 +194,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   numeric: { domains: ["sensor"] },
   vacuum: { domains: ["vacuum"] },
   calendar: { domains: ["calendar"] },
+  sun: { domains: ["sun"] },
   // new-card: field kinds
 };
 

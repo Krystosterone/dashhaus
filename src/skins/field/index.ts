@@ -98,5 +98,9 @@ export { CalendarModule } from "./cards/calendar/CalendarModule";
 export type { CalendarModuleProps } from "./cards/calendar/CalendarModule";
 export { HaCalendarModule } from "./ha/HaCalendarModule";
 export type { HaCalendarModuleProps } from "./ha/HaCalendarModule";
+export { SunModule } from "./cards/sun/SunModule";
+export type { SunModuleProps } from "./cards/sun/SunModule";
+export { HaSunModule } from "./ha/HaSunModule";
+export type { HaSunModuleProps } from "./ha/HaSunModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

@@ -1,0 +1,89 @@
+---
+title: Sun
+description: "When the sun next sets or rises, and its path through today: Home Assistant's sun.sun."
+kind:
+  group: Readings
+  order: 6
+  summary: "When the sun next sets or rises, and its path through today."
+  with: "today's path, worked out from your home's location"
+  reading: true
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+Home Assistant's `sun.sun`, from its Sun integration: whether the sun is up, and when it next sets, rises, dawns,
+dusks and peaks. With your home's location, today's path of the sun too. Read-only.
+
+## Quick example
+
+<Example file="entities/sun/NextEvent.tsx" />
+
+`sunNext` is what a card leads with: the sunset while the sun is up, the sunrise while it is down. `sunWhen` counts down
+to it from the entity's own minute: `Sets in 4h 35m`, `Rises in 9m`, or its day when it is more than a day off
+(`Rises Thu`). Where neither comes within two days, as in a polar summer or winter, `sunAllDay` says `Up all day` or
+`Down all day`. Times are on the 24-hour clock (`20:30`). Every skin says it in these words.
+
+## Component
+
+`<HaSun>` is `useHaSun` as a component that draws nothing of its own. It takes every option of the hook as a prop, and
+hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="@dashhaus/core" name="HaSun" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaSun" />
+
+It reads the sun and counts from a clock that turns each minute. Today's path is worked out from your home's latitude
+and longitude, read once from Home Assistant's configuration; pass `latitude` and `longitude` to draw it for another
+place, or `loadHistory: false` to leave it out.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaSunOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaSunResult" />
+
+#### `entity`: SunEntity
+
+<ApiMembers from="@dashhaus/core/entities/sun/types" name="SunEntity" />
+
+#### `history`: SunHistory
+
+Today's path of the sun from midnight to midnight, worked out from the location rather than read from Home Assistant's
+recorder: its elevation through the day, each hour's height against the day's peak, where now, sunrise and sunset fall,
+and how long it is up.
+
+<ApiMembers from="@dashhaus/core/entities/sun/types" name="SunHistory" />
+
+## Today's path
+
+`sunPathDrawing` turns the path into pieces of line for any drawing: the day so far, the day still to come and the
+night, the horizon and where the sun is now, all as fractions of the drawing.
+
+<Example file="entities/sun/Path.tsx" />
+
+## In a skin
+
+Orb's `HaSunTile` and Field's `HaSunModule` are `useHaSun` above each skin's card. Each leads with what comes next and
+counts down to it, draws today's path (Orb's as a line with the sun on it, Field's as the sun's height by hour), and
+opens on every time to come. They take the hook's options as props, plus their own:
+
+<Example file="entities/sun/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaSunTileProps" except={{ from: "@dashhaus/core", name: "HaSunOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaSunModuleProps" except={{ from: "@dashhaus/core", name: "HaSunOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="sun" />

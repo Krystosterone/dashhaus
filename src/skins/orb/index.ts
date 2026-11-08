@@ -166,6 +166,14 @@ export type { CalendarTileProps } from "./cards/calendar/CalendarTile";
 export { HaCalendarTile } from "./ha/HaCalendarTile";
 export type { HaCalendarTileProps } from "./ha/HaCalendarTile";
 
+// Sun
+export { SunCard, SunSheet } from "./cards/sun/SunCard";
+export type { SunCardProps, SunSheetProps } from "./cards/sun/SunCard";
+export { SunTile } from "./cards/sun/SunTile";
+export type { SunTileProps } from "./cards/sun/SunTile";
+export { HaSunTile } from "./ha/HaSunTile";
+export type { HaSunTileProps } from "./ha/HaSunTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
