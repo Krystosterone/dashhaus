@@ -17,6 +17,3 @@
 /* Compact rows keep the word alone, inline and right-aligned; since when waits for the card. The alarm pill keeps
    since when as the time alone. */
 .hd--compact .bs-since, .hd--compact .bs-al-k { display: none; }
-
-/* The sheet's header says the state in words, a little smaller than a number. */
-.hd--sheet.bs .hd-num { font-size: 30px; letter-spacing: -0.02em; }

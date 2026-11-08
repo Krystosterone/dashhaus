@@ -671,7 +671,8 @@ export interface CardReadout {
   duplicate?: boolean;
   /** Spoken where it stands for a reading (the sheet's large figure); otherwise hidden from screen readers. */
   label?: string;
-  /** It says a word (On, a named speed), not a figure: set a little smaller than a number (`hd-num--word`). */
+  /** It says a word (On, Locked, a named speed), not a figure: set a little smaller than a number, and at the one word
+   *  size in the sheet (`hd-num--word`; spec/orb.md → Readout type). Mark every word, a `hd-num--long` one too. */
   word?: boolean;
   /** The card's own class for it. */
   className?: string;

@@ -2,9 +2,11 @@
    with su-; colours only from tokens.css. A reading: it never glows. */
 
 /* The figure, what comes next on the dashboard's hour cycle, in the shared large-readout voice (hd-metric-n); up or
-   down all day says it in words (hd-metric-w). The other event sits in the second track under its caption. */
+   down all day says it in words (hd-metric-w). The other event sits in the second track under its caption. In the
+   sheet the time takes a figure's 40 px; a word keeps the shared word size, as every card's word does there
+   (spec/orb.md → Readout type), so no rule here sizes it. */
 .su-f { overflow: hidden; text-overflow: ellipsis; }
-.hd--sheet .su-f { font-size: 40px; font-weight: var(--type-readout-weight); letter-spacing: -0.04em; line-height: 1; }
+.hd--sheet .su-f.hd-metric-n { font-size: 40px; font-weight: var(--type-readout-weight); letter-spacing: -0.04em; line-height: 1; }
 @container hd (min-width: 260px) {
   .su:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
 }

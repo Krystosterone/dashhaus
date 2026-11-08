@@ -49,6 +49,8 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
 
   const withPos = hasPosition(e);
   const word = coverWord(e);
+  // The readout says how far open as a figure where it knows, and the state's word otherwise.
+  const figure = !unknown && withPos && pos > 0;
   const text = moving ? `${word}${withPos ? ` · ${pos}%` : ""}`
     : unknown || !open || !withPos || pos === 100 ? word : `${word} · ${pos}%`;
   const stopping = moving && e.supportsStop;
@@ -85,7 +87,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       status={alertLabel ? <AlertStatus label={alertLabel}>{warning}</AlertStatus> : areaText}
       value={subText}
       alert={alertLabel}
-      readout={{ value: unav ? null : !unknown && withPos && pos > 0 ? <>{pos}<span>%</span></> : word, duplicate: true }}
+      readout={{ value: unav ? null : figure ? <>{pos}<span>%</span></> : word, duplicate: true, word: !figure }}
       onClose={onClose}
       closeLabel={`Close ${e.name} details`}
       control={slot}

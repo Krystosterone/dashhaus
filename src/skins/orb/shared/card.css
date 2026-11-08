@@ -101,7 +101,9 @@
 /* A readout that says a state an integration may name its own way (a vacuum's Emptying the bin, a player's Muted):
    a step smaller again, cut with an ellipsis rather than pushed past the card's edge. */
 .hd .hd-num.hd-num--long { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hd--sheet.hd .hd-num.hd-num--long { font-size: 30px; }
+/* The sheet's readout says a word at one size on every card, short or long, Locked as Emptying the bin; a figure keeps
+   the sheet's 40 px (spec/orb.md → Readout type). No card sets its own. */
+.hd--sheet.hd .hd-num:is(.hd-num--word, .hd-num--long) { font-size: 30px; letter-spacing: -0.02em; }
 .hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
 .hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-area { margin-top: 3px !important; font-size: var(--type-status); font-weight: 500; color: var(--ink-2); line-height: var(--type-status-leading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -493,7 +495,6 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 }
 .hd--sheet .hd-head { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "orb title num open"; row-gap: 0; }
 .hd--sheet .hd-num { display: block; font-size: 40px; }
-.hd--sheet .hd-num--word { font-size: 34px; }
 .hd--sheet .hd-area { white-space: normal; }
 /* The sheet is where a truncated name can be read in full. */
 .hd--sheet .hd-name > span { white-space: normal; overflow-wrap: anywhere; }

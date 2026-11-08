@@ -80,7 +80,7 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
       value={warning ?? word}
       alert={alertLabel}
       bareValue={word}
-      readout={{ value: unav ? null : word, label: sheet && !unav ? spoken : undefined }}
+      readout={{ value: unav ? null : word, label: sheet && !unav ? spoken : undefined, word: true }}
       onClose={onClose}
       // The sheet's header already says the state; it keeps the slot only for an alarm, or the dashed unavailable.
       slot={!sheet || unav || alarm}

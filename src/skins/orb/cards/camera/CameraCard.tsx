@@ -105,7 +105,7 @@ export function CameraCard({ entity: e, still = true, refresh = STILL_REFRESH, p
       onOpen={onOpenDetails}
       status={status}
       value={word}
-      readout={{ value: unav ? null : word, label: sheet && !unav ? spoken : undefined }}
+      readout={{ value: unav ? null : word, label: sheet && !unav ? spoken : undefined, word: true }}
       onClose={onClose}
       // The sheet's header says the state; it keeps the slot only for the dashed unavailable.
       slot={!sheet || unav}
