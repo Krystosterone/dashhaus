@@ -97,6 +97,10 @@ What it reads, and the rule each failure names:
 
 Not stable: the wording of a finding's `message`; the `card` and `rule` fields are the contract. The preset does not check a skin's exports, docs, Storybook order or Lovelace wiring, and it is not a substitute for a skin's own tests.
 
+## What a domain declares about its actions
+
+Outside the frozen subpaths, a skin that draws a domain it doesn't know reads what the domain declares about its actions, `<NAME>_ACTIONS` and the `ActionKind` type from `@dashhaus/core` (core.md → each domain declares what its actions are). `asks: true` means an action is never one tap: it asks first, on the skin's question or keypad. `when` narrows `asks` to the entities whose field holds one of its values, keyed by the field (`when: { deviceClass: ["garage", "door", "gate"] }` on a cover's open and close, and on its position, which no skin sets for those three). It is optional and additive: a reader written before it ignores it and asks every time, which fails safe, so a curtain asks too until the reader reads `when`.
+
 ## What is not stable yet
 
 - **The main `@dashhaus/core/lovelace` entry** — the nav, `useDashboardNav`, `useRowLayout` (a row's tracks from its own width, and each card's grid lines), room sensors, `sensorCard` and `useSensorCard` (the card a `sensor.*` listed on its own draws, from what its attributes declare: `sensor` for a room reading, a text sensor or no state, `numeric` for any other that declares a number), the token scoping and `actionMessage`. It re-exports `useActionStatus`, whose stable home is `./skin`. A skin's Lovelace card imports the element from `./skin` instead; the main entry's surface is not frozen for a third-party skin.

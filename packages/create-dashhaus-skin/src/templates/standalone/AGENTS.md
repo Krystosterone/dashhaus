@@ -123,10 +123,13 @@ the outside in, snapshotting after each step and comparing with the reference:
 
 A card takes its domain's normalized model as `entity`, today's `history` when the hook loads it, its `footprint`, and
 one optional callback per action it shows (a light's `onToggle`, a cover's `onOpenCover`, `onCloseCover` and
-`onStopCover`). Its adapter in `ha/` calls the domain's `useHa<Name>` hook and passes them on.
+`onStopCover`). Its adapter in `ha/` calls the domain's `useHa<Name>` hook and passes them on. A cover's open and close
+are not plain taps on a garage door, door or gate: they ask first (below).
 
 What each action is, its domain declares beside its handlers in `@dashhaus/core` (`LOCK_ACTIONS`, `ActionKind`): a
-tap, a code, or a value, and whether it asks first. A tap is a button. An action that asks first (a lock's unlock) or
+tap, a code, or a value, and whether it asks first, for every entity or only those its `when` names (a cover's open
+and close, for a garage door, door or gate: `asks` is then that check, `["garage", "door", "gate"].includes(e.deviceClass)`,
+and a tap for every other cover). A tap is a button. An action that asks first (a lock's unlock) or
 takes a code (an alarm's disarm) goes to the frame's `guarded` list: its button opens the details on the question, or
 on the keypad when the entity wants a code, through `useGuardedAction` from `@dashhaus/core/primitives`. Never wire
 one of them to a button that does it on one tap. An action that takes a value is left out by `npm run add`, which says

@@ -21,6 +21,16 @@ One `cover.*` entity: curtains, blinds, shades, shutters, awnings, windows, gara
 
 Open and close work on every cover. Stop, a position and a tilt depend on what the cover reports.
 
+A garage door, a door or a gate lets a person in, so it must never move on one stray press: a tap brushed across a
+wall panel could open the house, or close a door on someone. Both skins ask first for these three, as they do before
+unlocking a lock: a press opens the details on the question (`Close Garage door?`, what it means, then Cancel and
+`Close garage door`). Stop is always one press, and their position is shown, never set. `coverAsksFirst` says which
+covers ask, and the question's words are core's, so your own controls can ask the same way, as the example does.
+
+A garage door Home Assistant gives no `device_class` (a template cover, say) is drawn as a shade and moves on one
+press. Give it its class, `garage`, `door` or `gate`, in the cover's settings or under `customize` in Home Assistant,
+and it asks first.
+
 ## Component
 
 `<HaCover>` is `useHaCover` as a component that draws nothing of its own. It takes every option of the hook as a
