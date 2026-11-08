@@ -46,3 +46,5 @@
 .su-ev-n { font-weight: 600; color: var(--ink-2); }
 .su-ev-t { font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .su-ev[data-lead] :is(.su-ev-n, .su-ev-t) { color: var(--ink); font-weight: 700; }
+/* The list's heading is a heading: it keeps the block's gap, not a browser's margins. */
+.su-next .hd-blk-h { margin: 0; }

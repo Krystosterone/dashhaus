@@ -35,7 +35,8 @@ export function SunModule({ entity: e, history, footprint = "standard", defaultO
   const allDay = sunAllDay(e);
   const waiting = !unav && !next && !allDay;
   const up = isActive(e);
-  const state = unav ? "unavailable" : up ? "on" : "off";
+  // Down is no resting state, since a sunrise is to come: "ok", so the figure stays bright (off always rests).
+  const state = unav ? "unavailable" : up ? "on" : "ok";
 
   const pict = <Pictogram param="neutral" lit={up}>{SUN_PICT}</Pictogram>;
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />

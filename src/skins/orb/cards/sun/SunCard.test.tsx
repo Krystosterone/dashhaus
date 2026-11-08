@@ -33,7 +33,7 @@ describe("SunCard", () => {
     const { container } = render(<SunCard entity={{ ...entity, up: false, now: at(19, 20, 49), nextSetting: at(20, 20, 28) }} />);
     expect(container.querySelector(".su-f")?.textContent).toBe("05:01");
     expect(container.querySelector(".hd-area")?.textContent).toBe("Rises in 8h 12m");
-    expect(container.querySelector("article")?.getAttribute("data-state")).toBe("off");
+    expect(container.querySelector("article")?.getAttribute("data-state")).toBe("ok");
   });
 
   it("reads what comes next aloud and opens details from it", () => {

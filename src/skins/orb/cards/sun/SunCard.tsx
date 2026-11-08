@@ -87,7 +87,8 @@ export function SunCard({ entity: e, history, variant, footprint, showControl, o
     : waiting ? [area, SUN_WORDS.noReading].filter(Boolean).join(" · ")
     : sheet ? [area, when].filter(Boolean).join(" · ") || undefined
     : when ?? area;
-  const state = unav ? "unavailable" : waiting ? "ok" : active ? "on" : "off";
+  // Down is no resting state, since a sunrise is to come: "ok", as a calendar's next event to come is.
+  const state = unav ? "unavailable" : active ? "on" : "ok";
 
   const bar = (
     <span className="hd-bar hd-bar--pair su-bar">
@@ -126,7 +127,7 @@ export function SunCard({ entity: e, history, variant, footprint, showControl, o
       {history && !compact && <SunPath day={history} unavailable={unav} lastSeen={e.lastSeen} />}
       <SheetBlock>
         {schedule.length > 0 && (
-          <section className="hd-blk" aria-labelledby={`${card.nameId}-next`}>
+          <section className="hd-blk su-next" aria-labelledby={`${card.nameId}-next`}>
             <h3 className="hd-blk-h" id={`${card.nameId}-next`}>{SUN_WORDS.next}</h3>
             <ol className="su-list">
               {schedule.map((event) => (
