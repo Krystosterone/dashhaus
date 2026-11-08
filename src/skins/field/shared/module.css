@@ -294,6 +294,15 @@
 }
 .fd-rail { position: absolute; inset: 0 18px 0 0; transform: translateX(calc(var(--v, 0) * 100%)); pointer-events: none; }
 .fd-fader[data-anim] .fd-rail { transition: transform 180ms var(--fd-ease-out); }
+/* A value that moves on by itself (a track's position): the rail runs across the slot, one unit a second, from where
+   it was drawn, its end held (fill forwards); held still while what it measures is, and off while a finger or a key is
+   on it, so the thumb shows the value under it. Reduced motion keeps it: it is the value, at about a pixel a second. */
+.fd-fader[data-runs] .fd-rail { animation: fd-run var(--fd-run-len) linear var(--fd-run-at) forwards; }
+.fd-fader[data-held] .fd-rail { animation: none; }
+@keyframes fd-run {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
 .fd-thumb {
   position: absolute;
   left: 0;

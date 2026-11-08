@@ -15,7 +15,7 @@ release notes; an additive change is a minor one.
 | `.` | The transport and store contracts, `HaProvider` and its selectors, the `useHa<Name>` hooks, the matching `Ha<Name>` headless components, registry hooks, history and request hooks, `useHaPicture` and `useHaMoreInfo`, mappers and action factories |
 | `./entities`, `./entities/*` | The normalized, skin-free entity models and their pure logic. Raw Home Assistant state never enters them. |
 | `./primitives` | The headless interaction hooks: press, slider, range slider, sheet, keypad |
-| `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `usePicture`, `usePlayhead`, `useDemoClimate` |
+| `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `usePicture`, `usePlayhead`, `useSeek`, `useDemoClimate` |
 | `./seeds/*` | Every skin's demo seeds, one module per domain: `<NAME>_SEEDS`, `<NAME>_WORST_CASE`, their types and the domain's `useDemo<Name>` |
 | `./perf` | The opt-in marks; documented in [performance.md](performance.md) |
 | `./websocket` | The one module that imports `home-assistant-js-websocket`, plus `connectHomeAssistant(auth)` |
@@ -63,12 +63,14 @@ is the domain's handlers (a lock has no history: its day is its last change). Th
 Beside its handlers each domain declares what its actions are, `<NAME>_ACTIONS: ActionKinds<<Name>Handlers, <Name>Entity>`
 (`ha/actions/kinds.ts`): what a press gives the handler (`takes`: `nothing`, a `code`), or the value it sets, said as
 what it is: a `level` the entity reports in `field` (a percent, or a range its `min` and `max` give as numbers or as
-the entity's fields; `wakes` when setting it turns the entity on), a `choice` of the entity's own list (`options`, a
+the entity's fields; `wakes` when setting it turns the entity on; `runs` when it moves on by itself while the entity
+plays, as of a time the entity reports, a track's position), a `choice` of the entity's own list (`options`, a
 field) or a fixed one, the chosen one in `field`, or a `switch`, a boolean `field`; and a `value` none of these says.
 `asks: true` marks an action that asks first. The type covers every handler, optional ones included, so a new one can't
 go undeclared, and a value's `field` must be one of the entity's. The generators read it (`scripts/domains.js`) to draw a
 tap as a button, an action that asks first or takes a code through the skin's Confirm and Keypad on
-`useGuardedAction`, a level on the skin's level part (orb's `LevelBar`, field's `Fader`), a choice or a switch on its
+`useGuardedAction`, a level on the skin's level part (orb's `LevelBar`, field's `Fader`), except one that `runs`, which a part holding a
+level still would show where it was and set on every move, so it is left out for the skin's own running clock, a choice or a switch on its
 chips or keys (`ChoiceChips`, a `KeyGroup`), and to leave the rest out; a skin's own card reads it when it wants to know
 the same.
 
@@ -298,7 +300,7 @@ Both are additive: a test may use them, and their seeds can change.
 `./primitives` holds the headless interaction primitives every skin draws its controls on: behaviour and semantics, never markup or styles. Each is a hook whose result a skin spreads onto its own elements.
 
 - `usePress` (`press.ts`) is a button: tap, optional press and hold (the click that ends a hold doesn't also press), optional latch (`aria-pressed`), and unavailable (`aria-disabled`, still focusable) or disabled. Every latching or holding control goes through it; a plain one-shot button stays a native `<button>`.
-- `useSlider` and `useRangeSlider` (`slider.ts`) are a horizontal track: pointer input on a hit layer (mouse jumps on press, touch on a tap or the first sideways move, so a scroll never sets a value; `data-anim` only on a jump), and a hidden native range input for keyboard and screen readers, with its value text. A range keeps its reported ends: pointer steps count from `min`, keys step from the value, and the hidden input keeps its native `step` only while `min`, `max` and the value sit on the step's grid (otherwise `step="any"`, or the browser rounds the value it shows).
+- `useSlider` and `useRangeSlider` (`slider.ts`) are a horizontal track: pointer input on a hit layer (mouse jumps on press, touch on a tap or the first sideways move, so a scroll never sets a value; `data-anim` only on a jump), and a hidden native range input for keyboard and screen readers, with its value text. A range keeps its reported ends: pointer steps count from `min`, keys step from the value, and the hidden input keeps its native `step` only while `min`, `max` and the value sit on the step's grid (otherwise `step="any"`, or the browser rounds the value it shows). A value set once, on release (a track's position), takes `onCommit`, called once when a gesture ends with its last value (pointer up, key up, or at once for an assistive swipe) while `onChange` still draws every move; a value that moves on by itself takes `current`, so keys step from where it is now rather than from the last render. `useSeek` (`./hooks`) is a player's seek on them: the draft while held, one `onSeek` on release, and the line running on from there until Home Assistant reports or refuses it.
 - `useSheet` (`sheet.ts`) is a native modal `<dialog>`: mount, show, scroll lock, `data-closing` exit, Escape and backdrop close, and drag down to close on phones.
 - `useKeypad` (`keypad.ts`) is a code keypad: the code typed so far, digits, delete and enter from its keys or a physical keyboard, and the answer (busy, a wrong code cleared, a failed call kept for another try).
 - `useGuardedAction` (`guarded.ts`) is an action that asks first (a lock's unlock, an alarm's disarm): the action waiting on its answer, answered by a question (`confirm`) or a code (`submit`, shaped for `useKeypad`), busy and failed, a refused code moving the question to the keypad, `attempt` for a tap that runs at once unless the entity wants a code, and the question closing when the entity gets there by itself (`settled`). A card on the dashboard hands the action to its details (`askElsewhere`); the details surface holds it. Each skin draws it with its own `Confirm` and `Keypad` parts, whose question guards its press with `useSettled`.

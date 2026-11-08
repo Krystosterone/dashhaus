@@ -58,7 +58,21 @@ export function cardKind(domain, asked) {
   const guarded = domain.guarded ?? [];
   if (kind === "control" && !domain.actions.length && !guarded.length) throw new Error(`${domain.Name}Handlers has no action a neutral card can press: ${domain.leftOut?.length ? `${domain.leftOut.join(", ")} take${domain.leftOut.length > 1 ? "" : "s"} a value` : "it has none"}. Use --kind reading`);
   const control = kind === "control";
-  return { kind, actions: control ? domain.actions : [], guarded: control ? guarded : [], leftOut: control ? domain.leftOut ?? [] : [] };
+  return { kind, actions: control ? domain.actions : [], guarded: control ? guarded : [], leftOut: control ? domain.leftOut ?? [] : [], runs: control ? domain.runs ?? [] : [] };
+}
+
+/**
+ * Why the actions a card leaves out are left out, for its comment and its generator's message: a value a press can't
+ * give, drawn with `own` (the skin's own control); a level that runs on by itself (`runs`: a track's position), which a
+ * part holding a level still would show where it was, drawn on the skin's own clock.
+ */
+export function leftOutWhy(leftOut, runs = [], own = "this skin's own control") {
+  const running = leftOut.filter((action) => runs.includes(action));
+  const valued = leftOut.filter((action) => !runs.includes(action));
+  return [
+    valued.length && `${valued.join(", ")} take${valued.length > 1 ? "" : "s"} a value a press can't give; draw ${valued.length > 1 ? "them" : "it"} with ${own}`,
+    running.length && `${running.join(", ")} run${running.length > 1 ? "" : "s"} on by itself; draw ${running.length > 1 ? "them" : "it"} on the skin's own clock`,
+  ].filter(Boolean).join("; ");
 }
 
 /** A guarded action's key, what a card's details open on: `onUnlock` → "unlock". */
@@ -70,7 +84,7 @@ export const keyOf = (action) => wordsOf(action).replace(/ /g, "-");
  */
 export function cardTokens(domain, names, drawn) {
   const { Skin } = names;
-  const { actions, guarded = [], leftOut = [] } = Array.isArray(drawn) ? { actions: drawn } : drawn;
+  const { actions, guarded = [], leftOut = [], runs = [] } = Array.isArray(drawn) ? { actions: drawn } : drawn;
   const history = domain.history !== false;
   const code = domain.code ? "!!e.codeFormat" : "false";
   const guardedRows = guarded.map(({ action, asks, code: takesCode }) => `    ...(${action} ? [{ key: "${keyOf(action)}", label: "${labelOf(action)}"${asks ? ", asks: true" : ""}${takesCode ? `, code: ${code}${domain.code ? ', text: e.codeFormat === "text"' : ""}` : ""}, run: ${action} }] : []),`);
@@ -95,7 +109,7 @@ export function cardTokens(domain, names, drawn) {
     __guardedResultImport__: guarded.length ? 'import type { GuardedResult } from "@dashhaus/core/primitives";' : "",
     __guardedBlock__: guarded.length ? `  const guarded: ${Skin}GuardedAction[] = [\n${guardedRows.join("\n")}\n  ];` : "",
     __guardedProp__: guarded.length ? " guarded={guarded}" : "",
-    __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with this skin's own control.` : "",
+    __leftOut__: leftOut.length ? `  // Left out: ${leftOutWhy(leftOut, runs)}.` : "",
     __historyType__: history ? `, ${domain.Name}History` : "",
     __historyProp__: history ? `  history?: ${domain.Name}History;` : "",
     __historyArg__: history ? ", history" : "",

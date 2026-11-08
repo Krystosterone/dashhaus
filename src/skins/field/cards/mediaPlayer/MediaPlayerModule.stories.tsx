@@ -16,7 +16,7 @@ function DemoMediaPlayer({ seed, width, footprint, quiet, defaultOpen }: { seed:
       <MediaPlayerModule
         entity={demo.entity}
         history={demo.history}
-        onPlay={demo.onPlay} onPause={demo.onPause} onPrevious={demo.onPrevious} onNext={demo.onNext} onTurnOn={demo.onTurnOn} onTurnOff={demo.onTurnOff} onVolumeChange={demo.onVolumeChange} onSourceChange={demo.onSourceChange} onMuteChange={demo.onMuteChange}
+        onPlay={demo.onPlay} onPause={demo.onPause} onPrevious={demo.onPrevious} onNext={demo.onNext} onTurnOn={demo.onTurnOn} onTurnOff={demo.onTurnOff} onVolumeChange={demo.onVolumeChange} onSeek={demo.onSeek} onSourceChange={demo.onSourceChange} onMuteChange={demo.onMuteChange}
         footprint={footprint}
         quiet={quiet}
         defaultOpen={defaultOpen}
@@ -153,8 +153,15 @@ export const Compact: Story = {
   ),
 };
 
-/** The detail panel: the artwork, the time played as a running segment clock, the keys, the volume, Mute, Power, the source and today. */
+/**
+ * The detail panel: the artwork, the time played as a running segment clock, the keys, the position fader (it seeks
+ * when let go; while held its legend says where it will play from, and the screen holds there with it), the volume,
+ * Mute, Power, the source and today.
+ */
 export const Details: Story = { args: { defaultOpen: true } };
+
+/** A player that doesn't seek: no position fader; the screen's clock and rule say how far in, as a readout. */
+export const DetailsNoSeek: Story = { name: "Details, no seek", args: { mediaPlayer: "muted", defaultOpen: true } };
 
 /** A TV's panel: nothing playing, its sources, and Power. */
 export const DetailsSources: Story = { name: "Details, sources", args: { mediaPlayer: "on", defaultOpen: true } };

@@ -148,6 +148,48 @@ describe("MediaPlayerCard", () => {
     expect(container.querySelector(".hd-pic")).toBeNull();
   });
 
+  it("seeks in the sheet along a groove, once, when it is let go, holding the target while it moves", () => {
+    const onSeek = vi.fn(async () => true);
+    const { container } = render(<MediaPlayerCard entity={playing} variant="sheet" {...press()} onSeek={onSeek} />);
+    const groove = container.querySelector<HTMLElement>(".mp-seek")!;
+    // The groove replaces the readout line, and is first in the sheet's controls.
+    expect(container.querySelector(".mp-prog")).toBeNull();
+    expect(container.querySelector(".hd-extra")?.firstElementChild).toBe(groove);
+    Object.defineProperty(groove, "getBoundingClientRect", { value: () => ({ left: 0, width: 245 }) });
+    Object.defineProperty(Element.prototype, "setPointerCapture", { value: vi.fn(), configurable: true });
+    const hit = groove.querySelector(".hd-track-hit")!;
+    const ptr = (type: string, x: number) => {
+      const event = new MouseEvent(type, { bubbles: true, clientX: x, button: 0 });
+      Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: "mouse" } });
+      return event;
+    };
+    fireEvent(hit, ptr("pointerdown", 120));
+    fireEvent(hit, ptr("pointermove", 140));
+    fireEvent(hit, ptr("pointermove", 151));
+    expect(groove.hasAttribute("data-held")).toBe(true);
+    expect(onSeek).not.toHaveBeenCalled();
+    expect([...container.querySelectorAll<HTMLElement>(".mp-seek-at .mp-reel")].map((reel) => reel.style.transform)).toEqual(["translateY(-20%)", "translateY(-50%)", "translateY(0%)"]);
+    fireEvent(hit, ptr("pointerup", 151));
+    expect(onSeek.mock.calls).toEqual([[150]]);
+    expect(groove.hasAttribute("data-held")).toBe(false);
+    expect(screen.getByRole("slider", { name: "Kitchen speaker position" }).getAttribute("aria-valuetext")).toBe("2 minutes 30 seconds of 4 minutes 5 seconds");
+  });
+
+  it("keeps how far in a readout on a featured card, for a player that can't seek, and under quiet", () => {
+    const onSeek = vi.fn(async () => true);
+    const featured = render(<MediaPlayerCard entity={playing} footprint="featured" {...press()} onSeek={onSeek} />);
+    expect(featured.container.querySelector(".mp-seek")).toBeNull();
+    expect(featured.container.querySelector(".mp-prog")).toBeTruthy();
+    featured.unmount();
+    const fixed = render(<MediaPlayerCard entity={{ ...playing, supportsSeek: false }} variant="sheet" {...press()} onSeek={onSeek} />);
+    expect(fixed.container.querySelector(".mp-seek")).toBeNull();
+    expect(fixed.container.querySelector(".mp-prog")).toBeTruthy();
+    fixed.unmount();
+    const quiet = render(<MediaPlayerCard entity={playing} variant="sheet" quiet {...press()} onSeek={onSeek} />);
+    expect(quiet.container.querySelector(".mp-seek")).toBeNull();
+    expect(quiet.container.querySelector(".mp-prog")).toBeNull();
+  });
+
   it("keeps one state cue in the compact row", () => {
     const { container } = render(<MediaPlayerCard entity={{ ...playing, state: "off" }} footprint="compact" {...press()} />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Off");

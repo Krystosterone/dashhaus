@@ -1,12 +1,12 @@
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
-import { usePicture, usePlayhead } from "@dashhaus/core/hooks";
+import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { MediaPlayerIcon } from "./icons";
-import { Progress } from "./parts";
+import { Progress, SeekGroove } from "./parts";
 import { CardFrame, ChoiceChips, LevelBar, Picture, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./MediaPlayerCard.css";
@@ -29,6 +29,11 @@ export interface MediaPlayerCardProps extends CardProps {
   onTurnOff?: () => void;
   /** Sheet: the volume groove, as a percent. */
   onVolumeChange?: (percent: number) => void;
+  /**
+   * Sheet: the position groove, in seconds, sent once when it is let go; `false` (refused) draws Home Assistant's
+   * position again.
+   */
+  onSeek?: (seconds: number) => void | Promise<boolean>;
   /** Sheet: the mute chips, Off or On. */
   onMuteChange?: (muted: boolean) => void;
   /** Sheet: the source chips. */
@@ -47,10 +52,11 @@ const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as
  * on what it supports; the pill says which. Playing (or buffering, or on) is the accent; a state, so it never glows. The status line
  * says what is playing, the title first. Featured, it shows the artwork, the title and artist, and how far in, a line
  * and a clock that run on by themselves with no re-render. The name, or a press and hold, opens the sheet: the same,
- * skip back and on, the volume groove the sound card has, mute, the source, turning it off, and
- * today's playing. Its artwork is data, never a signal: no glow, never in a row, never inside the orb.
+ * with how far in as a groove that seeks where the player can, skip back and on, the volume groove the sound card has,
+ * mute, the source, turning it off, and today's playing. Its artwork is data, never a signal: no glow, never in a row,
+ * never inside the orb.
  */
-export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onMuteChange, onSourceChange, quiet, onOpenDetails, onClose }: MediaPlayerCardProps) {
+export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onMuteChange, onSourceChange, quiet, onOpenDetails, onClose }: MediaPlayerCardProps) {
   const card = useCard("mp", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, featured, area } = card;
   const unav = e.state === "unavailable";
@@ -95,7 +101,10 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   const loaded = !unav && !isOff(e);
   // The artwork is asked for only where its well is drawn: featured and the sheet, while something is loaded.
   const art = usePicture(roomy && loaded ? e.picture : undefined);
-  const nowPlaying = roomy && loaded && (title || artist || head || e.picture);
+  // Seek in the sheet only, never on the card's face, where a stray tap would jump the track; with no line to seek
+  // along (a stream, quiet), none (spec/cards.md → Using the media player card).
+  const seek = useSeek(sheet && loaded && e.supportsSeek ? head : undefined, onSeek);
+  const nowPlaying = roomy && loaded && (title || artist || (head && !seek) || e.picture);
 
   const can = {
     previous: loaded && e.supportsPrevious && !!onPrevious,
@@ -136,12 +145,13 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
             {title && <p className="mp-title" title={title}>{title}</p>}
             {artist && <p className="mp-artist" title={artist}>{artist}</p>}
             {sheet && e.album && <p className="mp-album" title={e.album}>{e.album}</p>}
-            {head && <Progress head={head} />}
+            {head && !seek && <Progress head={head} />}
           </div>
         </div>
       )}
-      {(can.previous || can.next || can.off || can.volume || can.mute || can.source) && (
+      {(seek || can.previous || can.next || can.off || can.volume || can.mute || can.source) && (
         <SheetBlock>
+          {seek && <SeekGroove id={`${uid}-pos`} label={`${e.name} ${POSITION.toLowerCase()}`} seek={seek} />}
           {(can.previous || can.next) && (
             <div className="hd-acts">
               {can.previous && <TogglePill label={skipSaid(e.name, "previous")} onToggle={onPrevious!}>{SKIP_WORDS.previous}</TogglePill>}

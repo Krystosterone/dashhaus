@@ -213,7 +213,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
       : "A reading: neutral, a bare icon and no glow.",
     __role__: kind === "control" ? "state" : "reading",
     __summary__: domain.summary,
-    __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with orb's own parts.` : "",
+    __leftOut__: leftOut.length ? `  // Left out: ${card.leftOutWhy(leftOut, domain.runs, "orb's own parts")}.` : "",
     __iconProp__: kind === "control" && toggle
       ? `orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle: () => onToggle?.(), children: <${Name}Icon /> }}`
       : `glyph={<${Name}Icon />}`,
@@ -313,7 +313,7 @@ One \`${domain.domains.join("`, `")}\` entity:
   }
 
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in orb as a ${kind}: ${drawn.length ? drawn.join(", ") : "read-only"}${leftOut.length ? ` (left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give)` : ""}.
+  console.log(`Drew ${words} in orb as a ${kind}: ${drawn.length ? drawn.join(", ") : "read-only"}${leftOut.length ? ` (left out: ${card.leftOutWhy(leftOut, domain.runs, "orb's own parts")})` : ""}.
 
 Next:
   1. npm run storybook  →  Orb/Cards/${Name} and Orb/Connected/${Name}

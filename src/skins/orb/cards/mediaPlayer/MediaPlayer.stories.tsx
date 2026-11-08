@@ -134,7 +134,13 @@ export const Compact: Story = {
   ),
 };
 
+/**
+ * The sheet of a player that seeks: how far in is a groove, its clock on it and the played part an ink tint; slide or
+ * tap it, and it seeks once, when let go, the time played saying where it will play from while held.
+ */
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
+/** A player that doesn't seek: how far in stays a readout beside the artwork. */
+export const DetailsNoSeek: Story = { name: "Details, no seek", args: { seed: "muted", defaultOpen: true } };
 /** A TV's details: nothing playing, its sources, and turning it off. */
 export const DetailsSources: Story = { name: "Details, sources", args: { seed: "on", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };

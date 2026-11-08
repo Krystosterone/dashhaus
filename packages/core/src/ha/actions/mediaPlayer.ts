@@ -21,6 +21,12 @@ export interface MediaPlayerHandlers {
    * `unsupported`; a percent that isn't a number, `invalid_input`. It never unmutes or turns the player on.
    */
   onVolumeChange: (percent: number) => void;
+  /**
+   * Calls `media_player.media_seek` with the position in seconds, kept within the track where its length is known, and
+   * answers `true` once Home Assistant has taken it, `false` when it didn't (reported through `onError`). A player
+   * without `SEEK` reports `unsupported`; seconds that aren't a number, `invalid_input`; both answer `false`.
+   */
+  onSeek: (seconds: number) => Promise<boolean>;
   /** Calls `media_player.volume_mute`. A player without `VOLUME_MUTE` reports `unsupported`. */
   onMuteChange: (muted: boolean) => void;
   /**
@@ -39,6 +45,7 @@ export const MEDIA_PLAYER_ACTIONS = {
   onTurnOn: { takes: "nothing" },
   onTurnOff: { takes: "nothing" },
   onVolumeChange: { takes: "level", field: "volume" },
+  onSeek: { takes: "level", field: "position", min: 0, max: "duration", runs: true },
   onMuteChange: { takes: "switch", field: "muted" },
   onSourceChange: { takes: "choice", field: "source", options: "sources" },
 } as const satisfies ActionKinds<MediaPlayerHandlers, MediaPlayerEntity>;
@@ -53,7 +60,7 @@ export interface MediaPlayerHandlerOptions {
  * unsupported, never sent.
  */
 export function createMediaPlayerHandlers(caller: Pick<HaStore, "callService">, entity: MediaPlayerEntity, options: MediaPlayerHandlerOptions = {}): MediaPlayerHandlers {
-  const { run, actionable, unsupported, invalidInput } = serviceRunner(caller, "media_player", entity, options.onError);
+  const { run, attempt, report, actionable, unsupported, invalidInput } = serviceRunner(caller, "media_player", entity, options.onError);
   const id = entity.entityId;
   /** Available and declaring the feature, or reported. */
   const can = (supported: boolean | undefined, what: string) => {
@@ -88,6 +95,17 @@ export function createMediaPlayerHandlers(caller: Pick<HaStore, "callService">, 
         return;
       }
       run("volume_set", { volume_level: Math.round(Math.min(100, Math.max(0, percent))) / 100 });
+    },
+    onSeek: async (seconds) => {
+      if (!can(entity.supportsSeek, "seek")) return false;
+      if (!Number.isFinite(seconds)) {
+        invalidInput(`${id} seek position must be finite`);
+        return false;
+      }
+      const end = entity.duration != null && Number.isFinite(entity.duration) ? entity.duration : Infinity;
+      const error = await attempt("media_seek", { seek_position: Math.min(end, Math.max(0, seconds)) });
+      if (error) report(error);
+      return !error;
     },
     onMuteChange: (muted) => {
       if (can(entity.supportsMute, "mute")) run("volume_mute", { is_volume_muted: muted });

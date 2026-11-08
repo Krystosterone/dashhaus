@@ -38,6 +38,19 @@ same way.
 
 <ApiSignature from="@dashhaus/core/hooks" name="usePlayhead" />
 
+## Seeking
+
+A player that declares it can seek (`supportsSeek`) moves to a position you give it in seconds: `actions.onSeek`,
+which answers `true` once Home Assistant has taken it and `false` when it didn't. Each seek makes most players
+rebuffer, so seek once, when the finger lifts, not on every move. `useSeek`, from `@dashhaus/core/hooks`, does that:
+while a finger or a key is on the bar it holds a draft you draw, still; it seeks once on release; and the bar runs on
+from where it was let go until Home Assistant reports the new position, with no snap back. Its `slider` is what
+`useSlider` takes, from `@dashhaus/core/primitives`, whose `onCommit` is called once when a gesture ends.
+
+<Example file="entities/mediaPlayer/Seek.tsx" />
+
+<ApiSignature from="@dashhaus/core/hooks" name="useSeek" />
+
 ## Component
 
 `<HaMediaPlayer>` is `useHaMediaPlayer` as a component that draws nothing of its own. It takes every option of the hook
@@ -92,8 +105,9 @@ read with `loadHistory={false}`.
 ## In a skin
 
 Orb's `HaMediaPlayerTile` and Field's `HaMediaPlayerModule` are `useHaMediaPlayer` above each skin's card. One press
-pauses it while it plays, plays it while it doesn't and turns it on while it is off; skipping, the volume, mute, the
-source and turning it off are in its details. Its artwork is shown where there is room, never in a row. On a dashboard
+pauses it while it plays, plays it while it doesn't and turns it on while it is off; skipping, seeking (where the
+player can), the volume, mute, the source and turning it off are in its details, never on the dashboard, where a stray
+tap would jump the track. Orb seeks along a groove in its sheet, Field along a Position fader in its panel. Its artwork is shown where there is room, never in a row. On a dashboard
 set `quiet`, where nothing changes by itself, they draw no line or clock for how far in. They take the hook's options
 as props, plus their own:
 

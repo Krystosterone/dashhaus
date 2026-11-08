@@ -1,4 +1,4 @@
-import { act, fireEvent, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HaMediaPlayerModule } from "./HaMediaPlayerModule";
 import type { HassEntities } from "@dashhaus/core";
@@ -20,6 +20,21 @@ describe("HaMediaPlayerModule", () => {
       await Promise.resolve();
     });
     expect(live.callService.mock.calls.slice(before).map((call) => call.slice(0, 2))).toEqual([["media_player", "media_pause"], ["media_player", "media_next_track"]]);
+  });
+
+  it("seeks once, through the store, when the panel's position fader is let go after several steps", async () => {
+    const live = renderConnected(<HaMediaPlayerModule entityId={ID} loadHistory={false} defaultOpen />, raw);
+    const fader = await screen.findByRole("slider", { name: "Kitchen speaker position", hidden: true });
+    const before = live.callService.mock.calls.length;
+    fireEvent.keyDown(fader, { key: "ArrowLeft" });
+    fireEvent.keyDown(fader, { key: "ArrowLeft" });
+    expect(live.callService.mock.calls.length).toBe(before);
+    await act(async () => {
+      fireEvent.keyUp(fader, { key: "ArrowLeft" });
+      await Promise.resolve();
+    });
+    // Reported long ago and playing, it is at its end: two steps back is 10 seconds before it.
+    expect(live.callService.mock.calls.slice(before)).toEqual([["media_player", "media_seek", { entity_id: ID, seek_position: 235 }]]);
   });
 
   it("draws its artwork in the screen", async () => {

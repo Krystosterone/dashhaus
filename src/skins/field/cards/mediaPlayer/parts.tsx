@@ -10,11 +10,12 @@ const state = (head: PlayheadNow) => (head.running ? "running" : "paused");
 /**
  * How far in, along the foot of the screen: a rule in the unlit ink that lights from the left as it plays. It is a
  * clip-path animation lasting the whole track, started `at` seconds in, so nothing re-renders as it plays; held while
- * paused or buffering, and drawn again (`key`) when the position, the state or the track changes.
+ * paused or buffering, and drawn again (`key`) when the position, the state or the track changes. `held` (a seek under
+ * a finger) switches the animation off, so it shows the target drawn under it.
  */
-export function ScreenProgress({ head }: { head: PlayheadNow }) {
+export function ScreenProgress({ head, held }: { head: PlayheadNow; held?: boolean }) {
   return (
-    <span className="fd-mp-prog" aria-hidden="true">
+    <span className="fd-mp-prog" data-held={held || undefined} aria-hidden="true">
       <span key={head.key} className="fd-mp-fill" style={{ "--fd-mp-len": `${head.duration}s`, "--fd-mp-at": `${-head.at}s`, animationPlayState: state(head), clipPath: `inset(0 ${((1 - playedShare(head)) * 100).toFixed(3)}% 0 0)` } as Vars} />
     </span>
   );
@@ -23,11 +24,12 @@ export function ScreenProgress({ head }: { head: PlayheadNow }) {
 /**
  * The time played as the screen's figure, a segment clock in fixed places for the whole track (`M:SS`, `MM:SS`,
  * `H:MM:SS`): each place a strip of digits a timed animation steps through with a hard cut, as a segment turns, so it
- * keeps time with no re-render. Heard as the time when it was drawn, and the length.
+ * keeps time with no re-render. Heard as the time when it was drawn, and the length. `held`, as the rule's: it holds at
+ * the target.
  */
-export function ScreenClock({ head }: { head: PlayheadNow }) {
+export function ScreenClock({ head, held }: { head: PlayheadNow; held?: boolean }) {
   return (
-    <span className="fd-mp-clock" role="img" aria-label={`${playTimeSpoken(head.at)} of ${playTimeSpoken(head.duration)}`}>
+    <span className="fd-mp-clock" data-held={held || undefined} role="img" aria-label={`${playTimeSpoken(head.at)} of ${playTimeSpoken(head.duration)}`}>
       <span key={head.key} className="fd-mp-places" aria-hidden="true">
         {clockPlaces(head.at, head.duration).map((part, i) => (part.kind === "colon"
           ? <span key={i} className="fd-mp-colon">:</span>

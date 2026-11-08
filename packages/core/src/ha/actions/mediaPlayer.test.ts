@@ -53,7 +53,7 @@ describe("createMediaPlayerHandlers", () => {
     const h = createMediaPlayerHandlers({ callService }, none, { onError });
     for (const name of Object.keys(MEDIA_PLAYER_ACTIONS) as (keyof typeof MEDIA_PLAYER_ACTIONS)[]) {
       const handler = h[name] as (value?: unknown) => void;
-      handler(name === "onVolumeChange" ? 10 : name === "onMuteChange" ? true : name === "onSourceChange" ? "Radio" : undefined);
+      handler(name === "onVolumeChange" || name === "onSeek" ? 10 : name === "onMuteChange" ? true : name === "onSourceChange" ? "Radio" : undefined);
     }
     expect(callService).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledTimes(Object.keys(MEDIA_PLAYER_ACTIONS).length);
@@ -81,5 +81,40 @@ describe("createMediaPlayerHandlers", () => {
     const callService = vi.fn(async () => { throw new Error("denied"); });
     createMediaPlayerHandlers({ callService }, entity, { onError }).onPause();
     await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "service_failed", domain: "media_player", service: "media_pause" })));
+  });
+});
+
+describe("onSeek", () => {
+  const seekable: MediaPlayerEntity = { ...entity, supportsSeek: true, duration: 245, position: 83 };
+
+  it("calls media_seek with the seconds, kept within the track, and answers true once Home Assistant takes it", async () => {
+    const callService = vi.fn(async () => undefined);
+    const h = createMediaPlayerHandlers({ callService }, seekable);
+    await expect(h.onSeek(151)).resolves.toBe(true);
+    await expect(h.onSeek(400)).resolves.toBe(true);
+    await expect(h.onSeek(-5)).resolves.toBe(true);
+    expect(callService.mock.calls).toEqual([
+      ["media_player", "media_seek", { ...id, seek_position: 151 }],
+      ["media_player", "media_seek", { ...id, seek_position: 245 }],
+      ["media_player", "media_seek", { ...id, seek_position: 0 }],
+    ]);
+  });
+
+  it("answers false, reporting why, for a player without SEEK, seconds that aren't a number, or a refused call", async () => {
+    const onError = vi.fn();
+    const callService = vi.fn(async () => undefined);
+    await expect(createMediaPlayerHandlers({ callService }, entity, { onError }).onSeek(10)).resolves.toBe(false);
+    expect(onError).toHaveBeenLastCalledWith(expect.objectContaining({ code: "unsupported" }));
+    await expect(createMediaPlayerHandlers({ callService }, seekable, { onError }).onSeek(Number.NaN)).resolves.toBe(false);
+    expect(onError).toHaveBeenLastCalledWith(expect.objectContaining({ code: "invalid_input" }));
+    expect(callService).not.toHaveBeenCalled();
+
+    const refused = vi.fn(async () => { throw new Error("denied"); });
+    await expect(createMediaPlayerHandlers({ callService: refused }, seekable, { onError }).onSeek(10)).resolves.toBe(false);
+    expect(onError).toHaveBeenLastCalledWith(expect.objectContaining({ code: "service_failed", service: "media_seek" }));
+  });
+
+  it("declares the seek a level over the track that runs on by itself", () => {
+    expect(MEDIA_PLAYER_ACTIONS.onSeek).toEqual({ takes: "level", field: "position", min: 0, max: "duration", runs: true });
   });
 });

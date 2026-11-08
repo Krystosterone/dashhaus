@@ -58,11 +58,12 @@ but not the Home Assistant subpaths, the Lovelace entry or a stylesheet from ano
 
 Each domain declares its actions' kinds beside its handlers (`<NAME>_ACTIONS: ActionKinds<Handlers>` in
 `@dashhaus/core`): `takes` a press's `nothing` or a `code`, or the value it sets (a `level`, a `choice`, a `switch`, each
-with the entity field it lives in, or a `value` none of them says), and `asks: true` for one that asks first. The
+with the entity field it lives in, or a `value` none of them says), `asks: true` for one that asks first, and `runs: true`
+for a level that moves on by itself (a track's position). The
 scaffolder's `domains.json` carries them. `npm run add` draws a tap as a `MySkinAction`; an action that asks first or
 takes a code as an entry in the frame's `guarded` list, answered in the details by `MySkinConfirm` or `MySkinKeypad` on
 `useGuardedAction`, so it is never one tap; and leaves an action that sets a value out for the skin's own control,
-saying so.
+saying so, and a level that runs on by itself for the skin's own running clock.
 
 Every card draws inside the skin's frame, `<Skin>CardFrame` in `shared/ui.tsx`: `detailsTile` and `detailsSheet` from
 `@dashhaus/core/lovelace/card` own the open state, and `useCardFrame` gives the article its footprint and its accessible

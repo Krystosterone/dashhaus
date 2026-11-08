@@ -61,6 +61,8 @@ export interface MediaPlayerEntity {
   supportsPrevious?: boolean;
   /** It skips on (`NEXT_TRACK`). */
   supportsNext?: boolean;
+  /** It moves to a position in what it plays (`SEEK`). */
+  supportsSeek?: boolean;
   /** Its volume can be set (`VOLUME_SET`). */
   supportsVolume?: boolean;
   /** It mutes (`VOLUME_MUTE`). */

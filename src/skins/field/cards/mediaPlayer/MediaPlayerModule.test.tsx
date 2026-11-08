@@ -155,8 +155,40 @@ describe("MediaPlayerModule", () => {
       unmount();
       return said;
     };
-    expect(facts(S.playing.entity)).toEqual([`Last changed ${S.playing.entity.lastChanged}`, "Skip, volume, mute, 3 sources"]);
+    expect(facts(S.playing.entity)).toEqual([`Last changed ${S.playing.entity.lastChanged}`, "Skip, seek, volume, mute, 3 sources"]);
     expect(facts(S.unavailable.entity)[0]).toBe("Last seen 08:20");
+  });
+
+  it("seeks from a position fader under Player, once, when let go, the legend and the screen holding the target meanwhile", () => {
+    const onSeek = vi.fn(async () => true);
+    render(<MediaPlayerModule entity={S.playing.entity} defaultOpen {...handlers()} onSeek={onSeek} />);
+    const panel = screen.getByRole("dialog");
+    const faders = [...panel.querySelectorAll<HTMLElement>(".fd-fader")];
+    const position = faders[0];
+    // Under Player, before the volume, in the second parameter's colour, running on by itself.
+    expect(faders.map((f) => f.querySelector(".fd-legend-n")?.textContent)).toEqual(["Position", "Volume 45%"]);
+    expect(position.getAttribute("data-param")).toBe("b");
+    expect(position.hasAttribute("data-runs")).toBe(true);
+    const input = within(panel).getByRole("slider", { name: "Kitchen speaker position", hidden: true });
+    fireEvent.keyDown(input, { key: "ArrowRight" });
+    fireEvent.keyDown(input, { key: "ArrowRight" });
+    expect(position.hasAttribute("data-held")).toBe(true);
+    expect(position.querySelector(".fd-legend-n")?.textContent).toBe("Position 1:33");
+    expect(panel.querySelector(".fd-mp-clock")?.hasAttribute("data-held")).toBe(true);
+    expect(onSeek).not.toHaveBeenCalled();
+    fireEvent.keyUp(input, { key: "ArrowRight" });
+    expect(onSeek).toHaveBeenCalledTimes(1);
+    expect((onSeek.mock.calls[0] as unknown[])[0]).toBeCloseTo(93, 0);
+    expect(position.querySelector(".fd-legend-n")?.textContent).toBe("Position");
+  });
+
+  it("draws no position fader for a player that can't seek, or under quiet", () => {
+    const onSeek = vi.fn(async () => true);
+    const fixed = render(<MediaPlayerModule entity={S.muted.entity} defaultOpen {...handlers()} onSeek={onSeek} />);
+    expect(within(screen.getByRole("dialog")).queryByRole("slider", { name: "Dining room position", hidden: true })).toBeNull();
+    fixed.unmount();
+    render(<MediaPlayerModule entity={S.playing.entity} defaultOpen quiet {...handlers()} onSeek={onSeek} />);
+    expect(within(screen.getByRole("dialog")).queryByRole("slider", { name: "Kitchen speaker position", hidden: true })).toBeNull();
   });
 
   it("leads a compact row with its key", () => {

@@ -37,7 +37,7 @@ export function declaredActions(source, Name, CONST) {
     asks: /asks: true/.test(kind),
     // A value said as what it is: the entity field it lives in, and a level's range or a choice's options.
     ...(/takes: "(level|choice|switch)"/.test(kind) && { field: kind.match(/\bfield: "(\w+)"/)?.[1] }),
-    ...(/takes: "level"/.test(kind) && { min: bound(kind, "min") ?? 0, max: bound(kind, "max") ?? 100, wakes: /wakes: true/.test(kind) }),
+    ...(/takes: "level"/.test(kind) && { min: bound(kind, "min") ?? 0, max: bound(kind, "max") ?? 100, wakes: /wakes: true/.test(kind), runs: /runs: true/.test(kind) }),
     ...(/takes: "choice"/.test(kind) && {
       options: kind.match(/\boptions: "(\w+)"/)?.[1] != null
         ? { field: kind.match(/\boptions: "(\w+)"/)[1] }
@@ -91,8 +91,11 @@ export function describeDomain(name) {
   const actions = declared.filter(({ takes, asks }) => takes === "nothing" && !asks).map(({ action }) => action);
   const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks }) => ({ action, asks, code: takes === "code" }));
   // A level, a choice or a switch: drawn on a skin's own parts where it has them (orb's and field's), else left out.
-  const valued = (takes) => declared.filter((kind) => kind.takes === takes).map(({ action, field, min, max, wakes, options }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }) }));
+  // A level that runs on by itself (a track's position) is left out: a part that holds a level still would show where
+  // it was, and set it on every move; a skin draws it on its own running clock.
+  const valued = (takes) => declared.filter((kind) => kind.takes === takes && !kind.runs).map(({ action, field, min, max, wakes, options }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }) }));
   const levels = valued("level");
+  const runs = declared.filter((kind) => kind.takes === "level" && kind.runs).map(({ action }) => action);
   const choices = valued("choice");
   const switches = valued("switch");
   const leftOut = declared.filter(({ takes }) => takes === "value" || takes === "level" || takes === "choice" || takes === "switch").map(({ action }) => action);
@@ -121,6 +124,8 @@ export function describeDomain(name) {
     actions,
     guarded,
     leftOut,
+    /** The left-out levels that run on by themselves (a track's position): drawn on a skin's own running clock. */
+    ...(runs.length && { runs }),
     /** Each declared level: its field, its range (a number, or `{ field }` holding it), whether setting it turns it on. */
     levels,
     /** Each declared choice: its field, and its options (a fixed list, or `{ field }` holding the entity's own). */

@@ -20,7 +20,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { basename, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { helpText } from "./help.js";
-import { REGISTRY_MARKERS, beforeMarker, cardKind, cardTokens, filler, registryLines, skinNames, skinTokens } from "./card.js";
+import { REGISTRY_MARKERS, beforeMarker, cardKind, cardTokens, filler, leftOutWhy, registryLines, skinNames, skinTokens } from "./card.js";
 
 const templates = (name) => fileURLToPath(new URL(`./templates/${name}/`, import.meta.url));
 const domains = JSON.parse(readFileSync(new URL("./domains.json", import.meta.url), "utf8"));
@@ -79,7 +79,7 @@ function cardWrites(names, name, askedKind, readRegistry) {
     if (!source.includes(marker)) fail(`lovelace/registry.tsx has lost its "${marker}" line; put it back where the registry's ${marker.includes("import") ? "imports" : "entries"} go, then run add again`);
   }
   const registry = beforeMarker(REGISTRY_MARKERS.entries, lines.entry)(beforeMarker(REGISTRY_MARKERS.imports, lines.import)(source));
-  return { domain, kind: drawn.kind, leftOut: drawn.leftOut, files: [...files, ["lovelace/registry.tsx", registry]] };
+  return { domain, kind: drawn.kind, leftOut: drawn.leftOut, runs: drawn.runs, files: [...files, ["lovelace/registry.tsx", registry]] };
 }
 
 function write(root, files) {
@@ -102,7 +102,7 @@ if (args[0] === "add") {
   if (!skin) fail(`package.json's name must be dashhaus-skin-<skin>, as create-dashhaus-skin wrote it`);
   if (existsSync(join(root, "cards", name))) fail(`cards/${name} already exists`);
   const names = skinNames(skin);
-  const { domain, kind: drawn, leftOut, files } = cardWrites(names, name, kind, () => readFileSync(registryPath, "utf8"));
+  const { domain, kind: drawn, leftOut, runs, files } = cardWrites(names, name, kind, () => readFileSync(registryPath, "utf8"));
   if (dryRun) {
     console.log(`Would add the ${domain.words} card (${drawn}):`);
     for (const [path] of files) console.log(`  ${path === "lovelace/registry.tsx" ? "edit  " : "create"} ${path}`);
@@ -110,7 +110,7 @@ if (args[0] === "add") {
   }
   write(root, files);
   console.log(`Added the ${domain.words} card as a ${drawn}: ${files.length - 1} files, registered in lovelace/registry.tsx for ${domain.domains.join(", ")}.${leftOut.length ? `
-Left out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take" : "it takes"} a value a press can't give, so draw ${leftOut.length > 1 ? "them" : "it"} with your own control.` : ""}
+Left out: ${leftOutWhy(leftOut, runs, "your own control")}.` : ""}
 
 Next:
   npm run snapshot     # it is on the sample house, in the Living room

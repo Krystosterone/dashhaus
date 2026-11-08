@@ -25,10 +25,10 @@ const full = () => ({ ...FULL, sources: [...SOURCES] });
 const MORNING: HourSample[] = [0, 0, 0, 0, 0, 0, 0, 1, 0.5, 0, 0.75];
 
 export const MEDIA_PLAYER_SEEDS = {
-  /** Playing, with its artwork: the accent, its position ticking, and a press pauses it. */
+  /** Playing, with its artwork: the accent, its position ticking, and a press pauses it. It seeks, in its details. */
   playing: {
     entity: {
-      entityId: "media_player.kitchen", name: "Kitchen speaker", area: "Kitchen", state: "playing", ...full(),
+      entityId: "media_player.kitchen", name: "Kitchen speaker", area: "Kitchen", state: "playing", ...full(), supportsSeek: true,
       title: "Sunday Morning", artist: "Maroon 5", album: "Songs About Jane", app: "Spotify", source: "Spotify",
       duration: 245, position: 83, volume: 45, muted: false, picture: ARTWORK_SUNDAY, lastChanged: "11:40",
     },
@@ -122,6 +122,13 @@ export type MediaPlayerSeedName = keyof typeof MEDIA_PLAYER_SEEDS;
  */
 export const MEDIA_PLAYER_WORST_CASE: MediaPlayerSeed[] = [
   MEDIA_PLAYER_SEEDS.long,
+  { // Seekable, the longest clock a player draws (9:59:59), late in it: H:MM:SS on a narrow groove or fader
+    entity: {
+      entityId: "media_player.audiobook", name: "Audiobook", area: "Bedroom", state: "playing", ...full(), supportsSeek: true,
+      title: "War and Peace", artist: "Leo Tolstoy", source: "Spotify", duration: 35999, position: 35400, volume: 25, lastChanged: "06:40",
+    },
+    past: Array<HourSample>(11).fill(1),
+  },
   { // Accented, long, a stream: no duration, no artwork
     entity: {
       entityId: "media_player.salle_de_sejour", name: "Enceinte – salle de séjour et coin repas", area: "Rez-de-chaussée, côté jardin d'hiver", state: "playing", ...full(),
@@ -207,6 +214,13 @@ export function useDemoMediaPlayer(seed: MediaPlayerSeed) {
     onTurnOn: () => change((e) => e.supportsTurnOn, go("idle")),
     onTurnOff: () => change((e) => e.supportsTurnOff, go("off")),
     onVolumeChange: (volume: number) => change((e) => e.supportsVolume, (e) => ({ ...e, volume: Math.round(Math.min(100, Math.max(0, volume))) })),
+    /** Seeks where it plays something with a length, its clock running on from there; answers whether it took it. */
+    onSeek: async (seconds: number) => {
+      const takes = (e: MediaPlayerEntity) => e.supportsSeek && e.duration != null && e.position != null && Number.isFinite(seconds);
+      if (entity.state === "unavailable" || !takes(entity)) return false;
+      change(takes, (e, at) => ({ ...e, position: Math.min(e.duration!, Math.max(0, seconds)), positionAt: at }));
+      return true;
+    },
     onMuteChange: (muted: boolean) => change((e) => e.supportsMute, (e) => ({ ...e, muted })),
     onSourceChange: (source: string) => change((e) => e.supportsSource && e.sources?.includes(source), (e) => ({ ...e, source })),
   };

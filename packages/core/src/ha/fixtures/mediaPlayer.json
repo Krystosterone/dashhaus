@@ -16,7 +16,7 @@
       "source": "Spotify",
       "source_list": ["Spotify", "Radio", "TV"],
       "entity_picture": "/api/media_player_proxy/media_player.kitchen?token=abc&cache=f1e2",
-      "supported_features": 18877
+      "supported_features": 18879
     },
     "last_changed": "2026-10-19T11:40:00+00:00",
     "last_updated": "2026-10-19T11:53:30+00:00"
