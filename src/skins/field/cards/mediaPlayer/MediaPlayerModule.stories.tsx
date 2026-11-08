@@ -16,7 +16,7 @@ function DemoMediaPlayer({ seed, width, footprint, quiet, defaultOpen }: { seed:
       <MediaPlayerModule
         entity={demo.entity}
         history={demo.history}
-        onPlay={demo.onPlay} onPause={demo.onPause} onPrevious={demo.onPrevious} onNext={demo.onNext} onTurnOn={demo.onTurnOn} onTurnOff={demo.onTurnOff} onVolumeChange={demo.onVolumeChange} onSeek={demo.onSeek} onSourceChange={demo.onSourceChange} onMuteChange={demo.onMuteChange}
+        onPlay={demo.onPlay} onPause={demo.onPause} onPrevious={demo.onPrevious} onNext={demo.onNext} onTurnOn={demo.onTurnOn} onTurnOff={demo.onTurnOff} onVolumeChange={demo.onVolumeChange} onSeek={demo.onSeek} onVolumeUp={demo.onVolumeUp} onVolumeDown={demo.onVolumeDown} onSourceChange={demo.onSourceChange} onMuteChange={demo.onMuteChange}
         footprint={footprint}
         quiet={quiet}
         defaultOpen={defaultOpen}
@@ -162,6 +162,12 @@ export const Details: Story = { args: { defaultOpen: true } };
 
 /** A player that doesn't seek: no position fader; the screen's clock and rule say how far in, as a readout. */
 export const DetailsNoSeek: Story = { name: "Details, no seek", args: { mediaPlayer: "muted", defaultOpen: true } };
+
+/**
+ * A TV that steps its volume and reports no level: a minus and a plus key under Volume, each one step, never a fader
+ * that would claim a level; the value says Muted while muted, a level where one is reported, else nothing.
+ */
+export const DetailsVolumeSteps: Story = { name: "Details, volume steps", args: { mediaPlayer: "steps", defaultOpen: true } };
 
 /** A TV's panel: nothing playing, its sources, and Power. */
 export const DetailsSources: Story = { name: "Details, sources", args: { mediaPlayer: "on", defaultOpen: true } };

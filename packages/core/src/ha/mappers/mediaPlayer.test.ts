@@ -63,7 +63,8 @@ describe("mediaPlayerFromHass", () => {
     const bare = mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: 0 } }, raw.entity_id);
     expect(mediaPlayerFromHass(raw, raw.entity_id).supportsSeek).toBe(false);
     expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: F.SEEK } }, raw.entity_id).supportsSeek).toBe(true);
-    expect(bare).toMatchObject({ supportsPlay: false, supportsPause: false, supportsPrevious: false, supportsNext: false, supportsSeek: false, supportsVolume: false, supportsMute: false, supportsSource: false, supportsTurnOn: false, supportsTurnOff: false });
+    expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, supported_features: F.VOLUME_STEP } }, raw.entity_id)).toMatchObject({ supportsVolume: false, supportsVolumeStep: true });
+    expect(bare).toMatchObject({ supportsPlay: false, supportsPause: false, supportsPrevious: false, supportsNext: false, supportsSeek: false, supportsVolume: false, supportsVolumeStep: false, supportsMute: false, supportsSource: false, supportsTurnOn: false, supportsTurnOff: false });
     expect(mediaPlayerFromHass({ ...raw, attributes: { ...raw.attributes, source_list: [] } }, raw.entity_id).supportsSource).toBe(false);
   });
 

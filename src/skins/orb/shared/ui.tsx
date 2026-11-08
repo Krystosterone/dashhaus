@@ -187,8 +187,9 @@ export function AlarmPill({ alert, more, value, action }: { alert: ReactNode; mo
 /** Full-width toggle button: raised when off, the accent when on. */
 /** `turnOn`: the off-state control of a unit whose status line already says Off (climate, humidifier). */
 /** Without `on` it acts once (Refresh, New code): raised, and not announced as a toggle. */
-export function TogglePill({ label, on, onToggle, children, extra, turnOn }: { label: string; on?: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean }) {
-  const press = usePress({ onPress: onToggle, pressed: on });
+/** `disabled`: nothing to do now (a step at its bound): it lies flat, as a disabled button does. */
+export function TogglePill({ label, on, onToggle, children, extra, turnOn, disabled }: { label: string; on?: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean; disabled?: boolean }) {
+  const press = usePress({ onPress: onToggle, pressed: on, disabled });
   return (
     <button className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} {...press}>
       <span>{children}</span>

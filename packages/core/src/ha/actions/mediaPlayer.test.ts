@@ -84,6 +84,31 @@ describe("createMediaPlayerHandlers", () => {
   });
 });
 
+describe("onVolumeUp and onVolumeDown", () => {
+  it("step the volume with volume_up and volume_down, for a player that steps or sets it, and nothing else", () => {
+    const callService = vi.fn(async () => undefined);
+    const steps: MediaPlayerEntity = { entityId: entity.entityId, name: entity.name, state: "playing", muted: true, supportsVolumeStep: true };
+    const h = createMediaPlayerHandlers({ callService }, steps);
+    h.onVolumeUp();
+    h.onVolumeDown();
+    createMediaPlayerHandlers({ callService }, entity).onVolumeUp();
+    // Muted, it still only steps: never an unmute, never a turn on.
+    expect(callService.mock.calls).toEqual([
+      ["media_player", "volume_up", id],
+      ["media_player", "volume_down", id],
+      ["media_player", "volume_up", id],
+    ]);
+  });
+
+  it("report a player with neither as unsupported", () => {
+    const callService = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    createMediaPlayerHandlers({ callService }, { entityId: entity.entityId, name: entity.name, state: "playing" }, { onError }).onVolumeDown();
+    expect(callService).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "unsupported" }));
+  });
+});
+
 describe("onSeek", () => {
   const seekable: MediaPlayerEntity = { ...entity, supportsSeek: true, duration: 245, position: 83 };
 

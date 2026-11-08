@@ -51,6 +51,13 @@ from where it was let go until Home Assistant reports the new position, with no 
 
 <ApiSignature from="@dashhaus/core/hooks" name="useSeek" />
 
+## Volume steps
+
+Some players step their volume rather than set it: a TV over HDMI-CEC, an AV receiver's second zone, a Roku. They
+declare it (`supportsVolumeStep`), usually report no level, and take `actions.onVolumeUp` and `actions.onVolumeDown`,
+one step each. A step never unmutes the player or turns it on. Draw them as two buttons that each act once, never as a
+slider, which would claim a level the player never reported.
+
 ## Component
 
 `<HaMediaPlayer>` is `useHaMediaPlayer` as a component that draws nothing of its own. It takes every option of the hook
@@ -106,7 +113,7 @@ read with `loadHistory={false}`.
 
 Orb's `HaMediaPlayerTile` and Field's `HaMediaPlayerModule` are `useHaMediaPlayer` above each skin's card. One press
 pauses it while it plays, plays it while it doesn't and turns it on while it is off; skipping, seeking (where the
-player can), the volume, mute, the source and turning it off are in its details, never on the dashboard, where a stray
+player can), the volume (or Down and Up for a player that only steps it), mute, the source and turning it off are in its details, never on the dashboard, where a stray
 tap would jump the track. Orb seeks along a groove in its sheet, Field along a Position fader in its panel. Its artwork is shown where there is room, never in a row. On a dashboard
 set `quiet`, where nothing changes by itself, they draw no line or clock for how far in. They take the hook's options
 as props, plus their own:

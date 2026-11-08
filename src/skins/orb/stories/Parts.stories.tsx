@@ -175,10 +175,11 @@ function AllParts() {
         <State label="Warning" width={220}><CardTitle id="parts-title-warn" name="Front door"><p className="hd-area"><AlertStatus label="Warning">Open 25 min</AlertStatus></p></CardTitle></State>
       </Part>
 
-      <Part name="Toggle pill" rule="A full-width button: raised when off, the accent when on. A unit whose status already says Off gets the quieter Turn on.">
+      <Part name="Toggle pill" rule="A full-width button: raised when off, the accent when on. A unit whose status already says Off gets the quieter Turn on. One with nothing to do now (a step at its bound) lies flat, disabled.">
         <State label="Off" width={220}><TogglePill label="Fan off" on={false} onToggle={() => {}}>Off</TogglePill></State>
         <State label="On, tap it" width={220}><TogglePill label="Fan" on={pill} onToggle={() => setPill(!pill)}>{pill ? "On" : "Off"}</TogglePill></State>
         <State label="Turn on" width={220}><TogglePill label="Turn on heat" on={false} turnOn onToggle={() => {}}>Turn on</TogglePill></State>
+        <State label="Disabled: nothing to do now, lies flat" width={220}><TogglePill label="Living room TV: volume up" disabled onToggle={() => {}}>Up</TogglePill></State>
       </Part>
 
       <Part name="Chips" rule="One of several: raised, the chosen one in the accent. A card's own chips add their class to the chip's (light's colours, each with its swatch).">

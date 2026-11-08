@@ -1,14 +1,14 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { fmtPlayTime } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
+import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
-import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Today, useDetails } from "../../shared/ui";
+import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMediaPlayer, IconMute, IconNext, IconPower, IconPrevious, MEDIA_PLAYER_PICT } from "./icons";
 import { ScreenClock, ScreenProgress } from "./parts";
@@ -38,6 +38,10 @@ export interface MediaPlayerModuleProps {
    * it is let go; `false` (refused) draws Home Assistant's position again.
    */
   onSeek?: (seconds: number) => void | Promise<boolean>;
+  /** The panel's volume plus key, one step, for a player that steps its volume rather than sets it. */
+  onVolumeUp?: () => void;
+  /** The panel's volume minus key. */
+  onVolumeDown?: () => void;
   /** The panel's Mute key (`MEDIA_PLAYER_ACTIONS`: a switch). */
   onMuteChange?: (muted: boolean) => void;
   /** The panel's source keys (`MEDIA_PLAYER_ACTIONS`: a choice). */
@@ -65,9 +69,10 @@ const FIGURE: Partial<Record<MediaPlayerEntity["state"], string>> = { playing: "
  * plays, running on by itself. Under it the first key prints what a press does, **Pause** while it plays, **Play**
  * while it doesn't, **Turn on** while it is off, its LED lit while it plays or is on; then **Next**. The name, or a press and
  * hold, opens the panel: the time played as a running segment clock, Previous, Play and Next, the position fader where
- * the player seeks, the volume fader the sound module has, Mute, the source, Power and today's playing.
+ * the player seeks, the volume fader the sound module has (or a minus and a plus key for a player that steps its
+ * volume), Mute, the source, Power and today's playing.
  */
-export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onMuteChange, onSourceChange, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
+export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
@@ -151,6 +156,8 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
 
   const sources = e.supportsSource && onSourceChange ? e.sources ?? [] : [];
   const canVolume = !!e.supportsVolume && !!onVolumeChange && e.volume != null;
+  // A player that steps its volume rather than sets it: the Steps part in the fader's place, a minus and a plus key.
+  const canStep = volumeBySteps(e) && !!onVolumeUp && !!onVolumeDown;
   const canMute = !!e.supportsMute && !!onMuteChange;
   const power = (e.supportsTurnOn && onTurnOn) || (e.supportsTurnOff && onTurnOff);
   const on = !unav && !isOff(e);
@@ -219,6 +226,22 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
           disabled={!loaded}
           valueText={volumeSaid(e.volume!, quietVolume?.toLowerCase())}
           onChange={(v) => onVolumeChange?.(v)}
+        />
+      )}
+      {canStep && (
+        // A step is a tap, never a fader that would claim a level: the level where one is reported, else Muted or
+        // nothing; flat with nothing loaded, as Next is.
+        <Steps
+          group={`${e.name}, ${VOLUME.toLowerCase()}`}
+          label={VOLUME}
+          value={loaded ? volumeStepValue(e) : undefined}
+          downLabel={volumeStepSaid(e.name, "down")}
+          upLabel={volumeStepSaid(e.name, "up")}
+          atMin={e.volume != null && e.volume <= 0}
+          atMax={e.volume != null && e.volume >= 100}
+          unavailable={!loaded}
+          onDown={() => onVolumeDown?.()}
+          onUp={() => onVolumeUp?.()}
         />
       )}
       {/* Mute and Power latch, as the fan's oscillation does: On or Off printed, the LED lit while on. */}

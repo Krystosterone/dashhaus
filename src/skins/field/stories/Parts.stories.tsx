@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Swatch, Temperature, Today, useDetails, Warn, WarnWords } from "../shared/ui";
+import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Steps, Swatch, Temperature, Today, useDetails, Warn, WarnWords } from "../shared/ui";
 import type { ModuleFrameProps } from "../shared/ui";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
@@ -138,6 +138,13 @@ function AllParts() {
           <RangeFader id="parts-range-off" name="Thermostat, unavailable" legend="Range" low={20} high={24} min={16} max={30} step={0.5} disabled
             lowValueText="Unavailable" highValueText="Unavailable" onChange={() => {}} />
         </State>
+      </Part>
+
+      <Part name="Steps" rule="Exact steps: what the value is and the value printed, then a minus and a plus key that each act once, no LED. At a bound its key lies flat but keeps focus. A value the device doesn't report isn't printed (a TV that only steps its volume); with nothing to step now, both keys lie flat.">
+        <State label="A value" width={300}><Steps group="Thermostat, heat to" label="Heat to" value="21.5°" downLabel="Lower target to 21°" upLabel="Raise target to 22°" atMin={false} atMax={false} onDown={() => {}} onUp={() => {}} /></State>
+        <State label="At a bound" width={300}><Steps group="Kitchen speaker, volume" label="Volume" value="100%" downLabel="Kitchen speaker: volume down" upLabel="Kitchen speaker: volume up" atMin={false} atMax onDown={() => {}} onUp={() => {}} /></State>
+        <State label="No value reported" width={300}><Steps group="Living room TV, volume" label="Volume" downLabel="Living room TV: volume down" upLabel="Living room TV: volume up" atMin={false} atMax={false} onDown={() => {}} onUp={() => {}} /></State>
+        <State label="Nothing to step now" width={300}><Steps group="Living room TV, volume" label="Volume" downLabel="Living room TV: volume down" upLabel="Living room TV: volume up" atMin={false} atMax={false} unavailable onDown={() => {}} onUp={() => {}} /></State>
       </Part>
 
       <Part name="Screen" rule="Always dark, in both finishes: a pictogram and a figure, then up to two meta lines. Numbers keep their digit count; a missing reading is blank segments. Never pressed.">

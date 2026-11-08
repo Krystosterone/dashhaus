@@ -200,6 +200,9 @@
 .hd-pill:active { scale: 0.98; }
 .hd-pill[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
 .hd-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* A disabled pill lies flat: nothing to do now (a step at its bound). */
+.hd-pill:disabled { background: transparent; box-shadow: none; color: var(--ink-3); cursor: default; }
+.hd-pill:disabled:active { scale: 1; }
 /* Turn on: a climate-like unit that is off. The status line says Off; the centred action says what a tap
    does, on a quieter raised surface so one large neutral pill doesn't outweigh the card. */
 .hd-pill--turn-on { justify-content: center; background: color-mix(in oklab, var(--btn) 45%, var(--card-solid)); }

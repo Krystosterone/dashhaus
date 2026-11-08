@@ -26,7 +26,7 @@
     "state": "off",
     "attributes": {
       "friendly_name": "Living room TV",
-      "supported_features": 384
+      "supported_features": 1416
     },
     "last_changed": "2026-10-19T10:00:00+00:00",
     "last_updated": "2026-10-19T10:00:00+00:00"

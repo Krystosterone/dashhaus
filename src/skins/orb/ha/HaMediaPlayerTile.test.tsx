@@ -57,6 +57,17 @@ describe("HaMediaPlayerTile", () => {
     expect(fake.callService.mock.calls).toEqual([["media_player", "media_seek", { entity_id: "media_player.kitchen", seek_position: 235 }]]);
   });
 
+  it("steps the volume of a player that can't set it, one volume_down per tap, through the store", async () => {
+    const tv = { "media_player.kitchen": { ...raw["media_player.kitchen"], state: "on", attributes: { friendly_name: "Kitchen speaker", supported_features: 8 | 256 | 1024 } } };
+    const fake = renderConnected(<HaMediaPlayerTile entityId="media_player.kitchen" defaultOpen />, tv);
+    const down = await screen.findByRole("button", { name: "Kitchen speaker: volume down" });
+    await act(async () => {
+      fireEvent.click(down);
+      await Promise.resolve();
+    });
+    expect(fake.callService.mock.calls).toEqual([["media_player", "volume_down", { entity_id: "media_player.kitchen" }]]);
+  });
+
   it("shows a missing entity as unavailable", async () => {
     renderConnected(<HaMediaPlayerTile entityId="media_player.missing" name="Missing" />, raw);
     await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));

@@ -37,6 +37,18 @@ describe("HaMediaPlayerModule", () => {
     expect(live.callService.mock.calls.slice(before)).toEqual([["media_player", "media_seek", { entity_id: ID, seek_position: 235 }]]);
   });
 
+  it("steps the volume of a TV that can't set it, one volume_up per tap, through the store", async () => {
+    const TV = "media_player.living_room_tv";
+    const live = renderConnected(<HaMediaPlayerModule entityId={TV} loadHistory={false} defaultOpen />, { ...raw, [TV]: { ...raw[TV], state: "on" } });
+    const up = await screen.findByRole("button", { name: "Living room TV: volume up" });
+    const before = live.callService.mock.calls.length;
+    await act(async () => {
+      fireEvent.click(up);
+      await Promise.resolve();
+    });
+    expect(live.callService.mock.calls.slice(before)).toEqual([["media_player", "volume_up", { entity_id: TV }]]);
+  });
+
   it("draws its artwork in the screen", async () => {
     const live = renderLive();
     await waitFor(() => expect(live.container.querySelector(".fd-module .fd-pic")).not.toBeNull());

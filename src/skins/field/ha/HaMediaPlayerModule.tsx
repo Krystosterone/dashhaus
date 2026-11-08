@@ -14,7 +14,7 @@ export function HaMediaPlayerModule({ entityId, footprint, quiet, defaultOpen, .
     <MediaPlayerModule
       entity={entity}
       history={history}
-      onPlay={actions.onPlay} onPause={actions.onPause} onPrevious={actions.onPrevious} onNext={actions.onNext} onTurnOn={actions.onTurnOn} onTurnOff={actions.onTurnOff} onVolumeChange={actions.onVolumeChange} onSeek={actions.onSeek} onSourceChange={actions.onSourceChange} onMuteChange={actions.onMuteChange}
+      onPlay={actions.onPlay} onPause={actions.onPause} onPrevious={actions.onPrevious} onNext={actions.onNext} onTurnOn={actions.onTurnOn} onTurnOff={actions.onTurnOff} onVolumeChange={actions.onVolumeChange} onSeek={actions.onSeek} onVolumeUp={actions.onVolumeUp} onVolumeDown={actions.onVolumeDown} onSourceChange={actions.onSourceChange} onMuteChange={actions.onMuteChange}
       footprint={footprint}
       quiet={quiet}
       defaultOpen={defaultOpen}

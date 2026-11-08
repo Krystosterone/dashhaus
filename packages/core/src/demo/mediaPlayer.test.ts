@@ -60,6 +60,18 @@ describe("createDemoMediaPlayerHaTransport", () => {
     await expect(transport.callService("media_player", "media_seek", { entity_id: TV, seek_position: 10 })).rejects.toThrow();
   });
 
+  it("steps the volume ten points where a level is reported, and takes a step it can't report", async () => {
+    const { transport, seen } = await subscribe();
+    await transport.callService("media_player", "volume_up", { entity_id: KITCHEN });
+    expect(seen.latest?.[KITCHEN].attributes.volume_level).toBe(0.55);
+    await transport.callService("media_player", "volume_down", { entity_id: KITCHEN });
+    await transport.callService("media_player", "volume_down", { entity_id: KITCHEN });
+    expect(seen.latest?.[KITCHEN].attributes.volume_level).toBe(0.35);
+    await transport.callService("media_player", "turn_on", { entity_id: TV });
+    await transport.callService("media_player", "volume_up", { entity_id: TV });
+    expect(seen.latest?.[TV].attributes.volume_level).toBeUndefined();
+  });
+
   it("turns on and off", async () => {
     const { transport, seen } = await subscribe();
     await transport.callService("media_player", "turn_on", { entity_id: TV });

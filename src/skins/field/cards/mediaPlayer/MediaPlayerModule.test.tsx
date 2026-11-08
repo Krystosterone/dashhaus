@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MediaPlayerModule } from "./MediaPlayerModule";
 import { MEDIA_PLAYER_SEEDS, MEDIA_PLAYER_WORST_CASE } from "@dashhaus/core/seeds/mediaPlayer";
@@ -189,6 +189,29 @@ describe("MediaPlayerModule", () => {
     fixed.unmount();
     render(<MediaPlayerModule entity={S.playing.entity} defaultOpen quiet {...handlers()} onSeek={onSeek} />);
     expect(within(screen.getByRole("dialog")).queryByRole("slider", { name: "Kitchen speaker position", hidden: true })).toBeNull();
+  });
+
+  it("steps the volume of a player that can't set it with a minus and a plus key, each once, flat with nothing loaded", () => {
+    const onVolumeUp = vi.fn(), onVolumeDown = vi.fn();
+    const tv = S.steps.entity;
+    const { unmount } = render(<MediaPlayerModule entity={tv} defaultOpen {...handlers()} onVolumeUp={onVolumeUp} onVolumeDown={onVolumeDown} />);
+    const panel = screen.getByRole("dialog");
+    const steps = within(panel).getByRole("group", { name: "Living room TV, volume" });
+    expect(steps.querySelector(".fd-steps-label b")).toBeNull();
+    fireEvent.click(within(steps).getByRole("button", { name: "Living room TV: volume up" }));
+    fireEvent.click(within(steps).getByRole("button", { name: "Living room TV: volume down" }));
+    expect(onVolumeUp).toHaveBeenCalledTimes(1);
+    expect(onVolumeDown).toHaveBeenCalledTimes(1);
+    expect(within(panel).queryByRole("slider", { hidden: true })).toBeNull();
+    unmount();
+
+    render(<MediaPlayerModule entity={{ ...tv, muted: true }} defaultOpen {...handlers()} onVolumeUp={onVolumeUp} onVolumeDown={onVolumeDown} />);
+    expect(screen.getByRole("dialog").querySelector(".fd-steps-label b")?.textContent).toBe("Muted");
+    cleanup();
+
+    render(<MediaPlayerModule entity={{ ...tv, state: "off" }} defaultOpen {...handlers()} onVolumeUp={onVolumeUp} onVolumeDown={onVolumeDown} />);
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Living room TV: volume up" }));
+    expect(onVolumeUp).toHaveBeenCalledTimes(1);
   });
 
   it("leads a compact row with its key", () => {

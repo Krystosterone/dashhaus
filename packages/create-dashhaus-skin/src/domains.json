@@ -687,7 +687,9 @@
       "onPrevious",
       "onNext",
       "onTurnOn",
-      "onTurnOff"
+      "onTurnOff",
+      "onVolumeUp",
+      "onVolumeDown"
     ],
     "guarded": [],
     "leftOut": [
@@ -749,6 +751,7 @@
       "supportsNext",
       "supportsSeek",
       "supportsVolume",
+      "supportsVolumeStep",
       "supportsMute",
       "supportsSource",
       "supportsTurnOn",

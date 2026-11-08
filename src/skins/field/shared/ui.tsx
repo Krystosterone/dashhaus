@@ -248,25 +248,27 @@ export interface StepsProps {
   group: string;
   /** What the value is, printed before it: "Heat to", "Cool above". */
   label: string;
-  /** The value, printed: "21.5°". */
-  value: string;
+  /** The value, printed: "21.5°". A value the device doesn't report isn't printed (a TV that only steps its volume). */
+  value?: string;
   /** The keys' spoken labels, saying where each goes: "Lower target to 21°". */
   downLabel: string;
   upLabel: string;
   /** At a bound, its key lies flat but keeps focus. */
   atMin: boolean;
   atMax: boolean;
+  /** Nothing to step now (nothing loaded): both keys lie flat but keep focus. */
+  unavailable?: boolean;
   onDown: () => void;
   onUp: () => void;
 }
 
 /** Exact steps: what the value is and the value printed, then a minus and a plus key that act once. */
-export function Steps({ group, label, value, downLabel, upLabel, atMin, atMax, onDown, onUp }: StepsProps) {
+export function Steps({ group, label, value, downLabel, upLabel, atMin, atMax, unavailable, onDown, onUp }: StepsProps) {
   return (
     <div className="fd-steps" role="group" aria-label={group}>
-      <span className="fd-steps-label"><span>{label}</span><b>{value}</b></span>
-      <Key label={downLabel} unavailable={atMin} onPress={onDown}><IconMinus /></Key>
-      <Key label={upLabel} unavailable={atMax} onPress={onUp}><IconPlus /></Key>
+      <span className="fd-steps-label"><span>{label}</span>{value && <b>{value}</b>}</span>
+      <Key label={downLabel} unavailable={unavailable || atMin} onPress={() => { if (!unavailable) onDown(); }}><IconMinus /></Key>
+      <Key label={upLabel} unavailable={unavailable || atMax} onPress={() => { if (!unavailable) onUp(); }}><IconPlus /></Key>
     </div>
   );
 }

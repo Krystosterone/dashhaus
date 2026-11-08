@@ -190,6 +190,36 @@ describe("MediaPlayerCard", () => {
     expect(quiet.container.querySelector(".mp-prog")).toBeNull();
   });
 
+  it("steps the volume of a player that can't set it with Down and Up, each once, under what it says", () => {
+    const h = { ...press(), onVolumeUp: vi.fn(), onVolumeDown: vi.fn(), onVolumeChange: vi.fn() };
+    const tv = MEDIA_PLAYER_SEEDS.steps.entity;
+    const { container, rerender } = render(<MediaPlayerCard entity={tv} variant="sheet" {...h} />);
+    expect(screen.queryByRole("slider")).toBeNull();
+    const group = screen.getByRole("group", { name: "Volume" });
+    expect(group.querySelector(".hd-blk-v")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Living room TV: volume up" }));
+    fireEvent.click(screen.getByRole("button", { name: "Living room TV: volume down" }));
+    expect(h.onVolumeUp).toHaveBeenCalledTimes(1);
+    expect(h.onVolumeDown).toHaveBeenCalledTimes(1);
+    rerender(<MediaPlayerCard entity={{ ...tv, muted: true }} variant="sheet" {...h} />);
+    expect(container.querySelector(".hd-blk-v")?.textContent).toBe("Muted");
+    // A level reported but none to set: the level words, and Up lies flat at the top.
+    rerender(<MediaPlayerCard entity={{ ...tv, state: "paused", volume: 100 }} variant="sheet" {...h} />);
+    expect(container.querySelector(".hd-blk-v")?.textContent).toBe("Paused · 100%");
+    expect((screen.getByRole("button", { name: "Living room TV: volume up" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Living room TV: volume down" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("draws the groove, not the steps, where a level is reported and can be set; neither while off", () => {
+    const h = { ...press(), onVolumeUp: vi.fn(), onVolumeDown: vi.fn(), onVolumeChange: vi.fn() };
+    const both = render(<MediaPlayerCard entity={{ ...playing, supportsVolumeStep: true }} variant="sheet" {...h} />);
+    expect(screen.getByRole("slider")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /volume up/ })).toBeNull();
+    both.unmount();
+    render(<MediaPlayerCard entity={{ ...MEDIA_PLAYER_SEEDS.steps.entity, state: "standby" }} variant="sheet" {...h} />);
+    expect(screen.queryByRole("button", { name: /volume up/ })).toBeNull();
+  });
+
   it("keeps one state cue in the compact row", () => {
     const { container } = render(<MediaPlayerCard entity={{ ...playing, state: "off" }} footprint="compact" {...press()} />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Off");
