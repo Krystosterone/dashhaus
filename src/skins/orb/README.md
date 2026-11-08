@@ -62,8 +62,9 @@ npx dashhaus-deploy --skip-build
 ```
 
 It uploads `orb-dashboard.js` to `www/orb-dashboard/`, registers `/local/orb-dashboard/orb-dashboard.js` as a dashboard resource and
-creates both dashboards; run it again after an update. The strategy takes `title`, `viewing` and `theme`; the card takes
-`title`, `cards` or `rows`, `columns`, `flow`, `pages`, `nav`, `theme` and `accent`; without `cards` or `rows` it lays the house out automatically.
+creates both dashboards; run it again after an update. The strategy takes `title`, `viewing`, `theme` and `layout`; the card takes
+`title`, `cards` or `rows`, `columns`, `flow`, `pages`, `nav`, `theme` and `accent`; without `cards` or `rows` it lays the house out automatically,
+or one column per room with `layout: wall`, for a panel on a wall.
 
 ## In an app of your own
 

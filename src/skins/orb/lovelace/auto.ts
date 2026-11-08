@@ -20,18 +20,6 @@ const OWLET = /^sensor\.\w+_sleep_state$/;
 /** UniFi Hotspot Manager's guest Wi-Fi code: SHARED_KINDS draws it as the guestWifi card, its pattern repeated here too. */
 const VOUCHER = /^sensor\.\w+_voucher$/;
 
-/** The controls the automatic layout finds, in the order a place's row lists them. */
-const CONTROL_ORDER = [
-  "cover",
-  "light",
-  "switch",
-  "humidifier",
-  "fan",
-  "media_player",
-  "vacuum",
-  // new-card: auto order
-];
-
 /** Each control domain's card, by the name every skin shares, for the wall's bands (`WALL_BANDS`). */
 const CONTROL_CARDS: Record<string, string> = {
   cover: "cover",
@@ -50,6 +38,17 @@ function discover(input: LayoutInput) {
   const visible = visibleEntities(input);
   const sorted = (ids: string[]) => ids.sort(byName(states));
   const ofDomain = (...domains: string[]) => sorted(visible.filter((id) => domains.includes(domainOf(id))));
+  // Controls, by name.
+  const controls = ofDomain(
+    "cover",
+    "light",
+    "switch",
+    "humidifier",
+    "fan",
+    "media_player",
+    "vacuum",
+    // new-card: auto controls
+  );
   // A Dyson's fan draws the dyson card, its device's companions with it; a Hot+Cool's heater is one of them.
   const found = dysonFans(input);
   const dysonHeat = new Set(found.flatMap((d) => (d.heat ? [d.heat] : [])));
@@ -80,17 +79,7 @@ function discover(input: LayoutInput) {
     socks: sorted(visible.filter((id) => OWLET.test(id))),
     wifi: sorted(visible.filter((id) => VOUCHER.test(id))),
     calendars: ofDomain("calendar"),
-    // Controls, by name.
-    controls: ofDomain(
-      "cover",
-      "light",
-      "switch",
-      "humidifier",
-      "fan",
-      "media_player",
-      "vacuum",
-      // new-card: auto controls
-    ),
+    controls,
   };
 }
 
@@ -138,11 +127,21 @@ export function autoDashboard(input: LayoutInput, title = "Home", { layout }: Au
     const key = areaOf(id) ?? "";
     groups.set(key, [...(groups.get(key) ?? []), id]);
   }
+  const order = [
+    "cover",
+    "light",
+    "switch",
+    "humidifier",
+    "fan",
+    "media_player",
+    "vacuum",
+    // new-card: auto order
+  ];
   const areaIds = [...groups.keys()].filter(Boolean).sort((a, b) => areas[a].name.localeCompare(areas[b].name));
   for (const key of [...areaIds, ""]) {
     const ids = groups.get(key);
     if (!ids) continue;
-    ids.sort((a, b) => CONTROL_ORDER.indexOf(domainOf(a)) - CONTROL_ORDER.indexOf(domainOf(b)));
+    ids.sort((a, b) => order.indexOf(domainOf(a)) - order.indexOf(domainOf(b)));
     place({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact", ...(dysons.has(entity) && { card: "dyson" }) })) });
   }
 

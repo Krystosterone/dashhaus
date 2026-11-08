@@ -62,8 +62,9 @@ npx dashhaus-deploy --skip-build
 ```
 
 It uploads `field-dashboard.js` to `www/field-dashboard/`, registers `/local/field-dashboard/field-dashboard.js` as a dashboard resource and
-creates both dashboards; run it again after an update. The strategy takes `title`, `viewing` and `finish`; the card takes
-`title`, `cards` or `rows`, `columns`, `flow`, `pages`, `nav` and `finish`; without `cards` or `rows` it draws every supported entity, a row per Home Assistant area.
+creates both dashboards; run it again after an update. The strategy takes `title`, `viewing`, `finish` and `layout`; the card takes
+`title`, `cards` or `rows`, `columns`, `flow`, `pages`, `nav` and `finish`; without `cards` or `rows` it draws every supported entity, a row per Home Assistant area,
+or a column per area with `layout: wall`, for a panel on a wall.
 
 ## In an app of your own
 

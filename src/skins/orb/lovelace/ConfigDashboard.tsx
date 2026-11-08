@@ -147,7 +147,7 @@ function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
         );
         return area ? (
           <section key={c} className="dash-sec dash-col" style={{ gridColumn: c + 1 }} aria-label={area}>
-            <h2 className="dash-sec-h">{area}</h2>
+            <h2 className="dash-sec-h" title={area}>{area}</h2>
             <PlaceHeading.Provider value={area}>
               <CardHeadingLevelContext.Provider value={3}>{stack}</CardHeadingLevelContext.Provider>
             </PlaceHeading.Provider>

@@ -34,6 +34,8 @@
    the row's layout put it. The columns sit further apart than cards do, so a place reads as one. */
 .dash-row--places { grid-auto-rows: auto; column-gap: 16px; }
 .dash-col { min-width: 0; }
+/* One line, so the columns' tops line up: a long place name ends in an ellipsis, the whole of it in its title. */
+.dash-col > .dash-sec-h { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* At the narrow phone boundary, identity wins over columns: footprints stay fixed while rows reflow. */
 @container dash (max-width: 319px) {
