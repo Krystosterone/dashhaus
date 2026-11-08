@@ -37,6 +37,29 @@ const config: TestRunnerConfig = {
       const lines = overflows.map(({ name, clientWidth, scrollWidth }) => `  ${name}: ${scrollWidth}px content in ${clientWidth}px module`);
       throw new Error(`Field module horizontal overflow\n${lines.join("\n")}`);
     }
+    // A Field row's screen holds its figure inside its inset, four places as three (spec/field.md → Footprints), and a
+    // module's today and fader keep their legend to one line, so the strip or the slot under it never moves.
+    const misfits = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
+      modules.flatMap((module) => {
+        const name = module.querySelector(".fd-name")?.textContent?.trim() || "unnamed";
+        const found: string[] = [];
+        const screen = module.matches('[data-footprint="compact"]') ? module.querySelector(".fd-screen") : null;
+        const read = screen?.querySelector(".fd-read");
+        if (screen && read) {
+          const inner = screen.getBoundingClientRect().right - parseFloat(getComputedStyle(screen).paddingRight);
+          const right = read.getBoundingClientRect().right;
+          if (right > inner + 0.5) found.push(`${name}: its row's figure "${read.textContent}" runs ${(right - inner).toFixed(1)}px into the screen's inset`);
+        }
+        for (const legend of module.querySelectorAll(".fd-today > .fd-legend, .fd-fader > .fd-legend")) {
+          const line = parseFloat(getComputedStyle(legend).lineHeight);
+          const height = legend.getBoundingClientRect().height;
+          const whose = legend.parentElement?.matches(".fd-today") ? "today's" : "a fader's";
+          if (height > line + 1) found.push(`${name}: ${whose} legend "${legend.textContent}" wraps (${height}px for a ${line}px line)`);
+        }
+        return found;
+      }),
+    );
+    if (misfits.length) throw new Error(`Field module misfit\n  ${misfits.join("\n  ")}`);
     // The runner renders every story of a file in the same page, so axe (half a megabyte of script) is injected once
     // per page rather than once per story; a page that was reloaded has lost it and gets it again.
     if (!(await page.evaluate(() => "axe" in window))) await injectAxe(page);

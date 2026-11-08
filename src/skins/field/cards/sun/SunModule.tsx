@@ -27,9 +27,10 @@ const SAID = "The sun's height by hour today, the hours ahead included.";
  * by hour, the hours ahead dim as the calendar's plan is. The screen is a clock: what comes next, the sunset while the
  * sun is up and the sunrise while it is down (20:30; on 12 hours 8:30, its first place unlit), its pictogram lit while
  * the sun is up; the meta lines name it and count down to it (Sunset, In 4h 35m; further off its day, and on 12 hours
- * with the time whole, Thu 9:30 AM). With no sunset or sunrise reported, as at the poles, the screen says UP or
- * DOWN. A row's line counts down (Sets in 4h 35m). It has no actions and no warnings. The panel's second channel is
- * the sun's elevation; it lists every time to come.
+ * with the time whole, Thu 9:30 AM). With no sunset or sunrise reported, as at the poles, the screen says UP or SET
+ * (DOWN is wider than OPEN, so a narrow row's screen can't hold it in its inset). A row's line counts down (Sets in
+ * 4h 35m). It has no actions and no warnings. The panel's second channel is the sun's elevation; it lists every time
+ * to come.
  */
 export function SunModule({ entity: e, history, footprint = "standard", defaultOpen = false }: SunModuleProps) {
   const details = useDetails(defaultOpen);
@@ -48,7 +49,7 @@ export function SunModule({ entity: e, history, footprint = "standard", defaultO
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
     : waiting ? <Blank places={4} label={SUN_WORDS.noReading} />
     : next ? <><span aria-hidden="true"><Digits text={clockFigure(next.at, hourCycle).time} places={5} /></span><span className="fd-sr">{sunSaid(next, e.now, hourCycle)}</span></>
-    : <><span aria-hidden="true">{e.up ? "UP" : "DOWN"}</span><span className="fd-sr">{allDay}</span></>;
+    : <><span aria-hidden="true">{e.up ? "UP" : "SET"}</span><span className="fd-sr">{allDay}</span></>;
   // Within a day the countdown places the figure's clock, on either cycle (In 4h 35m). Further off, on 24 hours its
   // day alone, the figure saying its clock (Thu); on 12 the screen's four places can't hold the period, so the words
   // say the day and the time whole (Thu 9:30 AM), and so does a row's line (Rises Thu 9:30 AM).

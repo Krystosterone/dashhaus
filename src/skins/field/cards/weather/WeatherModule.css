@@ -7,11 +7,6 @@
   .fd-wx .fd-wx-warn-s { display: inline; }
 }
 
-/* A narrow row's screen (module.css) takes a smaller figure, so a hot Fahrenheit day ("104.3°F") stays whole. */
-@container (max-width: 279px) {
-  .fd-wx[data-footprint="compact"] .fd-read { font-size: 17px; }
-}
-
 /* The next hours and days: a strip of screen, one column each, in fixed places like the meter's. */
 .fd-wx-strip {
   display: grid;

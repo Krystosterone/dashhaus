@@ -464,7 +464,7 @@ export function Fader({ id, label, legend, value, min, max, step = 1, lit, empty
   const style = { "--fd-steps": scaleSteps(min, max, step), ...(thumb ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
   return (
     <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!thumb || undefined} style={style}>
-      <p className="fd-legend" aria-hidden="true">{legend}</p>
+      <p className="fd-legend" aria-hidden="true"><span className="fd-legend-n">{legend}</span></p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
       {thumb && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
@@ -508,7 +508,7 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
       data-disabled={disabled || undefined}
       style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4), "--fd-steps": scaleSteps(min, max, step) } as Vars}
     >
-      <p className="fd-legend" aria-hidden="true">{legend}</p>
+      <p className="fd-legend" aria-hidden="true"><span className="fd-legend-n">{legend}</span></p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
       <div className="fd-rail fd-range-rail fd-range-rail--low" data-param="a" aria-hidden="true"><div className="fd-thumb" /></div>
@@ -527,7 +527,7 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
 export function Legend({ id, children, value, as: Tag = "p" }: { id?: string; children: ReactNode; value?: ReactNode; as?: "p" | "h2" }) {
   return (
     <Tag className="fd-legend fd-legend--block">
-      <span id={id}>{children}</span>
+      <span id={id} className="fd-legend-n">{children}</span>
       {value != null && <span className="fd-legend-v">{value}</span>}
     </Tag>
   );
@@ -590,7 +590,8 @@ const NO_HOURS: HourSample[] = Array(24).fill(null);
 
 /**
  * Today: a printed legend, with its summary at the end, over the hour meter. In a panel, a block; in a module it
- * takes a fader's place and height, its legend over a shorter strip.
+ * takes a fader's place and height, its legend over a shorter strip, on one line at every width (module.css): a narrow
+ * module drops the printed word, a summary still too long ends in an ellipsis, and the meter's label says it whole.
  */
 export function Today({ legend = "Today", summary, label, samples = NO_HOURS, currentHour = -1, tone, aheadFrom }: TodayProps) {
   return (

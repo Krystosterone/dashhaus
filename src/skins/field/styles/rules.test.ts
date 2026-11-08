@@ -171,6 +171,31 @@ describe("viewing distance: type for the room, never a height", () => {
     expect(css(`${SKIN}/shared/alerts.css`)).toMatch(/\.fd-alerts-entry \{[^}]*font-size: var\(--fd-type-alert\)/);
   });
 
+  it("a row's screen fits four places by its own geometry, the same for every card: a closer inset and closer segments", () => {
+    const shared = rules(`${SKIN}/shared/module.css`);
+    const screen = shared.find((r) => r.selector === '.fd-module[data-footprint="compact"] .fd-screen');
+    expect(screen?.body).toMatch(/width: 104px/);
+    expect(screen?.body).toMatch(/padding: 0 5px/);
+    expect(shared.some((r) => r.selector === ':where(.fd-module[data-footprint="compact"]) .fd-read' && /letter-spacing: -0\.06em/.test(r.body))).toBe(true);
+    // No card spaces a row's figure, nor pads its screen, to fit its own word: the row's geometry is shared.
+    const bad = cssFiles.filter((f) => f.startsWith(`${SKIN}/cards/`)).flatMap((f) => rules(f)
+      .filter((r) => /data-footprint="compact"\][^,{]*\.fd-screen\b/.test(r.selector) && /(?:^|;)\s*padding(?:-inline|-left|-right)?\s*:/.test(r.body))
+      .map((r) => `${f}: ${r.selector}`));
+    expect(bad).toEqual([]);
+  });
+
+  it("today's legend keeps to one line in a module, so the strip never moves: the summary ends in an ellipsis", () => {
+    const shared = rules(`${SKIN}/shared/module.css`);
+    expect(shared.some((r) => r.selector === ".fd-module .fd-today .fd-legend" && /white-space: nowrap/.test(r.body))).toBe(true);
+    expect(shared.some((r) => r.selector === ".fd-module .fd-today .fd-legend-v" && /text-overflow: ellipsis/.test(r.body))).toBe(true);
+  });
+
+  it("a fader's legend keeps to one line over its slot: its words end in an ellipsis", () => {
+    const shared = rules(`${SKIN}/shared/module.css`);
+    expect(shared.some((r) => r.selector === ".fd-fader > .fd-legend" && /white-space: nowrap/.test(r.body))).toBe(true);
+    expect(shared.some((r) => r.selector === ".fd-fader > .fd-legend > .fd-legend-n" && /text-overflow: ellipsis/.test(r.body))).toBe(true);
+  });
+
   it("the screen's figure never steps its type down to fit its word: a word fits four places or is another word", () => {
     const bad = cssFiles.flatMap((f) => rules(f)
       .filter((r) => /\[data-(?:places|len|length|chars|long)\b/.test(r.selector) && /(?:^|;)\s*font-size\s*:/.test(r.body))

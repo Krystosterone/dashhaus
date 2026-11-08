@@ -175,9 +175,15 @@
 /* Fixed digit places: the leading ones are unlit segments, like a segment display's. The empty alternative text
    keeps them out of the accessibility tree, so "080" is heard as "80"; a browser without it keeps the first rule. */
 .fd-digits::before { content: attr(data-pad); content: attr(data-pad) / ""; color: var(--fd-screen-unlit); }
-/* One screen width down a column of rows, whatever it reads. */
-.fd-module[data-footprint="compact"] .fd-screen { width: 104px; height: 40px; padding: 0 8px; }
+/* One screen width down a column of rows, whatever it reads. A row's screen has a narrower inset than a module's and
+   sets its segments closer, so a word of four places (LOCK, DOCK, NONE) sits inside the inset as one of three does,
+   on the narrow row's 80 px screen as on the 104 px one: the screen fits its widest word, the figure never steps
+   down. The spacing is the figure's alone: a unit keeps its own, and a card that sets its figure's spacing (guest
+   Wi-Fi's code) still does, as the row's spacing takes no weight over it. */
+.fd-module[data-footprint="compact"] .fd-screen { width: 104px; height: 40px; padding: 0 5px; }
 .fd-module[data-footprint="compact"] .fd-read { gap: 6px; font-size: 21px; }
+:where(.fd-module[data-footprint="compact"]) .fd-read { letter-spacing: -0.06em; }
+:where(.fd-module[data-footprint="compact"]) .fd-read small { letter-spacing: -0.01em; }
 
 /* Pictogram: an unlit shape, and the same shape lit in its parameter's colour, filled up to the level. */
 .fd-pict { position: relative; flex: none; width: 20px; height: 26px; }
@@ -263,6 +269,11 @@
 .fd-legend--block { position: static; margin: 0; }
 .fd-legend-v { order: 2; color: var(--fd-ink-2); }
 .fd-legend::after { content: ""; flex: 1; height: 5px; border-top: 1px solid var(--fd-print); border-right: 1px solid var(--fd-print); align-self: flex-end; margin-bottom: -1px; }
+/* A fader's legend sits over its slot, so it keeps to one line at every width: its rule gives way first, down to its
+   end, then its words end in an ellipsis (`HUMIDIFY TO 4…`), the slider's label and the screen saying the value whole. */
+.fd-fader > .fd-legend { white-space: nowrap; }
+.fd-fader > .fd-legend::after { min-width: 6px; }
+.fd-fader > .fd-legend > .fd-legend-n { min-width: 0; overflow-x: clip; text-overflow: ellipsis; }
 .fd-slot { position: absolute; left: 9px; right: 9px; top: 25px; height: 4px; border-radius: 2px; background: var(--fd-slot); }
 /* A dot per stop on the thumb's centre line (--fd-steps, set by the fader): eleven dots in tens by default. */
 .fd-scale {
@@ -301,8 +312,18 @@
 .fd-fader:has(.fd-in:focus-visible) { outline: 2px solid var(--fd-focus); outline-offset: 3px; border-radius: 2px; }
 .fd-fader[data-disabled] .fd-thumb { background: linear-gradient(90deg, transparent 8.25px, var(--fd-thumb-line) 8.25px 9.75px, transparent 9.75px), var(--fd-off); box-shadow: none; }
 .fd-fader[data-disabled] .fd-slot, .fd-fader[data-disabled] .fd-scale { opacity: 0.4; }
-/* Today in a module: in a fader's place and height, its legend over a shorter strip. */
-.fd-module .fd-today { gap: 4px; height: 44px; align-content: start; }
+/* Today in a module: in a fader's place and height, its legend over a shorter strip. The legend keeps to one line, so
+   the strip never moves: its rule gives way first, down to its end; on a narrow module the printed word goes, since
+   the strip in a fader's place is always today's; and a summary still too long ends in an ellipsis, the meter's
+   label saying it whole. */
+.fd-module .fd-today { grid-template-columns: minmax(0, 1fr); gap: 4px; height: 44px; align-content: start; }
+.fd-module .fd-today .fd-legend { white-space: nowrap; }
+.fd-module .fd-today .fd-legend::after { min-width: 6px; }
+.fd-module .fd-today .fd-legend-n { flex: none; }
+.fd-module .fd-today .fd-legend-v { min-width: 0; overflow-x: clip; text-overflow: ellipsis; }
+@container (max-width: 239px) {
+  .fd-module .fd-today .fd-legend:has(.fd-legend-v) .fd-legend-n { display: none; }
+}
 .fd-module .fd-today .fd-meter { height: 30px; padding: 5px 6px 7px; }
 .fd-module .fd-today .fd-meter-h[data-now]::after { bottom: -5px; }
 .fd-hit { position: absolute; inset: 10px 0 0; cursor: ew-resize; touch-action: pan-y; }
