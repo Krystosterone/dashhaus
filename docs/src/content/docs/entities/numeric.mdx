@@ -32,6 +32,26 @@ The `sensor` card stays the default for every `sensor.*`. On a dashboard, pick t
 dashboard laid out for you uses it for the room's air quality only (CO₂, particles, VOC), one per device. Add power,
 energy and any other reading yourself, since every smart plug has them.
 
+## A warning you set
+
+The card never decides on its own that a number is too high: a CO₂ or power limit of its own would be a guess. Set
+`warn_above` or `warn_below`, in the sensor's own unit, and the card says when the reading crosses it. Set both for
+a band, `warn_below` under `warn_above`. Orb and Field take the same keys.
+
+<Example file="entities/numeric/warnings.yaml" />
+
+Past a limit, the card says so in place of what it measures, behind a warning sign: `High CO₂`, `Low voltage`,
+`Too cold` for a temperature, and `Too high` or `Too low` where its kind has no short word. A screen reader hears
+the card's name, then "Warning: Carbon dioxide above 1200 ppm". A reading at the limit doesn't warn. The details always say the limits you
+set ("Warns above 1200 ppm"), so you can check why it warns. In React they are `useHaNumeric`'s `warnAbove` and
+`warnBelow`, and `numericWarning` says whether a reading is past one.
+
+It is a look-when-convenient warning, never an alarm: the figure keeps its colour, nothing glows and Field's screen
+never turns light. The card shows it only while the reading is past the limit, with no delay or hysteresis, so a
+reading that wavers around it comes and goes. For a warning that must reach you (a phone notification, an automation,
+a freezer that has failed), make a **Threshold** helper in Home Assistant (Settings → Devices & services → Helpers)
+and automate on it. Its binary sensor can sit on the dashboard too, beside the reading.
+
 ## Component
 
 `<HaNumeric>` is `useHaNumeric` as a component that draws nothing of its own. It takes every option of the hook as a
@@ -75,8 +95,8 @@ its low and high would only be midnight and now.
 ## In a skin
 
 Orb's `HaNumericTile` and Field's `HaNumericModule` are `useHaNumeric` above each skin's card. Each draws the picture
-its device class names (air, power, a meter or a gauge), the figure in its unit, and today. Neither warns: a CO₂ or
-power threshold of the card's own would be a guess. They take the hook's options as props, plus their own:
+its device class names (air, power, a meter or a gauge), the figure in its unit, and today. Neither warns unless you
+set a limit (`warnAbove`, `warnBelow`). They take the hook's options as props, plus their own:
 
 <Example file="entities/numeric/Skins.tsx" />
 

@@ -22,6 +22,11 @@ describe("HaNumericTile", () => {
     expect(container.querySelector(".hd-area")?.textContent).toBe("Living room · CO₂");
   });
 
+  it("passes the limits it warns past through the hook to the card", async () => {
+    const { container } = renderConnected(<HaNumericTile entityId="sensor.living_room_co2" area="Living room" warnAbove={600} loadHistory={false} />, raw);
+    await waitFor(() => expect(container.querySelector(".hd-area")?.textContent).toBe("High CO₂ · Living room"));
+  });
+
   it("lets the host's unit stand in for a missing one", async () => {
     const bare = { "sensor.count": { ...raw["sensor.living_room_co2"], entity_id: "sensor.count", attributes: { friendly_name: "Count" } } };
     renderConnected(<HaNumericTile entityId="sensor.count" unit="pages" loadHistory={false} />, bare);

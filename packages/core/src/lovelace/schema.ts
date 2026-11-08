@@ -689,3 +689,21 @@ export function readOwletOptions<A extends string>(read: Reader, raw: Raw, at: s
     staleAfter,
   };
 }
+
+/**
+ * A numeric reading's unit, when the entity doesn't say, and the limits it warns past, in that unit: over
+ * `warn_above`, or under `warn_below` (any finite number; with both, a band, `warn_below` under `warn_above`).
+ */
+export function readNumericOptions(read: Reader, raw: Raw, at: string) {
+  const limit = (key: string) => {
+    const value = raw[key];
+    if (value == null) return undefined;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    read.problem(at, `"${key}" must be a number`);
+  };
+  const unit = read.string(raw, "unit", at);
+  const warnAbove = limit("warn_above");
+  const warnBelow = limit("warn_below");
+  if (warnAbove != null && warnBelow != null && warnBelow >= warnAbove) read.problem(at, "\"warn_below\" must be under \"warn_above\"");
+  return { unit, warnAbove, warnBelow };
+}

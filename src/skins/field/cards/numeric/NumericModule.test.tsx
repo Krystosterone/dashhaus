@@ -75,4 +75,28 @@ describe("NumericModule", () => {
     expect(screen.getByRole("dialog").textContent).toContain("Low 470 ppm · High 940 ppm");
     expect(screen.getByRole("dialog").querySelector(".fd-legend span")?.textContent).toBe("Today");
   });
+
+  it("warns past a limit the person set on the screen's first meta line, behind the outlined marker, and never inverts", () => {
+    const container = draw("high");
+    const meta = container.querySelector(".fd-meta");
+    expect(meta?.querySelector(".fd-warn")?.textContent).toBe("Warning: Carbon dioxide above 1200 ppmHigh CO₂");
+    expect(meta?.textContent).toMatch(/Updated 11:52$/);
+    expect(container.querySelector(".fd-module")?.getAttribute("data-level")).toBeNull();
+    expect(container.querySelector(".fd-head .fd-warn")).toBeNull();
+    expect(draw("low").querySelector(".fd-meta .fd-warn-t > [aria-hidden]")?.textContent).toBe("Low voltage");
+  });
+
+  it("gives a compact row's warning the area's line, and none at the limit", () => {
+    const row = draw("high", "compact");
+    expect(row.querySelector(".fd-head .fd-area .fd-warn-t > [aria-hidden]")?.textContent).toBe("High CO₂");
+    const at = draw({ ...NUMERIC_SEEDS.high, entity: { ...NUMERIC_SEEDS.high.entity, value: 1200 } }, "compact");
+    expect(at.querySelector(".fd-warn")).toBeNull();
+    expect(at.querySelector(".fd-head .fd-area")?.textContent).toBe("Bedroom");
+  });
+
+  it("says the limits in the panel's small print, whether or not it warns", () => {
+    const { co2 } = NUMERIC_SEEDS;
+    render(<NumericModule entity={co2.entity} history={co2.history} defaultOpen />);
+    expect(screen.getByRole("dialog").querySelector(".fd-info")?.textContent).toContain("Carbon dioxide in ppm · Warns above 1200 ppm");
+  });
 });

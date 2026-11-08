@@ -12,6 +12,8 @@ import { momentWords } from "./clock";
 import type { HourCycle } from "./clock";
 import { LEFT_OPEN_WORD, leftOpenText } from "./cover/words";
 import { LOCK_WORD } from "./lock/words";
+import { NUMERIC_WORDS, numericWarningWord } from "./numeric/words";
+import type { NumericClass, NumericSide } from "./numeric/types";
 import { ALERT_WORD, staleText, staleWarning } from "./owlet/readings";
 import { vacuumWarning } from "./vacuum/words";
 import { weatherWarnings } from "./weather/readings";
@@ -40,6 +42,8 @@ const words: [string, string][] = [
   ...CYCLES.flatMap((cycle) => timed(cycle).map(([what, word]): [string, string] => [`${what} (${cycle})`, word])),
   ["cover left open", LEFT_OPEN_WORD],
   ["lock jammed", LOCK_WORD.jammed],
+  ...[undefined, ...Object.keys(NUMERIC_WORDS) as NumericClass[]].flatMap((cls) => (["above", "below"] as NumericSide[])
+    .map((side): [string, string] => [`numeric ${cls ?? "plain"} ${side}`, numericWarningWord(cls, side)])),
   ["low battery", batteryText(100)],
   ["vacuum error", vacuumWarning({ state: "error" })!],
   ["vacuum low battery", vacuumWarning({ state: "idle", battery: 15 })!],

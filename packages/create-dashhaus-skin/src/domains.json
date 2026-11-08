@@ -793,7 +793,9 @@
       "deviceClass",
       "stateClass",
       "lastUpdated",
-      "lastSeen"
+      "lastSeen",
+      "warnAbove",
+      "warnBelow"
     ],
     "onOff": false,
     "minutes": null,

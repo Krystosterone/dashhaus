@@ -76,7 +76,17 @@ export interface NumericEntity {
   lastUpdated?: string;
   /** While it is unavailable, when it was last reachable. */
   lastSeen?: string;
+  /**
+   * The limits it warns past, in its own unit, as the person set them (YAML `warn_above` and `warn_below`, the hook's
+   * `warnAbove` and `warnBelow`): over `warnAbove`, or under `warnBelow`, it warns (`numericWarning`). With none set
+   * it never warns: a card never invents a threshold.
+   */
+  warnAbove?: number;
+  warnBelow?: number;
 }
+
+/** Which limit a reading is past: over `warnAbove`, or under `warnBelow`. */
+export type NumericSide = "above" | "below";
 
 export interface NumericHistory {
   /** One reading per hour, carried forward; "unavailable", or null for hours ahead and before the first reading. */

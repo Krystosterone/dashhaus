@@ -13,14 +13,14 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** The real store, mapper and history path over an injected demo transport: a CO₂ reading, then power, a meter and the grid as rows. */
+/** The real store, mapper and history path over an injected demo transport: a CO₂ reading, then power (past the 1500 W it warns above, `warnAbove`), a meter and the grid as rows. */
 function DemoConnectedNumeric() {
   const store = useMemo(() => createHaStore(createDemoNumericHaTransport()), []);
   return (
     <HaProvider store={store}>
       <div style={{ width: 420, maxWidth: "90vw", display: "grid", gap: 8 }}>
         <HaNumericTile entityId="sensor.living_room_co2" footprint="featured" />
-        <HaNumericTile entityId="sensor.dishwasher_power" footprint="compact" />
+        <HaNumericTile entityId="sensor.dishwasher_power" footprint="compact" warnAbove={1500} />
         <HaNumericTile entityId="sensor.house_energy" footprint="compact" />
         <HaNumericTile entityId="sensor.grid_power" footprint="compact" />
       </div>

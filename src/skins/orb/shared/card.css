@@ -132,7 +132,8 @@
 @container hd (max-width: 185px) {
   .hd-chev { display: none; }
 }
-/* In a narrow compact value line, keep actionable mode/setpoint copy before the repeated current reading. */
+/* In a narrow card, a line keeps what leads it before what repeats or follows it: a compact value line its mode or
+   setpoint before the current reading, a status line its warning before the area. */
 @container hd (max-width: 219px) {
   .hd-sub-optional { display: none; }
 }

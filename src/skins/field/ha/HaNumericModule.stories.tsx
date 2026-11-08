@@ -19,7 +19,7 @@ function DemoConnectedNumeric() {
     <HaProvider store={store}>
       <div style={{ width: 340, maxWidth: "90vw", display: "grid", gap: 8 }}>
         <HaNumericModule entityId="sensor.living_room_co2" />
-        <HaNumericModule entityId="sensor.dishwasher_power" footprint="compact" />
+        <HaNumericModule entityId="sensor.dishwasher_power" footprint="compact" warnAbove={1500} />
         <HaNumericModule entityId="sensor.house_energy" footprint="compact" />
         <HaNumericModule entityId="sensor.grid_power" footprint="compact" />
       </div>

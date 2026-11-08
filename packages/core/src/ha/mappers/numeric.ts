@@ -17,6 +17,9 @@ export interface NumericMapOptions {
   unit?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
   lastSeen?: string;
+  /** The limits it warns past, in its own unit (YAML `warn_above`, `warn_below`): copied onto the model as given. */
+  warnAbove?: number;
+  warnBelow?: number;
 }
 
 /**
@@ -44,5 +47,7 @@ export function numericFromHass(raw: HassEntity | undefined, entityId: string, o
     stateClass: isNumericStateClass(stateClass) ? stateClass : undefined,
     lastUpdated: unav ? undefined : formatHaTime(raw?.last_updated, options.now, options.hourCycle),
     lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
+    warnAbove: options.warnAbove,
+    warnBelow: options.warnBelow,
   };
 }

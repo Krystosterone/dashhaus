@@ -14,6 +14,7 @@ import {
   readAlarmOptions,
   readCameraOptions,
   readCard,
+  readNumericOptions,
   readOwletOptions,
   readSensorOptions,
   readUnit,
@@ -122,7 +123,7 @@ export type CardConfig = CardBase & (
   | { kind: "binarySensor"; battery?: string }
   | { kind: "camera"; still?: boolean; refresh?: number }
   | { kind: "mediaPlayer" }
-  | { kind: "numeric"; unit?: string }
+  | { kind: "numeric"; unit?: string; warnAbove?: number; warnBelow?: number }
   | { kind: "vacuum" }
   | { kind: "calendar"; calendars?: string[]; days?: number; events: boolean }
   | { kind: "sun" }
@@ -242,7 +243,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
   },
   camera: { keys: ["still", "refresh"], options: readCameraOptions },
   mediaPlayer: {},
-  numeric: { keys: ["unit"], options: (read, raw, at) => ({ unit: read.string(raw, "unit", at) }) },
+  numeric: { keys: ["unit", "warn_above", "warn_below"], options: readNumericOptions },
   vacuum: {},
   calendar: {
     keys: ["calendars", "days", "events"],

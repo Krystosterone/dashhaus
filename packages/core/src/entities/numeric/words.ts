@@ -1,4 +1,6 @@
-import type { NumericClass, NumericEntity } from "./types";
+import { WARNING_WORD_MAX } from "../severity";
+import { fmtNumeric, withUnit } from "./readings";
+import type { NumericClass, NumericEntity, NumericSide } from "./types";
 
 /**
  * What a numeric reading measures, in its device class's words, the same on every card and in every skin: `label` is
@@ -87,4 +89,46 @@ export const numericTodaySaid = (deviceClass?: NumericClass) => {
 export function numericFact({ deviceClass, unit }: Pick<NumericEntity, "deviceClass" | "unit">): string {
   const what = deviceClass ? NUMERIC_WORDS[deviceClass].long : undefined;
   return what && unit ? `${what} in ${unit}` : what ?? (unit ? `In ${unit}` : "");
+}
+
+/** A label that is an ordinary word ("Power") reads lower-case after High or Low; a symbol or an acronym ("CO₂", "PM2.5", "VOC") keeps its case. */
+const inLine = (label: string) => (/^[A-Z][a-z ]*$/.test(label) ? label.toLowerCase() : label);
+
+/**
+ * The word a reading past a limit the person set says, 13 characters at most (`WARNING_WORD_MAX`), the same on every
+ * card and in every skin: "High CO₂", "Low voltage", "High humidity", from what it measures, never its name. A
+ * temperature says "Too warm" or "Too cold"; a class whose label is too long for "High <label>" ("Power factor"),
+ * and a plain reading, says "Too high" or "Too low", on both sides alike.
+ */
+export function numericWarningWord(deviceClass: NumericClass | undefined, side: NumericSide): string {
+  if (deviceClass === "temperature") return side === "above" ? "Too warm" : "Too cold";
+  const label = deviceClass ? NUMERIC_WORDS[deviceClass].label : "";
+  if (!label || `High ${label}`.length > WARNING_WORD_MAX) return side === "above" ? "Too high" : "Too low";
+  return `${side === "above" ? "High" : "Low"} ${inLine(label)}`;
+}
+
+/** A limit in the reading's unit: "1200 ppm", "-25°C". */
+const limitText = (limit: number, unit?: string) => withUnit(fmtNumeric(limit), unit);
+
+/**
+ * What a reading past a limit says to a screen reader, after "Warning: ": "Carbon dioxide above 1200 ppm", "above
+ * 1200 ppm" for a plain reading. Nothing while no limit is set on that side.
+ */
+export function numericWarningSaid(e: Pick<NumericEntity, "deviceClass" | "unit" | "warnAbove" | "warnBelow">, side: NumericSide): string {
+  const limit = side === "above" ? e.warnAbove : e.warnBelow;
+  if (limit == null) return "";
+  const what = e.deviceClass ? NUMERIC_WORDS[e.deviceClass].long : "";
+  return [what, side, limitText(limit, e.unit)].filter(Boolean).join(" ");
+}
+
+/**
+ * The limits the person set, for the details' small print, whether or not it warns now: "Warns above 1200 ppm",
+ * "Warns below -25°C", "Warns below 18°C or above 24°C"; nothing with none.
+ */
+export function numericLimitFact(e: Pick<NumericEntity, "unit" | "warnAbove" | "warnBelow">): string {
+  const sides = [
+    e.warnBelow != null ? `below ${limitText(e.warnBelow, e.unit)}` : null,
+    e.warnAbove != null ? `above ${limitText(e.warnAbove, e.unit)}` : null,
+  ].filter(Boolean);
+  return sides.length ? `Warns ${sides.join(" or ")}` : "";
 }

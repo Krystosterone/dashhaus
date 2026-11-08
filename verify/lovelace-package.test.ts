@@ -149,6 +149,7 @@ describe("@dashhaus/core/lovelace", () => {
       "readCard",
       "readCards",
       "readColor",
+      "readNumericOptions",
       "readOwletOptions",
       "readRow",
       "readSensorOptions",

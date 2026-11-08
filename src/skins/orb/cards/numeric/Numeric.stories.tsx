@@ -3,7 +3,7 @@ import { DemoNumericTile as DemoTile } from "./demo/DemoNumericTile";
 import { NUMERIC_WORST_CASE } from "@dashhaus/core/seeds/numeric";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["co2", "power", "energy", "export", "count", "waiting", "unavailable", "long"] as const;
+const SEEDS = ["co2", "power", "energy", "export", "high", "low", "count", "waiting", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/Numeric",
@@ -15,7 +15,8 @@ const meta = {
         component:
           "One numeric reading (`sensor.*`: CO₂ in ppm, power in W, energy in kWh): a reading, whatever it measures. The icon its device " +
           "class names, the figure in its unit (five places at most, scaled with an SI letter beyond), today's low and high (or a meter's " +
-          "rise) as its second metric, and no glow. The status line says the area and what it measures. It has no warning of its own. " +
+          "rise) as its second metric, and no glow. The status line says the area and what it measures. It warns only past a limit the " +
+          "person set (`warn_above`, `warn_below`): the word leads the status line behind the warn marker, advisory, and the figure keeps its ink. " +
           "Tap the reading or the name for today's readings by hour. Same sizes and heights as the other cards.",
       },
     },
@@ -45,6 +46,20 @@ export const Negative: Story = { args: { seed: "export" } };
 export const NoUnit: Story = { name: "No unit", args: { seed: "count" } };
 /** Reachable, no reading yet: the sensor card's words, `No reading yet` after the area on the status line and `Waiting…` in the readout. */
 export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
+/**
+ * Past a limit the person set (`warn_above`, `warn_below`): core's word leads the status line behind the warn marker,
+ * in place of what it measures, then the area. Advisory, so the figure keeps its ink and the card no glow. Above and
+ * below, at both footprints: a compact row's value line leads with the word too, the figure after it.
+ */
+export const Warning: Story = {
+  parameters: { layout: "padded", controls: { include: ["width"] } },
+  render: ({ width }) => (
+    <div style={{ display: "grid", gap: 12, width, maxWidth: "100%" }}>
+      {(["high", "low"] as const).map((seed) => <DemoTile key={seed} seed={seed} />)}
+      {(["high", "low"] as const).map((seed) => <DemoTile key={`${seed}-compact`} seed={seed} footprint="compact" />)}
+    </div>
+  ),
+};
 export const Featured: Story = { args: { footprint: "featured" } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (NUMERIC_WORST_CASE): long names, a huge and a large negative value, no unit, no class, a long unit, zero, and gone and never seen. */
@@ -103,7 +118,10 @@ export const Compact: Story = {
   ),
 };
 
+/** The limit it warns above in the small print, while under it. */
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
+/** Past its limit: the status line leads with the warning, and the small print says the limit. */
+export const DetailsWarning: Story = { name: "Details, warning", args: { seed: "high", defaultOpen: true } };
 /** A meter's details: today's strip climbs, and its summary says how far. */
 export const DetailsMeter: Story = { name: "Details, meter", args: { seed: "energy", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };

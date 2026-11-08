@@ -8,7 +8,7 @@ export interface HaNumericTileProps extends HaNumericOptions, Omit<NumericTilePr
 }
 
 /** A live, read-only numeric tile: the useHaNumeric hook above the presentational tile. It sends no services. */
-export function HaNumericTile({ entityId, name, area, unit, lastSeen, history, loadHistory, ...props }: HaNumericTileProps) {
-  const live = useHaNumeric(entityId, { name, area, unit, lastSeen, history, loadHistory });
+export function HaNumericTile({ entityId, name, area, unit, lastSeen, warnAbove, warnBelow, history, loadHistory, ...props }: HaNumericTileProps) {
+  const live = useHaNumeric(entityId, { name, area, unit, lastSeen, warnAbove, warnBelow, history, loadHistory });
   return <NumericTile {...props} entity={live.entity} history={live.history} />;
 }

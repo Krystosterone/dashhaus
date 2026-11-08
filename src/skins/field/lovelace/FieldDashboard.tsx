@@ -75,7 +75,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
     <HaCameraModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} still={stills && item.still !== false} refresh={item.stillRefresh} paused={quiet} />)}</Stills.Consumer>,
   mediaPlayer: (item, footprint) => <Stills.Consumer>{({ quiet }) => (
     <HaMediaPlayerModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} quiet={quiet} />)}</Stills.Consumer>,
-  numeric: (item, footprint) => <HaNumericModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} unit={item.readingUnit} />,
+  numeric: (item, footprint) => <HaNumericModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} unit={item.readingUnit} warnAbove={item.warnAbove} warnBelow={item.warnBelow} />,
   vacuum: (item, footprint) => <HaVacuumModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,
   calendar: (item, footprint) => <HaCalendarModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} calendarEntityIds={item.calendars} days={item.days} loadEvents={item.events} loadHistory={item.history} />,
   sun: (item, footprint) => <HaSunModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,

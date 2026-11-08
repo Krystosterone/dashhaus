@@ -13,9 +13,12 @@ const day = (past: Reading[], now: Reading): NumericHistory => ({
 export interface NumericSeed { entity: NumericEntity; history: NumericHistory }
 
 export const NUMERIC_SEEDS = {
-  /** A measurement: the living room's CO₂, climbing as the house wakes and easing off when a window opens. */
+  /**
+   * A measurement: the living room's CO₂, climbing as the house wakes and easing off when a window opens. It warns
+   * above 1200 ppm (`warn_above`), so its details say the limit, and it is under it.
+   */
   co2: {
-    entity: { entityId: "sensor.living_room_co2", name: "Living room CO₂", area: "Living room", state: "ok", value: 650, unit: "ppm", deviceClass: "carbon_dioxide", stateClass: "measurement", lastUpdated: "11:53" },
+    entity: { entityId: "sensor.living_room_co2", name: "Living room CO₂", area: "Living room", state: "ok", value: 650, unit: "ppm", deviceClass: "carbon_dioxide", stateClass: "measurement", lastUpdated: "11:53", warnAbove: 1200 },
     history: day([520, 505, 490, 480, 470, 475, 540, 780, 940, 860, 720], 650),
   },
   /** Power now, a whole number of watts: the dishwasher heating its water. */
@@ -32,6 +35,16 @@ export const NUMERIC_SEEDS = {
   export: {
     entity: { entityId: "sensor.grid_power", name: "Grid", area: "Utility room", state: "ok", value: -1240, unit: "W", deviceClass: "power", stateClass: "measurement", lastUpdated: "11:54" },
     history: day([310, 290, 280, 270, 280, 300, 420, 180, -260, -820, -1110], -1240),
+  },
+  /** Past the limit above: the bedroom's CO₂ over the 1200 ppm it warns above, a closed door overnight. */
+  high: {
+    entity: { entityId: "sensor.bedroom_co2", name: "Bedroom CO₂", area: "Bedroom", state: "ok", value: 1450, unit: "ppm", deviceClass: "carbon_dioxide", stateClass: "measurement", lastUpdated: "11:52", warnAbove: 1200 },
+    history: day([880, 1010, 1130, 1240, 1330, 1390, 1460, 1520, 1480, 1440, 1460], 1450),
+  },
+  /** Past the limit below: a sump pump's backup battery under the 12 V it warns below. */
+  low: {
+    entity: { entityId: "sensor.sump_pump_battery_voltage", name: "Sump pump battery", area: "Basement", state: "ok", value: 11.6, unit: "V", deviceClass: "voltage", stateClass: "measurement", lastUpdated: "11:40", warnBelow: 12 },
+    history: day([12.4, 12.4, 12.3, 12.3, 12.2, 12.1, 12.0, 11.9, 11.8, 11.7, 11.6], 11.6),
   },
   /** No unit and no device class: a count. */
   count: {
@@ -59,7 +72,8 @@ export type NumericSeedName = keyof typeof NUMERIC_SEEDS;
 /**
  * Worst-case data: the card's Worst case story and each skin's Foundations → Worst case draw these. The widest figure
  * that needs no scaling with a three-letter unit, a huge value scaled ("1.2M"), a large negative one, a one-letter name with no unit, no class, no area and no history, a non-Latin name and area
- * with a long unit, a raw float with more decimals than a card shows, zero, and one gone and never seen.
+ * with a long unit, a raw float with more decimals than a card shows, zero, the longest warning word ("High
+ * humidity") on a long name and area with a band set, and one gone and never seen.
  */
 export const NUMERIC_WORST_CASE: NumericSeed[] = [
   NUMERIC_SEEDS.long,
@@ -82,6 +96,10 @@ export const NUMERIC_WORST_CASE: NumericSeed[] = [
   {
     entity: { entityId: "sensor.heat_pump_power", name: "Heat pump", area: "Garden", state: "ok", value: 0, unit: "kW", deviceClass: "power", stateClass: "measurement", lastUpdated: "11:30" },
     history: day([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0),
+  },
+  {
+    entity: { entityId: "sensor.bathroom_extractor_humidity", name: "Bathroom extractor fan humidity above the shower", area: "Upstairs family bathroom and laundry", state: "ok", value: 88.4, unit: "%", deviceClass: "humidity", stateClass: "measurement", lastUpdated: "11:48", warnBelow: 30, warnAbove: 70 },
+    history: day([52, 51, 50, 50, 49, 49, 71, 93, 90, 84, 86], 88.4),
   },
   {
     entity: { entityId: "sensor.cellar_co2", name: "Cellar CO₂", area: "Basement", state: "unavailable", unit: "ppm", deviceClass: "carbon_dioxide", stateClass: "measurement" },
