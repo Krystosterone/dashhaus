@@ -8,6 +8,8 @@ import type { SensorHistory, Reading } from "../entities/sensor/types";
 import type { WeatherHistory } from "../entities/weather/types";
 import type { OwletHistory, SleepState } from "../entities/owlet/types";
 import { SLEEP_SAMPLE } from "../entities/owlet/sleep";
+import type { MediaPlayerHistory } from "../entities/mediaPlayer/types";
+import { mediaPlayerStateOf } from "./mappers/mediaPlayer";
 import { finiteNumber, isRecord, stringList } from "./util";
 
 /* ------------------------------------------------------------------ *
@@ -339,4 +341,25 @@ export function owletHistoryFromHass(records: Records, ids: { sleep: string; hea
     currentHour,
     asleepMinutes: minutes,
   };
+}
+
+/* ------------------------------------------------------------------ *
+ * Media player: the hours it was playing                              *
+ * ------------------------------------------------------------------ */
+
+/**
+ * Today for a media player: 1 for hours it was playing (or buffering), 0 for any other state it can be in, and minutes
+ * playing. `unknown` and `unavailable` hours are unavailable.
+ */
+export function mediaPlayerHistoryFromHass(records: Records, entityId: string, now?: Date): MediaPlayerHistory {
+  const when = safeNow(now);
+  const playing = (state: string) => {
+    const s = mediaPlayerStateOf(state).state;
+    return s === "playing" || s === "buffering";
+  };
+  const { samples, currentHour, minutes } = build(only(records, entityId), when, {
+    value: (state) => (mediaPlayerStateOf(state).state === "unavailable" ? "unavailable" : playing(state) ? 1 : 0),
+    on: playing,
+  });
+  return { samples, currentHour, playingMinutes: minutes };
 }

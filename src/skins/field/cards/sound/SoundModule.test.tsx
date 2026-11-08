@@ -74,6 +74,9 @@ describe("SoundModule", () => {
     const { onToggle, onVolumeChange } = draw("off", "standard", { defaultOpen: true });
     const slider = screen.getByRole("slider", { name: "White noise volume", hidden: true });
     expect(slider.closest(".fd-fader")?.getAttribute("data-lit")).toBe("false");
+    // Unlit, its words say why before the value, and so does what a screen reader hears (spec/cards.md).
+    expect(screen.getByText(/^Off · \d+%$/)).toBeTruthy();
+    expect(slider.getAttribute("aria-valuetext")).toMatch(/^\d+ percent, sound off$/);
     fireEvent.change(slider, { target: { value: "40" } });
     expect(onVolumeChange).toHaveBeenCalledWith(40);
     expect(onToggle).not.toHaveBeenCalled();

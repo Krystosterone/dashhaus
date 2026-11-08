@@ -56,6 +56,7 @@ const KINDS = {
   guestWifi: ["orb-cards-guestwifi--ready", "field-cards-guestwifi--ready"],
   binarySensor: ["orb-cards-binarysensor--closed", "field-cards-binarysensor--closed"],
   camera: ["orb-cards-camera--idle", "field-cards-camera--idle"],
+  mediaPlayer: ["orb-cards-mediaplayer--playing", "field-cards-mediaplayer--playing"],
 };
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };

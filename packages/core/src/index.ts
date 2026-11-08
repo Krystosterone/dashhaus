@@ -81,6 +81,7 @@ export {
   weatherHistoryFromHass,
   owletHistoryFromHass,
   readingHistoryFromHass,
+  mediaPlayerHistoryFromHass,
 } from "./ha/history";
 export type { HaHistoryRecord, OnOffHistory } from "./ha/history";
 export { serviceRunner } from "./ha/actions/run";
@@ -143,4 +144,11 @@ export type { CameraMapOptions } from "./ha/mappers/camera";
 export { useHaCamera } from "./ha/hooks/camera";
 export type { HaCameraOptions, HaCameraResult } from "./ha/hooks/camera";
 export { HaCamera } from "./ha/headless";
+export { MEDIA_PLAYER_FEATURES, mediaPlayerFromHass, mediaPlayerStateOf } from "./ha/mappers/mediaPlayer";
+export type { MediaPlayerMapOptions } from "./ha/mappers/mediaPlayer";
+export { createMediaPlayerHandlers, MEDIA_PLAYER_ACTIONS } from "./ha/actions/mediaPlayer";
+export type { MediaPlayerHandlers, MediaPlayerHandlerOptions } from "./ha/actions/mediaPlayer";
+export { useHaMediaPlayer } from "./ha/hooks/mediaPlayer";
+export type { HaMediaPlayerOptions, HaMediaPlayerResult } from "./ha/hooks/mediaPlayer";
+export { HaMediaPlayer } from "./ha/headless";
 // new-card: exports

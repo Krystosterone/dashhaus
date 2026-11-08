@@ -52,6 +52,7 @@ export type Kind =
   | "guestWifi"
   | "binarySensor"
   | "camera"
+  | "mediaPlayer"
   // new-card: kinds
   ;
 
@@ -70,6 +71,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   fan: "fan",
   binary_sensor: "binarySensor",
   camera: "camera",
+  media_player: "mediaPlayer",
   // new-card: domain kinds
 };
 
@@ -110,6 +112,7 @@ export type CardConfig = CardBase & (
   | { kind: "guestWifi"; access?: "code" | "password"; network?: string; qr?: string; newCode?: string; refresh?: string }
   | { kind: "binarySensor"; battery?: string }
   | { kind: "camera"; still?: boolean; refresh?: number }
+  | { kind: "mediaPlayer" }
   // new-card: card configs
 );
 
@@ -225,6 +228,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
   camera: { keys: ["still", "refresh"], options: readCameraOptions },
+  mediaPlayer: {},
   // new-card: kind specs
 };
 

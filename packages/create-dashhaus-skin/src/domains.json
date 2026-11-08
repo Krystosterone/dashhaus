@@ -628,6 +628,99 @@
     ],
     "fixtureId": "lock.front_door"
   },
+  "mediaPlayer": {
+    "name": "mediaPlayer",
+    "Name": "MediaPlayer",
+    "CONST": "MEDIA_PLAYER",
+    "words": "media player",
+    "Label": "Media player",
+    "domains": [
+      "media_player"
+    ],
+    "kind": "control",
+    "actions": [
+      "onPlay",
+      "onPause",
+      "onPrevious",
+      "onNext",
+      "onTurnOn",
+      "onTurnOff"
+    ],
+    "guarded": [],
+    "leftOut": [
+      "onVolumeChange",
+      "onMuteChange",
+      "onSourceChange"
+    ],
+    "levels": [
+      {
+        "action": "onVolumeChange",
+        "field": "volume",
+        "min": 0,
+        "max": 100,
+        "wakes": false
+      }
+    ],
+    "choices": [
+      {
+        "action": "onSourceChange",
+        "field": "source",
+        "options": {
+          "field": "sources"
+        }
+      }
+    ],
+    "switches": [
+      {
+        "action": "onMuteChange",
+        "field": "muted"
+      }
+    ],
+    "history": true,
+    "code": false,
+    "fields": [
+      "entityId",
+      "name",
+      "area",
+      "state",
+      "stateText",
+      "title",
+      "artist",
+      "album",
+      "app",
+      "duration",
+      "position",
+      "positionAt",
+      "volume",
+      "muted",
+      "source",
+      "sources",
+      "picture",
+      "supportsPlay",
+      "supportsPause",
+      "supportsPrevious",
+      "supportsNext",
+      "supportsVolume",
+      "supportsMute",
+      "supportsSource",
+      "supportsTurnOn",
+      "supportsTurnOff",
+      "lastChanged",
+      "changedAt",
+      "lastSeen"
+    ],
+    "onOff": false,
+    "minutes": "playing",
+    "samples": true,
+    "summary": "e.volume == null ? stateWords(e.state) : `${e.volume}%`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "media_player.kitchen"
+  },
   "owlet": {
     "name": "owlet",
     "Name": "Owlet",

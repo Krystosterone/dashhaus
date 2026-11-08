@@ -1,9 +1,10 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { SoundEntity, SoundHistory } from "@dashhaus/core/entities/sound/types";
-import { soundAbilities, soundWord } from "@dashhaus/core/entities/sound/words";
+import { SOUND_OFF_SAID, soundAbilities, soundVolumeReason, soundWord } from "@dashhaus/core/entities/sound/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
+import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, useDetails, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconSound, SPEAKER } from "./icons";
@@ -43,7 +44,7 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
   const since = sinceFact(e.lastChanged);
   const meta: [ReactNode, ReactNode?] | undefined = unav ? ["Unavailable", e.lastSeen ? lastSeenFact(e.lastSeen) : undefined]
     : on && volume != null ? [soundWord(e), since]
-    : !on && volume != null ? [`Volume ${volume}%`, since]
+    : !on && volume != null ? [volumeText(volume), since]
     : since ? [since]
     : undefined;
   // Square at the head of a compact row; across the row with its state word, which unavailable has none of.
@@ -60,7 +61,7 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
 
   // Playing, the figure is the volume already; off, it says OFF, so the volume moves to the second channel.
   const aside = !on && volume != null ? (
-    <Channel pict={<Pictogram lit={false} level={volume / 100}>{SPEAKER}</Pictogram>} sub="Volume"><Volume value={volume} /></Channel>
+    <Channel pict={<Pictogram lit={false} level={volume / 100}>{SPEAKER}</Pictogram>} sub={VOLUME}><Volume value={volume} /></Channel>
   ) : undefined;
 
   return (
@@ -83,12 +84,14 @@ export function SoundModule({ entity: e, footprint = "standard", history, onTogg
         <Fader
           id={`${uid}-vol`}
           label={`${e.name} volume`}
-          legend={on ? `Volume ${volume}%` : `Off · ${volume}%`}
+          // A loudness lights only while it sounds; unlit, its legend and its spoken value say why (spec/cards.md →
+          // What every card shows).
+          legend={volumeText(volume, soundVolumeReason(e))}
           value={volume}
           min={0}
           max={100}
           lit={on}
-          valueText={`${volume} percent`}
+          valueText={volumeSaid(volume, on ? undefined : SOUND_OFF_SAID)}
           onChange={onVolumeChange}
         />
       )}

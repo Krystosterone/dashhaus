@@ -82,5 +82,9 @@ export { CameraModule } from "./cards/camera/CameraModule";
 export type { CameraModuleProps } from "./cards/camera/CameraModule";
 export { HaCameraModule } from "./ha/HaCameraModule";
 export type { HaCameraModuleProps } from "./ha/HaCameraModule";
+export { MediaPlayerModule } from "./cards/mediaPlayer/MediaPlayerModule";
+export type { MediaPlayerModuleProps } from "./cards/mediaPlayer/MediaPlayerModule";
+export { HaMediaPlayerModule } from "./ha/HaMediaPlayerModule";
+export type { HaMediaPlayerModuleProps } from "./ha/HaMediaPlayerModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

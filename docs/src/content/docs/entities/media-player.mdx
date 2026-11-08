@@ -1,0 +1,111 @@
+---
+title: Media player
+description: "One media_player.* entity: what is playing, how far in, its volume and source, and the press it can take now."
+kind:
+  group: Controls
+  order: 6
+  summary: "Now playing on a speaker or a TV: the title and its artwork, how far in, and one press to pause, play or turn it on."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One `media_player.*` entity, a speaker, a TV or a cast: whether it is playing, paused, buffering, idle, on, in standby
+or off; what is playing and how far in; its volume, whether it is muted, and its source; its artwork; and what it can
+do, from what it declares to Home Assistant.
+
+## Quick example
+
+<Example file="entities/mediaPlayer/NowPlaying.tsx" />
+
+Integrations name the same state differently: an older one says `stopped` where Home Assistant says `idle`, another
+`loading` for buffering. They are mapped onto Home Assistant's own, and any other state is said in its own words,
+`Connecting`, never guessed. A stream, such as a radio station, has no duration: nothing is drawn for how far in,
+rather than a guess.
+
+## How far in, without a timer
+
+Home Assistant reports a position and when it read it, not a ticking clock. `usePlayhead`, from
+`@dashhaus/core/hooks`, works out where the player is from those, once, and again only when the position, the state or
+the track changes; what you draw from it can then move on by itself with CSS, so nothing re-renders every second.
+`clockPlaces` gives a clock's places, each a digit that turns every so many seconds, for a clock that keeps time the
+same way.
+
+<Example file="entities/mediaPlayer/Progress.tsx" />
+
+<ApiSignature from="@dashhaus/core/hooks" name="usePlayhead" />
+
+## Component
+
+`<HaMediaPlayer>` is `useHaMediaPlayer` as a component that draws nothing of its own. It takes every option of the hook
+as a prop, and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a
+list.
+
+<ApiMembers from="@dashhaus/core" name="HaMediaPlayer" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaMediaPlayer" />
+
+It reads the player, its area, its artwork and today's playing.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaMediaPlayerOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaMediaPlayerResult" />
+
+#### `entity`: MediaPlayerEntity
+
+Each `supports…` flag comes from what the player declares to Home Assistant. What is playing, the volume and the source
+are known only while it is available. `picture` is its artwork, a URL your page can load, while something is loaded:
+draw it with `usePicture`, which loads it only once it is on screen.
+
+<ApiMembers from="@dashhaus/core/entities/mediaPlayer/types" name="MediaPlayerEntity" />
+
+#### `history`: MediaPlayerHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since: the hours it was playing. Pass `history`
+to supply your own, or `loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/mediaPlayer/types" name="MediaPlayerHistory" />
+
+#### `actions`: MediaPlayerHandlers
+
+<ApiMembers from="@dashhaus/core" name="MediaPlayerHandlers" />
+
+An action the player doesn't declare, or any action while it is unavailable, is reported to `onActionError` as
+`unsupported` and never sent; a source it doesn't list is reported as `invalid_input`.
+
+## Every player
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. Lists skip each item's history
+read with `loadHistory={false}`.
+
+<Example file="entities/mediaPlayer/AllPlayers.tsx" />
+
+## In a skin
+
+Orb's `HaMediaPlayerTile` and Field's `HaMediaPlayerModule` are `useHaMediaPlayer` above each skin's card. One press
+pauses it while it plays, plays it while it doesn't and turns it on while it is off; skipping, the volume, mute, the
+source and turning it off are in its details. Its artwork is shown where there is room, never in a row. On a dashboard
+set `quiet`, where nothing changes by itself, they draw no line or clock for how far in. They take the hook's options
+as props, plus their own:
+
+<Example file="entities/mediaPlayer/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaMediaPlayerTileProps" except={{ from: "@dashhaus/core", name: "HaMediaPlayerOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaMediaPlayerModuleProps" except={{ from: "@dashhaus/core", name: "HaMediaPlayerOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="mediaPlayer" />
