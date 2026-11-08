@@ -172,6 +172,7 @@ describe("@dashhaus/core/lovelace", () => {
       "deviceClass",
       "deviceCompanion",
       "domainOf",
+      "energySensors",
       "friendlyName",
       "groupByArea",
       "numericSensors",

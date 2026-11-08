@@ -6,7 +6,7 @@ import { createHaStore } from "@dashhaus/core";
 import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { createDemoHouseTransport } from "@dashhaus/core/demo";
+import { DEMO_ENERGY_PREFS, createDemoHouseTransport } from "@dashhaus/core/demo";
 import type { HaTransport } from "@dashhaus/core";
 
 const meta = {
@@ -102,10 +102,13 @@ function Configured({ yaml = YAML }: { yaml?: Record<string, unknown> }) {
   return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
 }
 
-/** The automatic layout, as the card draws it when `cards` and `rows` are left out. */
+/**
+ * The automatic layout, as the card draws it when `cards` and `rows` are left out, with the demo house's energy
+ * preferences: its grid's power and meter under Energy, last.
+ */
 function Automatic() {
   const entities = useHaSelector((snapshot) => snapshot.entities);
-  const config = useMemo(() => parseDashboardConfig(autoDashboard({ states: entities })), [entities]);
+  const config = useMemo(() => parseDashboardConfig(autoDashboard({ states: entities, energy: DEMO_ENERGY_PREFS })), [entities]);
   return <ConfigDashboard config={{ ...config, rows: config.rows ?? [] }} now={NOW} />;
 }
 

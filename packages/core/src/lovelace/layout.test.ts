@@ -4,6 +4,7 @@ import {
   areaName,
   byName,
   deviceCompanion,
+  energySensors,
   friendlyName,
   groupByArea,
   numericSensors,
@@ -178,5 +179,82 @@ describe("deviceCompanion", () => {
     expect(deviceCompanion(lock, "light.kitchen", "battery")).toBeUndefined();
     expect(deviceCompanion(lock, "lock.front", "humidity")).toBeUndefined();
     expect(deviceCompanion(lock, "lock.missing", "battery")).toBeUndefined();
+  });
+});
+
+describe("energySensors", () => {
+  const ids = [
+    "sensor.grid_power", "sensor.grid_import", "sensor.grid_export", "sensor.solar_power", "sensor.solar_energy",
+    "sensor.battery_power", "sensor.battery_out", "sensor.battery_in", "sensor.gas", "sensor.water", "sensor.dishwasher",
+    "sensor.hidden_power", "sensor.diagnostic_energy", "sensor.second_grid_power", "sensor.old_grid_import", "sensor.old_grid_export",
+  ];
+  const states = Object.fromEntries(ids.map((id) => [id, { attributes: { friendly_name: id } }]));
+  const entities = { "sensor.hidden_power": { hidden: true }, "sensor.diagnostic_energy": { entity_category: "diagnostic" } };
+
+  it("puts power now first, grid then solar then battery, then the meters: grid in, grid out, solar, battery out, battery in", () => {
+    expect(energySensors({
+      states,
+      energy: {
+        energy_sources: [
+          { type: "battery", stat_energy_from: "sensor.battery_out", stat_energy_to: "sensor.battery_in", stat_rate: "sensor.battery_power" },
+          { type: "solar", stat_energy_from: "sensor.solar_energy", stat_rate: "sensor.solar_power" },
+          { type: "grid", stat_energy_from: "sensor.grid_import", stat_energy_to: "sensor.grid_export", stat_rate: "sensor.grid_power" },
+          { type: "grid", stat_energy_from: null, stat_energy_to: null, stat_rate: "sensor.second_grid_power" },
+        ],
+      },
+    })).toEqual([
+      "sensor.grid_power", "sensor.second_grid_power", "sensor.solar_power", "sensor.battery_power",
+      "sensor.grid_import", "sensor.grid_export", "sensor.solar_energy", "sensor.battery_out", "sensor.battery_in",
+    ]);
+  });
+
+  it("reads a grid's older flow_from, flow_to and power lists as well as the flat keys", () => {
+    expect(energySensors({
+      states,
+      energy: {
+        energy_sources: [{
+          type: "grid",
+          flow_from: [{ stat_energy_from: "sensor.old_grid_import" }, { stat_energy_from: "sensor.grid_import" }],
+          flow_to: [{ stat_energy_to: "sensor.old_grid_export" }],
+          power: [{ stat_rate: "sensor.grid_power" }],
+        }],
+      },
+    })).toEqual(["sensor.grid_power", "sensor.old_grid_import", "sensor.grid_import", "sensor.old_grid_export"]);
+  });
+
+  it("keeps only visible sensor entities that exist, once each", () => {
+    expect(energySensors({
+      states: { ...states, "input_number.grid": { attributes: {} } },
+      entities,
+      energy: {
+        energy_sources: [
+          { type: "grid", stat_energy_from: "opower:pge_elec_123", stat_energy_to: "sensor.removed", stat_rate: "sensor.hidden_power" },
+          { type: "grid", stat_energy_from: "input_number.grid", stat_rate: "sensor.diagnostic_energy" },
+          { type: "solar", stat_energy_from: "sensor.solar_energy", stat_rate: "sensor.solar_energy" },
+          { type: "battery", stat_energy_from: "sensor.solar_energy", stat_energy_to: 42 as unknown as string },
+        ],
+      },
+    })).toEqual(["sensor.solar_energy"]);
+  });
+
+  it("leaves out gas, water, the home and the devices under device consumption", () => {
+    expect(energySensors({
+      states,
+      energy: {
+        energy_sources: [
+          { type: "gas", stat_energy_from: "sensor.gas", stat_rate: "sensor.gas" },
+          { type: "water", stat_energy_from: "sensor.water" },
+          { type: "home", stat_energy_to: "sensor.grid_import", stat_rate: "sensor.grid_power" },
+        ],
+        device_consumption: [{ stat_consumption: "sensor.dishwasher" }],
+      },
+    })).toEqual([]);
+  });
+
+  it("gives nothing with no preferences, empty ones, or ones that aren't the right shape", () => {
+    expect(energySensors({ states })).toEqual([]);
+    expect(energySensors({ states, energy: { energy_sources: [] } })).toEqual([]);
+    expect(energySensors({ states, energy: { energy_sources: "grid" } as never })).toEqual([]);
+    expect(energySensors({ states, energy: { energy_sources: [null, "grid", { type: "grid", flow_from: "sensor.grid_import" }] } as never })).toEqual([]);
   });
 });

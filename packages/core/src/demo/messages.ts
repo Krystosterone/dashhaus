@@ -1,3 +1,4 @@
+import type { EnergyPrefs } from "../ha/energy";
 import type { HassEntities, HassEntity } from "../ha/types";
 
 /** One compressed `history/history_during_period` row: state, attributes, last-updated epoch seconds. */
@@ -126,7 +127,17 @@ export function demoConfig() {
   return { location_name: "Home", latitude: 45.5, longitude: -new Date().getTimezoneOffset() / 4 };
 }
 
-/** Handle the generic websocket commands a demo transport supports: history reads, the registries and the configuration. */
+/**
+ * The demo home's energy preferences, `energy/get_prefs`'s: one grid, its power now (`sensor.grid_power`, exporting) and
+ * its consumption meter (`sensor.house_energy`), both the numeric demo's. In Home Assistant's current shape, the grid's
+ * meters and power flat on the source.
+ */
+export const DEMO_ENERGY_PREFS: EnergyPrefs = {
+  energy_sources: [{ type: "grid", stat_energy_from: "sensor.house_energy", stat_energy_to: null, stat_rate: "sensor.grid_power" }],
+  device_consumption: [],
+};
+
+/** Handle the generic websocket commands a demo transport supports: history reads, the registries, the configuration and the energy preferences. */
 export async function demoSendMessage(
   entities: HassEntities,
   type: string,
@@ -142,5 +153,6 @@ export async function demoSendMessage(
   if (type === "config/area_registry/list") return demoAreaRegistry();
   if (type === "config/floor_registry/list") return demoFloorRegistry();
   if (type === "get_config") return demoConfig();
+  if (type === "energy/get_prefs") return DEMO_ENERGY_PREFS;
   throw new Error(`Unsupported demo command: ${type}`);
 }

@@ -309,7 +309,10 @@ mode on the host as `data-my-skin-theme`, the attribute `styles/tokens.css` read
 the same page never re-colours yours. The skin's web font is `MY_SKIN_FONT_HREF` in `shared/surface.ts`. The page ends
 with `MySkinActionStatus`, the row that says when Home Assistant refused a command, with Retry and Dismiss. Without
 `cards` in the YAML, `auto.ts` lays out every entity a card is registered for, by area, with
-`@dashhaus/core/lovelace/layout`.
+`@dashhaus/core/lovelace/layout`. To end it with the house's power and energy meters, as Orb and Field do, call the
+element's `energyPrefs(hass)` on that path only, hand it to `autoInput(hass, energy)`, add it to what decides your
+layout, and draw `energySensors(input)` last: the preferences arrive after the first draw, and the element draws again
+when they do.
 
 <Example template="lovelace/card.tsx" />
 

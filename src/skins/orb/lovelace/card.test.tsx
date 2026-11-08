@@ -100,4 +100,34 @@ describe("dashhaus-orb card", () => {
   it("pre-fills the card picker with the automatic layout spelled out", () => {
     expect(Element.getStubConfig(hass())).toMatchObject({ type: "custom:dashhaus-orb", rows: [{ title: "Modes" }, { title: "Other" }] });
   });
+
+  it("adds the house's energy under Energy, last, when Home Assistant's energy preferences land, and never asks for rows laid out by hand", async () => {
+    let answer!: (value: unknown) => void;
+    const sendMessagePromise = vi.fn(() => new Promise((resolve) => { answer = resolve; }));
+    const untouched = vi.fn(async () => undefined);
+    const states: HassEntities = { ...entities, "sensor.grid_power": { entity_id: "sensor.grid_power", state: "-1240", attributes: { friendly_name: "Grid", device_class: "power", unit_of_measurement: "W" } } };
+    const energyHass = { connection: { sendMessagePromise } as unknown as Connection, states, themes: { darkMode: false } };
+    const laidOut = document.createElement("dashhaus-test") as Card;
+    laidOut.setConfig({ rows: [{ title: "Lights", cards: ["light.kitchen"] }] });
+    laidOut.hass = { ...energyHass, connection: { sendMessagePromise: untouched } as unknown as Connection };
+    const card = document.createElement("dashhaus-test") as Card;
+    card.setConfig({});
+    card.hass = energyHass;
+    await act(async () => {
+      document.body.append(laidOut, card);
+      await Promise.resolve();
+    });
+    const headings = () => [...card.shadowRoot!.querySelectorAll(".dash-sec-h")].map((h) => h.textContent);
+    expect(headings()).toEqual(["Modes", "Other"]);
+    expect(Element.getStubConfig(energyHass)).toMatchObject({ rows: [{ title: "Modes" }, { title: "Other" }] });
+    await act(async () => {
+      answer({ energy_sources: [{ type: "grid", stat_energy_from: null, stat_rate: "sensor.grid_power" }] });
+      await Promise.resolve();
+    });
+    expect(headings()).toEqual(["Modes", "Other", "Energy"]);
+    expect(sendMessagePromise).toHaveBeenCalledTimes(1);
+    expect(untouched).not.toHaveBeenCalled();
+    // The card picker's pre-fill spells out what the page already holds.
+    expect(Element.getStubConfig(energyHass)).toMatchObject({ rows: [{ title: "Modes" }, { title: "Other" }, { title: "Energy", cards: [{ entity: "sensor.grid_power", card: "numeric" }] }] });
+  });
 });

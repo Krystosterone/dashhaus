@@ -280,9 +280,12 @@ What you may rely on, and what not to rewrite:
 - `@dashhaus/core/lovelace/skin`: `LovelaceDashboardElement` (implement `styles`, `parse`, `changed`, `draw`; optionally
   `mountClass`, `fontHref`, `paintHost`), `registerCard`, `scopeToHost` (turns `:root` into `:host`, so tokens
   written for `:root` reach the shadow root), `autoInput`, and `useActionStatus`: the store's latest rejected command
-  for `lovelace/__Skin__ActionStatus.tsx` (its words, `retry` and `dismiss`).
+  for `lovelace/__Skin__ActionStatus.tsx` (its words, `retry` and `dismiss`). The element's protected
+  `energyPrefs(hass)` reads Home Assistant's energy preferences once per connection, only when called, and draws again
+  when they land: call it on the automatic path only, pass it as `autoInput(hass, energy)` and put it in what decides
+  your layout, if your skin shows the house's energy.
 - `@dashhaus/core/lovelace/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
-  device), `safetySensors` (the doors, windows, leaks and smoke of `SAFETY_CLASSES`, each with its battery), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
+  device), `safetySensors` (the doors, windows, leaks and smoke of `SAFETY_CLASSES`, each with its battery), `energySensors` (the house's grid, solar and battery power and energy meters, from `autoInput`'s `energy`), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
   `node_modules/@dashhaus/core/dist/lovelace/layout.d.ts`, and their signatures may still change before 1.0.
 - `@dashhaus/core/lovelace/schema`: `Reader`, `readCard`, `readBody` (the shared layout: `cards`, or `rows` of cards,
   with `columns`, `width`, `column`, `flow` and `align`) and `DashboardConfigError`, used by `lovelace/config.ts`. A

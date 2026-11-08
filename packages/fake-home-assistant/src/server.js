@@ -32,8 +32,8 @@ import { extname, join, normalize, resolve, sep } from "node:path";
 import { FakeHomeAssistant } from "./fake-home-assistant.js";
 
 /** Start the server; resolves with its settings and a `close()`. */
-export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", www, token = "fake-ha-token", stateFile, states, registries } = {}) {
-  const ha = new FakeHomeAssistant({ states, registries });
+export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", www, token = "fake-ha-token", stateFile, states, registries, energy } = {}) {
+  const ha = new FakeHomeAssistant({ states, registries, energy });
   const folder = resolve(www ?? (await mkdtemp(join(tmpdir(), "fake-ha-www-"))));
   const dump = () => ({
     resources: ha.resources,
@@ -117,7 +117,7 @@ export async function startFakeHomeAssistant({ port = 8123, host = "127.0.0.1", 
         const result = await ha.send(type, payload);
         reply({ id, type: "result", success: true, result });
       } catch (error) {
-        reply({ id, type: "result", success: false, error: { code: "unknown_command", message: error?.message ?? String(error) } });
+        reply({ id, type: "result", success: false, error: { code: error?.code ?? "unknown_command", message: error?.message ?? String(error) } });
       }
       persist();
     });
@@ -357,7 +357,7 @@ try {
  */
 function dashboardPage(ha, dashboard, viewPath) {
   const saved = ha.saved.find((entry) => entry.url_path === dashboard.url_path)?.config;
-  const data = JSON.stringify({ config: saved, view: viewPath ?? null, resources: ha.resources.map((resource) => resource.url), states: Object.values(ha.states), registries: ha.registries, version: ha.version }).replace(/</g, "\\u003c");
+  const data = JSON.stringify({ config: saved, view: viewPath ?? null, resources: ha.resources.map((resource) => resource.url), states: Object.values(ha.states), registries: ha.registries, energy: ha.energy ?? null, version: ha.version }).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(dashboard.title)} – Fake Home Assistant</title>
@@ -404,6 +404,10 @@ const connection = {
       const answer = await (await fetch("/api/fake/lovelace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(message) })).json();
       if (!answer.success) throw answer.error;
       return answer.result;
+    }
+    if (message.type === "energy/get_prefs") {
+      if (!data.energy) throw { code: "not_found", message: "No prefs" };
+      return data.energy;
     }
     if (message.type.startsWith("history/")) return {};
     if (message.type.startsWith("recorder/")) return {};

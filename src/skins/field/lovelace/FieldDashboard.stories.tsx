@@ -5,10 +5,10 @@ import { FieldDashboard } from "./FieldDashboard";
 import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
-import { areaRows } from "./auto";
-import { HaProvider } from "@dashhaus/core";
+import { areaRows, autoModules, energyModules } from "./auto";
+import { HaProvider, useHaSelector } from "@dashhaus/core";
 import { createHaStore } from "@dashhaus/core";
-import { createDemoHaTransport } from "@dashhaus/core/demo";
+import { DEMO_ENERGY_PREFS, createDemoHaTransport, createDemoHouseTransport } from "@dashhaus/core/demo";
 import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@dashhaus/core/demo";
 import type { HassEntities } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
@@ -93,6 +93,25 @@ function Demo({ title, showTime, hourCycle, footprint, quiet, alerting }: { titl
       <FieldDashboard title={title} showTime={showTime} hourCycle={hourCycle} rows={rows} footprint={footprint} quiet={quiet} />
     </House>
   );
+}
+
+/**
+ * The automatic layout, as the card draws it when `cards` and `rows` are left out, on the demo house with its energy
+ * preferences: every module (no registries here, so no area rows), then its grid's power and meter under Energy, last.
+ */
+function Automatic() {
+  const states = useHaSelector((snapshot) => snapshot.entities);
+  const rows = useMemo(() => {
+    const input = { states, energy: DEMO_ENERGY_PREFS };
+    const modules = autoModules(input);
+    return areaRows(modules, energyModules(input, modules));
+  }, [states]);
+  return <FieldDashboard title="Home" rows={rows} footprint="standard" now={NOW} />;
+}
+
+function AutomaticHouse() {
+  const store = useMemo(() => createHaStore(createDemoHouseTransport()), []);
+  return <HaProvider store={store}><Automatic /></HaProvider>;
 }
 
 /**
@@ -285,3 +304,8 @@ export const NavAndPages: Story = { name: "Nav and pages", render: () => <Yaml y
 export const WallPanelFar: Story = { name: "Wall panel, far", render: () => <Yaml yaml={WALL_YAML} /> };
 
 export const Composition: Story = { name: "Composition", render: () => <Yaml yaml={COMPOSED_YAML} /> };
+/**
+ * No `cards` or `rows`: every module the house has, a row per area (none here, with no registries), then the house's
+ * power and energy meters from Home Assistant's energy preferences under Energy, last.
+ */
+export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <AutomaticHouse /> };

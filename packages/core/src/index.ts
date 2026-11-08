@@ -100,6 +100,8 @@ export type {
   HaFloorRegistryEntry,
   HaRegistry,
 } from "./ha/registry";
+export { ENERGY_PREFS, readEnergyPrefs } from "./ha/energy";
+export type { EnergyPrefs, EnergySend, EnergySourcePrefs } from "./ha/energy";
 export { useHaRequest } from "./ha/useHaRequest";
 export type { HaRequestOptions, HaRequestState } from "./ha/useHaRequest";
 export { OWLET_ALERT_SUFFIX, OWLET_STALE_AFTER_MINUTES, owletFromHass, owletCompanionIds } from "./ha/mappers/owlet";

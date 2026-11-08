@@ -3,7 +3,7 @@ import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
 import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 import type { FieldConfig, FieldRow, ModuleConfig, PageConfig } from "./config";
-import { areaName, areaRows, autoModules } from "./auto";
+import { areaName, areaRows, autoModules, energyModules } from "./auto";
 import { FieldDashboard } from "./FieldDashboard";
 import { FIELD_FONT_HREF } from "../shared/surface";
 
@@ -23,7 +23,7 @@ const HOST_CSS = `
 /**
  * `type: custom:dashhaus-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
  * connection like `custom:dashhaus-orb`. Without `cards` or `rows` it draws every supported entity, a row per Home
- * Assistant area.
+ * Assistant area, then the house's energy.
  */
 export function createFieldCard(css: string): CustomElementConstructor {
   const styles = scopeToHost(css) + HOST_CSS;
@@ -78,9 +78,17 @@ export function createFieldCard(css: string): CustomElementConstructor {
       );
     }
 
-    /** The registries and the set of entities decide the modules and their areas; a state change does not. */
+    /**
+     * The registries and the set of entities decide the modules and their areas, and on the automatic path the energy
+     * preferences decide its Energy row; a state change does not.
+     */
     #key(hass: LovelaceHass): unknown[] {
-      return [this.config, hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length];
+      return [this.config, hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length, this.#energy(hass)];
+    }
+
+    /** The energy preferences, read only for the automatic layout: a page laid out in YAML never asks. */
+    #energy(hass: LovelaceHass) {
+      return this.config && !this.config.rows ? this.energyPrefs(hass) : undefined;
     }
 
     #layoutStale(hass: LovelaceHass) {
@@ -94,9 +102,10 @@ export function createFieldCard(css: string): CustomElementConstructor {
      */
     #layoutFor(config: FieldConfig, hass: LovelaceHass) {
       if (this.#layoutStale(hass)) {
-        const input = autoInput(hass);
+        const input = autoInput(hass, this.#energy(hass));
         const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
-        const rows = config.rows ? mapRowItems(config.rows, place) : areaRows(autoModules(input).map(place));
+        const modules = config.rows ? [] : autoModules(input);
+        const rows = config.rows ? mapRowItems(config.rows, place) : areaRows(modules.map(place), energyModules(input, modules).map(place));
         const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, place) }));
         this.#layout = { key: this.#key(hass), rows, pages };
       }

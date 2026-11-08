@@ -1,6 +1,7 @@
 import type { AutoEntityEntry } from "./element";
 import type { BinarySensorClass } from "../entities/binarySensor/types";
 import type { NumericClass } from "../entities/numeric/types";
+import type { EnergyPrefs } from "../ha/energy";
 
 /*
  * The facts an automatic Lovelace layout needs, shared by every skin: which entities are visible, which area an
@@ -10,6 +11,7 @@ import type { NumericClass } from "../entities/numeric/types";
  */
 
 export type { AutoEntityEntry } from "./element";
+export type { EnergyPrefs, EnergySourcePrefs } from "../ha/energy";
 
 /** A raw state, as far as a layout needs one. */
 export interface AutoState {
@@ -24,12 +26,16 @@ export interface AutoInput {
   entities?: Record<string, AutoEntityEntry>;
   devices?: Record<string, { area_id?: string | null }>;
   areas?: Record<string, { name: string }>;
+  /** Home Assistant's energy preferences (`energy/get_prefs`), for the house's power and energy meters (`energySensors`). */
+  energy?: EnergyPrefs;
 }
 
 /** What finding room sensors reads from `hass`: states for device classes and names, the entity registry for devices. */
 export interface RoomSensorInput {
   states: AutoInput["states"];
   entities?: Record<string, AutoEntityEntry>;
+  /** Home Assistant's energy preferences, which `energySensors` reads. */
+  energy?: EnergyPrefs;
 }
 
 /** One device's room air: its primary sensor, with the humidity and battery sensors on the same device. */
@@ -175,7 +181,8 @@ export function safetySensors({ states, entities = {} }: RoomSensorInput): Safet
 /**
  * The numeric reading classes an automatic layout shows, in the order one device's readings are picked: the room's air
  * (CO₂, then fine and coarse particles, then volatile organic compounds). Power, energy and every other class are left
- * for a person to add with `card: numeric`, since every smart plug has them and dozens would bury the room's air.
+ * for a person to add with `card: numeric`, since every smart plug has them and dozens would bury the room's air; the
+ * house's own power and energy meters come from its energy preferences instead (`energySensors`).
  */
 export const NUMERIC_CLASSES: readonly NumericClass[] = ["carbon_dioxide", "pm25", "pm10", "volatile_organic_compounds", "volatile_organic_compounds_parts"];
 
@@ -322,4 +329,40 @@ export function placeRow(entries: readonly PlaceEntry[], { tracks, columns, flow
     for (const cell of cells) cell.row += rows - bottom.get(root(cell.column - 1))!;
   }
   return { tracks: across, cells, rows, anchored };
+}
+
+/** The energy sources an automatic layout reads: the house's electricity, in the order its power comes. */
+const ELECTRICITY = ["grid", "solar", "battery"] as const;
+
+/** The objects in a list of the preferences, or none. */
+const records = (value: unknown): Record<string, unknown>[] =>
+  Array.isArray(value) ? value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null && !Array.isArray(item)) : [];
+
+/**
+ * The house's power and energy meters for an automatic layout, from Home Assistant's energy preferences (`energy`,
+ * `energy/get_prefs`'s answer). Power now first, each source's `stat_rate`: the grid's, then solar's, then the
+ * batteries', each in the order the preferences list them. Then the meters: grid consumption, grid return, solar
+ * production, battery out, battery in. Only electricity: gas, water and the devices under device consumption are left
+ * out. A grid's meters and power are read flat, as Home Assistant keeps them now, or from the `flow_from`, `flow_to` and
+ * `power` lists it kept before. An id is kept only when it is a `sensor.*` in `states` (an external statistic,
+ * `opower:…`, has none) that isn't hidden, config or diagnostic, and only once. Nothing without preferences, and
+ * nothing with none of these.
+ */
+export function energySensors({ states, entities = {}, energy }: RoomSensorInput): string[] {
+  const sources = records((energy as { energy_sources?: unknown } | undefined)?.energy_sources);
+  const of = (type: string) => sources.filter((source) => source.type === type);
+  /** Each source's `key`, then its lists' (`nested`), source by source. */
+  const ids = (list: Record<string, unknown>[], key: string, nested: readonly string[] = []) =>
+    list.flatMap((source) => [source[key], ...nested.flatMap((field) => records(source[field]).map((item) => item[key]))]);
+  const power = ELECTRICITY.flatMap((type) => ids(of(type), "stat_rate", ["power", "flow_from", "flow_to"]));
+  const meters = [
+    ...ids(of("grid"), "stat_energy_from", ["flow_from"]),
+    ...ids(of("grid"), "stat_energy_to", ["flow_to"]),
+    ...ids(of("solar"), "stat_energy_from"),
+    ...ids(of("battery"), "stat_energy_from"),
+    ...ids(of("battery"), "stat_energy_to"),
+  ];
+  const shown = (id: unknown): id is string =>
+    typeof id === "string" && id.startsWith("sensor.") && id in states && !entities[id]?.hidden && !entities[id]?.entity_category;
+  return [...new Set([...power, ...meters].filter(shown))];
 }

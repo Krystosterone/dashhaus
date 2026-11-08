@@ -38,9 +38,12 @@ export function createDashhausCard(css: string): CustomElementConstructor {
       super.setConfig(raw);
     }
 
-    /** What the card picker pre-fills: the automatic layout spelled out, ready to edit. */
+    /**
+     * What the card picker pre-fills: the automatic layout spelled out, ready to edit, with the energy preferences an
+     * automatic card on this connection has already read.
+     */
     static getStubConfig(hass: LovelaceHass) {
-      return autoDashboard(autoInput(hass));
+      return autoDashboard(autoInput(hass, DashhausCard.heldEnergyPrefs(hass)));
     }
 
     protected parse(raw: unknown) {
@@ -68,16 +71,21 @@ export function createDashhausCard(css: string): CustomElementConstructor {
       return <ConfigDashboard config={{ ...config, rows: this.#rows(config, hass) }} panels={hass.panels} />;
     }
 
+    /** The registries, the set of entities and the energy preferences decide the automatic rows; a state change does not. */
+    #autoKey(hass: LovelaceHass): unknown[] {
+      return [hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length, this.energyPrefs(hass)];
+    }
+
     #autoStale(hass: LovelaceHass) {
-      const key = [hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length];
+      const key = this.#autoKey(hass);
       return !this.#auto || this.#auto.key.some((part, i) => part !== key[i]);
     }
 
     #rows(config: DashboardConfig, hass: LovelaceHass): RowLayoutConfig[] {
       if (config.rows) return config.rows;
       if (this.#autoStale(hass)) {
-        const generated = parseDashboardConfig({ ...autoDashboard(autoInput(hass)), title: config.title });
-        this.#auto = { key: [hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length], rows: generated.rows ?? [] };
+        const generated = parseDashboardConfig({ ...autoDashboard(autoInput(hass, this.energyPrefs(hass))), title: config.title });
+        this.#auto = { key: this.#autoKey(hass), rows: generated.rows ?? [] };
       }
       return this.#auto!.rows;
     }

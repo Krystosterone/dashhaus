@@ -180,14 +180,58 @@ describe("autoDashboard", () => {
         "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher"),
         "calendar.family": state("calendar.family"),
       },
+      energy: { energy_sources: [{ type: "grid", stat_rate: "sensor.power" }] },
     };
     const titles = (autoDashboard(every).rows as { title: string }[]).map((s) => s.title);
     // The rule's row titles, in its order; an area's row stands where the rule says "a row per area".
     const spec = readFileSync(join(process.cwd(), "spec/deploy.md"), "utf8");
     const rule = spec.slice(spec.indexOf("#### The automatic layout's order"), spec.indexOf("\nA row whose title an area already has"));
     const listed = [...rule.matchAll(/^\d\. .*(?:\n {3}.*)*/gm)].flatMap(([item]) => [...item.matchAll(/`([A-Z]\w+)`|(a row per area)/g)].map((m) => m[1] ?? "Bedroom"));
-    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Calendar", "Outside", "Rooms"]);
+    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Calendar", "Outside", "Rooms", "Energy"]);
     expect(titles).toEqual(listed);
+  });
+
+  it("puts the house's power and energy meters from its energy preferences under Energy, last, as numeric cards", () => {
+    const withEnergy = {
+      ...input,
+      states: { ...states, "sensor.grid_import": state("sensor.grid_import", { device_class: "energy" }), "sensor.solar_power": state("sensor.solar_power", { device_class: "power" }) },
+      energy: {
+        energy_sources: [
+          { type: "solar", stat_energy_from: "sensor.missing", stat_rate: "sensor.solar_power" },
+          { type: "grid", stat_energy_from: "sensor.grid_import", stat_energy_to: null, stat_rate: "sensor.power" },
+          { type: "gas", stat_energy_from: "sensor.bed_t" },
+        ],
+      },
+    };
+    const rows = autoDashboard(withEnergy).rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title).slice(-2)).toEqual(["Rooms", "Energy"]);
+    expect(rows.at(-1)!.cards).toEqual([
+      { entity: "sensor.power", card: "numeric" },
+      { entity: "sensor.solar_power", card: "numeric" },
+      { entity: "sensor.grid_import", card: "numeric" },
+    ]);
+    const parsed = parseDashboardConfig(autoDashboard(withEnergy)).rows!.at(-1)!;
+    // No footprint written: the standard one, so a meter's today says what it rose.
+    expect(parsed.cards.map((c) => [c.item.kind, "footprint" in c.item ? c.item.footprint ?? "standard" : "bundle"])).toEqual([["numeric", "standard"], ["numeric", "standard"], ["numeric", "standard"]]);
+  });
+
+  it("has no Energy row without energy preferences, or with none it can draw", () => {
+    expect((autoDashboard(input).rows as { title: string }[]).map((s) => s.title)).not.toContain("Energy");
+    expect((autoDashboard({ ...input, energy: { energy_sources: [] } }).rows as { title: string }[]).map((s) => s.title)).not.toContain("Energy");
+    expect((autoDashboard({ ...input, energy: { energy_sources: [{ type: "grid", stat_rate: "opower:elec" }] } }).rows as { title: string }[]).map((s) => s.title)).not.toContain("Energy");
+  });
+
+  it("joins an area called Energy, and never draws a meter twice", () => {
+    const card = autoDashboard({
+      states: { "switch.meter_relay": state("switch.meter_relay"), "sensor.grid": state("sensor.grid", { device_class: "power" }), "sensor.co2": state("sensor.co2", { device_class: "carbon_dioxide" }) },
+      entities: { "switch.meter_relay": { area_id: "energy" } },
+      areas: { energy: { name: "Energy" } },
+      energy: { energy_sources: [{ type: "grid", stat_rate: "sensor.grid", stat_energy_from: "sensor.co2" }] },
+    });
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title)).toEqual(["Energy", "Rooms"]);
+    expect(rows[0].cards).toEqual([{ entity: "switch.meter_relay", footprint: "compact" }, { entity: "sensor.grid", card: "numeric" }]);
+    expect(rows[1].cards).toEqual([{ entity: "sensor.co2", card: "numeric" }]);
   });
 
   it("places a media player with the controls in its area, after the fans, drawn as the media player card", () => {

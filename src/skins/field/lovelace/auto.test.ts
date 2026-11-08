@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { autoModules, groupByArea } from "./auto";
+import { areaRows, autoModules, energyModules, groupByArea } from "./auto";
 import { parseFieldConfig } from "./config";
+import type { ModuleConfig } from "./config";
 
 const state = (id: string, name: string, device_class?: string) => ({ entity_id: id, state: "on", attributes: { friendly_name: name, ...(device_class && { device_class }) } });
 
@@ -138,6 +139,59 @@ describe("groupByArea", () => {
       ["Kitchen", ["light.y"]],
       ["Office", ["light.z", "light.x"]],
       [undefined, ["light.n"]],
+    ]);
+  });
+});
+
+describe("the house's energy", () => {
+  const states = {
+    "light.lamp": state("light.lamp", "Lamp"),
+    "sensor.grid_power": state("sensor.grid_power", "Grid", "power"),
+    "sensor.grid_import": state("sensor.grid_import", "Grid import", "energy"),
+    "sensor.solar_power": state("sensor.solar_power", "Solar", "power"),
+    "sensor.co2": state("sensor.co2", "Air", "carbon_dioxide"),
+  };
+  const energy = {
+    energy_sources: [
+      { type: "solar", stat_rate: "sensor.solar_power" },
+      { type: "grid", stat_energy_from: "sensor.grid_import", stat_rate: "sensor.grid_power" },
+      { type: "water", stat_energy_from: "sensor.co2" },
+    ],
+  };
+
+  it("takes the preferences' power, then meters, as numeric modules, leaving out what the area rows already draw", () => {
+    const input = { states, energy: { energy_sources: [...energy.energy_sources, { type: "grid", stat_energy_to: "sensor.co2" }] } };
+    expect(energyModules(input, autoModules(input))).toEqual([
+      { entity: "sensor.grid_power", kind: "numeric" },
+      { entity: "sensor.solar_power", kind: "numeric" },
+      { entity: "sensor.grid_import", kind: "numeric" },
+    ]);
+    expect(energyModules({ states })).toEqual([]);
+    expect(energyModules({ states, energy: { energy_sources: [] } })).toEqual([]);
+  });
+
+  it("puts them under Energy, last, after the modules with no area, in their own order and not in their areas' rows", () => {
+    const input = { states, energy };
+    const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.entity === "light.lamp" ? undefined : m.entity === "sensor.co2" ? "Office" : "Utility" });
+    const modules = autoModules(input);
+    const rows = areaRows(modules.map(place), energyModules(input, modules).map(place));
+    expect(rows.map((row) => [row.title, row.cards.map((card) => card.item.entity)])).toEqual([
+      ["Office", ["sensor.co2"]],
+      [undefined, ["light.lamp"]],
+      ["Energy", ["sensor.grid_power", "sensor.solar_power", "sensor.grid_import"]],
+    ]);
+    expect(rows.at(-1)!.cards.map((card) => card.item.area)).toEqual(["Utility", "Utility", "Utility"]);
+  });
+
+  it("has no Energy row without preferences, and an area called Energy takes them", () => {
+    expect(areaRows([{ entity: "light.lamp", kind: "light", area: "Kitchen" }]).map((row) => row.title)).toEqual(["Kitchen"]);
+    const rows = areaRows(
+      [{ entity: "light.meter", kind: "light", area: "Energy" }, { entity: "light.lamp", kind: "light", area: "Kitchen" }],
+      [{ entity: "sensor.grid_power", kind: "numeric" }],
+    );
+    expect(rows.map((row) => [row.title, row.cards.map((card) => card.item.entity)])).toEqual([
+      ["Energy", ["light.meter", "sensor.grid_power"]],
+      ["Kitchen", ["light.lamp"]],
     ]);
   });
 });

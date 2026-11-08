@@ -140,6 +140,21 @@ describe("@dashhaus/deploy", () => {
     });
   });
 
+  it("lays the repo's Orb dashboard out with the house's energy preferences, and without them when Home Assistant has none", async () => {
+    const { dashboards } = await loadDashboards({ file: CONFIG_FILE, env: {} });
+    const orb = dashboards.find(({ path }) => path === "dashhaus-orb")!;
+    const withEnergy: DeployHa = {
+      async send(type, payload) {
+        if (type === "get_states") return [{ entity_id: "light.bed", state: "on", attributes: { friendly_name: "Bed" } }, { entity_id: "sensor.grid_power", state: "-1240", attributes: { device_class: "power" } }];
+        if (type === "energy/get_prefs") return { energy_sources: [{ type: "grid", stat_energy_from: null, stat_rate: "sensor.grid_power" }], device_consumption: [] };
+        return fakeHa.send(type, payload);
+      },
+    };
+    const { card } = await (orb.card as DeployCardFactory)(withEnergy) as unknown as { card: { rows: { title: string; cards: unknown[] }[] } };
+    expect(card.rows.map((row) => row.title)).toEqual(["Other", "Energy"]);
+    expect(card.rows[1].cards).toEqual([{ entity: "sensor.grid_power", card: "numeric" }]);
+  });
+
   it("registers a generated skin through generatedDashboards", async () => {
     const directory = await mkdtemp(join(root, ".deploy-config-"));
     directories.push(directory);

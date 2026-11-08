@@ -32,8 +32,10 @@ The `sensor` card stays the default for a room's temperature and humidity. On a 
 own draws this card when it says it measures something else: a device class such as CO₂ or power, a unit, or a state
 class. `card: numeric` picks it for any sensor, and `card: sensor` keeps the room sensor. Only what the sensor declares
 is read, never its value, so a sensor that goes offline keeps its card. A
-dashboard laid out for you uses it for the room's air quality only (CO₂, particles, VOC), one per device. Add power,
-energy and any other reading yourself, since every smart plug has them.
+dashboard laid out for you uses it for the room's air quality (CO₂, particles, VOC), one per device, and, when you set
+up Home Assistant's Energy dashboard, for the sensors you chose there: the grid's, solar's and batteries' power now,
+then their energy meters, in a last row called Energy. Add any other power, energy or reading yourself, since every
+smart plug has them.
 
 ## A warning you set
 

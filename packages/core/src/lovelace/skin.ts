@@ -6,6 +6,7 @@
  */
 export { LovelaceDashboardElement, autoInput, registerCard } from "./element";
 export type { AutoEntityEntry, LovelaceHass } from "./element";
+export type { EnergyPrefs, EnergySourcePrefs } from "../ha/energy";
 export { scopeToHost } from "./styles";
 export { useActionStatus } from "./useActionStatus";
 export type { ActionStatus } from "./useActionStatus";
