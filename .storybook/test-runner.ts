@@ -1,11 +1,13 @@
 import type { TestRunnerConfig } from "@storybook/test-runner";
 import { getStoryContext } from "@storybook/test-runner";
 import { injectAxe, getAxeResults } from "axe-playwright";
+import { GLOW_BUDGET, glowCensus } from "./glow-census";
 
 /**
  * Every story must render and pass axe (a11y). Field modules must also fit their own
  * container; a violation reports the module and measured widths. An Orb readout keeps its figures inside it. In both
  * skins, a clip never cuts a 12-hour time or a warning's word that fits alone, and a story never draws two clocks.
+ * Where Orb stacks cards in one column, each glowing card's damping is the attention budget's (./glow-census.ts).
  */
 const config: TestRunnerConfig = {
   async postVisit(page, context) {
@@ -226,6 +228,8 @@ const config: TestRunnerConfig = {
       return [...new Set(text.match(/(?<![\d:.])(?:0\d|1[3-9]|2[0-3]):[0-5]\d(?![\d:])/g) ?? [])];
     });
     if (clocks.length) throw new Error(`A story on two clocks: 12-hour times beside ${clocks.join(", ")}`);
+    const glows = await page.evaluate(glowCensus, GLOW_BUDGET);
+    if (glows.length) throw new Error(`Orb's attention budget\n  ${glows.join("\n  ")}`);
     // The runner renders every story of a file in the same page, so axe (half a megabyte of script) is injected once
     // per page rather than once per story; a page that was reloaded has lost it and gets it again.
     if (!(await page.evaluate(() => "axe" in window))) await injectAxe(page);

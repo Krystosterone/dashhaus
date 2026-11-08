@@ -122,7 +122,7 @@ const preview: Preview = {
             ],
             "Bundles",
             "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Phone, ungrouped footprints"], "Lovelace card", "Header", "Nav bar"],
-            "Foundations", ["Design rules", "Palette", "Parts", "Color temperature", "Compact rows", "Worst case"],
+            "Foundations", ["Design rules", "Palette", "Parts", "Color temperature", "Compact rows", "Attention", "Worst case"],
             "Connected", [
               "Light", "Climate", "Sensor", "Weather", "Toggle", "Cover", "Alarm", "Humidifier", "Sound", "Owlet", "Lock",
               // new-card: connected
