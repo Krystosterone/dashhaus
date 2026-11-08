@@ -10,7 +10,7 @@ import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
 import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
-import { hourLabel } from "@dashhaus/core/entities/clock";
+import { hourLabel, lineParts } from "@dashhaus/core/entities/clock";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -164,7 +164,19 @@ function AlertCue({ label }: { label: string }) {
 }
 
 export function AlertStatus({ label, children }: { label: string; children: ReactNode }) {
-  return <><AlertCue label={label} /><span className="hd-warn">{children}</span></>;
+  return <><AlertCue label={label} /><span className="hd-warn">{timed(children)}</span></>;
+}
+
+/**
+ * A line of words with each time in it drawn as one piece (core's `lineParts`), so where the line clips its ellipsis
+ * drops a time whole, with its period, and never cuts it (`Sets in 5h 14m…`, never `· 5:0…`; spec/cards.md → Clock
+ * words follow the dashboard's hour cycle). Anything but a string is drawn as it is.
+ */
+export function timed(line: ReactNode): ReactNode {
+  if (typeof line !== "string") return line;
+  const parts = lineParts(line);
+  if (!parts.some((part) => part.time)) return line;
+  return parts.map((part, index) => (part.time ? <span key={index} className="hd-time">{part.text}</span> : part.text));
 }
 
 /**
@@ -776,8 +788,8 @@ export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, 
             ? <Orb {...orb} unavailable={unavailable} onLongPress={open} />
             : <span className="hd-orb hd-orb--static" aria-hidden="true" aria-disabled={unavailable || undefined}><span className="hd-orb-i">{glyph}</span></span>}
           <CardTitle id={nameId} name={name} onOpen={open} openHint={openHint}>
-            <p className="hd-area" title={statusTitle}>{status}</p>
-            {compact && <p className="hd-sub">{alert ? <AlertStatus label={alert}>{value}</AlertStatus> : value}</p>}
+            <p className="hd-area" title={statusTitle}>{timed(status)}</p>
+            {compact && <p className="hd-sub">{alert ? <AlertStatus label={alert}>{value}</AlertStatus> : timed(value)}</p>}
           </CardTitle>
           {readout && (
             <p

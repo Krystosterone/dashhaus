@@ -62,8 +62,8 @@ const config: TestRunnerConfig = {
     );
     if (misfits.length) throw new Error(`Field module misfit\n  ${misfits.join("\n  ")}`);
     // Where a line clips, the words around a time give way before it (spec/cards.md → Clock words follow the
-    // dashboard's hour cycle): a 12-hour time, or a span ending in one, is whole with its period or gone whole, never
-    // `1:44…` or `2:53 A…`. And a warning keeps its word, in either skin (spec/cards.md → A warning's words fit a row):
+    // dashboard's hour cycle): a time on either clock, or a span of them, is whole with its period or gone whole, never
+    // `1:44…`, `2:53 A…` or `Fri 1…`. And a warning keeps its word, in either skin (spec/cards.md → A warning's words fit a row):
     // what follows it goes first, so a word that fits alone is never `Stoppe…`. Measured against what the clipping box
     // shows: its content box, less the ellipsis it draws.
     const cuts = await page.evaluate(() => {
@@ -104,12 +104,20 @@ const config: TestRunnerConfig = {
         }
         return out;
       };
-      const TIME = /\d{1,2}:\d\d(?:\u00a0[AP]M)?[–-]\d{1,2}:\d\d\u00a0[AP]M|\d{1,2}:\d\d\u00a0[AP]M/g;
+      // On either clock: `14:05`, `2:05 PM`, or a span of them.
+      const TIME = /\d{1,2}:\d\d(?:\u00a0[AP]M)?(?:[–-]\d{1,2}:\d\d(?:\u00a0[AP]M)?)?/g;
+      /** Whether the time sits whole in one piece (a skin's `timed`): an ellipsis hides such a piece whole, never cuts it. */
+      const whole = (node: Text, box: Element) => {
+        for (let at = node.parentElement; at && at !== box; at = at.parentElement) {
+          if (getComputedStyle(at).display === "inline-block") return true;
+        }
+        return false;
+      };
       for (const node of texts(document.body)) {
         for (const match of node.data.matchAll(TIME)) {
           const time = span(node, match.index, match.index + match[0].length);
           const clip = time && clipping(node.parentElement);
-          if (clip && time.left < clip.shown && time.right > clip.shown + 0.5) {
+          if (clip && time.left < clip.shown && time.right > clip.shown + 0.5 && !whole(node, clip.box)) {
             found.push(`"${clip.box.textContent?.trim()}" cuts its time "${match[0].replace("\u00a0", " ")}" (${(time.right - clip.shown).toFixed(1)}px short)`);
           }
         }

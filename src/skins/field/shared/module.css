@@ -143,6 +143,9 @@
 .fd-warn svg { flex: none; width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; }
 .fd-screen .fd-warn { color: var(--fd-screen-ink); }
 
+/* A time in a line of words (`timed`): one piece, so a clip's ellipsis drops it whole rather than cutting it. */
+.fd-time { display: inline-block; white-space: pre; }
+
 /* LED: grey, or lit. The one sign that something is on. */
 .fd-led {
   position: absolute;

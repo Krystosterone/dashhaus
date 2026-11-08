@@ -43,14 +43,19 @@ export const TemperatureOnly: Story = { name: "Temperature only", args: { sensor
 /**
  * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
  * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ * Drawn at the chosen width and again at the narrowest, where a line that clips drops a time whole.
  */
 export const TwelveHourClock: Story = {
   name: "12-hour clock",
   decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
   parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
   render: ({ width, footprint }) => (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {[...SENSORS.map((name) => SENSOR_SEEDS[name]), ...SENSOR_WORST_CASE].map((seed, index) => <DemoTile key={index} sensor={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    <div style={{ display: "grid", gap: 24 }}>
+      {[width, SIZES.S].map((at, row) => (
+        <div key={row} style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+          {[...SENSORS.map((name) => SENSOR_SEEDS[name]), ...SENSOR_WORST_CASE].map((seed, index) => <DemoTile key={index} sensor={onHourCycle(seed, "h12")} width={at} footprint={footprint} />)}
+        </div>
+      ))}
     </div>
   ),
 };

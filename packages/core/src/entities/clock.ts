@@ -105,3 +105,30 @@ export function momentWords(date: Date, now: Date, hourCycle: HourCycle = hourCy
   if (date >= weekAgo) return `${date.toLocaleDateString("en-US", { weekday: "short" })} ${time}`;
   return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
 }
+
+/** One piece of a line of words: its words, or a time in it (`time: true`). */
+export interface LinePart {
+  text: string;
+  time?: true;
+}
+
+// A time as core writes one: "14:05" or "2:05 PM", a span ("2:00–3:00 PM", "11:30 AM–12:30 PM"), with the weekday
+// before it when it has one ("Fri 18:30"), and the " · " that leads it in when it comes after other words.
+const TIME = /(?: · )?(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[ \u00a0])?\d{1,2}:\d\d(?:\u00a0[AP]M)?(?:[–-]\d{1,2}:\d\d(?:\u00a0[AP]M)?)?/g;
+
+/**
+ * A line of words cut at its times ("Stopped 11:49 AM", "Sets in 5h 14m · 5:08 PM", "Until Sun 07:00"), so a skin can
+ * draw each time as one piece that a clip keeps whole, with its period, or drops whole, never `1:44…` (spec/cards.md
+ * → Clock words follow the dashboard's hour cycle). The parts joined are the line.
+ */
+export function lineParts(line: string): LinePart[] {
+  const parts: LinePart[] = [];
+  let at = 0;
+  for (const match of line.matchAll(TIME)) {
+    if (match.index > at) parts.push({ text: line.slice(at, match.index) });
+    parts.push({ text: match[0], time: true });
+    at = match.index + match[0].length;
+  }
+  if (at < line.length) parts.push({ text: line.slice(at) });
+  return parts;
+}
