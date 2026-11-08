@@ -16,6 +16,7 @@ hero:
 import Example from "../../components/Example.astro";
 import LiveStory from "../../components/LiveStory.astro";
 import Install from "../../components/home/Install.astro";
+import Kinds from "../../components/home/Kinds.astro";
 import Foot from "../../components/skin/Foot.astro";
 
 <Install skin="orb" />
@@ -33,12 +34,10 @@ live, on a demo house.
 
 <LiveStory id="orb-dashboards-examples--tablet" title="Orb on a tablet in landscape: quick actions, home status and the nursery" device="Tablet" width={1180} height={820} light="theme:light" dark="theme:dark" />
 
-## What it draws
-
-Lights, climate, covers, switches and `input_boolean` modes, sensors, the weather, alarm panels, locks, humidifiers,
-fans, sound machines, Owlet socks and guest Wi-Fi. An entity without a card isn't drawn. Every card in every state is
-in [Storybook](/dashhaus/storybook/), and [Warnings and alarms](/dashhaus/start/warnings/) shows how Orb tells you
-something is wrong.
+<Kinds skin="orb">
+  An entity without a card isn't drawn. [Warnings and alarms](/dashhaus/start/warnings/) shows how Orb tells you
+  something is wrong.
+</Kinds>
 
 ## Settings
 
