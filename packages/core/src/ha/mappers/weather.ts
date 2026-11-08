@@ -1,11 +1,14 @@
 import type { Condition, DailyForecast, HourlyForecast, WeatherEntity } from "../../entities/weather/types";
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, stringValue } from "../util";
 
 export interface WeatherMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
   lastSeen?: string;
@@ -105,8 +108,8 @@ export function weatherFromHass(raw: HassEntity | undefined, entityId: string, o
     pressureUnit: pressureUnitValue,
     aqi: available ? aqiValue(options.aqiEntity, options.aqiScale) : undefined,
     isDay: available ? dayValue(options.sunEntity) : undefined,
-    lastUpdated: formatHaTime(raw?.last_updated ?? raw?.last_reported, options.now),
-    lastSeen: !available ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastUpdated: formatHaTime(raw?.last_updated ?? raw?.last_reported, options.now, options.hourCycle),
+    lastSeen: !available ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }
 

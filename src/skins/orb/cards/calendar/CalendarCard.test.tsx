@@ -1,7 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { render as renderPlain, screen } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
+import type { HourCycle } from "@dashhaus/core/entities/clock";
 import { describe, expect, it, vi } from "vitest";
 import { CalendarCard } from "./CalendarCard";
 import { CALENDAR_SEEDS } from "@dashhaus/core/seeds/calendar";
+
+/** A card on a dashboard of this hour cycle; `render` puts it on 24 hours, the clock the seeds are written on. */
+const renderOn = (hourCycle: HourCycle, ui: ReactElement) => renderPlain(ui, { wrapper: ({ children }: { children: ReactNode }) => <HourCycleProvider hourCycle={hourCycle}>{children}</HourCycleProvider> });
+const render = (ui: ReactElement) => renderOn("h23", ui);
 
 const { normal, underWay, allDay, tomorrow, free, waiting, unavailable, manyAllDay } = CALENDAR_SEEDS;
 
@@ -81,5 +88,14 @@ describe("CalendarCard", () => {
     expect(filled(render(<CalendarCard entity={normal.entity} />).container)).toBe(false);
     const { container } = render(<CalendarCard entity={normal.entity} />);
     expect(container.querySelector(".hd-bar")?.classList.contains("hd-bar--pair")).toBe(true);
+  });
+
+  it("says every time on the dashboard's 12-hour clock, with its period", () => {
+    const { rerender } = renderOn("h12", <CalendarCard entity={underWay.entity} />);
+    expect(screen.getByRole("img", { name: "Team standup, Until 12:15\u00a0PM" })).toBeTruthy();
+    rerender(<CalendarCard entity={tomorrow.entity} />);
+    expect(screen.getByRole("img", { name: "School trip, Tomorrow 9:30\u00a0AM" })).toBeTruthy();
+    rerender(<CalendarCard entity={normal.entity} variant="sheet" />);
+    expect(screen.getAllByRole("list")[0].textContent).toContain("2:00–3:00\u00a0PM");
   });
 });

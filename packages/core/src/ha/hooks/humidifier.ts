@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { HumidifierEntity, HumidifierHistory } from "../../entities/humidifier/types";
 import type { HaActionError } from "../types";
 
@@ -39,9 +40,10 @@ export function useHaHumidifier(entityId: string, { name, area, lastSeen, histor
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => onOffHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => humidifierFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now }), [raw, entityId, name, area, registryArea, lastSeen, now]);
+  const entity = useMemo(() => humidifierFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle }), [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle]);
   const actions = useMemo(() => createHumidifierHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

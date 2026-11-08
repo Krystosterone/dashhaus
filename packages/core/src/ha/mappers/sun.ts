@@ -1,11 +1,14 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, stringValue } from "../util";
 import type { SunEntity } from "../../entities/sun/types";
 
 export interface SunMapOptions {
   /** The minute the card counts from (the tile's minute clock); default the current time. */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -39,7 +42,7 @@ export function sunFromHass(raw: HassEntity | undefined, entityId: string, optio
     elevation: ok ? finiteNumber(attributes.elevation) : undefined,
     azimuth: ok ? finiteNumber(attributes.azimuth) : undefined,
     now: now.getTime(),
-    lastUpdated: ok ? formatHaTime(raw?.last_updated, now) : undefined,
+    lastUpdated: ok ? formatHaTime(raw?.last_updated, now, options.hourCycle): undefined,
     lastSeen: ok ? undefined : options.lastSeen,
   };
 }

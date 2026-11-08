@@ -1,4 +1,4 @@
-import { usePicture } from "@dashhaus/core/hooks";
+import { useHourCycle, usePicture } from "@dashhaus/core/hooks";
 import type { CameraEntity } from "@dashhaus/core/entities/camera/types";
 import { LIVE_VIEW, cameraKind, cameraWord, liveViewSaid, openStillWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -50,7 +50,8 @@ export function CameraCard({ entity: e, still = true, refresh = STILL_REFRESH, p
   // A compact row never draws a picture, so it never asks for one; switched off, nothing is asked for anywhere.
   const drawn = still && !compact;
   const picture = usePicture<HTMLElement>(drawn && !unav ? e.picture : undefined, { refresh: refresh * 1000, paused });
-  const note = drawn ? stillNote(e, picture) : undefined;
+  const hourCycle = useHourCycle();
+  const note = drawn ? stillNote(e, picture, hourCycle) : undefined;
   // The still opens the stream where there is one; the name, as on every card, opens the details.
   const openStill = sheet ? onOpenLive : onOpenLive ?? onOpenDetails;
   const since = !unav && e.lastChanged ? e.lastChanged : undefined;

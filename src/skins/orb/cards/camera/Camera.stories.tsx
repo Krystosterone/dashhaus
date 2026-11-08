@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoCameraTile as DemoTile } from "./demo/DemoCameraTile";
-import { CAMERA_WORST_CASE } from "@dashhaus/core/seeds/camera";
+import { CAMERA_SEEDS, CAMERA_WORST_CASE } from "@dashhaus/core/seeds/camera";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["idle", "recording", "streaming", "other", "noStill", "failed", "tall", "unavailable", "long"] as const;
@@ -51,6 +53,20 @@ export const StillFails: Story = { name: "Still fails", args: { seed: "failed" }
 export const Quiet: Story = { args: { paused: true } };
 /** `stills: false`: no still is fetched or drawn; the card is its state and its glyph, and its sheet's Live view pill still opens the stream. */
 export const StillsOff: Story = { name: "Stills off", args: { still: false } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => CAMERA_SEEDS[name]), ...CAMERA_WORST_CASE].map((seed, index) => <DemoTile key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} paused />)}
+    </div>
+  ),
+};
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 export const Featured: Story = { args: { footprint: "featured" } };
 /** Realistic worst-case data from the demo seeds (CAMERA_WORST_CASE): no still, a failed one, wide and tall stills, a long name. */

@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { stringValue } from "../util";
 import type { OwletAlert, OwletEntity, SleepState } from "../../entities/owlet/types";
 import { VITAL_ALERTS } from "../../entities/owlet/readings";
@@ -7,6 +8,8 @@ import { VITAL_ALERTS } from "../../entities/owlet/readings";
 export interface OwletMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -129,7 +132,7 @@ export function owletFromHass(raw: HassEntity | undefined, entityId: string, opt
     // Only a switch that says on or off: unknown, unavailable and a missing switch leave it out, never assumed.
     baseOn: options.baseEntity?.state === "on" ? true : options.baseEntity?.state === "off" ? false : undefined,
     live: latest ? now.getTime() - latest.at.getTime() <= staleAfter : undefined,
-    lastUpdated: latest ? formatHaTime(latest.raw, options.now) : undefined,
+    lastUpdated: latest ? formatHaTime(latest.raw, options.now, options.hourCycle) : undefined,
     lastSeen: offline ? options.lastSeen : undefined,
   };
 }

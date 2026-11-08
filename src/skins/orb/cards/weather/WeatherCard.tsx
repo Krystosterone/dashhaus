@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { useHourCycle } from "@dashhaus/core/hooks";
+import { hourLabel } from "@dashhaus/core/entities/clock";
 import type { WeatherEntity, WeatherHistory, HourlyForecast, DailyForecast, Condition } from "@dashhaus/core/entities/weather/types";
 import { CONDITION_LABEL, precipitation, isWet, clock, compass } from "@dashhaus/core/entities/weather/conditions";
 import { aqiBand, conditionLabel, deg0, isNight, rangeText, todayRange, uvBand, weatherWarnings, weatherWarningsSaid } from "@dashhaus/core/entities/weather/readings";
@@ -46,8 +48,9 @@ function Reading({ now, feels, label, onOpen }: { now: number; feels?: number; l
 
 /** The coming hours, one column each, as many as the width fits. */
 function NextHours({ hours, empty }: { hours: HourlyForecast[]; empty: string }) {
+  const hourCycle = useHourCycle();
   const spoken = hours.map((h) => [
-    clock(h.hour),
+    clock(h.hour, hourCycle),
     CONDITION_LABEL[h.condition],
     `${Math.round(h.temperature)} degrees`,
     h.precipitationProbability != null && h.precipitationProbability >= 20 ? `${Math.round(h.precipitationProbability)}% chance of precipitation` : null,
@@ -62,7 +65,7 @@ function NextHours({ hours, empty }: { hours: HourlyForecast[]; empty: string })
             <ol className="wx-hr-l" aria-hidden="true">
               {hours.map((h) => (
                 <li key={h.hour} className="wx-hr">
-                  <span className="wx-hr-t">{String(h.hour % 24).padStart(2, "0")}</span>
+                  <span className="wx-hr-t">{hourLabel(h.hour, hourCycle)}</span>
                   <span className="wx-hr-i"><ConditionIcon condition={h.condition} /></span>
                   <span className="wx-hr-v">{deg0(h.temperature)}</span>
                   <span className="wx-hr-p">{h.precipitationProbability != null && h.precipitationProbability >= 20 ? `${Math.round(h.precipitationProbability)}%` : ""}</span>
@@ -110,7 +113,8 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
   const range = unav ? null : rangeText(todayRange(t, history, hourly, daily));
 
   const label = cond ? conditionLabel(cond, night) : "Unavailable";
-  const precip = cond ? precipitation(cond, hourly, hour) : null;
+  const hourCycle = useHourCycle();
+  const precip = cond ? precipitation(cond, hourly, hour, hourCycle) : null;
   // Falling rain that stops soon already names itself ("Rain until 15:00").
   const condition = precip && cond && isWet(cond) ? null : label;
 

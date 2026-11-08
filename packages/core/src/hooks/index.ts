@@ -3,6 +3,8 @@ export { useDelayLeft } from "./useDelayLeft";
 export { useDemoClimate } from "./useDemoClimate";
 export type { ClimateSeed } from "./useDemoClimate";
 export { pageFromHash, useHashPage } from "./useHashPage";
+export { HourCycleProvider, useHourCycle } from "./hourCycle";
+export type { HourCycleOptions, HourCycleProviderProps } from "./hourCycle";
 export { useNow } from "./useNow";
 export { refreshUrl } from "./picture";
 export type { PictureStatus } from "./picture";

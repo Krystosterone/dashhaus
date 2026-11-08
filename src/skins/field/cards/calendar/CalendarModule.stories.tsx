@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CalendarModule } from "./CalendarModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import type { CalendarSeed, CalendarSeedName } from "@dashhaus/core/seeds/calendar";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -66,6 +68,21 @@ export const Tomorrow: Story = { args: { calendar: "tomorrow" } };
 export const Free: Story = { args: { calendar: "free" } };
 /** Reachable, its events not read yet: blank segments, and No reading yet. */
 export const NoReadingYet: Story = { name: "No reading yet", args: { calendar: "waiting" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => CALENDAR_SEEDS[name]), ...CALENDAR_WORST_CASE].map((seed, index) => <DemoCalendar key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { calendar: "unavailable" } };
 
@@ -135,6 +152,11 @@ export const DetailsAllDay: Story = { name: "Details, all day", args: { calendar
 
 /** Three calendars over a month: each event names its calendar, long titles wrap. */
 export const DetailsLong: Story = { name: "Details, long", args: { calendar: "long", defaultOpen: true } };
+
+/** The panel on a 12-hour clock: every time in it with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  render: ({ calendar, width, footprint }) => <DemoCalendar seed={onHourCycle(CALENDAR_SEEDS[calendar], "h12")} width={width} footprint={footprint} defaultOpen />,
+};
 
 /** Unavailable: blank segments, and no events. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { calendar: "unavailable", defaultOpen: true } };

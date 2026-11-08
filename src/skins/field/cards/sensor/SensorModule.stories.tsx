@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { SensorModule } from "./SensorModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import type { SensorSeed, SensorSeedName } from "@dashhaus/core/seeds/sensor";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -55,6 +57,21 @@ export const LowBattery: Story = { name: "Low battery", args: { sensor: "basemen
 export const TemperatureOnly: Story = { name: "Temperature only", args: { sensor: "office" } };
 /** No temperature: humidity becomes the figure, behind a drop. */
 export const HumidityOnly: Story = { name: "Humidity only", args: { sensor: "humidityOnly" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SENSORS.map((name) => SENSOR_SEEDS[name]), ...SENSOR_WORST_CASE].map((seed, index) => <DemoSensor key={index} sensor="living" seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+
 /** Blank segments and when it was last seen; the meter dashes the hours it was gone. */
 export const Unavailable: Story = { args: { sensor: "garage" } };
 

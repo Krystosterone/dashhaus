@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import { Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { AlertLine, AlertsProvider } from "../shared/alerts";
@@ -22,19 +23,21 @@ export interface FieldPageProps extends HeaderProps {
 
 /**
  * A field page: its header, the alert line with every alarm and urgent warning its modules report, then its areas,
- * and a nav docked at the bottom. Modules anywhere under it report to that line. With no title, subtitle or time,
- * there is no header.
+ * and a nav docked at the bottom. Modules anywhere under it report to that line, and say their times on the header's
+ * hour cycle (`HourCycleProvider`). With no title, subtitle or time, there is no header.
  */
 export function FieldPage({ title, quiet, viewing, nav, pageRef, children, ...header }: FieldPageProps) {
   return (
-    <AlertsProvider>
-      <div ref={pageRef} className="fd-dash" data-quiet={quiet || undefined} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
-        {(title || header.subtitle || header.showTime) && <Header title={title} {...header} />}
-        <AlertLine />
-        {children}
-        {nav && <div className="fd-dash-dock">{nav}</div>}
-      </div>
-    </AlertsProvider>
+    <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
+      <AlertsProvider>
+        <div ref={pageRef} className="fd-dash" data-quiet={quiet || undefined} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
+          {(title || header.subtitle || header.showTime) && <Header title={title} {...header} />}
+          <AlertLine />
+          {children}
+          {nav && <div className="fd-dash-dock">{nav}</div>}
+        </div>
+      </AlertsProvider>
+    </HourCycleProvider>
   );
 }
 

@@ -1,3 +1,5 @@
+import { hourCycleOf } from "../clock";
+import type { HourCycle } from "../clock";
 import { PICTURE_WORDS, stillFrom } from "../picture";
 import type { CameraEntity, CameraState } from "./types";
 
@@ -46,12 +48,13 @@ export type StillStatus = "none" | "loading" | "ready" | "stale" | "failed";
  * What a card says about its still, on the line that says its state and never over the picture: `No picture` when
  * there is nothing to show (Home Assistant names none, or it failed with nothing to keep), `Still from 22:14` when the
  * frame shown isn't refreshing (a refresh failed, or a `quiet` dashboard holds it). Nothing while a still is loading
- * or fresh, while the camera is unavailable, or with its stills switched off (`still` undefined).
+ * or fresh, while the camera is unavailable, or with its stills switched off (`still` undefined). Its time is on the
+ * dashboard's hour cycle.
  */
-export function stillNote(e: Pick<CameraEntity, "state">, still: { status: StillStatus; at?: number } | undefined): string | undefined {
+export function stillNote(e: Pick<CameraEntity, "state">, still: { status: StillStatus; at?: number } | undefined, hourCycle: HourCycle = hourCycleOf()): string | undefined {
   if (!still || e.state === "unavailable") return undefined;
   if (still.status === "none" || still.status === "failed") return PICTURE_WORDS.none;
-  if (still.status === "stale") return stillFrom(still.at);
+  if (still.status === "stale") return stillFrom(still.at, hourCycle);
   return undefined;
 }
 

@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, stringValue } from "../util";
 import { durationMinutes } from "../../entities/guestWifi/words";
 import type { GuestWifiEntity } from "../../entities/guestWifi/types";
@@ -7,6 +8,8 @@ import type { GuestWifiEntity } from "../../entities/guestWifi/types";
 export interface GuestWifiMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -68,8 +71,8 @@ export function guestWifiFromHass(raw: HassEntity | undefined, entityId: string,
     used: code ? count(attributes.used) : undefined,
     lastsMinutes: code ? durationMinutes(attributes.duration) : undefined,
     leftMinutes: code ? durationMinutes(attributes.status_expires) : undefined,
-    created: code ? formatHaTime(attributes.create_time, now) : undefined,
-    lastUpdated: code ? formatHaTime(attributes.last_pull ?? raw?.last_updated, now) : undefined,
+    created: code ? formatHaTime(attributes.create_time, now, options.hourCycle) : undefined,
+    lastUpdated: code ? formatHaTime(attributes.last_pull ?? raw?.last_updated, now, options.hourCycle) : undefined,
     lastSeen: state === "unavailable" ? options.lastSeen : undefined,
   };
 }

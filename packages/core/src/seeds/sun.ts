@@ -32,7 +32,8 @@ function seed(now: number, latitude: number, entity: Partial<SunEntity> = {}): S
     elevation: Math.round(elevation * 100) / 100,
     azimuth: Math.round(azimuth * 100) / 100,
     now,
-    lastUpdated: clockTime(now - 4 * 60_000),
+    // Written on 24 hours, as every seed is; `onHourCycle` says it on another clock.
+    lastUpdated: clockTime(now - 4 * 60_000, "h23"),
     ...entity,
   };
   return { entity: full, history: sunDay(now, latitude, longitude) };

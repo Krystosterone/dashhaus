@@ -149,3 +149,13 @@ describe("ConfigDashboard quiet", () => {
     expect(document.querySelector(".mp-prog")).toBeNull();
   });
 });
+
+describe("ConfigDashboard hour_cycle", () => {
+  const changed = new Date(new Date().setHours(0, 5, 0, 0)).toISOString();
+  const door = { "lock.front": { entity_id: "lock.front", state: "locked", last_changed: changed, last_updated: changed, attributes: { friendly_name: "Front door" } } } as HassEntities;
+
+  it.each([["h12", "12:05\u00a0AM"], ["h23", "00:05"]] as const)("says every card's times on the YAML's %s", async (cycle, said) => {
+    draw({ cards: ["lock.front"], hour_cycle: cycle }, door);
+    await waitFor(() => expect(document.querySelector(".hd-area")?.textContent).toContain(said));
+  });
+});

@@ -1,11 +1,14 @@
+import { hourCycleOf } from "../clock";
+import type { HourCycle } from "../clock";
 import { fmtDuration } from "../format";
 import { clockTime, dayWord } from "../calendar/words";
 import type { SunEntity, SunHistory } from "./types";
 
 /**
  * What the sun says, the same on every card and in every skin (spec/cards.md → What every card says). Times are on
- * the 24-hour clock ("20:30"), as the calendar's and the weather's are, and every word is counted from the entity's
- * `now`, never a timer of the card's own.
+ * the dashboard's hour cycle ("20:30", or "8:30 PM"; each function's `hourCycle`, the card's `useHourCycle`, the
+ * browser locale's when left out), as the calendar's and the weather's are, and every word is counted from the
+ * entity's `now`, never a timer of the card's own.
  */
 export const SUN_WORDS = {
   sunrise: "Sunrise",
@@ -78,8 +81,8 @@ export const sunEventName = (kind: SunEventKind) => NAME[kind];
 /** Minutes until it comes, rounded up, so an event a few seconds off is "in 1m", never "in 0m". */
 export const minutesUntil = (at: number, now: number) => Math.max(1, Math.ceil((at - now) / 60_000));
 
-/** The figure: when it comes on the 24-hour clock, "20:30". */
-export const sunTime = (event: SunEvent) => clockTime(event.at);
+/** The figure: when it comes on the dashboard's hour cycle, "20:30" or "8:30 PM". */
+export const sunTime = (event: SunEvent, hourCycle: HourCycle = hourCycleOf()) => clockTime(event.at, hourCycle);
 
 /**
  * When it comes, as one line: within a day how long until it ("Sets in 4h 35m", "Rises in 9m"); further off, on which
@@ -99,8 +102,9 @@ export function sunIn(event: SunEvent, now: number) {
   return minutes < 24 * 60 ? `In ${fmtDuration(minutes)}` : dayWord(event.at, now);
 }
 
-/** What a screen reader hears for it: "Sunset at 20:30, sets in 4h 35m". */
-export const sunSaid = (event: SunEvent, now: number) => `${NAME[event.kind]} at ${sunTime(event)}, ${sunWhen(event, now).toLowerCase()}`;
+/** What a screen reader hears for it: "Sunset at 20:30, sets in 4h 35m", or on 12 hours "Sunset at 8:30 PM, …". */
+export const sunSaid = (event: SunEvent, now: number, hourCycle: HourCycle = hourCycleOf()) =>
+  `${NAME[event.kind]} at ${sunTime(event, hourCycle)}, ${sunWhen(event, now).toLowerCase()}`;
 
 /** Every event Home Assistant reports, in the order they come: the details' list. */
 export function sunSchedule(e: SunEntity): SunEvent[] {
@@ -109,10 +113,14 @@ export function sunSchedule(e: SunEntity): SunEvent[] {
   return all.filter((x): x is [SunEventKind, number] => x[1] !== undefined).map(([kind, at]) => ({ kind, at })).sort((a, b) => a.at - b.at);
 }
 
-/** When an event in the list comes: "20:30" today, else its day first, "Tomorrow 06:12". */
-export function scheduleTime(event: SunEvent, now: number) {
+/**
+ * When an event in the list comes: "20:30" today, else its day first, "Tomorrow 06:12"; on 12 hours "8:30 PM",
+ * "Tomorrow 6:12 AM".
+ */
+export function scheduleTime(event: SunEvent, now: number, hourCycle: HourCycle = hourCycleOf()) {
   const day = dayWord(event.at, now);
-  return day === "Today" ? clockTime(event.at) : `${day} ${clockTime(event.at)}`;
+  const time = clockTime(event.at, hourCycle);
+  return day === "Today" ? time : `${day} ${time}`;
 }
 
 /** An angle in whole degrees: "38°", "-12°". */

@@ -169,7 +169,11 @@ Each card adds its own:
 <YamlKeys show="cards" />
 
 `viewing: far` is for a wall panel read from across the room: larger status lines and captions, heavier figures,
-the same card heights. A key Orb takes and Field doesn't (<YamlKeys show="refused" />, bundles) is
+the same card heights.
+
+`hour_cycle: h12` or `h23` sets the dashboard's clock, the header's and every card's: `Since 2:05 PM` and
+`Tomorrow 9:30 AM`, or `Since 14:05` and `Tomorrow 09:30`. Leave it out for your browser's locale. Field's screens
+keep their four places on 12 hours (`2:00`, its first place unlit) and say AM or PM in the words beside them. A key Orb takes and Field doesn't (<YamlKeys show="refused" />, bundles) is
 refused with the reason, for YAML copied from one card to the other.
 
 The specification's [deploy page](https://github.com/Krystosterone/dashhaus/blob/main/spec/deploy.md#the-format)

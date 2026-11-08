@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OwletModule } from "./OwletModule";
 import type { OwletModuleProps } from "./OwletModule";
 import { OWLET_SEEDS } from "@dashhaus/core/seeds/owlet";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 
 /*
  * What every field module does, whatever it is: a reading has no keys, and unavailable blanks the screen. The frame
@@ -70,6 +71,18 @@ describe("OwletModule", () => {
     // A row's line takes the block; a day as well as a time keeps the time.
     expect(draw("stale", "compact").line).toBe("Warning: Stopped 11:49");
     expect(draw("long", "compact").line).toBe("Warning: Stopped 18:30");
+    // The time is its own part, so a narrow module or row lets it go (OwletModule.css) and keeps the word whole.
+    expect(container.querySelector(".fd-meta .fd-warn .fd-ow-since")?.textContent).toBe(" 11:49");
+    expect(draw("long", "compact").container.querySelector(".fd-area .fd-ow-since")?.textContent).toBe(" 18:30");
+  });
+
+  it("leads stopped readings with the word on a 12-hour clock too, the time after it", () => {
+    const at12 = (seed: keyof typeof OWLET_SEEDS, footprint?: "compact" | "standard") => {
+      const { entity, history } = onHourCycle(OWLET_SEEDS[seed], "h12");
+      return render(<OwletModule entity={entity} history={history} footprint={footprint} />).container;
+    };
+    expect(at12("stale").querySelector(".fd-meta .fd-warn")?.textContent).toBe("Warning: Stopped 11:49\u00a0AM");
+    expect(at12("long", "compact").querySelector(".fd-area")?.textContent).toBe("Warning: Stopped 6:30\u00a0PM");
   });
 
   it("makes a vitals alert the alarm: the vital that set it off is the figure, its first line says how in a word", () => {

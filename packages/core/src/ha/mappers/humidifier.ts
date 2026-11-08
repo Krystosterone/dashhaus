@@ -1,11 +1,14 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, stringValue } from "../util";
 import type { HumidifierAction, HumidifierEntity } from "../../entities/humidifier/types";
 
 export interface HumidifierMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -61,7 +64,7 @@ export function humidifierFromHass(raw: HassEntity | undefined, entityId: string
     maxHumidity: max,
     mode: stringValue(attributes.mode),
     modes: modeList(attributes.available_modes),
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
-    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
+    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

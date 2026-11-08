@@ -2,6 +2,8 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CameraModule } from "./CameraModule";
 import { CAMERA_SEEDS } from "@dashhaus/core/seeds/camera";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 /*
  * What every field module does, whatever it is: a reading has no keys, and unavailable blanks the screen and says when
@@ -49,6 +51,16 @@ describe("CameraModule", () => {
         expect(container.querySelector(".fd-meta")?.textContent).toBe("UnavailableLast seen 08:20");
     expect(container.querySelector(".fd-pic")?.getAttribute("data-status")).toBe("unavailable");
     expect(container.querySelector("img")).toBeNull();
+  });
+
+  it("draws a meta line's time as its own last part, so its words give way before the time's period does", () => {
+    const { container } = render(<HourCycleProvider hourCycle="h12"><CameraModule entity={onHourCycle(CAMERA_SEEDS.unavailable, "h12").entity} /></HourCycleProvider>);
+    const line = container.querySelector(".fd-meta-2 .fd-cm-timed");
+    expect(line?.textContent).toBe("Last seen 8:20\u00a0AM");
+    expect(line?.lastElementChild?.textContent).toBe("8:20\u00a0AM");
+    // Its words are one part, laid out after the time (CameraModule.css), so they wrap out of sight together.
+    expect(line?.firstElementChild?.className).toBe("fd-cm-timed-w");
+    expect(line?.children).toHaveLength(2);
   });
 
   it("opens the live stream from the still where the host has one, and the panel from the name", () => {

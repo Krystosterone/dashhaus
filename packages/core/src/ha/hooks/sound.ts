@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { SoundEntity, SoundHistory } from "../../entities/sound/types";
 import type { HaActionError } from "../types";
 
@@ -44,9 +45,10 @@ export function useHaSound(entityId: string, { volumeEntityId, name, area, lastS
   const volume = useMemo(() => soundVolumeFromHass(volumeEntity), [volumeEntity]);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => onOffHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => soundFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, volumeEntity }), [raw, entityId, name, area, registryArea, lastSeen, now, volumeEntity]);
+  const entity = useMemo(() => soundFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle, volumeEntity }), [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle, volumeEntity]);
   const actions = useMemo(() => createSoundHandlers(store, entity, { onError: onActionError, volume }), [store, entity, onActionError, volume]);
   return { entity, history: history ?? parsedHistory, actions };
 }

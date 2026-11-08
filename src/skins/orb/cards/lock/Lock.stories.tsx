@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoLockTile as DemoTile } from "./demo/DemoLockTile";
-import { LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
+import { LOCK_SEEDS, LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["locked", "unlocked", "locking", "jammed", "code", "open", "unavailable", "long"] as const;
@@ -48,6 +50,20 @@ export const CodeRequired: Story = { name: "Code required", args: { seed: "code"
 export const Open: Story = { args: { seed: "open" } };
 /** View only: the state and who changed it, nothing to press. */
 export const ViewOnly: Story = { name: "View only", args: { readOnly: true } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => LOCK_SEEDS[name]), ...LOCK_WORST_CASE].map((seed, index) => <DemoTile key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (LOCK_WORST_CASE): long names, a long changed-by, a battery near empty. */
 export const WorstCase: Story = {

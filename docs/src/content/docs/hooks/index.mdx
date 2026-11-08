@@ -64,6 +64,17 @@ nothing, so open your own details instead.
 <ApiSignature from="@dashhaus/core/hooks" name="usePicture" />
 <ApiSignature from="@dashhaus/core" name="useHaMoreInfo" />
 
+## One clock for the page
+
+Every time a card says, `Since 11:31`, `Until 12:15` or `70% rain at 14:00`, is on one hour cycle: the page's. Put
+`HourCycleProvider` around your page with your header's `hourCycle` (`"h12"` or `"h23"`; leave it out for the
+browser locale's), and every `useHa<Name>` hook under it formats its times on that clock (`Since 2:05 PM`). A card that
+works a time out itself, with core's words such as `eventWhen`, `precipitation` or `stillNote`, passes them
+`useHourCycle()`.
+
+<ApiSignature from="@dashhaus/core/hooks" name="HourCycleProvider" />
+<ApiSignature from="@dashhaus/core/hooks" name="useHourCycle" />
+
 ## Hooks with no Home Assistant
 
 From `@dashhaus/core/hooks`, for any page.

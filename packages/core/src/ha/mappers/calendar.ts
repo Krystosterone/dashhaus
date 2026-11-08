@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { isRecord, stringValue } from "../util";
 import type { CalendarEntity, CalendarEvent } from "../../entities/calendar/types";
 import { CALENDAR_WORDS, dayAfter, dayStart } from "../../entities/calendar/words";
@@ -10,6 +11,8 @@ export const CALENDAR_DAYS = 7;
 export interface CalendarMapOptions {
   /** The clock the events are counted from and the timestamps formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -107,7 +110,7 @@ export function calendarFromHass(raw: HassEntity | undefined, entityId: string, 
     now: now.getTime(),
     days,
     calendars: Math.max(1, options.calendars ?? 1),
-    lastUpdated: state === "ok" ? formatHaTime(raw?.last_updated, now) : undefined,
+    lastUpdated: state === "ok" ? formatHaTime(raw?.last_updated, now, options.hourCycle) : undefined,
     lastSeen: state === "unavailable" ? options.lastSeen : undefined,
   };
 }

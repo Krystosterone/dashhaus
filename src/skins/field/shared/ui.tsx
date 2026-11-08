@@ -53,9 +53,10 @@ export interface ModuleProps {
   onOpen?: () => void;
   /**
    * A warning about the device rather than its reading (a low battery), behind the warning marker, in place of
-   * the area: printed on the plate, at the module's full width in either footprint.
+   * the area: printed on the plate, at the module's full width in either footprint. Words, or the words in parts
+   * where a narrow row lets a detail go before its word (a sock's `Stopped` and since when).
    */
-  warning?: string;
+  warning?: ReactNode;
   /**
    * Something about the device in plain words rather than a warning (a base station switched off), in place of the
    * area; a warning takes its place.
@@ -92,7 +93,7 @@ export function Module({ kind, name, area, footprint = "standard", state, rest, 
             </button>
           ) : <span id={frame.nameId}>{name}</span>}
         </h3>
-        {warning ? <p className="fd-area" title={warning}><Warn block={level != null}>{warning}</Warn></p>
+        {warning ? <p className="fd-area" title={typeof warning === "string" ? warning : undefined}><Warn block={level != null}>{warning}</Warn></p>
           : (note ?? area) && <p className="fd-area" title={note ?? area}>{note ?? area}</p>}
       </header>
       {children}

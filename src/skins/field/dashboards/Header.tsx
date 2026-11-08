@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useNow } from "@dashhaus/core/hooks";
+import { useHourCycle, useNow } from "@dashhaus/core/hooks";
 import { clockFace } from "@dashhaus/core/entities/clock";
 import type { ClockOptions } from "@dashhaus/core/entities/clock";
 import { Digits, Screen } from "../shared/ui";
@@ -23,7 +23,9 @@ export interface HeaderProps extends ClockOptions {
  */
 export function Header({ title, subtitle, showTime, hourCycle, locale, timeZone, now: fixed }: HeaderProps) {
   const now = useNow(fixed);
-  const { date, day, time, period } = clockFace(now, { locale, hourCycle, timeZone });
+  // The page's clock, the one its modules say their times on.
+  const cycle = useHourCycle({ hourCycle, locale });
+  const { date, day, time, period } = clockFace(now, { locale, hourCycle: cycle, timeZone });
   return (
     <header className="fd-hh">
       <div className="fd-hh-t">

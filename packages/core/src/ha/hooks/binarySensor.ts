@@ -6,6 +6,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { BinarySensorEntity, BinarySensorHistory } from "../../entities/binarySensor/types";
 
 export interface HaBinarySensorOptions {
@@ -38,11 +39,12 @@ export function useHaBinarySensor(entityId: string, { batteryEntityId, name, are
   const batteryEntity = useHaEntity(batteryEntityId ?? "");
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => onOffHistoryFromHass(records, entityId, now), [records, entityId, now]);
   const entity = useMemo(
-    () => binarySensorFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, batteryEntity, now }),
-    [raw, entityId, name, area, registryArea, lastSeen, batteryEntity, now],
+    () => binarySensorFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, batteryEntity, now, hourCycle }),
+    [raw, entityId, name, area, registryArea, lastSeen, batteryEntity, now, hourCycle],
   );
   return { entity, history: history ?? parsedHistory };
 }

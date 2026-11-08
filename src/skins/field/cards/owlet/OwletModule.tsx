@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
-import { ALERT_SAID, ALERT_SHORT, ALERT_WORD, CHARGING, SLEEP_UNKNOWN, SLEEP_WORD, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "@dashhaus/core/entities/owlet/readings";
+import { ALERT_SAID, ALERT_SHORT, ALERT_WORD, CHARGING, SLEEP_UNKNOWN, SLEEP_WORD, fmtOxygen, normalize, rankAlerts, staleSaid, staleText, staleWarning } from "@dashhaus/core/entities/owlet/readings";
 import { URGENT_PROBLEMS, owletSeverity } from "@dashhaus/core/entities/owlet/severity";
 import { NO_READING_YET, lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
@@ -68,7 +68,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     : [sleepWord, oxygen ?? (hr == null ? "No reading yet" : undefined)];
 
   let pict: ReactNode = heart, read = heartRead, meta = reading;
-  let warning: string | undefined, rowWarning: string | undefined;
+  let warning: string | undefined, rowWarning: ReactNode;
   let alert: { level: "urgent" | "alarm"; what: string; startedAt?: number; say?: string } | undefined;
   if (level === "alarm") {
     // The figure is the vital that set it off: the oxygen, or the heart rate. Its first line says how, in a word.
@@ -88,12 +88,16 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     const spoken = vitals.map((a) => ALERT_SAID[a].toLowerCase()).join(", ");
     alert = { level, what, startedAt: e.vitalsSince, say: `Alarm: ${e.name}, ${spoken}${byOxygen ? `, oxygen ${fmtOxygen(o2)} percent` : hr != null ? `, heart rate ${hr}` : ""}.` };
   } else if (level === "urgent") {
-    // What stopped the monitoring, in an inverted block; a day as well as a time ("Fri 18:30") keeps the time.
+    // What stopped the monitoring, in an inverted block; a day as well as a time ("Fri 18:30") keeps the time. Readings
+    // that stopped say their word and since when apart, so a narrow module or row lets the time go and keeps the word
+    // whole (`Stopped`, never `Stoppe…`).
     const urgent = problems.find((p) => URGENT_PROBLEMS.has(p));
-    const words = urgent ? ALERT_WORD[urgent] : staleText(e.lastUpdated);
+    const stopped = staleWarning(e.lastUpdated);
+    const words: ReactNode = urgent ? ALERT_WORD[urgent]
+      : <>{stopped.word}{stopped.detail && <span className="fd-ow-since"> {stopped.detail}</span>}</>;
     meta = [<Warn key="w" block>{words}</Warn>, offline ? seen : sleepWord];
     rowWarning = words;
-    alert = { level, what: words };
+    alert = { level, what: urgent ? ALERT_WORD[urgent] : staleText(e.lastUpdated) };
   } else if (problems.length) {
     // Advisory, the device's: the plate's line. A pressing level above takes its place, and the panel lists it.
     warning = withCount(problems.map((a) => ALERT_WORD[a]));

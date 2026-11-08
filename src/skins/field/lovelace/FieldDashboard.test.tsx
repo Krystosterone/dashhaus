@@ -37,3 +37,14 @@ describe("FieldDashboard quiet", () => {
     expect(document.querySelector(".fd-mp-clock")).toBeNull();
   });
 });
+
+describe("FieldDashboard hour_cycle", () => {
+  const changed = new Date(new Date().setHours(0, 5, 0, 0)).toISOString();
+  const door = { "lock.front": { entity_id: "lock.front", state: "locked", last_changed: changed, last_updated: changed, attributes: { friendly_name: "Front door" } } } as HassEntities;
+
+  it.each([["h12", "Since 12:05\u00a0AM"], ["h23", "Since 00:05"]] as const)("says every module's times on the YAML's %s", async (cycle, said) => {
+    const config = parseFieldConfig({ cards: ["lock.front"], hour_cycle: cycle });
+    renderConnected(<FieldDashboard rows={config.rows ?? []} hourCycle={config.hourCycle} footprint={config.footprint} nav={false} />, door);
+    await waitFor(() => expect(document.querySelector(".fd-meta")?.textContent).toContain(said));
+  });
+});

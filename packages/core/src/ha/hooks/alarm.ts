@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { AlarmEntity, AlarmHistory } from "../../entities/alarm/types";
 import type { HaActionError } from "../types";
 
@@ -44,9 +45,10 @@ export function useHaAlarm(entityId: string, { name, area, lastSeen, exitDelay, 
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => alarmHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => alarmFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, now }), [raw, entityId, area, registryArea, name, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, now]);
+  const entity = useMemo(() => alarmFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, now, hourCycle }), [raw, entityId, area, registryArea, name, lastSeen, exitDelay, entryDelay, openSensors, triggeredBy, now, hourCycle]);
   const actions = useMemo(() => createAlarmHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

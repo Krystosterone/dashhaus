@@ -1,11 +1,14 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import type { AlarmEntity, AlarmMode, AlarmState } from "../../entities/alarm/types";
 import { finiteNumber, stringValue } from "../util";
 
 export interface AlarmMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -52,7 +55,7 @@ export function alarmFromHass(raw: HassEntity | undefined, entityId: string, opt
   const features = finiteNumber(attributes.supported_features) ?? 0;
   const supported = FEATURES.filter(([bit]) => features & bit).map(([, mode]) => mode);
   const changedBy = stringValue(attributes.changed_by);
-  const changed = formatHaTime(raw?.last_changed, options.now);
+  const changed = formatHaTime(raw?.last_changed, options.now, options.hourCycle);
   const changedAt = parseHaTime(raw?.last_changed)?.getTime();
   const reportedDelay = finiteNumber(attributes.delay);
   const delay = reportedDelay != null && reportedDelay > 0 ? reportedDelay
@@ -77,7 +80,7 @@ export function alarmFromHass(raw: HassEntity | undefined, entityId: string, opt
     changedAt,
     changedBy,
     lastChanged: changed,
-    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
     openSensors: options.openSensors && options.openSensors.length ? options.openSensors : undefined,
     triggeredBy: options.triggeredBy,
   };

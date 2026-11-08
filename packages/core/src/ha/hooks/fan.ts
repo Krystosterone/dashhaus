@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { FanEntity, FanHistory } from "../../entities/fan/types";
 import type { HaActionError } from "../types";
 
@@ -39,9 +40,10 @@ export function useHaFan(entityId: string, { name, area, lastSeen, history, load
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => onOffHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => fanFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now }), [raw, entityId, name, area, registryArea, lastSeen, now]);
+  const entity = useMemo(() => fanFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle }), [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle]);
   const actions = useMemo(() => createFanHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

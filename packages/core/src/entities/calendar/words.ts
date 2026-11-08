@@ -1,9 +1,12 @@
+import { clockParts, hourCycleOf, timeOfDay } from "../clock";
+import type { HourCycle } from "../clock";
 import { fmtDuration } from "../format";
 import type { CalendarEvent } from "./types";
 
 /**
- * What a calendar card says, the same on every card and in every skin. Times are on the 24-hour clock, as the
- * weather's hours are ("14:00"); days are English, as the rest of the card's words are ("Tomorrow", "Thu", "Oct 26").
+ * What a calendar card says, the same on every card and in every skin. Times are on the dashboard's hour cycle, as
+ * the weather's hours are ("14:00", or "2:00 PM"; each function's `hourCycle`, the card's `useHourCycle`, the browser
+ * locale's when left out); days are English, as the rest of the card's words are ("Tomorrow", "Thu", "Oct 26").
  * Every word here is counted from the card's `now` (the entity's minute clock), never from a timer of its own.
  */
 export const CALENDAR_WORDS = {
@@ -46,10 +49,19 @@ export const dayAfter = (ms: number, days = 1) => {
 /** Whole calendar days from the day `from` falls on to the day `to` falls on. */
 export const daysBetween = (from: number, to: number) => Math.round((dayStart(to) - dayStart(from)) / DAY);
 
-/** A time on the 24-hour clock: "09:30", "14:00". */
-export const clockTime = (ms: number) => {
+/** A time on the dashboard's hour cycle: "09:30", "14:00"; "9:30 AM", "2:00 PM". */
+export const clockTime = (ms: number, hourCycle: HourCycle = hourCycleOf()) => {
   const d = new Date(ms);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return timeOfDay(d.getHours(), d.getMinutes(), hourCycle);
+};
+
+/**
+ * A time as a segment screen draws it, in its parts: "14:00", or "2:00" and its period ("PM") apart, which the
+ * screen's words say since its four places can't (`clockParts`).
+ */
+export const clockFigure = (ms: number, hourCycle: HourCycle = hourCycleOf()) => {
+  const d = new Date(ms);
+  return clockParts(d.getHours(), d.getMinutes(), hourCycle);
 };
 
 /** The day `ms` falls on, from `now`: "Today", "Tomorrow", "Thu" within the week, then "Oct 26". */
@@ -94,7 +106,7 @@ export interface EventWhen {
   line: string;
 }
 
-export function eventWhen(event: CalendarEvent, now: number): EventWhen {
+export function eventWhen(event: CalendarEvent, now: number, hourCycle: HourCycle = hourCycleOf()): EventWhen {
   if (isUnderWay(event, now)) {
     if (event.allDay) {
       const last = lastDay(event);
@@ -102,7 +114,8 @@ export function eventWhen(event: CalendarEvent, now: number): EventWhen {
       const until = dayWord(last, now);
       return { label: "Until", value: until, line: `Until ${until}` };
     }
-    const until = daysBetween(now, event.end) === 0 ? clockTime(event.end) : `${dayWord(event.end, now)} ${clockTime(event.end)}`;
+    const end = clockTime(event.end, hourCycle);
+    const until = daysBetween(now, event.end) === 0 ? end : `${dayWord(event.end, now)} ${end}`;
     return { label: "Until", value: until, line: `Until ${until}` };
   }
   const day = dayWord(event.start, now);
@@ -111,33 +124,38 @@ export function eventWhen(event: CalendarEvent, now: number): EventWhen {
     const value = fmtDuration(Math.max(1, minutesUntil(event, now)));
     return { label: "In", value, line: countdown(minutesUntil(event, now)) };
   }
-  return { label: day, value: clockTime(event.start), line: `${day} ${clockTime(event.start)}` };
+  const start = clockTime(event.start, hourCycle);
+  return { label: day, value: start, line: `${day} ${start}` };
 }
 
 /**
  * A compact row's one cue for its event: "Now" while a timed event is under way (the row's line already names it),
  * else `eventWhen`'s line ("In 2h 10m", "All day", "Tomorrow 09:30").
  */
-export const eventCue = (event: CalendarEvent, now: number) =>
-  isUnderWay(event, now) && !event.allDay ? CALENDAR_WORDS.now : eventWhen(event, now).line;
+export const eventCue = (event: CalendarEvent, now: number, hourCycle: HourCycle = hourCycleOf()) =>
+  isUnderWay(event, now) && !event.allDay ? CALENDAR_WORDS.now : eventWhen(event, now, hourCycle).line;
 
 /**
- * An event's span, for a list of the day's events: "09:30–10:30", "22:00–Tue 01:00" across midnight; an all-day
+ * An event's span, for a list of the day's events: "09:30–10:30", "22:00–Tue 01:00" across midnight; on 12 hours
+ * "9:30–10:30 AM", its start's period said only where it differs from its end's ("11:30 AM–12:30 PM"); an all-day
  * event "All day", or "Until Wed" when it runs on.
  */
-export function eventSpan(event: CalendarEvent, now: number) {
+export function eventSpan(event: CalendarEvent, now: number, hourCycle: HourCycle = hourCycleOf()) {
   if (event.allDay) {
     const last = lastDay(event);
     return daysBetween(now, last) <= 0 || daysBetween(event.start, last) === 0 ? CALENDAR_WORDS.allDay : `Until ${dayWord(last, now)}`;
   }
   const sameDay = daysBetween(event.start, event.end - 1) === 0;
   const endDay = new Date(event.end).toLocaleDateString("en-US", { weekday: "short" });
-  return `${clockTime(event.start)}–${sameDay ? "" : `${endDay} `}${clockTime(event.end)}`;
+  const from = clockFigure(event.start, hourCycle);
+  const to = clockFigure(event.end, hourCycle);
+  const start = sameDay && from.period === to.period ? from.time : clockTime(event.start, hourCycle);
+  return `${start}–${sameDay ? "" : `${endDay} `}${clockTime(event.end, hourCycle)}`;
 }
 
 /** When a later event starts, for the list of what's coming: "Tomorrow 09:30", "Thu", "Oct 26 18:00". */
-export const eventDay = (event: CalendarEvent, now: number) =>
-  event.allDay ? dayWord(event.start, now) : `${dayWord(event.start, now)} ${clockTime(event.start)}`;
+export const eventDay = (event: CalendarEvent, now: number, hourCycle: HourCycle = hourCycleOf()) =>
+  event.allDay ? dayWord(event.start, now) : `${dayWord(event.start, now)} ${clockTime(event.start, hourCycle)}`;
 
 /** What an event says beside its title: where, and on which calendar: "Main St Dental · School". */
 export const eventDetail = (event: CalendarEvent) => [event.location, event.calendar].filter(Boolean).join(" · ") || undefined;

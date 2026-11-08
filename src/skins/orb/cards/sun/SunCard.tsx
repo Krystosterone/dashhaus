@@ -1,6 +1,8 @@
 import type { SunEntity, SunHistory } from "@dashhaus/core/entities/sun/types";
+import { useHourCycle } from "@dashhaus/core/hooks";
 import { sunPathDrawing } from "@dashhaus/core/entities/sun/drawing";
-import { clockTime } from "@dashhaus/core/entities/calendar/words";
+import { clockFigure, clockTime } from "@dashhaus/core/entities/calendar/words";
+import type { HourCycle } from "@dashhaus/core/entities/clock";
 import { SUN_WORDS, daylightSummary, degrees, isActive, positionFact, scheduleTime, sunAfter, sunAllDay, sunEventName, sunNext, sunSaid, sunSchedule, sunTime, sunWhen } from "@dashhaus/core/entities/sun/words";
 import { lastSeenFact, unavailableSince, updatedFact } from "@dashhaus/core/entities/facts";
 import { SunIcon } from "./icons";
@@ -19,6 +21,15 @@ export interface SunCardProps extends CardProps {
 const pct = (x: number) => `${(x * 100).toFixed(2)}%`;
 
 /**
+ * A time as the readout draws it, in core's words: "20:30", or on 12 hours "8:30 PM" with its period set small, as
+ * the header's is, so the time leads and a narrow card keeps both whole.
+ */
+function Clock({ at, hourCycle }: { at: number; hourCycle: HourCycle }) {
+  const { time, period } = clockFigure(at, hourCycle);
+  return <>{time}{period && <small>{`\u00a0${period}`}</small>}</>;
+}
+
+/**
  * Today's path, a readout: the day from midnight to midnight on its horizon, the day so far in ink and the rest of it
  * in the third ink, the night a fainter line (never dashed: dashed is unavailable), today's sunrise and sunset ticked
  * and timed under it, and now the accent's stick, the sun a ring on its path. While unavailable the path stays, since
@@ -26,10 +37,11 @@ const pct = (x: number) => `${(x * 100).toFixed(2)}%`;
  */
 function SunPath({ day, unavailable, lastSeen }: { day: SunHistory; unavailable: boolean; lastSeen?: string }) {
   const drawing = sunPathDrawing(day);
+  const hourCycle = useHourCycle();
   const line = (points: Array<[number, number]>) => points.map(([x, y], i) => `${i ? "L" : "M"}${(x * 240).toFixed(1)} ${(y * 100).toFixed(1)}`).join("");
   const marks = [
-    day.riseAt !== undefined && day.rise !== undefined ? { at: day.riseAt, time: clockTime(day.rise), word: SUN_WORDS.sunrise } : undefined,
-    day.setAt !== undefined && day.set !== undefined ? { at: day.setAt, time: clockTime(day.set), word: SUN_WORDS.sunset } : undefined,
+    day.riseAt !== undefined && day.rise !== undefined ? { at: day.riseAt, time: clockTime(day.rise, hourCycle), word: SUN_WORDS.sunrise } : undefined,
+    day.setAt !== undefined && day.set !== undefined ? { at: day.setAt, time: clockTime(day.set, hourCycle), word: SUN_WORDS.sunset } : undefined,
   ].filter((m) => m !== undefined);
   const said = [
     SUN_WORDS.pathSaid,
@@ -63,10 +75,10 @@ function SunPath({ day, unavailable, lastSeen }: { day: SunHistory; unavailable:
 
 /**
  * The sun (`sun.*`): a reading. Neutral, a bare icon in place of an orb, and no glow; it has no actions and no warnings.
- * The readout leads with what comes next on the 24-hour clock, the sunset while it is up and the sunrise while it is
- * down, and the other beside it under its caption; the status line counts down to it ("Sets in 4h 35m"). Its icon
- * points the way the sun goes next, its disc filled while it is up. The featured card and the sheet draw today's path
- * with the sun on it; the sheet lists every time to come and where the sun is.
+ * The readout leads with what comes next on the dashboard's hour cycle ("20:30", "8:30 PM"), the sunset while it is
+ * up and the sunrise while it is down, and the other beside it under its caption; the status line counts down to it
+ * ("Sets in 4h 35m"). Its icon points the way the sun goes next, its disc filled while it is up. The featured card and
+ * the sheet draw today's path with the sun on it; the sheet lists every time to come and where the sun is.
  */
 export function SunCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: SunCardProps) {
   const card = useCard("su", { variant, footprint, showControl, area: e.area });
@@ -78,10 +90,11 @@ export function SunCard({ entity: e, history, variant, footprint, showControl, o
   const allDay = sunAllDay(e);
   const waiting = !unav && !next && !allDay;
   const active = isActive(e);
+  const hourCycle = useHourCycle();
 
-  const figure = unav ? "Unavailable" : next ? sunTime(next) : allDay ?? SUN_WORDS.waiting;
+  const figure = unav ? "Unavailable" : next ? sunTime(next, hourCycle) : allDay ?? SUN_WORDS.waiting;
   const when = next ? sunWhen(next, e.now) : undefined;
-  const spoken = next ? sunSaid(next, e.now) : allDay ?? SUN_WORDS.noReading;
+  const spoken = next ? sunSaid(next, e.now, hourCycle) : allDay ?? SUN_WORDS.noReading;
   // The countdown is its own cue, said once; up or down all day is the figure, so the line keeps the area.
   const status = unav ? "Unavailable"
     : waiting ? [area, SUN_WORDS.noReading].filter(Boolean).join(" · ")
@@ -94,11 +107,11 @@ export function SunCard({ entity: e, history, variant, footprint, showControl, o
     <span className="hd-bar hd-bar--pair su-bar">
       {waiting ? <span className="hd-none">{SUN_WORDS.waiting}</span> : (
         <>
-          <span className={`hd-metric ${next ? "hd-metric-n" : "hd-metric-w"} su-f`}>{figure}</span>
+          <span className={`hd-metric ${next ? "hd-metric-n" : "hd-metric-w"} su-f`}>{next ? <Clock at={next.at} hourCycle={hourCycle} /> : figure}</span>
           {next && after && (
             <span className="hd-metric hd-metric--sub su-after">
               <span className="hd-label">{sunEventName(after.kind)}</span>
-              <span className="hd-metric-t">{sunTime(after)}</span>
+              <span className="hd-metric-t"><Clock at={after.at} hourCycle={hourCycle} /></span>
             </span>
           )}
         </>
@@ -133,7 +146,7 @@ export function SunCard({ entity: e, history, variant, footprint, showControl, o
               {schedule.map((event) => (
                 <li key={event.kind} className="su-ev" data-lead={event.kind === next?.kind || undefined}>
                   <span className="su-ev-n">{sunEventName(event.kind)}</span>
-                  <span className="su-ev-t">{scheduleTime(event, e.now)}</span>
+                  <span className="su-ev-t">{scheduleTime(event, e.now, hourCycle)}</span>
                 </li>
               ))}
             </ol>

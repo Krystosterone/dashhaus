@@ -1,8 +1,15 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render as renderPlain, screen, within } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
+import type { HourCycle } from "@dashhaus/core/entities/clock";
 import { describe, expect, it } from "vitest";
 import { WeatherModule } from "./WeatherModule";
 import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
 import type { WeatherSeed } from "@dashhaus/core/seeds/weather";
+
+/** A card on a dashboard of this hour cycle; `render` puts it on 24 hours, the clock the seeds are written on. */
+const renderOn = (hourCycle: HourCycle, ui: ReactElement) => renderPlain(ui, { wrapper: ({ children }: { children: ReactNode }) => <HourCycleProvider hourCycle={hourCycle}>{children}</HourCycleProvider> });
+const render = (ui: ReactElement) => renderOn("h23", ui);
 
 const draw = ({ entity, history, hourly, daily }: WeatherSeed, footprint?: "compact" | "standard") =>
   render(<WeatherModule entity={entity} history={history} hourly={hourly} daily={daily} footprint={footprint} />).container;
@@ -21,6 +28,15 @@ describe("WeatherModule", () => {
     const pict = draw(WEATHER_SEEDS.partly).querySelector<HTMLElement>(".fd-screen .fd-pict");
     expect(pict?.dataset.param).toBe("neutral");
     expect(pict?.dataset.lit).toBe("true");
+  });
+
+  it("says coming rain and heads the next hours on the dashboard's 12-hour clock", () => {
+    const { entity, history, hourly, daily } = WEATHER_SEEDS.partly;
+    const el = renderOn("h12", <WeatherModule entity={entity} history={history} hourly={hourly} daily={daily} defaultOpen />).container;
+    expect(el.querySelector(".fd-meta")?.textContent).toBe("70% rain at 2:00\u00a0PMFeels 4°");
+    const panel = screen.getByRole("dialog", { name: "Home details" });
+    expect(panel.querySelector(".fd-wx-t")?.textContent).toBe("12PM");
+    expect(within(panel).getByRole("img", { name: /^Next hours: / }).getAttribute("aria-label")).toMatch(/^Next hours: 12:00\u00a0PM, /);
   });
 
   it("names falling rain once, by when it stops", () => {

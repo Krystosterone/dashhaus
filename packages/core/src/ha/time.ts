@@ -1,3 +1,6 @@
+import { hourCycleOf, momentWords } from "../entities/clock";
+import type { HourCycle } from "../entities/clock";
+
 /**
  * Parse an ISO timestamp from an entity state or attribute, rejecting impossible calendar dates and,
  * for timezone-less values, local times that don't exist (a DST gap).
@@ -39,15 +42,11 @@ export function parseHaTime(value: unknown): Date | undefined {
 
 /**
  * Keep the display formatting at the adapter boundary; cards receive a short local string that
- * says when, relative to `now`: "14:32" today, "Tue 14:32" within the last week, "3 Oct" before that.
+ * says when, relative to `now`, on the dashboard's hour cycle (`momentWords`): "14:32" or "2:32 PM" today,
+ * "Tue 14:32" within the last week, "Oct 3" before that. Without a cycle, the browser locale's.
  */
-export function formatHaTime(value: unknown, now: Date = new Date()) {
+export function formatHaTime(value: unknown, now: Date = new Date(), hourCycle?: HourCycle) {
   const date = parseHaTime(value);
   if (!date) return undefined;
-  const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (date >= today) return time;
-  const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
-  if (date >= weekAgo) return `${date.toLocaleDateString([], { weekday: "short" })} ${time}`;
-  return date.toLocaleDateString([], { day: "numeric", month: "short" });
+  return momentWords(date, now, hourCycleOf(undefined, hourCycle));
 }

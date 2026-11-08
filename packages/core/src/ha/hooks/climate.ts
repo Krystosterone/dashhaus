@@ -9,6 +9,7 @@ import { useHaHistory } from "../useHaHistory";
 import { useHaRequest } from "../useHaRequest";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { ClimateEntity, ClimateHistory } from "../../entities/climate/types";
 import type { HaActionError, HaStore } from "../types";
 
@@ -44,12 +45,13 @@ export function useHaClimate(entityId: string, { name, area, lastSeen, unit, his
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   // A thermostat's numbers are in the house's unit, which only the configuration says.
   const config = useHaRequest(unit ? undefined : "config", fetchConfig, { cache: true }).value;
   const systemUnit = typeof config?.unit_system?.temperature === "string" ? config.unit_system.temperature : undefined;
   const parsedHistory = useMemo(() => climateHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => climateFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, unit, systemUnit, now }), [raw, entityId, area, registryArea, name, lastSeen, unit, systemUnit, now]);
+  const entity = useMemo(() => climateFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, unit, systemUnit, now, hourCycle }), [raw, entityId, area, registryArea, name, lastSeen, unit, systemUnit, now, hourCycle]);
   const actions = useMemo(() => createClimateHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

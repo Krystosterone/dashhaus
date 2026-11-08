@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { LightEntity, LightHistory } from "../../entities/light/types";
 import type { HaActionError } from "../types";
 
@@ -39,9 +40,10 @@ export function useHaLight(entityId: string, { name, area, lastSeen, history, lo
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => lightHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => lightFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now }), [raw, entityId, area, registryArea, name, lastSeen, now]);
+  const entity = useMemo(() => lightFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle }), [raw, entityId, area, registryArea, name, lastSeen, now, hourCycle]);
   const actions = useMemo(() => createLightHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

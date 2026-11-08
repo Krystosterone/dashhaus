@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { WeatherModule } from "./WeatherModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import type { WeatherSeed, WeatherSeedName } from "@dashhaus/core/seeds/weather";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -59,6 +61,21 @@ export const Night: Story = { args: { weather: "night" } };
 export const Snow: Story = { args: { weather: "snow" } };
 /** Poor air and very high UV: the most urgent leads behind the warning marker, with a count of the rest. */
 export const Warnings: Story = { args: { weather: "summer" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => WEATHER_SEEDS[name]), ...WEATHER_WORST_CASE].map((seed, index) => <DemoWeather key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+
 /** Blank segments on the screen and when it was last seen; the meter dashes the hours it was gone. */
 export const Unavailable: Story = { args: { weather: "unavailable" } };
 
@@ -125,6 +142,11 @@ export const Details: Story = { args: { defaultOpen: true } };
 
 /** Every warning by name, and its reading behind the marker. */
 export const DetailsWarnings: Story = { name: "Details, warnings", args: { weather: "summer", defaultOpen: true } };
+
+/** The panel on a 12-hour clock: every time in it with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  render: ({ weather, width, footprint }) => <DemoWeather seed={onHourCycle(WEATHER_SEEDS[weather], "h12")} width={width} footprint={footprint} defaultOpen />,
+};
 
 /** Unavailable: blank segments, the hours it was gone dashed on the meter, and no forecast or readings to make up. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { weather: "unavailable", defaultOpen: true } };

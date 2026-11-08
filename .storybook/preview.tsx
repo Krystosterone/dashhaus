@@ -1,4 +1,5 @@
 import type { Decorator, Loader, Preview } from "@storybook/react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import { orbStorybook } from "@dashhaus/orb/storybook";
 import { fieldStorybook } from "@dashhaus/field/storybook";
 import { futuraStorybook } from "@dashhaus/futura/storybook";
@@ -76,10 +77,15 @@ const withSkinFont: Loader = async (ctx) => {
   return {};
 };
 
+/**
+ * Every story starts on 24 hours, the clock the seeds are written on, whatever the browser's locale, so a card's own
+ * times and the times its seed brings agree; a 12-hour story sets its own (`HourCycleProvider` in its decorators, over
+ * `onHourCycle` seeds), so no story is ever on two clocks.
+ */
 const withSkin: Decorator = (Story, ctx) => {
   const skin = skinOf(ctx.title);
   for (const s of SKINS) document.body.classList.toggle(s.surface, s === skin);
-  return skin ? skin.decorator(Story, ctx) : <Story />;
+  return <HourCycleProvider hourCycle="h23">{skin ? skin.decorator(Story, ctx) : <Story />}</HourCycleProvider>;
 };
 
 /**

@@ -1,7 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { render as renderPlain, screen } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
+import type { HourCycle } from "@dashhaus/core/entities/clock";
 import { describe, expect, it } from "vitest";
 import { WeatherCard } from "./WeatherCard";
 import type { WeatherEntity } from "@dashhaus/core/entities/weather/types";
+
+/** A card on a dashboard of this hour cycle; `render` puts it on 24 hours, the clock the seeds are written on. */
+const renderOn = (hourCycle: HourCycle, ui: ReactElement) => renderPlain(ui, { wrapper: ({ children }: { children: ReactNode }) => <HourCycleProvider hourCycle={hourCycle}>{children}</HourCycleProvider> });
+const render = (ui: ReactElement) => renderOn("h23", ui);
 
 const weather: WeatherEntity = {
   entityId: "weather.home",
@@ -54,6 +61,14 @@ describe("WeatherCard", () => {
     const { container } = render(<WeatherCard entity={{ ...weather, state: "rainy" }} history={history} hourly={hourly} />);
 
     expect(container.querySelector(".hd-area")?.textContent).toBe("Rain until 03:00 · 2°–6°");
+  });
+
+  it("says coming rain and heads the next hours on the dashboard's 12-hour clock", () => {
+    const hourly = [{ hour: 3, temperature: 6, condition: "rainy" as const, precipitationProbability: 70 }, { hour: 14, temperature: 7, condition: "cloudy" as const }];
+    const { container } = renderOn("h12", <WeatherCard entity={weather} history={history} hourly={hourly} variant="sheet" />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("70% rain at 3:00\u00a0AM · Partly cloudy · 2°–7°");
+    expect([...container.querySelectorAll(".wx-hr-t")].map((t) => t.textContent)).toEqual(["3AM", "2PM"]);
+    expect(screen.getByRole("img", { name: /^3:00\u00a0AM, Rain/ })).toBeTruthy();
   });
 
   it("speaks the temperature with feels-like", () => {

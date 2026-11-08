@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, isRecord, stringList, stringValue } from "../util";
 import { inlineBattery } from "./battery";
 import { inWords } from "../../entities/format";
@@ -8,6 +9,8 @@ import type { VacuumEntity, VacuumState } from "../../entities/vacuum/types";
 export interface VacuumMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -91,8 +94,8 @@ export function vacuumFromHass(raw: HassEntity | undefined, entityId: string, op
     supportsFanSpeed: has(VACUUM_FEATURES.FAN_SPEED) && fanSpeeds.length > 0,
     ...(fanSpeeds.length > 0 && { fanSpeeds }),
     fanSpeed: unav ? undefined : stringValue(attributes.fan_speed),
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     changedAt: parseHaTime(raw?.last_changed)?.getTime(),
-    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

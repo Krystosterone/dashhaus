@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import { CardHeadingLevelContext } from "../shared/ui";
 import type { Vars } from "../shared/ui";
 import { Header } from "./Header";
@@ -17,14 +18,19 @@ export interface DashboardPageProps extends HeaderProps {
   pageRef?: Ref<HTMLDivElement>;
 }
 
-/** A dashboard page: the header card (title, date, optional clock), then any composition, then its nav. */
+/**
+ * A dashboard page: the header card (title, date, optional clock), then any composition, then its nav. The header's
+ * hour cycle is the page's: every card on it says its times on it (`HourCycleProvider`).
+ */
 export function DashboardPage({ children, style, viewing, nav, pageRef, ...header }: DashboardPageProps) {
   return (
-    <div ref={pageRef} className="dash" style={style} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
-      <Header {...header} />
-      {children}
-      {nav && <div className="dash-dock">{nav}</div>}
-    </div>
+    <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
+      <div ref={pageRef} className="dash" style={style} data-viewing={viewing === "far" ? "far" : undefined} data-nav={nav ? "" : undefined}>
+        <Header {...header} />
+        {children}
+        {nav && <div className="dash-dock">{nav}</div>}
+      </div>
+    </HourCycleProvider>
   );
 }
 

@@ -128,6 +128,9 @@ describe("OwletCard", () => {
     expect(status({ ...sock, live: false, lastUpdated: "11:49" })).toBe("Stopped 11:49 · Deep sleepDeep");
     expect(status({ ...sock, alerts: ["low_battery"] })).toBe("Battery low · Deep sleepDeep");
     expect(status({ ...sock, baseOn: false })).toBe("Base station off · Deep sleepDeep");
+    // On a 12-hour clock the word still leads, so a clipped line keeps it.
+    expect(status({ ...sock, live: false, lastUpdated: "11:49\u00a0AM" })).toBe("Stopped 11:49\u00a0AM · Deep sleepDeep");
+    expect(status({ ...sock, live: false, lastUpdated: "Fri 6:30\u00a0PM" })).toBe("Stopped 6:30\u00a0PM · Deep sleepDeep");
   });
 
   it("puts the sleep state and the readings on the compact value line", () => {

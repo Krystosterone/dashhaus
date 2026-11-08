@@ -6,6 +6,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { SensorEntity, SensorHistory } from "../../entities/sensor/types";
 
 export interface HaSensorOptions {
@@ -40,6 +41,7 @@ export function useHaSensor(entityId: string, { humidityEntityId, batteryEntityI
   const batteryEntity = useHaEntity(batteryEntityId ?? "");
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const historyIds = humidityEntityId ? [entityId, humidityEntityId] : [entityId];
   const records = useHaHistory(historyIds, loadHistory && history === undefined, now);
   const parsedHistory = useMemo(
@@ -55,6 +57,7 @@ export function useHaSensor(entityId: string, { humidityEntityId, batteryEntityI
     humidityEntity,
     batteryEntity,
     now,
-  }), [raw, entityId, name, area, registryArea, outdoor, lastSeen, unit, humidityEntity, batteryEntity, now]);
+    hourCycle,
+  }), [raw, entityId, name, area, registryArea, outdoor, lastSeen, unit, humidityEntity, batteryEntity, now, hourCycle]);
   return { entity, history: history ?? parsedHistory };
 }

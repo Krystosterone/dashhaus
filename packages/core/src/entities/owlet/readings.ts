@@ -11,16 +11,34 @@ export const SLEEP_FIGURE_UNKNOWN = "Unknown";
 /** On its charger, the reason it reports nothing: the status line's word, and the small print's. */
 export const CHARGING = "Charging";
 
-/** The time of a formatted moment, a day dropped ("Fri 18:30" → "18:30"), so a row keeps the part that matters. */
-const timeOf = (at?: string) => at?.trim().split(/\s+/).at(-1);
+/** Readings that stopped arriving: the warning's word, 13 characters at most so a row keeps it whole. */
+export const STALE_WORD = "Stopped";
 
 /**
- * Readings that stopped arriving, as a warning's words: "Stopped 11:49", 13 characters at most so a row keeps them
- * whole (a day dropped: "Fri 18:30" stops at "18:30"). `staleSaid` says it whole.
+ * The time of a formatted moment, on either hour cycle, a day dropped ("Fri 18:30" → "18:30", "Fri 6:30 PM" →
+ * "6:30 PM"), so a row keeps the part that matters; a moment with no time of day (a date, "Oct 3") stays whole.
  */
+const timeOf = (at?: string) => {
+  const said = at?.trim();
+  if (!said) return undefined;
+  return /\d{1,2}:\d{2}.*$/.exec(said)?.[0] ?? said;
+};
+
+/**
+ * Readings that stopped arriving, as a warning: its `word` first (`Stopped`, `WARNING_WORD_MAX` at most), then since
+ * when as its `detail` (a day dropped: "Fri 18:30" stops at "18:30", "Fri 6:30 PM" at "6:30 PM"), which clips before
+ * the word does on either hour cycle; `said` is the whole sentence, as `staleSaid`.
+ */
+export const staleWarning = (lastUpdated?: string): { word: string; detail?: string; said: string } => ({
+  word: STALE_WORD,
+  detail: timeOf(lastUpdated),
+  said: staleSaid(lastUpdated),
+});
+
+/** Readings that stopped, on one line, the word first: "Stopped 11:49", "Stopped 11:49 AM", or "Stopped". */
 export const staleText = (lastUpdated?: string) => {
-  const time = timeOf(lastUpdated);
-  return time ? `Stopped ${time}` : "Stopped";
+  const { word, detail } = staleWarning(lastUpdated);
+  return detail ? `${word} ${detail}` : word;
 };
 
 /** Readings that stopped, said whole, for a screen reader and the details' list: "No new reading since Fri 18:30". */
