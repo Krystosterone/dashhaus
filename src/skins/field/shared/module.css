@@ -217,6 +217,18 @@
   .fd-module[data-footprint="compact"] .fd-screen { width: 80px; }
 }
 
+/* A warning's word is the last thing to give way (spec/cards.md → A warning's words fit a row). On a screen that
+   carries one, the pictogram goes first, the key or glyph below naming the device; on a narrow module, the unlit places
+   and the unit, both still heard. Blank segments say themselves in their pad, so it stays on them. These measure the
+   module's content box, as every query here does: a standard module's is 26 px narrower than the module. */
+@container (max-width: 299px) {
+  .fd-module[data-footprint="standard"] .fd-screen:has(.fd-meta .fd-warn) .fd-pict { display: none; }
+}
+@container (max-width: 239px) {
+  .fd-module[data-footprint="standard"] .fd-screen:has(.fd-meta .fd-warn) .fd-digits:not(:has(.fd-sr))::before { content: none; }
+  .fd-module[data-footprint="standard"] .fd-screen:has(.fd-meta .fd-warn) .fd-read small { display: none; }
+}
+
 /* Severity (src/domains/severity.ts): how much of the always-dark screen inverts. Advisory is the marker and its
    words; urgent turns the warning into an inverted block; alarm inverts the whole screen. Never a colour: field has
    none to raise, and inversion reads with colour removed. */
