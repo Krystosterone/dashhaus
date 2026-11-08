@@ -74,6 +74,10 @@ jobs:
           WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler.jsonl
         run: |
           set -euo pipefail
+          # A secret pasted with its line break is still the secret.
+          CLOUDFLARE_ACCOUNT_ID=$(tr -d '[:space:]' <<< "$CLOUDFLARE_ACCOUNT_ID")
+          CLOUDFLARE_API_TOKEN=$(tr -d '[:space:]' <<< "$CLOUDFLARE_API_TOKEN")
+          export CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN
           if ! created=$(npx --yes "$WRANGLER" pages project create "$PROJECT" --production-branch=main 2>&1); then
             grep -qi "already exists" <<< "$created" || { echo "$created"; exit 1; }
           fi
