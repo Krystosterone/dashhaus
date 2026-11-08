@@ -3,6 +3,7 @@ import { useHourCycle, usePicture } from "@dashhaus/core/hooks";
 import type { CameraEntity, CameraState } from "@dashhaus/core/entities/camera/types";
 import { cameraKind, cameraWord, liveViewSaid, openStillWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { pictureTime } from "@dashhaus/core/entities/picture";
 import { Blank, Glyph, Key, KeyGroup, ModuleFrame, Pictogram, Picture, Screen, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { CAMERA_PICT, IconCamera } from "./icons";
@@ -38,6 +39,18 @@ export interface CameraModuleProps {
 const FIGURE: Partial<Record<CameraState, string>> = { idle: "IDLE", recording: "REC", streaming: "LIVE" };
 
 /**
+ * A meta line that ends in a time (`Still from 1:44 PM`, `Last seen 8:20 AM`, `Since 13:44`), drawn so that where it is
+ * too narrow its words give way, together and first, and the time stays whole with its period (`1:44 PM`), never
+ * `Still from 1:44…`. The words and the time are two items on one line laid out from the time back, so the words wrap
+ * out of sight; never a word of them alone (`Seen 8:20 AM`). A screen reader hears the line whole. A line with no
+ * time is left as it is.
+ */
+function Timed({ line, time }: { line: string; time?: string }) {
+  if (!time || line === time || !line.endsWith(` ${time}`)) return <>{line}</>;
+  return <span className="fd-cm-timed"><span className="fd-cm-timed-w">{line.slice(0, -time.length)}</span><span>{time}</span></span>;
+}
+
+/**
  * One camera (a doorbell, a nursery's) as a field module: a reading, its state and its still. Its body is the screen,
  * the still a window in it (`Picture`) beside the screen's words: the state at four places (`IDLE`, `REC`, `LIVE`)
  * beside the camera's pictogram, lit while it records or streams, then the state in words and since when, or how old
@@ -60,6 +73,8 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
   const panelPicture = usePicture<HTMLElement>(still && details.open && !unav ? e.picture : undefined, { refresh: refresh * 1000, paused });
   const note = drawn ? stillNote(e, picture, hourCycle) : undefined;
   const panelNote = still ? stillNote(e, panelPicture, hourCycle) : undefined;
+  // The time a still's note ends in, so the words before it give way first (`Timed`).
+  const stillTime = (still: { at?: number }) => (still.at === undefined ? undefined : pictureTime(still.at, hourCycle));
   // The still opens the stream where there is one; the name, as on every module, opens the panel.
   const open = onOpenLive ?? details.openDetails;
   const openLabel = openStillWord(!!onOpenLive);
@@ -72,7 +87,9 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
     : <Blank places={4} label={word} />;
   const since = sinceFact(e.lastChanged);
   // Unavailable says when it was last seen in core's words ("Last seen 08:20"), as every module does.
-  const metaOf = (said?: string): [ReactNode, ReactNode?] => unav ? [word, e.lastSeen ? lastSeenFact(e.lastSeen) : undefined] : [word, said ?? since];
+  const metaOf = (said?: string, saidTime?: string): [ReactNode, ReactNode?] => unav
+    ? [word, e.lastSeen ? <Timed line={lastSeenFact(e.lastSeen)} time={e.lastSeen} /> : undefined]
+    : [word, said ? <Timed line={said} time={saidTime} /> : since && <Timed line={since} time={e.lastChanged} />];
   const glyph = <Glyph unavailable={unav}><IconCamera state={e.state} /></Glyph>;
   const label = `${e.name}: ${word}`;
 
@@ -83,7 +100,7 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
           <svg viewBox="0 0 20 26" aria-hidden="true">{CAMERA_PICT}</svg>
         </Picture>
       )}
-      <Screen pict={pict} meta={metaOf(note)}>{read}</Screen>
+      <Screen pict={pict} meta={metaOf(note, stillTime(picture))}>{read}</Screen>
     </div>
   );
 
@@ -99,10 +116,10 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
       details={details}
       pict={pict}
       read={read}
-      meta={metaOf(note)}
+      meta={metaOf(note, stillTime(picture))}
       lead={glyph}
       body={body}
-      panelScreen={{ pict, read, meta: metaOf(panelNote) }}
+      panelScreen={{ pict, read, meta: metaOf(panelNote, stillTime(panelPicture)) }}
       panelPicture={still && !unav && (
         <Picture picture={panelPicture} label={label} fit="contain" onOpen={onOpenLive} openLabel={openStillWord(true)}>
           <svg viewBox="0 0 20 26" aria-hidden="true">{CAMERA_PICT}</svg>

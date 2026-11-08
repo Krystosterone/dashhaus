@@ -2,7 +2,7 @@ import { Children, createContext, useContext, useEffect, useId, useLayoutEffect,
 import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
 import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
-import { useSettled } from "@dashhaus/core/hooks";
+import { useHourCycle, useSettled } from "@dashhaus/core/hooks";
 import type { Picture as PictureLifecycle } from "@dashhaus/core/hooks";
 import { CardDialog, detailsSheet as detailsSheetOf, detailsTile as detailsTileOf, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/core/lovelace/card";
@@ -10,6 +10,7 @@ import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
 import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
+import { hourLabel } from "@dashhaus/core/entities/clock";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -453,8 +454,12 @@ export function LevelBar({ id, label, heading, value, min, max, on, wakes, text,
 }
 
 /* ---------- Today strip ---------- */
+/** The hours the strip's axis names, a quarter of the day apart: 00 06 12 18, or 12AM 6AM 12PM 6PM on 12 hours. */
+const AXIS_HOURS = [0, 6, 12, 18] as const;
+
 /** `forecastFrom`: hours from this index on are forecasts, drawn as lighter sticks. */
 export function TodayStrip({ samples, currentHour, summary, title = "Today", tone, forecastFrom }: { samples: HourSample[]; currentHour: number; summary: string; title?: string; tone?: string; forecastFrom?: number }) {
+  const hourCycle = useHourCycle();
   return (
     <div className="hd-tl" style={tone ? ({ "--accent-strong": tone } as Vars) : undefined}>
       <p className="hd-tl-h"><span>{title}</span><span className="hd-tl-v">{summary}</span></p>
@@ -472,7 +477,7 @@ export function TodayStrip({ samples, currentHour, summary, title = "Today", ton
           return <i key={i} data-s={s} style={{ "--h": h.toFixed(2) } as Vars} />;
         })}
       </div>
-      <div className="hd-tl-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span></div>
+      <div className="hd-tl-axis" aria-hidden="true">{AXIS_HOURS.map((hour) => <span key={hour}>{hourLabel(hour, hourCycle)}</span>)}</div>
     </div>
   );
 }

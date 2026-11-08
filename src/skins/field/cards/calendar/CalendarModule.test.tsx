@@ -97,9 +97,11 @@ describe("CalendarModule", () => {
       expect(draw12("underWay").querySelector(".fd-meta")?.textContent).toBe("Team standupUntil 12:15\u00a0PM");
     });
 
-    it("says when on a row's line, so the period is said somewhere", () => {
-      expect(draw12("tomorrow", "compact").querySelector(".fd-area")?.textContent).toBe("School trip · Tomorrow 9:30\u00a0AM");
-      expect(draw12("normal", "compact").querySelector(".fd-area")?.textContent).toBe("Dentist · In 2h 6m");
+    it("says when first on a row's line, so a clip cuts the title and the period stays in sight", () => {
+      expect(draw12("tomorrow", "compact").querySelector(".fd-area")?.textContent).toBe("Tomorrow 9:30\u00a0AM · School trip");
+      expect(draw12("normal", "compact").querySelector(".fd-area")?.textContent).toBe("In 2h 6m · Dentist");
+      // Under way, the screen's NOW says when, and the line names the event alone, as on 24 hours.
+      expect(draw12("underWay", "compact").querySelector(".fd-area")?.textContent).toBe("Team standup");
     });
 
     it("spans the panel's events with their periods", () => {

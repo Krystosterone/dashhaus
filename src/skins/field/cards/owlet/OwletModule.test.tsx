@@ -71,6 +71,9 @@ describe("OwletModule", () => {
     // A row's line takes the block; a day as well as a time keeps the time.
     expect(draw("stale", "compact").line).toBe("Warning: Stopped 11:49");
     expect(draw("long", "compact").line).toBe("Warning: Stopped 18:30");
+    // The time is its own part, so a narrow module or row lets it go (OwletModule.css) and keeps the word whole.
+    expect(container.querySelector(".fd-meta .fd-warn .fd-ow-since")?.textContent).toBe(" 11:49");
+    expect(draw("long", "compact").container.querySelector(".fd-area .fd-ow-since")?.textContent).toBe(" 18:30");
   });
 
   it("leads stopped readings with the word on a 12-hour clock too, the time after it", () => {

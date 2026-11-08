@@ -79,7 +79,8 @@ const withSkinFont: Loader = async (ctx) => {
 
 /**
  * Every story starts on 24 hours, the clock the seeds are written on, whatever the browser's locale, so a card's own
- * times and the times its seed brings agree; a skin's toolbar may set another (its decorator's `HourCycleProvider`).
+ * times and the times its seed brings agree; a 12-hour story sets its own (`HourCycleProvider` in its decorators, over
+ * `onHourCycle` seeds), so no story is ever on two clocks.
  */
 const withSkin: Decorator = (Story, ctx) => {
   const skin = skinOf(ctx.title);

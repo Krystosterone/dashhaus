@@ -3,6 +3,7 @@ import { LockModule } from "./LockModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { LOCK_SEEDS, LOCK_WORST_CASE, useDemoLock } from "@dashhaus/core/seeds/lock";
 import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import type { LockSeed, LockSeedName } from "@dashhaus/core/seeds/lock";
 import type { LockAction } from "@dashhaus/core/entities/lock/types";
 
@@ -68,6 +69,21 @@ export const CodeRequired: Story = { name: "Code required", args: { lock: "code"
 export const Open: Story = { args: { lock: "open" } };
 /** View only: the key lies flat; the screen and the panel still say everything. */
 export const ViewOnly: Story = { name: "View only", args: { readOnly: true } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => LOCK_SEEDS[name]), ...LOCK_WORST_CASE].map((seed, index) => <DemoLock key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { lock: "unavailable" } };
 
@@ -147,19 +163,4 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
-};
-
-/**
- * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
- * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
- */
-export const TwelveHourClock: Story = {
-  name: "12-hour clock",
-  globals: { fieldClock: "h12" },
-  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
-  render: ({ width, footprint }) => (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {[...SEEDS.map((name) => LOCK_SEEDS[name]), ...LOCK_WORST_CASE].map((seed, index) => <DemoLock key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
-    </div>
-  ),
 };

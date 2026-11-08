@@ -26,5 +26,14 @@
   .fd-ow.fd-module[data-footprint="standard"] .fd-screen { padding: 0 6px; gap: 6px; }
 }
 
+/* Readings that stopped: the word, then since when. Where the block is too narrow for both (a module under 240 px, a
+   row under 280 px), the time goes and the word stays whole; the panel and a screen reader say it in full. */
+@container (max-width: 239px) {
+  .fd-ow.fd-module[data-footprint="standard"] .fd-ow-since { display: none; }
+}
+@container (max-width: 279px) {
+  .fd-ow.fd-module[data-footprint="compact"] .fd-ow-since { display: none; }
+}
+
 /* The base station's key, and what it being on or off means, in a sentence beside it. */
 .fd-ow-base { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: center; }

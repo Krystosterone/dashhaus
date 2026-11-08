@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DemoWeatherTile as DemoTile } from "./demo/DemoWeatherTile";
 import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
 import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const WEATHER = ["partly", "rain", "night", "snow", "summer", "unavailable"] as const;
@@ -39,6 +40,20 @@ export const Raining: Story = { args: { weather: "rain" } };
 export const Night: Story = { args: { weather: "night" } };
 export const Snow: Story = { args: { weather: "snow" } };
 export const HotAndHazy: Story = { name: "Hot, poor air", args: { weather: "summer" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...WEATHER.map((name) => WEATHER_SEEDS[name]), ...WEATHER_WORST_CASE].map((seed, index) => <DemoTile key={index} weather={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 export const Unavailable: Story = { args: { weather: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (WEATHER_WORST_CASE): long and compound names, missing areas, values at their limits. */
 export const WorstCase: Story = {
@@ -97,29 +112,14 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
+/** The details on a 12-hour clock: every time in them with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  render: ({ weather, width, footprint }) => <DemoTile weather={onHourCycle(typeof weather === "string" ? WEATHER_SEEDS[weather] : weather, "h12")} width={width} footprint={footprint} defaultOpen />,
+};
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { weather: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
-};
-
-/**
- * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
- * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
- */
-export const TwelveHourClock: Story = {
-  name: "12-hour clock",
-  globals: { orbClock: "h12" },
-  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
-  render: ({ width, footprint }) => (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {[...WEATHER.map((name) => WEATHER_SEEDS[name]), ...WEATHER_WORST_CASE].map((seed, index) => <DemoTile key={index} weather={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
-    </div>
-  ),
-};
-/** The details on a 12-hour clock: every time in them with its period. */
-export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", globals: { orbClock: "h12" },
-  render: ({ weather, width, footprint }) => <DemoTile weather={onHourCycle(typeof weather === "string" ? WEATHER_SEEDS[weather] : weather, "h12")} width={width} footprint={footprint} defaultOpen />,
 };

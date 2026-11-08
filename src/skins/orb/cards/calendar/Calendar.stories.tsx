@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DemoCalendarTile as DemoTile } from "./demo/DemoCalendarTile";
 import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
 import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["normal", "underWay", "allDay", "tomorrow", "free", "waiting", "unavailable", "long"] as const;
@@ -48,6 +49,20 @@ export const Free: Story = { args: { seed: "free" } };
 /** Reachable, its events not read yet: No reading yet on the status line, Waiting… in the readout. */
 export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
 export const Featured: Story = { args: { footprint: "featured" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => CALENDAR_SEEDS[name]), ...CALENDAR_WORST_CASE].map((seed, index) => <DemoTile key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (CALENDAR_WORST_CASE): a long title and place over three calendars, six all-day events, a flight across midnight, accented text, nothing at all, gone and never seen. */
 export const WorstCase: Story = {
@@ -110,28 +125,13 @@ export const Details: Story = { name: "Details", args: { defaultOpen: true } };
 export const DetailsAllDay: Story = { name: "Details, all day", args: { seed: "manyAllDay", defaultOpen: true } };
 /** Three calendars over a month: each event names its calendar, long titles wrap. */
 export const DetailsLong: Story = { name: "Details, long", args: { seed: "long", defaultOpen: true } };
+/** The details on a 12-hour clock: every time in them with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  render: ({ seed, width, footprint }) => <DemoTile seed={onHourCycle(typeof seed === "string" ? CALENDAR_SEEDS[seed] : seed, "h12")} width={width} footprint={footprint} defaultOpen />,
+};
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
-};
-
-/**
- * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
- * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
- */
-export const TwelveHourClock: Story = {
-  name: "12-hour clock",
-  globals: { orbClock: "h12" },
-  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
-  render: ({ width, footprint }) => (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {[...SEEDS.map((name) => CALENDAR_SEEDS[name]), ...CALENDAR_WORST_CASE].map((seed, index) => <DemoTile key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
-    </div>
-  ),
-};
-/** The details on a 12-hour clock: every time in them with its period. */
-export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", globals: { orbClock: "h12" },
-  render: ({ seed, width, footprint }) => <DemoTile seed={onHourCycle(typeof seed === "string" ? CALENDAR_SEEDS[seed] : seed, "h12")} width={width} footprint={footprint} defaultOpen />,
 };

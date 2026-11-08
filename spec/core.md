@@ -121,8 +121,9 @@ dashboard's hour cycle). Core owns the words and the one place the cycle is set;
   so a model's formatted times (`lastChanged`, `lastSeen`, `lastUpdated`) are on the dashboard's clock.
 - **The seeds** are written as a mapper writes them on a 24-hour dashboard; `onHourCycle(seed, cycle)`
   (`@dashhaus/core/seeds/clock`) is the same seed on another cycle, every time in it said by `timeOfDay`, for a
-  12-hour story without a second copy. Storybook starts every story on 24 hours (`.storybook/preview.tsx`), and each
-  skin's toolbar has a Clock menu.
+  12-hour story without a second copy. Storybook starts every story on 24 hours (`.storybook/preview.tsx`); a card's
+  12-hour stories put themselves under `HourCycleProvider hourCycle="h12"` and draw `onHourCycle` seeds, so a story is
+  on one clock. A toolbar menu can't be: it would move the times a card works out and leave the seed's on 24 hours.
 
 Rejected: a setting on the store (`createHaStore`), which never reaches the words a presentational card works out
 itself; and a prop on every card and option on every hook, which every renderer of every skin would have to thread.

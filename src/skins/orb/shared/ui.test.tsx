@@ -1,10 +1,11 @@
 import { fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
-import { CardFrame, CardTitle, Picture, SheetClose, UnavailableSlot, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
+import { CardFrame, CardTitle, Picture, SheetClose, TodayStrip, UnavailableSlot, Track, detailsSheet, detailsTile, fmt1, fmtDuration, paint, useCard } from "./ui";
 import type { CardProps } from "./ui";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { lastSeenFact } from "@dashhaus/core/entities/facts";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 describe("paint", () => {
   it("shows no glow attribute at zero", () => {
@@ -122,6 +123,19 @@ describe("detailsSheet and detailsTile", () => {
   it("names the wrappers after the card", () => {
     expect(ProbeSheet.displayName).toBe("ProbeSheet");
     expect(ProbeTile.displayName).toBe("ProbeTile");
+  });
+});
+
+describe("TodayStrip", () => {
+  const axis = (container: HTMLElement) => [...container.querySelectorAll(".hd-tl-axis > span")].map((span) => span.textContent);
+
+  it("names its axis's hours on 24 hours", () => {
+    const { container } = render(<HourCycleProvider hourCycle="h23"><TodayStrip samples={[]} currentHour={9} summary="On 2h" /></HourCycleProvider>);
+    expect(axis(container)).toEqual(["00", "06", "12", "18"]);
+  });
+  it("names them with their period on a 12-hour dashboard", () => {
+    const { container } = render(<HourCycleProvider hourCycle="h12"><TodayStrip samples={[]} currentHour={9} summary="On 2h" /></HourCycleProvider>);
+    expect(axis(container)).toEqual(["12AM", "6AM", "12PM", "6PM"]);
   });
 });
 

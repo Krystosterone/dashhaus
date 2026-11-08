@@ -19,6 +19,13 @@
 .fd-cm-body[data-still] .fd-screen { flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; border-radius: 0; }
 .fd-cm-body[data-still] .fd-meta { justify-items: start; text-align: left; max-width: 100%; }
 
+/* A meta line that ends in a time (`Timed`): its words and its time on one line, laid out from the time back, so where
+   the line is too narrow the words wrap out of sight and the time keeps its period whole. Packed to the line's side. */
+.fd-cm-timed { display: flex; flex-flow: row-reverse wrap; justify-content: flex-start; max-height: 13px; overflow: hidden; }
+/* Its words keep the space before the time, so the line reads as one where it fits. */
+.fd-cm-timed-w { order: 1; white-space: pre; }
+.fd-cm-body[data-still] .fd-cm-timed { justify-content: flex-end; }
+
 /* Narrow modules keep one meta line on the screen, as every module does. */
 @container (max-width: 239px) {
   .fd-cm .fd-meta-2 { display: none; }

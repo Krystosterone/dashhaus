@@ -56,8 +56,8 @@ function EventRow({ event, now, when }: { event: CalendarEvent; now: number; whe
  * flat plate and today's meter of the hours busy, those ahead included. The screen leads with the next event, a timed
  * one before the day's all-day ones: NOW while it is under way, lit, else the clock it starts at or an all-day event's
  * weekday; the meta lines its title and when (In 2h 6m, Until 12:15, Tomorrow 09:30). With nothing to the horizon the
- * screen says FREE in the dim ink. A row's line names the event, then its day when it isn't today's, and with none
- * what's left today. It has no actions
+ * screen says FREE in the dim ink. A row's line names the event, then its day when it isn't today's (on 12 hours,
+ * when first and then the event), and with none what's left today. It has no actions
  * and no warnings. The panel lists today's events and what's coming.
  */
 export function CalendarModule({ entity: e, history, footprint = "standard", defaultOpen = false }: CalendarModuleProps) {
@@ -91,10 +91,11 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
     : [free.line, left];
   // A row has no meta lines: its line names the event, then its day when its clock is another day's; with no event it
   // says what's left today, as orb's row does, the screen's FREE already saying for how long. On 12 hours a timed
-  // event's line says when as the meta line would, so its clock's period is said somewhere.
+  // event's line says when first, as the meta line would, then the event: the screen's 9:30 can't hold its period, so a
+  // clip cuts the title and the period stays where a glance reaches (Tomorrow 9:30 AM · School trip).
   const timed12 = hourCycle === "h12" && next != null && !under && !next.allDay;
   const line = unav || waiting ? undefined
-    : next ? (otherDay || timed12 ? `${next.title} · ${otherDay ?? when!.line}` : next.title)
+    : next ? (timed12 ? `${otherDay ?? when!.line} · ${next.title}` : otherDay ? `${next.title} · ${otherDay}` : next.title)
     : left;
 
   const glyph = <Glyph unavailable={unav}><IconCalendar /></Glyph>;

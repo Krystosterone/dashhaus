@@ -4,6 +4,7 @@ import { OwletModule } from "./OwletModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { OWLET_SEEDS, OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
 import { onHourCycle } from "@dashhaus/core/seeds/clock";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import type { OwletSeed, OwletSeedName } from "@dashhaus/core/seeds/owlet";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -70,6 +71,21 @@ export const SockOff: Story = { name: "Problem: sock off", args: { owlet: "sockO
 export const LowBattery: Story = { name: "Problem: battery low", args: { owlet: "lowBattery" } };
 /** On its charger the sock reports nothing, and says why: DOCK in the dim ink, a known resting state, never blank segments. */
 export const Charging: Story = { args: { owlet: "charging" } };
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  decorators: [(Story) => <HourCycleProvider hourCycle="h12"><Story /></HourCycleProvider>],
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => OWLET_SEEDS[name]), ...OWLET_WORST_CASE].map((seed, index) => <DemoOwlet key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+
 /** Blank segments and when it was last seen; today's sleep so far stays. */
 export const Unavailable: Story = { args: { owlet: "unavailable" } };
 
@@ -148,19 +164,4 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
-};
-
-/**
- * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
- * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
- */
-export const TwelveHourClock: Story = {
-  name: "12-hour clock",
-  globals: { fieldClock: "h12" },
-  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
-  render: ({ width, footprint }) => (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
-      {[...SEEDS.map((name) => OWLET_SEEDS[name]), ...OWLET_WORST_CASE].map((seed, index) => <DemoOwlet key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
-    </div>
-  ),
 };
