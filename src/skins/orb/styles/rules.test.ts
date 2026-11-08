@@ -201,6 +201,23 @@ describe("touch: controls answer presses, tracks let pages scroll", () => {
   });
 });
 
+describe("type: a readout's word has one size in the sheet", () => {
+  /** A card's own sheet readout size, for a figure that needs it, with why. */
+  const FIGURES: Record<string, string> = {
+    [`${SKIN}/cards/numeric/NumericCard.css`]: "a figure, not a word: its long unit (µg/m³) sets it a little smaller",
+  };
+
+  it("the sheet sets every word at 30 px in one shared rule, and no card sets its own (spec/orb.md → Readout type)", () => {
+    expect(css(`${SKIN}/shared/card.css`)).toContain(".hd--sheet.hd .hd-num:is(.hd-num--word, .hd-num--long) { font-size: 30px; letter-spacing: -0.02em; }");
+    const own = cssFiles.filter((f) => f.startsWith(`${SKIN}/cards/`) && !(f in FIGURES)).filter((f) =>
+      [...css(f).matchAll(/([^{}]+)\{([^{}]*)\}/g)].some(([, selector, body]) => {
+        const shown = selector.replace(/:not\([^)]*\)/g, "");
+        return /\.hd--sheet/.test(shown) && /\.hd-num\b/.test(shown) && /(?:^|;)\s*font-size\s*:/.test(body);
+      }));
+    expect(own, "mark the readout a word (CardReadout.word in shared/ui.tsx) and let shared/card.css size it").toEqual([]);
+  });
+});
+
 describe("glow: attention is a multiplier on a dimmed baseline", () => {
   it("the glow layer is glow x damping, both defaulting off or full", () => {
     expect(css(`${SKIN}/shared/card.css`)).toContain("opacity: calc(var(--hd-glow, 0) * var(--glow-damp, 1))");

@@ -79,7 +79,7 @@ export function LightCard({ entity: e, history, variant, footprint, showControl,
       status={area ? <>{area}{warmth && <span className="lw-k"> · {warmth}</span>}</> : !sheet && detail}
       statusTitle={area}
       value={subText}
-      readout={{ value: readout, duplicate: true }}
+      readout={{ value: readout, duplicate: true, word: !(on && hasBrightness) }}
       onClose={onClose}
       control={dims ? <BrightnessBar id={`${uid}-dim`} label={`${e.name} brightness`} value={pct} on={on} known={hasBrightness} offText={word} onChange={onBrightnessChange} />
         : <TogglePill label={`${e.name}: ${word}`} on={on} onToggle={onToggle}>{word}</TogglePill>}

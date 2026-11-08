@@ -121,7 +121,7 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
       status={status}
       value={subText}
       alert={alertLabel}
-      readout={{ value: word, duplicate: true }}
+      readout={{ value: word, duplicate: true, word: true }}
       onClose={onClose}
       closeFocus={!pending}
       control={slot}

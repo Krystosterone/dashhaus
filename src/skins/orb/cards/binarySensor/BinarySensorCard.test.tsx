@@ -34,7 +34,8 @@ describe("BinarySensorCard", () => {
     expect(container.querySelector(".hd-area")?.textContent).toBe("Leak detected");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
     expect(container.querySelector(".bs-f")?.hasAttribute("data-warn")).toBe(false);
-    expect(container.querySelector(".hd-num")?.className).toBe("hd-num");
+    // The readout is a word, and nothing marks it a warning.
+    expect(container.querySelector(".hd-num")?.className).toBe("hd-num hd-num--word");
   });
 
   it("fills the slot in warn for smoke, the alarm and since when, with the status line plain", () => {

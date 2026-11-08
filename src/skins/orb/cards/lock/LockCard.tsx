@@ -108,7 +108,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
       value={alertLabel ? warning : word}
       alert={alertLabel}
       bareValue={jammed ? warning : word}
-      readout={{ value: unav ? null : word, duplicate: true }}
+      readout={{ value: unav ? null : word, duplicate: true, word: true }}
       onClose={onClose}
       closeFocus={!pending}
       control={slot}

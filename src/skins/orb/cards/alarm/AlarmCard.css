@@ -4,8 +4,7 @@
 .al[data-armed] .hd-orb--static { color: var(--on-accent); }
 .al[data-armed] .hd-orb--static .hd-orb-i { background: var(--accent); }
 .al[data-state="triggered"] .hd-orb--static .hd-orb-i { background: var(--warn); color: var(--on-warn); box-shadow: none; }
-.al .hd-num { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; }
-.hd--sheet.al .hd-num { font-size: 30px; }
+/* The readout says the mode in words, the shared hd-num--word: only the sheet shows it, the switch saying it on the card. */
 
 /* ---------- Mode switch: a groove with Off and each arm mode; the current one on a sliding thumb ----------
    The thumb is raised while disarmed and the accent while armed. */

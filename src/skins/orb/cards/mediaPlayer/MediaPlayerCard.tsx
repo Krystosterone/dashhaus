@@ -120,7 +120,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
       statusTitle={typeof status === "string" ? status : cue}
       value={word}
       // The large readout is the volume, which no card control prints, or Muted; without one it repeats the pill's word.
-      readout={unav ? { value: null } : muted ? { value: MUTED, duplicate: true, className: "hd-num--long" } : loaded && e.volume != null ? { value: <>{e.volume}<span>%</span></> } : { value: word, duplicate: true, className: "hd-num--long" }}
+      readout={unav ? { value: null } : muted ? { value: MUTED, duplicate: true, word: true, className: "hd-num--long" } : loaded && e.volume != null ? { value: <>{e.volume}<span>%</span></> } : { value: word, duplicate: true, word: true, className: "hd-num--long" }}
       onClose={onClose}
       control={slot}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : mediaAbilities(e) }}

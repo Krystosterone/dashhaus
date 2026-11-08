@@ -91,7 +91,7 @@ export function VacuumCard({ entity: e, history, variant, footprint, showControl
       value={warning ?? word}
       alert={alertLabel}
       bareValue={word}
-      readout={{ value: unav ? null : word, duplicate: true, className: "hd-num--long" }}
+      readout={{ value: unav ? null : word, duplicate: true, word: true, className: "hd-num--long" }}
       onClose={onClose}
       control={slot}
       facts={{

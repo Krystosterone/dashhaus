@@ -50,6 +50,4 @@
 /* Compact rows keep the word alone, inline and right-aligned; since when waits for the card. */
 .hd--compact .cm-since { display: none; }
 
-/* The sheet's header says the state in words, a little smaller than a number. */
-.hd--sheet.cm .hd-num { font-size: 30px; letter-spacing: -0.02em; }
 .cm[data-state="idle"] .hd-num { color: var(--ink-2); }
