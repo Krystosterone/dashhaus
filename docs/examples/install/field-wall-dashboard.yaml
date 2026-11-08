@@ -1,5 +1,5 @@
 # A second Field dashboard, for a wall panel: Add dashboard → Field again, then these two options.
 strategy:
   type: custom:field-dashboard
-  layout: wall    # the house one column per place, rooms in name order
+  layout: wall    # the house one column per room, rooms in name order
   viewing: far    # print set for across the room

@@ -125,7 +125,7 @@ function Panel({ label, width, height, children }: { label: string; width: numbe
 
 /**
  * The automatic layout with `layout: wall` and `viewing: far`, as a wall panel's card draws it, on the demo house in
- * several rooms (`DEMO_WALL_HOUSE`): one column per place under its heading, the house's own cards ending the first row.
+ * several rooms (`DEMO_WALL_HOUSE`): one column per area under its heading, the house's own cards ending the first row.
  */
 function Wall({ house }: { house: DemoWallHouse }) {
   const entities = useHaSelector((snapshot) => snapshot.entities);
@@ -225,19 +225,19 @@ function WithNav() {
 export const FromYaml: Story = { name: "From YAML", render: () => <House><Configured /></House> };
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <House><Automatic /></House> };
 /**
- * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per place, by area name, three across, each under
- * its place's heading, so its cards leave their own area out; the house's own alarm, modes, guest Wi-Fi and calendars
- * end the first row, and the next places wrap under it. What is pressed is a compact row, what is read standard.
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, by area name, three across, each under
+ * its area's heading, so its cards leave their own area out; the house's own alarm, modes, guest Wi-Fi and calendars
+ * end the first row, and the next areas wrap under it. What is pressed is a compact row, what is read standard.
  */
 export const AutomaticWall: Story = { name: "Automatic layout, wall panel", render: () => <WallHouse label="Wall panel" /> };
 /**
- * The worst case for a wall: eight rooms, so three rows of places; the longest area name, ending in an ellipsis; a room
+ * The worst case for a wall: eight rooms, so three rows of areas; the longest area name, ending in an ellipsis; a room
  * of one card (the hallway's smoke alarm); and, in a late room, a jammed lock and an open door, below the fold. Orb has
  * no alert line, so nothing on the first screen says so (spec/deploy.md → The wall layout).
  */
 export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall panel, worst case", render: () => <WallHouse house={DEMO_WALL_HOUSE_WORST_CASE} label="Wall panel, worst case" /> };
 /**
- * The same wall on an 800 × 1280 portrait panel: three columns still fit (each over 156 px), so each place keeps its
+ * The same wall on an 800 × 1280 portrait panel: three columns still fit (each over 156 px), so each area keeps its
  * column and heading, its compact rows trading their inline control for their value line under 320 px.
  */
 export const AutomaticWallPortrait: Story = { name: "Automatic layout, wall panel, portrait", render: () => <WallHouse label="Wall panel, portrait" width={800} height={1280} /> };

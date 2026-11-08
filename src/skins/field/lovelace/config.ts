@@ -126,7 +126,7 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** "far": a wall panel read from across the room; print and screen are set a step up. */
   viewing?: "near" | "far";
-  /** "wall": the automatic layout one column per place (`areaColumns`), in place of a row per area. Only without `cards`, `rows` and `pages`. */
+  /** "wall": the automatic layout one column per area (`areaColumns`), in place of a row per area. Only without `cards`, `rows` and `pages`. */
   layout?: "wall";
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;

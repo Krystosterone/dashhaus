@@ -65,8 +65,8 @@ empty folder, writes each skin's config and deploys it into a simulated Home Ass
    The two walls are for a panel on a wall: each skin's card with `layout: wall`, which lays the house out one column
    per room, in the order of the rooms' names, each time it draws, and `viewing: far`, for reading it from across the
    room. A strategy can't carry a nav, so a wall is a `card`: its `nav` lists its own page and a `navigate:` link back
-   to the skin's dashboard (a nav with one destination isn't drawn). To put certain rooms first, take control of it in
-   Home Assistant and move its cards. Then pick each device's dashboard in its profile, under **Dashboard**.
+   to the skin's dashboard (a nav with one destination isn't drawn). To put certain rooms first, write its rows in place
+   of `layout: wall`. Then pick each device's dashboard in its profile, under **Dashboard**.
 
 4. Deploy:
 

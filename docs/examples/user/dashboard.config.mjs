@@ -10,7 +10,7 @@ export default {
     // Each skin's own dashboard, on its strategy: it follows the skin as it updates.
     { path: "home-orb", title: "Home (Orb)", icon: "mdi:home-variant", strategy: { type: "custom:orb-dashboard" } },
     { path: "home-field", title: "Home (Field)", icon: "mdi:knob", strategy: { type: "custom:field-dashboard" } },
-    // A wall panel's dashboard for each skin: its card with layout: wall lays the house out one column per place each
+    // A wall panel's dashboard for each skin: its card with layout: wall lays the house out one column per room each
     // time it draws, read from across the room, and its nav leads back to the skin's own dashboard.
     {
       path: "wall-orb",

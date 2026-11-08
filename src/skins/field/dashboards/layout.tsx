@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { HourCycleProvider } from "@dashhaus/core/hooks";
-import { Legend, PlaceLegend } from "../shared/ui";
+import { AreaLegend, Legend } from "../shared/ui";
 import type { FieldFootprint } from "../shared/ui";
 import { AlertLine, AlertsProvider } from "../shared/alerts";
 import { Header } from "./Header";
@@ -95,14 +95,14 @@ export function Place({ style, footprint, children }: { style?: CSSProperties; f
 }
 
 /**
- * One column of a row that mixes footprints: its modules stacked, in YAML order. Given its `place` (a wall's column of
- * one area), it is that place's section, the place printed as its legend once and its plates leaving it out
- * (`PlaceLegend`); `null` keeps the legend's height and prints nothing, so it lines up beside a column that has one.
+ * One column of a row that mixes footprints: its modules stacked, in YAML order. Given its `area` (a wall's column of
+ * one area), it is that area's section, the area printed as its legend once and its plates leaving it out
+ * (`AreaLegend`); `null` keeps the legend's height and prints nothing, so it lines up beside a column that has one.
  */
-export function Stack({ column, place, children }: { column?: number; place?: string | null; children: ReactNode }) {
+export function Stack({ column, area, children }: { column?: number; area?: string | null; children: ReactNode }) {
   const style = column ? { gridColumn: column } : undefined;
-  if (place === undefined) return <div className="fd-dash-stack" style={style}>{children}</div>;
-  if (place === null) {
+  if (area === undefined) return <div className="fd-dash-stack" style={style}>{children}</div>;
+  if (area === null) {
     return (
       <div className="fd-dash-stack" style={style}>
         <div className="fd-dash-stack-legend" aria-hidden="true"><Legend>{"\u00a0"}</Legend></div>
@@ -111,9 +111,9 @@ export function Stack({ column, place, children }: { column?: number; place?: st
     );
   }
   return (
-    <section className="fd-dash-stack" style={style} aria-label={place}>
-      <div className="fd-dash-stack-legend" title={place}><Legend as="h2">{place}</Legend></div>
-      <PlaceLegend.Provider value={place}>{children}</PlaceLegend.Provider>
+    <section className="fd-dash-stack" style={style} aria-label={area}>
+      <div className="fd-dash-stack-legend" title={area}><Legend as="h2">{area}</Legend></div>
+      <AreaLegend.Provider value={area}>{children}</AreaLegend.Provider>
     </section>
   );
 }

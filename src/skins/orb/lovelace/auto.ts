@@ -1,14 +1,14 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/core/lovelace/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, areaName, byName, deviceCompanion, domainOf, dysonFans, energySensors, numericSensors, outsideArea, placeColumns, placeSection, roomSensors, safetySensors, visibleEntities, wallFootprint, wallPlaces } from "@dashhaus/core/lovelace/layout";
+import { areaId, areaName, byName, deviceCompanion, domainOf, dysonFans, energySensors, numericSensors, outsideArea, placeColumns, placeSection, roomSensors, safetySensors, visibleEntities, wallAreas, wallFootprint } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/core/lovelace/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/core/lovelace/layout";
 
 type Card = string | Record<string, unknown>;
 interface Row { title: string; columns?: number; cards: Card[] }
-/** A wall's row: untitled, one column per place, or the Energy row. */
+/** A wall's row: untitled, one column per area, or the Energy row. */
 interface WallRow { title?: string; columns?: number; flow?: "dense"; cards: Card[] }
 
 /**
@@ -86,7 +86,7 @@ function discover(input: LayoutInput) {
 /** How `autoDashboard` lays the house out. */
 export interface AutoOptions {
   /**
-   * `wall`: one column per place, for a panel on a wall (spec/deploy.md → The wall layout). Left out, the bands as
+   * `wall`: one column per area, for a panel on a wall (spec/deploy.md → The wall layout). Left out, the bands as
    * titled rows, the most pressing first.
    */
   layout?: "wall";
@@ -97,7 +97,7 @@ export interface AutoOptions {
  * the outside, room and energy glance. Automatic discovery cannot know which controls a person uses most,
  * so it keeps all discovered actions in deterministic domain/area order for the person to refine.
  * No featured hero is chosen; compact rows carry secondary controls. `layout: "wall"` lays the same cards out one
- * column per place instead (`wallDashboard`). Either way it is a layout only: `viewing` and `nav` are the caller's.
+ * column per area instead (`wallDashboard`). Either way it is a layout only: `viewing` and `nav` are the caller's.
  */
 export function autoDashboard(input: LayoutInput, title = "Home", { layout }: AutoOptions = {}): Record<string, unknown> {
   if (layout === "wall") return wallDashboard(input, title);
@@ -180,7 +180,7 @@ function energyRow(input: LayoutInput, placed: readonly Card[]): Row | undefined
 }
 
 /**
- * The most places side by side on Orb's wall: three, so at 1280 px each column is about 410 px and a compact card keeps
+ * The most areas side by side on Orb's wall: three, so at 1280 px each column is about 410 px and a compact card keeps
  * its inline control and names (it gives way under 320 px); four would be 306.
  */
 export const WALL_COLUMNS = 3;
@@ -189,13 +189,13 @@ export const WALL_COLUMNS = 3;
 interface WallCard { config: Card; card: string }
 
 /**
- * The house one column per place, for a panel on a wall (spec/deploy.md → The wall layout): every card the automatic
- * layout finds, in the shared bands and places (`wallPlaces`), each place a column in its band order, what is pressed
- * compact and what is read standard (`wallFootprint`), three places across (`WALL_COLUMNS`), wrapping in area-name
+ * The house one column per area, for a panel on a wall (spec/deploy.md → The wall layout): every card the automatic
+ * layout finds, in the shared bands and areas (`wallAreas`), each area a column in its band order, what is pressed
+ * compact and what is read standard (`wallFootprint`), three areas across (`WALL_COLUMNS`), wrapping in area-name
  * order into further rows, and the house's own cards, those in no area, the last column of the first. Each row is
  * anchored column by column with `flow: dense`, so every column starts at the top; narrower than the row's columns,
- * the anchors release and it reads place by place. The house's energy meters are their own row, last, as always. Fewer
- * than two places: one row, every card in band order.
+ * the anchors release and it reads area by area. The house's energy meters are their own row, last, as always. Fewer
+ * than two areas: one row, every card in band order.
  */
 function wallDashboard(input: LayoutInput, title: string): Record<string, unknown> {
   const { alarms, locks, safety, cameras, weather, sun, climate, rooms, quality, modes, socks, wifi, calendars, controls } = discover(input);
@@ -216,8 +216,8 @@ function wallDashboard(input: LayoutInput, title: string): Record<string, unknow
     ...rooms.map(id("sensor")),
     ...quality.map(id("numeric")),
   ];
-  const { places, house } = wallPlaces(cards, { card: (item) => item.card, area: (item) => areaName(input, entityOf(item.config)), outside: outsideArea(input) });
-  /** A card as the wall writes it: its place where it has no area of its own (the weather and the sun in Outside). */
+  const { areas, house } = wallAreas(cards, { card: (item) => item.card, area: (item) => areaName(input, entityOf(item.config)), outside: outsideArea(input) });
+  /** A card as the wall writes it: its column's area where it has none of its own (the weather and the sun in Outside). */
   const written = (item: WallCard, column?: number, area?: string): Card => {
     // The wall sets the footprint, so a card's own (a lock's compact) gives way to it.
     const { entity, ...rest } = typeof item.config === "string" ? { entity: item.config } : item.config;
@@ -227,9 +227,9 @@ function wallDashboard(input: LayoutInput, title: string): Record<string, unknow
     const placed = { entity, ...(column && { column }), ...compact, ...rest, ...own };
     return Object.keys(placed).length === 1 ? (entity as string) : placed;
   };
-  const rows: WallRow[] = places.length
-    ? placeColumns<{ item: WallCard; area?: string }>(places.map((place) => place.items.map((item) => ({ item, area: place.area }))), WALL_COLUMNS, house.map((item) => ({ item })))
-      .map((band) => ({ columns: band.columns, flow: "dense", cards: band.cards.map(({ card, column }) => written(card.item, column, card.area)) }))
+  const rows: WallRow[] = areas.length
+    ? placeColumns<{ item: WallCard; area?: string }>(areas.map((area) => area.items.map((item) => ({ item, area: area.area }))), WALL_COLUMNS, house.map((item) => ({ item })))
+      .map((row) => ({ columns: row.columns, flow: "dense", cards: row.cards.map(({ card, column }) => written(card.item, column, card.area)) }))
     : house.length ? [{ cards: house.map((item) => written(item)) }] : [];
   const energy = energyRow(input, rows.flatMap((row) => row.cards));
   if (energy) rows.push(energy);

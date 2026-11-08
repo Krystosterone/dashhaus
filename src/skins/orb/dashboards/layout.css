@@ -7,10 +7,11 @@
 .dash-sec-h small { font-size: 13px; font-weight: 500; line-height: 1.3; color: var(--ink-2); }
 .dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--dash-grid-gap, 8px); align-items: start; }
 .dash-cell { min-width: 0; grid-column: span var(--span, 1); }
-/* The attention budget (spec/orb.md → Composing for a glance), in a one column grid and a one-track Lovelace row:
-   a stack reads top-down, so the budget scales with composition, not just entity state. A card's glow layer is
-   --hd-glow × --glow-damp (shared/card.css); here --glow-damp is two independent factors multiplied, so no rule's order
-   or specificity carries meaning and no value given to one can invert what the other says:
+/* The attention budget (spec/orb.md → Composing for a glance), in a one column grid, a one-track Lovelace row and a
+   wall's column (a one-track row of its own): a stack reads top-down, so the budget scales with composition, not just
+   entity state. A card's glow layer is --hd-glow × --glow-damp (shared/card.css); here --glow-damp is two independent
+   factors multiplied, so no rule's order or specificity carries meaning and no value given to one can invert what the
+   other says:
    - --glow-later, position: the first cell holding a glowing card glows full, each later one --glow-damp-later.
    - --glow-yield, urgency: while the container holds an urgent or alarm card anywhere (core's Severity, `data-level`;
      advisory doesn't outrank), every glowing card in it takes --glow-damp-under-alert, above the problem or below it.
@@ -30,11 +31,12 @@
 .dash-place { min-width: 0; }
 .dash-row[data-tracks="1"] > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
 .dash-row[data-tracks="1"]:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }
-/* A row of places (a wall): each column its place's heading over its own stack of the same 60 px units, placed where
-   the row's layout put it. The columns sit further apart than cards do, so a place reads as one. */
-.dash-row--places { grid-auto-rows: auto; column-gap: 16px; }
+/* A row of areas (a wall): each column its area's heading over its own stack of the same 60 px units, placed where
+   the row's layout put it; each column is one track for the attention budget, as a one-column grid is. The columns
+   sit further apart than cards do, so an area reads as one. */
+.dash-row--areas { grid-auto-rows: auto; column-gap: 16px; }
 .dash-col { min-width: 0; }
-/* One line, so the columns' tops line up: a long place name ends in an ellipsis, the whole of it in its title. */
+/* One line, so the columns' tops line up: a long area name ends in an ellipsis, the whole of it in its title. */
 .dash-col > .dash-sec-h { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* At the narrow phone boundary, identity wins over columns: footprints stay fixed while rows reflow. */

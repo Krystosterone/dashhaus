@@ -225,8 +225,8 @@ export function numericSensors({ states, entities = {} }: RoomSensorInput): stri
 }
 
 /*
- * The wall (spec/deploy.md → The wall layout): one column per place, for a panel on a wall. Every skin's automatic wall
- * uses the same bands, the same places and the same columns; each skin only orders a column's stack in its own idiom
+ * The wall (spec/deploy.md → The wall layout): one column per area, for a panel on a wall. Every skin's automatic wall
+ * uses the same bands, the same areas and the same columns; each skin only orders a column's stack in its own idiom
  * and draws it.
  */
 
@@ -235,8 +235,8 @@ export type WallBand = "actions" | "security" | "cameras" | "status" | "glance";
 
 /**
  * Each band's cards, by the card name every skin shares (`light`, `binarySensor`), in the order a column stacks them:
- * the automatic layout's bands (spec/deploy.md → The automatic layout's order), within one place. A card in no band
- * still has its place, after the glance.
+ * the automatic layout's bands (spec/deploy.md → The automatic layout's order), within one area. A card in no band
+ * still goes in its column, after the glance.
  */
 export const WALL_BANDS: Readonly<Record<WallBand, readonly string[]>> = {
   actions: [
@@ -278,7 +278,7 @@ export function outsideArea(input: Pick<AutoInput, "areas">): string | undefined
   return Object.values(input.areas ?? {}).find((area) => area.name.trim().toLowerCase() === "outside")?.name;
 }
 
-/** The arrangements an automatic layout takes (a skin's YAML `layout`): `wall`, one column per place. */
+/** The arrangements an automatic layout takes (a skin's YAML `layout`): `wall`, one column per area. */
 export const AUTO_LAYOUTS = ["wall"] as const;
 export type AutoLayout = (typeof AUTO_LAYOUTS)[number];
 
@@ -295,66 +295,89 @@ export function readAutoLayout(read: Reader, raw: Raw): AutoLayout | undefined {
   return layout;
 }
 
-/** One place on a wall: an area and its cards, in band order. */
-export interface WallPlace<I> {
+/** One area on a wall: its name and its cards, in band order. */
+export interface WallArea<I> {
   area: string;
   items: I[];
 }
 
-/** A house as a wall's places, and the house's own cards, the ones in no area. */
-export interface WallPlaces<I> {
-  places: WallPlace<I>[];
+/** A house as a wall's areas, and the house's own cards, the ones in no area. */
+export interface WallAreas<I> {
+  areas: WallArea<I>[];
   house: I[];
 }
 
 /**
- * A house's cards as a wall's places: one per area that has a card, by area name, and the house's own cards, those in
+ * A house's cards as a wall's areas: one per area that has a card, by area name, and the house's own cards, those in
  * no area, each list in band order (`WALL_BANDS`, then the cards' own order). The weather and the sun, which have no
  * area, join the area called `outside` where the house has one (`outsideArea`), and are the house's otherwise. With
- * fewer than two places a column per place says nothing, so there are none, and every card is the house's, in band
+ * fewer than two areas a column per area says nothing, so there are none, and every card is the house's, in band
  * order, for the skin to flow across the page.
  */
-export function wallPlaces<I>(items: readonly I[], { card, area, outside }: {
+export function wallAreas<I>(items: readonly I[], { card, area, outside }: {
   /** The card that draws an item, by its shared name. */
   card: (item: I) => string;
   /** An item's area name, from the YAML or Home Assistant's registries. */
   area: (item: I) => string | undefined;
   outside?: string;
-}): WallPlaces<I> {
+}): WallAreas<I> {
   const placed = [...items];
   const rank = (item: I) => {
     const at = WALL_ORDER.indexOf(card(item));
     return at < 0 ? WALL_ORDER.length : at;
   };
   const inOrder = (list: readonly I[]) => [...list].sort((a, b) => rank(a) - rank(b));
-  const placeOf = (item: I) => area(item) ?? (outside && (card(item) === "weather" || card(item) === "sun") ? outside : undefined);
-  const groups = groupByArea(placed.map((item) => ({ item, area: placeOf(item) })));
-  const places = groups.flatMap((group) => (group.area == null ? [] : [{ area: group.area, items: inOrder(group.modules.map((entry) => entry.item)) }]));
-  if (places.length < 2) return { places: [], house: inOrder(placed) };
-  return { places, house: inOrder(groups.find((group) => group.area == null)?.modules.map((entry) => entry.item) ?? []) };
+  const areaOf = (item: I) => area(item) ?? (outside && (card(item) === "weather" || card(item) === "sun") ? outside : undefined);
+  const groups = groupByArea(placed.map((item) => ({ item, area: areaOf(item) })));
+  const areas = groups.flatMap((group) => (group.area == null ? [] : [{ area: group.area, items: inOrder(group.modules.map((entry) => entry.item)) }]));
+  if (areas.length < 2) return { areas: [], house: inOrder(placed) };
+  return { areas, house: inOrder(groups.find((group) => group.area == null)?.modules.map((entry) => entry.item) ?? []) };
 }
 
-/** One band of a wall: a row of `columns` columns, each card in the column it was given. */
-export interface ColumnBand<C> {
+/** One row of a wall: `columns` columns, each card in the column it was given. */
+export interface ColumnRow<C> {
   columns: number;
   cards: { card: C; column: number }[];
 }
 
 /**
- * Columns side by side in bands of at most `most`, wrapping in order into further bands, and `last`, when it has any
- * cards, as the last column of the first band, never wrapped: a wall's places, then the house's own. Every band is as
- * many columns as the first, so the columns line up down the page; a band's cards run column by column, each column's
+ * Columns side by side in rows of at most `most`, wrapping in order into further rows, and `last`, when it has any
+ * cards, as the last column of the first row, never wrapped: a wall's areas, then the house's own. Every row is as
+ * many columns as the first, so the columns line up down the page; a row's cards run column by column, each column's
  * in its order.
  */
-export function placeColumns<C>(columns: readonly (readonly C[])[], most: number, last: readonly C[] = []): ColumnBand<C>[] {
+export function placeColumns<C>(columns: readonly (readonly C[])[], most: number, last: readonly C[] = []): ColumnRow<C>[] {
   const across = Math.max(1, Math.floor(most));
   const first = last.length ? Math.max(1, across - 1) : across;
-  const bands: (readonly C[])[][] = [[...columns.slice(0, first), ...(last.length ? [last] : [])]];
-  for (let i = first; i < columns.length; i += across) bands.push(columns.slice(i, i + across));
-  const width = bands[0].length;
-  return bands
-    .filter((band) => band.some((column) => column.length))
-    .map((band) => ({ columns: Math.max(1, width), cards: band.flatMap((column, i) => column.map((card) => ({ card, column: i + 1 }))) }));
+  const rows: (readonly C[])[][] = [[...columns.slice(0, first), ...(last.length ? [last] : [])]];
+  for (let i = first; i < columns.length; i += across) rows.push(columns.slice(i, i + across));
+  const width = rows[0].length;
+  return rows
+    .filter((row) => row.some((column) => column.length))
+    .map((row) => ({ columns: Math.max(1, width), cards: row.flatMap((column, i) => column.map((card) => ({ card, column: i + 1 }))) }));
+}
+
+/** Two area names the same, as a person reads them: case and the spaces around them don't count. */
+const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * The area each column of a row names, where it names one (spec/deploy.md → The wall layout → A column names its
+ * area): an untitled row whose every card is anchored to a column at width 1, each column's area where all its cards
+ * share one (`areaOf`: the card's own, or Home Assistant's), and `undefined` at a column of several or none. None for
+ * any other row, or one with no column of one area. Every skin's renderer heads its columns from it.
+ */
+export function columnAreas<I>(
+  row: { title?: string; columns?: number; cards: readonly { item: I; column?: number; width?: number | "full" }[] },
+  areaOf: (item: I) => string | undefined,
+): (string | undefined)[] | undefined {
+  if (row.title || !row.cards.length || row.cards.some((entry) => !entry.column || entry.width !== 1)) return undefined;
+  const columns = Math.max(row.columns ?? 0, ...row.cards.map((entry) => entry.column ?? 1));
+  const areas = Array.from({ length: columns }, (_, c) => {
+    const named = row.cards.filter((entry) => entry.column === c + 1).map((entry) => areaOf(entry.item));
+    const [first] = named;
+    return first && named.every((area) => area && sameArea(area, first)) ? first : undefined;
+  });
+  return areas.some(Boolean) ? areas : undefined;
 }
 
 /*

@@ -160,7 +160,7 @@ export interface DashboardConfig {
   hourCycle?: "h12" | "h23";
   /** "far": a wall panel read from across the room. */
   viewing?: "near" | "far";
-  /** "wall": the automatic layout one column per place (`autoDashboard`'s `layout`). Only without `cards`, `rows` and `pages`. */
+  /** "wall": the automatic layout one column per area (`autoDashboard`'s `layout`). Only without `cards`, `rows` and `pages`. */
   layout?: "wall";
   theme: ThemeSetting;
   accent?: Accent;

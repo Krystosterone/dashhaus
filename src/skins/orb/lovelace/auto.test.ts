@@ -315,7 +315,7 @@ describe("autoDashboard", () => {
 
 describe("autoDashboard, layout: wall", () => {
   const named = (entity_id: string, friendly_name: string, attributes: Record<string, unknown> = {}) => state(entity_id, { friendly_name, ...attributes });
-  /** Four places and the house's own cards: a kitchen with its lock and its leak, the weather and the sun outside. */
+  /** Four areas and the house's own cards: a kitchen with its lock and its leak, the weather and the sun outside. */
   const house = {
     states: Object.fromEntries([
       named("light.kitchen", "Kitchen light"),
@@ -358,7 +358,7 @@ describe("autoDashboard, layout: wall", () => {
     expect(autoDashboard(house)).toEqual(autoDashboard(house, "Home", {}));
   });
 
-  it("puts each place in a column by area name, three across, wrapping, the house's own cards ending the first row", () => {
+  it("puts each area in a column by area name, three across, wrapping, the house's own cards ending the first row", () => {
     expect(wall(house)).toEqual({
       type: "custom:dashhaus-orb",
       title: "Home",
@@ -381,7 +381,7 @@ describe("autoDashboard, layout: wall", () => {
           columns: 3,
           flow: "dense",
           cards: [
-            // Security stays in its place: the kitchen's lock and leak under its light.
+            // Security stays in its area's column: the kitchen's lock and leak under its light.
             { entity: "light.kitchen", column: 1, footprint: "compact" },
             { entity: "lock.back", column: 1, footprint: "compact", battery: "sensor.back_battery" },
             { entity: "binary_sensor.leak", column: 1 },
@@ -416,17 +416,17 @@ describe("autoDashboard, layout: wall", () => {
     expect(rows[0].cards.find((card) => card.entity === "weather.home")).not.toHaveProperty("area");
   });
 
-  it("puts the house's energy in its own row, last, so the places don't move when the preferences land", () => {
+  it("puts the house's energy in its own row, last, so the areas don't move when the preferences land", () => {
     const before = wall(house).rows as unknown[];
     const after = wall({ ...house, energy: ENERGY }).rows as unknown[];
     expect(after.slice(0, -1)).toEqual(before);
     expect(after.at(-1)).toEqual({ title: "Energy", cards: [{ entity: "sensor.grid", card: "numeric" }] });
-    // Three places: the same, before and after.
+    // Three areas: the same, before and after.
     const three = { ...house, areas: { kitchen: house.areas.kitchen, hall: house.areas.hall, attic: house.areas.attic } };
     expect((wall({ ...three, energy: ENERGY }).rows as unknown[]).slice(0, -1)).toEqual(wall(three).rows);
   });
 
-  it("flows a house of fewer than two places in one row, in band order, with no columns", () => {
+  it("flows a house of fewer than two areas in one row, in band order, with no columns", () => {
     const one = { ...house, areas: { kitchen: house.areas.kitchen } };
     const card = wall(one);
     expect(card.rows).toEqual([{
@@ -448,7 +448,7 @@ describe("autoDashboard, layout: wall", () => {
       ],
     }]);
     expect(() => parseDashboardConfig(card)).not.toThrow();
-    // From states alone, as on a frontend without registries: no places, so the same one row.
+    // From states alone, as on a frontend without registries: no areas, so the same one row.
     const flat = wall({ states: house.states }).rows as { columns?: number; cards: { column?: number }[] }[];
     expect(flat).toHaveLength(1);
     expect(flat[0].columns).toBeUndefined();

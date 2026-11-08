@@ -25,7 +25,7 @@ const HOST_CSS = `
 /**
  * `type: custom:dashhaus-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
  * connection like `custom:dashhaus-orb`. Without `cards` or `rows` it draws every supported entity, a row per Home
- * Assistant area (or, with `layout: wall`, a column per place), then the house's energy.
+ * Assistant area (or, with `layout: wall`, a column per area), then the house's energy.
  */
 export function createFieldCard(css: string): CustomElementConstructor {
   const styles = scopeToHost(css) + HOST_CSS;

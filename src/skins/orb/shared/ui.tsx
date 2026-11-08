@@ -44,10 +44,10 @@ export interface ActionCardProps<A> extends CardProps {
 export const BundleLid = createContext<{ title: string; area?: string } | null>(null);
 
 /**
- * The place a column's heading names (a wall's column, spec/orb.md → Dashboards): a card in that place doesn't repeat
+ * The area a column's heading names (a wall's column, spec/orb.md → Dashboards): a card in that area doesn't repeat
  * it, as a titled bundle's members don't repeat their lid's room. Its sheet, seen without the heading, still says it.
  */
-export const PlaceHeading = createContext<string | null>(null);
+export const AreaHeading = createContext<string | null>(null);
 
 const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -56,14 +56,14 @@ const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().t
  * Spread `article` onto the `<article>`, give `nameId` to the `CardTitle`, and build other ids from `uid`.
  * Show `area`, not the entity's own: under a titled bundle's lid a member in the lid's room has none on its
  * card (the lid says it once, for all of them), and its sheet, seen without the lid, says whose part it is. Under a
- * column's place heading (`PlaceHeading`) a card in that place has none either, and its sheet keeps it.
+ * column's area heading (`AreaHeading`) a card in that area has none either, and its sheet keeps it.
  */
 export function useCard(code: string, { variant = "card", footprint = "standard", showControl = true, area: own }: Pick<CardProps, "variant" | "footprint" | "showControl"> & { area?: string }) {
   const { uid, nameId, sheet, compact, featured, bare } = useCardFrame({ variant, footprint, showControl });
   const lid = useContext(BundleLid);
-  const place = useContext(PlaceHeading);
+  const heading = useContext(AreaHeading);
   const inLidRoom = lid != null && (own == null || (lid.area != null && sameArea(own, lid.area)));
-  const area = !lid ? (!sheet && own != null && place != null && sameArea(own, place) ? undefined : own)
+  const area = !lid ? (!sheet && own != null && heading != null && sameArea(own, heading) ? undefined : own)
     : sheet ? [lid.title, inLidRoom ? lid.area : own].filter(Boolean).join(" · ")
     : inLidRoom ? undefined : own;
   return {

@@ -13,7 +13,7 @@ async function entitiesOf(transport: HaTransport): Promise<HassEntities> {
 }
 
 describe.each([["the everyday house", DEMO_WALL_HOUSE], ["the worst case", DEMO_WALL_HOUSE_WORST_CASE]])("the demo wall house: %s", (_name, house) => {
-  it("answers the registries the layout reads, so a card's area and the layout's place agree", async () => {
+  it("answers the registries the layout reads, so a card's area and its column's agree", async () => {
     const transport = createDemoWallHouseTransport(house);
     const states = await entitiesOf(transport);
     const input = demoWallInput(states, house);

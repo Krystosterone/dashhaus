@@ -77,12 +77,12 @@ export interface ModuleProps {
 }
 
 /**
- * The place a column's legend names (a wall's column, spec/field.md → Dashboards): a plate in that place doesn't print
+ * The area a column's legend names (a wall's column, spec/field.md → Dashboards): a plate in that area doesn't print
  * it again, as the legend says it once for the column. Its panel, opened on its own, still says it.
  */
-export const PlaceLegend = createContext<string | null>(null);
+export const AreaLegend = createContext<string | null>(null);
 
-const samePlace = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /**
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
@@ -91,8 +91,8 @@ const samePlace = (a: string, b: string) => a.trim().toLowerCase() === b.trim().
 export function Module({ kind, name, area, footprint = "standard", state, rest, onOpen, warning, note, level, say, since, children }: ModuleProps) {
   const frame = useCardFrame({ footprint });
   const delay = useAlarmPhase(level === "alarm", since);
-  const place = useContext(PlaceLegend);
-  const line = note ?? (area != null && place != null && samePlace(area, place) ? undefined : area);
+  const legend = useContext(AreaLegend);
+  const line = note ?? (area != null && legend != null && sameArea(area, legend) ? undefined : area);
   return (
     <article className={`fd-module ${kind}`} data-footprint={frame.footprint} data-state={state} data-rest={resting(state, rest)} data-level={level} {...frame.article} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
       <header className="fd-head">

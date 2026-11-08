@@ -4,7 +4,7 @@ import { DEMO_ENERGY_PREFS } from "./messages";
 import { createDemoHouseTransport } from "./house";
 
 /*
- * Storybook-only: the demo house in several rooms, for the stories that lay a house out by place (a wall panel's
+ * Storybook-only: the demo house in several rooms, for the stories that lay a house out by area (a wall panel's
  * automatic layout, spec/deploy.md → The wall layout). The entities are the demo house's own; only the registries
  * differ, so every other story keeps its one Living room.
  */
@@ -89,9 +89,9 @@ export const DEMO_WALL_HOUSE: DemoWallHouse = {
 export const DEMO_WALL_LONGEST_AREA = "Upstairs primary bedroom with en-suite and walk-in closet";
 
 /**
- * The worst case: eight rooms, so the places wrap into further bands; the longest area name; a room with one card
+ * The worst case: eight rooms, so the areas wrap into further rows; the longest area name; a room with one card
  * (the hallway's smoke alarm); and a jammed lock and an open door in a late room (Outside), past the first screen.
- * The house's own alarm, modes, guest Wi-Fi and calendars, in no room, end the first band. Nothing is hidden.
+ * The house's own alarm, modes, guest Wi-Fi and calendars, in no room, end the first row. Nothing is hidden.
  */
 export const DEMO_WALL_HOUSE_WORST_CASE: DemoWallHouse = {
   areas: {

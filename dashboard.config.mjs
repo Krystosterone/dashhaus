@@ -15,7 +15,7 @@ const PAGE_TITLE = "Home";
 /**
  * One dashboard per skin, and one for a wall panel beside each. Orb's layout is generated from the house once, to edit;
  * Field's card, given no cards or rows, lays the house out itself every time it draws. A wall is the house one column
- * per place (`layout: wall`) read from across the room (`viewing: far`), with a nav back to its skin's main dashboard,
+ * per area (`layout: wall`) read from across the room (`viewing: far`), with a nav back to its skin's main dashboard,
  * wherever `.env` puts it.
  */
 export default {
@@ -45,7 +45,7 @@ export default {
       env: { path: "HA_WALL_DASHBOARD", title: "HA_WALL_DASHBOARD_TITLE" },
       async card(ha) {
         const card = { ...autoDashboard(await house(ha), PAGE_TITLE, { layout: "wall" }), viewing: "far", nav: backTo("HA_DASHBOARD", "dashhaus-orb") };
-        return { card, made: `${card.rows?.length ?? 0} generated rows, one column per place` };
+        return { card, made: `${card.rows?.length ?? 0} generated rows, one column per area` };
       },
     },
     {
@@ -64,7 +64,7 @@ export default {
       env: { path: "HA_FIELD_WALL_DASHBOARD", title: "HA_FIELD_WALL_DASHBOARD_TITLE" },
       async card() {
         const card = { type: "custom:dashhaus-field", title: PAGE_TITLE, layout: "wall", viewing: "far", nav: backTo("HA_FIELD_DASHBOARD", "dashhaus-field") };
-        return { card, made: "every supported entity, one column per place" };
+        return { card, made: "every supported entity, one column per area" };
       },
     },
     // `npm run new-skin` registers each generated skin in scripts/generated-skins.js.

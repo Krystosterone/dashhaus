@@ -187,6 +187,7 @@ describe("@dashhaus/core/lovelace", () => {
       "areaId",
       "areaName",
       "byName",
+      "columnAreas",
       "deviceClass",
       "deviceCompanion",
       "domainOf",
@@ -206,10 +207,12 @@ describe("@dashhaus/core/lovelace", () => {
       "spanWidth",
       "trackCount",
       "visibleEntities",
+      "wallAreas",
       "wallBand",
       "wallFootprint",
-      "wallPlaces",
     ]);
+    // "Place" is placement only (placeRow, placeColumns); a wall's columns are areas, Home Assistant's word.
+    expect(Object.keys(layout).filter((name) => /place/i.test(name) && !/^place[A-Z]/.test(name))).toEqual([]);
   });
 
   it("exposes exactly the conformance preset's public words", () => {

@@ -50,7 +50,7 @@ configuration in YAML; add to it and save:
 | --- | --- |
 | `viewing` | `near` (default): a phone or tablet in the hand. `far`: a wall panel read from across the room. |
 | `theme` | `home-assistant` (default) follows Home Assistant's light or dark mode; `auto` follows the device; `light` and `dark` hold one. |
-| `layout` | `wall`: the house one column per place, for a panel on a wall (below). Left out, the most pressing first: actions, then security, cameras, household status and the glance. |
+| `layout` | `wall`: the house one column per room, for a panel on a wall (below). Left out, the most pressing first: actions, then security, cameras, household status and the glance. |
 | `title` | The title the page prints in its header. `Home` by default. |
 
 To lay out your own cards and rows instead, take control of the dashboard (the same dialog's **⋮ → Take control**),
@@ -79,9 +79,10 @@ in no area (the alarm, the calendars, the guest Wi-Fi code) end the first row, t
 called Outside if you have one, and your energy meters are a row of their own at the end. Orb has no alert line: a problem stays on its card in its room, so on a big house look down the wall, or keep the rooms that matter first.
 
 To change which rooms come first, or what is in them, take control of the wall's dashboard (**⋮ → Take control**)
-and move its cards; [Lay it out in YAML](/dashhaus/start/yaml/) shows how, and a `nav` of `navigate:` links lets the
-wall and the phone dashboards open each other. A dashboard on the strategy can't link to another until you take
-control of it. From the command line, [Deploy from the command line](/dashhaus/start/deploy/) creates both, linked.
+and write its rows in place of `layout: wall`: one untitled row, each card given its `column`
+([Lay it out in YAML](/dashhaus/start/yaml/) shows how). A wall with rows of its own no longer follows the house. A
+`nav` of `navigate:` links lets the wall and the phone dashboards open each other; a dashboard on the strategy can't
+link to another until you take control of it. From the command line, [Deploy from the command line](/dashhaus/start/deploy/) creates both, linked.
 
 ## If something goes wrong
 

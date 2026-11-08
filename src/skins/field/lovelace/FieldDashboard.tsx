@@ -6,6 +6,7 @@ import type { NavEntry, PanelInfo } from "@dashhaus/core/lovelace";
 import { useDashboardNav } from "@dashhaus/core/lovelace";
 import { renderCard, rowItems } from "@dashhaus/core/lovelace/schema";
 import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
+import { columnAreas } from "@dashhaus/core/lovelace/layout";
 import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { HaFanModule } from "../ha/HaFanModule";
 import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
@@ -124,24 +125,6 @@ function anchorsOf(rows: readonly FieldRow[]) {
   return { anchors, ids: new Map<FieldRow, string>(titled.map((r, i) => [r, anchors[i].id])) };
 }
 
-const samePlace = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
-
-/**
- * The place each column of a row names, where it names one: an untitled row whose every module is given a column (a
- * wall, spec/deploy.md → The wall layout), each column's area where all its modules share one. None for any other row,
- * or one with no column of one place.
- */
-function placesOf(row: FieldRow): (string | undefined)[] | undefined {
-  if (row.title || !row.cards.length || row.cards.some((entry) => !entry.column || entry.width !== 1)) return undefined;
-  const columns = Math.max(row.columns ?? 0, ...row.cards.map((entry) => entry.column ?? 1));
-  const places = Array.from({ length: columns }, (_, c) => {
-    const areas = row.cards.filter((entry) => entry.column === c + 1).map((entry) => entry.item.area);
-    const [first] = areas;
-    return first && areas.every((area) => area && samePlace(area, first)) ? first : undefined;
-  });
-  return places.some(Boolean) ? places : undefined;
-}
-
 /**
  * Field's tracks: at least a module's width (260 px; a compact row's 300 px), with its gap; `columns` is only ever a
  * most, so a module never narrows below its own, and four fit the page's 1240 px.
@@ -163,11 +146,12 @@ function Row({ row, id, legend, label, footprint }: RowProps) {
   const grid = row.stacks ? "standard" : own(row.cards[0]?.item ?? ({} as ModuleConfig));
   const layout = useRowLayout(row, FIELD_TRACKS[grid]);
   const drawn = (item: ModuleConfig, i: number) => <LiveModule key={`${i}:${item.entity}`} item={item} footprint={footprint} />;
-  const places = placesOf(row);
-  // A row of one footprint whose columns each name a place stacks them while its anchors hold, so each takes its legend;
-  // narrower, it is the grid again, every plate naming its own area. Column stacks keep theirs as they wrap, since a
-  // stack is still one place.
-  const stacked = row.stacks || (places !== undefined && layout.anchored);
+  // The area each column names (a wall, spec/deploy.md → The wall layout), from each module's own `area`.
+  const areas = columnAreas(row, (item) => item.area);
+  // A row of one footprint whose columns each name an area stacks them while its anchors hold, so each takes its
+  // legend; narrower, it is the grid again, every plate naming its own area. Column stacks keep theirs as they wrap,
+  // since a stack is still one area.
+  const stacked = row.stacks || (areas !== undefined && layout.anchored);
   let content;
   if (stacked) {
     const columns = row.columns ?? Math.max(...row.cards.map((entry) => entry.column ?? 1));
@@ -175,7 +159,7 @@ function Row({ row, id, legend, label, footprint }: RowProps) {
     content = Array.from({ length: columns }, (_, c) => {
       const stack = row.cards.flatMap((entry, i) => (entry.column === c + 1 ? [{ entry, i }] : []));
       return stack.length ? (
-        <Stack key={c} column={placed ? c + 1 : undefined} place={places ? places[c] ?? null : undefined}>
+        <Stack key={c} column={placed ? c + 1 : undefined} area={areas ? areas[c] ?? null : undefined}>
           {stack.map(({ entry, i }) => <Place key={`${i}:${entry.item.entity}`} footprint={own(entry.item)}>{drawn(entry.item, i)}</Place>)}
         </Stack>
       ) : null;
@@ -184,7 +168,7 @@ function Row({ row, id, legend, label, footprint }: RowProps) {
     content = row.cards.map((entry, i) => <Place key={`${i}:${entry.item.entity}`} style={layout.cells[i]?.style} footprint={own(entry.item)}>{drawn(entry.item, i)}</Place>);
   }
   return (
-    <Area id={id} title={row.title} label={places ? null : label} legend={legend} note={row.note} footprint={grid} grid={{ ref: layout.ref, style: layout.style, tracks: layout.tracks, stacks: stacked, align: row.align }}>
+    <Area id={id} title={row.title} label={areas ? null : label} legend={legend} note={row.note} footprint={grid} grid={{ ref: layout.ref, style: layout.style, tracks: layout.tracks, stacks: stacked, align: row.align }}>
       {content}
     </Area>
   );

@@ -140,7 +140,7 @@ describe("@dashhaus/deploy", () => {
       card: { type: "custom:dashhaus-field", title: "Home" },
       made: "every light and climate entity by area",
     });
-    // Each wall: the house one column per place, read from across the room, its nav back to its skin's dashboard.
+    // Each wall: the house one column per area, read from across the room, its nav back to its skin's dashboard.
     const orbWall = dashboards.find(({ path }) => path === "dashhaus-orb-wall")!;
     const fieldWall = dashboards.find(({ path }) => path === "dashhaus-field-wall")!;
     expect(await make(orbWall)).toEqual({
@@ -151,11 +151,11 @@ describe("@dashhaus/deploy", () => {
         viewing: "far",
         nav: [{ page: "home" }, { navigate: "/dashhaus-orb" }],
       },
-      made: "1 generated rows, one column per place",
+      made: "1 generated rows, one column per area",
     });
     expect(await make(fieldWall)).toEqual({
       card: { type: "custom:dashhaus-field", title: "Home", layout: "wall", viewing: "far", nav: [{ page: "home" }, { navigate: "/dashhaus-field" }] },
-      made: "every supported entity, one column per place",
+      made: "every supported entity, one column per area",
     });
   });
 

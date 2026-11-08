@@ -4,7 +4,7 @@ import type { SkinStrategy } from "@dashhaus/core/lovelace/skin";
  * `strategy: type: custom:orb-dashboard` — what Home Assistant's Add dashboard lists as **Orb**, under Community
  * dashboards, once Orb's resource is installed (`resource.ts`). Its type is the Marketplace repository's name, so the
  * install and the dashboard read the same. The panel holds Orb's card with no `cards` or `rows`: the automatic layout,
- * one column per place with `layout: wall`.
+ * one column per area with `layout: wall`.
  */
 export const ORB_STRATEGY: SkinStrategy = {
   type: "orb-dashboard",

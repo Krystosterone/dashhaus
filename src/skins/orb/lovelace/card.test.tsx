@@ -90,7 +90,7 @@ describe("dashhaus-orb card", () => {
     expect(headings).toEqual(["Modes", "Other"]);
   });
 
-  it("lays the house out one column per place with layout: wall, each under its place's heading, and no nav when far", async () => {
+  it("lays the house out one column per area with layout: wall, each under its area's heading, and no nav when far", async () => {
     const light = (entity_id: string, friendly_name: string) => ({ entity_id, state: "on", attributes: { friendly_name, supported_color_modes: ["onoff"] } });
     const states: HassEntities = {
       "light.kitchen": light("light.kitchen", "Ceiling"),
@@ -121,8 +121,10 @@ describe("dashhaus-orb card", () => {
       });
       const shadow = card.shadowRoot!;
       // Attic and Hall, then the house's alarm ending the first row; the kitchen wraps into the next.
-      const sections = [...shadow.querySelectorAll(".dash-row--places .dash-col")].map((column) => column.getAttribute("aria-label"));
-      expect(sections).toEqual(["Attic", "Hall", null, "Kitchen"]);
+      const columns = [...shadow.querySelectorAll(".dash-row--areas .dash-col")];
+      expect(columns.map((column) => column.getAttribute("aria-label"))).toEqual(["Attic", "Hall", null, "Kitchen"]);
+      // Each column's stack is one track, so the attention budget damps down it as in a one-column Section.
+      expect(columns.map((column) => column.querySelector(".dash-row")?.getAttribute("data-tracks"))).toEqual(["1", "1", "1", "1"]);
       expect([...shadow.querySelectorAll(".dash-col > h2")].map((h) => h.textContent)).toEqual(["Attic", "Hall", "Kitchen"]);
       // Two lights named alike, told apart by the heading over each, not by an area line of their own.
       expect([...shadow.querySelectorAll(".dash-col .hd-area")].map((line) => line.textContent)).not.toContain("Hall");

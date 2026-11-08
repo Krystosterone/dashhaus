@@ -130,7 +130,7 @@ function Panel({ label, width, height, children }: { label: string; width: numbe
 
 /**
  * The automatic layout with `layout: wall` and `viewing: far`, as a wall panel's card draws it, on the demo house in
- * several rooms (`DEMO_WALL_HOUSE`): one column per place under its legend, each module its area from the registries.
+ * several rooms (`DEMO_WALL_HOUSE`): one column per area under its legend, each module its area from the registries.
  */
 function Wall({ house }: { house: DemoWallHouse }) {
   const states = useHaSelector((snapshot) => snapshot.entities);
@@ -234,8 +234,8 @@ const PAGES_YAML = {
 };
 
 /**
- * A wall panel read from across the room: one column per place, footprints mixed by column. Each column leads with
- * whole modules and stacks rows under them. A column of one place prints its legend and its plates leave their area
+ * A wall panel read from across the room: one column per area, footprints mixed by column. Each column leads with
+ * whole modules and stacks rows under them. A column of one area prints its legend and its plates leave their area
  * out; a column of several (the house's modes and the garage, the outside and a CO₂ sensor) names each plate's own.
  * The CO₂ sensor is listed on its own, so its device class picks the numeric module.
  */
@@ -341,7 +341,7 @@ export const RowsAndNav: Story = { name: "Rows and nav", render: () => <Yaml yam
 export const NavAndPages: Story = { name: "Nav and pages", render: () => <Yaml yaml={PAGES_YAML} /> };
 /**
  * `viewing: far` on a wall panel: print and screens a step up, areas side by side under their legends where a column
- * is one place, and no nav unless `nav:` lists one.
+ * is one area, and no nav unless `nav:` lists one.
  */
 export const WallPanelFar: Story = { name: "Wall panel, far", render: () => <Yaml yaml={WALL_YAML} /> };
 
@@ -352,19 +352,19 @@ export const Composition: Story = { name: "Composition", render: () => <Yaml yam
  */
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <AutomaticHouse /> };
 /**
- * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per place, by area name, four across, each under its
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, by area name, four across, each under its
  * legend, so its plates leave their own area out; each column leads with what is read whole and takes its rows under
  * it; the house's own alarm, modes, guest Wi-Fi and calendars end the first row, and Outside wraps under it.
  */
 export const AutomaticWall: Story = { name: "Automatic layout, wall panel", render: () => <WallHouse label="Wall panel" /> };
 /**
- * The worst case for a wall: eight rooms, so two more rows of places; the longest area name, ending in an ellipsis; a
+ * The worst case for a wall: eight rooms, so two more rows of areas; the longest area name, ending in an ellipsis; a
  * room of one module (the hallway's smoke alarm); and, in a late room, a jammed lock and an open door, below the fold.
  * The alert line under the header names the lock on the first screen (spec/deploy.md → The wall layout).
  */
 export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall panel, worst case", render: () => <WallHouse house={DEMO_WALL_HOUSE_WORST_CASE} label="Wall panel, worst case" /> };
 /**
  * The same wall on an 800 × 1280 portrait panel: two of a module's 260 px tracks fit, so the columns wrap two by two in
- * place order, each still one place under its legend.
+ * area order, each still one area under its legend.
  */
 export const AutomaticWallPortrait: Story = { name: "Automatic layout, wall panel, portrait", render: () => <WallHouse label="Wall panel, portrait" width={800} height={1280} /> };

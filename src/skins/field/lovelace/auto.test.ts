@@ -213,7 +213,7 @@ describe("the house's energy", () => {
 
 describe("areaColumns: the wall", () => {
   const m = (entity: string, kind: ModuleConfig["kind"], area?: string): ModuleConfig => ({ entity, kind, ...(area && { area }) });
-  /** Five places and the house's own modules, by name as autoModules gives them. */
+  /** Five areas and the house's own modules, by name as autoModules gives them. */
   const MODULES: ModuleConfig[] = [
     m("alarm_control_panel.house", "alarm"),
     m("light.attic", "light", "Attic"),
@@ -241,7 +241,7 @@ describe("areaColumns: the wall", () => {
     })),
   });
 
-  it("puts a column per place by area name, four across, the house's own last in the first row, each column whole modules first", () => {
+  it("puts a column per area by area name, four across, the house's own last in the first row, each column whole modules first", () => {
     expect(layout(areaColumns(MODULES, [], { outside: "Outside" }))).toEqual([
       {
         title: undefined, columns: 4, flow: "normal", stacks: true,
@@ -282,7 +282,7 @@ describe("areaColumns: the wall", () => {
     expect(compact.flatMap((row) => row.cards.map((entry) => entry.item.footprint))).toEqual(Array(13).fill(undefined));
   });
 
-  it("puts the house's energy in its own row, last, so the places don't move when the preferences land", () => {
+  it("puts the house's energy in its own row, last, so the areas don't move when the preferences land", () => {
     const three = MODULES.filter((item) => ["Attic", "Hall", "Kitchen", undefined].includes(item.area));
     const before = areaColumns(three);
     const after = areaColumns(three, ENERGY);
@@ -290,7 +290,7 @@ describe("areaColumns: the wall", () => {
     expect(layout(after.slice(-1))).toEqual([{ title: "Energy", columns: undefined, flow: "normal", stacks: undefined, cards: [["sensor.grid", undefined, undefined]] }]);
   });
 
-  it("flows a house of fewer than two places, whole modules then rows, each a row of its own", () => {
+  it("flows a house of fewer than two areas, whole modules then rows, each a row of its own", () => {
     const one = MODULES.map((item) => (item.area === "Kitchen" ? item : { ...item, area: undefined }));
     expect(layout(areaColumns(one))).toEqual([
       { title: undefined, columns: undefined, flow: "normal", stacks: undefined, cards: [["binary_sensor.leak", undefined, "standard"], ["calendar.family", undefined, "standard"], ["weather.home", undefined, "standard"], ["sun.sun", undefined, "standard"], ["sensor.office", undefined, "standard"]] },

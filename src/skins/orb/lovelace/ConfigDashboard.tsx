@@ -5,9 +5,10 @@ import { NavBar } from "../dashboards/NavBar";
 import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout, useSensorCard } from "@dashhaus/core/lovelace";
 import type { PanelInfo } from "@dashhaus/core/lovelace";
 import { useDashboardNav } from "@dashhaus/core/lovelace";
+import { columnAreas } from "@dashhaus/core/lovelace/layout";
 import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { JoinedBundle, LeadBundle, TitledBundle, joinedUnits } from "../bundles/Bundle";
-import { CardHeadingLevelContext, PlaceHeading } from "../shared/ui";
+import { AreaHeading, CardHeadingLevelContext } from "../shared/ui";
 import type { CardFootprint } from "../shared/ui";
 import { HaLockTile } from "../ha/HaLockTile";
 import { HaFanTile } from "../ha/HaFanTile";
@@ -130,16 +131,17 @@ function unitsOf(entry: ItemConfig, width: number | undefined): number {
  */
 function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
   const layout = useRowLayout(row, ORB_TRACKS, unitsOf);
-  const places = usePlaces(row);
+  const areas = useColumnAreas(row);
   const key = (entry: RowLayoutConfig["cards"][number], i: number) => `${i}:${"entity" in entry.item ? entry.item.entity : entry.item.kind}`;
   // One element either way, so the row keeps measuring itself as its anchors hold and release.
-  const grid = places && layout.anchored ? (
-    <div ref={layout.ref} className="dash-row dash-row--places" data-tracks={layout.tracks} style={layout.style}>
-      {places.map((area, c) => {
+  const grid = areas && layout.anchored ? (
+    <div ref={layout.ref} className="dash-row dash-row--areas" data-tracks={layout.tracks} style={layout.style}>
+      {areas.map((area, c) => {
         const cells = row.cards.flatMap((entry, i) => (entry.column === c + 1 ? [{ entry, i }] : []));
         if (!cells.length) return null;
+        // One track, so the attention budget damps down the column as in a one-column Section (spec/orb.md).
         const stack = (
-          <div className="dash-row" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+          <div className="dash-row" data-tracks="1" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
             {cells.map(({ entry, i }) => (
               <div key={key(entry, i)} className="dash-place" style={{ gridRow: `${layout.cells[i]?.row ?? 1} / span ${layout.cells[i]?.height ?? 1}` }}>{item(entry.item)}</div>
             ))}
@@ -148,9 +150,9 @@ function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
         return area ? (
           <section key={c} className="dash-sec dash-col" style={{ gridColumn: c + 1 }} aria-label={area}>
             <h2 className="dash-sec-h" title={area}>{area}</h2>
-            <PlaceHeading.Provider value={area}>
+            <AreaHeading.Provider value={area}>
               <CardHeadingLevelContext.Provider value={3}>{stack}</CardHeadingLevelContext.Provider>
-            </PlaceHeading.Provider>
+            </AreaHeading.Provider>
           </section>
         ) : (
           <div key={c} className="dash-sec dash-col" style={{ gridColumn: c + 1 }}>
@@ -176,30 +178,20 @@ function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
   );
 }
 
-const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
-
 /**
- * The place each column of a row names, where it names one: an untitled row whose every card is anchored to a column
- * (a wall, spec/deploy.md → The wall layout), each column's area where all its cards share one, from their `area` or
- * Home Assistant's registries. None for any other row, or one with no column of one place. A bundle names no place.
+ * The area each column of a row names (`columnAreas`, spec/deploy.md → The wall layout), each card's from its `area`
+ * or Home Assistant's registries. A bundle names no area.
  */
-function usePlaces(row: RowLayoutConfig): (string | undefined)[] | undefined {
+function useColumnAreas(row: RowLayoutConfig): (string | undefined)[] | undefined {
   const registry = useHaRegistry();
   return useMemo(() => {
-    if (row.title || !row.cards.length || row.cards.some((entry) => !entry.column || entry.width !== 1)) return undefined;
     const areaOf = (entry: ItemConfig) => {
       if (!("entity" in entry)) return undefined;
       if (entry.area) return entry.area;
       const id = registry?.membership.get(entry.entity);
       return id ? registry?.areas.find((area) => area.id === id)?.name : undefined;
     };
-    const columns = Math.max(row.columns ?? 0, ...row.cards.map((entry) => entry.column ?? 1));
-    const places = Array.from({ length: columns }, (_, c) => {
-      const areas = row.cards.filter((entry) => entry.column === c + 1).map((entry) => areaOf(entry.item));
-      const [first] = areas;
-      return first && areas.every((area) => area && sameArea(area, first)) ? first : undefined;
-    });
-    return places.some(Boolean) ? places : undefined;
+    return columnAreas(row, areaOf);
   }, [row, registry]);
 }
 
