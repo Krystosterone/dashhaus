@@ -21,13 +21,16 @@ Pick the type by what someone who installed Dashhaus has to do about it:
 
 | Type | When | Examples |
 | --- | --- | --- |
-| `breaking` | They must change something to keep working | a removed or renamed export, a changed hook signature or option, a renamed YAML key, a higher Node or React floor, a `dashboard.config.mjs` change |
+| `breaking` | They must change something to keep working | a removed or renamed export, a changed hook signature or option, a public function that returns something else for the same call, a renamed YAML key, a higher Node or React floor, a `dashboard.config.mjs` change |
 | `feature` | Something new they can use | a new card, a new YAML key, a new hook, a new deploy flag |
 | `fix` | Something that was wrong now works | a card that drew the wrong state, a deploy that failed, a type that was wrong |
 | `internal` | Nothing they would notice | a refactor, a test, CI, the build, a spec-only edit inside a package folder |
 
 When unsure between `internal` and anything else, ask whether a person reading only this note would want to know.
-When unsure whether it breaks, it does: the API comparison will flag it anyway, and a person decides.
+When unsure whether it breaks, it does: the API comparison will flag it anyway, and a person decides. A public function
+whose output changes for the same call breaks even where its declaration doesn't, so the comparison can't see it: a
+default that moves (a time word that followed 24 hours now following the locale) or a field it no longer sets. Say
+what to pass to keep the old output.
 
 Write for someone deciding whether to upgrade, who has never seen the code:
 

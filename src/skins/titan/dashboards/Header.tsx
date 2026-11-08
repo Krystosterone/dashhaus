@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useNow } from "@dashhaus/core/hooks";
+import { useHourCycle, useNow } from "@dashhaus/core/hooks";
 import { clockFace } from "@dashhaus/core/entities/clock";
 import "./dashboard.css";
 
@@ -27,7 +27,8 @@ export const dateCode = (day: string) => {
  */
 export function TitanHeader({ title, subtitle, showTime, hourCycle, locale, timeZone, now: fixed }: TitanHeaderProps) {
   const now = useNow(fixed);
-  const face = clockFace(now, { locale, hourCycle, timeZone });
+  const cycle = useHourCycle({ hourCycle, locale });
+  const face = clockFace(now, { locale, hourCycle: cycle, timeZone });
   return (
     <header className="titan-header">
       {showTime && <p className="titan-header-time"><time dateTime={now.toISOString()}>{face.time}</time>{face.period && <small>{face.period}</small>}</p>}

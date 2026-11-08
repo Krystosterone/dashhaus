@@ -95,6 +95,7 @@ export const Compact: Story = {
 
 /** Compact cards keep the shared row anatomy even when arranged as a mode grid. */
 export const CompactGrid: Story = {
+  name: "Compact, grid",
   parameters: { layout: "padded", controls: { include: [] } },
   render: () => (
     <div style={{ display: "grid", gap: 28 }}>

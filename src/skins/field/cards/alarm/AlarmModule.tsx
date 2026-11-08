@@ -10,7 +10,7 @@ import { useNow } from "@dashhaus/core/hooks";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, ModuleRow } from "../../shared/ui";
+import { Blank, Digits, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, Pictogram, Today, Warn, WarnWords, useDetails, ModuleRow } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMode, IconShield, SHIELD_PICT } from "./icons";
 import "./AlarmModule.css";
@@ -169,7 +169,8 @@ export function AlarmModule({ entity: e, footprint = "standard", history, onArm,
       state={e.state}
       // Disarmed is a reading, not a blank, so OFF keeps its places in the dim ink.
       rest={e.state === "disarmed"}
-      warning={footprint === "compact" ? warning : undefined}
+      // A row's line: the word stays whole while what set it off or what is open gives way (`Triggered · Back door`).
+      warning={footprint === "compact" && said ? <WarnWords word={said.word} detail={said.detail && ` · ${said.detail}`} /> : undefined}
       line={line}
       alert={level === "alarm" ? { level, what: warning!, startedAt: e.changedAt, say: `Alarm: ${e.name} ${said!.said.charAt(0).toLowerCase()}${said!.said.slice(1)}.` }
         : level === "urgent" ? { level, what: warning!, startedAt: e.changedAt } : undefined}

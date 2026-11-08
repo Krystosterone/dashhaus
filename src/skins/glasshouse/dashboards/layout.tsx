@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import { GlasshouseHeader } from "./Header";
 import type { GlasshouseHeaderProps } from "./Header";
 import type { GlasshouseFootprint } from "../shared/ui";
@@ -15,14 +16,19 @@ export interface GlasshousePageProps extends Partial<Omit<GlasshouseHeaderProps,
   children: ReactNode;
 }
 
-/** The Glasshouse Dashboard: the glowing page, its header with the nav, the sections, and a docked status row. */
+/**
+ * The Glasshouse Dashboard: the glowing page, its header with the nav, the sections, and a docked status row, every
+ * card on the header's hour cycle.
+ */
 export function GlasshousePage({ pageRef, nav, dock, children, title, ...header }: GlasshousePageProps) {
   return (
-    <div ref={pageRef} className="glasshouse-dashboard">
-      {title ? <GlasshouseHeader title={title} nav={nav} {...header} /> : nav && <div className="glasshouse-topbar">{nav}</div>}
-      <main className="glasshouse-dashboard-main">{children}</main>
-      {dock && <div className="glasshouse-dashboard-dock">{dock}</div>}
-    </div>
+    <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
+      <div ref={pageRef} className="glasshouse-dashboard">
+        {title ? <GlasshouseHeader title={title} nav={nav} {...header} /> : nav && <div className="glasshouse-topbar">{nav}</div>}
+        <main className="glasshouse-dashboard-main">{children}</main>
+        {dock && <div className="glasshouse-dashboard-dock">{dock}</div>}
+      </div>
+    </HourCycleProvider>
   );
 }
 

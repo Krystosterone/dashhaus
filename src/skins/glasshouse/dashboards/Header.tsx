@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useNow } from "@dashhaus/core/hooks";
+import { useHourCycle, useNow } from "@dashhaus/core/hooks";
 import { clockFace } from "@dashhaus/core/entities/clock";
 import "./dashboard.css";
 
@@ -34,7 +34,8 @@ function Mark() {
  */
 export function GlasshouseHeader({ title, subtitle, showTime, hourCycle, locale, timeZone, now: fixed, nav }: GlasshouseHeaderProps) {
   const now = useNow(fixed);
-  const face = clockFace(now, { locale, hourCycle, timeZone });
+  const cycle = useHourCycle({ hourCycle, locale });
+  const face = clockFace(now, { locale, hourCycle: cycle, timeZone });
   return (
     <header className="glasshouse-header">
       <div className="glasshouse-topbar">

@@ -184,6 +184,22 @@ describe("viewing distance: type for the room, never a height", () => {
     expect(bad).toEqual([]);
   });
 
+  it("no card sets its row figure's size: the row's figure is the shared 21 px, and never steps down to fit", () => {
+    /** A card's own size for what a row's screen prints, keyed `file: selector`, with why it isn't a figure. */
+    const NOT_FIGURES: Record<string, string> = {
+      [`${SKIN}/cards/guestWifi/GuestWifiModule.css: .fd-gw[data-state="ready"][data-footprint="compact"] .fd-read`]:
+        "the guest code: eight characters of text a guest types, not a figure of four places",
+      [`${SKIN}/cards/guestWifi/GuestWifiModule.css: .fd-gw[data-footprint="compact"] .fd-read:has([data-text])`]:
+        "a Wi-Fi password: text of any length a guest types, not a figure",
+    };
+    const own = cssFiles.filter((f) => f.startsWith(`${SKIN}/cards/`)).flatMap((f) => rules(f)
+      .filter((r) => r.selector.split(",").some((one) => /data-footprint="compact"\][^{]*\.fd-read(?:-fig)?\b/.test(one.replace(/:not\([^)]*\)/g, ""))))
+      .filter((r) => /(?:^|;)\s*(?:font-size|font)\s*:/.test(r.body))
+      .map((r) => `${f}: ${r.selector}`));
+    expect(own.filter((key) => !(key in NOT_FIGURES)), "spec/field.md → Footprints: a row's screen keeps one geometry; a word that doesn't fit is another word").toEqual([]);
+    expect(Object.keys(NOT_FIGURES).filter((key) => !own.includes(key)), "an exception no stylesheet still has").toEqual([]);
+  });
+
   it("today's legend keeps to one line in a module, so the strip never moves: the summary ends in an ellipsis", () => {
     const shared = rules(`${SKIN}/shared/module.css`);
     expect(shared.some((r) => r.selector === ".fd-module .fd-today .fd-legend" && /white-space: nowrap/.test(r.body))).toBe(true);

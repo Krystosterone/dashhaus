@@ -35,8 +35,8 @@ type Story = StoryObj<typeof meta>;
 export const Normal: Story = {};
 export const Low: Story = { args: { seed: "low" } };
 export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
-export const Unavailable: Story = { args: { seed: "unavailable" } };
 export const Featured: Story = { args: { footprint: "featured" } };
+export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (__CONST___WORST_CASE): long names, values at their limits. */
 export const WorstCase: Story = {
   name: "Worst case",

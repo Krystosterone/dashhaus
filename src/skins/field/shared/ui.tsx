@@ -288,6 +288,17 @@ export function Warn({ block, children }: { block?: boolean; children: ReactNode
   return <span className="fd-warn" data-block={block || undefined}><IconWarn /><span className="fd-warn-t"><span className="fd-sr">Warning: </span>{children}</span></span>;
 }
 
+/**
+ * A warning's word and what follows it on its line (what set it off, a count of the rest), for `Warn`'s words and a
+ * module's `warning`: the word stays whole while what follows gives way, down to nothing, so a clip never cuts a word
+ * that fits its line alone (spec/cards.md → A warning's words fit a row). A word too long for it still ends in an
+ * ellipsis.
+ */
+export function WarnWords({ word, detail }: { word: ReactNode; detail?: ReactNode }) {
+  if (detail == null || detail === "") return <>{word}</>;
+  return <><span className="fd-warn-w">{word}</span><span className="fd-warn-d">{detail}</span></>;
+}
+
 /** The dark display: a pictogram and a figure, then up to two meta lines, or another channel (`aside`). Never pressable. */
 export function Screen({ pict, children, meta, aside }: { pict?: ReactNode; children: ReactNode; meta?: [ReactNode, ReactNode?]; aside?: ReactNode }) {
   return (

@@ -47,6 +47,8 @@ export const ArmingUnknown: Story = { name: "Arming, delay unknown", args: { ala
 export const Disarming: Story = { args: { alarm: "disarming" } };
 export const CustomBypass: Story = { name: "Armed custom bypass", args: { alarm: "custom" } };
 export const ArmWithoutCode: Story = { name: "Code to disarm only", args: { alarm: "armFree" } };
+/** For panels Home Assistant can read but not control, like a Ring Alarm without a subscription. */
+export const ViewOnly: Story = { name: "View only (Ring)", args: { alarm: "ring", readOnly: true } };
 export const Unavailable: Story = { args: { alarm: "unavailable" } };
 /** Realistic worst-case data from the demo seeds (ALARM_WORST_CASE): long and compound names, missing areas, values at their limits. */
 export const WorstCase: Story = {
@@ -68,6 +70,7 @@ export const AllStates: Story = {
     </div>
   ),
 };
+export const ViewOnlyAllStates: Story = { ...AllStates, name: "All states, view only", args: { readOnly: true } };
 
 export const Sizes: Story = {
   parameters: { layout: "padded", controls: { include: ["alarm", "footprint", "readOnly"] } },
@@ -103,14 +106,10 @@ export const Compact: Story = {
     </div>
   ),
 };
-
-/** For panels Home Assistant can read but not control, like a Ring Alarm without a subscription. */
-export const ViewOnly: Story = { name: "View only (Ring)", args: { alarm: "ring", readOnly: true } };
-export const ViewOnlyAllStates: Story = { ...AllStates, name: "View only, all states", args: { readOnly: true } };
-export const ViewOnlyCompact: Story = { ...Compact, name: "View only, compact", args: { width: 380, readOnly: true } };
-export const ViewOnlyDetails: Story = { name: "View only, details", args: { alarm: "ring", readOnly: true, defaultOpen: true } };
+export const ViewOnlyCompact: Story = { ...Compact, name: "Compact, view only", args: { width: 380, readOnly: true } };
 
 export const Details: Story = { name: "Details", args: { alarm: "openDoor", defaultOpen: true } };
+export const ViewOnlyDetails: Story = { name: "Details, view only", args: { alarm: "ring", readOnly: true, defaultOpen: true } };
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { alarm: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {

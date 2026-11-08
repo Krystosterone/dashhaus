@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { useNow } from "@dashhaus/core/hooks";
+import { HourCycleProvider, useNow } from "@dashhaus/core/hooks";
 import { clockFace } from "@dashhaus/core/entities/clock";
 import { TitanHeader, dateCode } from "./Header";
 import type { TitanHeaderProps } from "./Header";
@@ -32,26 +32,29 @@ function Pattern() {
 /**
  * The Titan Dashboard: the reference's frame. An elbow at the top left carries the date stamp and turns into the top
  * bar; the left rail holds the destinations as a column of keys; the headline sits right under the bar; a second elbow
- * closes the page at the bottom left into the bottom bar, which carries the footer. Rows of cards fill the middle.
+ * closes the page at the bottom left into the bottom bar, which carries the footer. Rows of cards fill the middle,
+ * saying their times on the header's hour cycle (YAML `hour_cycle`, else the locale's).
  */
 export function TitanPage({ pageRef, nav, status, footer, children, title, ...header }: TitanPageProps) {
   const now = useNow(header.now);
   const face = clockFace(now, { locale: header.locale, hourCycle: header.hourCycle, timeZone: header.timeZone });
   return (
-    <div ref={pageRef} className="titan-dashboard" data-nav={nav ? "" : undefined}>
-      <div className="titan-elbow-top" aria-hidden="true"><span className="titan-elbow-stamp">{dateCode(face.day)}</span></div>
-      <div className="titan-topbar" aria-hidden="true"><span className="titan-topbar-run" /><Pattern /></div>
-      {title ? <TitanHeader title={title} {...header} /> : <div className="titan-header" />}
-      <aside className="titan-rail">
-        {nav}
-        <span className="titan-rail-fill" aria-hidden="true" />
-      </aside>
-      <main className="titan-dashboard-main">{children}</main>
-      <div className="titan-elbow-bottom" aria-hidden="true" />
-      <p className="titan-footer">{footer}</p>
-      <div className="titan-bottombar" aria-hidden="true"><span className="titan-bottombar-run" /><span className="titan-bottombar-run" data-step="1" /><Pattern /></div>
-      {status && <div className="titan-dashboard-dock">{status}</div>}
-    </div>
+    <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
+      <div ref={pageRef} className="titan-dashboard" data-nav={nav ? "" : undefined}>
+        <div className="titan-elbow-top" aria-hidden="true"><span className="titan-elbow-stamp">{dateCode(face.day)}</span></div>
+        <div className="titan-topbar" aria-hidden="true"><span className="titan-topbar-run" /><Pattern /></div>
+        {title ? <TitanHeader title={title} {...header} /> : <div className="titan-header" />}
+        <aside className="titan-rail">
+          {nav}
+          <span className="titan-rail-fill" aria-hidden="true" />
+        </aside>
+        <main className="titan-dashboard-main">{children}</main>
+        <div className="titan-elbow-bottom" aria-hidden="true" />
+        <p className="titan-footer">{footer}</p>
+        <div className="titan-bottombar" aria-hidden="true"><span className="titan-bottombar-run" /><span className="titan-bottombar-run" data-step="1" /><Pattern /></div>
+        {status && <div className="titan-dashboard-dock">{status}</div>}
+      </div>
+    </HourCycleProvider>
   );
 }
 
