@@ -69,7 +69,7 @@ export const GUEST_WIFI_SEEDS = {
 
 export type GuestWifiSeedName = keyof typeof GUEST_WIFI_SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: the card's Worst case story and each skin's Foundations → Worst case draw these. */
 export const GUEST_WIFI_WORST_CASE: GuestWifiSeed[] = [GUEST_WIFI_SEEDS.long, GUEST_WIFI_SEEDS.bare, GUEST_WIFI_SEEDS.passphrase];
 
 /** A new ten-digit code, in the integration's two groups of five. */
