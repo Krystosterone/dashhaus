@@ -127,7 +127,7 @@ export function SunCard({ entity: e, history, variant, footprint, showControl, o
       {history && !compact && <SunPath day={history} unavailable={unav} lastSeen={e.lastSeen} />}
       <SheetBlock>
         {schedule.length > 0 && (
-          <section className="hd-blk su-next" aria-labelledby={`${card.nameId}-next`}>
+          <section className="hd-blk" aria-labelledby={`${card.nameId}-next`}>
             <h3 className="hd-blk-h" id={`${card.nameId}-next`}>{SUN_WORDS.next}</h3>
             <ol className="su-list">
               {schedule.map((event) => (

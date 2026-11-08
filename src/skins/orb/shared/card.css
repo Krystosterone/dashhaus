@@ -377,7 +377,8 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
 /* A sentence in the sheet: what a toggle is for, what arming would leave open. */
 .hd-note { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--ink-2); }
 .hd-blk { display: grid; gap: 10px; min-width: 0; }
-.hd-blk-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }
+/* A block's heading, a <p> or an <h3>: no margin of its own, so an h3 keeps the block's gap, not the browser's. */
+.hd-blk-h { display: flex; margin: 0; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 600; }
 .hd-blk-v { font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
 .hd-chips { display: grid; grid-template-columns: repeat(min(var(--n, 4), 4), minmax(0, 1fr)); gap: 8px; }
 .hd-chip {
