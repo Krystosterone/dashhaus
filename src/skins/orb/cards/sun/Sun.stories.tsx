@@ -46,6 +46,7 @@ export const Summer: Story = { args: { seed: "summer", footprint: "featured" } }
 /** High in the Arctic in June: no sunset reported, so it says so in words. */
 export const PolarDay: Story = { name: "Up all day", args: { seed: "polarDay", footprint: "featured" } };
 export const NoReadingYet: Story = { name: "No reading yet", args: { seed: "waiting" } };
+export const Featured: Story = { args: { footprint: "featured" } };
 /**
  * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state, the worst case among them, each time the card says
  * on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
@@ -61,7 +62,6 @@ export const TwelveHourClock: Story = {
   ),
 };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
-export const Featured: Story = { args: { footprint: "featured" } };
 /** Realistic worst-case data from the demo seeds (SUN_WORST_CASE): long names, a polar night and a polar day. */
 export const WorstCase: Story = {
   name: "Worst case",
