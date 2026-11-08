@@ -61,5 +61,8 @@ export function coverAskDetail(action: CoverAction, e: Pick<CoverEntity, "state"
  */
 export const coverAskAction = (action: CoverAction, e: Pick<CoverEntity, "deviceClass">) => `${VERB[action]} ${CLASS_LABEL[e.deviceClass].toLowerCase()}`;
 
+/** What the details say while the yes is on its way, naming the thing: "Waiting for the garage door". A skin adds its end punctuation. */
+export const coverAskWaiting = (e: Pick<CoverEntity, "deviceClass">) => `Waiting for the ${CLASS_LABEL[e.deviceClass].toLowerCase()}`;
+
 /** The details' line for a cover that asks first, so the rule can be learnt there. */
 export const COVER_ASKS_HINT = "Opening and closing ask first.";

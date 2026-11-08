@@ -74,6 +74,10 @@ export const COVER_WORST_CASE: CoverSeed[] = [
     entity: { entityId: "cover.garage_side", name: "Garage side door to the back garden", area: "Garage and workshop (north side)", state: "open", deviceClass: "door", position: 99.6, supportsPosition: true, supportsStop: true, lastChanged: "Fri 18:30" },
     past: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   },
+  { // A gate on its way shut that can't be stopped: its control lies flat and says where it is going
+    entity: { entityId: "cover.side_gate", name: "Side gate", area: "Outside", state: "closing", deviceClass: "gate", supportsPosition: false, supportsStop: false, lastChanged: "21:58" },
+    past: [],
+  },
   { // Slats at their end, a raw float tilt
     entity: { entityId: "cover.studio_blind", name: "Studio skylight blind", area: "Attic", state: "open", deviceClass: "blind", position: 100, tilt: 0.4, supportsPosition: true, supportsStop: false, supportsTilt: true, lastChanged: "06:02" },
     past: [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],

@@ -1,6 +1,6 @@
 import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
-import { COVER_ASKS_HINT, SLAT_POSITIONS, coverAskAction, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
+import { COVER_ASKS_HINT, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { useGuardedAction } from "@dashhaus/core/primitives";
@@ -46,7 +46,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // says Unknown, and both ends of its control act.
   const unknown = e.state === "unknown";
   const moving = isMoving(e);
-  const pos = openness(e);
+  const pos = Math.round(openness(e));
   const open = pos > 0 || e.state === "open";
   // A cover that lets a person in: open is a state (the accent orb, no glow), and reads as a warning.
   const access = isAccess(e.deviceClass);
@@ -76,7 +76,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const adrift = asks && moving && !e.supportsStop;
   const toward: CoverAction = open ? "close" : "open";
   const orbAction = stopping ? onStopCover : adrift ? () => {} : asks ? () => guard.ask(toward) : open ? onCloseCover : onOpenCover;
-  const orbLabel = stopping ? `Stop ${e.name}` : adrift ? `${e.name}: ${word}…` : asks ? `${toward === "open" ? "Open" : "Close"} ${e.name}…` : e.name;
+  const orbLabel = stopping ? `Stop ${e.name}` : adrift ? `${e.name}: ${word}` : asks ? `${toward === "open" ? "Open" : "Close"} ${e.name}…` : e.name;
   // Core ranks it (a garage door, door or gate left open is advisory); the card draws the level it is given.
   const warned = coverSeverity(e) != null;
   const identity = area ?? CLASS_LABEL[e.deviceClass];
@@ -95,7 +95,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
     slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
   } else {
     slot = (
-      <OpenCloseControl name={e.name} open={open} moving={moving} either={unknown} asks={asks} flat={adrift || pending != null} text={adrift ? `${word}…` : text} canStop={e.supportsStop}
+      <OpenCloseControl name={e.name} open={open} moving={moving} either={unknown} asks={asks} flat={adrift || pending != null} text={text} canStop={e.supportsStop}
         onOpen={asks ? () => guard.ask("open") : onOpenCover} onClose={asks ? () => guard.ask("close") : onCloseCover} onStop={onStopCover} />
     );
   }
@@ -124,7 +124,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       {!unav && (
         <SheetBlock>
           {pending && (
-            <Confirm key={pending} busy={guard.busy} waiting={`Waiting for the ${CLASS_LABEL[e.deviceClass].toLowerCase()}…`} error={guard.failed ? "Didn’t go through. Try again." : null}
+            <Confirm key={pending} busy={guard.busy} waiting={`${coverAskWaiting(e)}…`} error={guard.failed ? "Didn’t go through. Try again." : null}
               question={coverQuestion(pending, e.name)} detail={coverAskDetail(pending, e)} action={coverAskAction(pending, e)}
               onConfirm={() => void guard.confirm()} onCancel={guard.close} />
           )}

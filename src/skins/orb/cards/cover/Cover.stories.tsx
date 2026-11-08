@@ -108,6 +108,8 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { cover: "blind", defaultOpen: true } };
+/** A garage door's sheet with no question standing: its groove asks, and the line under it says so. */
+export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { cover: "garage", defaultOpen: true } };
 /**
  * A tap on a garage door, door or gate opens the sheet on its question: the worst case's longest name, its yes naming
  * what it moves. While it stands the groove lies flat, so one Close shows. A door with a position has no bar and no

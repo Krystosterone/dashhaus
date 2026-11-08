@@ -107,13 +107,21 @@ describe("CoverCard", () => {
 
   it("lies flat on its way where it can't be stopped, saying where it is going, so a tap opens no empty sheet", () => {
     const { onOpenCover, onCloseCover, onOpenDetails } = draw({ ...stuckGate, state: "closing" });
-    fireEvent.click(button("Gate: Closing…"));
+    fireEvent.click(button("Gate: Closing"));
     const ends = screen.getByRole("group", { name: "Gate" });
     expect([...ends.querySelectorAll<HTMLButtonElement>(".cv-oc-b")].every((end) => end.disabled)).toBe(true);
-    expect(ends.textContent).toContain("Closing…");
+    expect(ends.textContent).toContain("Closing");
+    expect(ends.textContent).not.toContain("…");
     expect(onOpenDetails).not.toHaveBeenCalled();
     expect(onOpenCover).not.toHaveBeenCalled();
     expect(onCloseCover).not.toHaveBeenCalled();
+  });
+
+  it("rounds a raw float position, as Field does: one figure in both skins", () => {
+    const { container } = draw(longDoor);
+    const readout = container.querySelector(".hd-num")!;
+    expect(readout.textContent).toContain("100");
+    expect(container.textContent).not.toContain("99.6");
   });
 
   it("says a gate that can't stop can't be stopped from here, and names it in the yes", () => {

@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isMoving, openness, snapEnds } from "@dashhaus/core/entities/cover/position";
-import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskDetail, coverQuestion, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
+import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { useGuardedAction } from "@dashhaus/core/primitives";
@@ -220,7 +220,7 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
           question={coverQuestion(pending, e.name)} detail={coverAskDetail(pending, e)}
           action={coverAskAction(pending, e)} actionLabel={`${coverAskAction(pending, e)}, ${e.name}`}
           icon={pending === "open" ? <IconUp /> : <IconDown />}
-          busy={guard.busy} waiting={`Waiting for the ${CLASS_LABEL[e.deviceClass].toLowerCase()}`} error={guard.failed ? "Didn’t go through. Try again" : null}
+          busy={guard.busy} waiting={coverAskWaiting(e)} error={guard.failed ? "Didn’t go through. Try again" : null}
           onConfirm={() => void guard.confirm()} onCancel={guard.close} />
       ) : panel}
     </ModuleFrame>

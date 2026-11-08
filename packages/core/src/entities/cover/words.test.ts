@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CoverEntity } from "./types";
-import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskDetail, coverQuestion, coverWord, isOpen, leftOpenSentence, leftOpenText, positionText } from "./words";
+import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskDetail, coverAskWaiting, coverQuestion, coverWord, isOpen, leftOpenSentence, leftOpenText, positionText } from "./words";
 import { coverSeverity } from "./severity";
 
 const cover = (over: Partial<CoverEntity>): CoverEntity => ({ entityId: "cover.garage", name: "Garage door", state: "closed", deviceClass: "garage", supportsPosition: false, supportsStop: true, ...over });
@@ -50,6 +50,11 @@ describe("asking first", () => {
     expect(coverAskAction("open", cover({ deviceClass: "gate" }))).toBe("Open gate");
     expect(coverAskAction("close", cover({ deviceClass: "door" }))).toBe("Close door");
     expect(COVER_ASKS_HINT).toBe("Opening and closing ask first.");
+  });
+
+  it("says what it waits for, naming the thing, with no end punctuation of its own", () => {
+    expect(coverAskWaiting(cover({}))).toBe("Waiting for the garage door");
+    expect(coverAskWaiting(cover({ deviceClass: "gate" }))).toBe("Waiting for the gate");
   });
 });
 
