@@ -4,6 +4,7 @@ import { useKeypad, useGuardedAction, usePress, useSlider } from "@dashhaus/core
 import type { GuardedResult } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
 import type { HourSample } from "@dashhaus/core/entities/history";
+import { lineParts } from "@dashhaus/core/entities/clock";
 import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { ActionCardProps, CardSheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import "./ui.css";
@@ -288,6 +289,13 @@ export type TitanCardFrameProps = TileProps<TitanCardProps>;
 
 const ACTIVE = new Set(["on", "open", "opening", "unlocked", "unlocking", "heat", "cool", "heat_cool", "auto", "playing", "home"]);
 
+/** A line of words with each time in it as one piece, so a clip drops a time whole and never cuts it (core's `lineParts`). */
+function timed(line: string): ReactNode {
+  const parts = lineParts(line);
+  if (!parts.some((part) => part.time)) return line;
+  return parts.map((part, index) => (part.time ? <span key={index} className="titan-time">{part.text}</span> : part.text));
+}
+
 function TitanCard({ card, code = (card ?? "--").slice(0, 2).toUpperCase(), entityId: id, name, area, state, status = state.replace(/[_-]+/g, " "), summary, unit, tone = ACTIVE.has(state) ? "on" : "idle", warning, today, gauge, footprint, actions, guarded = [], facts, children, variant, onOpenDetails, onClose, action }: TitanCardProps) {
   const frame = useCardFrame({ variant, footprint });
   const entityId = id ?? name;
@@ -314,7 +322,7 @@ function TitanCard({ card, code = (card ?? "--").slice(0, 2).toUpperCase(), enti
   const statusLine = (
     <p className="titan-status">
       {warning && !unavailable && <span className="titan-warn"><span className="titan-warn-mark" aria-hidden="true" />{warning}</span>}
-      <span className="titan-status-words">{unavailable ? "Unavailable" : status}</span>
+      <span className="titan-status-words">{unavailable ? "Unavailable" : timed(status)}</span>
     </p>
   );
 
@@ -352,7 +360,7 @@ function TitanCard({ card, code = (card ?? "--").slice(0, 2).toUpperCase(), enti
         <span className="titan-compact-value">{unavailable ? "—" : <>{summary}{unit && <small>{unit}</small>}</>}</span>
         <button type="button" id={frame.nameId} className="titan-title titan-compact-name" aria-haspopup="dialog" onClick={() => onOpenDetails?.()}>
           <span className="titan-compact-words">{name}</span>
-          <span className="titan-compact-state">{unavailable ? "Unavailable" : warning ?? status}</span>
+          <span className="titan-compact-state">{unavailable ? "Unavailable" : timed(warning ?? status)}</span>
         </button>
       </article>
     );
