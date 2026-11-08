@@ -2,6 +2,7 @@ import type { AutoEntityEntry } from "./element";
 import type { BinarySensorClass } from "../entities/binarySensor/types";
 import type { NumericClass } from "../entities/numeric/types";
 import type { EnergyPrefs } from "../ha/energy";
+import type { Raw, Reader } from "./schema";
 
 /*
  * The facts an automatic Lovelace layout needs, shared by every skin: which entities are visible, which area an
@@ -221,6 +222,139 @@ export function numericSensors({ states, entities = {} }: RoomSensorInput): stri
     if (!held || rank(id) < rank(held)) picked.set(key, id);
   }
   return [...picked.values()].sort(byName(states));
+}
+
+/*
+ * The wall (spec/deploy.md → The wall layout): one column per place, for a panel on a wall. Every skin's automatic wall
+ * uses the same bands, the same places and the same columns; each skin only orders a column's stack in its own idiom
+ * and draws it.
+ */
+
+/** A wall column's bands, the most pressing first: what is pressed, what guards the house, what it looks like, the household's status, then the glance. */
+export type WallBand = "actions" | "security" | "cameras" | "status" | "glance";
+
+/**
+ * Each band's cards, by the card name every skin shares (`light`, `binarySensor`), in the order a column stacks them:
+ * the automatic layout's bands (spec/deploy.md → The automatic layout's order), within one place. A card in no band
+ * still has its place, after the glance.
+ */
+export const WALL_BANDS: Readonly<Record<WallBand, readonly string[]>> = {
+  actions: [
+    "climate",
+    "cover",
+    "light",
+    "toggle",
+    "sound",
+    "humidifier",
+    "fan",
+    "mediaPlayer",
+    "vacuum",
+    // new-card: wall actions
+  ],
+  security: ["alarm", "lock", "binarySensor"],
+  cameras: ["camera"],
+  status: ["owlet", "guestWifi", "calendar"],
+  glance: ["weather", "sun", "sensor", "numeric"],
+};
+
+const WALL_ORDER: readonly string[] = Object.values(WALL_BANDS).flat();
+/** The cards a person presses on a wall: every action, and the alarm and the locks that guard the house. */
+const WALL_PRESSED: readonly string[] = [...WALL_BANDS.actions, "alarm", "lock"];
+
+/** A card's band on a wall, or none for a card in no band, which goes after the glance. */
+export function wallBand(card: string): WallBand | undefined {
+  return (Object.keys(WALL_BANDS) as WallBand[]).find((band) => WALL_BANDS[band].includes(card));
+}
+
+/**
+ * A card's footprint on a wall: `compact` for what is pressed (the actions, the alarm, a lock), `standard` for what is
+ * read across the room (a door, a camera's still, a sock, the weather, a room's air) and any card in no band. No
+ * featured hero.
+ */
+export const wallFootprint = (card: string): "compact" | "standard" => (WALL_PRESSED.includes(card) ? "compact" : "standard");
+
+/** The name of the house's area called Outside, as Home Assistant spells it, where it has one. */
+export function outsideArea(input: Pick<AutoInput, "areas">): string | undefined {
+  return Object.values(input.areas ?? {}).find((area) => area.name.trim().toLowerCase() === "outside")?.name;
+}
+
+/** The arrangements an automatic layout takes (a skin's YAML `layout`): `wall`, one column per place. */
+export const AUTO_LAYOUTS = ["wall"] as const;
+export type AutoLayout = (typeof AUTO_LAYOUTS)[number];
+
+/**
+ * A skin's top-level `layout`: how its automatic layout arranges the house. It is the automatic layout's, so a page
+ * laid out in YAML (`cards`, `rows`) or with `pages` is refused it, with the key to leave out.
+ */
+export function readAutoLayout(read: Reader, raw: Raw): AutoLayout | undefined {
+  if (raw.layout == null) return undefined;
+  const layout = read.choice(raw, "layout", "", AUTO_LAYOUTS);
+  for (const key of ["cards", "rows", "pages"]) {
+    if (raw[key] != null) read.problem("layout", `"layout" lays the house out automatically: leave out "${key}", or leave out "layout"`);
+  }
+  return layout;
+}
+
+/** One place on a wall: an area and its cards, in band order. */
+export interface WallPlace<I> {
+  area: string;
+  items: I[];
+}
+
+/** A house as a wall's places, and the house's own cards, the ones in no area. */
+export interface WallPlaces<I> {
+  places: WallPlace<I>[];
+  house: I[];
+}
+
+/**
+ * A house's cards as a wall's places: one per area that has a card, by area name, and the house's own cards, those in
+ * no area, each list in band order (`WALL_BANDS`, then the cards' own order). The weather and the sun, which have no
+ * area, join the area called `outside` where the house has one (`outsideArea`), and are the house's otherwise. With
+ * fewer than two places a column per place says nothing, so there are none, and every card is the house's, in band
+ * order, for the skin to flow across the page.
+ */
+export function wallPlaces<I>(items: readonly I[], { card, area, outside }: {
+  /** The card that draws an item, by its shared name. */
+  card: (item: I) => string;
+  /** An item's area name, from the YAML or Home Assistant's registries. */
+  area: (item: I) => string | undefined;
+  outside?: string;
+}): WallPlaces<I> {
+  const placed = [...items];
+  const rank = (item: I) => {
+    const at = WALL_ORDER.indexOf(card(item));
+    return at < 0 ? WALL_ORDER.length : at;
+  };
+  const inOrder = (list: readonly I[]) => [...list].sort((a, b) => rank(a) - rank(b));
+  const placeOf = (item: I) => area(item) ?? (outside && (card(item) === "weather" || card(item) === "sun") ? outside : undefined);
+  const groups = groupByArea(placed.map((item) => ({ item, area: placeOf(item) })));
+  const places = groups.flatMap((group) => (group.area == null ? [] : [{ area: group.area, items: inOrder(group.modules.map((entry) => entry.item)) }]));
+  if (places.length < 2) return { places: [], house: inOrder(placed) };
+  return { places, house: inOrder(groups.find((group) => group.area == null)?.modules.map((entry) => entry.item) ?? []) };
+}
+
+/** One band of a wall: a row of `columns` columns, each card in the column it was given. */
+export interface ColumnBand<C> {
+  columns: number;
+  cards: { card: C; column: number }[];
+}
+
+/**
+ * Columns side by side in bands of at most `most`, wrapping in order into further bands, and `last`, when it has any
+ * cards, as the last column of the first band, never wrapped: a wall's places, then the house's own. Every band is as
+ * many columns as the first, so the columns line up down the page; a band's cards run column by column, each column's
+ * in its order.
+ */
+export function placeColumns<C>(columns: readonly (readonly C[])[], most: number, last: readonly C[] = []): ColumnBand<C>[] {
+  const across = Math.max(1, Math.floor(most));
+  const first = last.length ? Math.max(1, across - 1) : across;
+  const bands: (readonly C[])[][] = [[...columns.slice(0, first), ...(last.length ? [last] : [])]];
+  for (let i = first; i < columns.length; i += across) bands.push(columns.slice(i, i + across));
+  const width = bands[0].length;
+  return bands
+    .filter((band) => band.some((column) => column.length))
+    .map((band) => ({ columns: Math.max(1, width), cards: band.flatMap((column, i) => column.map((card) => ({ card, column: i + 1 }))) }));
 }
 
 /*

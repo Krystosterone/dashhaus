@@ -146,6 +146,25 @@ describe("dashhaus-field card", () => {
     expect(keys[2].getAttribute("aria-current")).toBe("location");
   });
 
+  it("lays the house out one column per place with layout: wall, each under its legend, and no nav when far", async () => {
+    const card = await mount({ layout: "wall", viewing: "far" });
+    const shadow = card.shadowRoot!;
+    const stacks = [...shadow.querySelectorAll<HTMLElement>(".fd-dash-stack")];
+    expect(stacks.map((stack) => stack.getAttribute("aria-label"))).toEqual(["Kitchen", "Living room", "Office"]);
+    expect(stacks.map((stack) => stack.style.gridColumn)).toEqual(["1", "2", "3"]);
+    expect([...shadow.querySelectorAll(".fd-dash-stack h2")].map((h) => h.textContent)).toEqual(["Kitchen", "Living room", "Office"]);
+    // Under its column's legend a plate doesn't print the place again; the office's air leads, read whole, its desk light a row under it.
+    expect([...stacks[2].querySelectorAll(".fd-module")].map((module) => [module.getAttribute("data-footprint"), module.querySelector(".fd-area")?.textContent])).toEqual([["standard", undefined], ["compact", undefined]]);
+    expect(shadow.querySelector(".fd-nav")).toBeNull();
+  });
+
+  it("keeps a footprint the YAML sets for every module on the wall", async () => {
+    const card = await mount({ layout: "wall", footprint: "compact" });
+    const modules = [...card.shadowRoot!.querySelectorAll(".fd-dash-stack .fd-module")];
+    expect(modules.length).toBeGreaterThan(3);
+    expect(new Set(modules.map((module) => module.getAttribute("data-footprint")))).toEqual(new Set(["compact"]));
+  });
+
   it("lists the areas in the automatic layout's nav, and draws none with nav: false", async () => {
     const auto = await mount({});
     expect([...auto.shadowRoot!.querySelectorAll(".fd-nav-key")].map((k) => k.textContent)).toEqual(["Kitchen", "Living room", "Office"]);

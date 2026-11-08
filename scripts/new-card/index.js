@@ -208,7 +208,10 @@ const placed = !reading && !sharesDomain;
 if (placed) {
   edit(seams.orb.auto, after(markers.autoControls, `    "${domain}",\n`));
   edit(seams.orb.auto, after(markers.autoOrder, `    "${domain}",\n`));
+  edit(seams.orb.auto, after(markers.autoCards, `  ${domain}: "${name}",\n`));
 }
+// The wall: a control joins the actions band of its place's column (spec/deploy.md → The wall layout).
+if (!reading) edit(packageFile("core", "src/lovelace/layout.ts"), after(markers.wallActions, `    "${name}",\n`));
 const deploy = seams.deployDoc;
 edit(deploy, after(markers.deployDomains, `- \`${domain}\`${sharesDomain ? ` with \`card: ${name}\`` : ""}: ${words}\n`));
 if (reading) edit(deploy, before("| bundle | `joined", `| ${words} | \`unit\` | The unit, when the entity doesn't say. |\n`));

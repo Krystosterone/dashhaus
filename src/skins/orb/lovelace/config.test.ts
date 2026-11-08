@@ -21,6 +21,17 @@ describe("parseDashboardConfig", () => {
     });
   });
 
+  it("takes layout: wall for the automatic layout, and refuses it beside a layout of its own", () => {
+    expect(parseDashboardConfig({ layout: "wall", viewing: "far" })).toMatchObject({ layout: "wall", viewing: "far", rows: undefined });
+    expect(parseDashboardConfig({}).layout).toBeUndefined();
+    expect(problems({ layout: "wall", rows: [{ title: "Lights", cards: ["light.a"] }] })).toEqual(['layout: "layout" lays the house out automatically: leave out "rows", or leave out "layout"']);
+    expect(problems({ layout: "wall", cards: ["light.a"], pages: [{ id: "more", title: "More", cards: ["light.b"] }] })).toEqual([
+      'layout: "layout" lays the house out automatically: leave out "cards", or leave out "layout"',
+      'layout: "layout" lays the house out automatically: leave out "pages", or leave out "layout"',
+    ]);
+    expect(problems({ layout: "walls" })).toEqual(['"layout" must be one of "wall" — did you mean "wall"?']);
+  });
+
   it("takes a camera's still and refresh, and the dashboard's stills and quiet", () => {
     expect(items({ cards: ["camera.door", { entity: "camera.nursery", still: false }, { entity: "camera.drive", refresh: 30 }] })).toMatchObject([
       { kind: "camera", entity: "camera.door" },

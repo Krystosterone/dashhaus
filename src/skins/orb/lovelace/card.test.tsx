@@ -10,14 +10,20 @@ const entities: HassEntities = {
   "input_boolean.guest": { entity_id: "input_boolean.guest", state: "off", attributes: { friendly_name: "Guest" } },
 };
 
-const adapter = vi.hoisted(() => ({ createHomeAssistantTransport: vi.fn(), emitOnSubscribe: true }));
+const adapter = vi.hoisted(() => ({
+  createHomeAssistantTransport: vi.fn(),
+  emitOnSubscribe: true,
+  /** The house's entities and registries, for a test that needs another house. */
+  house: undefined as undefined | { states: HassEntities; sendMessage: (type: string) => Promise<unknown> },
+}));
 vi.mock("@dashhaus/core/websocket", () => adapter);
 adapter.createHomeAssistantTransport.mockImplementation((): HaTransport => ({
   subscribeEntities(listener) {
-    if (adapter.emitOnSubscribe) queueMicrotask(() => listener(entities));
+    if (adapter.emitOnSubscribe) queueMicrotask(() => listener(adapter.house?.states ?? entities));
     return () => undefined;
   },
   callService: async () => undefined,
+  ...(adapter.house && { sendMessage: adapter.house.sendMessage }),
 }));
 
 const { createDashhausCard } = await import("./card");
@@ -82,6 +88,48 @@ describe("dashhaus-orb card", () => {
     const card = await mount({});
     const headings = [...card.shadowRoot!.querySelectorAll(".dash-sec-h")].map((h) => h.textContent);
     expect(headings).toEqual(["Modes", "Other"]);
+  });
+
+  it("lays the house out one column per place with layout: wall, each under its place's heading, and no nav when far", async () => {
+    const light = (entity_id: string, friendly_name: string) => ({ entity_id, state: "on", attributes: { friendly_name, supported_color_modes: ["onoff"] } });
+    const states: HassEntities = {
+      "light.kitchen": light("light.kitchen", "Ceiling"),
+      "light.hall": light("light.hall", "Ceiling"),
+      "light.attic": light("light.attic", "Lamp"),
+      "alarm_control_panel.house": { entity_id: "alarm_control_panel.house", state: "disarmed", attributes: { friendly_name: "House alarm" } },
+    };
+    const registry: Record<string, unknown> = {
+      "config/entity_registry/list_for_display": { entity_categories: {}, entities: [{ ei: "light.kitchen", ai: "kitchen" }, { ei: "light.hall", ai: "hall" }, { ei: "light.attic", ai: "attic" }] },
+      "config/device_registry/list": [],
+      "config/area_registry/list": [{ area_id: "kitchen", name: "Kitchen" }, { area_id: "hall", name: "Hall" }, { area_id: "attic", name: "Attic" }],
+      "config/floor_registry/list": [],
+    };
+    adapter.house = { states, sendMessage: async (type) => registry[type] };
+    try {
+      const card = document.createElement("dashhaus-test") as Card;
+      card.setConfig({ layout: "wall", viewing: "far" });
+      card.hass = {
+        connection: { sendMessagePromise: async () => undefined } as unknown as Connection,
+        states,
+        entities: { "light.kitchen": { area_id: "kitchen" }, "light.hall": { area_id: "hall" }, "light.attic": { area_id: "attic" } },
+        areas: { kitchen: { name: "Kitchen" }, hall: { name: "Hall" }, attic: { name: "Attic" } },
+        themes: { darkMode: false },
+      };
+      await act(async () => {
+        document.body.append(card);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      const shadow = card.shadowRoot!;
+      // Attic and Hall, then the house's alarm ending the first row; the kitchen wraps into the next.
+      const sections = [...shadow.querySelectorAll(".dash-row--places .dash-col")].map((column) => column.getAttribute("aria-label"));
+      expect(sections).toEqual(["Attic", "Hall", null, "Kitchen"]);
+      expect([...shadow.querySelectorAll(".dash-col > h2")].map((h) => h.textContent)).toEqual(["Attic", "Hall", "Kitchen"]);
+      // Two lights named alike, told apart by the heading over each, not by an area line of their own.
+      expect([...shadow.querySelectorAll(".dash-col .hd-area")].map((line) => line.textContent)).not.toContain("Hall");
+      expect(shadow.querySelector(".dash-dock")).toBeNull();
+    } finally {
+      adapter.house = undefined;
+    }
   });
 
   it("keeps one store per connection as hass updates", async () => {

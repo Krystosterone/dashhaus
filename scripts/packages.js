@@ -238,6 +238,8 @@ export const markers = {
   tiles: "// new-card: tiles",
   autoControls: "// new-card: auto controls",
   autoOrder: "// new-card: auto order",
+  autoCards: "// new-card: auto control cards",
+  wallActions: "// new-card: wall actions",
   cardsDoc: "<!-- new-card: cards -->",
   deployDomains: "<!-- new-card: domains -->",
   deployOptions: "<!-- new-card: options -->",

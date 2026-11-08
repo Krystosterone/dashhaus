@@ -20,6 +20,16 @@ describe("parseFieldConfig: the page", () => {
     expect(problems({ viewing: "distant" })).toEqual(['"viewing" must be one of "near", "far"']);
   });
 
+  it("takes layout: wall for the automatic layout, and refuses it beside a layout of its own, as the main card does", () => {
+    expect(parseFieldConfig({ layout: "wall", viewing: "far" })).toMatchObject({ layout: "wall", viewing: "far", rows: undefined });
+    expect(parseFieldConfig({}).layout).toBeUndefined();
+    expect(problems({ layout: "wall", rows: [{ title: "Lights", cards: ["light.a"] }], pages: [{ id: "more", title: "More", cards: ["light.b"] }] })).toEqual([
+      'layout: "layout" lays the house out automatically: leave out "rows", or leave out "layout"',
+      'layout: "layout" lays the house out automatically: leave out "pages", or leave out "layout"',
+    ]);
+    expect(problems({ layout: "columns" })).toEqual(['"layout" must be one of "wall"']);
+  });
+
   it("says why a main-card key isn't field's, rather than guessing at a typo", () => {
     expect(problems({ theme: "dark", accent: "sage" })).toEqual([
       '"theme" is the main card\'s: field\'s finish is "finish": home-assistant, auto, alloy or black',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { areaRows, autoModules, energyModules, groupByArea } from "./auto";
+import { areaColumns, areaRows, autoModules, energyModules, groupByArea } from "./auto";
 import { parseFieldConfig } from "./config";
-import type { ModuleConfig } from "./config";
+import type { FieldRow, ModuleConfig } from "./config";
 
 const state = (id: string, name: string, device_class?: string) => ({ entity_id: id, state: "on", attributes: { friendly_name: name, ...(device_class && { device_class }) } });
 
@@ -208,6 +208,99 @@ describe("the house's energy", () => {
       ["Energy", ["light.meter", "sensor.grid_power"]],
       ["Kitchen", ["light.lamp"]],
     ]);
+  });
+});
+
+describe("areaColumns: the wall", () => {
+  const m = (entity: string, kind: ModuleConfig["kind"], area?: string): ModuleConfig => ({ entity, kind, ...(area && { area }) });
+  /** Five places and the house's own modules, by name as autoModules gives them. */
+  const MODULES: ModuleConfig[] = [
+    m("alarm_control_panel.house", "alarm"),
+    m("light.attic", "light", "Attic"),
+    m("lock.back", "lock", "Kitchen"),
+    m("calendar.family", "calendar"),
+    m("input_boolean.guest", "toggle"),
+    m("light.hall", "light", "Hall"),
+    m("climate.hall", "climate", "Hall"),
+    m("weather.home", "weather"),
+    m("binary_sensor.leak", "binarySensor", "Kitchen"),
+    m("light.kitchen", "light", "Kitchen"),
+    m("sensor.office", "sensor", "Office"),
+    m("light.porch", "light", "Outside"),
+    m("sun.sun", "sun"),
+  ];
+  const ENERGY = [m("sensor.grid", "numeric")];
+  const layout = (rows: FieldRow[]) => rows.map((row) => ({ title: row.title, columns: row.columns, flow: row.flow, stacks: row.stacks, cards: row.cards.map((entry) => [entry.item.entity, entry.column, entry.item.footprint]) }));
+  /** The rows as YAML, the way a person would write them out, for the card's own reader. */
+  const yaml = (rows: FieldRow[]) => ({
+    rows: rows.map((row) => ({
+      ...(row.title && { title: row.title }),
+      ...(row.columns && { columns: row.columns }),
+      ...(!row.stacks && { flow: row.flow }),
+      cards: row.cards.map((entry) => ({ entity: entry.item.entity, card: entry.item.kind, ...(entry.column && { column: entry.column }), ...(entry.item.footprint && { footprint: entry.item.footprint }) })),
+    })),
+  });
+
+  it("puts a column per place by area name, four across, the house's own last in the first row, each column whole modules first", () => {
+    expect(layout(areaColumns(MODULES, [], { outside: "Outside" }))).toEqual([
+      {
+        title: undefined, columns: 4, flow: "normal", stacks: true,
+        cards: [
+          ["light.attic", 1, "compact"],
+          ["climate.hall", 2, "compact"], ["light.hall", 2, "compact"],
+          // The kitchen's leak is read, so it leads its column; its light and its lock are pressed, so rows under it.
+          ["binary_sensor.leak", 3, "standard"], ["light.kitchen", 3, "compact"], ["lock.back", 3, "compact"],
+          ["calendar.family", 4, "standard"], ["input_boolean.guest", 4, "compact"], ["alarm_control_panel.house", 4, "compact"],
+        ],
+      },
+      {
+        title: undefined, columns: 4, flow: "normal", stacks: true,
+        cards: [
+          ["sensor.office", 1, "standard"],
+          ["weather.home", 2, "standard"], ["sun.sun", 2, "standard"], ["light.porch", 2, "compact"],
+        ],
+      },
+    ]);
+  });
+
+  it("puts the weather and the sun in Outside, naming it, or with the house's own modules", () => {
+    const joined = areaColumns(MODULES, [], { outside: "Outside" }).flatMap((row) => row.cards.map((entry) => entry.item));
+    expect(joined.filter((item) => item.kind === "weather" || item.kind === "sun").map((item) => item.area)).toEqual(["Outside", "Outside"]);
+    const alone = areaColumns(MODULES).flatMap((row) => row.cards).filter((entry) => entry.item.kind === "weather" || entry.item.kind === "sun");
+    expect(alone.map((entry) => [entry.column, entry.item.area])).toEqual([[4, undefined], [4, undefined]]);
+  });
+
+  it("reads back through the card's own reader: mixed rows stack, rows of one footprint are a dense grid", () => {
+    for (const rows of [areaColumns(MODULES, ENERGY, { outside: "Outside" }), areaColumns(MODULES, ENERGY, { footprint: "compact" })]) {
+      const read = parseFieldConfig(yaml(rows)).rows!;
+      expect(read.map((row) => [row.columns, row.flow, row.stacks])).toEqual(rows.map((row) => [row.columns, row.flow, row.stacks]));
+      expect(read.map((row) => row.cards.map((entry) => entry.column))).toEqual(rows.map((row) => row.cards.map((entry) => entry.column)));
+    }
+    // A footprint the YAML sets holds for every module: no mix, so each row is a grid anchored column by column.
+    const compact = areaColumns(MODULES, [], { footprint: "compact" });
+    expect(compact.map((row) => [row.flow, row.stacks])).toEqual([["dense", undefined], ["dense", undefined]]);
+    expect(compact.flatMap((row) => row.cards.map((entry) => entry.item.footprint))).toEqual(Array(13).fill(undefined));
+  });
+
+  it("puts the house's energy in its own row, last, so the places don't move when the preferences land", () => {
+    const three = MODULES.filter((item) => ["Attic", "Hall", "Kitchen", undefined].includes(item.area));
+    const before = areaColumns(three);
+    const after = areaColumns(three, ENERGY);
+    expect(after.slice(0, -1)).toEqual(before);
+    expect(layout(after.slice(-1))).toEqual([{ title: "Energy", columns: undefined, flow: "normal", stacks: undefined, cards: [["sensor.grid", undefined, undefined]] }]);
+  });
+
+  it("flows a house of fewer than two places, whole modules then rows, each a row of its own", () => {
+    const one = MODULES.map((item) => (item.area === "Kitchen" ? item : { ...item, area: undefined }));
+    expect(layout(areaColumns(one))).toEqual([
+      { title: undefined, columns: undefined, flow: "normal", stacks: undefined, cards: [["binary_sensor.leak", undefined, "standard"], ["calendar.family", undefined, "standard"], ["weather.home", undefined, "standard"], ["sun.sun", undefined, "standard"], ["sensor.office", undefined, "standard"]] },
+      { title: undefined, columns: undefined, flow: "normal", stacks: undefined, cards: [["climate.hall", undefined, "compact"], ["light.attic", undefined, "compact"], ["light.hall", undefined, "compact"], ["light.kitchen", undefined, "compact"], ["light.porch", undefined, "compact"], ["input_boolean.guest", undefined, "compact"], ["alarm_control_panel.house", undefined, "compact"], ["lock.back", undefined, "compact"]] },
+    ]);
+    expect(areaColumns([])).toEqual([]);
+  });
+
+  it("leaves the row per area as it was", () => {
+    expect(areaRows(MODULES)).toEqual(groupByArea(MODULES).map((group) => ({ title: group.area, flow: "normal", align: "top", cards: group.modules.map((item) => ({ item, width: 1 })) })));
   });
 });
 

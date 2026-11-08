@@ -1,7 +1,8 @@
-import { deviceCompanion, dysonFans, energySensors, friendlyName, groupByArea, numericSensors, roomSensors, safetySensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { deviceCompanion, dysonFans, energySensors, friendlyName, groupByArea, numericSensors, placeColumns, roomSensors, safetySensors, sortByName, visibleEntities, wallFootprint, wallPlaces } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput } from "@dashhaus/core/lovelace/layout";
 import { kindOf } from "./config";
 import type { FieldRow, ModuleConfig } from "./config";
+import type { FieldFootprint } from "../shared/ui";
 
 export type { AutoInput } from "@dashhaus/core/lovelace/layout";
 export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
@@ -65,5 +66,44 @@ export function areaRows(modules: readonly ModuleConfig[], energy: readonly Modu
   const same = rows.find((row) => row.title?.toLowerCase() === ENERGY.toLowerCase());
   if (same) same.cards.push(...cards);
   else rows.push({ title: ENERGY, flow: "normal", align: "top", cards });
+  return rows;
+}
+
+/**
+ * The most places side by side on Field's wall: four, as many modules as fit its 1240 px page (`MAX_ACROSS`), each
+ * plate still naming what it is from its 260 px track.
+ */
+export const WALL_COLUMNS = 4;
+
+/**
+ * The automatic layout one column per place, for a panel on a wall (`layout: wall`, spec/deploy.md → The wall layout):
+ * the shared bands and places (`wallPlaces`), four places across (`WALL_COLUMNS`), wrapping in area-name order into
+ * further rows, and the modules with no area, the house's own, the last column of the first. Each column leads with
+ * its whole modules and takes its 64 px rows under them, each kind in its band's order: what is read whole (a door,
+ * a camera, a sock, the weather, a room's air), what is pressed a row (`wallFootprint`). A `footprint` the YAML sets
+ * holds for every module instead. A row that mixes footprints stacks them by column (`stacks`, as the reader marks a
+ * row it reads); one of a single footprint is a grid anchored column by column with `flow: dense`, so every column
+ * starts at the top. The house's `energy` is its own row, last, under Energy, as `areaRows` has it; the weather and
+ * the sun join the area named `outside`, saying so. Fewer than two places: the whole modules, then the rows, each a
+ * row of its own.
+ */
+export function areaColumns(modules: readonly ModuleConfig[], energy: readonly ModuleConfig[] = [], { outside, footprint }: { outside?: string; footprint?: FieldFootprint } = {}): FieldRow[] {
+  const sized = (item: ModuleConfig): ModuleConfig => (footprint ? item : { ...item, footprint: wallFootprint(item.kind) });
+  const own = (item: ModuleConfig) => item.footprint ?? footprint ?? "standard";
+  // Whole modules first, then the rows, each in band order: a stable sort keeps it.
+  const stack = (items: readonly ModuleConfig[]) => items.map(sized).sort((a, b) => Number(own(a) === "compact") - Number(own(b) === "compact"));
+  const { places, house } = wallPlaces(modules, { card: (item) => item.kind, area: (item) => item.area, outside });
+  const row = (cards: FieldRow["cards"], columns?: number): FieldRow => {
+    const mixed = new Set(cards.map((entry) => own(entry.item))).size > 1;
+    return { ...(columns && { columns }), flow: mixed || !columns ? "normal" : "dense", align: "top", cards, ...(mixed && { stacks: true }) };
+  };
+  const rows: FieldRow[] = places.length
+    ? placeColumns(places.map((place) => stack(place.items).map((item) => (item.area ? item : { ...item, area: place.area }))), WALL_COLUMNS, stack(house))
+      .map((band) => row(band.cards.map(({ card, column }) => ({ item: card, width: 1, column })), band.columns))
+    : (["standard", "compact"] as const).flatMap((size) => {
+      const cards = stack(house).filter((item) => own(item) === size).map((item) => ({ item, width: 1 as const }));
+      return cards.length ? [row(cards)] : [];
+    });
+  if (energy.length) rows.push({ title: ENERGY, flow: "normal", align: "top", cards: energy.map((item) => ({ item, width: 1 })) });
   return rows;
 }

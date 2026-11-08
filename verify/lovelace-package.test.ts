@@ -180,8 +180,10 @@ describe("@dashhaus/core/lovelace", () => {
 
   it("exposes exactly the layout's public words", () => {
     expect(Object.keys(layout).sort()).toEqual([
+      "AUTO_LAYOUTS",
       "NUMERIC_CLASSES",
       "SAFETY_CLASSES",
+      "WALL_BANDS",
       "areaId",
       "areaName",
       "byName",
@@ -193,14 +195,20 @@ describe("@dashhaus/core/lovelace", () => {
       "friendlyName",
       "groupByArea",
       "numericSensors",
+      "outsideArea",
+      "placeColumns",
       "placeRow",
       "placeSection",
+      "readAutoLayout",
       "roomSensors",
       "safetySensors",
       "sortByName",
       "spanWidth",
       "trackCount",
       "visibleEntities",
+      "wallBand",
+      "wallFootprint",
+      "wallPlaces",
     ]);
   });
 

@@ -30,6 +30,10 @@
 .dash-place { min-width: 0; }
 .dash-row[data-tracks="1"] > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
 .dash-row[data-tracks="1"]:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }
+/* A row of places (a wall): each column its place's heading over its own stack of the same 60 px units, placed where
+   the row's layout put it. The columns sit further apart than cards do, so a place reads as one. */
+.dash-row--places { grid-auto-rows: auto; column-gap: 16px; }
+.dash-col { min-width: 0; }
 
 /* At the narrow phone boundary, identity wins over columns: footprints stay fixed while rows reflow. */
 @container dash (max-width: 319px) {

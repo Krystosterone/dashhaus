@@ -13,7 +13,7 @@ describe("Field's dashboard strategy", () => {
 
   it("emits cards Field's own Lovelace card accepts", () => {
     customElements.define("strategy-test-field", createFieldCard(""));
-    for (const config of [{ type: "custom:field-dashboard" }, { type: "custom:field-dashboard", title: "Flat", ...{ viewing: "far", finish: "black" } }]) {
+    for (const config of [{ type: "custom:field-dashboard" }, { type: "custom:field-dashboard", title: "Flat", ...{ viewing: "far", finish: "black" } }, { type: "custom:field-dashboard", layout: "wall", viewing: "far" }]) {
       const [card] = generateSkinDashboard(FIELD_STRATEGY, config).views[0].cards;
       expect(generateSkinView(FIELD_STRATEGY, config).cards[0]).toEqual(card);
       const element = document.createElement("strategy-test-field") as HTMLElement & { setConfig(raw: unknown): void };
