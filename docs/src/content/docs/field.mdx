@@ -16,6 +16,7 @@ hero:
 import Example from "../../components/Example.astro";
 import LiveStory from "../../components/LiveStory.astro";
 import Install from "../../components/home/Install.astro";
+import Kinds from "../../components/home/Kinds.astro";
 import Foot from "../../components/skin/Foot.astro";
 
 <Install skin="field" />
@@ -31,12 +32,10 @@ changes. The tablet below is live, on a demo house.
 
 <LiveStory id="field-dashboards-examples--tablet" title="Field on a tablet in landscape: the living room across the top, then the nursery, entrance and outside" device="Tablet" width={1180} height={820} light="finish:alloy" dark="finish:black" />
 
-## What it draws
-
-Lights, climate, covers, switches and `input_boolean` modes, sensors, the weather, alarm panels, locks, humidifiers,
-fans, sound machines, Owlet socks and guest Wi-Fi. An entity without a card isn't drawn. Every card in every state is
-in [Storybook](/dashhaus/storybook/), and [Warnings and alarms](/dashhaus/start/warnings/) shows how Field tells you
-something is wrong.
+<Kinds skin="field">
+  An entity without a card isn't drawn. [Warnings and alarms](/dashhaus/start/warnings/) shows how Field tells you
+  something is wrong.
+</Kinds>
 
 ## Settings
 

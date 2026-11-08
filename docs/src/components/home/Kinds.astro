@@ -7,16 +7,39 @@
  * through, so a full-width picture per kind doesn't make the page a screen per kind. The rows name no hook and link to
  * no reference: the developer's way in is its own (spec/journeys.md). The kinds, and each one's line, come from the
  * entity pages' `kind` frontmatter (`src/lib/kinds.ts`); the pictures from `npm run screenshots -w docs`.
+ *
+ * A skin's landing page draws the same list for that skin alone (`skin`): the kinds it draws, each picture its card
+ * on its own in an 8:5 band, and the way on is that skin's cards in Storybook rather than both dashboards live. What it
+ * passes as children (a line on how it warns) goes under the list.
  */
 import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
 import { kinds } from "../../lib/kinds";
+import { skin as skinNamed } from "../../lib/skins";
+import type { SiteSkin } from "../../lib/skins";
+import { story, storybookUrl, storyId } from "../../lib/stories";
 
+interface Props {
+  /** One skin's landing page, by its id; the home page leaves it out and shows both. */
+  skin?: SiteSkin["skin"];
+}
+
+const { skin } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const pictures = import.meta.glob<{ default: ImageMetadata }>("../../assets/kinds/*.webp", { eager: true });
-const picture = (kind: string, look: "light" | "dark") => pictures[`../../assets/kinds/${kind}-${look}.webp`].default;
+const picture = (kind: string, look: "light" | "dark") => {
+  const file = `../../assets/kinds/${kind}${skin ? `-${skin}` : ""}-${look}.webp`;
+  if (!pictures[file]) throw new Error(`Kinds: no ${file}; run npm run screenshots -w docs`);
+  return pictures[file].default;
+};
 
-const all = await kinds();
+/** On a skin's page, only the kinds it has a card for: Orb's tile, Field's module. */
+const all = (await kinds()).filter((kind) => !skin || (skin === "orb" ? kind.tile : kind.module));
+/** Where a skin's page leads instead: its first card's All states, with every card of the skin beside it. */
+const cards = skin && {
+  name: skinNamed(skin).name,
+  href: `${storybookUrl()}?path=/story/${story(storyId(`${skinNamed(skin).name}/Cards/${all[0].name[0].toUpperCase()}${all[0].name.slice(1)}`, "AllStates"))}`,
+};
 const GROUPS = [
   { id: "controls", name: "Controls", kinds: all.filter((kind) => !kind.reading) },
   { id: "readings", name: "Readings", kinds: all.filter((kind) => kind.reading) },
@@ -30,7 +53,7 @@ const PICTURE = "(max-width: 50rem) 1px, min(40vw, 33rem)";
 const WIDTHS = [480, 800, 1200, 1600];
 ---
 
-<section class="kinds not-content" aria-labelledby="what-it-draws" data-kinds>
+<section class="kinds not-content" aria-labelledby="what-it-draws" data-kinds data-skin={skin}>
   <div class="picture" aria-hidden="true">
     {
       KINDS.map(({ kind }, index) => (
@@ -62,8 +85,9 @@ const WIDTHS = [480, 800, 1200, 1600];
         </>
       ))
     }
-    <a class="more" href={`${base}/skins/`}>
-      Try both dashboards live, on a phone and a tablet
+    {Astro.slots.has("default") && <div class="note"><slot /></div>}
+    <a class="more" href={cards ? cards.href : `${base}/skins/`}>
+      {cards ? `Every ${cards.name} card in every state, in Storybook` : "Try both dashboards live, on a phone and a tablet"}
       <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
         <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
@@ -74,6 +98,8 @@ const WIDTHS = [480, 800, 1200, 1600];
 <style>
   .kinds {
     --pad: clamp(1rem, 4vw, 3rem);
+    /* Orb's tile over Field's module; on a skin's page, its card alone. */
+    --shape: 4 / 5;
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     gap: clamp(2rem, 6vw, 7rem);
@@ -87,9 +113,15 @@ const WIDTHS = [480, 800, 1200, 1600];
     top: calc(var(--sl-nav-height) + 8vh);
     display: grid;
     align-self: start;
-    aspect-ratio: 4 / 5;
+    aspect-ratio: var(--shape);
     border-radius: 1.5rem;
     overflow: hidden;
+  }
+
+  /* Under its own sections rather than the hero: as far from the one above as they are from each other. */
+  .kinds[data-skin] {
+    --shape: 8 / 5;
+    margin-top: 3rem;
   }
 
   .frame {
@@ -176,6 +208,18 @@ const WIDTHS = [480, 800, 1200, 1600];
     text-underline-offset: 6px;
   }
 
+  .note :global(p) {
+    max-width: 44ch;
+    margin: 1.5rem 0 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+
+  .note :global(a) {
+    color: var(--sl-color-white);
+  }
+
   .more {
     display: inline-flex;
     align-items: center;
@@ -248,7 +292,7 @@ const WIDTHS = [480, 800, 1200, 1600];
     .thumb {
       position: relative;
       display: block;
-      aspect-ratio: 4 / 5;
+      aspect-ratio: var(--shape);
       margin-bottom: 0.875rem;
       border-radius: 1rem;
       overflow: hidden;

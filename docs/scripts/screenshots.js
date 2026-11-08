@@ -9,7 +9,9 @@
  *   its place where the story can't run; each skin's Marketplace README opens on the tablet's and carries the wall
  *   panel's below it.
  * - `src/assets/kinds/<kind>-<look>.webp`: one card of each kind of entity, Orb's tile over Field's module, at four
- *   times its 400 × 500 band, for the home page's list of what the skins draw.
+ *   times its 400 × 500 band, for the home page's list of what the skins draw; and each half on its own,
+ *   `src/assets/kinds/<kind>-<skin>-<look>.webp` at four times its 400 × 250 band, for the same list on that skin's
+ *   landing page.
  * - `src/assets/layout/composition-<device>-<look>.webp`: the Orb Lovelace card's Composition stories on a tablet and a
  *   phone, the same YAML at two widths, at three times the page's width, for the YAML page's account of how a row
  *   collapses.
@@ -154,9 +156,12 @@ try {
   for (const [kind, [orb, field]] of Object.entries(KINDS)) {
     for (const look of ["light", "dark"]) {
       const halves = [];
-      for (const [id, globals] of [[orb, LOOKS.orb[look]], [field, LOOKS.field[look]]]) {
-        await open(id, globals);
-        halves.push(await capture(W, H / 2));
+      for (const [skin, id] of [["orb", orb], ["field", field]]) {
+        await open(id, LOOKS[skin][look]);
+        const half = await capture(W, H / 2);
+        halves.push(half);
+        await sharp(half).webp({ quality: 82 }).toFile(join(assets, "kinds", `${kind}-${skin}-${look}.webp`));
+        console.log(`wrote kinds/${kind}-${skin}-${look}.webp`);
       }
       await sharp({ create: { width: W * DRAWN, height: H * DRAWN, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } } })
         .composite([{ input: halves[0], left: 0, top: 0 }, { input: halves[1], left: 0, top: (H / 2) * DRAWN }])
