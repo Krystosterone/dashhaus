@@ -82,6 +82,15 @@ export const MEDIA_PLAYER_SEEDS = {
     },
     past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
+  /** A TV over CEC, on: it steps its volume and mutes, but reports no level, so its details step it rather than set it. */
+  steps: {
+    entity: {
+      entityId: "media_player.living_room_tv", name: "Living room TV", area: "Living room", state: "on",
+      supportsTurnOn: true, supportsTurnOff: true, supportsVolumeStep: true, supportsMute: true, muted: false, supportsSource: true,
+      sources: ["HDMI 1", "HDMI 2", "Live TV"], source: "HDMI 2", lastChanged: "10:48",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  },
   /** Asleep: a press turns it on. */
   standby: {
     entity: { entityId: "media_player.bedroom_tv", name: "Bedroom TV", area: "Bedroom", state: "standby", supportsTurnOn: true, supportsTurnOff: true, lastChanged: "07:15" },
@@ -116,8 +125,9 @@ export type MediaPlayerSeedName = keyof typeof MEDIA_PLAYER_SEEDS;
 
 /*
  * Worst-case data: values real Home Assistant installs produce. Long everything on an hour-long track with art that
- * isn't square; a stream in another language with no duration and no artwork; a one-letter player that says nothing
- * and supports nothing, playing; a player with every feature off, paused; a TV whose source list runs long; an
+ * isn't square; a seekable track as long as a clock goes (9:59:59); a stream in another language with no duration and no
+ * artwork; a one-letter player that says nothing and supports nothing, playing; a player with every feature off,
+ * paused; a receiver zone that only steps its volume, muted with no level; a TV whose source list runs long; an
  * integration's own long state; and a long name gone and never seen. Every skin's Worst case story draws these.
  */
 export const MEDIA_PLAYER_WORST_CASE: MediaPlayerSeed[] = [
@@ -146,6 +156,13 @@ export const MEDIA_PLAYER_WORST_CASE: MediaPlayerSeed[] = [
       title: "Die Moldau", artist: "Wiener Philharmoniker", duration: 754, position: 754, volume: 70, lastChanged: "Mon 06:12",
     },
     past: [0, 0, 0, 0, 0, 0, 1, 0.2, 0, 0, 0],
+  },
+  { // Steps its volume with no level reported, muted, playing: `Muted` beside its steps, never an invented figure
+    entity: {
+      entityId: "media_player.receiver_zone_2", name: "Receiver zone 2 – patio and outdoor kitchen", area: "Patio", state: "playing",
+      supportsPlay: true, supportsPause: true, supportsVolumeStep: true, supportsMute: true, muted: true, title: "Radio Paradise", lastChanged: "09:12",
+    },
+    past: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
   },
   { // A receiver with a long list of inputs, idle
     entity: {
@@ -214,6 +231,9 @@ export function useDemoMediaPlayer(seed: MediaPlayerSeed) {
     onTurnOn: () => change((e) => e.supportsTurnOn, go("idle")),
     onTurnOff: () => change((e) => e.supportsTurnOff, go("off")),
     onVolumeChange: (volume: number) => change((e) => e.supportsVolume, (e) => ({ ...e, volume: Math.round(Math.min(100, Math.max(0, volume))) })),
+    /** One volume step, ten points where a level is reported; with none, it steps and nothing it reports changes. */
+    onVolumeUp: () => change((e) => e.supportsVolumeStep || e.supportsVolume, (e) => (e.volume == null ? e : { ...e, volume: Math.min(100, e.volume + 10) })),
+    onVolumeDown: () => change((e) => e.supportsVolumeStep || e.supportsVolume, (e) => (e.volume == null ? e : { ...e, volume: Math.max(0, e.volume - 10) })),
     /** Seeks where it plays something with a length, its clock running on from there; answers whether it took it. */
     onSeek: async (seconds: number) => {
       const takes = (e: MediaPlayerEntity) => e.supportsSeek && e.duration != null && e.position != null && Number.isFinite(seconds);

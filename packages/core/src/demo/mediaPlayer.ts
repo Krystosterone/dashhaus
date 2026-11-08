@@ -36,7 +36,8 @@ const initial: HassEntities = {
   "media_player.living_room_tv": {
     entity_id: "media_player.living_room_tv",
     state: "off",
-    attributes: { friendly_name: "Living room TV", source_list: ["HDMI 1", "HDMI 2", "Live TV", "Netflix"], supported_features: 4 | 8 | 128 | 256 | 2048 },
+    // A TV over CEC: its volume steps (1024) and mutes, but it reports no level and can't set one.
+    attributes: { friendly_name: "Living room TV", source_list: ["HDMI 1", "HDMI 2", "Live TV", "Netflix"], supported_features: 8 | 128 | 256 | 1024 | 2048 },
     last_changed: stamp,
     last_updated: stamp,
   },
@@ -72,6 +73,15 @@ export function mediaPlayerServices(): DemoServices {
     const position = positionNow(entity, now);
     return { state, attributes: position == null ? {} : { media_position: position, media_position_updated_at: new Date(now).toISOString() } };
   };
+  /** One volume step, the default 10 points, where a level is reported; with none, it steps and reports nothing new. */
+  const stepVolume = (entity: HassEntity, by: number): DemoChange => {
+    live(entity.state);
+    // Home Assistant registers volume_up and volume_down for a player that steps its volume or sets it.
+    if ((Number(entity.attributes.supported_features) & (1024 | 4)) === 0) throw new Error("Demo media player doesn't step its volume");
+    const level = Number(entity.attributes.volume_level);
+    if (entity.attributes.volume_level == null || !Number.isFinite(level)) return { attributes: {} };
+    return { attributes: { volume_level: Math.round(Math.min(1, Math.max(0, level + by)) * 100) / 100 } };
+  };
   const skip = (entity: HassEntity, by: number): DemoChange => {
     const index = TRACKS.findIndex((t) => t.media_title === entity.attributes.media_title);
     const next = (index + by + TRACKS.length) % TRACKS.length;
@@ -101,7 +111,9 @@ export function mediaPlayerServices(): DemoServices {
     "media_player.turn_on": ({ entity }) => {
       live(entity.state);
       supports(entity.attributes.supported_features, 128, "turn on");
-      return { state: "idle", attributes: { volume_level: entity.attributes.volume_level ?? 0.2, is_volume_muted: false, source: entity.attributes.source ?? (entity.attributes.source_list as string[] | undefined)?.[0] } };
+      // A player that can set its volume reports one; one that only steps it reports none.
+      const level = (Number(entity.attributes.supported_features) & 4) === 0 ? undefined : entity.attributes.volume_level ?? 0.2;
+      return { state: "idle", attributes: { volume_level: level, is_volume_muted: false, source: entity.attributes.source ?? (entity.attributes.source_list as string[] | undefined)?.[0] } };
     },
     "media_player.turn_off": ({ entity }) => {
       live(entity.state);
@@ -123,6 +135,8 @@ export function mediaPlayerServices(): DemoServices {
       if (!Number.isFinite(level) || level < 0 || level > 1) throw new Error("volume_level must be 0 to 1");
       return { attributes: { volume_level: level } };
     },
+    "media_player.volume_up": ({ entity }) => stepVolume(entity, 0.1),
+    "media_player.volume_down": ({ entity }) => stepVolume(entity, -0.1),
     "media_player.volume_mute": ({ entity, data }) => {
       live(entity.state);
       supports(entity.attributes.supported_features, 8, "mute");

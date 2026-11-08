@@ -65,6 +65,8 @@ export interface MediaPlayerEntity {
   supportsSeek?: boolean;
   /** Its volume can be set (`VOLUME_SET`). */
   supportsVolume?: boolean;
+  /** Its volume steps up and down (`VOLUME_STEP`), often with no level reported (an IR or CEC TV, a receiver's zone). */
+  supportsVolumeStep?: boolean;
   /** It mutes (`VOLUME_MUTE`). */
   supportsMute?: boolean;
   /** It picks a source (`SELECT_SOURCE`) and lists at least one. */

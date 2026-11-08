@@ -97,6 +97,7 @@ export function mediaPlayerFromHass(raw: HassEntity | undefined, entityId: strin
     supportsNext: has(MEDIA_PLAYER_FEATURES.NEXT_TRACK),
     supportsSeek: has(MEDIA_PLAYER_FEATURES.SEEK),
     supportsVolume: has(MEDIA_PLAYER_FEATURES.VOLUME_SET),
+    supportsVolumeStep: has(MEDIA_PLAYER_FEATURES.VOLUME_STEP),
     supportsMute: has(MEDIA_PLAYER_FEATURES.VOLUME_MUTE),
     supportsSource: has(MEDIA_PLAYER_FEATURES.SELECT_SOURCE) && sources.length > 0,
     supportsTurnOn: has(MEDIA_PLAYER_FEATURES.TURN_ON),

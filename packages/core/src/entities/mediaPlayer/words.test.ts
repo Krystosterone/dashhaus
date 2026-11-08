@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeReason, volumeWord } from "./words";
+import { VOLUME_STEP_WORDS, artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue, volumeWord } from "./words";
 import { volumeText } from "../volume";
 
 const ALL = { supportsPlay: true, supportsPause: true, supportsTurnOn: true };
@@ -85,9 +85,36 @@ describe("media player words", () => {
     expect(mediaAbilities({ supportsNext: true, supportsVolume: true, supportsMute: true, supportsSource: true, sources: ["a", "b", "c", "d"] })).toBe("Skip, volume, mute, 4 sources");
     expect(mediaAbilities({ supportsNext: true, supportsSeek: true, supportsVolume: true })).toBe("Skip, seek, volume");
     expect(mediaAbilities({ supportsSeek: true })).toBe("Seek");
+    expect(mediaAbilities({ supportsVolumeStep: true, supportsMute: true })).toBe("Volume steps, mute");
+    expect(mediaAbilities({ supportsVolume: true, supportsVolumeStep: true })).toBe("Volume");
     expect(mediaAbilities({ supportsSource: true, sources: ["TV"] })).toBe("1 source");
     expect(mediaAbilities({ supportsPlay: true })).toBe("Play and pause");
     expect(mediaAbilities({ supportsTurnOff: true })).toBe("On and off");
     expect(mediaAbilities({})).toBe("View only");
+  });
+});
+
+describe("volume steps", () => {
+  const tv = { state: "on" as const, supportsVolumeStep: true };
+
+  it("step a player that can't set its volume, or reports no level", () => {
+    expect(volumeBySteps(tv)).toBe(true);
+    expect(volumeBySteps({ ...tv, supportsVolume: true })).toBe(true);
+    expect(volumeBySteps({ ...tv, supportsVolume: true, volume: 40 })).toBe(false);
+    expect(volumeBySteps({ supportsVolume: true })).toBe(false);
+    expect(volumeBySteps({})).toBe(false);
+  });
+
+  it("say the level with why it doesn't sound, Muted with no level, and never invent one", () => {
+    expect(volumeStepValue({ state: "playing", volume: 45 })).toBe("45%");
+    expect(volumeStepValue({ state: "playing", volume: 45, muted: true })).toBe("Muted · 45%");
+    expect(volumeStepValue({ state: "paused", volume: 30 })).toBe("Paused · 30%");
+    expect(volumeStepValue({ state: "on", muted: true })).toBe("Muted");
+    expect(volumeStepValue({ state: "on" })).toBeUndefined();
+  });
+
+  it("are said in full", () => {
+    expect(VOLUME_STEP_WORDS).toEqual({ down: "Down", up: "Up" });
+    expect(volumeStepSaid("Living room TV", "down")).toBe("Living room TV: volume down");
   });
 });

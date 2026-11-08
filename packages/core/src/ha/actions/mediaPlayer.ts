@@ -27,6 +27,13 @@ export interface MediaPlayerHandlers {
    * without `SEEK` reports `unsupported`; seconds that aren't a number, `invalid_input`; both answer `false`.
    */
   onSeek: (seconds: number) => Promise<boolean>;
+  /**
+   * Calls `media_player.volume_up`: one step, as the player's own (Home Assistant registers it for `VOLUME_STEP` or
+   * `VOLUME_SET`). A player with neither reports `unsupported`. It never unmutes or turns the player on.
+   */
+  onVolumeUp: () => void;
+  /** Calls `media_player.volume_down`, as `onVolumeUp` does. */
+  onVolumeDown: () => void;
   /** Calls `media_player.volume_mute`. A player without `VOLUME_MUTE` reports `unsupported`. */
   onMuteChange: (muted: boolean) => void;
   /**
@@ -46,6 +53,8 @@ export const MEDIA_PLAYER_ACTIONS = {
   onTurnOff: { takes: "nothing" },
   onVolumeChange: { takes: "level", field: "volume" },
   onSeek: { takes: "level", field: "position", min: 0, max: "duration", runs: true },
+  onVolumeUp: { takes: "nothing" },
+  onVolumeDown: { takes: "nothing" },
   onMuteChange: { takes: "switch", field: "muted" },
   onSourceChange: { takes: "choice", field: "source", options: "sources" },
 } as const satisfies ActionKinds<MediaPlayerHandlers, MediaPlayerEntity>;
@@ -106,6 +115,12 @@ export function createMediaPlayerHandlers(caller: Pick<HaStore, "callService">, 
       const error = await attempt("media_seek", { seek_position: Math.min(end, Math.max(0, seconds)) });
       if (error) report(error);
       return !error;
+    },
+    onVolumeUp: () => {
+      if (can(entity.supportsVolumeStep || entity.supportsVolume, "volume steps")) run("volume_up");
+    },
+    onVolumeDown: () => {
+      if (can(entity.supportsVolumeStep || entity.supportsVolume, "volume steps")) run("volume_down");
     },
     onMuteChange: (muted) => {
       if (can(entity.supportsMute, "mute")) run("volume_mute", { is_volume_muted: muted });

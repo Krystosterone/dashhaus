@@ -5,7 +5,7 @@ import { onHourCycle } from "@dashhaus/core/seeds/clock";
 import { HourCycleProvider } from "@dashhaus/core/hooks";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["playing", "paused", "buffering", "muted", "stream", "idle", "on", "standby", "off", "other", "unavailable", "long"] as const;
+const SEEDS = ["playing", "paused", "buffering", "muted", "stream", "idle", "on", "steps", "standby", "off", "other", "unavailable", "long"] as const;
 
 const meta = {
   title: "Orb/Cards/MediaPlayer",
@@ -141,6 +141,11 @@ export const Compact: Story = {
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
 /** A player that doesn't seek: how far in stays a readout beside the artwork. */
 export const DetailsNoSeek: Story = { name: "Details, no seek", args: { seed: "muted", defaultOpen: true } };
+/**
+ * A TV that steps its volume and reports no level: Down and Up under the Volume heading, each one step, never a groove
+ * that would claim a level; the heading says Muted while muted, a level where one is reported, else nothing.
+ */
+export const DetailsVolumeSteps: Story = { name: "Details, volume steps", args: { seed: "steps", defaultOpen: true } };
 /** A TV's details: nothing playing, its sources, and turning it off. */
 export const DetailsSources: Story = { name: "Details, sources", args: { seed: "on", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };

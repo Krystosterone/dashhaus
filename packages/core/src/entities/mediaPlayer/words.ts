@@ -103,6 +103,29 @@ export function volumeReason(e: Pick<MediaPlayerEntity, "state" | "stateText" | 
   return isActive(e) ? undefined : mediaPlayerWord(e);
 }
 
+/**
+ * It steps its volume rather than sets it, in its details: it declares `VOLUME_STEP`, and no volume can be set along a
+ * groove or a fader (no `VOLUME_SET`, or no level reported). A skin draws its steps where it draws the groove or fader.
+ */
+export const volumeBySteps = (e: Pick<MediaPlayerEntity, "supportsVolumeStep" | "supportsVolume" | "volume">) =>
+  !!e.supportsVolumeStep && !(e.supportsVolume && e.volume != null);
+
+/** Its volume steps' pills and keys, in words: "Down", "Up". */
+export const VOLUME_STEP_WORDS = { down: "Down", up: "Up" } as const;
+
+/** A volume step said in full for a screen reader: "Living room TV: volume down". */
+export const volumeStepSaid = (name: string, which: keyof typeof VOLUME_STEP_WORDS) => `${name}: volume ${which}`;
+
+/**
+ * What its volume steps say beside their heading: the level with why it doesn't sound where one is reported (`45%`,
+ * `Muted · 45%`, `Paused · 30%`); with none, `Muted` while muted, else nothing, never an invented figure.
+ */
+export function volumeStepValue(e: Pick<MediaPlayerEntity, "state" | "stateText" | "muted" | "volume">): string | undefined {
+  const reason = volumeReason(e);
+  if (e.volume == null) return loaded(e) && e.muted ? MUTED : undefined;
+  return reason ? `${reason} · ${e.volume}%` : `${e.volume}%`;
+}
+
 /** Its skip keys and pills, in words: "Previous", "Next". */
 export const SKIP_WORDS = { previous: "Previous", next: "Next" } as const;
 
@@ -122,11 +145,11 @@ export const POSITION = "Position";
  * What it can do, for the end of its details' small print: "Skip, seek, volume, mute, 4 sources"; "Play and pause"
  * alone; "View only" with nothing to press.
  */
-export function mediaAbilities(e: Pick<MediaPlayerEntity, "supportsPlay" | "supportsPause" | "supportsPrevious" | "supportsNext" | "supportsSeek" | "supportsVolume" | "supportsMute" | "supportsSource" | "sources" | "supportsTurnOn" | "supportsTurnOff">): string {
+export function mediaAbilities(e: Pick<MediaPlayerEntity, "supportsPlay" | "supportsPause" | "supportsPrevious" | "supportsNext" | "supportsSeek" | "supportsVolume" | "supportsVolumeStep" | "supportsMute" | "supportsSource" | "sources" | "supportsTurnOn" | "supportsTurnOff">): string {
   const parts = [
     (e.supportsPrevious || e.supportsNext) && "skip",
     e.supportsSeek && "seek",
-    e.supportsVolume && "volume",
+    e.supportsVolume ? "volume" : e.supportsVolumeStep && "volume steps",
     e.supportsMute && "mute",
     e.supportsSource && e.sources?.length && (e.sources.length === 1 ? "1 source" : `${e.sources.length} sources`),
   ].filter((p): p is string => !!p);
