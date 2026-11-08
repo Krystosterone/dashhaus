@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DemoCoverTile as DemoTile } from "./demo/DemoCoverTile";
 import { COVER_WORST_CASE } from "@dashhaus/core/seeds/cover";
 
+/** The worst case's door with the longest name and area, for the question at its widest. */
+const LONG_DOOR = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!;
+
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const COVERS = ["curtains", "blind", "shade", "moving", "garage", "gate", "unknown", "unavailable"] as const;
 
@@ -16,7 +19,8 @@ const meta = {
           "Curtains, blinds, shades and garage doors (Home Assistant covers; position 0 is closed, 100 open). The slot is the window: " +
           "the groove is the fabric, the accent is the daylight let through. Curtains close in from both ends; drag away from the middle to pull them apart. " +
           "Blinds and shades cover from one side. Covers without a position get Close and Open buttons at the ends of a groove. " +
-          "The orb opens or closes, and becomes Stop while the cover moves. A garage door left open shows as a warning. Same sizes and heights as every card.",
+          "The orb opens or closes, and becomes Stop while the cover moves. A garage door, door or gate never moves on one tap: the orb or either end of its groove " +
+          "opens the sheet on the question, Stop is one tap, and its position is shown, not set. A garage door left open shows as a warning. Same sizes and heights as every card.",
       },
     },
   },
@@ -26,9 +30,10 @@ const meta = {
     footprint: { control: "inline-radio", options: ["compact", "standard", "featured"] },
     showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
+    defaultAction: { control: "inline-radio", options: ["open", "close"], description: "With defaultOpen: open the sheet on this action's question (a garage door, door or gate)" },
   },
   args: { cover: "curtains", width: SIZES.M, footprint: "standard" },
-  render: (args) => <DemoTile key={`${args.cover}-${args.defaultOpen}`} {...args} />,
+  render: (args) => <DemoTile key={`${typeof args.cover === "string" ? args.cover : args.cover.entity.entityId}-${args.defaultOpen}-${args.defaultAction}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
 export default meta;
@@ -38,6 +43,7 @@ export const Curtains: Story = {};
 export const BlindWithTilt: Story = { name: "Blind with tilt", args: { cover: "blind" } };
 export const ShadeClosed: Story = { name: "Shade, closed", args: { cover: "shade" } };
 export const Moving: Story = { name: "Moving", args: { cover: "moving" } };
+/** A garage door left open: the warning leads the status line, and the orb and either end of the groove ask first. */
 export const GarageDoor: Story = { name: "Garage door, left open", args: { cover: "garage" } };
 /**
  * Unknown: an RF blind Home Assistant drives on an assumed state, so it never says where it is. Not unavailable, so
@@ -102,6 +108,12 @@ export const Compact: Story = {
 };
 
 export const Details: Story = { name: "Details", args: { cover: "blind", defaultOpen: true } };
+/**
+ * A tap on a garage door, door or gate opens the sheet on its question: the worst case's longest name, its yes naming
+ * what it moves. While it stands the groove lies flat, so one Close shows. A door with a position has no bar and no
+ * quick positions: its position is shown, not set.
+ */
+export const DetailsClose: Story = { name: "Details, close", args: { cover: LONG_DOOR, defaultOpen: true, defaultAction: "close" } };
 /** An unknown cover's sheet: Unknown in the readout and the slot, and Close and Open both act. */
 export const DetailsUnknown: Story = { name: "Details, unknown", args: { cover: "unknown", defaultOpen: true } };
 /** Unavailable: what the details still say when Home Assistant can't reach the entity. */
