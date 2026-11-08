@@ -44,5 +44,5 @@ The spec wording is `spec/orb.md` → Dashboards → "Composing for a glance"; t
 
 - `npm run typecheck`; `src/skins/orb/styles/rules.test.ts` pins `layout.css`'s selectors and values.
 - `npm run test-storybook`: its glow census (`.storybook/glow-census.ts`) reads every glowing card's evaluated `--glow-damp` on stories with a one-column grid or a one-track row and holds it to the budget. jsdom can't evaluate the `:has` cascade, so a green unit run alone proves nothing about damping. Change `GLOW_BUDGET` there with `layout.css`.
-- Storybook: affected card's story at every width and footprint, Orb → Foundations → Attention (every case, and its greyscale twin), and Orb → Foundations → Worst case.
+- Storybook: affected card's story at every width and footprint, Orb → Foundations → Attention (every case, and its greyscale twin), Orb → Dashboards → Lovelace card → One-track row (the Lovelace row), and Orb → Foundations → Worst case.
 - Dashboard stories: exactly one card reads as the primary claim per screen, urgent states read urgent, and no state is communicated by glow alone. Skim the screen with colour ignored — does every state still read?

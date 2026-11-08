@@ -13,6 +13,7 @@ One word per thing, the same in code, Storybook and the docs, and one thing per 
 - **Module** — field's card: the plate with its key, screen and fader (a reading's glyph, screen and today), carrying its own detail panel (`<Name>Module`). It is to field what the tile is to orb; field's YAML lists them under `cards:`, as orb's does.
 - **Details** — what a card opens from its name or a press and hold: orb's sheet, field's panel. Stories say Details for both.
 - **Footprint** — a card's fixed height: `compact`, `standard`, `featured` in orb; `compact`, `standard` in field.
+- **Severity** — how much a card's warning may claim, ranked once in core (`Severity`: advisory, urgent, alarm); a card's severity is its **level** (`level`, written as `data-level` on Orb's card and Field's module). Urgent and alarm are **pressing**: they reach Field's alert line and yield Orb's glow. Not a **declared level**, the value a part sets (`takes: "level"`, `LevelBar`, `Fader`).
 - **Card code** — the two letters that prefix a card's CSS classes (`lw-`), and the `code` `useCard` takes.
 - **Bundle** — orb only: several cards drawn as one outer card (joined, lead, titled).
 - **Dashboard** — a page of cards and what frames them: `DashboardPage`, `Section`, `CardGrid`, `Columns`, `Cell`, the `Header` and the `NavBar`. The header and the nav bar are page furniture, not cards.
