@@ -60,7 +60,7 @@ function Cases() {
         <Light light="dimmable" />
         <Light light="coolDaylight" />
       </Section>
-      <Section title="A light above a problem" note="Position still leads">
+      <Section title="A light above a problem" note="Lamps yield ×1, for now">
         <Light light="dimmable" />
         <BinarySensor seed="leak" />
         <Light light="coolDaylight" />
