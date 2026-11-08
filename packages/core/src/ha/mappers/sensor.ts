@@ -65,6 +65,18 @@ function isHumiditySensor(raw: HassEntity | undefined) {
   return kind === "humidity" || (kind == null && (attributes?.unit_of_measurement === "%" || attributes?.native_unit_of_measurement === "%"));
 }
 
+/**
+ * Whether a sensor's attributes say it is a room reading, one this mapper draws: a temperature or humidity device
+ * class, or no device class with a temperature unit (°C, °F) or %. It reads what the entity declares, never its state,
+ * so the answer holds while the sensor is unavailable. A Lovelace card's bare `sensor.*` keeps the room sensor when
+ * this holds (`sensorCard`, `@dashhaus/core/lovelace`).
+ */
+export function isRoomReading(attributes: Record<string, unknown> | undefined): boolean {
+  const kind = stringValue(attributes?.device_class);
+  if (kind != null) return kind === "temperature" || kind === "humidity";
+  return [attributes?.unit_of_measurement, attributes?.native_unit_of_measurement].some((unit) => unit === "%" || temperatureUnit(unit) != null);
+}
+
 /** Map one temperature/humidity device from one primary sensor and optional companion sensors. */
 export function sensorFromHass(raw: HassEntity | undefined, entityId: string, options: SensorMapOptions = {}): SensorEntity {
   const attributes = attributesOf(raw) ?? {};

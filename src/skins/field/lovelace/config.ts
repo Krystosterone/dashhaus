@@ -47,6 +47,8 @@ export interface ModuleConfig {
   footprint?: FieldFootprint;
   /** False skips the Today history read. */
   history?: boolean;
+  /** Nothing chose its card but its domain (`CardShape.bare`): a bare `sensor.*` may draw the numeric module. */
+  bare?: true;
   /** A climate entity's or a sensor's temperatures in this unit, whatever Home Assistant's is. */
   unit?: "°C" | "°F";
   /** A sensor's companions on the same device, and whether it is outside (no comfort reading); a lock's or a binary sensor's battery. */

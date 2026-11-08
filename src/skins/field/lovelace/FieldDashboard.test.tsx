@@ -48,3 +48,27 @@ describe("FieldDashboard hour_cycle", () => {
     await waitFor(() => expect(document.querySelector(".fd-meta")?.textContent).toContain(said));
   });
 });
+
+describe("FieldDashboard bare sensors", () => {
+  const sensors = {
+    "sensor.office_co2": { entity_id: "sensor.office_co2", state: "812", attributes: { friendly_name: "Office air", device_class: "carbon_dioxide", unit_of_measurement: "ppm", state_class: "measurement" } },
+    "sensor.office_temperature": { entity_id: "sensor.office_temperature", state: "21.4", attributes: { friendly_name: "Office", device_class: "temperature", unit_of_measurement: "°C", state_class: "measurement" } },
+  } as HassEntities;
+  const drawn = (yaml: Record<string, unknown>) => {
+    const config = parseFieldConfig(yaml);
+    renderConnected(<FieldDashboard rows={config.rows ?? []} footprint={config.footprint} nav={false} />, sensors);
+  };
+  const moduleOf = (name: string) => screen.getByRole("heading", { name }).closest(".fd-module") as HTMLElement;
+
+  it("draws a bare CO₂ sensor as the numeric module, and a bare temperature as the room sensor", async () => {
+    drawn({ cards: ["sensor.office_co2", "sensor.office_temperature"] });
+    await waitFor(() => expect(moduleOf("Office air").classList.contains("fd-nm")).toBe(true));
+    expect(moduleOf("Office").classList.contains("fd-sw")).toBe(true);
+  });
+
+  it("keeps the room sensor where card: sensor says so, and numeric where card: numeric does", async () => {
+    drawn({ cards: [{ entity: "sensor.office_co2", card: "sensor" }, { entity: "sensor.office_temperature", card: "numeric" }] });
+    await waitFor(() => expect(moduleOf("Office air").classList.contains("fd-sw")).toBe(true));
+    expect(moduleOf("Office").classList.contains("fd-nm")).toBe(true);
+  });
+});

@@ -74,6 +74,20 @@ describe("parseFieldConfig: a module's keys", () => {
     ]);
   });
 
+  it("leaves a bare sensor's module to its attributes, and names the module a key belongs to", () => {
+    const modules = rowItems(parseFieldConfig({ cards: ["sensor.office_co2", { entity: "sensor.office", unit: "°F" }, { entity: "sensor.office_co2", card: "numeric" }, "sensor.crib_sleep_state"] }).rows ?? []);
+    expect(modules.map((module) => [module.kind, module.bare === true])).toEqual([
+      ["sensor", true],
+      ["sensor", false],
+      ["numeric", false],
+      ["owlet", false],
+    ]);
+    expect(problems({ cards: [{ entity: "sensor.office_co2", stale_after: 5 }, { entity: "sensor.office_co2", card: "sensor", stale_after: 5 }] })).toEqual([
+      'cards[0] (sensor.office_co2): "stale_after" is the owlet module\'s: add card: owlet',
+      'cards[1] (sensor.office_co2): unknown key "stale_after"',
+    ]);
+  });
+
   it("says why show_control and a bundle are the main card's", () => {
     expect(problems({ cards: [{ entity: "light.lamp", show_control: true }, { bundle: "joined", cards: ["light.a", "light.b"] }] })).toEqual([
       'cards[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',

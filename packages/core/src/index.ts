@@ -25,7 +25,7 @@ export { formatHaTime } from "./ha/time";
 export type { LightMapOptions } from "./ha/mappers/light";
 export { climateFromHass } from "./ha/mappers/climate";
 export type { ClimateMapOptions } from "./ha/mappers/climate";
-export { sensorFromHass } from "./ha/mappers/sensor";
+export { isRoomReading, sensorFromHass } from "./ha/mappers/sensor";
 export type { SensorMapOptions } from "./ha/mappers/sensor";
 export { weatherFromHass, forecastFromHass } from "./ha/mappers/weather";
 export type { WeatherMapOptions } from "./ha/mappers/weather";

@@ -104,6 +104,8 @@ interface CardBase {
   showControl?: boolean;
   /** False skips the Today history read. */
   history: boolean;
+  /** Nothing chose its card but its domain (`CardShape.bare`): a bare `sensor.*` may draw the numeric card. */
+  bare?: true;
 }
 
 export type CardConfig = CardBase & (

@@ -158,6 +158,16 @@ The entity's domain picks its card. Where two cards draw one domain, `card:` pic
 
 <KindList show="lovelace" />
 
+A `sensor.*` listed on its own, with no `card:` and none of the room sensor's keys (`humidity`, `battery`, `outdoor`,
+`unit`), takes its card from what the sensor says it measures. A room's temperature or humidity is the room sensor;
+anything else with a number, such as CO₂, power, energy or a battery, is the numeric card; a sensor that reports words
+stays the room sensor. Write `card: sensor` or `card: numeric` to choose yourself. A key that belongs to another card
+on the same domain says which one to pick:
+
+```text
+• cards[0] (sensor.office_co2): "stale_after" is the owlet card's: add card: owlet
+```
+
 An entity with no card is an error that says so, rather than an empty space.
 
 ## Keys

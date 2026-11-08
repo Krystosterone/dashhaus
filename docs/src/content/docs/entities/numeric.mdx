@@ -28,7 +28,10 @@ places at most: `650`, `21.4`, `0.42`, and beyond five, scaled (`123k`, `1.2M`),
 `withUnit` puts a symbol on the figure (`41%`) and a word after a space (`650 ppm`). A sensor Home Assistant can't reach
 is `unavailable`, and a state that isn't a number is no reading, never a made-up value.
 
-The `sensor` card stays the default for every `sensor.*`. On a dashboard, pick this one with `card: numeric`. A
+The `sensor` card stays the default for a room's temperature and humidity. On a dashboard, a `sensor.*` listed on its
+own draws this card when it says it measures something else: a device class such as CO₂ or power, a unit, or a state
+class. `card: numeric` picks it for any sensor, and `card: sensor` keeps the room sensor. Only what the sensor declares
+is read, never its value, so a sensor that goes offline keeps its card. A
 dashboard laid out for you uses it for the room's air quality only (CO₂, particles, VOC), one per device. Add power,
 energy and any other reading yourself, since every smart plug has them.
 

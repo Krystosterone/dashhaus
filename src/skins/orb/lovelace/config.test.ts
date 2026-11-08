@@ -35,6 +35,20 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
+  it("leaves a bare sensor's card to its attributes, and names the card a key belongs to", () => {
+    expect(items({ cards: ["sensor.office_co2", { entity: "sensor.office", humidity: "sensor.office_humidity" }, { entity: "sensor.office_co2", card: "numeric" }, "sensor.crib_sleep_state"] })!.map((card) => [card.kind, "bare" in card])).toEqual([
+      ["sensor", true],
+      ["sensor", false],
+      ["numeric", false],
+      ["owlet", false],
+    ]);
+    expect(items({ cards: ["light.a"] })![0]).not.toHaveProperty("bare");
+    expect(problems({ cards: [{ entity: "sensor.office_co2", stale_after: 5 }, { entity: "sensor.office_co2", card: "sensor", stale_after: 5 }] })).toEqual([
+      'cards[0] (sensor.office_co2): "stale_after" is the owlet card\'s: add card: owlet',
+      'cards[1] (sensor.office_co2): unknown key "stale_after"',
+    ]);
+  });
+
   it("draws plain cards as one row, with the page's columns", () => {
     const config = parseDashboardConfig({ columns: 2, cards: [{ entity: "climate.a", width: "full" }, "light.a", "cover.a"] });
     expect(config.rows).toMatchObject([{ title: undefined, columns: 2, flow: "normal", align: "top", cards: [

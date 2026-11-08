@@ -448,6 +448,12 @@ export const mapRowItems = <I>(rows: readonly RowConfig<I>[], fn: (item: I) => I
 export interface CardShape<K extends string = string> {
   entity: string;
   kind: K;
+  /**
+   * The domain's own kind drew it only because nothing chose another: no `card:`, no id pattern and none of its kind's
+   * own keys, on a domain another kind also draws. A skin may settle the choice as the card draws (a bare `sensor.*`
+   * draws the numeric card when its attributes say so, `sensorCard` in `@dashhaus/core/lovelace`), or ignore it.
+   */
+  bare?: true;
 }
 
 /** One card kind: its Home Assistant domains, the id pattern that picks it on a shared domain, and its own keys. */
@@ -564,12 +570,22 @@ export function readCard<K extends string, C extends CardShape<K>>(
     read.problem(at, `pick its ${schema.noun} with "card": one of ${available.join(", ")}`);
     return undefined;
   }
-  const allowed = [...schema.common, ...(schema.kinds[kind].keys ?? [])];
-  if (schema.checkKeys) schema.checkKeys(read, raw, at, allowed);
-  else read.keys(raw, at, allowed);
+  const own = schema.kinds[kind].keys ?? [];
+  const allowed = [...schema.common, ...own];
+  // A key another kind on this domain takes says which `card:` would take it, rather than "unknown key".
+  const others = raw.card != null ? [] : Object.keys(raw).flatMap((key) => {
+    if (allowed.includes(key)) return [];
+    const owner = available.find((candidate) => candidate !== kind && schema.kinds[candidate].keys?.includes(key));
+    return owner ? [{ key, owner }] : [];
+  });
+  for (const { key, owner } of others) read.problem(at, `"${key}" is the ${owner} ${schema.noun}'s: add card: ${owner}`);
+  const checked = [...allowed, ...others.map(({ key }) => key)];
+  if (schema.checkKeys) schema.checkKeys(read, raw, at, checked);
+  else read.keys(raw, at, checked);
   const base = schema.base(read, raw, at);
   const options = schema.kinds[kind].options?.(read, raw, at) ?? {};
-  return { ...base, entity, kind, ...options } as C;
+  const bare = raw.card == null && !schema.kinds[kind].id && available.length > 1 && !own.some((key) => key in raw);
+  return { ...base, entity, kind, ...options, ...(bare && { bare: true }) } as C;
 }
 
 /** Read a non-empty list of cards, each with its path. */

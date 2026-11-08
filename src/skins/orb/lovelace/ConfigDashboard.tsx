@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useRef } from "react";
 import type { ReactElement } from "react";
 import { DashboardPage } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
-import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout } from "@dashhaus/core/lovelace";
+import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout, useSensorCard } from "@dashhaus/core/lovelace";
 import type { PanelInfo } from "@dashhaus/core/lovelace";
 import { useDashboardNav } from "@dashhaus/core/lovelace";
 import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
@@ -53,12 +53,24 @@ function ConfiguredMediaPlayer({ card }: { card: Extract<CardConfig, { kind: "me
   return <HaMediaPlayerTile entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} quiet={quiet} />;
 }
 
+/**
+ * A bare `sensor.*` (no `card:`, no id pattern, no sensor key): the numeric card when its attributes say it measures
+ * something other than the room's temperature or humidity (`useSensorCard`), else its room sensor tile. Both are the
+ * same height at a footprint, so the choice never moves the row.
+ */
+function BareSensor({ card, sensor }: { card: Extract<CardConfig, { kind: "sensor" }>; sensor: ReactElement }) {
+  return useSensorCard(card.entity) === "numeric" ? TILES.numeric({ ...card, kind: "numeric" }) : sensor;
+}
+
 /** Each kind's connected tile: the shared renderer dispatch picks the card's row. */
 const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   light: (card, key) => <HaLightTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   climate: (card, key) => <HaClimateTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} />,
   cover: (card, key) => <HaCoverTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
-  sensor: (card, key) => <HaSensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} humidityEntityId={card.humidity} batteryEntityId={card.battery} outdoor={card.outdoor} unit={card.unit} />,
+  sensor: (card, key) => {
+    const sensor = <HaSensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} humidityEntityId={card.humidity} batteryEntityId={card.battery} outdoor={card.outdoor} unit={card.unit} />;
+    return card.bare ? <BareSensor key={key} card={card} sensor={sensor} /> : sensor;
+  },
   weather: (card, key) => <HaWeatherTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} aqiEntityId={card.aqi} aqiScale={card.aqiScale} sunEntityId={card.sun} loadForecasts={card.forecasts} />,
   toggle: (card, key) => <HaToggleTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} icon={card.icon} description={card.description} />,
   alarm: (card, key) => <HaAlarmTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} readOnly={card.readOnly} exitDelay={card.exitDelay} entryDelay={card.entryDelay} openSensors={card.openSensors} />,
