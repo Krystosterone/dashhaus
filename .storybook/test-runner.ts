@@ -62,8 +62,8 @@ const config: TestRunnerConfig = {
     );
     if (misfits.length) throw new Error(`Field module misfit\n  ${misfits.join("\n  ")}`);
     // Where a line clips, the words around a time give way before it (spec/cards.md → Clock words follow the
-    // dashboard's hour cycle): a 12-hour time, or a span ending in one, is whole with its period or gone whole, never
-    // `1:44…` or `2:53 A…`. And a warning keeps its word, in either skin (spec/cards.md → A warning's words fit a row):
+    // dashboard's hour cycle): a time on either clock, or a span of them, is whole with its period or gone whole, never
+    // `1:44…`, `2:53 A…` or `Fri 1…`. And a warning keeps its word, in either skin (spec/cards.md → A warning's words fit a row):
     // what follows it goes first, so a word that fits alone is never `Stoppe…`. Measured against what the clipping box
     // shows: its content box, less the ellipsis it draws.
     const cuts = await page.evaluate(() => {
@@ -104,31 +104,49 @@ const config: TestRunnerConfig = {
         }
         return out;
       };
-      const TIME = /\d{1,2}:\d\d(?:\u00a0[AP]M)?[–-]\d{1,2}:\d\d\u00a0[AP]M|\d{1,2}:\d\d\u00a0[AP]M/g;
+      // On either clock: `14:05`, `2:05 PM`, or a span of them.
+      const TIME = /\d{1,2}:\d\d(?:\u00a0[AP]M)?(?:[–-]\d{1,2}:\d\d(?:\u00a0[AP]M)?)?/g;
+      /** Whether the time sits whole in one piece (a skin's `timed`): an ellipsis hides such a piece whole, never cuts it. */
+      const whole = (node: Text, box: Element) => {
+        for (let at = node.parentElement; at && at !== box; at = at.parentElement) {
+          if (getComputedStyle(at).display === "inline-block") return true;
+        }
+        return false;
+      };
       for (const node of texts(document.body)) {
         for (const match of node.data.matchAll(TIME)) {
           const time = span(node, match.index, match.index + match[0].length);
           const clip = time && clipping(node.parentElement);
-          if (clip && time.left < clip.shown && time.right > clip.shown + 0.5) {
+          if (clip && time.left < clip.shown && time.right > clip.shown + 0.5 && !whole(node, clip.box)) {
             found.push(`"${clip.box.textContent?.trim()}" cuts its time "${match[0].replace("\u00a0", " ")}" (${(time.right - clip.shown).toFixed(1)}px short)`);
           }
         }
       }
       // A warning's word is its first words, up to what follows it: its own element (since when), a ` · ` (what set it
-      // off) or a count (` +2`). Where the word alone is wider than its box, no order could keep it: that is a word too
-      // long for the width, not this rule.
+      // off) or a count (` +2`). The word is the last thing on a card to give way, so it is never cut while anything
+      // else on its line could go. Only on a card's narrowest sizes, where nothing is left to give way (a Field row
+      // under 280 px, a Field module under 240 px, an Orb card under 180 px), may a word too wide for its line alone end
+      // in an ellipsis; there a word that fits is still never cut.
+      const narrow = (card: Element | null) => {
+        if (!card) return false;
+        const width = card.getBoundingClientRect().width;
+        if (card.matches(".fd-module")) return width < (card.matches('[data-footprint="compact"]') ? 280 : 240);
+        return card.matches(".hd") && width < 180;
+      };
       for (const warning of document.querySelectorAll(".fd-warn-t, .hd-warn, .hd-alarm-l")) {
         const first = texts(warning, ".fd-sr").find((node) => /\S/.test(node.data));
         const word = first?.data.match(/\S.*?(?=\s+·\s|\s+\+\d|\s*$)/);
         if (!first || !word) continue;
         const shown = span(first, word.index!, word.index! + word[0].length);
         const clip = shown && clipping(first.parentElement);
-        if (clip && shown.right > clip.shown + 0.5 && shown.right <= clip.shown + clip.ellipsis + 0.5) {
-          const module = warning.closest(".fd-module, .fd-panel");
-          const name = module?.querySelector(".fd-name")?.textContent?.trim() || "unnamed";
-          const where = module?.matches(".fd-module") ? ` (${module.getAttribute("data-footprint")}, ${Math.round(module.getBoundingClientRect().width)}px)` : "";
-          found.push(`${name}${where}: its warning "${warning.textContent?.replace("Warning: ", "").trim()}" cuts its word "${word[0]}" (${(shown.right - clip.shown).toFixed(1)}px short)`);
-        }
+        if (!clip || shown.right <= clip.shown + 0.5) continue;
+        const card = warning.closest(".fd-module, .fd-panel, .hd");
+        const fits = shown.right <= clip.shown + clip.ellipsis + 0.5;
+        if (!fits && narrow(card)) continue;
+        const name = card?.querySelector(".fd-name, .hd-title")?.textContent?.trim() || "unnamed";
+        const footprint = card?.getAttribute("data-footprint") ?? card?.className.match(/hd--(compact|featured|sheet)/)?.[1] ?? "standard";
+        const where = card?.matches(".fd-module, .hd") ? ` (${footprint}, ${Math.round(card.getBoundingClientRect().width)}px)` : "";
+        found.push(`${name}${where}: its warning "${warning.textContent?.replace("Warning: ", "").trim()}" cuts its word "${word[0]}" (${(shown.right - clip.shown).toFixed(1)}px short)`);
       }
       return found;
     });

@@ -9,6 +9,7 @@ import type { Details } from "@dashhaus/core/lovelace/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
+import { lineParts } from "@dashhaus/core/entities/clock";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -94,7 +95,7 @@ export function Module({ kind, name, area, footprint = "standard", state, rest, 
           ) : <span id={frame.nameId}>{name}</span>}
         </h3>
         {warning ? <p className="fd-area" title={typeof warning === "string" ? warning : undefined}><Warn block={level != null}>{warning}</Warn></p>
-          : (note ?? area) && <p className="fd-area" title={note ?? area}>{note ?? area}</p>}
+          : (note ?? area) && <p className="fd-area" title={note ?? area}>{timed(note ?? area)}</p>}
       </header>
       {children}
       {level === "alarm" && say && <p className="fd-sr" role="alert">{say}</p>}
@@ -287,7 +288,19 @@ export function Glyph({ unavailable, children }: { unavailable?: boolean; childr
  * inverted block, against the screen or the plate.
  */
 export function Warn({ block, children }: { block?: boolean; children: ReactNode }) {
-  return <span className="fd-warn" data-block={block || undefined}><IconWarn /><span className="fd-warn-t"><span className="fd-sr">Warning: </span>{children}</span></span>;
+  return <span className="fd-warn" data-block={block || undefined}><IconWarn /><span className="fd-warn-t"><span className="fd-sr">Warning: </span>{timed(children)}</span></span>;
+}
+
+/**
+ * A line of words with each time in it drawn as one piece (core's `lineParts`), so where the line clips its ellipsis
+ * drops a time whole, with its period, and never cuts it (`Last seen …`, never `Last seen 11:4…`; spec/cards.md →
+ * Clock words follow the dashboard's hour cycle). Anything but a string is drawn as it is.
+ */
+export function timed(line: ReactNode): ReactNode {
+  if (typeof line !== "string") return line;
+  const parts = lineParts(line);
+  if (!parts.some((part) => part.time)) return line;
+  return parts.map((part, index) => (part.time ? <span key={index} className="fd-time">{part.text}</span> : part.text));
 }
 
 /**
@@ -298,7 +311,7 @@ export function Warn({ block, children }: { block?: boolean; children: ReactNode
  */
 export function WarnWords({ word, detail }: { word: ReactNode; detail?: ReactNode }) {
   if (detail == null || detail === "") return <>{word}</>;
-  return <><span className="fd-warn-w">{word}</span><span className="fd-warn-d">{detail}</span></>;
+  return <><span className="fd-warn-w">{word}</span><span className="fd-warn-d">{timed(detail)}</span></>;
 }
 
 /** The dark display: a pictogram and a figure, then up to two meta lines, or another channel (`aside`). Never pressable. */
@@ -309,8 +322,8 @@ export function Screen({ pict, children, meta, aside }: { pict?: ReactNode; chil
       {aside}
       {!aside && meta && (
         <p className="fd-meta">
-          <span>{meta[0]}</span>
-          {meta[1] && <span className="fd-meta-2">{meta[1]}</span>}
+          <span>{timed(meta[0])}</span>
+          {meta[1] && <span className="fd-meta-2">{timed(meta[1])}</span>}
         </p>
       )}
     </div>

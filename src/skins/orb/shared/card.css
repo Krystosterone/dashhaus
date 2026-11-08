@@ -210,6 +210,8 @@
 /* Unavailable: dashed, empty, muted, like the orb beside it. */
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }
+/* A time in a line of words (`timed`): one piece, so a clip's ellipsis drops it whole rather than cutting it. */
+.hd-time { display: inline-block; white-space: pre; }
 /* An alarm that has gone off (AlarmPill): the one place warn fills, in the slot, as a triggered security alarm's pill.
    The fill deepens under the text, so its words never drop under 4.5:1. */
 .hd-alarm {
@@ -228,6 +230,9 @@
 .hd-alarm-l b { font-weight: 700; }
 .hd-alarm-v { flex: none; font-size: 14px; font-weight: 700; }
 @container hd (max-width: 259px) { .hd-alarm-c { display: none; } }
+/* A warning's word is the last thing to give way (spec/cards.md → A warning's words fit a row): on the narrowest card
+   the figure or since when goes, which its readout and its sheet still say, and the alert keeps the pill. */
+@container hd (max-width: 179px) { .hd-alarm-v { display: none; } }
 /* A compact row's pill is a control's width: a tighter gap keeps a warning's whole word (13 characters) beside its figure. */
 .hd--compact .hd-alarm { gap: 8px; padding: 0 10px; }
 .hd--compact .hd-alarm-l, .hd--compact .hd-alarm-v { font-size: 12.5px; }

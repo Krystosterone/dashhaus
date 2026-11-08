@@ -59,7 +59,9 @@ describe("OwletCard", () => {
     expect(container.querySelector(".ow-heart[data-live]")).toBeNull();
     // spec/cards.md → a warning's words fit a row (13 characters): "Stopped 11:49" in every footprint, said whole aloud.
     expect(screen.queryByText("No new reading since 11:49")).toBeNull();
-    expect(screen.getByText("Stopped 11:49")).toBeTruthy();
+    expect(container.querySelector(".hd-warn")?.textContent).toBe("Stopped 11:49");
+    // The time is one piece, so a narrow card's clip drops it whole (spec/cards.md → Clock words follow the dashboard's hour cycle).
+    expect(container.querySelector(".hd-warn .hd-time")?.textContent).toBe("11:49");
     expect(screen.getByRole("img", { name: "Warning: Nova: No new reading since 11:49" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "deep sleep, heart rate 121 beats per minute, oxygen 98 percent, no new reading since 11:49" })).toBeTruthy();
   });

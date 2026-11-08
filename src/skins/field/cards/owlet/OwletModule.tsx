@@ -5,7 +5,7 @@ import { ALERT_SAID, ALERT_SHORT, ALERT_WORD, CHARGING, SLEEP_UNKNOWN, SLEEP_WOR
 import { URGENT_PROBLEMS, owletSeverity } from "@dashhaus/core/entities/owlet/severity";
 import { NO_READING_YET, lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, WarnWords, useDetails, ModuleRow, Notices } from "../../shared/ui";
+import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, WarnWords, timed, useDetails, ModuleRow, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { HEART, IconBase, IconSock, O2 } from "./icons";
 import "./OwletModule.css";
@@ -96,7 +96,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
     const urgent = problems.find((p) => URGENT_PROBLEMS.has(p));
     const stopped = staleWarning(e.lastUpdated);
     const words: ReactNode = urgent ? ALERT_WORD[urgent]
-      : <>{stopped.word}{stopped.detail && <span className="fd-ow-since"> {stopped.detail}</span>}</>;
+      : <>{stopped.word}{stopped.detail && <span className="fd-ow-since">{timed(` ${stopped.detail}`)}</span>}</>;
     meta = [<Warn key="w" block>{words}</Warn>, offline ? seen : sleepWord];
     rowWarning = words;
     alert = { level, what: urgent ? ALERT_WORD[urgent] : staleText(e.lastUpdated) };

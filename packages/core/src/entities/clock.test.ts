@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clockFace, clockOf, clockParts, hourCycleOf, hourLabel, momentWords, timeOfDay } from "./clock";
+import { clockFace, clockOf, clockParts, hourCycleOf, hourLabel, momentWords, timeOfDay, lineParts } from "./clock";
 
 const NOW = new Date(2026, 9, 17, 11, 54);
 
@@ -74,5 +74,31 @@ describe("the dashboard's hour cycle", () => {
     expect(momentWords(new Date(2026, 9, 21, 8, 5), now, "h12")).toBe("8:05\u00a0AM");
     expect(momentWords(new Date(2026, 9, 19, 6, 12), now, "h12")).toBe("Mon 6:12\u00a0AM");
     expect(momentWords(new Date(2026, 9, 3, 6, 12), now, "h12")).toBe("Oct 3");
+  });
+});
+
+describe("lineParts", () => {
+  const nb = "\u00a0";
+  it("cuts a line at its times, each with its period", () => {
+    expect(lineParts(`Stopped 11:49${nb}AM`)).toEqual([{ text: "Stopped " }, { text: `11:49${nb}AM`, time: true }]);
+    expect(lineParts(`70% rain at 2:00${nb}PM · Partly cloudy`)).toEqual([
+      { text: "70% rain at " }, { text: `2:00${nb}PM`, time: true }, { text: " · Partly cloudy" },
+    ]);
+  });
+
+  it("takes the weekday before a time and the separator that leads it in", () => {
+    expect(lineParts("Until Sun 07:00")).toEqual([{ text: "Until " }, { text: "Sun 07:00", time: true }]);
+    expect(lineParts(`Sets in 5h 14m · 5:08${nb}PM`)).toEqual([{ text: "Sets in 5h 14m" }, { text: ` · 5:08${nb}PM`, time: true }]);
+  });
+
+  it("keeps a span of times as one", () => {
+    expect(lineParts(`11:30${nb}AM–12:30${nb}PM`)).toEqual([{ text: `11:30${nb}AM–12:30${nb}PM`, time: true }]);
+    expect(lineParts(`2:00–3:00${nb}PM`)).toEqual([{ text: `2:00–3:00${nb}PM`, time: true }]);
+  });
+
+  it("leaves a line with no time whole, and joins back to the line", () => {
+    expect(lineParts("Partly cloudy")).toEqual([{ text: "Partly cloudy" }]);
+    const line = `Tomorrow 9:30${nb}AM · School trip`;
+    expect(lineParts(line).map((part) => part.text).join("")).toBe(line);
   });
 });

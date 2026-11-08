@@ -45,6 +45,8 @@
 .titan-readout-unit { color: var(--titan-ink-muted); font-size: 18px; font-weight: 500; }
 .titan-status { display: flex; gap: 8px; align-items: center; min-width: 0; margin: 0; color: var(--tone-text); font: 500 13px/1.2 var(--titan-sans); letter-spacing: 0.06em; white-space: nowrap; }
 .titan-status-words { overflow: hidden; text-overflow: ellipsis; }
+/* A time in a line of words: one piece, so a clip drops it whole rather than cutting it. */
+.titan-time { display: inline-block; white-space: pre; }
 .titan-warn { flex: none; display: inline-flex; gap: 5px; align-items: center; padding: 1px 6px 0 4px; background: var(--titan-alert); color: var(--titan-alert-ink); font-weight: 700; }
 .titan-warn-mark { width: 7px; height: 7px; background: var(--titan-alert-ink); }
 .titan-card-gauge { grid-area: gauge; min-width: 0; }

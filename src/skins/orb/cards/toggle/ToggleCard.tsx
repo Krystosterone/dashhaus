@@ -4,7 +4,7 @@ import { toggleKind, toggleWord } from "@dashhaus/core/entities/toggle/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ToggleIconSvg } from "./icons";
-import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import { CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./ToggleCard.css";
 
@@ -43,7 +43,7 @@ export function ToggleCard({ entity: e, history, variant, footprint, showControl
   // Where it applies; when it ends takes its place in compact cards, where the pill has no room to say so.
   // On and Off are the control's words: the status line never repeats them.
   const status = on && e.until && !unav
-    ? <><span className="tw-st-u">{ends}</span><span className="tw-st-a">{area}</span></>
+    ? <><span className="tw-st-u">{timed(ends)}</span><span className="tw-st-a">{area}</span></>
     // With no room to name (a titled bundle's lid names it), since when it has been as it is (last seen, unavailable).
     : area ?? (!sheet && (unav ? e.lastSeen : e.lastChanged) ? sinceFact(unav ? e.lastSeen : e.lastChanged) : null);
   const word = toggleWord(e);
