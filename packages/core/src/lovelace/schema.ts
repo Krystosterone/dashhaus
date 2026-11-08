@@ -708,6 +708,52 @@ export function readOwletOptions<A extends string>(read: Reader, raw: Raw, at: s
 }
 
 /**
+ * A Dyson's `companions:` YAML key, each companion's own key (snake case), and the domains its entity may be in. Its
+ * values are the companion names `useHaDyson` takes (`DysonCompanion`, `@dashhaus/core`), kept here as strings so this
+ * file stays pure.
+ */
+export const DYSON_COMPANION_KEYS = {
+  pm25: { companion: "pm25", domains: ["sensor"] },
+  pm10: { companion: "pm10", domains: ["sensor"] },
+  voc: { companion: "voc", domains: ["sensor"] },
+  no2: { companion: "no2", domains: ["sensor"] },
+  hcho: { companion: "hcho", domains: ["sensor"] },
+  temperature: { companion: "temperature", domains: ["sensor"] },
+  humidity: { companion: "humidity", domains: ["sensor"] },
+  hepa_filter: { companion: "hepaFilter", domains: ["sensor"] },
+  carbon_filter: { companion: "carbonFilter", domains: ["sensor"] },
+  filter: { companion: "filter", domains: ["sensor"] },
+  filter_percentage: { companion: "filterPercentage", domains: ["sensor"] },
+  night_mode: { companion: "nightMode", domains: ["switch"] },
+  heat: { companion: "heat", domains: ["climate"] },
+  oscillation_mode: { companion: "oscillationMode", domains: ["select"] },
+} as const;
+
+type DysonCompanionName = (typeof DYSON_COMPANION_KEYS)[keyof typeof DYSON_COMPANION_KEYS]["companion"];
+
+/**
+ * A Dyson's companions, where its device was renamed so they aren't named after its fan: `companions:` maps each
+ * companion's key to its entity (`pm25: sensor.bedroom_air_pm25`, `heat: climate.bedroom_heater`), or to `none` to
+ * leave it out. Left out, each is the one `dyson_local` names beside the fan.
+ */
+export function readDysonOptions(read: Reader, raw: Raw, at: string): { companions?: Partial<Record<DysonCompanionName, string>> } {
+  const map = raw.companions;
+  if (map == null) return {};
+  if (!isRaw(map)) {
+    read.problem(at, "\"companions\" must map companions to entities, like pm25: sensor.bedroom_pm25 or heat: climate.bedroom");
+    return {};
+  }
+  const keys = Object.keys(DYSON_COMPANION_KEYS) as (keyof typeof DYSON_COMPANION_KEYS)[];
+  read.keys(map, `${at}.companions`, keys);
+  const companions = Object.fromEntries(keys.flatMap((key) => {
+    if (map[key] === "none") return [[DYSON_COMPANION_KEYS[key].companion, ""]];
+    const id = read.optionalEntity(map, key, `${at}.companions`, DYSON_COMPANION_KEYS[key].domains);
+    return id ? [[DYSON_COMPANION_KEYS[key].companion, id]] : [];
+  })) as Partial<Record<DysonCompanionName, string>>;
+  return Object.keys(companions).length ? { companions } : {};
+}
+
+/**
  * A numeric reading's unit, when the entity doesn't say, and the limits it warns past, in that unit: over
  * `warn_above`, or under `warn_below` (any finite number; with both, a band, `warn_below` under `warn_above`).
  */

@@ -15,6 +15,7 @@ import {
   readCameraOptions,
   readCard,
   readNumericOptions,
+  readDysonOptions,
   readOwletOptions,
   readSensorOptions,
   readUnit,
@@ -27,6 +28,7 @@ import type { CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
+import type { DysonCompanion } from "@dashhaus/core";
 import { GUEST_WIFI_ACTION_DOMAINS, OWLET_ALERT_SUFFIX } from "@dashhaus/core";
 import type { NavEntry } from "@dashhaus/core/lovelace";
 
@@ -59,6 +61,7 @@ export type Kind =
   | "vacuum"
   | "calendar"
   | "sun"
+  | "dyson"
   // new-card: kinds
   ;
 
@@ -93,6 +96,7 @@ export const SHARED_KINDS: Partial<Record<Kind, { domains: string[]; id?: RegExp
   sound: { domains: ["switch"] },
   guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
   numeric: { domains: ["sensor"] },
+  dyson: { domains: ["fan"] },
   // new-card: shared kinds
 };
 
@@ -129,6 +133,7 @@ export type CardConfig = CardBase & (
   | { kind: "vacuum" }
   | { kind: "calendar"; calendars?: string[]; days?: number; events: boolean }
   | { kind: "sun" }
+  | { kind: "dyson"; companions?: Partial<Record<DysonCompanion, string>> }
   // new-card: card configs
 );
 
@@ -252,6 +257,10 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     options: readCalendarOptions,
   },
   sun: {},
+  dyson: {
+    keys: ["companions"],
+    options: readDysonOptions,
+  },
   // new-card: kind specs
 };
 

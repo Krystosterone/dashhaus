@@ -121,6 +121,26 @@ export function deviceCompanion({ states, entities = {} }: RoomSensorInput, enti
   return Object.keys(states).find((id) => id !== entity && id.startsWith(`${domain}.`) && !entities[id]?.hidden && entities[id]?.device_id === device && deviceClass(states[id]) === cls);
 }
 
+/** The filter-life sensors `dyson_local` names after a Dyson's fan; one of them, with its night-mode switch, is a Dyson. */
+const DYSON_FILTERS = ["hepa_filter_life", "carbon_filter_life", "filter_life"] as const;
+
+/**
+ * The Dysons among the house's fans, for an automatic layout to draw with the dyson card: each `fan.*` beside which
+ * `dyson_local` (ha-dyson) names a night-mode switch and a filter-life sensor (`switch.<fan>_night_mode`,
+ * `sensor.<fan>_hepa_filter_life` …), with the heater that is its own on a Hot+Cool (`climate.<fan>`), which the
+ * dyson card draws so no other card should. A pure function of the states' ids; this file has no runtime relative
+ * import, so the names are written here and the mapper's (`dysonCompanionIds`) test holds them alike.
+ */
+export function dysonFans({ states }: Pick<AutoInput, "states">): { fan: string; heat?: string }[] {
+  return Object.keys(states).flatMap((id) => {
+    const match = /^fan\.(\w+)$/.exec(id);
+    if (!match) return [];
+    const o = match[1];
+    if (!states[`switch.${o}_night_mode`] || !DYSON_FILTERS.some((f) => states[`sensor.${o}_${f}`])) return [];
+    return [states[`climate.${o}`] ? { fan: id, heat: `climate.${o}` } : { fan: id }];
+  });
+}
+
 /**
  * Room air for an automatic layout, one per device: every visible temperature sensor, with the humidity and battery
  * sensors on its device as companions, then every humidity sensor on a device that has no temperature. Each group

@@ -1,0 +1,105 @@
+---
+title: Dyson
+description: "A Dyson purifier fan from the dyson_local integration: its speed or Auto, the air it cleans, its filters, oscillation range, night mode and a Hot+Cool's heat."
+kind:
+  group: Comfort
+  order: 4
+  summary: "A Dyson purifier fan: its speed or Auto, the air, filters, oscillation range, night mode and heat."
+  with: "its air quality, filter life, night mode and heater entities"
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One Dyson purifier fan, as the [ha-dyson](https://github.com/libdyson-wg/ha-dyson) custom integration (`dyson_local`)
+adds it: a Pure Cool, a Hot+Cool, a Humidify+Cool or a Pure Cool Link. Its `fan.*` entity is the fan card's, with the
+entities on its device beside it: the air it measures, its filters' life, its night mode and, on a Hot+Cool, its heater.
+
+## Quick example
+
+<Example file="entities/dyson/Air.tsx" />
+
+Its ten speeds are a percentage, as any fan's, but Dyson's presets are only Auto and Normal, so the model says `auto`
+instead. In Auto the fan chooses its own speed and Home Assistant reports none; setting a speed leaves Auto.
+
+Each reading is banded as Dyson's app bands it: Good, Fair, Poor and Very poor. Particles are in µg/m³, VOC and NO₂ on
+Dyson's 0-10 index, formaldehyde in mg/m³. The air is as poor as its worst reading. Poor air, or a filter at 10% or
+under, is a warning, and the air comes first.
+
+## Component
+
+`<HaDyson>` is `useHaDyson` as a component that draws nothing of its own. It takes every option of the hook as a prop,
+and hands the hook's result to its child function.
+
+<ApiMembers from="@dashhaus/core" name="HaDyson" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaDyson" />
+
+It reads the fan, the entities `dyson_local` names after it, its area and today's history. A fan called `fan.bedroom`
+has its fine particles in `sensor.bedroom_pm_2_5`, its night mode in `switch.bedroom_night_mode` and its heater in
+`climate.bedroom`. Any of these that isn't there is left out.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaDysonOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaDysonResult" />
+
+#### `entity`: DysonEntity
+
+<ApiMembers from="@dashhaus/core/entities/dyson/types" name="DysonEntity" />
+
+#### `history`: DysonHistory
+
+Today, from Home Assistant's recorder: the hours it ran.
+
+<ApiMembers from="@dashhaus/core/entities/dyson/types" name="DysonHistory" />
+
+#### `actions`: DysonHandlers
+
+<ApiMembers from="@dashhaus/core" name="DysonHandlers" />
+
+Every action on an unavailable entity, or one the device doesn't have, is reported to `onActionError` as `unsupported`
+and never sent.
+
+## Tasks
+
+### Oscillation, night mode and heat
+
+<Example file="entities/dyson/Extras.tsx" />
+
+A Pure Cool sweeps 45°, 90°, 180° or 350° around where it points now, set with `dyson_local.set_angle`. A
+Humidify+Cool lists its own ranges, Breeze among them, on its oscillation mode select. A Hot+Cool's heat is its
+heater's `heat` mode. Turned off, the heater goes to `cool`, and the fan keeps running.
+
+### A device renamed in Home Assistant
+
+<Example file="entities/dyson/Renamed.tsx" />
+
+## In a skin
+
+Orb's `HaDysonTile` and Field's `HaDysonModule` are `useHaDyson` above each skin's card. Both set the speed on the fan's
+groove or fader, which says Auto while the fan chooses its own speed. Mode, oscillation range, airflow, night mode, heat,
+every reading and the filters are in its details. A Lovelace card draws one with `card: dyson`. The automatic layouts
+find a Dyson themselves by the night-mode switch and filter sensor named after its fan. They take the hook's options as
+props, plus their own:
+
+<Example file="entities/dyson/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaDysonTileProps" except={{ from: "@dashhaus/core", name: "HaDysonOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaDysonModuleProps" except={{ from: "@dashhaus/core", name: "HaDysonOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="dyson" />

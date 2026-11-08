@@ -16,6 +16,7 @@ import { HaNumericModule } from "../ha/HaNumericModule";
 import { HaVacuumModule } from "../ha/HaVacuumModule";
 import { HaCalendarModule } from "../ha/HaCalendarModule";
 import { HaSunModule } from "../ha/HaSunModule";
+import { HaDysonModule } from "../ha/HaDysonModule";
 // new-card: module imports
 import { HaClimateModule } from "../ha/HaClimateModule";
 import { HaLightModule } from "../ha/HaLightModule";
@@ -89,6 +90,7 @@ const LIVE: CardRenderers<FieldKind, ModuleConfig, ReactNode, [FieldFootprint]> 
   vacuum: (item, footprint) => <HaVacuumModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,
   calendar: (item, footprint) => <HaCalendarModule entityId={item.entity} name={item.name} area={item.area} footprint={footprint} calendarEntityIds={item.calendars} days={item.days} loadEvents={item.events} loadHistory={item.history} />,
   sun: (item, footprint) => <HaSunModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} footprint={footprint} />,
+  dyson: (item, footprint) => <HaDysonModule entityId={item.entity} name={item.name} area={item.area} loadHistory={item.history} companions={item.companions} footprint={footprint} />,
   // new-card: live modules
 };
 

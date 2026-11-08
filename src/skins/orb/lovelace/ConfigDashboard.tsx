@@ -19,6 +19,7 @@ import { HaNumericTile } from "../ha/HaNumericTile";
 import { HaVacuumTile } from "../ha/HaVacuumTile";
 import { HaCalendarTile } from "../ha/HaCalendarTile";
 import { HaSunTile } from "../ha/HaSunTile";
+import { HaDysonTile } from "../ha/HaDysonTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
@@ -87,6 +88,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   vacuum: (card, key) => <HaVacuumTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   calendar: (card, key) => <HaCalendarTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} calendarEntityIds={card.calendars} days={card.days} loadEvents={card.events} loadHistory={card.history} />,
   sun: (card, key) => <HaSunTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
+  dyson: (card, key) => <HaDysonTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} companions={card.companions} />,
   // new-card: tiles
 };
 

@@ -176,4 +176,11 @@ export type { SunMapOptions } from "./ha/mappers/sun";
 export { useHaSun } from "./ha/hooks/sun";
 export type { HaSunOptions, HaSunResult } from "./ha/hooks/sun";
 export { HaSun } from "./ha/headless";
+export { DYSON_COMPANIONS, dysonCompanionIds, dysonFromHass } from "./ha/mappers/dyson";
+export type { DysonCompanion, DysonMapOptions } from "./ha/mappers/dyson";
+export { createDysonHandlers, DYSON_ACTIONS } from "./ha/actions/dyson";
+export type { DysonHandlers, DysonHandlerOptions } from "./ha/actions/dyson";
+export { useHaDyson } from "./ha/hooks/dyson";
+export type { HaDysonOptions, HaDysonResult } from "./ha/hooks/dyson";
+export { HaDyson } from "./ha/headless";
 // new-card: exports

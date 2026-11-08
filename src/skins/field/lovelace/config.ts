@@ -13,6 +13,7 @@ import {
   readCameraOptions,
   readCard,
   readNumericOptions,
+  readDysonOptions,
   readOwletOptions,
   readSensorOptions,
   readUnit,
@@ -24,6 +25,7 @@ import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from 
 import type { NavEntry } from "@dashhaus/core/lovelace";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
+import type { DysonCompanion } from "@dashhaus/core";
 import { GUEST_WIFI_ACTION_DOMAINS, OWLET_ALERT_SUFFIX } from "@dashhaus/core";
 import type { FieldFootprint } from "../shared/ui";
 
@@ -101,6 +103,8 @@ export interface ModuleConfig {
   /** A camera drawn with no still (YAML `still: false`), and how often its still refreshes while seen, in seconds (`refresh`). */
   still?: boolean;
   stillRefresh?: number;
+  /** A Dyson's companions, where they aren't named after its fan (YAML `companions:`). */
+  companions?: Partial<Record<DysonCompanion, string>>;
 }
 
 /** A row of the page: its legend, its grid (or column stacks, for mixed footprints) and its modules. */
@@ -163,6 +167,7 @@ export type FieldKind =
   | "vacuum"
   | "calendar"
   | "sun"
+  | "dyson"
   // new-card: kinds
   ;
 
@@ -200,6 +205,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   vacuum: { domains: ["vacuum"] },
   calendar: { domains: ["calendar"] },
   sun: { domains: ["sun"] },
+  dyson: { domains: ["fan"] },
   // new-card: field kinds
 };
 
@@ -210,7 +216,7 @@ const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT
 /** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"], numeric: ["unit", "warn_above", "warn_below"], calendar: ["calendars", "days", "events"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"], numeric: ["unit", "warn_above", "warn_below"], calendar: ["calendars", "days", "events"], dyson: ["companions"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
@@ -241,6 +247,7 @@ const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: strin
     return { readingUnit: unit, warnAbove, warnBelow };
   },
   calendar: readCalendarOptions,
+  dyson: readDysonOptions,
 };
 
 /** Field's kind table: the domains above, plus the keys and options each card takes. */

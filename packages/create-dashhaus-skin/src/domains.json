@@ -327,6 +327,125 @@
     "companions": [],
     "fixtureId": "cover.living_room"
   },
+  "dyson": {
+    "name": "dyson",
+    "Name": "Dyson",
+    "CONST": "DYSON",
+    "words": "dyson",
+    "Label": "Dyson",
+    "domains": [
+      "fan"
+    ],
+    "shared": true,
+    "kind": "control",
+    "actions": [
+      "onToggle"
+    ],
+    "guarded": [],
+    "leftOut": [
+      "onPercentageChange",
+      "onAutoChange",
+      "onOscillateChange",
+      "onOscillationModeChange",
+      "onDirectionChange",
+      "onNightModeChange",
+      "onHeatChange",
+      "onHeatTargetChange"
+    ],
+    "levels": [
+      {
+        "action": "onPercentageChange",
+        "field": "percentage",
+        "min": 1,
+        "max": 100,
+        "wakes": true
+      },
+      {
+        "action": "onHeatTargetChange",
+        "field": "heatTarget",
+        "min": {
+          "field": "heatMin"
+        },
+        "max": {
+          "field": "heatMax"
+        },
+        "wakes": false
+      }
+    ],
+    "choices": [
+      {
+        "action": "onOscillationModeChange",
+        "field": "oscillationMode",
+        "options": {
+          "field": "oscillationModes"
+        }
+      },
+      {
+        "action": "onDirectionChange",
+        "field": "direction",
+        "options": [
+          "forward",
+          "reverse"
+        ]
+      }
+    ],
+    "switches": [
+      {
+        "action": "onAutoChange",
+        "field": "auto"
+      },
+      {
+        "action": "onOscillateChange",
+        "field": "oscillating"
+      },
+      {
+        "action": "onNightModeChange",
+        "field": "nightMode"
+      },
+      {
+        "action": "onHeatChange",
+        "field": "heatOn"
+      }
+    ],
+    "history": false,
+    "code": false,
+    "fields": [
+      "supportsAuto",
+      "auto",
+      "autoPreset",
+      "manualPreset",
+      "oscillationModes",
+      "oscillationMode",
+      "oscillationCentre",
+      "oscillationBy",
+      "supportsNightMode",
+      "nightMode",
+      "supportsHeat",
+      "heatOn",
+      "heating",
+      "heatTarget",
+      "heatMin",
+      "heatMax",
+      "heatStep",
+      "heatUnit",
+      "temperature",
+      "temperatureUnit",
+      "humidity",
+      "air",
+      "filters"
+    ],
+    "onOff": false,
+    "minutes": null,
+    "samples": false,
+    "summary": "e.temperature == null ? stateWords(e.state) : `${e.temperature}${e.temperatureUnit}`",
+    "options": [
+      "name",
+      "area",
+      "loadHistory"
+    ],
+    "companions": [],
+    "fixtureId": "fan.bedroom_purifier"
+  },
   "fan": {
     "name": "fan",
     "Name": "Fan",

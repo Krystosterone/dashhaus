@@ -49,6 +49,8 @@ import { DemoCalendarTile } from "../cards/calendar/demo/DemoCalendarTile";
 import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
 import { DemoSunTile } from "../cards/sun/demo/DemoSunTile";
 import { SUN_SEEDS, SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
+import { DemoDysonTile } from "../cards/dyson/demo/DemoDysonTile";
+import { DYSON_SEEDS, DYSON_WORST_CASE } from "@dashhaus/core/seeds/dyson";
 // new-card: worst case imports
 
 /*
@@ -113,6 +115,7 @@ const CARDS = [
   card(VACUUM_WORST_CASE, [VACUUM_SEEDS.cleaning], (seed, footprint) => <DemoVacuumTile seed={seed} footprint={footprint} />),
   card(CALENDAR_WORST_CASE, [CALENDAR_SEEDS.normal], (seed, footprint) => <DemoCalendarTile seed={seed} footprint={footprint} />),
   card(SUN_WORST_CASE, [SUN_SEEDS.normal], (seed, footprint) => <DemoSunTile seed={seed} footprint={footprint} />),
+  card(DYSON_WORST_CASE, [DYSON_SEEDS.on], (seed, footprint) => <DemoDysonTile seed={seed} footprint={footprint} />),
   // new-card: worst cases
 ];
 

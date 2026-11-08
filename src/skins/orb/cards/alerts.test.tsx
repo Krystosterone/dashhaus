@@ -33,6 +33,8 @@ import { DemoVacuumTile } from "./vacuum/demo/DemoVacuumTile";
 import { VACUUM_SEEDS, VACUUM_WORST_CASE } from "@dashhaus/core/seeds/vacuum";
 import { DemoNumericTile } from "./numeric/demo/DemoNumericTile";
 import { NUMERIC_SEEDS, NUMERIC_WORST_CASE } from "@dashhaus/core/seeds/numeric";
+import { DemoDysonTile } from "./dyson/demo/DemoDysonTile";
+import { DYSON_SEEDS, DYSON_WORST_CASE } from "@dashhaus/core/seeds/dyson";
 
 type Draw<S> = (seed: S, footprint: CardFootprint, open: boolean) => ReactNode;
 interface Card { seeds: readonly { entity: { name: string } }[]; draw: Draw<never> }
@@ -52,6 +54,7 @@ const CARDS: Record<string, Card> = {
   alarm: card(ALARM_SEEDS, ALARM_WORST_CASE, (seed, footprint, open) => <Alarm seed={seed} footprint={footprint} open={open} />),
   binarySensor: card(BINARY_SENSOR_SEEDS, BINARY_SENSOR_WORST_CASE, (seed, footprint, open) => <DemoBinarySensorTile seed={seed} footprint={footprint} defaultOpen={open} />),
   cover: card(COVER_SEEDS, COVER_WORST_CASE, (seed, footprint, open) => <Cover seed={seed} footprint={footprint} open={open} />),
+  dyson: card(DYSON_SEEDS, DYSON_WORST_CASE, (seed, footprint, open) => <DemoDysonTile seed={seed} footprint={footprint} defaultOpen={open} />),
   lock: card(LOCK_SEEDS, LOCK_WORST_CASE, (seed, footprint, open) => <DemoLockTile seed={seed} footprint={footprint} defaultOpen={open} />),
   numeric: card(NUMERIC_SEEDS, NUMERIC_WORST_CASE, (seed, footprint, open) => <DemoNumericTile seed={seed} footprint={footprint} defaultOpen={open} />),
   owlet: card(OWLET_SEEDS, OWLET_WORST_CASE, (seed, footprint, open) => <DemoOwletTile seed={seed} footprint={footprint} defaultOpen={open} />),

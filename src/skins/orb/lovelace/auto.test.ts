@@ -254,6 +254,31 @@ describe("autoDashboard", () => {
     expect(parseDashboardConfig(card).rows![0].cards[1].item).toEqual(expect.objectContaining({ kind: "vacuum", entity: "vacuum.robot" }));
   });
 
+  it("draws a Dyson's fan as the dyson card, with the controls in its area, and its heater nowhere else", () => {
+    const card = autoDashboard({
+      states: Object.fromEntries([
+        state("fan.bed", { friendly_name: "Fan" }),
+        state("fan.living_room", { friendly_name: "Hot+Cool" }),
+        state("switch.living_room_night_mode", { friendly_name: "Hot+Cool Night Mode" }),
+        state("sensor.living_room_filter_life", { friendly_name: "Hot+Cool Filter Life", unit_of_measurement: "%" }),
+        state("climate.living_room", { friendly_name: "Hot+Cool" }),
+        state("climate.hall", { friendly_name: "Hall" }),
+      ].map((s) => [s.entity_id, s])),
+      entities: {
+        "fan.bed": { area_id: "living" },
+        "fan.living_room": { area_id: "living" },
+        "switch.living_room_night_mode": { area_id: "living", entity_category: "config" },
+        "sensor.living_room_filter_life": { area_id: "living", entity_category: "diagnostic" },
+      },
+      areas: { living: { name: "Living room" } },
+    });
+    expect(card.rows).toEqual([
+      { title: "Comfort", cards: ["climate.hall"] },
+      { title: "Living room", cards: [{ entity: "fan.bed", footprint: "compact" }, { entity: "fan.living_room", footprint: "compact", card: "dyson" }] },
+    ]);
+    expect(() => parseDashboardConfig(card)).not.toThrow();
+  });
+
   it("puts the sun beside the weather, outside", () => {
     const card = autoDashboard({ ...input, states: { ...states, "sun.sun": state("sun.sun") } });
     const rows = card.rows as { title: string; cards: unknown[] }[];

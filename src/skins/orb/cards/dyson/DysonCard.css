@@ -1,0 +1,20 @@
+/* Dyson card. Everything else (orb, groove, chips, stepper, today strip, sheet) comes from shared/card.css.
+   Classes here start with dy-; colours only from tokens.css. The readout says a named speed, Auto or Off in words,
+   a little smaller than a number: the shared hd-num--word. */
+
+/* What it runs as, or the air, on the status line. Compact rows keep the room alone; the sheet says it in its blocks. */
+.hd--compact .dy-mode, .hd--sheet .dy-mode { display: none; }
+/* Under 260 px there is room for the room alone: the detail goes whole rather than cut mid-word. */
+@container hd (max-width: 259px) {
+  .dy-mode { display: none; }
+}
+
+/* The sheet's readings and filters: what each is on the left, its figure and Dyson's band on the right. */
+.dy-list { display: grid; gap: 6px; margin: 0; }
+.dy-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; font-size: 14px; }
+.dy-row dt { color: var(--ink-2); }
+.dy-row abbr { text-decoration: none; }
+.dy-row dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.dy-band { margin-left: 8px; color: var(--ink-3); }
+/* A reading poor or worse, or a filter to change, in the warn ink: its words say so too. */
+.dy-row[data-band="warn"] dd, .dy-row[data-band="warn"] .dy-band { color: var(--warn); }

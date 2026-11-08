@@ -143,6 +143,7 @@ describe("@dashhaus/core/lovelace", () => {
     expect(Object.keys(schema).sort()).toEqual([
       "ALIGNS",
       "BODY_KEYS",
+      "DYSON_COMPANION_KEYS",
       "DashboardConfigError",
       "FLOWS",
       "LOVELACE_KEYS",
@@ -163,6 +164,7 @@ describe("@dashhaus/core/lovelace", () => {
       "readCard",
       "readCards",
       "readColor",
+      "readDysonOptions",
       "readNumericOptions",
       "readOwletOptions",
       "readRow",
@@ -186,6 +188,7 @@ describe("@dashhaus/core/lovelace", () => {
       "deviceClass",
       "deviceCompanion",
       "domainOf",
+      "dysonFans",
       "energySensors",
       "friendlyName",
       "groupByArea",
