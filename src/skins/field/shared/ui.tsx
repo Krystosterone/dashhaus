@@ -141,8 +141,12 @@ export function Key({ label, pressed, led, chosen, disabled, unavailable, onPres
   return (
     <button className="fd-key" aria-label={label} data-wide={wide || caption ? "" : undefined} data-chosen={chosen || undefined} {...press}>
       {lit !== undefined && <span className="fd-led" data-lit={lit && !disabled && !unavailable} aria-hidden="true" />}
-      <span className="fd-key-glyph" aria-hidden="true">{children}</span>
-      {caption && <span className="fd-key-cap" aria-hidden="true">{caption}</span>}
+      {caption ? (
+        <span className="fd-key-in">
+          <span className="fd-key-glyph" aria-hidden="true">{children}</span>
+          <span className="fd-key-cap" aria-hidden="true">{caption}</span>
+        </span>
+      ) : <span className="fd-key-glyph" aria-hidden="true">{children}</span>}
     </button>
   );
 }

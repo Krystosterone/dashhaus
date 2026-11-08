@@ -15,7 +15,6 @@
   .nm:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
 }
 @container hd (max-width: 259px) {
-  .nm:not(.hd--compact):not(.hd--sheet) .nm-bar { grid-template-columns: minmax(0, 1fr); }
   .nm:not(.hd--compact):not(.hd--sheet) .nm-f .nm-v { font-size: 30px; }
   .nm:not(.hd--compact):not(.hd--sheet) .nm-f small { font-size: 13px; }
   /* A narrow card keeps the figure whole; today waits for the strip. */

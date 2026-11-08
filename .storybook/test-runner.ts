@@ -4,8 +4,8 @@ import { injectAxe, getAxeResults } from "axe-playwright";
 
 /**
  * Every story must render and pass axe (a11y). Field modules must also fit their own
- * container; a violation reports the module and measured widths. In both skins, a clip never cuts a 12-hour time
- * or a warning's word that fits alone, and a story never draws two clocks.
+ * container; a violation reports the module and measured widths. An Orb readout keeps its figures inside it. In both
+ * skins, a clip never cuts a 12-hour time or a warning's word that fits alone, and a story never draws two clocks.
  */
 const config: TestRunnerConfig = {
   async postVisit(page, context) {
@@ -38,8 +38,9 @@ const config: TestRunnerConfig = {
       const lines = overflows.map(({ name, clientWidth, scrollWidth }) => `  ${name}: ${scrollWidth}px content in ${clientWidth}px module`);
       throw new Error(`Field module horizontal overflow\n${lines.join("\n")}`);
     }
-    // A Field row's screen holds its figure inside its inset, four places as three (spec/field.md → Footprints), and a
-    // module's today and fader keep their legend to one line, so the strip or the slot under it never moves.
+    // A Field row's screen holds its figure inside its inset, four places as three (spec/field.md → Footprints), a key's
+    // verb is never cut, and a module's today and fader keep their legend to one line, so the strip or the slot under it
+    // never moves.
     const misfits = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
       modules.flatMap((module) => {
         const name = module.querySelector(".fd-name")?.textContent?.trim() || "unnamed";
@@ -51,6 +52,17 @@ const config: TestRunnerConfig = {
           const right = read.getBoundingClientRect().right;
           if (right > inner + 0.5) found.push(`${name}: its row's figure "${read.textContent}" runs ${(right - inner).toFixed(1)}px into the screen's inset`);
         }
+        // A key's verb is whole or gone whole beside its glyph (spec/field.md → A key's word is what pressing it does),
+        // and under 240 px a module's row of two or more keys shows its glyphs alone.
+        const narrowRow = module.matches('[data-footprint="standard"]') && module.getBoundingClientRect().width < 240;
+        for (const cap of module.querySelectorAll(".fd-key-in:has(> .fd-key-glyph:not(:empty)) > .fd-key-cap")) {
+          const line = cap.parentElement!.getBoundingClientRect();
+          const at = cap.getBoundingClientRect();
+          if (!at.width || at.top >= line.bottom - 0.5) continue;
+          if (cap.scrollWidth > cap.clientWidth + 1) found.push(`${name}: a key cuts its verb "${cap.textContent}" (${cap.scrollWidth - cap.clientWidth}px short)`);
+          const row = cap.closest(".fd-keys");
+          if (narrowRow && row && row.querySelectorAll(":scope > .fd-key").length > 1) found.push(`${name}: under 240 px its row of keys prints "${cap.textContent}"`);
+        }
         for (const legend of module.querySelectorAll(".fd-today > .fd-legend, .fd-fader > .fd-legend")) {
           const line = parseFloat(getComputedStyle(legend).lineHeight);
           const height = legend.getBoundingClientRect().height;
@@ -61,6 +73,59 @@ const config: TestRunnerConfig = {
       }),
     );
     if (misfits.length) throw new Error(`Field module misfit\n  ${misfits.join("\n  ")}`);
+    // An Orb readout's figures stay inside it, so never past the card (spec/orb.md → A readout's second figure is whole
+    // or gone whole): what a figure shows on the readout's line fits the line, and a second figure that doesn't fit has
+    // gone whole, to the line under it that the readout never shows. What a figure's own ellipsis hides doesn't count.
+    const spills = await page.locator("#storybook-root .hd .hd-bar").evaluateAll((bars) =>
+      bars.flatMap((bar) => {
+        const box = bar.getBoundingClientRect();
+        if (!box.width) return [];
+        const card = bar.closest(".hd")!;
+        return [...bar.children].flatMap((figure) => {
+          let left = Infinity, right = -Infinity, top = Infinity;
+          const walker = document.createTreeWalker(figure, NodeFilter.SHOW_TEXT);
+          for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            for (const rect of range.getClientRects()) {
+              let shownLeft = rect.left, shownRight = rect.right;
+              for (let at = node.parentElement; at && at !== bar; at = at.parentElement) {
+                if (!/hidden|clip/.test(getComputedStyle(at).overflowX)) continue;
+                const clip = at.getBoundingClientRect();
+                shownLeft = Math.max(shownLeft, clip.left);
+                shownRight = Math.min(shownRight, clip.right);
+              }
+              if (shownRight - shownLeft <= 0.5) continue;
+              left = Math.min(left, shownLeft);
+              right = Math.max(right, shownRight);
+              top = Math.min(top, rect.top);
+            }
+          }
+          if (right < left || top >= box.bottom - 0.5) return [];
+          const past = Math.max(right - box.right, box.left - left);
+          if (past <= 0.5) return [];
+          const name = card.querySelector(".hd-title")?.textContent?.trim() || "unnamed";
+          const footprint = card.className.match(/hd--(compact|featured|sheet)/)?.[1] ?? "standard";
+          return [`${name} (${footprint}, ${Math.round(card.getBoundingClientRect().width)}px): its figure "${(figure as HTMLElement).innerText.replace(/\s+/g, " ")}" runs ${past.toFixed(1)}px out of its readout`];
+        });
+      }),
+    );
+    if (spills.length) throw new Error(`Orb readout overflow\n  ${spills.join("\n  ")}`);
+    // An Orb pill's words end in an ellipsis where they give way, never cut at its edge, and what a press does is whole
+    // (spec/orb.md → A pill says what a press does).
+    const pills = await page.locator("#storybook-root .hd-pill").evaluateAll((all) =>
+      all.flatMap((pill) => {
+        if (!pill.clientWidth) return [];
+        const card = pill.closest(".hd");
+        const where = `${card?.querySelector(".hd-title")?.textContent?.trim() || "unnamed"} (${card?.className.match(/hd--(compact|featured|sheet)/)?.[1] ?? "standard"}, ${Math.round(card?.getBoundingClientRect().width ?? 0)}px)`;
+        const found: string[] = [];
+        if (pill.scrollWidth > pill.clientWidth + 1) found.push(`${where}: its pill "${(pill as HTMLElement).innerText}" is cut at its edge (${pill.scrollWidth - pill.clientWidth}px)`);
+        const action = pill.querySelector(":scope > [data-action]");
+        if (action && action.clientWidth && action.scrollWidth > action.clientWidth + 1) found.push(`${where}: its pill cuts what a press does, "${action.textContent}"`);
+        return found;
+      }),
+    );
+    if (pills.length) throw new Error(`Orb pill cut\n  ${pills.join("\n  ")}`);
     // Where a line clips, the words around a time give way before it (spec/cards.md → Clock words follow the
     // dashboard's hour cycle): a time on either clock, or a span of them, is whole with its period or gone whole, never
     // `1:44…`, `2:53 A…` or `Fri 1…`. And a warning keeps its word, in either skin (spec/cards.md → A warning's words fit a row):
