@@ -5,7 +5,7 @@ import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness
 import { LEFT_OPEN_WORD, coverWord, leftOpenText, positionText } from "@dashhaus/core/entities/cover/words";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
-import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, Warn, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
+import { Blank, Digits, Fader, Key, ModuleFrame, Pictogram, Today, Warn, WarnWords, useDetails, KeyGroup, ModuleRow, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconCover, IconDown, IconStop, IconUp, SLATS, WINDOW } from "./icons";
 import "./CoverModule.css";
@@ -56,7 +56,8 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
   // A door left open (core ranks it advisory) is about what it reads, so it stays on the screen, `Open` behind the
   // marker over since when, as a garage door's binary sensor says it; a row has no meta lines, so it takes the area's.
   const warned = coverSeverity(e) != null;
-  const warning = warned ? leftOpenText(e.lastChanged) : undefined;
+  // Its word, then since when, which gives way first (spec/cards.md → A warning's words fit a row).
+  const warning = warned ? <WarnWords word={LEFT_OPEN_WORD} detail={leftOpenText(e.lastChanged).slice(LEFT_OPEN_WORD.length) || undefined} /> : undefined;
 
   // The window lights with the daylight let in, from the bottom; a cover with no position sets nothing, so it is neutral.
   const pict = <Pictogram level={pos / 100} lit={open} param={withPos ? "a" : "neutral"}>{WINDOW}</Pictogram>;

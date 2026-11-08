@@ -8,7 +8,7 @@ import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entitie
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { fmtAgo } from "@dashhaus/core/entities/format";
 import { useNow } from "@dashhaus/core/hooks";
-import { Blank, Glyph, ModuleFrame, ModuleRow, Pictogram, Today, Warn, useDetails } from "../../shared/ui";
+import { Blank, Glyph, ModuleFrame, ModuleRow, Pictogram, Today, Warn, WarnWords, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { BINARY_SENSOR_PICT, IconBinarySensor } from "./icons";
 import "./BinarySensorModule.css";
@@ -93,7 +93,9 @@ export function BinarySensorModule({ entity: e, history, footprint = "standard",
     ? { level: pressing, what: said, startedAt: pressing === "alarm" ? e.changedAt : undefined, ...(pressing === "alarm" && { say: `Alarm: ${e.name}, ${(spoken ?? said).toLowerCase()}.` }) }
     : undefined;
   // A row has no meta lines: the state's warning takes the area's line, a pressing one in its block, as the cover's does.
-  const warning = compact && stateLevel ? alertText(e) : battery;
+  // Its word, then since when, which gives way first (spec/cards.md → A warning's words fit a row).
+  const text = compact && stateLevel ? alertText(e) : undefined;
+  const warning = text && said && text.startsWith(said) ? <WarnWords word={said} detail={text.slice(said.length) || undefined} /> : text ?? battery;
 
   const glyph = <Glyph unavailable={unav}><IconBinarySensor picture={picture} /></Glyph>;
   const summary = history && (unav ? "Unavailable" : todaySummary(words.today, history.onMinutes));
