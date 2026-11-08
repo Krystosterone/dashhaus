@@ -88,13 +88,25 @@ function useTrackGesture<T extends HTMLElement>(pick: (clientX: number, root: T,
   return { ref, handlers, still: () => anim(false) };
 }
 
+/** How a slider that commits once (`onCommit`), and whose value may move on by itself (`current`), settles. */
+interface Settle {
+  /** Where the value is now: keys step from it. Default the value as drawn. */
+  current?: () => number;
+  /** A key step set this: it is committed on key up, so a held arrow commits once. */
+  keyed?: (value: number) => void;
+  /** A key was let go. */
+  keyUp?: () => void;
+  /** A native change no key started (an assistive swipe): committed at once. */
+  swiped?: (value: number) => void;
+}
+
 /**
  * The native range input that carries keyboard and screen readers under a track's hit layer. Keys step from the
  * current value, so a range whose reported ends don't divide by its step keeps both ends. The input keeps its
  * native step while the ends and the value sit on the step's grid, so assistive tech steps it too; off the grid
  * it takes `step="any"`, or the browser would round the value it shows.
  */
-function rangeInput(value: number, valueText: string, min: number, max: number, step: number, disabled: boolean | undefined, still: () => void, set: (v: number) => void) {
+function rangeInput(value: number, valueText: string, min: number, max: number, step: number, disabled: boolean | undefined, still: () => void, set: (v: number) => void, settle: Settle = {}) {
   return {
     type: "range" as const,
     min,
@@ -105,10 +117,18 @@ function rangeInput(value: number, valueText: string, min: number, max: number, 
     disabled,
     onKeyDown: (event: KeyboardEvent) => {
       still();
-      const next = rangeKeyValue(event, value, min, max, step);
-      if (next != null && next !== value) set(next);
+      const from = settle.current ? clamp(settle.current(), min, max) : value;
+      const next = rangeKeyValue(event, from, min, max, step);
+      if (next == null || next === from) return;
+      set(next);
+      settle.keyed?.(next);
     },
-    onChange: (event: ChangeEvent<HTMLInputElement>) => set(clamp(Number(event.target.value), min, max)),
+    ...(settle.keyUp && { onKeyUp: settle.keyUp }),
+    onChange: (event: ChangeEvent<HTMLInputElement>) => {
+      const next = clamp(Number(event.target.value), min, max);
+      set(next);
+      settle.swiped?.(next);
+    },
   };
 }
 
@@ -133,8 +153,20 @@ export interface SliderOptions<T extends HTMLElement> {
   reportUnchanged?: boolean;
   /** What the value means, read out for it ("Off. Last set to 40 percent"). */
   valueText: (value: number) => string;
-  /** Called with each new value. */
+  /** Called with each new value: every pointer move and key step, so a card can draw it as it goes. */
   onChange: (value: number) => void;
+  /**
+   * Called once when a gesture ends, with its last value: pointer up (or cancel) after a jump or a drag, and nothing
+   * when it picked nothing; key up after key steps, so a held arrow commits once; at once for a native change no key
+   * started (an assistive swipe). For a value set once, on release (a track's position), while `onChange` draws the
+   * draft.
+   */
+  onCommit?: (value: number) => void;
+  /**
+   * Where the value is now, for one that moves on by itself (a track's position): key steps start from it, not from
+   * the value as of the last render.
+   */
+  current?: () => number;
 }
 
 /**
@@ -143,21 +175,36 @@ export interface SliderOptions<T extends HTMLElement> {
  * drag; it leaves vertical swipes to the page), and `inputProps` on a visually hidden `<input>`, which carries the
  * keyboard and screen readers: give it its id and label. `fraction(v)` places a value along the track, 0-1.
  */
-export function useSlider<T extends HTMLElement>({ value, min, max, step = 1, inset, disabled, along = trackPos, snap, reportUnchanged, valueText, onChange }: SliderOptions<T>) {
+export function useSlider<T extends HTMLElement>({ value, min, max, step = 1, inset, disabled, along = trackPos, snap, reportUnchanged, valueText, onChange, onCommit, current }: SliderOptions<T>) {
   const v = clamp(value, min, max);
   const span = Math.max(step, max - min);
+  // The last value a pointer gesture or held keys picked, until the gesture ends and it is committed.
+  const picked = useRef<number | undefined>(undefined);
+  const keyed = useRef<number | undefined>(undefined);
+  const settle = (last: { current: number | undefined }) => {
+    const at = last.current;
+    last.current = undefined;
+    if (at != null) onCommit?.(at);
+  };
   const gesture = useTrackGesture<T>((clientX, root) => {
     const raw = min + along(clientX, root.getBoundingClientRect(), typeof inset === "function" ? inset(root) : inset) * span;
     const next = clamp(snap ? snap(raw) : Number((min + Math.round((raw - min) / step) * step).toFixed(4)), min, max);
+    picked.current = next;
     if (next !== v || reportUnchanged) onChange(next);
-  });
+  }, () => settle(picked));
+  const commits: Settle = disabled || !onCommit ? { current } : {
+    current,
+    keyed: (next) => { keyed.current = next; },
+    keyUp: () => settle(keyed),
+    swiped: (next) => onCommit(next),
+  };
 
   return {
     value: v,
     fraction: (x: number) => clamp((x - min) / span, 0, 1),
     rootProps: { ref: gesture.ref },
     hitProps: { "aria-hidden": true, ...(disabled ? {} : gesture.handlers) },
-    inputProps: rangeInput(v, valueText(v), min, max, step, disabled, gesture.still, (next) => { if (!disabled) onChange(next); }),
+    inputProps: rangeInput(v, valueText(v), min, max, step, disabled, gesture.still, (next) => { if (!disabled) onChange(next); }, commits),
   };
 }
 

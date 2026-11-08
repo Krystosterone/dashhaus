@@ -18,6 +18,8 @@
   to { clip-path: inset(0 0 0 0); }
 }
 .fd-mp[data-footprint="compact"] .fd-mp-prog { display: none; }
+/* Seeking, under a finger: the rule and the clock hold at the target, drawn under their animations. */
+:is(.fd-mp-prog, .fd-mp-clock)[data-held] :is(.fd-mp-fill, .fd-mp-reel) { animation: none; }
 
 /* The panel's clock: each place a strip of digits, one showing, turned by a hard cut every period, as a segment is */
 .fd-mp-clock, .fd-mp-places { display: inline-flex; }

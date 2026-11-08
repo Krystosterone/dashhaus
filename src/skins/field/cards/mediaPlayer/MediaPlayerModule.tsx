@@ -1,13 +1,13 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeReason } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { fmtPlayTime } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
-import { usePicture, usePlayhead } from "@dashhaus/core/hooks";
+import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { IconMediaPlayer, IconMute, IconNext, IconPower, IconPrevious, MEDIA_PLAYER_PICT } from "./icons";
@@ -33,6 +33,11 @@ export interface MediaPlayerModuleProps {
   onTurnOff?: () => void;
   /** The panel's volume fader (`MEDIA_PLAYER_ACTIONS`: a level). */
   onVolumeChange?: (percent: number) => void;
+  /**
+   * The panel's position fader, in seconds (`MEDIA_PLAYER_ACTIONS`: a level that runs on by itself), sent once when
+   * it is let go; `false` (refused) draws Home Assistant's position again.
+   */
+  onSeek?: (seconds: number) => void | Promise<boolean>;
   /** The panel's Mute key (`MEDIA_PLAYER_ACTIONS`: a switch). */
   onMuteChange?: (muted: boolean) => void;
   /** The panel's source keys (`MEDIA_PLAYER_ACTIONS`: a choice). */
@@ -59,10 +64,10 @@ const FIGURE: Partial<Record<MediaPlayerEntity["state"], string>> = { playing: "
  * the meta lines say what is playing, the title then the artist, and a rule along the screen's foot lights as it
  * plays, running on by itself. Under it the first key prints what a press does, **Pause** while it plays, **Play**
  * while it doesn't, **Turn on** while it is off, its LED lit while it plays or is on; then **Next**. The name, or a press and
- * hold, opens the panel: the time played as a running segment clock, Previous, Play and Next, the volume fader the
- * sound module has, Mute, the source, Power and today's playing.
+ * hold, opens the panel: the time played as a running segment clock, Previous, Play and Next, the position fader where
+ * the player seeks, the volume fader the sound module has, Mute, the source, Power and today's playing.
  */
-export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onMuteChange, onSourceChange, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
+export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onMuteChange, onSourceChange, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
@@ -93,12 +98,16 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   ) : glyph;
 
   const playhead = usePlayhead(e);
-  const head = quiet ? undefined : playhead;
+  // The panel's position fader, where the player seeks and there is a line to seek along (not a stream, not quiet).
+  // While held, the screen's clock and rule hold at the target with it; once let go, they run on from there.
+  const seek = useSeek(loaded && e.supportsSeek && !quiet ? playhead : undefined, onSeek);
+  const head = quiet ? undefined : seek?.head ?? playhead;
+  const held = !!seek?.held;
   const figure = FIGURE[e.state];
   const read: ReactNode = unav ? <Blank places={4} label={word} />
     : figure ? <><span aria-hidden="true">{figure}</span><span className="fd-sr">{word}</span></>
     : <Blank places={4} label={word} />;
-  const progress = head && <ScreenProgress head={head} />;
+  const progress = head && <ScreenProgress head={head} held={held} />;
 
   // The title first, then the artist; the state's word where the figure doesn't say it in full (Paused, Buffering, an
   // integration's own), and Muted, beside the artist.
@@ -149,7 +158,7 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
   // The panel's screen: the artwork, the time played as a running clock where the track has a length, what is playing.
   const panelScreen = {
     pict: artwork,
-    read: head ? <><ScreenClock head={head} /><small>{fmtPlayTime(head.duration)}</small>{progress}</> : <>{read}{progress}</>,
+    read: head ? <><ScreenClock head={head} held={held} /><small>{fmtPlayTime(head.duration)}</small>{progress}</> : <>{read}{progress}</>,
     meta: head && title ? [title, [word, muted ? MUTED : undefined, artist].filter(Boolean).join(" · ")] as [ReactNode, ReactNode?] : meta,
   };
 
@@ -174,6 +183,28 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : mediaAbilities(e) }}
     >
       <KeyGroup legend="Player" columns={panelKeys.length}>{panelKeys}</KeyGroup>
+      {seek && (
+        <Fader
+          id={`${uid}-pos`}
+          label={`${e.name} ${POSITION.toLowerCase()}`}
+          // At rest the running time is the screen's figure, so the legend names the fader alone; while held it says
+          // where the track will play from.
+          legend={seek.target != null ? `${POSITION} ${fmtPlayTime(seek.target)}` : POSITION}
+          value={seek.slider.value}
+          min={seek.slider.min}
+          max={seek.slider.max}
+          step={seek.slider.step}
+          lit
+          // The player's second parameter: the volume keeps its first.
+          param="b"
+          valueText={seek.slider.valueText(seek.slider.value)}
+          runs={{ running: seek.head.running, key: seek.head.key }}
+          held={seek.held}
+          onChange={seek.slider.onChange}
+          onCommit={seek.slider.onCommit}
+          current={seek.slider.current}
+        />
+      )}
       {canVolume && (
         <Fader
           id={`${uid}-vol`}

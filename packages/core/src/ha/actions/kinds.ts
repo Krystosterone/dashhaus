@@ -6,7 +6,9 @@
  *   typed on a keypad. A value, said as what it is, so a card can draw it on its own parts:
  *   - `level`: a level the entity reports in `field`, slid along a groove or a fader: a percent, 0-100, unless `min` and
  *     `max` say its range (a number, or the entity field that holds it). `wakes`: setting it turns the entity on (a
- *     light's brightness, a fan's speed).
+ *     light's brightness, a fan's speed). `runs`: the level moves on by itself while the entity plays, as of a time the
+ *     entity reports (a position in a track); a part that holds a level still would show where it was, so a generator
+ *     leaves it out, and a skin draws it on its own running clock.
  *   - `choice`: one of a list, the chosen one in `field`: the entity's own list (`options`, the field that holds it: a
  *     fan's presets) or a fixed one (a fan's directions).
  *   - `switch`: on or off, the entity's boolean `field` (a fan's oscillation).
@@ -21,7 +23,7 @@
  */
 export type ActionKind<F extends string = string> =
   | { takes: "nothing" | "code" | "value"; asks?: true }
-  | { takes: "level"; field: F; min?: number | F; max?: number | F; wakes?: true }
+  | { takes: "level"; field: F; min?: number | F; max?: number | F; wakes?: true; runs?: true }
   | { takes: "choice"; field: F; options: F | readonly string[] }
   | { takes: "switch"; field: F };
 

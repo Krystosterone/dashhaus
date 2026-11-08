@@ -5,10 +5,10 @@ import type { DemoChange, DemoServices } from "./transport";
 
 const stamp = "2026-10-19T11:20:00Z";
 /**
- * `MediaPlayerEntityFeature`: pause 1, volume set 4, volume mute 8, previous 16, next 32, turn on 128, turn off 256,
- * select source 2048, play 16384.
+ * `MediaPlayerEntityFeature`: pause 1, seek 2, volume set 4, volume mute 8, previous 16, next 32, turn on 128, turn off
+ * 256, select source 2048, play 16384.
  */
-const ALL = 1 | 4 | 8 | 16 | 32 | 128 | 256 | 2048 | 16384;
+const ALL = 1 | 2 | 4 | 8 | 16 | 32 | 128 | 256 | 2048 | 16384;
 
 /** The tracks the demo plays, each with its artwork's path as Home Assistant's proxy gives it (a hash per track). */
 const TRACKS = [
@@ -107,6 +107,14 @@ export function mediaPlayerServices(): DemoServices {
       live(entity.state);
       supports(entity.attributes.supported_features, 256, "turn off");
       return { state: "off" };
+    },
+    "media_player.media_seek": ({ entity, data }) => {
+      live(entity.state);
+      supports(entity.attributes.supported_features, 2, "seek");
+      const at = Number(data.seek_position);
+      const duration = Number(entity.attributes.media_duration);
+      if (!Number.isFinite(at) || at < 0 || (Number.isFinite(duration) && at > duration)) throw new Error("seek_position must be within the track");
+      return { attributes: { media_position: at, media_position_updated_at: new Date().toISOString() } };
     },
     "media_player.volume_set": ({ entity, data }) => {
       live(entity.state);

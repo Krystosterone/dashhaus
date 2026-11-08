@@ -42,6 +42,21 @@ describe("HaMediaPlayerTile", () => {
     expect(screen.queryByRole("img", { name: /Artwork/ })).toBeNull();
   });
 
+  it("seeks once, through the store, when the sheet's groove is let go after several steps", async () => {
+    const seekable = { "media_player.kitchen": { ...raw["media_player.kitchen"], attributes: { ...raw["media_player.kitchen"].attributes, supported_features: 1 | 2 | 16384 } } };
+    const fake = renderConnected(<HaMediaPlayerTile entityId="media_player.kitchen" defaultOpen />, seekable);
+    const groove = await screen.findByRole("slider", { name: "Kitchen speaker position" });
+    fireEvent.keyDown(groove, { key: "ArrowLeft" });
+    fireEvent.keyDown(groove, { key: "ArrowLeft" });
+    expect(fake.callService).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.keyUp(groove, { key: "ArrowLeft" });
+      await Promise.resolve();
+    });
+    // Reported long ago and playing, it is at its end: two steps back is 10 seconds before it.
+    expect(fake.callService.mock.calls).toEqual([["media_player", "media_seek", { entity_id: "media_player.kitchen", seek_position: 235 }]]);
+  });
+
   it("shows a missing entity as unavailable", async () => {
     renderConnected(<HaMediaPlayerTile entityId="media_player.missing" name="Missing" />, raw);
     await waitFor(() => expect(screen.getAllByText("Unavailable").length).toBeGreaterThan(0));

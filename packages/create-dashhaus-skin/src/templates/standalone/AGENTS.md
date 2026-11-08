@@ -130,7 +130,8 @@ tap, a code, or a value, and whether it asks first. A tap is a button. An action
 takes a code (an alarm's disarm) goes to the frame's `guarded` list: its button opens the details on the question, or
 on the keypad when the entity wants a code, through `useGuardedAction` from `@dashhaus/core/primitives`. Never wire
 one of them to a button that does it on one tap. An action that takes a value is left out by `npm run add`, which says
-so.
+so; a level that `runs` on by itself (a track's position, `onSeek`) is drawn on your own running clock and set once,
+when let go (`useSeek` from `@dashhaus/core/hooks`), never on a part that holds a level still.
 
 The model has every fact the hook reads, and the neutral card shows only a few of them. The fields are typed in
 `node_modules/@dashhaus/core/dist/entities/<domain>/types.d.ts` (`LightEntity` has `brightness`, `colorTempKelvin`,

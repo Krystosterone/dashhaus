@@ -83,6 +83,8 @@ describe("media player words", () => {
 
   it("says what it can do, or that it is view only", () => {
     expect(mediaAbilities({ supportsNext: true, supportsVolume: true, supportsMute: true, supportsSource: true, sources: ["a", "b", "c", "d"] })).toBe("Skip, volume, mute, 4 sources");
+    expect(mediaAbilities({ supportsNext: true, supportsSeek: true, supportsVolume: true })).toBe("Skip, seek, volume");
+    expect(mediaAbilities({ supportsSeek: true })).toBe("Seek");
     expect(mediaAbilities({ supportsSource: true, sources: ["TV"] })).toBe("1 source");
     expect(mediaAbilities({ supportsPlay: true })).toBe("Play and pause");
     expect(mediaAbilities({ supportsTurnOff: true })).toBe("On and off");

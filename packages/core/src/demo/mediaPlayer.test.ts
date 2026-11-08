@@ -50,6 +50,16 @@ describe("createDemoMediaPlayerHaTransport", () => {
     await expect(transport.callService("media_player", "media_play", { entity_id: TV })).rejects.toThrow();
   });
 
+  it("seeks within the track, its clock as of then, and refuses a player that can't", async () => {
+    const { transport, seen } = await subscribe();
+    await transport.callService("media_player", "media_seek", { entity_id: KITCHEN, seek_position: 151 });
+    const seeked = seen.latest?.[KITCHEN].attributes;
+    expect(seeked?.media_position).toBe(151);
+    expect(Date.parse(String(seeked?.media_position_updated_at))).toBeGreaterThan(Date.parse("2026-10-19T11:20:00Z"));
+    await expect(transport.callService("media_player", "media_seek", { entity_id: KITCHEN, seek_position: 999 })).rejects.toThrow();
+    await expect(transport.callService("media_player", "media_seek", { entity_id: TV, seek_position: 10 })).rejects.toThrow();
+  });
+
   it("turns on and off", async () => {
     const { transport, seen } = await subscribe();
     await transport.callService("media_player", "turn_on", { entity_id: TV });

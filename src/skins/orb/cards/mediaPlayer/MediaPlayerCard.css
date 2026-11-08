@@ -69,6 +69,25 @@
   83.3333%, 100% { transform: translateY(-83.3333%); }
 }
 
+/* ---------- How far in, set: the sheet's seek groove (the shared hd-track groove, hit layer, input and focus ring).
+   The played part is an ink tint, never the accent: a position is a fact, not an "on". It runs on the readout's
+   keyframes; held (a finger or a key on it), its animations are off, so the values drawn under them show the draft,
+   and the time played is the target in the full ink. ---------- */
+.mp-seek-fill { background: color-mix(in oklab, var(--ink) 9%, transparent); }
+.mp-seek-times {
+  position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 0 var(--pad-in); font-size: 14px; font-weight: 600; line-height: 16px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.mp-seek-at { color: var(--ink-2); }
+.mp-seek[data-held] .mp-seek-at { color: var(--ink); }
+.mp-seek[data-held] :is(.mp-fill, .mp-reel) { animation: none; }
+/* A tap jumps the played part there, as a track's fill does; a drag follows the finger. */
+.mp-seek[data-anim] .mp-seek-fill { transition: clip-path 160ms var(--ease-out); }
+@media (prefers-reduced-motion: reduce) {
+  .mp-seek[data-anim] .mp-seek-fill { transition: none; }
+}
+
 /* Sheet: skip back and on, and turning it off, raised pills that act once, side by side (the shared hd-acts). */
 
 /* A wide compact row has room for the pill's verb as well: Playing · Pause. */

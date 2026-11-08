@@ -255,7 +255,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       // A tap that takes a code: done at once, or the panel opens on the keypad where the entity wants a code (asked, or refused).
       ...(asked.some(({ asks }) => !asks) ? ["  const attempt = (a: keyof typeof asked) => { void guard.attempt(a).then((result) => { if (result === undefined || result === \"wrong_code\") details.openDetails(); }); };"] : []),
     ].join("\n") : "",
-    __leftOut__: leftOut.length ? `  // Left out: ${leftOut.join(", ")} take${leftOut.length > 1 ? "" : "s"} a value a press can't give; draw ${leftOut.length > 1 ? "them" : "it"} with field's own control (a fader, a key group).` : "",
+    __leftOut__: leftOut.length ? `  // Left out: ${card.leftOutWhy(leftOut, domain.runs, "field's own control (a fader, a key group)")}.` : "",
     __panelFocus__: asked.length ? ' panelFocus={guard.pending ? "content" : undefined}' : "",
     __details__: asked.length ? "{ ...details, openDetails: openPanel }" : "details",
     __factsWhen__: asked.length ? "guard.pending ? undefined : " : "",
@@ -371,7 +371,7 @@ function __Name__({ seed, footprint }: { seed: __Name__Seed; footprint: FieldFoo
 
   // ---------- Write ----------
   if (!change.commit(dryRun)) return;
-  console.log(`Drew ${words} in field as a ${kind} (fd-${code}-, ${domains.map((d) => `${d}.*`).join(", ")}), on the seeds in ${seedPath}.${kind === "control" ? `\nKeys: ${pressed.map(({ action, asks, takes }) => `${action}${asks ? " (asks first)" : takes === "code" ? " (takes a code)" : ""}`).join(", ")}.` : ""}${kind === "control" && leftOut.length ? `\nLeft out ${leftOut.join(", ")}: ${leftOut.length > 1 ? "they take values" : "it takes a value"} a press can't give.` : ""}
+  console.log(`Drew ${words} in field as a ${kind} (fd-${code}-, ${domains.map((d) => `${d}.*`).join(", ")}), on the seeds in ${seedPath}.${kind === "control" ? `\nKeys: ${pressed.map(({ action, asks, takes }) => `${action}${asks ? " (asks first)" : takes === "code" ? " (takes a code)" : ""}`).join(", ")}.` : ""}${kind === "control" && leftOut.length ? `\nLeft out: ${card.leftOutWhy(leftOut, domain.runs, "field's own control")}.` : ""}
 
 Next:
   1. npm run storybook  →  Field/Cards/${Name} and Field/Connected/${Name}

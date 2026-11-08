@@ -21,8 +21,16 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
     fail(error.message);
   }
   const { Name, CONST, words, Label } = domain;
-  const { kind, actions, guarded, leftOut } = drawn;
+  const { kind, actions, guarded, leftOut, runs = [] } = drawn;
   const pressed = [...actions, ...guarded.map(({ action }) => action)];
+  // What it leaves out, and why: a value a press can't give, or a level that runs on by itself (a track's position).
+  const named = (list) => list.map((action) => `\`${action}\``).join(", ");
+  const valued = leftOut.filter((action) => !runs.includes(action));
+  const running = leftOut.filter((action) => runs.includes(action));
+  const leftOutSaid = [
+    valued.length ? ` ${named(valued)} ${valued.length > 1 ? "take values" : "takes a value"} a press can't give, so ${valued.length > 1 ? "they are" : "it is"} left out.` : "",
+    running.length ? ` ${named(running)} ${running.length > 1 ? "run" : "runs"} on by itself, so ${running.length > 1 ? "they are" : "it is"} left out: draw ${running.length > 1 ? "them" : "it"} on the skin's own clock.` : "",
+  ].join("");
   const skinNames = card.skinNames(skin);
   const { Skin, Section } = skinNames;
   const SKIN = generatedSkin.dir(skin);
@@ -107,7 +115,7 @@ export type { Ha__Skin____Name__CardProps } from "./ha/Ha__Skin____Name__Card";
   if (change.exists(`${SKIN}/cards/Empty.stories.tsx`)) change.remove(`${SKIN}/cards/Empty.stories.tsx`);
   if (change.exists(`${SKIN}/ha/Empty.stories.tsx`)) change.remove(`${SKIN}/ha/Empty.stories.tsx`);
 
-  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${pressed.length ? `Its neutral actions are ${pressed.map((action) => `\`${card.labelOf(action)}\``).join(", ")}${guarded.length ? `; ${guarded.map(({ action }) => `\`${card.labelOf(action)}\``).join(", ")} ${guarded.some(({ asks }) => asks) ? "ask first or take a code" : "take a code"}, answered in Details` : ""}.` : "It starts read-only because its shared actions need domain-specific input."}${leftOut.length ? ` ${leftOut.map((action) => `\`${action}\``).join(", ")} ${leftOut.length > 1 ? "take values" : "takes a value"} a press can't give, so ${leftOut.length > 1 ? "they are" : "it is"} left out.` : ""} Replace the placeholder glyph and detail facts during bespoke design.\n`);
+  change.edit(study ? studies.designDoc(skin) : seams.skinDoc(skin), (source) => `${source.trimEnd()}\n\n## ${Label}\n\nThe generated ${words} Card shows its normalized state and a truthful primary reading. ${pressed.length ? `Its neutral actions are ${pressed.map((action) => `\`${card.labelOf(action)}\``).join(", ")}${guarded.length ? `; ${guarded.map(({ action }) => `\`${card.labelOf(action)}\``).join(", ")} ${guarded.some(({ asks }) => asks) ? "ask first or take a code" : "take a code"}, answered in Details` : ""}.` : "It starts read-only because its shared actions need domain-specific input."}${leftOutSaid} Replace the placeholder glyph and detail facts during bespoke design.\n`);
   // spec/cards.md describes the shipped skins' cards; a study's stay in its own design rules.
   if (!study) change.edit(seams.cardsDoc, (source) => {
     const at = source.indexOf(`## Using the ${words} card`);

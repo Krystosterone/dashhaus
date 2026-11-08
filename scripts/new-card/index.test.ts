@@ -115,7 +115,7 @@ describe("new-card", () => {
       const field = await run(copy, "node", [script, "probeLatch", "--skin", "field"]);
       expect(field.status, field.output).toBe(0);
       expect(field.output).toMatch(/onUnlatch \(asks first\), onPurge \(asks first\)/);
-      expect(field.output).toMatch(/Left out onLevel/);
+      expect(field.output).toMatch(/Left out: onLevel takes a value a press can't give/);
       const module = readFileSync(join(copy, "src/skins/field/cards/probeLatch/ProbeLatchModule.tsx"), "utf8");
       expect(module).toContain('onPress={() => ask("purge")}');
       expect(module).not.toMatch(/onPress=\{\(\) => onPurge/);

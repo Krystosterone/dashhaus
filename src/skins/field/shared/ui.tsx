@@ -446,7 +446,22 @@ export interface FaderProps {
   valueText: string;
   /** A pointer value onto the fader's grid, for magnetic ends (a cover's). Default: the nearest step. */
   snap?: (raw: number) => number;
+  /**
+   * The value moves on by itself, one unit a second toward `max` (a track's position): the thumb runs on a CSS
+   * animation from where it is drawn while `running`, held while not, and starts again when `key` changes. Nothing
+   * re-renders as it runs.
+   */
+  runs?: { running: boolean; key: string };
+  /**
+   * A finger or a key is on it, for a value set once, on release: its animation is off, so the thumb shows the value
+   * as it moves.
+   */
+  held?: boolean;
   onChange: (value: number) => void;
+  /** Called once when a gesture ends, with its last value (`useSlider`'s `onCommit`): for a value set on release. */
+  onCommit?: (value: number) => void;
+  /** Where a value that moves on by itself is now, so keys step from there (`useSlider`'s `current`). */
+  current?: () => number;
 }
 
 /** Half the thumb's width, in px. Matches .fd-thumb in module.css. */
@@ -466,19 +481,21 @@ const scaleSteps = (min: number, max: number, step: number) => {
  * A tap jumps the thumb (animated); a drag follows the finger, on a hit layer that leaves vertical swipes to the
  * page; a hidden range input carries the keyboard and screen readers.
  */
-export function Fader({ id, label, legend, value, min, max, step = 1, lit, empty = false, disabled, param = "a", valueText, snap, onChange }: FaderProps) {
+export function Fader({ id, label, legend, value, min, max, step = 1, lit, empty = false, disabled, param = "a", valueText, snap, runs, held, onChange, onCommit, current }: FaderProps) {
   const known = value != null && Number.isFinite(value);
   const inactive = disabled || !known;
   // Live but empty: it still takes a tap, a slide and the keyboard, and only the thumb is left out.
   const thumb = known && !empty;
-  const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, snap, onChange });
+  const slider = useSlider<HTMLDivElement>({ value: known ? value : min, min, max, step, inset: THUMB_HALF, disabled: inactive, reportUnchanged: !lit, valueText: () => valueText, snap, onChange, onCommit, current });
   const style = { "--fd-steps": scaleSteps(min, max, step), ...(thumb ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
+  // A thumb that runs on: one linear animation across the slot as long as the range, started where the value is.
+  const run = runs && thumb ? { "--fd-run-len": `${Math.max(1, max - min)}s`, "--fd-run-at": `${-(slider.value - min)}s`, animationPlayState: runs.running ? "running" : "paused" } as Vars : undefined;
   return (
-    <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!thumb || undefined} style={style}>
+    <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!thumb || undefined} data-runs={run ? "" : undefined} data-held={held || undefined} style={style}>
       <p className="fd-legend" aria-hidden="true"><span className="fd-legend-n">{legend}</span></p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
-      {thumb && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
+      {thumb && <div key={runs?.key} className="fd-rail" aria-hidden="true" style={run}><div className="fd-thumb" /></div>}
       {known && <div className="fd-hit" {...slider.hitProps} />}
       {known && <input id={id} className="fd-in" aria-label={label} {...slider.inputProps} />}
     </div>

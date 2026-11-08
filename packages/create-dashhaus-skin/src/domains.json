@@ -692,8 +692,12 @@
     "guarded": [],
     "leftOut": [
       "onVolumeChange",
+      "onSeek",
       "onMuteChange",
       "onSourceChange"
+    ],
+    "runs": [
+      "onSeek"
     ],
     "levels": [
       {
@@ -743,6 +747,7 @@
       "supportsPause",
       "supportsPrevious",
       "supportsNext",
+      "supportsSeek",
       "supportsVolume",
       "supportsMute",
       "supportsSource",

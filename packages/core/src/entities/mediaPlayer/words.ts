@@ -115,13 +115,17 @@ export function artworkLabel(e: Pick<MediaPlayerEntity, "state" | "title" | "nam
   return title ? `Artwork for ${title}` : `${e.name} artwork`;
 }
 
+/** What the seek control is, its legend or its spoken name: "Position". */
+export const POSITION = "Position";
+
 /**
- * What it can do, for the end of its details' small print: "Skip, volume, mute, 4 sources"; "Play and pause" alone;
- * "View only" with nothing to press.
+ * What it can do, for the end of its details' small print: "Skip, seek, volume, mute, 4 sources"; "Play and pause"
+ * alone; "View only" with nothing to press.
  */
-export function mediaAbilities(e: Pick<MediaPlayerEntity, "supportsPlay" | "supportsPause" | "supportsPrevious" | "supportsNext" | "supportsVolume" | "supportsMute" | "supportsSource" | "sources" | "supportsTurnOn" | "supportsTurnOff">): string {
+export function mediaAbilities(e: Pick<MediaPlayerEntity, "supportsPlay" | "supportsPause" | "supportsPrevious" | "supportsNext" | "supportsSeek" | "supportsVolume" | "supportsMute" | "supportsSource" | "sources" | "supportsTurnOn" | "supportsTurnOff">): string {
   const parts = [
     (e.supportsPrevious || e.supportsNext) && "skip",
+    e.supportsSeek && "seek",
     e.supportsVolume && "volume",
     e.supportsMute && "mute",
     e.supportsSource && e.sources?.length && (e.sources.length === 1 ? "1 source" : `${e.sources.length} sources`),

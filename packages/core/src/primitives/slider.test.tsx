@@ -153,6 +153,60 @@ describe("useSlider", () => {
     expect(input.disabled).toBe(true);
     expect(hit.getAttribute("aria-hidden")).toBe("true");
   });
+
+  it("commits once when a pointer gesture ends, with its last value, while every move still draws", () => {
+    const onCommit = vi.fn();
+    const { onChange, hit } = mount({ onCommit });
+    fireEvent(hit, ptr("pointerdown", 80, "mouse"));
+    fireEvent(hit, ptr("pointermove", 70, "mouse"));
+    fireEvent(hit, ptr("pointermove", 60, "mouse"));
+    expect(onChange.mock.calls.map(([v]) => v)).toEqual([80, 70, 60]);
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent(hit, ptr("pointerup", 60, "mouse"));
+    expect(onCommit.mock.calls).toEqual([[60]]);
+
+    // A touch tap commits where it lands; a press that becomes a scroll picks nothing and commits nothing.
+    fireEvent(hit, ptr("pointerdown", 30, "touch"));
+    fireEvent(hit, ptr("pointerup", 30, "touch"));
+    expect(onCommit).toHaveBeenLastCalledWith(30);
+    fireEvent(hit, ptr("pointerdown", 30, "touch"));
+    fireEvent(hit, ptr("pointercancel", 30, "touch"));
+    expect(onCommit).toHaveBeenCalledTimes(2);
+  });
+
+  it("commits a pointer gesture that lands where the value already is", () => {
+    const onCommit = vi.fn();
+    const { onChange, hit } = mount({ onCommit });
+    fireEvent(hit, ptr("pointerdown", 50, "mouse"));
+    fireEvent(hit, ptr("pointerup", 50, "mouse"));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onCommit.mock.calls).toEqual([[50]]);
+  });
+
+  it("commits held key steps once, on key up, and an assistive swipe at once", () => {
+    const onCommit = vi.fn();
+    const { onChange, input } = mount({ onCommit });
+    fireEvent.keyDown(input, { key: "ArrowRight" });
+    fireEvent.keyDown(input, { key: "ArrowRight" });
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.keyUp(input, { key: "ArrowRight" });
+    expect(onCommit.mock.calls).toEqual([[51]]);
+    fireEvent.keyUp(input, { key: "Tab" });
+    expect(onCommit).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(input, { target: { value: "20" } });
+    expect(onChange).toHaveBeenLastCalledWith(20);
+    expect(onCommit).toHaveBeenLastCalledWith(20);
+  });
+
+  it("steps keys from where a moving value is now, not from the last render", () => {
+    const onCommit = vi.fn();
+    const { onChange, input } = mount({ value: 50, min: 0, max: 100, step: 5, onCommit, current: () => 62.4 });
+    fireEvent.keyDown(input, { key: "ArrowLeft" });
+    expect(onChange).toHaveBeenLastCalledWith(57.4);
+    fireEvent.keyDown(input, { key: "Home" });
+    expect(onChange).toHaveBeenLastCalledWith(0);
+  });
 });
 
 describe("useRangeSlider", () => {

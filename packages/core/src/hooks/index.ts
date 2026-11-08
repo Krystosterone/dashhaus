@@ -13,4 +13,6 @@ export type { Picture, PictureOptions } from "./usePicture";
 export { usePlayhead } from "./usePlayhead";
 export type { PlayheadNow } from "./usePlayhead";
 export { useScrollSpy } from "./useScrollSpy";
+export { SEEK_STEP, useSeek } from "./useSeek";
+export type { Seek, SeekSlider } from "./useSeek";
 export { SETTLE_MS, useSettled } from "./useSettled";
