@@ -210,6 +210,14 @@ describe("autoDashboard", () => {
     expect(parseDashboardConfig(card).rows![0].cards[1].item).toEqual(expect.objectContaining({ kind: "vacuum", entity: "vacuum.robot" }));
   });
 
+  it("puts the sun beside the weather, outside", () => {
+    const card = autoDashboard({ ...input, states: { ...states, "sun.sun": state("sun.sun") } });
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.find((s) => s.title === "Outside")!.cards).toEqual(["weather.home", "sun.sun"]);
+    const parsed = parseDashboardConfig(card).rows!.find((s) => s.title === "Outside")!;
+    expect(parsed.cards.map((c) => c.item)).toEqual([expect.objectContaining({ kind: "weather" }), expect.objectContaining({ kind: "sun", entity: "sun.sun" })]);
+  });
+
   it("puts every visible calendar under Calendar, after the guests and before the outside", () => {
     const card = autoDashboard({
       ...input,

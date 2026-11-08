@@ -67,6 +67,11 @@ describe("autoModules", () => {
     expect(autoModules({ states: { "vacuum.robot_vacuum": state("vacuum.robot_vacuum", "Robot vacuum") } })).toEqual([{ entity: "vacuum.robot_vacuum", kind: "vacuum" }]);
   });
 
+  it("takes the sun, and draws it as the sun's module", () => {
+    expect(autoModules({ states: { "sun.sun": state("sun.sun", "Sun") } })).toEqual([{ entity: "sun.sun", kind: "sun" }]);
+    expect(parseFieldConfig({ cards: [{ entity: "sun.sun", history: false }] }).rows?.[0].cards[0].item).toMatchObject({ kind: "sun", history: false });
+  });
+
   it("takes every visible calendar, and reads its other calendars, horizon and events setting", () => {
     expect(autoModules({ states: { "calendar.family": state("calendar.family", "Family") } })).toEqual([{ entity: "calendar.family", kind: "calendar" }]);
     expect(parseFieldConfig({ cards: [{ entity: "calendar.family", calendars: ["calendar.school"], days: 14 }] }).rows?.[0].cards[0].item)

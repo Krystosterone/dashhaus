@@ -1,0 +1,57 @@
+{
+  "sun.sun": {
+    "entity_id": "sun.sun",
+    "state": "above_horizon",
+    "attributes": {
+      "friendly_name": "Sun",
+      "next_dawn": "2026-10-20T10:53:12.401243+00:00",
+      "next_dusk": "2026-10-19T22:38:05.118202+00:00",
+      "next_midnight": "2026-10-20T04:44:31+00:00",
+      "next_noon": "2026-10-20T16:44:52+00:00",
+      "next_rising": "2026-10-20T11:23:40.902415+00:00",
+      "next_setting": "2026-10-19T22:07:44.507199+00:00",
+      "elevation": 34.38,
+      "azimuth": 182.7,
+      "rising": false
+    },
+    "last_changed": "2026-10-19T10:23:00+00:00",
+    "last_updated": "2026-10-19T15:50:00+00:00"
+  },
+  "sun.sun_night": {
+    "entity_id": "sun.sun_night",
+    "state": "below_horizon",
+    "attributes": {
+      "friendly_name": "Sun",
+      "next_dawn": "2026-10-20T10:53:12.401243+00:00",
+      "next_dusk": "2026-10-20T22:36:22.774311+00:00",
+      "next_midnight": "2026-10-20T04:44:31+00:00",
+      "next_noon": "2026-10-20T16:44:52+00:00",
+      "next_rising": "2026-10-20T11:23:40.902415+00:00",
+      "next_setting": "2026-10-20T22:06:01.300212+00:00",
+      "elevation": -37.14,
+      "azimuth": 296.96,
+      "rising": false
+    },
+    "last_changed": "2026-10-19T10:23:00+00:00",
+    "last_updated": "2026-10-19T15:50:00+00:00"
+  },
+  "sun.sun_unknown": {
+    "entity_id": "sun.sun_unknown",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Sun"
+    },
+    "last_changed": "2026-10-19T10:23:00+00:00",
+    "last_updated": "2026-10-19T15:50:00+00:00"
+  },
+  "sun.sun_unavailable": {
+    "entity_id": "sun.sun_unavailable",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Sun",
+      "restored": true
+    },
+    "last_changed": "2026-10-19T10:23:00+00:00",
+    "last_updated": "2026-10-19T15:50:00+00:00"
+  }
+}

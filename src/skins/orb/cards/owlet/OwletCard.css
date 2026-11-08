@@ -89,10 +89,6 @@
 
 /* ---------- A vitals alert: the alarm going off, the shared AlarmPill (hd-alarm in shared/card.css) ---------- */
 
-/* The sheet's base station switch: the shared pill, under its heading */
-.ow-base .hd-blk-h { margin: 0; }
-
 /* The sheet's list of what is sounding now */
 .ow-alerts { display: grid; gap: 8px; }
-.ow-alerts .hd-blk-h { margin: 0; }
 .ow-alerts ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 600; }

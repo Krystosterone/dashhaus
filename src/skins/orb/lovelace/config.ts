@@ -57,6 +57,7 @@ export type Kind =
   | "numeric"
   | "vacuum"
   | "calendar"
+  | "sun"
   // new-card: kinds
   ;
 
@@ -78,6 +79,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   media_player: "mediaPlayer",
   vacuum: "vacuum",
   calendar: "calendar",
+  sun: "sun",
   // new-card: domain kinds
 };
 
@@ -123,6 +125,7 @@ export type CardConfig = CardBase & (
   | { kind: "numeric"; unit?: string }
   | { kind: "vacuum" }
   | { kind: "calendar"; calendars?: string[]; days?: number; events: boolean }
+  | { kind: "sun" }
   // new-card: card configs
 );
 
@@ -245,6 +248,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     keys: ["calendars", "days", "events"],
     options: readCalendarOptions,
   },
+  sun: {},
   // new-card: kind specs
 };
 

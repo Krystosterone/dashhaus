@@ -8,7 +8,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 
 | Model | Cards | What it is |
 | --- | --- | --- |
-| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera, media player | One Home Assistant entity and its attributes (a camera's still and a player's artwork are its own `entity_picture`, core.md → Pictures). |
+| Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera, media player, sun | One Home Assistant entity and its attributes (a camera's still and a player's artwork are its own `entity_picture`, core.md → Pictures). |
 | Composed | sensor, sound, weather, owlet, guestWifi | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
@@ -605,6 +605,24 @@ What's next, and when: one `calendar.*`, composed with its events from today's s
 - **Unavailable:** the dashed slot with when it was last seen; no events, no lists.
 - **Home Assistant:** `HaCalendarTile` takes the calendar, `calendarEntityIds` for more calendars and `days` for the horizon (1 to 31). The events are read again each hour, on a new day, and whenever the calendar itself changes (an event starts or ends), the last ones staying up while the next read loads; until the first read settles, the calendar's own current or next event (its `message`, `start_time` and `end_time` attributes) stands in. `events` supplies them from the host instead, and `loadEvents={false}` skips the read; `loadHistory={false}` (YAML `history: false`) leaves out today's plan.
 
+## Using the sun card
+
+When the sun next sets or rises, and where it is in the day: Home Assistant's `sun.sun`, from its `sun` integration. A reading: it has no actions and no warnings.
+
+```tsx
+<SunTile entity={sun} history={today} />
+<HaSunTile entityId="sun.sun" />
+```
+
+- **Times:** the entity's own `next_rising`, `next_setting`, `next_dawn`, `next_dusk` and `next_noon`, on the 24-hour clock (`20:30`), as the calendar's and the weather's, and every word counted from the entity's own minute (`now`), never a timer of the card's. What the card says is `@dashhaus/core/entities/sun/words`, the same in every skin.
+- **What comes next** (`sunNext`): the sunset while the sun is up, the sunrise while it is down. Within a day the countdown says how long (`Sets in 4h 35m`, `Rises in 9m`, never `in 0m`); further off, its day (`Rises Thu`). Where none is reported within two days, as in a polar summer or winter, it says `Up all day` or `Down all day` in words, never a guessed time.
+- **A reading:** a bare icon, the sun on the horizon with an arrow over it the way it goes next, down to its sunset or up to its sunrise, its disc filled while the sun is up (`isActive`, the active set Field's lit pictogram follows too), so the shape says it without colour. The readout is what comes next, in the large-readout voice (`20:30`), the other beside it under its caption (`Sunrise` `05:01`); up or down all day is the figure in words. Before Home Assistant reports it, `Waiting…`, the status line `No reading yet`, as every reading says it. It never glows (`paint("reading", 0)`). Tap the reading or the name for the sheet.
+- **Status line:** the countdown (`Sets in 4h 35m`), its own cue; with none, the area. In the sheet, the area before it.
+- **Featured and sheet:** today's path (`sunDay`, drawn as `sunPathDrawing`), the day from midnight to midnight on its horizon, worked out from the home's latitude and longitude: the day so far in ink and the rest of it lighter, as the calendar draws its hours ahead; the night a fainter line, never dashed, since dashed means unavailable; today's sunrise and sunset ticked on the horizon and timed under it; now the accent's stick, as the Today strip's now is, and the sun a ring on its path, a readout, not a button. Its heading says today's daylight (`Daylight 10h 46m`, `No daylight today`). The sheet keeps the readout in its slot, then lists **Next**: every time to come in the order they come, the one the card leads with first in ink (`Sunset 20:30`, `Dusk 21:04`, `Dawn Tomorrow 04:25`). Its small print says when it last updated, then where the sun is (`Elevation 38° · Azimuth 241°`).
+- **Compact:** the icon, the name, the countdown under it, and what comes next on the right (`20:30`). Under 320 px the line says both (`Sets in 4h 35m · 20:30`).
+- **Unavailable:** the dashed slot with when it was last seen; the path stays, since it is the place's, but neither now nor the sun is drawn, its heading `Unavailable since 08:20`; no list.
+- **Home Assistant:** `HaSunTile` takes the sun. Today's path comes from Home Assistant's own location (`get_config`), or the `latitude` and `longitude` options; without either there is no path, and `loadHistory={false}` (YAML `history: false`) leaves it out.
+
 <!-- new-card: cards -->
 
 ### Field media player module
@@ -629,6 +647,14 @@ What's next, and when: one `calendar.*`, composed with its events from today's s
 
 ```tsx
 <HaCalendarModule entityId="calendar.family" calendarEntityIds={["calendar.school"]} />
+```
+
+### Field sun module
+
+`SunModule` is the same normalized sun entity, its words and today's path in the Field skin; `HaSunModule` is its connected container, on the same `useHaSun` hook as `HaSunTile`, taking the same `latitude` and `longitude`. See [field.md](field.md#sun).
+
+```tsx
+<HaSunModule entityId="sun.sun" />
 ```
 
 ## The dashboard header

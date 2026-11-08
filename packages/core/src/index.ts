@@ -169,4 +169,9 @@ export type { CalendarMapOptions } from "./ha/mappers/calendar";
 export { useHaCalendar } from "./ha/hooks/calendar";
 export type { HaCalendarOptions, HaCalendarResult } from "./ha/hooks/calendar";
 export { HaCalendar } from "./ha/headless";
+export { sunFromHass } from "./ha/mappers/sun";
+export type { SunMapOptions } from "./ha/mappers/sun";
+export { useHaSun } from "./ha/hooks/sun";
+export type { HaSunOptions, HaSunResult } from "./ha/hooks/sun";
+export { HaSun } from "./ha/headless";
 // new-card: exports

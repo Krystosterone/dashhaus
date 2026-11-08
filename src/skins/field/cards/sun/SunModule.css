@@ -1,0 +1,21 @@
+/* Sun module (fd-su): a reading. Its glyph where a key would be, then today's meter of the sun's height where a fader
+   would be. The plate, screen, meter, row (ModuleRow) and panel body (PanelBody) are shared. */
+
+/* Narrow modules keep one meta line on the screen. */
+@container (max-width: 239px) {
+  .fd-su .fd-meta-2 { display: none; }
+  .fd-su .fd-read { font-size: 24px; }
+}
+
+/* A narrow row keeps the figure and lets the pictogram go. */
+@container (max-width: 279px) {
+  .fd-su[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-su[data-footprint="compact"] .fd-screen { width: 80px; }
+}
+
+/* The panel's list of what comes next, printed on the plate: the event, then when, the one the screen leads with in
+   ink. */
+.fd-su-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.fd-su-ev { display: flex; justify-content: space-between; gap: 12px; min-width: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; line-height: 16px; text-transform: uppercase; color: var(--fd-print); font-variant-numeric: tabular-nums; }
+.fd-su-ev-t { white-space: nowrap; }
+.fd-su-ev[data-lead] { color: var(--fd-ink); }

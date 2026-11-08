@@ -18,6 +18,7 @@ import { HaMediaPlayerTile } from "../ha/HaMediaPlayerTile";
 import { HaNumericTile } from "../ha/HaNumericTile";
 import { HaVacuumTile } from "../ha/HaVacuumTile";
 import { HaCalendarTile } from "../ha/HaCalendarTile";
+import { HaSunTile } from "../ha/HaSunTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
@@ -73,6 +74,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   numeric: (card, key) => <HaNumericTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} />,
   vacuum: (card, key) => <HaVacuumTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   calendar: (card, key) => <HaCalendarTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} calendarEntityIds={card.calendars} days={card.days} loadEvents={card.events} loadHistory={card.history} />,
+  sun: (card, key) => <HaSunTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   // new-card: tiles
 };
 

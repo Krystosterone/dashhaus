@@ -51,6 +51,8 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   const cameras = ofDomain("camera");
 
   const weather = ofDomain("weather")[0];
+  // The sun, beside the weather: when it next sets or rises.
+  const sun = ofDomain("sun")[0];
 
   const climate = ofDomain("climate");
   if (climate.length) {
@@ -120,7 +122,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // Every calendar, what's next and when: after the guests, before the glance.
   if (calendars.length) place({ title: "Calendar", cards: calendars });
   // The glance.
-  if (weather) place({ title: "Outside", cards: [weather] });
+  if (weather || sun) place({ title: "Outside", cards: [weather, sun].filter((id): id is string => id !== undefined) });
   if (air.length) place({ title: "Rooms", cards: air });
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
