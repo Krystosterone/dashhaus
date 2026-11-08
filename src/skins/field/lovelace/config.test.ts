@@ -55,6 +55,25 @@ describe("parseFieldConfig: a module's keys", () => {
     ]);
   });
 
+  it("takes a numeric reading's unit and the limits it warns past, a band low under high, on the numeric module only", () => {
+    expect(modulesOf({ cards: [
+      { entity: "sensor.bedroom_co2", card: "numeric", warn_above: 1200 },
+      { entity: "sensor.freezer", card: "numeric", unit: "°C", warn_below: -25, warn_above: -15.5 },
+    ] })).toEqual([
+      expect.objectContaining({ entity: "sensor.bedroom_co2", kind: "numeric", warnAbove: 1200, warnBelow: undefined }),
+      expect.objectContaining({ entity: "sensor.freezer", kind: "numeric", readingUnit: "°C", warnAbove: -15.5, warnBelow: -25 }),
+    ]);
+    expect(problems({ cards: [
+      { entity: "sensor.a", card: "numeric", warn_above: "high" },
+      { entity: "sensor.b", card: "numeric", warn_below: 24, warn_above: 18 },
+      { entity: "light.c", warn_above: 1 },
+    ] })).toEqual([
+      'cards[0] (sensor.a): "warn_above" must be a number',
+      'cards[1] (sensor.b): "warn_below" must be under "warn_above"',
+      'cards[2] (light.c): unknown key "warn_above"',
+    ]);
+  });
+
   it("says why show_control and a bundle are the main card's", () => {
     expect(problems({ cards: [{ entity: "light.lamp", show_control: true }, { bundle: "joined", cards: ["light.a", "light.b"] }] })).toEqual([
       'cards[0] (light.lamp): "show_control" is the main card\'s: a field row shows its screen in place of a control',

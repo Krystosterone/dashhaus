@@ -45,6 +45,12 @@ describe("numericFromHass", () => {
     expect(numericFromHass({ ...raw, state: "unavailable" }, raw.entity_id, { lastSeen: "07:00" }).lastSeen).toBe("07:00");
   });
 
+  it("copies the limits it warns past as given, computing nothing, unavailable too", () => {
+    expect(numericFromHass(raw, raw.entity_id, { warnAbove: 1200, warnBelow: 400 })).toMatchObject({ warnAbove: 1200, warnBelow: 400 });
+    expect(numericFromHass(undefined, raw.entity_id, { warnBelow: -25 })).toMatchObject({ state: "unavailable", warnBelow: -25 });
+    expect(numericFromHass(raw, raw.entity_id).warnAbove).toBeUndefined();
+  });
+
   it("rejects impossible state timestamps", () => {
     expect(numericFromHass({ ...raw, last_updated: "2026-02-31T10:00:00Z" }, raw.entity_id).lastUpdated).toBeUndefined();
   });

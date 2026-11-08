@@ -36,7 +36,8 @@ const meta = {
           "One numeric reading (`sensor.*`: CO₂ in ppm, power in W, energy in kWh) as a field module. A reading, so nothing on it is pressed: " +
           "the glyph its device class names lies flat where a key would be, and today's meter takes the fader's place. The screen says the figure " +
           "in five places with its unit, scaled with an SI letter beyond; the meta lines what it measures and when it reported. Today is the low " +
-          "and high, or a meter's rise. It has no warning of its own. Tap the name for the detail panel. Standard modules are 160 px, compact rows 64 px.",
+          "and high, or a meter's rise. It warns only past a limit the person set (`warn_above`, `warn_below`): the word behind the outlined marker " +
+          "on the first meta line, a row's area line, and the screen never inverts. Tap the name for the detail panel. Standard modules are 160 px, compact rows 64 px.",
       },
     },
   },
@@ -64,6 +65,21 @@ export const Negative: Story = { args: { numeric: "export" } };
 export const NoUnit: Story = { name: "No unit", args: { numeric: "count" } };
 /** Reachable, no reading yet: blank segments, said on the meta line. */
 export const NoReadingYet: Story = { name: "No reading yet", args: { numeric: "waiting" } };
+/**
+ * Past a limit the person set (`warn_above`, `warn_below`): core's word behind the outlined marker on the screen's
+ * first meta line, in place of what it measures. Advisory, so the screen never inverts and the plate's alert line
+ * stays empty. Above and below, at both footprints: a row, with no meta lines, gives it the area's line.
+ */
+export const Warning: Story = {
+  parameters: { layout: "padded", controls: { include: ["width"] } },
+  render: ({ width }) => (
+    <div style={{ display: "grid", gap: 8, width, maxWidth: "100%" }}>
+      {(["high", "low"] as const).map((name) => <StoryNumeric key={name} numeric={name} />)}
+      {(["high", "low"] as const).map((name) => <StoryNumeric key={`${name}-compact`} numeric={name} footprint="compact" />)}
+    </div>
+  ),
+};
+
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { numeric: "unavailable" } };
 
@@ -125,8 +141,11 @@ export const Compact: Story = {
   ),
 };
 
-/** The detail panel: the screen and today. */
+/** The detail panel: the screen and today, and the limit it warns above in the small print, while under it. */
 export const Details: Story = { args: { defaultOpen: true } };
+
+/** Past its limit: the warning on the screen's meta line, and the limit in the small print. */
+export const DetailsWarning: Story = { name: "Details, warning", args: { numeric: "high", defaultOpen: true } };
 
 /** A meter's panel: today's meter climbs, and its summary says how far. */
 export const DetailsMeter: Story = { name: "Details, meter", args: { numeric: "energy", defaultOpen: true } };

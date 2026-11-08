@@ -66,6 +66,25 @@ describe("parseDashboardConfig", () => {
     ]);
   });
 
+  it("takes a numeric reading's unit and the limits it warns past, a band low under high, on the numeric card only", () => {
+    expect(items({ cards: [
+      { entity: "sensor.bedroom_co2", card: "numeric", warn_above: 1200 },
+      { entity: "sensor.freezer", card: "numeric", unit: "°C", warn_below: -25, warn_above: -15.5 },
+    ] })).toMatchObject([
+      { kind: "numeric", entity: "sensor.bedroom_co2", warnAbove: 1200, warnBelow: undefined },
+      { kind: "numeric", entity: "sensor.freezer", unit: "°C", warnAbove: -15.5, warnBelow: -25 },
+    ]);
+    expect(problems({ cards: [
+      { entity: "sensor.a", card: "numeric", warn_above: "high" },
+      { entity: "sensor.b", card: "numeric", warn_below: 24, warn_above: 18 },
+      { entity: "light.c", warn_above: 1 },
+    ] })).toEqual([
+      'cards[0] (sensor.a): "warn_above" must be a number',
+      'cards[1] (sensor.b): "warn_below" must be under "warn_above"',
+      'cards[2] (light.c): unknown key "warn_above"',
+    ]);
+  });
+
   it("draws a switch as a sound only with card:, with its volume number", () => {
     expect(items({ cards: [
       "switch.nursery_music",

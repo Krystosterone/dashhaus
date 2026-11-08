@@ -25,6 +25,11 @@ describe("HaNumericModule", () => {
     expect(live.callService.mock.calls.length - before).toBe(0);
   });
 
+  it("passes the limits it warns past through the hook to the module", async () => {
+    const live = renderConnected(<HaNumericModule entityId={ID} warnBelow={1000} loadHistory={false} />, raw);
+    await waitFor(() => expect(live.container.querySelector(".fd-meta .fd-warn-t > [aria-hidden]")?.textContent).toBe("Low CO₂"));
+  });
+
   it("follows the store when the entity stops responding", async () => {
     const live = renderLive();
     await waitFor(() => expect(live.container.querySelector(".fd-module")).not.toBeNull());

@@ -81,4 +81,44 @@ describe("NumericCard", () => {
     rerender(<NumericCard entity={{ ...entity, value: 41, unit: "%" }} footprint="compact" />);
     expect(container.querySelector(".hd-sub")?.textContent).toBe("41%");
   });
+
+  it("warns past a limit the person set: core's word first behind the marker, then the area, the figure in its own ink, no glow", () => {
+    const { high } = NUMERIC_SEEDS;
+    const { container } = render(<NumericCard entity={high.entity} history={high.history} />);
+    const card = container.querySelector("article");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("High CO₂ · Bedroom");
+    expect(container.querySelector(".hd-area .hd-warn")?.textContent).toBe("High CO₂");
+    expect(screen.getAllByRole("img", { name: "Warning: Carbon dioxide above 1200 ppm" }).length).toBeGreaterThan(0);
+    expect(card?.getAttribute("data-alert")).toBe("warn");
+    expect(card?.getAttribute("data-glow")).toBeNull();
+    expect(container.querySelector(".nm-v")?.closest(".hd-warn")).toBeNull();
+  });
+
+  it("warns below a limit too, and never at the limit, unavailable or before a first reading", () => {
+    const { low } = NUMERIC_SEEDS;
+    const { container, rerender } = render(<NumericCard entity={low.entity} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Low voltage · Basement");
+    rerender(<NumericCard entity={{ ...low.entity, value: 12 }} />);
+    expect(container.querySelector(".hd-warn")).toBeNull();
+    rerender(<NumericCard entity={{ ...low.entity, state: "unavailable" }} />);
+    expect(container.querySelector(".hd-warn")).toBeNull();
+    rerender(<NumericCard entity={{ ...low.entity, value: undefined }} />);
+    expect(container.querySelector(".hd-warn")).toBeNull();
+  });
+
+  it("leads a compact row's value line with the warning and the figure after it; a hidden reading's place keeps the figure", () => {
+    const { high } = NUMERIC_SEEDS;
+    const { container, rerender } = render(<NumericCard entity={high.entity} footprint="compact" />);
+    expect(container.querySelector(".hd-sub")?.textContent).toBe("High CO₂ · 1450 ppm");
+    expect(container.querySelector(".hd-sub .hd-warn")?.textContent).toBe("High CO₂");
+    rerender(<NumericCard entity={high.entity} footprint="compact" showControl={false} />);
+    expect(container.querySelector(".hd-val")?.textContent).toBe("1450 ppm");
+  });
+
+  it("says the limits in the sheet's small print, whether or not it warns", () => {
+    const { co2 } = NUMERIC_SEEDS;
+    const { container } = render(<NumericCard entity={co2.entity} variant="sheet" />);
+    expect(container.querySelector(".hd-info")?.textContent).toContain("Carbon dioxide in ppm · Warns above 1200 ppm");
+    expect(container.querySelector(".hd-warn")).toBeNull();
+  });
 });

@@ -1,9 +1,10 @@
 import type { NumericEntity, NumericHistory } from "@dashhaus/core/entities/numeric/types";
 import { TODAY_SHORT_PLACES, fmtNumeric, numericFigure, numericToday, withUnit } from "@dashhaus/core/entities/numeric/readings";
-import { numericFact, numericWords } from "@dashhaus/core/entities/numeric/words";
+import { numericFact, numericLimitFact, numericWords } from "@dashhaus/core/entities/numeric/words";
+import { numericWarning } from "@dashhaus/core/entities/numeric/severity";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { NumericIcon } from "./icons";
-import { CardFrame, Readout, Today, paint, useCard, detailsSheet } from "../../shared/ui";
+import { AlertStatus, CardFrame, Readout, Today, paint, useCard, detailsSheet } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./NumericCard.css";
 
@@ -22,8 +23,11 @@ export interface NumericCardProps extends CardProps {
  * (`numericFigure`), so it never loses a digit to an ellipsis; it is heard in full. Today's second metric is the
  * day's low and high, or how far a meter that only climbs rose, left out where it would not fit whole
  * (`TODAY_SHORT_PLACES`). The status line says the area and what it measures ("Living room · CO₂"), and before a first
- * reading "No reading yet", the readout "Waiting…", as the sensor card. It has no warning: a threshold of its own
- * would be a guess (spec/cards.md). The name or the reading opens the sheet with today's readings by hour.
+ * reading "No reading yet", the readout "Waiting…", as the sensor card. It warns only past a limit the person set
+ * (`warnAbove`, `warnBelow`; a threshold of its own would be a guess, spec/cards.md): core's word leads the status
+ * line behind the warn marker ("High CO₂ · Living room"), in place of what it measures, advisory, so the figure keeps
+ * its ink and the card no glow; a compact row's value line says it the same way. The sheet's small print says the
+ * limits, whether or not it warns. The name or the reading opens the sheet with today's readings by hour.
  */
 export function NumericCard({ entity: e, history, variant, footprint, showControl, onOpenDetails, onClose }: NumericCardProps) {
   const card = useCard("nm", { variant, footprint, showControl, area: e.area });
@@ -37,7 +41,12 @@ export function NumericCard({ entity: e, history, variant, footprint, showContro
   const figure = value != null ? numericFigure(value) : undefined;
   const text = unav ? "Unavailable" : figure == null ? "Waiting…" : withUnit(figure, e.unit);
   const spoken = value == null ? "no reading yet" : withUnit(fmtNumeric(value), e.unit);
+  // Core ranks it (a limit the person set, advisory) and words it; the card draws the word it is given, first.
+  const warning = numericWarning(e);
+  const alertLabel = warning ? `Warning: ${warning.said}` : null;
   const status = unav ? "Unavailable"
+    // In a narrow card the area gives way, so the line never clips and the word keeps its room.
+    : warning ? <><AlertStatus label={alertLabel!}>{warning.word}</AlertStatus>{area && <span className="hd-sub-optional">{` · ${area}`}</span>}</>
     : [area, figure == null ? "No reading yet" : words.label].filter(Boolean).join(" · ") || undefined;
   // A second metric that can't fit its track is left out, never cut: the strip and the sheet say it in full.
   const todayMetric = today?.short && today.short.length <= TODAY_SHORT_PLACES ? today.short : undefined;
@@ -61,20 +70,24 @@ export function NumericCard({ entity: e, history, variant, footprint, showContro
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": unav ? "unavailable" : "ok", ...colors }}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": warning ? "warn" : undefined, ...colors }}
       glyph={<NumericIcon picture={words.picture} />}
       unavailable={unav}
       lastSeen={e.lastSeen}
       onOpen={onOpenDetails}
       status={status}
-      value={text}
+      // A compact row's value line leads with the warning behind its marker, as its status line does, and the figure
+      // follows in its own ink, so a clip gives up the figure first; a hidden reading's place keeps the figure alone.
+      value={warning ? <><AlertStatus label={alertLabel!}>{warning.word}</AlertStatus>{` · ${text}`}</> : text}
+      bareValue={text}
       readout={{ value: figure != null ? <>{figure}{e.unit && <span>{e.unit}</span>}</> : null, label: sheet && figure != null ? spoken : undefined }}
       onClose={onClose}
       // The sheet's header says the figure and its strip the day: it keeps the slot only to say there is none.
       slot={!sheet || unav || figure == null}
       control={sheet || !onOpenDetails ? <Readout label={heard}>{bar}</Readout>
         : <Readout label={`${e.name}: ${heard}`} onOpen={onOpenDetails}>{bar}</Readout>}
-      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: numericFact(e) }}
+      // When first, then what it is and the limits it warns past.
+      facts={{ start: unav ? lastSeenFact(e.lastSeen) : updatedFact(e.lastUpdated), end: [numericFact(e), numericLimitFact(e)].filter(Boolean).join(" · ") }}
     >
       {today && <Today samples={today.samples} currentHour={history!.currentHour} summary={today.long} />}
     </CardFrame>

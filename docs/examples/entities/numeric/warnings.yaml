@@ -1,0 +1,9 @@
+type: custom:dashhaus-orb
+cards:
+  - entity: sensor.bedroom_co2
+    card: numeric
+    warn_above: 1200   # warns while it reads over 1200 ppm
+  - entity: sensor.freezer_temperature
+    card: numeric
+    warn_below: -25
+    warn_above: -15    # warns outside the band, either way

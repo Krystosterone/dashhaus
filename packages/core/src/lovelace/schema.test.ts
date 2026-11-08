@@ -9,6 +9,7 @@ import {
   readCard,
   readCards,
   readColor,
+  readNumericOptions,
   readOwletOptions,
   readUnit,
   readBody,
@@ -143,6 +144,23 @@ describe("shared option readers", () => {
     });
     expect(readOwletOptions(reader, { alerts: ["binary_sensor.low"] }, "owlet", ["low_oxygen"]).alerts).toBeUndefined();
     expect(reader.problems).toEqual(['owlet: "alerts" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen']);
+  });
+
+  it("reads a numeric reading's unit and the limits it warns past, any finite number, a band low under high", () => {
+    const reader = new Reader();
+    expect(readNumericOptions(reader, { unit: "ppm", warn_above: 1200 }, "co2")).toEqual({ unit: "ppm", warnAbove: 1200, warnBelow: undefined });
+    expect(readNumericOptions(reader, { warn_below: -25.5, warn_above: -15 }, "freezer")).toEqual({ unit: undefined, warnAbove: -15, warnBelow: -25.5 });
+    expect(readNumericOptions(reader, {}, "plain")).toEqual({ unit: undefined, warnAbove: undefined, warnBelow: undefined });
+    expect(reader.problems).toEqual([]);
+    expect(readNumericOptions(reader, { warn_above: "1200", warn_below: Number.NaN }, "text")).toEqual({ unit: undefined, warnAbove: undefined, warnBelow: undefined });
+    expect(readNumericOptions(reader, { warn_below: 24, warn_above: 18 }, "band")).toEqual({ unit: undefined, warnAbove: 18, warnBelow: 24 });
+    expect(readNumericOptions(reader, { warn_below: 20, warn_above: 20 }, "equal").warnAbove).toBe(20);
+    expect(reader.problems).toEqual([
+      'text: "warn_above" must be a number',
+      'text: "warn_below" must be a number',
+      'band: "warn_below" must be under "warn_above"',
+      'equal: "warn_below" must be under "warn_above"',
+    ]);
   });
 });
 
