@@ -22,6 +22,19 @@ button, not a card). The domains still to draw are GitHub issues labelled `new c
 
 A card's YAML kind is its own identity: its domain's card by default, or a shared card picked with `card:` (`sound` on a `switch`, `owlet` or `guestWifi` on a `sensor`). The sections below follow that identity.
 
+## What every card says
+
+A card's words and warnings belong to its model, not to a skin, so every skin says the same thing in its own voice. Each skin's rules say how it draws them: [orb.md](orb.md) → One state vocabulary and the warn colour, [field.md](field.md) → Severity and the screen.
+
+- **Its words live in core.** A card's state words, warning words and today words are its model's, in `packages/core/src/entities/<name>/` (`words.ts`, or `readings.ts` for a reading's figures), and every skin imports them. A skin never invents a different word. Field's segment screen may shorten one to fit its places, or print a hand-picked synonym that doesn't contradict it (`OPEN` for Unlocked, `OK` for Clear, `HOLD` for Paused), and its meta line still says the core word.
+- **State words are Title case, one word where one does it, and the domain's own.** The off word is the class's (`Closed`, `Dry`, `Clear`), never a bare `Off` where the domain has a better one. A transition is the verb (`Opening`, `Locking`, `Returning`), never a guessed end state. `unknown`, `unavailable` and a missing entity are **Unavailable**, never a safe-looking off. Where Home Assistant leaves the state set to the integration (a vacuum's), a state it doesn't name is drawn as a known state in its own words (`updating_firmware` → `Updating firmware`), and the mapper folds aliases into the canonical states, with a test.
+- **Severity is ranked once, in core.** A card with warnings ranks them in `entities/<name>/severity.ts`, returning `Severity` (`entities/severity.ts`): **alarm**, act now, safety (smoke, a vitals alert, a triggered alarm); **urgent**, act soon, something has stopped working (a leak, a jam, an error); **advisory**, look when convenient (a low battery, a garage door left open). A state's own warning outranks one about the device. A choice, something switched off on purpose, is no severity, and nothing is ranked while unavailable. A skin draws the level it is given and never ranks one itself.
+- **The same physical thing gets the same warning, whatever its domain.** A garage door left open warns the same way, in the same words, as a `cover` or as a `binary_sensor`; a low battery is `isLowBattery` (`entities/battery.ts`) on every card, and a device that is charging or docked never warns of one.
+- **A warning's words fit a row: 13 characters at most** (`Leak detected`, `Jammed`, `Low oxygen`), so a 340 px Field row and an Orb compact row keep the word that matters. The spoken label may be the whole sentence.
+- **A card never invents a threshold.** "Left open too long" or "stale after N minutes" is an explicit option of the hook and the YAML (owlet's `stale_after`) or a GitHub issue, never a constant in a card.
+- **Before a first value, every reading says the same words.** `No reading yet` wherever a line says the state (Orb's status line, Field's first meta line and blank screen, the spoken label), and `Waiting…` only where Orb has room for a figure alone (its readout and its compact cue). Never a blank status line, and never another phrase for it.
+- **Small print: when first, then what the device is.** Facts start with when (`Last changed 08:16`, `Last seen 08:20` while unavailable, `Updated 11:53`, from `entities/facts.ts`) and end with what the device is (its battery, its capabilities, its code), in both skins.
+
 ## Using the light card
 
 ```tsx
