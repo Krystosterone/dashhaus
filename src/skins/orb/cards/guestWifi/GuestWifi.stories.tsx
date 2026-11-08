@@ -46,6 +46,8 @@ export const NoCode: Story = { name: "No code", args: { seed: "none" } };
 export const Unavailable: Story = { args: { seed: "unavailable" } };
 /** The hero for a hall or a wall panel: the join QR code on the card, to scan where you stand. */
 export const Featured: Story = { args: { footprint: "featured" } };
+/** Featured with every code used: no QR code to scan, and the one place outside the sheet that says to make one there. */
+export const FeaturedNoCode: Story = { name: "Featured, no code", args: { seed: "none", footprint: "featured" } };
 /** Realistic worst-case data from the demo seeds (GUEST_WIFI_WORST_CASE): long names, uses at their limits, no network or QR code. */
 export const WorstCase: Story = {
   name: "Worst case",

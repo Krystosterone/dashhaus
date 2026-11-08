@@ -39,7 +39,6 @@ describe("guestWifiFromHass", () => {
       state: "ready",
       network: "Maple Guests",
       code: "98668-49366",
-      qr: "/api/image_proxy/image.maple_qr_code?token=abc",
       allowed: 1,
       used: 0,
       lastsMinutes: 1440,
@@ -91,7 +90,7 @@ describe("guestWifiFromHass", () => {
   it("is none, not unavailable, when there is no code but one can be made", () => {
     const empty = fixture["sensor.garage_voucher"] as HassEntity;
     const none = guestWifiFromHass(empty, empty.entity_id, { qrEntity, newCodeEntity });
-    expect(none).toMatchObject({ state: "none", network: "Maple Guests", qr: qrEntity.attributes.entity_picture });
+    expect(none).toMatchObject({ state: "none", network: "Maple Guests" });
     expect(none.code).toBeUndefined();
     expect(guestWifiFromHass(undefined, "sensor.maple_voucher", { newCodeEntity }).state).toBe("none");
   });
@@ -108,8 +107,12 @@ describe("guestWifiFromHass", () => {
     expect(gone.qr).toBeUndefined();
   });
 
-  it("shows no QR code while its image is unavailable", () => {
-    expect(guestWifiFromHass(raw, raw.entity_id, { qrEntity: { ...qrEntity, state: "unavailable" } })).toMatchObject({ network: "Maple Guests", qr: undefined });
+  it("reads the network from the QR code's image while it can be reached, and never its picture: the hook adds that", () => {
+    const unnamed: HassEntity = { ...raw, attributes: { ...raw.attributes, wlan_name: undefined } };
+    const named = guestWifiFromHass(unnamed, raw.entity_id, { qrEntity });
+    expect(named.network).toBe("Maple Guests");
+    expect(named.qr).toBeUndefined();
+    expect(guestWifiFromHass(unnamed, raw.entity_id, { qrEntity: { ...qrEntity, state: "unavailable" } }).network).toBeUndefined();
   });
 
   it("sets lastSeen only while unavailable", () => {

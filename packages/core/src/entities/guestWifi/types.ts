@@ -26,7 +26,10 @@ export interface GuestWifiEntity {
   network?: string;
   /** What a guest types, as Home Assistant gives it: the code ("98668-49366") or the password. Only while `ready`. */
   code?: string;
-  /** The network's join QR code, an image URL as Home Assistant serves it (relative to Home Assistant). */
+  /**
+   * The network's join QR code, a URL this page can load: the hook adds it from the QR code image's `entity_picture`
+   * (`useHaPicture`), resolved against Home Assistant, and leaves it out while the image or the code is unavailable.
+   */
   qr?: string;
   /** How many times the code can be used, or `unlimited`. Only while `ready`. */
   allowed?: number | "unlimited";

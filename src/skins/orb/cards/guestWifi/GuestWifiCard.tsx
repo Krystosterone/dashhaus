@@ -71,8 +71,8 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
     <div className="gw-join" data-qr={ready && e.qr ? "" : undefined}>
       {ready && e.qr && <img className="gw-qr" src={e.qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} />}
       <p className="gw-how">
-        {/* The sheet has New code under it; the card says where to find it. */}
-        {ready ? joinWords(e) : sheet ? noneSentence(e) : `${none}. ${NONE_HINT}.`}
+        {/* The sheet has New code under it; the card, whose slot already says there is none, says where to find it. */}
+        {ready ? joinWords(e) : sheet ? noneSentence(e) : `${NONE_HINT}.`}
         {featured && terms && <span className="gw-terms">{terms}</span>}
       </p>
     </div>

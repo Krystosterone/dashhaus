@@ -4,6 +4,7 @@ import { createGuestWifiHandlers } from "../actions/guestWifi";
 import type { GuestWifiHandlers } from "../actions/guestWifi";
 import { guestWifiCompanions, guestWifiFromHass } from "../mappers/guestWifi";
 import { useHaArea } from "../registry";
+import { useHaPicture } from "../useHaPicture";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
 import { useHourCycle } from "../../hooks/hourCycle";
@@ -39,7 +40,9 @@ export interface HaGuestWifiResult {
 /**
  * One live guest Wi-Fi for any UI: the code or password, its network and join QR code mapped together, and the two
  * actions that fetch it again and make a new one. UniFi Hotspot Manager's companions are found beside its
- * `sensor.<site>_voucher`; name any other's. No history: a code's day is when it was made and how often it was used.
+ * `sensor.<site>_voucher`; name any other's. The QR code is its image's own picture (`entity_picture`), resolved by
+ * the connection (`useHaPicture`) so it loads on another origin too, and dropped while the image is unavailable or
+ * unknown, and while the code is. No history: a code's day is when it was made and how often it was used.
  */
 export function useHaGuestWifi(entityId: string, { access, network, qrEntityId, newCodeEntityId, refreshEntityId, name, area, lastSeen, onActionError }: HaGuestWifiOptions = {}): HaGuestWifiResult {
   checkEntityId(entityId, ["sensor", "input_text", "text"], "useHaGuestWifi");
@@ -51,13 +54,14 @@ export function useHaGuestWifi(entityId: string, { access, network, qrEntityId, 
   const qrEntity = useHaEntity(ids.qr ?? "");
   const newCodeEntity = useHaEntity(ids.newCode ?? "");
   const refreshEntity = useHaEntity(ids.refresh ?? "");
+  const qr = useHaPicture(ids.qr);
   const registryArea = useHaArea(entityId);
   const now = useNow();
   const hourCycle = useHourCycle();
-  const entity = useMemo(
-    () => guestWifiFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle, qrEntity, newCodeEntity, access, network }),
-    [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle, qrEntity, newCodeEntity, access, network],
-  );
+  const entity = useMemo(() => {
+    const mapped = guestWifiFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle, qrEntity, newCodeEntity, access, network });
+    return qr && mapped.state !== "unavailable" ? { ...mapped, qr } : mapped;
+  }, [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle, qrEntity, newCodeEntity, access, network, qr]);
   const newCodeState = newCodeEntity?.state, refreshState = refreshEntity?.state;
   const actions = useMemo(() => createGuestWifiHandlers(store, {
     onError: onActionError,
