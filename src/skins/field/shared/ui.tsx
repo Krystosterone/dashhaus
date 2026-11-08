@@ -527,7 +527,7 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
 export function Legend({ id, children, value, as: Tag = "p" }: { id?: string; children: ReactNode; value?: ReactNode; as?: "p" | "h2" }) {
   return (
     <Tag className="fd-legend fd-legend--block">
-      <span id={id}>{children}</span>
+      <span id={id} className="fd-legend-n">{children}</span>
       {value != null && <span className="fd-legend-v">{value}</span>}
     </Tag>
   );
@@ -590,7 +590,8 @@ const NO_HOURS: HourSample[] = Array(24).fill(null);
 
 /**
  * Today: a printed legend, with its summary at the end, over the hour meter. In a panel, a block; in a module it
- * takes a fader's place and height, its legend over a shorter strip.
+ * takes a fader's place and height, its legend over a shorter strip, on one line at every width (module.css): a narrow
+ * module drops the printed word, a summary still too long ends in an ellipsis, and the meter's label says it whole.
  */
 export function Today({ legend = "Today", summary, label, samples = NO_HOURS, currentHour = -1, tone, aheadFrom }: TodayProps) {
   return (

@@ -190,6 +190,13 @@ function AllParts() {
       <Part name="Module frame" rule="Every module's frame (ModuleFrame): its header, then the screen and the row under it, or a compact row's lead and screen; its name opens the panel, the screen again, the controls and the small print. What a card hands it is generic: rest, a known resting state, its figure dim here and in the panel; a note in place of the area; its own body in place of the screen and the row; a picture over the panel's screen. Tap a name for its panel.">
         <State label="A screen and its row" width={300}><Frame name="Hall" area="Downstairs" state="ok" read={<Temperature value={21.4} unit="°" />} meta={["48% RH", "Since 10:31"]} /></State>
         <State label="A row" width={340}><Frame name="Hall" area="Downstairs" state="ok" footprint="compact" read={<Temperature value={21.4} unit="°" />} /></State>
+        <State label="Narrow rows (200 px): four places keep the inset three do" width={200}>
+          <div style={{ display: "grid", gap: 8 }}>
+            <Frame name="Robot" area="Hall" state="ok" footprint="compact" read="RUN" />
+            <Frame name="Robot mop" area="Landing" state="docked" rest footprint="compact" read="DOCK" />
+            <Frame name="Back door" area="Kitchen" state="unlocked" rest footprint="compact" read="OPEN" />
+          </div>
+        </State>
         <State label="Resting" width={300}><Frame name="Garage door" area="Garage" state="closed" rest pict={null} read="SHUT" meta={["Closed", "Since 08:16"]} /></State>
         <State label="A note in place of the area" width={300}><Frame name="Nursery" area="Upstairs" note="Base station off" state="ok" read={<Temperature value={20.1} unit="°" />} meta={["52% RH"]} /></State>
         <State label="Its own body; a picture over the panel's screen" width={300}>
@@ -199,11 +206,19 @@ function AllParts() {
         </State>
       </Part>
 
-      <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash. Hours known ahead (a calendar's plan, aheadFrom) draw their level in the dim ink, dimmed as a dark hour.">
+      <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash. Hours known ahead (a calendar's plan, aheadFrom) draw their level in the dim ink, dimmed as a dark hour. In a module its legend keeps to one line, so the strip never moves: on a narrow module the printed word gives way to the summary, a summary still too long ends in an ellipsis, and the meter says it whole.">
         <State label="First parameter" width={300}><Today summary="4h 10m" label="Brightness today." samples={DAY} currentHour={18} /></State>
         <State label="Neutral, an activity" width={300}><Today summary="2h" label="Heating today." samples={DAY} currentHour={18} tone="neutral" /></State>
         <State label="Neutral, with hours ahead" width={300}><Today summary="2h 30m" label="Hours busy by hour today, those ahead included." samples={PLAN} currentHour={11} aheadFrom={12} tone="neutral" /></State>
         <State label="No history" width={300}><Today label="No history today." /></State>
+        <State label="A narrow module (200 px): the word gives way" width={200}>
+          <Frame name="Nursery" area="Upstairs" state="ok" read={<Temperature value={20.1} unit="°" />} meta={["52% RH"]}
+            row={<ModuleRow><Glyph><IconThermo /></Glyph><Today summary="Asleep 9h 54m" label="Sleep by hour today." samples={DAY} currentHour={18} tone="neutral" /></ModuleRow>} />
+        </State>
+        <State label="Too long still: an ellipsis, said whole" width={200}>
+          <Frame name="Kitchen smoke" area="Kitchen" state="ok" read="OK" meta={["Clear"]}
+            row={<ModuleRow><Glyph><IconThermo /></Glyph><Today summary="Not detected today" label="Smoke by hour today." samples={DAY} currentHour={18} tone="neutral" /></ModuleRow>} />
+        </State>
       </Part>
 
       <Part name="Key group" rule="A row of keys, each filling its cell: every key on one row, or n to a row, and fewer to a row on a narrow panel (300 px and under, or under 420 px), under a printed legend where it has one.">

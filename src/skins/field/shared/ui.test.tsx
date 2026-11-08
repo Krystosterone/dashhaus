@@ -142,4 +142,11 @@ describe("Today", () => {
     rerender(<Today label="Busy today." samples={samples} currentHour={1} tone="neutral" />);
     expect(container.querySelector(".fd-meter-h[data-ahead]")).toBeNull();
   });
+
+  it("prints its word and summary apart, so a narrow module can drop the word, and the meter says the summary whole", () => {
+    const { container } = render(<Today summary="Not detected today" label="Smoke by hour today." />);
+    expect(container.querySelector(".fd-legend-n")?.textContent).toBe("Today");
+    expect(container.querySelector(".fd-legend-v")?.textContent).toBe("Not detected today");
+    expect(screen.getByRole("img", { name: "Smoke by hour today. Not detected today." })).toBeTruthy();
+  });
 });
