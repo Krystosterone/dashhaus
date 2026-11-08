@@ -5,11 +5,13 @@
  * runs here against a fake registry, which is late the way npm is after a publish.
  */
 import { createHash } from "node:crypto";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { apiMarkdown, apiOfTarballs, compareVersions, diffApi, readApi, suggestVersion } from "../scripts/release/api.js";
 import type { Api } from "../scripts/release/api.js";
@@ -20,6 +22,42 @@ import { renderRecord } from "../scripts/release/prepare.js";
 import { fetchFromRegistry, publishedAt, waitFor } from "../scripts/release/registry.js";
 
 const REPO = "git+https://github.com/Krystosterone/dashhaus.git";
+
+/** Every skin with a public entry, by the name a note gives it: `orb` is Orb, `glass-house` Glass House. */
+const SKINS = readdirSync("src/skins", { withFileTypes: true })
+  .filter((dir) => dir.isDirectory() && existsSync(join("src/skins", dir.name, "index.ts")))
+  .map((dir) => ({ dir: dir.name, name: dir.name.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ") }));
+
+/**
+ * The code a note names as a skin's (spec/release.md → Change notes): `Orb's <Name>` (or `Orb's and Field's <Name>`)
+ * where `<Name>` reads as an identifier, not a word: in backticks, with a capital inside it (`TogglePill`), or called a
+ * part, component or hook. "Orb's Owlet card" and "Field's YAML" name what a consumer sees, not code.
+ */
+function namedCode(body: string, skins = SKINS.map(({ name }) => name)) {
+  const skin = `(?:${skins.join("|")})['\u2019]s`;
+  const pattern = new RegExp(`\\b(${skin}(?:,? (?:and|or) ${skin})*) (?:\`([A-Za-z_$][\\w$]*)\`|([A-Z][a-z0-9]+[A-Z][\\w$]*)|([A-Z][\\w$]*)(?= (?:parts?|components?|hooks?)\\b))`, "g");
+  return [...body.matchAll(pattern)].flatMap((match) => {
+    const name = match[2] ?? match[3] ?? match[4];
+    return skins.filter((each) => new RegExp(`\\b${each}['\u2019]s`).test(match[1])).map((each) => ({ skin: each, name }));
+  });
+}
+
+/** What a skin's entry exports, by name. Its entry lists its exports by name, so a star re-export is refused. */
+function skinExports(dir: string): Set<string> {
+  const path = join("src/skins", dir, "index.ts");
+  const file = ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+  const names = new Set<string>();
+  for (const statement of file.statements) {
+    if (ts.isExportDeclaration(statement)) {
+      if (!statement.exportClause || !ts.isNamedExports(statement.exportClause)) throw new Error(`${path}: export * hides what it exports`);
+      for (const element of statement.exportClause.elements) names.add(element.name.text);
+    } else if (ts.canHaveModifiers(statement) && ts.getModifiers(statement)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
+      const declared = ts.isVariableStatement(statement) ? statement.declarationList.declarations.map((d) => d.name) : [(statement as ts.DeclarationStatement).name];
+      for (const name of declared) if (name && ts.isIdentifier(name)) names.add(name.text);
+    }
+  }
+  return names;
+}
 
 describe("change notes", () => {
   it("reads a note's type and body, and refuses one without either", () => {
@@ -32,6 +70,26 @@ describe("change notes", () => {
 
   it("keeps every note in changes/ readable", async () => {
     for (const note of await readChanges()) expect(CHANGE_TYPES, note.file).toContain(note.type);
+  });
+
+  it("finds the code a note names as a skin's, and not the words a consumer sees", () => {
+    const skins = ["Orb", "Field"];
+    expect(namedCode("Orb's TogglePill gains a disabled state; Field's Steps part gains a value.", skins)).toEqual([
+      { skin: "Orb", name: "TogglePill" }, { skin: "Field", name: "Steps" },
+    ]);
+    expect(namedCode("Orb's and Field's `Picture` part, and Orb’s `useCard`.", skins)).toEqual([
+      { skin: "Orb", name: "Picture" }, { skin: "Field", name: "Picture" }, { skin: "Orb", name: "useCard" },
+    ]);
+    expect(namedCode("Orb's Owlet card, Field's YAML, Field's Storybook and Orb's sheet.", skins)).toEqual([]);
+  });
+
+  it("names a skin's code only where that skin's entry exports it", async () => {
+    const exports = new Map(SKINS.map(({ dir, name }) => [name, skinExports(dir)]));
+    expect(exports.get("Orb")?.has("TogglePill"), "reads a skin's entry").toBe(true);
+    const unexported = (await readChanges()).flatMap(({ file, body }) => namedCode(body)
+      .filter(({ skin, name }) => !exports.get(skin)?.has(name))
+      .map(({ skin, name }) => `${file}: ${skin}'s ${name} is not exported from its entry; say what it does instead`));
+    expect(unexported).toEqual([]);
   });
 
   it("counts a change as shipped when it can change a tarball or a resource", () => {

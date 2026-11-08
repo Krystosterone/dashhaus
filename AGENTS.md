@@ -4,7 +4,7 @@ React + TypeScript skins for a custom Home Assistant dashboard, developed and sh
 
 ## Vocabulary
 
-One word per thing, the same in code, Storybook and the docs.
+One word per thing, the same in code, Storybook and the docs, and one thing per word: a name the skin contract already gives a meaning is never reused for another (spec/contract.md).
 
 - **Card** — one model drawn on a dashboard, Home Assistant's word for it. Every skin keeps its cards in `src/skins/<skin>/cards/<name>/` and files their stories under `<Skin>/Cards/<Name>`. "Widget" is the old name; don't bring it back.
 - **Model** — the normalized object a card draws, from `useHa<Name>`. A **direct model** is one Home Assistant entity (a light, a thermostat, a cover); a **composed model** is a primary entity plus companions the hook composes (found beside it, or given as options): a sensor with its device's humidity and battery, a sound machine's switch and volume, the weather with air quality and sun, an Owlet sock's sensors and base station. Composition lives in the entity type and the hook, never in the card: every card still takes one `entity` prop, so a dashboard, layout or YAML treats every card alike. "Device card" describes a composed model from one device; it is not a third card type.
