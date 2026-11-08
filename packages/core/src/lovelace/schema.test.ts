@@ -4,6 +4,7 @@ import {
   cardKindOrder,
   cardKinds,
   readAlarmOptions,
+  readCalendarOptions,
   readCameraOptions,
   readCard,
   readCards,
@@ -120,6 +121,19 @@ describe("shared option readers", () => {
     expect(readCameraOptions(reader, {}, "camera")).toEqual({ still: undefined, refresh: undefined });
     expect(readCameraOptions(reader, { still: "no", refresh: 0.5 }, "camera")).toEqual({ still: undefined, refresh: undefined });
     expect(reader.problems).toEqual(['camera: "still" must be true or false', 'camera: "refresh" must be a whole number from 1 to 3600']);
+  });
+
+  it("reads a calendar's other calendars, its horizon and whether to read its events", () => {
+    const reader = new Reader();
+    expect(readCalendarOptions(reader, { calendars: ["calendar.school"], days: 14 }, "calendar")).toEqual({ calendars: ["calendar.school"], days: 14, events: true });
+    expect(readCalendarOptions(reader, { events: false }, "calendar")).toEqual({ calendars: undefined, days: undefined, events: false });
+    expect(readCalendarOptions(reader, { calendars: ["sensor.x"], days: 40 }, "calendar")).toEqual({ calendars: [], days: undefined, events: true });
+    expect(readCalendarOptions(reader, { calendars: "calendar.school" }, "calendar").calendars).toBeUndefined();
+    expect(reader.problems).toEqual([
+      "calendar.calendars[0]: sensor.x must be a calendar.* entity",
+      'calendar: "days" must be a whole number from 1 to 31',
+      'calendar: "calendars" must be a list of calendar.* entity ids',
+    ]);
   });
 
   it("reads an Owlet sock's alert sensors by alert name", () => {

@@ -62,6 +62,8 @@ function ScreenAt({ children }: { children: ReactNode }) {
   return <div style={{ display: "grid", height: 56, width: "100%" }}>{children}</div>;
 }
 
+/** A day's plan: the hours before now and those ahead, as a calendar knows them. */
+const PLAN: HourSample[] = [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0.75, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0, 0, 0];
 const DAY: HourSample[] = [0, 0, 0, 0, 0, 0, 0.3, 0.8, 0.6, 0, 0, 0, 0.4, 0.5, "unavailable", "unavailable", 0.7, 0.9, 1, null, null, null, null, null];
 
 /** A picture through the real lifecycle: it loads once on screen and decodes before it draws. */
@@ -197,9 +199,10 @@ function AllParts() {
         </State>
       </Part>
 
-      <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash.">
+      <Part name="Today" rule="A printed legend with its summary over the hour meter: one segment column per hour, the hour now marked under it. Hours not yet come are dark; unavailable hours show a dash. Hours known ahead (a calendar's plan, aheadFrom) draw their level in the dim ink, dimmed as a dark hour.">
         <State label="First parameter" width={300}><Today summary="4h 10m" label="Brightness today." samples={DAY} currentHour={18} /></State>
         <State label="Neutral, an activity" width={300}><Today summary="2h" label="Heating today." samples={DAY} currentHour={18} tone="neutral" /></State>
+        <State label="Neutral, with hours ahead" width={300}><Today summary="2h 30m" label="Hours busy by hour today, those ahead included." samples={PLAN} currentHour={11} aheadFrom={12} tone="neutral" /></State>
         <State label="No history" width={300}><Today label="No history today." /></State>
       </Part>
 

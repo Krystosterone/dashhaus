@@ -111,4 +111,13 @@ describe("HumidifierModule", () => {
     draw("dehumidifier", "standard", { defaultOpen: true });
     expect(screen.queryByRole("button", { name: /^Set mode to/, hidden: true })).toBeNull();
   });
+
+  it("draws no Room channel in the panel while off for a unit that reports no room humidity, and no words of its own", () => {
+    const off = HUMIDIFIER_SEEDS.off.entity;
+    const { unmount } = render(<HumidifierModule entity={off} defaultOpen onToggle={vi.fn()} />);
+    expect(screen.getByRole("dialog").textContent).toContain("Room");
+    unmount();
+    render(<HumidifierModule entity={{ ...off, currentHumidity: undefined }} defaultOpen onToggle={vi.fn()} />);
+    expect(screen.getByRole("dialog").textContent).not.toContain("Room");
+  });
 });

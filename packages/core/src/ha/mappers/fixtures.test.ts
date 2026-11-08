@@ -8,6 +8,7 @@ import camera from "../fixtures/camera.json";
 import mediaPlayer from "../fixtures/mediaPlayer.json";
 import numeric from "../fixtures/numeric.json";
 import vacuum from "../fixtures/vacuum.json";
+import calendar from "../fixtures/calendar.json";
 // new-card: fixture imports
 import alarm from "../fixtures/alarm.json";
 import climate from "../fixtures/climate.json";
@@ -27,6 +28,7 @@ import { cameraFromHass } from "./camera";
 import { mediaPlayerFromHass } from "./mediaPlayer";
 import { numericFromHass } from "./numeric";
 import { vacuumFromHass } from "./vacuum";
+import { calendarFromHass } from "./calendar";
 // new-card: mapper imports
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
@@ -64,6 +66,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "media player", fixture: mediaPlayer, map: mediaPlayerFromHass, keepsState: true },
   { domain: "numeric", fixture: numeric, map: numericFromHass, keepsState: false },
   { domain: "vacuum", fixture: vacuum, map: vacuumFromHass, keepsState: true },
+  { domain: "calendar", fixture: calendar, map: calendarFromHass, keepsState: false },
   // new-card: fixtures
 ];
 

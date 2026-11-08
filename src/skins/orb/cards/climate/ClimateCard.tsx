@@ -1,6 +1,7 @@
 import type { ClimateEntity, ClimateHistory, HvacMode } from "@dashhaus/core/entities/climate/types";
 import { ACTION_LABEL, fmtTarget, fmtCurrent, titleCase, orderedRange } from "@dashhaus/core/entities/climate/modes";
-import { TARGET_WORD, climateFacts } from "@dashhaus/core/entities/climate/words";
+import { TARGET_WORD, climateFacts, roomTemperatureBlank } from "@dashhaus/core/entities/climate/words";
+import { NOT_REPORTED } from "@dashhaus/core/entities/facts";
 import { lastChangedFact, lastSeenFact, nowText } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { ModeIcon, ThermostatIcon, modeLabel } from "./modes";
@@ -49,9 +50,11 @@ export function ClimateCard({ entity: e, history, variant, footprint, showContro
   const range = mode === "heat_cool" && e.targetLow != null && e.targetHigh != null;
   const single = !range && e.targetTemperature != null && (mode === "heat" || mode === "cool" || mode === "auto");
   // While unavailable a control keeps its room on the status line (spec/orb.md → One state vocabulary); the slot says
-  // Unavailable. Otherwise the room's temperature, as it is now, and what the unit is doing.
-  const status = unav ? area ?? "Unavailable"
-    : [cur != null ? (compact ? `${fmtCurrent(cur)}°` : nowText(`${fmtCurrent(cur)}°`)) : null, ACTION_LABEL[action]].filter(Boolean).join(" · ");
+  // Unavailable. Otherwise the room's temperature, as it is now, and what the unit is doing: before its first reading
+  // "No reading yet" in its place, and nothing where the thermostat never reports one (spec/cards.md).
+  const missing = cur == null ? roomTemperatureBlank(e) : undefined;
+  const room = cur != null ? (compact ? `${fmtCurrent(cur)}°` : nowText(`${fmtCurrent(cur)}°`)) : missing === NOT_REPORTED ? null : missing;
+  const status = unav ? area ?? "Unavailable" : [room, ACTION_LABEL[action]].filter(Boolean).join(" · ");
   // The compact cue: the mode and its setpoint, in figures, so no word is said twice.
   const modePrefix = compact && on ? `${modeLabel(mode)} · ` : "";
   const setText = unav ? "Unavailable" : !on ? "Off" : range ? `${modePrefix}${e.targetLow === e.targetHigh ? `${fmtTarget(e.targetLow!)}°` : `${fmtTarget(e.targetLow!)}–${fmtTarget(e.targetHigh!)}°`}` : single ? `${modePrefix}${fmtTarget(e.targetTemperature!)}°` : modeLabel(mode);

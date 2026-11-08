@@ -19,5 +19,18 @@ export const lastChangedFact = (lastChanged?: string, by?: string) => (lastChang
 /** When it last reported: "Updated 10:42", "Live · updated 10:42", or "" when it doesn't say. */
 export const updatedFact = (lastUpdated?: string, live?: boolean) => (lastUpdated ? `${live ? "Live · updated" : "Updated"} ${lastUpdated}` : "");
 
+/**
+ * A figure a device declares (its supported features, colour modes or attributes include it) but hasn't sent yet: the
+ * same words every reading says before its first value (spec/cards.md → What every card says).
+ */
+export const NO_READING_YET = "No reading yet";
+
+/**
+ * A figure a device doesn't declare, so it may never report it (a light with no colour temperature mode, a humidifier
+ * with no current humidity): a card draws nothing for it, and says this only where a fixed place must still hold
+ * something (Field's segment screen).
+ */
+export const NOT_REPORTED = "Not reported";
+
 /** A reading as it is now, beside a target it is held to: "20.4° now", "38% now". */
 export const nowText = (figure: string) => `${figure} now`;

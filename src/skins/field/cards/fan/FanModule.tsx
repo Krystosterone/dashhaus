@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { FanDirection, FanEntity, FanHistory } from "@dashhaus/core/entities/fan/types";
 import { namedSpeeds, percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { DIRECTION_LABEL, fanAbilities, fanMode, fanWord, presetLabel, speedValueText } from "@dashhaus/core/entities/fan/labels";
-import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
+import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Fader, Key, KeyGroup, ModuleFrame, ModuleRow, Option, Pictogram, Today, choices, useDetails, Channel } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -95,7 +95,7 @@ export function FanModule({ entity: e, footprint = "standard", history, onToggle
 
   // Unavailable, the screen keeps the module's meta lines: "Unavailable" and when it was last seen.
   const aside = !unav && e.supportsDirection ? (
-    <Channel name={e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label="Direction not reported" />} sub="Direction" />
+    <Channel name={e.direction ? DIRECTION_LABEL[e.direction] : <Blank places={3} label={NO_READING_YET} />} sub="Direction" />
   ) : undefined;
 
   return (

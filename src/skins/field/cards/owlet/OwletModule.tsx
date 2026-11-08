@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { OwletEntity, OwletHistory } from "@dashhaus/core/entities/owlet/types";
 import { ALERT_SAID, ALERT_SHORT, ALERT_WORD, CHARGING, SLEEP_UNKNOWN, SLEEP_WORD, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "@dashhaus/core/entities/owlet/readings";
 import { URGENT_PROBLEMS, owletSeverity } from "@dashhaus/core/entities/owlet/severity";
-import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { NO_READING_YET, lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
 import { Blank, Digits, Glyph, Key, Legend, ModuleFrame, Pictogram, Today, Warn, useDetails, ModuleRow, Notices } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -62,7 +62,7 @@ export function OwletModule({ entity: e, footprint = "standard", history, onBase
   // of reach it can't, so they are blank. Before a first reading the segments are blank and say so in core's words.
   const heartRead: ReactNode = offline ? (e.charging ? <><span aria-hidden="true">DOCK</span><span className="fd-sr">{CHARGING}</span></> : <Blank label="Unavailable" />)
     : hr != null ? <><Digits value={hr} /><small>bpm</small></>
-    : <Blank label={o2 == null ? "No reading yet" : "No heart rate yet"} />;
+    : <Blank label={NO_READING_YET} />;
   // The reading as it is, alarm or not: the panel's screen, under which every alert is listed.
   const reading: [ReactNode, ReactNode?] = offline ? [e.charging ? CHARGING : "Unavailable", seen]
     : [sleepWord, oxygen ?? (hr == null ? "No reading yet" : undefined)];

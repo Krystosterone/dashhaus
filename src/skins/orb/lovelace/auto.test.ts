@@ -178,6 +178,7 @@ describe("autoDashboard", () => {
         "binary_sensor.back_door": state("binary_sensor.back_door", { device_class: "door" }),
         "camera.door": state("camera.door"),
         "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher"),
+        "calendar.family": state("calendar.family"),
       },
     };
     const titles = (autoDashboard(every).rows as { title: string }[]).map((s) => s.title);
@@ -185,7 +186,7 @@ describe("autoDashboard", () => {
     const spec = readFileSync(join(process.cwd(), "spec/deploy.md"), "utf8");
     const rule = spec.slice(spec.indexOf("#### The automatic layout's order"), spec.indexOf("\nA row whose title an area already has"));
     const listed = [...rule.matchAll(/^\d\. .*(?:\n {3}.*)*/gm)].flatMap(([item]) => [...item.matchAll(/`([A-Z]\w+)`|(a row per area)/g)].map((m) => m[1] ?? "Bedroom"));
-    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Outside", "Rooms"]);
+    expect(listed).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Cameras", "Nursery", "Guests", "Calendar", "Outside", "Rooms"]);
     expect(titles).toEqual(listed);
   });
 
@@ -207,6 +208,21 @@ describe("autoDashboard", () => {
     });
     expect(card.rows).toEqual([{ title: "Bedroom", cards: [{ entity: "fan.bed", footprint: "compact" }, { entity: "vacuum.robot", footprint: "compact" }] }]);
     expect(parseDashboardConfig(card).rows![0].cards[1].item).toEqual(expect.objectContaining({ kind: "vacuum", entity: "vacuum.robot" }));
+  });
+
+  it("puts every visible calendar under Calendar, after the guests and before the outside", () => {
+    const card = autoDashboard({
+      ...input,
+      states: { ...states, "calendar.school": state("calendar.school"), "calendar.family": state("calendar.family"), "sensor.67d9d6d6ad84e044caf4621c_voucher": state("sensor.67d9d6d6ad84e044caf4621c_voucher") },
+    });
+    const rows = card.rows as { title: string; cards: unknown[] }[];
+    expect(rows.map((s) => s.title)).toEqual(["Comfort", "Modes", "Bedroom", "Other", "Security", "Nursery", "Guests", "Calendar", "Outside", "Rooms"]);
+    expect(rows.find((s) => s.title === "Calendar")!.cards).toEqual(["calendar.family", "calendar.school"]);
+    const parsed = parseDashboardConfig(card).rows!.find((s) => s.title === "Calendar")!;
+    expect(parsed.cards.map((c) => c.item)).toEqual([
+      expect.objectContaining({ kind: "calendar", entity: "calendar.family", events: true }),
+      expect.objectContaining({ kind: "calendar", entity: "calendar.school" }),
+    ]);
   });
 
   it("stays automatic when there is nothing to place", () => {

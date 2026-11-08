@@ -158,6 +158,14 @@ export type { VacuumTileProps } from "./cards/vacuum/VacuumTile";
 export { HaVacuumTile } from "./ha/HaVacuumTile";
 export type { HaVacuumTileProps } from "./ha/HaVacuumTile";
 
+// Calendar
+export { CalendarCard, CalendarSheet } from "./cards/calendar/CalendarCard";
+export type { CalendarCardProps, CalendarSheetProps } from "./cards/calendar/CalendarCard";
+export { CalendarTile } from "./cards/calendar/CalendarTile";
+export type { CalendarTileProps } from "./cards/calendar/CalendarTile";
+export { HaCalendarTile } from "./ha/HaCalendarTile";
+export type { HaCalendarTileProps } from "./ha/HaCalendarTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

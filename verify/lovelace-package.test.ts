@@ -144,6 +144,7 @@ describe("@dashhaus/core/lovelace", () => {
       "oneOf",
       "readAlarmOptions",
       "readBody",
+      "readCalendarOptions",
       "readCameraOptions",
       "readCard",
       "readCards",

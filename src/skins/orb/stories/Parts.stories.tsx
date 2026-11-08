@@ -6,7 +6,7 @@ import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_SUNDAY, ARTWORK_TALL, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
 import {
-  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Stepper, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
+  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
 } from "../shared/ui";
 import type { CardFootprint, CardFrameProps, HourSample } from "../shared/ui";
 import { BrightnessBar, ColorChips, IconBulb, WarmthRuler } from "../cards/light/parts";
@@ -66,6 +66,8 @@ function State({ label, width, children }: { label: string; width?: number; chil
   );
 }
 
+/** A day's plan: the hours before now and those ahead, as a calendar knows them. */
+const PLAN: HourSample[] = [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0.75, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0, 0, 0];
 const DAY: HourSample[] = [0, 0, 0, 0, 0, 0, 0.3, 0.8, 0.6, 0, 0, 0, 0.4, 0.5, "unavailable", "unavailable", 0.7, 0.9, 1, null, null, null, null, null];
 
 /** The track with its own fill, as a card that only needs a level would draw it. */
@@ -241,8 +243,9 @@ function AllParts() {
         <State label="With the one thing to do" width={340}><AlarmPill alert="Alarm" more="Hall motion" action={<button type="button" className="al-cd-b al-alarm-b">Disarm</button>} /></State>
       </Part>
 
-      <Part name="Today strip" surface="hd--featured" rule="24 hourly sticks: height is that hour's level, the current hour is the accent. Hours not yet come are a short line; unavailable hours are dashed.">
+      <Part name="Today strip" surface="hd--featured" rule="24 hourly sticks: height is that hour's level, the current hour is the accent. Hours not yet come are a short line; unavailable hours are dashed. Hours known ahead (a calendar's plan, forecastFrom) draw their level as lighter sticks, as the weather's forecast does.">
         <State label="A day so far" width={340}><TodayStrip samples={DAY} currentHour={18} summary="On 4h 10m" /></State>
+        <State label="Hours known ahead (forecastFrom)" width={340}><Today samples={PLAN} currentHour={12} forecastFrom={13} summary="Busy 3h 30m" /></State>
       </Part>
 
       <Part name="Confirm and Keypad" cardRole="state" rule="A guarded action's answer, in the sheet, on useGuardedAction: the question when no code is asked for (Cancel raised and focused, the action in the inverse, taking no press for a moment), or the keypad when one is (raised digits, enter in the inverse; a wrong code shakes the dots).">
