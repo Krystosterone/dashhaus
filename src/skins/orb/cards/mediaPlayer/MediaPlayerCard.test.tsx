@@ -7,6 +7,13 @@ import type { MediaPlayerEntity } from "@dashhaus/core/entities/mediaPlayer/type
 const playing: MediaPlayerEntity = MEDIA_PLAYER_SEEDS.playing.entity;
 const press = () => ({ onPlay: vi.fn(), onPause: vi.fn(), onTurnOn: vi.fn() });
 
+/** The status line as a card 260 px and wider shows it, where the pill says the state itself: without `hd-said`. */
+const statusLine = (container: HTMLElement) => {
+  const line = container.querySelector(".hd-area")?.cloneNode(true) as HTMLElement | undefined;
+  line?.querySelectorAll(".hd-said").forEach((said) => said.remove());
+  return line?.textContent;
+};
+
 describe("MediaPlayerCard", () => {
   it("is a state: the accent while playing, never a glow", () => {
     const { container } = render(<MediaPlayerCard entity={playing} {...press()} />);
@@ -32,13 +39,27 @@ describe("MediaPlayerCard", () => {
   it("says since when, not the slot's word again, where it has nothing else to say", () => {
     const bare: MediaPlayerEntity = { entityId: "media_player.x", name: "X", state: "playing", lastChanged: "11:40" };
     const { container } = render(<MediaPlayerCard entity={bare} {...press()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Since 11:40");
+    expect(statusLine(container)).toBe("Since 11:40");
+  });
+
+  it("keeps what a press does whole, and under 260 px says the state it drops on the status line instead", () => {
+    const { container } = render(<MediaPlayerCard entity={playing} {...press()} />);
+    expect(container.querySelector(".hd-pill > .hd-pill-w")?.textContent).toBe("Playing");
+    expect(container.querySelector(".hd-pill > [data-action]")?.textContent).toBe("Pause");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Playing · Sunday Morning · Maroon 5");
+    expect(statusLine(container)).toBe("Sunday Morning · Maroon 5");
+  });
+
+  it("has no state to give the status line where the slot says it with nothing to press", () => {
+    const { container } = render(<MediaPlayerCard entity={playing} />);
+    expect(container.querySelector(".hd-said")).toBeNull();
+    expect(container.querySelector(".hd-st")?.textContent).toBe("Playing");
   });
 
   it("falls back on its status line as every card does: its own cue, the area, since when, then nothing (spec/orb.md)", () => {
     const status = (entity: MediaPlayerEntity) => {
       const { container, unmount } = render(<MediaPlayerCard entity={entity} {...press()} />);
-      const said = container.querySelector(".hd-area")?.textContent ?? "";
+      const said = statusLine(container) ?? "";
       unmount();
       return said;
     };
@@ -51,7 +72,7 @@ describe("MediaPlayerCard", () => {
 
   it("says what is playing on the status line, the title first", () => {
     const { container } = render(<MediaPlayerCard entity={playing} {...press()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Sunday Morning · Maroon 5");
+    expect(statusLine(container)).toBe("Sunday Morning · Maroon 5");
   });
 
   it("pauses what plays, plays what doesn't, and turns on what is off, from the orb and the pill", () => {
@@ -75,7 +96,7 @@ describe("MediaPlayerCard", () => {
 
   it("says Muted after what is playing", () => {
     const { container } = render(<MediaPlayerCard entity={{ ...playing, muted: true }} {...press()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Sunday Morning · Maroon 5 · Muted");
+    expect(statusLine(container)).toBe("Sunday Morning · Maroon 5 · Muted");
   });
 
   it("draws the artwork and how far in when featured, and neither on a standard card", () => {
@@ -85,7 +106,7 @@ describe("MediaPlayerCard", () => {
     rerender(<MediaPlayerCard entity={playing} footprint="featured" {...press()} />);
     expect(screen.getByRole("img", { name: "Artwork for Sunday Morning" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "1 minute 23 seconds of 4 minutes 5 seconds" })).toBeTruthy();
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Kitchen · Spotify");
+    expect(statusLine(container)).toBe("Kitchen · Spotify");
   });
 
   it("draws no progress line and no clock under a quiet dashboard", () => {

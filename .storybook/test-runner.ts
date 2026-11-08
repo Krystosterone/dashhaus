@@ -99,6 +99,21 @@ const config: TestRunnerConfig = {
       }),
     );
     if (spills.length) throw new Error(`Orb readout overflow\n  ${spills.join("\n  ")}`);
+    // An Orb pill's words end in an ellipsis where they give way, never cut at its edge, and what a press does is whole
+    // (spec/orb.md → A pill says what a press does).
+    const pills = await page.locator("#storybook-root .hd-pill").evaluateAll((all) =>
+      all.flatMap((pill) => {
+        if (!pill.clientWidth) return [];
+        const card = pill.closest(".hd");
+        const where = `${card?.querySelector(".hd-title")?.textContent?.trim() || "unnamed"} (${card?.className.match(/hd--(compact|featured|sheet)/)?.[1] ?? "standard"}, ${Math.round(card?.getBoundingClientRect().width ?? 0)}px)`;
+        const found: string[] = [];
+        if (pill.scrollWidth > pill.clientWidth + 1) found.push(`${where}: its pill "${(pill as HTMLElement).innerText}" is cut at its edge (${pill.scrollWidth - pill.clientWidth}px)`);
+        const action = pill.querySelector(":scope > [data-action]");
+        if (action && action.clientWidth && action.scrollWidth > action.clientWidth + 1) found.push(`${where}: its pill cuts what a press does, "${action.textContent}"`);
+        return found;
+      }),
+    );
+    if (pills.length) throw new Error(`Orb pill cut\n  ${pills.join("\n  ")}`);
     // Where a line clips, the words around a time give way before it (spec/cards.md → Clock words follow the
     // dashboard's hour cycle): a time on either clock, or a span of them, is whole with its period or gone whole, never
     // `1:44…`, `2:53 A…` or `Fri 1…`. And a warning keeps its word, in either skin (spec/cards.md → A warning's words fit a row):

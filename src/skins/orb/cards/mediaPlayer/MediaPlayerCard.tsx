@@ -7,7 +7,7 @@ import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { MediaPlayerIcon } from "./icons";
 import { Progress, SeekGroove } from "./parts";
-import { CardFrame, ChoiceChips, LevelBar, Picture, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import { CardFrame, ChoiceChips, LevelBar, Picture, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./MediaPlayerCard.css";
 
@@ -90,13 +90,16 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   // (spec/orb.md → One state vocabulary); unavailable, it says so, as every card does.
   const since = unav ? word : sinceFact(e.lastChanged);
   const cue = line ?? area ?? since;
+  const roomyLine = [area, from].filter(Boolean).join(" · ") || (line ?? since ?? "");
+  // Under 260 px the pill says only what a press does, so the line leads with the state it dropped.
+  const said = (rest: boolean) => press && <Said word={word} rest={rest} />;
   const status = roomy
-    ? [area, from].filter(Boolean).join(" · ") || (line ?? since ?? "")
-    : <>{cue}{muted && <span className="mp-muted">{cue ? " · " : ""}{MUTED}</span>}</>;
+    ? <>{said(!!roomyLine)}{timed(roomyLine)}</>
+    : <>{said(!!cue || muted)}{timed(cue)}{muted && <span className="mp-muted">{cue ? " · " : ""}{MUTED}</span>}</>;
 
   const orbLabel = unav ? `${e.name}: Unavailable` : verb ? `${verb} ${e.name}` : `${e.name}: ${word}`;
   const slot = press
-    ? <TogglePill label={`${e.name}: ${word} · ${verb}`} on={active} onToggle={run} extra={verb}>{word}</TogglePill>
+    ? <TogglePill label={`${e.name}: ${word} · ${verb}`} on={active} onToggle={run} action={verb}>{word}</TogglePill>
     : <p className="hd-st mp-st">{word}</p>;
 
   const playhead = usePlayhead(e);

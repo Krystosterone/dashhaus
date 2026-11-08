@@ -5,7 +5,7 @@ import type { VacuumPress } from "@dashhaus/core/entities/vacuum/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
 import { VacuumIcon } from "./icons";
-import { AlertStatus, CardFrame, ChoiceChips, SheetBlock, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import { AlertStatus, CardFrame, ChoiceChips, Said, SheetBlock, Today, TogglePill, detailsSheet, paint, timed, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./VacuumCard.css";
 
@@ -58,15 +58,18 @@ export function VacuumCard({ entity: e, history, variant, footprint, showControl
   const detail = statusDetail(e);
   // The warning first, the short word on a row and what went wrong where there is room; else the room and what the
   // integration adds ("Charging"); with no room to name, its own detail.
+  // Under 260 px the pill says only what a press does, so the line says the state it dropped: first, or after a warning.
+  const acts = press && e.state !== "error";
+  const plain = area ? <>{area}{detail && <span className="vc-detail"> · {detail}</span>}</> : unav ? "Unavailable" : timed(detail ?? sinceFact(e.lastChanged));
   const status = alertLabel
-    ? <AlertStatus label={alertLabel}>{compact ? warning : vacuumWarningText(e)}</AlertStatus>
-    : area ? <>{area}{detail && <span className="vc-detail"> · {detail}</span>}</> : unav ? "Unavailable" : detail ?? sinceFact(e.lastChanged);
+    ? <><AlertStatus label={alertLabel}>{compact ? warning : vacuumWarningText(e)}</AlertStatus>{acts && <Said word={word} behind />}</>
+    : <>{acts && <Said word={word} rest={!!plain} />}{plain}</>;
 
   const orbLabel = unav ? `${e.name}: Unavailable` : press ? pressSaid(press, e) : `${e.name}: ${word}`;
   // After an error the pill says what a press does, as a jammed lock's says Lock again; the status line says Error.
   const slot = press
     ? (
-      <TogglePill label={`${e.name}: ${word} · ${verb}`} on={active} onToggle={run} extra={e.state === "error" ? undefined : verb}>
+      <TogglePill label={`${e.name}: ${word} · ${verb}`} on={active} onToggle={run} action={acts ? verb : undefined}>
         {e.state === "error" ? verb : word}
       </TogglePill>
     )

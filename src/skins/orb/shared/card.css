@@ -105,7 +105,8 @@
    the sheet's 40 px (spec/orb.md → Readout type). No card sets its own. */
 .hd--sheet.hd .hd-num:is(.hd-num--word, .hd-num--long) { font-size: 30px; letter-spacing: -0.02em; }
 .hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
-.hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* One line that ends in an ellipsis where it gives way: the name, and a pill's state word (below). */
+.hd-name > span, .hd-open > span:first-child, .hd-pill-w { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-area { margin-top: 3px !important; font-size: var(--type-status); font-weight: 500; color: var(--ink-2); line-height: var(--type-status-leading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .hd-sub { display: none; }
 /* A missing area keeps its line, so cards with and without one stay the same height. */
@@ -206,7 +207,24 @@
 /* Turn on: a climate-like unit that is off. The status line says Off; the centred action says what a tap
    does, on a quieter raised surface so one large neutral pill doesn't outweigh the card. */
 .hd-pill--turn-on { justify-content: center; background: color-mix(in oklab, var(--btn) 45%, var(--card-solid)); }
-.hd-pill-x { display: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+/* A pill's words keep to its one line, each ending in an ellipsis where it must give way (the state word's is the
+   name's rule, above), never cut at its edge. A cue after the state word (a toggle's Until, a sound's volume) gives
+   way before it, and the state only once the cue has. */
+.hd-pill-x { display: none; flex-shrink: 1000; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+/* What a press does (TogglePill's `action`) is the pill's word, so it is whole: the state before it gives way first.
+   Under 260 px it is the pill's only word, and the status line says the state (`hd-said`; spec/orb.md → A pill says
+   what a press does). */
+.hd-pill-x[data-action] { flex: none; }
+.hd-said { display: none; }
+@container hd (max-width: 259px) {
+  .hd-pill:has(> .hd-pill-x[data-action]) > .hd-pill-w { display: none; }
+  .hd-pill-x[data-action] { display: inline; font-weight: inherit; }
+  .hd-said { display: inline; }
+  /* A compact row keeps its state word, and the sheet says both: neither drops the state. */
+  :is(.hd--compact, .hd--sheet) .hd-pill:has(> .hd-pill-x[data-action]) > .hd-pill-w { display: inline; }
+  :is(.hd--compact, .hd--sheet) .hd-pill-x[data-action] { font-weight: 500; }
+  :is(.hd--compact, .hd--sheet) .hd-said { display: none; }
+}
 /* Unavailable: dashed, empty, muted, like the orb beside it. */
 .hd-unav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad-in); outline: 1.5px dashed var(--ink-3); outline-offset: -1.5px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; overflow: hidden; }
 .hd-unav-t { display: none; font-weight: 500; }

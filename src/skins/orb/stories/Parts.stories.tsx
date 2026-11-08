@@ -6,7 +6,7 @@ import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_SUNDAY, ARTWORK_TALL, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
 import {
-  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
+  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Said, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
 } from "../shared/ui";
 import type { CardFootprint, CardFrameProps, HourSample } from "../shared/ui";
 import { BrightnessBar, ColorChips, IconBulb, WarmthRuler } from "../cards/light/parts";
@@ -175,11 +175,16 @@ function AllParts() {
         <State label="Warning" width={220}><CardTitle id="parts-title-warn" name="Front door"><p className="hd-area"><AlertStatus label="Warning">Open 25 min</AlertStatus></p></CardTitle></State>
       </Part>
 
-      <Part name="Toggle pill" rule="A full-width button: raised when off, the accent when on. A unit whose status already says Off gets the quieter Turn on. One with nothing to do now (a step at its bound) lies flat, disabled.">
+      <Part name="Toggle pill" rule="A full-width button: raised when off, the accent when on. A unit whose status already says Off gets the quieter Turn on. One with nothing to do now (a step at its bound) lies flat, disabled. Its words end in an ellipsis, never cut at its edge; what a press does is whole, the state giving way before it, and under 260 px the pill says the press alone, its card's status line saying the state it dropped (Said).">
         <State label="Off" width={220}><TogglePill label="Fan off" on={false} onToggle={() => {}}>Off</TogglePill></State>
         <State label="On, tap it" width={220}><TogglePill label="Fan" on={pill} onToggle={() => setPill(!pill)}>{pill ? "On" : "Off"}</TogglePill></State>
         <State label="Turn on" width={220}><TogglePill label="Turn on heat" on={false} turnOn onToggle={() => {}}>Turn on</TogglePill></State>
         <State label="Disabled: nothing to do now, lies flat" width={220}><TogglePill label="Living room TV: volume up" disabled onToggle={() => {}}>Up</TogglePill></State>
+        <State label="Its state and what a press does" width={300}><TogglePill label="Kitchen speaker: Playing · Pause" on onToggle={() => {}} action="Pause">Playing</TogglePill></State>
+        <State label="A long state gives way before the press" width={300}><TogglePill label="Kitchen speaker: Updating firmware, do not unplug · Turn off" onToggle={() => {}} action="Turn off">Updating firmware, do not unplug</TogglePill></State>
+        <State label="Under 260 px: the press alone" width={220}><TogglePill label="Kitchen speaker: Updating firmware, do not unplug · Turn off" onToggle={() => {}} action="Turn off">Updating firmware, do not unplug</TogglePill></State>
+        <State label="Under 260 px, its status line says the state" width={220}><p className="hd-area"><Said word="Updating firmware, do not unplug" rest />Kitchen</p></State>
+        <State label="…after a warning, which leads" width={220}><p className="hd-area"><AlertStatus label="Warning: Robot vacuum: Battery 15%">Battery 15%</AlertStatus><Said word="Paused" behind /></p></State>
       </Part>
 
       <Part name="Chips" rule="One of several: raised, the chosen one in the accent. A card's own chips add their class to the chip's (light's colours, each with its swatch).">

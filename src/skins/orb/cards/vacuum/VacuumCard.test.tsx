@@ -9,6 +9,13 @@ const cleaning: VacuumEntity = {
 };
 const handlers = () => ({ onStart: vi.fn(), onPause: vi.fn(), onReturnToBase: vi.fn(), onLocate: vi.fn(), onFanSpeedChange: vi.fn() });
 
+/** The status line as a card 260 px and wider shows it, where the pill says the state itself: without `hd-said`. */
+const statusLine = (container: HTMLElement) => {
+  const line = container.querySelector(".hd-area")?.cloneNode(true) as HTMLElement | undefined;
+  line?.querySelectorAll(".hd-said").forEach((said) => said.remove());
+  return line?.textContent;
+};
+
 describe("VacuumCard", () => {
   it("is a state: no glow, and cleaning is the accent", () => {
     const { container } = render(<VacuumCard entity={cleaning} {...handlers()} />);
@@ -48,21 +55,36 @@ describe("VacuumCard", () => {
     const h = handlers();
     const { container } = render(<VacuumCard entity={{ ...cleaning, state: "error", error: "Main brush jammed" }} {...h} />);
     expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Error · Main brush jammed");
+    expect(statusLine(container)).toBe("Error · Main brush jammed");
     expect(screen.getByLabelText("Warning: Robot vacuum: Stopped with an error: main brush jammed")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /^Robot vacuum: Error · Start again/ }));
     expect(h.onStart).toHaveBeenCalledOnce();
   });
 
+  it("keeps what a press does whole, and under 260 px says the state it drops on the status line, after a warning", () => {
+    const { container, rerender } = render(<VacuumCard entity={cleaning} {...handlers()} />);
+    expect(container.querySelector(".hd-pill > [data-action]")?.textContent).toBe("Pause");
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Cleaning · Hall");
+    rerender(<VacuumCard entity={{ ...cleaning, state: "idle", battery: 9 }} {...handlers()} />);
+    expect(container.querySelector(".hd-area")?.textContent).toBe("Battery 9% · Idle");
+    expect(container.querySelector(".hd-area .hd-warn")?.textContent).toBe("Battery 9%");
+  });
+
+  it("says Start again alone after an error, with no state to give the status line", () => {
+    const { container } = render(<VacuumCard entity={{ ...cleaning, state: "error", error: "Main brush jammed" }} {...handlers()} />);
+    expect(container.querySelector(".hd-pill")?.textContent).toBe("Start again");
+    expect(container.querySelector(".hd-said")).toBeNull();
+  });
+
   it("warns of a low battery while it stands away from the dock, never on it or on its way", () => {
     const { container, rerender } = render(<VacuumCard entity={{ ...cleaning, state: "idle", battery: 9 }} {...handlers()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Battery 9%");
+    expect(statusLine(container)).toBe("Battery 9%");
     rerender(<VacuumCard entity={{ ...cleaning, state: "docked", battery: 9 }} {...handlers()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
+    expect(statusLine(container)).toBe("Hall");
     rerender(<VacuumCard entity={{ ...cleaning, battery: 9 }} {...handlers()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
+    expect(statusLine(container)).toBe("Hall");
     rerender(<VacuumCard entity={{ ...cleaning, state: "returning", battery: 9 }} {...handlers()} />);
-    expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
+    expect(statusLine(container)).toBe("Hall");
   });
 
   it("says an integration's own state in its words", () => {

@@ -200,14 +200,29 @@ export function AlarmPill({ alert, more, value, action }: { alert: ReactNode; mo
 /** `turnOn`: the off-state control of a unit whose status line already says Off (climate, humidifier). */
 /** Without `on` it acts once (Refresh, New code): raised, and not announced as a toggle. */
 /** `disabled`: nothing to do now (a step at its bound): it lies flat, as a disabled button does. */
-export function TogglePill({ label, on, onToggle, children, extra, turnOn, disabled }: { label: string; on?: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; turnOn?: boolean; disabled?: boolean }) {
+/**
+ * `action`, in place of `extra`: what a press does, after the state word (`Playing · Pause`). A pill's word is what
+ * pressing it does, so it is whole: the state gives way before it, and under 260 px the pill says the action alone, the
+ * card's status line saying the state it dropped (`Said`; spec/orb.md → A pill says what a press does).
+ */
+export function TogglePill({ label, on, onToggle, children, extra, action, turnOn, disabled }: { label: string; on?: boolean; onToggle: () => void; children: ReactNode; extra?: ReactNode; action?: ReactNode; turnOn?: boolean; disabled?: boolean }) {
   const press = usePress({ onPress: onToggle, pressed: on, disabled });
+  const second = action ?? extra;
   return (
     <button className={turnOn ? "hd-pill hd-pill--turn-on" : "hd-pill"} aria-label={label} {...press}>
-      <span>{children}</span>
-      {extra && <span className="hd-pill-x">{extra}</span>}
+      <span className="hd-pill-w">{children}</span>
+      {second && <span className="hd-pill-x" data-action={action ? "" : undefined}>{second}</span>}
     </button>
   );
+}
+
+/**
+ * The state a pill with an `action` drops under 260 px, at the head of the status line there, so a narrow card still
+ * says it: `rest` when the line says more after it, `behind` after a warning, which leads. Hidden where the pill says
+ * the state itself.
+ */
+export function Said({ word, rest, behind }: { word: ReactNode; rest?: boolean; behind?: boolean }) {
+  return <span className="hd-said">{behind ? " · " : ""}{word}{rest ? " · " : ""}</span>;
 }
 
 /**
