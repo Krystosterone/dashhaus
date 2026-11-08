@@ -2,6 +2,9 @@
 
 /* More than one warning: the most urgent with a count of the rest, or the count alone where even that clips. */
 .fd-wx-warn-s { display: none; }
+/* Its line clips what doesn't fit, the warnings spoken in full after it included: they sit past the clipped words, and
+   are out of the flow, so the line holds them or they would widen the module. */
+.fd-wx .fd-warn-t { position: relative; }
 @container (max-width: 259px) {
   .fd-wx .fd-wx-warn-l { display: none; }
   .fd-wx .fd-wx-warn-s { display: inline; }

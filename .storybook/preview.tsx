@@ -143,7 +143,7 @@ const preview: Preview = {
               // new-card: cards
             ],
             "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Wall panel, far", "Phone, alarm below the fold"], "Lovelace card", "Header", "Nav bar"],
-            "Foundations", ["Design rules", "Palette", "Parts", "Alerts"],
+            "Foundations", ["Design rules", "Palette", "Parts", "Alerts", "Worst case"],
             "Connected", [
               "Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet", "Lock",
               "Fan",

@@ -16,7 +16,7 @@
  */
 import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { generated as generatedSkin, markers, packageFile } from "../packages.js";
+import { generated as generatedSkin, markers, packageFile, packageSpecifier } from "../packages.js";
 import { after, before, changes, exists, fail, filler, names, orbKinds, read, root, seams, skinDir } from "./lib.js";
 import { newFieldCard } from "./field.js";
 import { newOrbCard } from "./orb.js";
@@ -185,6 +185,12 @@ One \`__domain__.*\` entity, switched on and off:
 
 // The class prefix joins the hard rules.
 edit(seams.agents, before(markers.orbCodes, `, \`${code}-\` ${words}`));
+
+// Foundations → Worst case: its worst-case seeds beside every other card's (verify/storybook.test.ts).
+edit(seams.orb.worstCase, after(markers.worstCaseImports, fill(`import { Demo__Name__Tile } from "../cards/__name__/demo/Demo__Name__Tile";
+import { __CONST___SEEDS, __CONST___WORST_CASE } from "${packageSpecifier("core", `seeds/${name}`)}";
+`)));
+edit(seams.orb.worstCase, after(markers.worstCases, fill(`  card(__CONST___WORST_CASE, [__CONST___SEEDS.${reading ? "normal" : "on"}], (seed, footprint) => <Demo__Name__Tile seed={seed} footprint={footprint} />),`)));
 
 // A card on the Lovelace dashboard. The domain picks it; when the domain already has a card, `card:` does.
 const { path: lovelace, domainKind } = orbKinds();

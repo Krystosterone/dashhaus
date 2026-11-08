@@ -36,6 +36,8 @@ const removeFan = (copy: string) => {
   change(copy, "src/skins/field/lovelace/FieldDashboard.tsx", withoutLines(/HaFanModule/));
   change(copy, "src/skins/field/stories/DesignRules.mdx", withoutLines(/cards\/fan\/FanModule\.stories|^ {4}Fan: \[Fan\./));
   change(copy, ".storybook/preview.tsx", withoutLines(/^ {14}"Fan",$/));
+  change(copy, "src/skins/orb/stories/WorstCase.stories.tsx", withoutLines(/DemoFanTile|"@dashhaus\/core\/seeds\/fan"|card\(FAN_WORST_CASE/));
+  change(copy, "src/skins/field/stories/WorstCase.stories.tsx", (source) => withoutLines(/cards\/fan\/FanModule"|"@dashhaus\/core\/seeds\/fan"|card\(FAN_WORST_CASE/)(source).replace(/\nfunction Fan\(\{[\s\S]*?\n\}\n/, ""));
   change(copy, "AGENTS.md", (source) => source.replace(", `fd-fn-` for fan", ""));
   change(copy, "spec/field.md", (source) => source.replace(/\n## Fan\n[\s\S]*?(?=\n## |$)/, ""));
   change(copy, "spec/cards.md", (source) => source.replace(/\n### Field fan module\n[\s\S]*?(?=\n## |\n### )/, ""));
@@ -52,6 +54,7 @@ const removeOrbLock = (copy: string) => {
   change(copy, "src/skins/orb/index.ts", withoutLines(/^\/\/ Lock$|\.\/cards\/lock\/|\.\/ha\/HaLockTile"/));
   change(copy, "src/skins/orb/lovelace/config.ts", (source) => withoutLines(/^ {2}\| "lock"$|^ {2}lock: "lock",$|kind: "lock"/)(source).replace(/\n {2}lock: \{\n[\s\S]*?\n {2}\},/, ""));
   change(copy, "src/skins/orb/lovelace/ConfigDashboard.tsx", withoutLines(/HaLockTile/));
+  change(copy, "src/skins/orb/stories/WorstCase.stories.tsx", withoutLines(/DemoLockTile|"@dashhaus\/core\/seeds\/lock"|card\(LOCK_WORST_CASE/));
 };
 
 describe("new-card from a domain's description", () => {

@@ -34,7 +34,7 @@ export const __CONST___SEEDS = {
 
 export type __Name__SeedName = keyof typeof __CONST___SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: the card's Worst case story and each skin's Foundations → Worst case draw these. */
 export const __CONST___WORST_CASE: __Name__Seed[] = [__CONST___SEEDS.long];
 
 /** Local state that behaves like a `__domain__` entity, for stories and prototypes. */

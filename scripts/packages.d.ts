@@ -79,8 +79,8 @@ export const seams: {
   deployDoc: string;
   fieldDoc: string;
   skinDoc(skin: string): string;
-  orb: { config: string; renderer: string; auto: string; rulebook: string };
-  field: { config: string; dashboard: string };
+  orb: { config: string; renderer: string; auto: string; rulebook: string; worstCase: string };
+  field: { config: string; dashboard: string; worstCase: string };
 };
 
 export const markers: Record<string, string>;

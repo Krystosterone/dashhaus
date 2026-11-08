@@ -1,11 +1,14 @@
 /**
  * Every skin's Storybook section has the same shape (AGENTS.md → Storybook): the same groups in the same order, and
  * every card the same stories under the same names, so moving between skins or cards never means relearning the tree.
- * Story titles and names are read from the source the way Storybook's indexer reads them: statically.
+ * Story titles and names are read from the source the way Storybook's indexer reads them: statically. Orb's and
+ * Field's Foundations → Worst case page draws every card's worst-case seeds (`<NAME>_WORST_CASE` in
+ * `@dashhaus/core/seeds/<name>`) side by side, so a card left off it fails here rather than in a review.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, posix } from "node:path";
 import { describe, expect, it } from "vitest";
+import { generated, referenceSkins } from "../scripts/packages.js";
 
 /** Each skin's top-level groups, in sidebar order. A group a skin can't fill holds one story that says why. */
 const GROUPS = ["Cards", "Bundles", "Dashboards", "Foundations", "Connected"];
@@ -33,8 +36,17 @@ const STANDARD: [string, string][] = [
   ["DetailsPhone", "Details, phone"],
 ];
 
+/**
+ * Every card's worst case side by side, under Foundations. The reference skins, Orb and Field, must have the page (a
+ * skin `new-skin` lays out has none: its registry says it was generated); any skin that has one keeps it whole.
+ */
+const WORST_CASE = "Worst case";
+const needsWorstCase = (skin: string) => skin in referenceSkins && !existsSync(join(process.cwd(), generated.file(skin, generated.files.registry)));
+
 const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 const label = (name: string) => name[0].toUpperCase() + name.slice(1);
+/** A card folder's seeds constant, as `names()` in scripts/new-card/lib.js makes it: `binarySensor` → `BINARY_SENSOR`. */
+const constant = (name: string) => name.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase();
 
 /** Each story export of a CSF file and its sidebar name: its `name:`, or the export name when it has none. */
 function stories(source: string) {
@@ -60,6 +72,12 @@ function storySort(): unknown[] {
   return JSON.parse(source.slice(start, end + 1).replace(/\/\/.*$/gm, "").replace(/,(\s*\])/g, "$1"));
 }
 
+/** A section's own order in storySort, following its path through the nesting: `Studies/Atelier` is "Atelier" inside "Studies". */
+const orderOf = (section: string) => section.split("/").reduce<unknown[] | undefined>((level, part) => {
+  const i = level?.indexOf(part) ?? -1;
+  return i === -1 ? undefined : level![i + 1] as unknown[];
+}, storySort());
+
 const skins = readdirSync(join(process.cwd(), "src/skins"), { withFileTypes: true })
   .filter((d) => d.isDirectory())
   .map(({ name: skin }) => {
@@ -83,11 +101,7 @@ describe("the Storybook tree", () => {
 
   it("orders every skin's groups the same in storySort", () => {
     for (const { section } of skins) {
-      // Follow the section's path through the nesting: `Studies/Atelier` is "Atelier" inside "Studies".
-      const groups = section.split("/").reduce<unknown[] | undefined>((level, part) => {
-        const i = level?.indexOf(part) ?? -1;
-        return i === -1 ? undefined : level![i + 1] as unknown[];
-      }, storySort());
+      const groups = orderOf(section);
       expect(groups, `.storybook/preview.tsx: list ${section} in storySort`).toBeDefined();
       expect(groups!.filter((g) => typeof g === "string"), `${section}'s groups in storySort`).toEqual(groupsOf(section));
     }
@@ -109,6 +123,24 @@ describe.each(skins)("the $section section", ({ section, files, cards, skin }) =
   it("has every group, filled or saying why it is empty", () => {
     const present = [READ_ME, ...GROUPS].filter((g) => files.some(({ title }) => title === `${section}/${g}` || title.startsWith(`${section}/${g}/`)));
     expect(present).toEqual(groupsOf(section));
+  });
+
+  const worstCase = files.find(({ title }) => title === `${section}/Foundations/${WORST_CASE}`);
+
+  it.runIf(needsWorstCase(skin) || Boolean(worstCase))(`draws every card's worst case on ${section}/Foundations/${WORST_CASE}`, () => {
+    expect(worstCase?.path, `a stories file in src/skins/${skin}/stories/ titled "${section}/Foundations/${WORST_CASE}"`).toBeDefined();
+    const page = worstCase?.source ?? "";
+    const seedless = cards.filter((card) => !new RegExp(`export const ${constant(card)}_WORST_CASE\\b`).test(read(`packages/core/src/seeds/${card}.ts`)));
+    expect(seedless, "packages/core/src/seeds/<name>.ts exports the card's <NAME>_WORST_CASE").toEqual([]);
+    // Imported from the domain's seeds, never a copy, and drawn: named again past its import.
+    const missing = cards.filter((card) => {
+      const seeds = `${constant(card)}_WORST_CASE`;
+      const imported = new RegExp(`import \\{[^}]*\\b${seeds}\\b[^}]*\\} from "@dashhaus/core/seeds/${card}"`).test(page);
+      return !imported || (page.match(new RegExp(`\\b${seeds}\\b`, "g")) ?? []).length < 2;
+    }).map((card) => `${card}: draw ${constant(card)}_WORST_CASE, from "@dashhaus/core/seeds/${card}"`);
+    expect(missing, `${worstCase?.path}: a row for every card, before "// new-card: worst cases"`).toEqual([]);
+    const foundations = orderOf(section)?.[(orderOf(section) ?? []).indexOf("Foundations") + 1];
+    expect(Array.isArray(foundations) && foundations.includes(WORST_CASE), `.storybook/preview.tsx: list "${WORST_CASE}" in ${section}'s Foundations`).toBe(true);
   });
 
   describe.each(cards)(`src/skins/${skin}/cards/%s`, (card) => {

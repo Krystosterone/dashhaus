@@ -97,7 +97,7 @@ export const CALENDAR_SEEDS = {
 
 export type CalendarSeedName = keyof typeof CALENDAR_SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: the card's Worst case story and each skin's Foundations → Worst case draw these. */
 export const CALENDAR_WORST_CASE: CalendarSeed[] = [
   CALENDAR_SEEDS.long,
   CALENDAR_SEEDS.manyAllDay,

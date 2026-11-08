@@ -35,7 +35,7 @@ describe("new-card", () => {
   it.each(PROBES)("finds every anchor for %s", async (...args) => {
     const { status, output } = await run(root, "node", [script, ...args, "--dry-run"]);
     expect(status, output).toBe(0);
-    for (const path of ["src/skins/orb/lovelace/config.ts", "src/skins/orb/lovelace/ConfigDashboard.tsx", "spec/deploy.md"]) {
+    for (const path of ["src/skins/orb/lovelace/config.ts", "src/skins/orb/lovelace/ConfigDashboard.tsx", "src/skins/orb/stories/WorstCase.stories.tsx", "spec/deploy.md"]) {
       expect(output).toContain(`edit   ${path}`);
     }
   });
@@ -63,7 +63,7 @@ describe("new-card", () => {
       expect(status, output).toBe(0);
       const paths = generatedField
         ? ["src/skins/field/lovelace/registry.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "spec/field.md"]
-        : ["src/skins/field/lovelace/config.ts", "src/skins/field/lovelace/FieldDashboard.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "AGENTS.md"];
+        : ["src/skins/field/lovelace/config.ts", "src/skins/field/lovelace/FieldDashboard.tsx", ".storybook/preview.tsx", "src/skins/field/stories/DesignRules.mdx", "src/skins/field/stories/WorstCase.stories.tsx", "AGENTS.md"];
       for (const path of paths) expect(output).toContain(`edit   ${path}`);
     });
 
