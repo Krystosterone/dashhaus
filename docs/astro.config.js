@@ -21,7 +21,8 @@ const SOURCE = {
   },
 };
 
-// Served from GitHub Pages at krystosterone.github.io/dashhaus; `npm run build:docs` puts Storybook under /storybook.
+// Served from GitHub Pages at krystosterone.github.io/dashhaus, as of the latest release, and each branch's preview
+// under the same path on Cloudflare Pages; `npm run build:docs` puts Storybook under /storybook.
 // llms.txt, llms-small.txt and llms-full.txt carry the same pages for agents.
 export default defineConfig({
   site: "https://krystosterone.github.io",

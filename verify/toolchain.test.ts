@@ -114,6 +114,13 @@ describe("the pinned npm", () => {
     expect(publish, "a version on npm is skipped only when it is this very file").toContain('sha1sum "release/$file"');
     expect(jobs.registry, "the registry smoke checks npm against the build's tarballs").toContain("--compare release");
 
+    expect(jobs.release, "a stable release becomes the public site, built from its tag").toMatch(
+      /if: env\.PRERELEASE != 'true'\n\s+run: gh workflow run docs\.yml --ref main -f tag="\$TAG"/,
+    );
+    for (const [name, job] of Object.entries(jobs)) {
+      expect(job.includes("actions: write"), `${name} ${name === "release" ? "may" : "may not"} start a workflow`).toBe(name === "release");
+    }
+
     const setup = read(".github/actions/setup/action.yml").split(/^\s+- /m).slice(1);
     for (const step of setup.filter((step) => /^name: (?:Restore node_modules|Restore npm's downloads|Install)$/m.test(step))) {
       expect(step, "install: false skips every install step").toMatch(/inputs\.install != 'false'/);
@@ -122,6 +129,26 @@ describe("the pinned npm", () => {
     const ci = read(".github/workflows/ci.yml");
     expect(ci, "a pull request that ships carries its change note").toContain("run: node scripts/release/changes.js check-pr");
     expect(ci, "an untagged candidate packs the files it records").toContain("run: node scripts/release/candidate.js check\n");
+  });
+
+  it("deploys the public site only from a published release, and every branch's site to its preview", () => {
+    // spec/release.md → The site: the site on Pages describes what npm and the Marketplace serve, never a branch.
+    const docs = read(".github/workflows/docs.yml");
+    const jobs = Object.fromEntries(
+      docs.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
+    );
+    expect(Object.keys(jobs)).toEqual(["preview", "site", "deploy"]);
+    expect(jobs.site, "only a dispatch, the Release workflow's or by hand, builds the public site").toMatch(/^ {4}if: github\.event_name == 'workflow_dispatch'/m);
+    expect(jobs.site, "from a published release's tag").toContain("ref: refs/tags/${{ steps.tag.outputs.tag }}");
+    expect(jobs.site, "never a draft or a prerelease").toContain('if [ "$state" != published ]');
+    expect(jobs.deploy, "Pages deploys only what the site job built").toMatch(/^ {4}needs: site$/m);
+    expect(jobs.preview, "pull requests and main go to the preview").toMatch(/^ {4}if: github\.event_name != 'workflow_dispatch'$/m);
+    for (const [name, job] of Object.entries(jobs)) {
+      expect(job.includes("pages: write"), `${name} ${name === "deploy" ? "deploys" : "never deploys"} to Pages`).toBe(name === "deploy");
+      expect(/secrets\.CLOUDFLARE_/.test(job), `${name} ${name === "preview" ? "holds" : "never holds"} the preview's secrets`).toBe(name === "preview");
+    }
+    expect(jobs.preview, "a fork's pull request, or no secrets yet, still builds the site").toContain("if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''");
+    expect(jobs.preview, "wrangler is pinned").toMatch(/WRANGLER: wrangler@\d+\.\d+\.\d+$/m);
   });
 });
 
