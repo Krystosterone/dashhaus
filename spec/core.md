@@ -12,10 +12,10 @@ release notes; an additive change is a minor one.
 
 | Entry | Stable |
 | --- | --- |
-| `.` | The transport and store contracts, `HaProvider` and its selectors, the `useHa<Name>` hooks, the matching `Ha<Name>` headless components, registry hooks, history and request hooks, mappers and action factories |
+| `.` | The transport and store contracts, `HaProvider` and its selectors, the `useHa<Name>` hooks, the matching `Ha<Name>` headless components, registry hooks, history and request hooks, `useHaPicture` and `useHaMoreInfo`, mappers and action factories |
 | `./entities`, `./entities/*` | The normalized, skin-free entity models and their pure logic. Raw Home Assistant state never enters them. |
 | `./primitives` | The headless interaction hooks: press, slider, range slider, sheet, keypad |
-| `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `useDemoClimate` |
+| `./hooks` | UI-free hooks: `useNow`, `useDelayLeft`, `useScrollSpy`, `useHashPage`, `usePicture`, `useDemoClimate` |
 | `./seeds/*` | Every skin's demo seeds, one module per domain: `<NAME>_SEEDS`, `<NAME>_WORST_CASE`, their types and the domain's `useDemo<Name>` |
 | `./perf` | The opt-in marks; documented in [performance.md](performance.md) |
 | `./websocket` | The one module that imports `home-assistant-js-websocket`, plus `connectHomeAssistant(auth)` |
@@ -49,6 +49,8 @@ Internal, and free to change without notice:
 - `callService(domain, service, data?, options?)` runs a Home Assistant service.
 - `sendMessage(type, payload?)` is optional, for generic commands such as recorder history and the registries. A
   transport without it stays valid; the reads that need it resolve as unavailable.
+- `resolveUrl(path)` is optional: an entity's picture path as a URL the page can load, or nothing ([Pictures](#pictures)).
+  Without it a path stays relative to the page.
 
 `createHaStore(transport, initialEntities?)` turns one transport into a `HaStore`. `HaProvider` owns its lifecycle at
 the application boundary; a card never connects or disconnects the store itself.
@@ -95,6 +97,54 @@ implementation drifts. The pairing rule:
    there is no per-item list for a singleton, and an auth component would own the host's lifecycle.
 4. Components and hooks share one implementation.
 5. The card generator registers both, and `packages/core/src/ha/headless.test.tsx` fails when a domain is missing.
+
+## Pictures
+
+A camera's still and a player's artwork are an entity's own picture, Home Assistant's `entity_picture`: a signed, usually
+relative path (`/api/camera_proxy/camera.door?token=…`, `/api/media_player_proxy/…&cache=…`) whose token Home Assistant
+rotates by rewriting the attribute, or an absolute URL for a player whose artwork is remotely accessible. It is the one
+image core carries. Nothing else is read (no `camera/thumbnail`, no `auth/sign_path`), and no stream: no HLS, WebRTC or
+MJPEG player, and no dependency for one.
+
+- **Where it comes from.** A mapper never reads it: a picture isn't normalized state. A domain's `useHa<Name>` adds it
+  to the model it returns from `useHaPicture(entityId)`, which reads the raw attribute, drops it while the entity is
+  unavailable, unknown or missing (a past frame must never read as now), and resolves it through the store's
+  `resolveUrl`. That asks the transport's (`HaTransport.resolveUrl`) and keeps only a URL a page may load as a picture:
+  http(s), an inline `data:image/…` or a `blob:` (`resolvePicture`, `ha/picture.ts`). The websocket adapter resolves a
+  path against the connection's `auth.data.hassUrl`, as the frontend's `hass.hassUrl()` does; a connection with no auth
+  keeps it relative to the page, which inside Home Assistant is Home Assistant. A demo transport serves its `pictures`
+  (a path, without its query, to a local inline picture from `./seeds/pictures`) and resolves any other path to
+  nothing, so a demo never fetches the network.
+- **How it loads: `usePicture(src, { refresh, paused })`** (`./hooks`, UI-free, so a presentational card calls it). Its
+  `ref` goes on the picture's box. It loads only once that box is on screen (IntersectionObserver) and the page is
+  visible; it refreshes every `refresh` milliseconds only while both stay true, never in the background, and at once on
+  coming back late, each refresh asking for the source with `t=<now>` added so no cache answers (`refreshUrl`; an inline
+  or blob URL is left alone). Each frame decodes off the page (`Image.decode()`) before it is drawn, so frames swap
+  without a flash. The last good frame stays while the next loads and when a refresh fails (`stale`); a new source that
+  fails clears it (`failed`), so the last track's cover never sits under the next track's title; no source clears it at
+  once and cancels its load. `paused` (a `quiet` dashboard) takes a new frame only on first sight and when the page wakes.
+  It returns `{ ref, src, status, at }`, `status` one of `none`, `loading`, `ready`, `stale`, `failed`, and `at` when the
+  frame drawn loaded. Artwork passes no `refresh`: it changes when its URL does. Without its `ref` on a box it never
+  loads, even where there is no IntersectionObserver (where there is none, a box that is there counts as on screen).
+- **Asked for only where it is drawn.** A card passes `usePicture` a source only for a footprint that draws the
+  picture, and nothing everywhere else (a compact row, a footprint with no well for it, stills switched off, the entity
+  unavailable), so nothing is fetched for a box that isn't there.
+- **Its words** are `entities/picture.ts`: `No picture` for a source with nothing to keep, `Still from 22:14`
+  (`stillFrom(at)`) for a stale or paused still, said on the status line or a meta line, never over the picture,
+  and `Open` for its press where the card names nothing better (`PICTURE_WORDS.open`), so a skin's `Picture` part
+  writes no word of its own. What a card says when its picture fails depends on what the picture is for: where it is
+  the content (a camera's still), it says `No picture`; where it is recognition only (a player's artwork, which the
+  title already names), it says nothing and the well keeps the card's glyph.
+- **The live stream is Home Assistant's.** `useHaMoreInfo(entityId)` opens the host's own dialog for the entity, from
+  `HaProvider`'s `moreInfo`: the Lovelace card base fires `hass-more-info` from its element, and Home Assistant's
+  more-info dialog plays a camera's stream with its own player. Where the host has none (Storybook, a demo, a standalone
+  app), it returns nothing and a card opens its own details instead, never a control that opens nothing. That is the
+  picture's own press; which press opens what is each skin's (orb.md → A picture is a readout, field.md → A picture is
+  a window in the screen): the name opens the details on every card, whatever its picture's press does.
+- **Privacy and cost** are the dashboard's: a still is fetched only while seen (above); a dashboard's `stills: false`, or
+  a camera card's `still: false`, fetches none (the card passes no source rather than hiding a loaded one); `quiet`
+  pauses refreshing. Each skin draws a picture with its own `Picture` part, a fixed box with no word over it, which
+  takes no press while the entity is unavailable: a camera that is gone has no stream to open.
 
 ## Error metadata
 
@@ -178,6 +228,8 @@ rate.
   `last_changed` when the state changes, and answers the registries and history; a domain's transport is its seed and
   its service table alone (`onOffServices` for switching), and the mixed `createDemoHaTransport` composes the
   domains' tables.
+- `./seeds/pictures` is the demo pictures every skin's camera and media stories share and the demo transports serve:
+  local inline SVG stills and sleeves, so no story fetches the network.
 - `./seeds/<name>` is one domain's demo seeds for every skin's card stories: its examples (`<NAME>_SEEDS`, with an
   unavailable one), its worst cases (`<NAME>_WORST_CASE`), their types, and `useDemo<Name>`, local state that behaves
   like the entity for a story to press. A card's stories draw on them, so every skin shows the same examples; a skin
@@ -230,7 +282,9 @@ not taken. Each is a decision, not an oversight; reopen one only with the need i
   provider's text or an alarm code.
 - **Auth in core**: OAuth, token storage, refresh, a login form, a `useAuth`, or a second auth surface beside the
   store (Auth is host-owned, above). Before any of it, a security review.
-- **Presentation in core**: colours, relative times, icons and image URLs belong to a skin.
+- **Presentation in core**: colours, relative times, icons and image URLs chosen for display belong to a skin. The one
+  image core carries is an entity's own `entity_picture`, resolved by the connection that serves it ([Pictures](#pictures)),
+  since only the connection knows Home Assistant's base URL.
 - **An areas hook over the entity map.** It recomputes on every state change; the registry hooks read registry data
   once per generation.
 - **Generated entity and service types, locale sync and a service proxy.** Build coupling to a live Home Assistant

@@ -63,6 +63,13 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
   #store?: HaStore;
   #root?: Root;
   #mount?: HTMLDivElement;
+  /**
+   * Home Assistant's own dialog for an entity (more-info: a camera's live stream, with the frontend's player). The
+   * event leaves the shadow root and bubbles to the frontend, which opens it.
+   */
+  readonly #moreInfo = (entityId: string) => {
+    this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId }, bubbles: true, composed: true }));
+  };
 
   /** Check and normalize the YAML; a throw shows the problems in the editor. */
   protected abstract parse(raw: unknown): C;
@@ -131,7 +138,7 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
     this.#root ??= createRoot(this.#mount);
     this.#root.render(
       <ErrorBoundary config={config}>
-        <HaProvider store={this.#store}>{this.draw(config, hass)}</HaProvider>
+        <HaProvider store={this.#store} moreInfo={this.#moreInfo}>{this.draw(config, hass)}</HaProvider>
       </ErrorBoundary>,
     );
     // The first render is the page's load; later renders come from an interaction and are covered by marks there.

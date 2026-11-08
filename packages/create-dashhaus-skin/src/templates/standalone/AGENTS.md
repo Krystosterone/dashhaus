@@ -143,6 +143,7 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/facts` | the details' standard facts: `lastChangedFact`, `updatedFact`, `unavailableSince`, `sinceFact`, `lastSeenFact`; a reading as it is now, `nowText` |
 | `@dashhaus/core/entities/history` | `HourSample` (one per hour of today: 0–1, `"unavailable"` or `null` ahead) and `normalizeReadings`, which scales a day's readings for a bar strip |
 | `@dashhaus/core/entities/today` | `todaySummary`, how long today an entity spent in its state, in words; `rangeSummary`, a reading's day low and high |
+| `@dashhaus/core/entities/picture` | what a card says about its picture (a still, artwork): `PICTURE_WORDS`, `stillFrom`, `pictureTime` |
 | `@dashhaus/core/entities/clock` | `clockFace`, the header's time and date for a locale, 12 or 24 hours and a time zone |
 | `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY`, and a battery in words: `batteryText`, `batteryAdvice` |
 | `@dashhaus/core/entities/severity` | the `Severity` type a model carries, and `WARNING_WORD_MAX`, the 13 characters a warning's words fit |

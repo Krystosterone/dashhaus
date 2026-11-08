@@ -308,12 +308,47 @@
 /* The slider stays for keyboard and screen readers, out of the pointer's way. */
 .fd-in { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 
+/* Picture: Field's media surface, a window in the screen. The screen's own dark well with the frame clipped into it,
+   no bezel and no words on it; before a frame, on a failed one and while unavailable, the screen with the card's
+   pictogram unlit, as a blank screen is. The first frame fades in; later ones swap at once, already decoded. */
+.fd-pic {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--fd-r-screen);
+  background: none;
+  color: var(--fd-screen-unlit);
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+button.fd-pic { cursor: pointer; }
+button.fd-pic:focus-visible { outline: 2px solid var(--fd-focus); outline-offset: 2px; }
+.fd-pic-i { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; border-radius: inherit; background: var(--fd-screen); transition: transform var(--fd-press) var(--fd-ease-out); }
+button.fd-pic:active .fd-pic-i { transform: scale(0.98); }
+/* The frame fills the window, never its own size: a 9:16 still in a 16:9 window, or 3:4 artwork in a square one,
+   would otherwise grow the grid row it sits in. */
+.fd-pic-img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; animation: fd-pic-in 150ms var(--fd-ease-out); }
+.fd-pic[data-fit="contain"] .fd-pic-img { object-fit: contain; }
+.fd-pic-glyph { display: grid; place-items: center; width: 20px; height: 26px; }
+.fd-pic-glyph svg { width: 100%; height: 100%; fill: currentColor; }
+@keyframes fd-pic-in { from { opacity: 0; } }
+
 /* Reduced motion: gentler, not none. Colour changes stay; presses and jumps stop moving. */
 @media (prefers-reduced-motion: reduce) {
   .fd-key { transition: box-shadow var(--fd-press) var(--fd-ease-out), background-color var(--fd-press) var(--fd-ease-out); }
   .fd-key:active:not(:disabled, [aria-disabled="true"], [data-chosen]) { transform: none; }
   .fd-fader[data-anim] .fd-rail { transition: none; }
   .fd-pict-lit { transition: opacity 150ms var(--fd-ease-out); }
+  .fd-pic-i { transition: none; }
+  button.fd-pic:active .fd-pic-i { transform: none; }
 }
 
 /* Far, on a wall panel: a row's name may take two lines, so a name a step up still reads whole across the room; the

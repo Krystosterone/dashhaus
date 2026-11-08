@@ -51,6 +51,19 @@ From `@dashhaus/core`. [Areas, history and requests](/dashhaus/hooks/areas-histo
 <ApiSignature from="@dashhaus/core" name="useHaHistory" />
 <ApiSignature from="@dashhaus/core" name="useHaRequest" />
 
+## Pictures
+
+A camera's still or a player's artwork is the entity's own picture. `useHaPicture` gives it as a URL your page can
+load, resolved against your Home Assistant, and nothing while the entity is unavailable, so a past frame never reads
+as now. `usePicture`, from `@dashhaus/core/hooks`, loads it only once its box is on screen and the page is visible,
+refreshes a still only while both stay true, and keeps the last frame up while the next one loads. `useHaMoreInfo`
+opens Home Assistant's own dialog for the entity, which plays a camera's live stream; outside Home Assistant it gives
+nothing, so open your own details instead.
+
+<ApiSignature from="@dashhaus/core" name="useHaPicture" />
+<ApiSignature from="@dashhaus/core/hooks" name="usePicture" />
+<ApiSignature from="@dashhaus/core" name="useHaMoreInfo" />
+
 ## Hooks with no Home Assistant
 
 From `@dashhaus/core/hooks`, for any page.
