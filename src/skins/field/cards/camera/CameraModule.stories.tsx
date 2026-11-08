@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CameraModule } from "./CameraModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { CAMERA_SEEDS, CAMERA_WORST_CASE } from "@dashhaus/core/seeds/camera";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 import type { CameraSeed, CameraSeedName } from "@dashhaus/core/seeds/camera";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -149,4 +150,19 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
+};
+
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  globals: { fieldClock: "h12" },
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => CAMERA_SEEDS[name]), ...CAMERA_WORST_CASE].map((seed, index) => <DemoCamera key={index} paused seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
 };

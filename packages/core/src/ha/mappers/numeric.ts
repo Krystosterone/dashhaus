@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { isRecord, stringValue } from "../util";
 import { isNumericStateClass } from "../../entities/numeric/readings";
 import { isNumericClass } from "../../entities/numeric/words";
@@ -8,6 +9,8 @@ import type { NumericEntity } from "../../entities/numeric/types";
 export interface NumericMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Use when the host knows the unit but the raw entity omits it. */
@@ -39,7 +42,7 @@ export function numericFromHass(raw: HassEntity | undefined, entityId: string, o
     unit: options.unit ?? stringValue(attributes.unit_of_measurement),
     deviceClass: isNumericClass(deviceClass) ? deviceClass : undefined,
     stateClass: isNumericStateClass(stateClass) ? stateClass : undefined,
-    lastUpdated: unav ? undefined : formatHaTime(raw?.last_updated, options.now),
-    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastUpdated: unav ? undefined : formatHaTime(raw?.last_updated, options.now, options.hourCycle),
+    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

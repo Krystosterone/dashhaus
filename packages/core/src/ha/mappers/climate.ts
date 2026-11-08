@@ -1,11 +1,14 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import type { ClimateEntity, HvacAction, HvacMode } from "../../entities/climate/types";
 import { finiteNumber, stringValue } from "../util";
 
 export interface ClimateMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -114,9 +117,9 @@ export function climateFromHass(raw: HassEntity | undefined, entityId: string, o
     ? targetTemperatureValue
     : undefined;
   const friendlyName = stringValue(attributes.friendly_name);
-  const changed = formatHaTime(raw?.last_changed, options.now);
+  const changed = formatHaTime(raw?.last_changed, options.now, options.hourCycle);
   const lastSeen = state === "unavailable"
-    ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now)
+    ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle)
     : undefined;
   const readable = state !== "unavailable";
 

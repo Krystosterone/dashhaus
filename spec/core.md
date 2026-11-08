@@ -98,6 +98,35 @@ implementation drifts. The pairing rule:
 4. Components and hooks share one implementation.
 5. The card generator registers both, and `packages/core/src/ha/headless.test.tsx` fails when a domain is missing.
 
+## One hour cycle per dashboard
+
+A dashboard says every time on one clock, its header's: 12 hours or 24 (spec/cards.md → Clock words follow the
+dashboard's hour cycle). Core owns the words and the one place the cycle is set; a skin never formats a time.
+
+- **The words, pure:** `@dashhaus/core/entities/clock` — `HourCycle` (`"h12" | "h23"`), `hourCycleOf(locale?, cycle?)`
+  (the one asked for, else the locale's, the browser's when none), `timeOfDay` and `clockOf` (`14:05`, `2:05 PM`, a
+  no-break space before core's `AM`/`PM`), `clockParts` (time and period apart, for a screen's fixed places),
+  `hourLabel` (a column of hours' head: `14`, `2PM`) and `momentWords` (when something happened, relative to now).
+  Every function in `entities/` that says a time (`formatHaTime`, calendar's `clockTime`, `clockFigure`, `eventWhen`,
+  `eventCue`, `eventSpan`, `eventDay`, weather's `clock` and `precipitation`, `pictureTime`, `stillFrom`, camera's
+  `stillNote`) takes the cycle as its last, optional argument, defaulting to the browser locale's, as `clockFace` does.
+- **The cycle, React:** `@dashhaus/core/hooks` — `HourCycleProvider` and `useHourCycle`. A skin's page puts the
+  provider around its header and cards with the header's `hourCycle` and `locale` (Orb's `DashboardPage`, Field's
+  `FieldPage`, the scaffold's page), and the Lovelace cards hand the page YAML `hour_cycle`, so the cycle reaches every
+  card from the YAML with no change to the Lovelace contract. `useHourCycle({ hourCycle, locale })` resolves the one
+  asked for, else that locale's, else the nearest provider's, else the browser locale's; a provider given neither
+  keeps the one around it. It lives in `hooks/`, not `ha/`, because a presentational card works out its own times
+  (an event's, an hour's, a still's) and may not import the Home Assistant subpaths.
+- **The mappers:** every `useHa<Name>` hook reads `useHourCycle()` and passes it as `hourCycle` to its mapper's options,
+  so a model's formatted times (`lastChanged`, `lastSeen`, `lastUpdated`) are on the dashboard's clock.
+- **The seeds** are written as a mapper writes them on a 24-hour dashboard; `onHourCycle(seed, cycle)`
+  (`@dashhaus/core/seeds/clock`) is the same seed on another cycle, every time in it said by `timeOfDay`, for a
+  12-hour story without a second copy. Storybook starts every story on 24 hours (`.storybook/preview.tsx`), and each
+  skin's toolbar has a Clock menu.
+
+Rejected: a setting on the store (`createHaStore`), which never reaches the words a presentational card works out
+itself; and a prop on every card and option on every hook, which every renderer of every skin would have to thread.
+
 ## Pictures
 
 A camera's still and a player's artwork are an entity's own picture, Home Assistant's `entity_picture`: a signed, usually

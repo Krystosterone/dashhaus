@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALERT_SAID, ALERT_WORD, SLEEP_UNKNOWN, fmtBpm, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "./readings";
+import { ALERT_SAID, ALERT_WORD, SLEEP_UNKNOWN, fmtBpm, fmtOxygen, normalize, rankAlerts, STALE_WORD, staleSaid, staleText, staleWarning } from "./readings";
 import { owletSeverity } from "./severity";
 
 describe("normalize", () => {
@@ -62,5 +62,14 @@ describe("owlet words", () => {
     expect(staleText()).toBe("Stopped");
     expect(staleSaid("Fri 18:30")).toBe("No new reading since Fri 18:30");
     expect(SLEEP_UNKNOWN).toBe("Sleep unknown");
+  });
+
+  it("leads with its word and keeps the time as its detail on a 12-hour clock too", () => {
+    expect(staleWarning("11:49\u00a0AM")).toEqual({ word: STALE_WORD, detail: "11:49\u00a0AM", said: "No new reading since 11:49\u00a0AM" });
+    expect(staleWarning("Fri 6:30\u00a0PM").detail).toBe("6:30\u00a0PM");
+    expect(staleText("Fri 6:30\u00a0PM")).toBe("Stopped 6:30\u00a0PM");
+    expect(staleWarning("Oct 3").detail).toBe("Oct 3");
+    expect(staleWarning().detail).toBeUndefined();
+    expect(staleText("11:49\u00a0AM").startsWith(STALE_WORD)).toBe(true);
   });
 });

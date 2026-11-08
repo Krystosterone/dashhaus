@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { useHaPicture } from "../useHaPicture";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "../../entities/mediaPlayer/types";
 import type { HaActionError } from "../types";
 
@@ -39,9 +40,10 @@ export function useHaMediaPlayer(entityId: string, { name, area, lastSeen, histo
   const registryArea = useHaArea(entityId);
   const picture = useHaPicture(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => mediaPlayerHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const mapped = useMemo(() => mediaPlayerFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now }), [raw, entityId, name, area, registryArea, lastSeen, now]);
+  const mapped = useMemo(() => mediaPlayerFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle }), [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle]);
   // Artwork belongs to what is loaded: none while off or asleep, whatever the attribute still says.
   const entity = useMemo(() => (picture && mapped.state !== "off" && mapped.state !== "standby" ? { ...mapped, picture } : mapped), [mapped, picture]);
   const actions = useMemo(() => createMediaPlayerHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);

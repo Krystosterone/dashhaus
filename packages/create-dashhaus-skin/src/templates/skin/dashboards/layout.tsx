@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
+import { HourCycleProvider } from "@dashhaus/core/hooks";
 import { __Skin__Header } from "./Header";
 import type { __Skin__HeaderProps } from "./Header";
 import type { __Skin__Footprint } from "../shared/ui";
@@ -12,14 +13,19 @@ export interface __Skin__PageProps extends Partial<__Skin__HeaderProps> {
   children: ReactNode;
 }
 
-/** The __Section__ Dashboard: optional header, sections, and a docked NavBar. */
+/**
+ * The __Section__ Dashboard: optional header, sections, and a docked NavBar. Every card on it says its times on the
+ * header's hour cycle (`HourCycleProvider`, YAML `hour_cycle`, else the locale's).
+ */
 export function __Skin__Page({ pageRef, nav, children, title, ...header }: __Skin__PageProps) {
   return (
-    <div ref={pageRef} className="__skin__-dashboard" data-nav={nav ? "" : undefined}>
-      {title && <__Skin__Header title={title} {...header} />}
-      <main className="__skin__-dashboard-main">{children}</main>
-      {nav && <div className="__skin__-dashboard-dock">{nav}</div>}
-    </div>
+    <HourCycleProvider hourCycle={header.hourCycle} locale={header.locale}>
+      <div ref={pageRef} className="__skin__-dashboard" data-nav={nav ? "" : undefined}>
+        {title && <__Skin__Header title={title} {...header} />}
+        <main className="__skin__-dashboard-main">{children}</main>
+        {nav && <div className="__skin__-dashboard-dock">{nav}</div>}
+      </div>
+    </HourCycleProvider>
   );
 }
 

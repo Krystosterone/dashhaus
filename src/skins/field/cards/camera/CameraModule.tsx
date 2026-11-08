@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { usePicture } from "@dashhaus/core/hooks";
+import { useHourCycle, usePicture } from "@dashhaus/core/hooks";
 import type { CameraEntity, CameraState } from "@dashhaus/core/entities/camera/types";
 import { cameraKind, cameraWord, liveViewSaid, openStillWord, STILL_REFRESH, stillNote } from "@dashhaus/core/entities/camera/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -55,10 +55,11 @@ export function CameraModule({ entity: e, footprint = "standard", still = true, 
   // A row never draws a picture, so it never asks for one; switched off, nothing is asked for anywhere.
   const drawn = still && !compact;
   const picture = usePicture<HTMLElement>(drawn && !unav ? e.picture : undefined, { refresh: refresh * 1000, paused });
+  const hourCycle = useHourCycle();
   // The panel's still is its own: it loads once the panel opens and refreshes while it stays open.
   const panelPicture = usePicture<HTMLElement>(still && details.open && !unav ? e.picture : undefined, { refresh: refresh * 1000, paused });
-  const note = drawn ? stillNote(e, picture) : undefined;
-  const panelNote = still ? stillNote(e, panelPicture) : undefined;
+  const note = drawn ? stillNote(e, picture, hourCycle) : undefined;
+  const panelNote = still ? stillNote(e, panelPicture, hourCycle) : undefined;
   // The still opens the stream where there is one; the name, as on every module, opens the panel.
   const open = onOpenLive ?? details.openDetails;
   const openLabel = openStillWord(!!onOpenLive);

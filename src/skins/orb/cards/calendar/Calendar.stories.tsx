@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoCalendarTile as DemoTile } from "./demo/DemoCalendarTile";
-import { CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
+import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["normal", "underWay", "allDay", "tomorrow", "free", "waiting", "unavailable", "long"] as const;
@@ -114,4 +115,23 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
+};
+
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  globals: { orbClock: "h12" },
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => CALENDAR_SEEDS[name]), ...CALENDAR_WORST_CASE].map((seed, index) => <DemoTile key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+/** The details on a 12-hour clock: every time in them with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", globals: { orbClock: "h12" },
+  render: ({ seed, width, footprint }) => <DemoTile seed={onHourCycle(typeof seed === "string" ? CALENDAR_SEEDS[seed] : seed, "h12")} width={width} footprint={footprint} defaultOpen />,
 };

@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, isRecord, stringList, stringValue } from "../util";
 import { inWords } from "../../entities/format";
 import type { MediaPlayerEntity, MediaPlayerState } from "../../entities/mediaPlayer/types";
@@ -7,6 +8,8 @@ import type { MediaPlayerEntity, MediaPlayerState } from "../../entities/mediaPl
 export interface MediaPlayerMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -97,8 +100,8 @@ export function mediaPlayerFromHass(raw: HassEntity | undefined, entityId: strin
     supportsSource: has(MEDIA_PLAYER_FEATURES.SELECT_SOURCE) && sources.length > 0,
     supportsTurnOn: has(MEDIA_PLAYER_FEATURES.TURN_ON),
     supportsTurnOff: has(MEDIA_PLAYER_FEATURES.TURN_OFF),
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     changedAt: parseHaTime(raw?.last_changed)?.getTime(),
-    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

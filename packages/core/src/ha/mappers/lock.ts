@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, isRecord, stringValue } from "../util";
 import { batteryFromHass, inlineBattery } from "./battery";
 import { codeKind } from "../../entities/lock/code";
@@ -8,6 +9,8 @@ import type { LockEntity, LockState } from "../../entities/lock/types";
 export interface LockMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -42,8 +45,8 @@ export function lockFromHass(raw: HassEntity | undefined, entityId: string, opti
     codeFormat: codeKind(codePattern) ?? null,
     codePattern,
     changedBy: unav ? undefined : stringValue(attributes.changed_by),
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     battery: unav ? undefined : inlineBattery(attributes) ?? batteryFromHass(options.batteryEntity),
-    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

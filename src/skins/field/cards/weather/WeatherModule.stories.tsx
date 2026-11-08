@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { WeatherModule } from "./WeatherModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 import type { WeatherSeed, WeatherSeedName } from "@dashhaus/core/seeds/weather";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
@@ -134,4 +135,23 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
+};
+
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  globals: { fieldClock: "h12" },
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => WEATHER_SEEDS[name]), ...WEATHER_WORST_CASE].map((seed, index) => <DemoWeather key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
+};
+/** The panel on a 12-hour clock: every time in it with its period. */
+export const DetailsTwelveHourClock: Story = { name: "Details, 12-hour clock", globals: { fieldClock: "h12" },
+  render: ({ weather, width, footprint }) => <DemoWeather seed={onHourCycle(WEATHER_SEEDS[weather], "h12")} width={width} footprint={footprint} defaultOpen />,
 };

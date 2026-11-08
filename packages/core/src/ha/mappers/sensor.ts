@@ -1,12 +1,15 @@
 import type { SensorEntity } from "../../entities/sensor/types";
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { stringValue } from "../util";
 import { batteryFromHass, inlineBattery } from "./battery";
 
 export interface SensorMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   outdoor?: boolean;
@@ -85,7 +88,7 @@ export function sensorFromHass(raw: HassEntity | undefined, entityId: string, op
   const companionBattery = state === "ok" ? batteryFromHass(options.batteryEntity) : undefined;
   const friendlyName = stringValue(attributes.friendly_name);
   const lastSeen = state === "unavailable"
-    ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now)
+    ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle)
     : undefined;
 
   return {
@@ -98,7 +101,7 @@ export function sensorFromHass(raw: HassEntity | undefined, entityId: string, op
     unit,
     outdoor: options.outdoor,
     battery: primaryBattery ?? ownBattery ?? companionBattery,
-    lastUpdated: formatHaTime(stringValue(raw?.last_updated), options.now),
+    lastUpdated: formatHaTime(stringValue(raw?.last_updated), options.now, options.hourCycle),
     lastSeen,
   };
 }

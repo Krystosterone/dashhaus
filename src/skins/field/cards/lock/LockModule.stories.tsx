@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { LockModule } from "./LockModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { LOCK_SEEDS, LOCK_WORST_CASE, useDemoLock } from "@dashhaus/core/seeds/lock";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 import type { LockSeed, LockSeedName } from "@dashhaus/core/seeds/lock";
 import type { LockAction } from "@dashhaus/core/entities/lock/types";
 
@@ -146,4 +147,19 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
+};
+
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
+ * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  globals: { fieldClock: "h12" },
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => LOCK_SEEDS[name]), ...LOCK_WORST_CASE].map((seed, index) => <DemoLock key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
 };

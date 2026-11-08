@@ -1,4 +1,5 @@
 import type { CalendarEntity, CalendarEvent, CalendarHistory } from "@dashhaus/core/entities/calendar/types";
+import { useHourCycle } from "@dashhaus/core/hooks";
 import { calendarAgenda } from "@dashhaus/core/entities/calendar/agenda";
 import { CALENDAR_WORDS, eventCue, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isActive, isOver, isUnderWay, leftToday } from "@dashhaus/core/entities/calendar/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
@@ -51,10 +52,11 @@ export function CalendarCard({ entity: e, history, variant, footprint, showContr
   const next = unav ? undefined : agenda.next;
   const waiting = !unav && e.events === undefined;
   const free = freeFor(e.days);
+  const hourCycle = useHourCycle();
 
   const title = next?.title ?? (waiting ? CALENDAR_WORDS.waiting : CALENDAR_WORDS.free);
-  const when = next ? eventWhen(next, e.now) : waiting ? undefined : free;
-  const cue = unav ? "Unavailable" : next ? eventCue(next, e.now) : waiting ? CALENDAR_WORDS.waiting : free.line;
+  const when = next ? eventWhen(next, e.now, hourCycle) : waiting ? undefined : free;
+  const cue = unav ? "Unavailable" : next ? eventCue(next, e.now, hourCycle) : waiting ? CALENDAR_WORDS.waiting : free.line;
   const spoken = next ? `${next.title}, ${when!.line}` : waiting ? CALENDAR_WORDS.noReading : free.line;
   const left = waiting ? undefined : leftToday(agenda.left.length, agenda.today.length);
 
@@ -108,13 +110,13 @@ export function CalendarCard({ entity: e, history, variant, footprint, showContr
         {!unav && agenda.today.length > 0 && (
           <section className="hd-blk" aria-labelledby={`${card.nameId}-today`}>
             <h3 className="hd-blk-h" id={`${card.nameId}-today`}>{CALENDAR_WORDS.eventsToday}</h3>
-            <ol className="ca-list">{agenda.today.map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventSpan(event, e.now)} />)}</ol>
+            <ol className="ca-list">{agenda.today.map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventSpan(event, e.now, hourCycle)} />)}</ol>
           </section>
         )}
         {!unav && agenda.later.length > 0 && (
           <section className="hd-blk" aria-labelledby={`${card.nameId}-later`}>
             <h3 className="hd-blk-h" id={`${card.nameId}-later`}>{CALENDAR_WORDS.comingUp}</h3>
-            <ol className="ca-list">{agenda.later.slice(0, LATER).map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventDay(event, e.now)} />)}</ol>
+            <ol className="ca-list">{agenda.later.slice(0, LATER).map((event, i) => <EventRow key={i} event={event} now={e.now} when={eventDay(event, e.now, hourCycle)} />)}</ol>
           </section>
         )}
       </SheetBlock>

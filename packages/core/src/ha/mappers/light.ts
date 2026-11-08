@@ -2,10 +2,13 @@ import type { HassEntity } from "../types";
 import type { LightEntity } from "../../entities/light/types";
 import { finiteNumber, stringList, stringValue } from "../util";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 
 export interface LightMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -36,7 +39,7 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
   const rawBrightness = finiteNumber(attributes.brightness);
   const brightness = hasMeasuredState && supportsBrightness && rawBrightness != null ? percent(rawBrightness) : undefined;
   const friendlyName = stringValue(attributes.friendly_name);
-  const changed = formatHaTime(raw?.last_changed, options.now);
+  const changed = formatHaTime(raw?.last_changed, options.now, options.hourCycle);
   const rawMinKelvin = supportsColorTemp ? finiteNumber(attributes.min_color_temp_kelvin) : undefined;
   const rawMaxKelvin = supportsColorTemp ? finiteNumber(attributes.max_color_temp_kelvin) : undefined;
   const boundsAreConsistent = rawMinKelvin == null || rawMaxKelvin == null || rawMinKelvin <= rawMaxKelvin;
@@ -66,6 +69,6 @@ export function lightFromHass(raw: HassEntity | undefined, entityId: string, opt
     supportsColor,
     hs,
     lastChanged: changed,
-    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

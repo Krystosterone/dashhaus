@@ -1,4 +1,5 @@
 import type { DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@dashhaus/core/entities/weather/types";
+import { useHourCycle } from "@dashhaus/core/hooks";
 import { SKY, clock, compass } from "@dashhaus/core/entities/weather/conditions";
 import { aqiBand, airWarns, conditionLabel, deg0, isNight, rangeText, todayRange, weatherWarnings } from "@dashhaus/core/entities/weather/readings";
 import { GlasshouseCardFrame, GlasshouseFacts, GlasshouseStat } from "../../shared/ui";
@@ -31,6 +32,7 @@ export function GlasshouseWeatherCard({ entity: e, history, hourly, daily, footp
   const air = e.aqi == null ? undefined : aqiBand(e.aqi);
   const wind = e.windSpeed == null ? undefined : `${Math.round(e.windSpeed)} ${e.windSpeedUnit}${e.windBearing == null ? "" : ` ${compass(e.windBearing)}`}`;
   const next = (hourly ?? []).filter((h) => h.hour > now).slice(0, 5);
+  const hourCycle = useHourCycle();
   const temperature = e.temperature == null ? "—" : deg0(e.temperature).replace("°", "");
   const face = (
     <div className="glasshouse-weather-face">
@@ -49,7 +51,7 @@ export function GlasshouseWeatherCard({ entity: e, history, hourly, daily, footp
         {next.length > 0 && (
           <ol className="glasshouse-weather-hours" aria-label="Next hours">
             {next.map((h) => (
-              <li key={h.hour}><span>{clock(h.hour)}</span><SkyArt sky={SKY[h.condition]} night={h.hour % 24 < 6 || h.hour % 24 >= 20} /><strong>{deg0(h.temperature)}</strong></li>
+              <li key={h.hour}><span>{clock(h.hour, hourCycle)}</span><SkyArt sky={SKY[h.condition]} night={h.hour % 24 < 6 || h.hour % 24 >= 20} /><strong>{deg0(h.temperature)}</strong></li>
             ))}
           </ol>
         )}

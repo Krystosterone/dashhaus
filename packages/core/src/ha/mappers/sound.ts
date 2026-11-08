@@ -1,11 +1,14 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, stringValue } from "../util";
 import type { SoundEntity } from "../../entities/sound/types";
 
 export interface SoundMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -60,7 +63,7 @@ export function soundFromHass(raw: HassEntity | undefined, entityId: string, opt
     area: options.area,
     state,
     volume: state !== "unavailable" && range?.value != null ? Math.round(((range.value - range.min) / (range.max - range.min)) * 100) : undefined,
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
-    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
+    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

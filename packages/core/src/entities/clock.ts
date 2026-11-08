@@ -3,7 +3,7 @@ export interface ClockOptions {
   /** BCP 47 locale for the date and time. Defaults to the browser's. */
   locale?: string;
   /** 12 or 24 hour clock. Defaults to the locale's. */
-  hourCycle?: "h12" | "h23";
+  hourCycle?: HourCycle;
   /** IANA time zone, e.g. Home Assistant's "America/Toronto". Defaults to the device's. */
   timeZone?: string;
 }
@@ -32,4 +32,76 @@ export function clockFace(now: Date, { locale, hourCycle, timeZone }: ClockOptio
   const period = parts.find((p) => p.type === "dayPeriod")?.value;
   const day = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone }).format(now);
   return { date, day, time, period, twentyFour };
+}
+
+/**
+ * The clock a dashboard says its times on: 12 hours with a day period, or 24. One per dashboard, the header's, and
+ * every card on it says a time on it (spec/cards.md → What every card says).
+ */
+export type HourCycle = "h12" | "h23";
+
+const LOCALE_CYCLES = new Map<string, HourCycle>();
+
+/** The hour cycle asked for, else the one `locale` reads the time on (the browser's when none is given). */
+export function hourCycleOf(locale?: string, hourCycle?: HourCycle): HourCycle {
+  if (hourCycle) return hourCycle;
+  const key = locale ?? "";
+  let cycle = LOCALE_CYCLES.get(key);
+  if (!cycle) {
+    const resolved = new Intl.DateTimeFormat(locale, { hour: "numeric" }).resolvedOptions().hourCycle;
+    cycle = resolved === "h23" || resolved === "h24" ? "h23" : "h12";
+    LOCALE_CYCLES.set(key, cycle);
+  }
+  return cycle;
+}
+
+/** A 12-hour clock's day periods, in core's words, the same on every card and in every skin. */
+export const DAY_PERIOD = { am: "AM", pm: "PM" } as const;
+
+/**
+ * A time of day in its parts, as a segment screen draws it: `time` is "14:05" on 24 hours (the hour padded, as the
+ * header's), "2:05" on 12 (the hour unpadded, so a screen's fixed places leave the first one unlit); `period` is AM
+ * or PM, on 12 hours only.
+ */
+export function clockParts(hour: number, minute: number, hourCycle: HourCycle = hourCycleOf()): { time: string; period?: string } {
+  const h = ((Math.trunc(hour) % 24) + 24) % 24;
+  const mm = String(Math.trunc(minute)).padStart(2, "0");
+  if (hourCycle === "h23") return { time: `${String(h).padStart(2, "0")}:${mm}` };
+  return { time: `${h % 12 || 12}:${mm}`, period: h < 12 ? DAY_PERIOD.am : DAY_PERIOD.pm };
+}
+
+/**
+ * A time of day as every card says it, on the dashboard's hour cycle: "14:05", or "2:05 PM", with a no-break space
+ * before the period so a line never wraps between them.
+ */
+export function timeOfDay(hour: number, minute: number, hourCycle: HourCycle = hourCycleOf()): string {
+  const { time, period } = clockParts(hour, minute, hourCycle);
+  return period ? `${time}\u00a0${period}` : time;
+}
+
+/** A moment's time of day, in the device's time zone: "14:05", "2:05 PM". */
+export const clockOf = (date: Date, hourCycle: HourCycle = hourCycleOf()) => timeOfDay(date.getHours(), date.getMinutes(), hourCycle);
+
+/**
+ * An hour as it heads a column of hours (a forecast's next hours): "14" on 24 hours, "2PM" on 12, the period set
+ * close, since a column has the room of two digits and a little more.
+ */
+export function hourLabel(hour: number, hourCycle: HourCycle = hourCycleOf()): string {
+  const h = ((Math.trunc(hour) % 24) + 24) % 24;
+  if (hourCycle === "h23") return String(h).padStart(2, "0");
+  return `${h % 12 || 12}${h < 12 ? DAY_PERIOD.am : DAY_PERIOD.pm}`;
+}
+
+/**
+ * When something happened, relative to `now`, as a card's small print says it: its time today ("14:05", "2:05 PM"),
+ * the weekday and time within the last week ("Tue 14:05"), the date before that ("Oct 3"). English, as every card's
+ * words are, and on the dashboard's hour cycle.
+ */
+export function momentWords(date: Date, now: Date, hourCycle: HourCycle = hourCycleOf()): string {
+  const time = clockOf(date, hourCycle);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (date >= today) return time;
+  const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+  if (date >= weekAgo) return `${date.toLocaleDateString("en-US", { weekday: "short" })} ${time}`;
+  return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
 }

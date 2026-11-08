@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoOwletTile as DemoTile } from "./demo/DemoOwletTile";
-import { OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
+import { OWLET_SEEDS, OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SEEDS = ["deep", "light", "awake", "unknown", "baseOff", "stale", "lowOxygen", "critical", "sockOff", "lowBattery", "charging", "unavailable", "long"] as const;
@@ -119,4 +120,19 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
+};
+
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  globals: { orbClock: "h12" },
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SEEDS.map((name) => OWLET_SEEDS[name]), ...OWLET_WORST_CASE].map((seed, index) => <DemoTile key={index} seed={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
 };

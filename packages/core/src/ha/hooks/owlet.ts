@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { HaActionError, HassEntity } from "../types";
 import type { OwletAlert, OwletEntity, OwletHistory } from "../../entities/owlet/types";
 
@@ -71,6 +72,7 @@ export function useHaOwlet(entityId: string, { heartRateEntityId, oxygenEntityId
   );
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const ids = [entityId, heartRateId, oxygenId].filter((id): id is string => id != null);
   const records = useHaHistory(ids, loadHistory && history === undefined, now);
   const parsedHistory = useMemo(
@@ -78,8 +80,8 @@ export function useHaOwlet(entityId: string, { heartRateEntityId, oxygenEntityId
     [records, entityId, heartRateId, oxygenId, now],
   );
   const entity = useMemo(
-    () => owletFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, heartRateEntity, oxygenEntity, chargingEntity, baseEntity, alertEntities, staleAfterMinutes, now }),
-    [raw, entityId, name, area, registryArea, lastSeen, heartRateEntity, oxygenEntity, chargingEntity, baseEntity, alertEntities, staleAfterMinutes, now],
+    () => owletFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, heartRateEntity, oxygenEntity, chargingEntity, baseEntity, alertEntities, staleAfterMinutes, now, hourCycle }),
+    [raw, entityId, name, area, registryArea, lastSeen, heartRateEntity, oxygenEntity, chargingEntity, baseEntity, alertEntities, staleAfterMinutes, now, hourCycle],
   );
   const actions = useMemo(() => createOwletHandlers(store, entity, { baseEntityId: baseId, onError: onActionError }), [store, entity, baseId, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };

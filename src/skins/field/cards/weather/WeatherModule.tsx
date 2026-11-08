@@ -1,4 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
+import { useHourCycle } from "@dashhaus/core/hooks";
+import { hourLabel } from "@dashhaus/core/entities/clock";
 import type { Condition, DailyForecast, HourlyForecast, WeatherEntity, WeatherHistory } from "@dashhaus/core/entities/weather/types";
 import { CONDITION_LABEL, clock, compass, isWet, precipitation } from "@dashhaus/core/entities/weather/conditions";
 import { aqiBand, airWarns, conditionLabel, deg0, gustWarns, isNight, rangeText, todayRange, uvBand, uvWarns, weatherWarnings, weatherWarningsSaid } from "@dashhaus/core/entities/weather/readings";
@@ -54,7 +56,8 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   const warnings = weatherWarnings(e);
   // Core ranks them (any is advisory); the module draws the marker for the level it is given.
   const level = weatherSeverity(e);
-  const precip = cond ? precipitation(cond, hourly, hour) : null;
+  const hourCycle = useHourCycle();
+  const precip = cond ? precipitation(cond, hourly, hour, hourCycle) : null;
   // Falling rain that stops soon already names itself ("Rain until 15:00").
   const sky = cond ? precip ?? conditionLabel(cond, night) : null;
   // The most urgent warning, with a count of the rest so a clipped line never hides that more exist; where even
@@ -146,8 +149,9 @@ type Vars = CSSProperties & Record<`--${string}`, string | number>;
 
 /** The next hours on a strip of screen: the hour, its sky, its temperature, and its chance of rain from 20%. */
 function Hours({ hours }: { hours: HourlyForecast[] }) {
+  const hourCycle = useHourCycle();
   const spoken = hours.map((h) => [
-    clock(h.hour),
+    clock(h.hour, hourCycle),
     CONDITION_LABEL[h.condition],
     deg0(h.temperature),
     rainText(h.precipitationProbability) && `${rainText(h.precipitationProbability)} chance of precipitation`,
@@ -159,7 +163,7 @@ function Hours({ hours }: { hours: HourlyForecast[] }) {
         <ol className="fd-wx-strip" role="img" aria-label={`Next hours: ${spoken}.`} style={{ "--fd-wx-n": HOURS } as Vars}>
           {hours.map((h) => (
             <li key={h.hour} className="fd-wx-col" aria-hidden="true">
-              <span className="fd-wx-t">{String(h.hour % 24).padStart(2, "0")}</span>
+              <span className="fd-wx-t">{hourLabel(h.hour, hourCycle)}</span>
               <Pictogram param="neutral" lit>{conditionPict(h.condition)}</Pictogram>
               <span className="fd-wx-v">{deg0(h.temperature)}</span>
               <span className="fd-wx-p">{rainText(h.precipitationProbability)}</span>

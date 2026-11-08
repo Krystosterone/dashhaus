@@ -7,20 +7,37 @@ import { describe, expect, it } from "vitest";
 import { WARNING_WORD_MAX } from "./severity";
 import { batteryText } from "./battery";
 import { alarmWarning } from "./alarm/words";
-import { ALERT_WORDS } from "./binarySensor/words";
-import { LEFT_OPEN_WORD } from "./cover/words";
+import { ALERT_WORDS, alertText, alertWord } from "./binarySensor/words";
+import { momentWords } from "./clock";
+import type { HourCycle } from "./clock";
+import { LEFT_OPEN_WORD, leftOpenText } from "./cover/words";
 import { LOCK_WORD } from "./lock/words";
-import { ALERT_WORD, staleText } from "./owlet/readings";
+import { ALERT_WORD, staleText, staleWarning } from "./owlet/readings";
 import { vacuumWarning } from "./vacuum/words";
 import { weatherWarnings } from "./weather/readings";
 import type { WeatherEntity } from "./weather/types";
 
 const weather: WeatherEntity = { entityId: "weather.home", name: "Home", state: "cloudy", temperatureUnit: "°C", windSpeedUnit: "km/h", pressureUnit: "hPa" };
 
+const NOW = new Date(2026, 9, 17, 11, 54);
+/** The longest moments a mapper writes, on each hour cycle: a day and a time, a time alone. */
+const moments = (cycle: HourCycle) => [new Date(2026, 9, 16, 18, 30), new Date(2026, 9, 17, 11, 49), new Date(2026, 9, 12, 23, 58)].map((d) => momentWords(d, NOW, cycle));
+const CYCLES: HourCycle[] = ["h23", "h12"];
+
+/**
+ * Warnings that say a time: on either hour cycle, the line leads with its word and the time follows it, so a clipped
+ * line keeps the word ([what, word, line]).
+ */
+const timed = (cycle: HourCycle): [string, string, string][] => moments(cycle).flatMap((at): [string, string, string][] => [
+  ["owlet stale", staleWarning(at).word, staleText(at)],
+  ["cover left open", LEFT_OPEN_WORD, leftOpenText(at)],
+  ["binary sensor garage door", alertWord({ state: "on", deviceClass: "garage_door" })!, alertText({ state: "on", deviceClass: "garage_door", lastChanged: at })!],
+]);
+
 const words: [string, string][] = [
   ...Object.entries(ALERT_WORDS).map(([cls, word]): [string, string] => [`binary sensor ${cls}`, word!]),
   ...Object.entries(ALERT_WORD).map(([alert, word]): [string, string] => [`owlet ${alert}`, word]),
-  ["owlet stale", staleText("Fri 18:30")],
+  ...CYCLES.flatMap((cycle) => timed(cycle).map(([what, word]): [string, string] => [`${what} (${cycle})`, word])),
   ["cover left open", LEFT_OPEN_WORD],
   ["lock jammed", LOCK_WORD.jammed],
   ["low battery", batteryText(100)],
@@ -42,5 +59,12 @@ describe("every card's warning words", () => {
     expect(WARNING_WORD_MAX).toBe(13);
     expect(words.length).toBeGreaterThan(30);
     for (const [what, word] of words) expect(word.length, `${what}: ${word}`).toBeLessThanOrEqual(WARNING_WORD_MAX);
+  });
+
+  it.each(CYCLES)("lead a line that says a time with the word, the time after it, on %s", (cycle) => {
+    for (const [what, word, line] of timed(cycle)) {
+      expect(line.startsWith(`${word} `), `${what}: ${line}`).toBe(true);
+      expect(line.slice(word.length), `${what}: ${line}`).toMatch(/\d{1,2}:\d{2}/);
+    }
   });
 });

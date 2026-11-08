@@ -1,5 +1,6 @@
 import type { HassEntity } from "../types";
 import { formatHaTime, parseHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { isRecord, stringValue } from "../util";
 import { batteryFromHass, inlineBattery } from "./battery";
 import { isBinarySensorClass } from "../../entities/binarySensor/words";
@@ -8,6 +9,8 @@ import type { BinarySensorEntity } from "../../entities/binarySensor/types";
 export interface BinarySensorMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -33,9 +36,9 @@ export function binarySensorFromHass(raw: HassEntity | undefined, entityId: stri
     area: options.area,
     state,
     deviceClass: isBinarySensorClass(deviceClass) ? deviceClass : undefined,
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     changedAt: parseHaTime(raw?.last_changed)?.getTime(),
     battery: unav ? undefined : inlineBattery(attributes) ?? batteryFromHass(options.batteryEntity),
-    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now) : undefined,
+    lastSeen: unav ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };
 }

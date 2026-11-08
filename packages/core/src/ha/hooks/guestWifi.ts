@@ -6,6 +6,7 @@ import { guestWifiCompanions, guestWifiFromHass } from "../mappers/guestWifi";
 import { useHaArea } from "../registry";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { GuestWifiEntity } from "../../entities/guestWifi/types";
 import type { HaActionError } from "../types";
 
@@ -52,9 +53,10 @@ export function useHaGuestWifi(entityId: string, { access, network, qrEntityId, 
   const refreshEntity = useHaEntity(ids.refresh ?? "");
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const entity = useMemo(
-    () => guestWifiFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, qrEntity, newCodeEntity, access, network }),
-    [raw, entityId, name, area, registryArea, lastSeen, now, qrEntity, newCodeEntity, access, network],
+    () => guestWifiFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle, qrEntity, newCodeEntity, access, network }),
+    [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle, qrEntity, newCodeEntity, access, network],
   );
   const newCodeState = newCodeEntity?.state, refreshState = refreshEntity?.state;
   const actions = useMemo(() => createGuestWifiHandlers(store, {

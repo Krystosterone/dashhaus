@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { ComponentType } from "react";
 import { addons, types, useGlobals, useGlobalTypes, useStorybookApi, useStorybookState } from "storybook/manager-api";
 import { IconButton, Separator, TooltipLinkList, WithTooltip } from "storybook/internal/components";
-import { ContrastIcon, MirrorIcon, PaintBrushIcon } from "@storybook/icons";
+import { ContrastIcon, MirrorIcon, PaintBrushIcon, TimeIcon } from "@storybook/icons";
 
 /**
  * The skin's toolbar. Every skin declares its globals' toolbars in its own Storybook setup (src/skins/<skin>/storybook.tsx)
@@ -11,7 +11,7 @@ import { ContrastIcon, MirrorIcon, PaintBrushIcon } from "@storybook/icons";
  * story's skin's, each labelled with its name and value.
  */
 /** The toolbar icons the skins name, by the name a skin's `storybook.tsx` gives (Storybook's own toolbar's names). */
-const ICONS: Record<string, ComponentType> = { contrast: ContrastIcon, mirror: MirrorIcon, paintbrush: PaintBrushIcon };
+const ICONS: Record<string, ComponentType> = { contrast: ContrastIcon, mirror: MirrorIcon, paintbrush: PaintBrushIcon, time: TimeIcon };
 
 interface SkinToolbar {
   title: string;

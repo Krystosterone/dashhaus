@@ -6,6 +6,7 @@ import { lockFromHass } from "../mappers/lock";
 import { useHaArea } from "../registry";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { LockEntity } from "../../entities/lock/types";
 import type { HaActionError } from "../types";
 
@@ -38,9 +39,10 @@ export function useHaLock(entityId: string, { batteryEntityId, name, area, lastS
   const batteryEntity = useHaEntity(batteryEntityId ?? "");
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const entity = useMemo(
-    () => lockFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, batteryEntity, now }),
-    [raw, entityId, name, area, registryArea, lastSeen, batteryEntity, now],
+    () => lockFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, batteryEntity, now, hourCycle }),
+    [raw, entityId, name, area, registryArea, lastSeen, batteryEntity, now, hourCycle],
   );
   const actions = useMemo(() => createLockHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, actions };

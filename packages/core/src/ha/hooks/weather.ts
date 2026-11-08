@@ -4,6 +4,7 @@ import { forecastFromHass, weatherFromHass } from "../mappers/weather";
 import { weatherHistoryFromHass } from "../history";
 import { useHaHistory } from "../useHaHistory";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { HaStore } from "../types";
 import { useHaEntity } from "../provider";
 import { useHaRequest } from "../useHaRequest";
@@ -92,6 +93,7 @@ export function useHaWeather(entityId: string, {
   const reportForecastError = (error: unknown) => onForecastErrorRef.current?.(error);
 
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => weatherHistoryFromHass(records, entityId, now), [records, entityId, now]);
 
@@ -109,7 +111,8 @@ export function useHaWeather(entityId: string, {
     windSpeedUnit,
     pressureUnit,
     now,
-  }), [raw, entityId, aqiEntity, aqiScale, sunEntity, name, lastSeen, temperatureUnit, windSpeedUnit, pressureUnit, now]);
+    hourCycle,
+  }), [raw, entityId, aqiEntity, aqiScale, sunEntity, name, lastSeen, temperatureUnit, windSpeedUnit, pressureUnit, now, hourCycle]);
 
   return { entity, history: history ?? parsedHistory, hourly: providedHourly ?? hourly, daily: providedDaily ?? daily };
 }

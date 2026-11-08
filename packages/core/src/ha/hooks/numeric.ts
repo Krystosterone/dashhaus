@@ -5,6 +5,7 @@ import { readingHistoryFromHass } from "../history";
 import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { NumericEntity, NumericHistory } from "../../entities/numeric/types";
 
 export interface HaNumericOptions {
@@ -30,8 +31,9 @@ export function useHaNumeric(entityId: string, { name, area, unit, lastSeen, his
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => readingHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => numericFromHass(raw, entityId, { name, area: area ?? registryArea, unit, lastSeen, now }), [raw, entityId, name, area, registryArea, unit, lastSeen, now]);
+  const entity = useMemo(() => numericFromHass(raw, entityId, { name, area: area ?? registryArea, unit, lastSeen, now, hourCycle }), [raw, entityId, name, area, registryArea, unit, lastSeen, now, hourCycle]);
   return { entity, history: history ?? parsedHistory };
 }

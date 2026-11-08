@@ -5,6 +5,7 @@ import { useHaArea } from "../registry";
 import { useHaPicture } from "../useHaPicture";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { CameraEntity } from "../../entities/camera/types";
 
 export interface HaCameraOptions {
@@ -36,10 +37,11 @@ export function useHaCamera(entityId: string, { name, area, lastSeen, still = tr
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const picture = useHaPicture(entityId);
   const entity = useMemo(
-    () => ({ ...cameraFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now }), picture: still ? picture : undefined }),
-    [raw, entityId, name, area, registryArea, lastSeen, now, picture, still],
+    () => ({ ...cameraFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, now, hourCycle }), picture: still ? picture : undefined }),
+    [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle, picture, still],
   );
   return { entity };
 }

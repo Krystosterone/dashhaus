@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { DemoSensorTile as DemoTile } from "./demo/DemoSensorTile";
-import { SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
+import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
+import { onHourCycle } from "@dashhaus/core/seeds/clock";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
 const SENSORS = ["living", "bathroom", "outdoor", "basement", "office", "humidityOnly", "garage"] as const;
@@ -101,4 +102,19 @@ export const DetailsPhone: Story = {
   name: "Details, phone",
   args: { sensor: "bathroom", defaultOpen: true },
   parameters: { viewport: { defaultViewport: "mobile2" } },
+};
+
+/**
+ * On a 12-hour dashboard (YAML `hour_cycle: h12`, the toolbar's Clock): every state and the worst case, each time the
+ * card says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).
+ */
+export const TwelveHourClock: Story = {
+  name: "12-hour clock",
+  globals: { orbClock: "h12" },
+  parameters: { layout: "padded", controls: { include: ["width", "footprint"] } },
+  render: ({ width, footprint }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+      {[...SENSORS.map((name) => SENSOR_SEEDS[name]), ...SENSOR_WORST_CASE].map((seed, index) => <DemoTile key={index} sensor={onHourCycle(seed, "h12")} width={width} footprint={footprint} />)}
+    </div>
+  ),
 };

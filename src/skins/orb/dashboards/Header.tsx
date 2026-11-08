@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { useNow } from "@dashhaus/core/hooks";
+import { useHourCycle, useNow } from "@dashhaus/core/hooks";
 import { clockFace } from "@dashhaus/core/entities/clock";
+import type { HourCycle } from "@dashhaus/core/entities/clock";
 import "./Header.css";
 
 export interface HeaderProps {
@@ -10,8 +11,8 @@ export interface HeaderProps {
   subtitle?: ReactNode;
   /** Show the clock on the right. */
   showTime?: boolean;
-  /** 12 or 24 hour clock. Defaults to the locale's. */
-  hourCycle?: "h12" | "h23";
+  /** 12 or 24 hour clock, the page's (`DashboardPage` says every card's times on it). Defaults to the dashboard's, else the locale's. */
+  hourCycle?: HourCycle;
   /** BCP 47 locale for the date and time. Defaults to the browser's. */
   locale?: string;
   /** IANA time zone, e.g. Home Assistant's "America/Toronto". Defaults to the device's. */
@@ -28,8 +29,10 @@ export interface HeaderProps {
  */
 export function Header({ title, subtitle, showTime, hourCycle, locale, timeZone, now: fixed }: HeaderProps) {
   const now = useNow(fixed);
+  // The page's clock, the one its cards say their times on.
+  const cycle = useHourCycle({ hourCycle, locale });
   // The time large; AM/PM small beside it.
-  const { date, day, time: main, period } = clockFace(now, { locale, hourCycle, timeZone });
+  const { date, day, time: main, period } = clockFace(now, { locale, hourCycle: cycle, timeZone });
 
   return (
     <div className="hh-c">

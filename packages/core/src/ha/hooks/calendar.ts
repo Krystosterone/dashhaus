@@ -6,6 +6,7 @@ import { useHaRequest } from "../useHaRequest";
 import { checkEntityId } from "../dev";
 import { stringValue } from "../util";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { HaStore } from "../types";
 import { calendarDay } from "../../entities/calendar/agenda";
 import { dayAfter, dayStart } from "../../entities/calendar/words";
@@ -76,6 +77,7 @@ export function useHaCalendar(entityId: string, {
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const onErrorRef = useRef(onEventsError);
   onErrorRef.current = onEventsError;
 
@@ -106,10 +108,11 @@ export function useHaCalendar(entityId: string, {
     area: area ?? registryArea,
     lastSeen,
     now,
+    hourCycle,
     events: providedEvents ?? read,
     days: span,
     calendars: ids.length,
-  }), [raw, entityId, name, area, registryArea, lastSeen, now, providedEvents, read, span, ids.length]);
+  }), [raw, entityId, name, area, registryArea, lastSeen, now, hourCycle, providedEvents, read, span, ids.length]);
   const history = useMemo(() => (loadHistory ? calendarDay(entity.events, entity.now) : undefined), [loadHistory, entity.events, entity.now]);
   return { entity, history };
 }

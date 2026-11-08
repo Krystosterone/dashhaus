@@ -8,6 +8,7 @@ import { useHaArea } from "../registry";
 import { useHaHistory } from "../useHaHistory";
 import { checkEntityId } from "../dev";
 import { useNow } from "../../hooks/useNow";
+import { useHourCycle } from "../../hooks/hourCycle";
 import type { ToggleEntity, ToggleIcon, ToggleHistory } from "../../entities/toggle/types";
 import type { HaActionError } from "../types";
 
@@ -41,9 +42,10 @@ export function useHaToggle(entityId: string, { name, area, lastSeen, icon, desc
   const raw = useHaEntity(entityId);
   const registryArea = useHaArea(entityId);
   const now = useNow();
+  const hourCycle = useHourCycle();
   const records = useHaHistory([entityId], loadHistory && history === undefined, now);
   const parsedHistory = useMemo(() => toggleHistoryFromHass(records, entityId, now), [records, entityId, now]);
-  const entity = useMemo(() => toggleFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, icon, description, now }), [raw, entityId, area, registryArea, name, lastSeen, icon, description, now]);
+  const entity = useMemo(() => toggleFromHass(raw, entityId, { name, area: area ?? registryArea, lastSeen, icon, description, now, hourCycle }), [raw, entityId, area, registryArea, name, lastSeen, icon, description, now, hourCycle]);
   const actions = useMemo(() => createToggleHandlers(store, entity, { onError: onActionError }), [store, entity, onActionError]);
   return { entity, history: history ?? parsedHistory, actions };
 }

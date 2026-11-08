@@ -1,11 +1,14 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
+import type { HourCycle } from "../../entities/clock";
 import { stringValue } from "../util";
 import type { ToggleEntity, ToggleIcon } from "../../entities/toggle/types";
 
 export interface ToggleMapOptions {
   /** The clock the timestamps are formatted against (the tile's minute clock). */
   now?: Date;
+  /** The dashboard's hour cycle its times are said on (`useHourCycle`); the browser locale's when left out. */
+  hourCycle?: HourCycle;
   name?: string;
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
@@ -30,7 +33,7 @@ export function toggleFromHass(raw: HassEntity | undefined, entityId: string, op
     state,
     icon: options.icon,
     description: options.description,
-    lastChanged: formatHaTime(raw?.last_changed, options.now),
-    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(lastSeenRaw, options.now) : undefined,
+    lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
+    lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(lastSeenRaw, options.now, options.hourCycle) : undefined,
   };
 }

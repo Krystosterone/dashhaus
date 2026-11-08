@@ -361,7 +361,7 @@ When a domain has more than one card, `card:` picks one: `card: owlet` for a soc
 | Where | Key | Meaning |
 | --- | --- | --- |
 | Lovelace card | `title`, `subtitle` | The page header. `title` defaults to "Home". |
-| Lovelace card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`. |
+| Lovelace card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`, the locale's when left out. `hour_cycle` is the whole dashboard's clock: every card says its times on it (`Since 2:05 PM`, `Tomorrow 9:30 AM`; spec/cards.md → Clock words follow the dashboard's hour cycle), whether or not the header shows the time. |
 | Lovelace card | `viewing` | `near` (default: a phone or tablet in the hand) or `far`, for a wall panel read from across the room: larger status lines, captions and warn cues, and heavier figures. Card heights don't change. |
 | Lovelace card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
 | Lovelace card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
@@ -460,7 +460,7 @@ type: custom:dashhaus-field
 title: Home              # optional, printed at the top with today's date under it
 subtitle: Everyone home  # optional, in place of the date on the main page
 show_time: true          # a clock in the header, on a strip of screen
-hour_cycle: h23          # optional: h12 or h23; the locale's when left out
+hour_cycle: h23          # optional: h12 or h23, the header's clock and every module's times; the locale's when left out
 viewing: near            # near (default) or far: a wall panel read from across the room
 finish: home-assistant   # home-assistant (default: follows its dark mode), auto (the device's), alloy, black
 footprint: standard      # standard (160 px modules, default) or compact (64 px rows)
@@ -513,7 +513,7 @@ cards:                   # optional; leave out (and leave out rows) for every su
 | `title` | text | none |
 | `subtitle` | text, in place of the date under the title on the main page | today's date |
 | `show_time` | `true`, `false`: a clock in the header, beside the title | `false` |
-| `hour_cycle` | `h12`, `h23` | the locale's |
+| `hour_cycle` | `h12`, `h23`: the header's clock and every time a module says (`Since 2:05 PM`; a screen's clock keeps four places, `2:00`, the period on its meta line) | the locale's |
 | `viewing` | `near`, `far`: a wall panel read from across the room, its modules' print and screens a step up and no nav unless `nav` lists one | `near` |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
