@@ -19,7 +19,7 @@ on the documentation site), and the skin's own repository mirrors it from npm fo
 2. Run `npm run deploy`.
 3. Reload any Home Assistant tab that was already open, then open **Home (Orb)** or **Home (Field)** in the sidebar.
 
-`npm run deploy` builds the files `dashboard.config.mjs` names (`npm run build:ha`: `src/skins/orb/dist/orb-dashboard.js`, `src/skins/field/dist/field-dashboard.js` and one `dist/dashhaus-<skin>.js` per skin `npm run new-skin` made), copies each to `www/<name without its extension>/`, and registers it as a dashboard resource at `/local/<folder>/<name>?v=<content hash>`. The new version number makes browsers fetch the new file. It then fetches each file back from `$HA_URL/local/…` and warns, naming `HA_WWW`, when Home Assistant does not serve the bytes it uploaded: a wrong `HA_WWW` is otherwise only a "Custom element doesn't exist" on the dashboard. (The check needs the real websocket client; a caller that injects `connect` injects `fetch` too, or leaves the check out.) A repo keeps its URL by keeping its file's name. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`. By default: **Home (Orb)** at `dashhaus-orb`, a panel holding a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `cards` or `rows`, so it lays out every supported entity by area each time it draws. Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_FIELD_DASHBOARD` and their `_TITLE` do for Orb and Field). Run it again after every code change. It updates each resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Each file lands under a temporary name and is renamed into place, so a copy cut off halfway leaves the served file as it was; a layout save that fails deletes the dashboard that run created, so the next run creates it again rather than leaving it empty. It warns when another copy of a file is registered too (a Marketplace install's `/hacsfiles/…`): both define the same card, and only the first to load is used. Open dashboards pick up a new version on their next reload.
+`npm run deploy` builds the files `dashboard.config.mjs` names (`npm run build:ha`: `src/skins/orb/dist/orb-dashboard.js`, `src/skins/field/dist/field-dashboard.js` and one `dist/dashhaus-<skin>.js` per skin `npm run new-skin` made), copies each to `www/<name without its extension>/`, and registers it as a dashboard resource at `/local/<folder>/<name>?v=<content hash>`. The new version number makes browsers fetch the new file. It then fetches each file back from `$HA_URL/local/…` and warns, naming `HA_WWW`, when Home Assistant does not serve the bytes it uploaded: a wrong `HA_WWW` is otherwise only a "Custom element doesn't exist" on the dashboard. (The check needs the real websocket client; a caller that injects `connect` injects `fetch` too, or leaves the check out.) A repo keeps its URL by keeping its file's name. The first time, it also creates one dashboard per entry in `dashboard.config.mjs`. By default: **Home (Orb)** at `dashhaus-orb`, a panel holding a layout generated from your house, and **Home (Field)** at `dashhaus-field`, a field card with no `cards` or `rows`, so it lays out every supported entity by area each time it draws; and beside each, a wall panel's: **Wall (Orb)** at `dashhaus-orb-wall`, the generated layout with `layout: wall` written out, and **Wall (Field)** at `dashhaus-field-wall`, a field card with `layout: wall`, each with `viewing: far` and a nav back to its skin's main dashboard (The wall layout, below). Each dashboard may name `.env` keys that change its path and sidebar title (`HA_DASHBOARD`, `HA_WALL_DASHBOARD`, `HA_FIELD_DASHBOARD`, `HA_FIELD_WALL_DASHBOARD` and their `_TITLE` do for Orb, its wall, Field and its wall); a wall's nav follows its skin's main dashboard to the path `.env` gives it. Run it again after every code change. It updates each resource, keeps each existing dashboard's sidebar title in line with those settings, and never touches an existing dashboard's layout, so layout edits made in Home Assistant are safe. Each file lands under a temporary name and is renamed into place, so a copy cut off halfway leaves the served file as it was; a layout save that fails deletes the dashboard that run created, so the next run creates it again rather than leaving it empty. It warns when another copy of a file is registered too (a Marketplace install's `/hacsfiles/…`): both define the same card, and only the first to load is used. Open dashboards pick up a new version on their next reload.
 
 ### The dashboard config
 
@@ -62,10 +62,11 @@ Custom dashboard strategies page.
   config by hand works the same, and so does one the deploy CLI creates with `strategy:`.
 - **What it generates.** One panel view titled with the skin's name, at `home`, holding the skin's card with no
   `cards` or `rows`, `{ type: "custom:dashhaus-<skin>", title: "Home" }`: the automatic layout (`autoDashboard` for
-  orb, `autoModules`, `energyModules` and `areaRows` for field). The view strategy answers the same panel, as one view of any dashboard.
+  orb, `autoModules`, `energyModules` and `areaRows` for field, or `areaColumns` with `layout: wall`). The view strategy answers the same panel, as one view of any dashboard.
 - **Its keys**, all optional: `title`, the title the card prints in its header (`Home`), and the keys the skin hands
-  its card unchanged: `viewing` (`near`, `far`) and `theme` for Orb, `viewing` and `finish` for Field, none for a
-  generated or scaffolded skin. The card checks what it is handed, as it does in YAML. The strategy refuses an unknown
+  its card unchanged: `viewing` (`near`, `far`), `theme` and `layout` (`wall`) for Orb, `viewing`, `finish` and
+  `layout` for Field, none for a generated or scaffolded skin. A strategy dashboard can't carry a `nav` (its keys are
+  text), so a wall on the strategy links to another dashboard only after **Take control**. The card checks what it is handed, as it does in YAML. The strategy refuses an unknown
   key or a value that isn't text, in words the frontend shows in place of the dashboard, led by the skin's name
   (`Orb: …`).
 - **Editing it.** It has no `getConfigElement`, `noEditor` or `configRequired`: the dialog asks no questions before
@@ -275,8 +276,9 @@ What the format gives instead:
   Reading order stays the YAML's, which is dense flow's cost (Placement, 7). Not in a field row that mixes footprints,
   where `flow: dense` is an error.
 - **A different page for a different device.** Each role gets its own dashboard: `dashboard.config.mjs` lists one per
-  role (a wall panel's with `viewing: far`), each device opens its own (Home Assistant keeps a default dashboard per
-  browser, in its profile settings), and `navigate:` links them.
+  role (a wall panel's with `layout: wall` and `viewing: far`, The wall layout below), each device opens its own (Home
+  Assistant keeps a default dashboard per browser, in its profile settings), and `navigate:` links them. Add dashboard
+  does the same with a skin's strategy twice, the wall's given `layout: wall` and `viewing: far`.
 
 Reopen this with the need it lacked: a card that must be on the page at one width and gone at another. The shape to
 weigh then is a condition on a row's tracks, not on pixels (a card or row drawn only from a number of tracks, as an
@@ -369,6 +371,7 @@ A `sensor.*` listed on its own, with no `card:`, no id pattern picking it and no
 | Lovelace card | `title`, `subtitle` | The page header. `title` defaults to "Home". |
 | Lovelace card | `show_time`, `hour_cycle` | A clock in the header; `h12` or `h23`, the locale's when left out. `hour_cycle` is the whole dashboard's clock: every card says its times on it (`Since 2:05 PM`, `Tomorrow 9:30 AM`; spec/cards.md → Clock words follow the dashboard's hour cycle), whether or not the header shows the time. |
 | Lovelace card | `viewing` | `near` (default: a phone or tablet in the hand) or `far`, for a wall panel read from across the room: larger status lines, captions and warn cues, and heavier figures. Card heights don't change. |
+| Lovelace card | `layout` | `wall`: the automatic layout one column per place, for a panel on a wall ([The wall layout](#the-wall-layout)). Left out, its titled bands. Refused beside `cards`, `rows` or `pages`, which lay the page out themselves. Not Home Assistant's `view_layout`, which places the card in a sections view. |
 | Lovelace card | `theme` | `home-assistant` (default: follows Home Assistant's dark mode), `auto` (follows the device), `light`, `dark`. |
 | Lovelace card | `accent` | `yellow` (default), `sage`, `coral`, `sky`, `lilac`, or `{ chroma, hue }` in OKLCH. |
 | Lovelace card | `stills` | `false`: no camera still is fetched or drawn on this dashboard, for privacy or cost; a camera card shows its state and glyph, and its details' Live view still opens its stream. Default `true`. |
@@ -423,6 +426,56 @@ new kind of card goes at the end of its band, never ahead of a row already there
 A row whose title an area already has joins that area's row, so the page never shows two rows of one name.
 `src/skins/orb/lovelace/auto.test.ts` lays out a house with every band and holds it to this list.
 
+#### The wall layout
+
+`layout: wall` lays the same cards out room first, for a panel on a wall: Orb's `autoDashboard(input, title,
+{ layout: "wall" })` and Field's `areaColumns`, beside its `areaRows`. One rule decides what goes where; each skin
+stacks a column and draws it in its own idiom.
+
+- **The rule** (`@dashhaus/core/lovelace/layout`: `wallPlaces`, `placeColumns`, `WALL_BANDS`, `wallFootprint`). A place
+  is a Home Assistant area with a card. Places go in area-name order, a column each, side by side up to the skin's
+  most, wrapping into further rows; every row is as many columns as the first, so the columns line up down the page.
+  The cards in no area (the alarm, the modes, the calendars, the guest Wi-Fi code) are the house's column, the last of
+  the first row, never wrapped. The weather and the sun join an area called Outside where the house has one, the card
+  given `area:` so its column names it, and are the house's otherwise. A column's cards come in the bands of the
+  automatic layout's order above: actions, safety and security, cameras, household status, the glance; a card in no
+  band comes last. What is pressed (the actions, the alarm, a lock) is compact; what is read (a door, a camera's
+  still, a sock, the weather, a room's air) is standard; nothing is featured. Energy is its own row, last, titled
+  Energy, never in a column, so the rows of places don't move when the preferences land. With fewer than two places a
+  column per place says nothing: every card flows in band order instead.
+- **Orb** keeps band order down a column, three places across: at 1280 px a track is about 410 px, so a compact card
+  keeps its inline control and its words (they give way under 320 px, and four across would be 306 px). Each row is
+  `columns:` its count, every card anchored to its column, `flow: dense`, so each column starts at the top. Its
+  `columns` holds while a track is at least 156 px, so an 800 px portrait panel keeps three columns of about 250 px,
+  the compact rows trading their control for their value line; on a phone the anchors release and the row reads place
+  by place.
+- **Field** stacks a column's whole modules first, then its 64 px rows, each in band order (spec/field.md →
+  Dashboards), four places across. A row that mixes footprints stacks them by column (`stacks`, as the reader marks a
+  row it reads: the automatic path skips the reader, so `areaColumns` sets it); a row of one footprint, as when the
+  YAML sets `footprint` for every module, is a grid anchored column by column with `flow: dense`. With fewer tracks
+  than columns the stacks wrap in place order, each still whole: an 800 px portrait panel takes two across.
+- **A column names its place.** Where an untitled row anchors every card to a column, a column whose cards all share
+  one area (their `area`, or Home Assistant's) is headed with it: Orb draws a section heading over the column, Field
+  its legend and rule. The cards under it leave their area off, as a titled bundle's members do, and keep it in their
+  details. A column of no one place keeps the heading's height, unprinted, so the columns' tops line up, and a long
+  name ends in an ellipsis. Orb drops the headings when the row's anchors release, so the cards show their areas
+  again; Field's stacks keep theirs as they wrap, since a stack is still one place. A row written by hand gets them
+  the same way. It is the renderers' alone: no key, and nothing in the frozen schema.
+- **Past the first screen.** A wall panel shows its first row of places; anything further down is seen only by
+  scrolling. Field's alert line under its header still names an urgent or alarm state there (a jammed lock, a sock's
+  alarm). Orb has no alert region (spec/orb.md → Dashboards): an urgent state below the fold keeps its warn marker in
+  its place, unseen until someone scrolls.
+- **Its own key.** `layout` is the automatic layout's, so it is refused beside `cards`, `rows` or `pages` with the key
+  to leave out (`"layout" lays the house out automatically: leave out "rows", or leave out "layout"`). It never sets
+  `viewing`: `autoDashboard` returns a layout only, and a wall read across the room says `viewing: far` itself. With
+  nothing to place yet, Orb's stays automatic as `{ type, title, layout: wall }`.
+- **The order is the areas' names.** Discovery can't know which rooms a household looks at most. To put others first,
+  take control of the dashboard and move its cards, or deploy the wall and edit it (Orb's is written out once).
+
+`src/skins/orb/lovelace/auto.test.ts` and `src/skins/field/lovelace/auto.test.ts` hold both to this: the columns and
+their order, the wrap, the house's column, Outside, energy's own row, the house of one place, and the default layout
+unchanged.
+
 ### Navigation
 
 A nav docks at the bottom of the screen: one pill per destination, the one you're on in the accent. Without `nav`, it lists the card's pages when it has some, or else its titled rows, so even the automatic layout gets one. A wall panel (`viewing: far`) has none unless `nav` lists it, and a nav with a single destination isn't drawn. `nav: false` turns it off.
@@ -462,7 +515,7 @@ nav:
 
 ## The field dashboard
 
-The same bundle carries a second card, `custom:dashhaus-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light, climate, humidifier, fan, Dyson purifier fan (`card: dyson`), cover, media player, vacuum, alarm and lock entities, cameras (`camera.*`), room sensors, binary sensors (`binary_sensor.*`: a door, window, garage door, leak, smoke, gas or carbon monoxide sensor), the weather, Owlet socks (`sensor.*_sleep_state`), guest Wi-Fi codes (`sensor.*_voucher`), calendars (`calendar.*`: what's next, and when), the sun (`sun.sun`: when it next sets or rises), modes (`input_boolean` and `switch`) and a sound machine's sound (a `switch` with `card: sound`). `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `cards` or `rows`, so it shows every supported entity, a row per area: every light, climate, humidifier, fan, cover, `media_player`, `vacuum`, `alarm_control_panel`, `lock`, `camera`, `input_boolean` and `switch` entity (a lock with the battery sensor on its device; a Dyson's fan, found as the main card finds it, as the dyson module, its Hot+Cool heater not on its own), every Owlet sock by its `sensor.*_sleep_state`, every guest Wi-Fi code by its `sensor.*_voucher`, every visible calendar (a module each, in its area's row), the sun, the first weather entity by name (with `sun.sun` for night, as the main card's Outside), and of sensors only room air, one per device, found the way the main card finds its Rooms (each temperature sensor with the humidity and battery sensors on its device, then humidity sensors on devices without one), and of binary sensors only the safety glance, as the main card's Security has it (`safetySensors`): every door, garage door, window, opening, leak, smoke, gas, carbon monoxide and safety `binary_sensor`, each with the battery sensor on its device, in its area's row, and the room's air quality as numeric readings (CO₂, particles or VOC, one per device). After every area's row comes Energy, as on the main card: the house's power and energy meters from Home Assistant's energy preferences, as numeric readings in the same order, not grouped by area (an area called Energy takes them). Any other number a `sensor.*` measures (power, energy) takes `card: numeric`. To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Dashhaus Field** card from the card picker.
+The same bundle carries a second card, `custom:dashhaus-field`: the field skin ([field.md](field.md)), hardware-style modules after Teenage Engineering's K.O. II. It draws light, climate, humidifier, fan, Dyson purifier fan (`card: dyson`), cover, media player, vacuum, alarm and lock entities, cameras (`camera.*`), room sensors, binary sensors (`binary_sensor.*`: a door, window, garage door, leak, smoke, gas or carbon monoxide sensor), the weather, Owlet socks (`sensor.*_sleep_state`), guest Wi-Fi codes (`sensor.*_voucher`), calendars (`calendar.*`: what's next, and when), the sun (`sun.sun`: when it next sets or rises), modes (`input_boolean` and `switch`) and a sound machine's sound (a `switch` with `card: sound`). `npm run deploy` creates the **Home (Field)** dashboard the first time, holding this card with no `cards` or `rows` (and **Wall (Field)**, the same card with `layout: wall`, one column per place: [The wall layout](#the-wall-layout)), so it shows every supported entity, a row per area: every light, climate, humidifier, fan, cover, `media_player`, `vacuum`, `alarm_control_panel`, `lock`, `camera`, `input_boolean` and `switch` entity (a lock with the battery sensor on its device; a Dyson's fan, found as the main card finds it, as the dyson module, its Hot+Cool heater not on its own), every Owlet sock by its `sensor.*_sleep_state`, every guest Wi-Fi code by its `sensor.*_voucher`, every visible calendar (a module each, in its area's row), the sun, the first weather entity by name (with `sun.sun` for night, as the main card's Outside), and of sensors only room air, one per device, found the way the main card finds its Rooms (each temperature sensor with the humidity and battery sensors on its device, then humidity sensors on devices without one), and of binary sensors only the safety glance, as the main card's Security has it (`safetySensors`): every door, garage door, window, opening, leak, smoke, gas, carbon monoxide and safety `binary_sensor`, each with the battery sensor on its device, in its area's row, and the room's air quality as numeric readings (CO₂, particles or VOC, one per device). After every area's row comes Energy, as on the main card: the house's power and energy meters from Home Assistant's energy preferences, as numeric readings in the same order, not grouped by area (an area called Energy takes them). Any other number a `sensor.*` measures (power, energy) takes `card: numeric`. To put one on another dashboard: ⋮ → **Edit dashboard**, make its view a **Panel** view, and add the **Dashhaus Field** card from the card picker.
 
 ```yaml
 type: custom:dashhaus-field
@@ -524,6 +577,7 @@ cards:                   # optional; leave out (and leave out rows) for every su
 | `show_time` | `true`, `false`: a clock in the header, beside the title | `false` |
 | `hour_cycle` | `h12`, `h23`: the header's clock and every time a module says (`Since 2:05 PM`; a screen's clock keeps four places, `2:00`, the period on its meta line) | the locale's |
 | `viewing` | `near`, `far`: a wall panel read from across the room, its modules' print and screens a step up and no nav unless `nav` lists one | `near` |
+| `layout` | `wall`: the automatic layout one column per place, each column's whole modules over its rows ([The wall layout](#the-wall-layout)); refused beside `cards`, `rows` or `pages` | a row per area |
 | `finish` | `home-assistant`, `auto`, `alloy`, `black` | `home-assistant` |
 | `footprint` | `standard`, `compact` | `standard` |
 | `quiet` | `true`, `false`: nothing changes by itself; an alarm holds its inverted screen from the start instead of flashing for ten seconds, a camera's still loads when seen and when the panel wakes, never on a timer, its meta line saying when it is from, and a media player draws no progress rule or clock | `false` |
@@ -575,7 +629,8 @@ nav:
 ```
 
 A wall panel with one column per place is one row of column stacks: `columns: 4`, and each module `column: 1` to `4`.
-Its columns carry no headings of their own; each plate names its area (**Wall panel, far** below).
+A column whose modules share one area takes that area as its legend, and its plates leave it off; a column of several
+places names each plate's own (**Wall panel, far** below). `layout: wall` writes such a row from the house.
 
 The nav works as the main card's ([Navigation](#navigation)), drawn in field's parts: a plate of keys docked at the bottom, the key for where you are staying down. Without `nav`, it lists the pages, or else the main page's titled rows: the areas of the automatic layout and its Energy row, or the YAML's titled rows. A row named in `nav` is checked against `rows` when the YAML lays them out; an area's name comes from Home Assistant, so it can't be.
 
@@ -583,7 +638,7 @@ Under the title, the card draws an alert line whenever a module has something ur
 
 Each module's entity id picks its card. Where two field cards draw one domain, the domain's own card is the default and `card:` picks the other (a `switch` is a toggle unless `card: sound`; a `sensor.*_sleep_state` is an owlet, and `card: owlet` picks it for a sock named otherwise; a `sensor.*_voucher` is a guest Wi-Fi code, and `card: guestWifi` picks it for one named otherwise, or for a password in an `input_text` or `text`; a `sensor.*` listed on its own is the numeric module when it isn't a room reading, as on the main card); the error lists the cards that can draw it.
 
-Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, fan, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data; its Rows and nav, Nav and pages, Wall panel, far, and Composition stories show those keys.
+Mistakes show the same way as the main card's, all at once with their paths. The card links Archivo, field's typeface, from Google Fonts into the page; without the network it falls back to the system sans. **Storybook → Field / Dashboards / Lovelace card** shows a mixed light, climate, humidifier, fan, sound, cover, alarm, owlet, sensor, weather and toggle dashboard on demo data; its Rows and nav, Nav and pages, Wall panel, far, and Composition stories show those keys, and its Automatic layout, wall panel stories (worst case and portrait too) show `layout: wall` on a house of several rooms.
 
 ## Measuring a deployed dashboard
 

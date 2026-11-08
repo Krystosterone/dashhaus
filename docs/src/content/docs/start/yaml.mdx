@@ -28,6 +28,12 @@ batteries draw or give right now, then their energy meters, each a number with w
 you chose there, so nothing is guessed from the dozens of smart plugs a house has. Without an Energy dashboard there is
 no such row. Gas, water and the devices you listed under individual devices are left for you to add.
 
+`layout: wall` arranges the same cards for a panel on a wall instead: a column per area, in the order of the areas'
+names, wrapping onto further rows (three across in Orb, four in Field). The cards with no area end the first row, the
+weather and the sun join an area called Outside, and Energy stays last, on its own. Each column's room heads it, so its
+cards don't repeat it. It is the automatic layout's, so it is refused beside `cards`, `rows` or `pages`; Home
+Assistant's own `view_layout` is something else, the card's place in a sections view. Pair it with `viewing: far`.
+
 ## Your own layout
 
 Open the dashboard, **⋮ → Edit dashboard**, the card's pencil, then **Show code editor**. The preview redraws as you
