@@ -127,6 +127,7 @@ const preview: Preview = {
               "Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet", "Lock",
               "Fan",
               "GuestWifi",
+              "BinarySensor",
               // new-card: cards
             ],
             "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Wall panel, far", "Phone, alarm below the fold"], "Lovelace card", "Header", "Nav bar"],
@@ -135,6 +136,7 @@ const preview: Preview = {
               "Light", "Climate", "Sensor", "Weather", "Toggle", "Humidifier", "Sound", "Cover", "Alarm", "Owlet", "Lock",
               "Fan",
               "GuestWifi",
+              "BinarySensor",
               // new-card: connected
             ],
           ],

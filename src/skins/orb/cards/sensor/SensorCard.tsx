@@ -63,7 +63,7 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
     <span className="hd-bar sw-bar">
       {t != null && <span className="hd-metric sw-t"><span className="sw-value">{fmtTemp(t)}<small>°</small></span></span>}
       {h != null && (
-        <span className="hd-metric sw-h">
+        <span className="hd-metric hd-metric--sub sw-h">
           <span className="hd-label"><span className="hd-label-long">Humidity</span><span className="hd-label-short">RH</span></span>
           <span className="sw-value">{fmtHum(h)}<small>%</small></span>
         </span>

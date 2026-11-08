@@ -1,0 +1,14 @@
+/* Binary sensor module (fd-bs). Its own layout goes here; the plate, key, screen, fader, meter, row (ModuleRow) and
+   panel body (PanelBody) are shared. */
+
+/* Narrow modules keep one meta line on the screen. */
+@container (max-width: 239px) {
+  .fd-bs .fd-meta-2 { display: none; }
+  .fd-bs .fd-read { font-size: 24px; }
+}
+
+/* A narrow row keeps the figure and lets the pictogram go. */
+@container (max-width: 279px) {
+  .fd-bs[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-bs[data-footprint="compact"] .fd-screen { width: 80px; }
+}

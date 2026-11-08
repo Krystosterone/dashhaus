@@ -8,6 +8,7 @@ import {
   groupByArea,
   placeSection,
   roomSensors,
+  safetySensors,
   sortByName,
   visibleEntities,
 } from "./layout";
@@ -96,6 +97,30 @@ describe("roomSensors", () => {
       { entity: "sensor.temperature", humidity: "sensor.humidity", battery: "sensor.battery" },
       { entity: "sensor.humidity_only" },
     ]);
+  });
+});
+
+describe("safetySensors", () => {
+  it("takes every visible door, window, leak and smoke sensor by name, with its device's battery, and nothing else", () => {
+    expect(safetySensors({
+      states: {
+        "binary_sensor.patio": { attributes: { friendly_name: "Patio door", device_class: "door" } },
+        "binary_sensor.patio_battery": { attributes: { friendly_name: "Patio battery", device_class: "battery" } },
+        "sensor.patio_battery": { attributes: { friendly_name: "Patio battery", device_class: "battery" } },
+        "binary_sensor.sink": { attributes: { friendly_name: "Leak", device_class: "moisture" } },
+        "binary_sensor.hall_motion": { attributes: { friendly_name: "Hall motion", device_class: "motion" } },
+        "binary_sensor.sock_off": { attributes: { friendly_name: "Sock off" } },
+        "binary_sensor.old_smoke": { attributes: { friendly_name: "Old smoke", device_class: "smoke" } },
+        "binary_sensor.tamper": { attributes: { friendly_name: "Tamper", device_class: "door" } },
+      },
+      entities: {
+        "binary_sensor.patio": { device_id: "patio" },
+        "binary_sensor.patio_battery": { device_id: "patio" },
+        "sensor.patio_battery": { device_id: "patio", entity_category: "diagnostic" },
+        "binary_sensor.old_smoke": { hidden: true },
+        "binary_sensor.tamper": { entity_category: "diagnostic" },
+      },
+    })).toEqual([{ entity: "binary_sensor.sink" }, { entity: "binary_sensor.patio", battery: "sensor.patio_battery" }]);
   });
 });
 

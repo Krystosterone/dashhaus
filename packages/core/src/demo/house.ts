@@ -9,6 +9,7 @@ import { createDemoToggleHaTransport } from "./toggle";
 import { createDemoSoundHaTransport } from "./sound";
 import { createDemoLockHaTransport } from "./lock";
 import { createDemoGuestWifiHaTransport } from "./guestWifi";
+import { createDemoBinarySensorHaTransport } from "./binarySensor";
 // new-card: house imports
 import type { HaTransport, HassEntities } from "../ha/types";
 
@@ -31,6 +32,7 @@ export function createDemoHouseTransport(): HaTransport {
     createDemoLockHaTransport(),
     createDemoFanHaTransport(),
     createDemoGuestWifiHaTransport(),
+    createDemoBinarySensorHaTransport(),
     // new-card: house parts
   ];
   const latest: HassEntities[] = parts.map(() => ({}));

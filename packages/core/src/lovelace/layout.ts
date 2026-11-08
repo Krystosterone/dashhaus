@@ -1,4 +1,5 @@
 import type { AutoEntityEntry } from "./element";
+import type { BinarySensorClass } from "../entities/binarySensor/types";
 
 /*
  * The facts an automatic Lovelace layout needs, shared by every skin: which entities are visible, which area an
@@ -137,6 +138,37 @@ export function roomSensors({ states, entities = {} }: RoomSensorInput): RoomSen
     }
   }
   return rooms;
+}
+
+/**
+ * The binary sensor device classes an automatic layout shows: the safety glance, doors, windows, leaks and smoke.
+ * Every other class (motion, connectivity, updates, an Owlet sock's alerts with none) is left for a person to add,
+ * since a house has dozens of them and they would bury the ones that matter.
+ */
+export const SAFETY_CLASSES: readonly BinarySensorClass[] = ["door", "garage_door", "window", "opening", "moisture", "smoke", "gas", "carbon_monoxide", "safety"];
+
+/** Whether a raw `device_class` is one of `SAFETY_CLASSES`, narrowing it to a binary sensor class. */
+const isSafetyClass = (value: string | undefined): value is BinarySensorClass =>
+  value != null && (SAFETY_CLASSES as readonly string[]).includes(value);
+
+/** One safety sensor for an automatic layout: the `binary_sensor`, with the battery sensor on its device. */
+export interface SafetySensor {
+  entity: string;
+  battery?: string;
+}
+
+/**
+ * Every visible `binary_sensor` of a safety class (`SAFETY_CLASSES`), by name, each with its device's battery where it
+ * has one. Config and diagnostic sensors are left out; their battery companions may be diagnostic, as a lock's are.
+ */
+export function safetySensors({ states, entities = {} }: RoomSensorInput): SafetySensor[] {
+  return Object.keys(states)
+    .filter((id) => id.startsWith("binary_sensor.") && !entities[id]?.hidden && !entities[id]?.entity_category && isSafetyClass(deviceClass(states[id])))
+    .sort(byName(states))
+    .map((entity) => {
+      const battery = deviceCompanion({ states, entities }, entity, "battery");
+      return { entity, ...(battery && { battery }) };
+    });
 }
 
 /*

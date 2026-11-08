@@ -147,6 +147,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/battery` | `isLowBattery`, `LOW_BATTERY` |
 | `@dashhaus/core/entities/severity` | the `Severity` type a model carries |
 | `@dashhaus/core/entities/alarm/modes` | an alarm's modes, their labels and hints, `needsCode` |
+| `@dashhaus/core/entities/binarySensor/words` | a binary sensor's state in its device class's words (`stateWord`, `alertWord`, `wordsOf`), and the picture its class names (`pictureOf`) |
+| `@dashhaus/core/entities/binarySensor/severity` | `binarySensorSeverity`, and `stateSeverity` for the state's own |
 | `@dashhaus/core/entities/climate/modes` | `MODE_META` (each mode's label), `ACTION_LABEL` ("Heating"), `fmtCurrent`, `fmtTarget` |
 | `@dashhaus/core/entities/cover/position` | device classes in words, `openness`, `isMoving`, `QUICK_POSITIONS` |
 | `@dashhaus/core/entities/fan/labels`, `/fan/speed` | presets and directions in words, speed steps and their text |
@@ -248,7 +250,7 @@ What you may rely on, and what not to rewrite:
   written for `:root` reach the shadow root), `autoInput`, and `useActionStatus`: the store's latest rejected command
   for `lovelace/__Skin__ActionStatus.tsx` (its words, `retry` and `dismiss`).
 - `@dashhaus/core/lovelace/layout`: the automatic layout's helpers: `visibleEntities`, `roomSensors` (room air, one per
-  device), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
+  device), `safetySensors` (the doors, windows, leaks and smoke of `SAFETY_CLASSES`, each with its battery), `groupByArea`, `sortByName`, `areaName`, `areaId`, `friendlyName` and `deviceClass`. All are typed in
   `node_modules/@dashhaus/core/dist/lovelace/layout.d.ts`, and their signatures may still change before 1.0.
 - `@dashhaus/core/lovelace/schema`: `Reader`, `readCard`, `readBody` (the shared layout: `cards`, or `rows` of cards,
   with `columns`, `width`, `column`, `flow` and `align`) and `DashboardConfigError`, used by `lovelace/config.ts`. A
