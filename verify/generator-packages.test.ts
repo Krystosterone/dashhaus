@@ -68,6 +68,21 @@ describe("the generator package map", () => {
     expect(read(domainsFile), `${domainsFile} is behind @dashhaus/core: run npm run domains`).toBe(domainsJson());
   });
 
+  it("ships a cover that asks first to open or close a garage door, door or gate, and runs at once for the rest", async () => {
+    const { cover } = JSON.parse(read(domainsFile));
+    const access = { deviceClass: ["garage", "door", "gate"] };
+    expect(cover.guarded, "COVER_ACTIONS' `when` must reach the scaffolder: scripts/domains.js reads it").toEqual([
+      { action: "onOpenCover", asks: true, code: false, when: access },
+      { action: "onCloseCover", asks: true, code: false, when: access },
+    ]);
+    expect(cover.actions).toEqual(["onStopCover"]);
+    // Its position is never set for those three: a generator that draws levels leaves it out there.
+    expect(cover.levels.find(({ action }: { action: string }) => action === "onSetPosition")).toMatchObject({ asks: true, when: access });
+    const { cardKind, cardTokens, skinNames } = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
+    const tokens = cardTokens(cover, skinNames("my-skin"), cardKind(cover));
+    expect(tokens.__guardedBlock__).toContain('{ key: "close-cover", label: "Close", asks: ["garage", "door", "gate"].includes(e.deviceClass), run: onCloseCover }');
+  });
+
   it("hands a composed model's companions to its hook, from the YAML and from the automatic layout", async () => {
     const { registryLines, skinNames } = await import(pathToFileURL(join(root, skinTemplates.writer)).href);
     const { sensor } = JSON.parse(read(domainsFile));

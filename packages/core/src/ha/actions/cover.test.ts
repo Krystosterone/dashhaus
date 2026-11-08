@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createCoverHandlers } from "./cover";
+import { COVER_ACTIONS, createCoverHandlers } from "./cover";
+import { CLASS_LABEL, isAccess } from "../../entities/cover/position";
+import type { CoverClass } from "../../entities/cover/types";
 import { coverFromHass } from "../mappers/cover";
 import type { CoverEntity } from "../../entities/cover/types";
 
@@ -122,5 +124,17 @@ describe("createCoverHandlers", () => {
     handlers.onOpenCover();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "service_failed" }));
+  });
+});
+
+describe("COVER_ACTIONS", () => {
+  it("asks first to open, close or set a garage door, door or gate: exactly the classes isAccess names; stopping never asks", () => {
+    const access = (Object.keys(CLASS_LABEL) as CoverClass[]).filter(isAccess);
+    for (const action of [COVER_ACTIONS.onOpenCover, COVER_ACTIONS.onCloseCover, COVER_ACTIONS.onSetPosition]) {
+      expect(action.asks).toBe(true);
+      expect([...action.when.deviceClass].sort()).toEqual([...access].sort());
+    }
+    expect(COVER_ACTIONS.onStopCover).toEqual({ takes: "nothing" });
+    expect(COVER_ACTIONS.onSetTilt).toEqual({ takes: "level", field: "tilt" });
   });
 });

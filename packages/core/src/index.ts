@@ -86,7 +86,7 @@ export {
 } from "./ha/history";
 export type { HaHistoryRecord, OnOffHistory } from "./ha/history";
 export { serviceRunner } from "./ha/actions/run";
-export type { ActionKind, ActionKinds } from "./ha/actions/kinds";
+export type { ActionKind, ActionKinds, AsksWhen } from "./ha/actions/kinds";
 export type { ServiceCaller } from "./ha/actions/run";
 export { useHaHistory } from "./ha/useHaHistory";
 export { useHaMoreInfo, useHaPicture } from "./ha/useHaPicture";

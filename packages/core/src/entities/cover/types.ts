@@ -3,6 +3,12 @@ import type { HourSample } from "../history";
 /** Home Assistant cover device classes the card draws. */
 export type CoverClass = "curtain" | "blind" | "shade" | "shutter" | "awning" | "window" | "garage" | "door" | "gate";
 
+/**
+ * What a garage door, door or gate asks first for (`coverAsksFirst`): the details open on its question, never one
+ * press. Stopping never asks.
+ */
+export type CoverAction = "open" | "close";
+
 /** Mirrors the parts of a Home Assistant `cover.*` entity the card needs. Position: 0 closed, 100 open. */
 export interface CoverEntity {
   /** The Home Assistant entity id. */

@@ -14,6 +14,15 @@ export const CLASS_LABEL: Record<CoverClass, string> = {
  */
 export const isAccess = (kind: CoverClass) => kind === "garage" || kind === "door" || kind === "gate";
 
+/**
+ * Whether opening and closing it ask first: a garage door, a door or a gate, which lets a person in (`isAccess`). It
+ * never moves on one press, so a stray tap or a brush across a wall panel can't open the house or close a door on
+ * someone: every skin's tap or press opens its details on the question, stopping it is one press, and its position
+ * is shown, never set (`COVER_ACTIONS`, spec/cards.md → Using the cover card). A garage door Home Assistant gives no
+ * `device_class` is mapped to a shade, so it moves on one press until it has one.
+ */
+export const coverAsksFirst = (e: Pick<CoverEntity, "deviceClass">) => isAccess(e.deviceClass);
+
 /** Quick positions, closed to open. */
 export const QUICK_POSITIONS = [
   { value: 0, label: "Closed" },

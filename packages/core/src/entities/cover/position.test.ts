@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAccess, openness, snapEnds } from "./position";
+import { CLASS_LABEL, coverAsksFirst, isAccess, openness, snapEnds } from "./position";
 import type { CoverEntity } from "./types";
 
 const cover = (over: Partial<CoverEntity>): CoverEntity => ({ entityId: "cover.x", name: "X", state: "closed", deviceClass: "blind", supportsPosition: true, supportsStop: true, ...over });
@@ -34,5 +34,13 @@ describe("isAccess", () => {
   it("is a garage door, door or gate, never a cover that lets light in", () => {
     expect(["garage", "door", "gate"].every((k) => isAccess(k as CoverEntity["deviceClass"]))).toBe(true);
     expect(isAccess("curtain")).toBe(false);
+  });
+});
+
+describe("coverAsksFirst", () => {
+  it("asks first for exactly the covers that let a person in", () => {
+    for (const kind of Object.keys(CLASS_LABEL) as CoverEntity["deviceClass"][]) {
+      expect(coverAsksFirst({ deviceClass: kind }), kind).toBe(isAccess(kind));
+    }
   });
 });

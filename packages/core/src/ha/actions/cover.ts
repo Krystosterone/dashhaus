@@ -21,12 +21,17 @@ export interface CoverHandlers {
   onSetTilt?: (tilt: number) => void;
 }
 
-/** What each handler is, for a card drawing cover without knowing it (`ActionKind`). */
+/**
+ * What each handler is, for a card drawing cover without knowing it (`ActionKind`). A garage door, door or gate
+ * (`coverAsksFirst`) never moves on one press: opening and closing it ask first, and its position is shown, never set
+ * (no skin asks before a level yet). Stopping never asks. Each `when` is written out, one per line, so a generator's
+ * reader (scripts/domains.js) sees it; `cover.test.ts` holds it to `isAccess`.
+ */
 export const COVER_ACTIONS = {
-  onOpenCover: { takes: "nothing" },
-  onCloseCover: { takes: "nothing" },
+  onOpenCover: { takes: "nothing", asks: true, when: { deviceClass: ["garage", "door", "gate"] } },
+  onCloseCover: { takes: "nothing", asks: true, when: { deviceClass: ["garage", "door", "gate"] } },
   onStopCover: { takes: "nothing" },
-  onSetPosition: { takes: "level", field: "position" },
+  onSetPosition: { takes: "level", field: "position", asks: true, when: { deviceClass: ["garage", "door", "gate"] } },
   onSetTilt: { takes: "level", field: "tilt" },
 } as const satisfies ActionKinds<CoverHandlers, CoverEntity>;
 
