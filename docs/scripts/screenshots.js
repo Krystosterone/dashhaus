@@ -55,6 +55,7 @@ const KINDS = {
   owlet: ["orb-cards-owlet--deep-sleep", "field-cards-owlet--deep-sleep"],
   guestWifi: ["orb-cards-guestwifi--ready", "field-cards-guestwifi--ready"],
   binarySensor: ["orb-cards-binarysensor--closed", "field-cards-binarysensor--closed"],
+  camera: ["orb-cards-camera--idle", "field-cards-camera--idle"],
 };
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
@@ -84,6 +85,8 @@ try {
     await page.goto(story(id, globals));
     await page.locator("#storybook-root > *").first().waitFor();
     await page.evaluate(() => document.fonts.ready);
+    // A picture (a camera's still) loads once it is on screen and decodes before it is drawn: wait until none is loading.
+    await page.waitForFunction(() => [...document.querySelectorAll(".hd-pic, .fd-pic")].every((box) => box.getAttribute("data-status") !== "loading"));
   };
   /**
    * The story's first element on its own page, as a band of the given shape: the page around the card is taken from

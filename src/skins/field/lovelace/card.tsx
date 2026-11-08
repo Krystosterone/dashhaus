@@ -72,6 +72,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
           nav={config.nav}
           footprint={config.footprint}
           quiet={config.quiet}
+          stills={config.stills}
           panels={hass.panels}
         />
       );

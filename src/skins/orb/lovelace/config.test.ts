@@ -17,8 +17,22 @@ const items = (raw: Record<string, unknown>) => parseDashboardConfig(raw).rows?.
 describe("parseDashboardConfig", () => {
   it("leaves the layout to the automatic one when cards and rows are left out", () => {
     expect(parseDashboardConfig({ type: "custom:dashhaus-orb" })).toEqual({
-      title: "Home", subtitle: undefined, showTime: false, hourCycle: undefined, theme: "home-assistant", accent: undefined, rows: undefined,
+      title: "Home", subtitle: undefined, showTime: false, hourCycle: undefined, theme: "home-assistant", accent: undefined, rows: undefined, stills: true, quiet: false,
     });
+  });
+
+  it("takes a camera's still and refresh, and the dashboard's stills and quiet", () => {
+    expect(items({ cards: ["camera.door", { entity: "camera.nursery", still: false }, { entity: "camera.drive", refresh: 30 }] })).toMatchObject([
+      { kind: "camera", entity: "camera.door" },
+      { kind: "camera", entity: "camera.nursery", still: false },
+      { kind: "camera", entity: "camera.drive", refresh: 30 },
+    ]);
+    expect(parseDashboardConfig({ stills: false, quiet: true })).toMatchObject({ stills: false, quiet: true });
+    expect(problems({ stills: "no", cards: [{ entity: "camera.door", refresh: 0 }, { entity: "camera.door", unit: "%" }] })).toEqual([
+      'cards[0] (camera.door): "refresh" must be a whole number from 1 to 3600',
+      'cards[1] (camera.door): unknown key "unit"',
+      '"stills" must be true or false',
+    ]);
   });
 
   it("draws plain cards as one row, with the page's columns", () => {

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { createContext, useContext, useMemo, useRef } from "react";
 import type { ReactElement } from "react";
 import { DashboardPage } from "../dashboards/layout";
 import { NavBar } from "../dashboards/NavBar";
@@ -13,6 +13,7 @@ import { HaLockTile } from "../ha/HaLockTile";
 import { HaFanTile } from "../ha/HaFanTile";
 import { HaGuestWifiTile } from "../ha/HaGuestWifiTile";
 import { HaBinarySensorTile } from "../ha/HaBinarySensorTile";
+import { HaCameraTile } from "../ha/HaCameraTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
@@ -28,6 +29,15 @@ import { renderCard } from "@dashhaus/core/lovelace/schema";
 import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
 import type { CardConfig, DashboardConfig, ItemConfig, Kind, RowLayoutConfig } from "./config";
 import { ActionStatus } from "./ActionStatus";
+
+/** The dashboard's camera settings (YAML `stills` and `quiet`), which every camera card on it follows. */
+const Stills = createContext({ stills: true, quiet: false });
+
+/** A configured camera: its own `still` and `refresh`, under the dashboard's `stills` and `quiet`. */
+function ConfiguredCamera({ card }: { card: Extract<CardConfig, { kind: "camera" }> }) {
+  const { stills, quiet } = useContext(Stills);
+  return <HaCameraTile entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} still={stills && card.still !== false} refresh={card.refresh} paused={quiet} />;
+}
 
 /** Each kind's connected tile: the shared renderer dispatch picks the card's row. */
 const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
@@ -45,6 +55,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   fan: (card, key) => <HaFanTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   guestWifi: (card, key) => <HaGuestWifiTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} area={card.area} access={card.access} network={card.network} qrEntityId={card.qr} newCodeEntityId={card.newCode} refreshEntityId={card.refresh} />,
   binarySensor: (card, key) => <HaBinarySensorTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} batteryEntityId={card.battery} />,
+  camera: (card, key) => <ConfiguredCamera key={key} card={card} />,
   // new-card: tiles
 };
 
@@ -140,19 +151,22 @@ export function ConfigDashboard({ config, panels, now, navigate }: ConfigDashboa
   const showNav = nav.buttons.length > 1 && (config.viewing !== "far" || Array.isArray(config.nav));
   const shown = page?.rows ?? config.rows;
   const ids = page ? anchorsOf(page.rows).ids : main.ids;
+  const stills = useMemo(() => ({ stills: config.stills !== false, quiet: config.quiet === true }), [config.stills, config.quiet]);
   return (
-    <DashboardPage
-      pageRef={root}
-      title={page?.title ?? config.title}
-      subtitle={page ? undefined : config.subtitle}
-      showTime={config.showTime}
-      hourCycle={config.hourCycle}
-      viewing={config.viewing}
-      now={now}
-      nav={showNav ? <><ActionStatus /><NavBar items={nav.buttons} /></> : undefined}
-    >
-      {shown.map((row, i) => <Row key={`${page?.id ?? MAIN_PAGE}:${i}`} row={row} id={ids.get(row)} />)}
-      {!showNav && <ActionStatus />}
-    </DashboardPage>
+    <Stills.Provider value={stills}>
+      <DashboardPage
+        pageRef={root}
+        title={page?.title ?? config.title}
+        subtitle={page ? undefined : config.subtitle}
+        showTime={config.showTime}
+        hourCycle={config.hourCycle}
+        viewing={config.viewing}
+        now={now}
+        nav={showNav ? <><ActionStatus /><NavBar items={nav.buttons} /></> : undefined}
+      >
+        {shown.map((row, i) => <Row key={`${page?.id ?? MAIN_PAGE}:${i}`} row={row} id={ids.get(row)} />)}
+        {!showNav && <ActionStatus />}
+      </DashboardPage>
+    </Stills.Provider>
   );
 }

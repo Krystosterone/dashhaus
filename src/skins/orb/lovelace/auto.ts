@@ -47,6 +47,9 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // Then the safety glance: doors, windows, leaks and smoke (`SAFETY_CLASSES`), each with its device's battery.
   const safety: Card[] = safetySensors(input).map(({ entity, battery }) => ({ entity, footprint: "compact", ...(battery && { battery }) }));
 
+  // Cameras, each at its standard footprint so its still shows (a compact row never draws one), by name.
+  const cameras = ofDomain("camera");
+
   const weather = ofDomain("weather")[0];
 
   const climate = ofDomain("climate");
@@ -98,6 +101,8 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // Automatic discovery cannot infer true frequency. It puts every action first, then stable household
   // status, then read-only environmental context; authored dashboards pin their actual frequent actions.
   if (alarms.length || locks.length || safety.length) place({ title: "Security", cards: [...alarms.map((entity) => ({ entity, footprint: "compact" })), ...locks, ...safety] });
+  // What the doors and the nursery look like: household status, right after what guards them.
+  if (cameras.length) place({ title: "Cameras", cards: cameras });
   if (socks.length) place({ title: "Nursery", cards: socks });
   // Guest Wi-Fi is household status a visitor reads: after the household's own, before the outside and rooms.
   if (wifi.length) place({ title: "Guests", cards: wifi });

@@ -12,6 +12,7 @@ import {
   cardKindOrder,
   readBody,
   readAlarmOptions,
+  readCameraOptions,
   readCard,
   readOwletOptions,
   readSensorOptions,
@@ -50,6 +51,7 @@ export type Kind =
   | "fan"
   | "guestWifi"
   | "binarySensor"
+  | "camera"
   // new-card: kinds
   ;
 
@@ -67,6 +69,7 @@ export const DOMAIN_KIND: Record<string, Kind> = {
   lock: "lock",
   fan: "fan",
   binary_sensor: "binarySensor",
+  camera: "camera",
   // new-card: domain kinds
 };
 
@@ -106,6 +109,7 @@ export type CardConfig = CardBase & (
   | { kind: "fan" }
   | { kind: "guestWifi"; access?: "code" | "password"; network?: string; qr?: string; newCode?: string; refresh?: string }
   | { kind: "binarySensor"; battery?: string }
+  | { kind: "camera"; still?: boolean; refresh?: number }
   // new-card: card configs
 );
 
@@ -139,6 +143,10 @@ export interface DashboardConfig {
   nav?: NavEntry[] | false;
   /** More pages in this card, opened from the nav; the top-level layout is the main page, `home`. */
   pages?: PageConfig[];
+  /** False: no camera still is fetched or drawn on this dashboard, for privacy or cost (YAML `stills: false`). */
+  stills: boolean;
+  /** Nothing on the page changes by itself: a camera's still loads when seen and when the panel wakes, never on a timer. */
+  quiet: boolean;
 }
 
 /** A page of the card's own: its id (for `page:` in the nav and the URL hash), its title, its rows. */
@@ -216,6 +224,7 @@ const KIND_SPECS: Record<Kind, Omit<CardKindSpec, "domains" | "id">> = {
     keys: ["battery"],
     options: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
   },
+  camera: { keys: ["still", "refresh"], options: readCameraOptions },
   // new-card: kind specs
 };
 
@@ -258,7 +267,7 @@ const CARD_SCHEMA: CardReadSchema<Kind, CardConfig> = {
   noKind: (entity, domain) => `${entity}: ${domain}.* entities have no card yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`,
 };
 
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", ...BODY_KEYS, "nav", "pages", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "stills", "quiet", ...BODY_KEYS, "nav", "pages", "view_layout", "grid_options", "visibility"];
 const BUNDLES = ["joined", "lead", "titled"] as const;
 type BundleKind = (typeof BUNDLES)[number];
 /** Each bundle's keys, and the fewest cards it takes. */
@@ -391,6 +400,8 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     rows,
     nav,
     pages,
+    stills: read.boolean(value, "stills", "") ?? true,
+    quiet: read.boolean(value, "quiet", "") ?? false,
   };
   if (read.problems.length) throw new DashboardConfigError(read.problems);
   return config;

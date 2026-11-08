@@ -10,6 +10,7 @@ import {
   cardKinds,
   readBody,
   readAlarmOptions,
+  readCameraOptions,
   readCard,
   readOwletOptions,
   readSensorOptions,
@@ -85,6 +86,9 @@ export interface ModuleConfig {
   baseStation?: string;
   alerts?: Partial<Record<OwletAlert, string>>;
   staleAfter?: number;
+  /** A camera drawn with no still (YAML `still: false`), and how often its still refreshes while seen, in seconds (`refresh`). */
+  still?: boolean;
+  stillRefresh?: number;
 }
 
 /** A row of the page: its legend, its grid (or column stacks, for mixed footprints) and its modules. */
@@ -107,8 +111,13 @@ export interface FieldConfig {
   viewing?: "near" | "far";
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
-  /** An alarm holds its inverted screen from the start, with no flash: a panel in a nursery at night. */
+  /**
+   * Nothing on the page changes by itself: an alarm holds its inverted screen from the start, with no flash (a panel in
+   * a nursery at night), and a camera's still loads when seen and when the panel wakes, never on a timer.
+   */
   quiet: boolean;
+  /** False: no camera still is fetched or drawn on this dashboard, for privacy or cost (YAML `stills: false`). */
+  stills: boolean;
   /**
    * The main page's rows (its `cards` are one untitled row). Absent: every supported light, climate, weather,
    * humidifier, cover, alarm, input_boolean and switch entity, Owlet sock and room sensor, a row per area.
@@ -136,6 +145,7 @@ export type FieldKind =
   | "fan"
   | "guestWifi"
   | "binarySensor"
+  | "camera"
   // new-card: kinds
   ;
 
@@ -167,17 +177,18 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   fan: { domains: ["fan"] },
   guestWifi: { domains: ["sensor", "input_text", "text"], id: /^sensor\.\w+_voucher$/ },
   binarySensor: { domains: ["binary_sensor"] },
+  camera: { domains: ["camera"] },
   // new-card: field kinds
 };
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "finish", "footprint", "quiet", ...BODY_KEYS, "pages", "nav", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "finish", "footprint", "quiet", "stills", ...BODY_KEYS, "pages", "nav", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT_KEYS, "history"];
 /** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
 /** Keys only one card takes. */
-const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"] };
+const KIND_KEYS: Partial<Record<FieldKind, readonly string[]>> = { climate: ["unit"], sensor: ["humidity", "battery", "outdoor", "unit"], weather: ["aqi", "aqi_scale", "sun", "forecasts"], toggle: ["icon", "description"], sound: ["volume"], alarm: ["read_only", "exit_delay", "entry_delay", "open_sensors"], owlet: ["heart_rate", "oxygen", "charging", "base_station", "alerts", "stale_after"], lock: ["battery"], guestWifi: ["access", "network", "qr", "new_code", "refresh"], binarySensor: ["battery"], camera: ["still", "refresh"] };
 const OWLET_ALERTS = Object.keys(OWLET_ALERT_SUFFIX) as OwletAlert[];
 const TOGGLE_ICONS: readonly ToggleIcon[] = ["bell-off", "moon", "volume-off", "guest", "away", "power", "waves"];
 
@@ -199,6 +210,10 @@ const KIND_OPTIONS: Partial<Record<FieldKind, (read: Reader, raw: Raw, at: strin
     refresh: read.optionalEntity(raw, "refresh", at, GUEST_WIFI_ACTION_DOMAINS),
   }),
   binarySensor: (read, raw, at) => ({ battery: read.optionalEntity(raw, "battery", at, ["sensor"]) }),
+  camera: (read, raw, at) => {
+    const { still, refresh } = readCameraOptions(read, raw, at);
+    return { still, stillRefresh: refresh };
+  },
 };
 
 /** Field's kind table: the domains above, plus the keys and options each card takes. */
@@ -314,6 +329,7 @@ export function parseFieldConfig(raw: unknown): FieldConfig {
     finish: read.choice(top, "finish", "", FINISHES) ?? "home-assistant",
     footprint,
     quiet: read.boolean(top, "quiet", "") ?? false,
+    stills: read.boolean(top, "stills", "") ?? true,
   };
   config.rows = read.body(top);
   config.pages = read.pages(top, (body, path) => read.body(body, path))?.map(({ id, title, body }) => ({ id, title, rows: body }));

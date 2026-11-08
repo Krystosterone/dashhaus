@@ -742,6 +742,13 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
   controls?: (where: "m" | "p") => ReactNode;
   /** Under the screen in a standard module, where it isn't `controls`: a reading's glyph and today. */
   row?: ReactNode;
+  /**
+   * A standard module's whole body under its header, in place of its screen and row: a camera's still, a window in the
+   * screen beside the screen's words. The card draws its own screen in it.
+   */
+  body?: ReactNode;
+  /** Over the panel's screen: a camera's still at the panel's width, the screen's words under it. */
+  panelPicture?: ReactNode;
   /** The panel screen's second channel (`Channel`), in place of its meta lines. */
   aside?: ReactNode;
   /** The panel's screen, where it says something else than the module's (an owlet's reading under its alarm). */
@@ -765,7 +772,7 @@ export interface ModuleFrameProps extends Omit<ModuleProps, "onOpen" | "children
  * and controls, and the detail panel its name opens: the screen again with its second channel, the controls again,
  * the card's own blocks, and its facts. A card brings what goes in it.
  */
-export function ModuleFrame({ details, pict, read, meta, line, lead, controls, row = controls?.("m"), aside, panelScreen, facts, panelFocus, alert, children, ...module }: ModuleFrameProps) {
+export function ModuleFrame({ details, pict, read, meta, line, lead, controls, row = controls?.("m"), body, panelPicture, aside, panelScreen, facts, panelFocus, alert, children, ...module }: ModuleFrameProps) {
   const { compact } = cardShape({ footprint: module.footprint });
   useReportAlert(alert && { level: alert.level, name: module.name, what: alert.what, startedAt: alert.startedAt }, details.openDetails);
   const screen = panelScreen ?? { pict, read, meta };
@@ -777,7 +784,7 @@ export function ModuleFrame({ details, pict, read, meta, line, lead, controls, r
             {lead}
             <Screen pict={pict}>{read}</Screen>
           </>
-        ) : (
+        ) : body ?? (
           <>
             <Screen pict={pict} meta={meta}>{read}</Screen>
             {row}
@@ -786,6 +793,7 @@ export function ModuleFrame({ details, pict, read, meta, line, lead, controls, r
       </Module>
       <Panel open={details.open} onClose={details.closeDetails} name={module.name} area={module.area} focusContent={panelFocus === "content"}>
         <PanelBody className={`${module.kind}-panel`} state={module.state}>
+          {panelPicture}
           <Screen pict={screen.pict} meta={screen.meta} aside={aside}>{screen.read}</Screen>
           {controls?.("p")}
           {children}
