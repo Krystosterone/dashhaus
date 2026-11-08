@@ -114,7 +114,10 @@ read with `loadHistory={false}`.
 Orb's `HaMediaPlayerTile` and Field's `HaMediaPlayerModule` are `useHaMediaPlayer` above each skin's card. One press
 pauses it while it plays, plays it while it doesn't and turns it on while it is off; skipping, seeking (where the
 player can), the volume (or Down and Up for a player that only steps it), mute, the source and turning it off are in its details, never on the dashboard, where a stray
-tap would jump the track. Orb seeks along a groove in its sheet, Field along a Position fader in its panel. Its artwork is shown where there is room, never in a row. On a dashboard
+tap would jump the track. Orb seeks along a groove in its sheet, Field along a Position fader in its panel. Inside Home Assistant, the details
+end with Open in Home Assistant, which opens Home Assistant's own player for what the card leaves to it, such as
+browsing media and grouping speakers; elsewhere there is nothing for it to open, so it isn't there. Its artwork is
+shown where there is room, never in a row. On a dashboard
 set `quiet`, where nothing changes by itself, they draw no line or clock for how far in. They take the hook's options
 as props, plus their own:
 

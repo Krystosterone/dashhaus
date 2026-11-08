@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, OPEN_IN_HOME_ASSISTANT, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaPlayerWord, mediaPress, mediaTitle, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { fmtPlayTime } from "@dashhaus/core/entities/format";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
@@ -10,7 +10,7 @@ import { VOLUME, volumeSaid, volumeText } from "@dashhaus/core/entities/volume";
 import { usePicture, usePlayhead, useSeek } from "@dashhaus/core/hooks";
 import { Blank, choices, Fader, Key, KeyGroup, ModuleFrame, Picture, Pictogram, Steps, Today, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
-import { IconMediaPlayer, IconMute, IconNext, IconPower, IconPrevious, MEDIA_PLAYER_PICT } from "./icons";
+import { IconMediaPlayer, IconMute, IconNext, IconOpenOut, IconPower, IconPrevious, MEDIA_PLAYER_PICT } from "./icons";
 import { ScreenClock, ScreenProgress } from "./parts";
 import "./MediaPlayerModule.css";
 
@@ -51,6 +51,12 @@ export interface MediaPlayerModuleProps {
    * would lie and a running one changes on its own; the panel's screen says the state's figure instead.
    */
   quiet?: boolean;
+  /**
+   * Open Home Assistant's own player for it: inside Home Assistant, its more-info dialog (`useHaMoreInfo`), which
+   * browses media, groups players and sets the sound mode. The panel carries an Open in Home Assistant key to it, last
+   * among its controls; without one (a story, a standalone app) there is none.
+   */
+  onOpenMore?: () => void;
   /** Open the detail panel on first render (stories). */
   defaultOpen?: boolean;
 }
@@ -70,9 +76,10 @@ const FIGURE: Partial<Record<MediaPlayerEntity["state"], string>> = { playing: "
  * while it doesn't, **Turn on** while it is off, its LED lit while it plays or is on; then **Next**. The name, or a press and
  * hold, opens the panel: the time played as a running segment clock, Previous, Play and Next, the position fader where
  * the player seeks, the volume fader the sound module has (or a minus and a plus key for a player that steps its
- * volume), Mute, the source, Power and today's playing.
+ * volume), Mute, the source, Power, inside Home Assistant a key to its own player (browsing media, grouping), and today's
+ * playing.
  */
-export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
+export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, onOpenMore, footprint = "standard", quiet = false, defaultOpen = false }: MediaPlayerModuleProps) {
   const details = useDetails(defaultOpen);
   const uid = useId();
   const unav = e.state === "unavailable";
@@ -264,6 +271,12 @@ export function MediaPlayerModule({ entity: e, history, onPlay, onPause, onPrevi
           {sources.map((source) => (
             <Key key={source} label={`Source ${source}`} wide caption={source} chosen={loaded && source === e.source} disabled={!loaded} onPress={() => onSourceChange?.(source)}>{null}</Key>
           ))}
+        </KeyGroup>
+      )}
+      {onOpenMore && !unav && (
+        // Last, a wide key that acts once, with no LED: it leaves the skin's look for Home Assistant's own player.
+        <KeyGroup legend="Home Assistant" columns={1}>
+          <Key label={openInHomeAssistantSaid(e.name)} wide caption={OPEN_IN_HOME_ASSISTANT} onPress={onOpenMore}><IconOpenOut /></Key>
         </KeyGroup>
       )}
       <Today

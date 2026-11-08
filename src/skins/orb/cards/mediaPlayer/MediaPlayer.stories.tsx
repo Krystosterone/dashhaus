@@ -19,7 +19,8 @@ const meta = {
           "the integration's own), what is playing on the status line, the title first, and one press for what it can do now: Pause while " +
           "it plays, Play while it doesn't, Turn on while it is off or asleep. Playing, buffering and on are the accent, and it never glows. Featured, the " +
           "artwork, the title and artist, and how far in: a line and a clock that run on by themselves, with no re-render. Tap the name, or " +
-          "press and hold the orb, for skip, the volume, mute, the source, turning it off and today's playing. Same sizes " +
+          "press and hold the orb, for skip, the volume, mute, the source, turning it off and today's playing; inside Home Assistant, the " +
+          "sheet ends with a pill to Home Assistant's own player, for browsing media and grouping (here, none). Same sizes " +
           "and heights as the other cards.",
       },
     },
@@ -31,9 +32,10 @@ const meta = {
     showControl: { control: "boolean", description: "Compact only: show the control in the row (off: the row opens details)" },
     quiet: { control: "boolean", description: "The dashboard's quiet: no progress line and no clock" },
     defaultOpen: { control: "boolean", description: "Open the detail sheet on load" },
+    more: { control: "boolean", description: "Give it Home Assistant's own player to open, as inside Home Assistant (here it opens nothing)" },
   },
   args: { seed: "playing", width: SIZES.M, footprint: "standard" },
-  render: (args) => <DemoTile key={`${args.seed}-${args.defaultOpen}`} {...args} />,
+  render: (args) => <DemoTile key={`${args.seed}-${args.defaultOpen}-${args.more}`} {...args} />,
 } satisfies Meta<typeof DemoTile>;
 
 export default meta;
@@ -153,6 +155,11 @@ export const DetailsNoSeek: Story = { name: "Details, no seek", args: { seed: "m
 export const DetailsVolumeSteps: Story = { name: "Details, volume steps", args: { seed: "steps", defaultOpen: true } };
 /** A TV's details: nothing playing, its sources, and turning it off. */
 export const DetailsSources: Story = { name: "Details, sources", args: { seed: "on", defaultOpen: true } };
+/**
+ * Inside Home Assistant (`useHaMoreInfo`), the sheet's last control is a raised Open in Home Assistant pill: Home
+ * Assistant's own player, for browsing media, grouping and the sound mode. Here it stands in for one that opens nothing.
+ */
+export const DetailsInHomeAssistant: Story = { name: "Details, in Home Assistant", args: { defaultOpen: true, more: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",

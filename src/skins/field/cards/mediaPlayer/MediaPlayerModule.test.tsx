@@ -13,9 +13,9 @@ const handlers = () => ({
   onPlay: vi.fn(), onPause: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(), onTurnOn: vi.fn(), onTurnOff: vi.fn(),
   onVolumeChange: vi.fn(), onMuteChange: vi.fn(), onSourceChange: vi.fn(),
 });
-const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false, quiet = false) => {
+const draw = (entity: MediaPlayerEntity, footprint?: "compact" | "standard", defaultOpen = false, quiet = false, onOpenMore?: () => void) => {
   const h = handlers();
-  const { container, unmount } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} quiet={quiet} {...h} />);
+  const { container, unmount } = render(<MediaPlayerModule entity={entity} footprint={footprint} defaultOpen={defaultOpen} quiet={quiet} onOpenMore={onOpenMore} {...h} />);
   const module = container.querySelector<HTMLElement>(".fd-module")!;
   return { container, module, h, unmount, keys: [...module.querySelectorAll<HTMLButtonElement>(".fd-key")] };
 };
@@ -120,6 +120,32 @@ describe("MediaPlayerModule", () => {
     expect(h.onSourceChange).toHaveBeenCalledWith("Radio");
     expect(h.onTurnOff).toHaveBeenCalledTimes(1);
     expect(within(panel).getByRole("slider", { name: "Kitchen speaker volume" })).toBeTruthy();
+  });
+
+  it("ends its panel with a wide Open in Home Assistant key, no LED, where the host has its player, and nowhere else", () => {
+    const onOpenMore = vi.fn();
+    const { module, unmount } = draw(S.playing.entity, "standard", false, false, onOpenMore);
+    // Never on the module's face.
+    expect(within(module).queryByRole("button", { name: "Open Kitchen speaker in Home Assistant" })).toBeNull();
+    unmount();
+    draw(S.playing.entity, "standard", true, false, onOpenMore);
+    const panel = screen.getByRole("dialog");
+    const key = within(panel).getByRole("button", { name: "Open Kitchen speaker in Home Assistant" });
+    expect(key.querySelector(".fd-key-cap")?.textContent).toBe("Open in Home Assistant");
+    expect(key.hasAttribute("data-wide")).toBe(true);
+    expect(key.querySelector(".fd-led")).toBeNull();
+    const keys = [...panel.querySelectorAll(".fd-key:not(.fd-key--close)")];
+    expect(keys.at(-1)).toBe(key);
+    fireEvent.click(key);
+    expect(onOpenMore).toHaveBeenCalledTimes(1);
+    cleanup();
+    draw(S.unavailable.entity, "standard", true, false, onOpenMore);
+    expect(within(screen.getByRole("dialog")).queryByRole("button", { name: /in Home Assistant/ })).toBeNull();
+  });
+
+  it("draws no key to Home Assistant's player with no host to open it (a story, a standalone app)", () => {
+    draw(S.playing.entity, "standard", true);
+    expect(within(screen.getByRole("dialog")).queryByRole("button", { name: /in Home Assistant/ })).toBeNull();
   });
 
   it("offers nothing a player doesn't support", () => {
