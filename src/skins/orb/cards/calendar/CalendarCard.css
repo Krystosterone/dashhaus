@@ -16,9 +16,10 @@
 @container hd (min-width: 260px) {
   .ca:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
 }
+/* The title is words, not a figure, so here it is what gives way: it takes what when leaves, and clips first, so when
+   keeps a time with its period whole on a 12-hour clock ("12:15 PM"). */
+.ca:not(.hd--compact) .ca-bar > .ca-f { flex-basis: 0; }
 @container hd (max-width: 259px) {
-  /* The second track holds a time with its period whole on a 12-hour clock ("12:15 PM"): the title clips first. */
-  .ca:not(.hd--compact):not(.hd--sheet) .hd-bar.ca-bar { grid-template-columns: minmax(0, 1.2fr) minmax(64px, 0.8fr); column-gap: 8px; }
   .ca:not(.hd--compact):not(.hd--sheet) .ca-f { font-size: 20px; }
 }
 

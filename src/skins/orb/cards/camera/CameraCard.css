@@ -26,7 +26,6 @@
   .cm[data-still]:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .cm-f { font-size: 24px; }
   /* Two lines of an integration's own word fit the slot's height, and its words fit the column whole. */
   .cm[data-still]:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .cm-f[data-own] { font-size: 20px; }
-  .cm[data-still]:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .cm-bar { grid-template-columns: minmax(0, 1fr); }
   .cm[data-still]:not(.hd--compact):not(.hd--featured):not(.hd--sheet) .cm-since { display: none; }
 
   /* Featured: the still across the card under the header, 16:9 at a phone's card width; the state in words moves to

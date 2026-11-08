@@ -10,13 +10,10 @@
 @container hd (min-width: 260px) {
   .su:not(.hd--compact):not(.hd--sheet) .hd-slot { padding-inline-start: var(--read-indent); }
 }
-/* On 12 hours a time's period is set small after it, as the header's is (`Clock`). Under 260 px the second track takes
-   the width its time and period need, so both keep their period whole at their own sizes. */
+/* On 12 hours a time's period is set small after it, as the header's is (`Clock`). The second figure takes the width
+   its time and period need (the shared hd-bar--pair), so both keep their period whole at their own sizes. */
 .su-f small { font-size: max(12px, 0.4em); font-weight: 600; letter-spacing: 0; color: var(--ink-2); }
 .su-after small { font-size: 0.8em; }
-@container hd (max-width: 259px) {
-  .su:not(.hd--compact):not(.hd--sheet) .su-bar:has(small) { grid-template-columns: minmax(0, 1fr) auto; }
-}
 /* A compact row keeps the figure alone: its status line already counts down to it. */
 .hd--compact .su-after { display: none; }
 

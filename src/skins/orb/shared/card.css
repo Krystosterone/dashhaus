@@ -266,8 +266,19 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 /* A leading figure and a captioned second one (a temperature and its humidity, a door's word and since when): the
-   second in a proportional track, so a column of readings lines it up; a step tighter on a narrow card. */
-.hd-bar--pair { grid-template-columns: minmax(0, 1.35fr) minmax(44px, 0.65fr); column-gap: 12px; }
+   second at least its proportional share, so a column of readings lines it up; a step tighter on a narrow card. The
+   second follows the first and is whole or gone whole (spec/orb.md → A readout's second figure): one line that wraps,
+   so a second that doesn't fit beside the first whole goes to a line the bar never shows, and the first keeps the
+   line. The strut holds the shown line at the slot's height, so the figures stay centred in it. Its width is the
+   readout's, never its figures': a long first one clips in it rather than widen it. */
+.hd:not(.hd--compact) .hd-bar--pair {
+  --pair-gap: 12px; --pair-share: 0.325; --pair-min: 44px;
+  display: flex; flex-wrap: wrap; align-content: flex-start; align-items: center; column-gap: var(--pair-gap);
+  overflow: hidden; contain: inline-size;
+}
+.hd:not(.hd--compact) .hd-bar--pair::before { content: ""; flex: none; width: 0; height: 100%; margin-inline-end: calc(-1 * var(--pair-gap)); }
+.hd:not(.hd--compact) .hd-bar--pair > * { flex: 1 1 auto; }
+.hd:not(.hd--compact) .hd-bar--pair > .hd-metric--sub { flex: none; min-width: max(var(--pair-min), (100% - var(--pair-gap)) * var(--pair-share)); }
 .hd-metric { min-width: 0; }
 .hd-metric:only-child { grid-column: 1 / -1; }
 /* A secondary metric (humidity, since when): its caption over its figure, left in its track, in the second ink. */
@@ -296,7 +307,7 @@ button.hd-read:active .hd-read-i { scale: 0.98; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-long { display: none; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-label-short { display: inline; }
   .hd:not(.hd--compact):not(.hd--sheet) .hd-metric-w { font-size: 26px; }
-  .hd:not(.hd--compact):not(.hd--sheet) .hd-bar--pair { grid-template-columns: minmax(0, 1.45fr) minmax(38px, 0.55fr); column-gap: 8px; }
+  .hd:not(.hd--compact):not(.hd--sheet) .hd-bar--pair { --pair-gap: 8px; --pair-share: 0.275; --pair-min: 38px; }
 }
 /* Centred, not baseline: a flex line aligns its baselines at the top of the slot, under the row's centre line. */
 .hd--compact .hd-bar {
