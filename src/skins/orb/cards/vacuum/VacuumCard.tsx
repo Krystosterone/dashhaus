@@ -84,7 +84,8 @@ export function VacuumCard({ entity: e, history, variant, footprint, showControl
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-alert": alertLabel ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, ...colors }}
+      level={level}
       orb={viewOnly ? undefined : { label: orbLabel, pressed: active, intensity: 0, onToggle: run, children: <VacuumIcon /> }}
       glyph={viewOnly ? <VacuumIcon /> : undefined}
       unavailable={unav}

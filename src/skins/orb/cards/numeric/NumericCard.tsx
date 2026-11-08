@@ -1,7 +1,7 @@
 import type { NumericEntity, NumericHistory } from "@dashhaus/core/entities/numeric/types";
 import { TODAY_SHORT_PLACES, fmtNumeric, numericFigure, numericToday, withUnit } from "@dashhaus/core/entities/numeric/readings";
 import { numericFact, numericLimitFact, numericWords } from "@dashhaus/core/entities/numeric/words";
-import { numericWarning } from "@dashhaus/core/entities/numeric/severity";
+import { numericSeverity, numericWarning } from "@dashhaus/core/entities/numeric/severity";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { NumericIcon } from "./icons";
 import { AlertStatus, CardFrame, Readout, Today, paint, useCard, detailsSheet } from "../../shared/ui";
@@ -72,7 +72,8 @@ export function NumericCard({ entity: e, history, variant, footprint, showContro
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": warning ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", ...colors }}
+      level={numericSeverity(e)}
       glyph={<NumericIcon picture={words.picture} />}
       unavailable={unav}
       lastSeen={e.lastSeen}

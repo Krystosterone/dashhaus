@@ -54,7 +54,7 @@ describe("VacuumCard", () => {
   it("leads with an error behind the warn marker, saying what went wrong; the pill starts it again", () => {
     const h = handlers();
     const { container } = render(<VacuumCard entity={{ ...cleaning, state: "error", error: "Main brush jammed" }} {...h} />);
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("urgent");
     expect(statusLine(container)).toBe("Error · Main brush jammed");
     expect(screen.getByLabelText("Warning: Robot vacuum: Stopped with an error: main brush jammed")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /^Robot vacuum: Error · Start again/ }));

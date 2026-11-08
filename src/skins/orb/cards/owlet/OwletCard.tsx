@@ -116,7 +116,8 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": offline ? "unavailable" : sleep ?? "unknown", "data-alert": level === "alarm" ? "alarm" : level ? "warn" : undefined, "data-stale": stale ? "true" : undefined, ...colors }}
+      attrs={{ "data-state": offline ? "unavailable" : sleep ?? "unknown", "data-stale": stale ? "true" : undefined, ...colors }}
+      level={level}
       glyph={<OwletIcon off={offline} />}
       unavailable={offline}
       lastSeen={e.lastSeen}

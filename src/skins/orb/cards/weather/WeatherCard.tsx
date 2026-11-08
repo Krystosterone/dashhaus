@@ -157,7 +157,8 @@ export function WeatherCard({ entity: e, history, hourly, daily, variant, footpr
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": level ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", ...colors }}
+      level={level}
       glyph={<ConditionIcon condition={cond ?? "unavailable"} night={night} />}
       unavailable={unav}
       lastSeen={e.lastSeen}

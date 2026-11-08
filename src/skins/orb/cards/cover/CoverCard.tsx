@@ -78,7 +78,8 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const orbAction = stopping ? onStopCover : adrift ? () => {} : asks ? () => guard.ask(toward) : open ? onCloseCover : onOpenCover;
   const orbLabel = stopping ? `Stop ${e.name}` : adrift ? `${e.name}: ${word}` : asks ? `${toward === "open" ? "Open" : "Close"} ${e.name}…` : e.name;
   // Core ranks it (a garage door, door or gate left open is advisory); the card draws the level it is given.
-  const warned = coverSeverity(e) != null;
+  const level = coverSeverity(e);
+  const warned = level != null;
   const identity = area ?? CLASS_LABEL[e.deviceClass];
   const warning = warned ? leftOpenText(e.lastChanged) : undefined;
   const alertLabel = warned ? `Warning: ${e.name}: ${warning}` : undefined;
@@ -106,7 +107,8 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-alert": warned ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, ...colors }}
+      level={level}
       orb={{ label: orbLabel, pressed: open && !unav, intensity: pos / 100, onToggle: orbAction, children: <CoverIcon kind={e.deviceClass} open={open} stop={stopping} /> }}
       unavailable={unav}
       lastSeen={e.lastSeen}

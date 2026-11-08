@@ -113,7 +113,8 @@ export function AlarmCard({ entity: e, history, variant, footprint, showControl,
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-armed": armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined, "data-alert": level === "alarm" ? "alarm" : level ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, "data-armed": armedMode || e.state === "arming" || e.state === "disarming" ? "" : undefined, ...colors }}
+      level={level}
       glyph={<ShieldIcon kind={unav ? "unavailable" : urgentState ? "alert" : armedMode || e.state === "arming" || e.state === "disarming" ? "armed" : "off"} />}
       unavailable={unav}
       lastSeen={e.lastSeen}

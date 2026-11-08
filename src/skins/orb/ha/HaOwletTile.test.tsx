@@ -37,7 +37,7 @@ describe("HaOwletTile", () => {
     unmount();
     // A negative stale window: even a reading from this instant counts as old.
     const stale = renderConnected(<HaOwletTile entityId={`${BASE}_sleep_state`} name="Nova" staleAfterMinutes={-1} />, raw);
-    await waitFor(() => expect(stale.container.querySelector("article")?.getAttribute("data-alert")).toBe("warn"));
+    await waitFor(() => expect(stale.container.querySelector("article")?.getAttribute("data-level")).toBe("urgent"));
   });
 
   it("sounds the integration's alerts beside the sleep sensor", async () => {

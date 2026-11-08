@@ -25,13 +25,14 @@ describe("BinarySensorCard", () => {
   it("keeps an open door a state: the area, no warning", () => {
     const { container } = render(<BinarySensorCard entity={door} />);
     expect(container.querySelector(".hd-area")?.textContent).toBe("Hall");
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBeNull();
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBeNull();
   });
 
   it("leads with the warn marker for a leak, and keeps the figure in ink, never a glow", () => {
     const { container } = render(<BinarySensorCard entity={{ ...door, name: "Sink", deviceClass: "moisture" }} />);
     expect(screen.getByRole("img", { name: "Warning: Sink: Leak detected" })).toBeTruthy();
     expect(container.querySelector(".hd-area")?.textContent).toBe("Leak detected");
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("urgent");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
     expect(container.querySelector(".bs-f")?.hasAttribute("data-warn")).toBe(false);
     // The readout is a word, and nothing marks it a warning.
@@ -47,7 +48,7 @@ describe("BinarySensorCard", () => {
     expect(container.querySelector(".hd-area")?.textContent).toBe("Upstairs");
     expect(container.querySelector(".hd-alert-cue")).toBeNull();
     expect(container.querySelector(".bs-bar")).toBeNull();
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("alarm");
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("alarm");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
   });
 
@@ -66,7 +67,7 @@ describe("BinarySensorCard", () => {
     const { container } = render(<BinarySensorCard entity={{ ...door, name: "Garage", deviceClass: "garage_door", lastChanged: "18:30", battery: 3 }} />);
     expect(screen.getByRole("img", { name: "Warning: Garage: Open since 18:30" })).toBeTruthy();
     expect(container.querySelector(".hd-area")?.textContent).toBe("Open since 18:30");
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("advisory");
   });
 
   it("says only the area on the sheet's status line, and when before what the device is in the small print", () => {

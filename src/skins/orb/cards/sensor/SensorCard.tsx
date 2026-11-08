@@ -41,7 +41,8 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
 
   const trend = history ? trendOf(history.temperature, history.currentHour) : null;
   // Core ranks it: a low battery is advisory, the device's; the card draws the level it is given.
-  const lowBattery = sensorSeverity(e) === "advisory";
+  const level = sensorSeverity(e);
+  const lowBattery = level === "advisory";
   const batteryWarning = lowBattery ? batteryText(e.battery!) : null;
   const alertLabel = lowBattery ? `Warning: ${e.name}: ${batteryAdvice(e.battery!)}` : null;
   const comfort = comfortLabel(tC, h, e.outdoor);
@@ -86,7 +87,8 @@ export function SensorCard({ entity: e, history, variant, footprint, showControl
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": unav ? "unavailable" : "ok", "data-alert": lowBattery ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": unav ? "unavailable" : "ok", ...colors }}
+      level={level}
       glyph={unav ? <IconThermoOff /> : <IconThermo />}
       unavailable={unav}
       lastSeen={e.lastSeen}

@@ -71,7 +71,8 @@ export function BinarySensorCard({ entity: e, history, variant, footprint, showC
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-alert": alarm ? "alarm" : severity ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, ...colors }}
+      level={severity}
       glyph={<BinarySensorIcon picture={pictureOf(e.deviceClass)} on={on} />}
       unavailable={unav}
       lastSeen={e.lastSeen}
