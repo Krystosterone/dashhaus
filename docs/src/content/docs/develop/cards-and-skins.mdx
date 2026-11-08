@@ -103,4 +103,6 @@ For a skin outside the repository, with no Storybook or workspace, use the publi
 Every skin's section has the same groups in the same order: **Cards**, **Bundles** (Orb only), **Dashboards**,
 **Foundations**, **Connected**. Every card has the same stories under the same names: its own states, then
 Unavailable, Worst case, All states, Sizes, Footprints, Compact, Details, Details, unavailable and Details, phone.
-`verify/storybook.test.ts` checks both.
+`verify/storybook.test.ts` checks both. Orb's and Field's **Foundations → Worst case** puts every card's worst-case
+data side by side, at the skin's widths and footprints, with a switch back to demo data: the same test fails while a
+card is missing from it, and `npm run new-card` adds a new card's row.

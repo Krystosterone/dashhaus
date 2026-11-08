@@ -187,10 +187,13 @@ export const seams = {
     renderer: `${referenceSkins.orb.dir}/lovelace/ConfigDashboard.tsx`,
     auto: `${referenceSkins.orb.dir}/lovelace/auto.ts`,
     rulebook: "verify/orb-conformance.test.ts",
+    /** Foundations → Worst case: every card's worst-case seeds side by side (verify/storybook.test.ts). */
+    worstCase: `${referenceSkins.orb.dir}/stories/WorstCase.stories.tsx`,
   },
   field: {
     config: `${referenceSkins.field.dir}/lovelace/config.ts`,
     dashboard: `${referenceSkins.field.dir}/lovelace/FieldDashboard.tsx`,
+    worstCase: `${referenceSkins.field.dir}/stories/WorstCase.stories.tsx`,
   },
 };
 
@@ -228,6 +231,9 @@ export const markers = {
   fieldKinds: "// new-card: field kinds",
   moduleImports: "// new-card: module imports",
   liveModules: "// new-card: live modules",
+  worstCaseImports: "// new-card: worst case imports",
+  worstCaseModules: "// new-card: worst case modules",
+  worstCases: "// new-card: worst cases",
   tileImports: "// new-card: tile imports",
   tiles: "// new-card: tiles",
   autoControls: "// new-card: auto controls",

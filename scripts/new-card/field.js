@@ -173,12 +173,14 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   };
   const valueParts = [values.choices.length && "choices", (rowLevel || panelLevels.length) && "Fader", rowLevel && "ModuleRow"].filter(Boolean);
 
+  // A control's presses, in its stories and from its hook's actions. A demo that names a handler its own way leaves
+  // that key unpressed.
+  const demoProps = [...pressed.map(({ action }) => action), ...drawnValues].filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" ");
   const fill = filler({
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",
-    // A control's presses, in its stories and from its hook's actions; a line of their own, gone for a reading. A
-    // demo that names a handler its own way leaves that key unpressed.
-    __demoProps__: [...pressed.map(({ action }) => action), ...drawnValues].filter((action) => new RegExp(`\\b${action}\\b`).test(seeds)).map((action) => `${action}={demo.${action}}`).join(" "),
+    // Its presses on a line of their own, gone for a reading.
+    __demoProps__: demoProps,
     __liveProps__: [...pressed.map(({ action }) => action), ...drawnValues].map((action) => `${action}={actions.${action}}`).join(" "),
     __actions__: kind === "control" ? ", actions" : "",
     __about__: kind === "control"
@@ -319,6 +321,21 @@ export type { Ha__Name__ModuleProps } from "./ha/Ha__Name__Module";
     const insert = (marker) => after(marker, `              "${Name}",\n`);
     return s.slice(0, at) + insert(markers.previewConnected)(insert(markers.previewCards)(field));
   });
+  // Foundations → Worst case: its worst-case seeds beside every other module's (verify/storybook.test.ts), on its demo
+  // state as in its own stories.
+  const worstCase = seams.field.worstCase;
+  edit(worstCase, after(markers.worstCaseImports, fill(`import { __Name__Module } from "../cards/__name__/__Name__Module";
+import { __CONST___SEEDS, __CONST___WORST_CASE__demoImport__ } from "__seeds__";
+import type { __Name__Seed } from "__seeds__";
+`)));
+  edit(worstCase, after(markers.worstCaseModules, fill(`
+function __Name__({ seed, footprint }: { seed: __Name__Seed; footprint: FieldFootprint }) {
+  const demo = __DEMO__;
+  return <__Name__Module entity={demo.entity}${history ? " history={demo.history}" : ""}${demoProps ? ` ${demoProps}` : ""} footprint={footprint} />;
+}
+`)));
+  edit(worstCase, after(markers.worstCases, fill("  card(__CONST___WORST_CASE, [__CONST___SEEDS.__firstSeed__], (seed, footprint) => <__Name__ seed={seed} footprint={footprint} />),")));
+
   const rules = `${SKIN}/stories/DesignRules.mdx`;
   edit(rules, after(markers.designRuleImports, `import * as ${Name} from "../cards/${name}/${Name}Module.stories";\n`));
   edit(rules, after(markers.designRuleStories, `    ${/\s/.test(Label) ? `"${Label}"` : Label}: [${Name}.AllStates, ${Name}.Footprints],`));

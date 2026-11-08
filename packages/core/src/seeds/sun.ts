@@ -60,5 +60,5 @@ const SEEDS = {
 export type SunSeedName = keyof typeof SEEDS;
 export const SUN_SEEDS: Record<SunSeedName, SunSeed> = SEEDS;
 
-/** Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. */
+/** Worst-case data: the card's Worst case story and each skin's Foundations → Worst case draw these. */
 export const SUN_WORST_CASE: SunSeed[] = [SUN_SEEDS.long, SUN_SEEDS.polarDay];

@@ -52,6 +52,6 @@ export type CameraSeedName = keyof typeof CAMERA_SEEDS;
 
 /**
  * Worst-case data: no still yet, a still that fails to load, a very wide and a very tall still, a long name and an own
- * state, unavailable. The card's Worst case story and Orb → Foundations → Worst case both draw these.
+ * state, unavailable. The card's Worst case story and each skin's Foundations → Worst case draw these.
  */
 export const CAMERA_WORST_CASE: CameraSeed[] = [CAMERA_SEEDS.noStill, CAMERA_SEEDS.failed, CAMERA_SEEDS.streaming, CAMERA_SEEDS.tall, CAMERA_SEEDS.long, CAMERA_SEEDS.unavailable];

@@ -57,7 +57,7 @@ export const NUMERIC_SEEDS = {
 export type NumericSeedName = keyof typeof NUMERIC_SEEDS;
 
 /**
- * Worst-case data: the card's Worst case story and Orb → Foundations → Worst case both draw these. The widest figure
+ * Worst-case data: the card's Worst case story and each skin's Foundations → Worst case draw these. The widest figure
  * that needs no scaling with a three-letter unit, a huge value scaled ("1.2M"), a large negative one, a one-letter name with no unit, no class, no area and no history, a non-Latin name and area
  * with a long unit, a raw float with more decimals than a card shows, zero, and one gone and never seen.
  */

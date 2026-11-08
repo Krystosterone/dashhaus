@@ -263,6 +263,12 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
   const agents = read(seams.agents);
   if (!agents.includes(`\`${code}-\` `)) edit(seams.agents, before(markers.orbCodes, `, \`${code}-\` ${words}`));
 
+  // Foundations → Worst case: its worst-case seeds beside every other card's (verify/storybook.test.ts).
+  edit(seams.orb.worstCase, after(markers.worstCaseImports, fill(`import { Demo__Name__Tile } from "../cards/__name__/demo/Demo__Name__Tile";
+import { __CONST___SEEDS, __CONST___WORST_CASE } from "__seeds__";
+`)));
+  edit(seams.orb.worstCase, after(markers.worstCases, fill("  card(__CONST___WORST_CASE, [__CONST___SEEDS.__firstSeed__], (seed, footprint) => <Demo__Name__Tile seed={seed} footprint={footprint} />),")));
+
   // Its Lovelace card: its domains pick it, or `card:` where another card already draws one.
   const lovelace = seams.orb.config;
   const config = read(lovelace);

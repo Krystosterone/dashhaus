@@ -2,6 +2,8 @@ import type { CardFootprint } from "../shared/ui";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import { DataToggle } from "../../../../.storybook/blocks/DataToggle";
+import type { Data } from "../../../../.storybook/blocks/DataToggle";
 import { LightTile } from "../cards/light/LightTile";
 import { LIGHT_WORST_CASE, LIGHT_SEEDS, useDemoLight } from "@dashhaus/core/seeds/light";
 import type { LightSeed } from "@dashhaus/core/seeds/light";
@@ -10,10 +12,8 @@ import { CLIMATE_SEEDS, CLIMATE_WORST_CASE, useDemoClimate } from "@dashhaus/cor
 import type { ClimateSeed } from "@dashhaus/core/seeds/climate";
 import { SensorTile } from "../cards/sensor/SensorTile";
 import { SENSOR_SEEDS, SENSOR_WORST_CASE } from "@dashhaus/core/seeds/sensor";
-import type { SensorSeed } from "@dashhaus/core/seeds/sensor";
 import { WeatherTile } from "../cards/weather/WeatherTile";
 import { WEATHER_SEEDS, WEATHER_WORST_CASE } from "@dashhaus/core/seeds/weather";
-import type { WeatherSeed } from "@dashhaus/core/seeds/weather";
 import { ToggleTile } from "../cards/toggle/ToggleTile";
 import { TOGGLE_SEEDS, TOGGLE_WORST_CASE, useDemoToggle } from "@dashhaus/core/seeds/toggle";
 import type { ToggleSeed } from "@dashhaus/core/seeds/toggle";
@@ -25,92 +25,47 @@ import { ALARM_SEEDS, ALARM_WORST_CASE, useDemoAlarm } from "@dashhaus/core/seed
 import type { AlarmSeed } from "@dashhaus/core/seeds/alarm";
 import { DemoHumidifierTile } from "../cards/humidifier/demo/DemoHumidifierTile";
 import { HUMIDIFIER_SEEDS, HUMIDIFIER_WORST_CASE } from "@dashhaus/core/seeds/humidifier";
-import type { HumidifierSeed } from "@dashhaus/core/seeds/humidifier";
 import { DemoOwletTile } from "../cards/owlet/demo/DemoOwletTile";
 import { OWLET_SEEDS, OWLET_WORST_CASE } from "@dashhaus/core/seeds/owlet";
-import type { OwletSeed } from "@dashhaus/core/seeds/owlet";
 import { DemoSoundTile } from "../cards/sound/demo/DemoSoundTile";
 import { SOUND_SEEDS, SOUND_WORST_CASE } from "@dashhaus/core/seeds/sound";
-import type { SoundSeed } from "@dashhaus/core/seeds/sound";
 import { DemoLockTile } from "../cards/lock/demo/DemoLockTile";
 import { LOCK_SEEDS, LOCK_WORST_CASE } from "@dashhaus/core/seeds/lock";
-import type { LockSeed } from "@dashhaus/core/seeds/lock";
 import { DemoFanTile } from "../cards/fan/demo/DemoFanTile";
 import { FAN_SEEDS, FAN_WORST_CASE } from "@dashhaus/core/seeds/fan";
-import type { FanSeed } from "@dashhaus/core/seeds/fan";
 import { DemoCameraTile } from "../cards/camera/demo/DemoCameraTile";
 import { CAMERA_SEEDS, CAMERA_WORST_CASE } from "@dashhaus/core/seeds/camera";
-import type { CameraSeed } from "@dashhaus/core/seeds/camera";
+import { DemoGuestWifiTile } from "../cards/guestWifi/demo/DemoGuestWifiTile";
+import { GUEST_WIFI_SEEDS, GUEST_WIFI_WORST_CASE } from "@dashhaus/core/seeds/guestWifi";
+import { DemoBinarySensorTile } from "../cards/binarySensor/demo/DemoBinarySensorTile";
+import { BINARY_SENSOR_SEEDS, BINARY_SENSOR_WORST_CASE } from "@dashhaus/core/seeds/binarySensor";
+import { DemoMediaPlayerTile } from "../cards/mediaPlayer/demo/DemoMediaPlayerTile";
+import { MEDIA_PLAYER_SEEDS, MEDIA_PLAYER_WORST_CASE } from "@dashhaus/core/seeds/mediaPlayer";
+import { DemoNumericTile } from "../cards/numeric/demo/DemoNumericTile";
+import { NUMERIC_SEEDS, NUMERIC_WORST_CASE } from "@dashhaus/core/seeds/numeric";
+import { DemoVacuumTile } from "../cards/vacuum/demo/DemoVacuumTile";
+import { VACUUM_SEEDS, VACUUM_WORST_CASE } from "@dashhaus/core/seeds/vacuum";
+import { DemoCalendarTile } from "../cards/calendar/demo/DemoCalendarTile";
+import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
+import { DemoSunTile } from "../cards/sun/demo/DemoSunTile";
+import { SUN_SEEDS, SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
+// new-card: worst case imports
 
 /*
  * Worst-case data: values real Home Assistant installs produce, not random strings. Each card keeps its own in its
- * demo seeds (`<NAME>_WORST_CASE`), which its Worst case story also draws; this page runs them all side by side.
+ * demo seeds (`<NAME>_WORST_CASE`), which its Worst case story also draws; this page runs them all side by side, and
+ * verify/storybook.test.ts fails while a card's are missing from it.
  */
 
-const LIGHTS: Record<"demo" | "worst", LightSeed[]> = {
-  demo: [LIGHT_SEEDS.dimmable, LIGHT_SEEDS.onOff],
-  worst: LIGHT_WORST_CASE,
-};
+function Light({ seed, footprint }: { seed: LightSeed; footprint: CardFootprint }) {
+  const demo = useDemoLight(seed);
+  return <LightTile {...demo} footprint={footprint} />;
+}
 
-const CLIMATES: Record<"demo" | "worst", ClimateSeed[]> = {
-  demo: [CLIMATE_SEEDS.heating, CLIMATE_SEEDS.range],
-  worst: CLIMATE_WORST_CASE,
-};
-
-const SENSORS: Record<"demo" | "worst", SensorSeed[]> = {
-  demo: [SENSOR_SEEDS.living, SENSOR_SEEDS.outdoor],
-  worst: SENSOR_WORST_CASE,
-};
-
-const WEATHERS: Record<"demo" | "worst", WeatherSeed[]> = {
-  demo: [WEATHER_SEEDS.partly],
-  worst: WEATHER_WORST_CASE,
-};
-
-const TOGGLES: Record<"demo" | "worst", ToggleSeed[]> = {
-  demo: [TOGGLE_SEEDS.dnd],
-  worst: TOGGLE_WORST_CASE,
-};
-
-const COVERS: Record<"demo" | "worst", CoverSeed[]> = {
-  demo: [COVER_SEEDS.curtains, COVER_SEEDS.garage],
-  worst: COVER_WORST_CASE,
-};
-
-const ALARMS: Record<"demo" | "worst", AlarmSeed[]> = {
-  demo: [ALARM_SEEDS.away],
-  worst: ALARM_WORST_CASE,
-};
-
-const HUMIDIFIERS: Record<"demo" | "worst", HumidifierSeed[]> = {
-  demo: [HUMIDIFIER_SEEDS.on],
-  worst: HUMIDIFIER_WORST_CASE,
-};
-
-const OWLETS: Record<"demo" | "worst", OwletSeed[]> = {
-  demo: [OWLET_SEEDS.deep],
-  worst: OWLET_WORST_CASE,
-};
-
-const SOUNDS: Record<"demo" | "worst", SoundSeed[]> = {
-  demo: [SOUND_SEEDS.on],
-  worst: SOUND_WORST_CASE,
-};
-
-const LOCKS: Record<"demo" | "worst", LockSeed[]> = {
-  demo: [LOCK_SEEDS.locked],
-  worst: LOCK_WORST_CASE,
-};
-
-const FANS: Record<"demo" | "worst", FanSeed[]> = {
-  demo: [FAN_SEEDS.on],
-  worst: FAN_WORST_CASE,
-};
-
-const CAMERAS: Record<"demo" | "worst", CameraSeed[]> = {
-  demo: [CAMERA_SEEDS.idle],
-  worst: CAMERA_WORST_CASE,
-};
+function Climate({ seed, footprint }: { seed: ClimateSeed; footprint: CardFootprint }) {
+  const demo = useDemoClimate(seed);
+  return <ClimateTile {...demo} footprint={footprint} />;
+}
 
 function Alarm({ seed, footprint }: { seed: AlarmSeed; footprint: CardFootprint }) {
   const demo = useDemoAlarm(seed);
@@ -127,6 +82,40 @@ function Toggle({ seed, footprint }: { seed: ToggleSeed; footprint: CardFootprin
   return <ToggleTile {...demo} footprint={footprint} />;
 }
 
+/** One row of the page: a seed drawn in a footprint. */
+type Draw = (footprint: CardFootprint) => ReactNode;
+
+/** A card on the page: a row per seed, its worst case and a little demo data to hold it against. */
+function card<S>(worst: readonly S[], demo: readonly S[], draw: (seed: S, footprint: CardFootprint) => ReactNode): Record<Data, Draw[]> {
+  const rows = (seeds: readonly S[]) => seeds.map((seed): Draw => (footprint) => draw(seed, footprint));
+  return { worst: rows(worst), demo: rows(demo) };
+}
+
+/** Every card, in the order the page has always drawn them; a new card joins the end. */
+const CARDS = [
+  card(LIGHT_WORST_CASE, [LIGHT_SEEDS.dimmable, LIGHT_SEEDS.onOff], (seed, footprint) => <Light seed={seed} footprint={footprint} />),
+  card(CLIMATE_WORST_CASE, [CLIMATE_SEEDS.heating, CLIMATE_SEEDS.range], (seed, footprint) => <Climate seed={seed} footprint={footprint} />),
+  card(WEATHER_WORST_CASE, [WEATHER_SEEDS.partly], (seed, footprint) => <WeatherTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />),
+  card(ALARM_WORST_CASE, [ALARM_SEEDS.away], (seed, footprint) => <Alarm seed={seed} footprint={footprint} />),
+  card(LOCK_WORST_CASE, [LOCK_SEEDS.locked], (seed, footprint) => <DemoLockTile seed={seed} footprint={footprint} />),
+  card(COVER_WORST_CASE, [COVER_SEEDS.curtains, COVER_SEEDS.garage], (seed, footprint) => <Cover seed={seed} footprint={footprint} />),
+  card(TOGGLE_WORST_CASE, [TOGGLE_SEEDS.dnd], (seed, footprint) => <Toggle seed={seed} footprint={footprint} />),
+  card(SENSOR_WORST_CASE, [SENSOR_SEEDS.living, SENSOR_SEEDS.outdoor], (seed, footprint) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card(HUMIDIFIER_WORST_CASE, [HUMIDIFIER_SEEDS.on], (seed, footprint) => <DemoHumidifierTile seed={seed} footprint={footprint} />),
+  card(SOUND_WORST_CASE, [SOUND_SEEDS.on], (seed, footprint) => <DemoSoundTile seed={seed} footprint={footprint} />),
+  card(FAN_WORST_CASE, [FAN_SEEDS.on], (seed, footprint) => <DemoFanTile seed={seed} footprint={footprint} />),
+  card(OWLET_WORST_CASE, [OWLET_SEEDS.deep], (seed, footprint) => <DemoOwletTile seed={seed} footprint={footprint} />),
+  card(CAMERA_WORST_CASE, [CAMERA_SEEDS.idle], (seed, footprint) => <DemoCameraTile seed={seed} footprint={footprint} />),
+  card(GUEST_WIFI_WORST_CASE, [GUEST_WIFI_SEEDS.ready], (seed, footprint) => <DemoGuestWifiTile seed={seed} footprint={footprint} />),
+  card(BINARY_SENSOR_WORST_CASE, [BINARY_SENSOR_SEEDS.closed, BINARY_SENSOR_SEEDS.open], (seed, footprint) => <DemoBinarySensorTile seed={seed} footprint={footprint} />),
+  card(MEDIA_PLAYER_WORST_CASE, [MEDIA_PLAYER_SEEDS.playing], (seed, footprint) => <DemoMediaPlayerTile seed={seed} footprint={footprint} />),
+  card(NUMERIC_WORST_CASE, [NUMERIC_SEEDS.co2, NUMERIC_SEEDS.power], (seed, footprint) => <DemoNumericTile seed={seed} footprint={footprint} />),
+  card(VACUUM_WORST_CASE, [VACUUM_SEEDS.cleaning], (seed, footprint) => <DemoVacuumTile seed={seed} footprint={footprint} />),
+  card(CALENDAR_WORST_CASE, [CALENDAR_SEEDS.normal], (seed, footprint) => <DemoCalendarTile seed={seed} footprint={footprint} />),
+  card(SUN_WORST_CASE, [SUN_SEEDS.normal], (seed, footprint) => <DemoSunTile seed={seed} footprint={footprint} />),
+  // new-card: worst cases
+];
+
 /** Width and footprint are independent: wide standard stays standard; featured is always explicit. */
 const CASES: { width: number; footprint: CardFootprint }[] = [
   { width: 170, footprint: "standard" },
@@ -136,7 +125,7 @@ const CASES: { width: number; footprint: CardFootprint }[] = [
   { width: 300, footprint: "compact" },
 ];
 
-function Row({ children }: { children: (footprint: CardFootprint) => ReactNode }) {
+function Row({ children }: { children: Draw }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 12 }}>
       {CASES.map(({ width, footprint }) => <div key={`${width}-${footprint}`} style={{ width, maxWidth: "100%" }}>{children(footprint)}</div>)}
@@ -144,46 +133,11 @@ function Row({ children }: { children: (footprint: CardFootprint) => ReactNode }
   );
 }
 
-function Light({ seed, footprint }: { seed: LightSeed; footprint: CardFootprint }) {
-  const demo = useDemoLight(seed);
-  return <LightTile {...demo} footprint={footprint} />;
-}
-function Climate({ seed, footprint }: { seed: ClimateSeed; footprint: CardFootprint }) {
-  const demo = useDemoClimate(seed);
-  return <ClimateTile {...demo} footprint={footprint} />;
-}
-
-/** Dev-only chrome: plain, out of the way, switching is instant. */
-function DataToggle({ value, onChange }: { value: "demo" | "worst"; onChange: (v: "demo" | "worst") => void }) {
-  const seg = (v: "demo" | "worst", label: string) => (
-    <button type="button" aria-pressed={value === v} onClick={() => onChange(v)}
-      style={{ border: 0, borderRadius: 99, padding: "6px 14px", font: "500 13px system-ui, sans-serif", cursor: "pointer",
-        background: value === v ? "#fff" : "transparent", color: "#222", boxShadow: value === v ? "0 1px 2px rgba(0,0,0,.2)" : "none" }}>{label}</button>
-  );
-  return (
-    <div role="group" aria-label="Data" style={{ position: "fixed", left: "50%", bottom: 16, translate: "-50% 0", zIndex: 10, display: "flex", gap: 2, padding: 3, borderRadius: 99, background: "#d9d9d9" }}>
-      {seg("demo", "Demo data")}{seg("worst", "Worst case")}
-    </div>
-  );
-}
-
 function WorstCasePage() {
-  const [data, setData] = useState<"demo" | "worst">("worst");
+  const [data, setData] = useState<Data>("worst");
   return (
     <div key={data} style={{ display: "grid", gap: 12, paddingBottom: 72 }}>
-      {LIGHTS[data].map((seed, index) => <Row key={`l${index}`}>{(footprint) => <Light seed={seed} footprint={footprint} />}</Row>)}
-      {CLIMATES[data].map((seed, index) => <Row key={`c${index}`}>{(footprint) => <Climate seed={seed} footprint={footprint} />}</Row>)}
-      {WEATHERS[data].map((seed, index) => <Row key={`w${index}`}>{(footprint) => <WeatherTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />}</Row>)}
-      {ALARMS[data].map((seed, index) => <Row key={`a${index}`}>{(footprint) => <Alarm seed={seed} footprint={footprint} />}</Row>)}
-      {LOCKS[data].map((seed, index) => <Row key={`k${index}`}>{(footprint) => <DemoLockTile seed={seed} footprint={footprint} />}</Row>)}
-      {COVERS[data].map((seed, index) => <Row key={`v${index}`}>{(footprint) => <Cover seed={seed} footprint={footprint} />}</Row>)}
-      {TOGGLES[data].map((seed, index) => <Row key={`t${index}`}>{(footprint) => <Toggle seed={seed} footprint={footprint} />}</Row>)}
-      {SENSORS[data].map((seed, index) => <Row key={`s${index}`}>{(footprint) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} />}</Row>)}
-      {HUMIDIFIERS[data].map((seed, index) => <Row key={`h${index}`}>{(footprint) => <DemoHumidifierTile seed={seed} footprint={footprint} />}</Row>)}
-      {SOUNDS[data].map((seed, index) => <Row key={`n${index}`}>{(footprint) => <DemoSoundTile seed={seed} footprint={footprint} />}</Row>)}
-      {FANS[data].map((seed, index) => <Row key={`f${index}`}>{(footprint) => <DemoFanTile seed={seed} footprint={footprint} />}</Row>)}
-      {OWLETS[data].map((seed, index) => <Row key={`o${index}`}>{(footprint) => <DemoOwletTile seed={seed} footprint={footprint} />}</Row>)}
-      {CAMERAS[data].map((seed, index) => <Row key={`m${index}`}>{(footprint) => <DemoCameraTile seed={seed} footprint={footprint} />}</Row>)}
+      {CARDS.flatMap((rows, c) => rows[data].map((draw, s) => <Row key={`${c}-${s}`}>{draw}</Row>))}
       <DataToggle value={data} onChange={setData} />
     </div>
   );
