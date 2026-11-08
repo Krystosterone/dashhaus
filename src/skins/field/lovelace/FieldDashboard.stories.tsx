@@ -17,7 +17,7 @@ const stamp = "2026-10-19T11:20:00Z";
 const entity = (id: string, name: string, state: string, attributes: Record<string, unknown>) =>
   ({ [id]: { entity_id: id, state, attributes: { friendly_name: name, ...attributes }, last_changed: stamp, last_updated: stamp } });
 
-/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a desk fan, a sound machine and its volume, curtains and a garage door, the house alarm (code 1234), an Owlet sock and its base station, room sensors with their companions, the weather, and modes. */
+/** A small mixed house: Field's light types, one heating thermostat, a humidifier, a desk fan, a sound machine and its volume, curtains and a garage door, the house alarm (code 1234), an Owlet sock and its base station, room sensors with their companions, a CO₂ sensor, the weather, and modes. */
 const ENTITIES: HassEntities = {
   ...entity("light.ceiling", "Ceiling", "on", { supported_color_modes: ["color_temp"], color_mode: "color_temp", brightness: 204, color_temp_kelvin: 2700, min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
   ...entity("light.reading_lamp", "Reading lamp", "off", { supported_color_modes: ["color_temp"], min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500 }),
@@ -32,6 +32,7 @@ const ENTITIES: HassEntities = {
   ...entity("sensor.outside_battery", "Outside battery", "9", { device_class: "battery", unit_of_measurement: "%" }),
   ...entity("weather.home", "Home", "rainy", { temperature: 7.4, apparent_temperature: 4.9, dew_point: 6.1, humidity: 91, pressure: 1006, wind_speed: 22, wind_gust_speed: 38, wind_bearing: 250, uv_index: 1, temperature_unit: "°C", wind_speed_unit: "km/h", pressure_unit: "hPa" }),
   ...entity("sensor.home_aqi", "Air quality", "38", { device_class: "aqi", unit_of_measurement: "AQI" }),
+  ...entity("sensor.living_room_co2", "Living room CO₂", "650", { device_class: "carbon_dioxide", unit_of_measurement: "ppm", state_class: "measurement" }),
   ...entity("sun.sun", "Sun", "above_horizon", {}),
   ...entity("input_boolean.do_not_disturb", "Do Not Disturb", "off", {}),
   ...entity("input_boolean.guest_mode", "Guest mode", "on", {}),
@@ -177,7 +178,8 @@ const PAGES_YAML = {
 
 /**
  * A wall panel read from across the room: one column per place, footprints mixed by column. Each column leads with
- * whole modules and stacks rows under them; every plate names its own area.
+ * whole modules and stacks rows under them; every plate names its own area. The CO₂ sensor is listed on its own, so
+ * its device class picks the numeric module.
  */
 const WALL_YAML = {
   type: "custom:dashhaus-field",
@@ -203,6 +205,8 @@ const WALL_YAML = {
         { entity: "weather.home", name: "Weather", column: 4 },
         { entity: "light.porch", column: 4, footprint: "compact" },
         { entity: "sensor.outside_temperature", name: "Air", outdoor: true, column: 4, footprint: "compact" },
+        // On its own: no card: and no sensor key, so its device class picks the numeric module.
+        { entity: "sensor.living_room_co2", area: "Living room", column: 4, footprint: "compact" },
       ],
     },
   ],

@@ -37,6 +37,8 @@ const YAML = {
         "climate.living_room",
         { entity: "light.living_room", width: "full" },
         { entity: "cover.living_room", footprint: "compact", width: "full" },
+        // On its own: no card: and no sensor key, so its device class picks the numeric card.
+        { entity: "sensor.living_room_co2", footprint: "compact", width: "full" },
       ],
     },
     {

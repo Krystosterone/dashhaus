@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sensorFromHass } from "./sensor";
+import { isRoomReading, sensorFromHass } from "./sensor";
 
 const temperature = {
   entity_id: "sensor.living_room_temperature",
@@ -175,5 +175,35 @@ describe("sensorFromHass", () => {
 
     expect(mapped.state).toBe("ok");
     expect(mapped.temperature).toBeUndefined();
+  });
+});
+
+describe("isRoomReading", () => {
+  const room = [
+    { device_class: "temperature", unit_of_measurement: "°C" },
+    { device_class: "humidity", unit_of_measurement: "%" },
+    { unit_of_measurement: "°F" },
+    { native_unit_of_measurement: "celsius" },
+    { unit_of_measurement: "%" },
+  ];
+  const other = [
+    { device_class: "carbon_dioxide", unit_of_measurement: "ppm" },
+    { device_class: "battery", unit_of_measurement: "%" },
+    { device_class: "power", unit_of_measurement: "W" },
+    { unit_of_measurement: "W" },
+    {},
+  ];
+
+  it("holds for a temperature or humidity class, or no class with °C, °F or %, and only those", () => {
+    for (const attributes of room) expect(isRoomReading(attributes), JSON.stringify(attributes)).toBe(true);
+    for (const attributes of other) expect(isRoomReading(attributes), JSON.stringify(attributes)).toBe(false);
+    expect(isRoomReading(undefined)).toBe(false);
+  });
+
+  it("holds only for readings this mapper draws as a temperature or a humidity", () => {
+    for (const attributes of room) {
+      const sensor = sensorFromHass({ entity_id: "sensor.room", state: "21", attributes }, "sensor.room");
+      expect(sensor.temperature ?? sensor.humidity, JSON.stringify(attributes)).toBe(21);
+    }
   });
 });

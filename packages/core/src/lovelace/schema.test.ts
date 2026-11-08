@@ -19,7 +19,7 @@ import {
 import type { CardReadSchema, FootprintMix, LayoutSchema } from "./schema";
 
 type Kind = "light" | "switch" | "sound" | "owlet";
-interface TestCard { entity: string; kind: Kind; name?: string; color?: string; volume?: string; alerts?: Record<string, string> }
+interface TestCard { entity: string; kind: Kind; defaulted?: true; name?: string; color?: string; volume?: string; alerts?: Record<string, string> }
 
 const domainKind: Record<string, Kind> = { light: "light", switch: "switch" };
 
@@ -63,6 +63,23 @@ describe("readCard", () => {
     expect(read({ entity: "switch.noise", card: "sound", volume: "number.noise", name: "Noise" }).card).toEqual({
       entity: "switch.noise", kind: "sound", name: "Noise", volume: "number.noise",
     });
+  });
+
+  it("marks a card defaulted only when its domain's own kind drew it because nothing chose another", () => {
+    expect(read("switch.a").card).toEqual({ entity: "switch.a", kind: "switch", name: undefined, color: undefined, defaulted: true });
+    expect(read({ entity: "switch.a", name: "Fan" }).card?.defaulted, "a common key chooses nothing").toBe(true);
+    expect(read("light.a").card, "a domain with one kind has nothing to choose").not.toHaveProperty("defaulted");
+    expect(read({ entity: "switch.a", card: "switch" }).card, "card: chose it").not.toHaveProperty("defaulted");
+    expect(read({ entity: "switch.a", color: "red" }).card, "one of its kind's own keys chose it").not.toHaveProperty("defaulted");
+    expect(read("sensor.crib_sleep_state").card, "an id pattern chose it").not.toHaveProperty("defaulted");
+  });
+
+  it("says which card takes a key another kind on the domain owns, in place of unknown key", () => {
+    expect(read({ entity: "switch.a", volume: "number.a" }).problems).toEqual(['sections[0] (switch.a): "volume" is the sound card\'s: add card: sound']);
+    expect(read({ entity: "switch.a", card: "switch", volume: "number.a" }).problems, "with card: given, the key is unknown to the card it chose").toEqual(['sections[0] (switch.a): unknown key "volume"']);
+    const reader = new Reader();
+    readCard(reader, { ...schema, noun: "module" }, { entity: "sensor.crib_sleep_state", volume: "number.a" }, "cards[0]");
+    expect(reader.problems, "a key no kind on the domain takes is still unknown").toEqual(['cards[0] (sensor.crib_sleep_state): unknown key "volume"']);
   });
 
   it("reports an unknown key, a card outside the domain and a domain with no card, at their paths", () => {
