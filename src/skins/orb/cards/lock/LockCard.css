@@ -7,16 +7,13 @@
 .lk[data-state="unlocked"] .hd-num, .lk[data-state="open"] .hd-num { color: var(--ink-2); }
 
 /* ---------- While it turns, and view only: a readout, no container (nothing to press) ---------- */
-.lk-st {
-  display: flex; align-items: center; gap: 6px; height: var(--slot-h); min-width: 0; margin: 0; padding: 0 var(--pad-in);
-  font-size: 15px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+/* The shared hd-st, in full ink, its words a little apart: who changed it follows the state. */
+.lk .lk-st { gap: 6px; color: var(--ink); }
 .lk-st-x { font-weight: 500; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
 /* On its way: the words breathe, the one state motion that says it hasn't landed */
 .lk-st[data-moving] { animation: lk-wait 900ms var(--ease-in-out) infinite alternate; }
 /* The trough stays readable: the words never fade under text contrast */
 @keyframes lk-wait { to { opacity: 0.65; } }
-.hd--compact .lk-st { justify-content: flex-end; font-size: 13px; }
 
 /* ---------- Last change and battery: a readout for featured and the sheet ---------- */
 .lk-last { display: none; align-content: end; gap: 10px; margin: 0; min-width: 0; }

@@ -16,6 +16,7 @@ import { HaBinarySensorTile } from "../ha/HaBinarySensorTile";
 import { HaCameraTile } from "../ha/HaCameraTile";
 import { HaMediaPlayerTile } from "../ha/HaMediaPlayerTile";
 import { HaNumericTile } from "../ha/HaNumericTile";
+import { HaVacuumTile } from "../ha/HaVacuumTile";
 // new-card: tile imports
 import { HaLightTile } from "../ha/HaLightTile";
 import { HaClimateTile } from "../ha/HaClimateTile";
@@ -69,6 +70,7 @@ const TILES: CardRenderers<Kind, CardConfig, ReactElement, [key?: string]> = {
   camera: (card, key) => <ConfiguredCamera key={key} card={card} />,
   mediaPlayer: (card, key) => <ConfiguredMediaPlayer key={key} card={card} />,
   numeric: (card, key) => <HaNumericTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} unit={card.unit} />,
+  vacuum: (card, key) => <HaVacuumTile key={key} entityId={card.entity} name={card.name} footprint={card.footprint} showControl={card.showControl} loadHistory={card.history} area={card.area} />,
   // new-card: tiles
 };
 

@@ -150,6 +150,7 @@ export type FieldKind =
   | "camera"
   | "mediaPlayer"
   | "numeric"
+  | "vacuum"
   // new-card: kinds
   ;
 
@@ -184,6 +185,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
   camera: { domains: ["camera"] },
   mediaPlayer: { domains: ["media_player"] },
   numeric: { domains: ["sensor"] },
+  vacuum: { domains: ["vacuum"] },
   // new-card: field kinds
 };
 

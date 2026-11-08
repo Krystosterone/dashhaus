@@ -83,7 +83,7 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const orbLabel = unav ? `${e.name}: Unavailable` : moving ? `${e.name}: ${word}` : locked ? `Unlock ${e.name}…` : `Lock ${e.name}`;
 
   let slot;
-  if (ro || moving) slot = <p className="lk-st" data-moving={moving || undefined}>{word}{ro && e.changedBy && !moving ? <span className="lk-st-x"> by {e.changedBy}</span> : null}</p>;
+  if (ro || moving) slot = <p className="hd-st lk-st" data-moving={moving || undefined}>{word}{ro && e.changedBy && !moving ? <span className="lk-st-x"> by {e.changedBy}</span> : null}</p>;
   else slot = (
     <TogglePill label={locked ? `${e.name}: Locked · Unlock…` : jammed ? `${e.name}: Jammed · Lock again` : `${e.name}: ${word} · Lock`} on={locked} onToggle={tap} extra={cue}>
       {jammed ? "Lock again" : word}

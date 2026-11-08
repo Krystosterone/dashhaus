@@ -1,0 +1,103 @@
+---
+title: Vacuum
+description: "One vacuum.* entity: what the robot is doing, its battery and fan speed, and the press it can take now."
+kind:
+  group: Controls
+  order: 5
+  summary: "A robot vacuum: what it is doing, its battery and fan speed, and one press to pause, start or send it home."
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import ApiMembers from "../../../components/ApiMembers.astro";
+import ApiSignature from "../../../components/ApiSignature.astro";
+import Example from "../../../components/Example.astro";
+import StoryLinks from "../../../components/StoryLinks.astro";
+
+One `vacuum.*` entity, a robot vacuum: whether it is cleaning, docked, on its way back, paused, idle or stopped with an
+error; its battery and fan speed, which it reports itself; and what it can do, from what it declares to Home
+Assistant.
+
+## Quick example
+
+<Example file="entities/vacuum/StartPause.tsx" />
+
+Integrations name the same activity differently: one says `charging` where Home Assistant says `docked`, another
+`returning_home` or `stopped`. They are mapped onto Home Assistant's own, a kind of cleaning named its own way
+(`spot_cleaning`, `mopping`) is cleaning, and any other state is said in its own words, `Emptying the bin`, never
+guessed. An error is a warning; so is a low battery while it stands away from its dock, not cleaning, not on its way home and not charging.
+
+## Component
+
+`<HaVacuum>` is `useHaVacuum` as a component that draws nothing of its own. It takes every option of the hook as a prop,
+and hands the hook's result to its child function. Use it where hooks can't go, such as one per item of a list.
+
+<ApiMembers from="@dashhaus/core" name="HaVacuum" only={["entityId", "children"]} />
+
+## Hook
+
+<ApiSignature from="@dashhaus/core" name="useHaVacuum" />
+
+It reads the vacuum, its area and today's cleaning. The battery is the vacuum's own, so there is no companion to pass.
+
+### Options
+
+<ApiMembers from="@dashhaus/core" name="HaVacuumOptions" />
+
+### Returns
+
+<ApiMembers from="@dashhaus/core" name="HaVacuumResult" />
+
+#### `entity`: VacuumEntity
+
+Each `supports…` flag comes from what the vacuum declares to Home Assistant. Its battery, status and fan speed are known
+only while it is available.
+
+<ApiMembers from="@dashhaus/core/entities/vacuum/types" name="VacuumEntity" />
+
+#### `history`: VacuumHistory
+
+Today, from Home Assistant's recorder, kept up to date by every change since: the hours it was cleaning. Pass `history`
+to supply your own, or `loadHistory={false}` to skip the read.
+
+<ApiMembers from="@dashhaus/core/entities/vacuum/types" name="VacuumHistory" />
+
+#### `actions`: VacuumHandlers
+
+<ApiMembers from="@dashhaus/core" name="VacuumHandlers" />
+
+An action the vacuum doesn't declare, or any action while it is unavailable, is reported to `onActionError` as
+`unsupported` and never sent; a fan speed it doesn't list is reported as `invalid_input`.
+
+## Every vacuum
+
+Hooks can't be called in a loop, so a list renders one headless component per entity. Lists skip each item's history
+read with `loadHistory={false}`.
+
+<Example file="entities/vacuum/AllVacuums.tsx" />
+
+## Tasks
+
+### Its fan speed
+
+<Example file="entities/vacuum/FanSpeed.tsx" />
+
+`fanSpeeds` is Home Assistant's `fan_speed_list`, in the integration's own words: quiet, standard, turbo, max_plus.
+
+## In a skin
+
+Orb's `HaVacuumTile` and Field's `HaVacuumModule` are `useHaVacuum` above each skin's card. One press pauses it while it
+moves and starts it while it stands; returning to its dock, locating it and its fan speeds are in its details. An error
+is marked as a warning, never a glow. They take the hook's options as props, plus their own:
+
+<Example file="entities/vacuum/Skins.tsx" />
+
+<Tabs syncKey="skin">
+  <TabItem label="Orb">
+    <ApiMembers from="@dashhaus/orb" name="HaVacuumTileProps" except={{ from: "@dashhaus/core", name: "HaVacuumOptions" }} />
+  </TabItem>
+  <TabItem label="Field">
+    <ApiMembers from="@dashhaus/field" name="HaVacuumModuleProps" except={{ from: "@dashhaus/core", name: "HaVacuumOptions" }} />
+  </TabItem>
+</Tabs>
+
+<StoryLinks kind="vacuum" />

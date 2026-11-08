@@ -6,6 +6,7 @@ import { useHaBinarySensor } from "./hooks/binarySensor";
 import { useHaCamera } from "./hooks/camera";
 import { useHaMediaPlayer } from "./hooks/mediaPlayer";
 import { useHaNumeric } from "./hooks/numeric";
+import { useHaVacuum } from "./hooks/vacuum";
 // new-card: headless imports
 import { useHaLight } from "./hooks/light";
 import { useHaClimate } from "./hooks/climate";
@@ -60,4 +61,5 @@ export const HaBinarySensor = headless(useHaBinarySensor, "HaBinarySensor");
 export const HaCamera = headless(useHaCamera, "HaCamera");
 export const HaMediaPlayer = headless(useHaMediaPlayer, "HaMediaPlayer");
 export const HaNumeric = headless(useHaNumeric, "HaNumeric");
+export const HaVacuum = headless(useHaVacuum, "HaVacuum");
 // new-card: headless components

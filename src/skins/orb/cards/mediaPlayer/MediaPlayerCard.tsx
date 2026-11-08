@@ -86,7 +86,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
   const orbLabel = unav ? `${e.name}: Unavailable` : verb ? `${verb} ${e.name}` : `${e.name}: ${word}`;
   const slot = press
     ? <TogglePill label={`${e.name}: ${word} · ${verb}`} on={active} onToggle={run} extra={verb}>{word}</TogglePill>
-    : <p className="mp-st">{word}</p>;
+    : <p className="hd-st mp-st">{word}</p>;
 
   const playhead = usePlayhead(e);
   const head = quiet ? undefined : playhead;
@@ -120,7 +120,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
       statusTitle={typeof status === "string" ? status : cue}
       value={word}
       // The large readout is the volume, which no card control prints, or Muted; without one it repeats the pill's word.
-      readout={unav ? { value: null } : muted ? { value: MUTED, duplicate: true, className: "mp-word" } : loaded && e.volume != null ? { value: <>{e.volume}<span>%</span></> } : { value: word, duplicate: true, className: "mp-word" }}
+      readout={unav ? { value: null } : muted ? { value: MUTED, duplicate: true, className: "hd-num--long" } : loaded && e.volume != null ? { value: <>{e.volume}<span>%</span></> } : { value: word, duplicate: true, className: "hd-num--long" }}
       onClose={onClose}
       control={slot}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: unav ? "" : mediaAbilities(e) }}
@@ -143,7 +143,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
       {(can.previous || can.next || can.off || can.volume || can.mute || can.source) && (
         <SheetBlock>
           {(can.previous || can.next) && (
-            <div className="mp-acts">
+            <div className="hd-acts">
               {can.previous && <TogglePill label={skipSaid(e.name, "previous")} onToggle={onPrevious!}>{SKIP_WORDS.previous}</TogglePill>}
               {can.next && <TogglePill label={skipSaid(e.name, "next")} onToggle={onNext!}>{SKIP_WORDS.next}</TogglePill>}
             </div>
@@ -170,7 +170,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
           {can.source && (
             <ChoiceChips id={`${uid}-s`} label="Source" options={e.sources!.map((s) => ({ value: s, label: s }))} value={e.source} onChange={onSourceChange!} />
           )}
-          {can.off && <div className="mp-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>{pressWord("turnOff")}</TogglePill></div>}
+          {can.off && <div className="hd-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>{pressWord("turnOff")}</TogglePill></div>}
         </SheetBlock>
       )}
       {sheet && history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary(MEDIA_PLAYER_TODAY, history.playingMinutes)} />}

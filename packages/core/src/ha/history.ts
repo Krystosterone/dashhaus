@@ -10,6 +10,8 @@ import type { OwletHistory, SleepState } from "../entities/owlet/types";
 import { SLEEP_SAMPLE } from "../entities/owlet/sleep";
 import type { MediaPlayerHistory } from "../entities/mediaPlayer/types";
 import { mediaPlayerStateOf } from "./mappers/mediaPlayer";
+import type { VacuumHistory } from "../entities/vacuum/types";
+import { vacuumStateOf } from "./mappers/vacuum";
 import { finiteNumber, isRecord, stringList } from "./util";
 
 /* ------------------------------------------------------------------ *
@@ -181,6 +183,21 @@ export function onOffHistoryFromHass(records: Records, entityId: string, now?: D
     on: (state) => state === "on",
   });
   return { samples, currentHour, onMinutes: minutes };
+}
+
+/**
+ * Today for a robot vacuum, on the same on/off parser: an hour cleaning is on, any other state it reports (docked,
+ * paused, in error) off, read through the mapper's names for its states, so an integration's `charging` or
+ * `spot_cleaning` counts as Home Assistant's own would.
+ */
+export function vacuumHistoryFromHass(records: Records, entityId: string, now?: Date): VacuumHistory {
+  const when = safeNow(now);
+  const cleaning = (state: string) => vacuumStateOf(state).state === "cleaning";
+  const { samples, currentHour, minutes } = build(only(records, entityId), when, {
+    value: (state) => (vacuumStateOf(state).state === "unavailable" ? "unavailable" : cleaning(state) ? 1 : 0),
+    on: cleaning,
+  });
+  return { samples, currentHour, cleaningMinutes: minutes };
 }
 
 /** Replicates the binary 1/0 + onMinutes computation of `useDemoToggle`. */

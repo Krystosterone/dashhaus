@@ -90,5 +90,9 @@ export { NumericModule } from "./cards/numeric/NumericModule";
 export type { NumericModuleProps } from "./cards/numeric/NumericModule";
 export { HaNumericModule } from "./ha/HaNumericModule";
 export type { HaNumericModuleProps } from "./ha/HaNumericModule";
+export { VacuumModule } from "./cards/vacuum/VacuumModule";
+export type { VacuumModuleProps } from "./cards/vacuum/VacuumModule";
+export { HaVacuumModule } from "./ha/HaVacuumModule";
+export type { HaVacuumModuleProps } from "./ha/HaVacuumModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

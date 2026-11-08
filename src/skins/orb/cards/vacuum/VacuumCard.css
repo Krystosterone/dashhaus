@@ -1,0 +1,19 @@
+/* Vacuum card. Shell, orb, pill, chips, today strip and sheet come from src/skins/orb/shared/card.css.
+   Classes here start with vc-; colours only from tokens.css. A vacuum is a state: it never glows. */
+
+/* The readout says what it is doing in words (the shared hd-num--long: an integration's own words can be long).
+   Standing still (docked, idle, paused, in error), outside its active set, is the quieter ink; the marker, not the
+   word, carries an error */
+.vc:not([data-state="cleaning"], [data-state="returning"]) .hd-num { color: var(--ink-2); }
+
+/* What the integration adds after the room ("Charging"), quieter than the room */
+.vc-detail { color: var(--ink-3); }
+
+/* Nothing it can do now (returning with no pause): its state as a readout, the shared hd-st. The sheet's dock and
+   locate are the shared hd-acts, raised pills that act once, side by side. */
+
+/* A wide compact row has room for the pill's verb as well: Cleaning · Pause. */
+@container hd (min-width: 400px) {
+  .vc.hd--compact .hd-pill-x { display: inline; }
+  .vc.hd--compact .hd-pill { justify-content: space-between; }
+}

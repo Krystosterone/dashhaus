@@ -181,6 +181,8 @@ typed beside its types in `node_modules/@dashhaus/core/dist/entities/`:
 | `@dashhaus/core/entities/sound/words` | `soundWord`, `soundAbilities`, and why its volume doesn't sound (`soundVolumeReason`, `SOUND_OFF_SAID`) |
 | `@dashhaus/core/entities/toggle/durations` | the "for a while, until morning" choices |
 | `@dashhaus/core/entities/toggle/words` | `toggleWord`, `toggleKind` |
+| `@dashhaus/core/entities/vacuum/words` | a vacuum's state in words (`vacuumWord`), its active set (`isActive`: cleaning and returning), what one press does now (`vacuumPress`, `pressWord`, `pressKeyWord`, `pressSaid`, `pressHint`), sending it home and finding it (`RETURN_WORDS`, `returnSaid`, `LOCATE_WORD`, `locateSaid`), its warning (`vacuumWarning`), `batteryFact`, `fanSpeedLabel`, `FAN_SPEED` |
+| `@dashhaus/core/entities/vacuum/severity` | `vacuumSeverity`: an error urgent, a low battery away from the dock advisory |
 | `@dashhaus/core/entities/weather/conditions` | `SKY` (each condition as a sky to draw), `CONDITION_LABEL`, `compass`, `precipitation` |
 | `@dashhaus/core/entities/weather/readings` | `conditionLabel` (a condition in words, by day or night), `isNight`, `deg0`, `aqiBand`, `uvBand`, `weatherWarnings`, `weatherWarningsSaid` |
 | `@dashhaus/core/entities/weather/severity` | `weatherSeverity` |

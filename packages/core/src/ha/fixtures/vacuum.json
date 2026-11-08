@@ -1,0 +1,61 @@
+{
+  "vacuum.downstairs": {
+    "entity_id": "vacuum.downstairs",
+    "state": "cleaning",
+    "attributes": {
+      "friendly_name": "Robot vacuum",
+      "battery_level": 72,
+      "battery_icon": "mdi:battery-70",
+      "fan_speed": "standard",
+      "fan_speed_list": ["quiet", "standard", "strong", "turbo"],
+      "status": "Cleaning",
+      "supported_features": 8956
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "vacuum.upstairs": {
+    "entity_id": "vacuum.upstairs",
+    "state": "docked",
+    "attributes": {
+      "friendly_name": "Upstairs vacuum",
+      "battery_level": 100,
+      "battery_icon": "mdi:battery",
+      "status": "Charging completed",
+      "supported_features": 8404
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "vacuum.kitchen": {
+    "entity_id": "vacuum.kitchen",
+    "state": "error",
+    "attributes": {
+      "friendly_name": "Kitchen vacuum",
+      "battery_level": 41,
+      "error": "Main brush jammed",
+      "supported_features": 8956
+    },
+    "last_changed": "2026-10-19T10:40:00+00:00",
+    "last_updated": "2026-10-19T10:40:00+00:00"
+  },
+  "vacuum.porch": {
+    "entity_id": "vacuum.porch",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch"
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "vacuum.garage": {
+    "entity_id": "vacuum.garage",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage",
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

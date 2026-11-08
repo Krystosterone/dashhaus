@@ -98,6 +98,10 @@
 .hd:is([data-state="off"], [data-state="unknown"]) .hd-num { color: var(--ink-3); }
 /* A readout that says a word (On, a named speed), not a figure: a little smaller than a number. */
 .hd-num--word { font-size: clamp(28px, 6cqi, 38px); letter-spacing: -0.02em; }
+/* A readout that says a state an integration may name its own way (a vacuum's Emptying the bin, a player's Muted):
+   a step smaller again, cut with an ellipsis rather than pushed past the card's edge. */
+.hd .hd-num.hd-num--long { font-size: clamp(26px, 5.4cqi, 34px); letter-spacing: -0.02em; line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hd--sheet.hd .hd-num.hd-num--long { font-size: 30px; }
 .hd-name { display: flex; min-width: 0; margin: 0; font-size: clamp(16px, 4.6cqi, 19px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
 .hd-name > span, .hd-open > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-area { margin-top: 3px !important; font-size: var(--type-status); font-weight: 500; color: var(--ink-2); line-height: var(--type-status-leading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -226,6 +230,16 @@
    for the alert and the action, not the time between them. */
 .hd-alarm[data-action] { padding-right: var(--inset); }
 .hd--compact .hd-alarm[data-action] .hd-alarm-v { display: none; }
+
+/* A control's state as a readout, with no container, where it has nothing to press now (a vacuum on its way home that
+   can't pause, a player that can do nothing, a lock while it turns): its word in the slot, in the second ink. */
+.hd-st {
+  display: flex; align-items: center; height: var(--slot-h); min-width: 0; margin: 0; padding: 0 var(--pad-in);
+  font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hd--compact .hd-st { justify-content: flex-end; font-size: 13px; }
+/* Raised pills that act once, side by side in the sheet (a vacuum's dock and locate, a player's skips). */
+.hd-acts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
 
 /* Readout: a reading's figures with no container, so nothing that can't be pressed looks pressable.
    Tapping it still opens details. */

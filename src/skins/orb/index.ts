@@ -150,6 +150,14 @@ export type { NumericTileProps } from "./cards/numeric/NumericTile";
 export { HaNumericTile } from "./ha/HaNumericTile";
 export type { HaNumericTileProps } from "./ha/HaNumericTile";
 
+// Vacuum
+export { VacuumCard, VacuumSheet } from "./cards/vacuum/VacuumCard";
+export type { VacuumCardProps, VacuumSheetProps } from "./cards/vacuum/VacuumCard";
+export { VacuumTile } from "./cards/vacuum/VacuumTile";
+export type { VacuumTileProps } from "./cards/vacuum/VacuumTile";
+export { HaVacuumTile } from "./ha/HaVacuumTile";
+export type { HaVacuumTileProps } from "./ha/HaVacuumTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";
