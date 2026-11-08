@@ -34,8 +34,14 @@ export class FakeHomeAssistant {
   /** The registries the frontend's `hass` carries; `states` and these may be replaced at construction. */
   registries;
   stateListeners = new Set();
+  /**
+   * The energy preferences `energy/get_prefs` answers, in Home Assistant's shape. None by default, as a house whose
+   * energy dashboard was never set up: the command fails with Home Assistant's own `not_found`, "No prefs".
+   */
+  energy;
 
-  constructor({ states = houseStates(), registries = houseRegistries() } = {}) {
+  constructor({ states = houseStates(), registries = houseRegistries(), energy } = {}) {
+    this.energy = energy;
     this.states = Object.fromEntries(states.map((state) => [state.entity_id, normalizeState(state)]));
     this.registries = {
       entities: registries.entities ?? {},
@@ -152,6 +158,10 @@ export class FakeHomeAssistant {
     if (type === "config/entity_registry/list_for_display") return this.entityRegistryForDisplay();
     if (type === "config/device_registry/list") return this.deviceRegistry();
     if (type === "config/area_registry/list") return this.areaRegistry();
+    if (type === "energy/get_prefs") {
+      if (!this.energy) throw Object.assign(new Error("No prefs"), { code: "not_found" });
+      return this.energy;
+    }
     throw new Error(`unexpected Home Assistant command ${type}`);
   }
 

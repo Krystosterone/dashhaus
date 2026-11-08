@@ -1,7 +1,7 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/core/lovelace/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, byName, deviceCompanion, domainOf, numericSensors, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { areaId, byName, deviceCompanion, domainOf, energySensors, numericSensors, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/core/lovelace/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/core/lovelace/layout";
@@ -20,7 +20,7 @@ const VOUCHER = /^sensor\.\w+_voucher$/;
 
 /**
  * A starting dashboard config for a house, as titled `rows`: actionable rows first, then household status, then
- * the outside and room glance. Automatic discovery cannot know which controls a person uses most,
+ * the outside, room and energy glance. Automatic discovery cannot know which controls a person uses most,
  * so it keeps all discovered actions in deterministic domain/area order for the person to refine.
  * No featured hero is chosen; compact rows carry secondary controls.
  */
@@ -124,6 +124,11 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // The glance.
   if (weather || sun) place({ title: "Outside", cards: [weather, sun].filter((id): id is string => id !== undefined) });
   if (air.length) place({ title: "Rooms", cards: air });
+  // Then the house's power and energy meters from Home Assistant's energy preferences (`energySensors`), last: they
+  // land after the first draw, so nothing above moves when they do. Standard, so a meter's today says what it rose.
+  const placed = new Set(rows.flatMap((row) => row.cards.map((card) => (typeof card === "string" ? card : card.entity))));
+  const energy = energySensors(input).filter((entity) => !placed.has(entity));
+  if (energy.length) place({ title: "Energy", cards: energy.map((entity) => ({ entity, card: "numeric" })) });
 
   // Nothing to place yet (entities still loading, or no supported domain): stay in automatic mode.
   return rows.length ? { type: "custom:dashhaus-orb", title, rows } : { type: "custom:dashhaus-orb", title };

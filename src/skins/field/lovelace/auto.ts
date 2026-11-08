@@ -1,4 +1,4 @@
-import { deviceCompanion, friendlyName, groupByArea, numericSensors, roomSensors, safetySensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { deviceCompanion, energySensors, friendlyName, groupByArea, numericSensors, roomSensors, safetySensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput } from "@dashhaus/core/lovelace/layout";
 import { kindOf } from "./config";
 import type { FieldRow, ModuleConfig } from "./config";
@@ -16,7 +16,8 @@ export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
  * buttons likewise), and every calendar a calendar. The binary sensor card takes only the safety glance, as orb's does: every door, window, leak and
  * smoke sensor (`safetySensors`), with its device's battery. Every camera is a camera, its still on a standard module.
  * The numeric card takes the room's air quality, one reading per
- * device (`numericSensors`: CO₂ first); power, energy and any other reading are added by hand. The dashboard groups them by area.
+ * device (`numericSensors`: CO₂ first); power, energy and any other reading are added by hand, but for the house's own
+ * meters, which `energyModules` finds. The dashboard groups them by area.
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states } = input;
@@ -35,6 +36,29 @@ export function autoModules(input: AutoInput): ModuleConfig[] {
   return sortByName([...others, ...(weather ? [{ ...weather, sun: "sun.sun" }] : []), ...sensors, ...safety, ...air], (module) => friendlyName(states, module.entity));
 }
 
-/** The automatic layout's rows: one per area, titled with its name (`groupByArea`), modules by name. */
-export const areaRows = (modules: readonly ModuleConfig[]): FieldRow[] =>
-  groupByArea(modules).map((group) => ({ title: group.area, flow: "normal", align: "top", cards: group.modules.map((item) => ({ item, width: 1 })) }));
+/**
+ * The house's power and energy meters from Home Assistant's energy preferences (`energySensors`: power now, then the
+ * meters), as numeric modules in that order, leaving out any of `modules` already draws. Nothing without preferences.
+ */
+export function energyModules(input: AutoInput, modules: readonly ModuleConfig[] = []): ModuleConfig[] {
+  const drawn = new Set(modules.map((module) => module.entity));
+  return energySensors(input).filter((entity) => !drawn.has(entity)).map((entity): ModuleConfig => ({ entity, kind: "numeric" }));
+}
+
+/** The title of the automatic layout's row for the house's energy, as Orb's. */
+const ENERGY = "Energy";
+
+/**
+ * The automatic layout's rows: one per area, titled with its name (`groupByArea`), modules by name, then the house's
+ * `energy` under Energy, last and in its own order, not by area: the preferences land after the first draw, so nothing
+ * above moves when they do. An area called Energy takes them instead, so the page never shows two rows of one name.
+ */
+export function areaRows(modules: readonly ModuleConfig[], energy: readonly ModuleConfig[] = []): FieldRow[] {
+  const rows: FieldRow[] = groupByArea(modules).map((group) => ({ title: group.area, flow: "normal", align: "top", cards: group.modules.map((item) => ({ item, width: 1 })) }));
+  if (!energy.length) return rows;
+  const cards = energy.map((item) => ({ item, width: 1 }));
+  const same = rows.find((row) => row.title?.toLowerCase() === ENERGY.toLowerCase());
+  if (same) same.cards.push(...cards);
+  else rows.push({ title: ENERGY, flow: "normal", align: "top", cards });
+  return rows;
+}

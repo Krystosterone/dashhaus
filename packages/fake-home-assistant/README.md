@@ -89,11 +89,14 @@ dashboard pages are open.
 - `lovelace/config`, `lovelace/config/save`
 - `get_states`, `call_service`
 - `config/entity_registry/list_for_display`, `config/device_registry/list`, `config/area_registry/list`
+- `energy/get_prefs`: the `energy` option's preferences, or, by default, Home Assistant's own `not_found` ("No prefs"),
+  as a house whose energy dashboard was never set up. The dashboard page answers it the same way.
 
 `subscribe_entities` sends the whole house once, then one event per changed state. `call_service` turns `light`,
 `switch` and `input_boolean` entities on, off or over, and applies a light's `brightness` and `brightness_pct`; any
 other service is accepted and leaves the state alone. An unknown entity or command gets a failed result with
-`unknown_command`. Set `ha.failResources = true` to make `lovelace/resources` fail, for a deploy's YAML-mode path.
+`unknown_command`, and a refusal that carries Home Assistant's own code (`energy/get_prefs`'s `not_found`) keeps it.
+Set `ha.failResources = true` to make `lovelace/resources` fail, for a deploy's YAML-mode path.
 
 `subscribe_events`, `unsubscribe_events` and `ping` answer success (or `pong`) without emitting events.
 
@@ -115,6 +118,13 @@ const registries = {
   areas: { office: { area_id: "office", name: "Office" } },
 };
 await startFakeHomeAssistant({ port: 0, states, registries });
+```
+
+`energy` gives `energy/get_prefs` an answer, in Home Assistant's shape, for a dashboard's energy row:
+
+```js
+const energy = { energy_sources: [{ type: "grid", stat_energy_from: "sensor.grid_import", stat_rate: "sensor.grid_power" }] };
+await startFakeHomeAssistant({ port: 0, energy });
 ```
 
 `last_changed`, `last_updated` and `context` are filled in when a state omits them. `houseStates()`,

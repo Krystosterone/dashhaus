@@ -74,6 +74,16 @@ describe("the websocket API", () => {
     expect(ha.states["light.kitchen_ceiling"]?.state).toBe("off");
   });
 
+  it("answers energy/get_prefs as Home Assistant does: not_found with none, the preferences when given", async () => {
+    const none = await start();
+    const { client } = await authenticate(none.settings);
+    expect(await ask(client, 1, "energy/get_prefs")).toMatchObject({ success: false, error: { code: "not_found", message: "No prefs" } });
+    const energy = { energy_sources: [{ type: "grid", stat_energy_from: "sensor.grid_import", stat_rate: "sensor.grid_power" }] };
+    const given = await start({ energy });
+    const { client: other } = await authenticate(given.settings);
+    expect(await ask(other, 1, "energy/get_prefs")).toMatchObject({ success: true, result: energy });
+  });
+
   it("answers the Lovelace resource, dashboard and config commands", async () => {
     const { ha, settings } = await start();
     const { client } = await authenticate(settings);

@@ -8,6 +8,8 @@ import { createHomeAssistantTransport } from "../websocket";
 import type { HaStore, HassEntities } from "../index";
 import { perfMark, perfMarkAfterPaint } from "../perf";
 import { ErrorBoundary } from "./errorBoundary";
+import { readEnergyPrefs } from "../index";
+import type { EnergyPrefs } from "../index";
 
 /** Registry facts per entity: the shape of the frontend's `hass.entities`. */
 export interface AutoEntityEntry {
@@ -30,8 +32,37 @@ export interface LovelaceHass {
   panels?: Record<string, { url_path?: string; title?: string | null }>;
 }
 
-/** The states and registries an automatic layout reads, from `hass`. */
-export const autoInput = (hass: LovelaceHass) => ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas });
+/**
+ * The states and registries an automatic layout reads, from `hass`, and the house's energy preferences where the skin
+ * has them (`LovelaceDashboardElement.energyPrefs`).
+ */
+export const autoInput = (hass: LovelaceHass, energy?: EnergyPrefs) =>
+  ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas, ...(energy && { energy }) });
+
+/** One connection's read of the energy preferences: its answer once it lands. */
+interface EnergyRead {
+  settled: boolean;
+  prefs?: EnergyPrefs;
+  done: Promise<void>;
+}
+
+/**
+ * The energy preferences, read once per frontend connection and shared by every card on it; a new connection (a
+ * reconnect, another frontend) reads them again. They rarely change, so a change shows on the next load.
+ */
+const energyReads = new WeakMap<Connection, EnergyRead>();
+
+function readEnergy(connection: Connection): EnergyRead {
+  const held = energyReads.get(connection);
+  if (held) return held;
+  const read: EnergyRead = { settled: false, done: Promise.resolve() };
+  read.done = readEnergyPrefs((message) => connection.sendMessagePromise(message)).then((prefs) => {
+    read.prefs = prefs;
+    read.settled = true;
+  });
+  energyReads.set(connection, read);
+  return read;
+}
 
 /**
  * A web font's stylesheet, linked from the page itself: fonts only load from the document, never from inside a
@@ -78,6 +109,29 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
   protected abstract draw(config: C, hass: LovelaceHass): ReactNode;
   /** Host attributes the page reads, set before each draw. */
   protected paintHost(_config: C, _hass: LovelaceHass) {}
+
+  /** The connection whose energy read this card waits on, to draw again when it lands. */
+  #energyWait?: Connection;
+
+  /**
+   * Home Assistant's energy preferences (`energy/get_prefs`), for an automatic layout's power and energy meters:
+   * nothing until they land, when the card draws again, and nothing for good when the house has none or the read
+   * fails. The read starts the first time a skin asks, so a skin asks only on its automatic path and a page laid out
+   * by hand never sends it; it is made once per connection, whatever number of cards ask.
+   */
+  protected energyPrefs(hass: LovelaceHass): EnergyPrefs | undefined {
+    const read = readEnergy(hass.connection);
+    if (!read.settled && this.#energyWait !== hass.connection) {
+      this.#energyWait = hass.connection;
+      void read.done.then(() => this.render());
+    }
+    return read.prefs;
+  }
+
+  /** What `energyPrefs` already holds for the connection, without reading: for a static `getStubConfig(hass)`. */
+  protected static heldEnergyPrefs(hass: LovelaceHass): EnergyPrefs | undefined {
+    return energyReads.get(hass.connection)?.prefs;
+  }
 
   /** Lovelace calls this on every YAML edit. */
   setConfig(raw: unknown) {

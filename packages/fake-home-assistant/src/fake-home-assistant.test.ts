@@ -105,6 +105,15 @@ describe("FakeHomeAssistant", () => {
     expect(await ha.send("config/area_registry/list")).toHaveLength(4);
   });
 
+  it("answers energy/get_prefs with Home Assistant's not_found by default, and with the preferences it is given", async () => {
+    await expect(new FakeHomeAssistant().send("energy/get_prefs")).rejects.toMatchObject({ code: "not_found", message: "No prefs" });
+    const energy = { energy_sources: [{ type: "grid", stat_energy_from: "sensor.grid_import", stat_rate: "sensor.grid_power" }] };
+    const ha = new FakeHomeAssistant({ energy });
+    expect(await ha.send("energy/get_prefs")).toEqual(energy);
+    ha.energy = undefined;
+    await expect(ha.send("energy/get_prefs")).rejects.toMatchObject({ code: "not_found" });
+  });
+
   it("rejects an unknown command", async () => {
     const ha = new FakeHomeAssistant();
     await expect(ha.send("lovelace/nope")).rejects.toThrow("unexpected Home Assistant command lovelace/nope");

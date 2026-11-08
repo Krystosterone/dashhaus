@@ -23,6 +23,11 @@ With nothing but its `type`, the card lays out every supported entity it can see
 Assistant's registries, and keeps up as you add devices. The dashboards the deploy tool creates start this way. Hidden,
 configuration and diagnostic entities are left out; room sensors are paired with the humidity and battery sensors on the same device.
 
+If you set up Home Assistant's Energy dashboard, the last row is **Energy**: the power your grid, solar panels and
+batteries draw or give right now, then their energy meters, each a number with what it rose today. They are the sensors
+you chose there, so nothing is guessed from the dozens of smart plugs a house has. Without an Energy dashboard there is
+no such row. Gas, water and the devices you listed under individual devices are left for you to add.
+
 ## Your own layout
 
 Open the dashboard, **⋮ → Edit dashboard**, the card's pencil, then **Show code editor**. The preview redraws as you

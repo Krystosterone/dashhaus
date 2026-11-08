@@ -14,6 +14,7 @@ export type {
   FakeCall,
   FakeConnectionSeen,
   FakeDashboard,
+  FakeEnergyPrefs,
   FakeHomeAssistantOptions,
   FakeResource,
   FakeSavedLayout,

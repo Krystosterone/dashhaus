@@ -183,6 +183,34 @@ describe("dashhaus-field card", () => {
     expect(card.shadowRoot!.querySelector(".fd-read")?.textContent).toContain("°F");
   });
 
+  it("adds the house's energy under Energy, last, when Home Assistant's energy preferences land, and never asks for a page laid out by hand", async () => {
+    let answer!: (value: unknown) => void;
+    const sendMessagePromise = vi.fn(() => new Promise((resolve) => { answer = resolve; }));
+    const withEnergy = { ...hass(), connection: { sendMessagePromise } as unknown as Connection };
+    const untouched = vi.fn(async () => undefined);
+    const laidOut = document.createElement("dashhaus-field-test") as Card;
+    laidOut.setConfig({ cards: ["light.desk"] });
+    laidOut.hass = { ...hass(), connection: { sendMessagePromise: untouched } as unknown as Connection };
+    const card = document.createElement("dashhaus-field-test") as Card;
+    card.setConfig({});
+    card.hass = withEnergy;
+    await act(async () => {
+      document.body.append(laidOut, card);
+      await Promise.resolve();
+    });
+    expect(sendMessagePromise).toHaveBeenCalledTimes(1);
+    expect(legends(card)).toEqual(["Kitchen", "Living room", "Office"]);
+    await act(async () => {
+      answer({ energy_sources: [{ type: "grid", stat_rate: "sensor.office_power" }] });
+      await Promise.resolve();
+    });
+    expect(legends(card)).toEqual(["Kitchen", "Living room", "Office", "Energy"]);
+    expect(names(card).at(-1)).toBe("Office power");
+    expect([...card.shadowRoot!.querySelectorAll(".fd-nav-key")].map((k) => k.textContent)).toEqual(["Kitchen", "Living room", "Office", "Energy"]);
+    expect(names(laidOut)).toEqual(["Desk"]);
+    expect(untouched).not.toHaveBeenCalled();
+  });
+
   it("pre-fills the card picker in automatic mode", () => {
     expect(Element.getStubConfig()).toEqual({ type: "custom:dashhaus-field" });
   });

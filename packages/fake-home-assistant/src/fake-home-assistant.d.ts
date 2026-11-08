@@ -45,6 +45,15 @@ export interface FakeCall {
 export interface FakeHomeAssistantOptions {
   states?: FakeState[];
   registries?: FakeRegistries;
+  /** What `energy/get_prefs` answers; none, the default, fails it with `not_found` as a house without an energy dashboard. */
+  energy?: FakeEnergyPrefs;
+}
+
+/** Home Assistant's energy preferences, as `energy/get_prefs` answers them. */
+export interface FakeEnergyPrefs {
+  energy_sources: Array<{ type: string } & Record<string, unknown>>;
+  device_consumption?: unknown[];
+  [key: string]: unknown;
 }
 
 export class FakeHomeAssistant {
@@ -62,6 +71,8 @@ export class FakeHomeAssistant {
   states: Record<string, FakeState>;
   /** The registries the frontend's `hass` carries. */
   registries: FakeRegistries;
+  /** What `energy/get_prefs` answers; none fails it with `not_found`. */
+  energy: FakeEnergyPrefs | undefined;
 
   /** Listen for state changes; the returned function unsubscribes. */
   onStateChange(listener: (state: FakeState) => void): () => void;
