@@ -32,8 +32,9 @@ describe("HaCalendarTile", () => {
       expect.objectContaining({ start_date_time: expect.any(String), end_date_time: expect.any(String) }),
       { target: { entity_id: "calendar.family" }, returnResponse: true },
     ));
-    // An event past midnight is tomorrow's; one still today counts down.
-    await waitFor(() => expect(screen.getByRole("button", { name: /^Family: Dentist, (In 1h 1m|Tomorrow \d\d:\d\d)\. Open details$/ })).toBeTruthy());
+    // An event past midnight is tomorrow's, on the locale's clock (no hour_cycle: `00:05`, or `12:05 AM`); one still
+    // today counts down.
+    await waitFor(() => expect(screen.getByRole("button", { name: /^Family: Dentist, (In 1h 1m|Tomorrow (\d\d:\d\d|\d{1,2}:\d\d\s[AP]M))\. Open details$/ })).toBeTruthy());
   });
 
   it("shows a missing calendar as unavailable", async () => {
