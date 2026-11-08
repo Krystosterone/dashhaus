@@ -56,6 +56,13 @@ describe("SunModule", () => {
     expect(container.querySelector(".fd-meta")?.textContent).toBe("Up all day");
   });
 
+  it("says SET where no sunrise is reported, a word no wider than OPEN, and the words on its meta line", () => {
+    const container = draw({ ...entity, up: false, nextRising: undefined });
+    expect(container.querySelector(".fd-read-fig [aria-hidden]")?.textContent).toBe("SET");
+    expect(container.querySelector(".fd-read-fig .fd-sr")?.textContent).toBe("Down all day");
+    expect(container.querySelector(".fd-meta")?.textContent).toBe("Down all day");
+  });
+
   it("blanks the screen before its first report, and while unavailable says when it was last seen", () => {
     expect(draw({ entityId: "sun.sun", name: "Sun", state: "ok", now: entity.now }).querySelector(".fd-meta")?.textContent).toBe("No reading yet");
     const container = draw({ entityId: "sun.sun", name: "Sun", state: "unavailable", now: entity.now, lastSeen: "08:20" });
