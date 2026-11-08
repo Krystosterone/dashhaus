@@ -14,7 +14,10 @@ export interface GuestWifiMapOptions {
   area?: string;
   /** Explicit last-reachable metadata; `last_changed` is not a last-seen timestamp. */
   lastSeen?: string;
-  /** The network's join QR code, `image.*_qr_code`. */
+  /**
+   * The network's join QR code, `image.*_qr_code`: the network's name where the code names none. Its picture is not
+   * read here; `useHaGuestWifi` adds it (`useHaPicture`).
+   */
   qrEntity?: HassEntity;
   /** What makes a new one (UniFi's `button.*_create`): while it is reachable, no code is `none`, not unavailable. */
   newCodeEntity?: HassEntity;
@@ -48,14 +51,15 @@ const count = (value: unknown) => {
  * makes it unavailable when there is none: with no code or password, it is `none` while what makes a new one is
  * reachable, and unavailable otherwise, as `unknown` and a missing entity are. Uses, length and time left are read only
  * from the attributes UniFi Hotspot Manager writes, and dropped when they don't parse; the network's name is the
- * `network` option, else its `wlan_name`.
+ * `network` option, else its `wlan_name`, else the QR code image's. The QR code itself is a picture, not normalized
+ * state: the model carries none from here, and `useHaGuestWifi` adds it, resolved by the connection.
  */
 export function guestWifiFromHass(raw: HassEntity | undefined, entityId: string, options: GuestWifiMapOptions = {}): GuestWifiEntity {
   const { now, qrEntity, newCodeEntity } = options;
   const attributes = raw?.attributes ?? {};
   const code = raw && raw.state !== "unavailable" && raw.state !== "unknown" ? stringValue(raw.state.trim()) : undefined;
   const state = code ? "ready" : reachable(newCodeEntity) ? "none" : "unavailable";
-  const qr = state !== "unavailable" && reachable(qrEntity) ? qrEntity : undefined;
+  const image = state !== "unavailable" && reachable(qrEntity) ? qrEntity : undefined;
   const quota = code ? count(attributes.quota) : undefined;
 
   return {
@@ -64,9 +68,8 @@ export function guestWifiFromHass(raw: HassEntity | undefined, entityId: string,
     area: options.area,
     state,
     access: options.access ?? defaultAccess(entityId),
-    network: state === "unavailable" ? undefined : options.network ?? stringValue(attributes.wlan_name) ?? stringValue(qr?.attributes.wlan_name),
+    network: state === "unavailable" ? undefined : options.network ?? stringValue(attributes.wlan_name) ?? stringValue(image?.attributes.wlan_name),
     code,
-    qr: stringValue(qr?.attributes.entity_picture),
     allowed: quota === 0 ? "unlimited" : quota,
     used: code ? count(attributes.used) : undefined,
     lastsMinutes: code ? durationMinutes(attributes.duration) : undefined,

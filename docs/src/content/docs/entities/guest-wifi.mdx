@@ -30,8 +30,10 @@ new one.
 
 The entity id is what holds the code or password. For UniFi Hotspot Manager's `sensor.<site>_voucher`, its QR code
 image and its two buttons are found beside it by the integration's names. For anything else, name them: the QR code
-image, and a `button`, `input_button` or `script` for each action. The QR code is an image Home Assistant serves, so
-draw it from the same Home Assistant the dashboard runs in; without one, the card shows none.
+image, and a `button`, `input_button` or `script` for each action. The QR code is the image's own `entity_picture`, a
+signed address whose token Home Assistant changes every few minutes: the hook gives it as an address your page can
+load, against your Home Assistant, so it works in an app on another address too, and gives none while the image is
+unavailable. Draw it whole, black on white as it is served, so it scans; without one, the card shows none.
 
 ## Component
 

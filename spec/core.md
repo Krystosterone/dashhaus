@@ -130,8 +130,9 @@ itself; and a prop on every card and option on every hook, which every renderer 
 
 ## Pictures
 
-A camera's still and a player's artwork are an entity's own picture, Home Assistant's `entity_picture`: a signed, usually
-relative path (`/api/camera_proxy/camera.door?token=…`, `/api/media_player_proxy/…&cache=…`) whose token Home Assistant
+A camera's still, a player's artwork and a guest Wi-Fi's join QR code (its `image.*`'s) are an entity's own picture,
+Home Assistant's `entity_picture`: a signed, usually relative path (`/api/camera_proxy/camera.door?token=…`,
+`/api/media_player_proxy/…&cache=…`, `/api/image_proxy/image.site_qr_code?token=…`) whose token Home Assistant
 rotates by rewriting the attribute, or an absolute URL for a player whose artwork is remotely accessible. It is the one
 image core carries. Nothing else is read (no `camera/thumbnail`, no `auth/sign_path`), and no stream: no HLS, WebRTC or
 MJPEG player, and no dependency for one.
@@ -175,6 +176,14 @@ MJPEG player, and no dependency for one.
   a camera card's `still: false`, fetches none (the card passes no source rather than hiding a loaded one); `quiet`
   pauses refreshing. Each skin draws a picture with its own `Picture` part, a fixed box with no word over it, which
   takes no press while the entity is unavailable: a camera that is gone has no stream to open.
+- **A QR code is resolved as a picture and drawn as a code.** `useHaGuestWifi` reads its image through
+  `useHaPicture`, so it loads on another origin and is gone while the image (or the code) is unavailable, but each skin
+  draws it as a plain image, whole and as served, never through `usePicture` and its `Picture` part. The part is a
+  media surface (orb's neutral well, field's window in the dark screen, cropped to fill, the card's glyph before a
+  frame), and a QR code scans only drawn whole, black on white with its quiet zone, printed on the card in either
+  theme. Nor has it a frame's lifecycle: nothing to refresh, date or pause under `quiet`, since it changes only when
+  its URL does (a rotated token, a new password's image), and it is drawn only where it is shown (the featured card and
+  the details). Without one, the card says how to join in words alone, never `No picture`.
 
 ## Error metadata
 
