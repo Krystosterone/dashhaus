@@ -38,7 +38,7 @@ const config: TestRunnerConfig = {
       throw new Error(`Field module horizontal overflow\n${lines.join("\n")}`);
     }
     // A Field row's screen holds its figure inside its inset, four places as three (spec/field.md → Footprints), and a
-    // module's today keeps its legend to one line, so the strip under it never moves.
+    // module's today and fader keep their legend to one line, so the strip or the slot under it never moves.
     const misfits = await page.locator("#storybook-root .fd-module").evaluateAll((modules) =>
       modules.flatMap((module) => {
         const name = module.querySelector(".fd-name")?.textContent?.trim() || "unnamed";
@@ -50,10 +50,11 @@ const config: TestRunnerConfig = {
           const right = read.getBoundingClientRect().right;
           if (right > inner + 0.5) found.push(`${name}: its row's figure "${read.textContent}" runs ${(right - inner).toFixed(1)}px into the screen's inset`);
         }
-        for (const legend of module.querySelectorAll(".fd-today > .fd-legend")) {
+        for (const legend of module.querySelectorAll(".fd-today > .fd-legend, .fd-fader > .fd-legend")) {
           const line = parseFloat(getComputedStyle(legend).lineHeight);
           const height = legend.getBoundingClientRect().height;
-          if (height > line + 1) found.push(`${name}: today's legend "${legend.textContent}" wraps (${height}px for a ${line}px line)`);
+          const whose = legend.parentElement?.matches(".fd-today") ? "today's" : "a fader's";
+          if (height > line + 1) found.push(`${name}: ${whose} legend "${legend.textContent}" wraps (${height}px for a ${line}px line)`);
         }
         return found;
       }),

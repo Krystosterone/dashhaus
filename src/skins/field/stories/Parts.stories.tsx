@@ -12,6 +12,7 @@ import { BULB, IconBulb } from "../cards/light/icons";
 import { IconThermo, THERMO } from "../cards/sensor/icons";
 import { ModeIcon } from "../cards/climate/icons";
 import { IconLock } from "../cards/lock/icons";
+import { DROP, IconHumidifier } from "../cards/humidifier/icons";
 
 const meta = {
   title: "Field/Foundations/Parts",
@@ -112,7 +113,7 @@ function AllParts() {
         <State label="Unavailable"><Glyph unavailable><IconThermo /></Glyph></State>
       </Part>
 
-      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all. A fader may snap a pointer onto its own grid: a cover's ends pull the thumb to closed and open.">
+      <Part name="Fader" rule="A printed legend, a thin slot, a dotted scale and a round thumb in its parameter's colour: tap to jump, drag to follow the finger. Its legend keeps to one line over the slot: the rule gives way first, then its words end in an ellipsis, the slider saying the value whole. Off keeps the thumb where a level is known; off with none reported has no thumb but still takes a slide, which turns it on; with no trustworthy value and nothing to set there is no thumb at all. A fader may snap a pointer onto its own grid: a cover's ends pull the thumb to closed and open.">
         <State label="On, first parameter" width={300}><Fader id="parts-a" label="Brightness" legend="Brightness" value={level} min={1} max={100} lit valueText={`${level} percent`} onChange={setLevel} /></State>
         <State label="Second parameter" width={300}><Fader id="parts-b" label="Warmth" legend="Warmth" value={warmth} min={0} max={100} lit param="b" valueText={`${warmth} percent`} onChange={setWarmth} /></State>
         <State label="Off" width={300}><Fader id="parts-off" label="Brightness, off" legend="Brightness" value={30} min={1} max={100} lit={false} valueText="Off. Last set to 30 percent" onChange={() => {}} /></State>
@@ -120,6 +121,10 @@ function AllParts() {
         <State label="Disabled" width={300}><Fader id="parts-disabled" label="Brightness, unavailable" legend="Brightness" value={30} min={1} max={100} lit={false} disabled valueText="Unavailable" onChange={() => {}} /></State>
         <State label="No value" width={300}><Fader id="parts-empty" label="Brightness, unknown" legend="Brightness" min={1} max={100} lit={false} valueText="Unknown" onChange={() => {}} /></State>
         <State label="Magnetic ends: slide near one and it snaps there" width={300}><Fader id="parts-snap" label="Curtains position" legend="Position" value={position} min={0} max={100} lit={position > 0} valueText={`${position} percent open`} snap={(raw) => (raw <= 4 ? 0 : raw >= 96 ? 100 : Math.round(raw))} onChange={setPosition} /></State>
+        <State label="A narrow module (200 px): the legend keeps one line, its rule giving way, then an ellipsis" width={200}>
+          <Frame name="Nursery humidifier" area="Upstairs" state="ok" pict={<Pictogram lit>{DROP}</Pictogram>} read={<><Digits value={52} /><small>%</small></>} meta={["Humidifying"]}
+            row={<ModuleRow><Key label="Nursery humidifier" pressed onPress={() => {}}><IconHumidifier /></Key><Fader id="parts-narrow" label="Nursery humidifier, humidify to" legend="Humidify to 45%" value={45} min={30} max={80} lit valueText="45 percent" onChange={() => {}} /></ModuleRow>} />
+        </State>
       </Part>
 
       <Part name="Range fader" rule="Two ordered values on one fader: the lower thumb is the first parameter, the upper the second. A tap or a drag moves the nearer thumb.">

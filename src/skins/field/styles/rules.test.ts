@@ -190,6 +190,12 @@ describe("viewing distance: type for the room, never a height", () => {
     expect(shared.some((r) => r.selector === ".fd-module .fd-today .fd-legend-v" && /text-overflow: ellipsis/.test(r.body))).toBe(true);
   });
 
+  it("a fader's legend keeps to one line over its slot: its words end in an ellipsis", () => {
+    const shared = rules(`${SKIN}/shared/module.css`);
+    expect(shared.some((r) => r.selector === ".fd-fader > .fd-legend" && /white-space: nowrap/.test(r.body))).toBe(true);
+    expect(shared.some((r) => r.selector === ".fd-fader > .fd-legend > .fd-legend-n" && /text-overflow: ellipsis/.test(r.body))).toBe(true);
+  });
+
   it("the screen's figure never steps its type down to fit its word: a word fits four places or is another word", () => {
     const bad = cssFiles.flatMap((f) => rules(f)
       .filter((r) => /\[data-(?:places|len|length|chars|long)\b/.test(r.selector) && /(?:^|;)\s*font-size\s*:/.test(r.body))

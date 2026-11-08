@@ -464,7 +464,7 @@ export function Fader({ id, label, legend, value, min, max, step = 1, lit, empty
   const style = { "--fd-steps": scaleSteps(min, max, step), ...(thumb ? { "--v": slider.fraction(slider.value).toFixed(4) } : {}) } as Vars;
   return (
     <div className="fd-fader" {...slider.rootProps} data-lit={lit} data-param={param} data-disabled={inactive || undefined} data-empty={!thumb || undefined} style={style}>
-      <p className="fd-legend" aria-hidden="true">{legend}</p>
+      <p className="fd-legend" aria-hidden="true"><span className="fd-legend-n">{legend}</span></p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
       {thumb && <div className="fd-rail" aria-hidden="true"><div className="fd-thumb" /></div>}
@@ -508,7 +508,7 @@ export function RangeFader({ id, name, legend, low, high, min, max, step = 1, di
       data-disabled={disabled || undefined}
       style={{ "--fd-lo": range.fraction(lo).toFixed(4), "--fd-hi": range.fraction(hi).toFixed(4), "--fd-steps": scaleSteps(min, max, step) } as Vars}
     >
-      <p className="fd-legend" aria-hidden="true">{legend}</p>
+      <p className="fd-legend" aria-hidden="true"><span className="fd-legend-n">{legend}</span></p>
       <div className="fd-slot" aria-hidden="true" />
       <div className="fd-scale" aria-hidden="true" />
       <div className="fd-rail fd-range-rail fd-range-rail--low" data-param="a" aria-hidden="true"><div className="fd-thumb" /></div>

@@ -269,6 +269,11 @@
 .fd-legend--block { position: static; margin: 0; }
 .fd-legend-v { order: 2; color: var(--fd-ink-2); }
 .fd-legend::after { content: ""; flex: 1; height: 5px; border-top: 1px solid var(--fd-print); border-right: 1px solid var(--fd-print); align-self: flex-end; margin-bottom: -1px; }
+/* A fader's legend sits over its slot, so it keeps to one line at every width: its rule gives way first, down to its
+   end, then its words end in an ellipsis (`HUMIDIFY TO 4…`), the slider's label and the screen saying the value whole. */
+.fd-fader > .fd-legend { white-space: nowrap; }
+.fd-fader > .fd-legend::after { min-width: 6px; }
+.fd-fader > .fd-legend > .fd-legend-n { min-width: 0; overflow-x: clip; text-overflow: ellipsis; }
 .fd-slot { position: absolute; left: 9px; right: 9px; top: 25px; height: 4px; border-radius: 2px; background: var(--fd-slot); }
 /* A dot per stop on the thumb's centre line (--fd-steps, set by the fader): eleven dots in tens by default. */
 .fd-scale {
