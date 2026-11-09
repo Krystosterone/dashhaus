@@ -171,14 +171,17 @@ const CARDS = [
 ];
 
 /**
- * Field's widths and its two footprints (spec/field.md → Footprints): a module under 240 px, where its pictogram goes,
- * one at an area's usual width and a wide one; a row under 280 px, where its screen narrows, and one at its usual width.
+ * Field's widths and its two footprints (spec/field.md → Footprints): a module under 266 px, where its pictogram goes,
+ * one at 266 px, the narrowest that keeps everything, one at an area's usual width and a wide one; a row under 300 px,
+ * where its screen narrows, one at 300 px, the narrowest with its whole screen, and one at its usual width.
  */
 const CASES: { width: number; footprint: FieldFootprint }[] = [
   { width: 200, footprint: "standard" },
+  { width: 266, footprint: "standard" },
   { width: 300, footprint: "standard" },
   { width: 464, footprint: "standard" },
   { width: 260, footprint: "compact" },
+  { width: 300, footprint: "compact" },
   { width: 340, footprint: "compact" },
 ];
 
@@ -207,5 +210,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every module against realistic worst-case data, at narrow, track and wide standard widths and narrow and track rows. */
+/** Every module against realistic worst-case data, at narrow, boundary, track and wide standard widths and narrow, boundary and track rows. */
 export const AllCards: Story = { render: () => <WorstCasePage /> };

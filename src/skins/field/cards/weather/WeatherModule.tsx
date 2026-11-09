@@ -62,15 +62,16 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   const sky = cond ? precip ?? conditionLabel(cond, night) : null;
   // The most urgent warning, with a count of the rest so a clipped line never hides that more exist; where even
   // that clips, the count alone. Spoken in full.
-  const warn = !level ? null : warnings.length > 1 ? (
-    <Warn>
+  const several = warnings.length > 1 ? (
+    <>
       <span aria-hidden="true">
         <span className="fd-wx-warn-l">{`${warnings[0]} +${warnings.length - 1}`}</span>
         <span className="fd-wx-warn-s">{`${warnings.length} warnings`}</span>
       </span>
       <span className="fd-sr">{weatherWarningsSaid(e).join(", ")}</span>
-    </Warn>
-  ) : <Warn>{warnings[0]}</Warn>;
+    </>
+  ) : null;
+  const warn = !level ? null : <Warn>{several ?? warnings[0]}</Warn>;
 
   const pict = <Pictogram param="neutral" lit={cond != null}>{conditionPict(cond, night)}</Pictogram>;
   const read: ReactNode = unav ? <Blank places={4} label="Unavailable" />
@@ -88,7 +89,8 @@ export function WeatherModule({ entity: e, footprint = "standard", history, hour
   // A compact row has no meta lines: the first takes the area's line, a warning behind its marker.
   const compact = footprint === "compact";
   const line = compact ? (unav ? "Unavailable" : sky ?? undefined) : undefined;
-  const plateWarning = compact && level ? (warnings.length > 1 ? `${warnings[0]} +${warnings.length - 1}` : warnings[0]) : undefined;
+  // On a row's line, the same: the most urgent and a count, or the count alone where even the word clips.
+  const plateWarning = compact && level ? (several ?? warnings[0]) : undefined;
 
   // The panel's content: the screen with how it feels on its second channel, every warning and the sky in words,
   // today, the next hours and the next days on strips of screen, then every reading printed on the plate.

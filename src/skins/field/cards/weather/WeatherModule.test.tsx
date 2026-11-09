@@ -66,7 +66,9 @@ describe("WeatherModule", () => {
     expect(draw(WEATHER_SEEDS.partly, "compact").querySelector(".fd-area")?.textContent).toBe("70% rain at 14:00");
     const area = draw(WEATHER_WORST_CASE[0], "compact").querySelector(".fd-area");
     expect(area?.querySelector(".fd-warn svg")).not.toBeNull();
-    expect(area?.textContent).toBe("Warning: Hazardous air +2");
+    // The most urgent with a count, or the count alone where the word clips (a row under 340 px), spoken in full.
+    expect(area?.querySelector(".fd-wx-warn-l")?.textContent).toBe("Hazardous air +2");
+    expect(area?.querySelector(".fd-wx-warn-s")?.textContent).toBe("3 warnings");
   });
 
   it("blanks the screen while unavailable, with when it was last seen, and keeps what today read", () => {
