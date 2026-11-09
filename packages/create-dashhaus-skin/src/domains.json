@@ -272,11 +272,34 @@
     ],
     "kind": "control",
     "actions": [
-      "onOpenCover",
-      "onCloseCover",
       "onStopCover"
     ],
-    "guarded": [],
+    "guarded": [
+      {
+        "action": "onOpenCover",
+        "asks": true,
+        "code": false,
+        "when": {
+          "deviceClass": [
+            "garage",
+            "door",
+            "gate"
+          ]
+        }
+      },
+      {
+        "action": "onCloseCover",
+        "asks": true,
+        "code": false,
+        "when": {
+          "deviceClass": [
+            "garage",
+            "door",
+            "gate"
+          ]
+        }
+      }
+    ],
     "leftOut": [
       "onSetPosition",
       "onSetTilt"
@@ -287,7 +310,15 @@
         "field": "position",
         "min": 0,
         "max": 100,
-        "wakes": false
+        "wakes": false,
+        "asks": true,
+        "when": {
+          "deviceClass": [
+            "garage",
+            "door",
+            "gate"
+          ]
+        }
       },
       {
         "action": "onSetTilt",

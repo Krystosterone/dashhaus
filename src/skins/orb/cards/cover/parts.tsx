@@ -43,19 +43,23 @@ const IconUp = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 8
 const IconDown = () => <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 5.5 7 9l3.5-3.5" /></svg>;
 
 /**
- * For covers without a position (most garage doors): close at one end, open at the other, state or Stop in the middle.
- * The end that can't act lies flat; `either`, where the cover is isn't known, so both ends act.
+ * For covers without a position (most garage doors), and for a garage door, door or gate whatever it reports: close at
+ * one end, open at the other, state or Stop in the middle. The end that can't act lies flat; `either`, where the cover
+ * is isn't known, so both ends act. `asks`: its ends ask first, which their names say with an ellipsis ("Close Garage
+ * door…"), as every orb action that asks does. `flat`: both ends lie flat, while a question already stands or while it
+ * moves where it can't be stopped.
  */
-export function OpenCloseControl({ name, open, moving, either = false, text, canStop, onOpen, onClose, onStop }: {
-  name: string; open: boolean; moving: boolean; either?: boolean; text: string; canStop: boolean; onOpen: () => void; onClose: () => void; onStop: () => void;
+export function OpenCloseControl({ name, open, moving, either = false, asks = false, flat = false, text, canStop, onOpen, onClose, onStop }: {
+  name: string; open: boolean; moving: boolean; either?: boolean; asks?: boolean; flat?: boolean; text: string; canStop: boolean; onOpen: () => void; onClose: () => void; onStop: () => void;
 }) {
+  const more = asks ? "…" : "";
   return (
     <div className="hd-step" data-open={open || undefined} role="group" aria-label={name}>
-      <button type="button" className="cv-oc-b" aria-label={`Close ${name}`} disabled={!open && !moving && !either} onClick={onClose}><span><IconDown /></span></button>
+      <button type="button" className="cv-oc-b" aria-label={`Close ${name}${more}`} disabled={flat || (!open && !moving && !either)} onClick={onClose}><span><IconDown /></span></button>
       {moving && canStop
         ? <button type="button" className="cv-oc-stop" onClick={onStop}><i aria-hidden="true" />Stop</button>
         : <span className="cv-oc-v" aria-live="polite">{text}</span>}
-      <button type="button" className="cv-oc-b" aria-label={`Open ${name}`} disabled={open && !moving && !either} onClick={onOpen}><span><IconUp /></span></button>
+      <button type="button" className="cv-oc-b" aria-label={`Open ${name}${more}`} disabled={flat || (open && !moving && !either)} onClick={onOpen}><span><IconUp /></span></button>
     </div>
   );
 }

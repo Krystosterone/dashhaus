@@ -107,18 +107,20 @@ describe("new-card", () => {
       expect(orb.status, orb.output).toBe(0);
       const actions = join(copy, "packages/core/src/ha/actions/probeLatch.ts");
       writeFileSync(actions, readFileSync(actions, "utf8")
-        .replace("  onToggle: () => void;\n}", "  onToggle: () => void;\n  onUnlatch: (code?: string) => void;\n  onPurge: () => void;\n  onLevel?: (level: number) => void;\n}")
-        .replace('  onToggle: { takes: "nothing" },\n', '  onToggle: { takes: "nothing" },\n  onUnlatch: { takes: "code", asks: true },\n  onPurge: { takes: "nothing", asks: true },\n  onLevel: { takes: "value" },\n')
-        .replace('      if (actionable()) run("toggle");\n    },\n', '      if (actionable()) run("toggle");\n    },\n    onUnlatch: (code) => {\n      if (actionable()) run("unlatch", code ? { code } : {});\n    },\n    onPurge: () => {\n      if (actionable()) run("purge");\n    },\n'));
+        .replace("  onToggle: () => void;\n}", "  onToggle: () => void;\n  onUnlatch: (code?: string) => void;\n  onPurge: () => void;\n  onVent: () => void;\n  onLevel?: (level: number) => void;\n}")
+        .replace('  onToggle: { takes: "nothing" },\n', '  onToggle: { takes: "nothing" },\n  onUnlatch: { takes: "code", asks: true },\n  onPurge: { takes: "nothing", asks: true },\n  onVent: { takes: "nothing", asks: true, when: { state: ["on"] } },\n  onLevel: { takes: "value" },\n')
+        .replace('      if (actionable()) run("toggle");\n    },\n', '      if (actionable()) run("toggle");\n    },\n    onUnlatch: (code) => {\n      if (actionable()) run("unlatch", code ? { code } : {});\n    },\n    onPurge: () => {\n      if (actionable()) run("purge");\n    },\n    onVent: () => {\n      if (actionable()) run("vent");\n    },\n'));
       const types = join(copy, "packages/core/src/entities/probeLatch/types.ts");
       writeFileSync(types, readFileSync(types, "utf8").replace("  lastChanged?: string;", '  lastChanged?: string;\n  codeFormat?: "number" | "text" | null;'));
       const field = await run(copy, "node", [script, "probeLatch", "--skin", "field"]);
       expect(field.status, field.output).toBe(0);
-      expect(field.output).toMatch(/onUnlatch \(asks first\), onPurge \(asks first\)/);
+      expect(field.output).toMatch(/onUnlatch \(asks first\), onPurge \(asks first\), onVent \(asks first\)/);
       expect(field.output).toMatch(/Left out: onLevel takes a value a press can't give/);
       const module = readFileSync(join(copy, "src/skins/field/cards/probeLatch/ProbeLatchModule.tsx"), "utf8");
       expect(module).toContain('onPress={() => ask("purge")}');
       expect(module).not.toMatch(/onPress=\{\(\) => onPurge/);
+      // One that asks only where its `when` says, a press for every other entity.
+      expect(module).toContain('onPress={() => (["on"].includes(e.state) ? ask("vent") : void guard.attempt("vent"))}');
       const typecheck = await typecheckCopy(copy);
       expect(typecheck.status, typecheck.output).toBe(0);
       const tests = await run(copy, "npx", ["vitest", "run", "--config", "config/vitest.config.ts", "src/skins/field/cards/probeLatch", "src/skins/field/ha/HaProbeLatchModule.test.tsx", "verify/field-conformance.test.ts"]);

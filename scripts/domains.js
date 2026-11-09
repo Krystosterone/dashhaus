@@ -19,8 +19,9 @@ const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${na
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
 
 /**
- * A domain's declared actions (`<NAME>_ACTIONS` in its actions file), each `{ action, takes, asks }`. Every handler
- * must be declared: a generator never guesses what an action is from its signature.
+ * A domain's declared actions (`<NAME>_ACTIONS` in its actions file), each `{ action, takes, asks }`, and `when` where
+ * it asks only for some entities (`{ deviceClass: ["garage", "door", "gate"] }`). Every handler must be declared: a
+ * generator never guesses what an action is from its signature.
  */
 export function declaredActions(source, Name, CONST) {
   const handlers = shape(source, `${Name}Handlers`);
@@ -32,9 +33,18 @@ export function declaredActions(source, Name, CONST) {
     const raw = kind.match(new RegExp(`\\b${key}: (-?[\\d.]+|"\\w+")`))?.[1];
     return raw == null ? undefined : raw.startsWith('"') ? { field: raw.slice(1, -1) } : Number(raw);
   };
+  /** `when: { deviceClass: ["garage", "door", "gate"] }`: each field, and the values it asks for. */
+  const when = (kind) => {
+    const raw = kind.match(/\bwhen: \{([^}]*)\}/)?.[1];
+    if (raw == null) return undefined;
+    const fields = Object.fromEntries([...raw.matchAll(/(\w+): \[([^\]]*)\]/g)].map(([, field, values]) => [field, [...values.matchAll(/"([^"]+)"/g)].map(([, value]) => value)]));
+    if (!Object.keys(fields).length) throw new Error(`${CONST}_ACTIONS has a \`when\` its reader can't read: ${kind.trim()}`);
+    return fields;
+  };
   const declared = Object.fromEntries([...body.matchAll(/^\s+(on\w+): \{(.*)\},?(?:\s*\/\/.*)?$/gm)].map(([, action, kind]) => [action, {
     takes: kind.match(/takes: "(\w+)"/)?.[1],
     asks: /asks: true/.test(kind),
+    ...(/asks: true/.test(kind) && when(kind) && { when: when(kind) }),
     // A value said as what it is: the entity field it lives in, and a level's range or a choice's options.
     ...(/takes: "(level|choice|switch)"/.test(kind) && { field: kind.match(/\bfield: "(\w+)"/)?.[1] }),
     ...(/takes: "level"/.test(kind) && { min: bound(kind, "min") ?? 0, max: bound(kind, "max") ?? 100, wakes: /wakes: true/.test(kind), runs: /runs: true/.test(kind) }),
@@ -87,13 +97,16 @@ export function describeDomain(name) {
 
   const actionsPath = packageFile("core", `src/ha/actions/${name}.ts`);
   const declared = exists(actionsPath) ? declaredActions(read(actionsPath), Name, CONST) : [];
-  // A tap: a button. Asks first, or takes a code: through the skin's question and keypad. A value: left out.
+  // A tap: a button. Asks first, or takes a code: through the skin's question and keypad, and one that asks only for
+  // some entities (`when`) asks for those and runs at once for the rest. A value: left out.
   const actions = declared.filter(({ takes, asks }) => takes === "nothing" && !asks).map(({ action }) => action);
-  const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks }) => ({ action, asks, code: takes === "code" }));
+  const guarded = declared.filter(({ takes, asks }) => takes === "code" || (takes === "nothing" && asks)).map(({ action, takes, asks, when }) => ({ action, asks, code: takes === "code", ...(when && { when }) }));
   // A level, a choice or a switch: drawn on a skin's own parts where it has them (orb's and field's), else left out.
   // A level that runs on by itself (a track's position) is left out: a part that holds a level still would show where
-  // it was, and set it on every move; a skin draws it on its own running clock.
-  const valued = (takes) => declared.filter((kind) => kind.takes === takes && !kind.runs).map(({ action, field, min, max, wakes, options }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }) }));
+  // it was, and set it on every move; a skin draws it on its own running clock. A level that asks first has no
+  // question in any skin yet: one that asks for every entity is left out, and one that asks only for some (`when`) is
+  // drawn for the rest, its `when` saying where it is left out.
+  const valued = (takes) => declared.filter((kind) => kind.takes === takes && !kind.runs && !(kind.asks && !kind.when)).map(({ action, field, min, max, wakes, options, when }) => ({ action, field, ...(takes === "level" && { min, max, wakes }), ...(takes === "choice" && { options }), ...(when && { asks: true, when }) }));
   const levels = valued("level");
   const runs = declared.filter((kind) => kind.takes === "level" && kind.runs).map(({ action }) => action);
   const choices = valued("choice");

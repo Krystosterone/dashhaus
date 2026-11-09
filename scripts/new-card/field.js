@@ -10,8 +10,9 @@
  * registers the module everywhere verify/field-conformance.test.ts looks, the Lovelace card included:
  *   - control: one key per action the domain declares a press can give (`<NAME>_ACTIONS` beside its handlers): a tap
  *     acts (`onToggle` latches, its LED on while the entity is "on"); an action that asks first, or takes a code, opens
- *     the panel on the skin's Confirm or Keypad instead, never one tap. An action that takes a value is left out,
- *     saying so. The default when the domain has one.
+ *     the panel on the skin's Confirm or Keypad instead, never one tap (one that asks only where its `when` says, for
+ *     those entities; a level that asks there is left out there). An action that takes a value is left out, saying
+ *     so. The default when the domain has one.
  *   - reading: the glyph on a flat plate and today's meter, nothing pressed. The default when it has none.
  * Today's meter is drawn only for a domain with a `<Name>History`: a lock's day is its last change.
  * Nothing is written unless every file and every registration can be made.
@@ -45,7 +46,9 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   }
   // What each action is, as the domain declares it beside its handlers: never guessed from a signature.
   const taps = domain.actions.map((action) => ({ action, takes: "nothing", asks: false }));
-  const asked = domain.guarded.map(({ action, asks, code: takesCode }) => ({ action, takes: takesCode ? "code" : "nothing", asks }));
+  // One that asks only for some entities (its `when`: a garage door, door or gate's open) asks for those, and is a press
+  // for the rest.
+  const asked = domain.guarded.map(({ action, asks, code: takesCode, when }) => ({ action, takes: takesCode ? "code" : "nothing", asks, ...(when && { when }) }));
   // A level, a choice or a switch: on field's own parts (a fader, keys in a group); the rest is left out.
   const { levels, choices: chosen, switches } = domain;
   const valueActions = [...levels, ...chosen, ...switches].map(({ action }) => action);
@@ -83,6 +86,11 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   const seedKeys = [...seedBody.matchAll(/^ {2}(\w+): /gm)].map((m) => ({ key: m[1], index: m.index }));
   const seedText = (i) => seedBody.slice(seedKeys[i].index, seedKeys[i + 1]?.index);
   const unavailableSeed = seedKeys.find((_, i) => /state: "unavailable"/.test(seedText(i)))?.key;
+  /** Whether a seed is one an action that asks only for some entities (its `when`) asks for. */
+  const seedAsks = (key, when) => {
+    const text = seedText(seedKeys.findIndex((entry) => entry.key === key));
+    return Object.entries(when).every(([field, values]) => values.includes(text.match(new RegExp(`\\b${field}: "([^"]+)"`))?.[1]));
+  };
   const firstSeed = seedKeys.find((_, i) => !/state: "unavailable"/.test(seedText(i)))?.key;
   if (!unavailableSeed || !firstSeed) fail(`${CONST}_SEEDS needs an unavailable example and an available one, for the Unavailable and default stories`);
 
@@ -110,8 +118,12 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     const codes = asked.filter(({ asks }) => !asks);
     return [asks.length && `${verb(asks, "asks", "ask")} first, on the panel's question or keypad`, codes.length && `${verb(codes, "takes", "take")} a code where the ${words} wants one`].filter(Boolean).join(", and ");
   })();
-  const keyLines = pressed.map(({ action, takes, asks }) => {
+  const keyLines = pressed.map(({ action, takes, asks, when }) => {
     const label = labelOf(action);
+    if (asks && when) {
+      const ifAsks = card.whenExpr(when);
+      return `    <Key key="${action}" label={\`${label} \${e.name}\${${ifAsks} ? ": asks first" : ""}\`} unavailable={unav} onPress={() => (${ifAsks} ? ask("${keyOf(action)}") : void guard.attempt("${keyOf(action)}"))} onHold={${hold}} wide={wide} caption={wide && !unav ? "${label}" : undefined}><Icon${Name} /></Key>,`;
+    }
     if (action === "onToggle" && toggle) return `    <Key key="${action}" label={e.name} pressed={on} unavailable={unav} onPress={() => ${action}?.()} onHold={${hold}} wide={wide} caption={wide && !unav ? (on ? "On" : "Off") : undefined}><Icon${Name} /></Key>,`;
     if (asks || takes === "code") return `    <Key key="${action}" label={\`${label} \${e.name}${asks ? ": asks first" : ""}\`} unavailable={unav} onPress={() => ${asks ? "ask" : "attempt"}("${keyOf(action)}")} onHold={${hold}} wide={wide} caption={wide && !unav ? "${label}" : undefined}><Icon${Name} /></Key>,`;
     return `    <Key key="${action}" label={\`${label} \${e.name}\`} unavailable={unav} onPress={() => ${action}?.()} onHold={${hold}} wide={wide} caption={wide && !unav ? "${label}" : undefined}><Icon${Name} /></Key>,`;
@@ -136,13 +148,19 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
   // The connected test's count: what one press of each key sends at once. What asks first sends nothing; what takes
   // a code sends only while the entity asks for none.
   const fixtureCode = !!fixture[fixtureId]?.attributes?.code_format;
-  const sentAtOnce = pressed.filter(({ takes, asks }) => !asks && !(takes === "code" && fixtureCode)).length;
+  // One that asks only for some entities (its `when`) asks where the fixture's raw entity says so: its state, or the
+  // attribute of the field's name (`deviceClass` is Home Assistant's `device_class`).
+  const raw = (field) => (field === "state" ? fixture[fixtureId]?.state : fixture[fixtureId]?.attributes?.[field.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)]);
+  const fixtureAsks = (when) => Object.entries(when).every(([field, values]) => values.includes(raw(field)));
+  const sentAtOnce = pressed.filter(({ takes, asks, when }) => !(asks && (!when || fixtureAsks(when))) && !(takes === "code" && fixtureCode)).length;
   // ---------- Values on field's parts ----------
   // A value's words, from its field: "presetMode" → "Preset mode".
   const fieldWords = (field) => labelOf(`on${field[0].toUpperCase()}${field.slice(1)}`);
   const bound = (b) => typeof b === "number" ? String(b) : `e.${b.field}`;
   const isPercent = ({ min, max }) => typeof min === "number" && typeof max === "number" && min >= 0 && max <= 100;
-  const fader = ({ action, field, min, max }, id) => `<Fader id={${id}} label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`} legend="${fieldWords(field)}" value={unav ? undefined : e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} lit={${toggle ? "on" : "!unav"}} disabled={unav} valueText={${isPercent({ min, max }) ? `\`\${e.${field} ?? ${bound(min)}} percent\`` : `String(e.${field} ?? ${bound(min)})`}} onChange={(v) => ${action}?.(v)} />`;
+  /** A level as a fader; one that asks first for some entities (its `when`) is left out for those: shown, never set. */
+  const fader = (level, id) => level.when ? `{!(${card.whenExpr(level.when)}) && ${faderOf(level, id)}}` : faderOf(level, id);
+  const faderOf = ({ action, field, min, max }, id) => `<Fader id={${id}} label={\`\${e.name} ${fieldWords(field).toLowerCase()}\`} legend="${fieldWords(field)}" value={unav ? undefined : e.${field} ?? ${bound(min)}} min={${bound(min)}} max={${bound(max)}} lit={${toggle ? "on" : "!unav"}} disabled={unav} valueText={${isPercent({ min, max }) ? `\`\${e.${field} ?? ${bound(min)}} percent\`` : `String(e.${field} ?? ${bound(min)})`}} onChange={(v) => ${action}?.(v)} />`;
   // The first level beside the one key, in the module's row and again in the panel; with more keys, in the panel.
   const [rowLevel, ...panelLevels] = pressed.length <= 1 ? values.levels : [undefined, ...values.levels];
   const choiceKeys = ({ action, field, options }) => {
@@ -225,9 +243,9 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       `  // The key and its ${fieldWords(rowLevel.field).toLowerCase()} fader, the same in the module and the panel. Unavailable, the fader goes and the key`,
       "  // spans the row, as every field control's does.",
       "  const controls = (where: \"m\" | \"p\") => (",
-      `    <ModuleRow className="fd-${code}-row" solo={unav}>`,
-      "      {keys(unav)[0]}",
-      `      {!unav && ${fader(rowLevel, "`${uid}-${where}`")}}`,
+      `    <ModuleRow className="fd-${code}-row" solo={unav${rowLevel.when ? ` || ${card.whenExpr(rowLevel.when)}` : ""}}>`,
+      `      {keys(unav${rowLevel.when ? ` || ${card.whenExpr(rowLevel.when)}` : ""})[0]}`,
+      `      {!unav${rowLevel.when ? ` && !(${card.whenExpr(rowLevel.when)})` : ""} && ${faderOf(rowLevel, "`${uid}-${where}`")}}`,
       "    </ModuleRow>",
       "  );",
     ].join("\n") : "",
@@ -270,17 +288,20 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     // The module test's presses: each action once, and what asks first never on one press.
     __vi__: pressed.length ? ", vi" : "",
     __testHandlers__: pressed.map(({ action }) => `${action}: vi.fn()`).join(", "),
-    __testExpect__: pressed.map(({ action, takes, asks }) => asks
-      ? `    expect(handlers.${action}, "${labelOf(action)} asks first: never one press").not.toHaveBeenCalled();`
+    __testExpect__: pressed.map(({ action, takes, asks, when }) => asks
+      ? (when ? (seedAsks(firstSeed, when) ? `    expect(handlers.${action}, "${labelOf(action)} asks first here: never one press").not.toHaveBeenCalled();` : `    expect(handlers.${action}).toHaveBeenCalledTimes(1);`)
+        : `    expect(handlers.${action}, "${labelOf(action)} asks first: never one press").not.toHaveBeenCalled();`)
       : takes === "code" ? "" : `    expect(handlers.${action}).toHaveBeenCalledTimes(1);`).filter(Boolean).join("\n"),
     __sentAtOnce__: String(sentAtOnce),
     // What asks first opens the panel on its question (or keypad), and a press alone never does it.
     __guardedTest__: (() => {
-      const first = pressed.find(({ asks }) => asks);
+      // An action that always asks, on the first seed; else one that asks only for some entities, on a seed it asks for.
+      const first = [...pressed.filter(({ asks, when }) => asks && !when).map((p) => ({ ...p, seed: firstSeed })),
+        ...pressed.filter(({ asks, when }) => asks && when).map((p) => ({ ...p, seed: seedKeys.map(({ key }) => key).find((key) => seedAsks(key, p.when)) }))].find(({ seed }) => seed);
       if (!first) return "";
       return [
         `  it("opens the panel on ${labelOf(first.action)}'s question or keypad, and doesn't ${labelOf(first.action).toLowerCase()} on the press", () => {`,
-        `    const { keys, handlers } = draw("${firstSeed}");`,
+        `    const { keys, handlers } = draw("${first.seed}");`,
         `    fireEvent.click(keys.find((key) => key.getAttribute("aria-label")?.startsWith("${labelOf(first.action)} "))!);`,
         `    expect(handlers.${first.action}).not.toHaveBeenCalled();`,
         '    expect(document.querySelector(".fd-cf, .fd-pad")).not.toBeNull();',

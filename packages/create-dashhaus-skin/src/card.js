@@ -75,6 +75,16 @@ export function leftOutWhy(leftOut, runs = [], own = "this skin's own control") 
   ].filter(Boolean).join("; ");
 }
 
+/**
+ * Where an action asks first only for some entities (its declared `when`, `{ deviceClass: ["garage", "door", "gate"] }`),
+ * the expression over `e` that says it does: `["garage", "door", "gate"].includes(e.deviceClass)`. Several fields must all
+ * match.
+ */
+export const whenExpr = (when) => Object.entries(when).map(([field, values]) => `[${values.map((value) => JSON.stringify(value)).join(", ")}].includes(e.${field})`).join(" && ");
+
+/** The same in words, for a comment: "its deviceClass is garage, door or gate". */
+export const whenWords = (when) => Object.entries(when).map(([field, values]) => `its ${field} is ${values.length > 1 ? `${values.slice(0, -1).join(", ")} or ${values.at(-1)}` : values[0]}`).join(" and ");
+
 /** A guarded action's key, what a card's details open on: `onUnlock` → "unlock". */
 export const keyOf = (action) => wordsOf(action).replace(/ /g, "-");
 
@@ -87,7 +97,7 @@ export function cardTokens(domain, names, drawn) {
   const { actions, guarded = [], leftOut = [], runs = [] } = Array.isArray(drawn) ? { actions: drawn } : drawn;
   const history = domain.history !== false;
   const code = domain.code ? "!!e.codeFormat" : "false";
-  const guardedRows = guarded.map(({ action, asks, code: takesCode }) => `    ...(${action} ? [{ key: "${keyOf(action)}", label: "${labelOf(action)}"${asks ? ", asks: true" : ""}${takesCode ? `, code: ${code}${domain.code ? ', text: e.codeFormat === "text"' : ""}` : ""}, run: ${action} }] : []),`);
+  const guardedRows = guarded.map(({ action, asks, code: takesCode, when }) => `    ...(${action} ? [{ key: "${keyOf(action)}", label: "${labelOf(action)}"${asks ? `, asks: ${when ? whenExpr(when) : "true"}` : ""}${takesCode ? `, code: ${code}${domain.code ? ', text: e.codeFormat === "text"' : ""}` : ""}, run: ${action} }] : []),`);
   const actionRows = actions.map((action) => {
     const pressed = action === "onToggle" ? ' pressed={e.state !== "off" && e.state !== "unavailable"}' : action === "onBaseToggle" ? ' {...("baseOn" in e ? { pressed: e.baseOn === true } : {})}' : "";
     return `      {${action} && <${Skin}Action label="${labelOf(action)}"${pressed} unavailable={unavailable} onPress={${action}} />}`;
@@ -101,7 +111,7 @@ export function cardTokens(domain, names, drawn) {
     __label__: domain.words,
     __actionProps__: [
       ...actions.map((action) => `  ${action}?: () => void;`),
-      ...guarded.map(({ action, asks, code: takesCode }) => `  /** ${asks ? "Asks first: the question, or the keypad where the entity wants a code; never one tap." : "Runs at once, and asks for the code where the entity wants one."} */\n  ${action}?: (${takesCode ? "code?: string" : ""}) => GuardedResult;`),
+      ...guarded.map(({ action, asks, code: takesCode, when }) => `  /** ${asks && when ? `Asks first where ${whenWords(when)}: the question; never one tap there. Elsewhere a tap does it.` : asks ? "Asks first: the question, or the keypad where the entity wants a code; never one tap." : "Runs at once, and asks for the code where the entity wants one."} */\n  ${action}?: (${takesCode ? "code?: string" : ""}) => GuardedResult;`),
     ].join("\n"),
     __actionArgs__: [...actions, ...guarded.map(({ action }) => action)].map((action) => `, ${action}`).join(""),
     __actionImport__: actions.length ? `${Skin}Action, ` : "",

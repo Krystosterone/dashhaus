@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CoverEntity } from "./types";
-import { LEFT_OPEN_WORD, coverWord, isOpen, leftOpenSentence, leftOpenText, positionText } from "./words";
+import { COVER_ASKS_HINT, LEFT_OPEN_WORD, coverAskAction, coverAskDetail, coverAskWaiting, coverQuestion, coverWord, isOpen, leftOpenSentence, leftOpenText, positionText } from "./words";
 import { coverSeverity } from "./severity";
 
 const cover = (over: Partial<CoverEntity>): CoverEntity => ({ entityId: "cover.garage", name: "Garage door", state: "closed", deviceClass: "garage", supportsPosition: false, supportsStop: true, ...over });
@@ -29,6 +29,32 @@ describe("cover words", () => {
     expect(leftOpenText("18:30")).toBe("Open since 18:30");
     expect(leftOpenText()).toBe("Open");
     expect(leftOpenSentence("Garage door", "18:30")).toBe("Garage door has been open since 18:30");
+  });
+});
+
+describe("asking first", () => {
+  it("asks with the name, and says what yes means: who it lets in, or what it could close on", () => {
+    expect(coverQuestion("close", "Garage door")).toBe("Close Garage door?");
+    expect(coverQuestion("open", "Driveway gate")).toBe("Open Driveway gate?");
+    expect(coverAskDetail("open", cover({}))).toBe("It opens now, and anyone outside can come in.");
+    expect(coverAskDetail("close", cover({ state: "open" }))).toBe("It closes now. Check nothing is in its way.");
+  });
+
+  it("says where it is isn't known, and that it can't be stopped from here when it can't stop", () => {
+    expect(coverAskDetail("close", cover({ state: "unknown" }))).toBe("It closes now. Check nothing is in its way. Where it is isn't known.");
+    expect(coverAskDetail("open", cover({ supportsStop: false }))).toBe("It opens now, and anyone outside can come in. It can't be stopped from here.");
+  });
+
+  it("names the thing its yes moves, never a bare Close beside the details' own close", () => {
+    expect(coverAskAction("close", cover({}))).toBe("Close garage door");
+    expect(coverAskAction("open", cover({ deviceClass: "gate" }))).toBe("Open gate");
+    expect(coverAskAction("close", cover({ deviceClass: "door" }))).toBe("Close door");
+    expect(COVER_ASKS_HINT).toBe("Opening and closing ask first.");
+  });
+
+  it("says what it waits for, naming the thing, with no end punctuation of its own", () => {
+    expect(coverAskWaiting(cover({}))).toBe("Waiting for the garage door");
+    expect(coverAskWaiting(cover({ deviceClass: "gate" }))).toBe("Waiting for the gate");
   });
 });
 

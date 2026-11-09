@@ -1,5 +1,6 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { SETTLE_MS } from "@dashhaus/core/hooks";
 import { HaCoverTile } from "./HaCoverTile";
 import type { HassEntities } from "@dashhaus/core";
 import { renderConnected } from "@dashhaus/core/testing";
@@ -20,6 +21,8 @@ const raw: HassEntities = {
   },
 };
 
+
+afterEach(() => { vi.useRealTimers(); });
 
 describe("HaCoverTile", () => {
   it("maps a raw cover entity into the existing CoverTile", async () => {
@@ -51,6 +54,33 @@ describe("HaCoverTile", () => {
       expect((button as HTMLButtonElement).disabled).toBe(false);
       await act(async () => {
         fireEvent.click(button);
+        await Promise.resolve();
+      });
+    }
+    expect(fake.callService.mock.calls.map(([domain, service]) => `${domain}.${service}`)).toEqual(["cover.close_cover", "cover.open_cover"]);
+  });
+
+  it("drives an unknown garage door through the question: Close and Open each ask in the sheet, and reach the store once answered", async () => {
+    // A garage door with no position sensor, on an assumed state: both ends act, and each asks first.
+    const door: HassEntities = {
+      "cover.garage": {
+        entity_id: "cover.garage",
+        state: "unknown",
+        attributes: { friendly_name: "Garage door", device_class: "garage", assumed_state: true, supported_features: 1 | 2 | 8 },
+        last_changed: "2026-10-19T10:00:00Z",
+        last_updated: "2026-10-19T10:00:00Z",
+      },
+    };
+    const fake = renderConnected(<HaCoverTile entityId="cover.garage" />, door);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Garage door" })).toBeTruthy());
+    vi.useFakeTimers();
+    for (const [end, yes] of [["Close Garage door…", "Close garage door"], ["Open Garage door…", "Open garage door"]]) {
+      const ends = screen.getAllByRole("group", { name: "Garage door" })[0];
+      act(() => { fireEvent.click(ends.querySelector<HTMLButtonElement>(`[aria-label="${end}"]`)!); });
+      expect(fake.callService.mock.calls.length, "a tap asks first: nothing is sent").toBe(yes.startsWith("Close") ? 0 : 1);
+      act(() => { vi.advanceTimersByTime(SETTLE_MS); });
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: yes, hidden: true }));
         await Promise.resolve();
       });
     }

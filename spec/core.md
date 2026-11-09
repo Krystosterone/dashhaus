@@ -66,7 +66,10 @@ what it is: a `level` the entity reports in `field` (a percent, or a range its `
 the entity's fields; `wakes` when setting it turns the entity on; `runs` when it moves on by itself while the entity
 plays, as of a time the entity reports, a track's position), a `choice` of the entity's own list (`options`, a
 field) or a fixed one, the chosen one in `field`, or a `switch`, a boolean `field`; and a `value` none of these says.
-`asks: true` marks an action that asks first. The type covers every handler, optional ones included, so a new one can't
+`asks: true` marks an action that asks first, and `when` narrows it to the entities whose field holds one of its
+values, keyed by the field (a cover's open and close, `when: { deviceClass: ["garage", "door", "gate"] }`); a level that
+asks has no question in any skin yet, so it is left out where it asks. A reader that ignores `when` asks every time,
+which fails safe. The type covers every handler, optional ones included, so a new one can't
 go undeclared, and a value's `field` must be one of the entity's. The generators read it (`scripts/domains.js`) to draw a
 tap as a button, an action that asks first or takes a code through the skin's Confirm and Keypad on
 `useGuardedAction`, a level on the skin's level part (orb's `LevelBar`, field's `Fader`), except one that `runs`, which a part holding a

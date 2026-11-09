@@ -1,15 +1,18 @@
-import type { CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
-import { CLASS_LABEL, QUICK_POSITIONS, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
-import { SLAT_POSITIONS, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
+import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
+import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
+import { COVER_ASKS_HINT, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
+import { useGuardedAction } from "@dashhaus/core/primitives";
 import { CoverIcon } from "./icons";
 import { PositionBar, OpenCloseControl } from "./parts";
-import { AlertStatus, CardFrame, ChoiceChips, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
-import type { CardProps, SheetProps } from "../../shared/ui";
+import { AlertStatus, CardFrame, ChoiceChips, Confirm, SheetBlock, Today, detailsSheet, paint, useCard } from "../../shared/ui";
+import type { ActionCardProps, SheetProps } from "../../shared/ui";
 import "./CoverCard.css";
 
-export interface CoverCardProps extends CardProps {
+export type { CoverAction };
+
+export interface CoverCardProps extends ActionCardProps<CoverAction> {
   entity: CoverEntity;
   /** Shown in the featured footprint and in the sheet. */
   history?: CoverHistory;
@@ -18,21 +21,24 @@ export interface CoverCardProps extends CardProps {
    * the detail sheet. The orb keeps its tap and hold actions. Default true.
    */
   showControl?: boolean;
+  /** A tap does it, except on a garage door, door or gate, which asks first in the sheet. */
   onOpenCover: () => void;
+  /** A tap does it, except on a garage door, door or gate, which asks first in the sheet. */
   onCloseCover: () => void;
+  /** Always one tap. */
   onStopCover: () => void;
+  /** Never drawn for a garage door, door or gate: its position is shown, not set. */
   onSetPosition?: (position: number) => void;
   onSetTilt?: (tilt: number) => void;
-  /** Card only: the name, and press and hold on the orb, open the details sheet. */
-  onOpenDetails?: () => void;
-  onClose?: () => void;
 }
 
 /**
  * One cover: curtains, blinds, shades, garage doors. Position follows Home Assistant: 0 closed, 100 open.
- * It shares the modular footprint matrix with every dashboard card.
+ * It shares the modular footprint matrix with every dashboard card. A garage door, door or gate never moves on one
+ * tap (`coverAsksFirst`): a tap on the orb or either end of its groove opens the sheet on the question, as a lock's
+ * unlock does, and stopping it is one tap; its position is shown, never set.
  */
-export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose }: CoverCardProps) {
+export function CoverCard({ entity: e, history, variant, footprint, showControl, onOpenCover, onCloseCover, onStopCover, onSetPosition, onSetTilt, onOpenDetails, onClose, action }: CoverCardProps) {
   const card = useCard("cv", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, area } = card;
   const unav = e.state === "unavailable";
@@ -40,7 +46,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // says Unknown, and both ends of its control act.
   const unknown = e.state === "unknown";
   const moving = isMoving(e);
-  const pos = openness(e);
+  const pos = Math.round(openness(e));
   const open = pos > 0 || e.state === "open";
   // A cover that lets a person in: open is a state (the accent orb, no glow), and reads as a warning.
   const access = isAccess(e.deviceClass);
@@ -54,8 +60,23 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   const text = moving ? `${word}${withPos ? ` · ${pos}%` : ""}`
     : unknown || !open || !withPos || pos === 100 ? word : `${word} · ${pos}%`;
   const stopping = moving && e.supportsStop;
-  const orbAction = stopping ? onStopCover : open ? onCloseCover : onOpenCover;
-  const orbLabel = stopping ? `Stop ${e.name}` : e.name;
+
+  // A garage door, door or gate asks first: on the card a tap opens the sheet on the question, which the sheet holds.
+  // Stopping is never asked. On its way where it can't be stopped, it lies flat and says so, as a lock does on its way.
+  const asks = coverAsksFirst(e) && !unav;
+  const guard = useGuardedAction<CoverAction>({
+    run: (a) => (a === "open" ? onOpenCover : onCloseCover)(),
+    needsCode: () => false,
+    settled: (a) => unav || (a === "open" ? e.state === "open" || e.state === "opening" : e.state === "closed" || e.state === "closing"),
+    initial: action,
+    disabled: !asks,
+    askElsewhere: sheet ? undefined : (a) => onOpenDetails?.(a),
+  });
+  const pending = guard.pending;
+  const adrift = asks && moving && !e.supportsStop;
+  const toward: CoverAction = open ? "close" : "open";
+  const orbAction = stopping ? onStopCover : adrift ? () => {} : asks ? () => guard.ask(toward) : open ? onCloseCover : onOpenCover;
+  const orbLabel = stopping ? `Stop ${e.name}` : adrift ? `${e.name}: ${word}` : asks ? `${toward === "open" ? "Open" : "Close"} ${e.name}…` : e.name;
   // Core ranks it (a garage door, door or gate left open is advisory); the card draws the level it is given.
   const warned = coverSeverity(e) != null;
   const identity = area ?? CLASS_LABEL[e.deviceClass];
@@ -66,11 +87,17 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
   // binary sensor says it in (spec/orb.md → the warn colour); otherwise the room, and in the sheet what it is.
   const areaText = sheet && area && !(access && open) ? `${area} · ${CLASS_LABEL[e.deviceClass]}` : identity;
 
+  // Its position is set on the window's bar, except a garage door, door or gate's, which is shown in the readout and
+  // never set: the bar's tap would jump it, so it gets the groove that asks.
+  const settable = withPos && onSetPosition && !asks;
   let slot;
-  if (withPos && onSetPosition) {
+  if (settable) {
     slot = <PositionBar id={`${uid}-p`} label={`${e.name} position`} kind={e.deviceClass === "curtain" ? "curtain" : "shade"} position={pos} moving={moving} text={text} onChange={onSetPosition} />;
   } else {
-    slot = <OpenCloseControl name={e.name} open={open} moving={moving} either={unknown} text={text} canStop={e.supportsStop} onOpen={onOpenCover} onClose={onCloseCover} onStop={onStopCover} />;
+    slot = (
+      <OpenCloseControl name={e.name} open={open} moving={moving} either={unknown} asks={asks} flat={adrift || pending != null} text={text} canStop={e.supportsStop}
+        onOpen={asks ? () => guard.ask("open") : onOpenCover} onClose={asks ? () => guard.ask("close") : onCloseCover} onStop={onStopCover} />
+    );
   }
 
   // The compact value appears under the name, or in place of a hidden control.
@@ -83,19 +110,26 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       orb={{ label: orbLabel, pressed: open && !unav, intensity: pos / 100, onToggle: orbAction, children: <CoverIcon kind={e.deviceClass} open={open} stop={stopping} /> }}
       unavailable={unav}
       lastSeen={e.lastSeen}
-      onOpen={onOpenDetails}
+      onOpen={onOpenDetails && (() => onOpenDetails())}
       status={alertLabel ? <AlertStatus label={alertLabel}>{warning}</AlertStatus> : areaText}
       value={subText}
       alert={alertLabel}
       readout={{ value: unav ? null : figure ? <>{pos}<span>%</span></> : word, duplicate: true, word: !figure }}
       onClose={onClose}
       closeLabel={`Close ${e.name} details`}
+      closeFocus={!pending}
       control={slot}
       facts={{ start: unav ? lastSeenFact(e.lastSeen) : lastChangedFact(e.lastChanged), end: [CLASS_LABEL[e.deviceClass], withPos ? "position" : "open / close", e.supportsTilt ? "tilt" : null].filter(Boolean).join(", ") }}
     >
       {!unav && (
         <SheetBlock>
-          {withPos && onSetPosition && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
+          {pending && (
+            <Confirm key={pending} busy={guard.busy} waiting={`${coverAskWaiting(e)}…`} error={guard.failed ? "Didn’t go through. Try again." : null}
+              question={coverQuestion(pending, e.name)} detail={coverAskDetail(pending, e)} action={coverAskAction(pending, e)}
+              onConfirm={() => void guard.confirm()} onCancel={guard.close} />
+          )}
+          {asks && !pending && <p className="hd-note">{COVER_ASKS_HINT}</p>}
+          {settable && <ChoiceChips id={`${uid}-q`} label="Quick positions" options={QUICK_POSITIONS} value={moving ? null : pos} onChange={onSetPosition} />}
           {e.supportsTilt && e.tilt != null && onSetTilt && <ChoiceChips id={`${uid}-t`} label="Slats" options={SLAT_POSITIONS} value={e.tilt} onChange={onSetTilt} />}
         </SheetBlock>
       )}

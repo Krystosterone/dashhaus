@@ -1,5 +1,5 @@
-import { openness } from "./position";
-import type { CoverEntity } from "./types";
+import { CLASS_LABEL, openness } from "./position";
+import type { CoverAction, CoverEntity } from "./types";
 
 /** Whether it lets anything through: a position above closed, or open by its state. Never while unavailable. */
 export const isOpen = (e: Pick<CoverEntity, "state" | "position">) => e.state !== "unavailable" && (openness(e as CoverEntity) > 0 || e.state === "open");
@@ -37,3 +37,32 @@ export const leftOpenText = (lastChanged?: string) => `${LEFT_OPEN_WORD}${lastCh
 
 /** A door left open said in full, for a screen reader: "Garage door has been open since 18:30". */
 export const leftOpenSentence = (name: string, lastChanged?: string) => `${name} has been open${lastChanged ? ` since ${lastChanged}` : ""}`;
+
+const VERB: Record<CoverAction, string> = { open: "Open", close: "Close" };
+
+/** The question a garage door, door or gate asks before it moves (`coverAsksFirst`): "Close Garage door?". */
+export const coverQuestion = (action: CoverAction, name: string) => `${VERB[action]} ${name}?`;
+
+/**
+ * What answering yes means, under the question: it moves now, who that lets in or what it could close on; where it
+ * is isn't known (`unknown`), and it can't be stopped from here when it can't stop.
+ */
+export function coverAskDetail(action: CoverAction, e: Pick<CoverEntity, "state" | "supportsStop">): string {
+  return [
+    action === "open" ? "It opens now, and anyone outside can come in." : "It closes now. Check nothing is in its way.",
+    e.state === "unknown" ? "Where it is isn't known." : null,
+    e.supportsStop ? null : "It can't be stopped from here.",
+  ].filter(Boolean).join(" ");
+}
+
+/**
+ * The yes, naming the thing it moves, never a bare Close beside the details' own close: "Close garage door",
+ * "Open gate".
+ */
+export const coverAskAction = (action: CoverAction, e: Pick<CoverEntity, "deviceClass">) => `${VERB[action]} ${CLASS_LABEL[e.deviceClass].toLowerCase()}`;
+
+/** What the details say while the yes is on its way, naming the thing: "Waiting for the garage door". A skin adds its end punctuation. */
+export const coverAskWaiting = (e: Pick<CoverEntity, "deviceClass">) => `Waiting for the ${CLASS_LABEL[e.deviceClass].toLowerCase()}`;
+
+/** The details' line for a cover that asks first, so the rule can be learnt there. */
+export const COVER_ASKS_HINT = "Opening and closing ask first.";

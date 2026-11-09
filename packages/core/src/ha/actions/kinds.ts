@@ -16,16 +16,23 @@
  *     out.
  * - `asks`: it asks first, a question or the code, before it runs: never one tap (a lock's unlock, a door's open).
  *   An action that takes a code but doesn't ask (an alarm's disarm, a lock's lock) runs at once unless the entity
- *   wants a code, and asks for it then.
+ *   wants a code, and asks for it then. A level that asks has no question yet in any skin, so it is left out where it
+ *   asks: set only where it doesn't.
+ * - `when`: `asks` only for an entity whose field holds one of these values, keyed by the field (a cover's open and
+ *   close, `{ deviceClass: ["garage", "door", "gate"] }`); for any other entity it doesn't ask. Several fields must
+ *   all match. A reader that ignores `when` asks every time, which fails safe.
  *
  * Handlers answer how they answer (`void`, a lock's outcome, an alarm's `false` for a wrong code); `useGuardedAction`
  * reads them all.
  */
 export type ActionKind<F extends string = string> =
-  | { takes: "nothing" | "code" | "value"; asks?: true }
-  | { takes: "level"; field: F; min?: number | F; max?: number | F; wakes?: true; runs?: true }
+  | { takes: "nothing" | "code" | "value"; asks?: true; when?: AsksWhen<F> }
+  | { takes: "level"; field: F; min?: number | F; max?: number | F; wakes?: true; runs?: true; asks?: true; when?: AsksWhen<F> }
   | { takes: "choice"; field: F; options: F | readonly string[] }
   | { takes: "switch"; field: F };
+
+/** Which entities an action asks first for (`ActionKind`'s `when`): each field, and the values it asks for. */
+export type AsksWhen<F extends string = string> = Partial<Record<F, readonly string[]>>;
 
 /**
  * One kind for every handler a domain has, optional ones included, so a new handler can't go undeclared. With the

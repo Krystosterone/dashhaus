@@ -3,11 +3,14 @@ import { CoverModule } from "./CoverModule";
 import type { FieldFootprint } from "../../shared/ui";
 import { COVER_SEEDS, COVER_WORST_CASE, useDemoCover } from "@dashhaus/core/seeds/cover";
 import type { CoverSeed, CoverSeedName } from "@dashhaus/core/seeds/cover";
+import type { CoverAction } from "@dashhaus/core/entities/cover/types";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(COVER_SEEDS) as CoverSeedName[];
+/** The worst case's door with the longest name and area, for the question at its widest. */
+const LONG_DOOR = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.garage_side")!;
 
-function DemoCover({ seed, width, footprint, defaultOpen }: { seed: CoverSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
+function DemoCover({ seed, width, footprint, defaultOpen, defaultAction }: { seed: CoverSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean; defaultAction?: CoverAction }) {
   const demo = useDemoCover(seed);
   return (
     <div style={{ width, maxWidth: "100%" }}>
@@ -21,6 +24,7 @@ function DemoCover({ seed, width, footprint, defaultOpen }: { seed: CoverSeed; w
         onSetTilt={demo.onSetTilt}
         footprint={footprint}
         defaultOpen={defaultOpen}
+        defaultAction={defaultAction}
       />
     </div>
   );
@@ -38,7 +42,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "One cover as a field module: curtains, blinds, shades, a garage door. Press the key to open or close it, or to stop it on the way; its LED is lit while it's open. The screen leads with how open it is, and the fader moves it, its ends magnetic. Tap the name, or press and hold the key, for the detail panel: quick positions, slats and today. Standard modules are 160 px, compact rows 64 px.",
+          "One cover as a field module: curtains, blinds, shades, a garage door. Press the key to open or close it, or to stop it on the way; its LED is lit while it's open. The screen leads with how open it is, and the fader moves it, its ends magnetic. A garage door, door or gate never moves on one press: its key opens the panel on the question, as the lock's Unlock does, Stop is one press, and its position is shown, not set. Tap the name, or press and hold the key, for the detail panel: quick positions, slats and today. Standard modules are 160 px, compact rows 64 px.",
       },
     },
   },
@@ -61,7 +65,7 @@ export const Open: Story = {};
 export const Closed: Story = { args: { cover: "shade" } };
 /** On its way: the fader's legend says where it's going, and the key stops it. */
 export const Moving: Story = { args: { cover: "moving" } };
-/** A garage door with no position, left open: OPEN, a warning on the screen, and one wide key. */
+/** A garage door with no position, left open: OPEN, a warning on the screen, and one wide key whose press asks first. */
 export const GarageDoor: Story = { name: "Garage door", args: { cover: "garage" } };
 /** No position, on its way: blank segments, since it's neither open nor shut, and the key says Stop. */
 export const GateClosing: Story = { name: "Gate, closing", args: { cover: "gate" } };
@@ -137,8 +141,18 @@ export const Details: Story = { args: { defaultOpen: true } };
 /** A blind's panel: its slats on the screen's second channel and on their own fader, in the second parameter's blue. */
 export const DetailsSlats: Story = { name: "Details, slats", args: { cover: "blind", defaultOpen: true } };
 
-/** A garage door's panel: close, stop and open, the one that can't act lying flat. */
+/** A garage door's panel: close, stop and open, the one that can't act lying flat, and Close and Open ask first. */
 export const DetailsGarageDoor: Story = { name: "Details, garage door", args: { cover: "garage", defaultOpen: true } };
+
+/**
+ * A press on a garage door, door or gate opens the panel on its question: the worst case's longest name, its yes
+ * naming what it moves, in place of the panel's controls. A door with a position has no fader and no quick positions:
+ * its position is shown, not set.
+ */
+export const DetailsClose: Story = {
+  name: "Details, close",
+  render: ({ width, footprint }) => <DemoCover seed={LONG_DOOR} width={width} footprint={footprint} defaultAction="close" />,
+};
 
 /** An unknown cover's panel: close, stop and open all act, since it could be anywhere and on its way. */
 export const DetailsUnknown: Story = { name: "Details, unknown", args: { cover: "unknown", defaultOpen: true } };

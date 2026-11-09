@@ -325,7 +325,9 @@ npm run add -- cover
 ```
 
 It writes the card in `cards/cover/` with its stylesheet, glyph and story metadata, and its adapter on `useHaCover`.
-A cover is a control, so its actions are its buttons; `--kind reading` draws a domain without them. An action that
+A cover is a control, so its actions are its buttons; `--kind reading` draws a domain without them. Open and Close
+ask first on a garage door, door or gate, which must never move on one stray tap, and are one tap on everything else:
+their `asks` is the device class check, so the details open on the question only for those three. An action that
 asks first, as a lock's unlock does, is never one tap: `npm run add -- lock` draws its button to open the details on
 the question, or on the code keypad when the lock wants a code. An action that takes a value, a brightness or an
 alarm's mode, is left out for your own control, and the command says so.
