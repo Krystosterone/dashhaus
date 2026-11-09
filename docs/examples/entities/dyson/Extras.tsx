@@ -1,18 +1,18 @@
 import { useHaDyson } from "@dashhaus/core";
 
-/** Its sweep, its night mode and a Hot+Cool's heat: each only where the device has it. */
+/** Where it points and how widely it sweeps, its night mode and a Hot+Cool's heat: each only where the device has it. */
 export function Extras({ entityId }: { entityId: string }) {
   const { entity, actions } = useHaDyson(entityId, { loadHistory: false });
   return (
     <>
-      {entity.oscillationModes && (
+      {entity.oscillationCentre != null && (
         <div role="group" aria-label={`${entity.name} oscillation`}>
           <button type="button" aria-pressed={entity.oscillating === false} onClick={() => actions.onOscillateChange(false)}>Off</button>
-          {entity.oscillationModes.map((mode) => (
-            <button key={mode} type="button" aria-pressed={entity.oscillating === true && entity.oscillationMode === mode} onClick={() => actions.onOscillationModeChange(mode)}>
-              {mode}
-            </button>
+          {[0, 45, 90, 180, 350].map((spread) => (
+            <button key={spread} type="button" onClick={() => actions.onSpreadChange(spread)}>{spread ? `${spread}°` : "Still"}</button>
           ))}
+          <button type="button" onClick={() => actions.onAimChange(entity.oscillationCentre! - 15)}>Turn left</button>
+          <button type="button" onClick={() => actions.onAimChange(entity.oscillationCentre! + 15)}>Turn right</button>
         </div>
       )}
       {entity.supportsNightMode && (

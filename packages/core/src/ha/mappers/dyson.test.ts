@@ -10,19 +10,19 @@ const pureCool = fixture["fan.bedroom_purifier"] as HassEntity;
 const hotCool = fixture["fan.living_room_hot_cool"] as HassEntity;
 
 describe("dysonCompanionIds", () => {
-  it("names each companion as dyson_local does, after the fan", () => {
+  it("names each companion as each integration does, after the fan, ha-dyson's first", () => {
     expect(dysonCompanionIds("fan.bedroom")).toMatchObject({
-      pm25: "sensor.bedroom_pm_2_5",
-      pm10: "sensor.bedroom_pm_10",
-      voc: "sensor.bedroom_volatile_organic_compounds_index",
-      no2: "sensor.bedroom_nitrogen_dioxide_index",
-      hcho: "sensor.bedroom_hcho",
-      hepaFilter: "sensor.bedroom_hepa_filter_life",
-      carbonFilter: "sensor.bedroom_carbon_filter_life",
-      filter: "sensor.bedroom_filter_life",
-      nightMode: "switch.bedroom_night_mode",
-      heat: "climate.bedroom",
-      oscillationMode: "select.bedroom_oscillation_mode",
+      pm25: ["sensor.bedroom_pm_2_5", "sensor.bedroom_pm2_5"],
+      pm10: ["sensor.bedroom_pm_10", "sensor.bedroom_pm10"],
+      voc: ["sensor.bedroom_volatile_organic_compounds_index", "sensor.bedroom_voc"],
+      no2: ["sensor.bedroom_nitrogen_dioxide_index", "sensor.bedroom_no2"],
+      hcho: ["sensor.bedroom_hcho", "sensor.bedroom_formaldehyde"],
+      hepaFilter: ["sensor.bedroom_hepa_filter_life"],
+      nightMode: ["switch.bedroom_night_mode"],
+      heat: ["climate.bedroom"],
+      oscillationMode: ["select.bedroom_oscillation_mode", "select.bedroom_oscillation"],
+      angleCenter: ["number.bedroom_oscillation_center_angle"],
+      angleSpan: ["number.bedroom_oscillation_angle"],
     });
     expect(dysonCompanionIds("sensor.bedroom")).toBeUndefined();
   });
@@ -30,10 +30,10 @@ describe("dysonCompanionIds", () => {
   it("finds a Dyson in an automatic layout by the same names: its night-mode switch and a filter-life sensor", () => {
     const ids = dysonCompanionIds("fan.bedroom")!;
     const s = (...list: string[]) => Object.fromEntries(list.map((id) => [id, { attributes: {} }]));
-    expect(dysonFans({ states: s("fan.bedroom", ids.nightMode, ids.hepaFilter, ids.heat) })).toEqual([{ fan: "fan.bedroom", heat: ids.heat }]);
-    expect(dysonFans({ states: s("fan.bedroom", ids.nightMode, ids.filter) })).toEqual([{ fan: "fan.bedroom" }]);
-    expect(dysonFans({ states: s("fan.bedroom", ids.carbonFilter) })).toEqual([]);
-    expect(dysonFans({ states: s("fan.bedroom", ids.nightMode) })).toEqual([]);
+    expect(dysonFans({ states: s("fan.bedroom", ids.nightMode[0], ids.hepaFilter[0], ids.heat[0]) })).toEqual([{ fan: "fan.bedroom", heat: ids.heat[0] }]);
+    expect(dysonFans({ states: s("fan.bedroom", ids.nightMode[0], ids.filter[0]) })).toEqual([{ fan: "fan.bedroom" }]);
+    expect(dysonFans({ states: s("fan.bedroom", ids.carbonFilter[0]) })).toEqual([]);
+    expect(dysonFans({ states: s("fan.bedroom", ids.nightMode[0]) })).toEqual([]);
   });
 });
 
@@ -83,6 +83,32 @@ describe("dysonFromHass", () => {
       { pollutant: "no2", value: 1 },
       { pollutant: "hcho", value: 0.031, unit: "mg/m³" },
     ]);
+  });
+
+  it("reads hass-dyson's angle sliders: its centre and width, their range ahead in the middle", () => {
+    const slider = (value: string) => state("number.x", value, { min: 0, max: 350, step: 1, unit_of_measurement: "°" });
+    const hass = { ...pureCool, attributes: { ...pureCool.attributes, angle_low: undefined, angle_high: undefined, preset_modes: ["Auto", "Manual"] } };
+    const still = dysonFromHass(hass, hass.entity_id, { companions: { angleCenter: slider("233"), angleSpan: slider("0"), angleLow: slider("233"), angleHigh: slider("233") } });
+    expect(still).toMatchObject({ oscillationBy: "number", oscillationLow: 233, oscillationHigh: 233, oscillationCentre: 233, angles: { min: 0, max: 350, ahead: 175 }, manualPreset: "Manual" });
+    // A named sweep leaves its ends stale, so the width it reports wins over them.
+    const sweeping = dysonFromHass(hass, hass.entity_id, { companions: { angleCenter: slider("175"), angleSpan: slider("90"), angleLow: slider("233"), angleHigh: slider("233") } });
+    expect(sweeping).toMatchObject({ oscillationLow: 130, oscillationHigh: 220, oscillationMode: "90°" });
+    expect(dysonFromHass(hass, hass.entity_id, { companions: { angleCenter: slider("340"), angleSpan: slider("90") } })).toMatchObject({ oscillationLow: 260, oscillationHigh: 350 });
+    // Its sliders win over its oscillation select.
+    const select = state("select.x_oscillation", "90°", { options: ["45°", "90°", "180°", "350°", "Custom"] });
+    expect(dysonFromHass(hass, hass.entity_id, { companions: { angleCenter: slider("175"), angleSpan: slider("90"), oscillationMode: select } }).oscillationBy).toBe("number");
+  });
+
+  it("reads hass-dyson's VOC and NO₂ back on Dyson's 0-10 index, and its heater's fan_only as heat off", () => {
+    const mapped = dysonFromHass(hotCool, hotCool.entity_id, {
+      companions: {
+        voc: state("sensor.x_voc", "0.03", { unit_of_measurement: "mg/m³" }),
+        no2: state("sensor.x_no2", "40", { unit_of_measurement: "µg/m³" }),
+        heat: state("climate.x", "fan_only", { hvac_modes: ["off", "fan_only", "heat"], temperature: 21 }),
+      },
+    });
+    expect(mapped.air).toEqual([{ pollutant: "voc", value: 3 }, { pollutant: "no2", value: 4 }]);
+    expect(mapped).toMatchObject({ supportsHeat: true, heatOn: false, heatOffMode: "fan_only" });
   });
 
   it("reads filters in percent only, and the combined filter's percentage sensor where its life is in hours", () => {

@@ -35,8 +35,8 @@ export interface AimDialProps {
   high: number;
   /** The range its angles take and the one ahead (its integration's). */
   angles?: DysonAngles;
-  /** Aims it: the new angles, the sweep's width kept. Sent once, when a drag is let go. */
-  onChange: (low: number, high: number) => void;
+  /** Aims it, the sweep's width kept. Sent once, when a drag is let go. */
+  onChange: (aim: number) => void;
 }
 
 /**
@@ -89,10 +89,7 @@ export function AimDial({ id, name, low, high, angles = DYSON_LOCAL_ANGLES, onCh
           value={aim}
           aria-label={`${name} aims`}
           aria-valuetext={said}
-          onChange={(event) => {
-            const next = aimAt(event.currentTarget.valueAsNumber);
-            onChange(next.low, next.high);
-          }}
+          onChange={(event) => onChange(event.currentTarget.valueAsNumber)}
         />
         <svg
           viewBox="-100 -104 200 208"
@@ -111,7 +108,7 @@ export function AimDial({ id, name, low, high, angles = DYSON_LOCAL_ANGLES, onCh
           onPointerUp={() => {
             if (!dragging) return;
             setDragging(null);
-            if (dragging.low !== low || dragging.high !== high) onChange(dragging.low, dragging.high);
+            if (dragging.low !== low || dragging.high !== high) onChange(aimOf(dragging.low, dragging.high));
           }}
           onPointerCancel={() => setDragging(null)}
         >

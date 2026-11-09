@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { HourSample } from "../entities/history";
 import type { FanDirection } from "../entities/fan/types";
 import type { DysonEntity, DysonHistory } from "../entities/dyson/types";
-import { DYSON_SWEEPS, HASS_DYSON_ANGLES, aimOf, sweepAngles, sweepLabel, sweepOf } from "../entities/dyson/labels";
+import { DYSON_SWEEPS, HASS_DYSON_ANGLES, aimAngles, aimOf, sweepLabel, sweepOf } from "../entities/dyson/labels";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };
@@ -16,13 +16,13 @@ export interface DysonSeed {
 
 /** What every Dyson purifier fan has: ten speeds, Auto, an oscillation, its airflow front or back, night mode. */
 const PURIFIER = {
-  supportsSpeed: true, speedCount: 10, supportsAuto: true, autoPreset: "Auto", manualPreset: "Normal",
+  supportsSpeed: true, speedCount: 10, supportsAuto: true, autoPreset: "Auto", manualPreset: "Manual",
   supportsOscillate: true, supportsDirection: true, supportsNightMode: true,
 } as const;
 /** A Pure Cool's sweeps, set by its angles, as hass-dyson counts them: 0-350°, 175° ahead. */
-const ANGLES = { oscillationModes: ["45°", "90°", "180°", "350°"], oscillationBy: "angle", angles: HASS_DYSON_ANGLES, oscillationCentre: 175 } as const;
+const ANGLES = { oscillationModes: ["45°", "90°", "180°", "350°"], oscillationBy: "number", angles: HASS_DYSON_ANGLES, oscillationCentre: 175 } as const;
 /** A Hot+Cool's heater, from its `climate.*`. */
-const HEATER = { supportsHeat: true, heatMin: 1, heatMax: 37, heatStep: 1, heatUnit: "°C" } as const;
+const HEATER = { supportsHeat: true, heatOffMode: "fan_only", heatMin: 1, heatMax: 37, heatStep: 1, heatUnit: "°C" } as const;
 
 export const DYSON_SEEDS = {
   /** A Pure Cool tower, running at speed 4 and sweeping 90°: the air good. */
@@ -123,7 +123,7 @@ export const DYSON_SEEDS = {
   /** Worst case: on, but no reading sent yet, a sweep of its own, and no companions but the fan. */
   waiting: {
     entity: {
-      entityId: "fan.loft", name: "Loft Pure Cool Link desk fan", area: "Loft", state: "on", supportsSpeed: true, speedCount: 10, supportsAuto: true, autoPreset: "Auto", manualPreset: "Normal",
+      entityId: "fan.loft", name: "Loft Pure Cool Link desk fan", area: "Loft", state: "on", supportsSpeed: true, speedCount: 10, supportsAuto: true, autoPreset: "Auto", manualPreset: "Manual",
       supportsOscillate: true, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes], percentage: 10, auto: false, oscillating: true, oscillationLow: 135, oscillationHigh: 215, oscillationCentre: 175,
       air: [{ pollutant: "pm25", value: null, unit: "µg/m³" }, { pollutant: "voc", value: null }],
       filters: [{ kind: "combined", percent: null }],
@@ -159,6 +159,13 @@ export function useDemoDyson(seed: DysonSeed) {
     return { ...next, percentage: next.percentage ?? last, heating: !!next.heatOn && next.heatTarget != null && (next.temperature ?? 0) < next.heatTarget };
   });
 
+  /** Its angles round `centre`, `spread` wide, inside its range, which starts it oscillating. */
+  const aim = (centre: number, spread: number) => {
+    const { angle_low: low, angle_high: high } = aimAngles(centre, spread, entity.angles);
+    const sweep = low === high ? undefined : sweepOf(low, high);
+    update({ oscillating: true, oscillationLow: low, oscillationHigh: high, oscillationCentre: aimOf(low, high), oscillationMode: sweep == null ? undefined : sweepLabel(sweep) });
+  };
+
   return {
     entity,
     history,
@@ -168,14 +175,11 @@ export function useDemoDyson(seed: DysonSeed) {
     onOscillateChange: (oscillating: boolean) => update({ oscillating }),
     onOscillationModeChange: (oscillationMode: string) => {
       const sweep = DYSON_SWEEPS.find((d) => sweepLabel(d) === oscillationMode);
-      if (sweep == null || entity.oscillationBy !== "angle") return update({ oscillating: true, oscillationMode });
-      const { angle_low, angle_high } = sweepAngles(sweep, entity.oscillationCentre, entity.angles);
-      update({ oscillating: true, oscillationMode, oscillationLow: angle_low, oscillationHigh: angle_high });
+      if (sweep == null || entity.oscillationBy === "select") return update({ oscillating: true, oscillationMode });
+      aim(entity.oscillationCentre ?? entity.angles?.ahead ?? 175, sweep);
     },
-    onAngleChange: (low: number, high: number) => {
-      const sweep = low === high ? undefined : sweepOf(low, high);
-      update({ oscillating: true, oscillationLow: low, oscillationHigh: high, oscillationCentre: aimOf(low, high), oscillationMode: sweep == null ? undefined : sweepLabel(sweep) });
-    },
+    onAimChange: (centre: number) => aim(centre, (entity.oscillationHigh ?? 0) - (entity.oscillationLow ?? 0)),
+    onSpreadChange: (spread: number) => aim(entity.oscillationCentre ?? entity.angles?.ahead ?? 175, spread),
     onDirectionChange: (direction: FanDirection) => update({ direction }),
     onNightModeChange: (nightMode: boolean) => update({ nightMode }),
     onHeatChange: (heatOn: boolean) => update({ state: "on", heatOn }),

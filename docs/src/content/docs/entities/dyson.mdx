@@ -1,6 +1,6 @@
 ---
 title: Dyson
-description: "A Dyson purifier fan from the dyson_local integration: its speed or Auto, the air it cleans, its filters, oscillation range, night mode and a Hot+Cool's heat."
+description: "A Dyson purifier fan from the hass-dyson or ha-dyson integration: its speed or Auto, the air it cleans, its filters, where it points and how widely it sweeps, night mode and a Hot+Cool's heat."
 kind:
   group: Comfort
   order: 4
@@ -14,8 +14,9 @@ import ApiSignature from "../../../components/ApiSignature.astro";
 import Example from "../../../components/Example.astro";
 import StoryLinks from "../../../components/StoryLinks.astro";
 
-One Dyson purifier fan, as the [ha-dyson](https://github.com/libdyson-wg/ha-dyson) custom integration (`dyson_local`)
-adds it: a Pure Cool, a Hot+Cool, a Humidify+Cool or a Pure Cool Link. Its `fan.*` entity is the fan card's, with the
+One Dyson purifier fan, as the [hass-dyson](https://github.com/cmgrayb/hass-dyson) or
+[ha-dyson](https://github.com/libdyson-wg/ha-dyson) custom integration adds it: a Pure Cool, a Hot+Cool, a Humidify+Cool
+or a Pure Cool Link. Its `fan.*` entity is the fan card's, with the
 entities on its device beside it: the air it measures, its filters' life, its night mode and, on a Hot+Cool, its heater.
 
 ## Quick example
@@ -40,9 +41,10 @@ and hands the hook's result to its child function.
 
 <ApiSignature from="@dashhaus/core" name="useHaDyson" />
 
-It reads the fan, the entities `dyson_local` names after it, its area and today's history. A fan called `fan.bedroom`
-has its fine particles in `sensor.bedroom_pm_2_5`, its night mode in `switch.bedroom_night_mode` and its heater in
-`climate.bedroom`. Any of these that isn't there is left out.
+It reads the fan, the entities its integration names after it, its area and today's history. A fan called
+`fan.bedroom` has its fine particles in `sensor.bedroom_pm2_5` (hass-dyson) or `sensor.bedroom_pm_2_5` (ha-dyson), its
+night mode in `switch.bedroom_night_mode`, where it points in `number.bedroom_oscillation_center_angle` (hass-dyson) and
+its heater in `climate.bedroom`. Any of these that isn't there is left out.
 
 ### Options
 
@@ -75,9 +77,11 @@ and never sent.
 
 <Example file="entities/dyson/Extras.tsx" />
 
-A Pure Cool sweeps 45°, 90°, 180° or 350° around where it points now, set with `dyson_local.set_angle`. A
-Humidify+Cool lists its own ranges, Breeze among them, on its oscillation mode select. A Hot+Cool's heat is its
-heater's `heat` mode. Turned off, the heater goes to `cool`, and the fan keeps running.
+A Pure Cool or Hot+Cool points somewhere and holds still, or sweeps 45°, 90°, 180° or 350° around where it points:
+`onAimChange` turns it, the width kept, and `onSpreadChange` sets the width, 0 to hold still. Its angles count round its
+own base, `angles` says from where to where and which is straight ahead, and a lower angle turns it to its left.
+A Humidify+Cool lists its own ranges, Breeze among them, on its oscillation select. A Hot+Cool's heat is its heater's
+`heat` mode. Turned off, the heater goes back to the fan alone, and the fan keeps running.
 
 ### A device renamed in Home Assistant
 

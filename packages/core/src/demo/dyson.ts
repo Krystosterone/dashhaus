@@ -12,12 +12,15 @@ const entity = (entity_id: string, state: string, attributes: HassEntity["attrib
 const sensor = (entity_id: string, state: string, friendly_name: string, attributes: HassEntity["attributes"] = {}) =>
   entity(entity_id, state, { friendly_name, state_class: "measurement", ...attributes });
 const ug = { unit_of_measurement: "µg/m³" };
+const slider = (entity_id: string, value: number, friendly_name: string) =>
+  entity(entity_id, String(value), { friendly_name, min: 0, max: 350, step: 1, mode: "slider", unit_of_measurement: "°" });
 const life = (entity_id: string, state: string, friendly_name: string) =>
   entity(entity_id, state, { friendly_name, unit_of_measurement: "%", icon: "mdi:filter-outline" });
 
 /**
- * Two Dysons as `dyson_local` (ha-dyson) exposes them: a Pure Cool in the bedroom, its sweep from its angles, and a
- * Hot+Cool in the living room with its heater, each with the sensors and the night-mode switch on its device.
+ * Two Dysons, one per integration, each with the sensors and the night-mode switch on its device: a Pure Cool in the
+ * bedroom as `dyson_local` (ha-dyson) adds it, its sweep from its fan's angles; and a Hot+Cool in the living room as
+ * `hass_dyson` (hass-dyson) adds it, its heater, and its angles on sliders, held still at 233°.
  */
 const initial: HassEntities = Object.fromEntries([
   entity("fan.bedroom_purifier", "on", {
@@ -34,22 +37,30 @@ const initial: HassEntities = Object.fromEntries([
   life("sensor.bedroom_purifier_carbon_filter_life", "64", "Purifier Carbon Filter Life"),
   entity("switch.bedroom_purifier_night_mode", "off", { friendly_name: "Purifier Night Mode", icon: "mdi:power-sleep" }),
 
+  // A Hot+Cool as hass-dyson (`hass_dyson`) adds it: Auto and Manual, its angles on sliders, VOC and NO₂ in its units.
   entity("fan.living_room_hot_cool", "on", {
-    friendly_name: "Hot+Cool", percentage: null, percentage_step: 10, preset_mode: "Auto", preset_modes: ["Auto", "Normal"],
-    oscillating: false, direction: "forward", angle_low: 90, angle_high: 270, supported_features: FEATURES,
+    friendly_name: "Hot+Cool", percentage: null, percentage_step: 10, preset_mode: "Auto", preset_modes: ["Auto", "Manual", "Heat"],
+    // Held still at one angle, hass-dyson's oscillation is on: it holds the head there.
+    oscillating: true, direction: "forward", supported_features: FEATURES,
   }),
-  sensor("sensor.living_room_hot_cool_pm_2_5", "41", "Hot+Cool PM 2.5", { device_class: "pm25", ...ug }),
-  sensor("sensor.living_room_hot_cool_pm_10", "47", "Hot+Cool PM 10", { device_class: "pm10", ...ug }),
-  sensor("sensor.living_room_hot_cool_volatile_organic_compounds_index", "3", "Hot+Cool Volatile Organic Compounds Index", { device_class: "aqi" }),
-  sensor("sensor.living_room_hot_cool_nitrogen_dioxide_index", "2", "Hot+Cool Nitrogen Dioxide Index", { device_class: "aqi" }),
+  sensor("sensor.living_room_hot_cool_pm2_5", "41", "Hot+Cool PM2.5", { device_class: "pm25", ...ug }),
+  sensor("sensor.living_room_hot_cool_pm10", "47", "Hot+Cool PM10", { device_class: "pm10", ...ug }),
+  sensor("sensor.living_room_hot_cool_voc", "0.03", "Hot+Cool VOC", { device_class: "volatile_organic_compounds", unit_of_measurement: "mg/m³" }),
+  sensor("sensor.living_room_hot_cool_no2", "20", "Hot+Cool NO2", { device_class: "nitrogen_dioxide", ...ug }),
   sensor("sensor.living_room_hot_cool_hcho", "0.02", "Hot+Cool HCHO", { unit_of_measurement: "mg/m³" }),
   sensor("sensor.living_room_hot_cool_temperature", "19.8", "Hot+Cool Temperature", { device_class: "temperature", unit_of_measurement: "°C" }),
   sensor("sensor.living_room_hot_cool_humidity", "38", "Hot+Cool Humidity", { device_class: "humidity", unit_of_measurement: "%" }),
-  life("sensor.living_room_hot_cool_filter_life", "38", "Hot+Cool Filter Life"),
-  entity("switch.living_room_hot_cool_night_mode", "off", { friendly_name: "Hot+Cool Night Mode", icon: "mdi:power-sleep" }),
+  life("sensor.living_room_hot_cool_hepa_filter_life", "38", "Hot+Cool HEPA Filter Life"),
+  life("sensor.living_room_hot_cool_carbon_filter_life", "52", "Hot+Cool Carbon Filter Life"),
+  entity("switch.living_room_hot_cool_night_mode", "off", { friendly_name: "Hot+Cool Night Mode" }),
+  slider("number.living_room_hot_cool_oscillation_center_angle", 233, "Hot+Cool Oscillation Center Angle"),
+  slider("number.living_room_hot_cool_oscillation_angle", 0, "Hot+Cool Oscillation Angle"),
+  slider("number.living_room_hot_cool_oscillation_low_angle", 233, "Hot+Cool Oscillation Low Angle"),
+  slider("number.living_room_hot_cool_oscillation_high_angle", 233, "Hot+Cool Oscillation High Angle"),
+  entity("select.living_room_hot_cool_oscillation", "Custom", { friendly_name: "Hot+Cool Oscillation", options: ["45°", "90°", "180°", "350°", "Custom"] }),
   entity("climate.living_room_hot_cool", "heat", {
-    friendly_name: "Hot+Cool", hvac_modes: ["off", "cool", "heat"], hvac_action: "heating", temperature: 23, current_temperature: 19.8,
-    current_humidity: 38, min_temp: 1, max_temp: 37, supported_features: 1 | 128 | 256,
+    friendly_name: "Hot+Cool", hvac_modes: ["off", "fan_only", "heat"], hvac_action: "heating", temperature: 23, current_temperature: 19.8,
+    min_temp: 1, max_temp: 37, target_temp_step: 1, supported_features: 1 | 128 | 256,
   }),
 ]);
 
@@ -61,7 +72,7 @@ const angle = (value: unknown) => typeof value === "number" && Number.isInteger(
  * it; `dyson_local.set_angle`, which also starts the sweep; the night-mode switch; the heater's mode and target, its
  * `heat` mode switching the fan on; and a Humidify+Cool's oscillation mode select.
  */
-export function dysonServices(): DemoServices {
+export function dysonServices(entities: () => HassEntities = () => ({})): DemoServices {
   const fan = fanServices();
   return {
     ...fan,
@@ -79,12 +90,35 @@ export function dysonServices(): DemoServices {
       return { attributes: { angle_low: data.angle_low, angle_high: data.angle_high, oscillating: true } };
     },
     ...onOffServices("switch", ["turn_on", "turn_off"]),
+    // hass-dyson's angle sliders: the centre keeps the width, the width keeps the centre, each kept inside 0-350°;
+    // either starts the sweep, and the ends follow.
+    "number.set_value": ({ entity, data, also }) => {
+      const value = data.value;
+      if (typeof value !== "number" || value < 0 || value > 350) throw new Error("value must be 0-350");
+      const device = entity.entity_id.replace(/^number\.(\w+?)_oscillation_\w+$/, "$1");
+      const read = (name: string) => Number(entities()[`number.${device}_oscillation_${name}`]?.state ?? 0);
+      const centre = entity.entity_id.endsWith("_center_angle") ? value : read("center_angle");
+      const span = entity.entity_id.endsWith("_oscillation_angle") ? value : read("angle");
+      if (span > 0 && span < 30) throw new Error("a sweep is at least 30°");
+      const half = Math.floor(span / 2);
+      let low = Math.max(0, centre - half);
+      let high = Math.min(350, centre + half);
+      if (low === 0) high = Math.min(350, span);
+      else if (high === 350) low = Math.max(0, 350 - span);
+      for (const [name, v] of [["center_angle", Math.floor((low + high) / 2)], ["angle", span], ["low_angle", low], ["high_angle", high]] as const) {
+        if (`number.${device}_oscillation_${name}` !== entity.entity_id) also(`number.${device}_oscillation_${name}`, { state: String(v) });
+      }
+      also(`fan.${device}`, { attributes: { oscillating: true } });
+      also(`select.${device}_oscillation`, { state: [45, 90, 180, 350].includes(span) ? `${span}°` : "Custom" });
+      return { state: String(entity.entity_id.endsWith("_center_angle") ? Math.floor((low + high) / 2) : value) };
+    },
     "climate.set_hvac_mode": ({ entity, data, also }) => {
       const modes = Array.isArray(entity.attributes.hvac_modes) ? entity.attributes.hvac_modes : [];
       if (typeof data.hvac_mode !== "string" || !modes.includes(data.hvac_mode)) throw new Error("hvac_mode is not one of the heater's modes");
       const fanId = entity.entity_id.replace(/^climate\./, "fan.");
       also(fanId, { state: data.hvac_mode === "off" ? "off" : "on" });
-      return { state: data.hvac_mode, attributes: { hvac_action: data.hvac_mode === "heat" ? "heating" : data.hvac_mode === "cool" ? "cooling" : "off" } };
+      const action = data.hvac_mode === "heat" ? "heating" : data.hvac_mode === "cool" ? "cooling" : data.hvac_mode === "fan_only" ? "fan" : "off";
+      return { state: data.hvac_mode, attributes: { hvac_action: action } };
     },
     "climate.set_temperature": ({ entity, data }) => {
       const t = data.temperature;
@@ -103,5 +137,9 @@ export function dysonServices(): DemoServices {
 
 /** Storybook-only Dyson transport: the same store and service path as a host transport, answered locally. */
 export function createDemoDysonHaTransport(seed: HassEntities = initial): HaTransport {
-  return createDemoTransport({ seed, services: dysonServices() });
+  // The slider services read the device's other sliders: the transport's latest entities, kept as they arrive.
+  let latest = seed;
+  const transport = createDemoTransport({ seed, services: dysonServices(() => latest) });
+  transport.subscribeEntities((entities) => { latest = entities; });
+  return transport;
 }

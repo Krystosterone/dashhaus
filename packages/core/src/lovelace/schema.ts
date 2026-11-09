@@ -727,6 +727,10 @@ export const DYSON_COMPANION_KEYS = {
   night_mode: { companion: "nightMode", domains: ["switch"] },
   heat: { companion: "heat", domains: ["climate"] },
   oscillation_mode: { companion: "oscillationMode", domains: ["select"] },
+  angle_center: { companion: "angleCenter", domains: ["number"] },
+  angle_span: { companion: "angleSpan", domains: ["number"] },
+  angle_low: { companion: "angleLow", domains: ["number"] },
+  angle_high: { companion: "angleHigh", domains: ["number"] },
 } as const;
 
 type DysonCompanionName = (typeof DYSON_COMPANION_KEYS)[keyof typeof DYSON_COMPANION_KEYS]["companion"];

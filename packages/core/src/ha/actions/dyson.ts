@@ -1,6 +1,6 @@
 import type { FanDirection } from "../../entities/fan/types";
 import type { DysonEntity } from "../../entities/dyson/types";
-import { DYSON_LOCAL_ANGLES, DYSON_MIN_SWEEP, DYSON_SWEEPS, sweepAngles, sweepLabel } from "../../entities/dyson/labels";
+import { DYSON_LOCAL_ANGLES, DYSON_MIN_SWEEP, DYSON_SWEEPS, aimAngles, aimOf, sweepLabel } from "../../entities/dyson/labels";
 import type { HaActionError, HaStore } from "../types";
 import { createFanHandlers } from "./fan";
 import { serviceRunner } from "./run";
@@ -21,15 +21,20 @@ export interface DysonHandlers {
    */
   onOscillationModeChange: (mode: string) => void;
   /**
-   * Aims a Pure Cool or Hot+Cool, `dyson_local.set_angle`, which starts it oscillating: one angle twice holds it still,
-   * pointing there; two at least 30° apart sweep between them, inside its `angles`.
+   * Aims a Pure Cool or Hot+Cool, its sweep's width kept, which starts it oscillating: `dyson_local.set_angle` round
+   * the new centre, or hass-dyson's centre slider (`number.set_value`). Inside its `angles`.
    */
-  onAngleChange: (low: number, high: number) => void;
+  onAimChange: (aim: number) => void;
+  /**
+   * How widely it sweeps round where it points, 0 to hold still there, else at least 30°, which starts it oscillating:
+   * `dyson_local.set_angle`, or hass-dyson's width slider ("Oscillation Angle", `number.set_value`).
+   */
+  onSpreadChange: (spread: number) => void;
   /** Calls `fan.set_direction`: `forward` is the front airflow, `reverse` the back. */
   onDirectionChange: (direction: FanDirection) => void;
   /** Switches its night-mode switch, `switch.turn_on` or `switch.turn_off`. */
   onNightModeChange: (on: boolean) => void;
-  /** Calls `climate.set_hvac_mode` on its heater: `heat` on, `cool` off (the fan alone). */
+  /** Calls `climate.set_hvac_mode` on its heater: `heat` on, its `heatOffMode` off (the fan alone). */
   onHeatChange: (on: boolean) => void;
   /** Calls `climate.set_temperature` on its heater, inside its own limits and on its step. */
   onHeatTargetChange: (temperature: number) => void;
@@ -42,7 +47,8 @@ export const DYSON_ACTIONS = {
   onAutoChange: { takes: "switch", field: "auto" },
   onOscillateChange: { takes: "switch", field: "oscillating" },
   onOscillationModeChange: { takes: "choice", field: "oscillationMode", options: "oscillationModes" },
-  onAngleChange: { takes: "value" },
+  onAimChange: { takes: "value" },
+  onSpreadChange: { takes: "value" },
   onDirectionChange: { takes: "choice", field: "direction", options: ["forward", "reverse"] },
   onNightModeChange: { takes: "switch", field: "nightMode" },
   onHeatChange: { takes: "switch", field: "heatOn" },
@@ -56,6 +62,9 @@ export interface DysonHandlerOptions {
   heatEntityId?: string;
   /** Its oscillation mode select (`select.*_oscillation_mode`), on a Humidify+Cool. */
   oscillationModeEntityId?: string;
+  /** hass-dyson's oscillation centre and width sliders (`number.*_oscillation_center_angle`, `number.*_oscillation_angle`). */
+  angleCenterEntityId?: string;
+  angleSpanEntityId?: string;
   onError?: (error: HaActionError) => void;
 }
 
@@ -79,6 +88,28 @@ export function createDysonHandlers(caller: Pick<HaStore, "callService">, entity
   /** A companion's own runner, so its errors name its entity. */
   const on = (domain: string, entityId: string) => serviceRunner(caller, domain, { entityId, state: entity.state }, onError).run;
   const sweep = (mode: string) => DYSON_SWEEPS.find((s) => sweepLabel(s) === mode);
+  const range = entity.angles ?? DYSON_LOCAL_ANGLES;
+  const aimable = !!entity.supportsOscillate && (entity.oscillationBy === "angle" || entity.oscillationBy === "number");
+  const low = entity.oscillationLow;
+  const high = entity.oscillationHigh;
+  const centre = entity.oscillationCentre ?? (low != null && high != null ? aimOf(low, high) : range.ahead);
+  /**
+   * A new aim, or a new width, the other kept: hass-dyson takes each on its own slider, which keeps the other as the
+   * device has it; ha-dyson takes both ends at once.
+   */
+  const setAngles = (aim: number | undefined, spread: number | undefined) => {
+    if (entity.oscillationBy === "number") {
+      const target = aim != null ? options.angleCenterEntityId : options.angleSpanEntityId;
+      if (!target) {
+        unsupported(`${id} has no oscillation ${aim != null ? "centre" : "angle"} slider`);
+        return;
+      }
+      on("number", target)("set_value", { value: aim ?? spread });
+      return;
+    }
+    const width = spread ?? (low != null && high != null ? high - low : 0);
+    on("dyson_local", id)("set_angle", aimAngles(aim ?? centre, width, range));
+  };
 
   return {
     onToggle: fan.onToggle,
@@ -108,17 +139,23 @@ export function createDysonHandlers(caller: Pick<HaStore, "callService">, entity
         on("select", options.oscillationModeEntityId)("select_option", { option: mode });
         return;
       }
-      on("dyson_local", id)("set_angle", sweepAngles(sweep(mode)!, entity.oscillationCentre, entity.angles));
+      setAngles(undefined, sweep(mode)!);
     },
-    onAngleChange: (low, high) => {
-      if (!can(entity.supportsOscillate && entity.oscillationBy === "angle", "oscillation angles")) return;
-      const { min, max } = entity.angles ?? DYSON_LOCAL_ANGLES;
-      const inside = (a: number) => Number.isInteger(a) && a >= min && a <= max;
-      if (!inside(low) || !inside(high) || (low !== high && high - low < DYSON_MIN_SWEEP)) {
-        invalidInput(`${id} angles must be whole degrees from ${min} to ${max}, equal or at least ${DYSON_MIN_SWEEP} apart`);
+    onAimChange: (aim) => {
+      if (!can(aimable, "oscillation angles")) return;
+      if (!Number.isFinite(aim) || aim < range.min || aim > range.max) {
+        invalidInput(`${id} aims from ${range.min} to ${range.max}°`);
         return;
       }
-      on("dyson_local", id)("set_angle", { angle_low: low, angle_high: high });
+      setAngles(Math.round(aim), undefined);
+    },
+    onSpreadChange: (spread) => {
+      if (!can(aimable, "oscillation angles")) return;
+      if (!Number.isFinite(spread) || spread < 0 || spread > range.max - range.min || (spread > 0 && spread < DYSON_MIN_SWEEP)) {
+        invalidInput(`${id} sweeps 0, or ${DYSON_MIN_SWEEP} to ${range.max - range.min}°`);
+        return;
+      }
+      setAngles(undefined, Math.round(spread));
     },
     onNightModeChange: (night) => {
       if (!can(entity.supportsNightMode && !!options.nightModeEntityId, "night mode")) return;
@@ -126,7 +163,7 @@ export function createDysonHandlers(caller: Pick<HaStore, "callService">, entity
     },
     onHeatChange: (heat) => {
       if (!can(entity.supportsHeat && !!options.heatEntityId, "heat")) return;
-      on("climate", options.heatEntityId!)("set_hvac_mode", { hvac_mode: heat === true ? "heat" : "cool" });
+      on("climate", options.heatEntityId!)("set_hvac_mode", { hvac_mode: heat === true ? "heat" : entity.heatOffMode ?? "cool" });
     },
     onHeatTargetChange: (temperature) => {
       if (!can(entity.supportsHeat && !!options.heatEntityId, "heat")) return;

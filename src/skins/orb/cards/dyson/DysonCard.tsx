@@ -3,7 +3,7 @@ import type { DysonEntity, DysonHistory } from "@dashhaus/core/entities/dyson/ty
 import { percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { fanWord, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonWarning } from "@dashhaus/core/entities/dyson/air";
-import { AIRFLOW_LABEL, DYSON_SPREADS, aimAngles, dysonAbilities, dysonMode, oscillationChoice, spreadLabel } from "@dashhaus/core/entities/dyson/labels";
+import { AIRFLOW_LABEL, DYSON_SPREADS, dysonAbilities, dysonMode, oscillationChoice, spreadLabel } from "@dashhaus/core/entities/dyson/labels";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { todaySummary } from "@dashhaus/core/entities/today";
@@ -27,8 +27,10 @@ export interface DysonCardProps extends CardProps {
   onOscillateChange?: (oscillating: boolean) => void;
   /** Sheet: the range it sweeps, which starts it. */
   onOscillationModeChange?: (mode: string) => void;
-  /** Sheet: a Pure Cool's or Hot+Cool's angles: still or a sweep, from the chips, and where it points, on the dial. */
-  onAngleChange?: (low: number, high: number) => void;
+  /** Sheet: where a Pure Cool or Hot+Cool points, on the dial, its width kept. */
+  onAimChange?: (aim: number) => void;
+  /** Sheet: how widely it sweeps round where it points, from the chips: 0 holds it still. */
+  onSpreadChange?: (spread: number) => void;
   /** Sheet: its airflow, out of the front or the back. */
   onDirectionChange?: (direction: FanDirection) => void;
   /** Sheet: night mode. */
@@ -54,7 +56,7 @@ const degrees = (value: number, unit: string | undefined) => `${fmt1(value)}${un
  * or a press and hold on the orb, opens the sheet: Auto or Manual, the oscillation and its range, the airflow, night
  * mode, heat and its target, then every air reading in Dyson's own bands, the filters, and today.
  */
-export function DysonCard({ entity: e, history, variant, footprint, showControl, onToggle, onPercentageChange, onAutoChange, onOscillateChange, onOscillationModeChange, onAngleChange, onDirectionChange, onNightModeChange, onHeatChange, onHeatTargetChange, onOpenDetails, onClose }: DysonCardProps) {
+export function DysonCard({ entity: e, history, variant, footprint, showControl, onToggle, onPercentageChange, onAutoChange, onOscillateChange, onOscillationModeChange, onAimChange, onSpreadChange, onDirectionChange, onNightModeChange, onHeatChange, onHeatTargetChange, onOpenDetails, onClose }: DysonCardProps) {
   const card = useCard("dy", { variant, footprint, showControl, area: e.area });
   const { uid, area } = card;
   const unav = e.state === "unavailable";
@@ -81,7 +83,8 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
 
   // A Pure Cool or Hot+Cool aims on its angles: held still or sweeping, round where it points. Any other sweeps its own
   // ranges, or switches oscillation on and off.
-  const angles = e.oscillationBy === "angle" && onAngleChange && e.oscillationLow != null && e.oscillationHigh != null
+  const aimable = (e.oscillationBy === "angle" || e.oscillationBy === "number") && onSpreadChange && onAimChange;
+  const angles = aimable && e.oscillationLow != null && e.oscillationHigh != null
     ? { low: e.oscillationLow, high: e.oscillationHigh } : undefined;
   const sweeps = !angles && e.oscillationModes?.length && onOscillationModeChange ? e.oscillationModes : undefined;
   const oscillation = [
@@ -95,11 +98,7 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
   const pickOscillation = (v: string) => {
     if (v === "off") return onOscillateChange?.(false);
     if (v === "on") return onOscillateChange?.(true);
-    if (angles) {
-      const spread = DYSON_SPREADS.find((s) => spreadLabel(s) === v) ?? 0;
-      const { angle_low, angle_high } = aimAngles(e.oscillationCentre ?? Math.round((angles.low + angles.high) / 2), spread, e.angles);
-      return onAngleChange!(angle_low, angle_high);
-    }
+    if (angles) return onSpreadChange!(DYSON_SPREADS.find((s) => spreadLabel(s) === v) ?? 0);
     onOscillationModeChange?.(v);
   };
   const readings = [
@@ -152,7 +151,7 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
             <ChoiceChips id={`${uid}-o`} label="Oscillation" options={oscillation} value={oscillationValue} onChange={pickOscillation} />
           )}
           {angles && e.oscillating && (
-            <AimDial id={`${uid}-aim`} name={e.name} low={angles.low} high={angles.high} angles={e.angles} onChange={onAngleChange!} />
+            <AimDial id={`${uid}-aim`} name={e.name} low={angles.low} high={angles.high} angles={e.angles} onChange={onAimChange!} />
           )}
           {e.supportsDirection && onDirectionChange && (
             <ChoiceChips id={`${uid}-d`} label="Airflow" options={AIRFLOWS} value={e.direction} onChange={onDirectionChange} />

@@ -57,13 +57,18 @@ export interface DysonEntity extends Omit<FanEntity, "supportsPreset" | "presetM
   /** The range its angles take, and the one ahead: its integration's (`DYSON_LOCAL_ANGLES`, `HASS_DYSON_ANGLES`). */
   angles?: DysonAngles;
   oscillationHigh?: number;
-  /** Whether a range is set by the fan's angles (`dyson_local.set_angle`) or by its select entity. */
-  oscillationBy?: "angle" | "select";
+  /**
+   * How its range is set: ha-dyson's fan angles (`dyson_local.set_angle`), hass-dyson's angle sliders (`number.*`, its
+   * centre and width), or a select entity's options.
+   */
+  oscillationBy?: "angle" | "number" | "select";
   /** True when its night-mode switch is there. */
   supportsNightMode?: boolean;
   nightMode?: boolean;
   /** True for a Hot+Cool: its `climate.*` heats. */
   supportsHeat?: boolean;
+  /** The heater's mode for heat off, the fan running alone: ha-dyson's `cool`, hass-dyson's `fan_only`. */
+  heatOffMode?: string;
   /** True while heat mode is on; off, the fan only cools. */
   heatOn?: boolean;
   /** True while the heater is heating, not idle at its target. */

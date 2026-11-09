@@ -9,7 +9,10 @@ const entity: DysonEntity = {
   supportsDirection: true, direction: "forward", supportsNightMode: true, nightMode: false,
   supportsHeat: true, heatOn: false, heatTarget: 21, heatMin: 1, heatMax: 37, heatStep: 1, heatUnit: "°C", air: [], filters: [],
 };
-const ids = { nightModeEntityId: "switch.bedroom_night_mode", heatEntityId: "climate.bedroom", oscillationModeEntityId: "select.bedroom_oscillation_mode" };
+const ids = {
+  nightModeEntityId: "switch.bedroom_night_mode", heatEntityId: "climate.bedroom", oscillationModeEntityId: "select.bedroom_oscillation_mode",
+  angleCenterEntityId: "number.bedroom_oscillation_center_angle", angleSpanEntityId: "number.bedroom_oscillation_angle",
+};
 const setup = (e: Partial<DysonEntity> = {}) => {
   const callService = vi.fn(async () => undefined);
   const onError = vi.fn();
@@ -54,11 +57,42 @@ describe("createDysonHandlers", () => {
     expect(select.callService).toHaveBeenCalledWith("select", "select_option", { entity_id: "select.bedroom_oscillation_mode", option: "Breeze" });
   });
 
+  it("aims ha-dyson round a new centre, its width kept, or holds it still", () => {
+    const { callService, handlers } = setup({ oscillationLow: 135, oscillationHigh: 225 });
+    handlers.onAimChange(120);
+    handlers.onSpreadChange(0);
+    expect(callService.mock.calls).toEqual([
+      ["dyson_local", "set_angle", { entity_id: "fan.bedroom", angle_low: 75, angle_high: 165 }],
+      ["dyson_local", "set_angle", { entity_id: "fan.bedroom", angle_low: 180, angle_high: 180 }],
+    ]);
+  });
+
+  it("aims hass-dyson on its own centre and width sliders, and refuses what it can't take", () => {
+    const hass = setup({ oscillationBy: "number", angles: { min: 0, max: 350, ahead: 175 }, oscillationLow: 233, oscillationHigh: 233 });
+    hass.handlers.onAimChange(120);
+    hass.handlers.onSpreadChange(90);
+    hass.handlers.onOscillationModeChange("45°");
+    hass.handlers.onSpreadChange(10);
+    hass.handlers.onAimChange(360);
+    expect(hass.callService.mock.calls).toEqual([
+      ["number", "set_value", { entity_id: "number.bedroom_oscillation_center_angle", value: 120 }],
+      ["number", "set_value", { entity_id: "number.bedroom_oscillation_angle", value: 90 }],
+      ["number", "set_value", { entity_id: "number.bedroom_oscillation_angle", value: 45 }],
+    ]);
+    expect(hass.onError).toHaveBeenCalledTimes(2);
+  });
+
   it("refuses a range it doesn't list", () => {
     const { callService, onError, handlers } = setup();
     handlers.onOscillationModeChange("Breeze");
     expect(callService).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ code: "invalid_input" }));
+  });
+
+  it("turns hass-dyson's heat off to fan_only", () => {
+    const { callService, handlers } = setup({ heatOffMode: "fan_only" });
+    handlers.onHeatChange(false);
+    expect(callService).toHaveBeenCalledWith("climate", "set_hvac_mode", { entity_id: "climate.bedroom", hvac_mode: "fan_only" });
   });
 
   it("switches night mode and the heater on their own entities", () => {

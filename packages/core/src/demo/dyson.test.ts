@@ -32,12 +32,24 @@ describe("createDemoDysonHaTransport", () => {
     expect(seen.latest?.["fan.bedroom_purifier"].attributes).toMatchObject({ preset_mode: "Normal", percentage: 70 });
   });
 
+  it("aims hass-dyson's sliders: the centre keeps the width, the width the centre, the ends following", async () => {
+    const { transport, seen } = await subscribe();
+    const value = (name: string) => seen.latest?.[`number.living_room_hot_cool_oscillation_${name}`].state;
+    await transport.callService("number", "set_value", { entity_id: "number.living_room_hot_cool_oscillation_center_angle", value: 120 });
+    expect([value("center_angle"), value("angle"), value("low_angle"), value("high_angle")]).toEqual(["120", "0", "120", "120"]);
+    await transport.callService("number", "set_value", { entity_id: "number.living_room_hot_cool_oscillation_angle", value: 90 });
+    expect([value("center_angle"), value("angle"), value("low_angle"), value("high_angle")]).toEqual(["120", "90", "75", "165"]);
+    expect(seen.latest?.["select.living_room_hot_cool_oscillation"].state).toBe("90°");
+    expect(seen.latest?.["fan.living_room_hot_cool"].attributes.oscillating).toBe(true);
+    await expect(transport.callService("number", "set_value", { entity_id: "number.living_room_hot_cool_oscillation_angle", value: 10 })).rejects.toThrow();
+  });
+
   it("sets the sweep's angles, which starts it, and refuses impossible ones", async () => {
     const { transport, seen } = await subscribe();
-    await transport.callService("fan", "oscillate", { entity_id: "fan.living_room_hot_cool", oscillating: false });
-    await transport.callService("dyson_local", "set_angle", { entity_id: "fan.living_room_hot_cool", angle_low: 158, angle_high: 203 });
-    expect(seen.latest?.["fan.living_room_hot_cool"].attributes).toMatchObject({ angle_low: 158, angle_high: 203, oscillating: true });
-    await expect(transport.callService("dyson_local", "set_angle", { entity_id: "fan.living_room_hot_cool", angle_low: 0, angle_high: 400 })).rejects.toThrow();
+    await transport.callService("fan", "oscillate", { entity_id: "fan.bedroom_purifier", oscillating: false });
+    await transport.callService("dyson_local", "set_angle", { entity_id: "fan.bedroom_purifier", angle_low: 158, angle_high: 203 });
+    expect(seen.latest?.["fan.bedroom_purifier"].attributes).toMatchObject({ angle_low: 158, angle_high: 203, oscillating: true });
+    await expect(transport.callService("dyson_local", "set_angle", { entity_id: "fan.bedroom_purifier", angle_low: 0, angle_high: 400 })).rejects.toThrow();
   });
 
   it("switches night mode and the heater, whose heat switches the fan on", async () => {

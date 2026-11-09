@@ -75,17 +75,18 @@ describe("DysonCard", () => {
   });
 
   it("aims a Pure Cool on its angles: still or a sweep round where it points, and the dial turns it", () => {
-    const onAngleChange = vi.fn();
+    const onAimChange = vi.fn();
+    const onSpreadChange = vi.fn();
     const pointing = DYSON_SEEDS.pointing.entity;
-    render(<DysonCard entity={pointing} variant="sheet" onToggle={() => {}} onOscillateChange={() => {}} onAngleChange={onAngleChange} />);
+    render(<DysonCard entity={pointing} variant="sheet" onToggle={() => {}} onOscillateChange={() => {}} onAimChange={onAimChange} onSpreadChange={onSpreadChange} />);
     const chips = screen.getByRole("group", { name: "Oscillation" });
     expect(within(chips).getByRole("button", { name: "Still" }).getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(within(chips).getByRole("button", { name: "90°" }));
-    expect(onAngleChange).toHaveBeenLastCalledWith(188, 278);
+    expect(onSpreadChange).toHaveBeenLastCalledWith(90);
     const dial = screen.getByRole("slider", { name: "Purifier aims" });
     expect(dial.getAttribute("aria-valuetext")).toBe("Points 58° right");
     fireEvent.change(dial, { target: { value: "175" } });
-    expect(onAngleChange).toHaveBeenLastCalledWith(175, 175);
+    expect(onAimChange).toHaveBeenLastCalledWith(175);
   });
 
   it("lists every reading in Dyson's bands, and its filters, in the sheet", () => {
