@@ -1,0 +1,3 @@
+# Impeccable is updated by `npx impeccable update`, not written here; its bundled
+# browser tooling is third-party code. Keeps GitHub's language bar about this repository.
+.agents/skills/impeccable/** linguist-vendored
