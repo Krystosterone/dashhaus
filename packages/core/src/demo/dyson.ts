@@ -53,7 +53,7 @@ const initial: HassEntities = Object.fromEntries([
   }),
 ]);
 
-/** The angles a Pure Cool takes: whole degrees, low under high, inside 5-355. */
+/** An angle a Pure Cool takes: whole degrees inside 5-355. */
 const angle = (value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 5 && value <= 355;
 
 /**
@@ -74,7 +74,8 @@ export function dysonServices(): DemoServices {
       return "attributes" in change && change.state === "on" ? { ...change, attributes: { ...change.attributes, preset_mode: "Normal" } } : change;
     },
     "dyson_local.set_angle": ({ data }) => {
-      if (!angle(data.angle_low) || !angle(data.angle_high) || (data.angle_low as number) >= (data.angle_high as number)) throw new Error("angles must be 5-355, low under high");
+      const [low, high] = [data.angle_low as number, data.angle_high as number];
+      if (!angle(low) || !angle(high) || (low !== high && high - low < 30)) throw new Error("angles must be 5-355, equal or at least 30 apart");
       return { attributes: { angle_low: data.angle_low, angle_high: data.angle_high, oscillating: true } };
     },
     ...onOffServices("switch", ["turn_on", "turn_off"]),

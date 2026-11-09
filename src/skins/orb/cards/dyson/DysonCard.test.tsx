@@ -74,6 +74,20 @@ describe("DysonCard", () => {
     expect(handlers.onHeatTargetChange).toHaveBeenCalledWith(24);
   });
 
+  it("aims a Pure Cool on its angles: still or a sweep round where it points, and the dial turns it", () => {
+    const onAngleChange = vi.fn();
+    const pointing = DYSON_SEEDS.pointing.entity;
+    render(<DysonCard entity={pointing} variant="sheet" onToggle={() => {}} onOscillateChange={() => {}} onAngleChange={onAngleChange} />);
+    const chips = screen.getByRole("group", { name: "Oscillation" });
+    expect(within(chips).getByRole("button", { name: "Still" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(within(chips).getByRole("button", { name: "90°" }));
+    expect(onAngleChange).toHaveBeenLastCalledWith(75, 165);
+    const dial = screen.getByRole("slider", { name: "Purifier aims" });
+    expect(dial.getAttribute("aria-valuetext")).toBe("Points 60° from ahead");
+    fireEvent.change(dial, { target: { value: "180" } });
+    expect(onAngleChange).toHaveBeenLastCalledWith(180, 180);
+  });
+
   it("lists every reading in Dyson's bands, and its filters, in the sheet", () => {
     render(<DysonCard entity={heater} variant="sheet" onToggle={() => {}} />);
     expect(screen.getByText("Air quality").parentElement?.textContent).toBe("Air qualityFair");

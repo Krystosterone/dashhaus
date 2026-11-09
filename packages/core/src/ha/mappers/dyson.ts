@@ -129,6 +129,7 @@ export function dysonFromHass(raw: HassEntity | undefined, entityId: string, opt
       oscillationModes: DYSON_SWEEPS.map(sweepLabel),
       oscillationMode: live && sweep != null ? sweepLabel(sweep) : undefined,
       oscillationCentre: Math.round((low + high) / 2),
+      ...(live && { oscillationLow: low, oscillationHigh: high }),
       oscillationBy: "angle" as const,
     }
     : {};

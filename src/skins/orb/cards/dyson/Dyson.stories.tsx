@@ -3,7 +3,7 @@ import { DemoDysonTile as DemoTile } from "./demo/DemoDysonTile";
 import { DYSON_WORST_CASE } from "@dashhaus/core/seeds/dyson";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["on", "heating", "off", "poorAir", "filter", "unavailable"] as const;
+const SEEDS = ["on", "pointing", "heating", "off", "poorAir", "filter", "unavailable"] as const;
 
 const meta = {
   title: "Orb/Cards/Dyson",
@@ -37,6 +37,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const On: Story = {};
+/** Held still, pointing 60° from ahead: no sweep, the status line says where it points. */
+export const Pointing: Story = { args: { seed: "pointing" } };
 /** A Hot+Cool in Auto, heating to 23°: it claims the energy bloom while it heats. */
 export const Heating: Story = { args: { seed: "heating" } };
 export const Off: Story = { args: { seed: "off" } };
@@ -103,6 +105,8 @@ export const Compact: Story = {
 
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
 /** A Hot+Cool's sheet: heat on, its target, and formaldehyde among the readings. */
+/** Where it points, on the dial: drag it round, or step it with the arrow keys; Still or a width on the chips. */
+export const DetailsPointing: Story = { name: "Details, pointing", args: { seed: "pointing", defaultOpen: true } };
 export const DetailsHeating: Story = { name: "Details, heating", args: { seed: "heating", defaultOpen: true } };
 /** A Humidify+Cool's sheet: its ranges from its own select, Breeze among them. */
 export const DetailsHumidifyCool: Story = { name: "Details, Humidify+Cool", args: { seed: "off", defaultOpen: true } };

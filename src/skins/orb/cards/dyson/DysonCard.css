@@ -18,3 +18,19 @@
 .dy-band { margin-left: 8px; color: var(--ink-3); }
 /* A reading poor or worse, or a filter to change, in the warn ink: its words say so too. */
 .dy-row[data-band="warn"] dd, .dy-row[data-band="warn"] .dy-band { color: var(--warn); }
+
+/* The aim dial (prototype): the groove it turns in, its sweep and beam in the accent, the fan seen from above, and a
+   raised knob where it aims. The range input over it is invisible, for the keyboard and screen readers. */
+.dy-dial { position: relative; width: min(100%, 240px); margin: 0 auto; }
+.dy-dial svg { display: block; width: 100%; height: auto; overflow: visible; cursor: grab; }
+.dy-dial svg[data-dragging] { cursor: grabbing; }
+.dy-dial-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.dy-dial-input:focus-visible + svg .dy-dial-knob { stroke: var(--ink); stroke-width: 2.5; }
+.dy-dial-ring { fill: none; stroke: var(--groove); stroke-width: 16; }
+.dy-dial-sweep { fill: none; stroke: var(--accent); stroke-width: 16; stroke-linecap: round; }
+.dy-dial-beam { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.dy-dial-back { stroke: var(--tick); stroke-width: 2; }
+.dy-dial-ahead { font-size: 11px; font-weight: 600; fill: var(--ink-3); }
+.dy-dial-fan circle { fill: var(--btn); stroke: var(--line); }
+.dy-dial-fan path { stroke: var(--ink-2); stroke-width: 3; stroke-linecap: round; }
+.dy-dial-knob { fill: var(--btn); stroke: var(--line); stroke-width: 1; }

@@ -1,6 +1,6 @@
 import type { FanDirection } from "../../entities/fan/types";
 import type { DysonEntity } from "../../entities/dyson/types";
-import { DYSON_SWEEPS, sweepAngles, sweepLabel } from "../../entities/dyson/labels";
+import { DYSON_ANGLE_MAX, DYSON_ANGLE_MIN, DYSON_MIN_SWEEP, DYSON_SWEEPS, sweepAngles, sweepLabel } from "../../entities/dyson/labels";
 import type { HaActionError, HaStore } from "../types";
 import { createFanHandlers } from "./fan";
 import { serviceRunner } from "./run";
@@ -20,6 +20,11 @@ export interface DysonHandlers {
    * the current centre on a Pure Cool, `select.select_option` on its oscillation mode select on a Humidify+Cool.
    */
   onOscillationModeChange: (mode: string) => void;
+  /**
+   * Aims a Pure Cool or Hot+Cool, `dyson_local.set_angle`, which starts it oscillating: one angle twice holds it still,
+   * pointing there; two at least 30° apart sweep between them. 5-355° around its base, 180° ahead.
+   */
+  onAngleChange: (low: number, high: number) => void;
   /** Calls `fan.set_direction`: `forward` is the front airflow, `reverse` the back. */
   onDirectionChange: (direction: FanDirection) => void;
   /** Switches its night-mode switch, `switch.turn_on` or `switch.turn_off`. */
@@ -37,6 +42,7 @@ export const DYSON_ACTIONS = {
   onAutoChange: { takes: "switch", field: "auto" },
   onOscillateChange: { takes: "switch", field: "oscillating" },
   onOscillationModeChange: { takes: "choice", field: "oscillationMode", options: "oscillationModes" },
+  onAngleChange: { takes: "value" },
   onDirectionChange: { takes: "choice", field: "direction", options: ["forward", "reverse"] },
   onNightModeChange: { takes: "switch", field: "nightMode" },
   onHeatChange: { takes: "switch", field: "heatOn" },
@@ -103,6 +109,15 @@ export function createDysonHandlers(caller: Pick<HaStore, "callService">, entity
         return;
       }
       on("dyson_local", id)("set_angle", sweepAngles(sweep(mode)!, entity.oscillationCentre));
+    },
+    onAngleChange: (low, high) => {
+      if (!can(entity.supportsOscillate && entity.oscillationBy === "angle", "oscillation angles")) return;
+      const inside = (a: number) => Number.isInteger(a) && a >= DYSON_ANGLE_MIN && a <= DYSON_ANGLE_MAX;
+      if (!inside(low) || !inside(high) || (low !== high && high - low < DYSON_MIN_SWEEP)) {
+        invalidInput(`${id} angles must be whole degrees from ${DYSON_ANGLE_MIN} to ${DYSON_ANGLE_MAX}, equal or at least ${DYSON_MIN_SWEEP} apart`);
+        return;
+      }
+      on("dyson_local", id)("set_angle", { angle_low: low, angle_high: high });
     },
     onNightModeChange: (night) => {
       if (!can(entity.supportsNightMode && !!options.nightModeEntityId, "night mode")) return;
