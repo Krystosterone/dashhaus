@@ -69,6 +69,9 @@ Not: `Refactored ClimateModule to use RangeFader and fixed the screen logic.` (i
 4. CI's `dx` lane then checks the record and the digests. If it says a note "arrived after" the record, move that
    note's text into What changed and delete the file. If it says the files differ, main moved: run
    `npm run release:digests` and commit.
+5. If it fails on main after the release PR merged, the release drifted (spec/release.md → When a release drifted):
+   nothing shipped. Open one pull request that moves the late notes into the record and refreshes the digests; its
+   merge runs the Release workflow again.
 
 Never edit a `.sha256` by hand, set a version by editing manifests, or publish by hand: the Release workflow ships what
 the merged pull request recorded, and nothing else.

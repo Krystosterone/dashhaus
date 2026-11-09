@@ -84,8 +84,9 @@ describe("the pinned npm", () => {
       release.split(/^jobs:\n/m)[1].split(/^(?= {2}\S)/m).filter((block) => /^ {2}[\w-]+:/.test(block)).map((block) => [/^ {2}([\w-]+):/.exec(block)![1], block]),
     );
     expect(Object.keys(jobs), "least reversible last").toEqual(["plan", "build", "draft", "publish", "registry", "release", "listings"]);
-    expect(release, "a version bump or refreshed digests on main, or a rerun by hand").toMatch(
-      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/core\/package\.json, "spec\/releases\/\*\.sha256"\]\n {2}workflow_dispatch:\n\n/m,
+    // A drifted release is fixed on main by its record or its digests (spec/release.md → When a release drifted).
+    expect(release, "a version bump, or a fixed record or digests, on main, or a rerun by hand").toMatch(
+      /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths: \[packages\/core\/package\.json, "spec\/releases\/\*\.sha256", "spec\/releases\/\*\.md"\]\n {2}workflow_dispatch:\n\n/m,
     );
     expect(jobs.plan, "a dispatch ships only from main").toContain('if [ "$GITHUB_REF" != refs/heads/main ]');
     expect(release, "no npm token anywhere").not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/);

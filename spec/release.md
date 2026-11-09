@@ -102,12 +102,13 @@ the trigger, and the Release workflow only reproduces what the pull request reco
 3. **Merge**, with CI green: its `dx` lane runs `node scripts/release/candidate.js check`, which fails while the record
    has a `TODO:`, while `changes/` holds a note that arrived after the record (its change ships in this release, so
    it moves into this record), or while the commit doesn't pack the files it records. When main moved under the pull
-   request, `npm run release:digests` refreshes the record's files; require branches to be up to date before merging,
-   so the check always ran on what merges.
+   request, `npm run release:digests` refreshes the record's files. A release PR is open for the minutes its CI takes,
+   so it doesn't wait on main or require branches to be up to date; a change merged into main meanwhile is caught after
+   the merge instead (When a release drifted, below).
 
 Merging moves `packages/core/package.json` (every public package shares its version) on main to a version with no tag, which runs
-`.github/workflows/release.yml`; so does a push that changes a `releases/*.sha256`, the fix for a release whose build
-refused its digests. Least reversible last:
+`.github/workflows/release.yml`; so does a push that changes a `releases/*.sha256` or a record, the fix for a release
+whose build refused it. Least reversible last:
 
 - **plan** reads the version, refuses anything but main, and stops quietly when that version is tagged at another
   commit (nothing to release); tagged at this commit, it finishes the release. It needs the record and its digests.
@@ -134,10 +135,24 @@ partway and does nothing to one that shipped. It takes no inputs and runs no mod
 its shape. Agents work upstream of it, in the pull request: writing notes, running `npm run release`, drafting the
 record. Nothing they write reaches a consumer without passing review and the checks above.
 
+### When a release drifted
+
+A pull request merged into main after the release PR's CI last ran, and the release PR merged on top of it, so main
+holds a change its record doesn't list. Nothing ships: CI on main goes red at `candidate.js check`, naming the note
+that arrived late or the tarball whose bytes moved, and the Release workflow's build stops at the same check. It is
+the exception, not a step. Fix it on main with one pull request: move each late note into the record's What changed
+(and the Release page, if it is worth a line there) and delete it, run `npm run release:digests` if the files moved,
+and merge. That push changes the record or its digests, so the Release workflow runs again and ships the release
+the record now describes.
+
 Decided, and why:
 
 - **The merge is the trigger, not a button after it.** The merge is the reviewed decision; a second click adds a step
   and no information. `workflow_dispatch` is only for finishing a release that stopped.
+- **Drift is caught on main, not prevented.** A release PR lives for the minutes its CI takes, so a feature landing
+  in between is rare; release branches, a merge queue or a bot that keeps the PR current would each make every
+  release pay for it. The record and the digests already make a drifted release refuse to ship, so it costs a red
+  build and one fix-up pull request, never a release that differs from its notes.
 - **One note file per pull request, not a shared `CHANGELOG.md`**, which conflicts between any two open pull requests.
 - **Our own commands, not Changesets, release-please or semantic-release.** One fixed version for six packages, the
   scaffolder's template ranges and the recorded digests are this repository's; each tool would duplicate
