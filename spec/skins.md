@@ -67,6 +67,16 @@ package; `verify/skin-rules.test.ts` holds it to that.
   would override the dark values it inherits.
 - **Controls feel like controls:** no text selection or tap highlight, `touch-action: manipulation`, press feedback
   on `:active`, built on the `@dashhaus/core/primitives` hooks rather than hand-written ARIA.
+- **An action that asks first is never one press.** An action its domain declares `asks` for this entity
+  (`<NAME>_ACTIONS`, with its `when`) never runs on a press: the press opens the details on the skin's question, or on
+  its keypad where the entity wants a code, a press and hold opens them bare, and a declared level that asks is left out.
+  A code the entity wants is never sent from one press either: the keypad takes it. `verify/guarded-actions.test.tsx`
+  presses every control of Orb's and Field's guarded cards on every seed.
+- **An action that asks first says so in its control's name**, in the skin's one idiom and never in a second way: Orb's
+  verb's name ends in `…` (`Unlock Front door…`), Field's in `: asks first` (`Unlock Front door: asks first`), a skin
+  `new-skin` or `create-dashhaus-skin` lays out in its template's (`…`). Only a control that asks carries the mark, and
+  its details say once, in core's words, what asks first while no question stands (spec/cards.md → What every card
+  says).
 - **A card extends a shared part only generically.** A part in the skin's `shared/`, the card frame among them (Orb's
   `CardFrame`, Field's `ModuleFrame`), gains a prop for a card only when the prop is generic: named for what it does,
   never for the card that wanted it first (`body`, not `cameraStill`), optional, so every other card stays as it was,

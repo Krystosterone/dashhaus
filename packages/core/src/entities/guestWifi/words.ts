@@ -1,3 +1,4 @@
+import { asksFirst } from "../guard";
 import type { GuestWifiEntity } from "./types";
 
 const UNIT_MINUTES: Record<string, number> = { d: 1440, h: 60, min: 1, s: 1 / 60 };
@@ -114,3 +115,14 @@ export function joinWords(e: Pick<GuestWifiEntity, "network" | "access" | "qr">)
 
 /** What making a new one does to the guests already in: a code leaves theirs working; a new password needs typing again. */
 export const newSecretWords = (e: Pick<GuestWifiEntity, "access">) => (e.access === "password" ? "Devices already joined will need the new password." : "The codes already given keep working.");
+
+/**
+ * A new password ends the old one for every device already in, so it asks first (a code doesn't: the codes given keep
+ * working). The yes said in full, its question, its yes's word, what the details say while it is on its way (a skin adds its end punctuation) and
+ * the details' line while no question stands.
+ */
+export const newPasswordLabel = (e: Pick<GuestWifiEntity, "network" | "name">) => `Change the password for ${e.network ?? e.name}`;
+export const newPasswordQuestion = (e: Pick<GuestWifiEntity, "network" | "name">) => `${newPasswordLabel(e)}?`;
+export const NEW_PASSWORD_ACTION = "Change";
+export const NEW_PASSWORD_WAITING = "Changing the password";
+export const NEW_PASSWORD_HINT = asksFirst(["Changing the password"])!;

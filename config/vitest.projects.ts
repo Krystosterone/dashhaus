@@ -16,6 +16,11 @@
  * lists name the source condition beside Vite's own defaults (`defaultClientConditions` and `defaultServerConditions`,
  * spelt out so this file needn't load Vite).
  */
+/**
+ * The repo checks that need a DOM, run with the app: the tokens load the custom-element entry, and the cross-skin checks
+ * that draw both skins' cards (what asks first, a figure both skins print) render them.
+ */
+const DOM_CHECKS = ["verify/tokens.test.ts", "verify/guarded-actions.test.tsx", "verify/card-figures.test.tsx"];
 const CLIENT_CONDITIONS = ["source", "module", "browser", "development|production"];
 const SERVER_CONDITIONS = ["source", "module", "node", "development|production"];
 const project = (name: string, include: string[], environment: "jsdom" | "node" = "jsdom", test: Record<string, unknown> = {}) => ({
@@ -25,8 +30,8 @@ const project = (name: string, include: string[], environment: "jsdom" | "node" 
 });
 
 export const projects = [
-  project("root", ["src/**/*.test.{ts,tsx}", "verify/tokens.test.ts", "docs/examples/**/*.test.{ts,tsx}"]),
-  project("checks", ["verify/**/*.test.{ts,tsx}"], "node", { exclude: ["verify/tokens.test.ts"] }),
+  project("root", ["src/**/*.test.{ts,tsx}", ...DOM_CHECKS, "docs/examples/**/*.test.{ts,tsx}"]),
+  project("checks", ["verify/**/*.test.{ts,tsx}"], "node", { exclude: DOM_CHECKS }),
   project("generators", ["scripts/*/*.test.ts"], "node", { pool: "forks" }),
   project("core", ["packages/core/src/**/*.test.{ts,tsx}"]),
   project("deploy", ["packages/deploy/src/**/*.test.ts"], "node"),

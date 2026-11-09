@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
+import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { GuestWifiIcon } from "./icons";
 import { CardFrame, Confirm, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -100,11 +100,11 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
         {!unav && (refresh || make || terms) && (asking && make ? (
           // A new password ends the old one for every device already in, so it asks first, as the lock's unlock does.
           <Confirm
-            question={`Change the password for ${e.network ?? e.name}?`}
+            question={newPasswordQuestion(e)}
             detail={newSecretWords(e)}
-            action="Change"
+            action={NEW_PASSWORD_ACTION}
             busy={pending === "new"}
-            waiting="Changing the password…"
+            waiting={NEW_PASSWORD_WAITING}
             onConfirm={make}
             onCancel={() => setAsking(false)}
           />
@@ -122,7 +122,7 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
               </div>
             )}
             <p className="gw-note" role="status">
-              {pending === "new" ? `Making a new ${secret}…` : pending === "refresh" ? `Checking the ${secret}…` : make ? newSecretWords(e) : ""}
+              {pending === "new" ? `Making a new ${secret}…` : pending === "refresh" ? `Checking the ${secret}…` : make ? [newSecretWords(e), password && NEW_PASSWORD_HINT].filter(Boolean).join(" ") : ""}
             </p>
           </section>
         ))}

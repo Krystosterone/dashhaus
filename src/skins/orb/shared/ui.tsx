@@ -9,6 +9,7 @@ import type { CardFootprint, CardProps, SheetProps, TileProps } from "@dashhaus/
 import type { HourSample, Reading } from "@dashhaus/core/entities/history";
 import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
 import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
+import { ACTION_FAILED, CHECKING_CODE, WAITING, WRONG_CODE } from "@dashhaus/core/entities/guard";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { hourLabel, lineParts } from "@dashhaus/core/entities/clock";
 import type { Severity } from "@dashhaus/core/entities/severity";
@@ -630,7 +631,9 @@ export function ChoiceChips<T extends string | number>({ id, label, options, val
 
 /* ---------- Guarded actions: the question and the keypad ----------
    An action that asks first (a lock's unlock, an alarm's disarm) is answered in the sheet, on useGuardedAction: by a
-   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. */
+   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. Every
+   word is core's (`@dashhaus/core/entities/guard`, the domain's own words); Orb's punctuation is theirs to add: an
+   in-progress word ends in `…`, a sentence in `.` (spec/orb.md → One state vocabulary). */
 
 export interface ConfirmProps {
   /** The question: "Unlock Front door?" */
@@ -641,9 +644,9 @@ export interface ConfirmProps {
   action: string;
   /** The answer is on its way: the action takes no press, and the detail says so. */
   busy?: boolean;
-  /** What the detail says while busy. Default "Waiting…". */
+  /** What the detail says while busy, in core's words (`waitingFor`); the part ends it in `…`. Default core's `WAITING`. */
   waiting?: string;
-  /** The last try didn't go through: said in the detail's place. */
+  /** The last try didn't go through, in core's words (`ACTION_FAILED`): said in the detail's place, ended in `.`. */
   error?: string | null;
   onConfirm: () => void;
   onCancel: () => void;
@@ -654,7 +657,7 @@ export interface ConfirmProps {
  * Cancel takes focus, so Enter never acts; the action, in the inverse, is the one urgent action on the sheet. The
  * action takes no press for a moment after it appears, so the second tap of a double tap that asked can't land on it.
  */
-export function Confirm({ question, detail, action, busy, waiting = "Waiting…", error, onConfirm, onCancel }: ConfirmProps) {
+export function Confirm({ question, detail, action, busy, waiting = WAITING, error, onConfirm, onCancel }: ConfirmProps) {
   const id = useId();
   const settled = useSettled();
   const cancel = useRef<HTMLButtonElement>(null);
@@ -663,7 +666,7 @@ export function Confirm({ question, detail, action, busy, waiting = "Waiting…"
   return (
     <div className="hd-cf" role="group" aria-labelledby={`${id}-q`} aria-describedby={`${id}-d`}>
       <p className="hd-cf-q" id={`${id}-q`}>{question}</p>
-      <p className="hd-cf-d" id={`${id}-d`} role="status">{busy ? waiting : error ? <span className="hd-warn">{error}</span> : detail}</p>
+      <p className="hd-cf-d" id={`${id}-d`} role="status">{busy ? `${waiting}…` : error ? <span className="hd-warn">{`${error}.`}</span> : detail}</p>
       <div className="hd-cf-b">
         <button type="button" className="hd-cf-x" ref={cancel} data-autofocus="" onClick={onCancel}>Cancel</button>
         <button type="button" className="hd-cf-ok" disabled={busy} onClick={() => { if (settled()) onConfirm(); }}>{action}</button>
@@ -699,9 +702,9 @@ export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
   const entered = `${code.length} ${text ? "characters" : "digits"} entered`;
   return (
     <div className="hd-kp" {...rootProps} aria-label={prompt}>
-      <p className="hd-kp-p" id={`${id}-p`} role="status">{busy ? "Checking…"
-        : error === "wrong" ? <span className="hd-warn">Wrong code. Try again.</span>
-        : error === "failed" ? <span className="hd-warn">Didn’t go through. Try again.</span>
+      <p className="hd-kp-p" id={`${id}-p`} role="status">{busy ? `${CHECKING_CODE}…`
+        : error === "wrong" ? <span className="hd-warn">{`${WRONG_CODE}.`}</span>
+        : error === "failed" ? <span className="hd-warn">{`${ACTION_FAILED}.`}</span>
         : prompt}</p>
       {inputProps ? (
         // The placeholder is the hint that letters work; the prompt above is its label.

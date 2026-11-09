@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NONE_HINT, codeGroups, durationMinutes, durationWords, inUse, isGroupedCode, joinWords, lastsWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode, usesWords } from "./words";
+import { NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, codeGroups, durationMinutes, durationWords, inUse, isGroupedCode, joinWords, lastsWords, madeFact, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode, usesWords } from "./words";
 
 describe("durationMinutes", () => {
   it("reads the integration's durations", () => {
@@ -96,5 +96,14 @@ describe("guest Wi-Fi's words while there is nothing to give", () => {
     expect(NONE_HINT).toBe("Make one in details");
     expect(madeFact("08:00")).toBe("Made 08:00");
     expect(madeFact()).toBe("");
+  });
+});
+
+describe("a new password's guard", () => {
+  it("asks for the network, and says so while no question stands", () => {
+    expect(newPasswordQuestion({ name: "Guest Wi-Fi", network: "Maple Guests" })).toBe("Change the password for Maple Guests?");
+    expect(newPasswordQuestion({ name: "Guest Wi-Fi" })).toBe("Change the password for Guest Wi-Fi?");
+    expect(NEW_PASSWORD_WAITING).toBe("Changing the password");
+    expect(NEW_PASSWORD_HINT).toBe("Changing the password asks first.");
   });
 });
