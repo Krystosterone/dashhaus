@@ -35,6 +35,8 @@
 .fd-gw-join { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
 .fd-gw-qr { display: block; width: 168px; aspect-ratio: 1; border-radius: var(--fd-r-key); image-rendering: pixelated; -webkit-user-drag: none; }
 .fd-gw-join:not(:has(.fd-gw-qr)) { grid-template-columns: minmax(0, 1fr); }
+/* A QR code that failed to load: its frame printed empty, the same size, so nothing moves. */
+span.fd-gw-qr { box-shadow: inset 0 0 0 1px var(--fd-hairline); }
 
 /* Narrow modules: the code keeps the screen to itself, as the pictogram yields. */
 @container (max-width: 279px) {

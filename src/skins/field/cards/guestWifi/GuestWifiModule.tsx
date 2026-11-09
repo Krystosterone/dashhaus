@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, codeGroups, isGroupedCode, joinWords, madeFact, newPasswordLabel, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
+import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, codeGroups, isGroupedCode, joinWords, madeFact, qrFailedWords, newPasswordLabel, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Glyph, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Pictogram, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -38,10 +38,13 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
   const details = useDetails(defaultOpen);
   const [pending, setPending] = useState<Pending>(null);
   const [asking, setAsking] = useState(false);
+  // The QR code that failed to load, by its URL, so a rotated token's new one is tried afresh.
+  const [failedQr, setFailedQr] = useState<string>();
   const unav = e.state === "unavailable";
   const ready = e.state === "ready" && e.code != null;
   const password = e.access === "password";
   const secret = secretWord(e);
+  const qrFailed = e.qr != null && failedQr === e.qr;
 
   const pict = <Pictogram param="neutral" lit={ready}>{GUEST_WIFI_PICT}</Pictogram>;
   const figure = (code: string) => (
@@ -101,10 +104,13 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
     >
       {ready && (
         <div className="fd-block">
-          <Legend>{e.qr ? "Scan to join" : "Join"}</Legend>
+          <Legend>{e.qr && !qrFailed ? "Scan to join" : "Join"}</Legend>
           <div className="fd-gw-join">
-            {e.qr && <img className="fd-gw-qr" src={e.qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} />}
-            <p className="fd-hint">{joinWords(e)}</p>
+            {/* One that fails to load prints its frame empty, never the browser's broken picture, and its line says so. */}
+            {e.qr && (qrFailed
+              ? <span className="fd-gw-qr" aria-hidden="true" />
+              : <img className="fd-gw-qr" src={e.qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} onError={() => setFailedQr(e.qr)} />)}
+            <p className="fd-hint">{qrFailed ? qrFailedWords(e) : joinWords(e)}</p>
           </div>
         </div>
       )}

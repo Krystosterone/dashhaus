@@ -113,6 +113,14 @@ export function joinWords(e: Pick<GuestWifiEntity, "network" | "access" | "qr">)
   return e.qr ? `Scan to join ${network}, or choose it in Wi-Fi settings and type the password.` : `Choose ${network} in Wi-Fi settings and type the password.`;
 }
 
+/**
+ * A join QR code that failed to load (a network error, a token that expired before the attribute rotated): the skin
+ * draws its frame empty, and its line says so before how to join without it, as a still that fails says `No picture`.
+ * "No QR code. Choose Maple Guests 5G in Wi-Fi settings and type the password."
+ */
+export const NO_QR = "No QR code";
+export const qrFailedWords = (e: Pick<GuestWifiEntity, "network" | "access">) => `${NO_QR}. ${joinWords({ ...e, qr: undefined })}`;
+
 /** What making a new one does to the guests already in: a code leaves theirs working; a new password needs typing again. */
 export const newSecretWords = (e: Pick<GuestWifiEntity, "access">) => (e.access === "password" ? "Devices already joined will need the new password." : "The codes already given keep working.");
 

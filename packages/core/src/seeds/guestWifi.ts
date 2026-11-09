@@ -9,6 +9,9 @@ export interface GuestWifiSeed {
   entity: GuestWifiEntity;
 }
 
+/** A picture that never decodes, so the browser fires the image's error at once, offline and the same every run. */
+const QR_BROKEN = "data:image/png;base64,AAAA";
+
 const maple = { name: "Guest Wi-Fi", area: "Hall", access: "code", network: "Maple Guests", qr: QR_MAPLE, lastUpdated: "11:52" } as const;
 
 export const GUEST_WIFI_SEEDS = {
@@ -31,6 +34,10 @@ export const GUEST_WIFI_SEEDS = {
   /** A Wi-Fi password in an `input_text`, with a QR code that joins with it, and a script that changes it. */
   password: {
     entity: { entityId: "input_text.guest_wifi_password", name: "Guest Wi-Fi", area: "Hall", access: "password", state: "ready", network: "Maple Guests 5G", code: "ripe-Mango-sunset-42", qr: QR_PASSWORD },
+  },
+  /** The password's QR code fails to load (a token that expired before the attribute rotated): its frame stays empty. */
+  qrFails: {
+    entity: { entityId: "input_text.loft_wifi_password", name: "Guest Wi-Fi", area: "Loft", access: "password", state: "ready", network: "Loft Guests", code: "amber-Willow-quiet-17", qr: QR_BROKEN },
   },
   unavailable: {
     entity: { entityId: "sensor.garage_voucher", name: "Guest Wi-Fi", area: "Garage", access: "code", state: "unavailable", lastSeen: "08:20" },

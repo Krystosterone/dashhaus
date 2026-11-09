@@ -102,4 +102,14 @@ describe("GuestWifiCard", () => {
     expect(container.querySelector(".hd-sub")?.textContent).toBe("Unavailable");
     expect(screen.queryByText("98668-49366")).toBeNull();
   });
+
+  it("draws a QR code that fails to load as an empty frame, says so, and tries a new one afresh", () => {
+    const { container, rerender } = render(<GuestWifiCard entity={entity} footprint="featured" />);
+    fireEvent.error(screen.getByRole("img", { name: "QR code to join Maple Guests" }));
+    expect(screen.queryByRole("img", { name: /QR code/ })).toBeNull();
+    expect(container.querySelector("span.gw-qr")).not.toBeNull();
+    expect(container.querySelector(".gw-how")?.textContent).toMatch(/^No QR code. Join Maple Guests, then enter the code on the page that opens./);
+    rerender(<GuestWifiCard entity={{ ...entity, qr: "data:image/svg+xml,next" }} footprint="featured" />);
+    expect(screen.getByRole("img", { name: "QR code to join Maple Guests" })).not.toBeNull();
+  });
 });
