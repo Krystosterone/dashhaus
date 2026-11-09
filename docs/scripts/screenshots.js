@@ -18,11 +18,16 @@
  *
  * Run `npm run build-storybook` at the root first, then `npm run screenshots -w docs [-- <storybook-static dir>]`. Rerun
  * it when a skin's phone, tablet or wall panel example, one of the cards below or the Composition stories change.
+ *
+ * Two runs on the same tree and the same Chromium write the same files, byte for byte, so a picture that changes is one
+ * the branch changed: the page's clock, zone and language are fixed (`NOW`), and nothing leaves the machine, the
+ * skins' web fonts included (`FONTS`). A story that asks for anything else outside fails the run, naming it.
  */
 /* global document */
 import { createServer } from "node:http";
 import { mkdir, readFile } from "node:fs/promises";
-import { extname, join, resolve } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { chromiumLaunchOptions } from "../../scripts/chromium.js";
@@ -35,6 +40,42 @@ const assets = join(here, "../src/assets");
 const DRAWN = 4;
 /** Device pixels per CSS pixel a picture is kept at, where it isn't the kinds' 4:5 band (drawn and kept at `DRAWN`). */
 const KEPT = 3;
+/**
+ * The page's clock, zone and language, the same on every run and every machine. The stories fix the time they print
+ * (their header's 11:54 on Saturday 17 October 2026), but the demo transports behind the connected and Lovelace stories
+ * run on the browser's clock, so a live clock would put the hour's minutes, the current hour and their history in a
+ * picture; the zone and the language decide how a time and a date are written.
+ */
+const TIME_ZONE = "UTC";
+const LOCALE = "en-US";
+const NOW = Date.UTC(2026, 9, 17, 11, 54);
+/**
+ * Each skin's web font, pinned: its Lovelace card and Storybook link Google Fonts, which can hand two runs different
+ * builds of the same family, so the same text lands a sub-pixel apart. The script answers those requests from the
+ * `@fontsource-variable` package of the family (docs' devDependencies, at an exact version) and lets nothing else
+ * leave the machine. Each entry is the family as a skin's stylesheet URL names it, its package and the stylesheet
+ * there that carries the axes the skin asks for.
+ */
+const FONTS = {
+  Urbanist: { pkg: "@fontsource-variable/urbanist", css: "wght.css" },
+  Archivo: { pkg: "@fontsource-variable/archivo", css: "wdth.css" },
+};
+const FONT_FILES = "https://fonts.gstatic.com/pinned";
+const packageDir = (pkg) => dirname(createRequire(import.meta.url).resolve(`${pkg}/package.json`));
+
+/** The @font-face rules for a Google Fonts stylesheet URL's families, from their packages, or the families it lacks. */
+async function pinnedFonts(href) {
+  const families = new URL(href).searchParams.getAll("family").map((family) => family.split(":")[0].replace(/\+/g, " "));
+  const missing = families.filter((family) => !FONTS[family]);
+  if (missing.length) return { missing };
+  const rules = await Promise.all(families.map(async (family) => {
+    const { pkg, css } = FONTS[family];
+    const sheet = await readFile(join(packageDir(pkg), css), "utf8");
+    // Fontsource names the variable family "<Family> Variable"; the skins' CSS asks for "<Family>".
+    return sheet.replaceAll(`'${family} Variable'`, `'${family}'`).replace(/url\(\.\/files\/([^)]+)\)/g, `url(${FONT_FILES}/${encodeURIComponent(family)}/$1)`);
+  }));
+  return { css: rules.join("\n") };
+}
 
 /** Each skin's Storybook toolbar global for the site's light and dark look. */
 const LOOKS = {
@@ -87,7 +128,26 @@ await mkdir(join(assets, "layout"), { recursive: true });
 
 const browser = await chromium.launch(chromiumLaunchOptions());
 try {
-  const page = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: DRAWN, reducedMotion: "reduce" });
+  const page = await browser.newPage({ viewport: { width: 1000, height: 1000 }, deviceScaleFactor: DRAWN, reducedMotion: "reduce", timezoneId: TIME_ZONE, locale: LOCALE });
+  // Date.now() and new Date() answer NOW on every page the script opens; timers still run, so a story still settles.
+  await page.clock.setFixedTime(NOW);
+  /** What a story asked for from outside the machine that the script can't answer from a pinned copy. */
+  const outside = [];
+  await page.route((url) => url.hostname !== "127.0.0.1", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.href.startsWith("https://fonts.googleapis.com/css2?")) {
+      const { css, missing } = await pinnedFonts(url.href);
+      if (css) return route.fulfill({ contentType: "text/css", body: css });
+      outside.push(`${missing.join(", ")}: no pinned font in FONTS`);
+      return route.abort();
+    }
+    if (url.href.startsWith(`${FONT_FILES}/`)) {
+      const [family, file] = url.pathname.split("/").slice(2).map(decodeURIComponent);
+      if (FONTS[family] && /^[\w.-]+\.woff2$/.test(file)) return route.fulfill({ contentType: "font/woff2", path: join(packageDir(FONTS[family].pkg), "files", file) });
+    }
+    outside.push(url.href);
+    return route.abort();
+  });
   /** Opens a story once its fonts are in. */
   const open = async (id, globals) => {
     await page.goto(story(id, globals));
@@ -95,6 +155,7 @@ try {
     await page.evaluate(() => document.fonts.ready);
     // A picture (a camera's still) loads once it is on screen and decodes before it is drawn: wait until none is loading.
     await page.waitForFunction(() => [...document.querySelectorAll(".hd-pic, .fd-pic")].every((box) => box.getAttribute("data-status") !== "loading"));
+    if (outside.length) throw new Error(`${id} asked for what the script doesn't pin, so its picture could differ between runs: ${outside.join("; ")}`);
   };
   /**
    * The story's first element on its own page, as a band of the given shape: the page around the card is taken from
