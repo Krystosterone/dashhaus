@@ -113,6 +113,13 @@ the outside in, snapshotting after each step and comparing with the reference:
 - **Controls feel like controls:** `touch-action: manipulation`, no text selection or tap highlight, press feedback on
   `:active`.
   `__Skin__Action` already does this; build new controls on `usePress` from `@dashhaus/core/primitives`.
+- **An action that asks first is never one press.** An action its domain declares `asks` for this entity (Data,
+  below: `LOCK_ACTIONS`, with its `when`) never runs on a press: the press opens the details on the question, or on the
+  keypad where the entity wants a code, a press and hold opens them bare, and a level that asks is left out. A code the
+  entity wants is never sent from one press either. `__Skin__CardFrame`'s `guarded` list does this; keep it there.
+- **An action that asks first says so in its control's name**, in one way: the frame ends its button's words in `…`
+  (`Unlock…`), and only a button that asks carries it. Its details say once, in core's words (`asksFirst` from
+  `@dashhaus/core/entities/guard`), what asks first while no question stands; the frame does this too.
 - **A card extends a shared part only generically.** `__Skin__CardFrame`, `__Skin__Action` and the other parts in
   `shared/` gain a prop for a card only when the prop is generic: named for what it does, never for the card that
   wanted it first (`body`, not `cameraStill`), optional, so every other card stays as it was, and seen across its

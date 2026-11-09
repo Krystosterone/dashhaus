@@ -45,10 +45,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** On for an hour: the screen says until when, then since when. */
-export const OnUntil: Story = { name: "On, until", args: { toggle: "dnd" } };
+export const OnUntil: Story = { name: "Do Not Disturb, on for an hour", args: { toggle: "dnd" } };
 /** On with no end: since when alone. */
-export const On: Story = { args: { toggle: "guest" } };
-export const Off: Story = { args: { toggle: "quiet" } };
+export const On: Story = { name: "Guest mode, on until turned off", args: { toggle: "guest" } };
+export const Off: Story = { name: "Quiet mode, off", args: { toggle: "quiet" } };
 /** A switch rather than a helper: the same module, its power glyph. */
 export const Switch: Story = { args: { toggle: "soundMachine" } };
 /** Blank segments and when it was last seen; the key lies flat. */

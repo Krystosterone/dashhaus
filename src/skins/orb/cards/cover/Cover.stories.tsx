@@ -44,7 +44,7 @@ export const BlindWithTilt: Story = { name: "Blind with tilt", args: { cover: "b
 export const ShadeClosed: Story = { name: "Shade, closed", args: { cover: "shade" } };
 export const Moving: Story = { name: "Moving", args: { cover: "moving" } };
 /** A garage door left open: the warning leads the status line, and the orb and either end of the groove ask first. */
-export const GarageDoor: Story = { name: "Garage door, left open", args: { cover: "garage" } };
+export const GarageDoor: Story = { name: "Garage door", args: { cover: "garage" } };
 /**
  * Unknown: an RF blind Home Assistant drives on an assumed state, so it never says where it is. Not unavailable, so
  * nothing is dashed: it says Unknown, both Close and Open act, and the orb opens it, as Home Assistant's own toggle does.

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useKeypad, useGuardedAction, usePress } from "@dashhaus/core/primitives";
 import type { GuardedResult } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
+import { ACTION_FAILED, ASKS_DETAIL, CHECKING_CODE, WAITING, WRONG_CODE, asksFirst } from "@dashhaus/core/entities/guard";
 import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { ActionCardProps, CardSheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import "./ui.css";
@@ -43,7 +44,11 @@ export interface __Skin__GuardedAction {
   run: (code?: string) => GuardedResult;
 }
 
-/** The question, in the details, for a guarded action that takes no code. Cancel is focused, and the action takes no press for a moment. */
+/**
+ * The question, in the details, for a guarded action that takes no code. Cancel is focused, and the action takes no
+ * press for a moment. Its words are core's (`@dashhaus/core/entities/guard`); the punctuation is the skin's: this
+ * baseline ends an in-progress word in `…` and a sentence in `.`.
+ */
 export function __Skin__Confirm({ question, action, busy, failed, onConfirm, onCancel }: { question: string; action: string; busy?: boolean; failed?: boolean; onConfirm: () => void; onCancel: () => void }) {
   const settled = useSettled();
   const cancel = useRef<HTMLButtonElement>(null);
@@ -52,7 +57,7 @@ export function __Skin__Confirm({ question, action, busy, failed, onConfirm, onC
   return (
     <div className="__skin__-ask" role="group" aria-label={question}>
       <p className="__skin__-ask-q">{question}</p>
-      <p className="__skin__-ask-d" role="status">{busy ? "Waiting…" : failed ? "Didn’t go through. Try again." : "It asks first, so a stray tap never does it."}</p>
+      <p className="__skin__-ask-d" role="status">{busy ? `${WAITING}…` : failed ? `${ACTION_FAILED}.` : ASKS_DETAIL}</p>
       <div className="__skin__-ask-b">
         <button type="button" className="__skin__-action" ref={cancel} data-autofocus="" onClick={onCancel}>Cancel</button>
         <button type="button" className="__skin__-action" disabled={busy} onClick={() => { if (settled()) onConfirm(); }}>{action}</button>
@@ -69,7 +74,7 @@ export function __Skin__Keypad({ prompt, text, onSubmit, onCancel }: { prompt: s
   return (
     <div className="__skin__-ask" {...rootProps} role="group" aria-label={prompt}>
       <p className="__skin__-ask-q">{prompt}</p>
-      <p className="__skin__-ask-d" role="status">{busy ? "Checking…" : error === "wrong" ? "Wrong code. Try again." : error === "failed" ? "Didn’t go through. Try again." : `${code.length} entered`}</p>
+      <p className="__skin__-ask-d" role="status">{busy ? `${CHECKING_CODE}…` : error === "wrong" ? `${WRONG_CODE}.` : error === "failed" ? `${ACTION_FAILED}.` : `${code.length} entered`}</p>
       <div className="__skin__-keys">
         {DIGITS.map((d) => <button key={d} type="button" className="__skin__-action" disabled={busy} onClick={() => press(d)}>{d}</button>)}
         <button type="button" className="__skin__-action" disabled={busy || !code} onClick={back}>Delete</button>
@@ -116,6 +121,7 @@ function __Skin__Card({ card, name, area, state, summary, icon, footprint, actio
     askElsewhere: frame.sheet ? undefined : (key) => onOpenDetails?.(key),
   });
   const asking = guard.pending == null ? undefined : find(guard.pending);
+  const hint = asksFirst(guarded.filter((g) => g.asks).map((g) => g.label));
   const buttons = guarded.map((g) => (
     <__Skin__Action key={g.key} label={g.asks ? `${g.label}…` : g.label} unavailable={unavailable} onPress={() => { if (g.asks) guard.ask(g.key); else void guard.attempt(g.key); }} />
   ));
@@ -133,6 +139,8 @@ function __Skin__Card({ card, name, area, state, summary, icon, footprint, actio
             : <__Skin__Confirm key={asking.key} question={`${asking.label} ${name}?`} action={asking.label} busy={guard.busy} failed={guard.failed} onConfirm={() => void guard.confirm()} onCancel={guard.close} />)
             : <>
                 {buttons.length > 0 && !unavailable && <div className="__skin__-ask-b">{buttons}</div>}
+                {/* What asks first, said once while no question stands (spec: a card with a guarded action says so in its details). */}
+                {hint && !unavailable && <p className="__skin__-ask-d">{hint}</p>}
                 {children ?? <p>This neutral detail surface is ready for the Card's domain-specific design.</p>}
               </>}
         </div>

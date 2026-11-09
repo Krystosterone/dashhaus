@@ -54,7 +54,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Humidifying to its target: the room's humidity on the screen, the target on the fader. */
-export const Humidifying: Story = {};
+export const Humidifying: Story = { name: "On" };
 /** Off: the room's humidity on the meta line, and one wide key to turn it on. */
 export const Off: Story = { args: { humidifier: "off" } };
 /** A dehumidifier dries down to its target, and its key carries the tank. */

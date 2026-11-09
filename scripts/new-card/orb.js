@@ -13,7 +13,7 @@
  * saying so. Nothing is written unless every file and every registration can be made.
  */
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir, smallPrint } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir, smallPrint, seedWords } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("orb");
@@ -173,17 +173,21 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     "    initial: action,",
     "    askElsewhere: card.sheet ? undefined : (a) => onOpenDetails?.(a),",
     "  });",
+    ...(asks.length ? [`  const hint = asksFirst([${asks.map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${card.labelOf(action)}"`).join(", ")}]);`] : []),
   ].join("\n") : "";
   // The sheet: while an action waits on its answer, its question or keypad in the other blocks' place.
   const answer = [
     "guard.code",
     `  ? <Keypad key={guard.pendingKey} prompt={\`Enter the code to \${asked[guard.pending].label.toLowerCase()}\`} text={${domain.code ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
-    `  : <Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again." : null} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
+    `  : <Confirm key={guard.pendingKey} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
   ];
   const at = (indent, lines) => lines.map((line) => indent + line).join("\n");
+  // What asks first, said once in the sheet while no question stands, in core's words (spec/cards.md → What every card says).
+  const hint = asks.length ? "{hint && <p className=\"hd-note\">{hint}</p>}" : null;
+  const answered = hint ? [...sheet, hint] : sheet;
   const sheetBlocks = asked.length
-    ? `      {!unav && (\n        <SheetBlock>\n${sheet.length
-      ? `          {guard.pending ? (\n${at("            ", answer)}\n          ) : (\n            <>\n${sheet.map((block) => `              ${block}`).join("\n")}\n            </>\n          )}`
+    ? `      {!unav && (\n        <SheetBlock>\n${answered.length
+      ? `          {guard.pending ? (\n${at("            ", answer)}\n          ) : (\n            <>\n${answered.map((block) => `              ${block}`).join("\n")}\n            </>\n          )}`
       : `          {guard.pending && (\n${at("            ", answer)}\n          )}`}\n        </SheetBlock>\n      )}`
     : sheet.length ? `      {!unav && (\n        <SheetBlock>\n${sheet.map((block) => `          ${block}`).join("\n")}\n        </SheetBlock>\n      )}` : "";
   const andList = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
@@ -207,7 +211,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __historyArg__: today ? ", history" : "",
     __actionProps__: drawn.map((action) => `  ${action}?: (${answers(action) === "GuardedResult" ? "code?: string" : handed(action)}) => ${answers(action)};`).join("\n"),
     __actionArgs__: drawn.map((action) => `, ${action}`).join("") + (asked.length ? ", action" : ""),
-    __guardImports__: asked.length ? `\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
+    __guardImports__: asked.length ? `\nimport { ACTION_FAILED, ASKS_DETAIL${asks.length ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
     __propsBase__: asked.length ? `ActionCardProps<${Name}Action>` : "CardProps",
     __propsBaseImport__: asked.length ? "ActionCardProps" : "CardProps",
     __actionType__: asked.length ? `\n/** What asks first, or takes a code: the sheet opens on its question or keypad. */\nexport type ${Name}Action = ${actionKeys};\n` : "",
@@ -252,7 +256,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __todayBlock__: today ? `      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={${domain.minutes ? `todaySummary("${domain.minutes}", history.${domain.minutes}Minutes)` : '""'}} />}` : "",
     // The stories, on the domain's seeds in core.
     __seeds__: packageSpecifier("core", `seeds/${name}`),
-    __firstSeed__: firstSeed,
+    __firstSeed__: firstSeed, __firstSeedWords__: seedWords(firstSeed),
     __unavailableSeed__: unavailableSeed,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",

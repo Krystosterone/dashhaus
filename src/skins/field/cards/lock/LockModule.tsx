@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { LockAction, LockEntity, LockResult } from "@dashhaus/core/entities/lock/types";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
 import { batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
-import { JAMMED_MEANING, LOCK_WORD } from "@dashhaus/core/entities/lock/words";
+import { JAMMED_MEANING, LOCK_WAITING, LOCK_WORD, lockAskAction, lockAskDetail, lockAsksHint, lockQuestion } from "@dashhaus/core/entities/lock/words";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Key, Keypad, ModuleFrame, Pictogram, Warn, useDetails, KeyGroup } from "../../shared/ui";
@@ -29,7 +30,6 @@ export interface LockModuleProps {
 
 /** The screen's figure, four places like a segment display's; the meta line says the state in words. */
 const FIGURE: Partial<Record<LockEntity["state"], string>> = { locked: "LOCK", unlocked: "OPEN", open: "OPEN", jammed: "JAM" };
-const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open: "Open door" };
 
 /**
  * A door lock (one `lock.*`, with its device's battery) as a field module. The screen says LOCK, OPEN or JAM beside a
@@ -128,11 +128,10 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
       {pending ? (needsCode
         ? <Keypad key={pending} prompt={`Code to ${pending === "open" ? "open the door" : pending}`} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
         : <Confirm key={pending}
-            question={`${pending === "open" ? "Open" : VERB[pending]} ${e.name}?`}
-            detail={pending === "open" ? `${e.name} unlatches; the door can be pushed open.` : "Anyone at the door can open it."}
-            action={VERB[pending]} actionLabel={`${VERB[pending]}, ${e.name}`}
+            question={lockQuestion(pending, e.name)} detail={lockAskDetail(pending, e.name)}
+            action={lockAskAction(pending)} actionLabel={`${lockAskAction(pending)}, ${e.name}`}
             icon={pending === "open" ? <IconDoor /> : <IconLock open />}
-            busy={guard.busy} waiting="Waiting for the lock" error={guard.failed ? "Didn’t go through. Try again" : null}
+            busy={guard.busy} waiting={LOCK_WAITING} error={guard.failed ? ACTION_FAILED : null}
             onConfirm={() => void guard.confirm()} onCancel={guard.close} />
       ) : (
         <>
@@ -143,12 +142,14 @@ export function LockModule({ entity: e, footprint = "standard", onLock, onUnlock
                 {key(true)}
                 {canOpen && !jammed && openKey}
               </KeyGroup>
-              <p className="fd-hint">{locked ? "Unlocking asks first." : jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? "Waiting for the lock." : "Locking takes one press."}</p>
+              <p className="fd-hint">{jammed ? "The bolt stopped part way: lock again, or check the door." : moving ? `${LOCK_WAITING}.`
+                : locked ? lockAsksHint(true, canOpen) : ["Locking takes one press.", lockAsksHint(false, canOpen)].filter(Boolean).join(" ")}</p>
             </div>
           )}
           {!ro && canOpen && jammed && (
             <div className="fd-block">
               <KeyGroup legend="Door" columns={1}>{openKey}</KeyGroup>
+              <p className="fd-hint">{lockAsksHint(false, true)}</p>
             </div>
           )}
           {lowBattery && <p className="fd-hint"><Warn>{lowBattery}</Warn></p>}

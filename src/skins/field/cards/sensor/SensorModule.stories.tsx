@@ -46,11 +46,11 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Indoor: Story = {};
+export const Indoor: Story = { name: "Comfortable" };
 /** Past the humid band: comfort says so in words, never in colour. */
 export const Humid: Story = { args: { sensor: "bathroom" } };
 /** Outdoors there is no comfort to report, so the trend takes its line. */
-export const Outdoor: Story = { args: { sensor: "outdoor" } };
+export const Outdoor: Story = { name: "Outside", args: { sensor: "outdoor" } };
 /** 15% or less: the warning marker and the battery take the area's line under the name. */
 export const LowBattery: Story = { name: "Low battery", args: { sensor: "basement" } };
 /** No humidity companion: comfort and trend fill the meta lines. */

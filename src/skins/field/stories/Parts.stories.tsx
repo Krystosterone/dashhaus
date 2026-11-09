@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
+import { LOCK_WAITING, lockAskAction, lockAskDetail, lockQuestion } from "@dashhaus/core/entities/lock/words";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
@@ -267,9 +269,9 @@ function AllParts() {
       </Part>
 
       <Part name="Confirm and Keypad" rule="A guarded action's answer, in the panel, on useGuardedAction: the question as a legend when no code is asked for (Cancel and the action as two keys, Cancel focused, the action taking no press for a moment), or the keypad when one is (the code on a strip of screen, the keys three by four).">
-        <State label="The question" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} onConfirm={() => {}} onCancel={() => {}} /></State>
-        <State label="Waiting for the answer" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} busy waiting="Waiting for the lock" onConfirm={() => {}} onCancel={() => {}} /></State>
-        <State label="Didn't go through" width={300}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" icon={<IconLock open />} error="Didn’t go through. Try again" onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="The question" width={300}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} icon={<IconLock open />} onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Waiting for the answer" width={300}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} icon={<IconLock open />} busy waiting={LOCK_WAITING} onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Didn't go through" width={300}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} icon={<IconLock open />} error={ACTION_FAILED} onConfirm={() => {}} onCancel={() => {}} /></State>
         <State label="The keypad (1234)" width={300}><Keypad prompt="Code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 

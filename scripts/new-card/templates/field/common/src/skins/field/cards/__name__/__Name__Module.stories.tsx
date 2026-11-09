@@ -51,7 +51,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+/** The first seed, named as every skin names a story on it (AGENTS.md → Storybook: a state both skins draw has one name). */
+export const Default: Story = { name: "__firstSeedWords__" };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { __name__: "__unavailableSeed__" } };
 

@@ -1,7 +1,8 @@
 import type { LockAction, LockEntity, LockOutcome, LockResult } from "@dashhaus/core/entities/lock/types";
 import { BATTERY_ADVICE, batteryAdvice, batteryText, isLowBattery } from "@dashhaus/core/entities/battery";
 import { lockSeverity } from "@dashhaus/core/entities/lock/severity";
-import { JAMMED_MEANING, LOCK_WORD } from "@dashhaus/core/entities/lock/words";
+import { JAMMED_MEANING, LOCK_WAITING, LOCK_WORD, lockAskAction, lockAskDetail, lockAsksHint, lockQuestion } from "@dashhaus/core/entities/lock/words";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { useGuardedAction } from "@dashhaus/core/primitives";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { DoorIcon, LockIcon } from "./icons";
@@ -26,8 +27,6 @@ export interface LockCardProps extends ActionCardProps<LockAction> {
   readOnly?: boolean;
 }
 
-const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open: "Open" };
-
 /**
  * A door lock (one `lock.*`, with its device's battery). Locking is one tap on the orb or the pill. Unlocking never
  * is: a tap on a locked lock opens the sheet on its confirmation, or on the keypad when the lock asks for a code, and
@@ -37,7 +36,7 @@ const VERB: Record<LockAction, string> = { lock: "Lock", unlock: "Unlock", open:
  */
 export function LockCard({ entity: e, variant, footprint, showControl, onLock, onUnlock, onOpenDoor, readOnly, onOpenDetails, onClose, action }: LockCardProps) {
   const card = useCard("lk", { variant, footprint, showControl, area: e.area });
-  const { sheet, compact, area } = card;
+  const { uid, sheet, compact, area } = card;
   const unav = e.state === "unavailable";
   const locked = e.state === "locked";
   const moving = e.state === "locking" || e.state === "unlocking" || e.state === "opening";
@@ -93,6 +92,8 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
   const prompt = (a: LockAction) => `Enter the code to ${a === "open" ? "open the door" : a}`;
   const icon = <LockIcon open={!unav && !locked && e.state !== "locking"} alert={jammed} />;
   const canOpen = e.supportsOpen && !!onOpenDoor && !ro && !unav && !moving && e.state !== "open";
+  // What asks first here, said once while no question stands: unlocking it, and opening the door where it can.
+  const hint = ro ? undefined : lockAsksHint(locked, canOpen);
 
   return (
     <CardFrame
@@ -119,18 +120,18 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
         <SheetBlock>
           {pending && (needsCode
             ? <Keypad key={pending} prompt={prompt(pending)} text={e.codeFormat === "text"} onSubmit={guard.submit} onCancel={guard.close} />
-            : <Confirm key={pending} busy={guard.busy} waiting="Waiting for the lock…" error={guard.failed ? "Didn’t go through. Try again." : null}
-                question={`${VERB[pending]} ${e.name}?`}
-                detail={pending === "open" ? `${e.name} unlatches, and the door can be pushed open.` : pending === "unlock" ? "Anyone at the door can open it." : "It locks now."}
-                action={pending === "open" ? "Open door" : VERB[pending]}
+            : <Confirm key={pending} busy={guard.busy} waiting={LOCK_WAITING} error={guard.failed ? ACTION_FAILED : null}
+                question={lockQuestion(pending, e.name)} detail={lockAskDetail(pending, e.name)} action={lockAskAction(pending)}
                 onConfirm={() => void guard.confirm()} onCancel={guard.close} />)}
           {!pending && canOpen && (
-            <button type="button" className="lk-door" onClick={() => guard.ask("open")}>
+            // It asks first, so its name ends in Orb's mark; "Unlatch it", what it does, describes it.
+            <button type="button" className="lk-door" aria-label="Open door…" aria-describedby={`${uid}-door`} onClick={() => guard.ask("open")}>
               <DoorIcon />
-              <span>Open door</span>
-              <span className="hd-blk-v">Unlatch it</span>
+              <span>Open door…</span>
+              <span className="hd-blk-v" id={`${uid}-door`}>Unlatch it</span>
             </button>
           )}
+          {!pending && hint && <p className="hd-note">{hint}</p>}
         </SheetBlock>
       )}
 

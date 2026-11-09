@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { NONE_HINT, codeGroups, isGroupedCode, joinWords, madeFact, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
+import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, codeGroups, isGroupedCode, joinWords, madeFact, newPasswordLabel, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { Blank, Confirm, Glyph, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Pictogram, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
@@ -111,13 +111,13 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
       {!unav && (refresh || make) && (asking && make ? (
         // A new password ends the old one for every device already in, so it asks first, as the lock's unlock does.
         <Confirm
-          question={`Change the password for ${e.network ?? e.name}?`}
+          question={newPasswordQuestion(e)}
           detail={newSecretWords(e)}
-          action="Change"
-          actionLabel={`Change the password for ${e.network ?? e.name}`}
+          action={NEW_PASSWORD_ACTION}
+          actionLabel={newPasswordLabel(e)}
           icon={<IconNewCode />}
           busy={pending === "new"}
-          waiting="Changing the password"
+          waiting={NEW_PASSWORD_WAITING}
           onConfirm={make}
           onCancel={() => setAsking(false)}
         />
@@ -144,7 +144,7 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
           <p className="fd-hint" role="status">
             {pending === "new" ? `Making a new ${secret}.` : pending === "refresh" ? `Checking the ${secret}.`
               : !ready ? noneSentence(e)
-              : make ? newSecretWords(e) : ""}
+              : make ? [newSecretWords(e), password && NEW_PASSWORD_HINT].filter(Boolean).join(" ") : ""}
           </p>
         </div>
       ))}

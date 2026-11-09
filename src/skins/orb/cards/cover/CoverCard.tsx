@@ -1,6 +1,7 @@
 import type { CoverAction, CoverEntity, CoverHistory } from "@dashhaus/core/entities/cover/types";
 import { CLASS_LABEL, QUICK_POSITIONS, coverAsksFirst, hasPosition, isAccess, isMoving, openness } from "@dashhaus/core/entities/cover/position";
 import { COVER_ASKS_HINT, SLAT_POSITIONS, coverAskAction, coverAskWaiting, coverAskDetail, coverQuestion, coverWord, leftOpenText } from "@dashhaus/core/entities/cover/words";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { coverSeverity } from "@dashhaus/core/entities/cover/severity";
 import { lastChangedFact, lastSeenFact } from "@dashhaus/core/entities/facts";
 import { useGuardedAction } from "@dashhaus/core/primitives";
@@ -126,7 +127,7 @@ export function CoverCard({ entity: e, history, variant, footprint, showControl,
       {!unav && (
         <SheetBlock>
           {pending && (
-            <Confirm key={pending} busy={guard.busy} waiting={`${coverAskWaiting(e)}…`} error={guard.failed ? "Didn’t go through. Try again." : null}
+            <Confirm key={pending} busy={guard.busy} waiting={coverAskWaiting(e)} error={guard.failed ? ACTION_FAILED : null}
               question={coverQuestion(pending, e.name)} detail={coverAskDetail(pending, e)} action={coverAskAction(pending, e)}
               onConfirm={() => void guard.confirm()} onCancel={guard.close} />
           )}

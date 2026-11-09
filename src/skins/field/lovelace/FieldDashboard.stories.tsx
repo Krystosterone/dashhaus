@@ -136,9 +136,9 @@ function Wall({ house }: { house: DemoWallHouse }) {
   const states = useHaSelector((snapshot) => snapshot.entities);
   const rows = useMemo(() => {
     const input = demoWallInput(states, house);
-    const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
+    const withArea = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
     const modules = autoModules(input);
-    return areaColumns(modules.map(place), energyModules(input, modules).map(place), { outside: outsideArea(input) });
+    return areaColumns(modules.map(withArea), energyModules(input, modules).map(withArea), { outside: outsideArea(input) });
   }, [states, house]);
   return <FieldDashboard title="Home" showTime viewing="far" rows={rows} footprint="standard" now={NOW} />;
 }

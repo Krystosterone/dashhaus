@@ -20,7 +20,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir, smallPrint } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir, smallPrint, seedWords } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("field");
@@ -250,10 +250,12 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       "  );",
     ].join("\n") : "",
     __rowProp__: rowLevel ? "controls={controls}" : "row={<KeyGroup label={e.name}>{keys(true)}</KeyGroup>}",
-    __panelKeys__: rowLevel ? "" : '      <KeyGroup legend="__Label__">{keys(true)}</KeyGroup>',
+    __panelKeys__: [rowLevel ? "" : '      <KeyGroup legend="__Label__">{keys(true)}</KeyGroup>',
+      // What asks first, said once in the panel while no question stands, in core's words (spec/cards.md → What every card says).
+      asked.some(({ asks }) => asks) ? "      {!unav && hint && <p className=\"fd-hint\">{hint}</p>}" : ""].filter(Boolean).join("\n"),
     __valueBlocks__: valueBlocks,
     __optionWordsConst__: values.choices.length ? '/** An option in words: "deep_sleep" becomes "Deep sleep". */\nconst optionWords = (option: string) => { const spaced = option.replace(/[_-]+/g, " "); return spaced[0].toUpperCase() + spaced.slice(1); };\n' : "",
-    __guardImports__: asked.length ? `import { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
+    __guardImports__: asked.length ? `import { ACTION_FAILED, ASKS_DETAIL${asked.some(({ asks }) => asks) ? ", asksFirst" : ""} } from "${packageSpecifier("core", "entities/guard")}";\nimport { useGuardedAction } from "${packageSpecifier("core", "primitives")}";\nimport type { GuardedResult } from "${packageSpecifier("core", "primitives")}";` : "",
     __defaultActionProp__: asked.length ? `  /** Open the detail panel on this action's question or keypad (stories). */\n  defaultAction?: ${askedKeys.join(" | ")};` : "",
     __defaultActionArg__: asked.length ? ", defaultAction" : "",
     __defaultActionOpen__: asked.length ? " || defaultAction != null" : "",
@@ -269,6 +271,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       "    initial: defaultAction,",
       "  });",
       "  const openPanel = () => { guard.close(); details.openDetails(); };",
+      ...(asked.some(({ asks }) => asks) ? [`  const hint = asksFirst([${asked.filter(({ asks }) => asks).map(({ action, when }) => `${when ? `${card.whenExpr(when)} && ` : ""}"${labelOf(action)}"`).join(", ")}]);`] : []),
       ...(asked.some(({ asks }) => asks) ? ["  const ask = (a: keyof typeof asked) => { guard.ask(a); details.openDetails(); };"] : []),
       // A tap that takes a code: done at once, or the panel opens on the keypad where the entity wants a code (asked, or refused).
       ...(asked.some(({ asks }) => !asks) ? ["  const attempt = (a: keyof typeof asked) => { void guard.attempt(a).then((result) => { if (result === undefined || result === \"wrong_code\") details.openDetails(); }); };"] : []),
@@ -280,7 +283,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
     __panelBody__: asked.length ? [
       "      {guard.pending ? (guard.code",
       `        ? <Keypad key={guard.pendingKey} prompt={\`Code to \${asked[guard.pending].label.toLowerCase()}\`} text={${wantsCode ? 'e.codeFormat === "text"' : "false"}} onSubmit={guard.submit} onCancel={guard.close} />`,
-      `        : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail="It asks first, so a stray press never does it." action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? "Didn’t go through. Try again" : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
+      `        : <Confirm key={guard.pendingKey} question={\`\${asked[guard.pending].label} \${e.name}?\`} detail={ASKS_DETAIL} action={asked[guard.pending].label} actionLabel={\`\${asked[guard.pending].label}, \${e.name}\`} icon={<Icon${Name} />} busy={guard.busy} error={guard.failed ? ACTION_FAILED : null} onConfirm={() => void guard.confirm()} onCancel={guard.close} />`,
       "      ) : panel}",
     ].join("\n") : "      {panel}",
     __guardedAbout__: guardedWords ? `; ${guardedWords}, never one press` : "",
@@ -310,7 +313,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       ].join("\n");
     })(),
     __seeds__: packageSpecifier("core", `seeds/${name}`),
-    __firstSeed__: firstSeed,
+    __firstSeed__: firstSeed, __firstSeedWords__: seedWords(firstSeed),
     __unavailableSeed__: unavailableSeed,
     __transport__: transport[1],
     __transportPath__: transport[2],

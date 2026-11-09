@@ -12,6 +12,11 @@
  *   card's own for either (`No room temperature`, `No heart rate yet`, `Direction not reported`);
  * - a skin never formats a time itself, in its cards or its shared parts (an hour axis among them): it passes
  *   `useHourCycle()` to core's words (`hourLabel`, `formatHaTime`, …), so every time is on the dashboard's one clock.
+ * - a guard's words are core's (`@dashhaus/core/entities/guard`, the domain's `coverQuestion`, `lockAskDetail`…): no
+ *   card, nor the Parts page, passes its question part (`Confirm`) a question, a meaning, a yes, a waiting line or a failure of its own
+ *   words, only core's with the skin's end punctuation; no card or part writes `Try again` itself;
+ * - what asks first is said in core's words too: no card writes a sentence ending `asks first.` (the hint,
+ *   `COVER_ASKS_HINT`, `lockAsksHint`), only the skin's mark on a control's name (Field's `: asks first`).
  *
  * Studies keep their own design (spec/skins.md → Studies), so only the two skins are held here.
  */
@@ -39,6 +44,19 @@ const where = (path: string, text: string, index: number) => {
   const line = text.slice(0, index).split("\n").length;
   return `${path}:${line} ${text.split("\n")[line - 1].trim().slice(0, 120)}`;
 };
+
+/** Each `<Name …/>` in a source, to its own closing `/>` (the braces of its props balanced), with where it starts. */
+function elements(text: string, name: string) {
+  return [...text.matchAll(new RegExp(`<${name}\\b`, "g"))].map((m) => {
+    let depth = 0, i = m.index!;
+    for (; i < text.length; i++) {
+      if (text[i] === "{") depth++;
+      else if (text[i] === "}") depth--;
+      else if (depth === 0 && text.startsWith("/>", i)) break;
+    }
+    return Object.assign([text.slice(m.index!, i + 2)], { index: m.index! });
+  });
+}
 
 const hits = (pattern: RegExp, among = sources) => among.flatMap(({ path, text }) =>
   [...text.matchAll(new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`))].map((m) => where(path, text, m.index!)));
@@ -70,6 +88,38 @@ describe("what every card says", () => {
 
   it("says when an unavailable card was last seen in core's words (`lastSeenFact`), never a bare `Seen`", () => {
     expect(hits(/["'`>]Seen (?:\$\{|\d)/)).toEqual([]);
+  });
+
+  it("says a guard's words in core's: no question part takes a literal, and no card or part writes Try again", () => {
+    const literal = /"[^"]*[A-Za-z][^"]*"|'[^']*[A-Za-z][^']*'|`(?:[^`$]|\$(?!\{)|\$\{[^}]*\})*`/g;
+    const own: string[] = [];
+    // The cards, and the Parts page that draws the question across its states.
+    const parts = SKINS.map((skin) => `src/skins/${skin}/stories/Parts.stories.tsx`).map((path) => ({ path, text: readFileSync(join(root, path), "utf8") }));
+    for (const { path, text } of [...sources, ...parts]) {
+      for (const confirm of elements(text, "Confirm")) {
+        for (const prop of confirm[0].matchAll(/\b(question|detail|action|waiting|error)=("[^"]*"|\{)/g)) {
+          let value = prop[2];
+          if (value === "{") {
+            // The expression, to its closing brace.
+            let depth = 0, i = confirm.index! + prop.index! + prop[0].length - 1;
+            const from = i;
+            for (; i < text.length; i++) { if (text[i] === "{") depth++; else if (text[i] === "}" && --depth === 0) break; }
+            value = text.slice(from, i + 1);
+          }
+          // A call's arguments are what core's words are about (`lockQuestion("unlock", name)`), not words of the card's.
+          let bare = value;
+          for (let before = ""; before !== bare;) { before = bare; bare = bare.replace(/\b\w+\((?:[^()]|\([^()]*\))*\)/g, "call"); }
+          const words = [...bare.matchAll(literal)].map((m) => m[0].replace(/\$\{[^}]*\}/g, "")).filter((l) => /[A-Za-z]/.test(l));
+          if (words.length) own.push(`${where(path, text, confirm.index! + prop.index!)} → ${prop[1]}: ${words.join(", ")}`);
+        }
+      }
+    }
+    expect(own, "a guard's words are core's: @dashhaus/core/entities/guard, or the domain's words").toEqual([]);
+    expect(hits(/["'`>][^"'`<]*Try again/, [...sources, ...drawing("shared")]), "say core's ACTION_FAILED or WRONG_CODE").toEqual([]);
+  });
+
+  it("says what asks first in core's words, never a hint sentence of a card's own", () => {
+    expect(hits(/["'`>][^"'`<\n]*\basks? first\./)).toEqual([]);
   });
 
   it("never formats a time itself, in a card or a shared part: every time is core's words on the page's hour cycle", () => {

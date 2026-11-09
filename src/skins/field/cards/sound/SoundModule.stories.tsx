@@ -53,11 +53,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Playing: the volume on the screen, a speaker filled to it. */
-export const Playing: Story = {};
+export const Playing: Story = { name: "On" };
 /** Off: the screen says OFF, with the volume on the meta line. */
 export const Off: Story = { args: { sound: "off" } };
 /** A sound with no volume entity: the switch alone, its screen saying ON in neutral ink. */
-export const NoVolume: Story = { name: "No volume", args: { sound: "noVolume" } };
+export const NoVolume: Story = { name: "No volume entity", args: { sound: "noVolume" } };
 /** Blank segments on the screen, and when it was last seen. */
 export const Unavailable: Story = { args: { sound: "unavailable" } };
 

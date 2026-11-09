@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { generated as generatedSkin, markers, packageFile, packageSpecifier, seams, skinTemplates, storySection, studies } from "../packages.js";
 import { describeDomain } from "../domains.js";
-import { after, changes, exists, fail, read, root, skinDir } from "./lib.js";
+import { after, changes, exists, fail, read, root, skinDir, seedWords } from "./lib.js";
 
 const objectBody = (source, name) => source.match(new RegExp(`export const ${name}\\b[^{]*\\{([\\s\\S]*?)\\n\\}`))?.[1];
 const shape = (source, name) => source.match(new RegExp(`(?:interface|type) ${name}\\b[^{]*\\{([\\s\\S]*?)\\n?\\}`))?.[1];
@@ -77,7 +77,7 @@ export function newGeneratedCard({ skin, name, kind: askedKind, dryRun, change: 
     __Stories__: Stories, __demoProps__: demoProps,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed", __demoImport__: hasHook ? `, useDemo${Name}` : "",
     __testProps__: "", __seedConst__: seedConst, __worstConst__: worstConst, __seedType__: seedType,
-    __seedNameType__: seedNameType, __seeds__: packageSpecifier("core", `seeds/${name}`), __firstSeed__: firstSeed,
+    __seedNameType__: seedNameType, __seeds__: packageSpecifier("core", `seeds/${name}`), __firstSeed__: firstSeed, __firstSeedWords__: seedWords(firstSeed),
     __unavailableSeed__: unavailableSeed, __transport__: transport[1], __transportPath__: transport[2],
     __entityId__: entityId, __fixtureId__: domain.fixtureId,
   });

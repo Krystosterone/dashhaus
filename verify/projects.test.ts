@@ -42,13 +42,16 @@ describe("workspace projects", () => {
     expect(project("core")?.include, "core's tests are in its project").toEqual(["packages/core/src/**/*.test.{ts,tsx}"]);
     expect(project("deploy")?.include, "deploy's tests are in its project").toEqual(["packages/deploy/src/**/*.test.ts"]);
     expect(project("fake-home-assistant")?.include, "the fake Home Assistant's tests run in Node").toEqual(["packages/fake-home-assistant/src/**/*.test.ts"]);
-    expect(project("root")?.include, "the root project holds the skins, the one check that needs a DOM and the docs' example tests").toEqual([
+    expect(project("root")?.include, "the root project holds the skins, the checks that need a DOM and the docs' example tests").toEqual([
       "src/**/*.test.{ts,tsx}",
       "verify/tokens.test.ts",
+      "verify/guarded-actions.test.tsx",
+      "verify/card-figures.test.tsx",
       "docs/examples/**/*.test.{ts,tsx}",
     ]);
-    expect(project("checks")?.include, "the repo checks read the repo, no DOM").toEqual(["verify/**/*.test.{ts,tsx}"]);
-    expect((projects as Project[]).find((entry) => entry.test?.name === "checks")?.test?.exclude, "tokens loads the custom-element entry").toEqual(["verify/tokens.test.ts"]);
+    expect(project("checks")?.include, "the other repo checks read the repo, no DOM").toEqual(["verify/**/*.test.{ts,tsx}"]);
+    expect((projects as Project[]).find((entry) => entry.test?.name === "checks")?.test?.exclude, "the checks that need a DOM run with the app, once")
+      .toEqual(project("root")?.include?.filter((path) => path.startsWith("verify/")));
     expect(project("generators")?.include, "the generators are Node-only, in their own project").toEqual(["scripts/*/*.test.ts"]);
     // jsdom loads once per worker, not once per file; the generators spawn the repo's tools and keep plain forks.
     expect(Object.fromEntries((projects as { test: { name: string; pool?: string } }[]).map(({ test }) => [test.name, test.pool]))).toEqual({

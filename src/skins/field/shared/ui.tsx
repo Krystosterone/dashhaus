@@ -10,6 +10,7 @@ import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { lineParts } from "@dashhaus/core/entities/clock";
+import { ACTION_FAILED, CHECKING_CODE, WAITING, WRONG_CODE } from "@dashhaus/core/entities/guard";
 import { useAlarmPhase, useReportAlert } from "./alerts";
 import type { AlertEntry, Pressing } from "./alerts";
 import "./module.css";
@@ -738,7 +739,9 @@ export function Today({ legend = "Today", summary, label, samples = NO_HOURS, cu
 
 /* ---------- Guarded actions, in the panel: the question and the keypad ----------
    An action that asks first (a lock's unlock, an alarm's disarm) is answered in the panel, on useGuardedAction: by a
-   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. */
+   question when no code is asked for, by the keypad when one is. The card says what the action is; these draw it. Every
+   word is core's (`@dashhaus/core/entities/guard`, the domain's own words), printed bare: Field ends no in-progress
+   word or warning in punctuation (spec/field.md → Type). */
 
 export interface ConfirmProps {
   /** The question, as the block's legend: "Unlock Front door?" */
@@ -753,9 +756,9 @@ export interface ConfirmProps {
   icon: ReactNode;
   /** The answer is on its way: the action takes no press, and the line says so. */
   busy?: boolean;
-  /** What the line says while busy. Default "Waiting". */
+  /** What the line says while busy, in core's words (`waitingFor`), printed bare. Default core's `WAITING`. */
   waiting?: string;
-  /** The last try didn't go through: said behind the warning marker, in the line's place. */
+  /** The last try didn't go through, in core's words (`ACTION_FAILED`): said behind the warning marker, in the line's place. */
   error?: string | null;
   onConfirm: () => void;
   onCancel: () => void;
@@ -766,7 +769,7 @@ export interface ConfirmProps {
  * Cancel and the action as two keys. Focus lands on Cancel, so Enter never acts, and the action takes no press for a
  * moment after it appears, so the second tap of the press that asked can't land on it.
  */
-export function Confirm({ question, detail, action, actionLabel = action, icon, busy, waiting = "Waiting", error, onConfirm, onCancel }: ConfirmProps) {
+export function Confirm({ question, detail, action, actionLabel = action, icon, busy, waiting = WAITING, error, onConfirm, onCancel }: ConfirmProps) {
   const uid = useId();
   const settled = useSettled();
   // Cancel takes focus: marked for a panel that opens on the question, focused for one already open.
@@ -811,9 +814,9 @@ export function Keypad({ prompt, text, onSubmit, onCancel }: KeypadProps) {
   const uid = useId();
   const { code, error, busy, press, back, submit, rootProps, inputProps } = useKeypad({ text, onSubmit });
   const places = Math.max(4, code.length);
-  const status = busy ? "Checking"
-    : error === "wrong" ? <Warn>Wrong code. Try again</Warn>
-    : error === "failed" ? <Warn>Didn’t go through. Try again</Warn>
+  const status = busy ? CHECKING_CODE
+    : error === "wrong" ? <Warn>{WRONG_CODE}</Warn>
+    : error === "failed" ? <Warn>{ACTION_FAILED}</Warn>
     : code.length ? `${code.length} entered` : inputProps ? "Letters or digits" : "Enter the code";
   return (
     <div className="fd-pad" {...rootProps} role="group" aria-labelledby={`${uid}-p`}>

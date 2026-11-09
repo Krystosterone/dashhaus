@@ -32,7 +32,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+/** The first seed, named as every skin names a story on it (AGENTS.md → Storybook: a state both skins draw has one name). */
+export const Default: Story = { name: "__firstSeedWords__" };
 export const Unavailable: Story = { args: { __name__: "__unavailableSeed__" } };
 export const WorstCase: Story = { name: "Worst case", parameters: { layout: "padded" }, render: ({ width, footprint }) => <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>{__worstConst__.map((seed) => <Demo__Name__ key={seed.entity.entityId} seed={seed} width={width} footprint={footprint} />)}</div> };
 export const AllStates: Story = { name: "All states", parameters: { layout: "padded" }, render: ({ width, footprint }) => <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>{SEED_NAMES.map((name) => <Story__Name__ key={name} __name__={name} width={width} footprint={footprint} />)}</div> };

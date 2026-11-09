@@ -59,15 +59,15 @@ type Story = StoryObj<typeof meta>;
 /** Disarmed: OFF in the dim ink, and Off chosen among the mode keys. Arming asks for the code. */
 export const Disarmed: Story = {};
 /** Disarmed with doors open: how many and which, behind the warning marker. */
-export const DoorOpen: Story = { name: "Disarmed, door open", args: { alarm: "openDoor" } };
+export const DoorOpen: Story = { name: "Disarmed, door open, code to arm", args: { alarm: "openDoor" } };
 /** Armed away: the shield lit, ON, and Away chosen. */
-export const Armed: Story = { args: { alarm: "away" } };
+export const Armed: Story = { name: "Armed away", args: { alarm: "away" } };
 /** Armed in a mode the panel doesn't list, custom bypass: it is shown, never read as Off. Five choices, so glyphs. */
-export const CustomBypass: Story = { name: "Custom bypass", args: { alarm: "custom" } };
+export const CustomBypass: Story = { name: "Armed custom bypass", args: { alarm: "custom" } };
 /** The exit delay counting down in the figure's place, and one key that cancels it. */
-export const Arming: Story = { args: { alarm: "arming" } };
+export const Arming: Story = { name: "Arming (exit delay)", args: { alarm: "arming" } };
 /** Home Assistant's core entity arming: no delay length and no target mode, so blank segments and no timer. */
-export const ArmingUnknown: Story = { name: "Arming, no timer", args: { alarm: "armingUnknown" } };
+export const ArmingUnknown: Story = { name: "Arming, delay unknown", args: { alarm: "armingUnknown" } };
 /** The entry delay: what set it off behind the warning marker, the time left, and Disarm. */
 export const EntryDelay: Story = { name: "Entry delay", args: { alarm: "pending" } };
 /** Disarming: nothing to press until it is done. */

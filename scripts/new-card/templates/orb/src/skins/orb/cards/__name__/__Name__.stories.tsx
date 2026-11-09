@@ -31,7 +31,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+/** The first seed, named as every skin names a story on it (AGENTS.md → Storybook: a state both skins draw has one name). */
+export const Default: Story = { name: "__firstSeedWords__" };
 export const Unavailable: Story = { args: { seed: "__unavailableSeed__" } };
 /** Realistic worst-case data from the demo seeds (__CONST___WORST_CASE): long names, values at their limits. */
 export const WorstCase: Story = {
