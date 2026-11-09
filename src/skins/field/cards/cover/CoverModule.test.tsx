@@ -186,6 +186,15 @@ describe("CoverModule", () => {
     expect(screen.queryByText(/^(Open|Close) Gate\?$/)).toBeNull();
   });
 
+  it("prints where a row with no position is going on its line, since its screen is blank on the way", () => {
+    const sideGate = COVER_WORST_CASE.find(({ entity }) => entity.entityId === "cover.side_gate")!.entity;
+    const { container, unmount } = draw(sideGate, "compact");
+    expect(container.querySelector(".fd-area")?.textContent).toBe("Closing");
+    unmount();
+    // At rest, or with a position its screen shows, the row keeps its area.
+    expect(draw({ ...sideGate, state: "closed" }, "compact").container.querySelector(".fd-area")?.textContent).toBe("Outside");
+  });
+
   it("says a gate that can't stop can't be stopped from here", () => {
     draw(stuckGate, "standard", { defaultAction: "close" });
     expect(screen.getByText("It closes now. Check nothing is in its way. It can't be stopped from here.")).toBeTruthy();
