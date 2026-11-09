@@ -310,6 +310,12 @@ describe("severity: inversion, never a colour, and a flash that ends", () => {
   });
 });
 
+describe("a level is read by its value", () => {
+  it("no selector reads a bare [data-level]: a skin may leave a level out, so presence never means pressing (spec/cards.md)", () => {
+    expect(cssFiles.filter((f) => /\[data-level\s*\]/.test(css(f)))).toEqual([]);
+  });
+});
+
 describe("touch: controls answer presses, faders let pages scroll", () => {
   it("keys and faders take no selection, callout or tap highlight, and no tap delay", () => {
     const c = css(`${SKIN}/shared/module.css`);

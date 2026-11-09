@@ -267,6 +267,11 @@ describe("glow: attention is a multiplier on a dimmed baseline", () => {
     expect(layout).not.toMatch(/data-level="advisory"/);
   });
 
+  it("data-level is read with its value, never by its presence: Orb writes advisory too (spec/cards.md → a level is read by its value)", () => {
+    const bare = cssFiles.filter((f) => /\[data-level\s*\]/.test(css(f)));
+    expect(bare).toEqual([]);
+  });
+
   it("the budget keys on data-glow and data-level only, never a card's own markup", () => {
     const rules = [...layout.matchAll(/([^{}]+)\{([^{}]*--glow-[a-z-]+\s*:[^{}]*)\}/g)].map(([, selector]) => selector.trim());
     expect(rules).toHaveLength(1 + 2 * CONTAINERS.length);
