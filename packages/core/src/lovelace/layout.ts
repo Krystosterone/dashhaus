@@ -247,6 +247,7 @@ export const WALL_BANDS: Readonly<Record<WallBand, readonly string[]>> = {
     "sound",
     "humidifier",
     "fan",
+    "dyson",
     "mediaPlayer",
     "vacuum",
     // new-card: wall actions

@@ -439,7 +439,8 @@ stacks a column and draws it in its own idiom.
   the first row, never wrapped. The weather and the sun join an area called Outside where the house has one, the card
   given `area:` so its column names it, and are the house's otherwise. A column's cards come in the bands of the
   automatic layout's order above: actions, safety and security, cameras, household status, the glance; a card in no
-  band comes last. What is pressed (the actions, the alarm, a lock) is compact; what is read (a door, a camera's
+  band comes last. A Dyson's fan is the dyson card, an action after the plain fans, and its Hot+Cool's heater is
+  drawn by it, never a climate card of its own. What is pressed (the actions, the alarm, a lock) is compact; what is read (a door, a camera's
   still, a sock, the weather, a room's air) is standard; nothing is featured. Energy is its own row, last, titled
   Energy, never in a column, so the rows of areas don't move when the preferences land. With fewer than two areas a
   column per area says nothing: every card flows in band order instead.

@@ -16,6 +16,7 @@ import {
   safetySensors,
   sortByName,
   visibleEntities,
+  WALL_BANDS,
   wallBand,
   wallFootprint,
   wallAreas,
@@ -273,7 +274,9 @@ describe("the wall", () => {
   it("bands every card the wall places, and footprints what is pressed compact and what is read standard", () => {
     expect(["light", "alarm", "camera", "owlet", "weather", "numeric"].map(wallBand)).toEqual(["actions", "security", "cameras", "status", "glance", "glance"]);
     expect(wallBand("picture")).toBeUndefined();
-    expect(["climate", "light", "alarm", "lock"].map(wallFootprint)).toEqual(["compact", "compact", "compact", "compact"]);
+    expect(["climate", "light", "dyson", "alarm", "lock"].map(wallFootprint)).toEqual(Array(5).fill("compact"));
+    // A Dyson is a fan's action, after the plain fan's.
+    expect(WALL_BANDS.actions.indexOf("dyson")).toBe(WALL_BANDS.actions.indexOf("fan") + 1);
     expect(["binarySensor", "camera", "owlet", "guestWifi", "calendar", "weather", "sun", "sensor", "numeric", "picture"].map(wallFootprint)).toEqual(Array(10).fill("standard"));
   });
 

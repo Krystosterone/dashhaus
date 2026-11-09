@@ -241,6 +241,12 @@ describe("areaColumns: the wall", () => {
     })),
   });
 
+  it("takes a Dyson in its area's column as a row, pressed, after the plain fans", () => {
+    const rows = areaColumns([...MODULES, m("fan.purifier", "dyson", "Hall"), m("fan.hall", "fan", "Hall")], [], { outside: "Outside" });
+    const hall = rows[0].cards.filter((entry) => entry.item.area === "Hall").map((entry) => [entry.item.entity, entry.item.footprint]);
+    expect(hall).toEqual([["climate.hall", "compact"], ["light.hall", "compact"], ["fan.hall", "compact"], ["fan.purifier", "compact"]]);
+  });
+
   it("puts a column per area by area name, four across, the house's own last in the first row, each column whole modules first", () => {
     expect(layout(areaColumns(MODULES, [], { outside: "Outside" }))).toEqual([
       {

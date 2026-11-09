@@ -198,12 +198,13 @@ interface WallCard { config: Card; card: string }
  * than two areas: one row, every card in band order.
  */
 function wallDashboard(input: LayoutInput, title: string): Record<string, unknown> {
-  const { alarms, locks, safety, cameras, weather, sun, climate, rooms, quality, modes, socks, wifi, calendars, controls } = discover(input);
+  const { alarms, locks, safety, cameras, weather, sun, climate, dysons, rooms, quality, modes, socks, wifi, calendars, controls } = discover(input);
   const id = (card: string) => (config: Card): WallCard => ({ config, card });
   const cards: WallCard[] = [
     ...climate.map(id("climate")),
     ...modes.map(id("toggle")),
-    ...controls.map((entity) => ({ config: entity, card: CONTROL_CARDS[domainOf(entity)] })),
+    // A Dyson's fan is the dyson card, in its band after the plain fans.
+    ...controls.map((entity) => (dysons.has(entity) ? { config: { entity, card: "dyson" }, card: "dyson" } : { config: entity, card: CONTROL_CARDS[domainOf(entity)] })),
     ...alarms.map(id("alarm")),
     ...locks.map(id("lock")),
     ...safety.map(id("binarySensor")),

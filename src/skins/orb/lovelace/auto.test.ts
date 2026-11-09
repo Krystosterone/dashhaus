@@ -455,6 +455,38 @@ describe("autoDashboard, layout: wall", () => {
     expect(flat[0].cards.some((card) => typeof card === "object" && card.column)).toBe(false);
   });
 
+  it("puts a Dyson's fan in its area's column as the dyson card, pressed, after the plain fans, and its heater nowhere else", () => {
+    const dyson = {
+      ...house,
+      states: {
+        ...house.states,
+        ...Object.fromEntries([
+          named("fan.kitchen", "Ceiling fan"),
+          named("fan.living_room", "Hot+Cool"),
+          named("switch.living_room_night_mode", "Hot+Cool Night Mode"),
+          named("sensor.living_room_filter_life", "Hot+Cool Filter Life", { unit_of_measurement: "%" }),
+          named("climate.living_room", "Hot+Cool"),
+        ].map((s) => [s.entity_id, s])),
+      },
+      entities: {
+        ...house.entities,
+        "fan.kitchen": { area_id: "kitchen" },
+        "fan.living_room": { area_id: "kitchen" },
+        "switch.living_room_night_mode": { area_id: "kitchen", entity_category: "config" as const },
+        "sensor.living_room_filter_life": { area_id: "kitchen", entity_category: "diagnostic" as const },
+        "climate.living_room": { area_id: "kitchen" },
+      },
+    };
+    const card = wall(dyson);
+    const cards = (card.rows as { cards: (string | Record<string, unknown>)[] }[]).flatMap((row) => row.cards);
+    const kitchen = cards.filter((c): c is Record<string, unknown> => typeof c === "object" && c.column === 1 && ["light.kitchen", "fan.kitchen", "fan.living_room", "lock.back", "binary_sensor.leak"].includes(c.entity as string));
+    expect(kitchen.map((c) => c.entity)).toEqual(["light.kitchen", "fan.kitchen", "fan.living_room", "lock.back", "binary_sensor.leak"]);
+    expect(kitchen[2]).toEqual({ entity: "fan.living_room", column: 1, footprint: "compact", card: "dyson" });
+    expect(cards.some((c) => (typeof c === "string" ? c : c.entity) === "climate.living_room")).toBe(false);
+    const read = parseDashboardConfig(card).rows!.flatMap((row) => row.cards).find((entry) => "entity" in entry.item && entry.item.entity === "fan.living_room");
+    expect(read?.item.kind).toBe("dyson");
+  });
+
   it("stays an automatic wall when there is nothing to place", () => {
     const empty = wall({ states: {} });
     expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home", layout: "wall" });
