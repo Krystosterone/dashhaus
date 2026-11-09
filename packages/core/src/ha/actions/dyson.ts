@@ -1,6 +1,6 @@
 import type { FanDirection } from "../../entities/fan/types";
 import type { DysonEntity } from "../../entities/dyson/types";
-import { DYSON_ANGLE_MAX, DYSON_ANGLE_MIN, DYSON_MIN_SWEEP, DYSON_SWEEPS, sweepAngles, sweepLabel } from "../../entities/dyson/labels";
+import { DYSON_LOCAL_ANGLES, DYSON_MIN_SWEEP, DYSON_SWEEPS, sweepAngles, sweepLabel } from "../../entities/dyson/labels";
 import type { HaActionError, HaStore } from "../types";
 import { createFanHandlers } from "./fan";
 import { serviceRunner } from "./run";
@@ -22,7 +22,7 @@ export interface DysonHandlers {
   onOscillationModeChange: (mode: string) => void;
   /**
    * Aims a Pure Cool or Hot+Cool, `dyson_local.set_angle`, which starts it oscillating: one angle twice holds it still,
-   * pointing there; two at least 30° apart sweep between them. 5-355° around its base, 180° ahead.
+   * pointing there; two at least 30° apart sweep between them, inside its `angles`.
    */
   onAngleChange: (low: number, high: number) => void;
   /** Calls `fan.set_direction`: `forward` is the front airflow, `reverse` the back. */
@@ -108,13 +108,14 @@ export function createDysonHandlers(caller: Pick<HaStore, "callService">, entity
         on("select", options.oscillationModeEntityId)("select_option", { option: mode });
         return;
       }
-      on("dyson_local", id)("set_angle", sweepAngles(sweep(mode)!, entity.oscillationCentre));
+      on("dyson_local", id)("set_angle", sweepAngles(sweep(mode)!, entity.oscillationCentre, entity.angles));
     },
     onAngleChange: (low, high) => {
       if (!can(entity.supportsOscillate && entity.oscillationBy === "angle", "oscillation angles")) return;
-      const inside = (a: number) => Number.isInteger(a) && a >= DYSON_ANGLE_MIN && a <= DYSON_ANGLE_MAX;
+      const { min, max } = entity.angles ?? DYSON_LOCAL_ANGLES;
+      const inside = (a: number) => Number.isInteger(a) && a >= min && a <= max;
       if (!inside(low) || !inside(high) || (low !== high && high - low < DYSON_MIN_SWEEP)) {
-        invalidInput(`${id} angles must be whole degrees from ${DYSON_ANGLE_MIN} to ${DYSON_ANGLE_MAX}, equal or at least ${DYSON_MIN_SWEEP} apart`);
+        invalidInput(`${id} angles must be whole degrees from ${min} to ${max}, equal or at least ${DYSON_MIN_SWEEP} apart`);
         return;
       }
       on("dyson_local", id)("set_angle", { angle_low: low, angle_high: high });

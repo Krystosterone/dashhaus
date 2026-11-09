@@ -81,11 +81,11 @@ describe("DysonCard", () => {
     const chips = screen.getByRole("group", { name: "Oscillation" });
     expect(within(chips).getByRole("button", { name: "Still" }).getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(within(chips).getByRole("button", { name: "90°" }));
-    expect(onAngleChange).toHaveBeenLastCalledWith(75, 165);
+    expect(onAngleChange).toHaveBeenLastCalledWith(188, 278);
     const dial = screen.getByRole("slider", { name: "Purifier aims" });
-    expect(dial.getAttribute("aria-valuetext")).toBe("Points 60° from ahead");
-    fireEvent.change(dial, { target: { value: "180" } });
-    expect(onAngleChange).toHaveBeenLastCalledWith(180, 180);
+    expect(dial.getAttribute("aria-valuetext")).toBe("Points 58° right");
+    fireEvent.change(dial, { target: { value: "175" } });
+    expect(onAngleChange).toHaveBeenLastCalledWith(175, 175);
   });
 
   it("lists every reading in Dyson's bands, and its filters, in the sheet", () => {

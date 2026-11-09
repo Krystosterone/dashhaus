@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dysonAbilities, dysonMode, oscillationChoice, sweepAngles, sweepOf } from "./labels";
+import { HASS_DYSON_ANGLES, aimAngles, aimWords, dysonAbilities, dysonMode, oscillationChoice, sweepAngles, sweepOf } from "./labels";
 import type { DysonEntity } from "./types";
 
 const base: DysonEntity = { entityId: "fan.x", name: "X", state: "on", air: [], filters: [] };
@@ -10,6 +10,20 @@ describe("a Pure Cool's sweep", () => {
     expect(sweepAngles(180, 60)).toEqual({ angle_low: 5, angle_high: 185 });
     expect(sweepAngles(350, 300)).toEqual({ angle_low: 5, angle_high: 355 });
     expect(sweepAngles(45, 340)).toEqual({ angle_low: 310, angle_high: 355 });
+  });
+
+  it("keeps to each integration's range, and holds still on one angle twice", () => {
+    expect(sweepAngles(350, undefined, HASS_DYSON_ANGLES)).toEqual({ angle_low: 0, angle_high: 350 });
+    expect(sweepAngles(90, undefined, HASS_DYSON_ANGLES)).toEqual({ angle_low: 130, angle_high: 220 });
+    expect(aimAngles(233, 0, HASS_DYSON_ANGLES)).toEqual({ angle_low: 233, angle_high: 233 });
+    expect(aimAngles(340, 90, HASS_DYSON_ANGLES)).toEqual({ angle_low: 260, angle_high: 350 });
+    expect(aimAngles(100, 10)).toEqual({ angle_low: 85, angle_high: 115 });
+  });
+
+  it("says where it points seen from behind: a lower angle is to its left", () => {
+    expect(aimWords(175, 175)).toBe("ahead");
+    expect(aimWords(120, 175)).toBe("55° left");
+    expect(aimWords(233, 175)).toBe("58° right");
   });
 
   it("reads one of its own from its angles, within two degrees", () => {

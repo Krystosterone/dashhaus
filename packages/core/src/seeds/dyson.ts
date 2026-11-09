@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { HourSample } from "../entities/history";
 import type { FanDirection } from "../entities/fan/types";
 import type { DysonEntity, DysonHistory } from "../entities/dyson/types";
-import { DYSON_SWEEPS, aimOf, sweepAngles, sweepLabel, sweepOf } from "../entities/dyson/labels";
+import { DYSON_SWEEPS, HASS_DYSON_ANGLES, aimOf, sweepAngles, sweepLabel, sweepOf } from "../entities/dyson/labels";
 
 /** Example data for stories. The clock is fixed at 11:54 so screenshots stay stable. */
 const NOW = { hour: 11, minute: 54 };
@@ -19,8 +19,8 @@ const PURIFIER = {
   supportsSpeed: true, speedCount: 10, supportsAuto: true, autoPreset: "Auto", manualPreset: "Normal",
   supportsOscillate: true, supportsDirection: true, supportsNightMode: true,
 } as const;
-/** A Pure Cool's sweeps, set by its angles. */
-const ANGLES = { oscillationModes: ["45°", "90°", "180°", "350°"], oscillationBy: "angle", oscillationCentre: 180 } as const;
+/** A Pure Cool's sweeps, set by its angles, as hass-dyson counts them: 0-350°, 175° ahead. */
+const ANGLES = { oscillationModes: ["45°", "90°", "180°", "350°"], oscillationBy: "angle", angles: HASS_DYSON_ANGLES, oscillationCentre: 175 } as const;
 /** A Hot+Cool's heater, from its `climate.*`. */
 const HEATER = { supportsHeat: true, heatMin: 1, heatMax: 37, heatStep: 1, heatUnit: "°C" } as const;
 
@@ -29,7 +29,7 @@ export const DYSON_SEEDS = {
   on: {
     entity: {
       entityId: "fan.bedroom_purifier", name: "Purifier", area: "Bedroom", state: "on", ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes],
-      percentage: 40, auto: false, oscillating: true, oscillationMode: "90°", oscillationLow: 135, oscillationHigh: 225, direction: "forward", nightMode: false,
+      percentage: 40, auto: false, oscillating: true, oscillationMode: "90°", oscillationLow: 130, oscillationHigh: 220, direction: "forward", nightMode: false,
       temperature: 21.4, temperatureUnit: "°C", humidity: 44,
       air: [{ pollutant: "pm25", value: 8, unit: "µg/m³" }, { pollutant: "pm10", value: 12, unit: "µg/m³" }, { pollutant: "voc", value: 2 }, { pollutant: "no2", value: 1 }],
       filters: [{ kind: "hepa", percent: 72 }, { kind: "carbon", percent: 64 }],
@@ -41,7 +41,7 @@ export const DYSON_SEEDS = {
   heating: {
     entity: {
       entityId: "fan.living_room_hot_cool", name: "Hot+Cool", area: "Living room", state: "on", ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes], ...HEATER,
-      auto: true, oscillating: false, oscillationLow: 90, oscillationHigh: 270, direction: "forward", nightMode: false, heatOn: true, heating: true, heatTarget: 23,
+      auto: true, oscillating: false, oscillationLow: 85, oscillationHigh: 265, direction: "forward", nightMode: false, heatOn: true, heating: true, heatTarget: 23,
       temperature: 19.8, temperatureUnit: "°C", humidity: 38,
       air: [{ pollutant: "pm25", value: 41, unit: "µg/m³" }, { pollutant: "pm10", value: 47, unit: "µg/m³" }, { pollutant: "voc", value: 3 }, { pollutant: "no2", value: 2 }, { pollutant: "hcho", value: 0.02, unit: "mg/m³" }],
       filters: [{ kind: "combined", percent: 38 }],
@@ -61,11 +61,11 @@ export const DYSON_SEEDS = {
     },
     past: [1, 1, 1, 1, 1, 1, 1, 0.25, 0, 0, 0],
   },
-  /** Held still, pointing 60° from ahead at a desk: one angle twice, so it doesn't sweep. */
+  /** Held still, pointing 58° right at a desk: one angle twice, so it doesn't sweep. */
   pointing: {
     entity: {
       entityId: "fan.study_purifier", name: "Purifier", area: "Study", state: "on", ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes],
-      percentage: 30, auto: false, oscillating: true, oscillationLow: 120, oscillationHigh: 120, oscillationCentre: 120, direction: "forward", nightMode: false,
+      percentage: 30, auto: false, oscillating: true, oscillationLow: 233, oscillationHigh: 233, oscillationCentre: 233, direction: "forward", nightMode: false,
       temperature: 22.8, temperatureUnit: "°C", humidity: 46,
       air: [{ pollutant: "pm25", value: 5, unit: "µg/m³" }, { pollutant: "pm10", value: 7, unit: "µg/m³" }, { pollutant: "voc", value: 1 }, { pollutant: "no2", value: 1 }],
       filters: [{ kind: "hepa", percent: 90 }, { kind: "carbon", percent: 88 }],
@@ -77,7 +77,7 @@ export const DYSON_SEEDS = {
   poorAir: {
     entity: {
       entityId: "fan.kitchen_purifier", name: "Purifier", area: "Kitchen", state: "on", ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes],
-      auto: true, oscillating: true, oscillationMode: "180°", oscillationLow: 90, oscillationHigh: 270, direction: "forward", nightMode: false,
+      auto: true, oscillating: true, oscillationMode: "180°", oscillationLow: 85, oscillationHigh: 265, direction: "forward", nightMode: false,
       temperature: 24.6, temperatureUnit: "°C", humidity: 57,
       air: [{ pollutant: "pm25", value: 62, unit: "µg/m³" }, { pollutant: "pm10", value: 70, unit: "µg/m³" }, { pollutant: "voc", value: 5 }, { pollutant: "no2", value: 2 }],
       filters: [{ kind: "hepa", percent: 55 }, { kind: "carbon", percent: 40 }],
@@ -89,7 +89,7 @@ export const DYSON_SEEDS = {
   filter: {
     entity: {
       entityId: "fan.office_purifier", name: "Purifier", area: "Office", state: "off", ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes],
-      auto: false, oscillating: false, oscillationLow: 135, oscillationHigh: 225, direction: "reverse", nightMode: false,
+      auto: false, oscillating: false, oscillationLow: 130, oscillationHigh: 220, direction: "reverse", nightMode: false,
       temperature: 20.9, temperatureUnit: "°C", humidity: 41,
       air: [{ pollutant: "pm25", value: 12, unit: "µg/m³" }, { pollutant: "pm10", value: 15, unit: "µg/m³" }, { pollutant: "voc", value: 2 }, { pollutant: "no2", value: 1 }],
       filters: [{ kind: "hepa", percent: 6 }, { kind: "carbon", percent: 4 }],
@@ -109,7 +109,7 @@ export const DYSON_SEEDS = {
     entity: {
       entityId: "fan.landing", name: "Upstairs landing Purifier Hot+Cool Formaldehyde", area: "Primary bedroom en-suite and walk-in closet", state: "on",
       ...PURIFIER, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes], ...HEATER, heatMax: 37,
-      percentage: 100, auto: false, oscillating: true, oscillationLow: 5, oscillationHigh: 355, oscillationMode: "350°", direction: "reverse", nightMode: true, heatOn: true, heating: false, heatTarget: 37,
+      percentage: 100, auto: false, oscillating: true, oscillationLow: 0, oscillationHigh: 350, oscillationMode: "350°", direction: "reverse", nightMode: true, heatOn: true, heating: false, heatTarget: 37,
       temperature: 36.95, temperatureUnit: "°C", humidity: 99.9,
       air: [
         { pollutant: "pm25", value: 999, unit: "µg/m³" }, { pollutant: "pm10", value: 999, unit: "µg/m³" }, { pollutant: "voc", value: 10 },
@@ -124,7 +124,7 @@ export const DYSON_SEEDS = {
   waiting: {
     entity: {
       entityId: "fan.loft", name: "Loft Pure Cool Link desk fan", area: "Loft", state: "on", supportsSpeed: true, speedCount: 10, supportsAuto: true, autoPreset: "Auto", manualPreset: "Normal",
-      supportsOscillate: true, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes], percentage: 10, auto: false, oscillating: true, oscillationLow: 140, oscillationHigh: 220, oscillationCentre: 180,
+      supportsOscillate: true, ...ANGLES, oscillationModes: [...ANGLES.oscillationModes], percentage: 10, auto: false, oscillating: true, oscillationLow: 135, oscillationHigh: 215, oscillationCentre: 175,
       air: [{ pollutant: "pm25", value: null, unit: "µg/m³" }, { pollutant: "voc", value: null }],
       filters: [{ kind: "combined", percent: null }],
       lastChanged: "11:50",
@@ -169,7 +169,7 @@ export function useDemoDyson(seed: DysonSeed) {
     onOscillationModeChange: (oscillationMode: string) => {
       const sweep = DYSON_SWEEPS.find((d) => sweepLabel(d) === oscillationMode);
       if (sweep == null || entity.oscillationBy !== "angle") return update({ oscillating: true, oscillationMode });
-      const { angle_low, angle_high } = sweepAngles(sweep, entity.oscillationCentre);
+      const { angle_low, angle_high } = sweepAngles(sweep, entity.oscillationCentre, entity.angles);
       update({ oscillating: true, oscillationMode, oscillationLow: angle_low, oscillationHigh: angle_high });
     },
     onAngleChange: (low: number, high: number) => {

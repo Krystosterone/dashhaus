@@ -419,6 +419,7 @@
       "oscillationMode",
       "oscillationCentre",
       "oscillationLow",
+      "angles",
       "oscillationHigh",
       "oscillationBy",
       "supportsNightMode",

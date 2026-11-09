@@ -1,4 +1,5 @@
 import type { FanEntity, FanHistory } from "../fan/types";
+import type { DysonAngles } from "./labels";
 
 /** What a Dyson's air sensors measure: fine and coarse particles, VOC and NO₂ on Dyson's own 0-10 index, formaldehyde. */
 export type DysonPollutant = "pm25" | "pm10" | "voc" | "no2" | "hcho";
@@ -48,11 +49,13 @@ export interface DysonEntity extends Omit<FanEntity, "supportsPreset" | "presetM
   /** Where a Pure Cool's sweep is centred, in degrees: a new range keeps it. */
   oscillationCentre?: number;
   /**
-   * A Pure Cool's or Hot+Cool's oscillation angles, 5-355° around its own base, 180° straight out of its front: the two
+   * A Pure Cool's or Hot+Cool's oscillation angles round its own base (`angles`): the two
    * ends of its sweep, or one angle twice where it holds still, pointing there. It reports no live position, so only
    * these are known.
    */
   oscillationLow?: number;
+  /** The range its angles take, and the one ahead: its integration's (`DYSON_LOCAL_ANGLES`, `HASS_DYSON_ANGLES`). */
+  angles?: DysonAngles;
   oscillationHigh?: number;
   /** Whether a range is set by the fan's angles (`dyson_local.set_angle`) or by its select entity. */
   oscillationBy?: "angle" | "select";

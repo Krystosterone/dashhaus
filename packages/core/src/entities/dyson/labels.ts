@@ -8,12 +8,21 @@ export const AIRFLOW_LABEL: Record<FanDirection, string> = { forward: "Front", r
 /** The ranges a Pure Cool sweeps, as its app offers them, in degrees. */
 export const DYSON_SWEEPS = [45, 90, 180, 350] as const;
 
-/** The narrowest and widest a Pure Cool's oscillation angles go. */
-export const DYSON_ANGLE_MIN = 5;
-export const DYSON_ANGLE_MAX = 355;
+/**
+ * Where a Pure Cool or Hot+Cool turns, as its integration counts it, round its own base: the lowest and highest angle,
+ * and the one straight out of the front of the base, opposite its cable, where its presets centre their sweeps. A lower
+ * angle turns it to its left, seen from behind.
+ */
+export interface DysonAngles {
+  min: number;
+  max: number;
+  ahead: number;
+}
 
-/** Straight out of the front of the base: where Dyson's own presets centre their sweeps. */
-export const DYSON_AHEAD = 180;
+/** `dyson_local` (ha-dyson, on libdyson): 5-355°, 180° ahead. */
+export const DYSON_LOCAL_ANGLES: DysonAngles = { min: 5, max: 355, ahead: 180 };
+/** `hass_dyson` (hass-dyson): 0-350°, 175° ahead, the middle of its widest sweep. */
+export const HASS_DYSON_ANGLES: DysonAngles = { min: 0, max: 350, ahead: 175 };
 
 /** The narrowest sweep the fan takes; narrower, it holds still at one angle. */
 export const DYSON_MIN_SWEEP = 30;
@@ -26,19 +35,26 @@ export const spreadLabel = (spread: number) => (spread === 0 ? "Still" : `${spre
 
 /**
  * The angles that aim it at `aim` with `spread` around it, inside what it turns to: one angle twice to hold still,
- * else a sweep at least `DYSON_MIN_SWEEP` wide, moved whole to stay inside 5-355°.
+ * else a sweep at least `DYSON_MIN_SWEEP` wide, moved whole to stay inside its range.
  */
-export function aimAngles(aim: number, spread: number): { angle_low: number; angle_high: number } {
-  const span = spread <= 0 ? 0 : Math.min(DYSON_ANGLE_MAX - DYSON_ANGLE_MIN, Math.max(DYSON_MIN_SWEEP, Math.round(spread)));
-  const low = Math.min(DYSON_ANGLE_MAX - span, Math.max(DYSON_ANGLE_MIN, Math.round(aim - span / 2)));
+export function aimAngles(aim: number, spread: number, range: DysonAngles = DYSON_LOCAL_ANGLES): { angle_low: number; angle_high: number } {
+  const span = spread <= 0 ? 0 : Math.min(range.max - range.min, Math.max(DYSON_MIN_SWEEP, Math.round(spread)));
+  const low = Math.min(range.max - span, Math.max(range.min, Math.round(aim - span / 2)));
   return { angle_low: low, angle_high: low + span };
 }
 
 /** Where it points, from its angles: the middle of its sweep, or the angle it holds. */
 export const aimOf = (low: number, high: number) => Math.round((low + high) / 2);
 
-/** Where it points in words, against ahead: "ahead", "40° from ahead". The base says no left or right, so neither does this. */
-export const aimWords = (aim: number) => (Math.abs(aim - DYSON_AHEAD) < 3 ? "ahead" : `${Math.abs(aim - DYSON_AHEAD)}° from ahead`);
+/**
+ * Where it points in words, seen from behind the fan: "ahead", "58° right", "55° left". A lower angle turns it left
+ * (checked on a hass-dyson Pure Cool: from 175° to 120° its head turned to its left).
+ */
+export function aimWords(aim: number, ahead = DYSON_LOCAL_ANGLES.ahead) {
+  const off = Math.round(aim - ahead);
+  if (Math.abs(off) < 3) return "ahead";
+  return `${Math.abs(off)}° ${off < 0 ? "left" : "right"}`;
+}
 
 /** A sweep in Dyson's words: 90 → "90°". */
 export const sweepLabel = (degrees: number) => `${degrees}°`;
@@ -47,9 +63,9 @@ export const sweepLabel = (degrees: number) => `${degrees}°`;
  * The angles a sweep of `degrees` takes around `centre`, kept inside what the fan turns to: `set_angle`'s
  * `angle_low` and `angle_high`.
  */
-export function sweepAngles(degrees: number, centre = 180): { angle_low: number; angle_high: number } {
-  const span = Math.min(DYSON_ANGLE_MAX - DYSON_ANGLE_MIN, Math.max(0, Math.round(degrees)));
-  const low = Math.min(DYSON_ANGLE_MAX - span, Math.max(DYSON_ANGLE_MIN, Math.round(centre - span / 2)));
+export function sweepAngles(degrees: number, centre?: number, range: DysonAngles = DYSON_LOCAL_ANGLES): { angle_low: number; angle_high: number } {
+  const span = Math.min(range.max - range.min, Math.max(0, Math.round(degrees)));
+  const low = Math.min(range.max - span, Math.max(range.min, Math.round((centre ?? range.ahead) - span / 2)));
   return { angle_low: low, angle_high: low + span };
 }
 
@@ -75,7 +91,7 @@ export function dysonMode(e: DysonEntity): string | null {
   if (e.auto) return "Auto";
   if (e.nightMode) return "Night";
   if (e.oscillating && e.oscillationLow != null && e.oscillationHigh != null && e.oscillationLow === e.oscillationHigh) {
-    return `Points ${aimWords(e.oscillationLow)}`;
+    return `Points ${aimWords(e.oscillationLow, e.angles?.ahead)}`;
   }
   if (e.oscillating) return e.oscillationMode ? `Sweeps ${e.oscillationMode}` : "Oscillating";
   return null;

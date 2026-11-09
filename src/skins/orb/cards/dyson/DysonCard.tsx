@@ -97,7 +97,7 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
     if (v === "on") return onOscillateChange?.(true);
     if (angles) {
       const spread = DYSON_SPREADS.find((s) => spreadLabel(s) === v) ?? 0;
-      const { angle_low, angle_high } = aimAngles(e.oscillationCentre ?? Math.round((angles.low + angles.high) / 2), spread);
+      const { angle_low, angle_high } = aimAngles(e.oscillationCentre ?? Math.round((angles.low + angles.high) / 2), spread, e.angles);
       return onAngleChange!(angle_low, angle_high);
     }
     onOscillationModeChange?.(v);
@@ -152,7 +152,7 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
             <ChoiceChips id={`${uid}-o`} label="Oscillation" options={oscillation} value={oscillationValue} onChange={pickOscillation} />
           )}
           {angles && e.oscillating && (
-            <AimDial id={`${uid}-aim`} name={e.name} low={angles.low} high={angles.high} onChange={onAngleChange!} />
+            <AimDial id={`${uid}-aim`} name={e.name} low={angles.low} high={angles.high} angles={e.angles} onChange={onAngleChange!} />
           )}
           {e.supportsDirection && onDirectionChange && (
             <ChoiceChips id={`${uid}-d`} label="Airflow" options={AIRFLOWS} value={e.direction} onChange={onDirectionChange} />

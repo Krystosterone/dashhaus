@@ -3,7 +3,7 @@ import type { HourCycle } from "../../entities/clock";
 import { finiteNumber, stringList, stringValue } from "../util";
 import { fanFromHass } from "./fan";
 import { DYSON_POLLUTANTS } from "../../entities/dyson/air";
-import { DYSON_SWEEPS, sweepLabel, sweepOf } from "../../entities/dyson/labels";
+import { DYSON_LOCAL_ANGLES, DYSON_SWEEPS, sweepLabel, sweepOf } from "../../entities/dyson/labels";
 import type { DysonAirReading, DysonEntity, DysonFilter, DysonFilterKind, DysonPollutant } from "../../entities/dyson/types";
 
 /** The entities on a Dyson's device the card reads beside its fan, by what each is. */
@@ -130,6 +130,7 @@ export function dysonFromHass(raw: HassEntity | undefined, entityId: string, opt
       oscillationMode: live && sweep != null ? sweepLabel(sweep) : undefined,
       oscillationCentre: Math.round((low + high) / 2),
       ...(live && { oscillationLow: low, oscillationHigh: high }),
+      angles: DYSON_LOCAL_ANGLES,
       oscillationBy: "angle" as const,
     }
     : {};
