@@ -22,6 +22,7 @@ import {
   rowTitles,
 } from "@dashhaus/core/lovelace/schema";
 import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
+import { readAutoLayout } from "@dashhaus/core/lovelace/layout";
 import type { NavEntry } from "@dashhaus/core/lovelace";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { OwletAlert } from "@dashhaus/core/entities/owlet/types";
@@ -125,6 +126,8 @@ export interface FieldConfig {
   finish: FinishSetting;
   /** "far": a wall panel read from across the room; print and screen are set a step up. */
   viewing?: "near" | "far";
+  /** "wall": the automatic layout one column per area (`areaColumns`), in place of a row per area. Only without `cards`, `rows` and `pages`. */
+  layout?: "wall";
   /** Every module's footprint unless it sets its own. */
   footprint: FieldFootprint;
   /**
@@ -211,7 +214,7 @@ export const FIELD_KINDS: Record<FieldKind, KindSpec> = {
 
 const FINISHES: readonly FinishSetting[] = ["home-assistant", "auto", "alloy", "black"];
 const FOOTPRINTS: readonly FieldFootprint[] = ["standard", "compact"];
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "finish", "footprint", "quiet", "stills", ...BODY_KEYS, "pages", "nav", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "layout", "finish", "footprint", "quiet", "stills", ...BODY_KEYS, "pages", "nav", "view_layout", "grid_options", "visibility"];
 const MODULE_KEYS = ["entity", "card", "name", "area", "footprint", ...PLACEMENT_KEYS, "history"];
 /** A field page is at most 1240 px wide: four modules across. */
 const MAX_ACROSS = 4;
@@ -360,6 +363,7 @@ export function parseFieldConfig(raw: unknown): FieldConfig {
     showTime: read.boolean(top, "show_time", "") ?? false,
     hourCycle: read.choice(top, "hour_cycle", "", ["h12", "h23"] as const),
     viewing: read.choice(top, "viewing", "", ["near", "far"] as const),
+    layout: readAutoLayout(read, top),
     finish: read.choice(top, "finish", "", FINISHES) ?? "home-assistant",
     footprint,
     quiet: read.boolean(top, "quiet", "") ?? false,

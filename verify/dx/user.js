@@ -7,10 +7,11 @@
  *
  * Install `@dashhaus/orb`, `@dashhaus/field` and `@dashhaus/deploy`; ask `dashhaus-deploy --help` in the empty folder
  * for a config; then, for each skin, write its README's `dashboard.config.mjs` (the skin's own dashboard on its
- * strategy, and a dashboard of the person's own: the skin's card with their rows) and run the packed bin with
- * `--skip-build` over a real websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/`, so the
- * served-file check runs for real. Then draw all four dashboards in Chromium, expanded as the frontend expands a
- * strategy, and deploy again to check nothing was recreated. No clone and no build: the file uploaded is the one the
+ * strategy, and a dashboard of the person's own: the skin's card with their rows), add a wall panel's dashboard the
+ * way the skin's page sets one up (the strategy again, with `layout: wall` and `viewing: far`), and run the packed bin
+ * with `--skip-build` over a real websocket into `@dashhaus/fake-home-assistant`, which also serves `/local/`, so the
+ * served-file check runs for real. Then draw all six dashboards in Chromium, expanded as the frontend expands a
+ * strategy, Field's wall one column per area under its legends, and deploy again to check nothing was recreated. No clone and no build: the file uploaded is the one the
  * skin's package ships.
  */
 /* global window -- the evaluate callbacks run in the page. */
@@ -40,11 +41,19 @@ import {
 const report = createReport("DX user — deploy a skin's dashboard and one of your own from the command line, no build");
 console.log(`  tarballs: ${shown(tarballsDir)}`);
 
-/** Each skin as its README deploys it: its file, its strategy's dashboard, and a dashboard of the person's own. */
+/**
+ * Each skin as its README deploys it: its file, its strategy's dashboard, and a dashboard of the person's own; and the
+ * wall panel's its page adds, with what it draws there. Field heads each column with its area, from the areas the
+ * frontend hands the card (spec/deploy.md → The wall layout → A column names its area). Orb reads them from the
+ * registries over the connection, which the fake's page doesn't answer, so here it proves only that the wall lays
+ * cards out; `src/skins/orb/lovelace/card.test.tsx` holds its headings.
+ */
 const SKINS = [
-  { skin: "orb", name: "Orb", file: "orb-dashboard.js", folder: "orb-dashboard", card: "dashhaus-orb", strategy: "custom:orb-dashboard" },
-  { skin: "field", name: "Field", file: "field-dashboard.js", folder: "field-dashboard", card: "dashhaus-field", strategy: "custom:field-dashboard" },
+  { skin: "orb", name: "Orb", file: "orb-dashboard.js", folder: "orb-dashboard", card: "dashhaus-orb", strategy: "custom:orb-dashboard", wallDraws: ".dash-row > .dash-place" },
+  { skin: "field", name: "Field", file: "field-dashboard.js", folder: "field-dashboard", card: "dashhaus-field", strategy: "custom:field-dashboard", wallDraws: "section.fd-dash-stack > .fd-dash-stack-legend", headings: true },
 ];
+/** A wall panel's dashboard, as the skin's page sets it up: Add dashboard → the skin, then these two options. */
+const WALL = { layout: "wall", viewing: "far" };
 
 const app = await makeApp("user");
 let server;
@@ -107,8 +116,12 @@ try {
         const readme = await read(join(installedPackage(app, `@dashhaus/${entry.skin}`).directory, "README.md"));
         const config = readme.match(/```js\n([\s\S]*?)```/)?.[1];
         assert.ok(config, `@dashhaus/${entry.skin}'s README has no js config block`);
+        // The wall panel's dashboard the skin's page adds beside them: the strategy again, laid out for a wall.
+        const wall = `wall-${entry.skin}`;
+        const withWall = config.replace("dashboards: [", `dashboards: [\n    { path: "${wall}", title: "Wall (${entry.name})", icon: "mdi:tablet-dashboard", strategy: ${JSON.stringify({ type: entry.strategy, ...WALL })} },`);
+        assert.notEqual(withWall, config, `@dashhaus/${entry.skin}'s README config has no dashboards list to add a wall to`);
         const configFile = `${entry.skin}.config.mjs`;
-        await writeFile(join(app, configFile), config);
+        await writeFile(join(app, configFile), withWall);
 
         const result = await runAsync(bin, ["--config", configFile, "--skip-build"], { cwd: app });
         assert.doesNotMatch(result.output, /^\s*!/m, `the deploy warned:\n${result.output}`);
@@ -120,16 +133,19 @@ try {
 
         const home = ha.saved.find((item) => item.url_path === `home-${entry.skin}`);
         const mine = ha.saved.find((item) => item.url_path === own);
-        assert.ok(home && mine, "both dashboards must get a saved config");
-        // The skin's own dashboard keeps only the strategy, so it follows the skin as it updates.
+        const walled = ha.saved.find((item) => item.url_path === wall);
+        assert.ok(home && mine && walled, "all three dashboards must get a saved config");
+        // The skin's own dashboard keeps only the strategy, so it follows the skin as it updates; the wall keeps its
+        // two options with it.
         assert.deepEqual(home.config, { strategy: { type: entry.strategy } });
+        assert.deepEqual(walled.config, { strategy: { type: entry.strategy, ...WALL } });
         // The person's own: the skin's card with their rows, in one panel view.
         const card = mine.config.views[0].cards[0];
         assert.equal(mine.config.views[0].type, "panel");
         assert.equal(card.type, `custom:${entry.card}`);
         assert.ok(Array.isArray(card.rows) && card.rows.length > 0, "the dashboard of your own keeps its rows");
-        deployed.push({ ...entry, own, card });
-        return `--config ${configFile} --skip-build: ${entry.file} served back; /home-${entry.skin} on ${entry.strategy}, /${own} with ${card.rows.length} rows`;
+        deployed.push({ ...entry, own, wall, card });
+        return `--config ${configFile} --skip-build: ${entry.file} served back; /home-${entry.skin} and /${wall} on ${entry.strategy}, /${own} with ${card.rows.length} rows`;
       });
 
       if (!done.ok) {
@@ -137,19 +153,33 @@ try {
         continue;
       }
       await report.stage(`${entry.name}'s dashboards draw`, async () => {
-        const { card } = deployed.at(-1);
+        const { card, wall } = deployed.at(-1);
+        let headings = [];
         for (const [path, view] of [
           [`home-${entry.skin}`, { title: entry.name, path: "home", type: "panel", cards: [{ type: `custom:${entry.card}`, title: "Home" }] }],
           [own, { title: "Home", path: "home", type: "panel", cards: [card] }],
+          [wall, { title: entry.name, path: "home", type: "panel", cards: [{ type: `custom:${entry.card}`, title: "Home", ...WALL }] }],
         ]) {
-          const shownView = await inPage(`${HA_URL}/${path}`, async (page) => {
+          const shown = await inPage(`${HA_URL}/${path}`, async (page) => {
             await page.locator(entry.card).waitFor({ state: "attached", timeout: 10000 });
-            return page.evaluate(() => window.__fakeHaView);
+            const view = await page.evaluate(() => window.__fakeHaView);
+            if (path !== wall) return { view };
+            // A key the strategy or the card refused ("Orb: …") stops the page, which inPage reports; one the card
+            // stopped on draws its config error. Otherwise the wall draws (the locators pierce the card's shadow root).
+            const drawn = page.locator(`${entry.card} ${entry.wallDraws}`);
+            await drawn.first().waitFor({ state: "visible", timeout: 10000 });
+            return { view, text: await page.locator(entry.card).locator(".hd-config-error").allInnerTexts(), headings: entry.headings ? await drawn.allInnerTexts() : [] };
           });
-          assert.deepEqual(shownView, view, `/${path} must draw ${entry.name}'s card`);
+          assert.deepEqual(shown.view, view, `/${path} must draw ${entry.name}'s card`);
+          if (path === wall) {
+            assert.deepEqual(shown.text, [], `/${path} must not refuse its config`);
+            if (entry.headings) assert.ok(shown.headings.length >= 2, `/${path} must head a column per area: ${shown.headings.join(", ")}`);
+            headings = shown.headings.map((name) => name.trim());
+          }
           if (screenshotDir) console.log(`  screenshot: ${await screenshotDashboard(`${HA_URL}/${path}`, join(screenshotDir, `user-${path}.png`))}`);
         }
-        return `/home-${entry.skin} expands its strategy to ${entry.name}'s automatic page; /${own} draws your rows`;
+        const walled = headings.length ? `a column per area (${headings.join(", ")})` : "its wall";
+        return `/home-${entry.skin} expands its strategy to ${entry.name}'s automatic page; /${own} draws your rows; /${wall} ${walled}`;
       });
     }
 
@@ -165,7 +195,7 @@ try {
         }
         assert.equal(creates(), before.creates, "a second deploy must not create the dashboards again");
         assert.equal(ha.resources.length, before.resources, "a second deploy must update each resource, not add one");
-        return `4 dashboards kept, ${ha.resources.length} resources updated in place`;
+        return `${SKINS.length * 3} dashboards kept, ${ha.resources.length} resources updated in place`;
       });
     }
   }

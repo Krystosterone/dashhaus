@@ -120,7 +120,12 @@ describe("documentation samples", () => {
 
   it("loads the user guide's deploy config", async () => {
     const { dashboards } = await loadDashboards({ file: join(examplesDir, "user/dashboard.config.mjs"), env: {} });
-    expect(dashboards.map((dashboard: { path: string }) => dashboard.path)).toEqual(["home-orb", "home-field", "my-home"]);
+    expect(dashboards.map((dashboard: { path: string }) => dashboard.path)).toEqual(["home-orb", "home-field", "wall-orb", "wall-field", "my-home"]);
+    // Each card it writes reads cleanly through its skin's own parser.
+    const parsers: Record<string, (raw: unknown) => unknown> = { "custom:dashhaus-orb": parseDashboardConfig, "custom:dashhaus-field": parseFieldConfig };
+    for (const { path, card } of dashboards as { path: string; card?: { type: string } }[]) {
+      if (card) expect(() => parsers[card.type](card), path).not.toThrow();
+    }
   });
 });
 

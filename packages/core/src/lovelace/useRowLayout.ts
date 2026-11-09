@@ -29,6 +29,8 @@ export interface RowLayout {
   cells: PlacedCell[];
   /** The grid's own inline style: its tracks. */
   style: CSSProperties;
+  /** Whether the cards' `column` anchors hold at this width (`placeRow`): the row has the tracks it was written for. */
+  anchored: boolean;
 }
 
 /**
@@ -76,5 +78,6 @@ export function useRowLayout<I>(row: RowConfig<I>, policy: TrackPolicy, height?:
       style: { gridColumn: `${cell.column} / span ${cell.span}`, gridRow: `${cell.row} / span ${cell.height}` },
     })),
     style: { gridTemplateColumns: `repeat(${placement.tracks}, minmax(0, 1fr))` },
+    anchored: placement.anchored,
   };
 }

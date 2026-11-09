@@ -13,7 +13,7 @@ describe("Orb's dashboard strategy", () => {
 
   it("emits cards Orb's own Lovelace card accepts", () => {
     customElements.define("strategy-test-orb", createDashhausCard(""));
-    for (const config of [{ type: "custom:orb-dashboard" }, { type: "custom:orb-dashboard", title: "Flat", ...{ viewing: "far", theme: "dark" } }]) {
+    for (const config of [{ type: "custom:orb-dashboard" }, { type: "custom:orb-dashboard", title: "Flat", ...{ viewing: "far", theme: "dark" } }, { type: "custom:orb-dashboard", layout: "wall", viewing: "far" }]) {
       const [card] = generateSkinDashboard(ORB_STRATEGY, config).views[0].cards;
       expect(generateSkinView(ORB_STRATEGY, config).cards[0]).toEqual(card);
       const element = document.createElement("strategy-test-orb") as HTMLElement & { setConfig(raw: unknown): void };

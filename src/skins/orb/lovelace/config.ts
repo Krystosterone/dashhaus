@@ -24,6 +24,7 @@ import {
   rowTitles,
 } from "@dashhaus/core/lovelace/schema";
 import type { CardKindSpec, CardReadSchema, LayoutSchema, Raw, RowConfig } from "@dashhaus/core/lovelace/schema";
+import { readAutoLayout } from "@dashhaus/core/lovelace/layout";
 import type { CardFootprint } from "../shared/ui";
 import type { ToggleIcon } from "@dashhaus/core/entities/toggle/types";
 import type { AlarmTileProps } from "../cards/alarm/AlarmTile";
@@ -159,6 +160,8 @@ export interface DashboardConfig {
   hourCycle?: "h12" | "h23";
   /** "far": a wall panel read from across the room. */
   viewing?: "near" | "far";
+  /** "wall": the automatic layout one column per area (`autoDashboard`'s `layout`). Only without `cards`, `rows` and `pages`. */
+  layout?: "wall";
   theme: ThemeSetting;
   accent?: Accent;
   /** The main page's rows (its `cards` are one untitled row). Absent: lay the house out automatically. */
@@ -303,7 +306,7 @@ const CARD_SCHEMA: CardReadSchema<Kind, CardConfig> = {
   noKind: (entity, domain) => `${entity}: ${domain}.* entities have no card yet (supported: ${Object.keys(DOMAIN_KIND).join(", ")})`,
 };
 
-const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "theme", "accent", "stills", "quiet", ...BODY_KEYS, "nav", "pages", "view_layout", "grid_options", "visibility"];
+const TOP_KEYS = ["type", "title", "subtitle", "show_time", "hour_cycle", "viewing", "layout", "theme", "accent", "stills", "quiet", ...BODY_KEYS, "nav", "pages", "view_layout", "grid_options", "visibility"];
 const BUNDLES = ["joined", "lead", "titled"] as const;
 type BundleKind = (typeof BUNDLES)[number];
 /** Each bundle's keys, and the fewest cards it takes. */
@@ -431,6 +434,7 @@ export function parseDashboardConfig(value: unknown): DashboardConfig {
     showTime: read.boolean(value, "show_time", "") ?? false,
     hourCycle: read.choice(value, "hour_cycle", "", ["h12", "h23"] as const),
     viewing: read.choice(value, "viewing", "", ["near", "far"] as const),
+    layout: readAutoLayout(read, value),
     theme: read.choice(value, "theme", "", ["home-assistant", "auto", "light", "dark"] as const) ?? "home-assistant",
     accent,
     rows,

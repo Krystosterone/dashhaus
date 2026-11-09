@@ -5,9 +5,10 @@ import { NavBar } from "../dashboards/NavBar";
 import { MAIN_PAGE, resolveNav, sectionAnchors, useRowLayout, useSensorCard } from "@dashhaus/core/lovelace";
 import type { PanelInfo } from "@dashhaus/core/lovelace";
 import { useDashboardNav } from "@dashhaus/core/lovelace";
+import { columnAreas } from "@dashhaus/core/lovelace/layout";
 import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { JoinedBundle, LeadBundle, TitledBundle, joinedUnits } from "../bundles/Bundle";
-import { CardHeadingLevelContext } from "../shared/ui";
+import { AreaHeading, CardHeadingLevelContext } from "../shared/ui";
 import type { CardFootprint } from "../shared/ui";
 import { HaLockTile } from "../ha/HaLockTile";
 import { HaFanTile } from "../ha/HaFanTile";
@@ -32,6 +33,7 @@ import { HaOwletTile } from "../ha/HaOwletTile";
 import { HaHumidifierTile } from "../ha/HaHumidifierTile";
 import { HaSoundTile } from "../ha/HaSoundTile";
 import { renderCard } from "@dashhaus/core/lovelace/schema";
+import { useHaRegistry } from "@dashhaus/core";
 import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
 import type { CardConfig, DashboardConfig, ItemConfig, Kind, RowLayoutConfig } from "./config";
 import { ActionStatus } from "./ActionStatus";
@@ -129,10 +131,41 @@ function unitsOf(entry: ItemConfig, width: number | undefined): number {
  */
 function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
   const layout = useRowLayout(row, ORB_TRACKS, unitsOf);
-  const grid = (
+  const areas = useColumnAreas(row);
+  const key = (entry: RowLayoutConfig["cards"][number], i: number) => `${i}:${"entity" in entry.item ? entry.item.entity : entry.item.kind}`;
+  // One element either way, so the row keeps measuring itself as its anchors hold and release.
+  const grid = areas && layout.anchored ? (
+    <div ref={layout.ref} className="dash-row dash-row--areas" data-tracks={layout.tracks} style={layout.style}>
+      {areas.map((area, c) => {
+        const cells = row.cards.flatMap((entry, i) => (entry.column === c + 1 ? [{ entry, i }] : []));
+        if (!cells.length) return null;
+        // One track, so the attention budget damps down the column as in a one-column Section (spec/orb.md).
+        const stack = (
+          <div className="dash-row" data-tracks="1" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+            {cells.map(({ entry, i }) => (
+              <div key={key(entry, i)} className="dash-place" style={{ gridRow: `${layout.cells[i]?.row ?? 1} / span ${layout.cells[i]?.height ?? 1}` }}>{item(entry.item)}</div>
+            ))}
+          </div>
+        );
+        return area ? (
+          <section key={c} className="dash-sec dash-col" style={{ gridColumn: c + 1 }} aria-label={area}>
+            <h2 className="dash-sec-h" title={area}>{area}</h2>
+            <AreaHeading.Provider value={area}>
+              <CardHeadingLevelContext.Provider value={3}>{stack}</CardHeadingLevelContext.Provider>
+            </AreaHeading.Provider>
+          </section>
+        ) : (
+          <div key={c} className="dash-sec dash-col" style={{ gridColumn: c + 1 }}>
+            <div className="dash-sec-h" aria-hidden="true">{"\u00a0"}</div>
+            {stack}
+          </div>
+        );
+      })}
+    </div>
+  ) : (
     <div ref={layout.ref} className="dash-row" data-tracks={layout.tracks} style={layout.style}>
       {row.cards.map((entry, i) => (
-        <div key={`${i}:${"entity" in entry.item ? entry.item.entity : entry.item.kind}`} className="dash-place" style={layout.cells[i]?.style}>{item(entry.item)}</div>
+        <div key={key(entry, i)} className="dash-place" style={layout.cells[i]?.style}>{item(entry.item)}</div>
       ))}
     </div>
   );
@@ -143,6 +176,23 @@ function Row({ row, id }: { row: RowLayoutConfig; id?: string }) {
       <CardHeadingLevelContext.Provider value={3}>{grid}</CardHeadingLevelContext.Provider>
     </section>
   );
+}
+
+/**
+ * The area each column of a row names (`columnAreas`, spec/deploy.md → The wall layout), each card's from its `area`
+ * or Home Assistant's registries. A bundle names no area.
+ */
+function useColumnAreas(row: RowLayoutConfig): (string | undefined)[] | undefined {
+  const registry = useHaRegistry();
+  return useMemo(() => {
+    const areaOf = (entry: ItemConfig) => {
+      if (!("entity" in entry)) return undefined;
+      if (entry.area) return entry.area;
+      const id = registry?.membership.get(entry.entity);
+      return id ? registry?.areas.find((area) => area.id === id)?.name : undefined;
+    };
+    return columnAreas(row, areaOf);
+  }, [row, registry]);
 }
 
 /** A page's titled rows, in order, each with its id: two rows of one title still get one id each. */

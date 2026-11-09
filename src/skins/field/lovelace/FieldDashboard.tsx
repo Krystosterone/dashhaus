@@ -6,6 +6,7 @@ import type { NavEntry, PanelInfo } from "@dashhaus/core/lovelace";
 import { useDashboardNav } from "@dashhaus/core/lovelace";
 import { renderCard, rowItems } from "@dashhaus/core/lovelace/schema";
 import type { CardRenderers } from "@dashhaus/core/lovelace/schema";
+import { columnAreas } from "@dashhaus/core/lovelace/layout";
 import type { TrackPolicy } from "@dashhaus/core/lovelace/layout";
 import { HaFanModule } from "../ha/HaFanModule";
 import { HaGuestWifiModule } from "../ha/HaGuestWifiModule";
@@ -145,14 +146,20 @@ function Row({ row, id, legend, label, footprint }: RowProps) {
   const grid = row.stacks ? "standard" : own(row.cards[0]?.item ?? ({} as ModuleConfig));
   const layout = useRowLayout(row, FIELD_TRACKS[grid]);
   const drawn = (item: ModuleConfig, i: number) => <LiveModule key={`${i}:${item.entity}`} item={item} footprint={footprint} />;
+  // The area each column names (a wall, spec/deploy.md → The wall layout), from each module's own `area`.
+  const areas = columnAreas(row, (item) => item.area);
+  // A row of one footprint whose columns each name an area stacks them while its anchors hold, so each takes its
+  // legend; narrower, it is the grid again, every plate naming its own area. Column stacks keep theirs as they wrap,
+  // since a stack is still one area.
+  const stacked = row.stacks || (areas !== undefined && layout.anchored);
   let content;
-  if (row.stacks) {
+  if (stacked) {
     const columns = row.columns ?? Math.max(...row.cards.map((entry) => entry.column ?? 1));
     const placed = layout.tracks >= columns;
     content = Array.from({ length: columns }, (_, c) => {
       const stack = row.cards.flatMap((entry, i) => (entry.column === c + 1 ? [{ entry, i }] : []));
       return stack.length ? (
-        <Stack key={c} column={placed ? c + 1 : undefined}>
+        <Stack key={c} column={placed ? c + 1 : undefined} area={areas ? areas[c] ?? null : undefined}>
           {stack.map(({ entry, i }) => <Place key={`${i}:${entry.item.entity}`} footprint={own(entry.item)}>{drawn(entry.item, i)}</Place>)}
         </Stack>
       ) : null;
@@ -161,7 +168,7 @@ function Row({ row, id, legend, label, footprint }: RowProps) {
     content = row.cards.map((entry, i) => <Place key={`${i}:${entry.item.entity}`} style={layout.cells[i]?.style} footprint={own(entry.item)}>{drawn(entry.item, i)}</Place>);
   }
   return (
-    <Area id={id} title={row.title} label={label} legend={legend} note={row.note} footprint={grid} grid={{ ref: layout.ref, style: layout.style, tracks: layout.tracks, stacks: row.stacks, align: row.align }}>
+    <Area id={id} title={row.title} label={areas ? null : label} legend={legend} note={row.note} footprint={grid} grid={{ ref: layout.ref, style: layout.style, tracks: layout.tracks, stacks: stacked, align: row.align }}>
       {content}
     </Area>
   );

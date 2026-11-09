@@ -84,7 +84,7 @@ export function createDashhausCard(css: string): CustomElementConstructor {
     #rows(config: DashboardConfig, hass: LovelaceHass): RowLayoutConfig[] {
       if (config.rows) return config.rows;
       if (this.#autoStale(hass)) {
-        const generated = parseDashboardConfig({ ...autoDashboard(autoInput(hass, this.energyPrefs(hass))), title: config.title });
+        const generated = parseDashboardConfig({ ...autoDashboard(autoInput(hass, this.energyPrefs(hass)), config.title, { layout: config.layout }), title: config.title });
         this.#auto = { key: this.#autoKey(hass), rows: generated.rows ?? [] };
       }
       return this.#auto!.rows;
@@ -94,5 +94,5 @@ export function createDashhausCard(css: string): CustomElementConstructor {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineDashhausCard(css: string) {
-  registerCard(CARD_TYPE, createDashhausCard(css), "Orb", "Orb's whole page from one YAML card. Leave out `cards` and `rows` to lay the house out automatically.");
+  registerCard(CARD_TYPE, createDashhausCard(css), "Orb", "Orb's whole page from one YAML card. Leave out `cards` and `rows` to lay the house out automatically; `layout: wall` lays it out one column per area.");
 }

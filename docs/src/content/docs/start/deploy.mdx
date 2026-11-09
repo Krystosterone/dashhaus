@@ -62,6 +62,12 @@ empty folder, writes each skin's config and deploys it into a simulated Home Ass
    requires one. Keep only the skin you want if you don't need both. The `@type` comment lets your editor check the
    file against `@dashhaus/deploy/config`; the tool doesn't need it.
 
+   The two walls are for a panel on a wall: each skin's card with `layout: wall`, which lays the house out one column
+   per room, in the order of the rooms' names, each time it draws, and `viewing: far`, for reading it from across the
+   room. A strategy can't carry a nav, so a wall is a `card`: its `nav` lists its own page and a `navigate:` link back
+   to the skin's dashboard (a nav with one destination isn't drawn). To put certain rooms first, write its rows in place
+   of `layout: wall`. Then pick each device's dashboard in its profile, under **Dashboard**.
+
 4. Deploy:
 
    ```sh
@@ -76,8 +82,8 @@ empty folder, writes each skin's config and deploys it into a simulated Home Ass
 
    <Cli show="deploy" />
 
-5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)**, **Home (Field)** or **My home** in
-   the sidebar.
+5. Reload any Home Assistant tab that was already open, then pick **Home (Orb)**, **Home (Field)**, a wall or **My
+   home** in the sidebar.
 
    Home Assistant reads its list of resources when a tab opens. Until you reload, an open tab shows the new dashboard
    in the sidebar but says "Configuration error" instead of drawing it.

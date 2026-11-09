@@ -1,11 +1,13 @@
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/core/lovelace/skin";
 import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
-import { mapRowItems } from "@dashhaus/core/lovelace/schema";
+import { isRaw, mapRowItems } from "@dashhaus/core/lovelace/schema";
+import { outsideArea } from "@dashhaus/core/lovelace/layout";
 import { parseFieldConfig } from "./config";
 import type { FieldConfig, FieldRow, ModuleConfig, PageConfig } from "./config";
-import { areaName, areaRows, autoModules, energyModules } from "./auto";
+import { areaColumns, areaName, areaRows, autoModules, energyModules } from "./auto";
 import { FieldDashboard } from "./FieldDashboard";
 import { FIELD_FONT_HREF } from "../shared/surface";
+import type { FieldFootprint } from "../shared/ui";
 
 export const FIELD_CARD_TYPE = "dashhaus-field";
 export { FIELD_STRATEGY } from "./strategy";
@@ -23,7 +25,7 @@ const HOST_CSS = `
 /**
  * `type: custom:dashhaus-field` — the field skin as a whole page in one Lovelace card, on the frontend's own
  * connection like `custom:dashhaus-orb`. Without `cards` or `rows` it draws every supported entity, a row per Home
- * Assistant area, then the house's energy.
+ * Assistant area (or, with `layout: wall`, a column per area), then the house's energy.
  */
 export function createFieldCard(css: string): CustomElementConstructor {
   const styles = scopeToHost(css) + HOST_CSS;
@@ -33,10 +35,13 @@ export function createFieldCard(css: string): CustomElementConstructor {
     protected readonly mountClass = "fd-surface";
     protected readonly fontHref = FIELD_FONT_HREF;
     #layout?: { key: unknown[]; rows: FieldRow[]; pages?: PageConfig[] };
+    /** The `footprint` the YAML sets, which a wall keeps for every module in place of its own mix. */
+    #footprint?: FieldFootprint;
 
     setConfig(raw: unknown) {
       this.#layout = undefined;
       super.setConfig(raw);
+      this.#footprint = isRaw(raw) && raw.footprint != null ? this.config?.footprint : undefined;
     }
 
     /** What the card picker pre-fills: automatic, every supported entity by area. */
@@ -105,7 +110,10 @@ export function createFieldCard(css: string): CustomElementConstructor {
         const input = autoInput(hass, this.#energy(hass));
         const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
         const modules = config.rows ? [] : autoModules(input);
-        const rows = config.rows ? mapRowItems(config.rows, place) : areaRows(modules.map(place), energyModules(input, modules).map(place));
+        const energy = config.rows ? [] : energyModules(input, modules).map(place);
+        const rows = config.rows ? mapRowItems(config.rows, place)
+          : config.layout === "wall" ? areaColumns(modules.map(place), energy, { outside: outsideArea(input), footprint: this.#footprint })
+          : areaRows(modules.map(place), energy);
         const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, place) }));
         this.#layout = { key: this.#key(hass), rows, pages };
       }
@@ -116,5 +124,5 @@ export function createFieldCard(css: string): CustomElementConstructor {
 
 /** Register the element and list it in the Lovelace card picker. Safe to call twice. */
 export function defineFieldCard(css: string) {
-  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Field", "Field's whole page from one YAML card: hardware-style light, climate and sensor modules by room. Leave out `cards` and `rows` to show every supported entity by area.");
+  registerCard(FIELD_CARD_TYPE, createFieldCard(css), "Field", "Field's whole page from one YAML card: hardware-style light, climate and sensor modules by room. Leave out `cards` and `rows` to show every supported entity by area; `layout: wall` puts each area in a column.");
 }

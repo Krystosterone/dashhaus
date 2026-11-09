@@ -30,7 +30,7 @@ const removeFan = (copy: string) => {
   change(copy, "src/skins/orb/index.ts", withoutLines(/^\/\/ Fan$|\.\/cards\/fan\/|\.\/ha\/HaFanTile"/));
   change(copy, "src/skins/orb/lovelace/config.ts", withoutLines(/^ {2}\| "fan"$|^ {2}fan: "fan",$|kind: "fan"|^ {2}fan: \{\},$/));
   change(copy, "src/skins/orb/lovelace/ConfigDashboard.tsx", withoutLines(/HaFanTile/));
-  change(copy, "src/skins/orb/lovelace/auto.ts", withoutLines(/^ {4}"fan",$/));
+  change(copy, "src/skins/orb/lovelace/auto.ts", withoutLines(/^ {4}"fan",$|^ {2}fan: "fan",$/));
   change(copy, "src/skins/field/index.ts", withoutLines(/\.\/cards\/fan\/|\.\/ha\/HaFanModule"/));
   change(copy, "src/skins/field/lovelace/config.ts", withoutLines(/^ {2}\| "fan"$|^ {2}fan: \{ domains: \["fan"\] \},$/));
   change(copy, "src/skins/field/lovelace/FieldDashboard.tsx", withoutLines(/HaFanModule/));

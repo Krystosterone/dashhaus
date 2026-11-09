@@ -316,7 +316,11 @@ import { __CONST___SEEDS, __CONST___WORST_CASE } from "__seeds__";
   for (const d of placed) {
     edit(seams.orb.auto, after(markers.autoControls, `    "${d}",\n`));
     edit(seams.orb.auto, after(markers.autoOrder, `    "${d}",\n`));
+    edit(seams.orb.auto, after(markers.autoCards, `  ${d}: "${name}",\n`));
   }
+  // The wall: a control joins the actions band of its area's column (spec/deploy.md → The wall layout).
+  const layout = packageFile("core", "src/lovelace/layout.ts");
+  if (kind === "control" && !read(layout).includes(`    "${name}",`)) edit(layout, after(markers.wallActions, `    "${name}",\n`));
   const deploy = read(seams.deployDoc);
   for (const d of domain.domains.filter((d) => !deploy.includes(`- \`${d}\``))) {
     edit(seams.deployDoc, after(markers.deployDomains, `- \`${d}\`${shared ? ` with \`card: ${name}\`` : ""}: ${words}\n`));

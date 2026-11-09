@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { createContext, useContext, useEffect, useId, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useKeypad, usePress } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
@@ -77,12 +77,22 @@ export interface ModuleProps {
 }
 
 /**
+ * The area a column's legend names (a wall's column, spec/field.md → Dashboards): a plate in that area doesn't print
+ * it again, as the legend says it once for the column. Its panel, opened on its own, still says it.
+ */
+export const AreaLegend = createContext<string | null>(null);
+
+const sameArea = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
  * The module every field card sits in: a plate with a name and area in its header. The footprint sets the
  * height; container queries simplify the inside at narrow widths. With `onOpen`, the name opens the details.
  */
 export function Module({ kind, name, area, footprint = "standard", state, rest, onOpen, warning, note, level, say, since, children }: ModuleProps) {
   const frame = useCardFrame({ footprint });
   const delay = useAlarmPhase(level === "alarm", since);
+  const legend = useContext(AreaLegend);
+  const line = note ?? (area != null && legend != null && sameArea(area, legend) ? undefined : area);
   return (
     <article className={`fd-module ${kind}`} data-footprint={frame.footprint} data-state={state} data-rest={resting(state, rest)} data-level={level} {...frame.article} style={delay ? ({ "--fd-alarm-delay": delay } as Vars) : undefined}>
       <header className="fd-head">
@@ -95,7 +105,7 @@ export function Module({ kind, name, area, footprint = "standard", state, rest, 
           ) : <span id={frame.nameId}>{name}</span>}
         </h3>
         {warning ? <p className="fd-area" title={typeof warning === "string" ? warning : undefined}><Warn block={level != null}>{warning}</Warn></p>
-          : (note ?? area) && <p className="fd-area" title={note ?? area}>{timed(note ?? area)}</p>}
+          : line && <p className="fd-area" title={line}>{timed(line)}</p>}
       </header>
       {children}
       {level === "alarm" && say && <p className="fd-sr" role="alert">{say}</p>}

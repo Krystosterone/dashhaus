@@ -41,6 +41,12 @@
 .fd-dash-grid[data-footprint="mixed"][data-align="bottom"] { align-items: end; }
 .fd-dash-stack { display: grid; gap: 12px; align-content: start; }
 .fd-dash-stack > .fd-dash-place[data-footprint="compact"] + .fd-dash-place[data-footprint="compact"] { margin-top: -4px; }
+/* A wall's column of one area: its legend over its stack, on one line so the columns' tops line up, a long name ending
+   in an ellipsis (the whole name in its title). A column of no one area keeps the line's height, unprinted. */
+.fd-dash-stack-legend { min-width: 0; margin-bottom: -2px; }
+.fd-dash-stack-legend .fd-legend-n { min-width: 0; overflow-x: clip; text-overflow: ellipsis; white-space: nowrap; }
+.fd-dash-stack-legend .fd-legend::after { min-width: 6px; }
+.fd-dash-stack-legend[aria-hidden] { visibility: hidden; }
 
 /* `quiet` (a nursery's panel at night): an alarm holds its inversion from the start, with no flash. */
 .fd-dash[data-quiet] :is(.fd-module[data-level="alarm"] .fd-screen, .fd-module[data-level="alarm"] .fd-led, .fd-alerts-tag) { animation: none; }

@@ -3,16 +3,23 @@ import {
   areaId,
   areaName,
   byName,
+  columnAreas,
   deviceCompanion,
   energySensors,
   friendlyName,
   groupByArea,
   numericSensors,
+  outsideArea,
+  placeColumns,
   placeSection,
   roomSensors,
   safetySensors,
   sortByName,
   visibleEntities,
+  WALL_BANDS,
+  wallBand,
+  wallFootprint,
+  wallAreas,
 } from "./layout";
 import type { AutoInput } from "./layout";
 
@@ -256,5 +263,92 @@ describe("energySensors", () => {
     expect(energySensors({ states, energy: { energy_sources: [] } })).toEqual([]);
     expect(energySensors({ states, energy: { energy_sources: "grid" } as never })).toEqual([]);
     expect(energySensors({ states, energy: { energy_sources: [null, "grid", { type: "grid", flow_from: "sensor.grid_import" }] } as never })).toEqual([]);
+  });
+});
+
+describe("the wall", () => {
+  interface Item { entity: string; card: string; area?: string }
+  const wall = (items: Item[], outside?: string) => wallAreas(items, { card: (item) => item.card, area: (item) => item.area, outside });
+  const ids = (list: Item[]) => list.map((item) => item.entity);
+
+  it("bands every card the wall places, and footprints what is pressed compact and what is read standard", () => {
+    expect(["light", "alarm", "camera", "owlet", "weather", "numeric"].map(wallBand)).toEqual(["actions", "security", "cameras", "status", "glance", "glance"]);
+    expect(wallBand("picture")).toBeUndefined();
+    expect(["climate", "light", "dyson", "alarm", "lock"].map(wallFootprint)).toEqual(Array(5).fill("compact"));
+    // A Dyson is a fan's action, after the plain fan's.
+    expect(WALL_BANDS.actions.indexOf("dyson")).toBe(WALL_BANDS.actions.indexOf("fan") + 1);
+    expect(["binarySensor", "camera", "owlet", "guestWifi", "calendar", "weather", "sun", "sensor", "numeric", "picture"].map(wallFootprint)).toEqual(Array(10).fill("standard"));
+  });
+
+  it("makes a column per area, by area name, each in band order, and the house's own cards apart", () => {
+    const { areas, house } = wall([
+      { entity: "sensor.kitchen", card: "sensor", area: "Kitchen" },
+      { entity: "lock.back", card: "lock", area: "Kitchen" },
+      { entity: "light.kitchen", card: "light", area: "Kitchen" },
+      { entity: "light.attic", card: "light", area: "Attic" },
+      { entity: "calendar.family", card: "calendar" },
+      { entity: "alarm_control_panel.house", card: "alarm" },
+      { entity: "image.kitchen", card: "picture", area: "Kitchen" },
+    ]);
+    // A card in no band still goes in its column, after the glance.
+    expect(areas.map((area) => [area.area, ids(area.items)])).toEqual([
+      ["Attic", ["light.attic"]],
+      ["Kitchen", ["light.kitchen", "lock.back", "sensor.kitchen", "image.kitchen"]],
+    ]);
+    expect(ids(house)).toEqual(["alarm_control_panel.house", "calendar.family"]);
+  });
+
+  it("puts the weather and the sun in the area called Outside, or with the house's own cards", () => {
+    const items = [
+      { entity: "sun.sun", card: "sun" },
+      { entity: "weather.home", card: "weather" },
+      { entity: "light.porch", card: "light", area: "Outside" },
+      { entity: "light.hall", card: "light", area: "Hall" },
+    ];
+    expect(wall(items, "Outside").areas.map((area) => [area.area, ids(area.items)])).toEqual([["Hall", ["light.hall"]], ["Outside", ["light.porch", "weather.home", "sun.sun"]]]);
+    expect(ids(wall(items).house)).toEqual(["weather.home", "sun.sun"]);
+    expect(outsideArea({ areas: { garden: { name: "Garden" }, out: { name: " outside" } } })).toBe(" outside");
+    expect(outsideArea({ areas: { garden: { name: "Garden" } } })).toBeUndefined();
+  });
+
+  it("has no columns with fewer than two areas: every card is the house's, in band order", () => {
+    const { areas, house } = wall([
+      { entity: "sensor.living", card: "sensor", area: "Living room" },
+      { entity: "alarm_control_panel.house", card: "alarm" },
+      { entity: "light.living", card: "light", area: "Living room" },
+    ]);
+    expect(areas).toEqual([]);
+    expect(ids(house)).toEqual(["light.living", "alarm_control_panel.house", "sensor.living"]);
+  });
+
+  it("places columns side by side, wrapping into rows of the same width, the last column in the first row", () => {
+    const columns = [["a1", "a2"], ["b1"], ["c1"], ["d1"], ["e1"]];
+    expect(placeColumns(columns, 3, ["h1", "h2"])).toEqual([
+      { columns: 3, cards: [{ card: "a1", column: 1 }, { card: "a2", column: 1 }, { card: "b1", column: 2 }, { card: "h1", column: 3 }, { card: "h2", column: 3 }] },
+      { columns: 3, cards: [{ card: "c1", column: 1 }, { card: "d1", column: 2 }, { card: "e1", column: 3 }] },
+    ]);
+    expect(placeColumns(columns, 4)).toEqual([
+      { columns: 4, cards: [{ card: "a1", column: 1 }, { card: "a2", column: 1 }, { card: "b1", column: 2 }, { card: "c1", column: 3 }, { card: "d1", column: 4 }] },
+      { columns: 4, cards: [{ card: "e1", column: 1 }] },
+    ]);
+    expect(placeColumns([["a1"], ["b1"]], 4, ["h1"])).toEqual([{ columns: 3, cards: [{ card: "a1", column: 1 }, { card: "b1", column: 2 }, { card: "h1", column: 3 }] }]);
+    expect(placeColumns([], 4)).toEqual([]);
+  });
+
+  it("names each column's area where all its cards share one, case and spaces aside", () => {
+    type Card = { item: { area?: string }; column?: number; width?: number | "full" };
+    const areaOf = (item: { area?: string }) => item.area;
+    const anchored = (...cards: [string | undefined, number][]): Card[] => cards.map(([area, column]) => ({ item: { area }, column, width: 1 }));
+    expect(columnAreas({ cards: anchored(["Kitchen", 1], [" kitchen ", 1], ["Living Room", 2], ["living room", 2]) }, areaOf)).toEqual(["Kitchen", "Living Room"]);
+    // " Living Room" and "living room" are one area: the first card's spelling heads the column.
+    expect(columnAreas({ cards: anchored([" Living Room", 1], ["living room", 1]) }, areaOf)).toEqual([" Living Room"]);
+    // A column of two areas, or of a card in none, names none; `columns` counts a column with no card.
+    expect(columnAreas({ columns: 4, cards: anchored(["Kitchen", 1], ["Hall", 2], ["Attic", 2], [undefined, 3]) }, areaOf)).toEqual(["Kitchen", undefined, undefined, undefined]);
+    // A titled row, a card left to the flow, a wider card, or no column of one area: none at all.
+    expect(columnAreas({ title: "Kitchen", cards: anchored(["Kitchen", 1]) }, areaOf)).toBeUndefined();
+    expect(columnAreas({ cards: [{ item: { area: "Kitchen" } }] }, areaOf)).toBeUndefined();
+    expect(columnAreas({ cards: [...anchored(["Kitchen", 1]), { item: { area: "Hall" }, column: 2, width: 2 }] }, areaOf)).toBeUndefined();
+    expect(columnAreas({ cards: anchored(["Kitchen", 1], ["Hall", 1]) }, areaOf)).toBeUndefined();
+    expect(columnAreas({ cards: [] }, areaOf)).toBeUndefined();
   });
 });

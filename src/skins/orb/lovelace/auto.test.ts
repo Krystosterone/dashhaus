@@ -312,3 +312,184 @@ describe("autoDashboard", () => {
     expect(autoDashboard({ states: { "light.a": state("light.a") } }).rows).toEqual([{ title: "Other", cards: [{ entity: "light.a", footprint: "compact" }] }]);
   });
 });
+
+describe("autoDashboard, layout: wall", () => {
+  const named = (entity_id: string, friendly_name: string, attributes: Record<string, unknown> = {}) => state(entity_id, { friendly_name, ...attributes });
+  /** Four areas and the house's own cards: a kitchen with its lock and its leak, the weather and the sun outside. */
+  const house = {
+    states: Object.fromEntries([
+      named("light.kitchen", "Kitchen light"),
+      named("lock.back", "Back door"),
+      named("sensor.back_battery", "Back door battery", { device_class: "battery" }),
+      named("binary_sensor.leak", "Under the sink", { device_class: "moisture" }),
+      named("climate.hall", "Hall thermostat"),
+      named("light.hall", "Hall light"),
+      named("camera.hall", "Hall camera"),
+      named("sensor.attic_t", "Attic air", { device_class: "temperature" }),
+      named("light.attic", "Attic light"),
+      named("light.porch", "Porch"),
+      named("weather.home", "Home"),
+      named("sun.sun", "Sun"),
+      named("alarm_control_panel.house", "House alarm"),
+      named("input_boolean.guest", "Guest mode"),
+      named("calendar.family", "Family"),
+      named("sensor.grid", "Grid", { device_class: "power" }),
+    ].map((s) => [s.entity_id, s])),
+    entities: {
+      "light.kitchen": { area_id: "kitchen" },
+      "lock.back": { device_id: "back", area_id: "kitchen" },
+      "sensor.back_battery": { device_id: "back", entity_category: "diagnostic" },
+      "binary_sensor.leak": { area_id: "kitchen" },
+      "climate.hall": { area_id: "hall" },
+      "light.hall": { area_id: "hall" },
+      "camera.hall": { area_id: "hall" },
+      "sensor.attic_t": { area_id: "attic" },
+      "light.attic": { area_id: "attic" },
+      "light.porch": { area_id: "outside" },
+    },
+    areas: { kitchen: { name: "Kitchen" }, hall: { name: "Hall" }, attic: { name: "Attic" }, outside: { name: "Outside" } },
+  };
+  const wall = (input: Parameters<typeof autoDashboard>[0]) => autoDashboard(input, "Home", { layout: "wall" });
+  const ENERGY = { energy_sources: [{ type: "grid", stat_rate: "sensor.grid" }] };
+
+  it("leaves the default layout as it was: no option, or no layout, is the titled bands", () => {
+    expect(autoDashboard(input, "Home", {})).toEqual(autoDashboard(input));
+    expect(autoDashboard(input, "Home", { layout: undefined })).toEqual(autoDashboard(input));
+    expect(autoDashboard(house)).toEqual(autoDashboard(house, "Home", {}));
+  });
+
+  it("puts each area in a column by area name, three across, wrapping, the house's own cards ending the first row", () => {
+    expect(wall(house)).toEqual({
+      type: "custom:dashhaus-orb",
+      title: "Home",
+      rows: [
+        {
+          columns: 3,
+          flow: "dense",
+          cards: [
+            { entity: "light.attic", column: 1, footprint: "compact" },
+            { entity: "sensor.attic_t", column: 1 },
+            { entity: "climate.hall", column: 2, footprint: "compact" },
+            { entity: "light.hall", column: 2, footprint: "compact" },
+            { entity: "camera.hall", column: 2 },
+            { entity: "input_boolean.guest", column: 3, footprint: "compact" },
+            { entity: "alarm_control_panel.house", column: 3, footprint: "compact" },
+            { entity: "calendar.family", column: 3 },
+          ],
+        },
+        {
+          columns: 3,
+          flow: "dense",
+          cards: [
+            // Security stays in its area's column: the kitchen's lock and leak under its light.
+            { entity: "light.kitchen", column: 1, footprint: "compact" },
+            { entity: "lock.back", column: 1, footprint: "compact", battery: "sensor.back_battery" },
+            { entity: "binary_sensor.leak", column: 1 },
+            // The weather and the sun join the area called Outside, saying so, since they have no area of their own.
+            { entity: "light.porch", column: 2, footprint: "compact" },
+            { entity: "weather.home", column: 2, area: "Outside" },
+            { entity: "sun.sun", column: 2, area: "Outside" },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("is a layout only, and the card reads it back, every card where the wall put it", () => {
+    const card = wall(house);
+    expect(card).not.toHaveProperty("viewing");
+    expect(card).not.toHaveProperty("nav");
+    const rows = parseDashboardConfig(card).rows!;
+    expect(rows.map((row) => [row.title, row.columns, row.flow])).toEqual([[undefined, 3, "dense"], [undefined, 3, "dense"]]);
+    expect(rows[0].cards.map((entry) => [entry.item.kind, entry.column])).toEqual([
+      ["light", 1], ["sensor", 1], ["climate", 2], ["light", 2], ["camera", 2], ["toggle", 3], ["alarm", 3], ["calendar", 3],
+    ]);
+    // What is pressed is compact, what is read standard, and nothing is featured.
+    expect(rows.flatMap((row) => row.cards.map((entry) => "footprint" in entry.item && entry.item.footprint))).not.toContain("featured");
+  });
+
+  it("keeps the weather and the sun with the house's own cards when no area is called Outside", () => {
+    const areas = { kitchen: house.areas.kitchen, hall: house.areas.hall, attic: house.areas.attic };
+    const rows = wall({ ...house, areas }).rows as { cards: { entity: string; column: number; area?: string }[] }[];
+    const houseColumn = rows[0].cards.filter((card) => card.column === 3).map((card) => card.entity);
+    expect(houseColumn).toEqual(["light.porch", "input_boolean.guest", "alarm_control_panel.house", "calendar.family", "weather.home", "sun.sun"]);
+    expect(rows[0].cards.find((card) => card.entity === "weather.home")).not.toHaveProperty("area");
+  });
+
+  it("puts the house's energy in its own row, last, so the areas don't move when the preferences land", () => {
+    const before = wall(house).rows as unknown[];
+    const after = wall({ ...house, energy: ENERGY }).rows as unknown[];
+    expect(after.slice(0, -1)).toEqual(before);
+    expect(after.at(-1)).toEqual({ title: "Energy", cards: [{ entity: "sensor.grid", card: "numeric" }] });
+    // Three areas: the same, before and after.
+    const three = { ...house, areas: { kitchen: house.areas.kitchen, hall: house.areas.hall, attic: house.areas.attic } };
+    expect((wall({ ...three, energy: ENERGY }).rows as unknown[]).slice(0, -1)).toEqual(wall(three).rows);
+  });
+
+  it("flows a house of fewer than two areas in one row, in band order, with no columns", () => {
+    const one = { ...house, areas: { kitchen: house.areas.kitchen } };
+    const card = wall(one);
+    expect(card.rows).toEqual([{
+      cards: [
+        { entity: "climate.hall", footprint: "compact" },
+        { entity: "light.attic", footprint: "compact" },
+        { entity: "light.hall", footprint: "compact" },
+        { entity: "light.kitchen", footprint: "compact" },
+        { entity: "light.porch", footprint: "compact" },
+        { entity: "input_boolean.guest", footprint: "compact" },
+        { entity: "alarm_control_panel.house", footprint: "compact" },
+        { entity: "lock.back", footprint: "compact", battery: "sensor.back_battery" },
+        "binary_sensor.leak",
+        "camera.hall",
+        "calendar.family",
+        "weather.home",
+        "sun.sun",
+        "sensor.attic_t",
+      ],
+    }]);
+    expect(() => parseDashboardConfig(card)).not.toThrow();
+    // From states alone, as on a frontend without registries: no areas, so the same one row.
+    const flat = wall({ states: house.states }).rows as { columns?: number; cards: { column?: number }[] }[];
+    expect(flat).toHaveLength(1);
+    expect(flat[0].columns).toBeUndefined();
+    expect(flat[0].cards.some((card) => typeof card === "object" && card.column)).toBe(false);
+  });
+
+  it("puts a Dyson's fan in its area's column as the dyson card, pressed, after the plain fans, and its heater nowhere else", () => {
+    const dyson = {
+      ...house,
+      states: {
+        ...house.states,
+        ...Object.fromEntries([
+          named("fan.kitchen", "Ceiling fan"),
+          named("fan.living_room", "Hot+Cool"),
+          named("switch.living_room_night_mode", "Hot+Cool Night Mode"),
+          named("sensor.living_room_filter_life", "Hot+Cool Filter Life", { unit_of_measurement: "%" }),
+          named("climate.living_room", "Hot+Cool"),
+        ].map((s) => [s.entity_id, s])),
+      },
+      entities: {
+        ...house.entities,
+        "fan.kitchen": { area_id: "kitchen" },
+        "fan.living_room": { area_id: "kitchen" },
+        "switch.living_room_night_mode": { area_id: "kitchen", entity_category: "config" as const },
+        "sensor.living_room_filter_life": { area_id: "kitchen", entity_category: "diagnostic" as const },
+        "climate.living_room": { area_id: "kitchen" },
+      },
+    };
+    const card = wall(dyson);
+    const cards = (card.rows as { cards: (string | Record<string, unknown>)[] }[]).flatMap((row) => row.cards);
+    const kitchen = cards.filter((c): c is Record<string, unknown> => typeof c === "object" && c.column === 1 && ["light.kitchen", "fan.kitchen", "fan.living_room", "lock.back", "binary_sensor.leak"].includes(c.entity as string));
+    expect(kitchen.map((c) => c.entity)).toEqual(["light.kitchen", "fan.kitchen", "fan.living_room", "lock.back", "binary_sensor.leak"]);
+    expect(kitchen[2]).toEqual({ entity: "fan.living_room", column: 1, footprint: "compact", card: "dyson" });
+    expect(cards.some((c) => (typeof c === "string" ? c : c.entity) === "climate.living_room")).toBe(false);
+    const read = parseDashboardConfig(card).rows!.flatMap((row) => row.cards).find((entry) => "entity" in entry.item && entry.item.entity === "fan.living_room");
+    expect(read?.item.kind).toBe("dyson");
+  });
+
+  it("stays an automatic wall when there is nothing to place", () => {
+    const empty = wall({ states: {} });
+    expect(empty).toEqual({ type: "custom:dashhaus-orb", title: "Home", layout: "wall" });
+    expect(parseDashboardConfig(empty)).toMatchObject({ layout: "wall", rows: undefined });
+  });
+});
