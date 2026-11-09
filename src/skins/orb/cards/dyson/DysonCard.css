@@ -19,18 +19,25 @@
 /* A reading poor or worse, or a filter to change, in the warn ink: its words say so too. */
 .dy-row[data-band="warn"] dd, .dy-row[data-band="warn"] .dy-band { color: var(--warn); }
 
-/* The aim dial (prototype): the groove it turns in, its sweep and beam in the accent, the fan seen from above, and a
+/* The aim dial (prototype): the fan seen from above on a recessed disc, ticks round its rim every 15°, ahead at the
+   top; its airflow a wedge in the accent, as wide as it sweeps (a narrow beam held still), turning with the fan; a
    raised knob where it aims. The range input over it is invisible, for the keyboard and screen readers. */
-.dy-dial { position: relative; width: min(100%, 240px); margin: 0 auto; }
+.dy-dial { position: relative; width: min(100%, 220px); margin: 4px auto 0; }
 .dy-dial svg { display: block; width: 100%; height: auto; overflow: visible; cursor: grab; }
 .dy-dial svg[data-dragging] { cursor: grabbing; }
 .dy-dial-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.dy-dial-disc { fill: var(--groove); stroke: var(--line); stroke-width: 1; }
+.dy-dial-tick { stroke: var(--tick); stroke-width: 1.5; stroke-linecap: round; }
+.dy-dial-tick--long { stroke-width: 2; }
+.dy-dial-tick--ahead { stroke: var(--ink-2); stroke-width: 2.5; }
+.dy-dial-ahead { font-size: 11px; font-weight: 600; letter-spacing: 0.02em; fill: var(--ink-2); }
+.dy-dial-turn { transition: transform 320ms var(--ease-out); }
+.dy-dial svg[data-dragging] .dy-dial-turn { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .dy-dial-turn { transition: none; }
+}
+.dy-dial-air { fill: var(--accent); }
+.dy-dial-base { fill: var(--btn); stroke: var(--line); stroke-width: 1; }
+.dy-dial-loop { fill: var(--card-solid); stroke: var(--ink-2); stroke-width: 2.5; }
+.dy-dial-knob { fill: var(--btn); stroke: var(--line); stroke-width: 1; filter: drop-shadow(0 1px 2px var(--tick)); }
 .dy-dial-input:focus-visible + svg .dy-dial-knob { stroke: var(--ink); stroke-width: 2.5; }
-.dy-dial-ring { fill: none; stroke: var(--groove); stroke-width: 16; }
-.dy-dial-sweep { fill: none; stroke: var(--accent); stroke-width: 16; stroke-linecap: round; }
-.dy-dial-beam { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
-.dy-dial-back { stroke: var(--tick); stroke-width: 2; }
-.dy-dial-ahead { font-size: 11px; font-weight: 600; fill: var(--ink-3); }
-.dy-dial-fan circle { fill: var(--btn); stroke: var(--line); }
-.dy-dial-fan path { stroke: var(--ink-2); stroke-width: 3; stroke-linecap: round; }
-.dy-dial-knob { fill: var(--btn); stroke: var(--line); stroke-width: 1; }
