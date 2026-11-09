@@ -347,7 +347,8 @@ describe("autoDashboard, layout: wall", () => {
       "light.attic": { area_id: "attic" },
       "light.porch": { area_id: "outside" },
     },
-    areas: { kitchen: { name: "Kitchen" }, hall: { name: "Hall" }, attic: { name: "Attic" }, outside: { name: "Outside" } },
+    // In the order Home Assistant gives areas until a person reorders them, as they were made: here by name.
+    areas: { attic: { name: "Attic" }, hall: { name: "Hall" }, kitchen: { name: "Kitchen" }, outside: { name: "Outside" } },
   };
   const wall = (input: Parameters<typeof autoDashboard>[0]) => autoDashboard(input, "Home", { layout: "wall" });
   const ENERGY = { energy_sources: [{ type: "grid", stat_rate: "sensor.grid" }] };
@@ -358,7 +359,7 @@ describe("autoDashboard, layout: wall", () => {
     expect(autoDashboard(house)).toEqual(autoDashboard(house, "Home", {}));
   });
 
-  it("puts each area in a column by area name, three across, wrapping, the house's own cards ending the first row", () => {
+  it("puts each area in a column in Home Assistant's order (here by name), three across, wrapping, the house's own cards ending the first row", () => {
     expect(wall(house)).toEqual({
       type: "custom:dashhaus-orb",
       title: "Home",
@@ -406,6 +407,14 @@ describe("autoDashboard, layout: wall", () => {
     ]);
     // What is pressed is compact, what is read standard, and nothing is featured.
     expect(rows.flatMap((row) => row.cards.map((entry) => "footprint" in entry.item && entry.item.footprint))).not.toContain("featured");
+  });
+
+  it("follows Home Assistant's area order where a person gave one, floors first, and writes it out the same way", () => {
+    // Outside moved first in Settings → Areas; the kitchen is on the ground floor, which comes before the rest.
+    const areas = { outside: house.areas.outside, attic: house.areas.attic, hall: house.areas.hall, kitchen: { name: "Kitchen", floor_id: "ground" } };
+    const rows = wall({ ...house, areas, floors: { ground: {} } }).rows as { cards: { entity: string; column: number }[] }[];
+    const columns = (row: { cards: { entity: string; column: number }[] }) => [...new Set(row.cards.map((card) => card.column))].map((column) => row.cards.find((card) => card.column === column)!.entity);
+    expect(rows.map(columns)).toEqual([["light.kitchen", "light.porch", "input_boolean.guest"], ["light.attic", "climate.hall"]]);
   });
 
   it("keeps the weather and the sun with the house's own cards when no area is called Outside", () => {

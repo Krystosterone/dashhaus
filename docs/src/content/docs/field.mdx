@@ -72,11 +72,16 @@ A phone in the hand and a panel on the wall want different pages, so give each i
    **Dashboard**. Home Assistant keeps that choice per browser, so the wall panel opens on Wall and each phone on Home.
 
 `layout: wall` arranges the whole house, room first: a column for each Home Assistant area that has a device, in the
-order of the areas' names, wrapping onto further rows when there are more rooms than fit across. Field puts four rooms side by side; each column leads with what you read (a door, a camera, the weather) and puts the keys you press in rows under it, and the room's name is its legend, so a plate under it doesn't repeat it. The devices
+order Home Assistant keeps your areas in, wrapping onto further rows when there are more rooms than fit across. Field puts four rooms side by side; each column leads with what you read (a door, a camera, the weather) and puts the keys you press in rows under it, and the room's name is its legend, so a plate under it doesn't repeat it. The devices
 in no area (the alarm, the calendars, the guest Wi-Fi code) end the first row, the weather and the sun join an area
 called Outside if you have one, and your energy meters are a row of their own at the end. Anything urgent, a jammed lock or a sock's alarm, still shows in the alert line under the header, even when its room is further down the wall.
 
-To change which rooms come first, or what is in them, take control of the wall's dashboard (**⋮ → Take control**)
+To change which rooms come first, put them in order in Home Assistant, under **Settings → Areas, labels & zones**:
+drag the areas, or use **Reorder** in a floor's **⋮** menu, which orders the floors too. The wall takes each floor's
+rooms in turn, then the rooms on no floor, and follows a new order the next time it draws, still following the house.
+Until you reorder them, Home Assistant keeps areas in the order you made them.
+
+To change what is in the rooms, take control of the wall's dashboard (**⋮ → Take control**)
 and write its rows in place of `layout: wall`: one untitled row, each card given its `column`
 ([Lay it out in YAML](/dashhaus/start/yaml/) shows how). A wall with rows of its own no longer follows the house. A
 `nav` of `navigate:` links lets the wall and the phone dashboards open each other; a dashboard on the strategy can't

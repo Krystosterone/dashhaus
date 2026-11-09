@@ -1,7 +1,7 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/core/lovelace/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, areaName, byName, deviceCompanion, domainOf, dysonFans, energySensors, numericSensors, outsideArea, placeColumns, placeSection, roomSensors, safetySensors, visibleEntities, wallAreas, wallFootprint } from "@dashhaus/core/lovelace/layout";
+import { areaId, areaName, areaOrder, byName, deviceCompanion, domainOf, dysonFans, energySensors, numericSensors, outsideArea, placeColumns, placeSection, roomSensors, safetySensors, visibleEntities, wallAreas, wallFootprint } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/core/lovelace/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/core/lovelace/layout";
@@ -191,8 +191,8 @@ interface WallCard { config: Card; card: string }
 /**
  * The house one column per area, for a panel on a wall (spec/deploy.md → The wall layout): every card the automatic
  * layout finds, in the shared bands and areas (`wallAreas`), each area a column in its band order, what is pressed
- * compact and what is read standard (`wallFootprint`), three areas across (`WALL_COLUMNS`), wrapping in area-name
- * order into further rows, and the house's own cards, those in no area, the last column of the first. Each row is
+ * compact and what is read standard (`wallFootprint`), three areas across (`WALL_COLUMNS`), wrapping in Home
+ * Assistant's area order (`areaOrder`) into further rows, and the house's own cards, those in no area, the last column of the first. Each row is
  * anchored column by column with `flow: dense`, so every column starts at the top; narrower than the row's columns,
  * the anchors release and it reads area by area. The house's energy meters are their own row, last, as always. Fewer
  * than two areas: one row, every card in band order.
@@ -217,7 +217,7 @@ function wallDashboard(input: LayoutInput, title: string): Record<string, unknow
     ...rooms.map(id("sensor")),
     ...quality.map(id("numeric")),
   ];
-  const { areas, house } = wallAreas(cards, { card: (item) => item.card, area: (item) => areaName(input, entityOf(item.config)), outside: outsideArea(input) });
+  const { areas, house } = wallAreas(cards, { card: (item) => item.card, area: (item) => areaName(input, entityOf(item.config)), outside: outsideArea(input), order: areaOrder(input) });
   /** A card as the wall writes it: its column's area where it has none of its own (the weather and the sun in Outside). */
   const written = (item: WallCard, column?: number, area?: string): Card => {
     // The wall sets the footprint, so a card's own (a lock's compact) gives way to it.

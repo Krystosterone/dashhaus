@@ -1,9 +1,8 @@
 import { useState } from "react";
-import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import type { FieldFootprint } from "../shared/ui";
-import { DataToggle } from "../../../../.storybook/blocks/DataToggle";
-import type { Data } from "../../../../.storybook/blocks/DataToggle";
+import { WorstCasePage, card } from "../../../../.storybook/blocks/WorstCasePage";
+import type { WorstCaseCard, WorstCaseColumn } from "../../../../.storybook/blocks/WorstCasePage";
 import { LightModule } from "../cards/light/LightModule";
 import { LIGHT_SEEDS, LIGHT_WORST_CASE, useDemoLight } from "@dashhaus/core/seeds/light";
 import type { LightSeed } from "@dashhaus/core/seeds/light";
@@ -135,38 +134,29 @@ function Dyson({ seed, footprint }: { seed: DysonSeed; footprint: FieldFootprint
 }
 // new-card: worst case modules
 
-/** One row of the page: a seed drawn in a footprint. */
-type Draw = (footprint: FieldFootprint) => ReactNode;
-
-/** A module on the page: a row per seed, its worst case and a little demo data to hold it against. */
-function card<S>(worst: readonly S[], demo: readonly S[], draw: (seed: S, footprint: FieldFootprint) => ReactNode): Record<Data, Draw[]> {
-  const rows = (seeds: readonly S[]) => seeds.map((seed): Draw => (footprint) => draw(seed, footprint));
-  return { worst: rows(worst), demo: rows(demo) };
-}
-
 /** Every module, in the order Orb's page draws its cards, so the two pages read alike; a new module joins the end. */
-const CARDS = [
-  card(LIGHT_WORST_CASE, [LIGHT_SEEDS.dimmable, LIGHT_SEEDS.onOff], (seed, footprint) => <Light seed={seed} footprint={footprint} />),
-  card(CLIMATE_WORST_CASE, [CLIMATE_SEEDS.heating, CLIMATE_SEEDS.range], (seed, footprint) => <Climate seed={seed} footprint={footprint} />),
-  card(WEATHER_WORST_CASE, [WEATHER_SEEDS.partly], (seed, footprint) => <WeatherModule entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />),
-  card(ALARM_WORST_CASE, [ALARM_SEEDS.away], (seed, footprint) => <Alarm seed={seed} footprint={footprint} />),
-  card(LOCK_WORST_CASE, [LOCK_SEEDS.locked], (seed, footprint) => <Lock seed={seed} footprint={footprint} />),
-  card(COVER_WORST_CASE, [COVER_SEEDS.curtains, COVER_SEEDS.garage], (seed, footprint) => <Cover seed={seed} footprint={footprint} />),
-  card(TOGGLE_WORST_CASE, [TOGGLE_SEEDS.dnd], (seed, footprint) => <Toggle seed={seed} footprint={footprint} />),
-  card(SENSOR_WORST_CASE, [SENSOR_SEEDS.living, SENSOR_SEEDS.outdoor], (seed, footprint) => <SensorModule entity={seed.entity} history={seed.history} footprint={footprint} />),
-  card(HUMIDIFIER_WORST_CASE, [HUMIDIFIER_SEEDS.on], (seed, footprint) => <Humidifier seed={seed} footprint={footprint} />),
-  card(SOUND_WORST_CASE, [SOUND_SEEDS.on], (seed, footprint) => <Sound seed={seed} footprint={footprint} />),
-  card(FAN_WORST_CASE, [FAN_SEEDS.on], (seed, footprint) => <Fan seed={seed} footprint={footprint} />),
-  card(OWLET_WORST_CASE, [OWLET_SEEDS.deep], (seed, footprint) => <Owlet seed={seed} footprint={footprint} />),
-  card(CAMERA_WORST_CASE, [CAMERA_SEEDS.idle], (seed, footprint) => <CameraModule entity={seed.entity} footprint={footprint} />),
-  card(GUEST_WIFI_WORST_CASE, [GUEST_WIFI_SEEDS.ready], (seed, footprint) => <GuestWifi seed={seed} footprint={footprint} />),
-  card(BINARY_SENSOR_WORST_CASE, [BINARY_SENSOR_SEEDS.closed, BINARY_SENSOR_SEEDS.open], (seed, footprint) => <BinarySensor seed={seed} footprint={footprint} />),
-  card(MEDIA_PLAYER_WORST_CASE, [MEDIA_PLAYER_SEEDS.playing], (seed, footprint) => <MediaPlayer seed={seed} footprint={footprint} />),
-  card(NUMERIC_WORST_CASE, [NUMERIC_SEEDS.co2, NUMERIC_SEEDS.power], (seed, footprint) => <NumericModule entity={seed.entity} history={seed.history} footprint={footprint} />),
-  card(VACUUM_WORST_CASE, [VACUUM_SEEDS.cleaning], (seed, footprint) => <Vacuum seed={seed} footprint={footprint} />),
-  card(CALENDAR_WORST_CASE, [CALENDAR_SEEDS.normal], (seed, footprint) => <CalendarModule entity={seed.entity} history={seed.history} footprint={footprint} />),
-  card(SUN_WORST_CASE, [SUN_SEEDS.normal], (seed, footprint) => <SunModule entity={seed.entity} history={seed.history} footprint={footprint} />),
-  card(DYSON_WORST_CASE, [DYSON_SEEDS.on], (seed, footprint) => <Dyson seed={seed} footprint={footprint} />),
+const CARDS: WorstCaseCard<FieldFootprint>[] = [
+  card("Light", LIGHT_WORST_CASE, [LIGHT_SEEDS.dimmable, LIGHT_SEEDS.onOff], (seed, footprint) => <Light seed={seed} footprint={footprint} />),
+  card("Climate", CLIMATE_WORST_CASE, [CLIMATE_SEEDS.heating, CLIMATE_SEEDS.range], (seed, footprint) => <Climate seed={seed} footprint={footprint} />),
+  card("Weather", WEATHER_WORST_CASE, [WEATHER_SEEDS.partly], (seed, footprint) => <WeatherModule entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} />),
+  card("Alarm", ALARM_WORST_CASE, [ALARM_SEEDS.away], (seed, footprint) => <Alarm seed={seed} footprint={footprint} />),
+  card("Lock", LOCK_WORST_CASE, [LOCK_SEEDS.locked], (seed, footprint) => <Lock seed={seed} footprint={footprint} />),
+  card("Cover", COVER_WORST_CASE, [COVER_SEEDS.curtains, COVER_SEEDS.garage], (seed, footprint) => <Cover seed={seed} footprint={footprint} />),
+  card("Toggle", TOGGLE_WORST_CASE, [TOGGLE_SEEDS.dnd], (seed, footprint) => <Toggle seed={seed} footprint={footprint} />),
+  card("Sensor", SENSOR_WORST_CASE, [SENSOR_SEEDS.living, SENSOR_SEEDS.outdoor], (seed, footprint) => <SensorModule entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card("Humidifier", HUMIDIFIER_WORST_CASE, [HUMIDIFIER_SEEDS.on], (seed, footprint) => <Humidifier seed={seed} footprint={footprint} />),
+  card("Sound", SOUND_WORST_CASE, [SOUND_SEEDS.on], (seed, footprint) => <Sound seed={seed} footprint={footprint} />),
+  card("Fan", FAN_WORST_CASE, [FAN_SEEDS.on], (seed, footprint) => <Fan seed={seed} footprint={footprint} />),
+  card("Owlet", OWLET_WORST_CASE, [OWLET_SEEDS.deep], (seed, footprint) => <Owlet seed={seed} footprint={footprint} />),
+  card("Camera", CAMERA_WORST_CASE, [CAMERA_SEEDS.idle], (seed, footprint) => <CameraModule entity={seed.entity} footprint={footprint} />),
+  card("GuestWifi", GUEST_WIFI_WORST_CASE, [GUEST_WIFI_SEEDS.ready], (seed, footprint) => <GuestWifi seed={seed} footprint={footprint} />),
+  card("BinarySensor", BINARY_SENSOR_WORST_CASE, [BINARY_SENSOR_SEEDS.closed, BINARY_SENSOR_SEEDS.open], (seed, footprint) => <BinarySensor seed={seed} footprint={footprint} />),
+  card("MediaPlayer", MEDIA_PLAYER_WORST_CASE, [MEDIA_PLAYER_SEEDS.playing], (seed, footprint) => <MediaPlayer seed={seed} footprint={footprint} />),
+  card("Numeric", NUMERIC_WORST_CASE, [NUMERIC_SEEDS.co2, NUMERIC_SEEDS.power], (seed, footprint) => <NumericModule entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card("Vacuum", VACUUM_WORST_CASE, [VACUUM_SEEDS.cleaning], (seed, footprint) => <Vacuum seed={seed} footprint={footprint} />),
+  card("Calendar", CALENDAR_WORST_CASE, [CALENDAR_SEEDS.normal], (seed, footprint) => <CalendarModule entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card("Sun", SUN_WORST_CASE, [SUN_SEEDS.normal], (seed, footprint) => <SunModule entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card("Dyson", DYSON_WORST_CASE, [DYSON_SEEDS.on], (seed, footprint) => <Dyson seed={seed} footprint={footprint} />),
   // new-card: worst cases
 ];
 
@@ -175,7 +165,7 @@ const CARDS = [
  * one at 266 px, the narrowest that keeps everything, one at an area's usual width and a wide one; a row under 300 px,
  * where its screen narrows, one at 300 px, the narrowest with its whole screen, and one at its usual width.
  */
-const CASES: { width: number; footprint: FieldFootprint }[] = [
+const COLUMNS: WorstCaseColumn<FieldFootprint>[] = [
   { width: 200, footprint: "standard" },
   { width: 266, footprint: "standard" },
   { width: 300, footprint: "standard" },
@@ -185,24 +175,6 @@ const CASES: { width: number; footprint: FieldFootprint }[] = [
   { width: 340, footprint: "compact" },
 ];
 
-function Row({ children }: { children: Draw }) {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 12 }}>
-      {CASES.map(({ width, footprint }) => <div key={`${width}-${footprint}`} style={{ width, maxWidth: "100%" }}>{children(footprint)}</div>)}
-    </div>
-  );
-}
-
-function WorstCasePage() {
-  const [data, setData] = useState<Data>("worst");
-  return (
-    <div key={data} style={{ display: "grid", gap: 12, paddingBottom: 72 }}>
-      {CARDS.flatMap((rows, c) => rows[data].map((draw, s) => <Row key={`${c}-${s}`}>{draw}</Row>))}
-      <DataToggle value={data} onChange={setData} />
-    </div>
-  );
-}
-
 const meta = {
   title: "Field/Foundations/Worst case",
   parameters: { layout: "padded" },
@@ -211,4 +183,4 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Every module against realistic worst-case data, at narrow, boundary, track and wide standard widths and narrow, boundary and track rows. */
-export const AllCards: Story = { render: () => <WorstCasePage /> };
+export const AllCards: Story = { render: () => <WorstCasePage cards={CARDS} columns={COLUMNS} /> };

@@ -73,7 +73,7 @@ export function createDashhausCard(css: string): CustomElementConstructor {
 
     /** The registries, the set of entities and the energy preferences decide the automatic rows; a state change does not. */
     #autoKey(hass: LovelaceHass): unknown[] {
-      return [hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length, this.energyPrefs(hass)];
+      return [hass.entities, hass.devices, hass.areas, hass.floors, Object.keys(hass.states).length, this.energyPrefs(hass)];
     }
 
     #autoStale(hass: LovelaceHass) {

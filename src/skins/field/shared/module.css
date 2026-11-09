@@ -354,14 +354,16 @@
 .fd-fader[data-disabled] .fd-thumb { background: linear-gradient(90deg, transparent 8.25px, var(--fd-thumb-line) 8.25px 9.75px, transparent 9.75px), var(--fd-off); box-shadow: none; }
 .fd-fader[data-disabled] .fd-slot, .fd-fader[data-disabled] .fd-scale { opacity: 0.4; }
 /* Today in a module: in a fader's place and height, its legend over a shorter strip. The legend keeps to one line, so
-   the strip never moves: its rule gives way first, down to its end; on a narrow module the printed word goes, since
-   the strip in a fader's place is always today's; and a summary still too long ends in an ellipsis, the meter's
-   label saying it whole. */
+   the strip never moves: its rule gives way first, down to its end; the summary drops its closing "today" and, on a
+   narrow module, the printed word goes, since the strip in a fader's place is always today's; and a summary still
+   too long ends in an ellipsis, the meter's label saying it whole. The panel prints the summary whole. */
 .fd-module .fd-today { grid-template-columns: minmax(0, 1fr); gap: 4px; height: 44px; align-content: start; }
 .fd-module .fd-today .fd-legend { white-space: nowrap; }
 .fd-module .fd-today .fd-legend::after { min-width: 6px; }
 .fd-module .fd-today .fd-legend-n { flex: none; }
 .fd-module .fd-today .fd-legend-v { min-width: 0; overflow-x: clip; text-overflow: ellipsis; }
+.fd-today-short, .fd-module .fd-today .fd-today-whole { display: none; }
+.fd-module .fd-today .fd-today-short { display: inline; }
 @container (max-width: 239px) {
   .fd-module .fd-today .fd-legend:has(.fd-legend-v) .fd-legend-n { display: none; }
 }

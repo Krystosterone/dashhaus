@@ -8,6 +8,7 @@ import { CardDialog, cardShape, useCardFrame } from "@dashhaus/core/lovelace/car
 import type { Details } from "@dashhaus/core/lovelace/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
 import { fmt1 } from "@dashhaus/core/entities/format";
+import { shortTodaySummary } from "@dashhaus/core/entities/today";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { lineParts } from "@dashhaus/core/entities/clock";
 import { ACTION_FAILED, CHECKING_CODE, WAITING, WRONG_CODE } from "@dashhaus/core/entities/guard";
@@ -725,13 +726,19 @@ const NO_HOURS: HourSample[] = Array(24).fill(null);
 
 /**
  * Today: a printed legend, with its summary at the end, over the hour meter. In a panel, a block; in a module it
- * takes a fader's place and height, its legend over a shorter strip, on one line at every width (module.css): a narrow
- * module drops the printed word, a summary still too long ends in an ellipsis, and the meter's label says it whole.
+ * takes a fader's place and height, its legend over a shorter strip, on one line at every width (module.css): the
+ * summary drops its closing "today" (`shortTodaySummary`), since the strip in a fader's place is always today's, a
+ * narrow module drops the printed word too, a summary still too long ends in an ellipsis, and the meter's label says
+ * it whole.
  */
 export function Today({ legend = "Today", summary, label, samples = NO_HOURS, currentHour = -1, tone, aheadFrom }: TodayProps) {
+  const short = summary && shortTodaySummary(summary);
+  const value = summary && short !== summary
+    ? <><span className="fd-today-whole">{summary}</span><span className="fd-today-short">{short}</span></>
+    : summary;
   return (
     <div className="fd-block fd-today">
-      <Legend value={summary}>{legend}</Legend>
+      <Legend value={value}>{legend}</Legend>
       <Meter label={summary ? `${label} ${summary}.` : label} samples={samples} currentHour={currentHour} tone={tone} aheadFrom={aheadFrom} />
     </div>
   );

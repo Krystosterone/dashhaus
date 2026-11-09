@@ -6,10 +6,10 @@ import { mapRowItems } from "@dashhaus/core/lovelace/schema";
 import { parseFieldConfig } from "./config";
 import type { ModuleConfig } from "./config";
 import { areaColumns, areaName, areaRows, autoModules, energyModules } from "./auto";
-import { outsideArea } from "@dashhaus/core/lovelace/layout";
+import { areaOrder, outsideArea } from "@dashhaus/core/lovelace/layout";
 import { HaProvider, useHaSelector } from "@dashhaus/core";
 import { createHaStore } from "@dashhaus/core";
-import { DEMO_ENERGY_PREFS, DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_WORST_CASE, createDemoHaTransport, createDemoHouseTransport, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
+import { DEMO_ENERGY_PREFS, DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_ORDERED, DEMO_WALL_HOUSE_WORST_CASE, createDemoHaTransport, createDemoHouseTransport, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
 import type { DemoWallHouse } from "@dashhaus/core/demo";
 import { OWLET_DEMO_ENTITIES, owletDemoEntities } from "@dashhaus/core/demo";
 import type { HassEntities } from "@dashhaus/core";
@@ -138,7 +138,7 @@ function Wall({ house }: { house: DemoWallHouse }) {
     const input = demoWallInput(states, house);
     const withArea = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
     const modules = autoModules(input);
-    return areaColumns(modules.map(withArea), energyModules(input, modules).map(withArea), { outside: outsideArea(input) });
+    return areaColumns(modules.map(withArea), energyModules(input, modules).map(withArea), { outside: outsideArea(input), order: areaOrder(input) });
   }, [states, house]);
   return <FieldDashboard title="Home" showTime viewing="far" rows={rows} footprint="standard" now={NOW} />;
 }
@@ -352,7 +352,7 @@ export const Composition: Story = { name: "Composition", render: () => <Yaml yam
  */
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <AutomaticHouse /> };
 /**
- * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, by area name, four across, each under its
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, in Home Assistant's order (here by name), four across, each under its
  * legend, so its plates leave their own area out; each column leads with what is read whole and takes its rows under
  * it; the house's own alarm, modes, guest Wi-Fi and calendars end the first row, and Outside wraps under it.
  */
@@ -363,6 +363,12 @@ export const AutomaticWall: Story = { name: "Automatic layout, wall panel", rend
  * The alert line under the header names the lock on the first screen (spec/deploy.md → The wall layout).
  */
 export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall panel, worst case", render: () => <WallHouse house={DEMO_WALL_HOUSE_WORST_CASE} label="Wall panel, worst case" /> };
+/**
+ * The worst case once its household has put its rooms in order in Home Assistant (Settings → Areas, labels & zones →
+ * Reorder): the wall follows that order, floors first, so Outside's jammed lock and open door and the living room
+ * lead the first screen, and the rooms it rarely looks at wrap below. The alert line still names the lock; now its column is on the first screen too.
+ */
+export const AutomaticWallOrdered: Story = { name: "Automatic layout, wall panel, in Home Assistant's order", render: () => <WallHouse house={DEMO_WALL_HOUSE_ORDERED} label="Wall panel, in Home Assistant's order" /> };
 /**
  * The same wall on an 800 × 1280 portrait panel: two of a module's 260 px tracks fit, so the columns wrap two by two in
  * area order, each still one area under its legend.

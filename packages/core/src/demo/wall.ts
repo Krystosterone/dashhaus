@@ -14,7 +14,7 @@ interface Device { area?: string; entities: readonly string[] }
 
 /** A house's registries, written as a person reads them: its areas, its devices and what Home Assistant hides. */
 export interface DemoWallHouse {
-  /** Area id → name. */
+  /** Area id → name, in the area registry's order: the order a person gave them in Home Assistant, which a wall follows. */
   areas: Readonly<Record<string, string>>;
   /** Device id → its area and entities; an entity on no device and in no area is in no list. */
   devices: Readonly<Record<string, Device>>;
@@ -91,14 +91,18 @@ export const DEMO_WALL_LONGEST_AREA = "Upstairs primary bedroom with en-suite an
 /**
  * The worst case: eight rooms, so the areas wrap into further rows; the longest area name; a room with one card
  * (the hallway's smoke alarm); and a jammed lock and an open door in a late room (Outside), past the first screen.
- * The house's own alarm, modes, guest Wi-Fi and calendars, in no room, end the first row. Nothing is hidden.
+ * The house's own alarm, modes, guest Wi-Fi and calendars, in no room, end the first row. Nothing is hidden. Its areas
+ * are in the order Home Assistant gives them until a person reorders them: as they were made, here by name.
  */
 export const DEMO_WALL_HOUSE_WORST_CASE: DemoWallHouse = {
   areas: {
-    ...DEMO_WALL_HOUSE.areas,
-    kitchen: "Kitchen",
+    bedroom: "Bedroom",
     hallway: "Hallway",
+    kitchen: "Kitchen",
+    living_room: "Living room",
+    nursery: "Nursery",
     office: "Office",
+    outside: "Outside",
     upstairs: DEMO_WALL_LONGEST_AREA,
   },
   devices: {
@@ -118,6 +122,25 @@ export const DEMO_WALL_HOUSE_WORST_CASE: DemoWallHouse = {
   },
   hidden: ["switch.owlet_sock_ac000w0123_base_station_on"],
   states: { "lock.back_door": "jammed", "binary_sensor.patio_door": "on" },
+};
+
+/**
+ * The worst case once its household has ordered its areas in Home Assistant (Settings → Areas, labels & zones →
+ * Reorder): the doors and the rooms it lives in first, so Outside's jammed lock and open door, and the living room,
+ * are on the first screen, and the rooms it rarely looks at wrap below.
+ */
+export const DEMO_WALL_HOUSE_ORDERED: DemoWallHouse = {
+  ...DEMO_WALL_HOUSE_WORST_CASE,
+  areas: {
+    outside: "Outside",
+    living_room: "Living room",
+    kitchen: "Kitchen",
+    nursery: "Nursery",
+    bedroom: "Bedroom",
+    upstairs: DEMO_WALL_LONGEST_AREA,
+    hallway: "Hallway",
+    office: "Office",
+  },
 };
 
 /** Each entity's device in a house, the last device naming it winning (a worst case moves a few). */

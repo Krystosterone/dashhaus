@@ -6,7 +6,7 @@ import { createHaStore } from "@dashhaus/core";
 import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
-import { DEMO_ENERGY_PREFS, DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_WORST_CASE, createDemoHouseTransport, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
+import { DEMO_ENERGY_PREFS, DEMO_WALL_HOUSE, DEMO_WALL_HOUSE_ORDERED, DEMO_WALL_HOUSE_WORST_CASE, createDemoHouseTransport, createDemoWallHouseTransport, demoWallInput } from "@dashhaus/core/demo";
 import type { DemoWallHouse } from "@dashhaus/core/demo";
 import type { HaTransport, HassEntities } from "@dashhaus/core";
 
@@ -225,7 +225,7 @@ function WithNav() {
 export const FromYaml: Story = { name: "From YAML", render: () => <House><Configured /></House> };
 export const AutomaticLayout: Story = { name: "Automatic layout", render: () => <House><Automatic /></House> };
 /**
- * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, by area name, three across, each under
+ * `layout: wall` and `viewing: far` on a 1280 × 800 panel: a column per area, in Home Assistant's order (here by name), three across, each under
  * its area's heading, so its cards leave their own area out; the house's own alarm, modes, guest Wi-Fi and calendars
  * end the first row, and the next areas wrap under it. What is pressed is a compact row, what is read standard.
  */
@@ -236,6 +236,12 @@ export const AutomaticWall: Story = { name: "Automatic layout, wall panel", rend
  * no alert line, so nothing on the first screen says so (spec/deploy.md → The wall layout).
  */
 export const AutomaticWallWorstCase: Story = { name: "Automatic layout, wall panel, worst case", render: () => <WallHouse house={DEMO_WALL_HOUSE_WORST_CASE} label="Wall panel, worst case" /> };
+/**
+ * The worst case once its household has put its rooms in order in Home Assistant (Settings → Areas, labels & zones →
+ * Reorder): the wall follows that order, floors first, so Outside's jammed lock and open door and the living room
+ * lead the first screen, and the rooms it rarely looks at wrap below. Orb has no alert line, so the order is what puts the lock on the first screen.
+ */
+export const AutomaticWallOrdered: Story = { name: "Automatic layout, wall panel, in Home Assistant's order", render: () => <WallHouse house={DEMO_WALL_HOUSE_ORDERED} label="Wall panel, in Home Assistant's order" /> };
 /**
  * The same wall on an 800 × 1280 portrait panel: three columns still fit (each over 156 px), so each area keeps its
  * column and heading, its compact rows trading their inline control for their value line under 320 px.

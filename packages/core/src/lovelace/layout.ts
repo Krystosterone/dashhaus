@@ -26,7 +26,10 @@ export interface AutoInput {
   states: Record<string, { attributes: Record<string, unknown> }>;
   entities?: Record<string, AutoEntityEntry>;
   devices?: Record<string, { area_id?: string | null }>;
-  areas?: Record<string, { name: string }>;
+  /** The area registry (`hass.areas`), keyed in Home Assistant's own order, with each area's floor. */
+  areas?: Record<string, { name: string; floor_id?: string | null }>;
+  /** The floor registry (`hass.floors`), keyed in Home Assistant's own order: with `areas`, the wall's (`areaOrder`). */
+  floors?: Record<string, object>;
   /** Home Assistant's energy preferences (`energy/get_prefs`), for the house's power and energy meters (`energySensors`). */
   energy?: EnergyPrefs;
 }
@@ -279,6 +282,25 @@ export function outsideArea(input: Pick<AutoInput, "areas">): string | undefined
   return Object.values(input.areas ?? {}).find((area) => area.name.trim().toLowerCase() === "outside")?.name;
 }
 
+/**
+ * The house's area names in Home Assistant's own order, the one a person sets under Settings → Areas, labels & zones
+ * → Reorder and Home Assistant's own areas dashboard follows: the areas of each floor in floor order, then the areas
+ * on no floor, each in the area registry's order. The registries keep that order and the frontend keys `hass.areas`
+ * and `hass.floors` in it (an id that reads as a whole number, as `"101"`, sorts first among its keys, as JavaScript
+ * keeps them). An area whose floor isn't in `floors` counts as on none.
+ */
+export function areaOrder(input: Pick<AutoInput, "areas" | "floors">): string[] {
+  const floors = Object.keys(input.floors ?? {});
+  const floorOf = (floor: string | null | undefined) => {
+    const at = floor ? floors.indexOf(floor) : -1;
+    return at < 0 ? floors.length : at;
+  };
+  return Object.values(input.areas ?? {})
+    .map((area, at) => ({ name: area.name, floor: floorOf(area.floor_id), at }))
+    .sort((a, b) => a.floor - b.floor || a.at - b.at)
+    .map((area) => area.name);
+}
+
 /** The arrangements an automatic layout takes (a skin's YAML `layout`): `wall`, one column per area. */
 export const AUTO_LAYOUTS = ["wall"] as const;
 export type AutoLayout = (typeof AUTO_LAYOUTS)[number];
@@ -309,18 +331,21 @@ export interface WallAreas<I> {
 }
 
 /**
- * A house's cards as a wall's areas: one per area that has a card, by area name, and the house's own cards, those in
+ * A house's cards as a wall's areas: one per area that has a card, in `order` (Home Assistant's, from `areaOrder`), an
+ * area it doesn't name (one the YAML's `area:` made up) after them by name, and the house's own cards, those in
  * no area, each list in band order (`WALL_BANDS`, then the cards' own order). The weather and the sun, which have no
  * area, join the area called `outside` where the house has one (`outsideArea`), and are the house's otherwise. With
  * fewer than two areas a column per area says nothing, so there are none, and every card is the house's, in band
  * order, for the skin to flow across the page.
  */
-export function wallAreas<I>(items: readonly I[], { card, area, outside }: {
+export function wallAreas<I>(items: readonly I[], { card, area, outside, order = [] }: {
   /** The card that draws an item, by its shared name. */
   card: (item: I) => string;
   /** An item's area name, from the YAML or Home Assistant's registries. */
   area: (item: I) => string | undefined;
   outside?: string;
+  /** The areas' order, by name (`areaOrder`), compared without case or the spaces around it. */
+  order?: readonly string[];
 }): WallAreas<I> {
   const placed = [...items];
   const rank = (item: I) => {
@@ -330,7 +355,16 @@ export function wallAreas<I>(items: readonly I[], { card, area, outside }: {
   const inOrder = (list: readonly I[]) => [...list].sort((a, b) => rank(a) - rank(b));
   const areaOf = (item: I) => area(item) ?? (outside && (card(item) === "weather" || card(item) === "sun") ? outside : undefined);
   const groups = groupByArea(placed.map((item) => ({ item, area: areaOf(item) })));
-  const areas = groups.flatMap((group) => (group.area == null ? [] : [{ area: group.area, items: inOrder(group.modules.map((entry) => entry.item)) }]));
+  const key = (name: string) => name.trim().toLowerCase();
+  const ranks = order.map(key);
+  const at = (name: string) => {
+    const rank = ranks.indexOf(key(name));
+    return rank < 0 ? ranks.length : rank;
+  };
+  // Grouped by name, so a stable sort leaves the areas `order` doesn't name in name order, after the rest.
+  const areas = groups
+    .flatMap((group) => (group.area == null ? [] : [{ area: group.area, items: inOrder(group.modules.map((entry) => entry.item)) }]))
+    .sort((a, b) => at(a.area) - at(b.area));
   if (areas.length < 2) return { areas: [], house: inOrder(placed) };
   return { areas, house: inOrder(groups.find((group) => group.area == null)?.modules.map((entry) => entry.item) ?? []) };
 }

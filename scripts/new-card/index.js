@@ -190,7 +190,7 @@ edit(seams.agents, before(markers.orbCodes, `, \`${code}-\` ${words}`));
 edit(seams.orb.worstCase, after(markers.worstCaseImports, fill(`import { Demo__Name__Tile } from "../cards/__name__/demo/Demo__Name__Tile";
 import { __CONST___SEEDS, __CONST___WORST_CASE } from "${packageSpecifier("core", `seeds/${name}`)}";
 `)));
-edit(seams.orb.worstCase, after(markers.worstCases, fill(`  card(__CONST___WORST_CASE, [__CONST___SEEDS.${reading ? "normal" : "on"}], (seed, footprint) => <Demo__Name__Tile seed={seed} footprint={footprint} />),`)));
+edit(seams.orb.worstCase, after(markers.worstCases, fill(`  card("__Name__", __CONST___WORST_CASE, [__CONST___SEEDS.${reading ? "normal" : "on"}], (seed, footprint) => <Demo__Name__Tile seed={seed} footprint={footprint} />),`)));
 
 // A card on the Lovelace dashboard. The domain picks it; when the domain already has a card, `card:` does.
 const { path: lovelace, domainKind } = orbKinds();

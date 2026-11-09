@@ -358,7 +358,7 @@ function __Name__({ seed, footprint }: { seed: __Name__Seed; footprint: FieldFoo
   return <__Name__Module entity={demo.entity}${history ? " history={demo.history}" : ""}${demoProps ? ` ${demoProps}` : ""} footprint={footprint} />;
 }
 `)));
-  edit(worstCase, after(markers.worstCases, fill("  card(__CONST___WORST_CASE, [__CONST___SEEDS.__firstSeed__], (seed, footprint) => <__Name__ seed={seed} footprint={footprint} />),")));
+  edit(worstCase, after(markers.worstCases, fill(`  card("__Name__", __CONST___WORST_CASE, [__CONST___SEEDS.__firstSeed__], (seed, footprint) => <__Name__ seed={seed} footprint={footprint} />),`)));
 
   const rules = `${SKIN}/stories/DesignRules.mdx`;
   edit(rules, after(markers.designRuleImports, `import * as ${Name} from "../cards/${name}/${Name}Module.stories";\n`));

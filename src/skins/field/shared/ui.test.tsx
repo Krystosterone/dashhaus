@@ -146,7 +146,15 @@ describe("Today", () => {
   it("prints its word and summary apart, so a narrow module can drop the word, and the meter says the summary whole", () => {
     const { container } = render(<Today summary="Not detected today" label="Smoke by hour today." />);
     expect(container.querySelector(".fd-legend-n")?.textContent).toBe("Today");
-    expect(container.querySelector(".fd-legend-v")?.textContent).toBe("Not detected today");
+    // The panel's whole summary, and the module's without its closing "today" (module.css shows one of them).
+    expect(container.querySelector(".fd-today-whole")?.textContent).toBe("Not detected today");
+    expect(container.querySelector(".fd-today-short")?.textContent).toBe("Not detected");
     expect(screen.getByRole("img", { name: "Smoke by hour today. Not detected today." })).toBeTruthy();
+  });
+
+  it("prints a summary that doesn't end in today once", () => {
+    const { container } = render(<Today summary="On 2h 10m" label="On by hour today." />);
+    expect(container.querySelector(".fd-legend-v")?.textContent).toBe("On 2h 10m");
+    expect(container.querySelector(".fd-today-short")).toBeNull();
   });
 });

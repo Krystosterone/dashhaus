@@ -165,8 +165,10 @@ describe.each(skins)("the $section section", ({ section, files, cards, skin }) =
     const missing = cards.filter((card) => {
       const seeds = `${constant(card)}_WORST_CASE`;
       const imported = new RegExp(`import \\{[^}]*\\b${seeds}\\b[^}]*\\} from "@dashhaus/core/seeds/${card}"`).test(page);
-      return !imported || (page.match(new RegExp(`\\b${seeds}\\b`, "g")) ?? []).length < 2;
-    }).map((card) => `${card}: draw ${constant(card)}_WORST_CASE, from "@dashhaus/core/seeds/${card}"`);
+      // Each card's rows are captioned with its name, as its stories are titled.
+      const named = new RegExp(`card\\("${label(card)}", ${seeds}\\b`).test(page);
+      return !imported || !named || (page.match(new RegExp(`\\b${seeds}\\b`, "g")) ?? []).length < 2;
+    }).map((card) => `${card}: draw ${constant(card)}_WORST_CASE, from "@dashhaus/core/seeds/${card}", as card("${label(card)}", ${constant(card)}_WORST_CASE, …)`);
     expect(missing, `${worstCase?.path}: a row for every card, before "// new-card: worst cases"`).toEqual([]);
     const foundations = orderOf(section)?.[(orderOf(section) ?? []).indexOf("Foundations") + 1];
     expect(Array.isArray(foundations) && foundations.includes(WORST_CASE), `.storybook/preview.tsx: list "${WORST_CASE}" in ${section}'s Foundations`).toBe(true);

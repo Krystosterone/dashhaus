@@ -433,7 +433,7 @@ A row whose title an area already has joins that area's row, so the page never s
 stacks a column and draws it in its own idiom.
 
 - **The rule** (`@dashhaus/core/lovelace/layout`: `wallAreas`, `placeColumns`, `WALL_BANDS`, `wallFootprint`). A
-  wall's areas are the Home Assistant areas with a card. They go in area-name order, a column each, side by side up to
+  wall's areas are the Home Assistant areas with a card. They go in Home Assistant's own area order (`areaOrder`, below), a column each, side by side up to
   the skin's most, wrapping into further rows; every row is as many columns as the first, so the columns line up down the page.
   The cards in no area (the alarm, the modes, the calendars, the guest Wi-Fi code) are the house's column, the last of
   the first row, never wrapped. The weather and the sun join an area called Outside where the house has one, the card
@@ -472,13 +472,22 @@ stacks a column and draws it in its own idiom.
   to leave out (`"layout" lays the house out automatically: leave out "rows", or leave out "layout"`). It never sets
   `viewing`: `autoDashboard` returns a layout only, and a wall read across the room says `viewing: far` itself. With
   nothing to place yet, Orb's stays automatic as `{ type, title, layout: wall }`.
-- **The order is the areas' names.** Discovery can't know which rooms a household looks at most. To put others first,
-  write rows in place of `layout: wall` (Take control keeps the key), or, in this repository, edit Orb's CLI wall,
-  which is written out once.
+- **The order is Home Assistant's.** Discovery can't know which rooms a household looks at most, but Home Assistant
+  keeps an order of its own that a person sets under Settings → Areas, labels & zones (dragging the areas, or a
+  floor's ⋮ → Reorder for the floors and their areas), which its own areas dashboard follows too. The registries keep it, and the frontend keys `hass.areas` and
+  `hass.floors` in it (it compares their key order, so a reorder alone is a new `hass`); `autoInput` hands both on, and
+  the CLI reads `config/area_registry/list` and `config/floor_registry/list`. `areaOrder`
+  (`@dashhaus/core/lovelace/layout`) reads it: each floor's areas in floor order, then the areas on no floor (or on a
+  floor that is gone), each in the registry's order; an id that reads as a whole number sorts first among JavaScript's
+  keys. An area no registry names (a YAML `area:` of its own) comes after, by name. Until a person reorders them,
+  Home Assistant lists areas in the order they were made. There is no key for it, so nothing a dashboard saves can go
+  stale: the wall follows a reorder the next time it draws, and Orb's CLI wall, written out once, is in the order of
+  the run that wrote it. To lay the rooms out otherwise, write rows in place of `layout: wall` (Take control keeps the
+  key), after which the wall stops following the house.
 
 `src/skins/orb/lovelace/auto.test.ts` and `src/skins/field/lovelace/auto.test.ts` hold both to this: the columns and
-their order, the wrap, the house's column, Outside, energy's own row, the house of one area, and the default layout
-unchanged.
+their order (Home Assistant's, floors first), the wrap, the house's column, Outside, energy's own row, the house of one
+area, and the default layout unchanged.
 
 ### Navigation
 
