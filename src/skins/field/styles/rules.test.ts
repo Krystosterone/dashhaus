@@ -53,7 +53,7 @@ describe("colour: tokens only", () => {
   it("a parameter's colour marks only its control, its pictogram and its history", () => {
     const bad: string[] = [];
     for (const f of nonTokens) {
-      for (const { selector, body } of rules(f)) if (/var\(--fd-param-/.test(body) && !/\.fd-(thumb|pict-lit|meter-lit)$/.test(selector)) bad.push(`${f}: ${selector}`);
+      for (const { selector, body } of rules(f)) if (/var\(--fd-param-/.test(body) && !/\.fd-(thumb|pict-lit|meter-lit|dial-lit|dial-dot)$/.test(selector)) bad.push(`${f}: ${selector}`);
     }
     expect(bad).toEqual([]);
   });

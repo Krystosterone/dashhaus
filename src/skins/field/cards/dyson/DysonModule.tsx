@@ -5,13 +5,13 @@ import type { DysonEntity, DysonHistory } from "@dashhaus/core/entities/dyson/ty
 import { percentOf, speedOf } from "@dashhaus/core/entities/fan/speed";
 import { speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonWarning } from "@dashhaus/core/entities/dyson/air";
-import { AIRFLOW_LABEL, dysonAbilities, dysonMode, oscillationChoice } from "@dashhaus/core/entities/dyson/labels";
+import { AIRFLOW_LABEL, DYSON_LOCAL_ANGLES, DYSON_SPREADS, aimAngles, aimWords, dysonAbilities, dysonMode, oscillationChoice, spreadLabel } from "@dashhaus/core/entities/dyson/labels";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { Blank, Channel, Digits, Fader, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Option, Pictogram, Today, Warn, choices, useDetails } from "../../shared/ui";
+import { Blank, Channel, Dial, Digits, Fader, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Pictogram, Steps, Today, Warn, choices, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
-import { DYSON_PICT, IconDyson, IconMoon, IconFlame } from "./icons";
+import { DYSON_PICT, DysonCable, IconDyson, IconMoon, IconFlame } from "./icons";
 import "./DysonModule.css";
 
 export interface DysonModuleProps {
@@ -26,8 +26,12 @@ export interface DysonModuleProps {
   onAutoChange?: (auto: boolean) => void;
   /** Panel: oscillation off, or on where it has no range of its own. */
   onOscillateChange?: (oscillating: boolean) => void;
-  /** Panel: the range it sweeps, which starts it. */
+  /** Panel: the range it sweeps, which starts it (a Humidify+Cool's own ranges). */
   onOscillationModeChange?: (mode: string) => void;
+  /** Panel: where a Pure Cool or Hot+Cool points, on the dial, its width kept. */
+  onAimChange?: (aim: number) => void;
+  /** Panel: how widely it sweeps round where it points, on the keys: 0 holds it still. */
+  onSpreadChange?: (spread: number) => void;
   /** Panel: its airflow, out of the front or the back. */
   onDirectionChange?: (direction: FanDirection) => void;
   /** Panel: night mode's latching key. */
@@ -40,6 +44,8 @@ export interface DysonModuleProps {
   defaultOpen?: boolean;
 }
 
+/** Held still, the dial lights its scale this far either side of where it points. */
+const BEAM = 8;
 const MODES = [{ value: true, label: "Auto" }, { value: false, label: "Manual" }] as const;
 const AIRFLOWS: FanDirection[] = ["forward", "reverse"];
 const degrees = (value: number, unit?: string) => `${fmt1(value).replace(/\.0$/, "")}${unit === "°F" ? "°F" : "°"}`;
@@ -53,7 +59,7 @@ const degrees = (value: number, unit?: string) => `${fmt1(value).replace(/\.0$/,
  * the oscillation and its range, the airflow, night mode, heat and its target, every reading in Dyson's bands, the
  * filters, and today.
  */
-export function DysonModule({ entity: e, footprint = "standard", history, onToggle, onPercentageChange, onAutoChange, onOscillateChange, onOscillationModeChange, onDirectionChange, onNightModeChange, onHeatChange, onHeatTargetChange, defaultOpen = false }: DysonModuleProps) {
+export function DysonModule({ entity: e, footprint = "standard", history, onToggle, onPercentageChange, onAutoChange, onOscillateChange, onOscillationModeChange, onAimChange, onSpreadChange, onDirectionChange, onNightModeChange, onHeatChange, onHeatTargetChange, defaultOpen = false }: DysonModuleProps) {
   const uid = useId();
   const details = useDetails(defaultOpen);
   const unav = e.state === "unavailable";
@@ -110,11 +116,24 @@ export function DysonModule({ entity: e, footprint = "standard", history, onTogg
     <Channel name={air ? (warning?.kind === "air" ? <Warn>{AIR_BAND_WORD[air.band]}</Warn> : AIR_BAND_WORD[air.band]) : <Blank places={3} label={NO_READING_YET} />} sub="Air" />
   ) : undefined;
 
-  const sweeps = e.oscillationModes?.length && onOscillationModeChange ? e.oscillationModes : undefined;
-  const oscillation = ["off", ...(sweeps ?? ["on"])];
-  const swept = oscillationChoice({ ...e, oscillationModes: sweeps });
-  const pickOscillation = (v: string) => (v === "off" ? onOscillateChange?.(false) : v === "on" ? onOscillateChange?.(true) : onOscillationModeChange?.(v));
+  // A Pure Cool or Hot+Cool aims on its angles: Off, Still or a width on the keys, where it points on the dial. Any other
+  // sweeps its own ranges, or switches oscillation on and off.
+  const range = e.angles ?? DYSON_LOCAL_ANGLES;
+  const aimable = (e.oscillationBy === "angle" || e.oscillationBy === "number") && onAimChange && onSpreadChange
+    && e.oscillationLow != null && e.oscillationHigh != null;
+  const spread = aimable ? e.oscillationHigh! - e.oscillationLow! : 0;
+  const sweeps = !aimable && e.oscillationModes?.length && onOscillationModeChange ? e.oscillationModes : undefined;
+  const oscillation = ["off", ...(aimable ? DYSON_SPREADS.map(spreadLabel) : sweeps ?? ["on"])];
+  const swept = aimable ? (e.oscillating == null ? null : !e.oscillating ? "off" : spread === 0 ? "Still" : e.oscillationMode ?? null)
+    : oscillationChoice({ ...e, oscillationModes: sweeps });
+  const pickOscillation = (v: string) => {
+    if (v === "off") return onOscillateChange?.(false);
+    if (v === "on") return onOscillateChange?.(true);
+    if (aimable) return onSpreadChange!(DYSON_SPREADS.find((d) => spreadLabel(d) === v) ?? 0);
+    onOscillationModeChange?.(v);
+  };
   const optionWord = (v: string) => (v === "off" ? "Off" : v === "on" ? "On" : v);
+  const optionSaid = (v: string) => (v === "off" ? "Stop oscillating" : v === "on" ? "Oscillate" : v === "Still" ? "Hold still" : `Oscillate ${v}`);
 
   const readings: [key: string, label: string, value: string, warns?: boolean, band?: string][] = [
     ...e.air.map((r): [string, string, string, boolean, string | undefined] => {
@@ -155,17 +174,40 @@ export function DysonModule({ entity: e, footprint = "standard", history, onTogg
       {e.supportsOscillate && onOscillateChange && (
         <KeyGroup legend="Oscillation" value={swept == null ? undefined : optionWord(swept)} columns={choices(oscillation.length)} narrow={2}>
           {oscillation.map((v) => (
-            <Key key={v} label={v === "off" ? "Stop oscillating" : v === "on" ? "Oscillate" : `Oscillate ${v}`} wide caption={optionWord(v)} chosen={v === swept} disabled={unav} onPress={() => pickOscillation(v)}>{null}</Key>
+            <Key key={v} label={optionSaid(v)} wide caption={optionWord(v)} chosen={v === swept} disabled={unav} onPress={() => pickOscillation(v)}>{null}</Key>
           ))}
         </KeyGroup>
+      )}
+
+      {aimable && e.oscillating && !unav && (
+        <Dial
+          id={`${uid}-aim`}
+          label={`${e.name} aims`}
+          legend="Points"
+          says={(aim) => aimWords(aim, range.ahead)}
+          valueText={(aim) => `Points ${aimWords(aim, range.ahead)}${spread ? `, sweeping ${spread}°` : ""}`}
+          value={Math.round((e.oscillationLow! + e.oscillationHigh!) / 2)}
+          min={range.min}
+          max={range.max}
+          top={range.ahead}
+          topLabel="Ahead"
+          param="b"
+          // Lit where it sweeps round the aim, inside its range; a few ticks either side while it holds still.
+          lit={(aim) => {
+            if (!spread) return [aim - BEAM, aim + BEAM];
+            const { angle_low, angle_high } = aimAngles(aim, spread, range);
+            return [angle_low, angle_high];
+          }}
+          onChange={onAimChange!}
+        >
+          {() => <DysonCable back={(range.max + range.min + 360) / 2 - range.ahead} />}
+        </Dial>
       )}
 
       {e.supportsDirection && onDirectionChange && (
         <KeyGroup legend="Airflow" value={e.direction ? AIRFLOW_LABEL[e.direction] : undefined} columns={2}>
           {AIRFLOWS.map((d) => (
-            <Option key={d} name={AIRFLOW_LABEL[d]}>
-              <Key label={`Airflow ${AIRFLOW_LABEL[d].toLowerCase()}`} wide caption={AIRFLOW_LABEL[d]} chosen={d === e.direction} disabled={unav} onPress={() => onDirectionChange(d)}>{null}</Key>
-            </Option>
+            <Key key={d} label={`Airflow ${AIRFLOW_LABEL[d].toLowerCase()}`} wide caption={AIRFLOW_LABEL[d]} chosen={d === e.direction} disabled={unav} onPress={() => onDirectionChange(d)}>{null}</Key>
           ))}
         </KeyGroup>
       )}
@@ -186,21 +228,25 @@ export function DysonModule({ entity: e, footprint = "standard", history, onTogg
         </KeyGroup>
       )}
 
-      {e.supportsHeat && e.heatOn && e.heatTarget != null && onHeatTargetChange && !unav && (
-        <Fader
-          id={`${uid}-heat`}
-          label={`${e.name} heat target`}
-          legend={`Heat to ${degrees(e.heatTarget, e.heatUnit)}`}
-          value={e.heatTarget}
-          min={e.heatMin ?? 1}
-          max={e.heatMax ?? 37}
-          step={e.heatStep ?? 1}
-          lit
-          param="b"
-          valueText={`${degrees(e.heatTarget, e.heatUnit)}`}
-          onChange={onHeatTargetChange}
-        />
-      )}
+      {/* Its target in exact steps, as the climate module's: the fader's second colour is the dial's. */}
+      {e.supportsHeat && e.heatOn && e.heatTarget != null && onHeatTargetChange && !unav && (() => {
+        const step = e.heatStep ?? 1;
+        const down = Math.max(e.heatMin ?? 1, e.heatTarget - step);
+        const up = Math.min(e.heatMax ?? 37, e.heatTarget + step);
+        return (
+          <Steps
+            group={`${e.name}, heat to`}
+            label="Heat to"
+            value={degrees(e.heatTarget, e.heatUnit)}
+            downLabel={`Lower heat target to ${degrees(down, e.heatUnit)}`}
+            upLabel={`Raise heat target to ${degrees(up, e.heatUnit)}`}
+            atMin={e.heatTarget <= (e.heatMin ?? 1)}
+            atMax={e.heatTarget >= (e.heatMax ?? 37)}
+            onDown={() => onHeatTargetChange(down)}
+            onUp={() => onHeatTargetChange(up)}
+          />
+        );
+      })()}
 
       {!unav && readings.length > 0 && (
         <div className="fd-block">

@@ -85,7 +85,19 @@ describe("DysonModule, the Dyson's own", () => {
     expect(handlers.onDirectionChange).toHaveBeenCalledWith("reverse");
     expect(handlers.onNightModeChange).toHaveBeenCalledWith(true);
     expect(handlers.onHeatChange).toHaveBeenCalledWith(false);
-    expect(getByRole("slider", { name: "Hot+Cool heat target" })).toBeTruthy();
+    expect(getByRole("group", { name: "Hot+Cool, heat to" })).toBeTruthy();
+  });
+
+  it("aims a Pure Cool on its angles: Still or a width on the keys, where it points on the dial", () => {
+    const handlers = { ...all(), onAimChange: vi.fn(), onSpreadChange: vi.fn() };
+    const { getByRole } = render(<DysonModule entity={DYSON_SEEDS.pointing.entity} defaultOpen {...handlers} />);
+    expect(getByRole("button", { name: "Hold still" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(getByRole("button", { name: "Oscillate 90°" }));
+    expect(handlers.onSpreadChange).toHaveBeenCalledWith(90);
+    const dial = getByRole("slider", { name: "Purifier aims" });
+    expect(dial.getAttribute("aria-valuetext")).toBe("Points 58° right");
+    fireEvent.change(dial, { target: { value: "175" } });
+    expect(handlers.onAimChange).toHaveBeenCalledWith(175);
   });
 
   it("prints every reading in Dyson's bands, and its filters, in its panel", () => {

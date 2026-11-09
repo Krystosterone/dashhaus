@@ -5,7 +5,7 @@ import { DYSON_SEEDS, DYSON_WORST_CASE, useDemoDyson } from "@dashhaus/core/seed
 import type { DysonSeed, DysonSeedName } from "@dashhaus/core/seeds/dyson";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
-const SEEDS = ["on", "heating", "off", "poorAir", "filter", "unavailable"] as const satisfies readonly DysonSeedName[];
+const SEEDS = ["on", "pointing", "heating", "off", "poorAir", "filter", "unavailable"] as const satisfies readonly DysonSeedName[];
 
 function DemoDyson({ seed, width, footprint, defaultOpen }: { seed: DysonSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
   const demo = useDemoDyson(seed);
@@ -51,6 +51,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const On: Story = {};
+/** Held still, pointing 58° right: no sweep, the screen says where it points. */
+export const Pointing: Story = { args: { dyson: "pointing" } };
 /** A Hot+Cool in Auto, heating to 23°: AUTO on the screen, and the fader without its thumb. */
 export const Heating: Story = { args: { dyson: "heating" } };
 export const Off: Story = { args: { dyson: "off" } };
@@ -121,7 +123,9 @@ export const Compact: Story = {
 
 /** The detail panel: the air on its second channel, every control the Dyson has, its readings, filters and today. */
 export const Details: Story = { args: { defaultOpen: true } };
-/** A Hot+Cool's panel: heat latched on, its target on the second parameter's fader, formaldehyde among the readings. */
+/** A Hot+Cool's panel: heat latched on, its target in exact steps, formaldehyde among the readings. */
+/** Where it points, on the dial: turn it, or step it with the arrow keys; Still or a width on the keys. */
+export const DetailsPointing: Story = { name: "Details, pointing", args: { dyson: "pointing", defaultOpen: true } };
 export const DetailsHeating: Story = { name: "Details, heating", args: { dyson: "heating", defaultOpen: true } };
 /** A Humidify+Cool's panel: its ranges from its own select, Breeze among them. */
 export const DetailsHumidifyCool: Story = { name: "Details, Humidify+Cool", args: { dyson: "off", defaultOpen: true } };

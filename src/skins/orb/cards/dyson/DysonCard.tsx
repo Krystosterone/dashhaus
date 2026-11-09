@@ -3,13 +3,12 @@ import type { DysonEntity, DysonHistory } from "@dashhaus/core/entities/dyson/ty
 import { percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { fanWord, speedValueText } from "@dashhaus/core/entities/fan/labels";
 import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonWarning } from "@dashhaus/core/entities/dyson/air";
-import { AIRFLOW_LABEL, DYSON_SPREADS, dysonAbilities, dysonMode, oscillationChoice, spreadLabel } from "@dashhaus/core/entities/dyson/labels";
+import { AIRFLOW_LABEL, DYSON_LOCAL_ANGLES, DYSON_SPREADS, aimAngles, aimWords, dysonAbilities, dysonMode, oscillationChoice, spreadLabel } from "@dashhaus/core/entities/dyson/labels";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { fmt1 } from "@dashhaus/core/entities/format";
 import { todaySummary } from "@dashhaus/core/entities/today";
-import { DysonIcon } from "./icons";
-import { AimDial } from "./parts";
-import { AlertStatus, CardFrame, ChoiceChips, LevelBar, SheetBlock, Stepper, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
+import { DysonFromAbove, DysonIcon } from "./icons";
+import { AlertStatus, CardFrame, ChoiceChips, Dial, LevelBar, SheetBlock, Stepper, Today, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./DysonCard.css";
 
@@ -41,6 +40,8 @@ export interface DysonCardProps extends CardProps {
   onHeatTargetChange?: (temperature: number) => void;
 }
 
+/** Held still, the dial lights its ticks this far either side of where it points. */
+const BEAM = 8;
 const OFF_ON = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;
 const MODES = [{ value: "auto", label: "Auto" }, { value: "manual", label: "Manual" }] as const;
 const AIRFLOWS = (["forward", "reverse"] as const).map((value) => ({ value, label: AIRFLOW_LABEL[value] }));
@@ -94,6 +95,8 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
       : [{ value: "on", label: "On" }]),
   ];
   const still = angles && angles.low === angles.high;
+  const range = e.angles ?? DYSON_LOCAL_ANGLES;
+  const spread = angles ? angles.high - angles.low : 0;
   const oscillationValue = angles && e.oscillating ? (still ? "Still" : e.oscillationMode ?? null) : oscillationChoice({ ...e, oscillationModes: sweeps });
   const pickOscillation = (v: string) => {
     if (v === "off") return onOscillateChange?.(false);
@@ -151,7 +154,27 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
             <ChoiceChips id={`${uid}-o`} label="Oscillation" options={oscillation} value={oscillationValue} onChange={pickOscillation} />
           )}
           {angles && e.oscillating && (
-            <AimDial id={`${uid}-aim`} name={e.name} low={angles.low} high={angles.high} angles={e.angles} onChange={onAimChange!} />
+            <Dial
+              id={`${uid}-aim`}
+              label={`${e.name} aims`}
+              heading="Points"
+              says={(aim) => aimWords(aim, range.ahead)}
+              valueText={(aim) => `Points ${aimWords(aim, range.ahead)}${spread ? `, sweeping ${spread}°` : ""}`}
+              value={Math.round((angles.low + angles.high) / 2)}
+              min={range.min}
+              max={range.max}
+              top={range.ahead}
+              topLabel="Ahead"
+              // Lit where it sweeps round the aim, kept inside its range; a few ticks either side while it holds still.
+              lit={(aim) => {
+                if (!spread) return [aim - BEAM, aim + BEAM];
+                const { angle_low, angle_high } = aimAngles(aim, spread, range);
+                return [angle_low, angle_high];
+              }}
+              onChange={onAimChange!}
+            >
+              {(turned) => <DysonFromAbove turned={turned} back={(range.max + range.min + 360) / 2 - range.ahead} />}
+            </Dial>
           )}
           {e.supportsDirection && onDirectionChange && (
             <ChoiceChips id={`${uid}-d`} label="Airflow" options={AIRFLOWS} value={e.direction} onChange={onDirectionChange} />

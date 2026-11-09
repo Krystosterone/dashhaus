@@ -8,3 +8,23 @@ export function DysonIcon() {
     </svg>
   );
 }
+
+/**
+ * The fan seen from above, in the middle of its dial (the dial's units): its round base and the cable out of its back
+ * fixed, its head, the loop across its front, turned `turned` degrees from ahead with the dial's knob.
+ */
+export function DysonFromAbove({ turned, back }: { turned: number; back: number }) {
+  const at = (deg: number, r: number) => {
+    const rad = (deg * Math.PI) / 180;
+    return `${+(r * Math.sin(rad)).toFixed(2)} ${+(-r * Math.cos(rad)).toFixed(2)}`;
+  };
+  return (
+    <>
+      <path className="dy-cable" d={`M${at(back, 16)}Q${at(back - 6, 60)} ${at(back, 100)}`} />
+      <circle className="dy-base" r="16" />
+      <g className="hd-dial-turn" style={{ transform: `rotate(${turned}deg)` }}>
+        <rect className="dy-head" x="-15" y="-22" width="30" height="10" rx="5" />
+      </g>
+    </>
+  );
+}

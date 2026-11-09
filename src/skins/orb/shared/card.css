@@ -659,3 +659,25 @@ button.hd-pic:active .hd-pic-i { scale: 0.98; }
   @starting-style { .hd-sheet[open] { opacity: 0; scale: none; translate: none; } }
   .hd-sheet[data-closing] { opacity: 0; scale: none; translate: none; transition-duration: 150ms; }
 }
+
+/* Dial: a value you turn (Dial). A ring of ticks over its range, lit in the accent where the card says, a stem to a
+   ring knob turned to the value, and the card's drawing in the middle. It turns in two dimensions, so the page never
+   scrolls from it. The range input over it is invisible, for the keyboard and screen readers; its focus rings the
+   knob. What turns eases round to a new value, and follows a finger at once. */
+.hd-dial-face { position: relative; width: min(100%, 220px); margin: 4px auto 0; }
+.hd-dial-face svg { display: block; width: 100%; height: auto; overflow: visible; cursor: grab; touch-action: none; }
+.hd-dial-face svg[data-dragging] { cursor: grabbing; }
+.hd-dial-face svg[aria-disabled] { cursor: default; }
+.hd-dial-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.hd-dial-tick { stroke: currentColor; stroke-width: 2.4; color: var(--tick); transition: color var(--press) var(--ease-out); }
+.hd-dial-tick[data-lit] { color: var(--accent); }
+.hd-dial-top { font-size: 11px; font-weight: 600; letter-spacing: 0.02em; fill: var(--ink-2); }
+.hd-dial-turn { transition: transform 320ms var(--ease-out); }
+.hd-dial-face svg[data-dragging] .hd-dial-turn, .hd-dial-face svg[data-dragging] .hd-dial-tick { transition: none; }
+.hd-dial-stem { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.hd-dial-knob { fill: var(--card-solid); stroke: var(--ink); stroke-width: 3; }
+.hd-dial-input:focus-visible + svg .hd-dial-knob { stroke: var(--accent); stroke-width: 4; }
+.hd-dial-face svg[aria-disabled] .hd-dial-stem, .hd-dial-face svg[aria-disabled] .hd-dial-knob { stroke: var(--ink-3); }
+@media (prefers-reduced-motion: reduce) {
+  .hd-dial-turn, .hd-dial-tick { transition: none; }
+}

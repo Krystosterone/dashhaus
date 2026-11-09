@@ -6,7 +6,7 @@ import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
 import { ARTWORK_SUNDAY, ARTWORK_TALL, PICTURE_DOORSTEP, PICTURE_NURSERY, PICTURE_WIDE } from "@dashhaus/core/seeds/pictures";
 import {
-  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Facts, IconClose, Keypad, Orb, Picture, Readout, Said, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
+  AlarmPill, AlertStatus, CardFrame, CardTitle, ChoiceChips, CircleButton, Confirm, Dial, Facts, IconClose, Keypad, Orb, Picture, Readout, Said, Stepper, Today, TodayStrip, TogglePill, Track, UnavailableSlot, paint, useCard,
 } from "../shared/ui";
 import type { CardFootprint, CardFrameProps, HourSample } from "../shared/ui";
 import { BrightnessBar, ColorChips, IconBulb, WarmthRuler } from "../cards/light/parts";
@@ -139,6 +139,7 @@ function AllParts() {
   const [pill, setPill] = useState(true);
   const [preset, setPreset] = useState<number>(50);
   const [setpoint, setSetpoint] = useState(21.5);
+  const [aim, setAim] = useState(120);
   const [level, setLevel] = useState(64);
   const [kelvin, setKelvin] = useState(3000);
   const [volume, setVolume] = useState(35);
@@ -199,6 +200,21 @@ function AllParts() {
         <State label="Narrow" width={200}><Stepper label="Heat to, narrow" kicker="Heat to" value={setpoint} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={setSetpoint} /></State>
         <State label="At the top" width={200}><Stepper label="Heat to, at max" value={23} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={() => {}} /></State>
         <State label="Its cue: a compact row's mode" width={200}><Stepper label="Heat to, with its mode" cue={<ModeIcon mode="heat" />} value={setpoint} unit="°" format={(v) => v.toFixed(1)} min={18} max={23} step={0.5} onChange={setSetpoint} /></State>
+      </Part>
+
+      <Part name="Dial" rule="A value you turn round a circle: its heading and what the value means, a ring of ticks over its range with a gap where it can't go, lit in the accent where the card says, and a stem to a ring knob turned to the value. Press or drag anywhere on it; it follows the finger and is sent once when let go. The arrow keys step it. The card draws what sits in its middle.">
+        <State label="Lit across a sweep, turn it" width={260}>
+          <Dial id="parts-dial" label="Aim" heading="Points" says={(v) => `${v}°`} valueText={(v) => `Points ${v} degrees`} value={aim} min={0} max={350} top={175} topLabel="Ahead"
+            lit={(v) => [Math.max(0, v - 45), Math.min(350, v + 45)]} onChange={setAim}>
+            {(turned) => <g className="hd-dial-turn" style={{ transform: `rotate(${turned}deg)` }}><circle r="14" fill="var(--btn)" stroke="var(--line)" /></g>}
+          </Dial>
+        </State>
+        <State label="A beam either side, its hub further out" width={260}>
+          <Dial id="parts-dial-beam" label="Aim, still" heading="Points" says={() => "58° right"} value={233} min={0} max={350} top={175} lit={(v) => [v - 8, v + 8]} hub={30} onChange={() => {}} />
+        </State>
+        <State label="Nothing lit, disabled" width={260}>
+          <Dial id="parts-dial-off" label="Aim, unavailable" heading="Points" says={() => "unknown"} value={175} min={5} max={355} top={180} disabled onChange={() => {}} />
+        </State>
       </Part>
 
       <Part name="Track" rule="A groove you slide along or set: tap to jump (animated), drag to follow the finger, a vertical swipe scrolls the page. The fill is the accent; the value flips where it passes. Off is the plain groove.">

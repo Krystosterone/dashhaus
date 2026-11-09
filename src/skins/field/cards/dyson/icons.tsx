@@ -33,3 +33,12 @@ export const DYSON_PICT = (
     fillRule="evenodd"
   />
 );
+
+/** The fan's cable, printed past the dial's scale at its back (the dial's units), where it can't turn. */
+export function DysonCable({ back }: { back: number }) {
+  const at = (r: number) => {
+    const rad = (back * Math.PI) / 180;
+    return `${+(r * Math.sin(rad)).toFixed(2)} ${+(-r * Math.cos(rad)).toFixed(2)}`;
+  };
+  return <path className="fd-dy-cable" d={`M${at(90)}L${at(104)}`} />;
+}

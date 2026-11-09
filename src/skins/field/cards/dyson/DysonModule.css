@@ -10,6 +10,9 @@
 .fd-dy-item dd { margin: 0; font-size: 13px; line-height: 16px; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--fd-ink); }
 .fd-dy-band { margin-left: 6px; color: var(--fd-ink-3); }
 
+/* The fan's cable, printed at the back of its dial's scale, where it can't turn. */
+.fd-dy-cable { stroke: var(--fd-print); stroke-width: 2.5; stroke-linecap: round; }
+
 /* Narrow modules keep one meta line on the screen. */
 @container (max-width: 239px) {
   .fd-dy .fd-meta-2 { display: none; }
