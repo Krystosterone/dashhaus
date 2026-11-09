@@ -108,13 +108,13 @@ export function createFieldCard(css: string): CustomElementConstructor {
     #layoutFor(config: FieldConfig, hass: LovelaceHass) {
       if (this.#layoutStale(hass)) {
         const input = autoInput(hass, this.#energy(hass));
-        const place = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
+        const withArea = (m: ModuleConfig): ModuleConfig => ({ ...m, area: m.area ?? areaName(input, m.entity) });
         const modules = config.rows ? [] : autoModules(input);
-        const energy = config.rows ? [] : energyModules(input, modules).map(place);
-        const rows = config.rows ? mapRowItems(config.rows, place)
-          : config.layout === "wall" ? areaColumns(modules.map(place), energy, { outside: outsideArea(input), footprint: this.#footprint })
-          : areaRows(modules.map(place), energy);
-        const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, place) }));
+        const energy = config.rows ? [] : energyModules(input, modules).map(withArea);
+        const rows = config.rows ? mapRowItems(config.rows, withArea)
+          : config.layout === "wall" ? areaColumns(modules.map(withArea), energy, { outside: outsideArea(input), footprint: this.#footprint })
+          : areaRows(modules.map(withArea), energy);
+        const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, withArea) }));
         this.#layout = { key: this.#key(hass), rows, pages };
       }
       return this.#layout!;

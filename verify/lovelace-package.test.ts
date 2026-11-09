@@ -215,6 +215,24 @@ describe("@dashhaus/core/lovelace", () => {
     expect(Object.keys(layout).filter((name) => /place/i.test(name) && !/^place[A-Z]/.test(name))).toEqual([]);
   });
 
+  // "Place" is placement only (placeRow, placeColumns, Field's `Place` cell); a wall's columns are areas, Home Assistant's
+  // word (`wallAreas`, `AreaHeading`). Every name the Lovelace framework, and each reference skin's page, Lovelace card and
+  // parts, export, types included, that holds "place" is a placement word: a verb `place…`, a placement, or one of these.
+  it("says place only for placement, in every name the framework and the skins' pages export", () => {
+    const PLACEMENT = ["Place", "PlaceEntry", "Placed", "PlacedCell"];
+    const folders = [SOURCE, ...["orb", "field"].flatMap((skin) => ["dashboards", "lovelace", "shared"].map((dir) => `src/skins/${skin}/${dir}`))];
+    const sources = folders.flatMap((dir) => readdirSync(join(process.cwd(), dir), { recursive: true, encoding: "utf8" })
+      .filter((file) => /\.tsx?$/.test(file) && !/\.(test|stories)\.tsx?$/.test(file)).map((file) => posix.join(dir, file)));
+    const named = sources.flatMap((path) => {
+      const text = readFileSync(join(process.cwd(), path), "utf8");
+      const declared = [...text.matchAll(/^export (?:declare )?(?:async )?(?:function\*?|const|let|class|interface|type|enum) (\w+)/gm)].map((m) => m[1]);
+      const listed = [...text.matchAll(/^export (?:type )?\{([^}]*)\}/gm)].flatMap((m) => m[1].split(",").map((n) => n.trim().split(/\s+as\s+/).at(-1)!).filter(Boolean));
+      return [...declared, ...listed].map((name) => ({ path, name }));
+    });
+    expect(named.length).toBeGreaterThan(100);
+    expect(named.filter(({ name }) => /place/i.test(name) && !/^place[A-Z]/.test(name) && !/placement/i.test(name) && !PLACEMENT.includes(name)).map(({ path, name }) => `${path}: ${name}`)).toEqual([]);
+  });
+
   it("exposes exactly the conformance preset's public words", () => {
     expect(Object.keys(conformance).sort()).toEqual(["cardFolders", "checkCards", "strayClasses"]);
   });
