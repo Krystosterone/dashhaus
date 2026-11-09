@@ -36,7 +36,7 @@ export interface LockCardProps extends ActionCardProps<LockAction> {
  */
 export function LockCard({ entity: e, variant, footprint, showControl, onLock, onUnlock, onOpenDoor, readOnly, onOpenDetails, onClose, action }: LockCardProps) {
   const card = useCard("lk", { variant, footprint, showControl, area: e.area });
-  const { sheet, compact, area } = card;
+  const { uid, sheet, compact, area } = card;
   const unav = e.state === "unavailable";
   const locked = e.state === "locked";
   const moving = e.state === "locking" || e.state === "unlocking" || e.state === "opening";
@@ -124,11 +124,11 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
                 question={lockQuestion(pending, e.name)} detail={lockAskDetail(pending, e.name)} action={lockAskAction(pending)}
                 onConfirm={() => void guard.confirm()} onCancel={guard.close} />)}
           {!pending && canOpen && (
-            // It asks first, so its name ends in Orb's mark; "Unlatch it" is what it does, under it.
-            <button type="button" className="lk-door" aria-label="Open door…" onClick={() => guard.ask("open")}>
+            // It asks first, so its name ends in Orb's mark; "Unlatch it", what it does, describes it.
+            <button type="button" className="lk-door" aria-label="Open door…" aria-describedby={`${uid}-door`} onClick={() => guard.ask("open")}>
               <DoorIcon />
               <span>Open door…</span>
-              <span className="hd-blk-v">Unlatch it</span>
+              <span className="hd-blk-v" id={`${uid}-door`}>Unlatch it</span>
             </button>
           )}
           {!pending && hint && <p className="hd-note">{hint}</p>}
