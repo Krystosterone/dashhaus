@@ -58,6 +58,9 @@ import { CalendarModule } from "../cards/calendar/CalendarModule";
 import { CALENDAR_SEEDS, CALENDAR_WORST_CASE } from "@dashhaus/core/seeds/calendar";
 import { SunModule } from "../cards/sun/SunModule";
 import { SUN_SEEDS, SUN_WORST_CASE } from "@dashhaus/core/seeds/sun";
+import { DysonModule } from "../cards/dyson/DysonModule";
+import { DYSON_SEEDS, DYSON_WORST_CASE, useDemoDyson } from "@dashhaus/core/seeds/dyson";
+import type { DysonSeed } from "@dashhaus/core/seeds/dyson";
 // new-card: worst case imports
 
 /*
@@ -126,6 +129,10 @@ function MediaPlayer({ seed, footprint }: { seed: MediaPlayerSeed; footprint: Fi
 function Vacuum({ seed, footprint }: { seed: VacuumSeed; footprint: FieldFootprint }) {
   return <VacuumModule {...useDemoVacuum(seed)} footprint={footprint} />;
 }
+
+function Dyson({ seed, footprint }: { seed: DysonSeed; footprint: FieldFootprint }) {
+  return <DysonModule {...useDemoDyson(seed)} footprint={footprint} />;
+}
 // new-card: worst case modules
 
 /** One row of the page: a seed drawn in a footprint. */
@@ -159,6 +166,7 @@ const CARDS = [
   card(VACUUM_WORST_CASE, [VACUUM_SEEDS.cleaning], (seed, footprint) => <Vacuum seed={seed} footprint={footprint} />),
   card(CALENDAR_WORST_CASE, [CALENDAR_SEEDS.normal], (seed, footprint) => <CalendarModule entity={seed.entity} history={seed.history} footprint={footprint} />),
   card(SUN_WORST_CASE, [SUN_SEEDS.normal], (seed, footprint) => <SunModule entity={seed.entity} history={seed.history} footprint={footprint} />),
+  card(DYSON_WORST_CASE, [DYSON_SEEDS.on], (seed, footprint) => <Dyson seed={seed} footprint={footprint} />),
   // new-card: worst cases
 ];
 

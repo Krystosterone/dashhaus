@@ -10,6 +10,7 @@ import numeric from "../fixtures/numeric.json";
 import vacuum from "../fixtures/vacuum.json";
 import calendar from "../fixtures/calendar.json";
 import sun from "../fixtures/sun.json";
+import dyson from "../fixtures/dyson.json";
 // new-card: fixture imports
 import alarm from "../fixtures/alarm.json";
 import climate from "../fixtures/climate.json";
@@ -31,6 +32,7 @@ import { numericFromHass } from "./numeric";
 import { vacuumFromHass } from "./vacuum";
 import { calendarFromHass } from "./calendar";
 import { sunFromHass } from "./sun";
+import { dysonFromHass } from "./dyson";
 // new-card: mapper imports
 import { alarmFromHass } from "./alarm";
 import { climateFromHass } from "./climate";
@@ -70,6 +72,7 @@ const domains: Array<{ domain: string; fixture: HassEntities; map: Mapper; keeps
   { domain: "vacuum", fixture: vacuum, map: vacuumFromHass, keepsState: true },
   { domain: "calendar", fixture: calendar, map: calendarFromHass, keepsState: false },
   { domain: "sun", fixture: sun, map: sunFromHass, keepsState: false },
+  { domain: "dyson", fixture: dyson, map: dysonFromHass, keepsState: true },
   // new-card: fixtures
 ];
 

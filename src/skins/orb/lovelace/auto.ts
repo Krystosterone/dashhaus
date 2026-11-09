@@ -1,7 +1,7 @@
 // Self-contained on purpose: the repo's dashboard.config.mjs imports this file through Node's type stripping for
 // deploy. It may import @dashhaus/core/lovelace/layout, the package's pure layout entry, and nothing that reaches React.
 
-import { areaId, byName, deviceCompanion, domainOf, energySensors, numericSensors, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { areaId, byName, deviceCompanion, domainOf, dysonFans, energySensors, numericSensors, placeSection, roomSensors, safetySensors, visibleEntities } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput as LayoutInput } from "@dashhaus/core/lovelace/layout";
 
 export type { AutoInput, AutoState } from "@dashhaus/core/lovelace/layout";
@@ -54,7 +54,11 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
   // The sun, beside the weather: when it next sets or rises.
   const sun = ofDomain("sun")[0];
 
-  const climate = ofDomain("climate");
+  // A Dyson's fan draws the dyson card, its device's companions with it; a Hot+Cool's heater is one of them.
+  const dysons = dysonFans(input);
+  const dyson = new Set(dysons.map((d) => d.fan));
+  const dysonHeat = new Set(dysons.flatMap((d) => (d.heat ? [d.heat] : [])));
+  const climate = ofDomain("climate").filter((id) => !dysonHeat.has(id));
   if (climate.length) {
     place({ title: "Comfort", cards: climate.map((entity, i) => (i === 0 ? entity : { entity, footprint: "compact" })) });
   }
@@ -105,7 +109,7 @@ export function autoDashboard(input: LayoutInput, title = "Home"): Record<string
     const ids = groups.get(key);
     if (!ids) continue;
     ids.sort((a, b) => order.indexOf(domainOf(a)) - order.indexOf(domainOf(b)));
-    place({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact" })) });
+    place({ title: key ? areas[key].name : "Other", cards: ids.map((entity) => ({ entity, footprint: "compact", ...(dyson.has(entity) && { card: "dyson" }) })) });
   }
 
   // Automatic discovery cannot infer true frequency. It puts every action first, then the status bands, the most

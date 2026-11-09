@@ -16,6 +16,7 @@ import { createDemoNumericHaTransport } from "./numeric";
 import { createDemoVacuumHaTransport } from "./vacuum";
 import { createDemoCalendarHaTransport } from "./calendar";
 import { createDemoSunHaTransport } from "./sun";
+import { createDemoDysonHaTransport } from "./dyson";
 // new-card: house imports
 import type { HaTransport, HassEntities } from "../ha/types";
 
@@ -45,6 +46,7 @@ export function createDemoHouseTransport(): HaTransport {
     createDemoVacuumHaTransport(),
     createDemoCalendarHaTransport(),
     createDemoSunHaTransport(),
+    createDemoDysonHaTransport(),
     // new-card: house parts
   ];
   const latest: HassEntities[] = parts.map(() => ({}));

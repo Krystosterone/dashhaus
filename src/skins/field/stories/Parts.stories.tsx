@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { Blank, Confirm, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Steps, Swatch, Temperature, Today, useDetails, Warn, WarnWords } from "../shared/ui";
+import { Blank, Confirm, Dial, Digits, Facts, Fader, Glyph, Key, KeyGroup, Keypad, Legend, ModuleFrame, ModuleRow, Notices, PanelBody, Pictogram, Picture, RangeFader, Screen, Steps, Swatch, Temperature, Today, useDetails, Warn, WarnWords } from "../shared/ui";
 import type { ModuleFrameProps } from "../shared/ui";
 import { usePicture } from "@dashhaus/core/hooks";
 import type { PictureStatus } from "@dashhaus/core/hooks";
@@ -90,6 +90,7 @@ function AllParts() {
   const [mode, setMode] = useState<"heat" | "cool" | "off">("heat");
   const [level, setLevel] = useState(64);
   const [warmth, setWarmth] = useState(40);
+  const [aim, setAim] = useState(120);
   const [range, setRange] = useState<[number, number]>([20, 24]);
   const [position, setPosition] = useState(60);
 
@@ -137,6 +138,21 @@ function AllParts() {
         <State label="Disabled" width={300}>
           <RangeFader id="parts-range-off" name="Thermostat, unavailable" legend="Range" low={20} high={24} min={16} max={30} step={0.5} disabled
             lowValueText="Unavailable" highValueText="Unavailable" onChange={() => {}} />
+        </State>
+      </Part>
+
+      <Part name="Dial" rule="A knob you turn, as a rotary encoder: a printed legend with its rule and what the value means, a printed scale round a flat-topped cap, a tick every step and a longer one every 45° from the top, a gap where it can't go. The scale lights in its parameter's colour where the module says, and the cap's ink line and dot turn to the value. Press or drag anywhere on it; it follows the finger and is sent once when let go. The arrow keys step it. Disabled, it lies flat.">
+        <State label="Lit across a sweep, second parameter, turn it" width={260}>
+          <Dial id="parts-dial" label="Aim" legend="Points" says={(v) => `${v}°`} valueText={(v) => `Points ${v} degrees`} value={aim} min={0} max={350} top={175} topLabel="Ahead" param="b"
+            lit={(v) => [Math.max(0, v - 45), Math.min(350, v + 45)]} onChange={setAim}>
+            {() => <path d="M0 90L0 104" stroke="currentColor" strokeWidth="2.5" />}
+          </Dial>
+        </State>
+        <State label="A beam either side, first parameter" width={260}>
+          <Dial id="parts-dial-beam" label="Aim, still" legend="Points" says={() => "58° right"} value={233} min={0} max={350} top={175} lit={(v) => [v - 8, v + 8]} onChange={() => {}} />
+        </State>
+        <State label="Disabled" width={260}>
+          <Dial id="parts-dial-off" label="Aim, unavailable" legend="Points" says={() => "Unavailable"} value={180} min={5} max={355} top={180} disabled onChange={() => {}} />
         </State>
       </Part>
 

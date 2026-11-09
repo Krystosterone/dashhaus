@@ -1,6 +1,6 @@
 import { Children, createContext, useContext, useEffect, useId, useLayoutEffect, useRef } from "react";
 import type { ComponentType, CSSProperties, InputHTMLAttributes, ReactNode } from "react";
-import { useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
+import { useDial, useKeypad, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { SliderOptions } from "@dashhaus/core/primitives";
 import { useHourCycle, useSettled } from "@dashhaus/core/hooks";
 import type { Picture as PictureLifecycle } from "@dashhaus/core/hooks";
@@ -478,6 +478,87 @@ export function LevelBar({ id, label, heading, value, min, max, on, wakes, text,
       text={(v) => (on ? text(v) : offText(v))}
       lit={on}
     />
+  );
+}
+
+/* ---------- Dial: a value you turn ---------- */
+
+/** The dial's drawing, in its own units round its centre: its ticks' ring, the knob inside it, the stem's start. */
+const DIAL = { outer: 86, inner: 62, knob: 48 } as const;
+/** A point `r` from the dial's centre, `deg` clockwise from its top. */
+const onDial = (deg: number, r: number) => {
+  const rad = (deg * Math.PI) / 180;
+  return { x: +(r * Math.sin(rad)).toFixed(2), y: +(-r * Math.cos(rad)).toFixed(2) };
+};
+
+export interface DialProps {
+  /** The hidden range input's id. */
+  id: string;
+  /** The input's spoken name ("Living room fan aims"). */
+  label: string;
+  /** The heading over the dial ("Points"), and what the shown value means beside it ("58° right"). */
+  heading: string;
+  says: (value: number) => string;
+  /** What a screen reader hears for a value. Default: `says`. */
+  valueText?: (value: number) => string;
+  value: number;
+  min: number;
+  max: number;
+  /** The value at the top of the dial; values grow clockwise from it. */
+  top: number;
+  /** A tick every `step`, and the keyboard's step. Default 5. */
+  step?: number;
+  /** The word printed over the top ("Ahead"). */
+  topLabel?: string;
+  /** Where the ticks light in the accent, from the shown value: a sweep's ends, or a beam either side. */
+  lit?: (value: number) => [low: number, high: number];
+  /** Where the stem starts, out from the centre, past what the card draws there. Default 22. */
+  hub?: number;
+  disabled?: boolean;
+  /** Sent once a drag is let go, or at each key step. */
+  onChange: (value: number) => void;
+  /**
+   * The card's own drawing in the dial's middle, in the dial's units (its centre at 0, its ring 86 out), given how far
+   * the shown value is turned from the top, in degrees: wrap what turns with it in `hd-dial-turn`.
+   */
+  children?: (turned: number) => ReactNode;
+}
+
+/**
+ * A value you turn, round a circle (a fan's aim): its heading and what the value means, then a ring of ticks every
+ * `step` over its range, a gap where it can't go, the ticks lit in the accent where `lit` says, and a stem from the
+ * middle to a ring knob turned to the value, the card's own drawing in the middle. A press or a drag anywhere on it
+ * turns it there (`useDial`), sent once when let go; the arrow keys step it on a hidden range input. What turns eases
+ * round to a new value from a key or the card, and follows the finger at once.
+ */
+export function Dial({ id, label, heading, says, valueText = says, value, min, max, top, step = 5, topLabel, lit, hub = 22, disabled, onChange, children }: DialProps) {
+  const dial = useDial<SVGSVGElement>({ value, min, max, top, step, disabled, valueText, onChange });
+  const shown = dial.shown;
+  const turned = shown - top;
+  const [low, high] = lit?.(shown) ?? [Infinity, -Infinity];
+  const ticks: number[] = [];
+  for (let v = min; v <= max; v += step) ticks.push(v);
+  const word = says(shown);
+  return (
+    <div className="hd-blk hd-dial">
+      <p className="hd-blk-h"><label htmlFor={id}>{heading}</label><span className="hd-blk-v" aria-hidden="true">{word.charAt(0).toUpperCase() + word.slice(1)}</span></p>
+      <div className="hd-dial-face">
+        <input id={id} className="hd-dial-input" aria-label={label} {...dial.inputProps} />
+        <svg viewBox="-100 -104 200 208" aria-hidden="true" aria-disabled={disabled || undefined} {...dial.rootProps}>
+          {ticks.map((v) => {
+            const a = onDial(v - top, DIAL.inner);
+            const b = onDial(v - top, DIAL.outer);
+            return <path key={v} className="hd-dial-tick" data-lit={v >= low && v <= high ? "" : undefined} d={`M${a.x} ${a.y}L${b.x} ${b.y}`} />;
+          })}
+          {topLabel && <text className="hd-dial-top" x="0" y={-DIAL.outer - 8} textAnchor="middle">{topLabel}</text>}
+          {children?.(turned)}
+          <g className="hd-dial-turn" style={{ transform: `rotate(${turned}deg)` }}>
+            <path className="hd-dial-stem" d={`M0 ${-hub}V${-DIAL.knob}`} />
+            <circle className="hd-dial-knob" cy={-DIAL.knob} r="9" />
+          </g>
+        </svg>
+      </div>
+    </div>
   );
 }
 

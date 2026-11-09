@@ -174,6 +174,14 @@ export type { SunTileProps } from "./cards/sun/SunTile";
 export { HaSunTile } from "./ha/HaSunTile";
 export type { HaSunTileProps } from "./ha/HaSunTile";
 
+// Dyson
+export { DysonCard, DysonSheet } from "./cards/dyson/DysonCard";
+export type { DysonCardProps, DysonSheetProps } from "./cards/dyson/DysonCard";
+export { DysonTile } from "./cards/dyson/DysonTile";
+export type { DysonTileProps } from "./cards/dyson/DysonTile";
+export { HaDysonTile } from "./ha/HaDysonTile";
+export type { HaDysonTileProps } from "./ha/HaDysonTile";
+
 // new-card: card exports
 export { JoinedBundle, LeadBundle, TitledBundle } from "./bundles/Bundle";
 export { SheetExtra } from "./shared/ui";

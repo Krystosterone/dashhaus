@@ -445,3 +445,29 @@ button.fd-pic:active .fd-pic-i { transform: scale(0.98); }
    spans the row. */
 .fd-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
 .fd-row[data-solo] { grid-template-columns: minmax(0, 1fr); }
+
+/* Dial: a knob you turn (Dial). Its legend as a fader's; a printed scale round a flat-topped cap, a tick every step and
+   a longer one every 45° from its top, lit in its parameter's colour where the card says; the cap's ink line and its
+   parameter's dot turned to the value. It turns in two dimensions, so the page never scrolls from it. The cap turns to
+   a new value with a press's ease, and follows a finger at once; disabled, it lies flat in dim ink. */
+.fd-dial { display: grid; gap: 6px; min-width: 0; }
+.fd-dial-face { position: relative; width: min(100%, 208px); margin: 0 auto; }
+.fd-dial-face svg { display: block; width: 100%; height: auto; overflow: visible; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+.fd-dial-face svg[data-dragging] { cursor: grabbing; }
+.fd-dial[data-disabled] .fd-dial-face svg { cursor: default; }
+.fd-dial-tick { stroke: var(--fd-print); stroke-width: 2; }
+.fd-dial[data-param="a"] .fd-dial-lit { stroke: var(--fd-param-a); }
+.fd-dial[data-param="b"] .fd-dial-lit { stroke: var(--fd-param-b); }
+.fd-dial-top { font-size: var(--fd-type-legend); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--fd-print); }
+.fd-dial-cap { transition: transform 240ms var(--fd-ease-out); }
+.fd-dial-face svg[data-dragging] .fd-dial-cap { transition: none; }
+.fd-dial-cap > circle:first-child { fill: var(--fd-key); stroke: var(--fd-key-edge); stroke-width: 1.5; }
+.fd-dial-line { stroke: var(--fd-ink); stroke-width: 3; stroke-linecap: round; }
+.fd-dial[data-param="a"] .fd-dial-dot { fill: var(--fd-param-a); }
+.fd-dial[data-param="b"] .fd-dial-dot { fill: var(--fd-param-b); }
+.fd-dial[data-disabled] .fd-dial-tick, .fd-dial[data-disabled] .fd-dial-line { stroke: var(--fd-off); }
+.fd-dial[data-disabled] .fd-dial-dot { fill: var(--fd-off); }
+.fd-dial-face .fd-in:focus-visible + svg .fd-dial-cap > circle:first-child { stroke: var(--fd-focus); stroke-width: 3; }
+@media (prefers-reduced-motion: reduce) {
+  .fd-dial-cap { transition: none; }
+}

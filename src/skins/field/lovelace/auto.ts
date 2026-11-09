@@ -1,4 +1,4 @@
-import { deviceCompanion, energySensors, friendlyName, groupByArea, numericSensors, roomSensors, safetySensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
+import { deviceCompanion, dysonFans, energySensors, friendlyName, groupByArea, numericSensors, roomSensors, safetySensors, sortByName, visibleEntities } from "@dashhaus/core/lovelace/layout";
 import type { AutoInput } from "@dashhaus/core/lovelace/layout";
 import { kindOf } from "./config";
 import type { FieldRow, ModuleConfig } from "./config";
@@ -11,7 +11,8 @@ export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
  * config or diagnostic entities left out, sorted by name. The sensor card takes only room air: one per device, its
  * humidity and battery as companions (`roomSensors`). The weather card takes the first weather entity by name, as
  * orb's does, with `sun.sun` for night. Every input_boolean and switch is a toggle, every humidifier a humidifier, every
- * fan a fan, every cover a cover, every media_player a media player, every vacuum a vacuum, every alarm_control_panel an alarm, every lock a lock with its device's battery (`deviceCompanion`), every `sensor.*_sleep_state` an Owlet sock (its readings are
+ * fan a fan (a Dyson's, found by the night-mode switch and filter sensor named after it, the dyson module, its heater
+ * drawn by it and not on its own, `dysonFans`), every cover a cover, every media_player a media player, every vacuum a vacuum, every alarm_control_panel an alarm, every lock a lock with its device's battery (`deviceCompanion`), every `sensor.*_sleep_state` an Owlet sock (its readings are
  * found beside it, so they aren't drawn on their own), and every `sensor.*_voucher` a guest Wi-Fi code (its QR code and
  * buttons likewise), and every calendar a calendar. The binary sensor card takes only the safety glance, as orb's does: every door, window, leak and
  * smoke sensor (`safetySensors`), with its device's battery. Every camera is a camera, its still on a standard module.
@@ -21,9 +22,13 @@ export { areaName, groupByArea } from "@dashhaus/core/lovelace/layout";
  */
 export function autoModules(input: AutoInput): ModuleConfig[] {
   const { states } = input;
-  const visible = visibleEntities(input, (entity) => kindOf(entity) !== undefined);
+  // A Dyson's fan draws the dyson module, its device's companions with it; a Hot+Cool's heater is one of them.
+  const dysons = dysonFans(input);
+  const dyson = new Set(dysons.map((d) => d.fan));
+  const dysonHeat = new Set(dysons.flatMap((d) => (d.heat ? [d.heat] : [])));
+  const visible = visibleEntities(input, (entity) => kindOf(entity) !== undefined && !dysonHeat.has(entity));
   const cards = sortByName(visible.flatMap((entity): ModuleConfig[] => {
-    const kind = kindOf(entity);
+    const kind = dyson.has(entity) ? "dyson" : kindOf(entity);
     if (kind !== "lock") return kind ? [{ entity, kind }] : [];
     const battery = deviceCompanion(input, entity, "battery");
     return [{ entity, kind, ...(battery && { battery }) }];

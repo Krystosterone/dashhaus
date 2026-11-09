@@ -19,4 +19,5 @@ export * from "./numeric";
 export * from "./vacuum";
 export * from "./calendar";
 export * from "./sun";
+export * from "./dyson";
 // new-card: demo transports

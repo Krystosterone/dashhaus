@@ -140,6 +140,7 @@ const preview: Preview = {
               "Vacuum",
               "Calendar",
               "Sun",
+              "Dyson",
               // new-card: cards
             ],
             "Dashboards", ["Examples", ["Phone", "Tablet", "Wall panel", "Wall panel, far", "Phone, alarm below the fold"], "Lovelace card", "Header", "Nav bar"],
@@ -155,6 +156,7 @@ const preview: Preview = {
               "Vacuum",
               "Calendar",
               "Sun",
+              "Dyson",
               // new-card: connected
             ],
           ],

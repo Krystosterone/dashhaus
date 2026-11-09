@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useKeypad, usePress } from "@dashhaus/core/primitives";
 import { useSettled } from "@dashhaus/core/hooks";
 import type { Picture as PictureLifecycle } from "@dashhaus/core/hooks";
-import { useRangeSlider, useSlider } from "@dashhaus/core/primitives";
+import { useDial, useRangeSlider, useSlider } from "@dashhaus/core/primitives";
 import { CardDialog, cardShape, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { Details } from "@dashhaus/core/lovelace/card";
 import type { HourSample } from "@dashhaus/core/entities/history";
@@ -517,6 +517,83 @@ export function Fader({ id, label, legend, value, min, max, step = 1, lit, empty
       {thumb && <div key={runs?.key} className="fd-rail" aria-hidden="true" style={run}><div className="fd-thumb" /></div>}
       {known && <div className="fd-hit" {...slider.hitProps} />}
       {known && <input id={id} className="fd-in" aria-label={label} {...slider.inputProps} />}
+    </div>
+  );
+}
+
+/** The dial's drawing, in its own units round its centre: its printed scale, and the knob's cap inside it. */
+const DIAL = { outer: 86, inner: 76, long: 70, cap: 50 } as const;
+const onDial = (deg: number, r: number) => {
+  const rad = (deg * Math.PI) / 180;
+  return { x: +(r * Math.sin(rad)).toFixed(2), y: +(-r * Math.cos(rad)).toFixed(2) };
+};
+
+export interface DialProps {
+  /** The hidden range input's id. */
+  id: string;
+  /** The input's spoken name ("Living room fan aims"). */
+  label: string;
+  /** Its printed legend ("Points"), and what the shown value means at the rule's end ("58° right"). */
+  legend: string;
+  says: (value: number) => string;
+  /** What a screen reader hears for a value. Default: `says`. */
+  valueText?: (value: number) => string;
+  value: number;
+  min: number;
+  max: number;
+  /** The value at the top of the dial; values grow clockwise from it. */
+  top: number;
+  /** A printed tick every `step`, and the keyboard's step. Default 5. */
+  step?: number;
+  /** The word printed over the top ("Ahead"). */
+  topLabel?: string;
+  /** Where the scale lights in its parameter's colour, from the shown value: a sweep's ends, or a beam either side. */
+  lit?: (value: number) => [low: number, high: number];
+  /** Which parameter it sets, as a fader's: its colour. Default "a". */
+  param?: Param;
+  disabled?: boolean;
+  /** Sent once a drag is let go, or at each key step. */
+  onChange: (value: number) => void;
+  /** The card's own print round the scale (a fan's cable at its back), in the dial's units, given how far it is turned. */
+  children?: (turned: number) => ReactNode;
+}
+
+/**
+ * Field's fourth control: a knob you turn, as a rotary encoder on TE's devices. A printed legend with its rule and what
+ * the value means at its end, then a printed scale round a flat-topped cap, a tick every `step` over its range and a
+ * longer one every 45° from the top, with a gap where it can't go; the scale lights in its parameter's colour where
+ * the card says (a sweep), and the cap carries an ink line and a dot in that colour turned to the value. Press or drag
+ * anywhere on it to turn it there (`useDial`), sent once when let go; the arrow keys step it. Disabled, it lies flat.
+ */
+export function Dial({ id, label, legend, says, valueText = says, value, min, max, top, step = 5, topLabel, lit, param = "a", disabled, onChange, children }: DialProps) {
+  const dial = useDial<SVGSVGElement>({ value, min, max, top, step, disabled, valueText, onChange });
+  const shown = dial.shown;
+  const turned = shown - top;
+  const [low, high] = lit?.(shown) ?? [Infinity, -Infinity];
+  const ticks: number[] = [];
+  for (let v = min; v <= max; v += step) ticks.push(v);
+  return (
+    <div className="fd-dial" data-param={param} data-disabled={disabled || undefined}>
+      <Legend id={`${id}-legend`} value={says(shown)}>{legend}</Legend>
+      <div className="fd-dial-face">
+        <input id={id} className="fd-in" aria-label={label} {...dial.inputProps} />
+        <svg viewBox="-104 -104 208 208" aria-hidden="true" {...dial.rootProps}>
+          {ticks.map((v) => {
+            const long = (v - top) % 45 === 0;
+            const a = onDial(v - top, long ? DIAL.long : DIAL.inner);
+            const b = onDial(v - top, DIAL.outer);
+            const on = v >= low && v <= high;
+            return <path key={v} className={on ? "fd-dial-tick fd-dial-lit" : "fd-dial-tick"} d={`M${a.x} ${a.y}L${b.x} ${b.y}`} />;
+          })}
+          {topLabel && <text className="fd-dial-top" x="0" y={-DIAL.outer - 6} textAnchor="middle">{topLabel}</text>}
+          {children?.(turned)}
+          <g className="fd-dial-cap" style={{ transform: `rotate(${turned}deg)` }}>
+            <circle r={DIAL.cap} />
+            <path className="fd-dial-line" d={`M0 ${-DIAL.cap + 26}V${-DIAL.cap + 8}`} />
+            <circle className="fd-dial-dot" cy={-DIAL.cap + 15} r="4.5" />
+          </g>
+        </svg>
+      </div>
     </div>
   );
 }

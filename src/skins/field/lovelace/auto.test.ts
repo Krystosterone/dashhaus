@@ -79,6 +79,21 @@ describe("autoModules", () => {
       .toMatchObject({ kind: "calendar", calendars: ["calendar.school"], days: 14, events: true });
   });
 
+  it("takes a Dyson's fan as the dyson module, and its heater not on its own", () => {
+    const modules = autoModules({
+      states: {
+        "fan.desk": state("fan.desk", "Desk fan"),
+        "fan.living_room": state("fan.living_room", "Hot+Cool"),
+        "switch.living_room_night_mode": state("switch.living_room_night_mode", "Hot+Cool Night Mode"),
+        "sensor.living_room_hepa_filter_life": state("sensor.living_room_hepa_filter_life", "Hot+Cool HEPA Filter Life"),
+        "climate.living_room": state("climate.living_room", "Hot+Cool heater"),
+        "climate.hall": state("climate.hall", "Hall"),
+      },
+      entities: { "switch.living_room_night_mode": { entity_category: "config" }, "sensor.living_room_hepa_filter_life": { entity_category: "diagnostic" } },
+    });
+    expect(modules).toEqual([{ entity: "fan.desk", kind: "fan" }, { entity: "climate.hall", kind: "climate" }, { entity: "fan.living_room", kind: "dyson" }]);
+  });
+
   it("takes every visible cover", () => {
     expect(autoModules({ states: { "cover.garage_door": state("cover.garage_door", "Garage door") } })).toEqual([{ entity: "cover.garage_door", kind: "cover" }]);
   });

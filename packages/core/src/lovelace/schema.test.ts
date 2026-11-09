@@ -10,6 +10,7 @@ import {
   readCards,
   readColor,
   readNumericOptions,
+  readDysonOptions,
   readOwletOptions,
   readUnit,
   readBody,
@@ -161,6 +162,19 @@ describe("shared option readers", () => {
     });
     expect(readOwletOptions(reader, { alerts: ["binary_sensor.low"] }, "owlet", ["low_oxygen"]).alerts).toBeUndefined();
     expect(reader.problems).toEqual(['owlet: "alerts" must map alerts to binary_sensor.* entities, like low_oxygen: binary_sensor.sock_low_oxygen']);
+  });
+
+  it("reads a Dyson's companions named otherwise, or none, and refuses another domain or key", () => {
+    const reader = new Reader();
+    expect(readDysonOptions(reader, { companions: { pm25: "sensor.air_pm25", heat: "climate.heater", night_mode: "none" } }, "dyson")).toEqual({
+      companions: { pm25: "sensor.air_pm25", heat: "climate.heater", nightMode: "" },
+    });
+    expect(reader.problems).toEqual([]);
+    expect(readDysonOptions(reader, {}, "dyson")).toEqual({});
+    readDysonOptions(reader, { companions: { heat: "switch.heater", pm2: "sensor.x" } }, "dyson");
+    expect(reader.problems).toHaveLength(2);
+    readDysonOptions(reader, { companions: ["sensor.x"] }, "dyson");
+    expect(reader.problems).toHaveLength(3);
   });
 
   it("reads a numeric reading's unit and the limits it warns past, any finite number, a band low under high", () => {

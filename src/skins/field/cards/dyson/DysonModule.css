@@ -1,0 +1,26 @@
+/* Dyson module (fd-dy): the power key, then the speed fader across the rest of the row (ModuleRow, solo on a Dyson
+   without speeds); in the panel, its mode, oscillation, airflow, night mode and heat as KeyGroups, then its readings
+   and filters printed on the plate. The plate, key, screen, fader, meter and panel body are shared. */
+
+/* The readings and filters, one to a line as a spec sheet prints them: what each is on the left, its figure and
+   Dyson's band on the right. */
+.fd-dy-list { margin: 0; display: grid; gap: 6px; }
+.fd-dy-item { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; }
+.fd-dy-item dt { flex: none; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fd-print); }
+.fd-dy-item dd { margin: 0; font-size: 13px; line-height: 16px; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--fd-ink); }
+.fd-dy-band { margin-left: 6px; color: var(--fd-ink-3); }
+
+/* The fan's cable, printed at the back of its dial's scale, where it can't turn. */
+.fd-dy-cable { stroke: var(--fd-print); stroke-width: 2.5; stroke-linecap: round; }
+
+/* Narrow modules keep one meta line on the screen. */
+@container (max-width: 239px) {
+  .fd-dy .fd-meta-2 { display: none; }
+  .fd-dy .fd-read { font-size: 24px; }
+}
+
+/* A narrow row keeps the figure and lets the pictogram go. */
+@container (max-width: 279px) {
+  .fd-dy[data-footprint="compact"] .fd-pict { display: none; }
+  .fd-dy[data-footprint="compact"] .fd-screen { width: 80px; }
+}

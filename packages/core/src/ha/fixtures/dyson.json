@@ -1,0 +1,74 @@
+{
+  "fan.bedroom_purifier": {
+    "entity_id": "fan.bedroom_purifier",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Bedroom Purifier",
+      "percentage": 40,
+      "percentage_step": 10,
+      "preset_mode": "Normal",
+      "preset_modes": ["Auto", "Normal"],
+      "oscillating": true,
+      "direction": "forward",
+      "angle_low": 135,
+      "angle_high": 225,
+      "supported_features": 63
+    },
+    "last_changed": "2026-10-19T11:20:00+00:00",
+    "last_updated": "2026-10-19T11:20:02+00:00"
+  },
+  "fan.living_room_hot_cool": {
+    "entity_id": "fan.living_room_hot_cool",
+    "state": "on",
+    "attributes": {
+      "friendly_name": "Living Room Hot+Cool",
+      "percentage": null,
+      "percentage_step": 10,
+      "preset_mode": "Auto",
+      "preset_modes": ["Auto", "Normal"],
+      "oscillating": false,
+      "direction": "reverse",
+      "angle_low": 90,
+      "angle_high": 270,
+      "supported_features": 63
+    },
+    "last_changed": "2026-10-19T07:05:00+00:00",
+    "last_updated": "2026-10-19T11:19:00+00:00"
+  },
+  "fan.office_pure_cool_link": {
+    "entity_id": "fan.office_pure_cool_link",
+    "state": "off",
+    "attributes": {
+      "friendly_name": "Office Pure Cool Link",
+      "percentage": 0,
+      "percentage_step": 10,
+      "preset_mode": "Normal",
+      "preset_modes": ["Auto", "Normal"],
+      "oscillating": false,
+      "supported_features": 59
+    },
+    "last_changed": "2026-10-19T10:00:00+00:00",
+    "last_updated": "2026-10-19T10:00:00+00:00"
+  },
+  "fan.porch_purifier": {
+    "entity_id": "fan.porch_purifier",
+    "state": "unknown",
+    "attributes": {
+      "friendly_name": "Porch Purifier",
+      "supported_features": 63
+    },
+    "last_changed": "2026-10-19T09:00:00+00:00",
+    "last_updated": "2026-10-19T09:00:00+00:00"
+  },
+  "fan.garage_purifier": {
+    "entity_id": "fan.garage_purifier",
+    "state": "unavailable",
+    "attributes": {
+      "friendly_name": "Garage Purifier",
+      "supported_features": 63,
+      "last_seen": "2026-10-19T08:20:00+00:00"
+    },
+    "last_changed": "2026-10-19T08:20:00+00:00",
+    "last_updated": "2026-10-19T08:20:00+00:00"
+  }
+}

@@ -9,7 +9,7 @@ A card draws one normalized model, and every skin's card takes it as one `entity
 | Model | Cards | What it is |
 | --- | --- | --- |
 | Direct | light, climate, cover, toggle, humidifier, fan, alarm, camera, media player, sun | One Home Assistant entity and its attributes (a camera's still and a player's artwork are its own `entity_picture`, core.md → Pictures). |
-| Composed | sensor, sound, weather, owlet, guestWifi | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons. |
+| Composed | sensor, sound, weather, owlet, guestWifi, dyson | A primary entity plus companions its `useHa<Name>` hook composes, found beside it or given as options: a sensor with its device's humidity and battery, a sound machine's volume, the weather's air quality and sun, an Owlet sock's other sensors and base station, a guest Wi-Fi code's join QR code and buttons, a Dyson's air sensors, filters, night mode and heater. |
 
 Composition stops at the hook. The card still takes one `entity`, one footprint and one details surface, so the dashboard, layout and YAML treat it like any other card. "Device card" describes a composed model from one device; it is not a third kind of card.
 
@@ -626,6 +626,30 @@ When the sun next sets or rises, and where it is in the day: Home Assistant's `s
 - **Unavailable:** the dashed slot with when it was last seen; the path stays, since it is the place's, but neither now nor the sun is drawn, its heading `Unavailable since 08:20`; no list.
 - **Home Assistant:** `HaSunTile` takes the sun. Today's path comes from Home Assistant's own location (`get_config`), or the `latitude` and `longitude` options; without either there is no path, and `loadHistory={false}` (YAML `history: false`) leaves it out.
 
+## Using the dyson card
+
+One Dyson purifier fan, as either custom integration adds it: [hass-dyson](https://github.com/cmgrayb/hass-dyson) (`hass_dyson`) or [ha-dyson](https://github.com/libdyson-wg/ha-dyson) (`dyson_local`); a Pure Cool, Hot+Cool, Humidify+Cool or Pure Cool Link. A composed model: its `fan.*` (the fan card's model, its presets read as Auto or not) with the entities on its device, each named after the fan, the first name that exists winning (`dysonCompanionIds`): the air readings (`sensor.<fan>_pm_2_5` or `_pm2_5`, `_pm_10` or `_pm10`, `_volatile_organic_compounds_index` or `_voc`, `_nitrogen_dioxide_index` or `_no2`, `_hcho` or `_formaldehyde`; hass-dyson's VOC in mg/m³ and NO₂ in µg/m³ are read back on Dyson's 0-10 index, as its app shows them), the room's `_temperature` and `_humidity`, the filters' life (`_hepa_filter_life`, `_carbon_filter_life`, or one `_filter_life`, read only in percent, a Pure Cool Link's `_filter_life_percentage` where its `_filter_life` is in hours), night mode (`switch.<fan>_night_mode`), the oscillation (hass-dyson's angle sliders, `number.<fan>_oscillation_center_angle`, `_oscillation_angle` its width, `_oscillation_low_angle` and `_high_angle`; a Humidify+Cool's oscillation select, `select.<fan>_oscillation_mode` or `_oscillation`; or ha-dyson's fan `angle_low` and `angle_high`) and a Hot+Cool's heater (`climate.<fan>`). `companions` names any of them otherwise, or `""` leaves one out (YAML `companions:`, spec/deploy.md).
+
+```tsx
+<DysonTile entity={entity} history={today} onToggle={toggle} onPercentageChange={setSpeed} onAutoChange={setAuto} onOscillateChange={oscillate}
+  onOscillationModeChange={sweep} onDirectionChange={airflow} onNightModeChange={night} onHeatChange={heat} onHeatTargetChange={heatTo} />
+<HaDysonTile entityId="fan.bedroom" />
+```
+
+- **Switching and speed:** the orb toggles it; the slot is the fan's groove, counted in its ten speeds (`Speed 4`). In Auto the fan chooses its own speed and Home Assistant reports none, so the groove is empty and says Auto (heard "Auto, choosing its own speed"); dragging it sets a speed, which leaves Auto, and turns the fan on while it is off.
+- **Colour:** a state, the accent with no glow, as the fan's: moving and cleaning air is not light or heat. While its heater is heating (`hvac_action: heating`), it claims the energy bloom, as the climate card does (attention-budget skill).
+- **Status line:** the room, then what it runs as (`Heat 23°`, `Auto`, `Night`, `Sweeps 90°`, `Oscillating`, the first that holds), else how the air is (`Air good`, `Air fair`). Under 260 px, and in a compact row, the room alone.
+- **The air:** each reading in Dyson's own bands, Good, Fair, Poor and Very poor (`entities/dyson/air.ts`: PM2.5 to 35, 53 and 70 µg/m³; PM10 to 50, 75 and 100 µg/m³; VOC and NO₂ on Dyson's 0-10 index to 3, 6 and 8; formaldehyde to 0.099, 0.299 and 0.499 mg/m³); the air overall is its worst reading's band, the first listed on a tie.
+- **Warnings:** poor or very poor air first (`Poor air`, `Very poor air`, heard `Warning: Purifier: Poor air: Fine particles 62 µg/m³`), then a filter at or under 10% (`Change filter`, heard with each filter's life). Both **advisory**: the purifier is already cleaning the air. The word leads the status line behind the warn marker, the room after it, and a compact row's value line, the state word after it.
+- **Where it points:** a Pure Cool or Hot+Cool turns round its own base, its integration counting the angles (hass-dyson 0-350° with 175° ahead, ha-dyson 5-355° with 180°; ahead is straight out of the front of the base, opposite its cable, and a lower angle turns it to its left seen from behind, checked on a hass-dyson Pure Cool). It holds still at one angle, or sweeps at least 30° round where it points. It reports no live position, so the card draws what it was set to. The status line says `Points 58° right` while it holds still (`aimWords`).
+- **Sheet:** press and hold the orb, or tap the name: the groove; **Mode** (Auto, Manual); **Oscillation**: on a Pure Cool or Hot+Cool, Off, Still, 45°, 90°, 180° and 350°, a width kept round where it points, then, while it oscillates, **Points**, a dial seen from above with ahead at the top, so its left is on the left: a ring of ticks every 5° it can turn to, lit in the accent where it sweeps (a few either side while still), its base and cable fixed at the back, its head, a stem and a ring knob turned to where it aims. It is Orb's `Dial` part, the fan's base, cable and head the card's own drawing in its middle: a drag anywhere on it aims it, the width kept, sent once when let go (`useDial`); the arrow keys turn it 5° at a time; a new aim eases round, at once under reduced motion. Field draws the same on its own `Dial` (field.md → Dyson). A Humidify+Cool's own ranges, `Breeze` among them, or Off and On where it has none; **Airflow** (Front, Back: the fan's direction, which `dyson_local` reads as its front airflow); **Night mode** (Off, On); a Hot+Cool's **Heat** (Off, On) and, while heat is on, its target on the stepper (`Heat to`), inside the heater's limits and on its step; then **Air quality**, every reading with its band (a poor one in the warn ink), the room's temperature and humidity; **Filters**, each one's life; today's on/off history; and what it can do (`10 speeds, auto, oscillates 45°, 90°, 180°, 350°, front or back airflow, night mode, heats`). Each only where the device has it. A reading the device has but hasn't sent says `No reading yet`.
+- **Unavailable:** the dashed slot with when it was last seen; no controls, readings or filters.
+- **Home Assistant:** `createDysonHandlers` takes the fan's own services from the fan's handlers (`fan.toggle`, `fan.set_percentage`, `fan.oscillate`, `fan.set_direction`), `fan.set_preset_mode` with `Auto` or its other preset (`Manual`, `Normal`) for Auto, and each companion's on its own entity: where it points (`onAimChange`) and how widely it sweeps (`onSpreadChange`, 0 to hold still) on hass-dyson's centre and width sliders (`number.set_value`, each keeping the other), or with `dyson_local.set_angle` round the new centre inside its range; `select.select_option` on a Humidify+Cool's select; `switch.turn_on` and `turn_off` for night mode; `climate.set_hvac_mode` (`heat`, or for heat off, the fan running on, ha-dyson's `cool` or hass-dyson's `fan_only`) and `climate.set_temperature` for the heater. What the device doesn't have is reported as unsupported, never sent; a range it doesn't list as `invalid_input`. `DYSON_ACTIONS` declares them. It shares `fan` with the fan card, so it is never the domain's default: YAML picks it with `card: dyson`, and the automatic layouts pick it for a fan with the night-mode switch and a filter-life sensor named after it (`dysonFans`, `@dashhaus/core/lovelace/layout`), leaving a Hot+Cool's heater out of the rows, since this card draws it.
+
+### Field dyson module
+
+`DysonModule` is the same normalized Dyson in the Field skin; `HaDysonModule` is its connected container, on the same `useHaDyson` hook as `HaDysonTile`, so it takes the same handlers, its fader counts the same ten speeds and its warnings are core's. See [field.md](field.md#dyson).
+
 <!-- new-card: cards -->
 
 ### Field media player module
@@ -659,6 +683,10 @@ When the sun next sets or rises, and where it is in the day: Home Assistant's `s
 ```tsx
 <HaSunModule entityId="sun.sun" />
 ```
+
+### Field dyson module
+
+`DysonModule` is the same normalized dyson entity in the Field skin; `HaDysonModule` is its connected container, on the same `useHaDyson` hook as `HaDysonTile`. See [field.md](field.md#dyson).
 
 ## The dashboard header
 

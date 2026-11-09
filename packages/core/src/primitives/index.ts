@@ -1,6 +1,8 @@
 /** Headless interaction primitives: behaviour and semantics, no markup or styles. */
 export { useKeypad } from "./keypad";
 export type { KeypadOptions } from "./keypad";
+export { dialValue, useDial } from "./dial";
+export type { DialOptions, DialRange } from "./dial";
 export { usePress } from "./press";
 export type { PressOptions } from "./press";
 export { useSheet } from "./sheet";

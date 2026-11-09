@@ -102,5 +102,9 @@ export { SunModule } from "./cards/sun/SunModule";
 export type { SunModuleProps } from "./cards/sun/SunModule";
 export { HaSunModule } from "./ha/HaSunModule";
 export type { HaSunModuleProps } from "./ha/HaSunModule";
+export { DysonModule } from "./cards/dyson/DysonModule";
+export type { DysonModuleProps } from "./cards/dyson/DysonModule";
+export { HaDysonModule } from "./ha/HaDysonModule";
+export type { HaDysonModuleProps } from "./ha/HaDysonModule";
 // new-card: card exports
 export type { FieldFootprint } from "./shared/ui";

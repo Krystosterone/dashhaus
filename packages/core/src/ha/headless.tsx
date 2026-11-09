@@ -9,6 +9,7 @@ import { useHaNumeric } from "./hooks/numeric";
 import { useHaVacuum } from "./hooks/vacuum";
 import { useHaCalendar } from "./hooks/calendar";
 import { useHaSun } from "./hooks/sun";
+import { useHaDyson } from "./hooks/dyson";
 // new-card: headless imports
 import { useHaLight } from "./hooks/light";
 import { useHaClimate } from "./hooks/climate";
@@ -66,4 +67,5 @@ export const HaNumeric = headless(useHaNumeric, "HaNumeric");
 export const HaVacuum = headless(useHaVacuum, "HaVacuum");
 export const HaCalendar = headless(useHaCalendar, "HaCalendar");
 export const HaSun = headless(useHaSun, "HaSun");
+export const HaDyson = headless(useHaDyson, "HaDyson");
 // new-card: headless components
