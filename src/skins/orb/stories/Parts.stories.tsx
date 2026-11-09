@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
+import { LOCK_WAITING, lockAskAction, lockAskDetail, lockQuestion } from "@dashhaus/core/entities/lock/words";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { useSlider } from "@dashhaus/core/primitives";
@@ -271,9 +273,9 @@ function AllParts() {
       </Part>
 
       <Part name="Confirm and Keypad" cardRole="state" rule="A guarded action's answer, in the sheet, on useGuardedAction: the question when no code is asked for (Cancel raised and focused, the action in the inverse, taking no press for a moment), or the keypad when one is (raised digits, enter in the inverse; a wrong code shakes the dots).">
-        <State label="The question" width={340}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" onConfirm={() => {}} onCancel={() => {}} /></State>
-        <State label="Waiting for the answer" width={340}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" busy waiting="Waiting for the lock…" onConfirm={() => {}} onCancel={() => {}} /></State>
-        <State label="Didn't go through" width={340}><Confirm question="Unlock Front door?" detail="Anyone at the door can open it." action="Unlock" error="Didn’t go through. Try again." onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="The question" width={340}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Waiting for the answer" width={340}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} busy waiting={LOCK_WAITING} onConfirm={() => {}} onCancel={() => {}} /></State>
+        <State label="Didn't go through" width={340}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} error={ACTION_FAILED} onConfirm={() => {}} onCancel={() => {}} /></State>
         <State label="The keypad (1234)" width={340}><Keypad prompt="Enter the code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 

@@ -13,7 +13,7 @@
  * - a skin never formats a time itself, in its cards or its shared parts (an hour axis among them): it passes
  *   `useHourCycle()` to core's words (`hourLabel`, `formatHaTime`, …), so every time is on the dashboard's one clock.
  * - a guard's words are core's (`@dashhaus/core/entities/guard`, the domain's `coverQuestion`, `lockAskDetail`…): no
- *   card passes its question part (`Confirm`) a question, a meaning, a yes, a waiting line or a failure of its own
+ *   card, nor the Parts page, passes its question part (`Confirm`) a question, a meaning, a yes, a waiting line or a failure of its own
  *   words, only core's with the skin's end punctuation; no card or part writes `Try again` itself;
  * - what asks first is said in core's words too: no card writes a sentence ending `asks first.` (the hint,
  *   `COVER_ASKS_HINT`, `lockAsksHint`), only the skin's mark on a control's name (Field's `: asks first`).
@@ -93,7 +93,9 @@ describe("what every card says", () => {
   it("says a guard's words in core's: no question part takes a literal, and no card or part writes Try again", () => {
     const literal = /"[^"]*[A-Za-z][^"]*"|'[^']*[A-Za-z][^']*'|`(?:[^`$]|\$(?!\{)|\$\{[^}]*\})*`/g;
     const own: string[] = [];
-    for (const { path, text } of sources) {
+    // The cards, and the Parts page that draws the question across its states.
+    const parts = SKINS.map((skin) => `src/skins/${skin}/stories/Parts.stories.tsx`).map((path) => ({ path, text: readFileSync(join(root, path), "utf8") }));
+    for (const { path, text } of [...sources, ...parts]) {
       for (const confirm of elements(text, "Confirm")) {
         for (const prop of confirm[0].matchAll(/\b(question|detail|action|waiting|error)=("[^"]*"|\{)/g)) {
           let value = prop[2];
@@ -104,7 +106,10 @@ describe("what every card says", () => {
             for (; i < text.length; i++) { if (text[i] === "{") depth++; else if (text[i] === "}" && --depth === 0) break; }
             value = text.slice(from, i + 1);
           }
-          const words = [...value.matchAll(literal)].map((m) => m[0].replace(/\$\{[^}]*\}/g, "")).filter((l) => /[A-Za-z]/.test(l));
+          // A call's arguments are what core's words are about (`lockQuestion("unlock", name)`), not words of the card's.
+          let bare = value;
+          for (let before = ""; before !== bare;) { before = bare; bare = bare.replace(/\b\w+\((?:[^()]|\([^()]*\))*\)/g, "call"); }
+          const words = [...bare.matchAll(literal)].map((m) => m[0].replace(/\$\{[^}]*\}/g, "")).filter((l) => /[A-Za-z]/.test(l));
           if (words.length) own.push(`${where(path, text, confirm.index! + prop.index!)} → ${prop[1]}: ${words.join(", ")}`);
         }
       }
