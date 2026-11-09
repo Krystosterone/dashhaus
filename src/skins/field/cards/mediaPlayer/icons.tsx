@@ -33,5 +33,13 @@ export function IconPower() {
   return <svg viewBox="0 0 24 24" {...STROKE}><path d="M12 4v7.5" /><path d="M7.4 7.2a7 7 0 1 0 9.2 0" /></svg>;
 }
 
+/**
+ * A box with an arrow leaving its corner, for the key to Home Assistant's own player (24 x 24, stroked): it leaves the
+ * skin's look, as the nav's arrow marks a key that leaves the dashboard.
+ */
+export function IconOpenOut() {
+  return <svg viewBox="0 0 24 24" {...STROKE}><path d="M10.5 5.5H7.5a2.5 2.5 0 0 0-2.5 2.5v8.5a2.5 2.5 0 0 0 2.5 2.5H16a2.5 2.5 0 0 0 2.5-2.5v-3" /><path d="M14 4.5h5.5V10M19.5 4.5 11.5 12.5" /></svg>;
+}
+
 /** The player as a solid shape for the screen's pictogram (20 x 26): its face with the play mark cut out, lit while it plays. */
 export const MEDIA_PLAYER_PICT = <path d="M4 6.5h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3Zm4 4.2v5.6l4.7-2.8Z" fillRule="evenodd" />;

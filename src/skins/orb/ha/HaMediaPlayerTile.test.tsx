@@ -1,8 +1,9 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { HaMediaPlayerTile } from "./HaMediaPlayerTile";
+import { HaProvider, createHaStore } from "@dashhaus/core";
 import type { HassEntities } from "@dashhaus/core";
-import { renderConnected } from "@dashhaus/core/testing";
+import { fakeTransport, renderConnected } from "@dashhaus/core/testing";
 
 const raw: HassEntities = {
   "media_player.kitchen": {
@@ -66,6 +67,19 @@ describe("HaMediaPlayerTile", () => {
       await Promise.resolve();
     });
     expect(fake.callService.mock.calls).toEqual([["media_player", "volume_down", { entity_id: "media_player.kitchen" }]]);
+  });
+
+  it("opens Home Assistant's own player from its sheet's last pill, where the host has one", async () => {
+    const moreInfo = vi.fn();
+    render(<HaProvider store={createHaStore(fakeTransport(raw).transport)} moreInfo={moreInfo}><HaMediaPlayerTile entityId="media_player.kitchen" loadHistory={false} defaultOpen /></HaProvider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Open Kitchen speaker in Home Assistant" }));
+    expect(moreInfo).toHaveBeenCalledWith("media_player.kitchen");
+  });
+
+  it("draws no pill to Home Assistant's player where the host has none", async () => {
+    renderConnected(<HaMediaPlayerTile entityId="media_player.kitchen" loadHistory={false} defaultOpen />, raw);
+    await waitFor(() => expect(screen.getAllByRole("heading", { name: "Kitchen speaker" }).length).toBeGreaterThan(0));
+    expect(screen.queryByRole("button", { name: "Open Kitchen speaker in Home Assistant" })).toBeNull();
   });
 
   it("shows a missing entity as unavailable", async () => {

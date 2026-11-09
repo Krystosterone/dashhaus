@@ -1,5 +1,5 @@
 import type { MediaPlayerEntity, MediaPlayerHistory } from "@dashhaus/core/entities/mediaPlayer/types";
-import { MEDIA_PLAYER_TODAY, MUTED, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, playingFrom, pressWord, skipSaid, VOLUME_STEP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
+import { MEDIA_PLAYER_TODAY, MUTED, OPEN_IN_HOME_ASSISTANT, POSITION, SKIP_WORDS, artworkLabel, isActive, isOff, mediaAbilities, mediaArtist, mediaLine, mediaPlayerWord, mediaPress, mediaTitle, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, VOLUME_STEP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue } from "@dashhaus/core/entities/mediaPlayer/words";
 import type { MediaPress } from "@dashhaus/core/entities/mediaPlayer/words";
 import { lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { todaySummary } from "@dashhaus/core/entities/today";
@@ -47,6 +47,12 @@ export interface MediaPlayerCardProps extends CardProps {
    * and a running one changes on its own.
    */
   quiet?: boolean;
+  /**
+   * Open Home Assistant's own player for it: inside Home Assistant, its more-info dialog (`useHaMoreInfo`), which
+   * browses media, groups players and sets the sound mode. The sheet carries an Open in Home Assistant pill to it, last
+   * among its controls; without one (a story, a standalone app) there is none.
+   */
+  onOpenMore?: () => void;
 }
 
 const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as const;
@@ -57,11 +63,11 @@ const ON_OFF = [{ value: "off", label: "Off" }, { value: "on", label: "On" }] as
  * says what is playing, the title first. Featured, it shows the artwork, the title and artist, and how far in, a line
  * and a clock that run on by themselves with no re-render. The name, or a press and hold, opens the sheet: the same,
  * with how far in as a groove that seeks where the player can, skip back and on, the volume groove the sound card has
- * (or Down and Up for a player that steps its volume),
- * mute, the source, turning it off, and today's playing. Its artwork is data, never a signal: no glow, never in a row,
- * never inside the orb.
+ * (or Down and Up for a player that steps its volume), mute, the source, turning it off, inside Home Assistant a pill
+ * to its own player (browsing media, grouping), and today's playing. Its artwork is data, never a signal: no glow,
+ * never in a row, never inside the orb.
  */
-export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, quiet, onOpenDetails, onClose }: MediaPlayerCardProps) {
+export function MediaPlayerCard({ entity: e, history, variant, footprint, showControl, onPlay, onPause, onPrevious, onNext, onTurnOn, onTurnOff, onVolumeChange, onSeek, onVolumeUp, onVolumeDown, onMuteChange, onSourceChange, quiet, onOpenMore, onOpenDetails, onClose }: MediaPlayerCardProps) {
   const card = useCard("mp", { variant, footprint, showControl, area: e.area });
   const { uid, sheet, featured, area } = card;
   const unav = e.state === "unavailable";
@@ -123,6 +129,8 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
     steps: loaded && volumeBySteps(e) && !!onVolumeUp && !!onVolumeDown,
     mute: loaded && e.supportsMute && !!onMuteChange,
     source: loaded && e.supportsSource && (e.sources?.length ?? 0) > 0 && !!onSourceChange,
+    // Home Assistant's own player, where the host has it (never in a story or a standalone app): not while unavailable.
+    more: !unav && !!onOpenMore,
   };
   const stepValue = volumeStepValue(e);
 
@@ -160,7 +168,7 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
           </div>
         </div>
       )}
-      {(seek || can.previous || can.next || can.off || can.volume || can.steps || can.mute || can.source) && (
+      {(seek || can.previous || can.next || can.off || can.volume || can.steps || can.mute || can.source || can.more) && (
         <SheetBlock>
           {seek && <SeekGroove id={`${uid}-pos`} label={`${e.name} ${POSITION.toLowerCase()}`} seek={seek} />}
           {(can.previous || can.next) && (
@@ -203,6 +211,8 @@ export function MediaPlayerCard({ entity: e, history, variant, footprint, showCo
             <ChoiceChips id={`${uid}-s`} label="Source" options={e.sources!.map((s) => ({ value: s, label: s }))} value={e.source} onChange={onSourceChange!} />
           )}
           {can.off && <div className="hd-acts"><TogglePill label={`Turn ${e.name} off`} onToggle={onTurnOff!}>{pressWord("turnOff")}</TogglePill></div>}
+          {/* Last, a raised pill that acts once: it leaves the skin's look for Home Assistant's own player. */}
+          {can.more && <div className="hd-acts"><TogglePill label={openInHomeAssistantSaid(e.name)} onToggle={onOpenMore!}>{OPEN_IN_HOME_ASSISTANT}</TogglePill></div>}
         </SheetBlock>
       )}
       {sheet && history && <Today samples={history.samples} currentHour={history.currentHour} summary={todaySummary(MEDIA_PLAYER_TODAY, history.playingMinutes)} />}
