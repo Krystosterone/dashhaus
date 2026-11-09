@@ -13,7 +13,7 @@
  * saying so. Nothing is written unless every file and every registration can be made.
  */
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir, smallPrint } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, names, read, seams, skinDir, smallPrint, seedWords } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("orb");
@@ -256,7 +256,7 @@ export function newOrbCard({ name, code, kind: askedKind, dryRun }) {
     __todayBlock__: today ? `      {history && <Today samples={history.samples} currentHour={history.currentHour} summary={${domain.minutes ? `todaySummary("${domain.minutes}", history.${domain.minutes}Minutes)` : '""'}} />}` : "",
     // The stories, on the domain's seeds in core.
     __seeds__: packageSpecifier("core", `seeds/${name}`),
-    __firstSeed__: firstSeed,
+    __firstSeed__: firstSeed, __firstSeedWords__: seedWords(firstSeed),
     __unavailableSeed__: unavailableSeed,
     __DEMO__: hasHook ? `useDemo${Name}(seed)` : "seed",
     __demoImport__: hasHook ? `, useDemo${Name}` : "",

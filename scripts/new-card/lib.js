@@ -22,6 +22,15 @@ export const card = await import(pathToFileURL(join(root, skinTemplates.writer))
 export const { filler } = card;
 
 /**
+ * A seed's key as a story's name, the same in every skin's generated stories, so a state both skins draw has one name
+ * (AGENTS.md → Storybook): `on` is "On", `dimmableOff` "Dimmable off".
+ */
+export const seedWords = (key) => {
+  const words = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase();
+  return `${words[0].toUpperCase()}${words.slice(1)}`;
+};
+
+/**
  * The small print a card drawn from its domain's description prints (spec/cards.md → What every card says): when first,
  * when it was last seen while unavailable, else when it last updated or changed, whichever the entity says; then what
  * the device is, where the entity says it (its battery). `has` says whether the entity has a field. `start` and `end`

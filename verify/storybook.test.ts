@@ -199,3 +199,53 @@ describe.each(skins)("the $section section", ({ section, files, cards, skin }) =
     });
   });
 });
+
+/** Storybook's name for an export without a `name:`: `GarageDoor` is "Garage Door". */
+const exportName = (id: string) => id.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * A card's own states, each with the seed it draws: the stories before Unavailable whose args name a seed and nothing
+ * else (the meta's seed for one that names none). One that sets anything else (a footprint, `readOnly`) or draws itself
+ * shows more than its seed, so it isn't one.
+ */
+function ownStates(source: string) {
+  const meta = source.match(/^ {2}args: \{ (\w+): "([\w-]+)"/m);
+  if (!meta) return [];
+  const [, key, fallback] = meta;
+  const out: { seed: string; name: string }[] = [];
+  for (const [, id, body] of source.matchAll(/^export const (\w+): Story = (\{[^\n]*\}|\{\n[\s\S]*?\n\});/gm)) {
+    if (id === "Unavailable") break;
+    if (/\brender:/.test(body)) continue;
+    const args = body.match(/args: \{([^}]*)\}/)?.[1] ?? "";
+    const seed = args.match(new RegExp(`\\b${key}: "([\\w-]+)"`))?.[1] ?? (new RegExp(`\\b${key}:`).test(args) ? undefined : fallback);
+    if (!seed || args.replace(new RegExp(`\\b${key}: "[\\w-]+",?`), "").trim()) continue;
+    out.push({ seed, name: body.match(/name: "([^"]+)"/)?.[1] ?? exportName(id) });
+  }
+  return out;
+}
+
+describe("a state both skins draw", () => {
+  // Orb and Field draw every domain on the same seeds; studies keep their own design (spec/skins.md → Studies), and a
+  // skin `new-skin` lays out (Field rebuilt from its templates, in the generators' copy) names its stories as they do.
+  const [orb, field] = ["orb", "field"].map((skin) => skins.find((s) => s.skin === skin));
+  const statesOf = (s: NonNullable<typeof orb>, card: string) => ownStates(s.files.find((f) => f.path.startsWith(`src/skins/${s.skin}/cards/${card}/`) && f.title === `${s.section}/Cards/${label(card)}`)?.source ?? "");
+
+  it.runIf(!!orb && !!field && needsWorstCase("orb") && needsWorstCase("field"))("has one name in every skin: a story on the same seed is named alike (AGENTS.md → Storybook)", () => {
+    if (!orb || !field) return;
+    const shared = orb.cards.filter((card) => field.cards.includes(card));
+    expect(shared.length).toBeGreaterThan(15);
+    const two: string[] = [];
+    let compared = 0;
+    for (const card of shared) {
+      const mine = statesOf(orb, card);
+      for (const theirs of statesOf(field, card)) {
+        for (const o of mine.filter((m) => m.seed === theirs.seed)) {
+          compared += 1;
+          if (o.name !== theirs.name) two.push(`${card} "${theirs.seed}": Orb "${o.name}", Field "${theirs.name}"`);
+        }
+      }
+    }
+    expect(compared, "no state is drawn in both skins: the stories' args changed shape").toBeGreaterThan(20);
+    expect(two).toEqual([]);
+  });
+});

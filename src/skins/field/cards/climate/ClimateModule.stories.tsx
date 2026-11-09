@@ -44,8 +44,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Heating: Story = {};
-export const Cooling: Story = { args: { climate: "cooling" } };
-export const AutoRange: Story = { name: "Auto range", args: { climate: "range" } };
+export const Cooling: Story = { name: "Cooling, idle", args: { climate: "cooling" } };
+export const AutoRange: Story = { name: "Heat/cool range", args: { climate: "range" } };
 export const Off: Story = { args: { climate: "off" } };
 export const Dry: Story = { args: { climate: "dry" } };
 export const FanOnly: Story = { name: "Fan only", args: { climate: "fan" } };

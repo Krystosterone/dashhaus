@@ -52,15 +52,15 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Partly cloudy, with rain on its way: when it starts takes the condition's line, and the pictogram keeps the sky. */
-export const Partly: Story = {};
+export const Partly: Story = { name: "Partly cloudy, rain coming" };
 /** Falling rain names itself by when it stops. */
-export const Rain: Story = { args: { weather: "rain" } };
+export const Rain: Story = { name: "Raining", args: { weather: "rain" } };
 /** After dark the sun becomes a moon, and a sunny night reads clear. */
 export const Night: Story = { args: { weather: "night" } };
 /** Below zero, today's range is spelled out, so a dash never meets a minus. */
 export const Snow: Story = { args: { weather: "snow" } };
 /** Poor air and very high UV: the most urgent leads behind the warning marker, with a count of the rest. */
-export const Warnings: Story = { args: { weather: "summer" } };
+export const Warnings: Story = { name: "Hot, poor air", args: { weather: "summer" } };
 /**
  * On a 12-hour dashboard (YAML `hour_cycle: h12`): every state and the worst case, each time the
  * module says on that clock, from the seeds as the mapper writes them there (`onHourCycle`).

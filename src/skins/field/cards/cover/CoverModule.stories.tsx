@@ -60,9 +60,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Open at 70%: the window lit to it, and the fader where it is. */
-export const Open: Story = {};
+export const Open: Story = { name: "Curtains" };
 /** Closed: 000% in the dim ink, the window unlit. */
-export const Closed: Story = { args: { cover: "shade" } };
+export const Closed: Story = { name: "Shade, closed", args: { cover: "shade" } };
 /** On its way: the fader's legend says where it's going, and the key stops it. */
 export const Moving: Story = { args: { cover: "moving" } };
 /** A garage door with no position, left open: OPEN, a warning on the screen, and one wide key whose press asks first. */

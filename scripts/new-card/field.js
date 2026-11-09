@@ -20,7 +20,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { markers, packageFile, packageSpecifier } from "../packages.js";
-import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir, smallPrint } from "./lib.js";
+import { after, before, card, changes, exists, fail, filler, names, read, root, seams, skinDir, smallPrint, seedWords } from "./lib.js";
 import { describeDomain } from "../domains.js";
 
 const SKIN = skinDir("field");
@@ -313,7 +313,7 @@ export function newFieldCard({ name, kind: askedKind, code: askedCode, dryRun })
       ].join("\n");
     })(),
     __seeds__: packageSpecifier("core", `seeds/${name}`),
-    __firstSeed__: firstSeed,
+    __firstSeed__: firstSeed, __firstSeedWords__: seedWords(firstSeed),
     __unavailableSeed__: unavailableSeed,
     __transport__: transport[1],
     __transportPath__: transport[2],
