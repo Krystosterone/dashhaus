@@ -63,6 +63,7 @@ const KINDS = {
   vacuum: ["orb-cards-vacuum--cleaning", "field-cards-vacuum--cleaning"],
   calendar: ["orb-cards-calendar--next", "field-cards-calendar--next"],
   sun: ["orb-cards-sun--normal", "field-cards-sun--normal"],
+  dyson: ["orb-cards-dyson--on", "field-cards-dyson--on"],
 };
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
