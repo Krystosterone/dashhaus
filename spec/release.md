@@ -88,12 +88,15 @@ collects the notes instead.
 A release is one pull request and one merge. Everything is decided and reviewed in the pull request; merging it is
 the trigger, and the Release workflow only reproduces what the pull request recorded and ships it.
 
-1. **Prepare.** On a branch from main, `npm run release` (or `npm run release -- <x.y.z>`, `--dry-run` to see the
-   version first). It reads the notes, packs the current code and compares its API with the latest version on npm
-   (`npm run release:api` alone; a package new since that version reads as all added), and suggests the version: before 1.0 a breaking note or API break moves the minor and
-   anything else the patch, as a caret range reads it; from 1.0, semver. It applies the version and the lockfile,
-   packs again, writes the files' SHA-256 to `releases/<version>.sha256` and the record to `releases/<version>.md`,
-   and deletes the notes. Two runs on one commit write the same files.
+1. **Prepare.** On a branch from main, run `npm run release:api` and read each changed declaration before and after.
+   The suggestion counts a changed declaration as an API break until a person says otherwise; when those changes are
+   additive (a widened type, an added optional member), the release is the patch, so pass it. Then `npm run release`
+   (or `npm run release -- <x.y.z>`, `--dry-run` to see the version first). It reads the notes, packs the current
+   code and compares its API with the latest version on npm (a package new since that version reads as all added),
+   and suggests the version: before 1.0 a breaking note or API break moves the minor and anything else the patch, as
+   a caret range reads it; from 1.0, semver. It applies the version and the lockfile, packs again, writes the files'
+   SHA-256 to `releases/<version>.sha256` and the record to `releases/<version>.md`, and deletes the notes. Two runs
+   from main on one commit write the same files; after a run the notes are gone, so a re-cut starts from main again.
 2. **Finish the record**, in the pull request. Its `TODO`s are what only a person can decide: the two or three
    lines of its `## Release page` (the GitHub release's body, and with its `### Upgrading` steps the version's entry on
    the documentation site's Release notes page, which lists the notes in `changes/` until then), the live Home Assistant smoke below (run on the

@@ -53,9 +53,14 @@ Not: `Refactored ClimateModule to use RangeFader and fixed the screen logic.` (i
 
 ## Preparing a release PR
 
-1. `npm run release -- --dry-run` shows the notes, the API comparison and the suggested version. Take the suggestion
-   unless the person asks for another; a lower one than suggested needs their say.
-2. `npm run release [-- <x.y.z>]` on a branch, commit everything, open the pull request.
+1. Run `npm run release:api` and read each changed declaration before and after; `npm run release -- --dry-run` adds
+   the notes and the suggested version. Take the suggestion unless those changes are additive (a widened type, an
+   added optional member): then the patch is the release. Pass it (`npm run release -- <x.y.z>`) and say in the
+   record's API section why it isn't breaking; that recorded judgement, reviewed with the pull request, is the say a
+   lower version needs.
+2. `npm run release [-- <x.y.z>]` on a branch, commit everything, open the pull request. If you re-cut after a run,
+   start again from main (`git reset --hard origin/main`): the first run deleted the notes, and a second run would
+   record an empty release.
 3. Finish every `TODO:` in `spec/releases/<version>.md`:
    - **Release page**: two or three lines for the GitHub release, for a Marketplace user. Lead with the change most of
      them would notice; mention breaking changes first if there are any. It is a pitch, not the list.
