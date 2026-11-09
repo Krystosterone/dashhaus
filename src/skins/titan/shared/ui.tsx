@@ -2,9 +2,9 @@ import { useEffect, useId, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useKeypad, useGuardedAction, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { GuardedResult } from "@dashhaus/core/primitives";
-import { useSettled } from "@dashhaus/core/hooks";
+import { useHourCycle, useSettled } from "@dashhaus/core/hooks";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { lineParts } from "@dashhaus/core/entities/clock";
+import { hourLabel, lineParts } from "@dashhaus/core/entities/clock";
 import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { ActionCardProps, CardSheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import "./ui.css";
@@ -82,12 +82,15 @@ const level = (s: HourSample) => s == null ? "ahead" : s === "unavailable" ? "go
  */
 export function TitanDots({ today, scale }: { today: TitanToday; scale?: boolean }) {
   const hours = Array.from({ length: 24 }, (_, i) => today.samples[i] ?? null);
+  // The scale's hours are on the dashboard's clock ("06", "6AM"); its right end is the day's end, 24 on a 24-hour one.
+  const hourCycle = useHourCycle();
+  const marks = [0, 6, 12, 18].map((hour) => hourLabel(hour, hourCycle)).concat(hourCycle === "h23" ? "24" : hourLabel(24, hourCycle));
   return (
     <div className="titan-dots" role="img" aria-label={`Today: ${today.summary}`} data-scale={scale ? "" : undefined}>
       <span className="titan-dots-row">
         {hours.map((s, i) => <span key={i} className="titan-dot" data-level={level(s)} data-now={i === today.currentHour ? "" : undefined} />)}
       </span>
-      {scale && <span className="titan-dots-hours" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></span>}
+      {scale && <span className="titan-dots-hours" aria-hidden="true">{marks.map((mark, i) => <span key={i}>{mark}</span>)}</span>}
     </div>
   );
 }

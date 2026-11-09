@@ -3,7 +3,7 @@ import { DemoGuestWifiTile as DemoTile } from "./demo/DemoGuestWifiTile";
 import { GUEST_WIFI_WORST_CASE } from "@dashhaus/core/seeds/guestWifi";
 
 const SIZES = { S: 174, M: 360, L: 464 } as const;
-const SEEDS = ["ready", "shared", "unlimited", "password", "none", "unavailable", "long", "bare", "passphrase"] as const;
+const SEEDS = ["ready", "shared", "unlimited", "password", "qrFails", "none", "unavailable", "long", "bare", "passphrase"] as const;
 
 const meta = {
   title: "Orb/Cards/GuestWifi",
@@ -107,6 +107,8 @@ export const Compact: Story = {
 export const Details: Story = { name: "Details", args: { defaultOpen: true } };
 export const DetailsNoCode: Story = { name: "Details, no code", args: { seed: "none", defaultOpen: true } };
 export const DetailsPassword: Story = { name: "Details, password", args: { seed: "password", defaultOpen: true } };
+/** The join QR code fails to load: its frame stays empty, never the browser's broken picture, and its line says so. */
+export const DetailsQrCodeFails: Story = { name: "Details, QR code fails", args: { seed: "qrFails", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { seed: "unavailable", defaultOpen: true } };
 export const DetailsPhone: Story = {
   name: "Details, phone",

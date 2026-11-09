@@ -66,4 +66,12 @@ describe("GuestWifiModule", () => {
     expect(screen.queryByRole("img", { name: /QR code/ })).toBeNull();
     expect(screen.getByRole("status").textContent).toBe("Every code has been used. Make a new one to give.");
   });
+
+  it("prints a QR code that fails to load as an empty frame, and says so", () => {
+    const { container } = render(<GuestWifiModule entity={GUEST_WIFI_SEEDS.password.entity} defaultOpen />);
+    fireEvent.error(screen.getByRole("img", { name: /QR code to join/ }));
+    expect(screen.queryByRole("img", { name: /QR code/ })).toBeNull();
+    expect(container.querySelector("span.fd-gw-qr")).not.toBeNull();
+    expect(screen.getByText("No QR code. Choose Maple Guests 5G in Wi-Fi settings and type the password.")).not.toBeNull();
+  });
 });

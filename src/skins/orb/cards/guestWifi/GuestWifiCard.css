@@ -19,11 +19,16 @@
 .gw-qr { display: block; aspect-ratio: 1; border-radius: 8px; image-rendering: pixelated; -webkit-user-drag: none; }
 .gw-how { margin: 0; min-width: 0; color: var(--ink-2); font-size: var(--type-status); font-weight: 500; line-height: 1.35; }
 .gw-terms { display: block; margin-top: 6px; color: var(--ink-3); font-size: var(--type-caption); font-weight: 600; }
+/* A QR code that failed to load: its frame, the picture's empty well, the same size, so nothing moves. */
+span.gw-qr { background: var(--fill); }
 .hd--featured:not(.hd--sheet) .gw-join { height: 100%; overflow: hidden; }
 .hd--featured:not(.hd--sheet) .gw-qr { height: 100%; max-height: 132px; }
 /* Too narrow for the words beside it: the QR code alone, which says what it joins to a screen reader. */
 @container hd (max-width: 259px) {
-  .hd--featured:not(.hd--sheet) .gw-join[data-qr] .gw-how { display: none; }
+  .hd--featured:not(.hd--sheet) .gw-join[data-qr]:not([data-failed]) .gw-how { display: none; }
+  /* One that failed: its words, which say so, in place of an empty frame. */
+  .hd--featured:not(.hd--sheet) .gw-join[data-failed] { grid-template-columns: minmax(0, 1fr); }
+  .hd--featured:not(.hd--sheet) .gw-join[data-failed] .gw-qr { display: none; }
 }
 
 /* The sheet: the QR code large and centred, how to join under it. */
@@ -34,8 +39,11 @@
 
 /* Refresh and New code: two raised pills that act once, side by side. */
 .gw-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-/* Always a line tall, so the sheet doesn't move when it says it is waiting. */
-.gw-note { margin: 0; min-height: 1.35em; color: var(--ink-3); font-size: 13px; line-height: 1.35; }
+/* Always a line tall, and as tall as its idle words at any width (they stay under it, hidden), so the sheet doesn't
+   move when it says it is waiting. */
+.gw-note { display: grid; margin: 0; min-height: 1.35em; color: var(--ink-3); font-size: 13px; line-height: 1.35; }
+.gw-note > * { grid-area: 1 / 1; min-width: 0; }
+.gw-note-room { visibility: hidden; }
 
 /* No code to give is said in muted words, as the frame mutes a row with nothing on. */
 .hd--compact[data-state="none"] :is(.hd-val, .hd-sub) { color: var(--ink-3); }

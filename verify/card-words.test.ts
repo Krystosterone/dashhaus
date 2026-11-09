@@ -18,7 +18,8 @@
  * - what asks first is said in core's words too: no card writes a sentence ending `asks first.` (the hint,
  *   `COVER_ASKS_HINT`, `lockAsksHint`), only the skin's mark on a control's name (Field's `: asks first`).
  *
- * Studies keep their own design (spec/skins.md → Studies), so only the two skins are held here.
+ * Studies keep their own design (spec/skins.md → Studies), so only the two skins are held here, but for the clock: a
+ * study's page gives its cards the dashboard's hour cycle too, so a study's cards and parts never write a time of their own.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -26,6 +27,11 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const SKINS = ["orb", "field"];
+/** The skins marked a study in their package (spec/skins.md → Studies). */
+const STUDIES = readdirSync(join(root, "src/skins")).filter((skin) => {
+  const manifest = join(root, "src/skins", skin, "package.json");
+  try { return Boolean(JSON.parse(readFileSync(manifest, "utf8")).dashhaus?.study); } catch { return false; }
+});
 
 const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
   const path = join(dir, name);
@@ -33,7 +39,7 @@ const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
 });
 
 /** A skin folder's drawing (`cards`, `shared`): its components and helpers, without its tests and stories. */
-const drawing = (folder: string) => SKINS.flatMap((skin) => files(join(root, "src/skins", skin, folder)))
+const drawing = (folder: string, skins = SKINS) => skins.flatMap((skin) => files(join(root, "src/skins", skin, folder)))
   .filter((path) => /\.tsx?$/.test(path) && !/\.(test|stories)\.tsx?$/.test(path))
   .map((path) => ({ path: relative(root, path), text: readFileSync(path, "utf8").replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "") }));
 /** Each card folder's drawing. */
@@ -126,5 +132,14 @@ describe("what every card says", () => {
     // A weekday or a date (`toLocaleDateString` with `weekday`) isn't on a clock, so it isn't held here.
     const own = /\.toLocaleTimeString\(|\.toLocaleString\(|\bIntl\.DateTimeFormat\b|\.get(?:UTC)?(?:Hours|Minutes)\(\)|\bhour12\s*:|\.padStart\(\s*2\b/;
     expect(hits(own, [...sources, ...drawing("shared")]), "pass useHourCycle() to core's words (hourLabel, formatHaTime, clockTime, …)").toEqual([]);
+  });
+
+  it("a study's cards and parts never format a time themselves either: its page's hour cycle reaches them", () => {
+    expect(STUDIES.length).toBeGreaterThan(0);
+    // A study reads the hour it is now as it likes, and pads its own numbers (a plate's digits); a time it writes is
+    // a clock's format or an hour padded before its minutes.
+    const own = /\.toLocaleTimeString\(|\.toLocaleString\(|\bIntl\.DateTimeFormat\b|\bhour12\s*:|\.padStart\(\s*2\b[^)]*\)\}?:/;
+    const among = [...drawing("cards", STUDIES), ...drawing("shared", STUDIES)];
+    expect(hits(own, among), "pass useHourCycle() to core's words (hourLabel, timeOfDay, clock, …)").toEqual([]);
   });
 });

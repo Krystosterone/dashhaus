@@ -22,7 +22,7 @@ import type { HaTransport, HassEntities } from "../ha/types";
 
 /**
  * Storybook-only: every domain's demo transport behind one transport, as one house. Entities are merged
- * into one map; each service call goes to the transport that owns its entity.
+ * into one map; each service call, and each entity's history, goes to the transport that owns its entity.
  */
 export function createDemoHouseTransport(): HaTransport {
   const parts = [
@@ -68,7 +68,21 @@ export function createDemoHouseTransport(): HaTransport {
       if (!part) return Promise.reject(new Error("Demo entity not found"));
       return part.callService(domain, service, serviceData, options);
     },
-    sendMessage: (type, payload = {}) => demoSendMessage(merged(), type, payload),
+    async sendMessage(type, payload = {}) {
+      if (type !== "history/history_during_period") return demoSendMessage(merged(), type, payload);
+      // A history read goes to the part that owns each entity, so a part's own day (the numeric demo's morning, the
+      // sensor's) answers for it, never the generic one; their answers are merged, and an entity no part holds is left
+      // out, as Home Assistant leaves out one with no history.
+      const ids = payload.entity_ids;
+      if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string")) throw new Error("Demo history entity_ids missing");
+      const asked = new Map<HaTransport, string[]>();
+      for (const id of ids) {
+        const part = owner.get(id);
+        if (part) asked.set(part, [...(asked.get(part) ?? []), id]);
+      }
+      const answers = await Promise.all([...asked].map(([part, entityIds]) => part.sendMessage!(type, { ...payload, entity_ids: entityIds })));
+      return Object.assign({}, ...answers) as unknown;
+    },
     // The first part that holds the picture serves it; none fetches the network.
     resolveUrl: (path) => parts.reduce<string | undefined>((found, part) => found ?? part.resolveUrl?.(path), undefined),
   };

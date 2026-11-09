@@ -98,7 +98,7 @@ describe("CalendarModule", () => {
     });
 
     it("says when first on a row's line, so a clip cuts the title and the period stays in sight", () => {
-      expect(draw12("tomorrow", "compact").querySelector(".fd-area")?.textContent).toBe("Tomorrow 9:30\u00a0AM · School trip");
+      expect(draw12("tomorrow", "compact").querySelector(".fd-area")?.textContent).toBe("9:30\u00a0AM Tomorrow · School trip");
       expect(draw12("normal", "compact").querySelector(".fd-area")?.textContent).toBe("In 2h 6m · Dentist");
       // Under way, the screen's NOW says when, and the line names the event alone, as on 24 hours.
       expect(draw12("underWay", "compact").querySelector(".fd-area")?.textContent).toBe("Team standup");

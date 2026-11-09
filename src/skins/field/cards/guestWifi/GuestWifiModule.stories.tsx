@@ -125,6 +125,8 @@ export const DetailsPassword: Story = { name: "Details, password", args: { guest
 export const DetailsNoCode: Story = { name: "Details, no code", args: { guestWifi: "none", defaultOpen: true } };
 
 /** Unavailable: blank segments and when it was last seen; nothing to press. */
+/** The join QR code fails to load: its frame stays empty, never the browser's broken picture, and its line says so. */
+export const DetailsQrCodeFails: Story = { name: "Details, QR code fails", args: { guestWifi: "qrFails", defaultOpen: true } };
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { guestWifi: "unavailable", defaultOpen: true } };
 
 /** On a phone the panel is a bottom sheet: drag its header down to close. */

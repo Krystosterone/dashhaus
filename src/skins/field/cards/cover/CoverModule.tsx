@@ -204,6 +204,9 @@ export function CoverModule({ entity: e, footprint = "standard", history, onOpen
       // Closed is a reading, 0% open, so its figure keeps its places in the dim ink, as OFF does.
       rest={e.state === "closed"}
       warning={footprint === "compact" ? warning : undefined}
+      // On its way with no position, a row's screen is blank, so its line says where it's going in the area's place,
+      // as Orb's compact groove does: every row carries one state cue a sighted user can see.
+      line={moving && !withPos ? word : undefined}
       details={{ ...details, openDetails: openPanel }}
       panelFocus={pending ? "content" : undefined}
       pict={pict}

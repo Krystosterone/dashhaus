@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
-import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
+import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, isGroupedCode, joinWords, lastsWords, madeFact, qrFailedWords, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, spokenCode, usesWords } from "@dashhaus/core/entities/guestWifi/words";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { GuestWifiIcon } from "./icons";
 import { CardFrame, Confirm, Readout, SheetBlock, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
@@ -35,6 +35,8 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
   const { sheet, featured, nameId } = card;
   const [pending, setPending] = useState<Pending>(null);
   const [asking, setAsking] = useState(false);
+  // The QR code that failed to load, by its URL, so a rotated token's new one is tried afresh.
+  const [failedQr, setFailedQr] = useState<string>();
   const unav = e.state === "unavailable";
   const ready = e.state === "ready" && e.code != null;
   const password = e.access === "password";
@@ -65,14 +67,21 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
   });
   const refresh = press("refresh", onRefresh);
   const make = press("new", onNewCode);
+  // What the note says while nothing is waiting: what a new code does to the old ones, and that a password asks first.
+  const idle = make ? [newSecretWords(e), password && NEW_PASSWORD_HINT].filter(Boolean).join(" ") : "";
 
   // The join QR code: on the featured card for a guest to scan where they stand, and large in the sheet.
+  // One that fails to load draws its frame empty, never the browser's broken picture, and its line says so.
+  const qr = ready ? e.qr : undefined;
+  const qrFailed = qr != null && failedQr === qr;
   const join = (featured || sheet) && !unav && (
-    <div className="gw-join" data-qr={ready && e.qr ? "" : undefined}>
-      {ready && e.qr && <img className="gw-qr" src={e.qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} />}
+    <div className="gw-join" data-qr={qr ? "" : undefined} data-failed={qrFailed ? "" : undefined}>
+      {qr && (qrFailed
+        ? <span className="gw-qr" aria-hidden="true" />
+        : <img className="gw-qr" src={qr} alt={`QR code to join ${e.network ?? "the network"}`} draggable={false} onError={() => setFailedQr(qr)} />)}
       <p className="gw-how">
         {/* The sheet has New code under it; the card, whose slot already says there is none, says where to find it. */}
-        {ready ? joinWords(e) : sheet ? noneSentence(e) : `${NONE_HINT}.`}
+        {ready ? (qrFailed ? qrFailedWords(e) : joinWords(e)) : sheet ? noneSentence(e) : `${NONE_HINT}.`}
         {featured && terms && <span className="gw-terms">{terms}</span>}
       </p>
     </div>
@@ -121,8 +130,10 @@ export function GuestWifiCard({ entity: e, variant, footprint, showControl, onOp
                 )}
               </div>
             )}
-            <p className="gw-note" role="status">
-              {pending === "new" ? `Making a new ${secret}…` : pending === "refresh" ? `Checking the ${secret}…` : make ? [newSecretWords(e), password && NEW_PASSWORD_HINT].filter(Boolean).join(" ") : ""}
+            {/* The idle words also hold their room, hidden, under what it says while waiting, so the sheet never moves. */}
+            <p className="gw-note">
+              <span role="status">{pending === "new" ? `Making a new ${secret}…` : pending === "refresh" ? `Checking the ${secret}…` : idle}</span>
+              <span className="gw-note-room" aria-hidden="true">{idle}</span>
             </p>
           </section>
         ))}

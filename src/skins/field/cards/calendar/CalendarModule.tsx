@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { CalendarEntity, CalendarEvent, CalendarHistory } from "@dashhaus/core/entities/calendar/types";
 import { useHourCycle } from "@dashhaus/core/hooks";
+import { clockOf } from "@dashhaus/core/entities/clock";
 import type { HourCycle } from "@dashhaus/core/entities/clock";
 import { calendarAgenda } from "@dashhaus/core/entities/calendar/agenda";
 import { CALENDAR_WORDS, clockFigure, dayWord, daysBetween, eventDay, eventDetail, eventSpan, eventWhen, freeFor, horizonFact, isActive, isOver, isUnderWay, leftToday } from "@dashhaus/core/entities/calendar/words";
@@ -91,11 +92,13 @@ export function CalendarModule({ entity: e, history, footprint = "standard", def
     : [free.line, left];
   // A row has no meta lines: its line names the event, then its day when its clock is another day's; with no event it
   // says what's left today, as orb's row does, the screen's FREE already saying for how long. On 12 hours a timed
-  // event's line says when first, as the meta line would, then the event: the screen's 9:30 can't hold its period, so a
-  // clip cuts the title and the period stays where a glance reaches (Tomorrow 9:30 AM · School trip).
+  // event's line says when first, then the event: the screen's 9:30 can't hold its period. Another day's leads with its
+  // clock, then its day (9:30 AM Tomorrow · School trip), so a narrow row's clip cuts the day and the title and the
+  // period stays where a glance reaches; today's countdown (In 2h 6m · Dentist) already places it.
   const timed12 = hourCycle === "h12" && next != null && !under && !next.allDay;
+  const rowWhen = timed12 && otherDay ? `${clockOf(new Date(next.start), hourCycle)} ${dayWord(next.start, e.now)}` : otherDay ?? when?.line;
   const line = unav || waiting ? undefined
-    : next ? (timed12 ? `${otherDay ?? when!.line} · ${next.title}` : otherDay ? `${next.title} · ${otherDay}` : next.title)
+    : next ? (timed12 ? `${rowWhen} · ${next.title}` : otherDay ? `${next.title} · ${otherDay}` : next.title)
     : left;
 
   const glyph = <Glyph unavailable={unav}><IconCalendar /></Glyph>;

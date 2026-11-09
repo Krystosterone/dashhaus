@@ -5,9 +5,10 @@
  *
  * The oracle is what main drew before urgency became a factor, times that factor: a glowing card's `--glow-damp` is 1
  * in the first cell of its container that holds a glowing card, `later` in each cell after it, and that times
- * `underAlert` while the container holds an urgent or alarm card anywhere (`data-level`; advisory never outranks). It
- * models the two quirks layout.css keeps: a compact glowing card claims the first cell though its glow is hidden, and an
- * open sheet, drawn in its tile's cell, takes that cell's position. A compact card's glow layer is 0 whatever its damping.
+ * `underAlert` while the container holds an urgent or alarm card anywhere (`data-level`; advisory never outranks). Only
+ * a glow that shows leads: a compact card's (hidden) and an open sheet's never take the first cell. An open sheet, a
+ * modal drawn in its tile's cell, is outside the budget: its damping is 1. A compact card's glow layer is 0 whatever its
+ * damping.
  *
  * It reads the custom property rather than the glow layer's opacity, so it never waits on the layer's 300 ms fade: a
  * probe inside the card evaluates `--glow-damp` as an opacity, since a custom property's computed value is its
@@ -24,11 +25,12 @@ export function glowCensus({ later, underAlert }: typeof GLOW_BUDGET): string[] 
   for (const card of document.querySelectorAll<HTMLElement>(".hd[data-glow]")) {
     let position = 1;
     let urgency = 1;
-    for (const container of containers) {
+    const sheet = card.matches(".hd--sheet");
+    for (const container of sheet ? [] : containers) {
       const cells = [...container.children];
       const at = cells.findIndex((cell) => cell.contains(card));
       if (at < 0) continue;
-      if (cells.slice(0, at).some((cell) => cell.querySelector(".hd[data-glow]"))) position = later;
+      if (cells.slice(0, at).some((cell) => cell.querySelector(".hd[data-glow]:not(.hd--compact, .hd--sheet)"))) position = later;
       if (container.querySelector(':scope > * .hd:is([data-level="urgent"], [data-level="alarm"])')) urgency = underAlert;
     }
     const expected = position * urgency;
@@ -38,7 +40,7 @@ export function glowCensus({ later, underAlert }: typeof GLOW_BUDGET): string[] 
     const damp = Number.parseFloat(getComputedStyle(probe).opacity);
     probe.remove();
     const name = document.getElementById(card.getAttribute("aria-labelledby") ?? "")?.textContent?.trim() || "unnamed";
-    const where = `${name}${card.matches(".hd--sheet") ? " (sheet)" : card.matches(".hd--compact") ? " (compact)" : ""}`;
+    const where = `${name}${sheet ? " (sheet)" : card.matches(".hd--compact") ? " (compact)" : ""}`;
     if (!near(damp, expected)) found.push(`${where}: --glow-damp ${damp}, the budget says ${expected} (position ${position} × urgency ${urgency})`);
     if (card.matches(".hd--compact")) {
       const layer = Number.parseFloat(getComputedStyle(card, "::before").opacity);

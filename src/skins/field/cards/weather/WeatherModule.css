@@ -9,6 +9,12 @@
   .fd-wx .fd-wx-warn-l { display: none; }
   .fd-wx .fd-wx-warn-s { display: inline; }
 }
+/* A row's line is narrower than a module's screen: under 340 px even the most urgent's word can clip there (Hazardous
+   air), so the count alone. */
+@container (max-width: 319px) {
+  .fd-wx[data-footprint="compact"] .fd-wx-warn-l { display: none; }
+  .fd-wx[data-footprint="compact"] .fd-wx-warn-s { display: inline; }
+}
 
 /* The next hours and days: a strip of screen, one column each, in fixed places like the meter's. */
 .fd-wx-strip {

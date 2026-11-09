@@ -65,7 +65,7 @@ function Cases() {
         <Light light="dimmable" />
         <Light light="coolDaylight" />
       </Section>
-      <Section title="A compact light first" note="Its hidden glow still leads">
+      <Section title="A compact light first" note="Its hidden glow doesn't lead">
         <Light light="dimmable" footprint="compact" />
         <Light light="coolDaylight" />
       </Section>
@@ -86,7 +86,7 @@ export const OneColumnGreyscale: Story = {
   render: () => <div style={{ filter: "grayscale(1)" }}><Cases /></div>,
 };
 
-/** A later lamp's details open: its sheet is drawn in its tile's cell, so it takes that cell's half. */
+/** A later lamp's details open: its sheet is drawn in its tile's cell, but a modal is outside the page's budget, so it glows full. */
 export const DetailsInALaterCell: Story = {
   name: "Details in a later cell",
   render: () => (

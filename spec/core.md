@@ -188,7 +188,10 @@ MJPEG player, and no dependency for one.
   frame), and a QR code scans only drawn whole, black on white with its quiet zone, printed on the card in either
   theme. Nor has it a frame's lifecycle: nothing to refresh, date or pause under `quiet`, since it changes only when
   its URL does (a rotated token, a new password's image), and it is drawn only where it is shown (the featured card and
-  the details). Without one, the card says how to join in words alone, never `No picture`.
+  the details). Without one, the card says how to join in words alone, never `No picture`. One that fails to load (a
+  network error, a token that expired before the attribute rotated) never shows the browser's broken picture: each
+  skin draws its frame empty, the same size, and its line says `No QR code.` before how to join without it
+  (`qrFailedWords`); the next URL is tried afresh.
 
 ## Error metadata
 

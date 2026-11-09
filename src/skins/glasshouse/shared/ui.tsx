@@ -3,7 +3,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { useKeypad, useGuardedAction, usePress, useSlider } from "@dashhaus/core/primitives";
 import type { GuardedResult } from "@dashhaus/core/primitives";
 import type { HourSample } from "@dashhaus/core/entities/history";
-import { useSettled } from "@dashhaus/core/hooks";
+import { useHourCycle, useSettled } from "@dashhaus/core/hooks";
+import { timeOfDay } from "@dashhaus/core/entities/clock";
 import { CardDialog, detailsSheet, detailsTile, useCardFrame } from "@dashhaus/core/lovelace/card";
 import type { ActionCardProps, CardSheetProps, TileProps } from "@dashhaus/core/lovelace/card";
 import "./ui.css";
@@ -97,6 +98,8 @@ const HOUR_LABELS = [0, 6, 12, 18];
  * hours ahead a faint stub and unavailable hours a dashed stub, so a gap never reads as zero.
  */
 export function GlasshouseBars({ samples, current, label }: { samples: readonly HourSample[]; current: number; label: string }) {
+  // The axis's hours are on the dashboard's clock: "06:00", or "6:00 AM".
+  const hourCycle = useHourCycle();
   return (
     <figure className="glasshouse-bars" role="img" aria-label={label}>
       <div className="glasshouse-bars-plot">
@@ -106,7 +109,7 @@ export function GlasshouseBars({ samples, current, label }: { samples: readonly 
           return <span key={hour} className="glasshouse-bar" data-kind={kind} data-now={hour === current ? "" : undefined} style={{ "--glasshouse-bar": value } as Vars} />;
         })}
       </div>
-      <figcaption className="glasshouse-bars-axis" aria-hidden="true">{HOUR_LABELS.map((hour) => <span key={hour}>{String(hour).padStart(2, "0")}:00</span>)}</figcaption>
+      <figcaption className="glasshouse-bars-axis" aria-hidden="true">{HOUR_LABELS.map((hour) => <span key={hour}>{timeOfDay(hour, 0, hourCycle)}</span>)}</figcaption>
     </figure>
   );
 }

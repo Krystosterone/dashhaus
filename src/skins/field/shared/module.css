@@ -208,13 +208,16 @@
 .fd-module[data-footprint="compact"] .fd-pict { width: 14px; height: 18px; }
 
 /* Narrow modules keep the figure and one meta line, and the pictogram goes: the key or glyph below names the
-   device. A card that needs another line kept (humidifier) or a smaller figure (weather) says so in its own CSS. */
+   device. A card that needs another line kept (humidifier) or a smaller figure (weather) says so in its own CSS.
+   Every query here, and in a card's CSS, measures the module's content box: 26 px narrower than a standard module (12 px
+   padding and a 1 px border a side), 20 px narrower than a row (9 and 1). So 239px is a module under 266 px, and 279px
+   a row under 300 px, the widths spec/field.md → Footprints gives; they start that wide to leave a warning's word room. */
 @container (max-width: 239px) {
   .fd-module[data-footprint="standard"] .fd-meta-2 { display: none; }
   .fd-module[data-footprint="standard"] .fd-read { font-size: 22px; }
   .fd-module[data-footprint="standard"] .fd-screen .fd-pict { display: none; }
 }
-/* A narrow row keeps the figure on a narrower screen and lets the pictogram go. */
+/* A narrow row, under 300 px, keeps the figure on a narrower screen and lets the pictogram go. */
 @container (max-width: 279px) {
   .fd-module[data-footprint="compact"] .fd-pict { display: none; }
   .fd-module[data-footprint="compact"] .fd-screen { width: 80px; }
@@ -232,9 +235,12 @@
   .fd-module[data-footprint="standard"] .fd-screen:has(.fd-meta .fd-warn) .fd-read small { display: none; }
 }
 /* A row's urgent block is its own mark, inverted against the plate, so under a 340 px row its outlined sign goes before
-   its word does (a row's content box is 20 px narrower than the row). */
+   its word does (a row's content box is 20 px narrower than the row). A row whose line carries a warning takes the
+   narrow row's screen there too, its pictogram gone, so the word (13 characters at most) keeps its room. */
 @container (max-width: 319px) {
   .fd-module[data-footprint="compact"] .fd-area .fd-warn[data-block] svg { display: none; }
+  .fd-module[data-footprint="compact"]:has(> .fd-head .fd-area .fd-warn) .fd-pict { display: none; }
+  .fd-module[data-footprint="compact"]:has(> .fd-head .fd-area .fd-warn) .fd-screen { width: 80px; }
 }
 
 /* Severity (src/domains/severity.ts): how much of the always-dark screen inverts. Advisory is the marker and its

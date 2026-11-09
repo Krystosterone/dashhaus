@@ -17,19 +17,19 @@
      advisory doesn't outrank), every glowing card in it takes --glow-damp-under-alert, above the problem or below it.
    Both values carry their fallbacks here: 0.5, and 1, which leaves every glow as position alone sets it. The yield
    stays 1 until the scan-task comparison (.agents/skills/attention-budget) decides its value, and whether it should
-   reach the whole .dash rather than its container. Two quirks are kept as they are, so nothing moves: a compact
-   glowing card (whose glow card.css hides) still claims the first cell, and an open sheet, drawn in its tile's cell,
-   is damped by where that tile sits. Multi-column grids and rows don't damp. The Storybook run's glow census
+   reach the whole .dash rather than its container. Only a glow that shows leads: a compact card's (which card.css
+   hides) and an open sheet's never take the first cell. A sheet is a modal outside the page's budget, so it is never
+   damped, wherever its tile's cell sits. Multi-column grids and rows don't damp. The Storybook run's glow census
    (.storybook/glow-census.ts) holds every value in Chromium. */
-:is(.dash-grid--1, .dash-row[data-tracks="1"]) > * .hd { --glow-damp: calc(var(--glow-later, 1) * var(--glow-yield, 1)); }
-.dash-grid--1 > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
+:is(.dash-grid--1, .dash-row[data-tracks="1"]) > * .hd:not(.hd--sheet) { --glow-damp: calc(var(--glow-later, 1) * var(--glow-yield, 1)); }
+.dash-grid--1 > :has(.hd[data-glow]:not(.hd--compact, .hd--sheet)) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
 .dash-grid--1:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }
 
 /* The Lovelace card's rows: tracks from the row's own width (useRowLayout), down a grid of 60 px units with the 8 px
    gap, so each footprint is a whole number of rows. Every card is placed by its inline grid lines. */
 .dash-row { display: grid; gap: 8px; grid-auto-rows: 60px; align-items: start; min-width: 0; }
 .dash-place { min-width: 0; }
-.dash-row[data-tracks="1"] > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
+.dash-row[data-tracks="1"] > :has(.hd[data-glow]:not(.hd--compact, .hd--sheet)) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
 .dash-row[data-tracks="1"]:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }
 /* A row of areas (a wall): each column its area's heading over its own stack of the same 60 px units, placed where
    the row's layout put it; each column is one track for the attention budget, as a one-column grid is. The columns
