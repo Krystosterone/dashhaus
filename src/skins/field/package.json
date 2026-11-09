@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/field",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "license": "MIT",
   "description": "The Field skin for Home Assistant: hardware-style React modules and page furniture, and custom:dashhaus-field, a Lovelace card drawn from YAML.",
@@ -64,7 +64,7 @@
     }
   },
   "dependencies": {
-    "@dashhaus/core": "^0.5.0"
+    "@dashhaus/core": "^0.5.1"
   },
   "peerDependencies": {
     "home-assistant-js-websocket": "^9.7.1",
