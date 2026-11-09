@@ -151,6 +151,31 @@ describe("MediaPlayerCard", () => {
     expect(screen.getByRole("slider")).toBeTruthy();
   });
 
+  it("ends its sheet with a raised Open in Home Assistant pill where the host has its player, and nowhere else", () => {
+    const onOpenMore = vi.fn();
+    const { container, unmount } = render(<MediaPlayerCard entity={playing} variant="sheet" {...press()} onTurnOff={vi.fn()} onOpenMore={onOpenMore} />);
+    const pill = screen.getByRole("button", { name: "Open Kitchen speaker in Home Assistant" });
+    expect(pill.textContent).toContain("Open in Home Assistant");
+    // A one-shot action: not announced as a toggle, and the last of the sheet's controls.
+    expect(pill.getAttribute("aria-pressed")).toBeNull();
+    const controls = [...container.querySelectorAll(".hd-extra button")];
+    expect(controls.at(-1)).toBe(pill);
+    fireEvent.click(pill);
+    expect(onOpenMore).toHaveBeenCalledTimes(1);
+    unmount();
+    // Never on the card's face, featured included, and never while unavailable.
+    const { unmount: face } = render(<MediaPlayerCard entity={playing} footprint="featured" {...press()} onOpenMore={onOpenMore} />);
+    expect(screen.queryByText("Open in Home Assistant")).toBeNull();
+    face();
+    render(<MediaPlayerCard entity={{ ...playing, state: "unavailable" }} variant="sheet" {...press()} onOpenMore={onOpenMore} />);
+    expect(screen.queryByText("Open in Home Assistant")).toBeNull();
+  });
+
+  it("draws no pill to Home Assistant's player with no host to open it (a story, a standalone app)", () => {
+    render(<MediaPlayerCard entity={playing} variant="sheet" {...press()} />);
+    expect(screen.queryByText("Open in Home Assistant")).toBeNull();
+  });
+
   it("offers nothing a player doesn't support", () => {
     const bare: MediaPlayerEntity = { entityId: "media_player.x", name: "X", state: "paused", title: "Die Moldau" };
     const h = { ...press(), onPrevious: vi.fn(), onNext: vi.fn(), onTurnOff: vi.fn(), onVolumeChange: vi.fn(), onMuteChange: vi.fn(), onSourceChange: vi.fn() };

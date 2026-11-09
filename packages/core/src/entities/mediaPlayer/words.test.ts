@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VOLUME_STEP_WORDS, artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue, volumeWord } from "./words";
+import { OPEN_IN_HOME_ASSISTANT, VOLUME_STEP_WORDS, artworkLabel, isActive, isOff, isPlaying, mediaAbilities, mediaLine, mediaPlayerWord, mediaPress, openInHomeAssistantSaid, playingFrom, pressWord, skipSaid, SKIP_WORDS, volumeBySteps, volumeReason, volumeStepSaid, volumeStepValue, volumeWord } from "./words";
 import { volumeText } from "../volume";
 
 const ALL = { supportsPlay: true, supportsPause: true, supportsTurnOn: true };
@@ -79,6 +79,11 @@ describe("media player words", () => {
     expect(artworkLabel({ state: "playing", name: "Kitchen speaker", title: "Sunday Morning" })).toBe("Artwork for Sunday Morning");
     expect(artworkLabel({ state: "playing", name: "Kitchen speaker" })).toBe("Kitchen speaker artwork");
     expect(artworkLabel({ state: "off", name: "Kitchen speaker", title: "Sunday Morning" })).toBe("Kitchen speaker artwork");
+  });
+
+  it("says the way to Home Assistant's own player the same in every skin, whole where it is heard", () => {
+    expect(OPEN_IN_HOME_ASSISTANT).toBe("Open in Home Assistant");
+    expect(openInHomeAssistantSaid("Kitchen speaker")).toBe("Open Kitchen speaker in Home Assistant");
   });
 
   it("says what it can do, or that it is view only", () => {

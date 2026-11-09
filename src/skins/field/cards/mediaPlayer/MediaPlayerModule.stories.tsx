@@ -9,7 +9,15 @@ import type { MediaPlayerSeed, MediaPlayerSeedName } from "@dashhaus/core/seeds/
 const SIZES = { S: 200, M: 340, L: 464 } as const;
 const SEEDS = Object.keys(MEDIA_PLAYER_SEEDS) as MediaPlayerSeedName[];
 
-function DemoMediaPlayer({ seed, width, footprint, quiet, defaultOpen }: { seed: MediaPlayerSeed; width?: number; footprint?: FieldFootprint; quiet?: boolean; defaultOpen?: boolean }) {
+interface DemoProps { width?: number; footprint?: FieldFootprint; quiet?: boolean; defaultOpen?: boolean; more?: boolean }
+
+const openNothing = () => {};
+
+/**
+ * Storybook has no Home Assistant player to open, so the panel has no key to one; with `more`, it stands in for one
+ * that opens nothing.
+ */
+function DemoMediaPlayer({ seed, width, footprint, quiet, defaultOpen, more }: DemoProps & { seed: MediaPlayerSeed }) {
   const demo = useDemoMediaPlayer(seed);
   return (
     <div style={{ width, maxWidth: "100%" }}>
@@ -19,13 +27,14 @@ function DemoMediaPlayer({ seed, width, footprint, quiet, defaultOpen }: { seed:
         onPlay={demo.onPlay} onPause={demo.onPause} onPrevious={demo.onPrevious} onNext={demo.onNext} onTurnOn={demo.onTurnOn} onTurnOff={demo.onTurnOff} onVolumeChange={demo.onVolumeChange} onSeek={demo.onSeek} onVolumeUp={demo.onVolumeUp} onVolumeDown={demo.onVolumeDown} onSourceChange={demo.onSourceChange} onMuteChange={demo.onMuteChange}
         footprint={footprint}
         quiet={quiet}
+        onOpenMore={more ? openNothing : undefined}
         defaultOpen={defaultOpen}
       />
     </div>
   );
 }
 
-function StoryMediaPlayer({ mediaPlayer, ...props }: { mediaPlayer: MediaPlayerSeedName; width?: number; footprint?: FieldFootprint; quiet?: boolean; defaultOpen?: boolean }) {
+function StoryMediaPlayer({ mediaPlayer, ...props }: DemoProps & { mediaPlayer: MediaPlayerSeedName }) {
   return <DemoMediaPlayer seed={MEDIA_PLAYER_SEEDS[mediaPlayer]} {...props} />;
 }
 
@@ -41,7 +50,8 @@ const meta = {
           "window in the screen square at its height; the meta lines say the title, then the artist; a rule along the screen's foot lights as " +
           "it plays, running on by itself. The first key prints what a press does (Pause, Play, Turn on), its LED lit while it plays or is on; then " +
           "Next. Tap the name, or press and hold a key, for the panel: the time played as a running segment clock, Previous, Play and Next, " +
-          "the volume fader, Mute, Power, the source and today. Standard modules are 160 px, compact rows 64 px.",
+          "the volume fader, Mute, Power, the source and today; inside Home Assistant, the panel ends with a key to Home Assistant's own " +
+          "player, for browsing media and grouping (here, none). Standard modules are 160 px, compact rows 64 px.",
       },
     },
   },
@@ -51,9 +61,10 @@ const meta = {
     footprint: { control: "inline-radio", options: ["compact", "standard"], description: "Module height" },
     quiet: { control: "boolean", description: "The dashboard's quiet: no progress rule and no running clock" },
     defaultOpen: { control: "boolean", description: "Open the detail panel on load" },
+    more: { control: "boolean", description: "Give it Home Assistant's own player to open, as inside Home Assistant (here it opens nothing)" },
   },
   args: { mediaPlayer: "playing", width: SIZES.M, footprint: "standard" },
-  render: (args) => <StoryMediaPlayer key={`${args.mediaPlayer}-${args.defaultOpen}`} {...args} />,
+  render: (args) => <StoryMediaPlayer key={`${args.mediaPlayer}-${args.defaultOpen}-${args.more}`} {...args} />,
 } satisfies Meta<typeof StoryMediaPlayer>;
 
 export default meta;
@@ -176,6 +187,13 @@ export const DetailsVolumeSteps: Story = { name: "Details, volume steps", args: 
 
 /** A TV's panel: nothing playing, its sources, and Power. */
 export const DetailsSources: Story = { name: "Details, sources", args: { mediaPlayer: "on", defaultOpen: true } };
+
+/**
+ * Inside Home Assistant (`useHaMoreInfo`), the panel's last control is a wide Open key under a Home Assistant legend, with no LED:
+ * Home Assistant's own player, for browsing media, grouping and the sound mode. Here it stands in for one that opens
+ * nothing.
+ */
+export const DetailsInHomeAssistant: Story = { name: "Details, in Home Assistant", args: { defaultOpen: true, more: true } };
 
 /** Unavailable: blank segments, and the unavailable hours dashed on the meter. */
 export const DetailsUnavailable: Story = { name: "Details, unavailable", args: { mediaPlayer: "unavailable", defaultOpen: true } };

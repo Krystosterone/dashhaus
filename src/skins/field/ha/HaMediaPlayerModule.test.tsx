@@ -1,8 +1,9 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { HaMediaPlayerModule } from "./HaMediaPlayerModule";
+import { HaProvider, createHaStore } from "@dashhaus/core";
 import type { HassEntities } from "@dashhaus/core";
-import { renderConnected } from "@dashhaus/core/testing";
+import { fakeTransport, renderConnected } from "@dashhaus/core/testing";
 import fixture from "@dashhaus/core/fixtures/mediaPlayer.json";
 
 const raw = fixture as HassEntities;
@@ -47,6 +48,19 @@ describe("HaMediaPlayerModule", () => {
       await Promise.resolve();
     });
     expect(live.callService.mock.calls.slice(before)).toEqual([["media_player", "volume_up", { entity_id: TV }]]);
+  });
+
+  it("opens Home Assistant's own player from its panel's last key, where the host has one", async () => {
+    const moreInfo = vi.fn();
+    render(<HaProvider store={createHaStore(fakeTransport(raw).transport)} moreInfo={moreInfo}><HaMediaPlayerModule entityId={ID} loadHistory={false} defaultOpen /></HaProvider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Open Kitchen speaker in Home Assistant", hidden: true }));
+    expect(moreInfo).toHaveBeenCalledWith(ID);
+  });
+
+  it("draws no key to Home Assistant's player where the host has none", async () => {
+    renderConnected(<HaMediaPlayerModule entityId={ID} loadHistory={false} defaultOpen />, raw);
+    await screen.findByRole("slider", { name: "Kitchen speaker position", hidden: true });
+    expect(screen.queryByRole("button", { name: "Open Kitchen speaker in Home Assistant", hidden: true })).toBeNull();
   });
 
   it("draws its artwork in the screen", async () => {

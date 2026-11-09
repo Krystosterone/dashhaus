@@ -176,7 +176,9 @@ MJPEG player, and no dependency for one.
   more-info dialog plays a camera's stream with its own player. Where the host has none (Storybook, a demo, a standalone
   app), it returns nothing and a card opens its own details instead, never a control that opens nothing. That is the
   picture's own press; which press opens what is each skin's (orb.md → A picture is a readout, field.md → A picture is
-  a window in the screen): the name opens the details on every card, whatever its picture's press does.
+  a window in the screen): the name opens the details on every card, whatever its picture's press does. A media
+  player's details open the same dialog, for the browsing and grouping the cards leave to Home Assistant, from a
+  control of their own and never from the artwork (cards.md → Using the media player card).
 - **Privacy and cost** are the dashboard's: a still is fetched only while seen (above); a dashboard's `stills: false`, or
   a camera card's `still: false`, fetches none (the card passes no source rather than hiding a loaded one); `quiet`
   pauses refreshing. Each skin draws a picture with its own `Picture` part, a fixed box with no word over it, which

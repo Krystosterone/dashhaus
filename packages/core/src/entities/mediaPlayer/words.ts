@@ -142,6 +142,17 @@ export function artworkLabel(e: Pick<MediaPlayerEntity, "state" | "title" | "nam
 export const POSITION = "Position";
 
 /**
+ * The details' one way to Home Assistant's own player (its more-info dialog: browsing media, grouping, sound mode),
+ * where the host has one (`useHaMoreInfo`), last among their controls: Orb's pill says it whole; Field's key, whose
+ * caption has a key's places, says `Open` under its `Home Assistant` legend, as the camera's `Live` under `Camera`, and
+ * its spoken label says it whole (`openInHomeAssistantSaid`).
+ */
+export const OPEN_IN_HOME_ASSISTANT = "Open in Home Assistant";
+
+/** The way to Home Assistant's own player, said in full for a screen reader: "Open Kitchen speaker in Home Assistant". */
+export const openInHomeAssistantSaid = (name: string) => `Open ${name} in Home Assistant`;
+
+/**
  * What it can do, for the end of its details' small print: "Skip, seek, volume, mute, 4 sources"; "Play and pause"
  * alone; "View only" with nothing to press.
  */

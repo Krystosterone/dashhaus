@@ -95,8 +95,8 @@ export abstract class LovelaceDashboardElement<C> extends HTMLElement {
   #root?: Root;
   #mount?: HTMLDivElement;
   /**
-   * Home Assistant's own dialog for an entity (more-info: a camera's live stream, with the frontend's player). The
-   * event leaves the shadow root and bubbles to the frontend, which opens it.
+   * Home Assistant's own dialog for an entity (more-info: a camera's live stream, with the frontend's player; a media
+   * player's browsing and grouping). The event leaves the shadow root and bubbles to the frontend, which opens it.
    */
   readonly #moreInfo = (entityId: string) => {
     this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId }, bubbles: true, composed: true }));
