@@ -1,7 +1,7 @@
 name: Release
 
 # Merging a release PR ships it: the push to main that moves core's version (every package shares it) to one with no
-# tag yet runs this (as does one that refreshes an unshipped release's digests after its build refused them), and it
+# tag yet runs this (as does one that fixes an unshipped release's record or digests after its build refused them), and it
 # publishes the five packages to npm, publishes the GitHub release with the record's notes and no file, and starts each
 # skin's Marketplace repository mirroring this version. Orb's and Field's resources ship inside their packages, and
 # their own repositories release them from npm (spec/release.md → The skin repositories). Everything it ships was decided and reviewed in that PR
@@ -14,7 +14,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: [packages/core/package.json, "spec/releases/*.sha256"]
+    paths: [packages/core/package.json, "spec/releases/*.sha256", "spec/releases/*.md"]
   workflow_dispatch:
 
 env:
