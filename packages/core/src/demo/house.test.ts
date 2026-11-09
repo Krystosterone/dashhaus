@@ -27,6 +27,20 @@ describe("createDemoHouseTransport", () => {
     }
   });
 
+  it("answers each entity's history from the part that owns it, so a part's own day isn't the generic one", async () => {
+    const house = demo.createDemoHouseTransport();
+    const stop = house.subscribeEntities(() => {});
+    await settled();
+    const ids = ["sensor.living_room_co2", "sensor.house_energy", "light.living_room", "sensor.nowhere"];
+    const answer = await house.sendMessage!("history/history_during_period", { entity_ids: ids }) as Record<string, unknown>;
+    stop();
+    const numeric = await demo.createDemoNumericHaTransport().sendMessage!("history/history_during_period", { entity_ids: ids.slice(0, 2) }) as Record<string, unknown>;
+    expect(answer["sensor.living_room_co2"]).toEqual(numeric["sensor.living_room_co2"]);
+    expect(answer["sensor.house_energy"]).toEqual(numeric["sensor.house_energy"]);
+    expect(answer["light.living_room"]).toBeDefined();
+    expect(answer).not.toHaveProperty("sensor.nowhere");
+  });
+
   it("resolves a picture no domain holds to nothing, so the demo house never fetches the network", () => {
     expect(demo.createDemoHouseTransport().resolveUrl?.("/api/camera_proxy/camera.nowhere?token=x")).toBeUndefined();
   });
