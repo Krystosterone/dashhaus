@@ -44,11 +44,12 @@ describe("DysonCard", () => {
 
   it("leads with poor air, then a worn filter, behind the warn marker", () => {
     const { container, rerender } = render(<DysonCard entity={DYSON_SEEDS.poorAir.entity} onToggle={() => {}} />);
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("warn");
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("advisory");
     expect(screen.getByText("Poor air")).toBeTruthy();
     expect(screen.getByLabelText("Warning: Purifier: Poor air: Fine particles 62 µg/m³")).toBeTruthy();
     rerender(<DysonCard entity={DYSON_SEEDS.filter.entity} onToggle={() => {}} />);
     expect(screen.getByText("Change filter")).toBeTruthy();
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("advisory");
   });
 
   it("sets Auto, the sweep, the airflow, night mode and heat from the sheet", () => {

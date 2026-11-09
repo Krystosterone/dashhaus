@@ -2,7 +2,7 @@ import type { FanDirection } from "@dashhaus/core/entities/fan/types";
 import type { DysonEntity, DysonHistory } from "@dashhaus/core/entities/dyson/types";
 import { percentOf, speedOf, speedText } from "@dashhaus/core/entities/fan/speed";
 import { fanWord, speedValueText } from "@dashhaus/core/entities/fan/labels";
-import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonWarning } from "@dashhaus/core/entities/dyson/air";
+import { AIR_BAND_WORD, FILTER_CHANGE_AT, FILTER_LABEL, POLLUTANT_WORDS, airBand, airText, airWord, dysonAir, dysonSeverity, dysonWarning } from "@dashhaus/core/entities/dyson/air";
 import { AIRFLOW_LABEL, DYSON_LOCAL_ANGLES, DYSON_SPREADS, aimAngles, aimWords, dysonAbilities, dysonMode, oscillationChoice, spreadLabel } from "@dashhaus/core/entities/dyson/labels";
 import { NO_READING_YET, lastChangedFact, lastSeenFact, sinceFact } from "@dashhaus/core/entities/facts";
 import { fmt1 } from "@dashhaus/core/entities/format";
@@ -62,7 +62,9 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
   const { uid, area } = card;
   const unav = e.state === "unavailable";
   const on = e.state === "on";
-  const colors = on && e.heating ? paint("energy", 0.9) : paint("state", 0);
+  // Core ranks its warning; a card with a level never glows, so a heater that warns keeps its colour, not its glow.
+  const level = dysonSeverity(e);
+  const colors = on && e.heating ? paint("energy", level ? 0 : 0.9) : paint("state", 0);
 
   const count = e.speedCount ?? 0;
   const groove = !!(e.supportsSpeed && count >= 2 && onPercentageChange);
@@ -115,7 +117,8 @@ export function DysonCard({ entity: e, history, variant, footprint, showControl,
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-alert": warning ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, ...colors }}
+      level={level}
       orb={{ label: e.name, pressed: on, intensity: 0.7, onToggle, children: <DysonIcon /> }}
       unavailable={unav}
       lastSeen={e.lastSeen}
