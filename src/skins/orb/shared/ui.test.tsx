@@ -6,6 +6,7 @@ import type { CardProps } from "./ui";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { lastSeenFact } from "@dashhaus/core/entities/facts";
 import { HourCycleProvider } from "@dashhaus/core/hooks";
+import type { Severity } from "@dashhaus/core/entities/severity";
 
 describe("paint", () => {
   it("shows no glow attribute at zero", () => {
@@ -227,10 +228,26 @@ describe("UnavailableSlot", () => {
 });
 
 describe("CardFrame", () => {
-  function Frame({ slotKind, word }: { slotKind?: string; word?: boolean }) {
+  function Frame({ slotKind, word, level, glow = 0 }: { slotKind?: string; word?: boolean; level?: Severity; glow?: number }) {
     const card = useCard("pt", {});
-    return <CardFrame card={card} name="Lamp" attrs={{}} status="Study" value="On" control={<span>{slotKind}</span>} slotKind={slotKind} readout={{ value: "On", word }} />;
+    return <CardFrame card={card} name="Lamp" attrs={{ ...paint("energy", glow) }} level={level} status="Study" value="On" control={<span>{slotKind}</span>} slotKind={slotKind} readout={{ value: "On", word }} />;
   }
+
+  it("writes core's level on the article as data-level, and nothing without one", () => {
+    const { container, rerender } = render(<Frame />);
+    expect(container.querySelector("article")?.hasAttribute("data-level")).toBe(false);
+    for (const level of ["advisory", "urgent", "alarm"] as const) {
+      rerender(<Frame level={level} />);
+      expect(container.querySelector("article")?.getAttribute("data-level")).toBe(level);
+    }
+  });
+
+  it("leaves the glow it is painted: a card with a level is given none, never stripped of one", () => {
+    const { container } = render(<Frame level="urgent" glow={0.5} />);
+    const article = container.querySelector("article");
+    expect(article?.getAttribute("data-level")).toBe("urgent");
+    expect(article?.hasAttribute("data-glow")).toBe(true);
+  });
 
   it("fades the slot's new content in when what it shows changes, and only then", () => {
     const animate = vi.fn(function (this: HTMLElement) { return { cancel: () => {} }; });

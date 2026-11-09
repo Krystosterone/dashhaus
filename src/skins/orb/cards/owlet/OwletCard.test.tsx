@@ -48,13 +48,13 @@ describe("OwletCard", () => {
     const { container } = render(<OwletCard entity={{ ...sock, live: true }} />);
     expect(container.querySelector(".ow-heart[data-live]")).not.toBeNull();
     expect(screen.getByRole("img", { name: "deep sleep, live, heart rate 121 beats per minute, oxygen 98 percent" })).toBeTruthy();
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBeNull();
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBeNull();
   });
 
   it("warns since when once readings stop, with the heart still", () => {
     const { container } = render(<OwletCard entity={{ ...sock, live: false, lastUpdated: "11:49" }} />);
     const card = container.querySelector("article");
-    expect(card?.getAttribute("data-alert")).toBe("warn");
+    expect(card?.getAttribute("data-level")).toBe("urgent");
     expect(card?.hasAttribute("data-stale")).toBe(true);
     expect(container.querySelector(".ow-heart[data-live]")).toBeNull();
     // spec/cards.md → a warning's words fit a row (13 characters): "Stopped 11:49" in every footprint, said whole aloud.
@@ -68,14 +68,14 @@ describe("OwletCard", () => {
 
   it("never calls an offline sock stale", () => {
     const { container } = render(<OwletCard entity={{ ...sock, state: "unavailable", heartRate: undefined, oxygen: undefined, live: false }} />);
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBeNull();
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBeNull();
   });
 
   it("fills the slot with the vitals alert and its figure, like a triggered alarm", () => {
     const { container } = render(<OwletCard entity={{ ...sock, oxygen: 86, alerts: ["low_battery", "low_oxygen"] }} />);
     const alarm = screen.getByRole("alert");
     expect(alarm.textContent).toBe("Low oxygen86% O₂");
-    expect(container.querySelector("article")?.getAttribute("data-alert")).toBe("alarm");
+    expect(container.querySelector("article")?.getAttribute("data-level")).toBe("alarm");
     expect(container.querySelector("article")?.getAttribute("data-glow")).toBeNull();
     // The device problem still leads the status line, and the sleep state the alarm displaced follows it.
     expect(screen.getByRole("img", { name: "Warning: Nova: Battery low" })).toBeTruthy();

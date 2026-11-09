@@ -7,15 +7,29 @@
 .dash-sec-h small { font-size: 13px; font-weight: 500; line-height: 1.3; color: var(--ink-2); }
 .dash-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--dash-grid-gap, 8px); align-items: start; }
 .dash-cell { min-width: 0; grid-column: span var(--span, 1); }
-/* One column: a stacked section reads top-down, so the first glowing card glows full and later ones
-   are damped — the glow budget scales with composition, not just entity state. */
-.dash-grid--1 > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-damp: 0.5; }
+/* The attention budget (spec/orb.md → Composing for a glance), in a one column grid and a one-track Lovelace row:
+   a stack reads top-down, so the budget scales with composition, not just entity state. A card's glow layer is
+   --hd-glow × --glow-damp (shared/card.css); here --glow-damp is two independent factors multiplied, so no rule's order
+   or specificity carries meaning and no value given to one can invert what the other says:
+   - --glow-later, position: the first cell holding a glowing card glows full, each later one --glow-damp-later.
+   - --glow-yield, urgency: while the container holds an urgent or alarm card anywhere (core's Severity, `data-level`;
+     advisory doesn't outrank), every glowing card in it takes --glow-damp-under-alert, above the problem or below it.
+   Both values carry their fallbacks here: 0.5, and 1, which leaves every glow as position alone sets it. The yield
+   stays 1 until the scan-task comparison (.agents/skills/attention-budget) decides its value, and whether it should
+   reach the whole .dash rather than its container. Two quirks are kept as they are, so nothing moves: a compact
+   glowing card (whose glow card.css hides) still claims the first cell, and an open sheet, drawn in its tile's cell,
+   is damped by where that tile sits. Multi-column grids and rows don't damp. The Storybook run's glow census
+   (.storybook/glow-census.ts) holds every value in Chromium. */
+:is(.dash-grid--1, .dash-row[data-tracks="1"]) > * .hd { --glow-damp: calc(var(--glow-later, 1) * var(--glow-yield, 1)); }
+.dash-grid--1 > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
+.dash-grid--1:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }
 
 /* The Lovelace card's rows: tracks from the row's own width (useRowLayout), down a grid of 60 px units with the 8 px
    gap, so each footprint is a whole number of rows. Every card is placed by its inline grid lines. */
 .dash-row { display: grid; gap: 8px; grid-auto-rows: 60px; align-items: start; min-width: 0; }
 .dash-place { min-width: 0; }
-.dash-row[data-tracks="1"] > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-damp: 0.5; }
+.dash-row[data-tracks="1"] > :has(.hd[data-glow]) ~ :has(.hd[data-glow]) .hd { --glow-later: var(--glow-damp-later, 0.5); }
+.dash-row[data-tracks="1"]:has(> * .hd:is([data-level="urgent"], [data-level="alarm"])) > * .hd[data-glow] { --glow-yield: var(--glow-damp-under-alert, 1); }
 
 /* At the narrow phone boundary, identity wins over columns: footprints stay fixed while rows reflow. */
 @container dash (max-width: 319px) {

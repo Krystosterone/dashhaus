@@ -11,6 +11,7 @@ import { fmt1, fmtDuration } from "@dashhaus/core/entities/format";
 import { lastSeenFact, unavailableSince } from "@dashhaus/core/entities/facts";
 import { PICTURE_WORDS } from "@dashhaus/core/entities/picture";
 import { hourLabel, lineParts } from "@dashhaus/core/entities/clock";
+import type { Severity } from "@dashhaus/core/entities/severity";
 import "./card.css";
 
 /** CSS custom properties in a style prop. */
@@ -791,8 +792,15 @@ export interface CardFrameProps {
   /** `useCard`'s result. */
   card: Pick<ReturnType<typeof useCard>, "article" | "nameId" | "sheet" | "compact" | "bare">;
   name: string;
-  /** The article's own attributes: its state (`data-state`, `data-alert`…) and `paint()`'s colour. */
+  /** The article's own attributes: its state (`data-state`, `data-armed`…) and `paint()`'s colour. */
   attrs: { [data: `data-${string}`]: string | undefined; style?: Vars };
+  /**
+   * How much the card's warning may claim, as core ranks it (`packages/core/src/entities/severity.ts`): written on the
+   * article as `data-level`, as Field's module writes it, for the dashboard's attention budget (`dashboards/layout.css`).
+   * It draws nothing itself; the card's marker or alarm says it. A card with a level never glows (spec/orb.md →
+   * Composing for a glance), and the frame doesn't strip one: `paint()` is given no glow.
+   */
+  level?: Severity;
   /** A control's orb: what it says and does, its icon as children. The frame adds unavailable and press and hold. */
   orb?: Omit<OrbProps, "unavailable" | "onLongPress">;
   /** A reading's bare icon, in place of an orb. */
@@ -871,14 +879,14 @@ function useSlotChange(kind: string | undefined) {
   return slotRef;
 }
 
-export function CardFrame({ card, name, attrs, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotKind, facts, children }: CardFrameProps) {
+export function CardFrame({ card, name, attrs, level, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotKind, facts, children }: CardFrameProps) {
   const { article, nameId, sheet, compact, bare } = card;
   const slotRef = useSlotChange(slotKind);
   const open = sheet ? undefined : onOpen;
   const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} word={unavailableWord} /> : control);
   return (
     <FrameContext.Provider value={{ sheet, unavailable, lastSeen }}>
-      <article {...article} {...attrs}>
+      <article {...article} {...attrs} data-level={level}>
         <header className="hd-head">
           {orb
             ? <Orb {...orb} unavailable={unavailable} onLongPress={open} />

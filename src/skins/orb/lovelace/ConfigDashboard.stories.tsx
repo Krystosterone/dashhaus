@@ -7,7 +7,7 @@ import { autoDashboard } from "./auto";
 import { parseDashboardConfig } from "./config";
 import { ConfigDashboard } from "./ConfigDashboard";
 import { DEMO_ENERGY_PREFS, createDemoHouseTransport } from "@dashhaus/core/demo";
-import type { HaTransport } from "@dashhaus/core";
+import type { HaTransport, HassEntities } from "@dashhaus/core";
 
 const meta = {
   title: "Orb/Dashboards/Lovelace card",
@@ -137,6 +137,36 @@ function ActionFailureExample() {
   return <House transport={transport}><FailedAction /></House>;
 }
 
+/** The demo house with its back door jammed, keeping every other entity as it is. */
+function jammedHouse(): HaTransport {
+  const demo = createDemoHouseTransport();
+  let source: HassEntities[string] | undefined;
+  let jammed: HassEntities[string] | undefined;
+  return {
+    ...demo,
+    subscribeEntities: (listener) => demo.subscribeEntities((entities) => {
+      const door = entities["lock.back_door"];
+      if (door !== source) {
+        source = door;
+        jammed = door && { ...door, state: "jammed" };
+      }
+      listener(jammed ? { ...entities, "lock.back_door": jammed } : entities);
+    }),
+  };
+}
+
+/** A row on a phone is one track, so it keeps Orb's attention budget (Orb → Foundations → Attention). */
+const ONE_TRACK_YAML = {
+  type: "custom:dashhaus-orb",
+  title: "Attention",
+  rows: [{ title: "One track", cards: ["light.living_room", "lock.back_door", "cover.living_room"] }],
+};
+
+function OneTrack() {
+  const transport = useMemo(jammedHouse, []);
+  return <House transport={transport} width={390}><Configured yaml={ONE_TRACK_YAML} /></House>;
+}
+
 /** spec/deploy.md's navigation example: the main page, two pages of the card's own, and another dashboard. */
 const NAV_YAML = {
   type: "custom:dashhaus-orb",
@@ -165,3 +195,5 @@ export const CompositionPhone: Story = { name: "Composition, phone", render: () 
 export const CompositionTablet: Story = { name: "Composition, tablet", render: () => <House width={820}><Configured yaml={COMPOSED_YAML} /></House> };
 export const CompositionWall: Story = { name: "Composition, wall panel", render: () => <House width={1280}><Configured yaml={COMPOSED_YAML} /></House> };
 export const NavAndPages: Story = { name: "Nav and pages", render: () => <House><WithNav /></House> };
+/** A Lovelace row on a phone is one track, and keeps the same budget: the lamp full, the open curtains after the jam at half. */
+export const OneTrackRow: Story = { name: "One-track row", render: () => <OneTrack /> };

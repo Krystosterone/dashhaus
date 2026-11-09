@@ -98,7 +98,8 @@ export function LockCard({ entity: e, variant, footprint, showControl, onLock, o
     <CardFrame
       card={card}
       name={e.name}
-      attrs={{ "data-state": e.state, "data-alert": alertLabel ? "warn" : undefined, ...colors }}
+      attrs={{ "data-state": e.state, ...colors }}
+      level={level}
       orb={ro ? undefined : { label: orbLabel, pressed: locked, intensity: 0, onToggle: tap, children: icon }}
       glyph={ro ? icon : undefined}
       unavailable={unav}
