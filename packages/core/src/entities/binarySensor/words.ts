@@ -1,4 +1,4 @@
-import { leftOpenSentence, leftOpenText } from "../cover/words";
+import { leftOpenText } from "../cover/words";
 import { WARNING_WORD_MAX } from "../severity";
 import type { BinarySensorClass, BinarySensorEntity } from "./types";
 
@@ -106,16 +106,6 @@ const SINCE_ALERTS: ReadonlySet<BinarySensorClass> = new Set(["garage_door"]);
 export function alertText(e: Pick<BinarySensorEntity, "state" | "deviceClass" | "lastChanged">): string | undefined {
   const word = alertWord(e);
   return word && e.deviceClass && SINCE_ALERTS.has(e.deviceClass) ? leftOpenText(e.lastChanged) : word;
-}
-
-/**
- * Its warning as a sentence, for a screen reader: "Carbon monoxide detected at Bedroom", "Garage door has been open
- * since 18:30". Undefined while there is none.
- */
-export function alertSentence(e: Pick<BinarySensorEntity, "state" | "deviceClass" | "lastChanged" | "name">): string | undefined {
-  if (!alertWord(e) || !e.deviceClass) return undefined;
-  if (SINCE_ALERTS.has(e.deviceClass)) return leftOpenSentence(e.name, e.lastChanged);
-  return `${ALERT_SPOKEN[e.deviceClass]} at ${e.name}`;
 }
 
 /**
