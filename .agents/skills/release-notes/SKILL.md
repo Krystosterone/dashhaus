@@ -35,8 +35,8 @@ what to pass to keep the old output.
 A required member added to an interface the package only hands out (a hook's result a consumer reads but never
 builds, passes in or implements, as `MediaPlayerHandlers`, the `actions` `useHaMediaPlayer` returns) is a `feature`:
 code compiled against the old declaration still compiles. Added to one a consumer passes in or implements (a card's
-props, a `CardReadSchema`), it breaks. The API comparison lists both as changed, so say which it is in the release
-record (spec/release.md → Change notes).
+props, a `CardReadSchema`), it breaks. The API comparison records each interface's input positions and tells the two
+apart (spec/release.md → Change notes); when it cannot, say which it is in the release record.
 
 Write for someone deciding whether to upgrade, who has never seen the code:
 

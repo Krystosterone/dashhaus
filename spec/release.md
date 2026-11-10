@@ -75,8 +75,11 @@ component or hook) is an export of that skin's `index.ts`.
 A required member added to an interface the package only hands out, one a consumer reads but never passes in, builds
 or implements (`MediaPlayerHandlers`, the `actions` `useHaMediaPlayer` returns), is a `feature`, not `breaking`: code
 written against the old declaration still compiles. Added to one a consumer passes in or implements (a card's props, a
-`CardReadSchema`), it breaks. The API comparison lists either as a changed declaration and cannot tell them apart, so
-the release record's TODO for an API change without a breaking note is where a person says which it is.
+`CardReadSchema`), it breaks. The API comparison tells them apart: `readApi` records, for each interface, whether it
+appears in an input position (a parameter, a prop, a member of an input type, or a generic constraint), and `diffApi`
+reads a change that only adds members to an interface outside every input position as not breaking. Any other changed
+declaration is breaking, and the release record's TODO for an API change without a breaking note is where a person
+says why the comparison could not.
 
 CI's `checks` lane runs `node scripts/release/changes.js check-pr` on every pull request: a diff that touches a public
 package's files (tests, stories and READMEs aside), a resource's entry, the lockfile or the build fails unless it adds

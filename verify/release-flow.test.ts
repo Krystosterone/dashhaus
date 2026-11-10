@@ -124,8 +124,8 @@ describe("change notes", () => {
   });
 });
 
-const api = (exports: Record<string, Record<string, string>>): Api =>
-  Object.fromEntries(Object.entries(exports).map(([key, own]) => [key, { typed: true, exports: own }]));
+const api = (exports: Record<string, Record<string, string>>, inputs: Record<string, Record<string, boolean>> = {}): Api =>
+  Object.fromEntries(Object.entries(exports).map(([key, own]) => [key, { typed: true, exports: own, inputs: inputs[key] ?? {} }]));
 
 describe("the API comparison", () => {
   it("calls a removed entry, a removed export or a changed declaration breaking, and an addition additive", () => {
@@ -151,6 +151,35 @@ describe("the API comparison", () => {
     const same = diffApi(before, before);
     expect(same.breaking || same.additive).toBe(false);
     expect(apiMarkdown(same, "0.2.0")).toMatch(/^None/);
+  });
+
+  it("calls a member added to an interface consumers pass in breaking, and one added to a returned-only interface not", () => {
+    const declarations = (handlers: string, schema: string) => ({
+      "@dashhaus/core": {
+        MediaPlayerHandlers: `export interface MediaPlayerHandlers { ${handlers} }`,
+        HaMediaPlayerResult: "export interface HaMediaPlayerResult { actions: MediaPlayerHandlers; }",
+        useHaMediaPlayer: "export declare function useHaMediaPlayer(id: string): HaMediaPlayerResult;",
+        CardReadSchema: `export interface CardReadSchema { ${schema} }`,
+        readCard: "export declare function readCard(schema: CardReadSchema): void;",
+      },
+    });
+    const positions = { "@dashhaus/core": { MediaPlayerHandlers: false, HaMediaPlayerResult: false, CardReadSchema: true } };
+    const before = api(declarations("onPlay: () => void;", "noun: string;"), positions);
+
+    const returned = api(declarations("onPlay: () => void; onStop: () => void;", "noun: string;"), positions);
+    const returnedDiff = diffApi(before, returned);
+    expect(returnedDiff.changed).toEqual([expect.objectContaining({ name: "MediaPlayerHandlers", breaking: false })]);
+    expect(returnedDiff).toMatchObject({ breaking: false, additive: true });
+    expect(apiMarkdown(returnedDiff, "0.2.0")).toBe("- **Changed** `MediaPlayerHandlers` in `@dashhaus/core` (members added; consumers only read it, so not breaking)");
+
+    const passedIn = api(declarations("onPlay: () => void;", "noun: string; base: () => void;"), positions);
+    const passedInDiff = diffApi(before, passedIn);
+    expect(passedInDiff.changed).toEqual([expect.objectContaining({ name: "CardReadSchema", breaking: true })]);
+    expect(passedInDiff).toMatchObject({ breaking: true, additive: false });
+
+    // Only additions are safe: a changed or removed member of a returned-only interface still breaks.
+    const altered = api(declarations("onPlay: (speed: number) => void;", "noun: string;"), positions);
+    expect(diffApi(before, altered).changed).toEqual([expect.objectContaining({ name: "MediaPlayerHandlers", breaking: true })]);
   });
 
   it("suggests the next version the way a caret range reads it", () => {
@@ -189,12 +218,40 @@ describe("the API comparison", () => {
         await writeFile(join(pkg, "dist/seeds/light.d.ts"), "export declare const LIGHT: { on: boolean };\n");
         return readApi(join(work, version), ["@dashhaus/core"]);
       };
-      const before = await write("a", "/** Reads a light. */\nexport declare function useHaLight(id: string): void;\nexport type Kind = 'a';\n");
-      const reworded = await write("b", "/** Reads one light, by id. */\nexport declare function useHaLight(id: string): void;\nexport type Kind = 'a';\n");
-      const changed = await write("c", "export declare function useHaLight(id: string, options?: {}): void;\nexport type Kind = 'a';\n");
+      const interfaces = [
+        "export interface Props { nested: Nested; size?: string }",
+        "export interface Nested { depth: number }",
+        "export interface Result { value: string; handlers: Returned }",
+        "export interface Returned { onPlay: () => void }",
+        "export interface Constraint { id: string }",
+        "export interface Keys { a: string }",
+        "export interface ViewerProps { children: (live: Live) => string }",
+        "export interface Live { value: string }",
+        "export interface SeekOptions { seconds: number }",
+        "export interface Actions { seek(options: SeekOptions): void }",
+        "export interface Source { kept?: string; removed?: string }",
+        "export interface Wrapper extends Omit<Source, \"removed\"> { own: string }",
+        "export declare function read(props: Props): Result;",
+        "export declare function constrained<T extends Constraint>(value: T): void;",
+        "export declare function keysOf<T extends keyof Keys>(key: T): void;",
+        "export declare function useResult(): Result;",
+        "export declare function Viewer(props: ViewerProps): void;",
+        "export declare function useActions(): Actions;",
+        "export declare function useWrapper(props: Wrapper): void;",
+      ].join("\n");
+      const before = await write("a", `/** Reads a light. */\nexport declare function useHaLight(id: string): void;\nexport type Kind = 'a';\n${interfaces}\n`);
+      const reworded = await write("b", `/** Reads one light, by id. */\nexport declare function useHaLight(id: string): void;\nexport type Kind = 'a';\n${interfaces}\n`);
+      const changed = await write("c", `export declare function useHaLight(id: string, options?: {}): void;\nexport type Kind = 'a';\n${interfaces}\n`);
       expect(Object.keys(before)).toEqual(["@dashhaus/core", "@dashhaus/core/seeds/light", "@dashhaus/core/fixtures/*"]);
       expect(before["@dashhaus/core/fixtures/*"]).toEqual({ typed: false, exports: {} });
       expect(before["@dashhaus/core"].exports.useHaLight).toBe("export declare function useHaLight(id: string): void;");
+      // Input positions: a parameter, a prop (a member of an input type), a method's parameter on a returned type, a
+      // generic constraint. A return, a member of an output type, a callback's parameter and `keyof` are not, so adding
+      // a member there cannot break a consumer.
+      expect(before["@dashhaus/core"].inputs).toEqual({
+        Props: true, Nested: true, Result: false, Returned: false, Constraint: true, Keys: false,
+        ViewerProps: true, Live: false, Actions: false, SeekOptions: true, Source: true, Wrapper: true,
+      });
       expect(diffApi(before, reworded).breaking, "a doc comment is not the API").toBe(false);
       expect(diffApi(before, changed).changed.map(({ name }) => name)).toEqual(["useHaLight"]);
       // A package new since the version compared with has no tarball there: left out, so all of it reads as added.
