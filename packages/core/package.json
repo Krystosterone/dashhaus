@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/core",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "private": true,
   "license": "MIT",
   "description": "The Home Assistant foundation behind Dashhaus skins: entity models, the store, mappers, actions, useHa hooks and interaction primitives, headless; and, on its ./lovelace subpaths, the framework a skin's Lovelace card draws on.",

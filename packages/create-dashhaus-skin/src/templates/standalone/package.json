@@ -12,14 +12,14 @@
     "add": "create-dashhaus-skin add"
   },
   "dependencies": {
-    "@dashhaus/core": "^0.5.2"
+    "@dashhaus/core": "^0.6.0"
   },
   "devDependencies": {
-    "@dashhaus/deploy": "^0.5.2",
+    "@dashhaus/deploy": "^0.6.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "create-dashhaus-skin": "^0.5.2",
+    "create-dashhaus-skin": "^0.6.0",
     "playwright": "^1.64.1",
     "typescript": "^5.6.3",
     "vite": "^8.3.6"
