@@ -1,6 +1,6 @@
 {
   "name": "@dashhaus/orb",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "private": true,
   "license": "MIT",
   "description": "The Orb skin for Home Assistant: React cards, bundles and dashboard furniture, and custom:dashhaus-orb, a Lovelace card drawn from YAML.",
@@ -70,7 +70,7 @@
     }
   },
   "dependencies": {
-    "@dashhaus/core": "^0.5.2"
+    "@dashhaus/core": "^0.6.0"
   },
   "peerDependencies": {
     "home-assistant-js-websocket": "^9.7.1",
