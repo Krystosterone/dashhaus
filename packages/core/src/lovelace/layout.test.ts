@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   areaId,
   areaName,
+  areaOrder,
   byName,
   columnAreas,
   deviceCompanion,
@@ -296,6 +297,38 @@ describe("the wall", () => {
       ["Kitchen", ["light.kitchen", "lock.back", "sensor.kitchen", "image.kitchen"]],
     ]);
     expect(ids(house)).toEqual(["alarm_control_panel.house", "calendar.family"]);
+  });
+
+  it("orders the columns as Home Assistant orders its areas, an area it doesn't name after them by name", () => {
+    const items = [
+      { entity: "light.attic", card: "light", area: "Attic" },
+      { entity: "light.kitchen", card: "light", area: "Kitchen" },
+      { entity: "light.den", card: "light", area: "Den" },
+      { entity: "light.yard", card: "light", area: "Yard" },
+      { entity: "light.made_up", card: "light", area: "Made up" },
+    ];
+    const order = (names: string[]) => wallAreas(items, { card: (item) => item.card, area: (item) => item.area, order: names }).areas.map((area) => area.area);
+    expect(order([])).toEqual(["Attic", "Den", "Kitchen", "Made up", "Yard"]);
+    // Compared without case or the spaces around it; an area with no card takes no column.
+    expect(order(["Yard", " kitchen", "Hall", "Attic", "Den"])).toEqual(["Yard", "Kitchen", "Attic", "Den", "Made up"]);
+  });
+
+  it("reads Home Assistant's area order: each floor's areas in floor order, then those on no floor, each in registry order", () => {
+    expect(areaOrder({})).toEqual([]);
+    expect(areaOrder({ areas: { yard: { name: "Yard" }, attic: { name: "Attic" } } })).toEqual(["Yard", "Attic"]);
+    expect(areaOrder({
+      areas: {
+        garden: { name: "Garden" },
+        bedroom: { name: "Bedroom", floor_id: "upstairs" },
+        kitchen: { name: "Kitchen", floor_id: "ground" },
+        loft: { name: "Loft", floor_id: "gone" },
+        living: { name: "Living room", floor_id: "ground" },
+        bath: { name: "Bathroom", floor_id: "upstairs" },
+      },
+      floors: { ground: {}, upstairs: {} },
+    })).toEqual(["Kitchen", "Living room", "Bedroom", "Bathroom", "Garden", "Loft"]);
+    // A person moved the upstairs floor first.
+    expect(areaOrder({ areas: { kitchen: { name: "Kitchen", floor_id: "ground" }, bedroom: { name: "Bedroom", floor_id: "upstairs" } }, floors: { upstairs: {}, ground: {} } })).toEqual(["Bedroom", "Kitchen"]);
   });
 
   it("puts the weather and the sun in the area called Outside, or with the house's own cards", () => {

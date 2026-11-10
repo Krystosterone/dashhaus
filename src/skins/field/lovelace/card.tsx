@@ -1,7 +1,7 @@
 import { LovelaceDashboardElement, autoInput, registerCard, scopeToHost } from "@dashhaus/core/lovelace/skin";
 import type { LovelaceHass } from "@dashhaus/core/lovelace/skin";
 import { isRaw, mapRowItems } from "@dashhaus/core/lovelace/schema";
-import { outsideArea } from "@dashhaus/core/lovelace/layout";
+import { areaOrder, outsideArea } from "@dashhaus/core/lovelace/layout";
 import { parseFieldConfig } from "./config";
 import type { FieldConfig, FieldRow, ModuleConfig, PageConfig } from "./config";
 import { areaColumns, areaName, areaRows, autoModules, energyModules } from "./auto";
@@ -88,7 +88,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
      * preferences decide its Energy row; a state change does not.
      */
     #key(hass: LovelaceHass): unknown[] {
-      return [this.config, hass.entities, hass.devices, hass.areas, Object.keys(hass.states).length, this.#energy(hass)];
+      return [this.config, hass.entities, hass.devices, hass.areas, hass.floors, Object.keys(hass.states).length, this.#energy(hass)];
     }
 
     /** The energy preferences, read only for the automatic layout: a page laid out in YAML never asks. */
@@ -112,7 +112,7 @@ export function createFieldCard(css: string): CustomElementConstructor {
         const modules = config.rows ? [] : autoModules(input);
         const energy = config.rows ? [] : energyModules(input, modules).map(withArea);
         const rows = config.rows ? mapRowItems(config.rows, withArea)
-          : config.layout === "wall" ? areaColumns(modules.map(withArea), energy, { outside: outsideArea(input), footprint: this.#footprint })
+          : config.layout === "wall" ? areaColumns(modules.map(withArea), energy, { outside: outsideArea(input), footprint: this.#footprint, order: areaOrder(input) })
           : areaRows(modules.map(withArea), energy);
         const pages = config.pages?.map((p) => ({ ...p, rows: mapRowItems(p.rows, withArea) }));
         this.#layout = { key: this.#key(hass), rows, pages };

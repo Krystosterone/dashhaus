@@ -1,7 +1,7 @@
 import { fireEvent, render, within } from "@testing-library/react";
 import type { KeyboardEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { rangeKeyValue, trackPos, useRangeSlider, useSlider } from "./slider";
+import { inputRange, rangeKeyValue, trackPos, useRangeSlider, useSlider } from "./slider";
 import type { SliderOptions } from "./slider";
 
 type Opts = Omit<SliderOptions<HTMLDivElement>, "inset" | "valueText" | "onChange"> & { onChange: (v: number) => void };
@@ -141,9 +141,26 @@ describe("useSlider", () => {
     expect(mount({ value: 42 }).input.getAttribute("aria-valuetext")).toBe("42 percent");
   });
 
-  it("keeps the native step on the grid and takes step=any off it", () => {
-    expect(mount({ value: 50, min: 1, max: 100 }).input.getAttribute("step")).toBe("1");
-    expect(mount({ value: 2700, min: 2202, max: 6535, step: 100 }).input.getAttribute("step")).toBe("any");
+  it("keeps the native step, on a grid through the value, so an assistive swipe steps from it as a key does", () => {
+    const ends = ({ input }: ReturnType<typeof mount>) => ["min", "max", "step", "value"].map((a) => a === "value" ? input.value : input.getAttribute(a));
+    expect(ends(mount({ value: 50, min: 1, max: 100 }))).toEqual(["1", "100", "1", "50"]);
+    // A colour temperature whose ends don't divide by its step: the grid runs through the value, past both ends.
+    expect(ends(mount({ value: 2700, min: 2202, max: 6535, step: 100 }))).toEqual(["2200", "6600", "100", "2700"]);
+    // A track's position, off every grid: one swipe moves it 5 s, and a swipe past an end comes back to it.
+    const seek = mount({ value: 63.4, min: 0, max: 213.7, step: 5 });
+    expect(ends(seek)).toEqual(["-1.6", "218.4", "5", "63.4"]);
+    fireEvent.change(seek.input, { target: { value: "68.4" } });
+    expect(seek.onChange).toHaveBeenLastCalledWith(68.4);
+    fireEvent.change(seek.input, { target: { value: "-1.6" } });
+    expect(seek.onChange).toHaveBeenLastCalledWith(0);
+  });
+
+  it("lays its input's grid through the value, at or past both ends", () => {
+    expect(inputRange(50, 0, 100, 1)).toEqual({ min: 0, max: 100 });
+    expect(inputRange(0.3, 0.1, 1, 0.1)).toEqual({ min: 0.1, max: 1 });
+    expect(inputRange(213.7, 0, 213.7, 5)).toEqual({ min: -1.3, max: 213.7 });
+    // A range of no length still gives the input one step.
+    expect(inputRange(4, 4, 4, 1)).toEqual({ min: 4, max: 5 });
   });
 
   it("takes no pointer and no input while disabled", () => {

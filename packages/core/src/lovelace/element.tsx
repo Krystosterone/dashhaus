@@ -26,7 +26,10 @@ export interface LovelaceHass {
   states: HassEntities;
   entities?: Record<string, AutoEntityEntry>;
   devices?: Record<string, { area_id?: string | null }>;
-  areas?: Record<string, { name: string }>;
+  /** Keyed in Home Assistant's own order, which a person sets under Settings → Areas (`areaOrder`). */
+  areas?: Record<string, { name: string; floor_id?: string | null }>;
+  /** Keyed in Home Assistant's own order, as `areas`. */
+  floors?: Record<string, object>;
   themes?: { darkMode?: boolean };
   /** The frontend's panels by URL path; a nav names the dashboards it goes to from them. */
   panels?: Record<string, { url_path?: string; title?: string | null }>;
@@ -37,7 +40,7 @@ export interface LovelaceHass {
  * has them (`LovelaceDashboardElement.energyPrefs`).
  */
 export const autoInput = (hass: LovelaceHass, energy?: EnergyPrefs) =>
-  ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas, ...(energy && { energy }) });
+  ({ states: hass.states, entities: hass.entities, devices: hass.devices, areas: hass.areas, floors: hass.floors, ...(energy && { energy }) });
 
 /** One connection's read of the energy preferences: its answer once it lands. */
 interface EnergyRead {

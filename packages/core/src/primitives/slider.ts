@@ -27,7 +27,18 @@ export function rangeKeyValue(event: KeyboardEvent, value: number, min: number, 
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-const onGrid = (x: number, step: number) => Math.abs(x / step - Math.round(x / step)) < 1e-6;
+const fixed = (x: number) => Number(x.toFixed(4));
+
+/**
+ * The hidden input's own ends: a grid of `step` through the value, reaching at or past both of the range's, so the
+ * value always sits on the input's grid. The browser then never rounds it, and an assistive swipe moves it one step
+ * from where it is, as a key does; a step past an end is brought back to it.
+ */
+export function inputRange(value: number, min: number, max: number, step: number) {
+  const below = Math.ceil(fixed((value - min) / step));
+  const above = Math.ceil(fixed((Math.max(max, min + step) - value) / step));
+  return { min: fixed(value - below * step), max: fixed(value + above * step) };
+}
 
 /** The thumb's half width in px, fixed or measured from the drawn track. */
 type Inset<T> = number | ((root: T) => number);
@@ -102,16 +113,15 @@ interface Settle {
 
 /**
  * The native range input that carries keyboard and screen readers under a track's hit layer. Keys step from the
- * current value, so a range whose reported ends don't divide by its step keeps both ends. The input keeps its
- * native step while the ends and the value sit on the step's grid, so assistive tech steps it too; off the grid
- * it takes `step="any"`, or the browser would round the value it shows.
+ * current value, so a range whose reported ends don't divide by its step keeps both ends. The input always keeps its
+ * native step, on a grid through the value (`inputRange`), so assistive tech steps it by one step from the value too,
+ * whether or not the value, or an end, sits on the step's grid counted from `min` (a track's position never does).
  */
 function rangeInput(value: number, valueText: string, min: number, max: number, step: number, disabled: boolean | undefined, still: () => void, set: (v: number) => void, settle: Settle = {}) {
   return {
     type: "range" as const,
-    min,
-    max: Math.max(max, min + step),
-    step: [min, max, value].every((x) => onGrid(x, step)) ? step : ("any" as const),
+    ...inputRange(value, min, max, step),
+    step,
     value,
     "aria-valuetext": valueText,
     disabled,

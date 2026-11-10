@@ -241,6 +241,12 @@ describe("areaColumns: the wall", () => {
     })),
   });
 
+  it("puts the columns in Home Assistant's area order where it is given, the areas it doesn't name after them by name", () => {
+    const rows = areaColumns(MODULES, [], { outside: "Outside", order: ["Outside", "Kitchen", "Nursery"] });
+    const areas = rows.slice(0, 2).map((row) => [...new Set(row.cards.map((entry) => entry.item.area ?? "house"))]);
+    expect(areas).toEqual([["Outside", "Kitchen", "Attic", "house"], ["Hall", "Office"]]);
+  });
+
   it("takes a Dyson in its area's column as a row, pressed, after the plain fans", () => {
     const rows = areaColumns([...MODULES, m("fan.purifier", "dyson", "Hall"), m("fan.hall", "fan", "Hall")], [], { outside: "Outside" });
     const hall = rows[0].cards.filter((entry) => entry.item.area === "Hall").map((entry) => [entry.item.entity, entry.item.footprint]);

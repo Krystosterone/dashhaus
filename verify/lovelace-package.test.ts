@@ -186,6 +186,7 @@ describe("@dashhaus/core/lovelace", () => {
       "WALL_BANDS",
       "areaId",
       "areaName",
+      "areaOrder",
       "byName",
       "columnAreas",
       "deviceClass",

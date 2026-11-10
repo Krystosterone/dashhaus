@@ -295,7 +295,7 @@ export type { Ha__Name__TileProps } from "./ha/Ha__Name__Tile";
   edit(seams.orb.worstCase, after(markers.worstCaseImports, fill(`import { Demo__Name__Tile } from "../cards/__name__/demo/Demo__Name__Tile";
 import { __CONST___SEEDS, __CONST___WORST_CASE } from "__seeds__";
 `)));
-  edit(seams.orb.worstCase, after(markers.worstCases, fill("  card(__CONST___WORST_CASE, [__CONST___SEEDS.__firstSeed__], (seed, footprint) => <Demo__Name__Tile seed={seed} footprint={footprint} />),")));
+  edit(seams.orb.worstCase, after(markers.worstCases, fill(`  card("__Name__", __CONST___WORST_CASE, [__CONST___SEEDS.__firstSeed__], (seed, footprint) => <Demo__Name__Tile seed={seed} footprint={footprint} />),`)));
 
   // Its Lovelace card: its domains pick it, or `card:` where another card already draws one.
   const lovelace = seams.orb.config;

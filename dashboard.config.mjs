@@ -81,22 +81,25 @@ function backTo(env, path) {
 }
 
 /**
- * The house as `autoDashboard` reads it: states, the entity, device and area registries, and the energy preferences
- * (none when the energy dashboard was never set up, Home Assistant's `not_found`, or on any other refusal).
+ * The house as `autoDashboard` reads it: states, the entity, device, area and floor registries (the last two in Home
+ * Assistant's own order, which the wall's areas follow), and the energy preferences (none when the energy dashboard
+ * was never set up, Home Assistant's `not_found`, or on any other refusal).
  */
 async function house(ha) {
-  const [states, entityRegistry, devices, areas, energy] = await Promise.all([
+  const [states, entityRegistry, devices, areas, floors, energy] = await Promise.all([
     ha.send("get_states"),
     ha.send("config/entity_registry/list_for_display").catch(() => undefined),
     ha.send("config/device_registry/list").catch(() => []),
     ha.send("config/area_registry/list").catch(() => []),
+    ha.send("config/floor_registry/list").catch(() => []),
     ha.send("energy/get_prefs").catch(() => undefined),
   ]);
   return {
     states: Object.fromEntries(states.map((s) => [s.entity_id, s])),
     entities: entityRegistryEntries(entityRegistry),
     devices: Object.fromEntries(devices.map((d) => [d.id, { area_id: d.area_id }])),
-    areas: Object.fromEntries(areas.map((a) => [a.area_id, { name: a.name }])),
+    areas: Object.fromEntries(areas.map((a) => [a.area_id, { name: a.name, floor_id: a.floor_id ?? null }])),
+    floors: Object.fromEntries(floors.map((f) => [f.floor_id, { name: f.name }])),
     energy: energy ?? undefined,
   };
 }

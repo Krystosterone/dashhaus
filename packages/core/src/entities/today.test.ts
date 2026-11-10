@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NO_READINGS_TODAY, rangeSummary, todaySummary } from "./today";
+import { NO_READINGS_TODAY, rangeSummary, shortTodaySummary, todaySummary } from "./today";
 
 describe("rangeSummary", () => {
   it("says the day's low and high in the figures' own format, or that there are none yet", () => {
@@ -22,5 +22,18 @@ describe("todaySummary", () => {
     expect(todaySummary("armed", 0)).toBe("Not armed today");
     expect(todaySummary("asleep", -3)).toBe("Not asleep today");
     expect(todaySummary("cooling", 0)).toBe("Not cooling today");
+  });
+});
+
+describe("shortTodaySummary", () => {
+  it("leaves off a closing today, for a strip that is always today's", () => {
+    expect(shortTodaySummary(todaySummary("detected", 0))).toBe("Not detected");
+    expect(shortTodaySummary("+8.6 kWh today")).toBe("+8.6 kWh");
+  });
+
+  it("keeps a summary that doesn't end in today as it is", () => {
+    expect(shortTodaySummary(todaySummary("on", 156))).toBe("On 2h 36m");
+    expect(shortTodaySummary("Low 18.2° · High 21°")).toBe("Low 18.2° · High 21°");
+    expect(shortTodaySummary("Busy today, then free")).toBe("Busy today, then free");
   });
 });

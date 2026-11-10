@@ -120,12 +120,13 @@ describe("dashhaus-orb card", () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
       const shadow = card.shadowRoot!;
-      // Attic and Hall, then the house's alarm ending the first row; the kitchen wraps into the next.
+      // In Home Assistant's order, not by name: Kitchen and Hall, then the house's alarm ending the first row; the
+      // attic wraps into the next.
       const columns = [...shadow.querySelectorAll(".dash-row--areas .dash-col")];
-      expect(columns.map((column) => column.getAttribute("aria-label"))).toEqual(["Attic", "Hall", null, "Kitchen"]);
+      expect(columns.map((column) => column.getAttribute("aria-label"))).toEqual(["Kitchen", "Hall", null, "Attic"]);
       // Each column's stack is one track, so the attention budget damps down it as in a one-column Section.
       expect(columns.map((column) => column.querySelector(".dash-row")?.getAttribute("data-tracks"))).toEqual(["1", "1", "1", "1"]);
-      expect([...shadow.querySelectorAll(".dash-col > h2")].map((h) => h.textContent)).toEqual(["Attic", "Hall", "Kitchen"]);
+      expect([...shadow.querySelectorAll(".dash-col > h2")].map((h) => h.textContent)).toEqual(["Kitchen", "Hall", "Attic"]);
       // Two lights named alike, told apart by the heading over each, not by an area line of their own.
       expect([...shadow.querySelectorAll(".dash-col .hd-area")].map((line) => line.textContent)).not.toContain("Hall");
       expect(shadow.querySelector(".dash-dock")).toBeNull();

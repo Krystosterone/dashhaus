@@ -77,8 +77,8 @@ export const WALL_COLUMNS = 4;
 
 /**
  * The automatic layout one column per area, for a panel on a wall (`layout: wall`, spec/deploy.md → The wall layout):
- * the shared bands and areas (`wallAreas`), four areas across (`WALL_COLUMNS`), wrapping in area-name order into
- * further rows, and the modules with no area, the house's own, the last column of the first. Each column leads with
+ * the shared bands and areas (`wallAreas`), four areas across (`WALL_COLUMNS`), wrapping in `order` (Home
+ * Assistant's, `areaOrder`) into further rows, and the modules with no area, the house's own, the last column of the first. Each column leads with
  * its whole modules and takes its 64 px rows under them, each kind in its band's order: what is read whole (a door,
  * a camera, a sock, the weather, a room's air), what is pressed a row (`wallFootprint`). A `footprint` the YAML sets
  * holds for every module instead. A row that mixes footprints stacks them by column (`stacks`, as the reader marks a
@@ -87,12 +87,12 @@ export const WALL_COLUMNS = 4;
  * the sun join the area named `outside`, saying so. Fewer than two areas: the whole modules, then the rows, each a
  * row of its own.
  */
-export function areaColumns(modules: readonly ModuleConfig[], energy: readonly ModuleConfig[] = [], { outside, footprint }: { outside?: string; footprint?: FieldFootprint } = {}): FieldRow[] {
+export function areaColumns(modules: readonly ModuleConfig[], energy: readonly ModuleConfig[] = [], { outside, footprint, order }: { outside?: string; footprint?: FieldFootprint; order?: readonly string[] } = {}): FieldRow[] {
   const sized = (item: ModuleConfig): ModuleConfig => (footprint ? item : { ...item, footprint: wallFootprint(item.kind) });
   const own = (item: ModuleConfig) => item.footprint ?? footprint ?? "standard";
   // Whole modules first, then the rows, each in band order: a stable sort keeps it.
   const stack = (items: readonly ModuleConfig[]) => items.map(sized).sort((a, b) => Number(own(a) === "compact") - Number(own(b) === "compact"));
-  const { areas, house } = wallAreas(modules, { card: (item) => item.kind, area: (item) => item.area, outside });
+  const { areas, house } = wallAreas(modules, { card: (item) => item.kind, area: (item) => item.area, outside, order });
   const row = (cards: FieldRow["cards"], columns?: number): FieldRow => {
     const mixed = new Set(cards.map((entry) => own(entry.item))).size > 1;
     return { ...(columns && { columns }), flow: mixed || !columns ? "normal" : "dense", align: "top", cards, ...(mixed && { stacks: true }) };
