@@ -44,13 +44,13 @@ console.log(`  tarballs: ${shown(tarballsDir)}`);
 /**
  * Each skin as its README deploys it: its file, its strategy's dashboard, and a dashboard of the person's own; and the
  * wall panel's its page adds, with what it draws there. Field heads each column with its area, from the areas the
- * frontend hands the card (spec/deploy.md → The wall layout → A column names its area). Orb reads them from the
- * registries over the connection, which the fake's page doesn't answer, so here it proves only that the wall lays
- * cards out; `src/skins/orb/lovelace/card.test.tsx` holds its headings.
+ * frontend hands the card (spec/deploy.md → The wall layout → A column names its area). Orb reads the same areas from
+ * the registries over the connection, which the fake's page answers; `wallDraws` proves the wall, and `areaHeading`
+ * reads the names its columns are headed with.
  */
 const SKINS = [
-  { skin: "orb", name: "Orb", file: "orb-dashboard.js", folder: "orb-dashboard", card: "dashhaus-orb", strategy: "custom:orb-dashboard", wallDraws: ".dash-row > .dash-place" },
-  { skin: "field", name: "Field", file: "field-dashboard.js", folder: "field-dashboard", card: "dashhaus-field", strategy: "custom:field-dashboard", wallDraws: "section.fd-dash-stack > .fd-dash-stack-legend", headings: true },
+  { skin: "orb", name: "Orb", file: "orb-dashboard.js", folder: "orb-dashboard", card: "dashhaus-orb", strategy: "custom:orb-dashboard", wallDraws: ".dash-row--areas .dash-place", areaHeading: ".dash-row--areas section.dash-col > .dash-sec-h" },
+  { skin: "field", name: "Field", file: "field-dashboard.js", folder: "field-dashboard", card: "dashhaus-field", strategy: "custom:field-dashboard", wallDraws: "section.fd-dash-stack > .fd-dash-stack-legend", areaHeading: "section.fd-dash-stack > .fd-dash-stack-legend" },
 ];
 /** A wall panel's dashboard, as the skin's page sets it up: Add dashboard → the skin, then these two options. */
 const WALL = { layout: "wall", viewing: "far" };
@@ -168,12 +168,12 @@ try {
             // stopped on draws its config error. Otherwise the wall draws (the locators pierce the card's shadow root).
             const drawn = page.locator(`${entry.card} ${entry.wallDraws}`);
             await drawn.first().waitFor({ state: "visible", timeout: 10000 });
-            return { view, text: await page.locator(entry.card).locator(".hd-config-error").allInnerTexts(), headings: entry.headings ? await drawn.allInnerTexts() : [] };
+            return { view, text: await page.locator(entry.card).locator(".hd-config-error").allInnerTexts(), headings: path === wall ? await page.locator(`${entry.card} ${entry.areaHeading}`).allInnerTexts() : [] };
           });
           assert.deepEqual(shown.view, view, `/${path} must draw ${entry.name}'s card`);
           if (path === wall) {
             assert.deepEqual(shown.text, [], `/${path} must not refuse its config`);
-            if (entry.headings) assert.ok(shown.headings.length >= 2, `/${path} must head a column per area: ${shown.headings.join(", ")}`);
+            assert.ok(shown.headings.length >= 2, `/${path} must head a column per area: ${shown.headings.join(", ")}`);
             headings = shown.headings.map((name) => name.trim());
           }
           if (screenshotDir) console.log(`  screenshot: ${await screenshotDashboard(`${HA_URL}/${path}`, join(screenshotDir, `user-${path}.png`))}`);

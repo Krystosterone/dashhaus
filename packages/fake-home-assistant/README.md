@@ -71,7 +71,7 @@ It prints `HA_URL`, `HA_TOKEN` and `HA_WWW` once listening.
 | `/api/` | `{"message":"API running."}` and `/api/config` the version and unit system |
 | `/api/states`, `/api/states/<entity_id>` | the house's states |
 | `/api/fake/state` | resources, dashboards, saved layouts and the command log, as JSON |
-| `/api/fake/lovelace` | `POST` one `lovelace/*` command from a dashboard page; anything else is refused |
+| `/api/fake/lovelace` | `POST` one `lovelace/*` command or registry read from a dashboard page; anything else is refused |
 | `/local/<path>` | files under `www`, refusing a path outside it |
 | `/` | a sidebar listing the dashboards a deploy created |
 | `/<url_path>` | a dashboard: its resources loaded as modules, its saved first card configured on the fake house |
@@ -145,7 +145,8 @@ that records what a driver asked for, for a test that injects the fake instead o
   after expanding a custom dashboard and view strategy as the frontend's `get-strategy.ts` does (the
   `ll-strategy-<kind>-<name>` element's static `generate`, merged over the config); it knows no built-in or legacy
   strategy. It serves `subscribe_entities`, light/switch `call_service` and empty history/recorder answers from the
-  page; its `lovelace/*` commands go to the server, so a card on the page can create dashboards.
+  page; its `lovelace/*` commands and the registry reads go to the server, so a card on the page can create
+  dashboards and read the areas its wall heads.
 - `/config/lovelace/dashboards` stands in for the Add dashboard dialog's Community dashboards: a button per
   `window.customStrategies` dashboard entry, which creates `dashboard-<suggested title>` and saves
   `{ strategy: { type: "custom:<type>" } }`. Not the frontend's dialog: no name or icon form, no built-in dashboards. Its `hass.user` is an administrator unless the address
