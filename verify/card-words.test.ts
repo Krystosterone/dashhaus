@@ -15,6 +15,8 @@
  * - a guard's words are core's (`@dashhaus/core/entities/guard`, the domain's `coverQuestion`, `lockAskDetail`…): no
  *   card, nor the Parts page, passes its question part (`Confirm`) a question, a meaning, a yes, a waiting line or a failure of its own
  *   words, only core's with the skin's end punctuation; no card or part writes `Try again` itself;
+ * - a keypad's code prompt is core's verb phrase (`lockCodeFor`, `alarmCodeFor`) in the skin's own frame (`Enter the
+ *   code to`, `Code to`): no card or the Parts page writes the phrase itself;
  * - what asks first is said in core's words too: no card writes a sentence ending `asks first.` (the hint,
  *   `COVER_ASKS_HINT`, `lockAsksHint`), only the skin's mark on a control's name (Field's `: asks first`).
  *
@@ -45,6 +47,9 @@ const drawing = (folder: string, skins = SKINS) => skins.flatMap((skin) => files
 /** Each card folder's drawing. */
 const sources = drawing("cards");
 
+/** Each skin's Parts page, which draws its guard parts across their states. */
+const parts = SKINS.map((skin) => `src/skins/${skin}/stories/Parts.stories.tsx`).map((path) => ({ path, text: readFileSync(join(root, path), "utf8") }));
+
 /** Where a match is: `file:line`, with the line itself. */
 const where = (path: string, text: string, index: number) => {
   const line = text.slice(0, index).split("\n").length;
@@ -62,6 +67,16 @@ function elements(text: string, name: string) {
     }
     return Object.assign([text.slice(m.index!, i + 2)], { index: m.index! });
   });
+}
+
+/** A matched prop's value: a string literal as written, or an expression's braces with what is inside, and where it starts. */
+function propValue(text: string, at: number, prop: RegExpMatchArray, value: string) {
+  let i = at + prop.index! + prop[0].length - 1;
+  const from = i;
+  if (value !== "{") return { value, at: from };
+  let depth = 0;
+  for (; i < text.length; i++) { if (text[i] === "{") depth++; else if (text[i] === "}" && --depth === 0) break; }
+  return { value: text.slice(from, i + 1), at: from };
 }
 
 const hits = (pattern: RegExp, among = sources) => among.flatMap(({ path, text }) =>
@@ -100,18 +115,10 @@ describe("what every card says", () => {
     const literal = /"[^"]*[A-Za-z][^"]*"|'[^']*[A-Za-z][^']*'|`(?:[^`$]|\$(?!\{)|\$\{[^}]*\})*`/g;
     const own: string[] = [];
     // The cards, and the Parts page that draws the question across its states.
-    const parts = SKINS.map((skin) => `src/skins/${skin}/stories/Parts.stories.tsx`).map((path) => ({ path, text: readFileSync(join(root, path), "utf8") }));
     for (const { path, text } of [...sources, ...parts]) {
       for (const confirm of elements(text, "Confirm")) {
         for (const prop of confirm[0].matchAll(/\b(question|detail|action|waiting|error)=("[^"]*"|\{)/g)) {
-          let value = prop[2];
-          if (value === "{") {
-            // The expression, to its closing brace.
-            let depth = 0, i = confirm.index! + prop.index! + prop[0].length - 1;
-            const from = i;
-            for (; i < text.length; i++) { if (text[i] === "{") depth++; else if (text[i] === "}" && --depth === 0) break; }
-            value = text.slice(from, i + 1);
-          }
+          const { value } = propValue(text, confirm.index!, prop, prop[2]);
           // A call's arguments are what core's words are about (`lockQuestion("unlock", name)`), not words of the card's.
           let bare = value;
           for (let before = ""; before !== bare;) { before = bare; bare = bare.replace(/\b\w+\((?:[^()]|\([^()]*\))*\)/g, "call"); }
@@ -122,6 +129,33 @@ describe("what every card says", () => {
     }
     expect(own, "a guard's words are core's: @dashhaus/core/entities/guard, or the domain's words").toEqual([]);
     expect(hits(/["'`>][^"'`<]*Try again/, [...sources, ...drawing("shared")]), "say core's ACTION_FAILED or WRONG_CODE").toEqual([]);
+  });
+
+  it("says a keypad's verb phrase in core's words, in the skin's own frame", () => {
+    // The frame is the skin's (spec/cards.md → What every card says): Orb's "Enter the code to", Field's "Code to".
+    const frame: Record<string, string> = { orb: "Enter the code to", field: "Code to" };
+    const literal = /"[^"]*[A-Za-z][^"]*"|'[^']*[A-Za-z][^']*'|`(?:[^`$]|\$(?!\{)|\$\{[^}]*\})*`/g;
+    const own: string[] = [];
+    for (const { path, text } of [...sources, ...parts]) {
+      const skin = SKINS.find((name) => path.startsWith(`src/skins/${name}/`))!;
+      for (const keypad of elements(text, "Keypad")) {
+        const found = keypad[0].match(/\bprompt=("[^"]*"|\{)/);
+        if (!found) { own.push(`${where(path, text, keypad.index!)} → prompt: missing`); continue; }
+        const { value, at } = propValue(text, keypad.index!, found, found[1]);
+        // The verb is a core call; a helper of the card's own could hold it where this can't see it.
+        if (!/\b(?:lockCodeFor|alarmCodeFor)\s*\(/.test(value)) {
+          own.push(`${where(path, text, at)} → prompt: no core word`);
+          continue;
+        }
+        // What is left once core's calls are taken out is the frame, and it is all the prompt may say itself.
+        let bare = value;
+        for (let before = ""; before !== bare;) { before = bare; bare = bare.replace(/\b\w+\((?:[^()]|\([^()]*\))*\)/g, "call"); }
+        for (const word of [...bare.matchAll(literal)].map((m) => m[0].replace(/\$\{[^}]*\}/g, "")).filter((l) => /[A-Za-z]/.test(l))) {
+          if (word.replace(/^["'`]|["'`]$/g, "").trim() !== frame[skin]) own.push(`${where(path, text, at)} → prompt: ${word}`);
+        }
+      }
+    }
+    expect(own, "a keypad's verb phrase is core's (lockCodeFor, alarmCodeFor), in the skin's own frame").toEqual([]);
   });
 
   it("says what asks first in core's words, never a hint sentence of a card's own", () => {

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
-import { LOCK_WAITING, lockAskAction, lockAskDetail, lockQuestion } from "@dashhaus/core/entities/lock/words";
+import { LOCK_WAITING, lockAskAction, lockAskDetail, lockCodeFor, lockQuestion } from "@dashhaus/core/entities/lock/words";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { useSlider } from "@dashhaus/core/primitives";
@@ -276,7 +276,7 @@ function AllParts() {
         <State label="The question" width={340}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} onConfirm={() => {}} onCancel={() => {}} /></State>
         <State label="Waiting for the answer" width={340}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} busy waiting={LOCK_WAITING} onConfirm={() => {}} onCancel={() => {}} /></State>
         <State label="Didn't go through" width={340}><Confirm question={lockQuestion("unlock", "Front door")} detail={lockAskDetail("unlock", "Front door")} action={lockAskAction("unlock")} error={ACTION_FAILED} onConfirm={() => {}} onCancel={() => {}} /></State>
-        <State label="The keypad (1234)" width={340}><Keypad prompt="Enter the code to disarm" onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
+        <State label="The keypad (1234)" width={340}><Keypad prompt={`Enter the code to ${lockCodeFor("unlock")}`} onSubmit={(code) => code === "1234"} onCancel={() => {}} /></State>
       </Part>
 
       <Part name="Facts" rule="The sheet's small print: two facts, at its start and end, in the words @dashhaus/core/entities/facts gives every card. Under a hairline, in the faint ink; a warning keeps its colour.">

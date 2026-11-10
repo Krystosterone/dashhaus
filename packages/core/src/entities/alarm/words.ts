@@ -1,4 +1,5 @@
-import type { AlarmEntity } from "./types";
+import { MODE_LABEL } from "./modes";
+import type { AlarmAction, AlarmEntity } from "./types";
 
 /** A list in words: "Back door", "Back door and Kitchen window", "Hall, Back door and Kitchen window". */
 export const listOf = (xs: readonly string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
@@ -25,3 +26,10 @@ export function alarmWarning(e: Pick<AlarmEntity, "state" | "triggeredBy" | "ope
 
 /** A warning on one line, its word first so a clipped line keeps it: "Triggered · Back door", "2 open · Back door, Hall". */
 export const warningLine = (w: { word: string; detail?: string }) => (w.detail ? `${w.word} · ${w.detail}` : w.word);
+
+/**
+ * What a keypad's code is for, after the skin's own frame ("Enter the code to", "Code to"): "disarm", "cancel
+ * arming" while it is arming, "arm away".
+ */
+export const alarmCodeFor = (action: AlarmAction, e: Pick<AlarmEntity, "state">) =>
+  (action.kind === "disarm" ? (e.state === "arming" ? "cancel arming" : "disarm") : `arm ${MODE_LABEL[action.mode].toLowerCase()}`);
