@@ -5,7 +5,7 @@ import { DYSON_SEEDS, DYSON_WORST_CASE, useDemoDyson } from "@dashhaus/core/seed
 import type { DysonSeed, DysonSeedName } from "@dashhaus/core/seeds/dyson";
 
 const SIZES = { S: 200, M: 340, L: 464 } as const;
-const SEEDS = ["on", "pointing", "heating", "off", "poorAir", "filter", "unavailable"] as const satisfies readonly DysonSeedName[];
+const SEEDS = ["on", "pointing", "heating", "heatingWarning", "off", "poorAir", "filter", "unavailable"] as const satisfies readonly DysonSeedName[];
 
 function DemoDyson({ seed, width, footprint, defaultOpen }: { seed: DysonSeed; width?: number; footprint?: FieldFootprint; defaultOpen?: boolean }) {
   const demo = useDemoDyson(seed);
@@ -55,6 +55,8 @@ export const On: Story = {};
 export const Pointing: Story = { args: { dyson: "pointing" } };
 /** A Hot+Cool in Auto, heating to 23°: AUTO on the screen, and the fader without its thumb. */
 export const Heating: Story = { args: { dyson: "heating" } };
+/** A Hot+Cool heating to 21° through a worn filter: the warning leads the screen, its heat latched in the panel. */
+export const HeatingWarning: Story = { name: "Heating, warning", args: { dyson: "heatingWarning" } };
 export const Off: Story = { args: { dyson: "off" } };
 /** Fine particles past Dyson's Poor band: the screen's first line leads with the warning. */
 export const PoorAir: Story = { name: "Poor air", args: { dyson: "poorAir" } };
