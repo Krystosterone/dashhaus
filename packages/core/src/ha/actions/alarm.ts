@@ -2,16 +2,21 @@ import type { AlarmEntity, AlarmMode } from "../../entities/alarm/types";
 import { HaActionError } from "../types";
 import type { HaStore } from "../types";
 import type { ActionKinds } from "./kinds";
-
-type AlarmServiceCaller = Pick<HaStore, "callService">;
+import { serviceRunner } from "./run";
 
 export interface AlarmHandlers {
   /**
    * Calls `alarm_control_panel.alarm_arm_<mode>` (`home`, `away`, `night`, `vacation`, `custom_bypass`) with the code
-   * when given. A mode the panel doesn't support rejects with `unsupported`.
+   * when given. A mode the panel doesn't support rejects with `unsupported`, unsent.
    */
   onArm: (mode: AlarmMode, code?: string) => Promise<boolean>;
-  /** Calls `alarm_control_panel.alarm_disarm` with the code when given. */
+  /**
+   * Calls `alarm_control_panel.alarm_disarm` with the code when given. Like arming, it is sent even while the model
+   * says unavailable: the model folds Home Assistant's `unknown` into it, and a panel with no known state (an MQTT
+   * panel with nothing retained) still takes a disarm, which is the call never to refuse. To a panel that is really
+   * unavailable, Home Assistant skips the call and answers success, so it resolves `true` with nothing done: a caller
+   * that must tell the two apart reads the raw state itself.
+   */
   onDisarm: (code?: string) => Promise<boolean>;
 }
 
@@ -34,50 +39,28 @@ const ARM_SERVICE: Record<AlarmMode, string> = {
 };
 
 /**
- * A rejection that means "wrong code" rather than "didn't go through". The transport layer sanitizes the
- * raw Home Assistant error into this scalar on the HaActionError it rejects with. A bare
- * `service_validation_error` code is NOT wrong-code evidence on its own: without the raw message the
- * failure is ambiguous, so the keypad must report that the call did not go through.
+ * Create arm/disarm handlers for the existing AlarmTile contract. Resolve true when accepted, false for a wrong code
+ * (the keypad shakes): Home Assistant's sanitized `invalid_code` translation key, since a bare
+ * `service_validation_error` is ambiguous without the raw message and must say the call did not go through. Anything
+ * else is reported through `onError` and rejects with the sanitized `HaActionError`, as does arming in a mode the
+ * panel doesn't support, which is refused before transport. Nothing is refused for the alarm's state (`onDisarm`).
  */
-function isWrongCode(cause: unknown): boolean {
-  if (typeof cause !== "object" || cause === null) return false;
-  const error = cause as { translationKey?: unknown };
-  return error.translationKey === "invalid_code";
-}
-
-/**
- * Create arm/disarm handlers for the existing AlarmTile contract. Resolve true when accepted, false for a
- * wrong code (the keypad shakes), reject when the call did not go through.
- */
-export function createAlarmHandlers(caller: AlarmServiceCaller, entity: AlarmEntity, options: AlarmHandlerOptions = {}): AlarmHandlers {
+export function createAlarmHandlers(caller: Pick<HaStore, "callService">, entity: AlarmEntity, options: AlarmHandlerOptions = {}): AlarmHandlers {
+  const domain = "alarm_control_panel";
+  const { attempt, report } = serviceRunner(caller, domain, entity, options.onError);
   const call = async (service: string, code?: string): Promise<boolean> => {
-    const serviceData: Record<string, unknown> = { entity_id: entity.entityId };
-    if (code) serviceData.code = code;
-    try {
-      await caller.callService("alarm_control_panel", service, serviceData);
-      return true;
-    } catch (cause) {
-      if (isWrongCode(cause)) return false;
-      const error = cause instanceof HaActionError
-        ? cause
-        : new HaActionError("service_failed", `Home Assistant rejected alarm_control_panel.${service}`, {
-          domain: "alarm_control_panel",
-          service,
-          entityId: entity.entityId,
-        });
-      options.onError?.(error);
-      throw cause;
-    }
+    const error = await attempt(service, code ? { code } : {});
+    if (!error) return true;
+    if (error.translationKey === "invalid_code") return false;
+    report(error);
+    throw error;
   };
 
   return {
     onArm: (mode, code) => {
       if (!entity.modes.includes(mode)) {
-        const error = new HaActionError("unsupported", `${entity.entityId} does not support arming ${mode}`, {
-          domain: "alarm_control_panel",
-          entityId: entity.entityId,
-        });
-        options.onError?.(error);
+        const error = new HaActionError("unsupported", `${entity.entityId} does not support arming ${mode}`, { domain, entityId: entity.entityId });
+        report(error);
         return Promise.reject(error);
       }
       return call(ARM_SERVICE[mode], code);

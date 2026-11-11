@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import type { HourCycle } from "../../entities/clock";
-import { finiteNumber, stringValue } from "../util";
+import { distinctStrings, finiteNumber, stringValue } from "../util";
 import type { HumidifierAction, HumidifierEntity } from "../../entities/humidifier/types";
 
 export interface HumidifierMapOptions {
@@ -24,12 +24,6 @@ const percentage = (value: unknown) => {
   const number = finiteNumber(value);
   return number != null && number >= 0 && number <= 100 ? number : undefined;
 };
-
-function modeList(value: unknown) {
-  if (!Array.isArray(value)) return undefined;
-  const modes = [...new Set(value.filter((item): item is string => typeof item === "string" && item.length > 0))];
-  return modes.length ? modes : undefined;
-}
 
 function bounds(min: number | undefined, max: number | undefined) {
   if (min != null && max != null && min <= max) return { min, max };
@@ -63,7 +57,7 @@ export function humidifierFromHass(raw: HassEntity | undefined, entityId: string
     minHumidity: min,
     maxHumidity: max,
     mode: stringValue(attributes.mode),
-    modes: modeList(attributes.available_modes),
+    modes: distinctStrings(attributes.available_modes),
     lastChanged: formatHaTime(raw?.last_changed, options.now, options.hourCycle),
     lastSeen: state === "unavailable" ? options.lastSeen ?? formatHaTime(stringValue(attributes.last_seen), options.now, options.hourCycle) : undefined,
   };

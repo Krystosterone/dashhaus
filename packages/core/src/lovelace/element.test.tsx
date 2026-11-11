@@ -10,17 +10,25 @@ const entities: HassEntities = {
   "camera.door": { entity_id: "camera.door", state: "idle", attributes: { friendly_name: "Door" }, last_changed: "", last_updated: "" },
 };
 
+/** Every transport a card made, one per store, with its connection and what subscribed to it. */
+const transports = vi.hoisted(() => [] as { connection: unknown; subscribed: number; unsubscribed: number }[]);
+
 vi.mock("../websocket", () => ({
-  createHomeAssistantTransport: (): HaTransport => ({
-    subscribeEntities(listener) {
-      queueMicrotask(() => listener(entities));
-      return () => undefined;
-    },
-    callService: async () => undefined,
-  }),
+  createHomeAssistantTransport: (connection: unknown): HaTransport => {
+    const made = { connection, subscribed: 0, unsubscribed: 0 };
+    transports.push(made);
+    return {
+      subscribeEntities(listener) {
+        made.subscribed++;
+        queueMicrotask(() => listener(entities));
+        return () => { made.unsubscribed++; };
+      },
+      callService: async () => undefined,
+    };
+  },
 }));
 
-const { useHaMoreInfo } = await import("../index");
+const { useHaMoreInfo, useHaEntity, useHaStatus } = await import("../index");
 const { LovelaceDashboardElement } = await import("./element");
 
 function Live({ entityId }: { entityId: string }) {
@@ -35,6 +43,19 @@ class TestCard extends LovelaceDashboardElement<{ entity: string }> {
   protected draw(config: { entity: string }) { return <Live entityId={config.entity} />; }
 }
 customElements.define("dashhaus-element-test", TestCard);
+
+function Status({ entityId }: { entityId: string }) {
+  return <p>{`${useHaStatus()} ${useHaEntity(entityId)?.state ?? "none"}`}</p>;
+}
+
+/** A card that says its store's status and one entity's state, as the store has it. */
+class StatusCard extends TestCard {
+  protected draw(config: { entity: string }) { return <Status entityId={config.entity} />; }
+}
+customElements.define("dashhaus-element-status-test", StatusCard);
+
+/** Let every queued microtask run: the element's detach check, then the provider's release after it. */
+const settle = () => act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
 
 /** A card that lays itself out automatically when its config says so, drawing what it holds of the energy preferences. */
 class EnergyCard extends LovelaceDashboardElement<{ auto: boolean }> {
@@ -89,6 +110,65 @@ describe("LovelaceDashboardElement", () => {
 
     await act(async () => card.shadowRoot!.querySelector("button")!.click());
     expect(heard).toHaveBeenCalledWith({ entityId: "camera.door" });
+  });
+});
+
+describe("LovelaceDashboardElement's lifecycle", () => {
+  async function mountStatus(connection: Connection) {
+    const card = document.createElement("dashhaus-element-status-test") as StatusCard & { hass: unknown };
+    card.setConfig({ entity: "camera.door" });
+    card.hass = { connection, states: entities };
+    await act(async () => document.body.append(card));
+    await settle();
+    return card;
+  }
+
+  it("unmounts once it stays detached, and draws again on a connected, subscribed store when it comes back", async () => {
+    const connection = {} as Connection;
+    const card = await mountStatus(connection);
+    const transport = transports.find((made) => made.connection === connection)!;
+    expect(card.shadowRoot!.textContent).toBe("connected idle");
+    expect(transport).toMatchObject({ subscribed: 1, unsubscribed: 0 });
+
+    card.remove();
+    // Detached, it waits a microtask: Lovelace moving a card between parents must not tear it down.
+    expect(card.shadowRoot!.textContent).toBe("connected idle");
+    await settle();
+    expect(card.shadowRoot!.textContent).toBe("");
+    expect(transport).toMatchObject({ subscribed: 1, unsubscribed: 1 });
+
+    await act(async () => document.body.append(card));
+    await settle();
+    expect(card.shadowRoot!.textContent).toBe("connected idle");
+    expect(transport).toMatchObject({ subscribed: 2, unsubscribed: 1 });
+    expect(transports.filter((made) => made.connection === connection)).toHaveLength(1);
+  });
+
+  it("keeps drawing, on the same subscription, when Lovelace moves it to another parent", async () => {
+    const connection = {} as Connection;
+    const card = await mountStatus(connection);
+    const transport = transports.find((made) => made.connection === connection)!;
+    const parent = document.createElement("div");
+    document.body.append(parent);
+
+    await act(async () => parent.append(card));
+    await settle();
+    expect(card.shadowRoot!.textContent).toBe("connected idle");
+    expect(transport).toMatchObject({ subscribed: 1, unsubscribed: 0 });
+  });
+
+  it("swaps to a new store on a new connection, subscribing it and letting the old one go", async () => {
+    const first = {} as Connection;
+    const card = await mountStatus(first);
+    const old = transports.find((made) => made.connection === first)!;
+
+    const second = {} as Connection;
+    card.hass = { connection: second, states: entities };
+    await settle();
+    const next = transports.find((made) => made.connection === second)!;
+    expect(next).toMatchObject({ subscribed: 1, unsubscribed: 0 });
+    expect(old).toMatchObject({ subscribed: 1, unsubscribed: 1 });
+    expect(card.shadowRoot!.textContent).toBe("connected idle");
   });
 });
 

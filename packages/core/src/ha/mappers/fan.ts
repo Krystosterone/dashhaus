@@ -1,7 +1,7 @@
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import type { HourCycle } from "../../entities/clock";
-import { finiteNumber, stringList, stringValue } from "../util";
+import { distinctStrings, finiteNumber, stringValue } from "../util";
 import type { FanDirection, FanEntity } from "../../entities/fan/types";
 import { speedCountOf } from "../../entities/fan/speed";
 
@@ -41,7 +41,7 @@ export function fanFromHass(raw: HassEntity | undefined, entityId: string, optio
   const rawPercentage = finiteNumber(attributes.percentage);
   const percentage = on && supportsSpeed && rawPercentage != null && rawPercentage > 0 && rawPercentage <= 100 ? Math.round(rawPercentage) : undefined;
 
-  const presetModes = has(FAN_FEATURES.PRESET_MODE) ? [...new Set(stringList(attributes.preset_modes).filter(Boolean))] : [];
+  const presetModes = has(FAN_FEATURES.PRESET_MODE) ? distinctStrings(attributes.preset_modes) ?? [] : [];
   const supportsPreset = presetModes.length > 0;
   const rawPreset = stringValue(attributes.preset_mode);
   const presetMode = on && rawPreset != null && presetModes.includes(rawPreset) ? rawPreset : undefined;

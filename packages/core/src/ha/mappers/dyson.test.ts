@@ -132,6 +132,16 @@ describe("dysonFromHass", () => {
     expect(dysonFromHass(hotCool, hotCool.entity_id).supportsHeat).toBe(false);
   });
 
+  it("reads the room temperature's unit however the sensor writes it, as the other mappers do", () => {
+    const heat = state("climate.x", "heat", { hvac_modes: ["off", "cool", "heat"], temperature: 74 });
+    const unit = (unit_of_measurement: string) =>
+      dysonFromHass(hotCool, hotCool.entity_id, { companions: { heat, temperature: state("sensor.x_temperature", "68", { unit_of_measurement }) } });
+    expect(unit("℉")).toMatchObject({ heatUnit: "°F", temperatureUnit: "°F" });
+    expect(unit("fahrenheit")).toMatchObject({ heatUnit: "°F", temperatureUnit: "°F" });
+    expect(unit("K")).toMatchObject({ heatUnit: "°C" });
+    expect(unit("K").temperatureUnit).toBeUndefined();
+  });
+
   it("draws no companion while the fan is unavailable, and keeps unknown and missing unavailable", () => {
     const garage = fixture["fan.garage_purifier"] as HassEntity;
     const mapped = dysonFromHass(garage, garage.entity_id, { companions: { pm25: state("p", "4"), hepaFilter: state("h", "50", { unit_of_measurement: "%" }), nightMode: state("n", "on") } });

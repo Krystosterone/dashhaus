@@ -1,18 +1,22 @@
 import { HaActionError } from "../types";
 import type { HaStore } from "../types";
+import { providerDetails } from "../util";
 
 export type ServiceCaller = Pick<HaStore, "callService">;
 
 /**
  * What every action module needs for one entity: run a service on its domain, and report an action
  * that Home Assistant rejected or that never reached it. Rejections keep a provider `HaActionError`
- * and replace anything else with a sanitized one, so no raw provider error escapes.
+ * and replace anything else with a sanitized one keeping only its string scalars (`providerDetails`: its
+ * `translation_key` and `code`), so no raw provider error escapes and a wrong code still reads as one.
  */
 export function serviceRunner(caller: ServiceCaller, domain: string, entity: { entityId: string; state: string }, onError?: (error: HaActionError) => void) {
   const { entityId } = entity;
   const unsupported = (message: string) => onError?.(new HaActionError("unsupported", message, { domain, entityId }));
   const sanitized = (service: string, cause: unknown) => (
-    cause instanceof HaActionError ? cause : new HaActionError("service_failed", `Home Assistant rejected ${domain}.${service}`, { domain, service, entityId })
+    cause instanceof HaActionError
+      ? cause
+      : new HaActionError("service_failed", `Home Assistant rejected ${domain}.${service}`, { domain, service, entityId, ...providerDetails(cause) })
   );
   return {
     run(service: string, data: Record<string, unknown> = {}) {

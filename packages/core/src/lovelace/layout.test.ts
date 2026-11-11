@@ -188,6 +188,40 @@ describe("deviceCompanion", () => {
     expect(deviceCompanion(lock, "lock.front", "humidity")).toBeUndefined();
     expect(deviceCompanion(lock, "lock.missing", "battery")).toBeUndefined();
   });
+
+  it("looks only at the entity's own device, taking the first match in the states' order", () => {
+    const battery = (name: string) => ({ attributes: { friendly_name: name, device_class: "battery" } });
+    const house = {
+      states: {
+        "sensor.attic_battery": battery("Attic battery"),
+        "lock.back": { attributes: {} },
+        "sensor.back_battery_b": battery("Back battery B"),
+        "lock.front": { attributes: {} },
+        "sensor.back_battery_a": battery("Back battery A"),
+        "sensor.front_battery": battery("Front battery"),
+        "sensor.front_humidity": { attributes: { device_class: "humidity" } },
+        "binary_sensor.front_door": { attributes: { device_class: "door" } },
+      },
+      entities: {
+        "sensor.attic_battery": { device_id: "attic" },
+        "lock.back": { device_id: "back" },
+        "sensor.back_battery_b": { device_id: "back" },
+        "lock.front": { device_id: "front" },
+        "sensor.back_battery_a": { device_id: "back" },
+        "sensor.front_battery": { device_id: "front" },
+        "sensor.front_humidity": { device_id: "front" },
+        "binary_sensor.front_door": { device_id: "front" },
+      },
+    };
+    expect(deviceCompanion(house, "lock.back", "battery")).toBe("sensor.back_battery_b");
+    expect(deviceCompanion(house, "lock.front", "battery")).toBe("sensor.front_battery");
+    expect(deviceCompanion(house, "binary_sensor.front_door", "humidity")).toBe("sensor.front_humidity");
+    expect(deviceCompanion(house, "sensor.attic_battery", "battery")).toBeUndefined();
+    // A new snapshot of the house is read afresh, not from the last one's devices.
+    const moved = { ...house, entities: { ...house.entities, "sensor.attic_battery": { device_id: "back" } } };
+    expect(deviceCompanion(moved, "lock.back", "battery")).toBe("sensor.attic_battery");
+    expect(deviceCompanion(house, "lock.back", "battery")).toBe("sensor.back_battery_b");
+  });
 });
 
 describe("energySensors", () => {

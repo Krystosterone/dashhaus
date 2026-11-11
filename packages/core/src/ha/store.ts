@@ -8,7 +8,7 @@ import type {
   HassEntities,
   Unsubscribe,
 } from "./types";
-import { isRecord, safeProperty } from "./util";
+import { isRecord, providerDetails, safeProperty } from "./util";
 import { resolvePicture } from "./picture";
 import { perfEnabled, perfMark, perfMarkAfterPaint } from "../perf";
 
@@ -288,15 +288,6 @@ function lifecycleError() {
 }
 
 /** Keep only the provider's string scalars; never its message or payload, which can echo an alarm code. */
-function providerDetails(cause: unknown) {
-  const translationKey = safeProperty(cause, "translation_key");
-  const providerCode = safeProperty(cause, "code");
-  return {
-    ...(typeof translationKey === "string" ? { translationKey } : {}),
-    ...(typeof providerCode === "string" ? { providerCode } : {}),
-  };
-}
-
 const TARGET_KEYS = new Set(["entity_id", "device_id", "area_id", "floor_id", "label_id"]);
 
 function isServiceOptions(value: unknown): value is HaServiceCallOptions {

@@ -2,7 +2,7 @@ import type { SensorEntity } from "../../entities/sensor/types";
 import type { HassEntity } from "../types";
 import { formatHaTime } from "../time";
 import type { HourCycle } from "../../entities/clock";
-import { stringValue } from "../util";
+import { stringValue, temperatureUnit } from "../util";
 import { batteryFromHass, inlineBattery } from "./battery";
 
 export interface SensorMapOptions {
@@ -32,13 +32,6 @@ function stateNumber(raw: HassEntity | undefined) {
   if (!raw || typeof raw.state !== "string" || raw.state === "unknown" || raw.state === "unavailable" || raw.state.trim().length === 0) return undefined;
   const value = Number(raw.state);
   return Number.isFinite(value) ? value : undefined;
-}
-
-function temperatureUnit(value: unknown): "°C" | "°F" | undefined {
-  if (typeof value !== "string") return undefined;
-  if (/^(?:°?f|fahrenheit)$/i.test(value.trim())) return "°F";
-  if (/^(?:°?c|celsius)$/i.test(value.trim())) return "°C";
-  return undefined;
 }
 
 function rawUnit(raw: HassEntity | undefined) {

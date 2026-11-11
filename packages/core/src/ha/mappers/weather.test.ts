@@ -60,6 +60,17 @@ describe("weatherFromHass", () => {
     expect(weatherFromHass(weather, weather.entity_id).lastUpdated).toBeDefined();
   });
 
+  it("reads a temperature unit written out or in lower case, as the other mappers do", () => {
+    // The native unit says °F, so a `temperature_unit` the mapper failed to read would fall through to it.
+    const unit = (temperature_unit: string) =>
+      weatherFromHass({ ...weather, attributes: { ...weather.attributes, temperature_unit, native_temperature_unit: "°F" } }, weather.entity_id).temperatureUnit;
+    expect(unit("celsius")).toBe("°C");
+    expect(unit("Celsius")).toBe("°C");
+    expect(unit("°c")).toBe("°C");
+    expect(unit("℃")).toBe("°C");
+    expect(unit("kelvin")).toBe("°F");
+  });
+
   it("does not apply US AQI bands without an explicit scale contract", () => {
     expect(weatherFromHass(weather, weather.entity_id, { aqiEntity: aqi }).aqi).toBeUndefined();
     expect(weatherFromHass(weather, weather.entity_id, { aqiEntity: aqi, aqiScale: "US" }).aqi).toBe(42);

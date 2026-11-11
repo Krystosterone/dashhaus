@@ -13,6 +13,22 @@ export const stringValue = (value: unknown): string | undefined =>
 export const stringList = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
+/** An entity's choices (modes, presets): its distinct non-empty strings in order, or nothing when it offers none. */
+export function distinctStrings(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const values = [...new Set(value.filter((item): item is string => typeof item === "string" && item.length > 0))];
+  return values.length ? values : undefined;
+}
+
+/** A temperature unit as Home Assistant or an integration writes it (`°C`, `C`, `℃`, `celsius`, any case), or nothing. */
+export function temperatureUnit(value: unknown): "°C" | "°F" | undefined {
+  if (typeof value !== "string") return undefined;
+  const unit = value.trim();
+  if (unit === "℉" || /^(?:°?f|fahrenheit)$/i.test(unit)) return "°F";
+  if (unit === "℃" || /^(?:°?c|celsius)$/i.test(unit)) return "°C";
+  return undefined;
+}
+
 /** Read one property of an unknown value without letting a throwing getter escape. */
 export function safeProperty(value: unknown, key: string): unknown {
   if ((typeof value !== "object" || value === null) && typeof value !== "function") return undefined;
@@ -21,4 +37,18 @@ export function safeProperty(value: unknown, key: string): unknown {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * The string scalars a provider's rejection carries that are safe to keep on a sanitized `HaActionError`: Home
+ * Assistant's `translation_key` (as `translationKey`, which tells a wrong code apart) and its `code` (as `providerCode`).
+ * Never the message or any payload, which can echo what was sent, a code among it.
+ */
+export function providerDetails(cause: unknown): { translationKey?: string; providerCode?: string } {
+  const translationKey = safeProperty(cause, "translation_key");
+  const providerCode = safeProperty(cause, "code");
+  return {
+    ...(typeof translationKey === "string" ? { translationKey } : {}),
+    ...(typeof providerCode === "string" ? { providerCode } : {}),
+  };
 }
