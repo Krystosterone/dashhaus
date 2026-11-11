@@ -582,10 +582,20 @@
     "id": "/^sensor\\.\\w+_voucher$/",
     "kind": "control",
     "actions": [
-      "onRefresh",
-      "onNewCode"
+      "onRefresh"
     ],
-    "guarded": [],
+    "guarded": [
+      {
+        "action": "onNewCode",
+        "asks": true,
+        "code": false,
+        "when": {
+          "access": [
+            "password"
+          ]
+        }
+      }
+    ],
     "leftOut": [],
     "levels": [],
     "choices": [],

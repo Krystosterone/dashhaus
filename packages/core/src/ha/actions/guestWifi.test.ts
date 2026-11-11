@@ -49,7 +49,10 @@ describe("createGuestWifiHandlers", () => {
     expect(onError.mock.calls[0][0].message).not.toContain("secret");
   });
 
-  it("declares both actions as a press", () => {
-    expect(GUEST_WIFI_ACTIONS).toEqual({ onRefresh: { takes: "nothing" }, onNewCode: { takes: "nothing" } });
+  it("declares both actions as a press, a new password asked first", () => {
+    expect(GUEST_WIFI_ACTIONS).toEqual({
+      onRefresh: { takes: "nothing" },
+      onNewCode: { takes: "nothing", asks: true, when: { access: ["password"] } },
+    });
   });
 });

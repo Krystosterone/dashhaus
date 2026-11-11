@@ -2,7 +2,9 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import type { GuestWifiEntity } from "@dashhaus/core/entities/guestWifi/types";
 import { NEW_PASSWORD_ACTION, NEW_PASSWORD_HINT, NEW_PASSWORD_WAITING, NONE_HINT, codeGroups, isGroupedCode, joinWords, madeFact, qrFailedWords, newPasswordLabel, newPasswordQuestion, newSecretWords, noneSentence, noneWord, secretWord, shortTerms, spokenCode } from "@dashhaus/core/entities/guestWifi/words";
+import { ACTION_FAILED } from "@dashhaus/core/entities/guard";
 import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
+import { useGuardedAction } from "@dashhaus/core/primitives";
 import { Blank, Confirm, Glyph, Key, KeyGroup, Legend, ModuleFrame, ModuleRow, Pictogram, useDetails } from "../../shared/ui";
 import type { FieldFootprint } from "../../shared/ui";
 import { GUEST_WIFI_PICT, IconGuestWifi, IconNewCode, IconRefresh } from "./icons";
@@ -37,12 +39,13 @@ const capital = (word: string) => word[0].toUpperCase() + word.slice(1);
 export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, onNewCode, defaultOpen = false }: GuestWifiModuleProps) {
   const details = useDetails(defaultOpen);
   const [pending, setPending] = useState<Pending>(null);
-  const [asking, setAsking] = useState(false);
   // The QR code that failed to load, by its URL, so a rotated token's new one is tried afresh.
   const [failedQr, setFailedQr] = useState<string>();
   const unav = e.state === "unavailable";
   const ready = e.state === "ready" && e.code != null;
   const password = e.access === "password";
+  // A new password asks first (`GUEST_WIFI_ACTIONS` declares it, for a password): the panel's question, then the press.
+  const guard = useGuardedAction<"new">({ run: () => onNewCode?.(), needsCode: () => false, disabled: !onNewCode || unav });
   const secret = secretWord(e);
   const qrFailed = e.qr != null && failedQr === e.qr;
 
@@ -70,7 +73,7 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
   const press = (which: Exclude<Pending, null>, action?: () => Promise<void>) => action && (() => {
     if (pending) return;
     setPending(which);
-    void action().finally(() => { setPending(null); setAsking(false); });
+    void action().finally(() => setPending(null));
   });
   const refresh = press("refresh", onRefresh);
   const make = press("new", onNewCode);
@@ -114,7 +117,7 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
           </div>
         </div>
       )}
-      {!unav && (refresh || make) && (asking && make ? (
+      {!unav && (refresh || make) && (guard.pending === "new" ? (
         // A new password ends the old one for every device already in, so it asks first, as the lock's unlock does.
         <Confirm
           question={newPasswordQuestion(e)}
@@ -122,10 +125,11 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
           action={NEW_PASSWORD_ACTION}
           actionLabel={newPasswordLabel(e)}
           icon={<IconNewCode />}
-          busy={pending === "new"}
+          busy={guard.busy}
           waiting={NEW_PASSWORD_WAITING}
-          onConfirm={make}
-          onCancel={() => setAsking(false)}
+          error={guard.failed ? ACTION_FAILED : null}
+          onConfirm={() => void guard.confirm()}
+          onCancel={guard.close}
         />
       ) : (
         <div className="fd-block">
@@ -141,7 +145,7 @@ export function GuestWifiModule({ entity: e, footprint = "standard", onRefresh, 
                 wide
                 caption={pending === "new" ? "Making" : `New ${secret}`}
                 unavailable={pending != null}
-                onPress={password ? () => setAsking(true) : make}
+                onPress={password ? () => guard.ask("new") : make}
               >
                 <IconNewCode />
               </Key>

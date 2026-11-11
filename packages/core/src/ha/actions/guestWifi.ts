@@ -19,7 +19,9 @@ export interface GuestWifiHandlers {
 /** What each handler is, for a card drawing guest Wi-Fi without knowing it (`ActionKind`). */
 export const GUEST_WIFI_ACTIONS = {
   onRefresh: { takes: "nothing" },
-  onNewCode: { takes: "nothing" },
+  // A new password ends the old one for every device already joined: it asks first, for a password only (a new code
+  // leaves the codes already given working).
+  onNewCode: { takes: "nothing", asks: true, when: { access: ["password"] } },
 } as const satisfies ActionKinds<GuestWifiHandlers>;
 
 /**
