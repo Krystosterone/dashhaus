@@ -3,7 +3,7 @@ import { lastSeenFact, updatedFact } from "@dashhaus/core/entities/facts";
 import { rangeSummary, todaySummary } from "@dashhaus/core/entities/today";
 import { HeartIcon, OwletIcon } from "./icons";
 import { ALERT_SAID, ALERT_WORD, CHARGING, SLEEP_FIGURE, SLEEP_FIGURE_UNKNOWN, SLEEP_UNKNOWN, SLEEP_WORD, VITAL_ALERTS, fmtBpm, fmtOxygen, normalize, rankAlerts, staleSaid, staleText } from "@dashhaus/core/entities/owlet/readings";
-import { owletSeverity } from "@dashhaus/core/entities/owlet/severity";
+import { URGENT_PROBLEMS, owletSeverity } from "@dashhaus/core/entities/owlet/severity";
 import { AlarmPill, AlertStatus, CardFrame, Readout, SheetBlock, Today, TodayStrip, TogglePill, detailsSheet, paint, useCard } from "../../shared/ui";
 import type { CardProps, SheetProps } from "../../shared/ui";
 import "./OwletCard.css";
@@ -77,9 +77,9 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
   // Under 320px a compact row keeps only this line, so it carries the alert, the sleep state and the readings.
   // Before a first reading the figures' place waits ("Waiting…"), as the readout does (spec/cards.md).
   const subText = offline ? (problem ? ALERT_WORD[problem] : e.charging ? CHARGING : "Unavailable") : [sleep ? SLEEP_WORD[sleep] : null, readings || "Waiting…"].filter(Boolean).join(" · ");
-  const sub = vitalText ? <AlertStatus label={`Alert: ${e.name}: ${vitalSaid}`}>{vitalText}</AlertStatus>
-    : problemLabel ? <AlertStatus label={problemLabel}>{subText}</AlertStatus>
-    : subText;
+  // Behind the marker where there is a warning: the frame draws it (`alert`).
+  const sub = vitalText ?? subText;
+  const subLabel = vitalText ? `Alert: ${e.name}: ${vitalSaid}` : problemLabel;
 
   const bar = (
     <span className="hd-bar ow-bar">
@@ -126,6 +126,9 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
       onOpen={onOpenDetails}
       status={status}
       value={sub}
+      alert={subLabel}
+      // An urgent problem, or readings that stopped, takes a compact row's readout in its own words.
+      warning={problem && URGENT_PROBLEMS.has(problem) ? ALERT_WORD[problem] : staleWords}
       bareValue={offline ? subText : readings || "Waiting…"}
       onClose={onClose}
       urgent={vital ? (
@@ -139,7 +142,7 @@ export function OwletCard({ entity: e, history, variant, footprint, showControl,
       {sheet && alerts.length > 0 && (
         <section className="ow-alerts" aria-labelledby={`${nameId}-a`}>
           <h3 className="hd-blk-h" id={`${nameId}-a`}>Alerts</h3>
-          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={`${VITAL_ALERTS.has(a) ? "Alert" : "Warning"}: ${e.name}: ${ALERT_SAID[a]}`}>{ALERT_SAID[a]}</AlertStatus></li>)}</ul>
+          <ul>{alerts.map((a) => <li key={a}><AlertStatus label={`${VITAL_ALERTS.has(a) ? "Alert" : "Warning"}: ${e.name}: ${ALERT_SAID[a]}`} level={owletSeverity([a])}>{ALERT_SAID[a]}</AlertStatus></li>)}</ul>
         </section>
       )}
 

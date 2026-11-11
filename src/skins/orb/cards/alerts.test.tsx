@@ -11,6 +11,11 @@
  * for its entity as `data-level`, absent with none, and no article with a level glows, since the dashboard's budget
  * (`dashboards/layout.css`) counts a glow and a level apart. A card folder that passes `CardFrame` a `level` is listed
  * here too.
+ *
+ * And they hold how the level is drawn (spec/orb.md → One palette, Warn orange): urgent apart from advisory by shape,
+ * never by ink. An urgent card's status-line marker is solid (`data-level="urgent"`), an advisory card draws none solid,
+ * and in a compact row whose one cue is its value (no control, or a reading's figures) an urgent warning takes that
+ * cue behind a solid marker, said once by the status line; a control's row keeps its control.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -53,7 +58,7 @@ import { vacuumSeverity } from "@dashhaus/core/entities/vacuum/severity";
 import { weatherSeverity } from "@dashhaus/core/entities/weather/severity";
 import type { OwletEntity } from "@dashhaus/core/entities/owlet/types";
 
-type Draw<S> = (seed: S, footprint: CardFootprint, open: boolean) => ReactNode;
+type Draw<S> = (seed: S, footprint: CardFootprint, open: boolean, showControl?: boolean) => ReactNode;
 /** What core ranks the seed's entity: the level its card must say. */
 type Level<S> = (seed: S) => Severity | undefined;
 interface Card { seeds: readonly { entity: { name: string } }[]; draw: Draw<never>; level: Level<never> }
@@ -63,27 +68,27 @@ const card = <S extends { entity: { name: string } }>(seeds: Readonly<Record<str
 /** A sock's readings stopped: core's `stale`, as its card works it out (live false while it still reads anything). */
 const owletStale = (e: OwletEntity) => e.live === false && !(e.state === "unavailable" && e.heartRate == null && e.oxygen == null);
 
-function Alarm({ seed, footprint, open }: { seed: AlarmSeed; footprint: CardFootprint; open: boolean }) {
-  return <AlarmTile {...useDemoAlarm(seed)} footprint={footprint} defaultOpen={open} readOnly={seed.readOnly} />;
+function Alarm({ seed, footprint, open, showControl }: { seed: AlarmSeed; footprint: CardFootprint; open: boolean; showControl?: boolean }) {
+  return <AlarmTile {...useDemoAlarm(seed)} footprint={footprint} showControl={showControl} defaultOpen={open} readOnly={seed.readOnly} />;
 }
 
-function Cover({ seed, footprint, open }: { seed: CoverSeed; footprint: CardFootprint; open: boolean }) {
-  return <CoverTile {...useDemoCover(seed)} footprint={footprint} defaultOpen={open} />;
+function Cover({ seed, footprint, open, showControl }: { seed: CoverSeed; footprint: CardFootprint; open: boolean; showControl?: boolean }) {
+  return <CoverTile {...useDemoCover(seed)} footprint={footprint} showControl={showControl} defaultOpen={open} />;
 }
 
 /** Every card folder that draws a warn marker, with its seeds and how a story draws them. */
 const CARDS: Record<string, Card> = {
-  alarm: card(ALARM_SEEDS, ALARM_WORST_CASE, (seed) => alarmSeverity(seed.entity), (seed, footprint, open) => <Alarm seed={seed} footprint={footprint} open={open} />),
-  binarySensor: card(BINARY_SENSOR_SEEDS, BINARY_SENSOR_WORST_CASE, (seed) => binarySensorSeverity(seed.entity), (seed, footprint, open) => <DemoBinarySensorTile seed={seed} footprint={footprint} defaultOpen={open} />),
-  cover: card(COVER_SEEDS, COVER_WORST_CASE, (seed) => coverSeverity(seed.entity), (seed, footprint, open) => <Cover seed={seed} footprint={footprint} open={open} />),
-  dyson: card(DYSON_SEEDS, DYSON_WORST_CASE, (seed) => dysonSeverity(seed.entity), (seed, footprint, open) => <DemoDysonTile seed={seed} footprint={footprint} defaultOpen={open} />),
-  lock: card(LOCK_SEEDS, LOCK_WORST_CASE, (seed) => lockSeverity(seed.entity), (seed, footprint, open) => <DemoLockTile seed={seed} footprint={footprint} defaultOpen={open} />),
-  numeric: card(NUMERIC_SEEDS, NUMERIC_WORST_CASE, (seed) => numericSeverity(seed.entity), (seed, footprint, open) => <DemoNumericTile seed={seed} footprint={footprint} defaultOpen={open} />),
-  owlet: card(OWLET_SEEDS, OWLET_WORST_CASE, (seed) => owletSeverity(seed.entity.alerts, owletStale(seed.entity)), (seed, footprint, open) => <DemoOwletTile seed={seed} footprint={footprint} defaultOpen={open} />),
-  sensor: card(SENSOR_SEEDS, SENSOR_WORST_CASE, (seed) => sensorSeverity(seed.entity), (seed, footprint, open) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} defaultOpen={open} />),
-  vacuum: card(VACUUM_SEEDS, VACUUM_WORST_CASE, (seed) => vacuumSeverity(seed.entity), (seed, footprint, open) => <DemoVacuumTile seed={seed} footprint={footprint} defaultOpen={open} />),
-  weather: card(WEATHER_SEEDS, WEATHER_WORST_CASE, (seed) => weatherSeverity(seed.entity), (seed, footprint, open) =>
-    <WeatherTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} defaultOpen={open} />),
+  alarm: card(ALARM_SEEDS, ALARM_WORST_CASE, (seed) => alarmSeverity(seed.entity), (seed, footprint, open, showControl) => <Alarm seed={seed} footprint={footprint} open={open} showControl={showControl} />),
+  binarySensor: card(BINARY_SENSOR_SEEDS, BINARY_SENSOR_WORST_CASE, (seed) => binarySensorSeverity(seed.entity), (seed, footprint, open, showControl) => <DemoBinarySensorTile seed={seed} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  cover: card(COVER_SEEDS, COVER_WORST_CASE, (seed) => coverSeverity(seed.entity), (seed, footprint, open, showControl) => <Cover seed={seed} footprint={footprint} open={open} showControl={showControl} />),
+  dyson: card(DYSON_SEEDS, DYSON_WORST_CASE, (seed) => dysonSeverity(seed.entity), (seed, footprint, open, showControl) => <DemoDysonTile seed={seed} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  lock: card(LOCK_SEEDS, LOCK_WORST_CASE, (seed) => lockSeverity(seed.entity), (seed, footprint, open, showControl) => <DemoLockTile seed={seed} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  numeric: card(NUMERIC_SEEDS, NUMERIC_WORST_CASE, (seed) => numericSeverity(seed.entity), (seed, footprint, open, showControl) => <DemoNumericTile seed={seed} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  owlet: card(OWLET_SEEDS, OWLET_WORST_CASE, (seed) => owletSeverity(seed.entity.alerts, owletStale(seed.entity)), (seed, footprint, open, showControl) => <DemoOwletTile seed={seed} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  sensor: card(SENSOR_SEEDS, SENSOR_WORST_CASE, (seed) => sensorSeverity(seed.entity), (seed, footprint, open, showControl) => <SensorTile entity={seed.entity} history={seed.history} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  vacuum: card(VACUUM_SEEDS, VACUUM_WORST_CASE, (seed) => vacuumSeverity(seed.entity), (seed, footprint, open, showControl) => <DemoVacuumTile seed={seed} footprint={footprint} showControl={showControl} defaultOpen={open} />),
+  weather: card(WEATHER_SEEDS, WEATHER_WORST_CASE, (seed) => weatherSeverity(seed.entity), (seed, footprint, open, showControl) =>
+    <WeatherTile entity={seed.entity} history={seed.history} hourly={seed.hourly} daily={seed.daily} footprint={footprint} showControl={showControl} defaultOpen={open} />),
 };
 
 const FOOTPRINTS: CardFootprint[] = ["compact", "standard", "featured"];
@@ -101,8 +106,11 @@ const drawsLevels = readdirSync(dir, { withFileTypes: true }).filter((d) => d.is
     .filter((file) => /\.tsx?$/.test(file) && !/\.(test|stories)\.tsx?$/.test(file))
     .some((file) => /\blevel=\{/.test(readFileSync(join(dir, name, file), "utf8"))));
 
-/** Every warn marker's label in the document, the sheet's among them. */
-const labels = () => [...document.querySelectorAll(".hd-alert-cue")].map((cue) => cue.getAttribute("aria-label") ?? "");
+/**
+ * Every warn marker's label in the document, the sheet's among them. A marker hidden from screen readers repeats one
+ * the same row already says (an urgent warning in a compact row's cue), so it has none.
+ */
+const labels = () => [...document.querySelectorAll(".hd-alert-cue:not([aria-hidden])")].map((cue) => cue.getAttribute("aria-label") ?? "");
 
 afterEach(cleanup);
 
@@ -158,6 +166,42 @@ describe("Orb's card says core's level, and a card with one never glows", () => 
         }
       }
       expect(said.size, "no seed draws a level").toBeGreaterThan(0);
+      expect(wrong).toEqual([]);
+    });
+  }
+});
+
+describe("Orb draws urgent apart from advisory by shape, not by ink", () => {
+  for (const [name, { seeds, draw, level }] of Object.entries(CARDS)) {
+    it(`${name}: an urgent marker is solid, an advisory one outlined, and urgent takes a value row's cue`, () => {
+      const wrong: string[] = [];
+      for (const seed of seeds) {
+        const expected = level(seed as never);
+        const drawings = [
+          ...FOOTPRINTS.map((footprint) => [footprint, false, undefined] as const),
+          ["compact", false, false] as const,
+          ["standard", true, undefined] as const,
+        ];
+        for (const [footprint, open, showControl] of drawings) {
+          render(<>{draw(seed as never, footprint, open, showControl)}</>);
+          for (const article of document.querySelectorAll<HTMLElement>("article.hd")) {
+            const sheet = article.classList.contains("hd--sheet");
+            const where = `${seed.entity.name} (${sheet ? "sheet" : `${footprint}${showControl === false ? ", no control" : ""}`})`;
+            const status = [...article.querySelectorAll(".hd-area .hd-alert-cue")];
+            const solid = article.querySelectorAll('.hd-alert-cue[data-level="urgent"]').length;
+            if (expected === "urgent" && status.some((cue) => cue.getAttribute("data-level") !== "urgent")) wrong.push(`${where}: an urgent status line's marker isn't solid`);
+            if (expected === "advisory" && solid) wrong.push(`${where}: an advisory card draws a solid marker`);
+
+            const cue = article.querySelector(".hd-slot .hd-alert-cue");
+            const valueRow = footprint === "compact" && !sheet && (showControl === false || article.dataset.role === "reading");
+            const takes = expected === "urgent" && valueRow && article.dataset.state !== "unavailable";
+            if (takes && cue?.getAttribute("data-level") !== "urgent") wrong.push(`${where}: an urgent warning doesn't take the row's cue`);
+            if (takes && cue?.getAttribute("aria-hidden") !== "true") wrong.push(`${where}: the row's cue says the warning a second time`);
+            if (!takes && cue) wrong.push(`${where}: the slot draws a marker`);
+          }
+          cleanup();
+        }
+      }
       expect(wrong).toEqual([]);
     });
   }

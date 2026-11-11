@@ -165,16 +165,23 @@ export function SheetClose({ label, onClick, focusOnOpen = true }: { label: stri
   );
 }
 
-function AlertCue({ label }: { label: string }) {
+/** The warn marker: outlined, or solid for an urgent warning (`data-level`). Without a label it repeats one already said. */
+function AlertCue({ label, level }: { label?: string; level?: Severity }) {
   return (
-    <span className="hd-alert-cue" role="img" aria-label={label}>
+    <span className="hd-alert-cue" data-level={level} {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}>
       <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" /><path d="M7 3.8v4.1M7 10.3h.01" /></svg>
     </span>
   );
 }
 
-export function AlertStatus({ label, children }: { label: string; children: ReactNode }) {
-  return <><AlertCue label={label} /><span className="hd-warn">{timed(children)}</span></>;
+/**
+ * A warning behind the warn marker, in warn ink. The marker is drawn by shape, never by a second ink: outlined, and
+ * solid where the warning is urgent (spec/orb.md → Warn orange). Its level is the card's (`CardFrame`'s `level`) unless
+ * given, for a list of warnings each at its own (an owlet sheet's alerts).
+ */
+export function AlertStatus({ label, level, children }: { label: string; level?: Severity; children: ReactNode }) {
+  const frame = useContext(FrameContext);
+  return <><AlertCue label={label} level={level ?? frame.level} /><span className="hd-warn">{timed(children)}</span></>;
 }
 
 /**
@@ -783,7 +790,7 @@ export function detailsTile<P extends CardProps>(Card: ComponentType<P>, Details
    its control and its blocks; the frame draws where they go. */
 
 /** What the frame tells the blocks in it: whether they are in the sheet, and whether the entity is unavailable. */
-const FrameContext = createContext<{ sheet: boolean; unavailable: boolean; lastSeen?: string }>({ sheet: false, unavailable: false });
+const FrameContext = createContext<{ sheet: boolean; unavailable: boolean; lastSeen?: string; level?: Severity }>({ sheet: false, unavailable: false });
 
 /** The large readout in the head: a figure, or the control's own word repeated where the control isn't shown. */
 export interface CardReadout {
@@ -808,7 +815,9 @@ export interface CardFrameProps {
   /**
    * How much the card's warning may claim, as core ranks it (`packages/core/src/entities/severity.ts`): written on the
    * article as `data-level`, as Field's module writes it, for the dashboard's attention budget (`dashboards/layout.css`).
-   * It draws nothing itself; the card's marker or alarm says it. A card with a level never glows (spec/orb.md →
+   * The card's marker or alarm says it: an urgent warning's marker is solid, and in a compact row whose cue is its value
+   * (no control, or a reading's figures) the warning takes that cue (its `warning` behind the marker, so give `alert` with it).
+   * A card with a level never glows (spec/orb.md →
    * Composing for a glance), and the frame doesn't strip one: `paint()` is given no glow.
    */
   level?: Severity;
@@ -832,6 +841,8 @@ export interface CardFrameProps {
   value: ReactNode;
   /** A compact value that warns: its marker's spoken label. */
   alert?: string | null;
+  /** An urgent warning's words, where they take a compact row's cue and aren't its `value` (an owlet's). Default `value`. */
+  warning?: ReactNode;
   /** The value in place of a hidden control. Default `value`. */
   bareValue?: ReactNode;
   readout?: CardReadout;
@@ -890,13 +901,25 @@ function useSlotChange(kind: string | undefined) {
   return slotRef;
 }
 
-export function CardFrame({ card, name, attrs, level, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotKind, facts, children }: CardFrameProps) {
+export function CardFrame({ card, name, attrs, level, orb, glyph, unavailable = false, lastSeen, unavailableWord, onOpen, openHint, status, statusTitle, value, alert, warning = value, bareValue = value, readout, onClose, closeLabel, closeFocus = true, control, urgent, slot = true, slotKind, facts, children }: CardFrameProps) {
   const { article, nameId, sheet, compact, bare } = card;
   const slotRef = useSlotChange(slotKind);
   const open = sheet ? undefined : onOpen;
-  const shown = urgent ?? (bare ? <p className="hd-val">{bareValue}</p> : unavailable ? <UnavailableSlot lastSeen={lastSeen} word={unavailableWord} /> : control);
+  // A compact row has one cue (spec/orb.md → Compact cards carry their own identity). Where it is the row's value (no
+  // control, or a reading's figures), an urgent warning takes it, the status line still leading with it; a control
+  // keeps its place, since it is what to do. The marker here repeats the status line's, so it is said there once.
+  const reading = attrs["data-role"] === "reading";
+  const warnCue = compact && !sheet && level === "urgent" && !!alert && !unavailable && (bare || reading)
+    ? <><AlertCue level={level} /><span className="hd-warn">{timed(warning)}</span></>
+    : null;
+  const shown = urgent
+    ?? (warnCue && bare ? <p className="hd-val">{warnCue}</p>
+      : warnCue ? <Readout label={alert!} onOpen={open}>{warnCue}</Readout>
+      : bare ? <p className="hd-val">{bareValue}</p>
+      : unavailable ? <UnavailableSlot lastSeen={lastSeen} word={unavailableWord} />
+      : control);
   return (
-    <FrameContext.Provider value={{ sheet, unavailable, lastSeen }}>
+    <FrameContext.Provider value={{ sheet, unavailable, lastSeen, level }}>
       <article {...article} {...attrs} data-level={level}>
         <header className="hd-head">
           {orb

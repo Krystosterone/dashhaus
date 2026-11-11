@@ -25,6 +25,7 @@ The spec wording is `spec/orb.md` → Dashboards → "Composing for a glance"; t
 | Later active card, routine | Damped glow (`--glow-later`, 0.5, in `layout.css`) |
 | Any glowing card in a container with an urgent or alarm card | `--glow-yield` (`--glow-damp-under-alert`, 1 today: no change until the scan-task comparison) |
 | Card with a level (advisory, urgent, alarm), anywhere | Warn marker (status line first, warn colour), or the alarm's fill — never a glow; `data-level` on its article |
+| Urgent against advisory | By shape, never a second ink: the advisory marker outlined, the urgent marker solid; in a compact row whose cue is its value, the urgent warning takes that cue |
 | Compact card, any state | No glow, no bloom; the solid accent for on |
 | Important state change | Non-colour cue required: text, icon, position, or state motion |
 

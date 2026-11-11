@@ -89,10 +89,10 @@ function PlainTrack({ id, initial, lit = true }: { id: string; initial: number; 
 
 /**
  * The card frame on its own, drawing a lamp's words, orb and pill as a card hands them over; a state passes what it
- * shows on top. `footprint` and `variant` are `useCard`'s.
+ * shows on top. `footprint`, `variant` and `showControl` are `useCard`'s.
  */
-function Frame({ footprint = "standard", variant = "card", ...props }: Partial<Omit<CardFrameProps, "card">> & { footprint?: CardFootprint; variant?: "card" | "sheet" }) {
-  const card = useCard("pt", { variant, footprint });
+function Frame({ footprint = "standard", variant = "card", showControl, ...props }: Partial<Omit<CardFrameProps, "card">> & { footprint?: CardFootprint; variant?: "card" | "sheet"; showControl?: boolean }) {
+  const card = useCard("pt", { variant, footprint, showControl });
   return (
     <CardFrame
       card={card}
@@ -169,13 +169,17 @@ function AllParts() {
         <State label="Its slot changes: tap the orb" width={300}><SlotChange /></State>
         <State label="Unavailable, saying why" width={300}><Frame unavailable unavailableWord="Charging" lastSeen="10:42" attrs={{ "data-state": "unavailable", ...paint("energy", 0) }} /></State>
         <State label="Its own hint: the name reads “Desk lamp settings”" width={300}><Frame openHint="settings" /></State>
+        <State label="Compact, its control hidden: an urgent warning takes the value, in its own words" width={380}>
+          <Frame footprint="compact" showControl={false} level="urgent" status={<AlertStatus label="Warning: Desk lamp: Overheating, turned down to 40%">Overheating · turned down to 40%</AlertStatus>} value="Overheating · turned down to 40%" alert="Warning: Desk lamp: Overheating, turned down to 40%" warning="Overheating" />
+        </State>
         <State label="In its sheet, its own close label" width={340}><Frame variant="sheet" closeLabel="Close Desk lamp details" closeFocus={false} onClose={() => {}} /></State>
       </Part>
 
-      <Part name="Card title" rule="The name, and the button that opens details when the card has them, marked by a chevron. Warnings ride under it as text with a cue.">
+      <Part name="Card title" rule="The name, and the button that opens details when the card has them, marked by a chevron. Warnings ride under it as text with a cue: outlined, or solid for an urgent one.">
         <State label="Opens details" width={220}><CardTitle id="parts-title-open" name="Living room lamp" onOpen={() => {}}><p className="hd-area">Living room</p></CardTitle></State>
         <State label="No details" width={220}><CardTitle id="parts-title-plain" name="Living room lamp"><p className="hd-area">Living room</p></CardTitle></State>
-        <State label="Warning" width={220}><CardTitle id="parts-title-warn" name="Front door"><p className="hd-area"><AlertStatus label="Warning">Open 25 min</AlertStatus></p></CardTitle></State>
+        <State label="Warning, advisory: the marker outlined" width={220}><CardTitle id="parts-title-warn" name="Front door"><p className="hd-area"><AlertStatus label="Warning: Front door: Open 25 min" level="advisory">Open 25 min</AlertStatus></p></CardTitle></State>
+        <State label="Warning, urgent: the marker solid" width={220}><CardTitle id="parts-title-urgent" name="Side door"><p className="hd-area"><AlertStatus label="Warning: Side door: Jammed, it may not be locked" level="urgent">Jammed</AlertStatus></p></CardTitle></State>
       </Part>
 
       <Part name="Toggle pill" rule="A full-width button: raised when off, the accent when on. A unit whose status already says Off gets the quieter Turn on. One with nothing to do now (a step at its bound) lies flat, disabled. Its words end in an ellipsis, never cut at its edge; what a press does is whole, the state giving way before it, and under 260 px the pill says the press alone, its card's status line saying the state it dropped (Said).">

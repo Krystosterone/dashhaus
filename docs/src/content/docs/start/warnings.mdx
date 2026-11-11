@@ -35,6 +35,10 @@ unlocked door is a state, however long it lasts. The alert sensors and their nam
   "Battery 12%", "Jammed · may not be locked", "Open since 10:20". A screen reader hears it as a warning with the card's
   name first, "Warning: Porch: Battery 12%, replace soon", so it knows whose it is. Where a card has several, the most urgent leads with a count of the rest ("Hazardous air +2"), and its sheet names every one.
   Compact rows keep the mark.
+- **Act soon fills the mark.** The mark is an outline for a problem that can wait and solid for one to act on soon
+  (a jammed lock, a leak, the entry delay), in the same orange, so the two differ by shape and still read without
+  colour. In a compact row whose right side shows a value (a sensor's reading, or a row with its control hidden), a
+  problem to act on soon takes that place too: a leak sensor's row says "Leak detected" where it said "Wet". A row's control stays where it is.
 - **Only an alarm that has gone off fills.** A triggered alarm's pill fills orange and pulses gently; an Owlet vitals
   alert fills the card's control the same way and names every alert sounding, the most urgent first, with its figure:
   "Low oxygen · 84% O₂". Under reduced motion they hold still.
