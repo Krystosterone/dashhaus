@@ -12,7 +12,8 @@
  *
  * It reads the custom property rather than the glow layer's opacity, so it never waits on the layer's 300 ms fade: a
  * probe inside the card evaluates `--glow-damp` as an opacity, since a custom property's computed value is its
- * unevaluated `calc()`. The values are layout.css's; change them only with it (src/skins/orb/styles/rules.test.ts).
+ * unevaluated `calc()`. The values are layout.css's; change them only with it (src/skins/orb/styles/rules.test.ts). A
+ * story that sets one on its page for a comparison (Orb → Foundations → Scan task) gives it as `parameters.glowBudget`.
  */
 export const GLOW_BUDGET = { later: 0.5, underAlert: 1 };
 

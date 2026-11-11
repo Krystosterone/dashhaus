@@ -228,7 +228,8 @@ const config: TestRunnerConfig = {
       return [...new Set(text.match(/(?<![\d:.])(?:0\d|1[3-9]|2[0-3]):[0-5]\d(?![\d:])/g) ?? [])];
     });
     if (clocks.length) throw new Error(`A story on two clocks: 12-hour times beside ${clocks.join(", ")}`);
-    const glows = await page.evaluate(glowCensus, GLOW_BUDGET);
+    // A story may draw the budget at other values than layout.css's (Orb → Foundations → Scan task), and says which.
+    const glows = await page.evaluate(glowCensus, { ...GLOW_BUDGET, ...parameters.glowBudget });
     if (glows.length) throw new Error(`Orb's attention budget\n  ${glows.join("\n  ")}`);
     // The runner renders every story of a file in the same page, so axe (half a megabyte of script) is injected once
     // per page rather than once per story; a page that was reloaded has lost it and gets it again.

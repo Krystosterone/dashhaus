@@ -12,8 +12,8 @@ import { DemoBinarySensorTile as BinarySensor } from "../cards/binarySensor/demo
  * The attention budget (spec/orb.md → Composing for a glance; .agents/skills/attention-budget), each case on its own in
  * a one-column section, where it applies: the first glowing card full, each later one at half, compact quiet, and a
  * pressing card (urgent or alarm) yielding every glow in its container by a factor that is 1 until the scan-task
- * comparison sets it. Nothing here looks different from main; it is where that comparison runs, and the Storybook run's
- * glow census (.storybook/glow-census.ts) measures every case. The same budget in a one-track Lovelace row is
+ * comparison sets it. Nothing here looks different from main; the comparison itself runs on Orb → Foundations → Scan
+ * task, and the Storybook run's glow census (.storybook/glow-census.ts) measures every case. The same budget in a one-track Lovelace row is
  * Orb → Dashboards → Lovelace card → One-track row, beside the Lovelace card, since only a skin's lovelace/ may reach the
  * demo house.
  */
