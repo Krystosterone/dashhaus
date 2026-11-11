@@ -1,6 +1,6 @@
 {
   "name": "create-dashhaus-skin",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "license": "MIT",
   "description": "Start your own Dashhaus skin: a standalone project with a control card, a reading card and its Lovelace card, on @dashhaus/core.",
